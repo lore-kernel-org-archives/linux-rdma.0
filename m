@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 25/36] IB/rdmavt: Add the start of capability flags
-Date: Wed, 06 Jan 2016 10:03:07 -0800
-Message-ID: <20160106180305.8747.31058.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v3 23/36] IB/rdmavt: Move driver helper functions to a
+ common structure
+Date: Wed, 06 Jan 2016 10:02:52 -0800
+Message-ID: <20160106180246.8747.21739.stgit@scvm10.sc.intel.com>
 References: <20160106174638.8747.47197.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,47 +14,76 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Drivers will need a set of flags to dictate behavior to rdmavt. This patch
-adds a placeholder and a spot for it to live, as well as a few flags
-that will be used.
+Drivers are going to need to provide multiple functions for rdmavt to
+call in to. We already have one, so go ahead and push this into a
+data structure designated for driver supplied functions.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/rdma_vt.h |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |    6 +++++-
+ include/rdma/rdma_vt.h            |   22 +++++++++++++++-------
+ 2 files changed, 20 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 367bc45..b4ce97e 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -280,8 +280,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	spin_lock_init(&rdi->n_pds_lock);
+ 	rdi->n_pds_allocated = 0;
+ 
++	/* Validate that drivers have provided the right functions */
++	if (!rdi->driver_f.port_callback)
++		return -EINVAL;
++
+ 	/* We are now good to announce we exist */
+-	return ib_register_device(&rdi->ibdev, rdi->port_callback);
++	return ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
+ }
+ EXPORT_SYMBOL(rvt_register_device);
+ 
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 4b83770..b44ac17 100644
+index 9baa7f0..e0beedc 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -56,6 +56,16 @@
- #include "ib_verbs.h"
- 
- /*
-+ * For some of the IBTA objects there will likely be some
-+ * initializations required. We need flags to determine whether it is OK
-+ * for rdmavt to do this or not. This does not imply any functions of a
-+ * partiuclar IBTA object are overridden.
-+ */
-+#define RVT_FLAG_MR_INIT_DRIVER BIT(1)
-+#define RVT_FLAG_QP_INIT_DRIVER BIT(2)
-+#define RVT_FLAG_CQ_INIT_DRIVER BIT(3)
-+
-+/*
-  * For Memory Regions. This stuff should probably be moved into rdmavt/mr.h once
-  * drivers no longer need access to the MR directly.
-  */
-@@ -429,6 +439,8 @@ struct rvt_dev_info {
- 	/* Internal use */
- 	int n_pds_allocated;
- 	spinlock_t n_pds_lock; /* Protect pd allocated count */
-+
-+	int flags;
+@@ -383,6 +383,19 @@ struct rvt_driver_params {
+ 	 */
  };
  
- static inline struct rvt_pd *ibpd_to_rvtpd(struct ib_pd *ibpd)
++/*
++ * Functions that drivers are required to support
++ */
++struct rvt_driver_provided {
++	/*
++	 * The work to create port files in /sys/class Infiniband is different
++	 * depending on the driver. This should not be extracted away and
++	 * instead drivers are responsible for setting the correct callback for
++	 * this.
++	 */
++	int (*port_callback)(struct ib_device *, u8, struct kobject *);
++};
++
+ /* Protection domain */
+ struct rvt_pd {
+ 	struct ib_pd ibpd;
+@@ -407,13 +420,8 @@ struct rvt_dev_info {
+ 
+ 	/* PKey Table goes here */
+ 
+-	/*
+-	 * The work to create port files in /sys/class Infiniband is different
+-	 * depending on the driver. This should not be extracted away and
+-	 * instead drivers are responsible for setting the correct callback for
+-	 * this.
+-	 */
+-	int (*port_callback)(struct ib_device *, u8, struct kobject *);
++	/* Driver specific helper functions */
++	struct rvt_driver_provided driver_f;
+ 
+ 	/* Internal use */
+ 	int n_pds_allocated;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
