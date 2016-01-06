@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/6] IB/rdmavt: Add IB user context allocation and
- de-alloction functions
-Date: Wed, 06 Jan 2016 10:15:00 -0800
-Message-ID: <20160106181500.3238.75268.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 4/6] IB/rdmavt: Export reset_qp in rdmavt
+Date: Wed, 06 Jan 2016 10:15:16 -0800
+Message-ID: <20160106181516.3238.71696.stgit@scvm10.sc.intel.com>
 References: <20160106181226.3238.98769.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,63 +13,75 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Adding IB user context alloc and dealloc functions to rdmavt so that the
-drivers that use rdmavt can use these functions instead of defining their
-own functions.
+Until all queue pair functionality is moved to rdmavt we need to provide
+access to the reset function. This is only temporary and will be reverted
+back to a static, non exported function in the end.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |    7 ++++---
+ include/rdma/rdma_vt.h            |    3 +++
+ include/rdma/rdmavt_qp.h          |    1 +
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 18b5f43..df2df36 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -189,6 +189,16 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
- 	return -EOPNOTSUPP;
- }
- 
-+struct rvt_ucontext {
-+	struct ib_ucontext ibucontext;
-+};
-+
-+static inline struct rvt_ucontext *to_iucontext(struct ib_ucontext
-+						*ibucontext)
-+{
-+	return container_of(ibucontext, struct rvt_ucontext, ibucontext);
-+}
-+
- /**
-  * rvt_alloc_ucontext - Allocate a user context
-  * @ibdev: Vers IB dev
-@@ -197,7 +207,12 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
- static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
- 					      struct ib_udata *udata)
- {
--	return ERR_PTR(-EOPNOTSUPP);
-+	struct rvt_ucontext *context;
-+
-+	context = kmalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
-+		return ERR_PTR(-ENOMEM);
-+	return &context->ibucontext;
- }
- 
- /**
-@@ -206,7 +221,8 @@ static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 7d1f02e..44485ad 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -357,8 +357,8 @@ static void free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
+  * @qp: the QP to reset
+  * @type: the QP type
   */
- static int rvt_dealloc_ucontext(struct ib_ucontext *context)
+-static void reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+-		     enum ib_qp_type type)
++void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
++		  enum ib_qp_type type)
  {
--	return -EOPNOTSUPP;
-+	kfree(to_iucontext(context));
-+	return 0;
+ 	qp->remote_qpn = 0;
+ 	qp->qkey = 0;
+@@ -409,6 +409,7 @@ static void reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 	}
+ 	qp->r_sge.num_sge = 0;
  }
++EXPORT_SYMBOL(rvt_reset_qp);
  
- static int rvt_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ /**
+  * rvt_create_qp - create a queue pair for a device
+@@ -543,7 +544,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
+ 		}
+ 		qp->ibqp.qp_num = err;
+ 		qp->port_num = init_attr->port_num;
+-		reset_qp(rdi, qp, init_attr->qp_type);
++		rvt_reset_qp(rdi, qp, init_attr->qp_type);
+ 		break;
+ 
+ 	default:
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 3bdeac7..e412e67 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -338,4 +338,7 @@ struct rvt_mmap_info *rvt_create_mmap_info(struct rvt_dev_info *rdi,
+ void rvt_update_mmap_info(struct rvt_dev_info *rdi, struct rvt_mmap_info *ip,
+ 			  u32 size, void *obj);
+ 
++/* Temporary export */
++void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
++		  enum ib_qp_type type);
+ #endif          /* DEF_RDMA_VT_H */
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 1aa8b5b..bce0a03 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -48,6 +48,7 @@
+  *
+  */
+ 
++#include <rdma/rdma_vt.h>
+ #include <rdma/ib_pack.h>
+ /*
+  * Atomic bit definitions for r_aflags.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
