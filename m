@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 13/36] IB/rdmavt: Add memory region stubs
-Date: Wed, 06 Jan 2016 09:57:21 -0800
-Message-ID: <20160106175646.8747.29375.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v3 14/36] IB/rdmavt: Add SRQ stubs
+Date: Wed, 06 Jan 2016 09:57:58 -0800
+Message-ID: <20160106175726.8747.3983.stgit@scvm10.sc.intel.com>
 References: <20160106174638.8747.47197.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,8 +13,8 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adds the function stubs for allocating, and registering memory regions, as
-well as deregistering them.
+Adds the stubs for create, modify, query, and destory for shared
+request queues.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -23,34 +23,31 @@ Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@pub
 Changes since v1:
 Change stubs to return EOPNOTSUPP
 
-Changes since v2:
-Remove rvt_reg_phys_mr
-
- drivers/infiniband/sw/rdmavt/Makefile |    2 
- drivers/infiniband/sw/rdmavt/mr.c     |  165 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mr.h     |   69 ++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.c     |   10 ++
+ drivers/infiniband/sw/rdmavt/Makefile |    2 -
+ drivers/infiniband/sw/rdmavt/srq.c    |   86 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/srq.h    |   61 +++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/vt.c     |    6 ++
  drivers/infiniband/sw/rdmavt/vt.h     |    1 
- 5 files changed, 246 insertions(+), 1 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/mr.c
- create mode 100644 drivers/infiniband/sw/rdmavt/mr.h
+ 5 files changed, 155 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.c
+ create mode 100644 drivers/infiniband/sw/rdmavt/srq.h
 
 diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index 628c684..084ee6a 100644
+index 084ee6a..204be84 100644
 --- a/drivers/infiniband/sw/rdmavt/Makefile
 +++ b/drivers/infiniband/sw/rdmavt/Makefile
 @@ -7,4 +7,4 @@
  #
  obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
  
--rdmavt-y := vt.o ah.o dma.o pd.o qp.o
-+rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+-rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o
++rdmavt-y := vt.o ah.o dma.o mr.o pd.o qp.o srq.o
+diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
 new file mode 100644
-index 0000000..c672043
+index 0000000..bbb623a
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -0,0 +1,165 @@
++++ b/drivers/infiniband/sw/rdmavt/srq.c
+@@ -0,0 +1,86 @@
 +/*
 + * Copyright(c) 2015 Intel Corporation.
 + *
@@ -98,132 +95,53 @@ index 0000000..c672043
 + *
 + */
 +
-+#include <linux/slab.h>
-+#include "mr.h"
++#include "srq.h"
 +
 +/**
-+ * rvt_get_dma_mr - get a DMA memory region
-+ * @pd: protection domain for this memory region
-+ * @acc: access flags
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ * Note that all DMA addresses should be created via the
-+ * struct ib_dma_mapping_ops functions (see dma.c).
++ * rvt_create_srq - create a shared receive queue
++ * @ibpd: the protection domain of the SRQ to create
++ * @srq_init_attr: the attributes of the SRQ
++ * @udata: data from libibverbs when creating a user SRQ
 + */
-+struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc)
-+{
-+	/*
-+	 * Alloc mr and init it.
-+	 * Alloc lkey.
-+	 */
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+/**
-+ * rvt_reg_user_mr - register a userspace memory region
-+ * @pd: protection domain for this memory region
-+ * @start: starting userspace address
-+ * @length: length of region to register
-+ * @mr_access_flags: access flags for this memory region
-+ * @udata: unused by the driver
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+			      u64 virt_addr, int mr_access_flags,
++struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
++			      struct ib_srq_init_attr *srq_init_attr,
 +			      struct ib_udata *udata)
 +{
 +	return ERR_PTR(-EOPNOTSUPP);
 +}
 +
 +/**
-+ * rvt_dereg_mr - unregister and free a memory region
-+ * @ibmr: the memory region to free
-+ *
-+ * Returns 0 on success.
-+ *
-+ * Note that this is called to free MRs created by rvt_get_dma_mr()
-+ * or rvt_reg_user_mr().
++ * rvt_modify_srq - modify a shared receive queue
++ * @ibsrq: the SRQ to modify
++ * @attr: the new attributes of the SRQ
++ * @attr_mask: indicates which attributes to modify
++ * @udata: user data for libibverbs.so
 + */
-+int rvt_dereg_mr(struct ib_mr *ibmr)
++int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		   enum ib_srq_attr_mask attr_mask,
++		   struct ib_udata *udata)
 +{
 +	return -EOPNOTSUPP;
 +}
 +
-+/**
-+ * rvt_alloc_mr - Allocate a memory region usable with the
-+ * @pd: protection domain for this memory region
-+ * @mr_type: mem region type
-+ * @max_num_sg: Max number of segments allowed
-+ *
-+ * Return the memory region on success, otherwise return an errno.
-+ */
-+struct ib_mr *rvt_alloc_mr(struct ib_pd *pd,
-+			   enum ib_mr_type mr_type,
-+			   u32 max_num_sg)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+/**
-+ * rvt_alloc_fmr - allocate a fast memory region
-+ * @pd: the protection domain for this memory region
-+ * @mr_access_flags: access flags for this memory region
-+ * @fmr_attr: fast memory region attributes
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_fmr *rvt_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
-+			     struct ib_fmr_attr *fmr_attr)
-+{
-+	return ERR_PTR(-EOPNOTSUPP);
-+}
-+
-+/**
-+ * rvt_map_phys_fmr - set up a fast memory region
-+ * @ibmfr: the fast memory region to set up
-+ * @page_list: the list of pages to associate with the fast memory region
-+ * @list_len: the number of pages to associate with the fast memory region
-+ * @iova: the virtual address of the start of the fast memory region
-+ *
-+ * This may be called from interrupt context.
-+ */
-+
-+int rvt_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
-+		     int list_len, u64 iova)
++int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
 +{
 +	return -EOPNOTSUPP;
 +}
 +
-+/**
-+ * rvt_unmap_fmr - unmap fast memory regions
-+ * @fmr_list: the list of fast memory regions to unmap
-+ *
-+ * Returns 0 on success.
-+ */
-+int rvt_unmap_fmr(struct list_head *fmr_list)
++int rvt_destroy_srq(struct ib_srq *ibsrq)
 +{
 +	return -EOPNOTSUPP;
 +}
 +
-+/**
-+ * rvt_dealloc_fmr - deallocate a fast memory region
-+ * @ibfmr: the fast memory region to deallocate
-+ *
-+ * Returns 0 on success.
-+ */
-+int rvt_dealloc_fmr(struct ib_fmr *ibfmr)
-+{
-+	return -EOPNOTSUPP;
-+}
-diff --git a/drivers/infiniband/sw/rdmavt/mr.h b/drivers/infiniband/sw/rdmavt/mr.h
+diff --git a/drivers/infiniband/sw/rdmavt/srq.h b/drivers/infiniband/sw/rdmavt/srq.h
 new file mode 100644
-index 0000000..f19e9da
+index 0000000..0c3c5a7
 --- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/mr.h
-@@ -0,0 +1,69 @@
-+#ifndef DEF_RVTMR_H
-+#define DEF_RVTMR_H
++++ b/drivers/infiniband/sw/rdmavt/srq.h
+@@ -0,0 +1,61 @@
++#ifndef DEF_RVTSRQ_H
++#define DEF_RVTSRQ_H
 +
 +/*
 + * Copyright(c) 2015 Intel Corporation.
@@ -273,54 +191,42 @@ index 0000000..f19e9da
 + */
 +
 +#include <rdma/rdma_vt.h>
-+
-+/* Mem Regions */
-+struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc);
-+struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+			      u64 virt_addr, int mr_access_flags,
++struct ib_srq *rvt_create_srq(struct ib_pd *ibpd,
++			      struct ib_srq_init_attr *srq_init_attr,
 +			      struct ib_udata *udata);
-+int rvt_dereg_mr(struct ib_mr *ibmr);
-+struct ib_mr *rvt_alloc_mr(struct ib_pd *pd,
-+			   enum ib_mr_type mr_type,
-+			   u32 max_num_sg);
-+struct ib_fmr *rvt_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
-+			     struct ib_fmr_attr *fmr_attr);
-+int rvt_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
-+		     int list_len, u64 iova);
-+int rvt_unmap_fmr(struct list_head *fmr_list);
-+int rvt_dealloc_fmr(struct ib_fmr *ibfmr);
++int rvt_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		   enum ib_srq_attr_mask attr_mask,
++		   struct ib_udata *udata);
++int rvt_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
++int rvt_destroy_srq(struct ib_srq *ibsrq);
 +
-+#endif          /* DEF_RVTMR_H */
++#endif          /* DEF_RVTSRQ_H */
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 6243562..004ca14 100644
+index 004ca14..9b318e9 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -232,6 +232,16 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+@@ -232,6 +232,12 @@ int rvt_register_device(struct rvt_dev_info *rdi)
  	CHECK_DRIVER_OVERRIDE(rdi, modify_ah);
  	CHECK_DRIVER_OVERRIDE(rdi, query_ah);
  
-+	/* Mem Region */
-+	CHECK_DRIVER_OVERRIDE(rdi, get_dma_mr);
-+	CHECK_DRIVER_OVERRIDE(rdi, reg_user_mr);
-+	CHECK_DRIVER_OVERRIDE(rdi, dereg_mr);
-+	CHECK_DRIVER_OVERRIDE(rdi, alloc_mr);
-+	CHECK_DRIVER_OVERRIDE(rdi, alloc_fmr);
-+	CHECK_DRIVER_OVERRIDE(rdi, map_phys_fmr);
-+	CHECK_DRIVER_OVERRIDE(rdi, unmap_fmr);
-+	CHECK_DRIVER_OVERRIDE(rdi, dealloc_fmr);
++	/* Shared Receive Queue */
++	CHECK_DRIVER_OVERRIDE(rdi, create_srq);
++	CHECK_DRIVER_OVERRIDE(rdi, modify_srq);
++	CHECK_DRIVER_OVERRIDE(rdi, destroy_srq);
++	CHECK_DRIVER_OVERRIDE(rdi, query_srq);
 +
- 	/* DMA Operations */
- 	rdi->ibdev.dma_ops =
- 		rdi->ibdev.dma_ops ? : &rvt_default_dma_mapping_ops;
+ 	/* Mem Region */
+ 	CHECK_DRIVER_OVERRIDE(rdi, get_dma_mr);
+ 	CHECK_DRIVER_OVERRIDE(rdi, reg_user_mr);
 diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 96072cd..78b9549 100644
+index 78b9549..5019534 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.h
 +++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -53,5 +53,6 @@
- #include "pd.h"
+@@ -54,5 +54,6 @@
  #include "qp.h"
  #include "ah.h"
-+#include "mr.h"
+ #include "mr.h"
++#include "srq.h"
  
  #endif          /* DEF_RDMAVT_H */
 
