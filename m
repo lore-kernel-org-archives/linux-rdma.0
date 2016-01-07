@@ -1,54 +1,170 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv1 0/6] rdma controller support
-Date: Fri, 8 Jan 2016 02:40:02 +0530
-Message-ID: <CAG53R5XZfhgZh325=SQyNJr=Cz=AB_ay=Np6Cbm5kh4PSCfpQw@mail.gmail.com>
-References: <CAG53R5XQaUz=vJCEqLwGt93CC1YMnVQ=k4DuRU0nspcb_-+_6g@mail.gmail.com>
-	<20160107150718.GC29797@mtj.duckdns.org>
-	<CAG53R5WwdRwb0XyAMGMey4JaDGUntJ9=m_ZToFkygboZxfMQ6A@mail.gmail.com>
-	<20160107200604.GE1898@mtj.duckdns.org>
-	<CAG53R5Xy8avVVvfGjgYOJSVRNFOHpiHXrQeEeb41EP4hy370QQ@mail.gmail.com>
-	<20160107203425.GG1898@mtj.duckdns.org>
-	<CAG53R5V80hY2SLrt3-GNeQ-wr+0aFM7sNJLvUGuy70t5dc8yOA@mail.gmail.com>
-	<20160107204921.GI1898@mtj.duckdns.org>
-	<20160107205042.GJ1898@mtj.duckdns.org>
-	<CAG53R5WVJoO1Dd9vJ+zeiskQsttSbOpW+uyfay-oJFELd-FK2Q@mail.gmail.com>
-	<20160107210752.GK1898@mtj.duckdns.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: fix mcast detach when qp not attached
+Date: Thu, 07 Jan 2016 16:44:10 -0500
+Message-ID: <20160107214410.12728.82007.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160107210752.GK1898@mtj.duckdns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 8, 2016 at 2:37 AM, Tejun Heo <tj@kernel.org> wrote:
-> On Fri, Jan 08, 2016 at 02:31:26AM +0530, Parav Pandit wrote:
->> On Fri, Jan 8, 2016 at 2:20 AM, Tejun Heo <tj@kernel.org> wrote:
->> > Ooh, btw, please don't bother to create separate interfaces for v1 and
->> > v2 hierarchies.  Just creating one following v2 conventions and using
->> > the same thing for v1 should do and is a lot easier for everybody.
->> >
->> Sure. I have already made that change to remove list.
->> and changed rdma.resource.verb.limit to rdma.verb.max etc.
->>
->> I will keep rdma.hw.max around until we get some consensus.
->>
->> Alternatively I was thinking to merge that as another attribute in
->> rdma.max file, like
->>
->> mlx4_0 verb ah=max pd=10 qp=10
->> mlx4_0 hw ah=10 pd=100
->> ocrdma hw ah=10 pd=100
->>
->> This remove hw specific extra file for rare feature.
->
-> Hmm... if there are duplicate keys, I think rdma.verb.max and
-> rdma.hw.max would be cleaner.
->
-ok. I agree. I will keep as you described.
+The code produces the following trace:
 
-> Thanks.
->
-> --
-> tejun
+[1750924.419007] general protection fault: 0000 [#3] SMP
+[1750924.420364] Modules linked in: nfnetlink autofs4 rpcsec_gss_krb5 nfsv4
+dcdbas rfcomm bnep bluetooth nfsd auth_rpcgss nfs_acl dm_multipath nfs lockd
+scsi_dh sunrpc fscache radeon ttm drm_kms_helper drm serio_raw parport_pc
+ppdev i2c_algo_bit lpc_ich ipmi_si ib_mthca ib_qib dca lp parport ib_ipoib
+mac_hid ib_cm i3000_edac ib_sa ib_uverbs edac_core ib_umad ib_mad ib_core
+ib_addr tg3 ptp dm_mirror dm_region_hash dm_log psmouse pps_core
+[1750924.420364] CPU: 1 PID: 8401 Comm: python Tainted: G D
+3.13.0-39-generic #66-Ubuntu
+[1750924.420364] Hardware name: Dell Computer Corporation PowerEdge
+860/0XM089, BIOS A04 07/24/2007
+[1750924.420364] task: ffff8800366a9800 ti: ffff88007af1c000 task.ti:
+ffff88007af1c000
+[1750924.420364] RIP: 0010:[<ffffffffa0131d51>] [<ffffffffa0131d51>]
+qib_mcast_qp_free+0x11/0x50 [ib_qib]
+[1750924.420364] RSP: 0018:ffff88007af1dd70  EFLAGS: 00010246
+[1750924.420364] RAX: 0000000000000001 RBX: ffff88007b822688 RCX:
+000000000000000f
+[1750924.420364] RDX: ffff88007b822688 RSI: ffff8800366c15a0 RDI:
+6764697200000000
+[1750924.420364] RBP: ffff88007af1dd78 R08: 0000000000000001 R09:
+0000000000000000
+[1750924.420364] R10: 0000000000000011 R11: 0000000000000246 R12:
+ffff88007baa1d98
+[1750924.420364] R13: ffff88003ecab000 R14: ffff88007b822660 R15:
+0000000000000000
+[1750924.420364] FS:  00007ffff7fd8740(0000) GS:ffff88007fc80000(0000)
+knlGS:0000000000000000
+[1750924.420364] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[1750924.420364] CR2: 00007ffff597c750 CR3: 000000006860b000 CR4:
+00000000000007e0
+[1750924.420364] Stack:
+[1750924.420364]  ffff88007b822688 ffff88007af1ddf0 ffffffffa0132429
+000000007af1de20
+[1750924.420364]  ffff88007baa1dc8 ffff88007baa0000 ffff88007af1de70
+ffffffffa00cb313
+[1750924.420364]  00007fffffffde88 0000000000000000 0000000000000008
+ffff88003ecab000
+[1750924.420364] Call Trace:
+[1750924.420364]  [<ffffffffa0132429>] qib_multicast_detach+0x1e9/0x350
+[ib_qib]
+[1750924.568035]  [<ffffffffa00cb313>] ? ib_uverbs_modify_qp+0x323/0x3d0
+[ib_uverbs]
+[1750924.568035]  [<ffffffffa0092d61>] ib_detach_mcast+0x31/0x50 [ib_core]
+[1750924.568035]  [<ffffffffa00cc213>] ib_uverbs_detach_mcast+0x93/0x170
+[ib_uverbs]
+[1750924.568035]  [<ffffffffa00c61f6>] ib_uverbs_write+0xc6/0x2c0 [ib_uverbs]
+[1750924.568035]  [<ffffffff81312e68>] ? apparmor_file_permission+0x18/0x20
+[1750924.568035]  [<ffffffff812d4cd3>] ? security_file_permission+0x23/0xa0
+[1750924.568035]  [<ffffffff811bd214>] vfs_write+0xb4/0x1f0
+[1750924.568035]  [<ffffffff811bdc49>] SyS_write+0x49/0xa0
+[1750924.568035]  [<ffffffff8172f7ed>] system_call_fastpath+0x1a/0x1f
+[1750924.568035] Code: 66 2e 0f 1f 84 00 00 00 00 00 31 c0 5d c3 66 2e 0f 1f
+84 00 00 00 00 00 66 90 0f 1f 44 00 00 55 48 89 e5 53 48 89 fb 48 8b 7f 10
+<f0> ff 8f 40 01 00 00 74 0e 48 89 df e8 8e f8 06 e1 5b 5d c3 0f
+[1750924.568035] RIP  [<ffffffffa0131d51>] qib_mcast_qp_free+0x11/0x50
+[ib_qib]
+[1750924.568035]  RSP <ffff88007af1dd70>
+[1750924.650439] ---[ end trace 73d5d4b3f8ad4851 ]
+
+The fix is to note the qib_mcast_qp that was found.   If none is found, then
+return EINVAL indicating the error.
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_verbs_mcast.c |   35 ++++++++++++---------------
+ 1 file changed, 15 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_verbs_mcast.c b/drivers/infiniband/hw/qib/qib_verbs_mcast.c
+index f8ea069..b2fb528 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs_mcast.c
++++ b/drivers/infiniband/hw/qib/qib_verbs_mcast.c
+@@ -286,15 +286,13 @@ int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	struct qib_ibdev *dev = to_idev(ibqp->device);
+ 	struct qib_ibport *ibp = to_iport(ibqp->device, qp->port_num);
+ 	struct qib_mcast *mcast = NULL;
+-	struct qib_mcast_qp *p, *tmp;
++	struct qib_mcast_qp *p, *tmp, *delp = NULL;
+ 	struct rb_node *n;
+ 	int last = 0;
+ 	int ret;
+ 
+-	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
++	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET)
++		return -EINVAL;
+ 
+ 	spin_lock_irq(&ibp->lock);
+ 
+@@ -303,8 +301,7 @@ int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	while (1) {
+ 		if (n == NULL) {
+ 			spin_unlock_irq(&ibp->lock);
+-			ret = -EINVAL;
+-			goto bail;
++			return -EINVAL;
+ 		}
+ 
+ 		mcast = rb_entry(n, struct qib_mcast, rb_node);
+@@ -328,6 +325,7 @@ int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 		 */
+ 		list_del_rcu(&p->list);
+ 		mcast->n_attached--;
++		delp = p;
+ 
+ 		/* If this was the last attached QP, remove the GID too. */
+ 		if (list_empty(&mcast->qp_list)) {
+@@ -338,15 +336,16 @@ int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	}
+ 
+ 	spin_unlock_irq(&ibp->lock);
++	/* QP not attached */
++	if (!delp)
++		return -EINVAL;
++	/*
++	 * Wait for any list walkers to finish before freeing the
++	 * list element.
++	 */
++	wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
++	qib_mcast_qp_free(delp);
+ 
+-	if (p) {
+-		/*
+-		 * Wait for any list walkers to finish before freeing the
+-		 * list element.
+-		 */
+-		wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
+-		qib_mcast_qp_free(p);
+-	}
+ 	if (last) {
+ 		atomic_dec(&mcast->refcount);
+ 		wait_event(mcast->wait, !atomic_read(&mcast->refcount));
+@@ -355,11 +354,7 @@ int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 		dev->n_mcast_grps_allocated--;
+ 		spin_unlock_irq(&dev->n_mcast_grps_lock);
+ 	}
+-
+-	ret = 0;
+-
+-bail:
+-	return ret;
++	return 0;
+ }
+ 
+ int qib_mcast_tree_empty(struct qib_ibport *ibp)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
