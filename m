@@ -1,59 +1,46 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv1 6/6] rdmacg: Added documentation for rdma controller.
-Date: Thu, 7 Jan 2016 10:42:18 -0500
-Message-ID: <20160107154218.GF29797@mtj.duckdns.org>
-References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
- <1452020286-9508-7-git-send-email-pandit.parav@gmail.com>
- <20160105215309.GG5995@mtj.duckdns.org>
- <CAG53R5WD18VK3sVuVnPR7yjEBqRjHAoUkCpZKzSd9-PYZrx-YA@mail.gmail.com>
- <20160106225714.GI3660@htj.duckdns.org>
- <CAG53R5XKpP6YAe8buRrgG=m4_dQK5MjkWtcA7CN-74AJ1SUUyQ@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] RXE: A Soft RoCE back-end for the RVT
+Date: Thu, 7 Jan 2016 17:44:48 +0200
+Message-ID: <568E87F0.4030506@dev.mellanox.co.il>
+References: <1452106579-4081-1-git-send-email-monis@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5XKpP6YAe8buRrgG=m4_dQK5MjkWtcA7CN-74AJ1SUUyQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1452106579-4081-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
 
-On Thu, Jan 07, 2016 at 05:22:40AM +0530, Parav Pandit wrote:
-> I can remove "resource" key word. If just that if something other than
-> resource comes up to limit to in future, it will be hard to define at
-> that time.
-
-Please remove.  The word doesn't mean anything in this context.
-
-> > Also can't the .max file list
-> > the available resources?  Why does it need a separtae list file?
-> >
-> max file does lists them only after limits are configured for that
-> device. Thats when rpool (array of max and usage counts) is allocated.
+> This patch introduces an implementation of a back-end that works with
+> RVT to make RoCE Verbs transport over any Ethernet network device.
 >
-> If user wants to know what all knobs are available, than list file
-> exposes them on per device basis without actually mentioning actual
-> limit or without allocating rpool arrays.
-...
-> list file looks like below for two device entries.
-> mlx4_0 ah qp mr pd srq flow
-> ocrdma0 ah qp mr pd
-> 
-> max file looks like below.
-> mlx4_0 ah=100 qp=40 mr=10 pd=90 srq=10 flow=10
+> Example:
+>
+> After loading ib_rxe_net.ko
+> 	echo eth1 > /sys/module/ib_rxe_net/parameters/add
+> will create rvt0 IB device in RVT with Ethernet link layer
+> ---
+>   drivers/infiniband/Kconfig            |    1 +
+>   drivers/infiniband/sw/Makefile        |    1 +
+>   drivers/infiniband/sw/rxe/Kconfig     |   23 ++
+>   drivers/infiniband/sw/rxe/Makefile    |    5 +
+>   drivers/infiniband/sw/rxe/rxe_net.c   |  580 +++++++++++++++++++++++++++++++++
+>   drivers/infiniband/sw/rxe/rxe_net.h   |   89 +++++
+>   drivers/infiniband/sw/rxe/rxe_sysfs.c |  167 ++++++++++
+>   7 files changed, 866 insertions(+), 0 deletions(-)
 
-Just always show the settings for all devices in the max file like the
-following?
+836 LOC SoftRoCE driver, impressive...
 
-  mlx4_0 ah=max qp=max mr=max pd=max srq=max flow=max
-  ocrdma0 ah=max qp=max mr=max pd=max
+> +module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
+> +module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
 
-Thanks.
+The standard way of doing this is with class and device structures and
+not module_param_call...
 
--- 
-tejun
+You can look at srp for example on how to get it right...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
