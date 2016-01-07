@@ -1,60 +1,33 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: iser-target: Add iSCSI Extensions for RDMA (iSER) target driver
-Date: Thu, 7 Jan 2016 17:22:28 +0200
-Message-ID: <568E82B4.4030909@dev.mellanox.co.il>
-References: <20160104210732.GA8675@mwanda>
- <1452104665.26125.22.camel@haakon3.risingtidesystems.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
+Date: Thu, 7 Jan 2016 17:26:55 +0200
+Message-ID: <568E83BF.70606@dev.mellanox.co.il>
+References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
+ <1450671628.25674.27.camel@haakon3.risingtidesystems.com>
+ <20151224101514.GB6438@infradead.org> <567BC782.7090501@dev.mellanox.co.il>
+ <1452105796.26125.28.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1452104665.26125.22.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1452105796.26125.28.camel@haakon3.risingtidesystems.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.
-> index 91eb22c..8954e12 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -356,7 +356,7 @@ isert_create_device_ib_res(struct isert_device *device)
->          dev_attr = &device->dev_attr;
->          ret = isert_query_device(device->ib_device, dev_attr);
->          if (ret)
-> -               return ret;
-> +               goto out;
+> FYI, the only conflict as reported in linux-next last week is with nfsd
+> tree and "IB: merge struct ib_device_attr into struct ib_device" here:
 >
->          /* asign function handlers */
->          if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
-> @@ -372,7 +372,7 @@ isert_create_device_ib_res(struct isert_device *device)
+> http://marc.info/?l=linux-next&m=145155049101826&w=2
 >
->          ret = isert_alloc_comps(device, dev_attr);
->          if (ret)
-> -               return ret;
-> +               goto out;
+> It looks like there is ongoing discussion this morning wrt rdma + nfsd
+> trees..
 >
->          device->pd = ib_alloc_pd(device->ib_device);
->          if (IS_ERR(device->pd)) {
-> @@ -390,6 +390,9 @@ isert_create_device_ib_res(struct isert_device *device)
->
->   out_cq:
->          isert_free_comps(device);
-> +out:
-> +       if (ret > 0)
-> +               ret = -EINVAL;
->          return ret;
->   }
->
-> --
+> Do you still want this series dropped from target-pending/for-next..?
 
-Looks fine,
+Given that the series was modified on top of the CQ API work then it
+makes better sense yes. Doug will take it.
 
-Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks Nic, and thanks Dan for reporting!
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Nic.
