@@ -1,44 +1,44 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V1] IB/cma: Fix RDMA port validation for iWarp
-Date: Thu, 7 Jan 2016 11:38:38 -0600
-Message-ID: <00a701d14972$3dc6c070$b9544150$@opengridcomputing.com>
-References: <1452158369-2938-1-git-send-email-matanb@mellanox.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv1 2/6] IB/core: Added members to support rdma cgroup
+Date: Fri, 8 Jan 2016 01:10:59 +0530
+Message-ID: <CAG53R5XXqkd1Xk-dQxEACc+RB_rdiwhT0bbn5GK5Aek5=9=EtA@mail.gmail.com>
+References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+	<1452020286-9508-3-git-send-email-pandit.parav@gmail.com>
+	<20160105215656.GI5995@mtj.duckdns.org>
+	<CAG53R5VVK4jhyXJT9XLFdjz-amzkLGhugvozWzoYNcBua-KsNg@mail.gmail.com>
+	<20160107150756.GD29797@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1452158369-2938-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160107150756.GD29797-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 7, 2016 at 8:37 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Thu, Jan 07, 2016 at 04:46:19AM +0530, Parav Pandit wrote:
+>> On Wed, Jan 6, 2016 at 3:26 AM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> > On Wed, Jan 06, 2016 at 12:28:02AM +0530, Parav Pandit wrote:
+>> >> Added function pointer table to store resource pool specific
+>> >> operation for each resource type (verb and hw).
+>> >> Added list node to link device to rdma cgroup so that it can
+>> >> participate in resource accounting and limit configuration.
+>> >
+>> > Is there any point in splitting patches 1 and 2 from 3?
+>> >
+>> Patch 2 is in IB stack, so I separated that patch out from 1. That
+>> makes it 3 patches.
+>> If you think single patch is easier to review, let me know, I can
+>> respin to have one patch for these 3 smaller patches.
+>
+> They don't do anything by themselves.  I think putting them into a
+> single patch would be easier to review.
 
+o.k. I will put them in single patch.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Matan Barak
-> Sent: Thursday, January 07, 2016 3:19 AM
-> To: Doug Ledford
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz; Majd Dibbiny; Hariprasad Shenai; Matan Barak
-> Subject: [PATCH V1] IB/cma: Fix RDMA port validation for iWarp
-> 
-> cma_validate_port wrongly assumed that Ethernet devices are RoCE
-> devices and thus their ndev should be matched in the GID table.
-> This broke the iWarp support. Fixing that matching the ndev only if
-> we work on a RoCE port.
-> 
-> Fixes: abae1b71dd37 ('IB/cma: cma_validate_port should verify the port
-> 		     and netdevice')
-> Reported-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Tested-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks.
+>
+> --
+> tejun
