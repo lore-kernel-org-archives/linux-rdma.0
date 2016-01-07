@@ -1,33 +1,60 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH v2 00/10] iSER support for remote invalidate
-Date: Thu, 7 Jan 2016 17:26:55 +0200
-Message-ID: <568E83BF.70606@dev.mellanox.co.il>
-References: <1449663128-368-1-git-send-email-sagig@mellanox.com>
- <1450671628.25674.27.camel@haakon3.risingtidesystems.com>
- <20151224101514.GB6438@infradead.org> <567BC782.7090501@dev.mellanox.co.il>
- <1452105796.26125.28.camel@haakon3.risingtidesystems.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv1 3/6] rdmacg: implements rdma cgroup
+Date: Thu, 7 Jan 2016 10:29:36 -0500
+Message-ID: <20160107152936.GE29797@mtj.duckdns.org>
+References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+ <1452020286-9508-4-git-send-email-pandit.parav@gmail.com>
+ <20160105220128.GJ5995@mtj.duckdns.org>
+ <CAG53R5UjsDa+JK_afrQ5pMpiDPrc+a+yCOOH3X105pTmU_a53A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1452105796.26125.28.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5UjsDa+JK_afrQ5pMpiDPrc+a+yCOOH3X105pTmU_a53A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello,
 
-> FYI, the only conflict as reported in linux-next last week is with nfsd
-> tree and "IB: merge struct ib_device_attr into struct ib_device" here:
->
-> http://marc.info/?l=linux-next&m=145155049101826&w=2
->
-> It looks like there is ongoing discussion this morning wrt rdma + nfsd
-> trees..
->
-> Do you still want this series dropped from target-pending/for-next..?
+On Thu, Jan 07, 2016 at 05:03:07AM +0530, Parav Pandit wrote:
+> Rdma resource can be allocated by parent process, used and freed by
+> child process.
+> Child process could belong to different rdma cgroup.
+> Parent process might have been terminated after creation of rdma
+> cgroup. (Followed by cgroup might have been deleted too).
+> Its discussed in https://lkml.org/lkml/2015/11/2/307
+> 
+> In nutshell, there is process that clearly owns the rdma resource.
+> So to keep the design simple, rdma resource is owned by the creator
+> process and cgroup without modifying the task_struct.
 
-Given that the series was modified on top of the CQ API work then it
-makes better sense yes. Doug will take it.
+So, a resource created by a task in a cgroup staying in the cgroup
+when the task gets migrated is fine; however, a resource being
+allocated in a previous cgroup of the task isn't fine.  Once
+allocated, the resource themselves should be associated with the
+cgroup so that they can be freed from the ones they're allocated from.
 
-Thanks Nic.
+If I'm understanding it correctly, the code is bending basic rules
+around how resource and task cgroup membership is tracked, you really
+can't do that.
+
+> > I'm pretty sure you can get away with an fixed length array of
+> > counters.  Please keep it simple.  It's a simple hard limit enforcer.
+> > There's no need to create a massive dynamic infrastrucure.
+>
+> Every resource pool for verbs resource is fixed length array. Length
+> of the array is defined by the IB stack modules.
+> This array is per cgroup, per device.
+> Its per device, because we agreed that we want to address requirement
+> of controlling/configuring them on per device basis.
+> Devices appear and disappear. Therefore they are allocated dynamically.
+> Otherwise this array could be static in cgroup structure.
+
+Please see the previous response.
+
+Thanks.
+
+-- 
+tejun
