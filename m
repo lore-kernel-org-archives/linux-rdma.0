@@ -1,53 +1,44 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv1 3/6] rdmacg: implements rdma cgroup
-Date: Thu, 7 Jan 2016 15:41:10 -0500
-Message-ID: <20160107204110.GH1898@mtj.duckdns.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv1 0/6] rdma controller support
+Date: Fri, 8 Jan 2016 02:16:59 +0530
+Message-ID: <CAG53R5V80hY2SLrt3-GNeQ-wr+0aFM7sNJLvUGuy70t5dc8yOA@mail.gmail.com>
 References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
- <1452020286-9508-4-git-send-email-pandit.parav@gmail.com>
- <20160105220128.GJ5995@mtj.duckdns.org>
- <CAG53R5UjsDa+JK_afrQ5pMpiDPrc+a+yCOOH3X105pTmU_a53A@mail.gmail.com>
- <20160107152936.GE29797@mtj.duckdns.org>
- <CAG53R5Vg9jULp9EU23yd+iUqMDyTMNmUycD8ygX_j98O=JUDmA@mail.gmail.com>
- <20160107202818.GF1898@mtj.duckdns.org>
- <CAG53R5UuCNwCKWAuub=n3FkJR6Z5oyF6cVPeW=5nk-JrURY=jw@mail.gmail.com>
+	<20160105215623.GH5995@mtj.duckdns.org>
+	<CAG53R5XQaUz=vJCEqLwGt93CC1YMnVQ=k4DuRU0nspcb_-+_6g@mail.gmail.com>
+	<20160107150718.GC29797@mtj.duckdns.org>
+	<CAG53R5WwdRwb0XyAMGMey4JaDGUntJ9=m_ZToFkygboZxfMQ6A@mail.gmail.com>
+	<20160107200604.GE1898@mtj.duckdns.org>
+	<CAG53R5Xy8avVVvfGjgYOJSVRNFOHpiHXrQeEeb41EP4hy370QQ@mail.gmail.com>
+	<20160107203425.GG1898@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5UuCNwCKWAuub=n3FkJR6Z5oyF6cVPeW=5nk-JrURY=jw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20160107203425.GG1898@mtj.duckdns.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Parav.
+On Fri, Jan 8, 2016 at 2:04 AM, Tejun Heo <tj@kernel.org> wrote:
+> On Fri, Jan 08, 2016 at 02:02:20AM +0530, Parav Pandit wrote:
+>> o.k. That doable. I want to make sure that we are on same page on below design.
+>> rpool (which will contain static array based on header file ) would be
+>> still there, because resource limits are on per device basis. Number
+>> of devices are variable and dynamically appear. Therefore rdma_cg will
+>> have the list of rpool attached to it. Do you agree?
+>
+> Yeap.  Would it make more sense to hang them off of whatever struct
+> which presents a rdma device tho?  And then just walk them from cgroup
+> controller?
+>
 
-On Fri, Jan 08, 2016 at 02:09:23AM +0530, Parav Pandit wrote:
-> > Hmmm, what happens after the following?
-> >
-> > 1. A process allocates some rdma resources and get registered on the
-> >    hash table.
-> >
-> > 2. The process gets migrated to a different cgroup.
-> >
-> > 3. The process allocates more rdma resources.
-> >
-> > Which cgroup would the resources from #3 be attributed to?
-> 
-> Since the pid/tgid of the process doesn't change in step_3, it
-> allocates from original cgroup of step_1.
+Let me think through it. Its been late night for me currently. So dont
+want to conclude in hurry.
+At high level it looks doable by maintaining hash table head on per
+device basis, that further reduces hash contention by one level.
+I will get back on this tomorrow.
 
-It shouldn't work that way.
-
-> However in next patch V2, as described below, since IB resource will
-> store rdma_cg pointer,
-> in step_3, new resource will be allocated from new cgroup.
-> old resource will be freed from older cgroup.
-> This is what you are expecting, right?
-
-Yeap.
-
-Thanks.
-
--- 
-tejun
+> Thanks.
+>
+> --
+> tejun
