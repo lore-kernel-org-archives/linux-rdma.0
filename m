@@ -1,139 +1,117 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] RXE: A Soft RoCE back-end for the RVT
-Date: Thu, 7 Jan 2016 09:08:10 +0200
-Message-ID: <20160107070810.GA10797@leon.nu>
-References: <1452106579-4081-1-git-send-email-monis@mellanox.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/IPoIB: Fix kernel panic on multicast flow
+Date: Thu,  7 Jan 2016 09:28:08 +0200
+Message-ID: <1452151688-7695-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1452106579-4081-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 06, 2016 at 08:56:19PM +0200, Moni Shoua wrote:
-> --- /dev/null
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -0,0 +1,580 @@
-> +/*
-> + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 
-Please update copyright year to 2016.
+ipoib_mcast_restart_task calls ipoib_mcast_remove_list with the
+parameter mcast->dev. That mcast is a temporary (used as an iterator)
+variable that may be uninitialized.
+There is no need to send the variable dev to the function, as each mcast
+has its dev as a member in the mcast struct.
 
-> + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-> + *
+This causes the next panic:
+RIP: 0010: ipoib_mcast_leave+0x6d/0xf0 [ib_ipoib]
+RSP: 0018: EFLAGS: 00010246
+RAX: f0201 RBX: 24e00 RCX: 00000
+....
+....
+Stack:
+Call Trace:
+	ipoib_mcast_remove_list+0x3a/0x70 [ib_ipoib]
+	ipoib_mcast_restart_task+0x3bb/0x520 [ib_ipoib]
+	process_one_work+0x164/0x470
+	worker_thread+0x11d/0x420
+	...
 
-...
+Fixes: 5a0e81f6f483 ('IB/IPoIB: factor out common multicast list removal code')
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reported-by: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h           | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 3 +--
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 8 ++++----
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-> +
-> +static int send(struct rvt_dev *rdev, struct rvt_av *av,
-> +		struct sk_buff *skb, void *flow)
-> +{
-> +	struct sk_buff *nskb;
-> +	int sent_bytes;
-> +	int err;
-> +	struct rxe_dev  *xdev = to_xdev(rdev);
-> +	struct socket *sk = (struct socket *)flow;
-> +
-> +	nskb = skb_clone(skb, GFP_ATOMIC);
-> +	if (!nskb)
-> +		return -ENOMEM;
-> +
-> +	nskb->destructor = rxe_skb_tx_dtor;
-> +	nskb->sk = sk->sk;
-> +
-> +	sent_bytes = nskb->len;
-> +	if (av->network_type == RDMA_NETWORK_IPV4) {
-> +		err = ip_local_out(dev_net(xdev->ndev), nskb->sk, nskb);
-> +	} else if (av->network_type == RDMA_NETWORK_IPV6) {
-> +		err = ip6_local_out(dev_net(xdev->ndev), nskb->sk, nskb);
-> +	} else {
-> +		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
-> +		kfree_skb(nskb);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (unlikely(net_xmit_eval(err))) {
-> +		pr_debug("error sending packet: %d\n", err);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index a924933..a6f3eab 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -548,7 +548,7 @@ void ipoib_path_iter_read(struct ipoib_path_iter *iter,
+ 
+ int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
+ 		       union ib_gid *mgid, int set_qkey);
+-void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
++void ipoib_mcast_remove_list(struct list_head *remove_list);
+ void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
+ 				struct list_head *remove_list);
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 0a93cb2..25509bb 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1150,7 +1150,6 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+ 	unsigned long flags;
+ 	int i;
+ 	LIST_HEAD(remove_list);
+-	struct net_device *dev = priv->dev;
+ 
+ 	if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
+ 		return;
+@@ -1196,7 +1195,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
+ 
+ out_unlock:
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+-	ipoib_mcast_remove_list(dev, &remove_list);
++	ipoib_mcast_remove_list(&remove_list);
+ }
+ 
+ static void ipoib_reap_neigh(struct work_struct *work)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index ab79b87..050dfa1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -723,12 +723,12 @@ void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
+ 	}
+ }
+ 
+-void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
++void ipoib_mcast_remove_list(struct list_head *remove_list)
+ {
+ 	struct ipoib_mcast *mcast, *tmcast;
+ 
+ 	list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
+-		ipoib_mcast_leave(dev, mcast);
++		ipoib_mcast_leave(mcast->dev, mcast);
+ 		ipoib_mcast_free(mcast);
+ 	}
+ }
+@@ -839,7 +839,7 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+ 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+ 			wait_for_completion(&mcast->done);
+ 
+-	ipoib_mcast_remove_list(dev, &remove_list);
++	ipoib_mcast_remove_list(&remove_list);
+ }
+ 
+ static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
+@@ -965,7 +965,7 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+ 			wait_for_completion(&mcast->done);
+ 
+-	ipoib_mcast_remove_list(mcast->dev, &remove_list);
++	ipoib_mcast_remove_list(&remove_list);
+ 
+ 	/*
+ 	 * Double check that we are still up
+-- 
+1.7.11.3
 
-You need to free nskb.
-
-> +		return -EAGAIN;
-> +	}
-> +
-> +	kfree_skb(skb);
-
-Did you intend to free Nskb ?
-
-> +
-> +	return 0;
-> +}
-> +
-
-...
-
-> +static struct sk_buff *alloc_sendbuf(struct rvt_dev *rdev, struct rvt_av *av, int paylen)
-> +{
-> +	unsigned int hdr_len;
-> +	struct sk_buff *skb;
-> +	struct rxe_dev  *xdev = to_xdev(rdev);
-> +
-> +	if (av->network_type == RDMA_NETWORK_IPV4)
-> +		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
-> +			sizeof(struct iphdr);
-> +	else
-> +		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
-> +			sizeof(struct ipv6hdr);
-> +
-> +	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(xdev->ndev),
-> +			GFP_ATOMIC);
-> +	if (unlikely(!skb))
-> +		return NULL;
-> +
-> +	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(xdev->ndev));
-> +
-> +	skb->dev	= xdev->ndev;
-
-Extra spaces before =.
-
-> +	if (av->network_type == RDMA_NETWORK_IPV4)
-> +		skb->protocol = htons(ETH_P_IP);
-> +	else
-> +		skb->protocol = htons(ETH_P_IPV6);
-> +
-> +	return skb;
-> +}
-> +	xdev->rdev.num_ports = 1;
-> +
-> +	err = rvt_register_device(&xdev->rdev, &ifc_ops, ndev->mtu);
-> +	if (err)
-> +		return err;
-> +
-
-Extra line
-
-> +
-> +	/* for now we always assign port = 1 */
-> +	port_num = 1;
-> +
-> +	xdev->ndev = ndev;
-> +
-> +
-
-Extra line
-
-> +	pr_info("rxe_net: added %s to %s\n",
-> +		xdev->rdev.ib_dev.name, ndev->name);
-> +
-> +	net_info[ndev->ifindex].xdev = xdev;
-> +	net_info[ndev->ifindex].port = port_num;
-> +	net_info[ndev->ifindex].ndev = ndev;
-> +	return 0;
-> +}
-> +
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
