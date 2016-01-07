@@ -1,144 +1,58 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Fix kernel panic on multicast flow
-Date: Thu, 7 Jan 2016 12:03:59 +0200
-Message-ID: <CAAk-MO9P_=B9LD80KERTKSEQeRhf0q3m_ogw+CpmR7Ds360wiw@mail.gmail.com>
-References: <1452151688-7695-1-git-send-email-erezsh@mellanox.com>
-	<20160107092318.GA4186@yuval-ThinkPad-X220>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv1 0/6] rdma controller support
+Date: Thu, 7 Jan 2016 10:07:18 -0500
+Message-ID: <20160107150718.GC29797@mtj.duckdns.org>
+References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
+ <20160105215623.GH5995@mtj.duckdns.org>
+ <CAG53R5XQaUz=vJCEqLwGt93CC1YMnVQ=k4DuRU0nspcb_-+_6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160107092318.GA4186@yuval-ThinkPad-X220>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5XQaUz=vJCEqLwGt93CC1YMnVQ=k4DuRU0nspcb_-+_6g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 7, 2016 at 11:23 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> On Thu, Jan 07, 2016 at 09:28:08AM +0200, Erez Shitrit wrote:
->>
->> ipoib_mcast_restart_task calls ipoib_mcast_remove_list with the
->> parameter mcast->dev. That mcast is a temporary (used as an iterator)
->> variable that may be uninitialized.
->> There is no need to send the variable dev to the function, as each mcast
-> s/send/pass
->> has its dev as a member in the mcast struct.
->>
->> This causes the next panic:
->> RIP: 0010: ipoib_mcast_leave+0x6d/0xf0 [ib_ipoib]
->> RSP: 0018: EFLAGS: 00010246
->> RAX: f0201 RBX: 24e00 RCX: 00000
->> ....
->> ....
->> Stack:
->> Call Trace:
->>       ipoib_mcast_remove_list+0x3a/0x70 [ib_ipoib]
->>       ipoib_mcast_restart_task+0x3bb/0x520 [ib_ipoib]
->>       process_one_work+0x164/0x470
->>       worker_thread+0x11d/0x420
->>       ...
->>
->> Fixes: 5a0e81f6f483 ('IB/IPoIB: factor out common multicast list removal code')
->> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Reported-by: Doron Tsur <doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/ulp/ipoib/ipoib.h           | 2 +-
->>  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 3 +--
->>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 8 ++++----
->>  3 files changed, 6 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
->> index a924933..a6f3eab 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
->> @@ -548,7 +548,7 @@ void ipoib_path_iter_read(struct ipoib_path_iter *iter,
->>
->>  int ipoib_mcast_attach(struct net_device *dev, u16 mlid,
->>                      union ib_gid *mgid, int set_qkey);
->> -void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list);
->> +void ipoib_mcast_remove_list(struct list_head *remove_list);
->>  void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
->>                               struct list_head *remove_list);
->>
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> index 0a93cb2..25509bb 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> @@ -1150,7 +1150,6 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
->>       unsigned long flags;
->>       int i;
->>       LIST_HEAD(remove_list);
->> -     struct net_device *dev = priv->dev;
-> Isn't this one needed later? (in call to __ipoib_mcast_find made in commit
-> bd99b2e05c)
+Hello, Parav.
 
-There is a later commit (432c55ff) that already takes that code.
+On Thu, Jan 07, 2016 at 04:43:20AM +0530, Parav Pandit wrote:
+> > If different controllers can't agree upon the
+> > same set of resources, which probably is a pretty good sign that this
+> > isn't too well thought out to begin with,
+> 
+> When you said "different controller" you meant "different hw vendors", right?
+> Or you meant, rdma, mem, cpu as controller here?
 
->>
->>       if (test_bit(IPOIB_STOP_NEIGH_GC, &priv->flags))
->>               return;
->> @@ -1196,7 +1195,7 @@ static void __ipoib_reap_neigh(struct ipoib_dev_priv *priv)
->>
->>  out_unlock:
->>       spin_unlock_irqrestore(&priv->lock, flags);
->> -     ipoib_mcast_remove_list(dev, &remove_list);
->> +     ipoib_mcast_remove_list(&remove_list);
-> I'm having difficulties applying this patch on linux-stable.git 4.4-rc6 and
-> linux-next 4.4-rc8.
+Different hw vendors.
 
-I sent it against ib-next
+> > at least make all resource
+> > types defined by the controller itself and let the controllers enable
+> > them selectively.
+> >
+> In this V1 patch, resource is defined by the IB stack and rdma cgroup
+> is facilitator for same.
+> By doing so, IB stack modules can define new resource without really
+> making changes to cgroup.
+> This design also allows hw vendors to define their own resources which
+> will be reviewed in rdma mailing list anway.
+> The idea is different hw versions can have different resource support,
+> so the whole intention is not about defining different resource but
+> rather enabling it.
+> But yes, I equally agree that by doing so, different hw controller
+> vendors can define different hw resources.
 
->>  }
->>
->>  static void ipoib_reap_neigh(struct work_struct *work)
->> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> index ab79b87..050dfa1 100644
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
->> @@ -723,12 +723,12 @@ void ipoib_check_and_add_mcast_sendonly(struct ipoib_dev_priv *priv, u8 *mgid,
->>       }
->>  }
->>
->> -void ipoib_mcast_remove_list(struct net_device *dev, struct list_head *remove_list)
->> +void ipoib_mcast_remove_list(struct list_head *remove_list)
->>  {
->>       struct ipoib_mcast *mcast, *tmcast;
->>
->>       list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
->> -             ipoib_mcast_leave(dev, mcast);
->> +             ipoib_mcast_leave(mcast->dev, mcast);
->>               ipoib_mcast_free(mcast);
->>       }
->>  }
->> @@ -839,7 +839,7 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
->>               if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
->>                       wait_for_completion(&mcast->done);
->>
->> -     ipoib_mcast_remove_list(dev, &remove_list);
->> +     ipoib_mcast_remove_list(&remove_list);
->>  }
->>
->>  static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
->> @@ -965,7 +965,7 @@ void ipoib_mcast_restart_task(struct work_struct *work)
->>               if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
->>                       wait_for_completion(&mcast->done);
->>
->> -     ipoib_mcast_remove_list(mcast->dev, &remove_list);
->> +     ipoib_mcast_remove_list(&remove_list);
->>
->>       /*
->>        * Double check that we are still up
->> --
->> 1.7.11.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How many vendors and resources are we talking about?  What I was
+trying to say was that unless the number is extremely high, it'd be
+far simpler to hard code them in the rdma controller and let drivers
+enable the ones which apply to them.  It would require updating the
+rdma cgroup controller to add new resource types but I think that'd
+actually be an upside, not down.  There needs to be some checks and
+balances against adding new resource types; otherwise, it'll soon
+become a mess.
+
+Thanks.
+
+-- 
+tejun
