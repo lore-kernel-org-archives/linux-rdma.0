@@ -1,65 +1,96 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv1 6/6] rdmacg: Added documentation for rdma controller.
-Date: Fri, 8 Jan 2016 01:13:29 +0530
-Message-ID: <CAG53R5WstJ_=9AP-d5JdcHyUu1f8iO0CSfRsL7U-60enhW=q9Q@mail.gmail.com>
-References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
-	<1452020286-9508-7-git-send-email-pandit.parav@gmail.com>
-	<20160105215309.GG5995@mtj.duckdns.org>
-	<CAG53R5WD18VK3sVuVnPR7yjEBqRjHAoUkCpZKzSd9-PYZrx-YA@mail.gmail.com>
-	<20160106225714.GI3660@htj.duckdns.org>
-	<CAG53R5XKpP6YAe8buRrgG=m4_dQK5MjkWtcA7CN-74AJ1SUUyQ@mail.gmail.com>
-	<20160107154218.GF29797@mtj.duckdns.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v5 00/10] NFS/RDMA server patches for v4.5
+Date: Thu, 07 Jan 2016 14:48:46 -0500
+Message-ID: <20160107194251.2662.88158.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160107154218.GF29797-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 7, 2016 at 9:12 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Hello,
->
-> On Thu, Jan 07, 2016 at 05:22:40AM +0530, Parav Pandit wrote:
->> I can remove "resource" key word. If just that if something other than
->> resource comes up to limit to in future, it will be hard to define at
->> that time.
->
-> Please remove.  The word doesn't mean anything in this context.
->
-ok. I will remove.
+Hi Doug-
 
->> > Also can't the .max file list
->> > the available resources?  Why does it need a separtae list file?
->> >
->> max file does lists them only after limits are configured for that
->> device. Thats when rpool (array of max and usage counts) is allocated.
->>
->> If user wants to know what all knobs are available, than list file
->> exposes them on per device basis without actually mentioning actual
->> limit or without allocating rpool arrays.
-> ...
->> list file looks like below for two device entries.
->> mlx4_0 ah qp mr pd srq flow
->> ocrdma0 ah qp mr pd
->>
->> max file looks like below.
->> mlx4_0 ah=100 qp=40 mr=10 pd=90 srq=10 flow=10
->
-> Just always show the settings for all devices in the max file like the
-> following?
->
->   mlx4_0 ah=max qp=max mr=max pd=max srq=max flow=max
->   ocrdma0 ah=max qp=max mr=max pd=max
+Here are patches to support server-side bi-directional RPC/RDMA
+operation (to enable NFSv4.1 on RPC/RDMA transports). Thanks to
+all who reviewed earlier versions.
 
-Should be possible. I will make the change.
+Doug, please take these for 4.5. These are Acked-by Bruce and ready
+to go.
 
->
-> Thanks.
->
-> --
-> tejun
+Also available in the "nfsd-rdma-for-4.5" topic branch of this git
+repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.5
+
+
+Changes since v4:
+- Rebased on Doug's k.o/for-4.5 branch
+- Dropped patch to prevent writing XDR pads
+- Squashed in Dan Carpenter's fixes
+
+
+Changes since v3:
+- Rebased on Christoph's ib_device_attr branch
+- Backchannel patches have been squashed together
+- Memory allocation overhaul to prevent blocking allocation
+   when sending backchannel calls
+
+
+Changes since v2:
+- Rebased on v4.4-rc4
+- Backchannel code in new source file to address dprintk issues
+- svc_rdma_get_context() now uses a pre-allocated cache
+- Dropped svc_rdma_send clean up
+
+
+Changes since v1:
+
+- Rebased on v4.4-rc3
+- Removed the use of CONFIG_SUNRPC_BACKCHANNEL
+- Fixed computation of forward and backward max_requests
+- Updated some comments and patch descriptions
+- pr_err and pr_info converted to dprintk
+- Simplified svc_rdma_get_context()
+- Dropped patch removing access_flags field
+- NFSv4.1 callbacks tested with for-4.5 client
+
+---
+
+Chuck Lever (10):
+      svcrdma: Clean up rdma_create_xprt()
+      svcrdma: Clean up process_context()
+      svcrdma: Improve allocation of struct svc_rdma_op_ctxt
+      svcrdma: Improve allocation of struct svc_rdma_req_map
+      svcrdma: Remove unused req_map and ctxt kmem_caches
+      svcrdma: Add gfp flags to svc_rdma_post_recv()
+      svcrdma: Remove last two __GFP_NOFAIL call sites
+      svcrdma: Make map_xdr non-static
+      svcrdma: Define maximum number of backchannel requests
+      svcrdma: Add class for RDMA backwards direction transport
+
+
+ include/linux/sunrpc/svc_rdma.h            |   37 ++-
+ net/sunrpc/xprt.c                          |    1 
+ net/sunrpc/xprtrdma/Makefile               |    2 
+ net/sunrpc/xprtrdma/svc_rdma.c             |   41 ---
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  371 ++++++++++++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   52 ++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   27 +-
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  284 ++++++++++++++++-----
+ net/sunrpc/xprtrdma/transport.c            |   30 +-
+ net/sunrpc/xprtrdma/xprt_rdma.h            |   20 +-
+ 10 files changed, 723 insertions(+), 142 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
