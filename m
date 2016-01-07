@@ -1,40 +1,60 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv1 2/6] IB/core: Added members to support rdma cgroup
-Date: Thu, 7 Jan 2016 10:07:56 -0500
-Message-ID: <20160107150756.GD29797@mtj.duckdns.org>
-References: <1452020286-9508-1-git-send-email-pandit.parav@gmail.com>
- <1452020286-9508-3-git-send-email-pandit.parav@gmail.com>
- <20160105215656.GI5995@mtj.duckdns.org>
- <CAG53R5VVK4jhyXJT9XLFdjz-amzkLGhugvozWzoYNcBua-KsNg@mail.gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: iser-target: Add iSCSI Extensions for RDMA (iSER) target driver
+Date: Thu, 7 Jan 2016 17:22:28 +0200
+Message-ID: <568E82B4.4030909@dev.mellanox.co.il>
+References: <20160104210732.GA8675@mwanda>
+ <1452104665.26125.22.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5VVK4jhyXJT9XLFdjz-amzkLGhugvozWzoYNcBua-KsNg@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1452104665.26125.22.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 07, 2016 at 04:46:19AM +0530, Parav Pandit wrote:
-> On Wed, Jan 6, 2016 at 3:26 AM, Tejun Heo <tj@kernel.org> wrote:
-> > On Wed, Jan 06, 2016 at 12:28:02AM +0530, Parav Pandit wrote:
-> >> Added function pointer table to store resource pool specific
-> >> operation for each resource type (verb and hw).
-> >> Added list node to link device to rdma cgroup so that it can
-> >> participate in resource accounting and limit configuration.
-> >
-> > Is there any point in splitting patches 1 and 2 from 3?
-> >
-> Patch 2 is in IB stack, so I separated that patch out from 1. That
-> makes it 3 patches.
-> If you think single patch is easier to review, let me know, I can
-> respin to have one patch for these 3 smaller patches.
 
-They don't do anything by themselves.  I think putting them into a
-single patch would be easier to review.
+> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.
+> index 91eb22c..8954e12 100644
+> --- a/drivers/infiniband/ulp/isert/ib_isert.c
+> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
+> @@ -356,7 +356,7 @@ isert_create_device_ib_res(struct isert_device *device)
+>          dev_attr = &device->dev_attr;
+>          ret = isert_query_device(device->ib_device, dev_attr);
+>          if (ret)
+> -               return ret;
+> +               goto out;
+>
+>          /* asign function handlers */
+>          if (dev_attr->device_cap_flags & IB_DEVICE_MEM_MGT_EXTENSIONS &&
+> @@ -372,7 +372,7 @@ isert_create_device_ib_res(struct isert_device *device)
+>
+>          ret = isert_alloc_comps(device, dev_attr);
+>          if (ret)
+> -               return ret;
+> +               goto out;
+>
+>          device->pd = ib_alloc_pd(device->ib_device);
+>          if (IS_ERR(device->pd)) {
+> @@ -390,6 +390,9 @@ isert_create_device_ib_res(struct isert_device *device)
+>
+>   out_cq:
+>          isert_free_comps(device);
+> +out:
+> +       if (ret > 0)
+> +               ret = -EINVAL;
+>          return ret;
+>   }
+>
+> --
 
-Thanks.
+Looks fine,
 
--- 
-tejun
+Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Thanks Nic, and thanks Dan for reporting!
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
