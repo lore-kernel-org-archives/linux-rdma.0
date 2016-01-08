@@ -1,107 +1,210 @@
-From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Ping: [PATCH 1/1] Fix deadlock when running
- run_iter_bw_infinitely
-Date: Fri, 8 Jan 2016 08:36:24 +0100
-Message-ID: <568F66F8.9080407@oracle.com>
-References: <1447849673-30034-1-git-send-email-hans.westgaard.ry@oracle.com>
- <5667E747.2070006@oracle.com> <20151209085245.GA8662@leon.nu>
- <5667F05B.8010200@oracle.com> <20151209093023.GB8662@leon.nu>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: [PATCH v5 11/10] svc_rdma: use local_dma_lkey
+Date: Thu, 7 Jan 2016 23:53:41 -0800
+Message-ID: <20160108075341.GA24754@infradead.org>
+References: <20160107194251.2662.88158.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151209093023.GB8662-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Gil Rockah <gilr-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160107194251.2662.88158.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-I cloned  git://git.openfabrics.org/~grockah/perftest.git today and found
-quite a few new commits but not this patch.
+We now alwasy have a per-PD local_dma_lkey available.  Make use of that
+fact in svc_rdma and stop registering our own MR.
 
-Am I looking in the wrong repository or are there problems with this patch ?
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ include/linux/sunrpc/svc_rdma.h            |  2 --
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |  2 +-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |  4 ++--
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  6 ++---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   | 36 ++++--------------------------
+ 5 files changed, 10 insertions(+), 40 deletions(-)
 
-Hans
-
-On 12/09/2015 10:30 AM, Leon Romanovsky wrote:
-> On Wed, Dec 09, 2015 at 10:11:55AM +0100, Hans Westgaard Ry wrote:
->> Sorry but I didn't see that "something" gobbled part of the mail.
->> The correct lines are  (as in the original):
->>
->> src/perftest_resources.c | 22 ++++++++++++++++------
->>   1 file changed, 16 insertions(+), 6 deletions(-)
->>
->> diff --git a/src/perftest_resources.c b/src/perftest_resources.c
->> index cb915e0..4d8e6c0 100755
->> --- a/src/perftest_resources.c
->> +++ b/src/perftest_resources.c
->> @@ -25,6 +25,12 @@ static enum ibv_wr_opcode opcode_atomic_array[] = {IBV_WR_ATOMIC_CMP_AND_SWP,IBV
->>   struct perftest_parameters* duration_param;
->>   struct check_alive_data check_alive_data;
->> +/*
->> + * Flag to trig call to print_report_bw
->> + * The flag is set in signal_handler and tested/reset in run_iter_bw_infinitely
->> + */
->> +static volatile int trig_print_report_bw = 0;
->> +
->>   /******************************************************************************
->>    * Beginning
->> @@ -3214,7 +3220,15 @@ int run_iter_bw_infinitely(struct pingpong_context *ctx,struct perftest_paramete
->>   	/* main loop for posting */
->>   	while (1) {
->> -
->> +		if (trig_print_report_bw) {
->> +			duration_param->tcompleted[0] = get_cycles();
->> +			print_report_bw(duration_param,NULL);
->> +			duration_param->iters = 0;
->> +			alarm(duration_param->duration);
->> +			duration_param->tposted[0] = get_cycles();
->> +			trig_print_report_bw = 0;
->> +		}
->> +		
->>   		/* main loop to run over all the qps and post each time n messages */
->>   		for (index =0 ; index < num_of_qps ; index++) {
->> @@ -4213,11 +4227,7 @@ void check_alive(int sig)
->>    ******************************************************************************/
->>   void catch_alarm_infintely(int sig)
->>   {
->> -	duration_param->tcompleted[0] = get_cycles();
->> -	print_report_bw(duration_param,NULL);
->> -	duration_param->iters = 0;
->> -	alarm(duration_param->duration);
->> -	duration_param->tposted[0] = get_cycles();
->> +	trig_print_report_bw = 1;
->>   }
-> Thanks, it looks good,
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
->>
->>
->> On 12/09/2015 09:52 AM, Leon Romanovsky wrote:
->>> On Wed, Dec 09, 2015 at 09:33:11AM +0100, Hans Westgaard Ry wrote:
->>>> Any comments on this patch ?
->>>>
->>>>
->>>>
->>>> On 11/18/2015 01:27 PM, Hans Westgaard Ry wrote:
->>>>> The test uses a signal-handler to periodically print a line of report.
->>>>> +		if (trig_print_report_bw) {
->>>>> +			duration_param->tcompleted[0] =et_cycles();
->>>>> +			print_report_bw(duration_param,NULL);
->>>>> +			duration_param->iters =;
->>> Excuse me, what did you mean by the line above?
->>>
->>>>> +			alarm(duration_param->duration);
->>>>> +			duration_param->tposted[0] =et_cycles();
->>>>> +			trig_print_report_bw =;
->>> And this line too.
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index b13513a..5322fea 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -156,13 +156,11 @@ struct svcxprt_rdma {
+ 	struct ib_qp         *sc_qp;
+ 	struct ib_cq         *sc_rq_cq;
+ 	struct ib_cq         *sc_sq_cq;
+-	struct ib_mr         *sc_phys_mr;	/* MR for server memory */
+ 	int		     (*sc_reader)(struct svcxprt_rdma *,
+ 					  struct svc_rqst *,
+ 					  struct svc_rdma_op_ctxt *,
+ 					  int *, u32 *, u32, u32, u64, bool);
+ 	u32		     sc_dev_caps;	/* distilled device caps */
+-	u32		     sc_dma_lkey;	/* local dma key */
+ 	unsigned int	     sc_frmr_pg_list_len;
+ 	struct list_head     sc_frmr_q;
+ 	spinlock_t	     sc_frmr_q_lock;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index deff06a..65a7c23 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -128,7 +128,7 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+ 
+ 	ctxt->wr_op = IB_WR_SEND;
+ 	ctxt->direction = DMA_TO_DEVICE;
+-	ctxt->sge[0].lkey = rdma->sc_dma_lkey;
++	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = sndbuf->len;
+ 	ctxt->sge[0].addr =
+ 	    ib_dma_map_page(rdma->sc_cm_id->device, ctxt->pages[0], 0,
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 3dfe464..c8b8a8b 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -144,6 +144,7 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+ 
+ 		head->arg.pages[pg_no] = rqstp->rq_arg.pages[pg_no];
+ 		head->arg.page_len += len;
++
+ 		head->arg.len += len;
+ 		if (!pg_off)
+ 			head->count++;
+@@ -160,8 +161,7 @@ int rdma_read_chunk_lcl(struct svcxprt_rdma *xprt,
+ 			goto err;
+ 		atomic_inc(&xprt->sc_dma_used);
+ 
+-		/* The lkey here is either a local dma lkey or a dma_mr lkey */
+-		ctxt->sge[pno].lkey = xprt->sc_dma_lkey;
++		ctxt->sge[pno].lkey = xprt->sc_pd->local_dma_lkey;
+ 		ctxt->sge[pno].length = len;
+ 		ctxt->count++;
+ 
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index 3c25052..df57f3c 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -265,7 +265,7 @@ static int send_write(struct svcxprt_rdma *xprt, struct svc_rqst *rqstp,
+ 					 sge[sge_no].addr))
+ 			goto err;
+ 		atomic_inc(&xprt->sc_dma_used);
+-		sge[sge_no].lkey = xprt->sc_dma_lkey;
++		sge[sge_no].lkey = xprt->sc_pd->local_dma_lkey;
+ 		ctxt->count++;
+ 		sge_off = 0;
+ 		sge_no++;
+@@ -480,7 +480,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 	ctxt->count = 1;
+ 
+ 	/* Prepare the SGE for the RPCRDMA Header */
+-	ctxt->sge[0].lkey = rdma->sc_dma_lkey;
++	ctxt->sge[0].lkey = rdma->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = svc_rdma_xdr_get_reply_hdr_len(rdma_resp);
+ 	ctxt->sge[0].addr =
+ 	    ib_dma_map_page(rdma->sc_cm_id->device, page, 0,
+@@ -504,7 +504,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 					 ctxt->sge[sge_no].addr))
+ 			goto err;
+ 		atomic_inc(&rdma->sc_dma_used);
+-		ctxt->sge[sge_no].lkey = rdma->sc_dma_lkey;
++		ctxt->sge[sge_no].lkey = rdma->sc_pd->local_dma_lkey;
+ 		ctxt->sge[sge_no].length = sge_bytes;
+ 	}
+ 	if (byte_count != 0) {
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 7fd2395..5763825 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -232,11 +232,11 @@ void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt)
+ 	for (i = 0; i < ctxt->count && ctxt->sge[i].length; i++) {
+ 		/*
+ 		 * Unmap the DMA addr in the SGE if the lkey matches
+-		 * the sc_dma_lkey, otherwise, ignore it since it is
++		 * the local_dma_lkey, otherwise, ignore it since it is
+ 		 * an FRMR lkey and will be unmapped later when the
+ 		 * last WR that uses it completes.
+ 		 */
+-		if (ctxt->sge[i].lkey == xprt->sc_dma_lkey) {
++		if (ctxt->sge[i].lkey == xprt->sc_pd->local_dma_lkey) {
+ 			atomic_dec(&xprt->sc_dma_used);
+ 			ib_dma_unmap_page(xprt->sc_cm_id->device,
+ 					    ctxt->sge[i].addr,
+@@ -698,7 +698,7 @@ int svc_rdma_post_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+ 		atomic_inc(&xprt->sc_dma_used);
+ 		ctxt->sge[sge_no].addr = pa;
+ 		ctxt->sge[sge_no].length = PAGE_SIZE;
+-		ctxt->sge[sge_no].lkey = xprt->sc_dma_lkey;
++		ctxt->sge[sge_no].lkey = xprt->sc_pd->local_dma_lkey;
+ 		ctxt->count = sge_no + 1;
+ 		buflen += PAGE_SIZE;
+ 	}
+@@ -1014,8 +1014,6 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct ib_cq_init_attr cq_attr = {};
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct ib_device *dev;
+-	int uninitialized_var(dma_mr_acc);
+-	int need_dma_mr = 0;
+ 	unsigned int i;
+ 	int ret = 0;
+ 
+@@ -1160,32 +1158,9 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	    !rdma_ib_or_roce(dev, newxprt->sc_cm_id->port_num))
+ 		goto errout;
+ 
+-	if (!(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG) ||
+-	    !(dev->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)) {
+-		need_dma_mr = 1;
+-		dma_mr_acc = IB_ACCESS_LOCAL_WRITE;
+-		if (rdma_protocol_iwarp(dev, newxprt->sc_cm_id->port_num) &&
+-		    !(newxprt->sc_dev_caps & SVCRDMA_DEVCAP_FAST_REG))
+-			dma_mr_acc |= IB_ACCESS_REMOTE_WRITE;
+-	}
+-
+ 	if (rdma_protocol_iwarp(dev, newxprt->sc_cm_id->port_num))
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
+ 
+-	/* Create the DMA MR if needed, otherwise, use the DMA LKEY */
+-	if (need_dma_mr) {
+-		/* Register all of physical memory */
+-		newxprt->sc_phys_mr =
+-			ib_get_dma_mr(newxprt->sc_pd, dma_mr_acc);
+-		if (IS_ERR(newxprt->sc_phys_mr)) {
+-			dprintk("svcrdma: Failed to create DMA MR ret=%d\n",
+-				ret);
+-			goto errout;
+-		}
+-		newxprt->sc_dma_lkey = newxprt->sc_phys_mr->lkey;
+-	} else
+-		newxprt->sc_dma_lkey = dev->local_dma_lkey;
+-
+ 	/* Post receive buffers */
+ 	for (i = 0; i < newxprt->sc_rq_depth; i++) {
+ 		ret = svc_rdma_post_recv(newxprt, GFP_KERNEL);
+@@ -1349,9 +1324,6 @@ static void __svc_rdma_free(struct work_struct *work)
+ 	if (rdma->sc_rq_cq && !IS_ERR(rdma->sc_rq_cq))
+ 		ib_destroy_cq(rdma->sc_rq_cq);
+ 
+-	if (rdma->sc_phys_mr && !IS_ERR(rdma->sc_phys_mr))
+-		ib_dereg_mr(rdma->sc_phys_mr);
+-
+ 	if (rdma->sc_pd && !IS_ERR(rdma->sc_pd))
+ 		ib_dealloc_pd(rdma->sc_pd);
+ 
+@@ -1479,7 +1451,7 @@ void svc_rdma_send_error(struct svcxprt_rdma *xprt, struct rpcrdma_msg *rmsgp,
+ 		return;
+ 	}
+ 	atomic_inc(&xprt->sc_dma_used);
+-	ctxt->sge[0].lkey = xprt->sc_dma_lkey;
++	ctxt->sge[0].lkey = xprt->sc_pd->local_dma_lkey;
+ 	ctxt->sge[0].length = length;
+ 
+ 	/* Prepare SEND WR */
+-- 
+1.9.1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
