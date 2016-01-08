@@ -1,81 +1,56 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: iw_cxgb4: Pass qid range to user space driver
-Date: Fri, 8 Jan 2016 16:12:47 +0300
-Message-ID: <20160108131247.GA4738@mwanda>
+Subject: re: IB/mlx5: Extend query_device/port to support RoCE
+Date: Fri, 8 Jan 2016 16:23:24 +0300
+Message-ID: <20160108132324.GA7683@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Hariprasad S,
+Hello Achiad Shochat,
 
-The patch c5dfb000b904: "iw_cxgb4: Pass qid range to user space
-driver" from Dec 11, 2015, leads to the following static checker
+The patch 3f89a643eb29: "IB/mlx5: Extend query_device/port to support
+RoCE" from Dec 23, 2015, leads to the following static checker
 warning:
 
-	drivers/infiniband/hw/cxgb4/device.c:857 c4iw_rdev_open()
-	warn: variable dereferenced before check 'rdev->status_page' (see line 853)
+	drivers/infiniband/hw/mlx5/main.c:149 mlx5_query_port_roce()
+	warn: passing casted pointer '&props->qkey_viol_cntr' to 'mlx5_query_nic_vport_qkey_viol_cntr()' 32 vs 16.
 
-drivers/infiniband/hw/cxgb4/device.c
-   841          err = c4iw_rqtpool_create(rdev);
-   842          if (err) {
-   843                  printk(KERN_ERR MOD "error %d initializing rqt pool\n", err);
-   844                  goto err3;
-   845          }
-   846          err = c4iw_ocqp_pool_create(rdev);
-   847          if (err) {
-   848                  printk(KERN_ERR MOD "error %d initializing ocqp pool\n", err);
-   849                  goto err4;
-   850          }
-   851          rdev->status_page = (struct t4_dev_status_page *)
-   852                              __get_free_page(GFP_KERNEL);
-   853          rdev->status_page->qp_start = rdev->lldi.vr->qp.start;
-   854          rdev->status_page->qp_size = rdev->lldi.vr->qp.size;
-   855          rdev->status_page->cq_start = rdev->lldi.vr->cq.start;
-   856          rdev->status_page->cq_size = rdev->lldi.vr->cq.size;
-   857          if (!rdev->status_page) {
-   858                  pr_err(MOD "error allocating status page\n");
-   859                  goto err4;
+drivers/infiniband/hw/mlx5/main.c
+   129  static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+   130                                  struct ib_port_attr *props)
+   131  {
+   132          struct mlx5_ib_dev *dev = to_mdev(device);
+   133          struct net_device *ndev;
+   134          enum ib_mtu ndev_ib_mtu;
+   135  
+   136          memset(props, 0, sizeof(*props));
+   137  
+   138          props->port_cap_flags  |= IB_PORT_CM_SUP;
+   139          props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
+   140  
+   141          props->gid_tbl_len      = MLX5_CAP_ROCE(dev->mdev,
+   142                                                  roce_address_table_size);
+   143          props->max_mtu          = IB_MTU_4096;
+   144          props->max_msg_sz       = 1 << MLX5_CAP_GEN(dev->mdev, log_max_msg);
+   145          props->pkey_tbl_len     = 1;
+   146          props->state            = IB_PORT_DOWN;
+   147          props->phys_state       = 3;
+   148  
+   149          mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
+   150                                              (u16 *)&props->qkey_viol_cntr);
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This will break on big endian systems.
 
-Ugh...  Obviously move the error handling first.  But then fix the
-GW-Basic labels to meaningful error names.  You wouldn't name functions
-one(), two() or variables var1, var2, labels are the same.  Pick names
-that reflect what the goto does.  "goto err_destroy_rqt;"  If we
-had picked a good name we wouldn't have had to scroll down to see the
-second bug.  It should be goto err_destroy_ocqp; but we are missing a
-call to c4iw_ocqp_pool_destroy().
-
-Normal error handling is formulaic and does not require active thinking.
-It is easy to review because you just have to keep track of the most
-recent allocation.
-
-https://plus.google.com/106378716002406849458/posts/dnanfhQ4mHQ
-
-   860          }
-   861  
-   862          if (c4iw_wr_log) {
-   863                  rdev->wr_log = kzalloc((1 << c4iw_wr_log_size_order) *
-   864                                         sizeof(*rdev->wr_log), GFP_KERNEL);
-   865                  if (rdev->wr_log) {
-   866                          rdev->wr_log_size = 1 << c4iw_wr_log_size_order;
-   867                          atomic_set(&rdev->wr_log_idx, 0);
-   868                  } else {
-   869                          pr_err(MOD "error allocating wr_log. Logging disabled\n");
-   870                  }
-   871          }
-   872  
-   873          rdev->status_page->db_off = 0;
-   874  
-   875          return 0;
-   876  err4:
-   877          c4iw_rqtpool_destroy(rdev);
-   878  err3:
-   879          c4iw_pblpool_destroy(rdev);
-   880  err2:
+   151  
+   152          ndev = mlx5_ib_get_netdev(device, port_num);
+   153          if (!ndev)
+   154                  return 0;
+   155  
 
 regards,
 dan carpenter
