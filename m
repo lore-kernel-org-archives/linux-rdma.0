@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 05/27] IB/hfi1: Remove MR data structures from hfi1
-Date: Sat, 09 Jan 2016 07:17:05 -0800
-Message-ID: <20160109151705.30800.52935.stgit@scvm10.sc.intel.com>
+Subject: [RFC PATCH 04/27] IB/hfi1: Use rdmavt protection domain
+Date: Sat, 09 Jan 2016 07:17:00 -0800
+Message-ID: <20160109151659.30800.68545.stgit@scvm10.sc.intel.com>
 References: <20160109151020.30800.82395.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,459 +10,235 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160109151020.30800.82395.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove MR data structures from hfi1 and use the version in rdmavt
+Remove protection domain from hfi1 and use rdmavt's version.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/keys.c  |   30 +++++++++---------
- drivers/staging/rdma/hfi1/mr.c    |   20 ++++++------
+ drivers/staging/rdma/hfi1/keys.c  |    4 +-
+ drivers/staging/rdma/hfi1/mr.c    |    2 +
  drivers/staging/rdma/hfi1/ruc.c   |    4 +-
- drivers/staging/rdma/hfi1/sdma.h  |    2 +
- drivers/staging/rdma/hfi1/ud.c    |    2 +
- drivers/staging/rdma/hfi1/verbs.c |   16 +++++----
- drivers/staging/rdma/hfi1/verbs.h |   63 ++++++-------------------------------
- 7 files changed, 47 insertions(+), 90 deletions(-)
+ drivers/staging/rdma/hfi1/verbs.c |   67 +++----------------------------------
+ drivers/staging/rdma/hfi1/verbs.h |   15 +-------
+ 5 files changed, 12 insertions(+), 80 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/keys.c b/drivers/staging/rdma/hfi1/keys.c
-index 57a266f..ffaaa6f 100644
+index cb4e608..57a266f 100644
 --- a/drivers/staging/rdma/hfi1/keys.c
 +++ b/drivers/staging/rdma/hfi1/keys.c
-@@ -63,21 +63,21 @@
-  *
-  */
- 
--int hfi1_alloc_lkey(struct hfi1_mregion *mr, int dma_region)
-+int hfi1_alloc_lkey(struct rvt_mregion *mr, int dma_region)
- {
- 	unsigned long flags;
- 	u32 r;
- 	u32 n;
- 	int ret = 0;
- 	struct hfi1_ibdev *dev = to_idev(mr->pd->device);
--	struct hfi1_lkey_table *rkt = &dev->lk_table;
-+	struct rvt_lkey_table *rkt = &dev->lk_table;
- 
- 	hfi1_get_mr(mr);
- 	spin_lock_irqsave(&rkt->lock, flags);
- 
- 	/* special case for dma_mr lkey == 0 */
- 	if (dma_region) {
--		struct hfi1_mregion *tmr;
-+		struct rvt_mregion *tmr;
- 
- 		tmr = rcu_access_pointer(dev->dma_mr);
- 		if (!tmr) {
-@@ -133,13 +133,13 @@ bail:
-  * hfi1_free_lkey - free an lkey
-  * @mr: mr to free from tables
-  */
--void hfi1_free_lkey(struct hfi1_mregion *mr)
-+void hfi1_free_lkey(struct rvt_mregion *mr)
- {
- 	unsigned long flags;
- 	u32 lkey = mr->lkey;
- 	u32 r;
- 	struct hfi1_ibdev *dev = to_idev(mr->pd->device);
--	struct hfi1_lkey_table *rkt = &dev->lk_table;
-+	struct rvt_lkey_table *rkt = &dev->lk_table;
- 	int freed = 0;
- 
- 	spin_lock_irqsave(&rkt->lock, flags);
-@@ -176,10 +176,10 @@ out:
+@@ -176,7 +176,7 @@ out:
   * Check the IB SGE for validity and initialize our internal version
   * of it.
   */
--int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
-+int hfi1_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+-int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct hfi1_pd *pd,
++int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
  		 struct hfi1_sge *isge, struct ib_sge *sge, int acc)
  {
--	struct hfi1_mregion *mr;
-+	struct rvt_mregion *mr;
- 	unsigned n, m;
- 	size_t off;
+ 	struct hfi1_mregion *mr;
+@@ -285,7 +285,7 @@ int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
+ 	 */
+ 	rcu_read_lock();
+ 	if (rkey == 0) {
+-		struct hfi1_pd *pd = to_ipd(qp->ibqp.pd);
++		struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 		struct hfi1_ibdev *dev = to_idev(pd->ibpd.device);
  
-@@ -231,15 +231,15 @@ int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
- 
- 		entries_spanned_by_off = off >> mr->page_shift;
- 		off -= (entries_spanned_by_off << mr->page_shift);
--		m = entries_spanned_by_off / HFI1_SEGSZ;
--		n = entries_spanned_by_off % HFI1_SEGSZ;
-+		m = entries_spanned_by_off / RVT_SEGSZ;
-+		n = entries_spanned_by_off % RVT_SEGSZ;
- 	} else {
- 		m = 0;
- 		n = 0;
- 		while (off >= mr->map[m]->segs[n].length) {
- 			off -= mr->map[m]->segs[n].length;
- 			n++;
--			if (n >= HFI1_SEGSZ) {
-+			if (n >= RVT_SEGSZ) {
- 				m++;
- 				n = 0;
- 			}
-@@ -274,8 +274,8 @@ bail:
- int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
- 		 u32 len, u64 vaddr, u32 rkey, int acc)
- {
--	struct hfi1_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct hfi1_mregion *mr;
-+	struct rvt_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	struct rvt_mregion *mr;
- 	unsigned n, m;
- 	size_t off;
- 
-@@ -328,15 +328,15 @@ int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
- 
- 		entries_spanned_by_off = off >> mr->page_shift;
- 		off -= (entries_spanned_by_off << mr->page_shift);
--		m = entries_spanned_by_off / HFI1_SEGSZ;
--		n = entries_spanned_by_off % HFI1_SEGSZ;
-+		m = entries_spanned_by_off / RVT_SEGSZ;
-+		n = entries_spanned_by_off % RVT_SEGSZ;
- 	} else {
- 		m = 0;
- 		n = 0;
- 		while (off >= mr->map[m]->segs[n].length) {
- 			off -= mr->map[m]->segs[n].length;
- 			n++;
--			if (n >= HFI1_SEGSZ) {
-+			if (n >= RVT_SEGSZ) {
- 				m++;
- 				n = 0;
- 			}
+ 		if (pd->user)
 diff --git a/drivers/staging/rdma/hfi1/mr.c b/drivers/staging/rdma/hfi1/mr.c
-index 3f1ef58..7e14965 100644
+index a3f8b88..3f1ef58 100644
 --- a/drivers/staging/rdma/hfi1/mr.c
 +++ b/drivers/staging/rdma/hfi1/mr.c
-@@ -56,7 +56,7 @@
- /* Fast memory region */
- struct hfi1_fmr {
- 	struct ib_fmr ibfmr;
--	struct hfi1_mregion mr;        /* must be last */
-+	struct rvt_mregion mr;        /* must be last */
- };
+@@ -116,7 +116,7 @@ struct ib_mr *hfi1_get_dma_mr(struct ib_pd *pd, int acc)
+ 	struct ib_mr *ret;
+ 	int rval;
  
- static inline struct hfi1_fmr *to_ifmr(struct ib_fmr *ibfmr)
-@@ -64,13 +64,13 @@ static inline struct hfi1_fmr *to_ifmr(struct ib_fmr *ibfmr)
- 	return container_of(ibfmr, struct hfi1_fmr, ibfmr);
- }
- 
--static int init_mregion(struct hfi1_mregion *mr, struct ib_pd *pd,
-+static int init_mregion(struct rvt_mregion *mr, struct ib_pd *pd,
- 			int count)
- {
- 	int m, i = 0;
- 	int rval = 0;
- 
--	m = (count + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	m = (count + RVT_SEGSZ - 1) / RVT_SEGSZ;
- 	for (; i < m; i++) {
- 		mr->map[i] = kzalloc(sizeof(*mr->map[0]), GFP_KERNEL);
- 		if (!mr->map[i])
-@@ -91,7 +91,7 @@ bail:
- 	goto out;
- }
- 
--static void deinit_mregion(struct hfi1_mregion *mr)
-+static void deinit_mregion(struct rvt_mregion *mr)
- {
- 	int i = mr->mapsz;
- 
-@@ -159,7 +159,7 @@ static struct hfi1_mr *alloc_mr(int count, struct ib_pd *pd)
- 	int m;
- 
- 	/* Allocate struct plus pointers to first level page tables. */
--	m = (count + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	m = (count + RVT_SEGSZ - 1) / RVT_SEGSZ;
- 	mr = kzalloc(sizeof(*mr) + m * sizeof(mr->mr.map[0]), GFP_KERNEL);
- 	if (!mr)
+-	if (to_ipd(pd)->user) {
++	if (ibpd_to_rvtpd(pd)->user) {
+ 		ret = ERR_PTR(-EPERM);
  		goto bail;
-@@ -245,7 +245,7 @@ struct ib_mr *hfi1_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 		mr->mr.map[m]->segs[n].vaddr = vaddr;
- 		mr->mr.map[m]->segs[n].length = umem->page_size;
- 		n++;
--		if (n == HFI1_SEGSZ) {
-+		if (n == RVT_SEGSZ) {
- 			m++;
- 			n = 0;
- 		}
-@@ -333,7 +333,7 @@ struct ib_fmr *hfi1_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
- 	int rval = -ENOMEM;
- 
- 	/* Allocate struct plus pointers to first level page tables. */
--	m = (fmr_attr->max_pages + HFI1_SEGSZ - 1) / HFI1_SEGSZ;
-+	m = (fmr_attr->max_pages + RVT_SEGSZ - 1) / RVT_SEGSZ;
- 	fmr = kzalloc(sizeof(*fmr) + m * sizeof(fmr->mr.map[0]), GFP_KERNEL);
- 	if (!fmr)
- 		goto bail;
-@@ -385,7 +385,7 @@ int hfi1_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
- 		      int list_len, u64 iova)
- {
- 	struct hfi1_fmr *fmr = to_ifmr(ibfmr);
--	struct hfi1_lkey_table *rkt;
-+	struct rvt_lkey_table *rkt;
- 	unsigned long flags;
- 	int m, n, i;
- 	u32 ps;
-@@ -410,7 +410,7 @@ int hfi1_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
- 	for (i = 0; i < list_len; i++) {
- 		fmr->mr.map[m]->segs[n].vaddr = (void *) page_list[i];
- 		fmr->mr.map[m]->segs[n].length = ps;
--		if (++n == HFI1_SEGSZ) {
-+		if (++n == RVT_SEGSZ) {
- 			m++;
- 			n = 0;
- 		}
-@@ -431,7 +431,7 @@ bail:
- int hfi1_unmap_fmr(struct list_head *fmr_list)
- {
- 	struct hfi1_fmr *fmr;
--	struct hfi1_lkey_table *rkt;
-+	struct rvt_lkey_table *rkt;
- 	unsigned long flags;
- 
- 	list_for_each_entry(fmr, fmr_list, ibfmr.list) {
+ 	}
 diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
-index 58af852..f45de14 100644
+index 49bc9fd..58af852 100644
 --- a/drivers/staging/rdma/hfi1/ruc.c
 +++ b/drivers/staging/rdma/hfi1/ruc.c
-@@ -101,7 +101,7 @@ static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
- {
+@@ -102,11 +102,11 @@ static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
  	int i, j, ret;
  	struct ib_wc wc;
--	struct hfi1_lkey_table *rkt;
-+	struct rvt_lkey_table *rkt;
- 	struct rvt_pd *pd;
+ 	struct hfi1_lkey_table *rkt;
+-	struct hfi1_pd *pd;
++	struct rvt_pd *pd;
  	struct hfi1_sge_state *ss;
  
-@@ -552,7 +552,7 @@ again:
- 			if (--sqp->s_sge.num_sge)
- 				*sge = *sqp->s_sge.sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
--			if (++sge->n >= HFI1_SEGSZ) {
-+			if (++sge->n >= RVT_SEGSZ) {
- 				if (++sge->m >= sge->mr->mapsz)
- 					break;
- 				sge->n = 0;
-diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
-index cc22d2e..1a7a89d 100644
---- a/drivers/staging/rdma/hfi1/sdma.h
-+++ b/drivers/staging/rdma/hfi1/sdma.h
-@@ -381,7 +381,7 @@ struct verbs_txreq {
- 	struct sdma_txreq       txreq;
- 	struct hfi1_qp           *qp;
- 	struct hfi1_swqe         *wqe;
--	struct hfi1_mregion	*mr;
-+	struct rvt_mregion	*mr;
- 	struct hfi1_sge_state    *ss;
- 	struct sdma_engine     *sde;
- 	u16                     hdr_dwords;
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index 5a9c784..d9a9e7c 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -211,7 +211,7 @@ static void ud_loopback(struct hfi1_qp *sqp, struct hfi1_swqe *swqe)
- 			if (--ssge.num_sge)
- 				*sge = *ssge.sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
--			if (++sge->n >= HFI1_SEGSZ) {
-+			if (++sge->n >= RVT_SEGSZ) {
- 				if (++sge->m >= sge->mr->mapsz)
- 					break;
- 				sge->n = 0;
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
+ 	ss = &qp->r_sge;
+ 	ss->sg_list = qp->r_sg_list;
+ 	qp->r_len = 0;
 diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index 058f245..c90a691 100644
+index 08ce9d3..058f245 100644
 --- a/drivers/staging/rdma/hfi1/verbs.c
 +++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -298,7 +298,7 @@ void hfi1_copy_sge(
- 			if (--ss->num_sge)
- 				*sge = *ss->sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
--			if (++sge->n >= HFI1_SEGSZ) {
-+			if (++sge->n >= RVT_SEGSZ) {
- 				if (++sge->m >= sge->mr->mapsz)
- 					break;
- 				sge->n = 0;
-@@ -339,7 +339,7 @@ void hfi1_skip_sge(struct hfi1_sge_state *ss, u32 length, int release)
- 			if (--ss->num_sge)
- 				*sge = *ss->sg_list++;
- 		} else if (sge->length == 0 && sge->mr->lkey) {
--			if (++sge->n >= HFI1_SEGSZ) {
-+			if (++sge->n >= RVT_SEGSZ) {
- 				if (++sge->m >= sge->mr->mapsz)
- 					break;
- 				sge->n = 0;
-@@ -365,7 +365,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
- 	int i;
+@@ -366,7 +366,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
  	int j;
  	int acc;
--	struct hfi1_lkey_table *rkt;
-+	struct rvt_lkey_table *rkt;
- 	struct rvt_pd *pd;
+ 	struct hfi1_lkey_table *rkt;
+-	struct hfi1_pd *pd;
++	struct rvt_pd *pd;
  	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
  	struct hfi1_pportdata *ppd;
-@@ -723,7 +723,7 @@ void update_sge(struct hfi1_sge_state *ss, u32 length)
- 		if (--ss->num_sge)
- 			*sge = *ss->sg_list++;
- 	} else if (sge->length == 0 && sge->mr->lkey) {
--		if (++sge->n >= HFI1_SEGSZ) {
-+		if (++sge->n >= RVT_SEGSZ) {
- 			if (++sge->m >= sge->mr->mapsz)
- 				return;
- 			sge->n = 0;
-@@ -1894,13 +1894,13 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	spin_lock_init(&dev->lk_table.lock);
- 	dev->lk_table.max = 1 << hfi1_lkey_table_size;
- 	/* ensure generation is at least 4 bits (keys.c) */
--	if (hfi1_lkey_table_size > MAX_LKEY_TABLE_BITS) {
-+	if (hfi1_lkey_table_size > RVT_MAX_LKEY_TABLE_BITS) {
- 		dd_dev_warn(dd, "lkey bits %u too large, reduced to %u\n",
--			      hfi1_lkey_table_size, MAX_LKEY_TABLE_BITS);
--		hfi1_lkey_table_size = MAX_LKEY_TABLE_BITS;
-+			      hfi1_lkey_table_size, RVT_MAX_LKEY_TABLE_BITS);
-+		hfi1_lkey_table_size = RVT_MAX_LKEY_TABLE_BITS;
- 	}
- 	lk_tab_size = dev->lk_table.max * sizeof(*dev->lk_table.table);
--	dev->lk_table.table = (struct hfi1_mregion __rcu **)
-+	dev->lk_table.table = (struct rvt_mregion __rcu **)
- 		vmalloc(lk_tab_size);
- 	if (dev->lk_table.table == NULL) {
- 		ret = -ENOMEM;
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 083f1a8..bfa7e36 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -285,44 +285,11 @@ struct hfi1_cq {
- };
+ 	struct hfi1_ibport *ibp;
+@@ -411,7 +411,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
+ 		return -ENOMEM;
  
- /*
-- * A segment is a linear region of low physical memory.
-- * Used by the verbs layer.
-- */
--struct hfi1_seg {
--	void *vaddr;
--	size_t length;
--};
--
--/* The number of hfi1_segs that fit in a page. */
--#define HFI1_SEGSZ     (PAGE_SIZE / sizeof(struct hfi1_seg))
--
--struct hfi1_segarray {
--	struct hfi1_seg segs[HFI1_SEGSZ];
--};
--
--struct hfi1_mregion {
--	struct ib_pd *pd;       /* shares refcnt of ibmr.pd */
--	u64 user_base;          /* User's address for this region */
--	u64 iova;               /* IB start address of this region */
--	size_t length;
--	u32 lkey;
--	u32 offset;             /* offset (bytes) to start of region */
--	int access_flags;
--	u32 max_segs;           /* number of hfi1_segs in all the arrays */
--	u32 mapsz;              /* size of the map array */
--	u8  page_shift;         /* 0 - non unform/non powerof2 sizes */
--	u8  lkey_published;     /* in global table */
--	struct completion comp; /* complete when refcount goes to zero */
--	atomic_t refcount;
--	struct hfi1_segarray *map[0];    /* the segments */
--};
--
--/*
-  * These keep track of the copy progress within a memory region.
-  * Used by the verbs layer.
-  */
- struct hfi1_sge {
--	struct hfi1_mregion *mr;
-+	struct rvt_mregion *mr;
- 	void *vaddr;            /* kernel virtual address of segment */
- 	u32 sge_length;         /* length of the SGE */
- 	u32 length;             /* remaining length of the segment */
-@@ -334,7 +301,7 @@ struct hfi1_sge {
- struct hfi1_mr {
- 	struct ib_mr ibmr;
- 	struct ib_umem *umem;
--	struct hfi1_mregion mr;  /* must be last */
-+	struct rvt_mregion mr;  /* must be last */
- };
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 	wqe = get_swqe_ptr(qp, qp->s_head);
  
- /*
-@@ -498,7 +465,7 @@ struct hfi1_qp {
- 	u32 s_flags;
- 	struct hfi1_swqe *s_wqe;
- 	struct hfi1_sge_state s_sge;     /* current send request data */
--	struct hfi1_mregion *s_rdma_mr;
-+	struct rvt_mregion *s_rdma_mr;
- 	struct sdma_engine *s_sde; /* current sde */
- 	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
-@@ -641,16 +608,6 @@ static inline struct hfi1_rwqe *get_rwqe_ptr(struct hfi1_rq *rq, unsigned n)
- 		  rq->max_sge * sizeof(struct ib_sge)) * n);
+ 
+@@ -1405,7 +1405,7 @@ static int query_device(struct ib_device *ibdev,
+ 	props->max_mr = dev->lk_table.max;
+ 	props->max_fmr = dev->lk_table.max;
+ 	props->max_map_per_fmr = 32767;
+-	props->max_pd = hfi1_max_pds;
++	props->max_pd = dev->rdi.dparms.props.max_pd;
+ 	props->max_qp_rd_atom = HFI1_MAX_RDMA_ATOMIC;
+ 	props->max_qp_init_rd_atom = 255;
+ 	/* props->max_res_rd_atom */
+@@ -1603,61 +1603,6 @@ static int query_gid(struct ib_device *ibdev, u8 port,
+ 	return ret;
  }
  
--#define MAX_LKEY_TABLE_BITS 23
+-static struct ib_pd *alloc_pd(struct ib_device *ibdev,
+-			      struct ib_ucontext *context,
+-			      struct ib_udata *udata)
+-{
+-	struct hfi1_ibdev *dev = to_idev(ibdev);
+-	struct hfi1_pd *pd;
+-	struct ib_pd *ret;
 -
--struct hfi1_lkey_table {
--	spinlock_t lock; /* protect changes in this struct */
--	u32 next;               /* next unused index (speeds search) */
--	u32 gen;                /* generation count */
--	u32 max;                /* size of the table */
--	struct hfi1_mregion __rcu **table;
+-	/*
+-	 * This is actually totally arbitrary.  Some correctness tests
+-	 * assume there's a maximum number of PDs that can be allocated.
+-	 * We don't actually have this limit, but we fail the test if
+-	 * we allow allocations of more than we report for this value.
+-	 */
+-
+-	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
+-	if (!pd) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	spin_lock(&dev->n_pds_lock);
+-	if (dev->n_pds_allocated == hfi1_max_pds) {
+-		spin_unlock(&dev->n_pds_lock);
+-		kfree(pd);
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	dev->n_pds_allocated++;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	/* ib_alloc_pd() will initialize pd->ibpd. */
+-	pd->user = udata != NULL;
+-
+-	ret = &pd->ibpd;
+-
+-bail:
+-	return ret;
+-}
+-
+-static int dealloc_pd(struct ib_pd *ibpd)
+-{
+-	struct hfi1_pd *pd = to_ipd(ibpd);
+-	struct hfi1_ibdev *dev = to_idev(ibpd->device);
+-
+-	spin_lock(&dev->n_pds_lock);
+-	dev->n_pds_allocated--;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	kfree(pd);
+-
+-	return 0;
+-}
+-
+ /*
+  * convert ah port,sl to sc
+  */
+@@ -1931,7 +1876,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 		init_ibport(ppd + i);
+ 
+ 	/* Only need to initialize non-zero fields. */
+-	spin_lock_init(&dev->n_pds_lock);
++
+ 	spin_lock_init(&dev->n_ahs_lock);
+ 	spin_lock_init(&dev->n_cqs_lock);
+ 	spin_lock_init(&dev->n_qps_lock);
+@@ -2040,8 +1985,8 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	ibdev->query_gid = query_gid;
+ 	ibdev->alloc_ucontext = alloc_ucontext;
+ 	ibdev->dealloc_ucontext = dealloc_ucontext;
+-	ibdev->alloc_pd = alloc_pd;
+-	ibdev->dealloc_pd = dealloc_pd;
++	ibdev->alloc_pd = NULL;
++	ibdev->dealloc_pd = NULL;
+ 	ibdev->create_ah = create_ah;
+ 	ibdev->destroy_ah = destroy_ah;
+ 	ibdev->modify_ah = modify_ah;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index ecc8dde..083f1a8 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -234,12 +234,6 @@ struct hfi1_mcast {
+ 	int n_attached;
+ };
+ 
+-/* Protection domain */
+-struct hfi1_pd {
+-	struct ib_pd ibpd;
+-	int user;               /* non-zero if created from user space */
 -};
 -
- struct hfi1_opcode_stats {
- 	u64 n_packets;          /* number of packets */
- 	u64 n_bytes;            /* total number of bytes */
-@@ -734,12 +691,12 @@ struct hfi1_ibdev {
- 	struct list_head pending_mmaps;
- 	spinlock_t mmap_offset_lock; /* protect mmap_offset */
- 	u32 mmap_offset;
--	struct hfi1_mregion __rcu *dma_mr;
-+	struct rvt_mregion __rcu *dma_mr;
+ /* Address Handle */
+ struct hfi1_ah {
+ 	struct ib_ah ibah;
+@@ -762,8 +756,6 @@ struct hfi1_ibdev {
+ 	u64 n_kmem_wait;
+ 	u64 n_send_schedule;
  
- 	struct hfi1_qp_ibdev *qp_dev;
+-	u32 n_pds_allocated;    /* number of PDs allocated for device */
+-	spinlock_t n_pds_lock;
+ 	u32 n_ahs_allocated;    /* number of AHs allocated for device */
+ 	spinlock_t n_ahs_lock;
+ 	u32 n_cqs_allocated;    /* number of CQs allocated for device */
+@@ -803,11 +795,6 @@ static inline struct hfi1_mr *to_imr(struct ib_mr *ibmr)
+ 	return container_of(ibmr, struct hfi1_mr, ibmr);
+ }
  
- 	/* QP numbers are shared by all IB ports */
--	struct hfi1_lkey_table lk_table;
-+	struct rvt_lkey_table lk_table;
- 	/* protect wait lists */
- 	seqlock_t iowait_lock;
- 	struct list_head txwait;        /* list for wait verbs_txreq */
-@@ -954,11 +911,11 @@ void hfi1_ud_rcv(struct hfi1_packet *packet);
+-static inline struct hfi1_pd *to_ipd(struct ib_pd *ibpd)
+-{
+-	return container_of(ibpd, struct hfi1_pd, ibpd);
+-}
+-
+ static inline struct hfi1_ah *to_iah(struct ib_ah *ibah)
+ {
+ 	return container_of(ibah, struct hfi1_ah, ibah);
+@@ -971,7 +958,7 @@ int hfi1_alloc_lkey(struct hfi1_mregion *mr, int dma_region);
  
- int hfi1_lookup_pkey_idx(struct hfi1_ibport *ibp, u16 pkey);
+ void hfi1_free_lkey(struct hfi1_mregion *mr);
  
--int hfi1_alloc_lkey(struct hfi1_mregion *mr, int dma_region);
-+int hfi1_alloc_lkey(struct rvt_mregion *mr, int dma_region);
- 
--void hfi1_free_lkey(struct hfi1_mregion *mr);
-+void hfi1_free_lkey(struct rvt_mregion *mr);
- 
--int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
-+int hfi1_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+-int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct hfi1_pd *pd,
++int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
  		 struct hfi1_sge *isge, struct ib_sge *sge, int acc);
  
  int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
-@@ -1023,12 +980,12 @@ int hfi1_unmap_fmr(struct list_head *fmr_list);
- 
- int hfi1_dealloc_fmr(struct ib_fmr *ibfmr);
- 
--static inline void hfi1_get_mr(struct hfi1_mregion *mr)
-+static inline void hfi1_get_mr(struct rvt_mregion *mr)
- {
- 	atomic_inc(&mr->refcount);
- }
- 
--static inline void hfi1_put_mr(struct hfi1_mregion *mr)
-+static inline void hfi1_put_mr(struct rvt_mregion *mr)
- {
- 	if (unlikely(atomic_dec_and_test(&mr->refcount)))
- 		complete(&mr->comp);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
