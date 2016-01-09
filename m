@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/8] IB/rdmavt: Add support for tracing events
-Date: Sat, 09 Jan 2016 07:00:13 -0800
-Message-ID: <20160109150013.8585.83145.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 6/8] IB/rdmavt: Add post receive to rdmavt
+Date: Sat, 09 Jan 2016 07:00:30 -0800
+Message-ID: <20160109150030.8585.17045.stgit@scvm10.sc.intel.com>
 References: <20160109145731.8585.48926.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,216 +10,79 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160109145731.8585.48926.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support of tracing events using the kernels built-in event
-tracing infrastructure. This can be extended to provide a wide range of
-trace and debug capabilities which have a negligible impact on performance
-when enabled. These should be preferred over the use of the rvt_pr*
-functions.
+This patch adds the simple post receive verbs call to rdmavt. The actual
+interrupt handling and packet processing is still done in the low level
+driver.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/Makefile |    5 ++
- drivers/infiniband/sw/rdmavt/trace.c  |   49 +++++++++++++++++++
- drivers/infiniband/sw/rdmavt/trace.h  |   86 +++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/vt.c     |    5 ++
- 4 files changed, 143 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/trace.c
- create mode 100644 drivers/infiniband/sw/rdmavt/trace.h
+ drivers/infiniband/sw/rdmavt/qp.c |   47 +++++++++++++++++++++++++++++++------
+ 1 files changed, 40 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/Makefile b/drivers/infiniband/sw/rdmavt/Makefile
-index 00f0188..ccaa799 100644
---- a/drivers/infiniband/sw/rdmavt/Makefile
-+++ b/drivers/infiniband/sw/rdmavt/Makefile
-@@ -7,4 +7,7 @@
- #
- obj-$(CONFIG_INFINIBAND_RDMAVT) += rdmavt.o
- 
--rdmavt-y := vt.o ah.o cq.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o
-+rdmavt-y := vt.o ah.o cq.o dma.o mad.o mcast.o mmap.o mr.o pd.o qp.o srq.o \
-+	trace.o
-+
-+CFLAGS_trace.o = -I$(src)
-diff --git a/drivers/infiniband/sw/rdmavt/trace.c b/drivers/infiniband/sw/rdmavt/trace.c
-new file mode 100644
-index 0000000..19afe39
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/trace.c
-@@ -0,0 +1,49 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#define CREATE_TRACE_POINTS
-+#include "trace.h"
-diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
-new file mode 100644
-index 0000000..22e86ff
---- /dev/null
-+++ b/drivers/infiniband/sw/rdmavt/trace.h
-@@ -0,0 +1,86 @@
-+/*
-+ * Copyright(c) 2015 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+
-+#undef TRACE_SYSTEM_VAR
-+#define TRACE_SYSTEM_VAR rdmavt
-+
-+#if !defined(__RDMAVT_TRACE_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __RDMAVT_TRACE_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
-+
-+#include <rdma/rdma_vt.h>
-+
-+#define RDI_DEV_ENTRY(rdi)   __string(dev, rdi->driver_f.get_card_name(rdi))
-+#define RDI_DEV_ASSIGN(rdi)  __assign_str(dev, rdi->driver_f.get_card_name(rdi))
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM rdmavt
-+
-+TRACE_EVENT(rvt_dbg,
-+	TP_PROTO(struct rvt_dev_info *rdi,
-+		 const char *msg),
-+	TP_ARGS(rdi, msg),
-+	TP_STRUCT__entry(
-+		RDI_DEV_ENTRY(rdi)
-+		__string(msg, msg)
-+	),
-+	TP_fast_assign(
-+		RDI_DEV_ASSIGN(rdi);
-+		__assign_str(msg, msg);
-+	),
-+	TP_printk("[%s]: %s", __get_str(dev), __get_str(msg))
-+);
-+
-+#endif /* __RDMAVT_TRACE_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace
-+#include <trace/define_trace.h>
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 136cc21..7f56a42 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -48,6 +48,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include "vt.h"
-+#include "trace.h"
- 
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("RDMA Verbs Transport Library");
-@@ -259,7 +260,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 		return -EINVAL;
- 	}
- 
--	/* Once we get past here we can use the rvt_pr macros */
-+	/* Once we get past here we can use rvt_pr macros and tracepoints */
-+	trace_rvt_dbg(rdi, "Driver attempting registration");
- 	rvt_mmap_init(rdi);
- 
- 	/* Dev Ops */
-@@ -370,6 +372,7 @@ EXPORT_SYMBOL(rvt_register_device);
- 
- void rvt_unregister_device(struct rvt_dev_info *rdi)
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 6aa7d6f..0b606b1 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1214,14 +1214,47 @@ int rvt_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 		  struct ib_recv_wr **bad_wr)
  {
-+	trace_rvt_dbg(rdi, "Driver is unregistering.");
- 	if (!rdi)
- 		return;
+-	/*
+-	 * When a packet arrives the driver needs to call up to rvt to process
+-	 * the packet. The UD, RC, UC processing will be done in rvt, however
+-	 * the driver should be able to override this if it so choses. Perhaps a
+-	 * set of function pointers set up at registration time.
+-	 */
++	struct rvt_qp *qp = ibqp_to_rvtqp(ibqp);
++	struct rvt_rwq *wq = qp->r_rq.wq;
++	unsigned long flags;
  
+-	return -EOPNOTSUPP;
++	/* Check that state is OK to post receive. */
++	if (!(ib_rvt_state_ops[qp->state] & RVT_POST_RECV_OK) || !wq) {
++		*bad_wr = wr;
++		return -EINVAL;
++	}
++
++	for (; wr; wr = wr->next) {
++		struct rvt_rwqe *wqe;
++		u32 next;
++		int i;
++
++		if ((unsigned)wr->num_sge > qp->r_rq.max_sge) {
++			*bad_wr = wr;
++			return -EINVAL;
++		}
++
++		spin_lock_irqsave(&qp->r_rq.lock, flags);
++		next = wq->head + 1;
++		if (next >= qp->r_rq.size)
++			next = 0;
++		if (next == wq->tail) {
++			spin_unlock_irqrestore(&qp->r_rq.lock, flags);
++			*bad_wr = wr;
++			return -ENOMEM;
++		}
++
++		wqe = rvt_get_rwqe_ptr(&qp->r_rq, wq->head);
++		wqe->wr_id = wr->wr_id;
++		wqe->num_sge = wr->num_sge;
++		for (i = 0; i < wr->num_sge; i++)
++			wqe->sg_list[i] = wr->sg_list[i];
++		/* Make sure queue entry is written before the head index. */
++		smp_wmb();
++		wq->head = next;
++		spin_unlock_irqrestore(&qp->r_rq.lock, flags);
++	}
++	return 0;
+ }
+ 
+ /**
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
