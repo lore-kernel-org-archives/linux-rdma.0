@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 13/27] IB/hfi1: Remove ibport and use rdmavt version
-Date: Sat, 09 Jan 2016 07:17:50 -0800
-Message-ID: <20160109151750.30800.43223.stgit@scvm10.sc.intel.com>
+Subject: [RFC PATCH 18/27] IB/hfi1: Remove qpdev and qpn table from hfi1
+Date: Sat, 09 Jan 2016 07:18:18 -0800
+Message-ID: <20160109151818.30800.67035.stgit@scvm10.sc.intel.com>
 References: <20160109151020.30800.82395.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,1155 +10,476 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160109151020.30800.82395.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove most of the ibport members from hfi1 and use the rdmavt version.
-Also register the port with rdmavt.
+Another change on the way to removing queue pair functionality from
+hfi1. This patch removes the private queue pair structure and the table
+which holds the queue pair numbers in favor of using what is provided
+by rdmavt.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c        |   34 +++----
- drivers/staging/rdma/hfi1/driver.c      |    2 
- drivers/staging/rdma/hfi1/hfi.h         |    8 +-
- drivers/staging/rdma/hfi1/mad.c         |  152 ++++++++++++++++---------------
- drivers/staging/rdma/hfi1/qp.c          |   23 ++---
- drivers/staging/rdma/hfi1/qp.h          |    2 
- drivers/staging/rdma/hfi1/rc.c          |   32 +++----
- drivers/staging/rdma/hfi1/ruc.c         |   14 ++-
- drivers/staging/rdma/hfi1/uc.c          |    2 
- drivers/staging/rdma/hfi1/ud.c          |   16 ++-
- drivers/staging/rdma/hfi1/verbs.c       |   61 +++++++-----
- drivers/staging/rdma/hfi1/verbs.h       |   51 +---------
- drivers/staging/rdma/hfi1/verbs_mcast.c |   28 +++---
- 13 files changed, 198 insertions(+), 227 deletions(-)
+ drivers/staging/rdma/hfi1/qp.c    |  147 +++++++++++++++++++------------------
+ drivers/staging/rdma/hfi1/qp.h    |   38 +---------
+ drivers/staging/rdma/hfi1/verbs.h |    3 -
+ 3 files changed, 78 insertions(+), 110 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 7926042..a7f1fff 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1543,8 +1543,8 @@ static u64 access_sw_cpu_##cntr(const struct cntr_entry *entry,		      \
- 			      void *context, int vl, int mode, u64 data)      \
- {									      \
- 	struct hfi1_pportdata *ppd = (struct hfi1_pportdata *)context;	      \
--	return read_write_cpu(ppd->dd, &ppd->ibport_data.z_ ##cntr,	      \
--			      ppd->ibport_data.cntr, vl,		      \
-+	return read_write_cpu(ppd->dd, &ppd->ibport_data.rvp.z_ ##cntr,	      \
-+			      ppd->ibport_data.rvp.cntr, vl,		      \
- 			      mode, data);				      \
- }
- 
-@@ -1561,7 +1561,7 @@ static u64 access_ibp_##cntr(const struct cntr_entry *entry,		      \
- 	if (vl != CNTR_INVALID_VL)					      \
- 		return 0;						      \
- 									      \
--	return read_write_sw(ppd->dd, &ppd->ibport_data.n_ ##cntr,	      \
-+	return read_write_sw(ppd->dd, &ppd->ibport_data.rvp.n_ ##cntr,	      \
- 			     mode, data);				      \
- }
- 
-@@ -5915,14 +5915,14 @@ static inline int init_cpu_counters(struct hfi1_devdata *dd)
- 
- 	ppd = (struct hfi1_pportdata *)(dd + 1);
- 	for (i = 0; i < dd->num_pports; i++, ppd++) {
--		ppd->ibport_data.rc_acks = NULL;
--		ppd->ibport_data.rc_qacks = NULL;
--		ppd->ibport_data.rc_acks = alloc_percpu(u64);
--		ppd->ibport_data.rc_qacks = alloc_percpu(u64);
--		ppd->ibport_data.rc_delayed_comp = alloc_percpu(u64);
--		if ((ppd->ibport_data.rc_acks == NULL) ||
--		    (ppd->ibport_data.rc_delayed_comp == NULL) ||
--		    (ppd->ibport_data.rc_qacks == NULL))
-+		ppd->ibport_data.rvp.rc_acks = NULL;
-+		ppd->ibport_data.rvp.rc_qacks = NULL;
-+		ppd->ibport_data.rvp.rc_acks = alloc_percpu(u64);
-+		ppd->ibport_data.rvp.rc_qacks = alloc_percpu(u64);
-+		ppd->ibport_data.rvp.rc_delayed_comp = alloc_percpu(u64);
-+		if (!ppd->ibport_data.rvp.rc_acks ||
-+		    !ppd->ibport_data.rvp.rc_delayed_comp ||
-+		    !ppd->ibport_data.rvp.rc_qacks)
- 			return -ENOMEM;
- 	}
- 
-@@ -7966,14 +7966,14 @@ static void free_cntrs(struct hfi1_devdata *dd)
- 	for (i = 0; i < dd->num_pports; i++, ppd++) {
- 		kfree(ppd->cntrs);
- 		kfree(ppd->scntrs);
--		free_percpu(ppd->ibport_data.rc_acks);
--		free_percpu(ppd->ibport_data.rc_qacks);
--		free_percpu(ppd->ibport_data.rc_delayed_comp);
-+		free_percpu(ppd->ibport_data.rvp.rc_acks);
-+		free_percpu(ppd->ibport_data.rvp.rc_qacks);
-+		free_percpu(ppd->ibport_data.rvp.rc_delayed_comp);
- 		ppd->cntrs = NULL;
- 		ppd->scntrs = NULL;
--		ppd->ibport_data.rc_acks = NULL;
--		ppd->ibport_data.rc_qacks = NULL;
--		ppd->ibport_data.rc_delayed_comp = NULL;
-+		ppd->ibport_data.rvp.rc_acks = NULL;
-+		ppd->ibport_data.rvp.rc_qacks = NULL;
-+		ppd->ibport_data.rvp.rc_delayed_comp = NULL;
- 	}
- 	kfree(dd->portcntrnames);
- 	dd->portcntrnames = NULL;
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index 924b10d..32d3d89 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -337,7 +337,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 			/* Check for valid receive state. */
- 			if (!(ib_hfi1_state_ops[qp->state] &
- 			      HFI1_PROCESS_RECV_OK)) {
--				ibp->n_pkt_drops++;
-+				ibp->rvp.n_pkt_drops++;
- 			}
- 
- 			switch (qp->ibqp.qp_type) {
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index b340825..97d6226 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1815,10 +1815,10 @@ static inline void hfi1_reset_cpu_counters(struct hfi1_devdata *dd)
- 
- 	ppd = (struct hfi1_pportdata *)(dd + 1);
- 	for (i = 0; i < dd->num_pports; i++, ppd++) {
--		ppd->ibport_data.z_rc_acks =
--			get_all_cpu_total(ppd->ibport_data.rc_acks);
--		ppd->ibport_data.z_rc_qacks =
--			get_all_cpu_total(ppd->ibport_data.rc_qacks);
-+		ppd->ibport_data.rvp.z_rc_acks =
-+			get_all_cpu_total(ppd->ibport_data.rvp.rc_acks);
-+		ppd->ibport_data.rvp.z_rc_qacks =
-+			get_all_cpu_total(ppd->ibport_data.rvp.rc_qacks);
- 	}
- }
- 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index 82e3eb8..73ea902 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -91,7 +91,7 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 	int pkey_idx;
- 	u32 qpn = ppd_from_ibp(ibp)->sm_trap_qp;
- 
--	agent = ibp->send_agent;
-+	agent = ibp->rvp.send_agent;
- 	if (!agent)
- 		return;
- 
-@@ -100,7 +100,8 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 		return;
- 
- 	/* o14-2 */
--	if (ibp->trap_timeout && time_before(jiffies, ibp->trap_timeout))
-+	if (ibp->rvp.trap_timeout && time_before(jiffies,
-+						 ibp->rvp.trap_timeout))
- 		return;
- 
- 	pkey_idx = hfi1_lookup_pkey_idx(ibp, LIM_MGMT_P_KEY);
-@@ -121,18 +122,18 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 	smp->mgmt_class = IB_MGMT_CLASS_SUBN_LID_ROUTED;
- 	smp->class_version = 1;
- 	smp->method = IB_MGMT_METHOD_TRAP;
--	ibp->tid++;
--	smp->tid = cpu_to_be64(ibp->tid);
-+	ibp->rvp.tid++;
-+	smp->tid = cpu_to_be64(ibp->rvp.tid);
- 	smp->attr_id = IB_SMP_ATTR_NOTICE;
- 	/* o14-1: smp->mkey = 0; */
- 	memcpy(smp->data, data, len);
- 
--	spin_lock_irqsave(&ibp->lock, flags);
-+	spin_lock_irqsave(&ibp->rvp.lock, flags);
- 	if (!ibp->sm_ah) {
--		if (ibp->sm_lid != be16_to_cpu(IB_LID_PERMISSIVE)) {
-+		if (ibp->rvp.sm_lid != be16_to_cpu(IB_LID_PERMISSIVE)) {
- 			struct ib_ah *ah;
- 
--			ah = hfi1_create_qp0_ah(ibp, ibp->sm_lid);
-+			ah = hfi1_create_qp0_ah(ibp, ibp->rvp.sm_lid);
- 			if (IS_ERR(ah))
- 				ret = PTR_ERR(ah);
- 			else {
-@@ -146,17 +147,17 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 		send_buf->ah = &ibp->sm_ah->ibah;
- 		ret = 0;
- 	}
--	spin_unlock_irqrestore(&ibp->lock, flags);
-+	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
- 
- 	if (!ret)
- 		ret = ib_post_send_mad(send_buf, NULL);
- 	if (!ret) {
- 		/* 4.096 usec. */
--		timeout = (4096 * (1UL << ibp->subnet_timeout)) / 1000;
--		ibp->trap_timeout = jiffies + usecs_to_jiffies(timeout);
-+		timeout = (4096 * (1UL << ibp->rvp.subnet_timeout)) / 1000;
-+		ibp->rvp.trap_timeout = jiffies + usecs_to_jiffies(timeout);
- 	} else {
- 		ib_free_send_mad(send_buf);
--		ibp->trap_timeout = 0;
-+		ibp->rvp.trap_timeout = 0;
- 	}
- }
- 
-@@ -169,10 +170,10 @@ void hfi1_bad_pqkey(struct hfi1_ibport *ibp, __be16 trap_num, u32 key, u32 sl,
- 	struct ib_mad_notice_attr data;
- 
- 	if (trap_num == IB_NOTICE_TRAP_BAD_PKEY)
--		ibp->pkey_violations++;
-+		ibp->rvp.pkey_violations++;
- 	else
--		ibp->qkey_violations++;
--	ibp->n_pkt_drops++;
-+		ibp->rvp.qkey_violations++;
-+	ibp->rvp.n_pkt_drops++;
- 
- 	/* Send violation trap */
- 	data.generic_type = IB_NOTICE_TYPE_SECURITY;
-@@ -244,7 +245,8 @@ void hfi1_cap_mask_chg(struct hfi1_ibport *ibp)
- 	data.toggle_count = 0;
- 	memset(&data.details, 0, sizeof(data.details));
- 	data.details.ntc_144.lid = data.issuer_lid;
--	data.details.ntc_144.new_cap_mask = cpu_to_be32(ibp->port_cap_flags);
-+	data.details.ntc_144.new_cap_mask =
-+					cpu_to_be32(ibp->rvp.port_cap_flags);
- 
- 	send_trap(ibp, &data, sizeof(data));
- }
-@@ -406,37 +408,38 @@ static int check_mkey(struct hfi1_ibport *ibp, struct ib_mad_hdr *mad,
- 	int ret = 0;
- 
- 	/* Is the mkey in the process of expiring? */
--	if (ibp->mkey_lease_timeout &&
--	    time_after_eq(jiffies, ibp->mkey_lease_timeout)) {
-+	if (ibp->rvp.mkey_lease_timeout &&
-+	    time_after_eq(jiffies, ibp->rvp.mkey_lease_timeout)) {
- 		/* Clear timeout and mkey protection field. */
--		ibp->mkey_lease_timeout = 0;
--		ibp->mkeyprot = 0;
-+		ibp->rvp.mkey_lease_timeout = 0;
-+		ibp->rvp.mkeyprot = 0;
- 	}
- 
--	if ((mad_flags & IB_MAD_IGNORE_MKEY) ||  ibp->mkey == 0 ||
--	    ibp->mkey == mkey)
-+	if ((mad_flags & IB_MAD_IGNORE_MKEY) ||  ibp->rvp.mkey == 0 ||
-+	    ibp->rvp.mkey == mkey)
- 		valid_mkey = 1;
- 
- 	/* Unset lease timeout on any valid Get/Set/TrapRepress */
--	if (valid_mkey && ibp->mkey_lease_timeout &&
-+	if (valid_mkey && ibp->rvp.mkey_lease_timeout &&
- 	    (mad->method == IB_MGMT_METHOD_GET ||
- 	     mad->method == IB_MGMT_METHOD_SET ||
- 	     mad->method == IB_MGMT_METHOD_TRAP_REPRESS))
--		ibp->mkey_lease_timeout = 0;
-+		ibp->rvp.mkey_lease_timeout = 0;
- 
- 	if (!valid_mkey) {
- 		switch (mad->method) {
- 		case IB_MGMT_METHOD_GET:
- 			/* Bad mkey not a violation below level 2 */
--			if (ibp->mkeyprot < 2)
-+			if (ibp->rvp.mkeyprot < 2)
- 				break;
- 		case IB_MGMT_METHOD_SET:
- 		case IB_MGMT_METHOD_TRAP_REPRESS:
--			if (ibp->mkey_violations != 0xFFFF)
--				++ibp->mkey_violations;
--			if (!ibp->mkey_lease_timeout && ibp->mkey_lease_period)
--				ibp->mkey_lease_timeout = jiffies +
--					ibp->mkey_lease_period * HZ;
-+			if (ibp->rvp.mkey_violations != 0xFFFF)
-+				++ibp->rvp.mkey_violations;
-+			if (!ibp->rvp.mkey_lease_timeout &&
-+			    ibp->rvp.mkey_lease_period)
-+				ibp->rvp.mkey_lease_timeout = jiffies +
-+					ibp->rvp.mkey_lease_period * HZ;
- 			/* Generate a trap notice. */
- 			bad_mkey(ibp, mad, mkey, dr_slid, return_path,
- 				 hop_cnt);
-@@ -547,14 +550,14 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	/* Only return the mkey if the protection field allows it. */
- 	if (!(smp->method == IB_MGMT_METHOD_GET &&
--	      ibp->mkey != smp->mkey &&
--	      ibp->mkeyprot == 1))
--		pi->mkey = ibp->mkey;
--
--	pi->subnet_prefix = ibp->gid_prefix;
--	pi->sm_lid = cpu_to_be32(ibp->sm_lid);
--	pi->ib_cap_mask = cpu_to_be32(ibp->port_cap_flags);
--	pi->mkey_lease_period = cpu_to_be16(ibp->mkey_lease_period);
-+	      ibp->rvp.mkey != smp->mkey &&
-+	      ibp->rvp.mkeyprot == 1))
-+		pi->mkey = ibp->rvp.mkey;
-+
-+	pi->subnet_prefix = ibp->rvp.gid_prefix;
-+	pi->sm_lid = cpu_to_be32(ibp->rvp.sm_lid);
-+	pi->ib_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
-+	pi->mkey_lease_period = cpu_to_be16(ibp->rvp.mkey_lease_period);
- 	pi->sm_trap_qp = cpu_to_be32(ppd->sm_trap_qp);
- 	pi->sa_qp = cpu_to_be32(ppd->sa_qp);
- 
-@@ -598,7 +601,7 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	pi->port_states.portphysstate_portstate =
- 		(hfi1_ibphys_portstate(ppd) << 4) | state;
- 
--	pi->mkeyprotect_lmc = (ibp->mkeyprot << 6) | ppd->lmc;
-+	pi->mkeyprotect_lmc = (ibp->rvp.mkeyprot << 6) | ppd->lmc;
- 
- 	memset(pi->neigh_mtu.pvlx_to_mtu, 0, sizeof(pi->neigh_mtu.pvlx_to_mtu));
- 	for (i = 0; i < ppd->vls_supported; i++) {
-@@ -611,7 +614,7 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	/* don't forget VL 15 */
- 	mtu = mtu_to_enum(dd->vld[15].mtu, 2048);
- 	pi->neigh_mtu.pvlx_to_mtu[15/2] |= mtu;
--	pi->smsl = ibp->sm_sl & OPA_PI_MASK_SMSL;
-+	pi->smsl = ibp->rvp.sm_sl & OPA_PI_MASK_SMSL;
- 	pi->operational_vls = hfi1_get_ib_cfg(ppd, HFI1_IB_CFG_OP_VLS);
- 	pi->partenforce_filterraw |=
- 		(ppd->linkinit_reason & OPA_PI_MASK_LINKINIT_REASON);
-@@ -619,17 +622,17 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 		pi->partenforce_filterraw |= OPA_PI_MASK_PARTITION_ENFORCE_IN;
- 	if (ppd->part_enforce & HFI1_PART_ENFORCE_OUT)
- 		pi->partenforce_filterraw |= OPA_PI_MASK_PARTITION_ENFORCE_OUT;
--	pi->mkey_violations = cpu_to_be16(ibp->mkey_violations);
-+	pi->mkey_violations = cpu_to_be16(ibp->rvp.mkey_violations);
- 	/* P_KeyViolations are counted by hardware. */
--	pi->pkey_violations = cpu_to_be16(ibp->pkey_violations);
--	pi->qkey_violations = cpu_to_be16(ibp->qkey_violations);
-+	pi->pkey_violations = cpu_to_be16(ibp->rvp.pkey_violations);
-+	pi->qkey_violations = cpu_to_be16(ibp->rvp.qkey_violations);
- 
- 	pi->vl.cap = ppd->vls_supported;
--	pi->vl.high_limit = cpu_to_be16(ibp->vl_high_limit);
-+	pi->vl.high_limit = cpu_to_be16(ibp->rvp.vl_high_limit);
- 	pi->vl.arb_high_cap = (u8)hfi1_get_ib_cfg(ppd, HFI1_IB_CFG_VL_HIGH_CAP);
- 	pi->vl.arb_low_cap = (u8)hfi1_get_ib_cfg(ppd, HFI1_IB_CFG_VL_LOW_CAP);
- 
--	pi->clientrereg_subnettimeout = ibp->subnet_timeout;
-+	pi->clientrereg_subnettimeout = ibp->rvp.subnet_timeout;
- 
- 	pi->port_link_mode  = cpu_to_be16(OPA_PORT_LINK_MODE_OPA << 10 |
- 					  OPA_PORT_LINK_MODE_OPA << 5 |
-@@ -1090,9 +1093,9 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	ls_old = driver_lstate(ppd);
- 
--	ibp->mkey = pi->mkey;
--	ibp->gid_prefix = pi->subnet_prefix;
--	ibp->mkey_lease_period = be16_to_cpu(pi->mkey_lease_period);
-+	ibp->rvp.mkey = pi->mkey;
-+	ibp->rvp.gid_prefix = pi->subnet_prefix;
-+	ibp->rvp.mkey_lease_period = be16_to_cpu(pi->mkey_lease_period);
- 
- 	/* Must be a valid unicast LID address. */
- 	if ((lid == 0 && ls_old > IB_PORT_INIT) ||
-@@ -1132,20 +1135,20 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	     smlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		pr_warn("SubnSet(OPA_PortInfo) smlid invalid 0x%x\n", smlid);
--	} else if (smlid != ibp->sm_lid || msl != ibp->sm_sl) {
-+	} else if (smlid != ibp->rvp.sm_lid || msl != ibp->rvp.sm_sl) {
- 		pr_warn("SubnSet(OPA_PortInfo) smlid 0x%x\n", smlid);
--		spin_lock_irqsave(&ibp->lock, flags);
-+		spin_lock_irqsave(&ibp->rvp.lock, flags);
- 		if (ibp->sm_ah) {
--			if (smlid != ibp->sm_lid)
-+			if (smlid != ibp->rvp.sm_lid)
- 				ibp->sm_ah->attr.dlid = smlid;
--			if (msl != ibp->sm_sl)
-+			if (msl != ibp->rvp.sm_sl)
- 				ibp->sm_ah->attr.sl = msl;
- 		}
--		spin_unlock_irqrestore(&ibp->lock, flags);
--		if (smlid != ibp->sm_lid)
--			ibp->sm_lid = smlid;
--		if (msl != ibp->sm_sl)
--			ibp->sm_sl = msl;
-+		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+		if (smlid != ibp->rvp.sm_lid)
-+			ibp->rvp.sm_lid = smlid;
-+		if (msl != ibp->rvp.sm_sl)
-+			ibp->rvp.sm_sl = msl;
- 		event.event = IB_EVENT_SM_CHANGE;
- 		ib_dispatch_event(&event);
- 	}
-@@ -1197,10 +1200,11 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 			smp->status |= IB_SMP_INVALID_FIELD;
- 	}
- 
--	ibp->mkeyprot = (pi->mkeyprotect_lmc & OPA_PI_MASK_MKEY_PROT_BIT) >> 6;
--	ibp->vl_high_limit = be16_to_cpu(pi->vl.high_limit) & 0xFF;
-+	ibp->rvp.mkeyprot =
-+		(pi->mkeyprotect_lmc & OPA_PI_MASK_MKEY_PROT_BIT) >> 6;
-+	ibp->rvp.vl_high_limit = be16_to_cpu(pi->vl.high_limit) & 0xFF;
- 	(void)hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_VL_HIGH_LIMIT,
--				    ibp->vl_high_limit);
-+				    ibp->rvp.vl_high_limit);
- 
- 	if (ppd->vls_supported/2 > ARRAY_SIZE(pi->neigh_mtu.pvlx_to_mtu) ||
- 		ppd->vls_supported > ARRAY_SIZE(dd->vld)) {
-@@ -1259,15 +1263,15 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	}
- 
- 	if (pi->mkey_violations == 0)
--		ibp->mkey_violations = 0;
-+		ibp->rvp.mkey_violations = 0;
- 
- 	if (pi->pkey_violations == 0)
--		ibp->pkey_violations = 0;
-+		ibp->rvp.pkey_violations = 0;
- 
- 	if (pi->qkey_violations == 0)
--		ibp->qkey_violations = 0;
-+		ibp->rvp.qkey_violations = 0;
- 
--	ibp->subnet_timeout =
-+	ibp->rvp.subnet_timeout =
- 		pi->clientrereg_subnettimeout & OPA_PI_MASK_SUBNET_TIMEOUT;
- 
- 	crc_enabled = be16_to_cpu(pi->port_ltp_crc_mode);
-@@ -3570,9 +3574,9 @@ static int subn_get_opa_sma(__be16 attr_id, struct opa_smp *smp, u32 am,
- 					      resp_len);
- 		break;
- 	case IB_SMP_ATTR_SM_INFO:
--		if (ibp->port_cap_flags & IB_PORT_SM_DISABLED)
-+		if (ibp->rvp.port_cap_flags & IB_PORT_SM_DISABLED)
- 			return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
--		if (ibp->port_cap_flags & IB_PORT_SM)
-+		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
- 			return IB_MAD_RESULT_SUCCESS;
- 		/* FALLTHROUGH */
- 	default:
-@@ -3640,9 +3644,9 @@ static int subn_set_opa_sma(__be16 attr_id, struct opa_smp *smp, u32 am,
- 					      resp_len);
- 		break;
- 	case IB_SMP_ATTR_SM_INFO:
--		if (ibp->port_cap_flags & IB_PORT_SM_DISABLED)
-+		if (ibp->rvp.port_cap_flags & IB_PORT_SM_DISABLED)
- 			return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
--		if (ibp->port_cap_flags & IB_PORT_SM)
-+		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
- 			return IB_MAD_RESULT_SUCCESS;
- 		/* FALLTHROUGH */
- 	default:
-@@ -4218,7 +4222,7 @@ int hfi1_create_agents(struct hfi1_ibdev *dev)
- 			goto err;
- 		}
- 
--		ibp->send_agent = agent;
-+		ibp->rvp.send_agent = agent;
- 	}
- 
- 	return 0;
-@@ -4226,9 +4230,9 @@ int hfi1_create_agents(struct hfi1_ibdev *dev)
- err:
- 	for (p = 0; p < dd->num_pports; p++) {
- 		ibp = &dd->pport[p].ibport_data;
--		if (ibp->send_agent) {
--			agent = ibp->send_agent;
--			ibp->send_agent = NULL;
-+		if (ibp->rvp.send_agent) {
-+			agent = ibp->rvp.send_agent;
-+			ibp->rvp.send_agent = NULL;
- 			ib_unregister_mad_agent(agent);
- 		}
- 	}
-@@ -4245,9 +4249,9 @@ void hfi1_free_agents(struct hfi1_ibdev *dev)
- 
- 	for (p = 0; p < dd->num_pports; p++) {
- 		ibp = &dd->pport[p].ibport_data;
--		if (ibp->send_agent) {
--			agent = ibp->send_agent;
--			ibp->send_agent = NULL;
-+		if (ibp->rvp.send_agent) {
-+			agent = ibp->rvp.send_agent;
-+			ibp->rvp.send_agent = NULL;
- 			ib_unregister_mad_agent(agent);
- 		}
- 		if (ibp->sm_ah) {
 diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index 51c8655..5f7e203 100644
+index 6b38c8a..a2d9501 100644
 --- a/drivers/staging/rdma/hfi1/qp.c
 +++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -238,7 +238,7 @@ static void insert_qp(struct hfi1_ibdev *dev, struct rvt_qp *qp)
- 	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
+@@ -60,9 +60,6 @@
+ #include "trace.h"
+ #include "sdma.h"
  
- 	if (qp->ibqp.qp_num <= 1) {
--		rcu_assign_pointer(ibp->qp[qp->ibqp.qp_num], qp);
-+		rcu_assign_pointer(ibp->rvp.qp[qp->ibqp.qp_num], qp);
- 	} else {
- 		u32 n = qpn_hash(dev->qp_dev, qp->ibqp.qp_num);
+-#define BITS_PER_PAGE           (PAGE_SIZE*BITS_PER_BYTE)
+-#define BITS_PER_PAGE_MASK      (BITS_PER_PAGE-1)
+-
+ static unsigned int hfi1_qp_table_size = 256;
+ module_param_named(qp_table_size, hfi1_qp_table_size, uint, S_IRUGO);
+ MODULE_PARM_DESC(qp_table_size, "QP table size");
+@@ -75,10 +72,10 @@ static int iowait_sleep(
+ 	unsigned seq);
+ static void iowait_wakeup(struct iowait *wait, int reason);
  
-@@ -263,12 +263,13 @@ static void remove_qp(struct hfi1_ibdev *dev, struct rvt_qp *qp)
- 
- 	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
- 
--	if (rcu_dereference_protected(ibp->qp[0],
-+	if (rcu_dereference_protected(ibp->rvp.qp[0],
-+				      lockdep_is_held(
-+				      &dev->qp_dev->qpt_lock)) == qp) {
-+		RCU_INIT_POINTER(ibp->rvp.qp[0], NULL);
-+	} else if (rcu_dereference_protected(ibp->rvp.qp[1],
- 			lockdep_is_held(&dev->qp_dev->qpt_lock)) == qp) {
--		RCU_INIT_POINTER(ibp->qp[0], NULL);
--	} else if (rcu_dereference_protected(ibp->qp[1],
--			lockdep_is_held(&dev->qp_dev->qpt_lock)) == qp) {
--		RCU_INIT_POINTER(ibp->qp[1], NULL);
-+		RCU_INIT_POINTER(ibp->rvp.qp[1], NULL);
- 	} else {
- 		struct rvt_qp *q;
- 		struct rvt_qp __rcu **qpp;
-@@ -317,9 +318,9 @@ static unsigned free_all_qps(struct hfi1_devdata *dd)
- 		if (!hfi1_mcast_tree_empty(ibp))
- 			qp_inuse++;
- 		rcu_read_lock();
--		if (rcu_dereference(ibp->qp[0]))
-+		if (rcu_dereference(ibp->rvp.qp[0]))
- 			qp_inuse++;
--		if (rcu_dereference(ibp->qp[1]))
-+		if (rcu_dereference(ibp->rvp.qp[1]))
- 			qp_inuse++;
- 		rcu_read_unlock();
- 	}
-@@ -1450,7 +1451,7 @@ static int iowait_sleep(
- 			struct hfi1_ibport *ibp =
- 				to_iport(qp->ibqp.device, qp->port_num);
- 
--			ibp->n_dmawait++;
-+			ibp->rvp.n_dmawait++;
- 			qp->s_flags |= HFI1_S_WAIT_DMA_DESC;
- 			list_add_tail(&priv->s_iowait.list, &sde->dmawait);
- 			trace_hfi1_qpsleep(qp, HFI1_S_WAIT_DMA_DESC);
-@@ -1622,9 +1623,9 @@ int qp_iter_next(struct qp_iter *iter)
- 				ibp = &ppd->ibport_data;
- 
- 				if (!(n & 1))
--					qp = rcu_dereference(ibp->qp[0]);
-+					qp = rcu_dereference(ibp->rvp.qp[0]);
- 				else
--					qp = rcu_dereference(ibp->qp[1]);
-+					qp = rcu_dereference(ibp->rvp.qp[1]);
- 			} else {
- 				qp = rcu_dereference(
- 					dev->qp_dev->qp_table[
-diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
-index 718846e..e806bc0 100644
---- a/drivers/staging/rdma/hfi1/qp.h
-+++ b/drivers/staging/rdma/hfi1/qp.h
-@@ -104,7 +104,7 @@ static inline struct rvt_qp *hfi1_lookup_qpn(struct hfi1_ibport *ibp,
- 	struct rvt_qp *qp = NULL;
- 
- 	if (unlikely(qpn <= 1)) {
--		qp = rcu_dereference(ibp->qp[qpn]);
-+		qp = rcu_dereference(ibp->rvp.qp[qpn]);
- 	} else {
- 		struct hfi1_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
- 		u32 n = qpn_hash(dev->qp_dev, qpn);
-diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index f59826a..ba41741 100644
---- a/drivers/staging/rdma/hfi1/rc.c
-+++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -772,7 +772,7 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
- 	return;
- 
- queue_ack:
--	this_cpu_inc(*ibp->rc_qacks);
-+	this_cpu_inc(*ibp->rvp.rc_qacks);
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 	qp->s_flags |= HFI1_S_ACK_PENDING | HFI1_S_RESP_PENDING;
- 	qp->s_nak_state = qp->r_nak_state;
-@@ -900,9 +900,9 @@ static void restart_rc(struct rvt_qp *qp, u32 psn, int wait)
- 
- 	ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	if (wqe->wr.opcode == IB_WR_RDMA_READ)
--		ibp->n_rc_resends++;
-+		ibp->rvp.n_rc_resends++;
- 	else
--		ibp->n_rc_resends += delta_psn(qp->s_psn, psn);
-+		ibp->rvp.n_rc_resends += delta_psn(qp->s_psn, psn);
- 
- 	qp->s_flags &= ~(HFI1_S_WAIT_FENCE | HFI1_S_WAIT_RDMAR |
- 			 HFI1_S_WAIT_SSN_CREDIT | HFI1_S_WAIT_PSN |
-@@ -925,7 +925,7 @@ static void rc_timeout(unsigned long arg)
- 	spin_lock(&qp->s_lock);
- 	if (qp->s_flags & HFI1_S_TIMER) {
- 		ibp = to_iport(qp->ibqp.device, qp->port_num);
--		ibp->n_rc_timeouts++;
-+		ibp->rvp.n_rc_timeouts++;
- 		qp->s_flags &= ~HFI1_S_TIMER;
- 		del_timer(&qp->s_timer);
- 		trace_hfi1_rc_timeout(qp, qp->s_last_psn + 1);
-@@ -1104,7 +1104,7 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
- 	} else {
- 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 
--		this_cpu_inc(*ibp->rc_delayed_comp);
-+		this_cpu_inc(*ibp->rvp.rc_delayed_comp);
- 		/*
- 		 * If send progress not running attempt to progress
- 		 * SDMA queue.
-@@ -1263,7 +1263,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 
- 	switch (aeth >> 29) {
- 	case 0:         /* ACK */
--		this_cpu_inc(*ibp->rc_acks);
-+		this_cpu_inc(*ibp->rvp.rc_acks);
- 		if (qp->s_acked != qp->s_tail) {
- 			/*
- 			 * We are expecting more ACKs so
-@@ -1292,7 +1292,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		goto bail;
- 
- 	case 1:         /* RNR NAK */
--		ibp->n_rnr_naks++;
-+		ibp->rvp.n_rnr_naks++;
- 		if (qp->s_acked == qp->s_tail)
- 			goto bail;
- 		if (qp->s_flags & HFI1_S_WAIT_RNR)
-@@ -1307,7 +1307,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		/* The last valid PSN is the previous PSN. */
- 		update_last_psn(qp, psn - 1);
- 
--		ibp->n_rc_resends += delta_psn(qp->s_psn, psn);
-+		ibp->rvp.n_rc_resends += delta_psn(qp->s_psn, psn);
- 
- 		reset_psn(qp, psn);
- 
-@@ -1328,7 +1328,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		switch ((aeth >> HFI1_AETH_CREDIT_SHIFT) &
- 			HFI1_AETH_CREDIT_MASK) {
- 		case 0: /* PSN sequence error */
--			ibp->n_seq_naks++;
-+			ibp->rvp.n_seq_naks++;
- 			/*
- 			 * Back up to the responder's expected PSN.
- 			 * Note that we might get a NAK in the middle of an
-@@ -1341,17 +1341,17 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 
- 		case 1: /* Invalid Request */
- 			status = IB_WC_REM_INV_REQ_ERR;
--			ibp->n_other_naks++;
-+			ibp->rvp.n_other_naks++;
- 			goto class_b;
- 
- 		case 2: /* Remote Access Error */
- 			status = IB_WC_REM_ACCESS_ERR;
--			ibp->n_other_naks++;
-+			ibp->rvp.n_other_naks++;
- 			goto class_b;
- 
- 		case 3: /* Remote Operation Error */
- 			status = IB_WC_REM_OP_ERR;
--			ibp->n_other_naks++;
-+			ibp->rvp.n_other_naks++;
- class_b:
- 			if (qp->s_last == qp->s_acked) {
- 				hfi1_send_complete(qp, wqe, status);
-@@ -1402,7 +1402,7 @@ static void rdma_seq_err(struct rvt_qp *qp, struct hfi1_ibport *ibp, u32 psn,
- 		wqe = do_rc_completion(qp, wqe, ibp);
- 	}
- 
--	ibp->n_rdma_seq++;
-+	ibp->rvp.n_rdma_seq++;
- 	qp->r_flags |= HFI1_R_RDMAR_SEQ;
- 	restart_rc(qp, qp->s_last_psn + 1, 0);
- 	if (list_empty(&qp->rspwait)) {
-@@ -1642,7 +1642,7 @@ static noinline int rc_rcv_error(struct hfi1_other_headers *ohdr, void *data,
- 		 * Don't queue the NAK if we already sent one.
- 		 */
- 		if (!qp->r_nak_state) {
--			ibp->n_rc_seqnak++;
-+			ibp->rvp.n_rc_seqnak++;
- 			qp->r_nak_state = IB_NAK_PSN_ERROR;
- 			/* Use the expected PSN. */
- 			qp->r_ack_psn = qp->r_psn;
-@@ -1678,7 +1678,7 @@ static noinline int rc_rcv_error(struct hfi1_other_headers *ohdr, void *data,
- 	 */
- 	e = NULL;
- 	old_req = 1;
--	ibp->n_rc_dupreq++;
-+	ibp->rvp.n_rc_dupreq++;
- 
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 
-@@ -2410,7 +2410,7 @@ void hfi1_rc_hdrerr(
- 	if (opcode < IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST) {
- 		diff = delta_psn(psn, qp->r_psn);
- 		if (!qp->r_nak_state && diff >= 0) {
--			ibp->n_rc_seqnak++;
-+			ibp->rvp.n_rc_seqnak++;
- 			qp->r_nak_state = IB_NAK_PSN_ERROR;
- 			/* Use the expected PSN. */
- 			qp->r_ack_psn = qp->r_psn;
-diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
-index 2bb33a0..321ede7 100644
---- a/drivers/staging/rdma/hfi1/ruc.c
-+++ b/drivers/staging/rdma/hfi1/ruc.c
-@@ -299,7 +299,8 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
- 			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
- 				goto err;
- 			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
--			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
-+				    guid))
- 				goto err;
- 			if (!gid_ok(&hdr->u.l.grh.sgid,
- 			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
-@@ -331,7 +332,8 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_ib_header *hdr,
- 				goto err;
- 			guid = get_sguid(ibp,
- 					 qp->remote_ah_attr.grh.sgid_index);
--			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
-+				    guid))
- 				goto err;
- 			if (!gid_ok(&hdr->u.l.grh.sgid,
- 			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
-@@ -431,7 +433,7 @@ again:
- 
- 	if (!qp || !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK) ||
- 	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
--		ibp->n_pkt_drops++;
-+		ibp->rvp.n_pkt_drops++;
- 		/*
- 		 * For RC, the requester would timeout and retry so
- 		 * shortcut the timeouts and just signal too many retries.
-@@ -587,7 +589,7 @@ again:
- 
- send_comp:
- 	spin_lock_irqsave(&sqp->s_lock, flags);
--	ibp->n_loop_pkts++;
-+	ibp->rvp.n_loop_pkts++;
- flush_send:
- 	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
- 	hfi1_send_complete(sqp, wqe, send_status);
-@@ -597,7 +599,7 @@ rnr_nak:
- 	/* Handle RNR NAK */
- 	if (qp->ibqp.qp_type == IB_QPT_UC)
- 		goto send_comp;
--	ibp->n_rnr_naks++;
-+	ibp->rvp.n_rnr_naks++;
- 	/*
- 	 * Note: we don't need the s_lock held since the BUSY flag
- 	 * makes this single threaded.
-@@ -683,7 +685,7 @@ u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
- 	hdr->next_hdr = IB_GRH_NEXT_HDR;
- 	hdr->hop_limit = grh->hop_limit;
- 	/* The SGID is 32-bit aligned. */
--	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
-+	hdr->sgid.global.subnet_prefix = ibp->rvp.gid_prefix;
- 	hdr->sgid.global.interface_id =
- 		grh->sgid_index && grh->sgid_index < ARRAY_SIZE(ibp->guids) ?
- 		ibp->guids[grh->sgid_index - 1] :
-diff --git a/drivers/staging/rdma/hfi1/uc.c b/drivers/staging/rdma/hfi1/uc.c
-index f4e8ad2..1c498da 100644
---- a/drivers/staging/rdma/hfi1/uc.c
-+++ b/drivers/staging/rdma/hfi1/uc.c
-@@ -576,7 +576,7 @@ rewind:
- 	set_bit(HFI1_R_REWIND_SGE, &qp->r_aflags);
- 	qp->r_sge.num_sge = 0;
- drop:
--	ibp->n_pkt_drops++;
-+	ibp->rvp.n_pkt_drops++;
- 	return;
- 
- op_err:
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index 525fd74..b9aa491 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -82,7 +82,7 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- 
- 	qp = hfi1_lookup_qpn(ibp, swqe->ud_wr.remote_qpn);
- 	if (!qp) {
--		ibp->n_pkt_drops++;
-+		ibp->rvp.n_pkt_drops++;
- 		rcu_read_unlock();
- 		return;
- 	}
-@@ -94,7 +94,7 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- 
- 	if (dqptype != sqptype ||
- 	    !(ib_hfi1_state_ops[qp->state] & HFI1_PROCESS_RECV_OK)) {
--		ibp->n_pkt_drops++;
-+		ibp->rvp.n_pkt_drops++;
- 		goto drop;
- 	}
- 
-@@ -174,14 +174,14 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- 		}
- 		if (!ret) {
- 			if (qp->ibqp.qp_num == 0)
--				ibp->n_vl15_dropped++;
-+				ibp->rvp.n_vl15_dropped++;
- 			goto bail_unlock;
- 		}
- 	}
- 	/* Silently drop packets which are too big. */
- 	if (unlikely(wc.byte_len > qp->r_len)) {
- 		qp->r_flags |= HFI1_R_REUSE_SGE;
--		ibp->n_pkt_drops++;
-+		ibp->rvp.n_pkt_drops++;
- 		goto bail_unlock;
- 	}
- 
-@@ -250,7 +250,7 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- 	/* Signal completion event if the solicited bit is set. */
- 	hfi1_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
- 		      swqe->wr.send_flags & IB_SEND_SOLICITED);
--	ibp->n_loop_pkts++;
-+	ibp->rvp.n_loop_pkts++;
- bail_unlock:
- 	spin_unlock_irqrestore(&qp->r_lock, flags);
- drop:
-@@ -608,7 +608,7 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
- 	case IB_MGMT_METHOD_TRAP:
- 	case IB_MGMT_METHOD_GET_RESP:
- 	case IB_MGMT_METHOD_REPORT_RESP:
--		if (ibp->port_cap_flags & IB_PORT_SM)
-+		if (ibp->rvp.port_cap_flags & IB_PORT_SM)
- 			return 0;
- 		if (pkey == FULL_MGMT_P_KEY) {
- 			smp->status |= IB_SMP_UNSUP_METHOD;
-@@ -822,7 +822,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		}
- 		if (!ret) {
- 			if (qp->ibqp.qp_num == 0)
--				ibp->n_vl15_dropped++;
-+				ibp->rvp.n_vl15_dropped++;
- 			return;
- 		}
- 	}
-@@ -882,5 +882,5 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	return;
- 
- drop:
--	ibp->n_pkt_drops++;
-+	ibp->rvp.n_pkt_drops++;
- }
-diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index e23c5da..361f217 100644
---- a/drivers/staging/rdma/hfi1/verbs.c
-+++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -591,7 +591,7 @@ static inline int qp_ok(int opcode, struct hfi1_packet *packet)
- 		return 1;
- dropit:
- 	ibp = &packet->rcd->ppd->ibport_data;
--	ibp->n_pkt_drops++;
-+	ibp->rvp.n_pkt_drops++;
- 	return 0;
- }
- 
-@@ -681,7 +681,7 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
- 	return;
- 
- drop:
--	ibp->n_pkt_drops++;
-+	ibp->rvp.n_pkt_drops++;
+-static inline unsigned mk_qpn(struct hfi1_qpn_table *qpt,
+-			      struct qpn_map *map, unsigned off)
++static inline unsigned mk_qpn(struct rvt_qpn_table *qpt,
++			      struct rvt_qpn_map *map, unsigned off)
+ {
+-	return (map - qpt->map) * BITS_PER_PAGE + off;
++	return (map - qpt->map) * RVT_BITS_PER_PAGE + off;
  }
  
  /*
-@@ -1476,17 +1476,17 @@ static int query_port(struct ib_device *ibdev, u8 port,
- 	memset(props, 0, sizeof(*props));
- 	props->lid = lid ? lid : 0;
- 	props->lmc = ppd->lmc;
--	props->sm_lid = ibp->sm_lid;
--	props->sm_sl = ibp->sm_sl;
-+	props->sm_lid = ibp->rvp.sm_lid;
-+	props->sm_sl = ibp->rvp.sm_sl;
- 	/* OPA logical states match IB logical states */
- 	props->state = driver_lstate(ppd);
- 	props->phys_state = hfi1_ibphys_portstate(ppd);
--	props->port_cap_flags = ibp->port_cap_flags;
-+	props->port_cap_flags = ibp->rvp.port_cap_flags;
- 	props->gid_tbl_len = HFI1_GUIDS_PER_PORT;
- 	props->max_msg_sz = 0x80000000;
- 	props->pkey_tbl_len = hfi1_get_npkeys(dd);
--	props->bad_pkey_cntr = ibp->pkey_violations;
--	props->qkey_viol_cntr = ibp->qkey_violations;
-+	props->bad_pkey_cntr = ibp->rvp.pkey_violations;
-+	props->qkey_viol_cntr = ibp->rvp.qkey_violations;
- 	props->active_width = (u8)opa_width_to_ib(ppd->link_width_active);
- 	/* see rate_show() in ib core/sysfs.c */
- 	props->active_speed = (u8)opa_speed_to_ib(ppd->link_speed_active);
-@@ -1505,7 +1505,7 @@ static int query_port(struct ib_device *ibdev, u8 port,
- 				      4096 : hfi1_max_mtu), IB_MTU_4096);
- 	props->active_mtu = !valid_ib_mtu(ppd->ibmtu) ? props->max_mtu :
- 		mtu_to_enum(ppd->ibmtu, IB_MTU_2048);
--	props->subnet_timeout = ibp->subnet_timeout;
-+	props->subnet_timeout = ibp->rvp.subnet_timeout;
+@@ -118,7 +115,7 @@ static const u16 credit_table[31] = {
+ 	32768                   /* 1E */
+ };
  
- 	return 0;
- }
-@@ -1576,8 +1576,8 @@ static int modify_port(struct ib_device *ibdev, u8 port,
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	int ret = 0;
+-static void get_map_page(struct hfi1_qpn_table *qpt, struct qpn_map *map)
++static void get_map_page(struct rvt_qpn_table *qpt, struct rvt_qpn_map *map)
+ {
+ 	unsigned long page = get_zeroed_page(GFP_KERNEL);
  
--	ibp->port_cap_flags |= props->set_port_cap_mask;
--	ibp->port_cap_flags &= ~props->clr_port_cap_mask;
-+	ibp->rvp.port_cap_flags |= props->set_port_cap_mask;
-+	ibp->rvp.port_cap_flags &= ~props->clr_port_cap_mask;
- 	if (props->set_port_cap_mask || props->clr_port_cap_mask)
- 		hfi1_cap_mask_chg(ibp);
- 	if (port_modify_mask & IB_PORT_SHUTDOWN) {
-@@ -1586,7 +1586,7 @@ static int modify_port(struct ib_device *ibdev, u8 port,
- 		ret = set_link_state(ppd, HLS_DN_DOWNDEF);
+@@ -138,11 +135,11 @@ static void get_map_page(struct hfi1_qpn_table *qpt, struct qpn_map *map)
+  * Allocate the next available QPN or
+  * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
+  */
+-static int alloc_qpn(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt,
++static int alloc_qpn(struct hfi1_devdata *dd, struct rvt_qpn_table *qpt,
+ 		     enum ib_qp_type type, u8 port)
+ {
+ 	u32 i, offset, max_scan, qpn;
+-	struct qpn_map *map;
++	struct rvt_qpn_map *map;
+ 	u32 ret;
+ 
+ 	if (type == IB_QPT_SMI || type == IB_QPT_GSI) {
+@@ -160,11 +157,11 @@ static int alloc_qpn(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt,
  	}
- 	if (port_modify_mask & IB_PORT_RESET_QKEY_CNTR)
--		ibp->qkey_violations = 0;
-+		ibp->rvp.qkey_violations = 0;
+ 
+ 	qpn = qpt->last + qpt->incr;
+-	if (qpn >= QPN_MAX)
++	if (qpn >= RVT_QPN_MAX)
+ 		qpn = qpt->incr | ((qpt->last & 1) ^ 1);
+ 	/* offset carries bit 0 */
+-	offset = qpn & BITS_PER_PAGE_MASK;
+-	map = &qpt->map[qpn / BITS_PER_PAGE];
++	offset = qpn & RVT_BITS_PER_PAGE_MASK;
++	map = &qpt->map[qpn / RVT_BITS_PER_PAGE];
+ 	max_scan = qpt->nmaps - !offset;
+ 	for (i = 0;;) {
+ 		if (unlikely(!map->page)) {
+@@ -180,18 +177,19 @@ static int alloc_qpn(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt,
+ 			}
+ 			offset += qpt->incr;
+ 			/*
+-			 * This qpn might be bogus if offset >= BITS_PER_PAGE.
+-			 * That is OK.   It gets re-assigned below
++			 * This qpn might be bogus if offset >=
++			 * RVT_BITS_PER_PAGE.  That is OK.   It gets re-assigned
++			 * below
+ 			 */
+ 			qpn = mk_qpn(qpt, map, offset);
+-		} while (offset < BITS_PER_PAGE && qpn < QPN_MAX);
++		} while (offset < RVT_BITS_PER_PAGE && qpn < RVT_QPN_MAX);
+ 		/*
+ 		 * In order to keep the number of pages allocated to a
+ 		 * minimum, we scan the all existing pages before increasing
+ 		 * the size of the bitmap table.
+ 		 */
+ 		if (++i > max_scan) {
+-			if (qpt->nmaps == QPNMAP_ENTRIES)
++			if (qpt->nmaps == RVT_QPNMAP_ENTRIES)
+ 				break;
+ 			map = &qpt->map[qpt->nmaps++];
+ 			/* start at incr with current bit 0 */
+@@ -216,13 +214,13 @@ bail:
  	return ret;
  }
  
-@@ -1602,7 +1602,7 @@ static int query_gid(struct ib_device *ibdev, u8 port,
- 		struct hfi1_ibport *ibp = to_iport(ibdev, port);
- 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-static void free_qpn(struct hfi1_qpn_table *qpt, u32 qpn)
++static void free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
+ {
+-	struct qpn_map *map;
++	struct rvt_qpn_map *map;
  
--		gid->global.subnet_prefix = ibp->gid_prefix;
-+		gid->global.subnet_prefix = ibp->rvp.gid_prefix;
- 		if (index == 0)
- 			gid->global.interface_id = cpu_to_be64(ppd->guid);
- 		else if (index < HFI1_GUIDS_PER_PORT)
-@@ -1674,7 +1674,7 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
- 	attr.dlid = dlid;
- 	attr.port_num = ppd_from_ibp(ibp)->port;
- 	rcu_read_lock();
--	qp0 = rcu_dereference(ibp->qp[0]);
-+	qp0 = rcu_dereference(ibp->rvp.qp[0]);
- 	if (qp0)
- 		ah = ib_create_ah(qp0->ibqp.pd, &attr);
- 	rcu_read_unlock();
-@@ -1749,21 +1749,21 @@ static void init_ibport(struct hfi1_pportdata *ppd)
- 		ibp->sc_to_sl[i] = i;
+-	map = qpt->map + qpn / BITS_PER_PAGE;
++	map = qpt->map + qpn / RVT_BITS_PER_PAGE;
+ 	if (map->page)
+-		clear_bit(qpn & BITS_PER_PAGE_MASK, map->page);
++		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
+ }
+ 
+ /*
+@@ -235,19 +233,19 @@ static void insert_qp(struct hfi1_ibdev *dev, struct rvt_qp *qp)
+ 	unsigned long flags;
+ 
+ 	atomic_inc(&qp->refcount);
+-	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
+ 
+ 	if (qp->ibqp.qp_num <= 1) {
+ 		rcu_assign_pointer(ibp->rvp.qp[qp->ibqp.qp_num], qp);
+ 	} else {
+-		u32 n = qpn_hash(dev->qp_dev, qp->ibqp.qp_num);
++		u32 n = qpn_hash(dev->rdi.qp_dev, qp->ibqp.qp_num);
+ 
+-		qp->next = dev->qp_dev->qp_table[n];
+-		rcu_assign_pointer(dev->qp_dev->qp_table[n], qp);
++		qp->next = dev->rdi.qp_dev->qp_table[n];
++		rcu_assign_pointer(dev->rdi.qp_dev->qp_table[n], qp);
+ 		trace_hfi1_qpinsert(qp, n);
  	}
  
--	spin_lock_init(&ibp->lock);
-+	spin_lock_init(&ibp->rvp.lock);
- 	/* Set the prefix to the default value (see ch. 4.1.1) */
--	ibp->gid_prefix = IB_DEFAULT_GID_PREFIX;
--	ibp->sm_lid = 0;
-+	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
-+	ibp->rvp.sm_lid = 0;
- 	/* Below should only set bits defined in OPA PortInfo.CapabilityMask */
--	ibp->port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
-+	ibp->rvp.port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
- 		IB_PORT_CAP_MASK_NOTICE_SUP;
--	ibp->pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
--	ibp->pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
--	ibp->pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
--	ibp->pma_counter_select[3] = IB_PMA_PORT_RCV_PKTS;
--	ibp->pma_counter_select[4] = IB_PMA_PORT_XMIT_WAIT;
--
--	RCU_INIT_POINTER(ibp->qp[0], NULL);
--	RCU_INIT_POINTER(ibp->qp[1], NULL);
-+	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
-+	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
-+	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
-+	ibp->rvp.pma_counter_select[3] = IB_PMA_PORT_RCV_PKTS;
-+	ibp->rvp.pma_counter_select[4] = IB_PMA_PORT_XMIT_WAIT;
-+
-+	RCU_INIT_POINTER(ibp->rvp.qp[0], NULL);
-+	RCU_INIT_POINTER(ibp->rvp.qp[1], NULL);
+-	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
  }
  
- static void verbs_txreq_kmem_cache_ctor(void *obj)
-@@ -1937,6 +1937,15 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	dd->verbs_dev.rdi.flags = (RVT_FLAG_QP_INIT_DRIVER |
- 				   RVT_FLAG_CQ_INIT_DRIVER);
- 	dd->verbs_dev.rdi.dparms.lkey_table_size = hfi1_lkey_table_size;
-+	dd->verbs_dev.rdi.dparms.nports = dd->num_pports;
-+	dd->verbs_dev.rdi.dparms.npkeys = hfi1_get_npkeys(dd);
-+
-+	ppd = dd->pport;
-+	for (i = 0; i < dd->num_pports; i++, ppd++)
-+		rvt_init_port(&dd->verbs_dev.rdi,
-+			      &ppd->ibport_data.rvp,
-+			      i,
-+			      ppd->pkeys);
+ /*
+@@ -257,40 +255,40 @@ static void insert_qp(struct hfi1_ibdev *dev, struct rvt_qp *qp)
+ static void remove_qp(struct hfi1_ibdev *dev, struct rvt_qp *qp)
+ {
+ 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
+-	u32 n = qpn_hash(dev->qp_dev, qp->ibqp.qp_num);
++	u32 n = qpn_hash(dev->rdi.qp_dev, qp->ibqp.qp_num);
+ 	unsigned long flags;
+ 	int removed = 1;
  
- 	ret = rvt_register_device(&dd->verbs_dev.rdi);
- 	if (ret)
-@@ -2010,5 +2019,5 @@ void hfi1_cnp_rcv(struct hfi1_packet *packet)
- 	else if (packet->qp->ibqp.qp_type == IB_QPT_UD)
- 		hfi1_ud_rcv(packet);
+-	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
+ 
+ 	if (rcu_dereference_protected(ibp->rvp.qp[0],
+ 				      lockdep_is_held(
+-				      &dev->qp_dev->qpt_lock)) == qp) {
++				      &dev->rdi.qp_dev->qpt_lock)) == qp) {
+ 		RCU_INIT_POINTER(ibp->rvp.qp[0], NULL);
+ 	} else if (rcu_dereference_protected(ibp->rvp.qp[1],
+-			lockdep_is_held(&dev->qp_dev->qpt_lock)) == qp) {
++			lockdep_is_held(&dev->rdi.qp_dev->qpt_lock)) == qp) {
+ 		RCU_INIT_POINTER(ibp->rvp.qp[1], NULL);
+ 	} else {
+ 		struct rvt_qp *q;
+ 		struct rvt_qp __rcu **qpp;
+ 
+ 		removed = 0;
+-		qpp = &dev->qp_dev->qp_table[n];
++		qpp = &dev->rdi.qp_dev->qp_table[n];
+ 		for (; (q = rcu_dereference_protected(*qpp,
+-				lockdep_is_held(&dev->qp_dev->qpt_lock)))
++				lockdep_is_held(&dev->rdi.qp_dev->qpt_lock)))
+ 					!= NULL;
+ 				qpp = &q->next)
+ 			if (q == qp) {
+ 				RCU_INIT_POINTER(*qpp,
+ 				 rcu_dereference_protected(qp->next,
+-				 lockdep_is_held(&dev->qp_dev->qpt_lock)));
++				 lockdep_is_held(&dev->rdi.qp_dev->qpt_lock)));
+ 				removed = 1;
+ 				trace_hfi1_qpremove(qp, n);
+ 				break;
+ 			}
+ 	}
+ 
+-	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
+ 	if (removed) {
+ 		synchronize_rcu();
+ 		if (atomic_dec_and_test(&qp->refcount))
+@@ -311,6 +309,7 @@ static unsigned free_all_qps(struct hfi1_devdata *dd)
+ 	unsigned long flags;
+ 	struct rvt_qp *qp;
+ 	unsigned n, qp_inuse = 0;
++	spinlock_t *l; /* useless pointer to shutup checkpatch */
+ 
+ 	for (n = 0; n < dd->num_pports; n++) {
+ 		struct hfi1_ibport *ibp = &dd->pport[n].ibport_data;
+@@ -325,19 +324,20 @@ static unsigned free_all_qps(struct hfi1_devdata *dd)
+ 		rcu_read_unlock();
+ 	}
+ 
+-	if (!dev->qp_dev)
++	if (!dev->rdi.qp_dev)
+ 		goto bail;
+-	spin_lock_irqsave(&dev->qp_dev->qpt_lock, flags);
+-	for (n = 0; n < dev->qp_dev->qp_table_size; n++) {
+-		qp = rcu_dereference_protected(dev->qp_dev->qp_table[n],
+-			lockdep_is_held(&dev->qp_dev->qpt_lock));
+-		RCU_INIT_POINTER(dev->qp_dev->qp_table[n], NULL);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
++	for (n = 0; n < dev->rdi.qp_dev->qp_table_size; n++) {
++		l = &dev->rdi.qp_dev->qpt_lock;
++		qp = rcu_dereference_protected(dev->rdi.qp_dev->qp_table[n],
++					       lockdep_is_held(l));
++		RCU_INIT_POINTER(dev->rdi.qp_dev->qp_table[n], NULL);
+ 
+ 		for (; qp; qp = rcu_dereference_protected(qp->next,
+-				lockdep_is_held(&dev->qp_dev->qpt_lock)))
++							  lockdep_is_held(l)))
+ 			qp_inuse++;
+ 	}
+-	spin_unlock_irqrestore(&dev->qp_dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
+ 	synchronize_rcu();
+ bail:
+ 	return qp_inuse;
+@@ -1140,7 +1140,8 @@ struct ib_qp *hfi1_create_qp(struct ib_pd *ibpd,
+ 			qp->s_flags = RVT_S_SIGNAL_REQ_WR;
+ 		dev = to_idev(ibpd->device);
+ 		dd = dd_from_dev(dev);
+-		err = alloc_qpn(dd, &dev->qp_dev->qpn_table, init_attr->qp_type,
++		err = alloc_qpn(dd, &dev->rdi.qp_dev->qpn_table,
++				init_attr->qp_type,
+ 				init_attr->port_num);
+ 		if (err < 0) {
+ 			ret = ERR_PTR(err);
+@@ -1242,7 +1243,7 @@ bail_ip:
+ 		kref_put(&qp->ip->ref, rvt_release_mmap_info);
  	else
--		ibp->n_pkt_drops++;
-+		ibp->rvp.n_pkt_drops++;
+ 		vfree(qp->r_rq.wq);
+-	free_qpn(&dev->qp_dev->qpn_table, qp->ibqp.qp_num);
++	free_qpn(&dev->rdi.qp_dev->qpn_table, qp->ibqp.qp_num);
+ bail_qp:
+ 	kfree(priv->s_hdr);
+ 	kfree(priv);
+@@ -1293,7 +1294,7 @@ int hfi1_destroy_qp(struct ib_qp *ibqp)
+ 	spin_unlock_irq(&qp->r_lock);
+ 
+ 	/* all user's cleaned up, mark it available */
+-	free_qpn(&dev->qp_dev->qpn_table, qp->ibqp.qp_num);
++	free_qpn(&dev->rdi.qp_dev->qpn_table, qp->ibqp.qp_num);
+ 	spin_lock(&dev->n_qps_lock);
+ 	dev->n_qps_allocated--;
+ 	spin_unlock(&dev->n_qps_lock);
+@@ -1313,10 +1314,10 @@ int hfi1_destroy_qp(struct ib_qp *ibqp)
+  * init_qpn_table - initialize the QP number table for a device
+  * @qpt: the QPN table
+  */
+-static int init_qpn_table(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt)
++static int init_qpn_table(struct hfi1_devdata *dd, struct rvt_qpn_table *qpt)
+ {
+ 	u32 offset, qpn, i;
+-	struct qpn_map *map;
++	struct rvt_qpn_map *map;
+ 	int ret = 0;
+ 
+ 	spin_lock_init(&qpt->lock);
+@@ -1326,9 +1327,9 @@ static int init_qpn_table(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt)
+ 
+ 	/* insure we don't assign QPs from KDETH 64K window */
+ 	qpn = kdeth_qp << 16;
+-	qpt->nmaps = qpn / BITS_PER_PAGE;
++	qpt->nmaps = qpn / RVT_BITS_PER_PAGE;
+ 	/* This should always be zero */
+-	offset = qpn & BITS_PER_PAGE_MASK;
++	offset = qpn & RVT_BITS_PER_PAGE_MASK;
+ 	map = &qpt->map[qpt->nmaps];
+ 	dd_dev_info(dd, "Reserving QPNs for KDETH window from 0x%x to 0x%x\n",
+ 		qpn, qpn + 65535);
+@@ -1342,7 +1343,7 @@ static int init_qpn_table(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt)
+ 		}
+ 		set_bit(offset, map->page);
+ 		offset++;
+-		if (offset == BITS_PER_PAGE) {
++		if (offset == RVT_BITS_PER_PAGE) {
+ 			/* next page */
+ 			qpt->nmaps++;
+ 			map++;
+@@ -1356,7 +1357,7 @@ static int init_qpn_table(struct hfi1_devdata *dd, struct hfi1_qpn_table *qpt)
+  * free_qpn_table - free the QP number table for a device
+  * @qpt: the QPN table
+  */
+-static void free_qpn_table(struct hfi1_qpn_table *qpt)
++static void free_qpn_table(struct rvt_qpn_table *qpt)
+ {
+ 	int i;
+ 
+@@ -1488,31 +1489,31 @@ int hfi1_qp_init(struct hfi1_ibdev *dev)
+ 	int ret = -ENOMEM;
+ 
+ 	/* allocate parent object */
+-	dev->qp_dev = kzalloc(sizeof(*dev->qp_dev), GFP_KERNEL);
+-	if (!dev->qp_dev)
++	dev->rdi.qp_dev = kzalloc(sizeof(*dev->rdi.qp_dev), GFP_KERNEL);
++	if (!dev->rdi.qp_dev)
+ 		goto nomem;
+ 	/* allocate hash table */
+-	dev->qp_dev->qp_table_size = hfi1_qp_table_size;
+-	dev->qp_dev->qp_table_bits = ilog2(hfi1_qp_table_size);
+-	dev->qp_dev->qp_table =
+-		kmalloc(dev->qp_dev->qp_table_size *
+-				sizeof(*dev->qp_dev->qp_table),
++	dev->rdi.qp_dev->qp_table_size = hfi1_qp_table_size;
++	dev->rdi.qp_dev->qp_table_bits = ilog2(hfi1_qp_table_size);
++	dev->rdi.qp_dev->qp_table =
++		kmalloc(dev->rdi.qp_dev->qp_table_size *
++				sizeof(*dev->rdi.qp_dev->qp_table),
+ 			GFP_KERNEL);
+-	if (!dev->qp_dev->qp_table)
++	if (!dev->rdi.qp_dev->qp_table)
+ 		goto nomem;
+-	for (i = 0; i < dev->qp_dev->qp_table_size; i++)
+-		RCU_INIT_POINTER(dev->qp_dev->qp_table[i], NULL);
+-	spin_lock_init(&dev->qp_dev->qpt_lock);
++	for (i = 0; i < dev->rdi.qp_dev->qp_table_size; i++)
++		RCU_INIT_POINTER(dev->rdi.qp_dev->qp_table[i], NULL);
++	spin_lock_init(&dev->rdi.qp_dev->qpt_lock);
+ 	/* initialize qpn map */
+-	ret = init_qpn_table(dd, &dev->qp_dev->qpn_table);
++	ret = init_qpn_table(dd, &dev->rdi.qp_dev->qpn_table);
+ 	if (ret)
+ 		goto nomem;
+ 	return ret;
+ nomem:
+-	if (dev->qp_dev) {
+-		kfree(dev->qp_dev->qp_table);
+-		free_qpn_table(&dev->qp_dev->qpn_table);
+-		kfree(dev->qp_dev);
++	if (dev->rdi.qp_dev) {
++		kfree(dev->rdi.qp_dev->qp_table);
++		free_qpn_table(&dev->rdi.qp_dev->qpn_table);
++		kfree(dev->rdi.qp_dev);
+ 	}
+ 	return ret;
  }
+@@ -1526,10 +1527,10 @@ void hfi1_qp_exit(struct hfi1_ibdev *dev)
+ 	if (qps_inuse)
+ 		dd_dev_err(dd, "QP memory leak! %u still in use\n",
+ 			   qps_inuse);
+-	if (dev->qp_dev) {
+-		kfree(dev->qp_dev->qp_table);
+-		free_qpn_table(&dev->qp_dev->qpn_table);
+-		kfree(dev->qp_dev);
++	if (dev->rdi.qp_dev) {
++		kfree(dev->rdi.qp_dev->qp_table);
++		free_qpn_table(&dev->rdi.qp_dev->qpn_table);
++		kfree(dev->rdi.qp_dev);
+ 	}
+ }
+ 
+@@ -1605,11 +1606,11 @@ int qp_iter_next(struct qp_iter *iter)
+ 	 *
+ 	 * n = 0..iter->specials is the special qp indices
+ 	 *
+-	 * n = iter->specials..dev->qp_dev->qp_table_size+iter->specials are
++	 * n = iter->specials..dev->rdi.qp_dev->qp_table_size+iter->specials are
+ 	 * the potential hash bucket entries
+ 	 *
+ 	 */
+-	for (; n <  dev->qp_dev->qp_table_size + iter->specials; n++) {
++	for (; n <  dev->rdi.qp_dev->qp_table_size + iter->specials; n++) {
+ 		if (pqp) {
+ 			qp = rcu_dereference(pqp->next);
+ 		} else {
+@@ -1628,7 +1629,7 @@ int qp_iter_next(struct qp_iter *iter)
+ 					qp = rcu_dereference(ibp->rvp.qp[1]);
+ 			} else {
+ 				qp = rcu_dereference(
+-					dev->qp_dev->qp_table[
++					dev->rdi.qp_dev->qp_table[
+ 						(n - iter->specials)]);
+ 			}
+ 		}
+diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
+index e806bc0..ffc6130 100644
+--- a/drivers/staging/rdma/hfi1/qp.h
++++ b/drivers/staging/rdma/hfi1/qp.h
+@@ -51,41 +51,11 @@
+  */
+ 
+ #include <linux/hash.h>
++#include <rdma/rdmavt_qp.h>
+ #include "verbs.h"
+ #include "sdma.h"
+ 
+-#define QPN_MAX                 (1 << 24)
+-#define QPNMAP_ENTRIES          (QPN_MAX / PAGE_SIZE / BITS_PER_BYTE)
+-
+-/*
+- * QPN-map pages start out as NULL, they get allocated upon
+- * first use and are never deallocated. This way,
+- * large bitmaps are not allocated unless large numbers of QPs are used.
+- */
+-struct qpn_map {
+-	void *page;
+-};
+-
+-struct hfi1_qpn_table {
+-	spinlock_t lock; /* protect changes in this struct */
+-	unsigned flags;         /* flags for QP0/1 allocated for each port */
+-	u32 last;               /* last QP number allocated */
+-	u32 nmaps;              /* size of the map table */
+-	u16 limit;
+-	u8  incr;
+-	/* bit map of free QP numbers other than 0/1 */
+-	struct qpn_map map[QPNMAP_ENTRIES];
+-};
+-
+-struct hfi1_qp_ibdev {
+-	u32 qp_table_size;
+-	u32 qp_table_bits;
+-	struct rvt_qp __rcu **qp_table;
+-	spinlock_t qpt_lock;
+-	struct hfi1_qpn_table qpn_table;
+-};
+-
+-static inline u32 qpn_hash(struct hfi1_qp_ibdev *dev, u32 qpn)
++static inline u32 qpn_hash(struct rvt_qp_ibdev *dev, u32 qpn)
+ {
+ 	return hash_32(qpn, dev->qp_table_bits);
+ }
+@@ -107,9 +77,9 @@ static inline struct rvt_qp *hfi1_lookup_qpn(struct hfi1_ibport *ibp,
+ 		qp = rcu_dereference(ibp->rvp.qp[qpn]);
+ 	} else {
+ 		struct hfi1_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
+-		u32 n = qpn_hash(dev->qp_dev, qpn);
++		u32 n = qpn_hash(dev->rdi.qp_dev, qpn);
+ 
+-		for (qp = rcu_dereference(dev->qp_dev->qp_table[n]); qp;
++		for (qp = rcu_dereference(dev->rdi.qp_dev->qp_table[n]); qp;
+ 			qp = rcu_dereference(qp->next))
+ 			if (qp->ibqp.qp_num == qpn)
+ 				break;
 diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 801abbb..0289393 100644
+index 0349735..6621277 100644
 --- a/drivers/staging/rdma/hfi1/verbs.h
 +++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -398,62 +398,17 @@ static inline void inc_opstats(
- 
- struct hfi1_ibport {
- 	struct rvt_qp __rcu *qp[2];
--	struct ib_mad_agent *send_agent;	/* agent for SMI (traps) */
-+	struct rvt_ibport rvp;
- 	struct rvt_ah *sm_ah;
- 	struct rvt_ah *smi_ah;
--	struct rb_root mcast_tree;
--	spinlock_t lock;		/* protect changes in this struct */
--
--	/* non-zero when timer is set */
--	unsigned long mkey_lease_timeout;
--	unsigned long trap_timeout;
--	__be64 gid_prefix;      /* in network order */
--	__be64 mkey;
-+
- 	__be64 guids[HFI1_GUIDS_PER_PORT	- 1];	/* writable GUIDs */
--	u64 tid;		/* TID for traps */
--	u64 n_rc_resends;
--	u64 n_seq_naks;
--	u64 n_rdma_seq;
--	u64 n_rnr_naks;
--	u64 n_other_naks;
--	u64 n_loop_pkts;
--	u64 n_pkt_drops;
--	u64 n_vl15_dropped;
--	u64 n_rc_timeouts;
--	u64 n_dmawait;
--	u64 n_unaligned;
--	u64 n_rc_dupreq;
--	u64 n_rc_seqnak;
--
--	/* Hot-path per CPU counters to avoid cacheline trading to update */
--	u64 z_rc_acks;
--	u64 z_rc_qacks;
--	u64 z_rc_delayed_comp;
--	u64 __percpu *rc_acks;
--	u64 __percpu *rc_qacks;
--	u64 __percpu *rc_delayed_comp;
--
--	u32 port_cap_flags;
--	u32 pma_sample_start;
--	u32 pma_sample_interval;
--	__be16 pma_counter_select[5];
--	u16 pma_tag;
--	u16 pkey_violations;
--	u16 qkey_violations;
--	u16 mkey_violations;
--	u16 mkey_lease_period;
--	u16 sm_lid;
--	u16 repress_traps;
--	u8 sm_sl;
--	u8 mkeyprot;
--	u8 subnet_timeout;
--	u8 vl_high_limit;
-+
- 	/* the first 16 entries are sl_to_vl for !OPA */
- 	u8 sl_to_sc[32];
+@@ -334,12 +334,9 @@ struct hfi1_ibport {
  	u8 sc_to_sl[32];
  };
  
--
- struct hfi1_qp_ibdev;
+-struct hfi1_qp_ibdev;
  struct hfi1_ibdev {
  	struct rvt_dev_info rdi; /* Must be first */
-diff --git a/drivers/staging/rdma/hfi1/verbs_mcast.c b/drivers/staging/rdma/hfi1/verbs_mcast.c
-index 49954b9..aa3f560 100644
---- a/drivers/staging/rdma/hfi1/verbs_mcast.c
-+++ b/drivers/staging/rdma/hfi1/verbs_mcast.c
-@@ -131,8 +131,8 @@ struct hfi1_mcast *hfi1_mcast_find(struct hfi1_ibport *ibp, union ib_gid *mgid)
- 	unsigned long flags;
- 	struct hfi1_mcast *mcast;
  
--	spin_lock_irqsave(&ibp->lock, flags);
--	n = ibp->mcast_tree.rb_node;
-+	spin_lock_irqsave(&ibp->rvp.lock, flags);
-+	n = ibp->rvp.mcast_tree.rb_node;
- 	while (n) {
- 		int ret;
- 
-@@ -146,11 +146,11 @@ struct hfi1_mcast *hfi1_mcast_find(struct hfi1_ibport *ibp, union ib_gid *mgid)
- 			n = n->rb_right;
- 		else {
- 			atomic_inc(&mcast->refcount);
--			spin_unlock_irqrestore(&ibp->lock, flags);
-+			spin_unlock_irqrestore(&ibp->rvp.lock, flags);
- 			goto bail;
- 		}
- 	}
--	spin_unlock_irqrestore(&ibp->lock, flags);
-+	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
- 
- 	mcast = NULL;
- 
-@@ -170,11 +170,11 @@ bail:
- static int mcast_add(struct hfi1_ibdev *dev, struct hfi1_ibport *ibp,
- 		     struct hfi1_mcast *mcast, struct hfi1_mcast_qp *mqp)
- {
--	struct rb_node **n = &ibp->mcast_tree.rb_node;
-+	struct rb_node **n = &ibp->rvp.mcast_tree.rb_node;
- 	struct rb_node *pn = NULL;
- 	int ret;
- 
--	spin_lock_irq(&ibp->lock);
-+	spin_lock_irq(&ibp->rvp.lock);
- 
- 	while (*n) {
- 		struct hfi1_mcast *tmcast;
-@@ -229,12 +229,12 @@ static int mcast_add(struct hfi1_ibdev *dev, struct hfi1_ibport *ibp,
- 
- 	atomic_inc(&mcast->refcount);
- 	rb_link_node(&mcast->rb_node, pn, n);
--	rb_insert_color(&mcast->rb_node, &ibp->mcast_tree);
-+	rb_insert_color(&mcast->rb_node, &ibp->rvp.mcast_tree);
- 
- 	ret = 0;
- 
- bail:
--	spin_unlock_irq(&ibp->lock);
-+	spin_unlock_irq(&ibp->rvp.lock);
- 
- 	return ret;
- }
-@@ -313,13 +313,13 @@ int hfi1_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 		goto bail;
- 	}
- 
--	spin_lock_irq(&ibp->lock);
-+	spin_lock_irq(&ibp->rvp.lock);
- 
- 	/* Find the GID in the mcast table. */
--	n = ibp->mcast_tree.rb_node;
-+	n = ibp->rvp.mcast_tree.rb_node;
- 	while (1) {
- 		if (n == NULL) {
--			spin_unlock_irq(&ibp->lock);
-+			spin_unlock_irq(&ibp->rvp.lock);
- 			ret = -EINVAL;
- 			goto bail;
- 		}
-@@ -348,13 +348,13 @@ int hfi1_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 
- 		/* If this was the last attached QP, remove the GID too. */
- 		if (list_empty(&mcast->qp_list)) {
--			rb_erase(&mcast->rb_node, &ibp->mcast_tree);
-+			rb_erase(&mcast->rb_node, &ibp->rvp.mcast_tree);
- 			last = 1;
- 		}
- 		break;
- 	}
- 
--	spin_unlock_irq(&ibp->lock);
-+	spin_unlock_irq(&ibp->rvp.lock);
- 
- 	if (p) {
- 		/*
-@@ -381,5 +381,5 @@ bail:
- 
- int hfi1_mcast_tree_empty(struct hfi1_ibport *ibp)
- {
--	return ibp->mcast_tree.rb_node == NULL;
-+	return !ibp->rvp.mcast_tree.rb_node;
- }
+-	struct hfi1_qp_ibdev *qp_dev;
+-
+ 	/* QP numbers are shared by all IB ports */
+ 	/* protect wait lists */
+ 	seqlock_t iowait_lock;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
