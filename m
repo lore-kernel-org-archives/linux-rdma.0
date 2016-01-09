@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 10/27] IB/hfi1: Implement hfi1 support for AH
- notification
-Date: Sat, 09 Jan 2016 07:17:33 -0800
-Message-ID: <20160109151733.30800.6500.stgit@scvm10.sc.intel.com>
+Subject: [RFC PATCH 12/27] IB/hfi1: Remove srq from hfi1
+Date: Sat, 09 Jan 2016 07:17:45 -0800
+Message-ID: <20160109151744.30800.25771.stgit@scvm10.sc.intel.com>
 References: <20160109151020.30800.82395.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,60 +10,134 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160109151020.30800.82395.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For OPA devices additional work is required to create an AH.
-This patch adds support to set the VL correctly.
+SRQ data structure has been moved to rdmavt. Make use of it.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/verbs.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+ drivers/staging/rdma/hfi1/qp.c    |    2 +-
+ drivers/staging/rdma/hfi1/ruc.c   |    4 ++--
+ drivers/staging/rdma/hfi1/srq.c   |   10 +++++-----
+ drivers/staging/rdma/hfi1/verbs.h |   13 -------------
+ 4 files changed, 8 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index f66d630..0ac39e1 100644
---- a/drivers/staging/rdma/hfi1/verbs.c
-+++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -1641,6 +1641,29 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
- 	return 0;
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index 9aec9f5..51c8655 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -1075,7 +1075,7 @@ struct ib_qp *hfi1_create_qp(struct ib_pd *ibpd,
+ 		sz = sizeof(*qp);
+ 		sg_list_sz = 0;
+ 		if (init_attr->srq) {
+-			struct hfi1_srq *srq = to_isrq(init_attr->srq);
++			struct rvt_srq *srq = ibsrq_to_rvtsrq(init_attr->srq);
+ 
+ 			if (srq->rq.max_sge > 1)
+ 				sg_list_sz = sizeof(*qp->r_sg_list) *
+diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
+index 10ff5e8..2bb33a0 100644
+--- a/drivers/staging/rdma/hfi1/ruc.c
++++ b/drivers/staging/rdma/hfi1/ruc.c
+@@ -159,14 +159,14 @@ int hfi1_get_rwqe(struct rvt_qp *qp, int wr_id_only)
+ 	unsigned long flags;
+ 	struct rvt_rq *rq;
+ 	struct rvt_rwq *wq;
+-	struct hfi1_srq *srq;
++	struct rvt_srq *srq;
+ 	struct rvt_rwqe *wqe;
+ 	void (*handler)(struct ib_event *, void *);
+ 	u32 tail;
+ 	int ret;
+ 
+ 	if (qp->ibqp.srq) {
+-		srq = to_isrq(qp->ibqp.srq);
++		srq = ibsrq_to_rvtsrq(qp->ibqp.srq);
+ 		handler = srq->ibsrq.event_handler;
+ 		rq = &srq->rq;
+ 	} else {
+diff --git a/drivers/staging/rdma/hfi1/srq.c b/drivers/staging/rdma/hfi1/srq.c
+index 932bd96..78f190a 100644
+--- a/drivers/staging/rdma/hfi1/srq.c
++++ b/drivers/staging/rdma/hfi1/srq.c
+@@ -65,7 +65,7 @@
+ int hfi1_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+ 			  struct ib_recv_wr **bad_wr)
+ {
+-	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct rvt_rwq *wq;
+ 	unsigned long flags;
+ 	int ret;
+@@ -120,7 +120,7 @@ struct ib_srq *hfi1_create_srq(struct ib_pd *ibpd,
+ 			       struct ib_udata *udata)
+ {
+ 	struct hfi1_ibdev *dev = to_idev(ibpd->device);
+-	struct hfi1_srq *srq;
++	struct rvt_srq *srq;
+ 	u32 sz;
+ 	struct ib_srq *ret;
+ 
+@@ -229,7 +229,7 @@ int hfi1_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ 		    enum ib_srq_attr_mask attr_mask,
+ 		    struct ib_udata *udata)
+ {
+-	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct rvt_rwq *wq;
+ 	int ret = 0;
+ 
+@@ -367,7 +367,7 @@ bail:
+ 
+ int hfi1_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+ {
+-	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 
+ 	attr->max_wr = srq->rq.size - 1;
+ 	attr->max_sge = srq->rq.max_sge;
+@@ -381,7 +381,7 @@ int hfi1_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+  */
+ int hfi1_destroy_srq(struct ib_srq *ibsrq)
+ {
+-	struct hfi1_srq *srq = to_isrq(ibsrq);
++	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+ 	struct hfi1_ibdev *dev = to_idev(ibsrq->device);
+ 
+ 	spin_lock(&dev->n_srqs_lock);
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index afd6673..801abbb 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -263,14 +263,6 @@ struct hfi1_cq {
+ 	struct rvt_mmap_info *ip;
+ };
+ 
+-struct hfi1_srq {
+-	struct ib_srq ibsrq;
+-	struct rvt_rq rq;
+-	struct rvt_mmap_info *ip;
+-	/* send signal when number of RWQEs < limit */
+-	u32 limit;
+-};
+-
+ /*
+  * hfi1 specific data structures that will be hidden from rvt after the queue
+  * pair is made common
+@@ -525,11 +517,6 @@ static inline struct hfi1_cq *to_icq(struct ib_cq *ibcq)
+ 	return container_of(ibcq, struct hfi1_cq, ibcq);
  }
  
-+static void hfi1_notify_new_ah(struct ib_device *ibdev,
-+			       struct ib_ah_attr *ah_attr,
-+			       struct rvt_ah *ah)
-+{
-+	struct hfi1_ibport *ibp;
-+	struct hfi1_pportdata *ppd;
-+	struct hfi1_devdata *dd;
-+	u8 sc5;
-+
-+	/*
-+	 * Do not trust reading anything from rvt_ah at this point as it is not
-+	 * done being setup. We can however modify things which we need to set.
-+	 */
-+
-+	ibp = to_iport(ibdev, ah_attr->port_num);
-+	ppd = ppd_from_ibp(ibp);
-+	sc5 = ibp->sl_to_sc[ah->attr.sl];
-+	dd = dd_from_ppd(ppd);
-+	ah->vl = sc_to_vlt(dd, sc5);
-+	if (ah->vl < num_vls || ah->vl == 15)
-+		ah->log_pmtu = ilog2(dd->vld[ah->vl].mtu);
-+}
-+
- struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
+-static inline struct hfi1_srq *to_isrq(struct ib_srq *ibsrq)
+-{
+-	return container_of(ibsrq, struct hfi1_srq, ibsrq);
+-}
+-
+ static inline struct rvt_qp *to_iqp(struct ib_qp *ibqp)
  {
- 	struct ib_ah_attr attr;
-@@ -1930,6 +1953,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	dd->verbs_dev.rdi.driver_f.get_card_name = get_card_name;
- 	dd->verbs_dev.rdi.driver_f.get_pci_dev = get_pci_dev;
- 	dd->verbs_dev.rdi.driver_f.check_ah = hfi1_check_ah;
-+	dd->verbs_dev.rdi.driver_f.notify_new_ah = hfi1_notify_new_ah;
- 	dd->verbs_dev.rdi.dparms.props.max_ah = hfi1_max_ahs;
- 	dd->verbs_dev.rdi.dparms.props.max_pd = hfi1_max_pds;
- 	dd->verbs_dev.rdi.flags = (RVT_FLAG_MR_INIT_DRIVER |
+ 	return container_of(ibqp, struct rvt_qp, ibqp);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
