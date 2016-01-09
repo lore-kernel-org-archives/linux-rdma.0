@@ -1,74 +1,51 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: IB/mlx5: Extend query_device/port to support RoCE
-Date: Sat, 9 Jan 2016 13:05:04 +0200
-Message-ID: <20160109110504.GB10797@leon.nu>
-References: <20160108132324.GA7683@mwanda>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] IB/mlx5: Fix passing casted pointer in mlx5_query_port_roce
+Date: Sat,  9 Jan 2016 13:06:25 +0200
+Message-ID: <1452337585-13857-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160108132324.GA7683@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 08, 2016 at 04:23:24PM +0300, Dan Carpenter wrote:
-> Hello Achiad Shochat,
-> 
-> The patch 3f89a643eb29: "IB/mlx5: Extend query_device/port to support
-> RoCE" from Dec 23, 2015, leads to the following static checker
-> warning:
-> 
-> 	drivers/infiniband/hw/mlx5/main.c:149 mlx5_query_port_roce()
-> 	warn: passing casted pointer '&props->qkey_viol_cntr' to 'mlx5_query_nic_vport_qkey_viol_cntr()' 32 vs 16.
+Fix static checker warning:
+        drivers/infiniband/hw/mlx5/main.c:149 mlx5_query_port_roce()
+        warn: passing casted pointer '&props->qkey_viol_cntr' to
+	'mlx5_query_nic_vport_qkey_viol_cntr()' 32 vs 16.
 
-Thanks for spotting it to us.
-I sent patch which should eliminate that warning and expected to work
-correctly on big endian systems too [1].
+Fixes: 3f89a643eb29 ("IB/mlx5: Extend query_device/port to support RoCE")
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-[1] https://patchwork.kernel.org/patch/7992081/
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5e3d3ae..890cf20 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -132,6 +132,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	struct mlx5_ib_dev *dev = to_mdev(device);
+ 	struct net_device *ndev;
+ 	enum ib_mtu ndev_ib_mtu;
++	u16 qkey_viol_cntr;
+ 
+ 	memset(props, 0, sizeof(*props));
+ 
+@@ -146,8 +147,8 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	props->state            = IB_PORT_DOWN;
+ 	props->phys_state       = 3;
+ 
+-	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
+-					    (u16 *)&props->qkey_viol_cntr);
++	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev, &qkey_viol_cntr);
++	props->qkey_viol_cntr = qkey_viol_cntr;
+ 
+ 	ndev = mlx5_ib_get_netdev(device, port_num);
+ 	if (!ndev)
+-- 
+2.1.4
 
-> 
-> drivers/infiniband/hw/mlx5/main.c
->    129  static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
->    130                                  struct ib_port_attr *props)
->    131  {
->    132          struct mlx5_ib_dev *dev = to_mdev(device);
->    133          struct net_device *ndev;
->    134          enum ib_mtu ndev_ib_mtu;
->    135  
->    136          memset(props, 0, sizeof(*props));
->    137  
->    138          props->port_cap_flags  |= IB_PORT_CM_SUP;
->    139          props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
->    140  
->    141          props->gid_tbl_len      = MLX5_CAP_ROCE(dev->mdev,
->    142                                                  roce_address_table_size);
->    143          props->max_mtu          = IB_MTU_4096;
->    144          props->max_msg_sz       = 1 << MLX5_CAP_GEN(dev->mdev, log_max_msg);
->    145          props->pkey_tbl_len     = 1;
->    146          props->state            = IB_PORT_DOWN;
->    147          props->phys_state       = 3;
->    148  
->    149          mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
->    150                                              (u16 *)&props->qkey_viol_cntr);
->                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> This will break on big endian systems.
-> 
->    151  
->    152          ndev = mlx5_ib_get_netdev(device, port_num);
->    153          if (!ndev)
->    154                  return 0;
->    155  
-> 
-> regards,
-> dan carpenter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
