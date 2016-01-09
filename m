@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC PATCH 08/27] IB/hfi1: Use correct rdmavt header files after
- move.
-Date: Sat, 09 Jan 2016 07:17:22 -0800
-Message-ID: <20160109151722.30800.85712.stgit@scvm10.sc.intel.com>
+Subject: [RFC PATCH 10/27] IB/hfi1: Implement hfi1 support for AH
+ notification
+Date: Sat, 09 Jan 2016 07:17:33 -0800
+Message-ID: <20160109151733.30800.6500.stgit@scvm10.sc.intel.com>
 References: <20160109151020.30800.82395.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,147 +14,57 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Rdmavt split the header files to be based on ibta object. This patch
-makes changes in hfi1 to account for the move.
+For OPA devices additional work is required to create an AH.
+This patch adds support to set the VL correctly.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/driver.c |    3 ++-
- drivers/staging/rdma/hfi1/mad.c    |    4 ++--
- drivers/staging/rdma/hfi1/qp.c     |    5 +++--
- drivers/staging/rdma/hfi1/ud.c     |   14 +++++++-------
- drivers/staging/rdma/hfi1/verbs.c  |    4 ++--
- 5 files changed, 16 insertions(+), 14 deletions(-)
+ drivers/staging/rdma/hfi1/verbs.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index 16ac8b6..d51a273 100644
---- a/drivers/staging/rdma/hfi1/driver.c
-+++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -56,6 +56,7 @@
- #include <linux/vmalloc.h>
- #include <linux/module.h>
- #include <linux/prefetch.h>
-+#include <rdma/ib_verbs.h>
- 
- #include "hfi.h"
- #include "trace.h"
-@@ -316,7 +317,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 
- 		/* Get the destination QP number. */
- 		qp_num = be32_to_cpu(ohdr->bth[1]) & HFI1_QPN_MASK;
--		if (lid < HFI1_MULTICAST_LID_BASE) {
-+		if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 			struct hfi1_qp *qp;
- 			unsigned long flags;
- 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index 8e20760..9378fe8 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -1096,7 +1096,7 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	/* Must be a valid unicast LID address. */
- 	if ((lid == 0 && ls_old > IB_PORT_INIT) ||
--	     lid >= HFI1_MULTICAST_LID_BASE) {
-+	     lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		pr_warn("SubnSet(OPA_PortInfo) lid invalid 0x%x\n",
- 			lid);
-@@ -1129,7 +1129,7 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	/* Must be a valid unicast LID address. */
- 	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
--	     smlid >= HFI1_MULTICAST_LID_BASE) {
-+	     smlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 		pr_warn("SubnSet(OPA_PortInfo) smlid invalid 0x%x\n", smlid);
- 	} else if (smlid != ibp->sm_lid || msl != ibp->sm_sl) {
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index b847e1a..fcc2773 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -637,14 +637,15 @@ int hfi1_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		goto inval;
- 
- 	if (attr_mask & IB_QP_AV) {
--		if (attr->ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
-+		if (attr->ah_attr.dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
- 			goto inval;
- 		if (hfi1_check_ah(qp->ibqp.device, &attr->ah_attr))
- 			goto inval;
- 	}
- 
- 	if (attr_mask & IB_QP_ALT_PATH) {
--		if (attr->alt_ah_attr.dlid >= HFI1_MULTICAST_LID_BASE)
-+		if (attr->alt_ah_attr.dlid >=
-+		    be16_to_cpu(IB_MULTICAST_LID_BASE))
- 			goto inval;
- 		if (hfi1_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
- 			goto inval;
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index a99d0c5..15c5a47 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -243,7 +243,7 @@ static void ud_loopback(struct hfi1_qp *sqp, struct hfi1_swqe *swqe)
- 	wc.slid = ppd->lid | (ah_attr->src_path_bits & ((1 << ppd->lmc) - 1));
- 	/* Check for loopback when the port lid is not set */
- 	if (wc.slid == 0 && sqp->ibqp.qp_type == IB_QPT_GSI)
--		wc.slid = HFI1_PERMISSIVE_LID;
-+		wc.slid = be16_to_cpu(IB_LID_PERMISSIVE);
- 	wc.sl = ah_attr->sl;
- 	wc.dlid_path_bits = ah_attr->dlid & ((1 << ppd->lmc) - 1);
- 	wc.port_num = qp->port_num;
-@@ -311,11 +311,11 @@ int hfi1_make_ud_req(struct hfi1_qp *qp)
- 	ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	ppd = ppd_from_ibp(ibp);
- 	ah_attr = &to_iah(wqe->ud_wr.ah)->attr;
--	if (ah_attr->dlid < HFI1_MULTICAST_LID_BASE ||
--	    ah_attr->dlid == HFI1_PERMISSIVE_LID) {
-+	if (ah_attr->dlid < be16_to_cpu(IB_MULTICAST_LID_BASE) ||
-+	    ah_attr->dlid == be16_to_cpu(IB_LID_PERMISSIVE)) {
- 		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
- 		if (unlikely(!loopback && (lid == ppd->lid ||
--		    (lid == HFI1_PERMISSIVE_LID &&
-+		    (lid == be16_to_cpu(IB_LID_PERMISSIVE) &&
- 		     qp->ibqp.qp_type == IB_QPT_GSI)))) {
- 			/*
- 			 * If DMAs are in progress, we can't generate
-@@ -666,8 +666,8 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	qkey = be32_to_cpu(ohdr->u.ud.deth[0]);
- 	src_qp = be32_to_cpu(ohdr->u.ud.deth[1]) & HFI1_QPN_MASK;
- 	dlid = be16_to_cpu(hdr->lrh[1]);
--	is_mcast = (dlid > HFI1_MULTICAST_LID_BASE) &&
--			(dlid != HFI1_PERMISSIVE_LID);
-+	is_mcast = (dlid > be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+			(dlid != be16_to_cpu(IB_LID_PERMISSIVE));
- 	bth1 = be32_to_cpu(ohdr->bth[1]);
- 	if (unlikely(bth1 & HFI1_BECN_SMASK)) {
- 		/*
-@@ -872,7 +872,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	/*
- 	 * Save the LMC lower bits if the destination LID is a unicast LID.
- 	 */
--	wc.dlid_path_bits = dlid >= HFI1_MULTICAST_LID_BASE ? 0 :
-+	wc.dlid_path_bits = dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) ? 0 :
- 		dlid & ((1 << ppd_from_ibp(ibp)->lmc) - 1);
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
 diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index 11540ed..a349d86 100644
+index f66d630..0ac39e1 100644
 --- a/drivers/staging/rdma/hfi1/verbs.c
 +++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -644,8 +644,8 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
- 	/* Get the destination QP number. */
- 	qp_num = be32_to_cpu(packet->ohdr->bth[1]) & HFI1_QPN_MASK;
- 	lid = be16_to_cpu(hdr->lrh[1]);
--	if (unlikely((lid >= HFI1_MULTICAST_LID_BASE) &&
--	    (lid != HFI1_PERMISSIVE_LID))) {
-+	if (unlikely((lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+		     (lid != be16_to_cpu(IB_LID_PERMISSIVE)))) {
- 		struct hfi1_mcast *mcast;
- 		struct hfi1_mcast_qp *p;
+@@ -1641,6 +1641,29 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
+ 	return 0;
+ }
  
++static void hfi1_notify_new_ah(struct ib_device *ibdev,
++			       struct ib_ah_attr *ah_attr,
++			       struct rvt_ah *ah)
++{
++	struct hfi1_ibport *ibp;
++	struct hfi1_pportdata *ppd;
++	struct hfi1_devdata *dd;
++	u8 sc5;
++
++	/*
++	 * Do not trust reading anything from rvt_ah at this point as it is not
++	 * done being setup. We can however modify things which we need to set.
++	 */
++
++	ibp = to_iport(ibdev, ah_attr->port_num);
++	ppd = ppd_from_ibp(ibp);
++	sc5 = ibp->sl_to_sc[ah->attr.sl];
++	dd = dd_from_ppd(ppd);
++	ah->vl = sc_to_vlt(dd, sc5);
++	if (ah->vl < num_vls || ah->vl == 15)
++		ah->log_pmtu = ilog2(dd->vld[ah->vl].mtu);
++}
++
+ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
+ {
+ 	struct ib_ah_attr attr;
+@@ -1930,6 +1953,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	dd->verbs_dev.rdi.driver_f.get_card_name = get_card_name;
+ 	dd->verbs_dev.rdi.driver_f.get_pci_dev = get_pci_dev;
+ 	dd->verbs_dev.rdi.driver_f.check_ah = hfi1_check_ah;
++	dd->verbs_dev.rdi.driver_f.notify_new_ah = hfi1_notify_new_ah;
+ 	dd->verbs_dev.rdi.dparms.props.max_ah = hfi1_max_ahs;
+ 	dd->verbs_dev.rdi.dparms.props.max_pd = hfi1_max_pds;
+ 	dd->verbs_dev.rdi.flags = (RVT_FLAG_MR_INIT_DRIVER |
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
