@@ -1,8 +1,8 @@
 From: ira.weiny@intel.com
-Subject: [RESUBMIT PATCH v2 04/14] uapi/rdma/hfi/hfi1_user.h: Add command and
- event for TID caching
-Date: Mon, 11 Jan 2016 12:56:40 -0500
-Message-ID: <1452535010-14087-5-git-send-email-ira.weiny@intel.com>
+Subject: [RESUBMIT PATCH v2 07/14] staging/rdma/hfi1: Add definitions and
+ support functions for TID groups
+Date: Mon, 11 Jan 2016 12:56:43 -0500
+Message-ID: <1452535010-14087-8-git-send-email-ira.weiny@intel.com>
 References: <1452535010-14087-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,62 +24,121 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov@intel.com>
 
-TID caching will use a new event to signal userland that cache
-invalidation has occurred and needs a matching command code that
-will be used to read the invalidated TIDs.
+Definitions and functions use to manage sets of TID/RcvArray groups.
+These will be used by the TID cacheline functionality coming with
+later patches.
 
-Add the event bit and the new command to the exported header file.
+TID groups (or RcvArray groups) are groups of TID/RcvArray entries
+organized in sets of 8 and aligned on cacheline boundaries. The
+TID/RcvArray entries are managed in this way to make taking
+advantage of write-combining easier - each group is a entire
+cacheline.
 
-The command is also added to the switch() statement in file_ops.c
-for completeness and in preparation for its usage later.
+rcv_array_wc_fill() is provided to allow of generating writes to
+TIDs which are not currently being used in order to cause the
+flush of the write-combining buffer.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov@intel.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/file_ops.c | 1 +
- include/uapi/rdma/hfi/hfi1_user.h    | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 64 ++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index d57d549052c8..c66693532be0 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -241,6 +241,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		must_be_root = 1;	/* validate user */
- 		copy = 0;
- 		break;
-+	case HFI1_CMD_TID_INVAL_READ:
- 	default:
- 		ret = -EINVAL;
- 		goto bail;
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index a65f2fe17660..959204df5318 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -134,6 +134,7 @@
- #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
- #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
- #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
-+#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
- /* separate EPROM commands from normal PSM commands */
- #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
- #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
-@@ -147,13 +148,15 @@
- #define _HFI1_EVENT_LID_CHANGE_BIT     2
- #define _HFI1_EVENT_LMC_CHANGE_BIT     3
- #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
--#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
-+#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
-+#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+index bafeddf67c8f..7f15024daab9 100644
+--- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+@@ -52,6 +52,14 @@
+ #include "user_exp_rcv.h"
+ #include "trace.h"
  
- #define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
- #define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
- #define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
- #define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
- #define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
-+#define HFI1_EVENT_TID_MMU_NOTIFY    BIT(_HFI1_EVENT_TID_MMU_NOTIFY_BIT)
++struct tid_group {
++	struct list_head list;
++	unsigned base;
++	u8 size;
++	u8 used;
++	u8 map;
++};
++
+ struct mmu_rb_node {
+ 	struct rb_node rbnode;
+ 	unsigned long virt;
+@@ -75,6 +83,8 @@ static const char * const mmu_types[] = {
+ 	"RANGE"
+ };
  
- /*
-  * These are the status bits readable (in ASCII form, 64bit value)
++#define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
++
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+@@ -94,6 +104,43 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
+ 					    struct mm_struct *,
+ 					    unsigned long, unsigned long);
+ 
++static inline void exp_tid_group_init(struct exp_tid_set *set)
++{
++	INIT_LIST_HEAD(&set->list);
++	set->count = 0;
++}
++
++static inline void tid_group_remove(struct tid_group *grp,
++				    struct exp_tid_set *set)
++{
++	list_del_init(&grp->list);
++	set->count--;
++}
++
++static inline void tid_group_add_tail(struct tid_group *grp,
++				      struct exp_tid_set *set)
++{
++	list_add_tail(&grp->list, &set->list);
++	set->count++;
++}
++
++static inline struct tid_group *tid_group_pop(struct exp_tid_set *set)
++{
++	struct tid_group *grp =
++		list_first_entry(&set->list, struct tid_group, list);
++	list_del_init(&grp->list);
++	set->count--;
++	return grp;
++}
++
++static inline void tid_group_move(struct tid_group *group,
++				  struct exp_tid_set *s1,
++				  struct exp_tid_set *s2)
++{
++	tid_group_remove(group, s1);
++	tid_group_add_tail(group, s2);
++}
++
+ static struct mmu_notifier_ops __maybe_unused mn_opts = {
+ 	.invalidate_page = mmu_notifier_page,
+ 	.invalidate_range_start = mmu_notifier_range_start,
+@@ -114,6 +161,23 @@ int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
+ 	return -EINVAL;
+ }
+ 
++/*
++ * Write an "empty" RcvArray entry.
++ * This function exists so the TID registaration code can use it
++ * to write to unused/unneeded entries and still take advantage
++ * of the WC performance improvements. The HFI will ignore this
++ * write to the RcvArray entry.
++ */
++static inline void rcv_array_wc_fill(struct hfi1_devdata *dd, u32 index)
++{
++	/*
++	 * Doing the WC fill writes only makes sense if the device is
++	 * present and the RcvArray has been mapped as WC memory.
++	 */
++	if ((dd->flags & HFI1_PRESENT) && dd->rcvarray_wc)
++		writeq(0, dd->rcvarray_wc + (index * 8));
++}
++
+ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ {
+ 	return -EINVAL;
 -- 
 1.8.2
