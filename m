@@ -1,163 +1,234 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [RESUBMIT PATCH v2 12/14] staging/rdma/hfi1: Add TID free/clear function bodies
-Date: Mon, 11 Jan 2016 12:56:48 -0500
-Message-ID: <1452535010-14087-13-git-send-email-ira.weiny@intel.com>
+From: ira.weiny@intel.com
+Subject: [RESUBMIT PATCH v2 10/14] staging/rdma/hfi1: Add Expected receive
+ init and free functions
+Date: Mon, 11 Jan 2016 12:56:46 -0500
+Message-ID: <1452535010-14087-11-git-send-email-ira.weiny@intel.com>
 References: <1452535010-14087-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1452535010-14087-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1452535010-14087-1-git-send-email-ira.weiny@intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: dledford@redhat.com, linux-rdma@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org, Mitko Haralanov <mitko.haralanov@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov@intel.com>
 
-Up to now, the functions which cleared the programmed
-TID entries and gave PSM the list of invalidated TID entries
-were just stubs. With this commit, the bodies of these
-functions are added.
+The upcoming TID caching feature requires different data
+structures and, by extension, different initialization for each
+of the MPI processes.
 
-This commit is a bit asymmetric as it only contains the
-free code path. This is done on purpose to help with patch
-reviews as the programming code path is much longer.
+The two new functions (currently unused) perform the required
+initialization and freeing of required resources and structures.
 
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov@intel.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 91 +++++++++++++++++++++++++++++---
- 1 file changed, 85 insertions(+), 6 deletions(-)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 154 +++++++++++++++++++++++++++++--
+ 1 file changed, 144 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 1787c55d21d6..776ce003248e 100644
+index 5a7e455b9f58..843023e2e2c7 100644
 --- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
 +++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -120,10 +120,8 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
- static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
- 			    u32 *, unsigned *, unsigned *) __maybe_unused;
--static int unprogram_rcvarray(struct file *, u32,
--			      struct tid_group **) __maybe_unused;
--static void clear_tid_node(struct hfi1_filedata *, u16,
--			   struct mmu_rb_node *) __maybe_unused;
-+static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
-+static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
+@@ -90,23 +90,25 @@ struct tid_pageset {
  
- static inline u32 rcventry2tidinfo(u32 rcventry)
- {
-@@ -264,6 +262,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	 * Make sure that we set the tid counts only after successful
- 	 * init.
- 	 */
-+	spin_lock(&fd->tid_lock);
- 	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
- 		u16 remainder;
+ #define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
  
-@@ -274,6 +273,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	} else {
- 		fd->tid_limit = uctxt->expected_count;
- 	}
-+	spin_unlock(&fd->tid_lock);
- done:
- 	return ret;
++#define num_user_pages(vaddr, len)				       \
++	(1 + (((((unsigned long)(vaddr) +			       \
++		 (unsigned long)(len) - 1) & PAGE_MASK) -	       \
++	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
++
+ static void unlock_exp_tids(struct hfi1_ctxtdata *, struct exp_tid_set *,
+-			    struct rb_root *) __maybe_unused;
++			    struct rb_root *);
+ static u32 find_phys_blocks(struct page **, unsigned,
+ 			    struct tid_pageset *) __maybe_unused;
+ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+-			      struct tid_group *, struct page **,
+-			      unsigned) __maybe_unused;
++			      struct tid_group *, struct page **, unsigned);
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+ 						 unsigned long) __maybe_unused;
+ static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
+ 							 u32);
+-static int mmu_rb_insert_by_addr(struct rb_root *,
+-				 struct mmu_rb_node *) __maybe_unused;
+-static int mmu_rb_insert_by_entry(struct rb_root *,
+-				  struct mmu_rb_node *) __maybe_unused;
++static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
++static int mmu_rb_insert_by_entry(struct rb_root *, struct mmu_rb_node *);
+ static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
+ 					unsigned long, unsigned long,
+ 					enum mmu_call_types);
+@@ -168,7 +170,7 @@ static inline void tid_group_move(struct tid_group *group,
+ 	tid_group_add_tail(group, s2);
  }
-@@ -346,12 +346,91 @@ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
  
- int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
+-static struct mmu_notifier_ops __maybe_unused mn_opts = {
++static struct mmu_notifier_ops mn_opts = {
+ 	.invalidate_page = mmu_notifier_page,
+ 	.invalidate_range_start = mmu_notifier_range_start,
+ };
+@@ -180,12 +182,144 @@ static struct mmu_notifier_ops __maybe_unused mn_opts = {
+  */
+ int hfi1_user_exp_rcv_init(struct file *fp)
  {
 -	return -EINVAL;
-+	int ret = 0;
 +	struct hfi1_filedata *fd = fp->private_data;
 +	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	u32 *tidinfo;
-+	unsigned tididx;
++	struct hfi1_devdata *dd = uctxt->dd;
++	unsigned tidbase;
++	int i, ret = 0;
 +
-+	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
-+	if (!tidinfo)
-+		return -ENOMEM;
++	INIT_HLIST_NODE(&fd->mn.hlist);
++	spin_lock_init(&fd->rb_lock);
++	spin_lock_init(&fd->tid_lock);
++	spin_lock_init(&fd->invalid_lock);
++	fd->mn.ops = &mn_opts;
++	fd->tid_rb_root = RB_ROOT;
 +
-+	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
-+			   tinfo->tidlist, sizeof(tidinfo[0]) *
-+			   tinfo->tidcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
++	if (!uctxt->subctxt_cnt || !fd->subctxt) {
++		exp_tid_group_init(&uctxt->tid_group_list);
++		exp_tid_group_init(&uctxt->tid_used_list);
++		exp_tid_group_init(&uctxt->tid_full_list);
 +
-+	mutex_lock(&uctxt->exp_lock);
-+	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
-+		ret = unprogram_rcvarray(fp, tidinfo[tididx], NULL);
-+		if (ret) {
-+			hfi1_cdbg(TID, "Failed to unprogram rcv array %d",
-+				  ret);
-+			break;
++		tidbase = uctxt->expected_base;
++		for (i = 0; i < uctxt->expected_count /
++			     dd->rcv_entries.group_size; i++) {
++			struct tid_group *grp;
++
++			grp = kzalloc(sizeof(*grp), GFP_KERNEL);
++			if (!grp) {
++				/*
++				 * If we fail here, the groups already
++				 * allocated will be freed by the close
++				 * call.
++				 */
++				ret = -ENOMEM;
++				goto done;
++			}
++			grp->size = dd->rcv_entries.group_size;
++			grp->base = tidbase;
++			tid_group_add_tail(grp, &uctxt->tid_group_list);
++			tidbase += dd->rcv_entries.group_size;
 +		}
 +	}
-+	spin_lock(&fd->tid_lock);
-+	fd->tid_used -= tididx;
-+	spin_unlock(&fd->tid_lock);
-+	tinfo->tidcnt = tididx;
-+	mutex_unlock(&uctxt->exp_lock);
-+done:
-+	kfree(tidinfo);
-+	return ret;
- }
- 
- int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	unsigned long *ev = uctxt->dd->events +
-+		(((uctxt->ctxt - uctxt->dd->first_user_ctxt) *
-+		  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
-+	u32 *array;
-+	int ret = 0;
 +
-+	if (!fd->invalid_tids)
-+		return -EINVAL;
++	if (!HFI1_CAP_IS_USET(TID_UNMAP)) {
++		fd->invalid_tid_idx = 0;
++		fd->invalid_tids = kzalloc(uctxt->expected_count *
++					   sizeof(u32), GFP_KERNEL);
++		if (!fd->invalid_tids) {
++			ret = -ENOMEM;
++			goto done;
++		} else {
++			/*
++			 * Register MMU notifier callbacks. If the registration
++			 * fails, continue but turn off the TID caching for
++			 * all user contexts.
++			 */
++			ret = mmu_notifier_register(&fd->mn, current->mm);
++			if (ret) {
++				dd_dev_info(dd,
++					    "Failed MMU notifier registration %d\n",
++					    ret);
++				HFI1_CAP_USET(TID_UNMAP);
++				ret = 0;
++			}
++		}
++	}
++
++	if (HFI1_CAP_IS_USET(TID_UNMAP))
++		fd->mmu_rb_insert = mmu_rb_insert_by_entry;
++	else
++		fd->mmu_rb_insert = mmu_rb_insert_by_addr;
 +
 +	/*
-+	 * copy_to_user() can sleep, which will leave the invalid_lock
-+	 * locked and cause the MMU notifier to be blocked on the lock
-+	 * for a long time.
-+	 * Copy the data to a local buffer so we can release the lock.
++	 * PSM does not have a good way to separate, count, and
++	 * effectively enforce a limit on RcvArray entries used by
++	 * subctxts (when context sharing is used) when TID caching
++	 * is enabled. To help with that, we calculate a per-process
++	 * RcvArray entry share and enforce that.
++	 * If TID caching is not in use, PSM deals with usage on its
++	 * own. In that case, we allow any subctxt to take all of the
++	 * entries.
++	 *
++	 * Make sure that we set the tid counts only after successful
++	 * init.
 +	 */
-+	array = kcalloc(uctxt->expected_count, sizeof(*array), GFP_KERNEL);
-+	if (!array)
-+		return -EFAULT;
++	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
++		u16 remainder;
 +
-+	spin_lock(&fd->invalid_lock);
-+	if (fd->invalid_tid_idx) {
-+		memcpy(array, fd->invalid_tids, sizeof(*array) *
-+		       fd->invalid_tid_idx);
-+		memset(fd->invalid_tids, 0, sizeof(*fd->invalid_tids) *
-+		       fd->invalid_tid_idx);
-+		tinfo->tidcnt = fd->invalid_tid_idx;
-+		fd->invalid_tid_idx = 0;
-+		/*
-+		 * Reset the user flag while still holding the lock.
-+		 * Otherwise, PSM can miss events.
-+		 */
-+		clear_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
++		fd->tid_limit = uctxt->expected_count / uctxt->subctxt_cnt;
++		remainder = uctxt->expected_count % uctxt->subctxt_cnt;
++		if (remainder && fd->subctxt < remainder)
++			fd->tid_limit++;
 +	} else {
-+		tinfo->tidcnt = 0;
++		fd->tid_limit = uctxt->expected_count;
 +	}
-+	spin_unlock(&fd->invalid_lock);
-+
-+	if (tinfo->tidcnt) {
-+		if (copy_to_user((void __user *)tinfo->tidlist,
-+				 array, sizeof(*array) * tinfo->tidcnt))
-+			ret = -EFAULT;
-+	}
-+	kfree(array);
-+
++done:
 +	return ret;
  }
  
- static u32 find_phys_blocks(struct page **pages, unsigned npages,
+ int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
+ {
+-	return -EINVAL;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	struct tid_group *grp, *gptr;
++
++	/*
++	 * The notifier would have been removed when the process'es mm
++	 * was freed.
++	 */
++	if (current->mm && !HFI1_CAP_IS_USET(TID_UNMAP))
++		mmu_notifier_unregister(&fd->mn, current->mm);
++
++	kfree(fd->invalid_tids);
++
++	if (!uctxt->cnt) {
++		if (!EXP_TID_SET_EMPTY(uctxt->tid_full_list))
++			unlock_exp_tids(uctxt, &uctxt->tid_full_list,
++					&fd->tid_rb_root);
++		if (!EXP_TID_SET_EMPTY(uctxt->tid_used_list))
++			unlock_exp_tids(uctxt, &uctxt->tid_used_list,
++					&fd->tid_rb_root);
++		list_for_each_entry_safe(grp, gptr, &uctxt->tid_group_list.list,
++					 list) {
++			list_del_init(&grp->list);
++			kfree(grp);
++		}
++		spin_lock(&fd->rb_lock);
++		if (!RB_EMPTY_ROOT(&fd->tid_rb_root)) {
++			struct rb_node *node;
++			struct mmu_rb_node *rbnode;
++
++			while ((node = rb_first(&fd->tid_rb_root))) {
++				rbnode = rb_entry(node, struct mmu_rb_node,
++						  rbnode);
++				rb_erase(&rbnode->rbnode, &fd->tid_rb_root);
++				kfree(rbnode);
++			}
++		}
++		spin_unlock(&fd->rb_lock);
++		hfi1_clear_tids(uctxt);
++	}
++	return 0;
+ }
+ 
+ /*
 -- 
 1.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
