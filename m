@@ -1,8 +1,8 @@
 From: ira.weiny@intel.com
-Subject: [RESUBMIT PATCH v2 02/14] uapi/rdma/hfi/hfi1_user.h: Correct comment
- for capability bit
-Date: Mon, 11 Jan 2016 12:56:38 -0500
-Message-ID: <1452535010-14087-3-git-send-email-ira.weiny@intel.com>
+Subject: [RESUBMIT PATCH v2 04/14] uapi/rdma/hfi/hfi1_user.h: Add command and
+ event for TID caching
+Date: Mon, 11 Jan 2016 12:56:40 -0500
+Message-ID: <1452535010-14087-5-git-send-email-ira.weiny@intel.com>
 References: <1452535010-14087-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,27 +24,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov@intel.com>
 
-The HFI1_CAP_TID_UNMAP comment was incorrectly implying the
-opposite of what capability actually did. Correct this error.
+TID caching will use a new event to signal userland that cache
+invalidation has occurred and needs a matching command code that
+will be used to read the invalidated TIDs.
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Add the event bit and the new command to the exported header file.
+
+The command is also added to the switch() statement in file_ops.c
+for completeness and in preparation for its usage later.
+
 Signed-off-by: Mitko Haralanov <mitko.haralanov@intel.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 ---
- include/uapi/rdma/hfi/hfi1_user.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rdma/hfi1/file_ops.c | 1 +
+ include/uapi/rdma/hfi/hfi1_user.h    | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index d57d549052c8..c66693532be0 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -241,6 +241,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
+ 		must_be_root = 1;	/* validate user */
+ 		copy = 0;
+ 		break;
++	case HFI1_CMD_TID_INVAL_READ:
+ 	default:
+ 		ret = -EINVAL;
+ 		goto bail;
 diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index 288694e422fb..cf172718e3d5 100644
+index a65f2fe17660..959204df5318 100644
 --- a/include/uapi/rdma/hfi/hfi1_user.h
 +++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -93,7 +93,7 @@
- #define HFI1_CAP_MULTI_PKT_EGR    (1UL <<  7) /* Enable multi-packet Egr buffs*/
- #define HFI1_CAP_NODROP_RHQ_FULL  (1UL <<  8) /* Don't drop on Hdr Q full */
- #define HFI1_CAP_NODROP_EGR_FULL  (1UL <<  9) /* Don't drop on EGR buffs full */
--#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Enable Expected TID caching */
-+#define HFI1_CAP_TID_UNMAP        (1UL << 10) /* Disable Expected TID caching */
- #define HFI1_CAP_PRINT_UNIMPL     (1UL << 11) /* Show for unimplemented feats */
- #define HFI1_CAP_ALLOW_PERM_JKEY  (1UL << 12) /* Allow use of permissive JKEY */
- #define HFI1_CAP_NO_INTEGRITY     (1UL << 13) /* Enable ctxt integrity checks */
+@@ -134,6 +134,7 @@
+ #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
+ #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
+ #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
++#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
+ /* separate EPROM commands from normal PSM commands */
+ #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
+ #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
+@@ -147,13 +148,15 @@
+ #define _HFI1_EVENT_LID_CHANGE_BIT     2
+ #define _HFI1_EVENT_LMC_CHANGE_BIT     3
+ #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
+-#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
++#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
++#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+ 
+ #define HFI1_EVENT_FROZEN            BIT(_HFI1_EVENT_FROZEN_BIT)
+ #define HFI1_EVENT_LINKDOWN          BIT(_HFI1_EVENT_LINKDOWN_BIT)
+ #define HFI1_EVENT_LID_CHANGE        BIT(_HFI1_EVENT_LID_CHANGE_BIT)
+ #define HFI1_EVENT_LMC_CHANGE        BIT(_HFI1_EVENT_LMC_CHANGE_BIT)
+ #define HFI1_EVENT_SL2VL_CHANGE      BIT(_HFI1_EVENT_SL2VL_CHANGE_BIT)
++#define HFI1_EVENT_TID_MMU_NOTIFY    BIT(_HFI1_EVENT_TID_MMU_NOTIFY_BIT)
+ 
+ /*
+  * These are the status bits readable (in ASCII form, 64bit value)
 -- 
 1.8.2
