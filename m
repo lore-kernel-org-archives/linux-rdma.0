@@ -1,149 +1,34 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/qib: Support creating qps with GFP_NOIO flag
-Date: Mon, 11 Jan 2016 12:57:25 -0500
-Message-ID: <20160111175725.743.92967.stgit@phlsvslse11.ph.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: Support creating qps with GFP_NOIO flag
+Date: Mon, 11 Jan 2016 11:13:54 -0700
+Message-ID: <20160111181354.GA19166@obsidianresearch.com>
+References: <20160111175725.743.92967.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160111175725.743.92967.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Jan 11, 2016 at 12:57:25PM -0500, Mike Marciniszyn wrote:
+> From: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> The current code is problematic when the QP creation and ipoib is used to
+> support NFS and NFS desires to do IO for paging purposes. In that case, the
+> GFP_KERNEL allocation in qib_qp.c causes a deadlock in tight memory
+> situations.
 
-The current code is problematic when the QP creation and ipoib is used to
-support NFS and NFS desires to do IO for paging purposes. In that case, the
-GFP_KERNEL allocation in qib_qp.c causes a deadlock in tight memory
-situations.
+Are you trying to do swap over NFS? I didn't think that worked
+reliably, or has that changed?
 
-This fix adds support to create queue pair with GFP_NOIO flag for connected
-mode only to cleanly fail the create queue pair in those situations.
+It doesn't make much sense for one driver to have a different GFP
+policy for some calls compared with other drivers. Are you sure the
+GFP agrument shouldn't be pushed up to the real caller?
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.16+
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_qp.c |   46 +++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 40f85bb..3eff35c 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -100,9 +100,10 @@ static u32 credit_table[31] = {
- 	32768                   /* 1E */
- };
- 
--static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map)
-+static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map,
-+			 gfp_t gfp)
- {
--	unsigned long page = get_zeroed_page(GFP_KERNEL);
-+	unsigned long page = get_zeroed_page(gfp);
- 
- 	/*
- 	 * Free the page if someone raced with us installing it.
-@@ -121,7 +122,7 @@ static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map)
-  * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
-  */
- static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
--		     enum ib_qp_type type, u8 port)
-+		     enum ib_qp_type type, u8 port, gfp_t gfp)
- {
- 	u32 i, offset, max_scan, qpn;
- 	struct qpn_map *map;
-@@ -151,7 +152,7 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
- 	max_scan = qpt->nmaps - !offset;
- 	for (i = 0;;) {
- 		if (unlikely(!map->page)) {
--			get_map_page(qpt, map);
-+			get_map_page(qpt, map, gfp);
- 			if (unlikely(!map->page))
- 				break;
- 		}
-@@ -983,13 +984,21 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 	size_t sz;
- 	size_t sg_list_sz;
- 	struct ib_qp *ret;
-+	gfp_t gfp;
-+
- 
- 	if (init_attr->cap.max_send_sge > ib_qib_max_sges ||
- 	    init_attr->cap.max_send_wr > ib_qib_max_qp_wrs ||
--	    init_attr->create_flags) {
--		ret = ERR_PTR(-EINVAL);
--		goto bail;
--	}
-+	    init_attr->create_flags & ~(IB_QP_CREATE_USE_GFP_NOIO))
-+		return ERR_PTR(-EINVAL);
-+
-+	/* GFP_NOIO is applicable in RC QPs only */
-+	if (init_attr->create_flags & IB_QP_CREATE_USE_GFP_NOIO &&
-+	    init_attr->qp_type != IB_QPT_RC)
-+		return ERR_PTR(-EINVAL);
-+
-+	gfp = init_attr->create_flags & IB_QP_CREATE_USE_GFP_NOIO ?
-+			GFP_NOIO : GFP_KERNEL;
- 
- 	/* Check receive queue parameters if no SRQ is specified. */
- 	if (!init_attr->srq) {
-@@ -1021,7 +1030,8 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 		sz = sizeof(struct qib_sge) *
- 			init_attr->cap.max_send_sge +
- 			sizeof(struct qib_swqe);
--		swq = vmalloc((init_attr->cap.max_send_wr + 1) * sz);
-+		swq = __vmalloc((init_attr->cap.max_send_wr + 1) * sz,
-+				gfp, PAGE_KERNEL);
- 		if (swq == NULL) {
- 			ret = ERR_PTR(-ENOMEM);
- 			goto bail;
-@@ -1037,13 +1047,13 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 		} else if (init_attr->cap.max_recv_sge > 1)
- 			sg_list_sz = sizeof(*qp->r_sg_list) *
- 				(init_attr->cap.max_recv_sge - 1);
--		qp = kzalloc(sz + sg_list_sz, GFP_KERNEL);
-+		qp = kzalloc(sz + sg_list_sz, gfp);
- 		if (!qp) {
- 			ret = ERR_PTR(-ENOMEM);
- 			goto bail_swq;
- 		}
- 		RCU_INIT_POINTER(qp->next, NULL);
--		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), GFP_KERNEL);
-+		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), gfp);
- 		if (!qp->s_hdr) {
- 			ret = ERR_PTR(-ENOMEM);
- 			goto bail_qp;
-@@ -1058,8 +1068,16 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 			qp->r_rq.max_sge = init_attr->cap.max_recv_sge;
- 			sz = (sizeof(struct ib_sge) * qp->r_rq.max_sge) +
- 				sizeof(struct qib_rwqe);
--			qp->r_rq.wq = vmalloc_user(sizeof(struct qib_rwq) +
--						   qp->r_rq.size * sz);
-+			if (gfp != GFP_NOIO)
-+				qp->r_rq.wq = vmalloc_user(
-+						sizeof(struct qib_rwq) +
-+						qp->r_rq.size * sz);
-+			else
-+				qp->r_rq.wq = __vmalloc(
-+						sizeof(struct qib_rwq) +
-+						qp->r_rq.size * sz,
-+						gfp, PAGE_KERNEL);
-+
- 			if (!qp->r_rq.wq) {
- 				ret = ERR_PTR(-ENOMEM);
- 				goto bail_qp;
-@@ -1090,7 +1108,7 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 		dev = to_idev(ibpd->device);
- 		dd = dd_from_dev(dev);
- 		err = alloc_qpn(dd, &dev->qpn_table, init_attr->qp_type,
--				init_attr->port_num);
-+				init_attr->port_num, gfp);
- 		if (err < 0) {
- 			ret = ERR_PTR(err);
- 			vfree(qp->r_rq.wq);
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
