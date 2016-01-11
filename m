@@ -1,86 +1,75 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH for-4.5 1/2] iw_cxgb4: Fix static checker warning in
- c4iw_rdev_open()
-Date: Mon, 11 Jan 2016 13:42:28 +0200
-Message-ID: <20160111114228.GB21991@leon.nu>
-References: <1452507660-27441-1-git-send-email-hariprasad@chelsio.com>
- <1452507660-27441-2-git-send-email-hariprasad@chelsio.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Selvin Xavier <selvin.xavier@avagotech.com>
+Subject: Re: [PATCH v2 1/6] InfiniBand-ocrdma: One jump label less in ocrdma_alloc_ucontext_pd()
+Date: Mon, 11 Jan 2016 18:41:07 +0530
+Message-ID: <CA+sbYW31rf614mozAmNHbTH=a06WWZ7D4fkBD+jaa=zCyqj2XA@mail.gmail.com>
+References: <201512270304.PMbiMdOa%fengguang.wu@intel.com>
+	<567F068C.9060507@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1452507660-27441-2-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <567F068C.9060507@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, kbuild-all@01.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 11, 2016 at 03:50:59PM +0530, Hariprasad Shenai wrote:
-> The commit c5dfb000b904 ("iw_cxgb4: Pass qid range to user space
-> driver") from Dec 11, 2015, leads to the following static checker
-> warning:
-> 
-> 	drivers/infiniband/hw/cxgb4/device.c:857 c4iw_rdev_open()
->         warn: variable dereferenced before check 'rdev->status_page'
-> Fixing it.
+This patch series looks good to me
 
-Please use "Fixes" format in your commit message.
+Thanks,
 
-> 
-> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Acked-by: Selvin Xavier <selvin.xavier@avagotech.com>
+
+
+
+On Sun, Dec 27, 2015 at 2:58 AM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 26 Dec 2015 22:18:38 +0100
+>
+> This issue was detected by using the Coccinelle software.
+>
+> * Let us return directly if a call of the _ocrdma_alloc_pd()
+>   function failed.
+>
+> * Reduce the scope for the local variable "status" to one case
+>   of an if statement.
+>
+> * Delete the jump label "err" then.
+>
+> * Return zero as a constant at the end.
+>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/infiniband/hw/cxgb4/device.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index bf15538..2b67743 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -850,14 +850,14 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
->  	}
->  	rdev->status_page = (struct t4_dev_status_page *)
->  			    __get_free_page(GFP_KERNEL);
-> +	if (!rdev->status_page) {
-> +		pr_err(MOD "error allocating status page\n");
-
-Drop this error. In case the system fails to get one free page, you
-will notice it.
-
-> +		goto destroy_ocqp_pool;
-> +	}
->  	rdev->status_page->qp_start = rdev->lldi.vr->qp.start;
->  	rdev->status_page->qp_size = rdev->lldi.vr->qp.size;
->  	rdev->status_page->cq_start = rdev->lldi.vr->cq.start;
->  	rdev->status_page->cq_size = rdev->lldi.vr->cq.size;
-> -	if (!rdev->status_page) {
-> -		pr_err(MOD "error allocating status page\n");
-> -		goto err4;
-> -	}
->  
->  	if (c4iw_wr_log) {
->  		rdev->wr_log = kzalloc((1 << c4iw_wr_log_size_order) *
-> @@ -873,6 +873,8 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
->  	rdev->status_page->db_off = 0;
->  
->  	return 0;
-> +destroy_ocqp_pool:
-> +	c4iw_ocqp_pool_destroy(rdev);
-
-Please add the reason to do it in commit message.
-
->  err4:
->  	c4iw_rqtpool_destroy(rdev);
->  err3:
-> -- 
-> 2.3.4
-> 
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index 583001b..7f10cc47 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -483,19 +483,16 @@ static int ocrdma_alloc_ucontext_pd(struct ocrdma_dev *dev,
+>                                     struct ocrdma_ucontext *uctx,
+>                                     struct ib_udata *udata)
+>  {
+> -       int status = 0;
+> -
+>         uctx->cntxt_pd = _ocrdma_alloc_pd(dev, uctx, udata);
+>         if (IS_ERR(uctx->cntxt_pd)) {
+> -               status = PTR_ERR(uctx->cntxt_pd);
+> +               int status = PTR_ERR(uctx->cntxt_pd);
+>                 uctx->cntxt_pd = NULL;
+> -               goto err;
+> +               return status;
+>         }
+>
+>         uctx->cntxt_pd->uctx = uctx;
+>         uctx->cntxt_pd->ibpd.device = &dev->ibdev;
+> -err:
+> -       return status;
+> +       return 0;
+>  }
+>
+>  static int ocrdma_dealloc_ucontext_pd(struct ocrdma_ucontext *uctx)
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2.6.3
+>
