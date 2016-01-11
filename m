@@ -1,42 +1,148 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [RESUBMIT PATCH V5 1/2] staging/rdma/hfi1: add dd_dev_dbg
-Date: Mon, 11 Jan 2016 13:04:32 -0500
-Message-ID: <1452535473-15339-2-git-send-email-ira.weiny@intel.com>
-References: <1452535473-15339-1-git-send-email-ira.weiny@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/qib: Support creating qps with GFP_NOIO flag
+Date: Mon, 11 Jan 2016 12:57:25 -0500
+Message-ID: <20160111175725.743.92967.stgit@phlsvslse11.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1452535473-15339-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-To be used in future patches add dd_dev_dbg.  dd_* functions properly decode
-the hfi1_devdata structure used throughout the driver
+The current code is problematic when the QP creation and ipoib is used to
+support NFS and NFS desires to do IO for paging purposes. In that case, the
+GFP_KERNEL allocation in qib_qp.c causes a deadlock in tight memory
+situations.
 
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This fix adds support to create queue pair with GFP_NOIO flag for connected
+mode only to cleanly fail the create queue pair in those situations.
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.16+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vinit Agnihotri <vinit.abhay.agnihotri-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/hfi.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/hw/qib/qib_qp.c |   46 +++++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 62157cc34727..52dcc87689f1 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1804,6 +1804,10 @@ static inline u64 hfi1_pkt_base_sdma_integrity(struct hfi1_devdata *dd)
- 	dev_info(&(dd)->pcidev->dev, "%s: " fmt, \
- 			get_unit_name((dd)->unit), ##__VA_ARGS__)
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 40f85bb..3eff35c 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -100,9 +100,10 @@ static u32 credit_table[31] = {
+ 	32768                   /* 1E */
+ };
  
-+#define dd_dev_dbg(dd, fmt, ...) \
-+	dev_dbg(&(dd)->pcidev->dev, "%s: " fmt, \
-+		get_unit_name((dd)->unit), ##__VA_ARGS__)
+-static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map)
++static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map,
++			 gfp_t gfp)
+ {
+-	unsigned long page = get_zeroed_page(GFP_KERNEL);
++	unsigned long page = get_zeroed_page(gfp);
+ 
+ 	/*
+ 	 * Free the page if someone raced with us installing it.
+@@ -121,7 +122,7 @@ static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map)
+  * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
+  */
+ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
+-		     enum ib_qp_type type, u8 port)
++		     enum ib_qp_type type, u8 port, gfp_t gfp)
+ {
+ 	u32 i, offset, max_scan, qpn;
+ 	struct qpn_map *map;
+@@ -151,7 +152,7 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
+ 	max_scan = qpt->nmaps - !offset;
+ 	for (i = 0;;) {
+ 		if (unlikely(!map->page)) {
+-			get_map_page(qpt, map);
++			get_map_page(qpt, map, gfp);
+ 			if (unlikely(!map->page))
+ 				break;
+ 		}
+@@ -983,13 +984,21 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 	size_t sz;
+ 	size_t sg_list_sz;
+ 	struct ib_qp *ret;
++	gfp_t gfp;
 +
- #define hfi1_dev_porterr(dd, port, fmt, ...) \
- 	dev_err(&(dd)->pcidev->dev, "%s: IB%u:%u " fmt, \
- 			get_unit_name((dd)->unit), (dd)->unit, (port), \
--- 
-1.8.2
+ 
+ 	if (init_attr->cap.max_send_sge > ib_qib_max_sges ||
+ 	    init_attr->cap.max_send_wr > ib_qib_max_qp_wrs ||
+-	    init_attr->create_flags) {
+-		ret = ERR_PTR(-EINVAL);
+-		goto bail;
+-	}
++	    init_attr->create_flags & ~(IB_QP_CREATE_USE_GFP_NOIO))
++		return ERR_PTR(-EINVAL);
++
++	/* GFP_NOIO is applicable in RC QPs only */
++	if (init_attr->create_flags & IB_QP_CREATE_USE_GFP_NOIO &&
++	    init_attr->qp_type != IB_QPT_RC)
++		return ERR_PTR(-EINVAL);
++
++	gfp = init_attr->create_flags & IB_QP_CREATE_USE_GFP_NOIO ?
++			GFP_NOIO : GFP_KERNEL;
+ 
+ 	/* Check receive queue parameters if no SRQ is specified. */
+ 	if (!init_attr->srq) {
+@@ -1021,7 +1030,8 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		sz = sizeof(struct qib_sge) *
+ 			init_attr->cap.max_send_sge +
+ 			sizeof(struct qib_swqe);
+-		swq = vmalloc((init_attr->cap.max_send_wr + 1) * sz);
++		swq = __vmalloc((init_attr->cap.max_send_wr + 1) * sz,
++				gfp, PAGE_KERNEL);
+ 		if (swq == NULL) {
+ 			ret = ERR_PTR(-ENOMEM);
+ 			goto bail;
+@@ -1037,13 +1047,13 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		} else if (init_attr->cap.max_recv_sge > 1)
+ 			sg_list_sz = sizeof(*qp->r_sg_list) *
+ 				(init_attr->cap.max_recv_sge - 1);
+-		qp = kzalloc(sz + sg_list_sz, GFP_KERNEL);
++		qp = kzalloc(sz + sg_list_sz, gfp);
+ 		if (!qp) {
+ 			ret = ERR_PTR(-ENOMEM);
+ 			goto bail_swq;
+ 		}
+ 		RCU_INIT_POINTER(qp->next, NULL);
+-		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), GFP_KERNEL);
++		qp->s_hdr = kzalloc(sizeof(*qp->s_hdr), gfp);
+ 		if (!qp->s_hdr) {
+ 			ret = ERR_PTR(-ENOMEM);
+ 			goto bail_qp;
+@@ -1058,8 +1068,16 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 			qp->r_rq.max_sge = init_attr->cap.max_recv_sge;
+ 			sz = (sizeof(struct ib_sge) * qp->r_rq.max_sge) +
+ 				sizeof(struct qib_rwqe);
+-			qp->r_rq.wq = vmalloc_user(sizeof(struct qib_rwq) +
+-						   qp->r_rq.size * sz);
++			if (gfp != GFP_NOIO)
++				qp->r_rq.wq = vmalloc_user(
++						sizeof(struct qib_rwq) +
++						qp->r_rq.size * sz);
++			else
++				qp->r_rq.wq = __vmalloc(
++						sizeof(struct qib_rwq) +
++						qp->r_rq.size * sz,
++						gfp, PAGE_KERNEL);
++
+ 			if (!qp->r_rq.wq) {
+ 				ret = ERR_PTR(-ENOMEM);
+ 				goto bail_qp;
+@@ -1090,7 +1108,7 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 		dev = to_idev(ibpd->device);
+ 		dd = dd_from_dev(dev);
+ 		err = alloc_qpn(dd, &dev->qpn_table, init_attr->qp_type,
+-				init_attr->port_num);
++				init_attr->port_num, gfp);
+ 		if (err < 0) {
+ 			ret = ERR_PTR(err);
+ 			vfree(qp->r_rq.wq);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
