@@ -1,53 +1,56 @@
-From: Jubin John <jubin.john@intel.com>
-Subject: [PATCH RESEND v3 4/6] staging/rdma/hfi1: Change default krcvqs
-Date: Mon, 11 Jan 2016 18:30:55 -0500
-Message-ID: <1452555057-5155-5-git-send-email-jubin.john@intel.com>
-References: <1452555057-5155-1-git-send-email-jubin.john@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1452555057-5155-1-git-send-email-jubin.john@intel.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: linux-rdma@vger.kernel.org, dledford@redhat.com
-Cc: devel@driverdev.osuosl.org, gregkh@linuxfoundation.org
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH RESEND v3 0/2] Driver cleanup and misc fixes series 3
+Date: Mon, 11 Jan 2016 18:31:42 -0500
+Message-ID: <1452555104-6171-1-git-send-email-jubin.john@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Change the default number of krcvqs to number of numa nodes + 1
-based on the performance data collected.
+NOTE:
+This is being resubmitted to linux-rdma (for patchworks) to aid Doug Ledford in
+taking over the staging/rdma subtree.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Jubin John <jubin.john@intel.com>
----
+https://www.mail-archive.com/linux-rdma%40vger.kernel.org/msg30860.html
+
+This patch set is to follow: staging/rdma/hfi1: Remove unneeded variable index
+
+Thanks,
+Jubin
+
+These patches were part of series:
+http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/2015-December/082248.html
+but did not apply cleanly to the staging-next branch.
+
+Refreshed the remaining 2 patches against the latest staging-next.
+
 Changes in v2:
-	- None
+	- Added more information in commit messages of patches 01, 02
+	  03, 04, 05, 07 and 09
+	- Fixed driver name to hfi1 in subject line of patch 06
+	- Refreshed patch 10 on top of staging-next
+	- Dropped patch 18 (staging/rdma/hfi1: Workaround
+	  CONFIG_SDMA_VERBOSITY timing issue) from series
 
 Changes in v3:
-	- Refreshed patch against latest staging-next
+	- Refreshed remaining 2 patches against latest staging-next
 
- drivers/staging/rdma/hfi1/chip.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Edward Mascarenhas (1):
+  staging/rdma/hfi1: Clean up comments
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index bbe5ad8..503bfca 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -12445,7 +12445,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 		 */
- 		num_kernel_contexts = n_krcvqs + MIN_KERNEL_KCTXTS - 1;
- 	else
--		num_kernel_contexts = num_online_nodes();
-+		num_kernel_contexts = num_online_nodes() + 1;
- 	num_kernel_contexts =
- 		max_t(int, MIN_KERNEL_KCTXTS, num_kernel_contexts);
- 	/*
--- 
-1.7.1
+Ira Weiny (1):
+  staging/rdma/hfi1: Fix Xmit Wait calculation
+
+ drivers/staging/rdma/hfi1/chip.c   |    1 -
+ drivers/staging/rdma/hfi1/driver.c |    2 +-
+ drivers/staging/rdma/hfi1/hfi.h    |    4 ++--
+ drivers/staging/rdma/hfi1/mad.c    |   33 ++++++++++++++++++++-------------
+ drivers/staging/rdma/hfi1/pcie.c   |    2 +-
+ drivers/staging/rdma/hfi1/ud.c     |    2 +-
+ 6 files changed, 25 insertions(+), 19 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
