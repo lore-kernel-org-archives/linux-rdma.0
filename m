@@ -1,27 +1,28 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Reduce mlx5_ib_wq cacheline bouncing
-Date: Tue, 12 Jan 2016 17:09:04 +0200
-Message-ID: <56951710.90602@dev.mellanox.co.il>
-References: <1452594732-9573-1-git-send-email-sagig@mellanox.com>
- <5694EEAA.3050600@mellanox.com> <56951130.60802@dev.mellanox.co.il>
- <56951375.1050704@mellanox.com> <569514A5.1050705@dev.mellanox.co.il>
- <56951634.5030307@mellanox.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [patch] RDMA/nes: checking for NULL instead of IS_ERR
+Date: Tue, 12 Jan 2016 16:12:52 +0100
+Message-ID: <20160112151252.GA2294@lst.de>
+References: <20160112092743.GA29804@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56951634.5030307-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160112092743.GA29804@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jan 12, 2016 at 12:27:43PM +0300, Dan Carpenter wrote:
+> nes_reg_phys_mr() returns ERR_PTRs on error.  It doesn't return NULL.
+> 
+> This bug has been there for a while, but we recently changed from
+> calling a function pointer to calling nes_reg_phys_mr() directly so now
+> Smatch is able to detect the bug.
 
-> maybe one nice option would be to take a look on how things are
-> organized in libmlx5 around that corner
+Looks fine,
 
-We don't have this accounting in libmlx5. Although I suspect we'll have
-it at some point.
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
