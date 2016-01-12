@@ -1,94 +1,78 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [patch] IB/cma: allocating too much memory in make_cma_ports()
-Date: Tue, 12 Jan 2016 15:08:32 +0200
-Message-ID: <CAAKD3BDw8422EjzChtU23u4gKx-vegCxBuwKkLhXL1ySmACRxw@mail.gmail.com>
-References: <20160112092921.GB29804@mwanda>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Reduce mlx5_ib_wq cacheline bouncing
+Date: Tue, 12 Jan 2016 14:16:42 +0200
+Message-ID: <5694EEAA.3050600@mellanox.com>
+References: <1452594732-9573-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160112092921.GB29804@mwanda>
+In-Reply-To: <1452594732-9573-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 12, 2016 at 11:29 AM, Dan Carpenter
-<dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> The issue here is that there is a cut and paste bug.  When we allocate
-> cma_dev_group->default_ports_group we use "sizeof(*cma_dev_group->ports)"
-> instead of "sizeof(*cma_dev_group->default_ports_group)".
+On 1/12/2016 12:32 PM, Sagi Grimberg wrote:
+> mlx5 keeps a lot of internal accounting for wr processing.
+> mlx5_ib_wq consists of multiple arrays:
+> struct mlx5_ib_wq {
+> 	u64		       *wrid;
+> 	u32		       *wr_data;
+> 	struct wr_list	       *w_list;
+> 	unsigned	       *wqe_head;
+> 	...
+> }
 >
-> We're bumping up against the 80 character limit so I introduced a new
-> local pointer "ports_group" to get around that.
+> Each time we access each of these arrays, even for a single index
+> we fetch a cacheline. Reduce cacheline bounces by fitting these members
+> in a cacheline aligned struct (swr_ctx) and allocate an array. Accessing
+> this array will fetch all of these members in a single shot.
 >
-> Fixes: 045959db65c6 ('IB/cma: Add configfs for rdma_cm')
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> Not tested.
->
-> diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
-> index bd1d640..18b112a 100644
-> --- a/drivers/infiniband/core/cma_configfs.c
-> +++ b/drivers/infiniband/core/cma_configfs.c
-> @@ -158,6 +158,7 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
->         unsigned int i;
->         unsigned int ports_num;
->         struct cma_dev_port_group *ports;
-> +       struct config_group **ports_group;
->         int err;
->
->         ibdev = cma_get_ib_dev(cma_dev);
-> @@ -168,12 +169,9 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
->         ports_num = ibdev->phys_port_cnt;
->         ports = kcalloc(ports_num, sizeof(*cma_dev_group->ports),
->                         GFP_KERNEL);
-> +       ports_group = kcalloc(ports_num + 1, sizeof(*ports_group), GFP_KERNEL);
->
-> -       cma_dev_group->default_ports_group = kcalloc(ports_num + 1,
-> -                                                    sizeof(*cma_dev_group->ports),
-> -                                                    GFP_KERNEL);
-> -
-> -       if (!ports || !cma_dev_group->default_ports_group) {
-> +       if (!ports || !ports_group) {
->                 err = -ENOMEM;
->                 goto free;
->         }
-> @@ -187,15 +185,16 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
->                 config_group_init_type_name(&ports[i].group,
->                                             port_str,
->                                             &cma_port_group_type);
-> -               cma_dev_group->default_ports_group[i] = &ports[i].group;
-> +               ports_group[i] = &ports[i].group;
->         }
-> -       cma_dev_group->default_ports_group[i] = NULL;
-> +       ports_group[i] = NULL;
-> +       cma_dev_group->default_ports_group = ports_group;
->         cma_dev_group->ports = ports;
->
->         return 0;
->  free:
->         kfree(ports);
-> -       kfree(cma_dev_group->default_ports_group);
-> +       kfree(ports_group);
->         cma_dev_group->ports = NULL;
->         cma_dev_group->default_ports_group = NULL;
->         return err;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Since the receive queue needs only the wrid we use a nameless union
+> where in the rwr_ctx we only have wrid member.
 
-Hi,
+Have some performance numbers before/after this patch to support the 
+proposed change?
 
-This is already fixed in [1].
-Anyway, I'm fine with either one of them.
+Also, I have asked you the same question re the iser remote invalidation 
+series [1], this datais needed there too.
 
-Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Or.
 
-Regards,
-Matan
+[1] http://marc.info/?l=linux-rdma&m=145188949807652&w=2
 
-[1] http://www.spinics.net/lists/linux-rdma/msg32152.html
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -129,11 +129,24 @@ struct wr_list {
+  	u16	next;
+  };
+  
++/* Please don't let this exceed a single cacheline */
++struct swr_ctx {
++	u64		wrid;
++	u32		wr_data;
++	struct wr_list	w_list;
++	u32		wqe_head;
++	u8		rsvd[12];
++}__packed;
+
+
+what the role of the reserved field, is that for alignment purposes? if 
+yes, maybe better namewould be "align"
+
+Nit, (same) checkpatch error here and below
+
+ERROR: space required after that close brace '}'
+#111: FILE: drivers/infiniband/hw/mlx5/mlx5_ib.h:139:
++}__packed;
+
+> +
+> +struct rwr_ctx {
+> +	u64		       wrid;
+> +}__packed;
+> +
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
