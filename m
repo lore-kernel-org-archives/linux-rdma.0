@@ -1,42 +1,72 @@
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] RDMA/nes: checking for NULL instead of IS_ERR
-Date: Tue, 12 Jan 2016 12:27:43 +0300
-Message-ID: <20160112092743.GA29804@mwanda>
+Subject: [patch] IB/cma: allocating too much memory in make_cma_ports()
+Date: Tue, 12 Jan 2016 12:29:21 +0300
+Message-ID: <20160112092921.GB29804@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-nes_reg_phys_mr() returns ERR_PTRs on error.  It doesn't return NULL.
+The issue here is that there is a cut and paste bug.  When we allocate
+cma_dev_group->default_ports_group we use "sizeof(*cma_dev_group->ports)"
+instead of "sizeof(*cma_dev_group->default_ports_group)".
 
-This bug has been there for a while, but we recently changed from
-calling a function pointer to calling nes_reg_phys_mr() directly so now
-Smatch is able to detect the bug.
+We're bumping up against the 80 character limit so I introduced a new
+local pointer "ports_group" to get around that.
 
+Fixes: 045959db65c6 ('IB/cma: Add configfs for rdma_cm')
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Not tested.
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 179490d..cb9f0f2 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -3320,14 +3320,14 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 				nesqp->ietf_frame_pbase + mpa_frame_offset,
- 				buff_len, IB_ACCESS_LOCAL_WRITE,
- 				&tagged_offset);
--		if (!ibmr) {
-+		if (IS_ERR(ibmr)) {
- 			nes_debug(NES_DBG_CM, "Unable to register memory region"
- 				  "for lSMM for cm_node = %p \n",
- 				  cm_node);
- 			pci_free_consistent(nesdev->pcidev,
- 					    nesqp->private_data_len + nesqp->ietf_frame_size,
- 					    nesqp->ietf_frame, nesqp->ietf_frame_pbase);
--			return -ENOMEM;
-+			return PTR_ERR(ibmr);
- 		}
+diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
+index bd1d640..18b112a 100644
+--- a/drivers/infiniband/core/cma_configfs.c
++++ b/drivers/infiniband/core/cma_configfs.c
+@@ -158,6 +158,7 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+ 	unsigned int i;
+ 	unsigned int ports_num;
+ 	struct cma_dev_port_group *ports;
++	struct config_group **ports_group;
+ 	int err;
  
- 		ibmr->pd = &nespd->ibpd;
+ 	ibdev = cma_get_ib_dev(cma_dev);
+@@ -168,12 +169,9 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+ 	ports_num = ibdev->phys_port_cnt;
+ 	ports = kcalloc(ports_num, sizeof(*cma_dev_group->ports),
+ 			GFP_KERNEL);
++	ports_group = kcalloc(ports_num + 1, sizeof(*ports_group), GFP_KERNEL);
+ 
+-	cma_dev_group->default_ports_group = kcalloc(ports_num + 1,
+-						     sizeof(*cma_dev_group->ports),
+-						     GFP_KERNEL);
+-
+-	if (!ports || !cma_dev_group->default_ports_group) {
++	if (!ports || !ports_group) {
+ 		err = -ENOMEM;
+ 		goto free;
+ 	}
+@@ -187,15 +185,16 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+ 		config_group_init_type_name(&ports[i].group,
+ 					    port_str,
+ 					    &cma_port_group_type);
+-		cma_dev_group->default_ports_group[i] = &ports[i].group;
++		ports_group[i] = &ports[i].group;
+ 	}
+-	cma_dev_group->default_ports_group[i] = NULL;
++	ports_group[i] = NULL;
++	cma_dev_group->default_ports_group = ports_group;
+ 	cma_dev_group->ports = ports;
+ 
+ 	return 0;
+ free:
+ 	kfree(ports);
+-	kfree(cma_dev_group->default_ports_group);
++	kfree(ports_group);
+ 	cma_dev_group->ports = NULL;
+ 	cma_dev_group->default_ports_group = NULL;
+ 	return err;
