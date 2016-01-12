@@ -1,58 +1,94 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCHv3 for-4.5 0/2] iw_cxgb4: Fixes static checker warnings
-Date: Tue, 12 Jan 2016 14:16:40 +0200
-Message-ID: <20160112121640.GA12332@leon.nu>
-References: <1452596602-9952-1-git-send-email-hariprasad@chelsio.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [patch] IB/cma: allocating too much memory in make_cma_ports()
+Date: Tue, 12 Jan 2016 15:08:32 +0200
+Message-ID: <CAAKD3BDw8422EjzChtU23u4gKx-vegCxBuwKkLhXL1ySmACRxw@mail.gmail.com>
+References: <20160112092921.GB29804@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1452596602-9952-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160112092921.GB29804@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 12, 2016 at 04:33:20PM +0530, Hariprasad Shenai wrote:
-> Hi,
-> 
-> This series fixes static checker warning's and fixes GW-Basic name labels
-> to meaningful ones.
-> 
-> This patch series has been created against Doug's linux tree and includes
-> patches on iw_cxgb4 driver.
-> 
-> We have included all the maintainers of respective drivers. Kindly review
-> the change and let us know in case of any review comments.
-> 
-> Thanks
-> 
-> V3: Add the 'Fixes:' tag with the first 12 characters of the SHA-1 ID, and
->     the one line summary for Patch 1/2
-
-Thank you for investing your time to address all my comments,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-> 
-> V2: Dropped an error message in Patch 1/2 ("iw_cxgb4: Fixes static checker
->     warning in c4iw_rdev_open()"), and updated commit message to be
->     consistent. Based on review comments by Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org
-> 
-> Hariprasad Shenai (2):
->   iw_cxgb4: Fixes static checker warning in c4iw_rdev_open()
->   iw_cxgb4: Fixes GW-Basic labels to meaningful error names
-> 
->  drivers/infiniband/hw/cxgb4/device.c | 53 ++++++++++++++----------------------
->  1 file changed, 21 insertions(+), 32 deletions(-)
-> 
-> -- 
-> 2.3.4
-> 
+On Tue, Jan 12, 2016 at 11:29 AM, Dan Carpenter
+<dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> The issue here is that there is a cut and paste bug.  When we allocate
+> cma_dev_group->default_ports_group we use "sizeof(*cma_dev_group->ports)"
+> instead of "sizeof(*cma_dev_group->default_ports_group)".
+>
+> We're bumping up against the 80 character limit so I introduced a new
+> local pointer "ports_group" to get around that.
+>
+> Fixes: 045959db65c6 ('IB/cma: Add configfs for rdma_cm')
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> Not tested.
+>
+> diff --git a/drivers/infiniband/core/cma_configfs.c b/drivers/infiniband/core/cma_configfs.c
+> index bd1d640..18b112a 100644
+> --- a/drivers/infiniband/core/cma_configfs.c
+> +++ b/drivers/infiniband/core/cma_configfs.c
+> @@ -158,6 +158,7 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+>         unsigned int i;
+>         unsigned int ports_num;
+>         struct cma_dev_port_group *ports;
+> +       struct config_group **ports_group;
+>         int err;
+>
+>         ibdev = cma_get_ib_dev(cma_dev);
+> @@ -168,12 +169,9 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+>         ports_num = ibdev->phys_port_cnt;
+>         ports = kcalloc(ports_num, sizeof(*cma_dev_group->ports),
+>                         GFP_KERNEL);
+> +       ports_group = kcalloc(ports_num + 1, sizeof(*ports_group), GFP_KERNEL);
+>
+> -       cma_dev_group->default_ports_group = kcalloc(ports_num + 1,
+> -                                                    sizeof(*cma_dev_group->ports),
+> -                                                    GFP_KERNEL);
+> -
+> -       if (!ports || !cma_dev_group->default_ports_group) {
+> +       if (!ports || !ports_group) {
+>                 err = -ENOMEM;
+>                 goto free;
+>         }
+> @@ -187,15 +185,16 @@ static int make_cma_ports(struct cma_dev_group *cma_dev_group,
+>                 config_group_init_type_name(&ports[i].group,
+>                                             port_str,
+>                                             &cma_port_group_type);
+> -               cma_dev_group->default_ports_group[i] = &ports[i].group;
+> +               ports_group[i] = &ports[i].group;
+>         }
+> -       cma_dev_group->default_ports_group[i] = NULL;
+> +       ports_group[i] = NULL;
+> +       cma_dev_group->default_ports_group = ports_group;
+>         cma_dev_group->ports = ports;
+>
+>         return 0;
+>  free:
+>         kfree(ports);
+> -       kfree(cma_dev_group->default_ports_group);
+> +       kfree(ports_group);
+>         cma_dev_group->ports = NULL;
+>         cma_dev_group->default_ports_group = NULL;
+>         return err;
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Hi,
+
+This is already fixed in [1].
+Anyway, I'm fine with either one of them.
+
+Acked-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Regards,
+Matan
+
+[1] http://www.spinics.net/lists/linux-rdma/msg32152.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
