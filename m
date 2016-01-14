@@ -1,45 +1,40 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V1] IB/cma: Fix RDMA port validation for iWarp
-Date: Wed, 13 Jan 2016 09:03:02 -0600
-Message-ID: <007b01d14e13$7fb5a190$7f20e4b0$@opengridcomputing.com>
-References: <1452158369-2938-1-git-send-email-matanb@mellanox.com>	<00d301d14d69$18257d70$48707850$@opengridcomputing.com> <CAAKD3BAWUfg6sVLCEtb-vBrC9kGtVYO784xg4_tGqiZaOVh-2Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH] IB/mlx5: Expose correct maximum number of CQE capacity
+Date: Thu, 14 Jan 2016 08:11:40 +0200
+Message-ID: <1452751900-23680-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BAWUfg6sVLCEtb-vBrC9kGtVYO784xg4_tGqiZaOVh-2Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Matan Barak [mailto:matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
-> Sent: Wednesday, January 13, 2016 4:33 AM
-> To: Steve Wise
-> Cc: Matan Barak; Doug Ledford; linux-rdma; Or Gerlitz; Majd Dibbiny; Hariprasad Shenai
-> Subject: Re: [PATCH V1] IB/cma: Fix RDMA port validation for iWarp
-> 
-> On Tue, Jan 12, 2016 at 8:43 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> > Hey Matan,
-> >
-> > Will you please submit this to 4.4-stable?
-> >
-> > Thanks,
-> >
-> > Steve.
-> >
-> 
-> You could only take it to 4.4-stable, once it's accepted to upstream.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-You could add this to the sign-off section of the patch and it will flow automagically...
+Maximum number of EQE capacity per CQ was mistakenly exposed
+as CQE. Fix that.
 
-Cc:  <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.4.x-
+Fixes: 938fe83c8dcb ("net/mlx5_core: New device capabilities handling")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Doug, perhaps you could add this when you pull it in?
-
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5e3d3aea35bc..155dbe3826f8 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -515,7 +515,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->max_sge = min(max_rq_sg, max_sq_sg);
+ 	props->max_sge_rd = props->max_sge;
+ 	props->max_cq		   = 1 << MLX5_CAP_GEN(mdev, log_max_cq);
+-	props->max_cqe = (1 << MLX5_CAP_GEN(mdev, log_max_eq_sz)) - 1;
++	props->max_cqe = (1 << MLX5_CAP_GEN(mdev, log_max_cq_sz)) - 1;
+ 	props->max_mr		   = 1 << MLX5_CAP_GEN(mdev, log_max_mkey);
+ 	props->max_pd		   = 1 << MLX5_CAP_GEN(mdev, log_max_pd);
+ 	props->max_qp_rd_atom	   = 1 << MLX5_CAP_GEN(mdev, log_max_ra_req_qp);
+-- 
+1.7.12.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
