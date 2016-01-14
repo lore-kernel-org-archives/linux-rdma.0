@@ -1,7 +1,7 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 10/13] IB/mlx5: Add Raw Packet QP query functionality
-Date: Thu, 14 Jan 2016 19:13:05 +0200
-Message-ID: <1452791588-19895-11-git-send-email-majd@mellanox.com>
+Subject: [PATCH v1 07/13] IB/mlx5: Allocate a Transport Domain for each ucontext
+Date: Thu, 14 Jan 2016 19:13:02 +0200
+Message-ID: <1452791588-19895-8-git-send-email-majd@mellanox.com>
 References: <1452791588-19895-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1452791588-19895-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,332 +10,90 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since Raw Packet QP is composed of RQ and SQ, the IB QP's
-state is derived from the sub-objects. Therefore we need
-to query each one of the sub-objects, and decide on the
-IB QP's state.
+Transport Domain groups several TIS and TIR object. By grouping
+these object, it defines wheather local loopback packets that
+are sent from the TIS objects in the group are received by the
+TIR objects in the same group.
+
+Allocate a Transport Domain(TD) for each user context to be used
+in the future by Raw Packet QP for Self-Loopback Control.
 
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c                    | 191 ++++++++++++++++++---
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c |  24 +++
- include/linux/mlx5/qp.h                            |  11 +-
- include/linux/mlx5/transobj.h                      |   2 +
- 4 files changed, 205 insertions(+), 23 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 16 +++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  3 +++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 89f05bf..290e97b 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3438,40 +3438,153 @@ static void to_ib_ah_attr(struct mlx5_ib_dev *ibdev, struct ib_ah_attr *ib_ah_at
- 	}
- }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c874c09..588ac99 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -941,6 +941,13 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	context->ibucontext.invalidate_range = &mlx5_ib_invalidate_range;
+ #endif
  
--int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_mask,
--		     struct ib_qp_init_attr *qp_init_attr)
-+static int query_raw_packet_qp_sq_state(struct mlx5_ib_dev *dev,
-+					struct mlx5_ib_sq *sq,
-+					u8 *sq_state)
-+{
-+	void *out;
-+	void *sqc;
-+	int inlen;
-+	int err;
-+
-+	inlen = MLX5_ST_SZ_BYTES(query_sq_out);
-+	out = mlx5_vzalloc(inlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	err = mlx5_core_query_sq(dev->mdev, sq->base.mqp.qpn, out);
-+	if (err)
-+		goto out;
-+
-+	sqc = MLX5_ADDR_OF(query_sq_out, out, sq_context);
-+	*sq_state = MLX5_GET(sqc, sqc, state);
-+	sq->state = *sq_state;
-+
-+out:
-+	kvfree(out);
-+	return err;
-+}
-+
-+static int query_raw_packet_qp_rq_state(struct mlx5_ib_dev *dev,
-+					struct mlx5_ib_rq *rq,
-+					u8 *rq_state)
-+{
-+	void *out;
-+	void *rqc;
-+	int inlen;
-+	int err;
-+
-+	inlen = MLX5_ST_SZ_BYTES(query_rq_out);
-+	out = mlx5_vzalloc(inlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	err = mlx5_core_query_rq(dev->mdev, rq->base.mqp.qpn, out);
-+	if (err)
-+		goto out;
-+
-+	rqc = MLX5_ADDR_OF(query_rq_out, out, rq_context);
-+	*rq_state = MLX5_GET(rqc, rqc, state);
-+	rq->state = *rq_state;
-+
-+out:
-+	kvfree(out);
-+	return err;
-+}
-+
-+static int sqrq_state_to_qp_state(u8 sq_state, u8 rq_state,
-+				  struct mlx5_ib_qp *qp, u8 *qp_state)
-+{
-+	static const u8 sqrq_trans[MLX5_RQ_NUM_STATE][MLX5_SQ_NUM_STATE] = {
-+		[MLX5_RQC_STATE_RST] = {
-+			[MLX5_SQC_STATE_RST]	= IB_QPS_RESET,
-+			[MLX5_SQC_STATE_RDY]	= MLX5_QP_STATE_BAD,
-+			[MLX5_SQC_STATE_ERR]	= MLX5_QP_STATE_BAD,
-+			[MLX5_SQ_STATE_NA]	= IB_QPS_RESET,
-+		},
-+		[MLX5_RQC_STATE_RDY] = {
-+			[MLX5_SQC_STATE_RST]	= MLX5_QP_STATE_BAD,
-+			[MLX5_SQC_STATE_RDY]	= MLX5_QP_STATE,
-+			[MLX5_SQC_STATE_ERR]	= IB_QPS_SQE,
-+			[MLX5_SQ_STATE_NA]	= MLX5_QP_STATE,
-+		},
-+		[MLX5_RQC_STATE_ERR] = {
-+			[MLX5_SQC_STATE_RST]    = MLX5_QP_STATE_BAD,
-+			[MLX5_SQC_STATE_RDY]	= MLX5_QP_STATE_BAD,
-+			[MLX5_SQC_STATE_ERR]	= IB_QPS_ERR,
-+			[MLX5_SQ_STATE_NA]	= IB_QPS_ERR,
-+		},
-+		[MLX5_RQ_STATE_NA] = {
-+			[MLX5_SQC_STATE_RST]    = IB_QPS_RESET,
-+			[MLX5_SQC_STATE_RDY]	= MLX5_QP_STATE,
-+			[MLX5_SQC_STATE_ERR]	= MLX5_QP_STATE,
-+			[MLX5_SQ_STATE_NA]	= MLX5_QP_STATE_BAD,
-+		},
-+	};
-+
-+	*qp_state = sqrq_trans[rq_state][sq_state];
-+
-+	if (*qp_state == MLX5_QP_STATE_BAD) {
-+		WARN(1, "Buggy Raw Packet QP state, SQ 0x%x state: 0x%x, RQ 0x%x state: 0x%x",
-+		     qp->raw_packet_qp.sq.base.mqp.qpn, sq_state,
-+		     qp->raw_packet_qp.rq.base.mqp.qpn, rq_state);
-+		return -EINVAL;
-+	}
-+
-+	if (*qp_state == MLX5_QP_STATE)
-+		*qp_state = qp->state;
-+
-+	return 0;
-+}
-+
-+static int query_raw_packet_qp_state(struct mlx5_ib_dev *dev,
-+				     struct mlx5_ib_qp *qp,
-+				     u8 *raw_packet_qp_state)
-+{
-+	struct mlx5_ib_raw_packet_qp *raw_packet_qp = &qp->raw_packet_qp;
-+	struct mlx5_ib_sq *sq = &raw_packet_qp->sq;
-+	struct mlx5_ib_rq *rq = &raw_packet_qp->rq;
-+	int err;
-+	u8 sq_state = MLX5_SQ_STATE_NA;
-+	u8 rq_state = MLX5_RQ_STATE_NA;
-+
-+	if (qp->sq.wqe_cnt) {
-+		err = query_raw_packet_qp_sq_state(dev, sq, &sq_state);
++	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain)) {
++		err = mlx5_core_alloc_transport_domain(dev->mdev,
++						       &context->tdn);
 +		if (err)
-+			return err;
++			goto out_uars;
 +	}
 +
-+	if (qp->rq.wqe_cnt) {
-+		err = query_raw_packet_qp_rq_state(dev, rq, &rq_state);
-+		if (err)
-+			return err;
-+	}
-+
-+	return sqrq_state_to_qp_state(sq_state, rq_state, qp,
-+				      raw_packet_qp_state);
-+}
-+
-+static int query_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
-+			 struct ib_qp_attr *qp_attr)
- {
--	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
--	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_query_qp_mbox_out *outb;
- 	struct mlx5_qp_context *context;
- 	int mlx5_state;
- 	int err = 0;
+ 	INIT_LIST_HEAD(&context->db_page_list);
+ 	mutex_init(&context->db_page_mutex);
  
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
--	/*
--	 * Wait for any outstanding page faults, in case the user frees memory
--	 * based upon this query's result.
--	 */
--	flush_workqueue(mlx5_ib_page_fault_wq);
--#endif
--
--	mutex_lock(&qp->mutex);
- 	outb = kzalloc(sizeof(*outb), GFP_KERNEL);
--	if (!outb) {
--		err = -ENOMEM;
--		goto out;
--	}
-+	if (!outb)
-+		return -ENOMEM;
-+
- 	context = &outb->ctx;
- 	err = mlx5_core_qp_query(dev->mdev, &qp->trans_qp.base.mqp, outb,
- 				 sizeof(*outb));
+@@ -963,7 +970,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 
+ 	err = ib_copy_to_udata(udata, &resp, resp.response_length);
  	if (err)
--		goto out_free;
-+		goto out;
+-		goto out_uars;
++		goto out_td;
  
- 	mlx5_state = be32_to_cpu(context->flags) >> 28;
+ 	uuari->ver = ver;
+ 	uuari->num_low_latency_uuars = req.num_low_latency_uuars;
+@@ -973,6 +980,10 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
  
- 	qp->state		     = to_ib_qp_state(mlx5_state);
--	qp_attr->qp_state	     = qp->state;
- 	qp_attr->path_mtu	     = context->mtu_msgmax >> 5;
- 	qp_attr->path_mig_state	     =
- 		to_ib_mig_state((be32_to_cpu(context->flags) >> 11) & 0x3);
-@@ -3505,6 +3618,43 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
- 	qp_attr->retry_cnt	    = (be32_to_cpu(context->params1) >> 16) & 0x7;
- 	qp_attr->rnr_retry	    = (be32_to_cpu(context->params1) >> 13) & 0x7;
- 	qp_attr->alt_timeout	    = context->alt_path.ackto_lt >> 3;
-+
-+out:
-+	kfree(outb);
-+	return err;
-+}
-+
-+int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
-+		     int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
-+	struct mlx5_ib_qp *qp = to_mqp(ibqp);
-+	int err = 0;
-+	u8 raw_packet_qp_state;
-+
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	/*
-+	 * Wait for any outstanding page faults, in case the user frees memory
-+	 * based upon this query's result.
-+	 */
-+	flush_workqueue(mlx5_ib_page_fault_wq);
-+#endif
-+
-+	mutex_lock(&qp->mutex);
-+
-+	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET) {
-+		err = query_raw_packet_qp_state(dev, qp, &raw_packet_qp_state);
-+		if (err)
-+			goto out;
-+		qp->state = raw_packet_qp_state;
-+		qp_attr->port_num = 1;
-+	} else {
-+		err = query_qp_attr(dev, qp, qp_attr);
-+		if (err)
-+			goto out;
-+	}
-+
-+	qp_attr->qp_state	     = qp->state;
- 	qp_attr->cur_qp_state	     = qp_attr->qp_state;
- 	qp_attr->cap.max_recv_wr     = qp->rq.wqe_cnt;
- 	qp_attr->cap.max_recv_sge    = qp->rq.max_gs;
-@@ -3538,9 +3688,6 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
- 	qp_init_attr->sq_sig_type = qp->sq_signal_bits & MLX5_WQE_CTRL_CQ_UPDATE ?
- 		IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
+ 	return &context->ibucontext;
  
--out_free:
--	kfree(outb);
--
- out:
- 	mutex_unlock(&qp->mutex);
- 	return err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-index 91ea278..460d9ff 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-@@ -111,6 +111,18 @@ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
++out_td:
++	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
++		mlx5_core_dealloc_transport_domain(dev->mdev, context->tdn);
++
+ out_uars:
+ 	for (i--; i >= 0; i--)
+ 		mlx5_cmd_free_uar(dev->mdev, uars[i].index);
+@@ -997,6 +1008,9 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 	struct mlx5_uuar_info *uuari = &context->uuari;
+ 	int i;
  
-+int mlx5_core_query_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *out)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_rq_in)] = {0};
-+	int outlen = MLX5_ST_SZ_BYTES(query_rq_out);
++	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
++		mlx5_core_dealloc_transport_domain(dev->mdev, context->tdn);
 +
-+	MLX5_SET(query_rq_in, in, opcode, MLX5_CMD_OP_QUERY_RQ);
-+	MLX5_SET(query_rq_in, in, rqn, rqn);
-+
-+	return mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, outlen);
-+}
-+EXPORT_SYMBOL(mlx5_core_query_rq);
-+
- int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *sqn)
- {
- 	u32 out[MLX5_ST_SZ_DW(create_sq_out)];
-@@ -151,6 +163,18 @@ void mlx5_core_destroy_sq(struct mlx5_core_dev *dev, u32 sqn)
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
+ 	for (i = 0; i < uuari->num_uars; i++) {
+ 		if (mlx5_cmd_free_uar(dev->mdev, uuari->uars[i].index))
+ 			mlx5_ib_warn(dev, "failed to free UAR 0x%x\n", uuari->uars[i].index);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index a6a57de..2ccc3d9 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -42,6 +42,7 @@
+ #include <linux/mlx5/qp.h>
+ #include <linux/mlx5/srq.h>
+ #include <linux/types.h>
++#include <linux/mlx5/transobj.h>
  
-+int mlx5_core_query_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *out)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_sq_in)] = {0};
-+	int outlen = MLX5_ST_SZ_BYTES(query_sq_out);
-+
-+	MLX5_SET(query_sq_in, in, opcode, MLX5_CMD_OP_QUERY_SQ);
-+	MLX5_SET(query_sq_in, in, sqn, sqn);
-+
-+	return mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, outlen);
-+}
-+EXPORT_SYMBOL(mlx5_core_query_sq);
-+
- int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *tirn)
- {
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 431176e..f033c7a 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -85,7 +85,16 @@ enum mlx5_qp_state {
- 	MLX5_QP_STATE_ERR			= 6,
- 	MLX5_QP_STATE_SQ_DRAINING		= 7,
- 	MLX5_QP_STATE_SUSPENDED			= 9,
--	MLX5_QP_NUM_STATE
-+	MLX5_QP_NUM_STATE,
-+	MLX5_QP_STATE,
-+	MLX5_QP_STATE_BAD,
-+};
-+
-+enum {
-+	MLX5_SQ_STATE_NA	= MLX5_SQC_STATE_ERR + 1,
-+	MLX5_SQ_NUM_STATE	= MLX5_SQ_STATE_NA + 1,
-+	MLX5_RQ_STATE_NA	= MLX5_RQC_STATE_ERR + 1,
-+	MLX5_RQ_NUM_STATE	= MLX5_RQ_STATE_NA + 1,
+ #define mlx5_ib_dbg(dev, format, arg...)				\
+ pr_debug("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
+@@ -110,6 +111,8 @@ struct mlx5_ib_ucontext {
+ 	struct mutex		db_page_mutex;
+ 	struct mlx5_uuar_info	uuari;
+ 	u8			cqe_version;
++	/* Transport Domain number */
++	u32			tdn;
  };
  
- enum {
-diff --git a/include/linux/mlx5/transobj.h b/include/linux/mlx5/transobj.h
-index 376229f..d259e4c 100644
---- a/include/linux/mlx5/transobj.h
-+++ b/include/linux/mlx5/transobj.h
-@@ -41,10 +41,12 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			u32 *rqn);
- int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen);
- void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn);
-+int mlx5_core_query_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *out);
- int mlx5_core_create_sq(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			u32 *sqn);
- int mlx5_core_modify_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *in, int inlen);
- void mlx5_core_destroy_sq(struct mlx5_core_dev *dev, u32 sqn);
-+int mlx5_core_query_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *out);
- int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *tirn);
- int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
+ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibucontext)
 -- 
 1.8.3.1
 
