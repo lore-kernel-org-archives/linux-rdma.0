@@ -1,50 +1,68 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 00/12] IB/mlx4: Add RoCEv2 support
-Date: Thu, 14 Jan 2016 17:50:31 +0200
-Message-ID: <cover.1452780849.git.monis@mellanox.com>
+Subject: [PATCH 03/12] net/mlx4_core: Configure mlx4 hardware for mixed RoCE v1/v2 modes
+Date: Thu, 14 Jan 2016 17:50:34 +0200
+Message-ID: <038a35e9079cdc0cfed2e6f94db880c906beb082.1452780850.git.monis@mellanox.com>
+References: <cover.1452780849.git.monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1452780849.git.monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <cover.1452780849.git.monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+References: <cover.1452780849.git.monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RoCEv2 is the InfiniBand transport protocol encapsulated in ETH/IP/UDP link
-and network protocols.
-The implementation to the IB/core driver was added by Matan Barak as an
-infrastructure for any vendor driver and this patch set uses it to add
-RoCEv2 support for ConnectX-3Pro NICs
+If the hardware supports RoCE v2 (mixed with RoCE v1) mode, we enable
+it. This is necessary in order to support RoCE v2.
 
-Matan Barak (1):
-  IB/mlx4: Advertise RoCE v2 support
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h | 5 ++++-
+ drivers/net/ethernet/mellanox/mlx4/port.c | 7 +++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-Moni Shoua (11):
-  net/mlx4: Query RoCE support
-  IB/mlx4: Add gid_type to GID properties
-  net/mlx4_core: Configure mlx4 hardware for mixed RoCE v1/v2 modes
-  IB/mlx4: Add support for setting RoCEv2 gids in hardware
-  net/mlx4_core: Add support for configuring RoCE v2 UDP port
-  net/mlx4_core: Add support for RoCE v2 entropy
-  IB/core: Add definition for the standard RoCE V2 UDP port
-  IB/mlx4: Support modify_qp for RoCE v2
-  IB/mlx4: Enable RoCE v2 when the IB device is added
-  IB/mlx4: Enable send of RoCE QP1 packets with IP/UDP headers
-  IB/mlx4: Create and use another QP1 for RoCEv2
-
- drivers/infiniband/core/ud_header.c       |   2 +-
- drivers/infiniband/hw/mlx4/main.c         | 101 ++++++++++--
- drivers/infiniband/hw/mlx4/mlx4_ib.h      |   8 +
- drivers/infiniband/hw/mlx4/qp.c           | 256 ++++++++++++++++++++++++++----
- drivers/net/ethernet/mellanox/mlx4/fw.c   |  39 ++++-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h |   5 +-
- drivers/net/ethernet/mellanox/mlx4/port.c |   7 +
- drivers/net/ethernet/mellanox/mlx4/qp.c   |  26 +++
- include/linux/mlx4/cmd.h                  |   3 +-
- include/linux/mlx4/device.h               |  11 +-
- include/linux/mlx4/qp.h                   |  15 +-
- include/rdma/ib_pack.h                    |   4 +-
- include/rdma/ib_verbs.h                   |   1 +
- 13 files changed, 425 insertions(+), 53 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index 2404c22..7baef52 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -780,7 +780,10 @@ struct mlx4_set_port_general_context {
+ 	u16 reserved1;
+ 	u8 v_ignore_fcs;
+ 	u8 flags;
+-	u8 ignore_fcs;
++	union {
++		u8 ignore_fcs;
++		u8 roce_mode;
++	};
+ 	u8 reserved2;
+ 	__be16 mtu;
+ 	u8 pptx;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/port.c b/drivers/net/ethernet/mellanox/mlx4/port.c
+index 7d63ba9..c4e4116 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/port.c
++++ b/drivers/net/ethernet/mellanox/mlx4/port.c
+@@ -1520,6 +1520,8 @@ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port, int pkey_tbl_sz)
+ 	return err;
+ }
+ 
++#define SET_PORT_ROCE_2_FLAGS          0x10
++#define MLX4_SET_PORT_ROCE_V1_V2       0x2
+ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
+ 			  u8 pptx, u8 pfctx, u8 pprx, u8 pfcrx)
+ {
+@@ -1539,6 +1541,11 @@ int mlx4_SET_PORT_general(struct mlx4_dev *dev, u8 port, int mtu,
+ 	context->pprx = (pprx * (!pfcrx)) << 7;
+ 	context->pfcrx = pfcrx;
+ 
++	if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
++		context->flags |= SET_PORT_ROCE_2_FLAGS;
++		context->roce_mode |=
++			MLX4_SET_PORT_ROCE_V1_V2 << 4;
++	}
+ 	in_mod = MLX4_SET_PORT_GENERAL << 8 | port;
+ 	err = mlx4_cmd(dev, mailbox->dma, in_mod, MLX4_SET_PORT_ETH_OPCODE,
+ 		       MLX4_CMD_SET_PORT, MLX4_CMD_TIME_CLASS_B,
 -- 
 1.8.3.1
 
