@@ -1,200 +1,51 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 12/13] {IB,net}/mlx5: Move the modify QP operation table to mlx5_ib
-Date: Thu, 14 Jan 2016 19:13:07 +0200
-Message-ID: <1452791588-19895-13-git-send-email-majd@mellanox.com>
-References: <1452791588-19895-1-git-send-email-majd@mellanox.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH v3 0/6] InfiniBand-ocrdma: Fine-tuning for some function
+ implementations
+Date: Thu, 14 Jan 2016 18:18:29 +0100
+Message-ID: <5697D865.5010507@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <567EDED5.4040201@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1452791588-19895-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <567EDED5.4040201-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When modifying a QP, the desired operation was determined in
-the mlx5_core using a transition table that takes the current
-state, the final state, and returns the desired operation.
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Thu, 14 Jan 2016 18:15:54 +0100
 
-Since this logic will be used for Raw Packet QP, move the
-operation table to the mlx5_ib.
+Several update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Markus Elfring (6):
+  One variable and jump label less in ocrdma_alloc_ucontext_pd()
+  Delete unnecessary variable initialisations in 11 functions
+  Returning only value constants in ocrdma_qp_state_change()
+  Return a value from a function call in _ocrdma_modify_qp() directly
+  Returning only value constants in ocrdma_resize_cq()
+  Delete an unnecessary variable in ocrdma_dealloc_pd()
+
 ---
- drivers/infiniband/hw/mlx5/qp.c              | 53 ++++++++++++++++++++++++----
- drivers/net/ethernet/mellanox/mlx5/core/qp.c | 48 ++-----------------------
- include/linux/mlx5/qp.h                      |  3 +-
- 3 files changed, 50 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 38413dc..26e461b 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1528,10 +1528,9 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
- 
- 	if (qp->state != IB_QPS_RESET) {
- 		mlx5_ib_qp_disable_pagefaults(qp);
--		if (mlx5_core_qp_modify(dev->mdev, to_mlx5_state(qp->state),
--					MLX5_QP_STATE_RST, in, 0,
--					&base->mqp))
--			mlx5_ib_warn(dev, "mlx5_ib: modify QP %06x to RESET failed\n",
-+		if (mlx5_core_qp_modify(dev->mdev, MLX5_CMD_OP_2RST_QP,
-+					in, 0, &base->mqp))
-+			mlx5_ib_warn(dev, "mlx5_ib: modify QP 0x%06x to RESET failed\n",
- 				     base->mqp.qpn);
- 	}
- 
-@@ -1989,6 +1988,43 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			       const struct ib_qp_attr *attr, int attr_mask,
- 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
- {
-+	static const u16 optab[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE] = {
-+		[MLX5_QP_STATE_RST] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_RST2INIT_QP,
-+		},
-+		[MLX5_QP_STATE_INIT]  = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_INIT2INIT_QP,
-+			[MLX5_QP_STATE_RTR]	= MLX5_CMD_OP_INIT2RTR_QP,
-+		},
-+		[MLX5_QP_STATE_RTR]   = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTR2RTS_QP,
-+		},
-+		[MLX5_QP_STATE_RTS]   = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTS2RTS_QP,
-+		},
-+		[MLX5_QP_STATE_SQD] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+		},
-+		[MLX5_QP_STATE_SQER] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQERR2RTS_QP,
-+		},
-+		[MLX5_QP_STATE_ERR] = {
-+			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
-+			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
-+		}
-+	};
-+
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
-@@ -2001,6 +2037,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	int sqd_event;
- 	int mlx5_st;
- 	int err;
-+	u16 op;
- 
- 	in = kzalloc(sizeof(*in), GFP_KERNEL);
- 	if (!in)
-@@ -2147,11 +2184,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	    (new_state == IB_QPS_RESET || new_state == IB_QPS_ERR))
- 		mlx5_ib_qp_disable_pagefaults(qp);
- 
-+	if (mlx5_cur >= MLX5_QP_NUM_STATE || mlx5_new >= MLX5_QP_NUM_STATE ||
-+	    !optab[mlx5_cur][mlx5_new])
-+		goto out;
-+
-+	op = optab[mlx5_cur][mlx5_new];
- 	optpar = ib_mask_to_mlx5_opt(attr_mask);
- 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
- 	in->optparam = cpu_to_be32(optpar);
--	err = mlx5_core_qp_modify(dev->mdev, to_mlx5_state(cur_state),
--				  to_mlx5_state(new_state), in, sqd_event,
-+	err = mlx5_core_qp_modify(dev->mdev, op, in, sqd_event,
- 				  &base->mqp);
- 	if (err)
- 		goto out;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-index c460249..def2893 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -348,59 +348,15 @@ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
- }
- EXPORT_SYMBOL_GPL(mlx5_core_destroy_qp);
- 
--int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
--			enum mlx5_qp_state new_state,
-+int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
- 			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
- 			struct mlx5_core_qp *qp)
- {
--	static const u16 optab[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE] = {
--		[MLX5_QP_STATE_RST] = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_RST2INIT_QP,
--		},
--		[MLX5_QP_STATE_INIT]  = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_INIT2INIT_QP,
--			[MLX5_QP_STATE_RTR]	= MLX5_CMD_OP_INIT2RTR_QP,
--		},
--		[MLX5_QP_STATE_RTR]   = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTR2RTS_QP,
--		},
--		[MLX5_QP_STATE_RTS]   = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTS2RTS_QP,
--		},
--		[MLX5_QP_STATE_SQD] = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--		},
--		[MLX5_QP_STATE_SQER] = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQERR2RTS_QP,
--		},
--		[MLX5_QP_STATE_ERR] = {
--			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
--			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
--		}
--	};
--
- 	struct mlx5_modify_qp_mbox_out out;
- 	int err = 0;
--	u16 op;
--
--	if (cur_state >= MLX5_QP_NUM_STATE || new_state >= MLX5_QP_NUM_STATE ||
--	    !optab[cur_state][new_state])
--		return -EINVAL;
- 
- 	memset(&out, 0, sizeof(out));
--	op = optab[cur_state][new_state];
--	in->hdr.opcode = cpu_to_be16(op);
-+	in->hdr.opcode = cpu_to_be16(operation);
- 	in->qpn = cpu_to_be32(qp->qpn);
- 	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
- 	if (err)
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index f033c7a..5b8c89f 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -641,8 +641,7 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
- 			struct mlx5_core_qp *qp,
- 			struct mlx5_create_qp_mbox_in *in,
- 			int inlen);
--int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
--			enum mlx5_qp_state new_state,
-+int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
- 			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
- 			struct mlx5_core_qp *qp);
- int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
+v3: Rebase proposed changes on the source files for the software
+    "Linux next-20160114".
+    
+v2: Unfortunately, the first update step from this series contained
+    an inappropriate suggestion.
+    Thus fix that.
+
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  7 +++---
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  4 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 39 +++++++++++------------------
+ 4 files changed, 20 insertions(+), 32 deletions(-)
+
 -- 
-1.8.3.1
+2.6.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
