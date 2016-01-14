@@ -1,7 +1,7 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 11/13] IB/mlx5: Support setting Ethernet priority for Raw Packet QPs
-Date: Thu, 14 Jan 2016 19:13:06 +0200
-Message-ID: <1452791588-19895-12-git-send-email-majd@mellanox.com>
+Subject: [PATCH v1 12/13] {IB,net}/mlx5: Move the modify QP operation table to mlx5_ib
+Date: Thu, 14 Jan 2016 19:13:07 +0200
+Message-ID: <1452791588-19895-13-git-send-email-majd@mellanox.com>
 References: <1452791588-19895-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1452791588-19895-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,153 +10,189 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When the user changes the Address Vector(AV) in the modify QP, he
-provides an SL. This SL should be translated to Ethernet Priority
-by taking the 3 LSB bits, and modify the QP's TIS according to this
-Ethernet priority.
+When modifying a QP, the desired operation was determined in
+the mlx5_core using a transition table that takes the current
+state, the final state, and returns the desired operation.
+
+Since this logic will be used for Raw Packet QP, move the
+operation table to the mlx5_ib.
 
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c                    | 38 ++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c | 12 +++++++
- include/linux/mlx5/mlx5_ifc.h                      |  9 ++++-
- include/linux/mlx5/transobj.h                      |  2 ++
- 4 files changed, 57 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c              | 53 ++++++++++++++++++++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 48 ++-----------------------
+ include/linux/mlx5/qp.h                      |  3 +-
+ 3 files changed, 50 insertions(+), 54 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 290e97b..38413dc 100644
+index 38413dc..26e461b 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1752,7 +1752,33 @@ static int ib_rate_to_mlx5(struct mlx5_ib_dev *dev, u8 rate)
- 	return rate + MLX5_STAT_RATE_OFFSET;
- }
+@@ -1528,10 +1528,9 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
  
--static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
-+static int modify_raw_packet_eth_prio(struct mlx5_core_dev *dev,
-+				      struct mlx5_ib_sq *sq, u8 sl)
-+{
-+	void *in;
-+	void *tisc;
-+	int inlen;
-+	int err;
-+
-+	inlen = MLX5_ST_SZ_BYTES(modify_tis_in);
-+	in = mlx5_vzalloc(inlen);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	MLX5_SET(modify_tis_in, in, bitmask.prio, 1);
-+
-+	tisc = MLX5_ADDR_OF(modify_tis_in, in, ctx);
-+	MLX5_SET(tisc, tisc, prio, ((sl & 0x7) << 1));
-+
-+	err = mlx5_core_modify_tis(dev, sq->tisn, in, inlen);
-+
-+	kvfree(in);
-+
-+	return err;
-+}
-+
-+static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
-+			 const struct ib_ah_attr *ah,
- 			 struct mlx5_qp_path *path, u8 port, int attr_mask,
- 			 u32 path_flags, const struct ib_qp_attr *attr)
+ 	if (qp->state != IB_QPS_RESET) {
+ 		mlx5_ib_qp_disable_pagefaults(qp);
+-		if (mlx5_core_qp_modify(dev->mdev, to_mlx5_state(qp->state),
+-					MLX5_QP_STATE_RST, in, 0,
+-					&base->mqp))
+-			mlx5_ib_warn(dev, "mlx5_ib: modify QP %06x to RESET failed\n",
++		if (mlx5_core_qp_modify(dev->mdev, MLX5_CMD_OP_2RST_QP,
++					in, 0, &base->mqp))
++			mlx5_ib_warn(dev, "mlx5_ib: modify QP 0x%06x to RESET failed\n",
+ 				     base->mqp.qpn);
+ 	}
+ 
+@@ -1989,6 +1988,43 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 			       const struct ib_qp_attr *attr, int attr_mask,
+ 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
  {
-@@ -1808,6 +1834,11 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, const struct ib_ah_attr *ah,
- 	if (attr_mask & IB_QP_TIMEOUT)
- 		path->ackto_lt = attr->timeout << 3;
- 
-+	if ((qp->ibqp.qp_type == IB_QPT_RAW_PACKET) && qp->sq.wqe_cnt)
-+		return modify_raw_packet_eth_prio(dev->mdev,
-+						  &qp->raw_packet_qp.sq,
-+						  ah->sl & 0xf);
++	static const u16 optab[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE] = {
++		[MLX5_QP_STATE_RST] = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_RST2INIT_QP,
++		},
++		[MLX5_QP_STATE_INIT]  = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_INIT2INIT_QP,
++			[MLX5_QP_STATE_RTR]	= MLX5_CMD_OP_INIT2RTR_QP,
++		},
++		[MLX5_QP_STATE_RTR]   = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTR2RTS_QP,
++		},
++		[MLX5_QP_STATE_RTS]   = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTS2RTS_QP,
++		},
++		[MLX5_QP_STATE_SQD] = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++		},
++		[MLX5_QP_STATE_SQER] = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQERR2RTS_QP,
++		},
++		[MLX5_QP_STATE_ERR] = {
++			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
++			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
++		}
++	};
 +
- 	return 0;
+ 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
+ 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
+ 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
+@@ -2001,6 +2037,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	int sqd_event;
+ 	int mlx5_st;
+ 	int err;
++	u16 op;
+ 
+ 	in = kzalloc(sizeof(*in), GFP_KERNEL);
+ 	if (!in)
+@@ -2147,11 +2184,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	    (new_state == IB_QPS_RESET || new_state == IB_QPS_ERR))
+ 		mlx5_ib_qp_disable_pagefaults(qp);
+ 
++	if (mlx5_cur >= MLX5_QP_NUM_STATE || mlx5_new >= MLX5_QP_NUM_STATE ||
++	    !optab[mlx5_cur][mlx5_new])
++		goto out;
++
++	op = optab[mlx5_cur][mlx5_new];
+ 	optpar = ib_mask_to_mlx5_opt(attr_mask);
+ 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+ 	in->optparam = cpu_to_be32(optpar);
+-	err = mlx5_core_qp_modify(dev->mdev, to_mlx5_state(cur_state),
+-				  to_mlx5_state(new_state), in, sqd_event,
++	err = mlx5_core_qp_modify(dev->mdev, op, in, sqd_event,
+ 				  &base->mqp);
+ 	if (err)
+ 		goto out;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index c460249..def2893 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -348,59 +348,15 @@ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
  }
+ EXPORT_SYMBOL_GPL(mlx5_core_destroy_qp);
  
-@@ -2029,7 +2060,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 		context->pri_path.port = attr->port_num;
- 
- 	if (attr_mask & IB_QP_AV) {
--		err = mlx5_set_path(dev, &attr->ah_attr, &context->pri_path,
-+		err = mlx5_set_path(dev, qp, &attr->ah_attr, &context->pri_path,
- 				    attr_mask & IB_QP_PORT ? attr->port_num : qp->port,
- 				    attr_mask, 0, attr);
- 		if (err)
-@@ -2040,7 +2071,8 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 		context->pri_path.ackto_lt |= attr->timeout << 3;
- 
- 	if (attr_mask & IB_QP_ALT_PATH) {
--		err = mlx5_set_path(dev, &attr->alt_ah_attr, &context->alt_path,
-+		err = mlx5_set_path(dev, qp, &attr->alt_ah_attr,
-+				    &context->alt_path,
- 				    attr->alt_port_num, attr_mask, 0, attr);
- 		if (err)
- 			goto out;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-index 460d9ff..03a5093 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-@@ -235,6 +235,18 @@ int mlx5_core_create_tis(struct mlx5_core_dev *dev, u32 *in, int inlen,
- }
- EXPORT_SYMBOL(mlx5_core_create_tis);
- 
-+int mlx5_core_modify_tis(struct mlx5_core_dev *dev, u32 tisn, u32 *in,
-+			 int inlen)
-+{
-+	u32 out[MLX5_ST_SZ_DW(modify_tis_out)] = {0};
-+
-+	MLX5_SET(modify_tis_in, in, tisn, tisn);
-+	MLX5_SET(modify_tis_in, in, opcode, MLX5_CMD_OP_MODIFY_TIS);
-+
-+	return mlx5_cmd_exec_check_status(dev, in, inlen, out, sizeof(out));
-+}
-+EXPORT_SYMBOL(mlx5_core_modify_tis);
-+
- void mlx5_core_destroy_tis(struct mlx5_core_dev *dev, u32 tisn)
+-int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
+-			enum mlx5_qp_state new_state,
++int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
+ 			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
+ 			struct mlx5_core_qp *qp)
  {
- 	u32 in[MLX5_ST_SZ_DW(destroy_tis_in)];
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 991283b..4633b88 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -4052,6 +4052,13 @@ struct mlx5_ifc_modify_tis_out_bits {
- 	u8         reserved_1[0x40];
- };
+-	static const u16 optab[MLX5_QP_NUM_STATE][MLX5_QP_NUM_STATE] = {
+-		[MLX5_QP_STATE_RST] = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_RST2INIT_QP,
+-		},
+-		[MLX5_QP_STATE_INIT]  = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-			[MLX5_QP_STATE_INIT]	= MLX5_CMD_OP_INIT2INIT_QP,
+-			[MLX5_QP_STATE_RTR]	= MLX5_CMD_OP_INIT2RTR_QP,
+-		},
+-		[MLX5_QP_STATE_RTR]   = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTR2RTS_QP,
+-		},
+-		[MLX5_QP_STATE_RTS]   = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_RTS2RTS_QP,
+-		},
+-		[MLX5_QP_STATE_SQD] = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-		},
+-		[MLX5_QP_STATE_SQER] = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-			[MLX5_QP_STATE_RTS]	= MLX5_CMD_OP_SQERR2RTS_QP,
+-		},
+-		[MLX5_QP_STATE_ERR] = {
+-			[MLX5_QP_STATE_RST]	= MLX5_CMD_OP_2RST_QP,
+-			[MLX5_QP_STATE_ERR]	= MLX5_CMD_OP_2ERR_QP,
+-		}
+-	};
+-
+ 	struct mlx5_modify_qp_mbox_out out;
+ 	int err = 0;
+-	u16 op;
+-
+-	if (cur_state >= MLX5_QP_NUM_STATE || new_state >= MLX5_QP_NUM_STATE ||
+-	    !optab[cur_state][new_state])
+-		return -EINVAL;
  
-+struct mlx5_ifc_modify_tis_bitmask_bits {
-+	u8         reserved_0[0x20];
-+
-+	u8         reserved_1[0x1f];
-+	u8         prio[0x1];
-+};
-+
- struct mlx5_ifc_modify_tis_in_bits {
- 	u8         opcode[0x10];
- 	u8         reserved_0[0x10];
-@@ -4064,7 +4071,7 @@ struct mlx5_ifc_modify_tis_in_bits {
- 
- 	u8         reserved_3[0x20];
- 
--	u8         modify_bitmask[0x40];
-+	struct mlx5_ifc_modify_tis_bitmask_bits bitmask;
- 
- 	u8         reserved_4[0x40];
- 
-diff --git a/include/linux/mlx5/transobj.h b/include/linux/mlx5/transobj.h
-index d259e4c..88441f5 100644
---- a/include/linux/mlx5/transobj.h
-+++ b/include/linux/mlx5/transobj.h
-@@ -54,6 +54,8 @@ int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
- void mlx5_core_destroy_tir(struct mlx5_core_dev *dev, u32 tirn);
- int mlx5_core_create_tis(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *tisn);
-+int mlx5_core_modify_tis(struct mlx5_core_dev *dev, u32 tisn, u32 *in,
-+			 int inlen);
- void mlx5_core_destroy_tis(struct mlx5_core_dev *dev, u32 tisn);
- int mlx5_core_create_rmp(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *rmpn);
+ 	memset(&out, 0, sizeof(out));
+-	op = optab[cur_state][new_state];
+-	in->hdr.opcode = cpu_to_be16(op);
++	in->hdr.opcode = cpu_to_be16(operation);
+ 	in->qpn = cpu_to_be32(qp->qpn);
+ 	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
+ 	if (err)
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index f033c7a..5b8c89f 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -641,8 +641,7 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
+ 			struct mlx5_core_qp *qp,
+ 			struct mlx5_create_qp_mbox_in *in,
+ 			int inlen);
+-int mlx5_core_qp_modify(struct mlx5_core_dev *dev, enum mlx5_qp_state cur_state,
+-			enum mlx5_qp_state new_state,
++int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
+ 			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
+ 			struct mlx5_core_qp *qp);
+ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
 -- 
 1.8.3.1
 
