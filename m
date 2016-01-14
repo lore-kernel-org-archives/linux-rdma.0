@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] IB: new common API for draining a queue pair
-Date: Fri, 5 Feb 2016 13:13:16 -0800
-Message-ID: <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com>
+Subject: [PATCH 2/3] iw_cxgb4: add drain_qp function
+Date: Thu, 14 Jan 2016 10:24:50 -0800
+Message-ID: <191f5b1a7da10270813fda82d578b0fc93cdc98d.1454709317.git.swise@chelsio.com>
 References: <cover.1454709317.git.swise@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1454709317.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -9,122 +9,93 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>
+Add a completion object, named qp_drained, to the c4iw_qp struct.
+This completion object is signaled when the last CQE is drained from
+the CQs for the QP.
 
-Add provider-specific drain_qp function for providers needing special
-drain logic.
-
-Add static function __ib_drain_qp() which posts noop WRs to the RQ and
-SQ and blocks until their completions are processed.  This ensures the
-applications completions have all been processed.
-
-Add API function ib_drain_qp() which calls the provider-specific drain
-if it exists or __ib_drain_qp().
+Add c4iw_dain_qp() to block until qp_drained is completed.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 72 +++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         |  2 ++
- 2 files changed, 74 insertions(+)
+ drivers/infiniband/hw/cxgb4/cq.c       | 6 +++++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 2 ++
+ drivers/infiniband/hw/cxgb4/provider.c | 1 +
+ drivers/infiniband/hw/cxgb4/qp.c       | 8 ++++++++
+ 4 files changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5af6d02..31b82cd 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1657,3 +1657,75 @@ next_page:
- 	return i;
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index cf21df4..6fdcf78 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -815,8 +815,12 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
+ 		}
+ 	}
+ out:
+-	if (wq)
++	if (wq) {
++		if (unlikely(qhp->attr.state != C4IW_QP_STATE_RTS &&
++			     t4_sq_empty(wq) && t4_rq_empty(wq)))
++			complete(&qhp->qp_drained);
+ 		spin_unlock(&qhp->lock);
++	}
+ 	return ret;
  }
- EXPORT_SYMBOL(ib_sg_to_pages);
-+
-+struct ib_drain_cqe {
-+	struct ib_cqe cqe;
-+	struct completion done;
-+};
-+
-+static void ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
-+{
-+	struct ib_drain_cqe *cqe = container_of(wc->wr_cqe, struct ib_drain_cqe,
-+						cqe);
-+
-+	complete(&cqe->done);
-+}
-+
-+/*
-+ * Post a WR and block until its completion is reaped for both the RQ and SQ.
-+ */
-+static void __ib_drain_qp(struct ib_qp *qp)
-+{
-+	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
-+	struct ib_drain_cqe rdrain, sdrain;
-+	struct ib_recv_wr rwr = {}, *bad_rwr;
-+	struct ib_send_wr swr = {}, *bad_swr;
-+	int ret;
-+
-+	rwr.wr_cqe = &rdrain.cqe;
-+	rdrain.cqe.done = ib_drain_qp_done;
-+	init_completion(&rdrain.done);
-+
-+	swr.wr_cqe = &sdrain.cqe;
-+	sdrain.cqe.done = ib_drain_qp_done;
-+	init_completion(&sdrain.done);
-+
-+	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
-+		return;
-+	}
-+
-+	ret = ib_post_recv(qp, &rwr, &bad_rwr);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain recv queue: %d\n", ret);
-+		return;
-+	}
-+
-+	ret = ib_post_send(qp, &swr, &bad_swr);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
-+		return;
-+	}
-+
-+	wait_for_completion(&rdrain.done);
-+	wait_for_completion(&sdrain.done);
-+}
-+
-+/**
-+ * ib_drain_qp() - Block until all CQEs have been consumed by the
-+ *		   application.
-+ * @qp:            queue pair to drain
-+ *
-+ * If the device has a provider-specific drain function, then
-+ * call that.  Otherwise call the generic drain function
-+ * __ib_drain_qp().
-+ */
-+void ib_drain_qp(struct ib_qp *qp)
-+{
-+	if (qp->device->drain_qp)
-+		qp->device->drain_qp(qp);
-+	else
-+		__ib_drain_qp(qp);
-+}
-+EXPORT_SYMBOL(ib_drain_qp);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 284b00c..d8533ab 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1846,6 +1846,7 @@ struct ib_device {
- 	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
- 						      struct ib_mr_status *mr_status);
- 	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
-+	void			   (*drain_qp)(struct ib_qp *qp);
  
- 	struct ib_dma_mapping_ops   *dma_ops;
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index fb2de75..fdb9d9a 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -476,6 +476,7 @@ struct c4iw_qp {
+ 	wait_queue_head_t wait;
+ 	struct timer_list timer;
+ 	int sq_sig_all;
++	struct completion qp_drained;
+ };
  
-@@ -3094,4 +3095,5 @@ int ib_sg_to_pages(struct ib_mr *mr,
- 		   int sg_nents,
- 		   int (*set_page)(struct ib_mr *, u64));
+ static inline struct c4iw_qp *to_c4iw_qp(struct ib_qp *ibqp)
+@@ -1016,6 +1017,7 @@ extern int c4iw_wr_log;
+ extern int db_fc_threshold;
+ extern int db_coalescing_threshold;
+ extern int use_dsgl;
++void c4iw_drain_qp(struct ib_qp *qp);
  
-+void ib_drain_qp(struct ib_qp *qp);
- #endif /* IB_VERBS_H */
+ 
+ #endif
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index ec04272..0ab942f 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -564,6 +564,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	dev->ibdev.get_protocol_stats = c4iw_get_mib;
+ 	dev->ibdev.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION;
+ 	dev->ibdev.get_port_immutable = c4iw_port_immutable;
++	dev->ibdev.drain_qp = c4iw_drain_qp;
+ 
+ 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
+ 	if (!dev->ibdev.iwcm)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index e99345e..2e70c01 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -1697,6 +1697,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	qhp->attr.max_ird = 0;
+ 	qhp->sq_sig_all = attrs->sq_sig_type == IB_SIGNAL_ALL_WR;
+ 	spin_lock_init(&qhp->lock);
++	init_completion(&qhp->qp_drained);
+ 	mutex_init(&qhp->mutex);
+ 	init_waitqueue_head(&qhp->wait);
+ 	atomic_set(&qhp->refcnt, 1);
+@@ -1888,3 +1889,10 @@ int c4iw_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	init_attr->sq_sig_type = qhp->sq_sig_all ? IB_SIGNAL_ALL_WR : 0;
+ 	return 0;
+ }
++
++void c4iw_drain_qp(struct ib_qp *ibqp)
++{
++	struct c4iw_qp *qp = to_c4iw_qp(ibqp);
++
++	wait_for_completion(&qp->qp_drained);
++}
 -- 
 2.7.0
 
