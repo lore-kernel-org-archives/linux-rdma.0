@@ -1,160 +1,49 @@
-From: Leon Romanovsky <leon@leon.nu>
-Subject: Re: [PATCH v3 2/6] InfiniBand-ocrdma: Delete unnecessary variable
- initialisations in 11 functions
-Date: Fri, 15 Jan 2016 15:20:14 +0200
-Message-ID: <20160115132014.GC30615@leon.nu>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <567EDED5.4040201@users.sourceforge.net>
- <5697D865.5010507@users.sourceforge.net>
- <5697DE31.9040309@users.sourceforge.net>
-Reply-To: leon@leon.nu
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 07/13] IB: add a proper completion queue abstraction
+Date: Fri, 15 Jan 2016 19:24:00 +0530
+Message-ID: <CAG53R5WYHQ+w3R621KqDMLjUo9VBBjDhnJzwwJtfmo3oUWCxUg@mail.gmail.com>
+References: <1449521512-22921-1-git-send-email-hch@lst.de>
+	<1449521512-22921-8-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5697DE31.9040309@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1449521512-22921-8-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 14, 2016 at 06:43:13PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 14 Jan 2016 17:47:59 +0100
-> 
-> The variable "status" will be set to an appropriate value a bit later.
-> Thus omit the explicit initialisation at the beginning.
+Hi Christoph, Sagi,
 
-What did you try to achieve by this patch?
+On Tue, Dec 8, 2015 at 2:21 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
 
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    |  2 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  4 ++--
->  drivers/infiniband/hw/ocrdma/ocrdma_stats.c |  4 ++--
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 12 ++++++------
->  4 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-> index a343e03..41f0171 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-> @@ -59,7 +59,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
->  			struct ib_ah_attr *attr, union ib_gid *sgid,
->  			int pdid, bool *isvlan, u16 vlan_tag)
->  {
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_eth_vlan eth;
->  	struct ocrdma_grh grh;
->  	int eth_sz;
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> index 283ca84..159b1d5 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> @@ -1113,7 +1113,7 @@ mbx_err:
->  static int ocrdma_nonemb_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe,
->  				 void *payload_va)
->  {
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_mbx_rsp *rsp = payload_va;
->  
->  	if ((mqe->hdr.spcl_sge_cnt_emb & OCRDMA_MQE_HDR_EMB_MASK) >>
-> @@ -2871,7 +2871,7 @@ int ocrdma_mbx_destroy_srq(struct ocrdma_dev *dev, struct ocrdma_srq *srq)
->  static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
->  				      struct ocrdma_dcbx_cfg *dcbxcfg)
->  {
-> -	int status = 0;
-> +	int status;
->  	dma_addr_t pa;
->  	struct ocrdma_mqe cmd;
->  
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-> index 86c303a..119baa3 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-> @@ -608,7 +608,7 @@ static char *ocrdma_driver_dbg_stats(struct ocrdma_dev *dev)
->  static void ocrdma_update_stats(struct ocrdma_dev *dev)
->  {
->  	ulong now = jiffies, secs;
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_rdma_stats_resp *rdma_stats =
->  		      (struct ocrdma_rdma_stats_resp *)dev->stats_mem.va;
->  	struct ocrdma_rsrc_stats *rsrc_stats = &rdma_stats->act_rsrc_stats;
-> @@ -639,7 +639,7 @@ static ssize_t ocrdma_dbgfs_ops_write(struct file *filp,
->  {
->  	char tmp_str[32];
->  	long reset;
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_stats *pstats = filp->private_data;
->  	struct ocrdma_dev *dev = pstats->dev;
->  
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index 4caf167..1d90d18 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -419,7 +419,7 @@ static struct ocrdma_pd *_ocrdma_alloc_pd(struct ocrdma_dev *dev,
->  					  struct ib_udata *udata)
->  {
->  	struct ocrdma_pd *pd = NULL;
-> -	int status = 0;
-> +	int status;
->  
->  	pd = kzalloc(sizeof(*pd), GFP_KERNEL);
->  	if (!pd)
-> @@ -468,7 +468,7 @@ static inline int is_ucontext_pd(struct ocrdma_ucontext *uctx,
->  static int _ocrdma_dealloc_pd(struct ocrdma_dev *dev,
->  			      struct ocrdma_pd *pd)
->  {
-> -	int status = 0;
-> +	int status;
->  
->  	if (dev->pd_mgr->pd_prealloc_valid)
->  		status = ocrdma_put_pd_num(dev, pd->id, pd->dpp_enabled);
-> @@ -593,7 +593,7 @@ map_err:
->  
->  int ocrdma_dealloc_ucontext(struct ib_ucontext *ibctx)
->  {
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_mm *mm, *tmp;
->  	struct ocrdma_ucontext *uctx = get_ocrdma_ucontext(ibctx);
->  	struct ocrdma_dev *dev = get_ocrdma_dev(ibctx->device);
-> @@ -620,7 +620,7 @@ int ocrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
->  	unsigned long vm_page = vma->vm_pgoff << PAGE_SHIFT;
->  	u64 unmapped_db = (u64) dev->nic_info.unmapped_db;
->  	unsigned long len = (vma->vm_end - vma->vm_start);
-> -	int status = 0;
-> +	int status;
->  	bool found;
->  
->  	if (vma->vm_start & (PAGE_SIZE - 1))
-> @@ -1283,7 +1283,7 @@ static int ocrdma_copy_qp_uresp(struct ocrdma_qp *qp,
->  				struct ib_udata *udata, int dpp_offset,
->  				int dpp_credit_lmt, int srq)
->  {
-> -	int status = 0;
-> +	int status;
->  	u64 usr_db;
->  	struct ocrdma_create_qp_uresp uresp;
->  	struct ocrdma_pd *pd = qp->pd;
-> @@ -1947,7 +1947,7 @@ int ocrdma_modify_srq(struct ib_srq *ibsrq,
->  		      enum ib_srq_attr_mask srq_attr_mask,
->  		      struct ib_udata *udata)
->  {
-> -	int status = 0;
-> +	int status;
->  	struct ocrdma_srq *srq;
->  
->  	srq = get_ocrdma_srq(ibsrq);
-> -- 
-> 2.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +static void ib_cq_poll_work(struct work_struct *work)
+> +{
+> +       struct ib_cq *cq = container_of(work, struct ib_cq, work);
+> +       int completed;
+> +
+> +       completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
+> +       if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
+> +           ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+> +               queue_work(ib_comp_wq, &cq->work);
+> +}
+
+In above code, Let says completion is added in a time window where
+ib_process_cq is completed (CQ is diarmed in hw at that point) and
+ib_req_notify_cq is yet to be called.
+Provider vendor driver say mlx4 or mlx5 as specific case always
+returns ib_req_notify_cq = 0.
+Will it result into a missed notification? (so queue_work is not done).
+
+IB spec says: Any CQ entries that existed before the notify is enabled
+will not result in a call to the handler.
+
+I did try to follow this thread on similar notes.
+http://www.spinics.net/lists/linux-nfs/msg54266.html
+
+I believe above code possibly needs fix based above two comments? Or I
+must be missing something basic here.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
