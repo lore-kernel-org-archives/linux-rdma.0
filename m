@@ -1,65 +1,45 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: InfiniBand-ocrdma: Delete unnecessary variable initialisations in
- 11 functions
-Date: Fri, 15 Jan 2016 19:19:31 +0100
-Message-ID: <56993833.2050809@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <567EDED5.4040201@users.sourceforge.net>
- <5697D865.5010507@users.sourceforge.net>
- <5697DE31.9040309@users.sourceforge.net> <20160115132014.GC30615@leon.nu>
- <56990733.7000506@users.sourceforge.net> <20160115150935.GA32346@leon.nu>
- <56990FAC.6000506@users.sourceforge.net> <20160115155938.GB32346@leon.nu>
- <56991D52.8030808@users.sourceforge.net> <20160115170048.GC32346@leon.nu>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH V1] IB/cma: Fix RDMA port validation for iWarp
+Date: Fri, 15 Jan 2016 13:47:46 -0600
+Message-ID: <56994CE2.1060205@opengridcomputing.com>
+References: <1452158369-2938-1-git-send-email-matanb@mellanox.com>
+ <00d301d14d69$18257d70$48707850$@opengridcomputing.com>
+ <CAAKD3BAWUfg6sVLCEtb-vBrC9kGtVYO784xg4_tGqiZaOVh-2Q@mail.gmail.com>
+ <007b01d14e13$7fb5a190$7f20e4b0$@opengridcomputing.com>
+ <56974AEE.6060201@mellanox.com>
+ <004401d14edb$65c6b260$31541720$@opengridcomputing.com>
+ <5697B80E.5090903@mellanox.com> <20160114174014.GA30615@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160115170048.GC32346@leon.nu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Leon Romanovsky <leon@leon.nu>
-Cc: Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mitesh Ahuja <mitesh.ahuja@avagotech.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160114174014.GA30615-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> [Q.] What did you try to achieve by this patch?
+On 1/14/2016 11:40 AM, Leon Romanovsky wrote:
+> On Thu, Jan 14, 2016 at 05:00:30PM +0200, Or Gerlitz wrote:
+>> On 1/14/2016 4:53 PM, Steve Wise wrote:
+>>> Hey Or, iWARP is non-functional in 4.4, and this patch fixes the regression.  I suggest we get this fix in stable asap.
+>> sure, we can make an exception in our usual track for this one, but you need
+>> upstream commit ID ## -- Doug is your key person here
+> Or, there are no doubts that commit ID is important for our work, however
+> submission to stable can be done without it [1].
+>
+> Just follow the Steve's advice on cc-ing stable list in sign-off section.
+>
+> [1] http://lxr.free-electrons.com/source/Documentation/stable_kernel_rules.txt#L40
+>
 
-I would appreciate a bit more fine-tuning in the affected source files.
+Hey Doug, can you please accept this and add the Cc: line to get it into 
+stable-4.x?
 
+Thanks,
 
-> P.S. This is mailing list for developers
-
-Do you try to express any further restrictions?
-
-
-> and not for patch bots.
-
-Would you like to explain such an information a bit more?
-
-
-> We are glad to see patches that clean the code, but they need to
-> be meaningful.
-
-This is usual.
-
-
-> Your automated patches add noise without any real benefit.
-
-Are you expecting a kind of special proof?
-
-
-> You was suggested to be ignored in MTD mailing list exactly
-> for this type of patches,
-
-Will the acceptance increase a bit for similar issues over time?
-
-
-> did you learn anything from that experience?
-
-Will another acknowledgement by Selvin Xavier influence any corresponding
-software improvements?
-
-
-How do you think about to add any further constructive comments
-also for the other proposed update steps?
-
-Regards,
-Markus
+Steve.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
