@@ -1,48 +1,34 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 07/13] IB: add a proper completion queue abstraction
-Date: Fri, 15 Jan 2016 19:24:00 +0530
-Message-ID: <CAG53R5WYHQ+w3R621KqDMLjUo9VBBjDhnJzwwJtfmo3oUWCxUg@mail.gmail.com>
-References: <1449521512-22921-1-git-send-email-hch@lst.de>
-	<1449521512-22921-8-git-send-email-hch@lst.de>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: Re: InfiniBand-ocrdma: Delete unnecessary variable initialisations in
+ 11 functions
+Date: Fri, 15 Jan 2016 15:50:27 +0100
+Message-ID: <56990733.7000506@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <567EDED5.4040201@users.sourceforge.net>
+ <5697D865.5010507@users.sourceforge.net>
+ <5697DE31.9040309@users.sourceforge.net> <20160115132014.GC30615@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449521512-22921-8-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160115132014.GC30615-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph, Sagi,
+>> The variable "status" will be set to an appropriate value a bit later.
+>> Thus omit the explicit initialisation at the beginning.
+> 
+> What did you try to achieve by this patch?
 
-On Tue, Dec 8, 2015 at 2:21 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+I would like to optimise the affected source files a bit.
+Would you like to clarify any measurable effects around the implementation
+detail when various variables will only be initialised immediately
+before they will be read again?
 
-> +static void ib_cq_poll_work(struct work_struct *work)
-> +{
-> +       struct ib_cq *cq = container_of(work, struct ib_cq, work);
-> +       int completed;
-> +
-> +       completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
-> +       if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
-> +           ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
-> +               queue_work(ib_comp_wq, &cq->work);
-> +}
-
-In above code, Let says completion is added in a time window where
-ib_process_cq is completed (CQ is diarmed in hw at that point) and
-ib_req_notify_cq is yet to be called.
-Provider vendor driver say mlx4 or mlx5 as specific case always
-returns ib_req_notify_cq = 0.
-Will it result into a missed notification? (so queue_work is not done).
-
-IB spec says: Any CQ entries that existed before the notify is enabled
-will not result in a call to the handler.
-
-I did try to follow this thread on similar notes.
-http://www.spinics.net/lists/linux-nfs/msg54266.html
-
-I believe above code possibly needs fix based above two comments? Or I
-must be missing something basic here.
+Regards,
+Markus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
