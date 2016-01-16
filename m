@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH libibverbs V1 2/5] Add cross-channel QP flags
-Date: Sat, 16 Jan 2016 17:53:41 +0200
-Message-ID: <1452959624-29454-3-git-send-email-leon@leon.nu>
+Subject: [PATCH libibverbs V1 3/5] Add cross-channel work requests primitives
+Date: Sat, 16 Jan 2016 17:53:42 +0200
+Message-ID: <1452959624-29454-4-git-send-email-leon@leon.nu>
 References: <1452959624-29454-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -15,130 +15,138 @@ List-Id: linux-rdma@vger.kernel.org
 
 =46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The cross-channel feature allows to execute WQEs that involve
-synchronization of IO operations=E2=80=99 on different QPs.
+The cross-channel feature relies on special primitives to
+send and receive work requests.
 
-This capability enables to program complex flows with a single
-function call, hereby significantly reducing overhead associated
-with IO processing.
+  * CQE wait - This work request holds execution of subsequent
+    requests on that queue until this number of completions of
+    a CQ is met.
 
-The queue pairs can be configured to work as a =E2=80=9Csync master que=
-ue=E2=80=9D
-or =E2=80=9Csync slave queues=E2=80=9D.
-
-QP property flags to indicate if queues are slave or master:
-  * IB_QP_CREATE_MANAGED_SEND indicates that posted send work requests
-    will not be executed immediately and requires enabling.
-
-  * IB_QP_CREATE_MANAGED_RECV indicates that posted receive work
-    requests will not be executed immediately and requires enabling.
-
-  * IB_QP_CREATE_CROSS_CHANNEL declares the QP to work in cross-channel
-    mode. If IB_QP_CREATE_MANAGED_SEND and IB_QP_CREATE_MANAGED_RECV ar=
-e
-    not provided, this QP will be sync master queue, else it will be sy=
-nc
-    slave.
-
-  * IBV_QP_CREATE_IGNORE_SQ_OVERFLOW configures QP to discard overflow
-    indications on send queue.
-
-  * IBV_QP_CREATE_IGNORE_RQ_OVERFLOW instructs QP to discard overflow
-    indications on receive queue.
+  =E2=80=A2 WQE enable - This work request specifies value of work
+    requests on the controlled send/receive queue. It enables the
+    execution of all WQEs up to the work request which is
+    marked by IBV_SEND_WAIT_EN_LAST.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h |  5 +++++
- man/ibv_create_qp_ex.3     | 18 ++++++++++++++++--
- src/cmd.c                  |  5 ++++-
- 3 files changed, 25 insertions(+), 3 deletions(-)
+ include/infiniband/verbs.h | 16 ++++++++++++++--
+ man/ibv_post_send.3        | 25 +++++++++++++++++++++++--
+ 2 files changed, 37 insertions(+), 4 deletions(-)
 
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 466d779592bf..7e85de08bfc9 100644
+index 7e85de08bfc9..d91dd8a1376e 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -769,6 +769,11 @@ enum ibv_qp_init_attr_mask {
-=20
- enum ibv_qp_create_flags {
- 	IBV_QP_CREATE_BLOCK_SELF_MCAST_LB       =3D 1 << 1,
-+	IBV_QP_CREATE_CROSS_CHANNEL		=3D 1 << 2,
-+	IBV_QP_CREATE_MANAGED_SEND		=3D 1 << 3,
-+	IBV_QP_CREATE_MANAGED_RECV		=3D 1 << 4,
-+	IBV_QP_CREATE_IGNORE_SQ_OVERFLOW	=3D 1 << 5,
-+	IBV_QP_CREATE_IGNORE_RQ_OVERFLOW	=3D 1 << 6
+@@ -884,7 +884,10 @@ enum ibv_wr_opcode {
+ 	IBV_WR_SEND_WITH_IMM,
+ 	IBV_WR_RDMA_READ,
+ 	IBV_WR_ATOMIC_CMP_AND_SWP,
+-	IBV_WR_ATOMIC_FETCH_AND_ADD
++	IBV_WR_ATOMIC_FETCH_AND_ADD,
++	IBV_WR_SEND_ENABLE,
++	IBV_WR_RECV_ENABLE,
++	IBV_WR_CQE_WAIT
  };
 =20
- struct ibv_qp_init_attr_ex {
-diff --git a/man/ibv_create_qp_ex.3 b/man/ibv_create_qp_ex.3
-index f772a57b4c55..b80a586306c7 100644
---- a/man/ibv_create_qp_ex.3
-+++ b/man/ibv_create_qp_ex.3
+ enum ibv_send_flags {
+@@ -892,7 +895,8 @@ enum ibv_send_flags {
+ 	IBV_SEND_SIGNALED	=3D 1 << 1,
+ 	IBV_SEND_SOLICITED	=3D 1 << 2,
+ 	IBV_SEND_INLINE		=3D 1 << 3,
+-	IBV_SEND_IP_CSUM	=3D 1 << 4
++	IBV_SEND_IP_CSUM	=3D 1 << 4,
++	IBV_SEND_WAIT_EN_LAST   =3D 1 << 5
+ };
+=20
+ struct ibv_sge {
+@@ -925,6 +929,14 @@ struct ibv_send_wr {
+ 			uint32_t	remote_qpn;
+ 			uint32_t	remote_qkey;
+ 		} ud;
++		struct {
++			struct ibv_cq  *cq;
++			int32_t		cq_count;
++		} cqe_wait;
++		struct {
++			struct ibv_qp  *qp;
++			int32_t		wqe_count;
++		} wqe_enable;
+ 	} wr;
+ 	union {
+ 		struct {
+diff --git a/man/ibv_post_send.3 b/man/ibv_post_send.3
+index eeea0787fa80..28dd43bfa3d9 100644
+--- a/man/ibv_post_send.3
++++ b/man/ibv_post_send.3
 @@ -1,6 +1,6 @@
  .\" -*- nroff -*-
  .\"
--.TH IBV_CREATE_QP_EX 3 2013-06-26 libibverbs "Libibverbs Programmer's =
-Manual"
-+.TH IBV_CREATE_QP_EX 3 2015-12-27 libibverbs "Libibverbs Programmer's =
-Manual"
+-.TH IBV_POST_SEND 3 2006-10-31 libibverbs "Libibverbs Programmer's Man=
+ual"
++.TH IBV_POST_SEND 3 2015-12-26 libibverbs "Libibverbs Programmer's Man=
+ual"
  .SH "NAME"
- ibv_create_qp_ex, ibv_destroy_qp \- create or destroy a queue pair (QP=
-)
+ ibv_post_send \- post a list of work requests (WRs) to a send queue
  .SH "SYNOPSIS"
-@@ -47,6 +47,16 @@ uint32_t                max_recv_sge;   /* Requested=
- max number of s/g elements
- uint32_t                max_inline_data;/* Requested max number of dat=
-a (bytes) that can be posted inline to the SQ, otherwise 0 */
+@@ -58,6 +58,18 @@ uint32_t        remote_qpn;     /* QP number of the =
+destination QP */
+ uint32_t        remote_qkey;    /* Q_Key number of the destination QP =
+*/
  .in -8
- };
-+.sp
-+.mf
-+enum ibv_qp_create_flags {
-+	IBV_QP_CREATE_BLOCK_SELF_MCAST_LB	=3D 1 << 1,
-+	IBV_QP_CREATE_CROSS_CHANNEL             =3D 1 << 2, /* Set QP to work=
- in cross-channel mode */
-+	IBV_QP_CREATE_MANAGED_SEND              =3D 1 << 3, /* Send work requ=
-est posted to this QP won't be executed immediately and requires enabli=
-ng /*
-+	IBV_QP_CREATE_MANAGED_RECV              =3D 1 << 4, /* Receive work r=
-equest posted to this QP won't be executed immediately and requires ena=
-bling */
-+	IBV_QP_CREATE_IGNORE_SQ_OVERFLOW        =3D 1 << 5, /* Configure QP t=
-o discard overflow indications on send queue */
-+	IBV_QP_CREATE_IGNORE_RQ_OVERFLOW        =3D 1 << 6  /* Configure QP t=
-o discard overflow indications on receive queue */
-+};
+ } ud;
++struct {
++.in +8
++struct ibv_cq  *cq;		/* CQ for the wait on */
++int32_t        cq_count;	/* Count of completions of a CQ to met */
++.in -8
++} cqe_wait;
++struct {
++.in +8
++struct ibv_qp  *qp;		/* QP for the release */
++int32_t        wqe_count;	/* Number of work requests to release */
++.in -8
++} wqe_enable;
+ .in -8
+ } wr;
+ .in -8
+@@ -85,6 +97,9 @@ IBV_WR_RDMA_WRITE_WITH_IMM  |            |     X     =
+ |     X
+ IBV_WR_RDMA_READ            |            |            |     X
+ IBV_WR_ATOMIC_CMP_AND_SWP   |            |            |     X
+ IBV_WR_ATOMIC_FETCH_AND_ADD |            |            |     X
++IBV_WR_SEND_ENABLE          |            |            |     X
++IBV_WR_RECV_ENABLE          |            |            |     X
++IBV_WR_CQE_WAIT             |            |            |     X
  .fi
  .PP
- The function
-@@ -80,4 +90,8 @@ fails if the QP is attached to a multicast group.
- .BR ibv_query_qp (3)
+ The attribute send_flags describes the properties of the \s-1WR\s0. It=
+ is either 0 or the bitwise \s-1OR\s0 of one or more of the following f=
+lags:
+@@ -102,6 +117,8 @@ in a send WQE.  Valid only for Send and RDMA Write.=
+  The L_Key will not be check
+ .B IBV_SEND_IP_CSUM \fR Offload the IPv4 and TCP/UDP checksum calculat=
+ion.
+ Valid only when \fBdevice_cap_flags\fR in device_attr indicates curren=
+t QP is
+ supported by checksum offload.
++.TP
++.B IBV_SEND_WAIT_EN_LAST \fR Mark this work request as a last one in t=
+he cross-channel offloaded sequence.
+ .SH "RETURN VALUE"
+ .B ibv_post_send()
+ returns 0 on success, or the value of errno on failure (which indicate=
+s the failure reason).
+@@ -124,4 +141,8 @@ after the call returns.
+ .BR ibv_poll_cq (3)
  .SH "AUTHORS"
  .TP
--Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-+Yishai Hadas
-+.RI < yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
+-Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++Dotan Barak
++.RI < dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
 +.TP
 +Leon Romanovsky
 +.RI < leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
-diff --git a/src/cmd.c b/src/cmd.c
-index 675777a8ee5a..ae33491befb4 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -815,7 +815,10 @@ static void create_qp_handle_resp_common(struct ib=
-v_context *context,
- }
-=20
- enum {
--	CREATE_QP_EX2_SUP_CREATE_FLAGS =3D IBV_QP_CREATE_BLOCK_SELF_MCAST_LB,
-+	CREATE_QP_EX2_SUP_CREATE_FLAGS =3D IBV_QP_CREATE_BLOCK_SELF_MCAST_LB =
-|
-+		IBV_QP_CREATE_CROSS_CHANNEL |
-+		IBV_QP_CREATE_MANAGED_SEND |
-+		IBV_QP_CREATE_MANAGED_RECV
- };
-=20
- int ibv_cmd_create_qp_ex2(struct ibv_context *context,
 --=20
 1.7.12.4
 
