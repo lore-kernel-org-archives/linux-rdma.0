@@ -1,51 +1,94 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: InfiniBand-ocrdma: Delete unnecessary variable initialisations in
- 11 functions
-Date: Sat, 16 Jan 2016 09:30:22 +0100
-Message-ID: <5699FF9E.3030708@users.sourceforge.net>
-References: <5697D865.5010507@users.sourceforge.net>
- <5697DE31.9040309@users.sourceforge.net> <20160115132014.GC30615@leon.nu>
- <56990733.7000506@users.sourceforge.net> <20160115150935.GA32346@leon.nu>
- <56990FAC.6000506@users.sourceforge.net> <20160115155938.GB32346@leon.nu>
- <56991D52.8030808@users.sourceforge.net> <20160115170048.GC32346@leon.nu>
- <56993833.2050809@users.sourceforge.net> <20160116061843.GE32346@leon.nu>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH V1 libibverbs 0/5] Add cross-channel support
+Date: Sat, 16 Jan 2016 17:53:39 +0200
+Message-ID: <1452959624-29454-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160116061843.GE32346-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mitesh Ahuja <mitesh.ahuja-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, ltp-cunTk1MwBs91InPhgRC9rw@public.gmane.org, users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Please provide the numbers BEFORE and AFTER your change which can
-> support that your so called "fine-tuning" worked.
+=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-For which combinations of hardware and software versions would you
-like to see corresponding results from detailed system checks
-and special benchmarks?
+The following set of patches adds cross-channel (CC) support
+in the libibverbs.
 
+The cross-channel feature allows to execute WQEs that involve
+cross-channel synchronization of IO operations=E2=80=99 on different QP=
+s.
 
-> We are waiting to see it together with Tested-By tag to emphasize
-> that your code was tested on real HW and passed minimal sanity checks.
+Complex applications usually require synchronizations for IO
+operations from multiple sources before continuing their
+execution.
 
-Are any other contributors interested to collaborate for such a task?
+In order to implement this, the host software usually needs
+to handle completions from each one of the receive queues
+(arriving in arbitrary order), process the data after last
+message arrival and only then post work request on the send
+queue to send the combined data to its destination.
 
+Execution of such operation generates multiple interrupts at
+an unpredictable time with an overhead of interrupts handling
+and context switches.
 
-> NAK on this patch.
+This patchset adds synchronization primitives which gives
+ability to perform conditional operations and a following
+submission will introduce arithmetic calculation offload.
 
-Thanks for your feedback.
+Synchronization abilities combined with arithmetic calculations
+will allow us to program complex scenarios with a single function
+call, hereby significantly reducing overhead associated with IO
+processing.
 
-Does it mean that you reject (only) the proposed source code adjustments
-around the variable "status" in the shown function selection at the moment?
+Patch #1 adds CQ ignore overrun flag.
+Patch #2 implements QP flags to configure master/slave properties
+         of queue.
+Patch #3 expands work request structure to have cross-channel
+         specific primitives.
+Patch #4 exports cross-channel device capability flag.
+Patch #5 provides an example of cross-channel synchronizations.
 
-Would you like to clarify the other update steps from this patch series
-a bit more?
+These patches were added on top of "Completion timestamping" [1]
+and "Expose QP block self multicast loopback creation flag" [2]
+series.
 
-Regards,
-Markus
+[1] https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg28895.ht=
+ml
+[2] http://comments.gmane.org/gmane.linux.drivers.rdma/30158
+
+Changes from v0:
+  * Enrich cover message and commit messages.
+  * Add ibv_cc_pingpong example.
+  * Add manual to all newly created flags.
+
+Leon Romanovsky (5):
+  Add CQ ignore overrun flag
+  Add cross-channel QP flags
+  Add cross-channel work requests primitives
+  Export cross-channel capability flag
+  Add an example of cross-channel synchronization
+
+ Makefile.am                |   6 +-
+ examples/.gitignore        |   1 +
+ examples/cc_pingpong.c     | 991 +++++++++++++++++++++++++++++++++++++=
+++++++++
+ include/infiniband/verbs.h |  23 +-
+ man/ibv_cc_pingpong.1      |  66 +++
+ man/ibv_create_cq_ex.3     |  18 +-
+ man/ibv_create_qp_ex.3     |  18 +-
+ man/ibv_post_send.3        |  25 +-
+ src/cmd.c                  |   5 +-
+ 9 files changed, 1141 insertions(+), 12 deletions(-)
+ create mode 100644 examples/cc_pingpong.c
+ create mode 100644 man/ibv_cc_pingpong.1
+
+--=20
+1.7.12.4
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
