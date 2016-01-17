@@ -1,73 +1,44 @@
-From: David Mawunyo <davidmawunyo19-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: GREETINGS,
-Date: Sat, 16 Jan 2016 11:53:21 -1200
-Message-ID: <CAPitYEuwS7rPRSJCHt1BYy5SzB8V6pJS_d8UBK4hNYZ0=ud_Fw@mail.gmail.com>
-Reply-To: mawunyooffice1960-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 07/13] IB: add a proper completion queue abstraction
+Date: Sun, 17 Jan 2016 11:24:51 +0200
+Message-ID: <569B5DE3.1010908@dev.mellanox.co.il>
+References: <1449521512-22921-1-git-send-email-hch@lst.de>
+ <1449521512-22921-8-git-send-email-hch@lst.de>
+ <CAG53R5WYHQ+w3R621KqDMLjUo9VBBjDhnJzwwJtfmo3oUWCxUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAG53R5WYHQ+w3R621KqDMLjUo9VBBjDhnJzwwJtfmo3oUWCxUg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>, Christoph Hellwig <hch@lst.de>
+Cc: linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@sandisk.com>, axboe@fb.com, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Greetings,
 
-I fully understand that you receive emails like these daily, but
-please mine is not a joke or a scam. I know very well about scam
-people play, because am a banker, I see things every day.
+> Hi Christoph, Sagi,
+>
+> On Tue, Dec 8, 2015 at 2:21 AM, Christoph Hellwig <hch@lst.de> wrote:
+>
+>> +static void ib_cq_poll_work(struct work_struct *work)
+>> +{
+>> +       struct ib_cq *cq = container_of(work, struct ib_cq, work);
+>> +       int completed;
+>> +
+>> +       completed = __ib_process_cq(cq, IB_POLL_BUDGET_WORKQUEUE);
+>> +       if (completed >= IB_POLL_BUDGET_WORKQUEUE ||
+>> +           ib_req_notify_cq(cq, IB_POLL_FLAGS) > 0)
+>> +               queue_work(ib_comp_wq, &cq->work);
+>> +}
+>
+> In above code, Let says completion is added in a time window where
+> ib_process_cq is completed (CQ is diarmed in hw at that point) and
+> ib_req_notify_cq is yet to be called.
+> Provider vendor driver say mlx4 or mlx5 as specific case always
+> returns ib_req_notify_cq = 0.
+> Will it result into a missed notification? (so queue_work is not done).
 
-Am Honourable David Mawunyo, I work with a bank here in Togo as a
-branch manager, the last time in 2007 the late Gaddafi visited Togo
-with his aids for the (AU) meeting then, three of his security men
-came to open a secret dollars account with my branch, and I was the
-person who attended to both of them. What was deposited inside the
-both accounts then was huge $4 million dollars each.
-
-when the account was opened I took all the opening forms to meet them
-at their guest house, because they do not want to use their real names
-to open the bank account even the pictures was not their real
-pictures. All arrangements were done properly for them because I was
-the branch manager.
-
-Why am writing these proposal to you is because I want to leave the
-bank work and do something else on my own very soon. so I need to act
-fast and change both accounts details, to your own name, which will
-allow you to have full access of the account from anywhere in the
-world, and make transfer from my bank branch to your own account
-anywhere you want it. Even the account ATM card will be sent to you
-and with the ATM card, you can withdraw from any machine anywhere you
-are. but the condition is myself and yourself will share the funds
-equally after we must have moved out all the funds in both accounts to
-a private account chosen by you.
-
-You do not need to be afraid am the branch manager, I will do my home
-work well, am the only person the bank can confirm from if they ask to
-find out anything about the account. I did some investigations about
-the two aids of the late Gaddafi, and found out that both of them died
-during the war in Libya. So it is my chance to act fast and do the
-business with you, because nobody can come for the claim of the funds
-if I resign, am the only person to testify and present the real
-owners.
-
-I will do all the paper work in your name and even change the
-signature documents to be same with yours. i will want to see a reply
-from you, showing your interest and a promise that you will not fail
-or disappoint me when all is set. I don=E2=80=99t need to explain to yo=
-u that
-these matter should be kept as a top secret, nobody should see these
-email apart from you please.
-
-Waiting for your reply with your direct numbers. Then I will tell you
-the next action we should take because in 5 banking days we will
-smile, that is if you comply. Please reply to my private box at
-mawunyooffice1960-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org for security reasons.
-
-Best Regard
-Hon.David Mawunyo
-Direct Line: +228-935-01-790
-Email:mawunyooffice1960-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If we have not drained the CQ (consumed budget or more) the second
+condition (ib_req_notify_cq) will not be invoked. We are only rearming
+the CQ when we drained it completely. So I don't see how we can end up
+with missed notifications.
