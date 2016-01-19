@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/6] IB/rdmavt: Add mad agents to rdmavt
-Date: Tue, 19 Jan 2016 14:27:57 -0800
-Message-ID: <20160119222757.27985.29986.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 5/6] IB/rdmavt: Fix copyright date
+Date: Tue, 19 Jan 2016 14:28:03 -0800
+Message-ID: <20160119222802.27985.62460.stgit@scvm10.sc.intel.com>
 References: <20160119222314.27985.81482.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,178 +10,370 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160119222314.27985.81482.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds mad agent create and free to rdmavt.
+Update all files added by rdmavt which do not yet have 2016 as the
+copyright year.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mad.c |   72 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mad.h |    3 +-
- drivers/infiniband/sw/rdmavt/vt.c  |    4 ++
- drivers/infiniband/sw/rdmavt/vt.h  |    1 +
- include/rdma/rdma_vt.h             |    6 +++
- 5 files changed, 84 insertions(+), 2 deletions(-)
+ drivers/infiniband/sw/rdmavt/ah.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/ah.h    |    2 +-
+ drivers/infiniband/sw/rdmavt/cq.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/cq.h    |    2 +-
+ drivers/infiniband/sw/rdmavt/dma.c   |    2 +-
+ drivers/infiniband/sw/rdmavt/dma.h   |    2 +-
+ drivers/infiniband/sw/rdmavt/mad.c   |    2 +-
+ drivers/infiniband/sw/rdmavt/mad.h   |    2 +-
+ drivers/infiniband/sw/rdmavt/mcast.c |    2 +-
+ drivers/infiniband/sw/rdmavt/mcast.h |    2 +-
+ drivers/infiniband/sw/rdmavt/mmap.c  |    2 +-
+ drivers/infiniband/sw/rdmavt/mmap.h  |    2 +-
+ drivers/infiniband/sw/rdmavt/mr.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/mr.h    |    2 +-
+ drivers/infiniband/sw/rdmavt/pd.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/pd.h    |    2 +-
+ drivers/infiniband/sw/rdmavt/qp.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/qp.h    |    2 +-
+ drivers/infiniband/sw/rdmavt/srq.c   |    2 +-
+ drivers/infiniband/sw/rdmavt/srq.h   |    2 +-
+ drivers/infiniband/sw/rdmavt/trace.c |    2 +-
+ drivers/infiniband/sw/rdmavt/trace.h |    2 +-
+ drivers/infiniband/sw/rdmavt/vt.c    |    2 +-
+ drivers/infiniband/sw/rdmavt/vt.h    |    2 +-
+ include/rdma/rdma_vt.h               |    2 +-
+ include/rdma/rdmavt_mr.h             |    2 +-
+ include/rdma/rdmavt_qp.h             |    2 +-
+ 27 files changed, 27 insertions(+), 27 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
+index c194d9d..9372c43 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.c
++++ b/drivers/infiniband/sw/rdmavt/ah.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/ah.h b/drivers/infiniband/sw/rdmavt/ah.h
+index 8cd7ea7..e9c36be 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.h
++++ b/drivers/infiniband/sw/rdmavt/ah.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTAH_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 7308a27..055aa71 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/cq.h b/drivers/infiniband/sw/rdmavt/cq.h
+index 3813d90..6182c29 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.h
++++ b/drivers/infiniband/sw/rdmavt/cq.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTCQ_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/dma.c b/drivers/infiniband/sw/rdmavt/dma.c
+index c070141..33076a5 100644
+--- a/drivers/infiniband/sw/rdmavt/dma.c
++++ b/drivers/infiniband/sw/rdmavt/dma.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/dma.h b/drivers/infiniband/sw/rdmavt/dma.h
+index a80cc35..979f07e 100644
+--- a/drivers/infiniband/sw/rdmavt/dma.h
++++ b/drivers/infiniband/sw/rdmavt/dma.h
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVTDMA_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
-index eef7029..e01f3fb 100644
+index e01f3fb..5c720d3 100644
 --- a/drivers/infiniband/sw/rdmavt/mad.c
 +++ b/drivers/infiniband/sw/rdmavt/mad.c
-@@ -45,6 +45,7 @@
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
   *
-  */
- 
-+#include <rdma/ib_mad.h>
- #include "mad.h"
- 
- /**
-@@ -83,3 +84,74 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 	 */
- 	return IB_MAD_RESULT_FAILURE;
- }
-+
-+static void rvt_send_mad_handler(struct ib_mad_agent *agent,
-+				 struct ib_mad_send_wc *mad_send_wc)
-+{
-+	ib_free_send_mad(mad_send_wc->send_buf);
-+}
-+
-+int rvt_create_mad_agents(struct rvt_dev_info *rdi)
-+{
-+	struct ib_mad_agent *agent;
-+	struct rvt_ibport *rvp;
-+	int p;
-+	int ret;
-+
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		agent = ib_register_mad_agent(&rdi->ibdev, p + 1,
-+					      IB_QPT_SMI,
-+					      NULL, 0, rvt_send_mad_handler,
-+					      NULL, NULL, 0);
-+		if (IS_ERR(agent)) {
-+			ret = PTR_ERR(agent);
-+			goto err;
-+		}
-+
-+		rvp->send_agent = agent;
-+
-+		if (rdi->driver_f.notify_create_mad_agent)
-+			rdi->driver_f.notify_create_mad_agent(rdi, p);
-+	}
-+
-+	return 0;
-+
-+err:
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		if (rvp->send_agent) {
-+			agent = rvp->send_agent;
-+			rvp->send_agent = NULL;
-+			ib_unregister_mad_agent(agent);
-+			if (rdi->driver_f.notify_free_mad_agent)
-+				rdi->driver_f.notify_free_mad_agent(rdi, p);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+void rvt_free_mad_agents(struct rvt_dev_info *rdi)
-+{
-+	struct ib_mad_agent *agent;
-+	struct rvt_ibport *rvp;
-+	int p;
-+
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		if (rvp->send_agent) {
-+			agent = rvp->send_agent;
-+			rvp->send_agent = NULL;
-+			ib_unregister_mad_agent(agent);
-+		}
-+		if (rvp->sm_ah) {
-+			ib_destroy_ah(&rvp->sm_ah->ibah);
-+			rvp->sm_ah = NULL;
-+		}
-+
-+		if (rdi->driver_f.notify_free_mad_agent)
-+			rdi->driver_f.notify_free_mad_agent(rdi, p);
-+	}
-+}
-+
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 diff --git a/drivers/infiniband/sw/rdmavt/mad.h b/drivers/infiniband/sw/rdmavt/mad.h
-index ee740e9..5d8a6a9 100644
+index 5d8a6a9..c89faf4 100644
 --- a/drivers/infiniband/sw/rdmavt/mad.h
 +++ b/drivers/infiniband/sw/rdmavt/mad.h
-@@ -55,5 +55,6 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 		    const struct ib_mad_hdr *in, size_t in_mad_size,
- 		    struct ib_mad_hdr *out, size_t *out_mad_size,
- 		    u16 *out_mad_pkey_index);
--
-+int rvt_create_mad_agents(struct rvt_dev_info *rdi);
-+void rvt_free_mad_agents(struct rvt_dev_info *rdi);
- #endif          /* DEF_RVTMAD_H */
+@@ -2,7 +2,7 @@
+ #define DEF_RVTMAD_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mcast.c b/drivers/infiniband/sw/rdmavt/mcast.c
+index 528c1ca..e06a875 100644
+--- a/drivers/infiniband/sw/rdmavt/mcast.c
++++ b/drivers/infiniband/sw/rdmavt/mcast.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mcast.h b/drivers/infiniband/sw/rdmavt/mcast.h
+index cd15a98..29f5792 100644
+--- a/drivers/infiniband/sw/rdmavt/mcast.h
++++ b/drivers/infiniband/sw/rdmavt/mcast.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTMCAST_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.c b/drivers/infiniband/sw/rdmavt/mmap.c
+index fc30ff7..d6330d7 100644
+--- a/drivers/infiniband/sw/rdmavt/mmap.c
++++ b/drivers/infiniband/sw/rdmavt/mmap.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mmap.h b/drivers/infiniband/sw/rdmavt/mmap.h
+index 3513e25..e806747 100644
+--- a/drivers/infiniband/sw/rdmavt/mmap.h
++++ b/drivers/infiniband/sw/rdmavt/mmap.h
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVTMMAP_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index f1dcaf4..ee36be3 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/mr.h b/drivers/infiniband/sw/rdmavt/mr.h
+index c5339aa..6938051 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.h
++++ b/drivers/infiniband/sw/rdmavt/mr.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTMR_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/pd.c b/drivers/infiniband/sw/rdmavt/pd.c
+index f8dba88..62fee44 100644
+--- a/drivers/infiniband/sw/rdmavt/pd.c
++++ b/drivers/infiniband/sw/rdmavt/pd.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/pd.h b/drivers/infiniband/sw/rdmavt/pd.h
+index 56d75e6..1892ca4 100644
+--- a/drivers/infiniband/sw/rdmavt/pd.h
++++ b/drivers/infiniband/sw/rdmavt/pd.h
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVTPD_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index e340c1a..17f1dd7 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/qp.h b/drivers/infiniband/sw/rdmavt/qp.h
+index f438809..8409f80 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.h
++++ b/drivers/infiniband/sw/rdmavt/qp.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTQP_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/srq.c b/drivers/infiniband/sw/rdmavt/srq.c
+index bbb623a..c9eb8b3 100644
+--- a/drivers/infiniband/sw/rdmavt/srq.c
++++ b/drivers/infiniband/sw/rdmavt/srq.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/srq.h b/drivers/infiniband/sw/rdmavt/srq.h
+index 0c3c5a7..9f07880 100644
+--- a/drivers/infiniband/sw/rdmavt/srq.h
++++ b/drivers/infiniband/sw/rdmavt/srq.h
+@@ -2,7 +2,7 @@
+ #define DEF_RVTSRQ_H
+ 
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/trace.c b/drivers/infiniband/sw/rdmavt/trace.c
+index 19afe39..d593285 100644
+--- a/drivers/infiniband/sw/rdmavt/trace.c
++++ b/drivers/infiniband/sw/rdmavt/trace.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
+index b269291..d5b1281 100644
+--- a/drivers/infiniband/sw/rdmavt/trace.h
++++ b/drivers/infiniband/sw/rdmavt/trace.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 450caa7..7496d43 100644
+index 7496d43..571463e 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -416,6 +416,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 		goto bail_cq;
- 	}
- 
-+	rvt_create_mad_agents(rdi);
-+
- 	rvt_pr_info(rdi, "Registration with rdmavt done.\n");
- 	return ret;
- 
-@@ -438,6 +440,8 @@ void rvt_unregister_device(struct rvt_dev_info *rdi)
- 	if (!rdi)
- 		return;
- 
-+	rvt_free_mad_agents(rdi);
-+
- 	ib_unregister_device(&rdi->ibdev);
- 	rvt_cq_exit(rdi);
- 	rvt_mr_exit(rdi);
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 54ee05a..d9f78cc 100644
+index d9f78cc..a5c36d3 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.h
 +++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -59,6 +59,7 @@
- #include "mcast.h"
- #include "mmap.h"
- #include "cq.h"
-+#include "mad.h"
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVT_H
  
- #define rvt_pr_info(rdi, fmt, ...) \
- 	__rvt_pr_info(rdi->driver_f.get_pci_dev(rdi), \
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index b7931bd..eb1c17a 100644
+index eb1c17a..b74282a 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -136,7 +136,8 @@ struct rvt_ibport {
- 	 */
- 	u16 *pkey_table;
+@@ -2,7 +2,7 @@
+ #define DEF_RDMA_VT_H
  
--	/* TODO: Move sm_ah and smi_ah into here as well*/
-+	struct rvt_ah *sm_ah;
-+	struct rvt_ah *smi_ah;
- };
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/include/rdma/rdmavt_mr.h b/include/rdma/rdmavt_mr.h
+index 4aa8171..5edffdc 100644
+--- a/include/rdma/rdmavt_mr.h
++++ b/include/rdma/rdmavt_mr.h
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVT_INCMR_H
  
- #define RVT_CQN_MAX 16 /* maximum length of cq name */
-@@ -262,6 +263,9 @@ struct rvt_driver_provided {
- 			       int attr_mask, struct ib_udata *udata);
- 	void (*modify_qp)(struct rvt_qp *qp, struct ib_qp_attr *attr,
- 			  int attr_mask, struct ib_udata *udata);
-+
-+	void (*notify_create_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
-+	void (*notify_free_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
- };
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index f0e2426..91f20fd 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -2,7 +2,7 @@
+ #define DEF_RDMAVT_INCQP_H
  
- struct rvt_dev_info {
+ /*
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2016 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
