@@ -1,47 +1,46 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [patch] RDMA/nes: checking for NULL instead of IS_ERR
-Date: Tue, 19 Jan 2016 15:59:48 -0500
-Message-ID: <569EA3C4.5080902@redhat.com>
-References: <20160112092743.GA29804@mwanda> <20160112151252.GA2294@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v5 11/10] svc_rdma: use local_dma_lkey
+Date: Tue, 19 Jan 2016 16:01:11 -0500
+Message-ID: <569EA417.7060803@redhat.com>
+References: <20160107194251.2662.88158.stgit@klimt.1015granger.net>
+ <20160108075341.GA24754@infradead.org> <20160108140204.GA27867@fieldses.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="5OOt16dfvhmRXhIc3n479WCNatjaGFjmC"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20160112151252.GA2294@lst.de>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Faisal Latif <faisal.latif@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+ boundary="aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160108140204.GA27867-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---5OOt16dfvhmRXhIc3n479WCNatjaGFjmC
+--aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/12/2016 10:12 AM, Christoph Hellwig wrote:
-> On Tue, Jan 12, 2016 at 12:27:43PM +0300, Dan Carpenter wrote:
->> nes_reg_phys_mr() returns ERR_PTRs on error.  It doesn't return NULL.
->>
->> This bug has been there for a while, but we recently changed from
->> calling a function pointer to calling nes_reg_phys_mr() directly so no=
-w
->> Smatch is able to detect the bug.
+On 01/08/2016 09:02 AM, J. Bruce Fields wrote:
+> On Thu, Jan 07, 2016 at 11:53:41PM -0800, Christoph Hellwig wrote:
+>> We now alwasy have a per-PD local_dma_lkey available.  Make use of tha=
+t
+>> fact in svc_rdma and stop registering our own MR.
 >=20
-> Looks fine,
+> Acked-by: J. Bruce Fields <bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 >=20
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
->=20
+> --b.
 
-Thanks, applied.
+Per off-list communication with Bruce, this series has been applied to
+my tree.  Thanks.
+
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---5OOt16dfvhmRXhIc3n479WCNatjaGFjmC
+--aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -50,19 +49,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnqPFAAoJELgmozMOVy/d818QAMNI59hKApaDB9Kr8bhoMeKs
-gkkzHVo86rAVQPdbJzg6JMppK619UKwsNaitcj4EsqTF8lJT4cfsftf6aCmnqy/g
-zPmZR9DjgBWW8r5aeNIyGWI6ukse091P9LtodlS461QXpzASqynCdbiGELSfmkDG
-XK9RF8krxOi7/FHxlvAkNtKKpKBMwRxDXQVajeGnGKx6UD3QeNq70s5uTc87qL1R
-TUg23+3R4b0LOmxKWUpXNfllJYQFtgRDMK4Jt1AWrK3yRsHMS/6/49iTN5Equ7v/
-M53t5RX/0AH/YoRhSclrakzmZwbc/IQwD9az+IM3MxX89IbHbF7j05mCZy+8mZB7
-R+YZRs2Jk3n/ya9noZoC8+1pBcKFDD+NDbUYWjqKDYxjVUeKkPjNGd9GO3qHJde7
-qd+q/TfFBevsQAA+tS5naNY9uTJt3Q4E7EvCzj8DjBkKYs3upRqHSwk+izMnoD9v
-xWOa/18fS556P7lXftMYfeaEqRd/CvS9ud/QkGPvmfHlWORyXiTEswERV77XtFLJ
-HNW/KkE5pvL3x0GZoksRTGBthL3EUpRa9kYnU7RRTEMMVT84JO5NTqfKB5WSOJKK
-bWvoXDzUFWiTPRD6/AetAcuhDGEcQFw7YaIcnCvVQYlgIwhS+6JUXytmNtyb2KYb
-Rm+ft5pNDZMGM8KQ9Ib7
-=FE7S
+iQIcBAEBCAAGBQJWnqQXAAoJELgmozMOVy/dEykP/0D9Wi882VhDZGb1vGgaKID4
+sY+20wQlh3kk2UbhTtzUyFzD+Yx2+hd4ro67slVWJhBakNu3lnHUi8u159jzI1gw
+wKtvL26Tk28u8UjgMantB+BR3P4zIGuXZkjNNxeKp3+EYOJos3uaaqc+ATj01hGw
+tyLWz5tUoJjszvJ5A78/8YsNvoxthde/osox4+rtHiMSV7KhouQC6s4fEXkw2MKB
+NDB5Blk/Eec9A/gqMIkTfk/dhqzwNWsdtIGajlcBEPAvXubtKNUfVG4J9DNu0xN7
+Tc7wafu/HrtfVZHVdYQJ0/Y/i51YDFyVu44l2G082qhacMCB3B3Zw0Hpu/4KuvF0
+FIWDzgp7fRvUHBlVpiy5vtbPQi0Op0eEfUq00YJpUxcvB5PL0UFWd0FR00JlqEPR
+wriHkCYOS327ePc1ZFBtwKDzB344BHNgugUqrrCGbdYU0tussFuFP/HVvz4wGK9Y
+rQE6e8k+ympDcpMojLgPfcp1OhvyjimDKnuCjVyDX3ZAkwPUV8PTFviXSey21+i/
+QUEnwd2ckAIWPd+IM1RWw6cr+SHPRzFmi7OdwhuaoSN2Ok9O7n7j/It72gLYyWd3
+2nQSSpyLrM3vkEQ2Dyv1NUCPPTot19iqDrYs0H1ev7FSFQrR0RL8xtYzxddgmJmY
+GcRy49pJT80QBy3tKngU
+=bG5H
 -----END PGP SIGNATURE-----
 
---5OOt16dfvhmRXhIc3n479WCNatjaGFjmC--
+--aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
