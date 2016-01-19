@@ -1,38 +1,68 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 11/10] svc_rdma: use local_dma_lkey
-Date: Tue, 19 Jan 2016 16:01:11 -0500
-Message-ID: <569EA417.7060803@redhat.com>
-References: <20160107194251.2662.88158.stgit@klimt.1015granger.net>
- <20160108075341.GA24754@infradead.org> <20160108140204.GA27867@fieldses.org>
+Subject: Re: [PATCH] IB/mlx5: Fix passing casted pointer in
+ mlx5_query_port_roce
+Date: Tue, 19 Jan 2016 16:01:48 -0500
+Message-ID: <569EA43C.6050005@redhat.com>
+References: <1452337279-13593-1-git-send-email-leon@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K"
+ boundary="dVBGI4feAor20Gxt4osLVeJgJBsRHArn6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160108140204.GA27867-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1452337279-13593-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K
+--dVBGI4feAor20Gxt4osLVeJgJBsRHArn6
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/08/2016 09:02 AM, J. Bruce Fields wrote:
-> On Thu, Jan 07, 2016 at 11:53:41PM -0800, Christoph Hellwig wrote:
->> We now alwasy have a per-PD local_dma_lkey available.  Make use of tha=
-t
->> fact in svc_rdma and stop registering our own MR.
+On 01/09/2016 06:01 AM, Leon Romanovsky wrote:
+> Fix static checker warning:
+>         drivers/infiniband/hw/mlx5/main.c:149 mlx5_query_port_roce()
+>         warn: passing casted pointer '&props->qkey_viol_cntr' to
+> 	'mlx5_query_nic_vport_qkey_viol_cntr()' 32 vs 16.
 >=20
-> Acked-by: J. Bruce Fields <bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Fixes: 3f89a643eb29 ("IB/mlx5: Extend query_device/port to support RoCE=
+")
+> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 >=20
-> --b.
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/=
+mlx5/main.c
+> index 5e3d3ae..890cf20 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -132,6 +132,7 @@ static int mlx5_query_port_roce(struct ib_device *d=
+evice, u8 port_num,
+>  	struct mlx5_ib_dev *dev =3D to_mdev(device);
+>  	struct net_device *ndev;
+>  	enum ib_mtu ndev_ib_mtu;
+> +	u16 qkey_viol_cntr;
+> =20
+>  	memset(props, 0, sizeof(*props));
+> =20
+> @@ -146,8 +147,8 @@ static int mlx5_query_port_roce(struct ib_device *d=
+evice, u8 port_num,
+>  	props->state            =3D IB_PORT_DOWN;
+>  	props->phys_state       =3D 3;
+> =20
+> -	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev,
+> -					    (u16 *)&props->qkey_viol_cntr);
+> +	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev, &qkey_viol_cntr);
+> +	props->qkey_viol_cntr =3D qkey_viol_cntr;
+> =20
+>  	ndev =3D mlx5_ib_get_netdev(device, port_num);
+>  	if (!ndev)
+>=20
 
-Per off-list communication with Bruce, this series has been applied to
-my tree.  Thanks.
-
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -40,7 +70,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K
+--dVBGI4feAor20Gxt4osLVeJgJBsRHArn6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -49,22 +79,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnqQXAAoJELgmozMOVy/dEykP/0D9Wi882VhDZGb1vGgaKID4
-sY+20wQlh3kk2UbhTtzUyFzD+Yx2+hd4ro67slVWJhBakNu3lnHUi8u159jzI1gw
-wKtvL26Tk28u8UjgMantB+BR3P4zIGuXZkjNNxeKp3+EYOJos3uaaqc+ATj01hGw
-tyLWz5tUoJjszvJ5A78/8YsNvoxthde/osox4+rtHiMSV7KhouQC6s4fEXkw2MKB
-NDB5Blk/Eec9A/gqMIkTfk/dhqzwNWsdtIGajlcBEPAvXubtKNUfVG4J9DNu0xN7
-Tc7wafu/HrtfVZHVdYQJ0/Y/i51YDFyVu44l2G082qhacMCB3B3Zw0Hpu/4KuvF0
-FIWDzgp7fRvUHBlVpiy5vtbPQi0Op0eEfUq00YJpUxcvB5PL0UFWd0FR00JlqEPR
-wriHkCYOS327ePc1ZFBtwKDzB344BHNgugUqrrCGbdYU0tussFuFP/HVvz4wGK9Y
-rQE6e8k+ympDcpMojLgPfcp1OhvyjimDKnuCjVyDX3ZAkwPUV8PTFviXSey21+i/
-QUEnwd2ckAIWPd+IM1RWw6cr+SHPRzFmi7OdwhuaoSN2Ok9O7n7j/It72gLYyWd3
-2nQSSpyLrM3vkEQ2Dyv1NUCPPTot19iqDrYs0H1ev7FSFQrR0RL8xtYzxddgmJmY
-GcRy49pJT80QBy3tKngU
-=bG5H
+iQIcBAEBCAAGBQJWnqQ8AAoJELgmozMOVy/dVroP/jERnr838NixM4msdETrYZnB
+ibrJbV+sNlWhdIkTsIu6LBCVwbFPemgWnz7THiQhw6399YXbZzJ90S1QXI/0SS5h
+atdRWV3+IMj0FBIWe4rGInCNwFkD/jr/bX3pfVv+pS+mpjmCgZbn/ATUFHgnQuaO
+ziZS0GKP1QpdAAEoWCeaU5wac/NFw2H5uz57o9952HbrsSjToCJX6ukrW0wD8Sqo
+MvlOmKhl1lTgxiQMB5qElialfwizFCWtzW6lUmpwd6lXyB2dKDzln0fkROeLNb0O
+dPy5q8fbUKYLG7T8WXnvYes1Xl7GmMgnLDq7QmQB8hR0J9iwEYpCkB2eifvP2xXO
+5NF2sWIQWfj5o6Y26GhCu4JF0meiPeYJzuXadm3B+d+GpHcLiUClOpPRmf0Nk68N
+/kbvwBtQyrP4bGybbjuT7135MdlnAL4/Gc2h3sIBHeUbcppptXW3Rcu0k0t/XZvp
+3dhHTz3hMr/LDWWZr2AJOsIxDCeIF1SVpFwoVO9HOG8k4Eb2k6zbfP0q2xLYhX+2
+i+fizR7kx4tk3B4k3Wwiz6SxRNvOTnhvkhSwCsH8dec2c+kuGCaM3oWhif54JWzT
+MqEEeUZAjuQbtGZsbG7T+7uUmqHimwh/9coqyujtZr7ieLuUbP6yMycPwsSLiEn2
+gMmLCa5XqLk2/N3pIuPF
+=btsx
 -----END PGP SIGNATURE-----
 
---aHGgVN5ixoCplskJQmIPlRGNxUQA89D4K--
+--dVBGI4feAor20Gxt4osLVeJgJBsRHArn6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
