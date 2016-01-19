@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/6] IB/rdmavt: Remove unused variable from Queue Pair
-Date: Tue, 19 Jan 2016 14:27:41 -0800
-Message-ID: <20160119222741.27985.47397.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/6] IB/rdmavt: add modify queue pair driver helpers
+Date: Tue, 19 Jan 2016 14:27:47 -0800
+Message-ID: <20160119222746.27985.99431.stgit@scvm10.sc.intel.com>
 References: <20160119222314.27985.81482.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,27 +15,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-s_sde should be in the low level driver QP private data.
-
-Remove the definition from rvt_qp.
+Low level drivers need to be able to check incoming attributes as well as be
+able to adjust their private data on queue pair modification.  Add 2 driver
+callbacks, check_modify_qp and modify_qp, to facilitate this.
 
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/rdmavt_qp.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |    7 +++++++
+ include/rdma/rdma_vt.h            |    7 +++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index a97b95b..f0e2426 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -304,7 +304,6 @@ struct rvt_qp {
- 	struct rvt_swqe *s_wqe;
- 	struct rvt_sge_state s_sge;     /* current send request data */
- 	struct rvt_mregion *s_rdma_mr;
--	struct sdma_engine *s_sde; /* current sde */
- 	u32 s_cur_size;         /* size of send packet in bytes */
- 	u32 s_len;              /* total length of s_sge */
- 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 6b76cf2..e340c1a 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -940,6 +940,10 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 				attr_mask, link))
+ 		goto inval;
+ 
++	if (rdi->driver_f.check_modify_qp &&
++	    rdi->driver_f.check_modify_qp(qp, attr, attr_mask, udata))
++		goto inval;
++
+ 	if (attr_mask & IB_QP_AV) {
+ 		if (attr->ah_attr.dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 			goto inval;
+@@ -1136,6 +1140,9 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	if (attr_mask & IB_QP_MAX_QP_RD_ATOMIC)
+ 		qp->s_max_rd_atomic = attr->max_rd_atomic;
+ 
++	if (rdi->driver_f.modify_qp)
++		rdi->driver_f.modify_qp(qp, attr, attr_mask, udata);
++
+ 	spin_unlock(&qp->s_lock);
+ 	spin_unlock_irq(&qp->r_lock);
+ 
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 1ad902d..2940337 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -255,6 +255,13 @@ struct rvt_driver_provided {
+ 			      struct rvt_ah *);
+ 	int (*alloc_qpn)(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
+ 			 enum ib_qp_type type, u8 port);
++	/**
++	 * Return 0 if modification is valid, -errno otherwise
++	 */
++	int (*check_modify_qp)(struct rvt_qp *qp, struct ib_qp_attr *attr,
++			       int attr_mask, struct ib_udata *udata);
++	void (*modify_qp)(struct rvt_qp *qp, struct ib_qp_attr *attr,
++			  int attr_mask, struct ib_udata *udata);
+ };
+ 
+ struct rvt_dev_info {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
