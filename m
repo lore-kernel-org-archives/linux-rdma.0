@@ -1,47 +1,40 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: fix mcast detach when qp not attached
-Date: Tue, 19 Jan 2016 13:10:22 -0500
-Message-ID: <569E7C0E.7070608@redhat.com>
-References: <20160107214410.12728.82007.stgit@phlsvslse11.ph.intel.com>
- <32E1700B9017364D9B60AED9960492BC259E6FE0@fmsmsx120.amr.corp.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [patch] staging: rdma: shift wrapping bug in c2_get_dma_mr()
+Date: Tue, 19 Jan 2016 13:13:34 -0500
+Message-ID: <569E7CCE.5020709@redhat.com>
+References: <20160108114936.GA3802@mwanda> <20160108132932.GA5658@lst.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="KVShfNmQBulro5S4oFSJBE6tNPGnQh5hA"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC259E6FE0-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ boundary="x5hcpMXkninCGO4SrscS5gBTUGnCLOJd6"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20160108132932.GA5658@lst.de>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Steve Wise <swise@opengridcomputing.com>, Amitoj Kaur Chawla <amitoj1606@gmail.com>, Matan Barak <matanb@mellanox.com>, Geliang Tang <geliangtang@163.com>, linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---KVShfNmQBulro5S4oFSJBE6tNPGnQh5hA
-Content-Type: text/plain; charset=utf-8
+--x5hcpMXkninCGO4SrscS5gBTUGnCLOJd6
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/07/2016 04:48 PM, Marciniszyn, Mike wrote:
->> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
->> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Reported-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 01/08/2016 08:29 AM, Christoph Hellwig wrote:
+> Looks fine.
 >=20
-> Doug,
+> Doug: what's the status of the staged out drivers?  I thought we were
+> going to delete them for 4.5?
 >=20
-> We are blending this into the rdmvat for hfi1, but I wanted the fix for=
- qib to precede qib's use of the common multicast code to allow stable ba=
-ckport from the older code base.
 
-Makes sense.  Applied.
-
+I am.  They will be going away shortly.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---KVShfNmQBulro5S4oFSJBE6tNPGnQh5hA
+--x5hcpMXkninCGO4SrscS5gBTUGnCLOJd6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -50,23 +43,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnnwOAAoJELgmozMOVy/dg1UP/RjdOZ9wPhT+ZHRnDa1i+q3V
-o63Rkh0FqVWDcUXmfxOZ6GjbE1FBn/1DIOxgoLJeRnBe4KxSkJlhVOYtyz7v4FOq
-0qpERVZS3m9Vv4JeW450KOEHvIFoqL5pZ+T1LAZ+J5rCAMiePl/4EfueN9L8bl6g
-hITXOASrdrmGFcsnVr5mIVoCggnoEhpq0XV7sxt3eU44vJUkdZKI2fDLoUlCyS2Y
-zMY2qTwB7tXhTMmKRbnxJPrlovhPpP3aS8EBS9XnpoNRGlYfaWW7axu4RWWfPkO7
-POufPr8MDj5sM+FcUw1IEcm3opTFSCLq7yz4UEu0AAyZtay7twTmqyeiaKvonb6h
-AYgOFAOxqYGaUbmfWZmKQTRiNx1nCkitaOM/sfxISbcEpoKXHDuLt/AWFRqxofWl
-QhbW998EjrNUKXUe9udac9PY7B4/WcHbW+Zk+HPwkOjIEBQAzOfjZ5XFacgdnqKX
-Xuoj0SXbFRgr9JaWq/rGVeGZNhIIJ7mFTg1v7kmjVNo96+eJwQWMWh9Zhhp6VTq+
-HGqGhbXH6wJyi7AlmUwK/8MK0tvOPyMZhL6WPvb7wpRrWJIGwau90j5NO6B2p93u
-WEzK3vBKj43IGG/Lo0BMnyCuyx17QicgAJrBoBMPMUPpUoG3Ftdr1aBGpwevoOF1
-0sw0ei7RRMMaukvHbbu1
-=fFud
+iQIcBAEBCAAGBQJWnnzOAAoJELgmozMOVy/dUDIQAIjPXIqa3TIaGe8vyUKqZOK7
+AMVo5udwIBRYpTdSskD/ey/OOlnY9NIsP6SwW0y2bMRvm2fiV0xBxj7Lg043najH
+hbIxEWx2ySRNGgZgHKwDdQpdfZSRgBoiG62JhpEyayUXbT4++E8T3cLLbHf+5wAR
+gMWvsAh4vbrkGXIKeQ/x4I1+Y/Gfnh/raJawDNqsu+yVfh8GbPJksSReqf7O2fWc
+aT8WxJZCfuSO4orRUFKSGY+SpXErS+nUDnR0uGd94fNzu+j503YSVxXb0p0dCDSG
+We3Wml7wAIkkwfsn1RoPWcB4GELf+yrzNiRydQMAxAbRGyCKtagx1FZoy1fyLuyL
+QbI1MaD8HxzyRQTk7S4+0abAYjU8MxPve7cBybXRGnxxIF0pqpqFTSLe1p7P/lXg
+htPsSYHaTaNdPc3AbiOvFkDIxHXbg65rHkFtLW3KwUYDnaNO5x80Cld6WZcIoCMT
+I3IgfI0jA65oJokKfVgt/N/PwGRoX1I/ScZ+I8uN7xO27HxSnpKN1zjcF78WkWDC
+OxCAdgh8a8OiyttnhNzTEqQ1XYiU1+JlKmgMqn/N8+Y7+VpoczujFiPctUxNBbcO
+/d/dN1nlk516SS6EFLEIR9d4u54BZcqJq9DTlS+kvM+DwInsyIwZ8cW9/anTVkRc
+79vGbEHHg0OVVXE6pY9Z
+=FUMX
 -----END PGP SIGNATURE-----
 
---KVShfNmQBulro5S4oFSJBE6tNPGnQh5hA--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--x5hcpMXkninCGO4SrscS5gBTUGnCLOJd6--
