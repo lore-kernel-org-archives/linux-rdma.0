@@ -1,62 +1,63 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling
-Date: Tue, 19 Jan 2016 16:21:14 -0500
-Message-ID: <569EA8CA.3030304@redhat.com>
-References: <568263DF.6020505@dev.mellanox.co.il>
- <56827AB7.50508@mellanox.com> <568280BE.8030005@dev.mellanox.co.il>
- <569EA8B2.80607@redhat.com>
+Subject: Re: [PATCH] IB/srpt: Remove redundant wc array
+Date: Tue, 19 Jan 2016 16:46:33 -0500
+Message-ID: <569EAEB9.2050603@redhat.com>
+References: <1452597590-17850-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="hKFhXahgQFvsGfqMrPu0g0Jx0KNbKpWd1"
+ boundary="SIMovlx14PuPhpiIX4xvRpERfs8TWqIF5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <569EA8B2.80607-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1452597590-17850-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hKFhXahgQFvsGfqMrPu0g0Jx0KNbKpWd1
-Content-Type: text/plain; charset=utf-8
+--SIMovlx14PuPhpiIX4xvRpERfs8TWqIF5
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/19/2016 04:20 PM, Doug Ledford wrote:
-> On 12/29/2015 07:46 AM, Hal Rosenstock wrote:
->> On 12/29/2015 7:21 AM, Or Gerlitz wrote:
->>> On 12/29/2015 12:43 PM, Hal Rosenstock wrote:
->>>> This handles issue pointed out by Matan Barak <matanb-LDSdmyG8hGXFtvusC2JeyQ@public.gmane.org=
-o.il>
->>>>
->>>> Fixes: 145d9c541032 ('IB/core: Display extended counter set if
->>>> available')
->>>>
->>>> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> again, remove the blank line after the fixes tag.
->>>
->>> Also,  I am not that the way Doug is setting the branch for pull woul=
-d
->>> preserve commit IDs when
->>> the offending patch landed in Linus tree. If this is the case, we sho=
-uld
->>> put your patch in 2nd pull
->>> request and have the right commit ID there. Please check with Doug.
->>
->> Doug ?
->>
+On 01/12/2016 06:19 AM, Sagi Grimberg wrote:
+> No usage after the conversion to the new CQ API.
 >=20
-> The commit id should be preserved as long as the commit ID you referenc=
-e
-> is from my k.o tree and a k.o/ branch.  It only changes if I rebase, an=
-d
-> I don't do that on k.o branches that I've pushed to k.o (I have,
-> however, once rebased a k.o/ branch that I had only pushed to
-> github...and I try not to do that and will try even harder in the futur=
-e
-> not to, but I did do it once).
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> This can go as is or be folded to Christoph's srpt patch,
+> whatever works best.
+>=20
+>  drivers/infiniband/ulp/srpt/ib_srpt.h |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband=
+/ulp/srpt/ib_srpt.h
+> index ff8b907..247c807 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.h
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+> @@ -254,7 +254,6 @@ enum rdma_ch_state {
+>   * @free_list:     Head of list with free send I/O contexts.
+>   * @state:         channel state. See also enum rdma_ch_state.
+>   * @ioctx_ring:    Send ring.
+> - * @wc:            IB work completion array for srpt_process_completio=
+n().
+>   * @list:          Node for insertion in the srpt_device.rch_list list=
+=2E
+>   * @cmd_wait_list: List of SCSI commands that arrived before the RTU e=
+vent. This
+>   *                 list contains struct srpt_ioctx elements and is pro=
+tected
+> @@ -281,7 +280,6 @@ struct srpt_rdma_ch {
+>  	struct list_head	free_list;
+>  	enum rdma_ch_state	state;
+>  	struct srpt_send_ioctx	**ioctx_ring;
+> -	struct ib_wc		wc[16];
+>  	struct list_head	list;
+>  	struct list_head	cmd_wait_list;
+>  	struct se_session	*sess;
 >=20
 
-Oh, and I picked this up.  Thanks.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -64,7 +65,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---hKFhXahgQFvsGfqMrPu0g0Jx0KNbKpWd1
+--SIMovlx14PuPhpiIX4xvRpERfs8TWqIF5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnqjKAAoJELgmozMOVy/dJh0P/RQNvWx79sU6QLzgOCU2KRpV
-CTccE3lHx0y9ZkuiVMDW8SmnPg+j6WNoJ1w1ntLEq2LIA0kVlw00bFNYEBrTGhWG
-pmyyi7bduxqQBQTMUzdHC+D/Q3VB4iR+5JR9VdN1xHnyTRjvZ1u6RX+aMJfkfR3H
-fbmIU8lbdkKHyOqvPYM8KbrCO7v3NCZe2O1w8oygTxnBxDrJJa4ZJ7JqZJN7xqi7
-b/ab9nLGETQR8OLY48jh6QXCRmbS+itEq6oCAb7AuXs6REBWzMns5y44SybqkCSL
-CffmhaBUmP1VCrCrOsd7zLj/H2lOqXLdrI9dNC+rF8AQL1r6bLKTs4XUbSfkZCsp
-F9ig9VWM8SPMv44v2Gd7UgU8G1iyGveFTh86ylG94fsKN88LusFBK2jGordAAy/0
-f3vkDZr1GlAexDIqjqxPuPQ8u0gXg/q/XGDPoroN/Q9a7kwpUTPYj+rAXKlddd8y
-ws9Lib1n8NwcRMMAV2O25+2b7qsQB2eDoSTwIReZ6LFu4S3a/dyuftC7L++n5+9n
-SsCe7AANXPIUP2JcVlso5SDKv8a+cf/1hXcpYtVxNC4FK2VxMUFRAhOZWvjEoHqJ
-hMz9Z0CkMGAm9obwn9daToj1ht8PAnVVFu+qW8BK1OoqXhWQ/HpSSW9pUQqZVmfs
-sMcrTZVCafNg35FQfMov
-=q91P
+iQIcBAEBCAAGBQJWnq65AAoJELgmozMOVy/dEHYQAKG2eFOV0d2J4weOLpYARiUv
+PEthzMXjm53swaaQ0egM6VURXxA/i4BcCj7SQQX9WCo1H7DmCyTdYIVJKW5rTEVo
+oP5+2BMnULPauKOHsTZlX7pj3FBw5/l/YDrw/o3wySA/5aHK81MmpE/CUatkTHsU
+DJtko6CFaX29V0WFyDfYuqbB0tj44IkH1wdJ5DRpKJ8iwf+HPqfOOpddothw+lq+
+ZaWLanxxGvZbRgl0AvK49m6sRZhif9LD35ZGEfExm/MOMz+fYO41CnofTVjRwQj1
+IFKSyUHSnoOBtRtaHw+XRILXtJekCsrTnL8Zl/GMXFhpnFLxn8qjvvrNiAS2aLZW
+s46QDcdFXir+DU611y8uN0PA5yjJsq870gWAx12t5kY+Pfo6r62M6RVJ2So4eLVw
+WhvjX/sbB+UIUrVKzZ58ZnbLirnDnmTL7jzg1TNSUPYEwQkZbDypk3V51yTedZ/d
+qUWT4wlIW0Me0ULvBm8rgGaRtn1zPI88yibuQ/mQP/rkNWIKqoSvr2uWnwPTf5Pf
+iUfjtFpxAwgRDWMoTgF3Tee+ZtUek3BzOdA9DRWxn/fxOUTEojJ9KJLfTEY+/S0Y
+oyaqXs0LjaS2e45/Wl7zVCQf8ULevZ5K4I9g7F8ulAiFWik+aTvXfC2naj8IdYK1
+vMUDyYvtNdjeRli1GZKX
+=6yxc
 -----END PGP SIGNATURE-----
 
---hKFhXahgQFvsGfqMrPu0g0Jx0KNbKpWd1--
+--SIMovlx14PuPhpiIX4xvRpERfs8TWqIF5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
