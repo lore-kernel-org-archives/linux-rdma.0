@@ -1,83 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv3 for-4.5 0/2] iw_cxgb4: Fixes static checker warnings
-Date: Tue, 19 Jan 2016 15:53:23 -0500
-Message-ID: <569EA243.3000902@redhat.com>
-References: <1452596602-9952-1-git-send-email-hariprasad@chelsio.com>
- <004701d14e10$969fe6c0$c3dfb440$@opengridcomputing.com>
+Subject: Re: [PATCH for-4.5] iw_cxgb4: Take clip reference first, before
+ creating IPv6 listening servers
+Date: Tue, 19 Jan 2016 15:54:20 -0500
+Message-ID: <569EA27C.7050900@redhat.com>
+References: <1452659594-7875-1-git-send-email-hariprasad@chelsio.com>
+ <006501d14e11$0b5315a0$21f940e0$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="9kGlpPkt3DD1aVBVLv4glvuCH9aTggBlQ"
+ boundary="W76dAhICWtwgC8pK2TViFb0XHQTaEVB0c"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <004701d14e10$969fe6c0$c3dfb440$@opengridcomputing.com>
+In-Reply-To: <006501d14e11$0b5315a0$21f940e0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Hariprasad Shenai' <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: leedom-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---9kGlpPkt3DD1aVBVLv4glvuCH9aTggBlQ
+--W76dAhICWtwgC8pK2TViFb0XHQTaEVB0c
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/13/2016 09:42 AM, Steve Wise wrote:
+On 01/13/2016 09:45 AM, Steve Wise wrote:
+>=20
+>=20
+>> -----Original Message-----
 >> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.k=
 ernel.org] On Behalf Of Hariprasad Shenai
->> Sent: Tuesday, January 12, 2016 5:03 AM
+>> Sent: Tuesday, January 12, 2016 10:33 PM
 >> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 >> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; leedom@chelsio.c=
 om; nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; Hariprasad Shenai
->> Subject: [PATCHv3 for-4.5 0/2] iw_cxgb4: Fixes static checker warnings=
-
+>> Subject: [PATCH for-4.5] iw_cxgb4: Take clip reference first, before c=
+reating IPv6 listening servers
 >>
->> Hi,
+>> The h/w is designed in such a way that, if you do anything IPv6
+>> related, a valid clip entry must be there. So take clip reference
+>> before creating IPv6 listening servers, and then if we fail to
+>> create server, release the clip entry.
 >>
->> This series fixes static checker warning's and fixes GW-Basic name lab=
-els
->> to meaningful ones.
->>
->> This patch series has been created against Doug's linux tree and inclu=
-des
->> patches on iw_cxgb4 driver.
->>
->> We have included all the maintainers of respective drivers. Kindly rev=
-iew
->> the change and let us know in case of any review comments.
->>
->> Thanks
->>
->> V3: Add the 'Fixes:' tag with the first 12 characters of the SHA-1 ID,=
- and
->>     the one line summary for Patch 1/2
->>
->> V2: Dropped an error message in Patch 1/2 ("iw_cxgb4: Fixes static che=
-cker
->>     warning in c4iw_rdev_open()"), and updated commit message to be
->>     consistent. Based on review comments by Leon Romanovsky <leon@leon=
-=2Enu
->>
->> Hariprasad Shenai (2):
->>   iw_cxgb4: Fixes static checker warning in c4iw_rdev_open()
->>   iw_cxgb4: Fixes GW-Basic labels to meaningful error names
->>
->>  drivers/infiniband/hw/cxgb4/device.c | 53 ++++++++++++++-------------=
----------
->>  1 file changed, 21 insertions(+), 32 deletions(-)
->>
->> --
->> 2.3.4
->>
->=20
->=20
-> Series looks ok.
+>> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> ---
 >=20
 > Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 >=20
->=20
->=20
 
-
-Series applied, thanks.
+I shortened the git log subject a bit, but otherwise, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -85,7 +53,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---9kGlpPkt3DD1aVBVLv4glvuCH9aTggBlQ
+--W76dAhICWtwgC8pK2TViFb0XHQTaEVB0c
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -94,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnqJDAAoJELgmozMOVy/dWyQP/j85bobhX0tTNslZ0pOUcby1
-Qha3C74qXJzzmavkBp12A33FWO1wYPTU/1OLlfBmXysdOeGIed11ComGYUve6hQK
-YWjg+OFwTgE4UbbWZ6PgM1LgdvmO14ojYdqWZLh4hpq3LkfmTuGvTrnV03WdXQ9m
-VaqpxXn/sQKis3xbrjox6JBkvpGxCyMDX4vvKomIuwwiYQSPaf8oryWHfyza3eyN
-U5MK7AnWgUHCg71ML1TlysiqtS8L7oVvOB+8ih3153XB3xXRiW50DMQrWgfeUV8Z
-9ipcPo5fiZrrYYktEsW7nb+54qrGx3Sc3P3Lv2hGRSdoRFyj/oKcX9LRQ2t+3/JH
-3MBdTd6L2yZosDv9mvENcEY0Z/YJOuhJly6LMcw4c1hUay6N5w4VyD/vDPsg/dMk
-OTz9R4dUF8RToWkXv6nNJCZ4/UvYmGD6neNMtvJabcXFygKKG3kifu08tCCY8YkF
-0PZGoNooMpo2YPQAYzdDi1sMmMlEPuuFF0boRhhvtBYqsSxVSonRD8gEvrzS0G6/
-/7lfc90p+3V557rFbvK83HVbiG7oEt8+Y0GarJ0VKvqwJhmIDTytTxE8edlMcbP/
-HipAID4ESsvS7FIXr9YWAPK2vXaHpqZz31ypwWfyYHnF279M2q5crU6r4Uo7JAPK
-XwUJ62569AKCTIanqyPF
-=nVWf
+iQIcBAEBCAAGBQJWnqJ8AAoJELgmozMOVy/dw44P/20Dzw4ntzBJhTp5BB1l2NUI
+mp+n+YAOrC+bz2kP6hyUB2lqPbkdwbGjPyFdrVQGpcCGB0F21zKBtRnZL/yOfyAC
+QfC1Vcqz4tsqaTvqlidI+wdmSMFGL7SQUiKwN+eduaAVK/XV6DOs3OfaypX31qn/
+L1oTdYCyLZPpE9Jm8z7UpjZVoLVyd9DteWIL84K8o2dMzJkPxk9d9CC1ux1FNUFB
+TdbxOoscwd1jRh6IK3RiV0y1E5pcGpx0d1LAnK471qWWARfdBEE5dpqpGCuy2AFs
+hfRYPT3MCIXcM7XCUogpzI2hdZZG7weJ7LjODfHBYGG7+VqagqfwoaCbDTpfgoIm
+JiCMaBMCvJPcnkAd2j28gRsh60ywWtoC4IXkq11T2LHk26jKWfbnrey4UIscrmKB
+M1rKrGoNSh4QcUjcBZewwnpytXgLLsfa4Y6KGDpjny8C8VcUfpfwGholrZ7ui3wa
+cifZRZna/UU7K42EgILoAeIrZQ4fD6aGZ75GlbS4or0QGmT9PIkBHLswXJeFhMLj
+vE9s7BdqpBzmxymzhRNd1x61HsayQuZrMpfAPCE4coolruugP0BDsiDm8cFWMkii
+y97lZVsEiCfS9nyDf0hx6j7Q+fklkzbSNUKAhaBwDrdZesj+d4VE3y1xdm0tgq42
+nVUkfA1n3/V0wlZK82ZQ
+=qt20
 -----END PGP SIGNATURE-----
 
---9kGlpPkt3DD1aVBVLv4glvuCH9aTggBlQ--
+--W76dAhICWtwgC8pK2TViFb0XHQTaEVB0c--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
