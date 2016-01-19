@@ -1,68 +1,42 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/6] IB/rdmavt: clean ups, mad agents and query_qp
-Date: Tue, 19 Jan 2016 14:27:35 -0800
-Message-ID: <20160119222314.27985.81482.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 1/6] IB/rdmavt: Remove unused variable from Queue Pair
+Date: Tue, 19 Jan 2016 14:27:41 -0800
+Message-ID: <20160119222741.27985.47397.stgit@scvm10.sc.intel.com>
+References: <20160119222314.27985.81482.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160119222314.27985.81482.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add some minor clean ups as well as the mad agents and query queue pair to
-rdmavt.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch set should apply on a merged tree of Doug's kernel.org for 4.5 branch
-and the current head of Linus' tree.
+s_sde should be in the low level driver QP private data.
 
+Remove the definition from rvt_qp.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ include/rdma/rdmavt_qp.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Dennis Dalessandro (3):
-      IB/rdmavt: Add device structure allocation
-      IB/rdmavt: Add mad agents to rdmavt
-      IB/rdmavt: Fix copyright date
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index a97b95b..f0e2426 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -304,7 +304,6 @@ struct rvt_qp {
+ 	struct rvt_swqe *s_wqe;
+ 	struct rvt_sge_state s_sge;     /* current send request data */
+ 	struct rvt_mregion *s_rdma_mr;
+-	struct sdma_engine *s_sde; /* current sde */
+ 	u32 s_cur_size;         /* size of send packet in bytes */
+ 	u32 s_len;              /* total length of s_sge */
+ 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
 
-Harish Chegondi (1):
-      IB/rdmavt: Add support for rvt_query_qp
-
-Ira Weiny (2):
-      IB/rdmavt: Remove unused variable from Queue Pair
-      IB/rdmavt: add modify queue pair driver helpers
-
-
- drivers/infiniband/sw/rdmavt/ah.c    |    2 -
- drivers/infiniband/sw/rdmavt/ah.h    |    2 -
- drivers/infiniband/sw/rdmavt/cq.c    |    2 -
- drivers/infiniband/sw/rdmavt/cq.h    |    2 -
- drivers/infiniband/sw/rdmavt/dma.c   |    2 -
- drivers/infiniband/sw/rdmavt/dma.h   |    2 -
- drivers/infiniband/sw/rdmavt/mad.c   |   74 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mad.h   |    5 +-
- drivers/infiniband/sw/rdmavt/mcast.c |    2 -
- drivers/infiniband/sw/rdmavt/mcast.h |    2 -
- drivers/infiniband/sw/rdmavt/mmap.c  |    2 -
- drivers/infiniband/sw/rdmavt/mmap.h  |    2 -
- drivers/infiniband/sw/rdmavt/mr.c    |    2 -
- drivers/infiniband/sw/rdmavt/mr.h    |    2 -
- drivers/infiniband/sw/rdmavt/pd.c    |    2 -
- drivers/infiniband/sw/rdmavt/pd.h    |    2 -
- drivers/infiniband/sw/rdmavt/qp.c    |   56 +++++++++++++++++++++++++-
- drivers/infiniband/sw/rdmavt/qp.h    |    2 -
- drivers/infiniband/sw/rdmavt/srq.c   |    2 -
- drivers/infiniband/sw/rdmavt/srq.h   |    2 -
- drivers/infiniband/sw/rdmavt/trace.c |    2 -
- drivers/infiniband/sw/rdmavt/trace.h |    2 -
- drivers/infiniband/sw/rdmavt/vt.c    |   36 +++++++++++------
- drivers/infiniband/sw/rdmavt/vt.h    |    3 +
- include/rdma/rdma_vt.h               |   16 ++++++-
- include/rdma/rdmavt_mr.h             |    2 -
- include/rdma/rdmavt_qp.h             |    3 -
- 27 files changed, 190 insertions(+), 43 deletions(-)
-
--- 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
