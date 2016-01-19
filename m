@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 01/31] staging/rdma/hfi1: Begin to use rdmavt for verbs
-Date: Tue, 19 Jan 2016 14:41:33 -0800
-Message-ID: <20160119224133.32765.54910.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 04/31] staging/rdma/hfi1: Use rdmavt protection domain
+Date: Tue, 19 Jan 2016 14:41:50 -0800
+Message-ID: <20160119224149.32765.48985.stgit@scvm10.sc.intel.com>
 References: <20160119223610.32765.10571.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,337 +13,232 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch begins to make use of rdmavt by registering with it and
-providing access to the header files. This is just the beginning of
-rdmavt support in hfi1.
+Remove protection domain from hfi1 and use rdmavt's version.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Kconfig |    2 +-
- drivers/staging/rdma/hfi1/chip.c  |    2 +-
- drivers/staging/rdma/hfi1/diag.c  |    2 +-
- drivers/staging/rdma/hfi1/hfi.h   |    3 +--
- drivers/staging/rdma/hfi1/init.c  |    5 +++--
- drivers/staging/rdma/hfi1/intr.c  |    2 +-
- drivers/staging/rdma/hfi1/mad.c   |    5 +++--
- drivers/staging/rdma/hfi1/qp.c    |    4 ++--
- drivers/staging/rdma/hfi1/sysfs.c |   18 +++++++++---------
- drivers/staging/rdma/hfi1/verbs.c |   15 ++++++++++-----
- drivers/staging/rdma/hfi1/verbs.h |    8 ++++++--
- 11 files changed, 38 insertions(+), 28 deletions(-)
+ drivers/staging/rdma/hfi1/keys.c  |    4 +-
+ drivers/staging/rdma/hfi1/mr.c    |    2 +
+ drivers/staging/rdma/hfi1/ruc.c   |    4 +-
+ drivers/staging/rdma/hfi1/verbs.c |   67 +++----------------------------------
+ drivers/staging/rdma/hfi1/verbs.h |   15 +-------
+ 5 files changed, 12 insertions(+), 80 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma/hfi1/Kconfig
-index bd0249b..846c240 100644
---- a/drivers/staging/rdma/hfi1/Kconfig
-+++ b/drivers/staging/rdma/hfi1/Kconfig
-@@ -1,6 +1,6 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
--	depends on X86_64
-+	depends on X86_64 && INFINIBAND_RDMAVT
- 	select MMU_NOTIFIER
- 	default m
- 	---help---
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 63d5d71..da2718f 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9925,7 +9925,7 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
- 			sdma_all_running(dd);
- 
- 			/* Signal the IB layer that the port has went active */
--			event.device = &dd->verbs_dev.ibdev;
-+			event.device = &dd->verbs_dev.rdi.ibdev;
- 			event.element.port_num = ppd->port;
- 			event.event = IB_EVENT_PORT_ACTIVE;
- 		}
-diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index 0c88317..fbe9b15 100644
---- a/drivers/staging/rdma/hfi1/diag.c
-+++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -860,7 +860,7 @@ static ssize_t hfi1_snoop_write(struct file *fp, const char __user *data,
- 			vl = sc4;
- 		} else {
- 			sl = (byte_two >> 4) & 0xf;
--			ibp = to_iport(&dd->verbs_dev.ibdev, 1);
-+			ibp = to_iport(&dd->verbs_dev.rdi.ibdev, 1);
- 			sc5 = ibp->sl_to_sc[sl];
- 			vl = sc_to_vlt(dd, sc5);
- 			if (vl != sc4) {
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 23d7e02..dbea286 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -65,8 +65,7 @@
- #include <linux/cdev.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
--#include <linux/mmu_notifier.h>
--#include <linux/rbtree.h>
-+#include <rdma/rdma_vt.h>
- 
- #include "chip_registers.h"
- #include "common.h"
-diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
-index 27b31fc..b4076b2 100644
---- a/drivers/staging/rdma/hfi1/init.c
-+++ b/drivers/staging/rdma/hfi1/init.c
-@@ -56,6 +56,7 @@
- #include <linux/module.h>
- #include <linux/printk.h>
- #include <linux/hrtimer.h>
-+#include <rdma/rdma_vt.h>
- 
- #include "hfi.h"
- #include "device.h"
-@@ -983,7 +984,7 @@ void hfi1_free_devdata(struct hfi1_devdata *dd)
- 	rcu_barrier(); /* wait for rcu callbacks to complete */
- 	free_percpu(dd->int_counter);
- 	free_percpu(dd->rcv_limit);
--	ib_dealloc_device(&dd->verbs_dev.ibdev);
-+	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
- }
- 
- /*
-@@ -1079,7 +1080,7 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
- bail:
- 	if (!list_empty(&dd->list))
- 		list_del_init(&dd->list);
--	ib_dealloc_device(&dd->verbs_dev.ibdev);
-+	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
- 	return ERR_PTR(ret);
- }
- 
-diff --git a/drivers/staging/rdma/hfi1/intr.c b/drivers/staging/rdma/hfi1/intr.c
-index 426582b..1283f2d 100644
---- a/drivers/staging/rdma/hfi1/intr.c
-+++ b/drivers/staging/rdma/hfi1/intr.c
-@@ -98,7 +98,7 @@ static void signal_ib_event(struct hfi1_pportdata *ppd, enum ib_event_type ev)
- 	 */
- 	if (!(dd->flags & HFI1_INITTED))
- 		return;
--	event.device = &dd->verbs_dev.ibdev;
-+	event.device = &dd->verbs_dev.rdi.ibdev;
- 	event.element.port_num = ppd->port;
- 	event.event = ev;
- 	ib_dispatch_event(&event);
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index aa84781..ed88a5a 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -1388,7 +1388,7 @@ static int set_pkeys(struct hfi1_devdata *dd, u8 port, u16 *pkeys)
- 		(void)hfi1_set_ib_cfg(ppd, HFI1_IB_CFG_PKEYS, 0);
- 
- 		event.event = IB_EVENT_PKEY_CHANGE;
--		event.device = &dd->verbs_dev.ibdev;
-+		event.device = &dd->verbs_dev.rdi.ibdev;
- 		event.element.port_num = port;
- 		ib_dispatch_event(&event);
- 	}
-@@ -4171,7 +4171,8 @@ int hfi1_create_agents(struct hfi1_ibdev *dev)
- 
- 	for (p = 0; p < dd->num_pports; p++) {
- 		ibp = &dd->pport[p].ibport_data;
--		agent = ib_register_mad_agent(&dev->ibdev, p + 1, IB_QPT_SMI,
-+		agent = ib_register_mad_agent(&dev->rdi.ibdev, p + 1,
-+					      IB_QPT_SMI,
- 					      NULL, 0, send_handler,
- 					      NULL, NULL, 0);
- 		if (IS_ERR(agent)) {
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index ce03681..bb447b5 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -1570,7 +1570,7 @@ struct qp_iter *qp_iter_init(struct hfi1_ibdev *dev)
- 		return NULL;
- 
- 	iter->dev = dev;
--	iter->specials = dev->ibdev.phys_port_cnt * 2;
-+	iter->specials = dev->rdi.ibdev.phys_port_cnt * 2;
- 	if (qp_iter_next(iter)) {
- 		kfree(iter);
- 		return NULL;
-@@ -1610,7 +1610,7 @@ int qp_iter_next(struct qp_iter *iter)
- 				struct hfi1_ibport *ibp;
- 				int pidx;
- 
--				pidx = n % dev->ibdev.phys_port_cnt;
-+				pidx = n % dev->rdi.ibdev.phys_port_cnt;
- 				ppd = &dd_from_dev(dev)->pport[pidx];
- 				ibp = &ppd->ibport_data;
- 
-diff --git a/drivers/staging/rdma/hfi1/sysfs.c b/drivers/staging/rdma/hfi1/sysfs.c
-index 1dd6727..d05b9f3 100644
---- a/drivers/staging/rdma/hfi1/sysfs.c
-+++ b/drivers/staging/rdma/hfi1/sysfs.c
-@@ -446,7 +446,7 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
- 			char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 
- 	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
- }
-@@ -455,7 +455,7 @@ static ssize_t show_hfi(struct device *device, struct device_attribute *attr,
- 			char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 	int ret;
- 
-@@ -470,7 +470,7 @@ static ssize_t show_boardversion(struct device *device,
- 				 struct device_attribute *attr, char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 
- 	/* The string printed here is already newline-terminated. */
-@@ -482,7 +482,7 @@ static ssize_t show_nctxts(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 
- 	/*
-@@ -500,7 +500,7 @@ static ssize_t show_nfreectxts(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 
- 	/* Return the number of free user ports (contexts) available. */
-@@ -511,7 +511,7 @@ static ssize_t show_serial(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 
- 	return scnprintf(buf, PAGE_SIZE, "%s", dd->serial);
-@@ -523,7 +523,7 @@ static ssize_t store_chip_reset(struct device *device,
- 				size_t count)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 	int ret;
- 
-@@ -552,7 +552,7 @@ static ssize_t show_tempsense(struct device *device,
- 			      struct device_attribute *attr, char *buf)
- {
- 	struct hfi1_ibdev *dev =
--		container_of(device, struct hfi1_ibdev, ibdev.dev);
-+		container_of(device, struct hfi1_ibdev, rdi.ibdev.dev);
- 	struct hfi1_devdata *dd = dd_from_dev(dev);
- 	struct hfi1_temp temp;
- 	int ret;
-@@ -700,7 +700,7 @@ bail:
+diff --git a/drivers/staging/rdma/hfi1/keys.c b/drivers/staging/rdma/hfi1/keys.c
+index cb4e608..57a266f 100644
+--- a/drivers/staging/rdma/hfi1/keys.c
++++ b/drivers/staging/rdma/hfi1/keys.c
+@@ -176,7 +176,7 @@ out:
+  * Check the IB SGE for validity and initialize our internal version
+  * of it.
   */
- int hfi1_verbs_register_sysfs(struct hfi1_devdata *dd)
+-int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct hfi1_pd *pd,
++int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
+ 		 struct hfi1_sge *isge, struct ib_sge *sge, int acc)
  {
--	struct ib_device *dev = &dd->verbs_dev.ibdev;
-+	struct ib_device *dev = &dd->verbs_dev.rdi.ibdev;
- 	int i, ret;
+ 	struct hfi1_mregion *mr;
+@@ -285,7 +285,7 @@ int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
+ 	 */
+ 	rcu_read_lock();
+ 	if (rkey == 0) {
+-		struct hfi1_pd *pd = to_ipd(qp->ibqp.pd);
++		struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 		struct hfi1_ibdev *dev = to_idev(pd->ibpd.device);
  
- 	for (i = 0; i < ARRAY_SIZE(hfi1_attributes); ++i) {
+ 		if (pd->user)
+diff --git a/drivers/staging/rdma/hfi1/mr.c b/drivers/staging/rdma/hfi1/mr.c
+index a3f8b88..3f1ef58 100644
+--- a/drivers/staging/rdma/hfi1/mr.c
++++ b/drivers/staging/rdma/hfi1/mr.c
+@@ -116,7 +116,7 @@ struct ib_mr *hfi1_get_dma_mr(struct ib_pd *pd, int acc)
+ 	struct ib_mr *ret;
+ 	int rval;
+ 
+-	if (to_ipd(pd)->user) {
++	if (ibpd_to_rvtpd(pd)->user) {
+ 		ret = ERR_PTR(-EPERM);
+ 		goto bail;
+ 	}
+diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
+index 4a91975..d255f31 100644
+--- a/drivers/staging/rdma/hfi1/ruc.c
++++ b/drivers/staging/rdma/hfi1/ruc.c
+@@ -102,11 +102,11 @@ static int init_sge(struct hfi1_qp *qp, struct hfi1_rwqe *wqe)
+ 	int i, j, ret;
+ 	struct ib_wc wc;
+ 	struct hfi1_lkey_table *rkt;
+-	struct hfi1_pd *pd;
++	struct rvt_pd *pd;
+ 	struct hfi1_sge_state *ss;
+ 
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
+ 	ss = &qp->r_sge;
+ 	ss->sg_list = qp->r_sg_list;
+ 	qp->r_len = 0;
 diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index 09b8d41..0692ec4 100644
+index 347409e..ddfcfaf 100644
 --- a/drivers/staging/rdma/hfi1/verbs.c
 +++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -1903,7 +1903,7 @@ static void verbs_txreq_kmem_cache_ctor(void *obj)
- int hfi1_register_ib_device(struct hfi1_devdata *dd)
- {
- 	struct hfi1_ibdev *dev = &dd->verbs_dev;
--	struct ib_device *ibdev = &dev->ibdev;
-+	struct ib_device *ibdev = &dev->rdi.ibdev;
- 	struct hfi1_pportdata *ppd = dd->pport;
- 	unsigned i, lk_tab_size;
- 	int ret;
-@@ -2069,7 +2069,13 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	strncpy(ibdev->node_desc, init_utsname()->nodename,
- 		sizeof(ibdev->node_desc));
+@@ -368,7 +368,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
+ 	int j;
+ 	int acc;
+ 	struct hfi1_lkey_table *rkt;
+-	struct hfi1_pd *pd;
++	struct rvt_pd *pd;
+ 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
+ 	struct hfi1_pportdata *ppd;
+ 	struct hfi1_ibport *ibp;
+@@ -413,7 +413,7 @@ static int post_one_send(struct hfi1_qp *qp, struct ib_send_wr *wr)
+ 		return -ENOMEM;
  
--	ret = ib_register_device(ibdev, hfi1_create_port_files);
-+	/*
-+	 * Fill in rvt info object.
-+	 */
-+	dd->verbs_dev.rdi.driver_f.port_callback = hfi1_create_port_files;
-+	dd->verbs_dev.rdi.dparms.props.max_pd = hfi1_max_pds;
-+
-+	ret = rvt_register_device(&dd->verbs_dev.rdi);
- 	if (ret)
- 		goto err_reg;
+ 	rkt = &to_idev(qp->ibqp.device)->lk_table;
+-	pd = to_ipd(qp->ibqp.pd);
++	pd = ibpd_to_rvtpd(qp->ibqp.pd);
+ 	wqe = get_swqe_ptr(qp, qp->s_head);
  
-@@ -2086,7 +2092,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- err_class:
- 	hfi1_free_agents(dev);
- err_agents:
--	ib_unregister_device(ibdev);
-+	rvt_unregister_device(&dd->verbs_dev.rdi);
- err_reg:
- err_verbs_txreq:
- 	kmem_cache_destroy(dev->verbs_txreq_cache);
-@@ -2102,13 +2108,12 @@ bail:
- void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
- {
- 	struct hfi1_ibdev *dev = &dd->verbs_dev;
--	struct ib_device *ibdev = &dev->ibdev;
  
- 	hfi1_verbs_unregister_sysfs(dd);
- 
- 	hfi1_free_agents(dev);
- 
--	ib_unregister_device(ibdev);
-+	rvt_unregister_device(&dd->verbs_dev.rdi);
- 
- 	if (!list_empty(&dev->txwait))
- 		dd_dev_err(dd, "txwait list not empty!\n");
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index a163fc2..58fb122 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -62,6 +62,7 @@
- #include <rdma/ib_pack.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_mad.h>
-+#include <rdma/rdma_vt.h>
- 
- struct hfi1_ctxtdata;
- struct hfi1_pportdata;
-@@ -749,7 +750,7 @@ struct hfi1_ibport {
- 
- struct hfi1_qp_ibdev;
- struct hfi1_ibdev {
--	struct ib_device ibdev;
-+	struct rvt_dev_info rdi; /* Must be first */
- 	struct list_head pending_mmaps;
- 	spinlock_t mmap_offset_lock; /* protect mmap_offset */
- 	u32 mmap_offset;
-@@ -843,7 +844,10 @@ static inline struct hfi1_qp *to_iqp(struct ib_qp *ibqp)
- 
- static inline struct hfi1_ibdev *to_idev(struct ib_device *ibdev)
- {
--	return container_of(ibdev, struct hfi1_ibdev, ibdev);
-+	struct rvt_dev_info *rdi;
-+
-+	rdi = container_of(ibdev, struct rvt_dev_info, ibdev);
-+	return container_of(rdi, struct hfi1_ibdev, rdi);
+@@ -1394,7 +1394,7 @@ static int query_device(struct ib_device *ibdev,
+ 	props->max_mr = dev->lk_table.max;
+ 	props->max_fmr = dev->lk_table.max;
+ 	props->max_map_per_fmr = 32767;
+-	props->max_pd = hfi1_max_pds;
++	props->max_pd = dev->rdi.dparms.props.max_pd;
+ 	props->max_qp_rd_atom = HFI1_MAX_RDMA_ATOMIC;
+ 	props->max_qp_init_rd_atom = 255;
+ 	/* props->max_res_rd_atom */
+@@ -1592,61 +1592,6 @@ static int query_gid(struct ib_device *ibdev, u8 port,
+ 	return ret;
  }
  
+-static struct ib_pd *alloc_pd(struct ib_device *ibdev,
+-			      struct ib_ucontext *context,
+-			      struct ib_udata *udata)
+-{
+-	struct hfi1_ibdev *dev = to_idev(ibdev);
+-	struct hfi1_pd *pd;
+-	struct ib_pd *ret;
+-
+-	/*
+-	 * This is actually totally arbitrary.  Some correctness tests
+-	 * assume there's a maximum number of PDs that can be allocated.
+-	 * We don't actually have this limit, but we fail the test if
+-	 * we allow allocations of more than we report for this value.
+-	 */
+-
+-	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
+-	if (!pd) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	spin_lock(&dev->n_pds_lock);
+-	if (dev->n_pds_allocated == hfi1_max_pds) {
+-		spin_unlock(&dev->n_pds_lock);
+-		kfree(pd);
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail;
+-	}
+-
+-	dev->n_pds_allocated++;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	/* ib_alloc_pd() will initialize pd->ibpd. */
+-	pd->user = udata != NULL;
+-
+-	ret = &pd->ibpd;
+-
+-bail:
+-	return ret;
+-}
+-
+-static int dealloc_pd(struct ib_pd *ibpd)
+-{
+-	struct hfi1_pd *pd = to_ipd(ibpd);
+-	struct hfi1_ibdev *dev = to_idev(ibpd->device);
+-
+-	spin_lock(&dev->n_pds_lock);
+-	dev->n_pds_allocated--;
+-	spin_unlock(&dev->n_pds_lock);
+-
+-	kfree(pd);
+-
+-	return 0;
+-}
+-
  /*
+  * convert ah port,sl to sc
+  */
+@@ -1920,7 +1865,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 		init_ibport(ppd + i);
+ 
+ 	/* Only need to initialize non-zero fields. */
+-	spin_lock_init(&dev->n_pds_lock);
++
+ 	spin_lock_init(&dev->n_ahs_lock);
+ 	spin_lock_init(&dev->n_cqs_lock);
+ 	spin_lock_init(&dev->n_qps_lock);
+@@ -2029,8 +1974,8 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	ibdev->query_gid = query_gid;
+ 	ibdev->alloc_ucontext = alloc_ucontext;
+ 	ibdev->dealloc_ucontext = dealloc_ucontext;
+-	ibdev->alloc_pd = alloc_pd;
+-	ibdev->dealloc_pd = dealloc_pd;
++	ibdev->alloc_pd = NULL;
++	ibdev->dealloc_pd = NULL;
+ 	ibdev->create_ah = create_ah;
+ 	ibdev->destroy_ah = destroy_ah;
+ 	ibdev->modify_ah = modify_ah;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index a505545..3079149 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -234,12 +234,6 @@ struct hfi1_mcast {
+ 	int n_attached;
+ };
+ 
+-/* Protection domain */
+-struct hfi1_pd {
+-	struct ib_pd ibpd;
+-	int user;               /* non-zero if created from user space */
+-};
+-
+ /* Address Handle */
+ struct hfi1_ah {
+ 	struct ib_ah ibah;
+@@ -776,8 +770,6 @@ struct hfi1_ibdev {
+ 	u64 n_kmem_wait;
+ 	u64 n_send_schedule;
+ 
+-	u32 n_pds_allocated;    /* number of PDs allocated for device */
+-	spinlock_t n_pds_lock;
+ 	u32 n_ahs_allocated;    /* number of AHs allocated for device */
+ 	spinlock_t n_ahs_lock;
+ 	u32 n_cqs_allocated;    /* number of CQs allocated for device */
+@@ -817,11 +809,6 @@ static inline struct hfi1_mr *to_imr(struct ib_mr *ibmr)
+ 	return container_of(ibmr, struct hfi1_mr, ibmr);
+ }
+ 
+-static inline struct hfi1_pd *to_ipd(struct ib_pd *ibpd)
+-{
+-	return container_of(ibpd, struct hfi1_pd, ibpd);
+-}
+-
+ static inline struct hfi1_ah *to_iah(struct ib_ah *ibah)
+ {
+ 	return container_of(ibah, struct hfi1_ah, ibah);
+@@ -983,7 +970,7 @@ int hfi1_alloc_lkey(struct hfi1_mregion *mr, int dma_region);
+ 
+ void hfi1_free_lkey(struct hfi1_mregion *mr);
+ 
+-int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct hfi1_pd *pd,
++int hfi1_lkey_ok(struct hfi1_lkey_table *rkt, struct rvt_pd *pd,
+ 		 struct hfi1_sge *isge, struct ib_sge *sge, int acc);
+ 
+ int hfi1_rkey_ok(struct hfi1_qp *qp, struct hfi1_sge *sge,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
