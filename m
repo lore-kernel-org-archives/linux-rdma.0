@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/31] staging/rdma/hfi1: Consolidate dma ops for hfi1
-Date: Tue, 19 Jan 2016 14:41:44 -0800
-Message-ID: <20160119224144.32765.40401.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 07/31] staging/rdma/hfi1: Add device specific info prints
+Date: Tue, 19 Jan 2016 14:42:06 -0800
+Message-ID: <20160119224206.32765.88197.stgit@scvm10.sc.intel.com>
 References: <20160119223610.32765.10571.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,57 +13,71 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Implement get_card_name and get_pci_dev helper functions for rdmavt
+for hfi1.
 
-Remove the dma.c file from hfi1 in favor of using that which is
-present in rdmavt.
-
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/Makefile |    2 +-
- drivers/staging/rdma/hfi1/verbs.c  |    2 +-
- drivers/staging/rdma/hfi1/verbs.h  |    2 --
- 3 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/staging/rdma/hfi1/driver.c |   16 ++++++++++++++++
+ drivers/staging/rdma/hfi1/hfi.h    |    2 ++
+ drivers/staging/rdma/hfi1/verbs.c  |    2 ++
+ 3 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
-index e63251b..69fb10f 100644
---- a/drivers/staging/rdma/hfi1/Makefile
-+++ b/drivers/staging/rdma/hfi1/Makefile
-@@ -7,7 +7,7 @@
- #
- obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
+index d096f11..62ee03e 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -162,6 +162,22 @@ const char *get_unit_name(int unit)
+ 	return iname;
+ }
  
--hfi1-y := chip.o cq.o device.o diag.o dma.o driver.o efivar.o eprom.o file_ops.o firmware.o \
-+hfi1-y := chip.o cq.o device.o diag.o driver.o efivar.o eprom.o file_ops.o firmware.o \
- 	init.o intr.o keys.o mad.o mmap.o mr.o pcie.o pio.o pio_copy.o \
- 	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
- 	uc.o ud.o user_exp_rcv.o user_pages.o user_sdma.o verbs_mcast.o verbs.o
++const char *get_card_name(struct rvt_dev_info *rdi)
++{
++	struct hfi1_ibdev *ibdev = container_of(rdi, struct hfi1_ibdev, rdi);
++	struct hfi1_devdata *dd = container_of(ibdev,
++					       struct hfi1_devdata, verbs_dev);
++	return get_unit_name(dd->unit);
++}
++
++struct pci_dev *get_pci_dev(struct rvt_dev_info *rdi)
++{
++	struct hfi1_ibdev *ibdev = container_of(rdi, struct hfi1_ibdev, rdi);
++	struct hfi1_devdata *dd = container_of(ibdev,
++					       struct hfi1_devdata, verbs_dev);
++	return dd->pcidev;
++}
++
+ /*
+  * Return count of units with at least one port ACTIVE.
+  */
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index dbea286..cff966e 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -1660,6 +1660,8 @@ int get_platform_config_field(struct hfi1_devdata *dd,
+ 			int table_index, int field_index, u32 *data, u32 len);
+ 
+ const char *get_unit_name(int unit);
++const char *get_card_name(struct rvt_dev_info *rdi);
++struct pci_dev *get_pci_dev(struct rvt_dev_info *rdi);
+ 
+ /*
+  * Flush write combining store buffers (if present) and perform a write
 diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index 5e21132..347409e 100644
+index b8c6f74..ccd91da 100644
 --- a/drivers/staging/rdma/hfi1/verbs.c
 +++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -2063,7 +2063,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	ibdev->detach_mcast = hfi1_multicast_detach;
- 	ibdev->process_mad = hfi1_process_mad;
- 	ibdev->mmap = hfi1_mmap;
--	ibdev->dma_ops = &hfi1_dma_mapping_ops;
-+	ibdev->dma_ops = NULL;
- 	ibdev->get_port_immutable = port_immutable;
- 
- 	strncpy(ibdev->node_desc, init_utsname()->nodename,
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 58fb122..a505545 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -1151,6 +1151,4 @@ extern unsigned int hfi1_max_srq_wrs;
- 
- extern const u32 ib_hfi1_rnr_table[];
- 
--extern struct ib_dma_mapping_ops hfi1_dma_mapping_ops;
--
- #endif                          /* HFI1_VERBS_H */
+@@ -2031,6 +2031,8 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	 * Fill in rvt info object.
+ 	 */
+ 	dd->verbs_dev.rdi.driver_f.port_callback = hfi1_create_port_files;
++	dd->verbs_dev.rdi.driver_f.get_card_name = get_card_name;
++	dd->verbs_dev.rdi.driver_f.get_pci_dev = get_pci_dev;
+ 	dd->verbs_dev.rdi.dparms.props.max_pd = hfi1_max_pds;
+ 	dd->verbs_dev.rdi.flags = (RVT_FLAG_MR_INIT_DRIVER |
+ 				   RVT_FLAG_QP_INIT_DRIVER |
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
