@@ -1,60 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Expose ioctl command to retrieve SGID of a
- given socket
-Date: Tue, 19 Jan 2016 16:06:46 -0500
-Message-ID: <569EA566.2000401@redhat.com>
-References: <1451572875-24961-1-git-send-email-yuval.shaia@oracle.com>
- <56854AEB.50802@mellanox.com> <20160106110344.GB5070@yuval-ThinkPad-X220>
- <568D07D0.8080404@mellanox.com> <20160106131019.GC5070@yuval-ThinkPad-X220>
+Subject: Re: [PATCH V1 for-next 0/2] Fix hop-limit for RoCE
+Date: Tue, 19 Jan 2016 16:10:19 -0500
+Message-ID: <569EA63B.2@redhat.com>
+References: <1451897394-24525-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="c2mkGhXRJRlNnLGv4ph4I6Nlb2WdVXXgR"
+ boundary="nwMgsNmGDaB2MHSifCa223xch1wK1dq4I"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160106131019.GC5070@yuval-ThinkPad-X220>
+In-Reply-To: <1451897394-24525-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Somnath Kotur <Somnath.Kotur-idTK6quXuVSLFuii7jzJGg@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---c2mkGhXRJRlNnLGv4ph4I6Nlb2WdVXXgR
+--nwMgsNmGDaB2MHSifCa223xch1wK1dq4I
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/06/2016 08:10 AM, Yuval Shaia wrote:
-> On Wed, Jan 06, 2016 at 02:25:52PM +0200, Haggai Eran wrote:
->> On 06/01/2016 13:03, Yuval Shaia wrote:
->>> On Thu, Dec 31, 2015 at 05:34:03PM +0200, Haggai Eran wrote:
->>>>> +	sock =3D sockfd_lookup(fd, &rc);
->>>>> +	if (IS_ERR_OR_NULL(sock))
->>>>> +		return -EINVAL;
->>>>> +
->>>>> +	inetsock =3D inet_sk(sock->sk);
->>>>> +
->>>>> +	neigh =3D neigh_lookup(&arp_tbl, &inetsock->inet_daddr, dev);
->>>>
->>>> Also, isn't inet_daddr the destination address? But the function cla=
-ims=20
->>>> to return the SGID. I guess these can be ambiguous but still it seem=
-s=20
->>>> confusing.
->>> Per description in include/net/inet_sock.h looks like that inet_daddr=
- is
->>> the address of source peer of the socket.
->>> * @inet_daddr - Foreign IPv4 addr
->>>>
->>
->> I meant it was confusing to have the foreign address in the socket des=
-ignated=20
->> by "daddr" while the function you proposed returned the foreign GID as=
- SGID.
-> I see.
-> Function was meant to extract GID of source peer of the socket.
-> Anyway, i gave up this this patch so we only talking semantics here :)
+On 01/04/2016 03:49 AM, Matan Barak wrote:
+> Hi Doug,
+>=20
+> Previously, the hop limit of RoCE packets were set to
+> IPV6_DEFAULT_HOPLIMIT. This generally works, but RoCE stack needs to
+> follow the IP stack rules. Therefore, this patch series use
+> ip4_dst_hoplimit and ip6_dst_hoplimit in order to set the correct
+> hop limit for RoCE traffic.
+>=20
+> The first patch refactors the name of rdma_addr_find_dmac_by_grh to
+> rdma_addr_find_l2_eth_by_grh while the second one does the actual
+> change.
+>=20
+> Regards,
+> Matan
+>=20
+> Changes from V0:
+>  - Hop limit in IB when using reversible path should be 0xff.
+>=20
+> Matan Barak (2):
+>   IB/core: Rename rdma_addr_find_dmac_by_grh
+>   IB/core: Use hop-limit from IP stack for RoCE
+>=20
+>  drivers/infiniband/core/addr.c           | 14 +++++++++++---
+>  drivers/infiniband/core/cm.c             |  1 +
+>  drivers/infiniband/core/cma.c            | 12 +++++-------
+>  drivers/infiniband/core/verbs.c          | 30 ++++++++++++++----------=
+------
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  7 ++++---
+>  include/rdma/ib_addr.h                   |  7 +++++--
+>  6 files changed, 40 insertions(+), 31 deletions(-)
+>=20
 
-Per your comment, I've dropped this patch from any consideration.
-
+Thanks, series applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -62,7 +60,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---c2mkGhXRJRlNnLGv4ph4I6Nlb2WdVXXgR
+--nwMgsNmGDaB2MHSifCa223xch1wK1dq4I
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -71,22 +69,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWnqVmAAoJELgmozMOVy/dHncP/07PP5ptz7p0QFWFUwtmJBv/
-IeL/Y4bNcQ3XcZKNzOR+N/7jKUbXFXUdeRYXW1oS3WbaETsHdk62uazdhueMEiQ4
-aTzlpSEKkeSbfsnUYw+g9OzuWWXeips1XX5rU4gJp8RMghPM9AvcxrTughP1Oc5J
-1HQEFIzqoJkgkgVFO5Dyc3OnUHJOGCe5mlFvm/tFtEMLWQ3WWRXcbn9fiOR1B1sd
-4E+E9NcmK0Xs6e91a1Uiq8EE6GWarEMGBAzbGycWS6NqxamBc7yICsBn0VyrwjvD
-4i9gD+uzGeE9X8vdFZWG6SCJbY+8Qx7W+LNKaYB3KqwAvMlyLqgYY5hYBjHEasNU
-IRKoU8jM636IqS97UPzNRYmI09ts1NVN6JU7JHWAE7tOU+7wbGEzfI/nqjD7kcM9
-s07XkjtISiXS1Sg7P19BELZHOHR3g1MDQsTOVJuNPVr+RPAdaYhpOvJwXG1Z96+N
-0kmK7ljlfui8pEp7Q+G770glNoh6iQb7ViUTkP1w2RVyENqjTVMKV1SF7gYKw68W
-zX750G0WX/wnvugTHy2TQnndQVuRr0yiEWjEpkXXnE+ey8BdufY8rKqsuXZsdfSg
-wNbXDRlVNCaQnJM7qh1ZsZMY7ms5+RdMboe7J8kbXO50VejP4mMypVseCJiriDfi
-UwoBNuasBz8bZmygvex1
-=37UX
+iQIcBAEBCAAGBQJWnqY7AAoJELgmozMOVy/dDq4QAMShtEZvEkCm85cKkaIpmdWR
+gbjAYm9MyQNTNxRhmm8HvDjeXDdHJrqafzQkTUKZk0wMXp5vAkUxw0ZyeRKt2J9E
+2ayDpCuBihoASmosTDzwqNJ7AMfHYyHkoBGC/vfruqp0OKAEhLhL0bBLfpwdu6+d
+Uy4+8l/h2paFurEV7Mhwy3Lga5grTb8TGmdzrjeR/9J4sk81+DI+s4GZVsYzCiJ8
+gtBRDoRB8to3WmMb9Cl9uhrWa8uZ43dYqgS7sf447rtV72dGagFPNZV1j5y5F/cq
+heZtbyjKAlKaG0iCZB1ufpVb6BSG+HakaZQTt33AmZb8wTcJoUH0WGibqswTLIlS
+YbcXGGuxuCzqv9NxowdAimZsTLDaTMI/LGFTfKfTcvJcabFNtpttkWda3Ps9k5QS
+ihwj7tidpNzTCAAALm+8UQrMtogpP52bo2M5orJ1OZMBJgxj3nEQlE4wXlILaG/4
+3dYba0fiBsZDC32gg+0xGIhhDcf3NbSIdk2L/cvdSzHZ21kHEm/3tzrygqIryDGM
+1cEBdgDq/VROHCgbNSA6Lk2YIQOHhangSY7TJbAkG+XOuzAkql2+UPYoA5ysa8RW
+uUJ5rUtCPlZI6OXhNzo7SJvfOsitkCsYJmoLj8LnHvXn2jAkGVe+1v/QzwqS4B7o
+1oN7Ln4vCaQ3n0rHLcmK
+=IhJO
 -----END PGP SIGNATURE-----
 
---c2mkGhXRJRlNnLGv4ph4I6Nlb2WdVXXgR--
+--nwMgsNmGDaB2MHSifCa223xch1wK1dq4I--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
