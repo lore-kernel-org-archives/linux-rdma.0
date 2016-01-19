@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/6] IB/rdmavt: Add device structure allocation
-Date: Tue, 19 Jan 2016 14:27:52 -0800
-Message-ID: <20160119222752.27985.47505.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 4/6] IB/rdmavt: Add mad agents to rdmavt
+Date: Tue, 19 Jan 2016 14:27:57 -0800
+Message-ID: <20160119222757.27985.29986.stgit@scvm10.sc.intel.com>
 References: <20160119222314.27985.81482.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,81 +13,175 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds rdmavt device structure allocation in rdamvt. The
-ib_device alloc is now done in rdmavt instead of the driver. Drivers
-need to tell rdmavt the number of ports when calling.
-
-A side of effect of this patch is fixing a bug with port initialization
-where the device structure port array was allocated over top of an
-existing one.
+This patch adds mad agent create and free to rdmavt.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |   30 ++++++++++++++++++------------
- include/rdma/rdma_vt.h            |    1 +
- 2 files changed, 19 insertions(+), 12 deletions(-)
+ drivers/infiniband/sw/rdmavt/mad.c |   72 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/mad.h |    3 +-
+ drivers/infiniband/sw/rdmavt/vt.c  |    4 ++
+ drivers/infiniband/sw/rdmavt/vt.h  |    1 +
+ include/rdma/rdma_vt.h             |    6 +++
+ 5 files changed, 84 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
+index eef7029..e01f3fb 100644
+--- a/drivers/infiniband/sw/rdmavt/mad.c
++++ b/drivers/infiniband/sw/rdmavt/mad.c
+@@ -45,6 +45,7 @@
+  *
+  */
+ 
++#include <rdma/ib_mad.h>
+ #include "mad.h"
+ 
+ /**
+@@ -83,3 +84,74 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+ 	 */
+ 	return IB_MAD_RESULT_FAILURE;
+ }
++
++static void rvt_send_mad_handler(struct ib_mad_agent *agent,
++				 struct ib_mad_send_wc *mad_send_wc)
++{
++	ib_free_send_mad(mad_send_wc->send_buf);
++}
++
++int rvt_create_mad_agents(struct rvt_dev_info *rdi)
++{
++	struct ib_mad_agent *agent;
++	struct rvt_ibport *rvp;
++	int p;
++	int ret;
++
++	for (p = 0; p < rdi->dparms.nports; p++) {
++		rvp = rdi->ports[p];
++		agent = ib_register_mad_agent(&rdi->ibdev, p + 1,
++					      IB_QPT_SMI,
++					      NULL, 0, rvt_send_mad_handler,
++					      NULL, NULL, 0);
++		if (IS_ERR(agent)) {
++			ret = PTR_ERR(agent);
++			goto err;
++		}
++
++		rvp->send_agent = agent;
++
++		if (rdi->driver_f.notify_create_mad_agent)
++			rdi->driver_f.notify_create_mad_agent(rdi, p);
++	}
++
++	return 0;
++
++err:
++	for (p = 0; p < rdi->dparms.nports; p++) {
++		rvp = rdi->ports[p];
++		if (rvp->send_agent) {
++			agent = rvp->send_agent;
++			rvp->send_agent = NULL;
++			ib_unregister_mad_agent(agent);
++			if (rdi->driver_f.notify_free_mad_agent)
++				rdi->driver_f.notify_free_mad_agent(rdi, p);
++		}
++	}
++
++	return ret;
++}
++
++void rvt_free_mad_agents(struct rvt_dev_info *rdi)
++{
++	struct ib_mad_agent *agent;
++	struct rvt_ibport *rvp;
++	int p;
++
++	for (p = 0; p < rdi->dparms.nports; p++) {
++		rvp = rdi->ports[p];
++		if (rvp->send_agent) {
++			agent = rvp->send_agent;
++			rvp->send_agent = NULL;
++			ib_unregister_mad_agent(agent);
++		}
++		if (rvp->sm_ah) {
++			ib_destroy_ah(&rvp->sm_ah->ibah);
++			rvp->sm_ah = NULL;
++		}
++
++		if (rdi->driver_f.notify_free_mad_agent)
++			rdi->driver_f.notify_free_mad_agent(rdi, p);
++	}
++}
++
+diff --git a/drivers/infiniband/sw/rdmavt/mad.h b/drivers/infiniband/sw/rdmavt/mad.h
+index ee740e9..5d8a6a9 100644
+--- a/drivers/infiniband/sw/rdmavt/mad.h
++++ b/drivers/infiniband/sw/rdmavt/mad.h
+@@ -55,5 +55,6 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+ 		    const struct ib_mad_hdr *in, size_t in_mad_size,
+ 		    struct ib_mad_hdr *out, size_t *out_mad_size,
+ 		    u16 *out_mad_pkey_index);
+-
++int rvt_create_mad_agents(struct rvt_dev_info *rdi);
++void rvt_free_mad_agents(struct rvt_dev_info *rdi);
+ #endif          /* DEF_RVTMAD_H */
 diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index cf7cac6..450caa7 100644
+index 450caa7..7496d43 100644
 --- a/drivers/infiniband/sw/rdmavt/vt.c
 +++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -67,6 +67,24 @@ static void rvt_cleanup(void)
- }
- module_exit(rvt_cleanup);
+@@ -416,6 +416,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 		goto bail_cq;
+ 	}
  
-+struct rvt_dev_info *rvt_alloc_device(size_t size, int nports)
-+{
-+	struct rvt_dev_info *rdi = ERR_PTR(-ENOMEM);
++	rvt_create_mad_agents(rdi);
 +
-+	rdi = (struct rvt_dev_info *)ib_alloc_device(size);
-+	if (!rdi)
-+		return rdi;
-+
-+	rdi->ports = kcalloc(nports,
-+			     sizeof(struct rvt_ibport **),
-+			     GFP_KERNEL);
-+	if (!rdi->ports)
-+		ib_dealloc_device(&rdi->ibdev);
-+
-+	return rdi;
-+}
-+EXPORT_SYMBOL(rvt_alloc_device);
-+
- static int rvt_query_device(struct ib_device *ibdev,
- 			    struct ib_device_attr *props,
- 			    struct ib_udata *uhw)
-@@ -434,18 +452,6 @@ EXPORT_SYMBOL(rvt_unregister_device);
- int rvt_init_port(struct rvt_dev_info *rdi, struct rvt_ibport *port,
- 		  int portnum, u16 *pkey_table)
- {
--	if (!rdi->dparms.nports) {
--		rvt_pr_err(rdi, "Driver says it has no ports.\n");
--		return -EINVAL;
--	}
--
--	rdi->ports = kcalloc(rdi->dparms.nports,
--			     sizeof(struct rvt_ibport **),
--			     GFP_KERNEL);
--	if (!rdi->ports) {
--		rvt_pr_err(rdi, "Could not allocate port mem.\n");
--		return -ENOMEM;
--	}
+ 	rvt_pr_info(rdi, "Registration with rdmavt done.\n");
+ 	return ret;
  
- 	rdi->ports[portnum] = port;
- 	rdi->ports[portnum]->pkey_table = pkey_table;
+@@ -438,6 +440,8 @@ void rvt_unregister_device(struct rvt_dev_info *rdi)
+ 	if (!rdi)
+ 		return;
+ 
++	rvt_free_mad_agents(rdi);
++
+ 	ib_unregister_device(&rdi->ibdev);
+ 	rvt_cq_exit(rdi);
+ 	rvt_mr_exit(rdi);
+diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
+index 54ee05a..d9f78cc 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.h
++++ b/drivers/infiniband/sw/rdmavt/vt.h
+@@ -59,6 +59,7 @@
+ #include "mcast.h"
+ #include "mmap.h"
+ #include "cq.h"
++#include "mad.h"
+ 
+ #define rvt_pr_info(rdi, fmt, ...) \
+ 	__rvt_pr_info(rdi->driver_f.get_pci_dev(rdi), \
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 2940337..b7931bd 100644
+index b7931bd..eb1c17a 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -393,6 +393,7 @@ static inline struct rvt_qp *rvt_lookup_qpn(struct rvt_dev_info *rdi,
- 	return qp;
- }
+@@ -136,7 +136,8 @@ struct rvt_ibport {
+ 	 */
+ 	u16 *pkey_table;
  
-+struct rvt_dev_info *rvt_alloc_device(size_t size, int nports);
- int rvt_register_device(struct rvt_dev_info *rvd);
- void rvt_unregister_device(struct rvt_dev_info *rvd);
- int rvt_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
+-	/* TODO: Move sm_ah and smi_ah into here as well*/
++	struct rvt_ah *sm_ah;
++	struct rvt_ah *smi_ah;
+ };
+ 
+ #define RVT_CQN_MAX 16 /* maximum length of cq name */
+@@ -262,6 +263,9 @@ struct rvt_driver_provided {
+ 			       int attr_mask, struct ib_udata *udata);
+ 	void (*modify_qp)(struct rvt_qp *qp, struct ib_qp_attr *attr,
+ 			  int attr_mask, struct ib_udata *udata);
++
++	void (*notify_create_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
++	void (*notify_free_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
+ };
+ 
+ struct rvt_dev_info {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
