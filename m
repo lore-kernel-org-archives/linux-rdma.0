@@ -1,73 +1,71 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Back from PTO
-Date: Tue, 19 Jan 2016 19:04:16 +0200
-Message-ID: <CAG9sBKP8kqax_wqyej+1J+hFaaCUFKdFyAX8e4Hxg3HoafWjrg@mail.gmail.com>
-References: <569D57B1.2060205@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/IPoIB: Fix kernel panic on multicast flow
+Date: Tue, 19 Jan 2016 13:03:24 -0500
+Message-ID: <569E7A6C.5040004@redhat.com>
+References: <1452151688-7695-1-git-send-email-erezsh@mellanox.com>
+ <alpine.DEB.2.20.1601071002220.28791@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="ULLeAa121xrVuMO0eOKbHEPeQp8jWVhrA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <569D57B1.2060205-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1601071002220.28791-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, doront-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 18, 2016 at 11:22 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> As people know, I've had some paternity leave here as of late.  Then
-> there was the annual shutdown at Red Hat for the holidays, and then I
-> had some PTO on the back end of that.  As a result, I've been absent for
-> a while.  I don't like to pre-announce these things on public mailing
-> lists (nothing like telling the whole world when you will be away from
-> home to make you feel safe about your home while you're gone), but I
-> don't mind letting people know where I've been now that I'm back.
->
-> Obviously I'm behind.  I'm going to send in a pull request shortly with
-> the things that I had before I left on break.  I didn't get everything
-> into my for-next tag that I wanted to before I left on break, so I
-> expect there will be a second pull request that includes at least a
-> couple larger items I was working on when I left that should be about
-> the same now as they were before:
->
-> RoCEv2 support
-> mlx5 RoCE support
-> mlx4 RoCEv2 support
-> rdmavt
-> qib->rdmavt changes
->
-> Things that I intended to submit after the merge window opened and
-> Greg's merge was done:
->
-> Retake staging/rdma
-> Delete staging/rdma/{amso1100,ehca,ipath}
-> hfi1->rdmavt changes
-> Add staging/rdma/soft-rxe
->
-Doug,
-it's not clear if you intend to take rdmavt into drivers/infiniband/sw
-IMHO such a central piece of code needs to go through proper design
-stages, be written with a clear and sharp interface and be published
-with documentation.
-To me it looks like the only purpose of rdmavt is to pull hfi1 driver
-out from staging. If we want it as an infrastructure for any kind of
-low level driver it needs to stick to infrastructure standards.
-I hope that you agree
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ULLeAa121xrVuMO0eOKbHEPeQp8jWVhrA
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> Along the way, I may pick up some other commits too.  If you haven't
-> seen your desired commit(s) that you think should make it into 4.5 (like
-> the [v2] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling patch that
-> isn't in yet but needs to be), please send me an email *offlist* (this
-> is important for my mail filtering that the list not be in the to/cc
-> address, you can bcc if you want) and include a link to the patch or
-> patches, preferably as a link to the latest version in patchworks versus
-> say a link to a mailing list archive of the submission email.
->
-> Thanks!
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
->
->
+On 01/07/2016 11:03 AM, Christoph Lameter wrote:
+> On Thu, 7 Jan 2016, Erez Shitrit wrote:
+>=20
+>> ipoib_mcast_restart_task calls ipoib_mcast_remove_list with the
+>> parameter mcast->dev. That mcast is a temporary (used as an iterator)
+>> variable that may be uninitialized.
+>> There is no need to send the variable dev to the function, as each mca=
+st
+>> has its dev as a member in the mcast struct.
+>=20
+> Reviewed-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+>=20
+
+Thanks, applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--ULLeAa121xrVuMO0eOKbHEPeQp8jWVhrA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJWnnpsAAoJELgmozMOVy/dpqQP/2rz+ZcjS9KML5bab6qBLSjG
+XTwcO9nAX2hSllK+xtmiyo0Q8oLzY175+DvSxFapFxYjmeCuQY41bg0B2d9O5l/q
+mfbM48zoP89NCht0XIzDq0mUSUNhu3KERg7f0fPcaosRxjG/jl6QXaiSf9eDxcpD
+QICDVZuoEDSSj3FfnNE5evnZBKvf1Evwuazp3KsC1yZ9XLEpeEaHug5fnomhhkzI
+dkgobEOmsHYxFWm7g10M9rfYMhhdFFYgVwiFfDHtmaLhwJ6oKbAbxmuvONulcNJi
+YS6cEHG0q2ZseZBSZiZW6oIfL+OVEnjA5aKV7GfP5zsVPQZMmU5d19qn1HhiNHUY
+vQOz4ys4WCVNlx5EPngDXmDiS7WZT8iyMFgbATBLXWbWH6wSxwdhtNhAM9p8jFi7
+UD8z/TKbUGDM32b93EPr8GTDD+sLOYdQyPgoSN4Q+LnPL2o2z67m6pkwJmPfxG39
+pDSeIzt51Gk2tVkZEtNFSiQbBln9BAEq7JijsEPlfDhjjGJp6eFiIsbI1GkjCS5x
+8qzMsKfcdkqbbYV6TypR/6yEFK0SdU06p+6rvtWwBqHk90Qr8KMHsq1Q/ARVDt8T
+bkpGux3HnMtuBZeskaWaWevrIh++szEvDc2OPGzOKJOGOCq1MWq6aOwqcHp6e0xA
+UEaafoeJ+TwnCdSiQ+T8
+=3Odk
+-----END PGP SIGNATURE-----
+
+--ULLeAa121xrVuMO0eOKbHEPeQp8jWVhrA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
