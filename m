@@ -1,92 +1,51 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Back from PTO
-Date: Mon, 18 Jan 2016 16:22:57 -0500
-Message-ID: <569D57B1.2060205@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="FlGgXBCrpdjpqUMsHcpXAB8dLX8CwbojT"
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH] IB/mlx5: Delete locally redefined variable
+Date: Tue, 19 Jan 2016 11:11:24 +0200
+Message-ID: <1453194684-1549-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---FlGgXBCrpdjpqUMsHcpXAB8dLX8CwbojT
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As people know, I've had some paternity leave here as of late.  Then
-there was the annual shutdown at Red Hat for the holidays, and then I
-had some PTO on the back end of that.  As a result, I've been absent for
-a while.  I don't like to pre-announce these things on public mailing
-lists (nothing like telling the whole world when you will be away from
-home to make you feel safe about your home while you're gone), but I
-don't mind letting people know where I've been now that I'm back.
+Fix the following sparse warning:
+drivers/infiniband/hw/mlx5/main.c:1061:29: warning: symbol 'pfn' shadows
+an earlier one
+drivers/infiniband/hw/mlx5/main.c:1030:21: originally declared here
 
-Obviously I'm behind.  I'm going to send in a pull request shortly with
-the things that I had before I left on break.  I didn't get everything
-into my for-next tag that I wanted to before I left on break, so I
-expect there will be a second pull request that includes at least a
-couple larger items I was working on when I left that should be about
-the same now as they were before:
+Fixes: d69e3bcf7976 ('IB/mlx5: Mmap the HCA's core clock register to user-space')
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-RoCEv2 support
-mlx5 RoCE support
-mlx4 RoCEv2 support
-rdmavt
-qib->rdmavt changes
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5e3d3aea35bc..5e997c0793d1 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1057,9 +1057,6 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 		return -ENOSYS;
+ 
+ 	case MLX5_IB_MMAP_CORE_CLOCK:
+-	{
+-		phys_addr_t pfn;
+-
+ 		if (vma->vm_end - vma->vm_start != PAGE_SIZE)
+ 			return -EINVAL;
+ 
+@@ -1082,7 +1079,6 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 			    vma->vm_start,
+ 			    (unsigned long long)pfn << PAGE_SHIFT);
+ 		break;
+-	}
+ 
+ 	default:
+ 		return -EINVAL;
+-- 
+1.7.12.4
 
-Things that I intended to submit after the merge window opened and
-Greg's merge was done:
-
-Retake staging/rdma
-Delete staging/rdma/{amso1100,ehca,ipath}
-hfi1->rdmavt changes
-Add staging/rdma/soft-rxe
-
-Along the way, I may pick up some other commits too.  If you haven't
-seen your desired commit(s) that you think should make it into 4.5 (like
-the [v2] IB/core: sysfs.c: Fix PerfMgt ClassPortInfo handling patch that
-isn't in yet but needs to be), please send me an email *offlist* (this
-is important for my mail filtering that the list not be in the to/cc
-address, you can bcc if you want) and include a link to the patch or
-patches, preferably as a link to the latest version in patchworks versus
-say a link to a mailing list archive of the submission email.
-
-Thanks!
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---FlGgXBCrpdjpqUMsHcpXAB8dLX8CwbojT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWnVexAAoJELgmozMOVy/duT8P/1xPWLjmsu/9v5hgzH0WVyqh
-Irnj33NH2PeSv8mBz0HrLQBS42CCVfWyO2m/pBp4jc4EvzmxE9VBtM6Ga6UpTXxH
-HcsM3nXgc9u+MQWmOJ/5MAjzzmfLV8ovPlVzIMQPd9ONaWPSGzIHgFb3+6bIEwwf
-8zWTczHqM2ha8ov1xU6qeYcELJNp5CqzFDzq5vT1TPw81opzY7X7S5oxTCbwu+jA
-152wV2UL5H45qAh2pKcuBgbLLFtCwYGVqW9a+AgL/rvT8L/mM9/hsjhwvOKpzFBK
-G11/X6DUpwZmFH11rez1KyHbSndy+hpvdODOhxjyXyOMeQwzhsIboI/JKTig5nae
-wTkjBNUA/f9f8Fxs4V4sgpzxJil0ZcDa0E4w/63OkNGq/f0QQSXPJaKg9t0Vv+gC
-E+DtbhTfmeTBRtD54ZhOBwn2umuBMoqK/poqRaBD+hLdl90+4xlPZSARVE24JUYs
-uQoDy+VjX9BQRH4rLV6oQ512Xjerzf8XGySxsxJSmtvT9B5IvL5dNEHGItEB/vOF
-LZ9slLRRGuJjINYwTm6hQzzuHu1I4LnCz7CsSpcKQCYvg5SXBxD7NuHJixp3Ha5b
-qMR4wPa3y3A91/dBu4TF2yCQQNTLeE2nFwnAe00RtBw5hTYfeVETmGyRODJtbiQJ
-sDPlodNHhhZgO/cVN2yB
-=0tkv
------END PGP SIGNATURE-----
-
---FlGgXBCrpdjpqUMsHcpXAB8dLX8CwbojT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
