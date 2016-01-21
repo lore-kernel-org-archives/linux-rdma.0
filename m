@@ -1,46 +1,56 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v3 00/16] add Intel X722 iWARP driver
-Date: Wed, 20 Jan 2016 16:57:12 -0600
-Message-ID: <00cf01d153d5$e6248eb0$b26dac10$@opengridcomputing.com>
-References: <1453318816-21672-1-git-send-email-faisal.latif@intel.com> <CAJ3xEMhxMzAVJUNbBHrG8hia2tcFJ4cuPHpq3t9p0FqPHfYX+Q@mail.gmail.com>
+From: Eva <wuzhh01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: rdma hangs on =?utf-8?b?cG9sbF9kZXZpY2UoKQ==?= while tcp is correct
+Date: Thu, 21 Jan 2016 06:31:15 +0000 (UTC)
+Message-ID: <loom.20160121T072936-849@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMhxMzAVJUNbBHrG8hia2tcFJ4cuPHpq3t9p0FqPHfYX+Q@mail.gmail.com>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Or Gerlitz' <gerlitz.or@gmail.com>, 'Faisal Latif' <faisal.latif@intel.com>
-Cc: 'Doug Ledford' <dledford@redhat.com>, linux-rdma@vger.kernel.org, 'Linux Netdev List' <netdev@vger.kernel.org>, 'Jeff Kirsher' <jeffrey.t.kirsher@intel.com>, e1000-rdma@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Run MPI_Send on MPI1.8.5 without multithread enabled:
+it hangs on mca_pml_ob1_send() -> opal_progreses() -> 
+btl_openib_component_progress() -> poll_device() -> libmlx4-rdmav2.so -> cq -> 
+phread_spin_unlock
+The program can run on TCP with no error.
 
+Details:
+I run with two machines, 2 process per node: process0, process1, process2, 
+process3.
+After some random rounds of communications, the communication hangs. When I 
+debug into the program, I found:
+process1 sent a message to process2; 
+process2 received the message from process1 and then start to receive messages 
+from other processes. 
+But process1 doesn't get notice: process2 has received its message and then 
+hang on MPI_Send->...->poll_device() of rdmav2.
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Or Gerlitz
-> Sent: Wednesday, January 20, 2016 4:25 PM
-> To: Faisal Latif
-> Cc: Doug Ledford; linux-rdma@vger.kernel.org; Linux Netdev List; Jeff Kirsher; e1000-rdma@lists.sourceforge.net
-> Subject: Re: [PATCH v3 00/16] add Intel X722 iWARP driver
-> 
-> On Wed, Jan 20, 2016 at 9:40 PM, Faisal Latif <faisal.latif@intel.com> wrote:
-> 
-> > Changes since v2:
-> [...]
-> >                 *move netlink patch up
-> 
-> I also asked you why the port mapper code has to be present in each
-> iwarp driver and not part of the IB core stack, and you responded
-> "i40iw iwarp driver registers with port mapper and uses its services.
-> Beside that it is not the scope of the patch series"  -- well, it is
-> in the scope of upstream review to pose such questions, please
-> address.
-> 
-> Or.
+#0  0x00007f6ba95f03e5 in ?? () from /usr/lib64/libmlx4-rdmav2.so
+#1  0x00007f6bacf1ed93 in poll_device () from /home/openmpi-1.8.5-
+gcc4.8/lib/openmpi/mca_btl_openib.so
+#2  0x00007f6bacf1f7ed in btl_openib_component_progress () from /home/openmpi-
+1.8.5-gcc4.8/lib/openmpi/mca_btl_openib.so
+#3  0x00007f6bb06539da in opal_progress () from /home/openmpi-1.8.5-
+gcc4.8/lib/libopen-pal.so.6
+#4  0x00007f6bab831f55 in mca_pml_ob1_send () from /home/openmpi-1.8.5-
+gcc4.8/lib/openmpi/mca_pml_ob1.so
+#5  0x00007f6bb0df33c2 in PMPI_Send () from /home/openmpi-1.8.5-
+gcc4.8/lib/libmpi.so.1
 
-Hey Or, 
+Some experiments I have tried:
+1. compile openmpi without multi-thread enable
+2. --mca pml_ob1_use_early_completion 0
+3. disable eager mode
+4. ssend, Bsend
 
-There is a common service/API in the IB core for iWarp port mapping.  See drivers/infinbiand/core/iwpm*.c and include/rdma/iw_portmap.h.
+but it still hangs.
 
-Steve.
+The same program works fine on TCP for more than one year. After I move it onto 
+rdma, it starts to hang. And I can't debug into any rdma details
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
