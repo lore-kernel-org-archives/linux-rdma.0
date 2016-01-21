@@ -1,120 +1,51 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: Ping: [PATCH 1/1] Fix deadlock when running
- run_iter_bw_infinitely
-Date: Thu, 21 Jan 2016 16:12:46 +0200
-Message-ID: <20160121141246.GA26186@leon.nu>
-References: <1447849673-30034-1-git-send-email-hans.westgaard.ry@oracle.com>
- <5667E747.2070006@oracle.com>
- <20151209085245.GA8662@leon.nu>
- <5667F05B.8010200@oracle.com>
- <20151209093023.GB8662@leon.nu>
- <568F66F8.9080407@oracle.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v3 00/16] add Intel X722 iWARP driver
+Date: Thu, 21 Jan 2016 09:32:14 -0600
+Message-ID: <004401d15460$e77fa1b0$b67ee510$@opengridcomputing.com>
+References: <1453318816-21672-1-git-send-email-faisal.latif@intel.com> <CAJ3xEMhxMzAVJUNbBHrG8hia2tcFJ4cuPHpq3t9p0FqPHfYX+Q@mail.gmail.com> <00cf01d153d5$e6248eb0$b26dac10$@opengridcomputing.com> <56A08E8F.7090602@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <568F66F8.9080407-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <56A08E8F.7090602-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Or Gerlitz' <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Linux Netdev List' <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Jeff Kirsher' <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 08, 2016 at 08:36:24AM +0100, Hans Westgaard Ry wrote:
-> Hi,
-> I cloned  git://git.openfabrics.org/~grockah/perftest.git today and found
-> quite a few new commits but not this patch.
-> 
-> Am I looking in the wrong repository or are there problems with this patch ?
-
-Gil/Or
-Your feedback will be appreciated.
-
-> 
-> Hans
-> 
-> On 12/09/2015 10:30 AM, Leon Romanovsky wrote:
-> >On Wed, Dec 09, 2015 at 10:11:55AM +0100, Hans Westgaard Ry wrote:
-> >>Sorry but I didn't see that "something" gobbled part of the mail.
-> >>The correct lines are  (as in the original):
-> >>
-> >>src/perftest_resources.c | 22 ++++++++++++++++------
-> >>  1 file changed, 16 insertions(+), 6 deletions(-)
-> >>
-> >>diff --git a/src/perftest_resources.c b/src/perftest_resources.c
-> >>index cb915e0..4d8e6c0 100755
-> >>--- a/src/perftest_resources.c
-> >>+++ b/src/perftest_resources.c
-> >>@@ -25,6 +25,12 @@ static enum ibv_wr_opcode opcode_atomic_array[] = {IBV_WR_ATOMIC_CMP_AND_SWP,IBV
-> >>  struct perftest_parameters* duration_param;
-> >>  struct check_alive_data check_alive_data;
-> >>+/*
-> >>+ * Flag to trig call to print_report_bw
-> >>+ * The flag is set in signal_handler and tested/reset in run_iter_bw_infinitely
-> >>+ */
-> >>+static volatile int trig_print_report_bw = 0;
-> >>+
-> >>  /******************************************************************************
-> >>   * Beginning
-> >>@@ -3214,7 +3220,15 @@ int run_iter_bw_infinitely(struct pingpong_context *ctx,struct perftest_paramete
-> >>  	/* main loop for posting */
-> >>  	while (1) {
-> >>-
-> >>+		if (trig_print_report_bw) {
-> >>+			duration_param->tcompleted[0] = get_cycles();
-> >>+			print_report_bw(duration_param,NULL);
-> >>+			duration_param->iters = 0;
-> >>+			alarm(duration_param->duration);
-> >>+			duration_param->tposted[0] = get_cycles();
-> >>+			trig_print_report_bw = 0;
-> >>+		}
-> >>+		
-> >>  		/* main loop to run over all the qps and post each time n messages */
-> >>  		for (index =0 ; index < num_of_qps ; index++) {
-> >>@@ -4213,11 +4227,7 @@ void check_alive(int sig)
-> >>   ******************************************************************************/
-> >>  void catch_alarm_infintely(int sig)
-> >>  {
-> >>-	duration_param->tcompleted[0] = get_cycles();
-> >>-	print_report_bw(duration_param,NULL);
-> >>-	duration_param->iters = 0;
-> >>-	alarm(duration_param->duration);
-> >>-	duration_param->tposted[0] = get_cycles();
-> >>+	trig_print_report_bw = 1;
-> >>  }
-> >Thanks, it looks good,
-> >Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> On 1/21/2016 12:57 AM, Steve Wise wrote:
+> > I also asked you why the port mapper code has to be present in each
+> > iwarp driver and not part of the IB core stack, and you responded
+> > "i40iw iwarp driver registers with port mapper and uses its services.
+> > Beside that it is not the scope of the patch series"  -- well, it is
+> > in the scope of upstream review to pose such questions, please
+> > address.
 > >
-> >>
-> >>
-> >>On 12/09/2015 09:52 AM, Leon Romanovsky wrote:
-> >>>On Wed, Dec 09, 2015 at 09:33:11AM +0100, Hans Westgaard Ry wrote:
-> >>>>Any comments on this patch ?
-> >>>>
-> >>>>
-> >>>>
-> >>>>On 11/18/2015 01:27 PM, Hans Westgaard Ry wrote:
-> >>>>>The test uses a signal-handler to periodically print a line of report.
-> >>>>>+		if (trig_print_report_bw) {
-> >>>>>+			duration_param->tcompleted[0] =et_cycles();
-> >>>>>+			print_report_bw(duration_param,NULL);
-> >>>>>+			duration_param->iters =;
-> >>>Excuse me, what did you mean by the line above?
-> >>>
-> >>>>>+			alarm(duration_param->duration);
-> >>>>>+			duration_param->tposted[0] =et_cycles();
-> >>>>>+			trig_print_report_bw =;
-> >>>And this line too.
-> >>>
-> >>--
-> >>To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > There is a common service/API in the IB core for iWarp port mapping.  See drivers/infinbiand/core/iwpm*.c and
+> include/rdma/iw_portmap.h.
+> >
+> >
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Steve,
+> 
+> Okay, but I still don't follow why each vendor needs an RDMA_NL_YYY ID
+> (RDMA_NL_C4IW, RDMA_NL_NES and now a new one  for this driver) of their own.
+> 
+> I see that the two current drivers actually use the same callbacks
+> towards user-space, does each vendor uses a different user-space daemon,
+> why?
+> 
+> Or.
+>
+
+Only a single user-space daemon is used.  Someone from Intel might have insight into the architecture and design.  Perhaps the intention is that individual drivers might want to have their own handlers for these various operations.  But currently they all use the core/common ones.
+ 
+Steve.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
