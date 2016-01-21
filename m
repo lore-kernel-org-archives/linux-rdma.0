@@ -1,69 +1,64 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 00/16] add Intel X722 iWARP driver
-Date: Thu, 21 Jan 2016 09:53:51 +0200
-Message-ID: <56A08E8F.7090602@mellanox.com>
-References: <1453318816-21672-1-git-send-email-faisal.latif@intel.com>
- <CAJ3xEMhxMzAVJUNbBHrG8hia2tcFJ4cuPHpq3t9p0FqPHfYX+Q@mail.gmail.com>
- <00cf01d153d5$e6248eb0$b26dac10$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 1/1] IB/sa: Fix netlink local service GFP crash
+Date: Thu, 21 Jan 2016 08:41:31 -0500
+Message-ID: <1453383691-2306-1-git-send-email-kaike.wan@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00cf01d153d5$e6248eb0$b26dac10$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Or Gerlitz' <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Linux Netdev List' <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Jeff Kirsher' <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, richard.weinberger-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, tgraf-G/eBtMaohhA@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, chamaken-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, syzkaller-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, kcc-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, glider-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, sasha.levin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/21/2016 12:57 AM, Steve Wise wrote:
-> I also asked you why the port mapper code has to be present in each
-> iwarp driver and not part of the IB core stack, and you responded
-> "i40iw iwarp driver registers with port mapper and uses its services.
-> Beside that it is not the scope of the patch series"  -- well, it is
-> in the scope of upstream review to pose such questions, please
-> address.
->
->
-> There is a common service/API in the IB core for iWarp port mapping.  See drivers/infinbiand/core/iwpm*.c and include/rdma/iw_portmap.h.
->
->
+From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Steve,
+The rdma netlink local service registers a handler to handle RESOLVE
+response and another handler to handle SET_TIMEOUT request. The first
+thing these handlers do is to call netlink_capable() to check the
+access right of the received skb to make sure that the sender has root
+access. Under normal conditions, such responses and requests will be
+directly forwarded to the handlers without going through the netlink_dump
+pathway (see ibnl_rcv_msg() in drivers/infiniband/core/netlink.c).
+However, a user application could send a RESOLVE request (not response)
+to the local service, which will fall into the netlink_dump pathway,
+where a new skb will be created without initializing the control block.
+This new skb will be eventually forwarded to the local service RESOLVE
+response handler. Unfortunately, netlink_capable() will cause general
+protection fault if the skb's control block is not initialized. This
+patch will address the problem by checking the skb first.
 
-Okay, but I still don't follow why each vendor needs an RDMA_NL_YYY ID 
-(RDMA_NL_C4IW, RDMA_NL_NES and now a new one  for this driver) of their own.
+Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/sa_query.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-I see that the two current drivers actually use the same callbacks 
-towards user-space, does each vendor uses a different user-space daemon, 
-why?
-
-Or.
-
-net.git]# cd drivers/infiniband/hw/
-
-hw]# git grep RDMA_NL_IWPM .
-cxgb4/device.c: [RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = 
-iwpm_add_and_query_mapping_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
-cxgb4/device.c: [RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = 
-iwpm_ack_mapping_info_cb}
-cxgb4/device.c: if (ibnl_add_client(RDMA_NL_C4IW, RDMA_NL_IWPM_NUM_OPS,
-
-nes/nes.c:      [RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
-nes/nes.c:      [RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
-nes/nes.c:      [RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = 
-iwpm_add_and_query_mapping_cb},
-nes/nes.c:      [RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
-nes/nes.c:      [RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-nes/nes.c:      [RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
-nes/nes.c:      [RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = 
-iwpm_ack_mapping_info_cb}
-nes/nes.c:      if (ibnl_add_client(RDMA_NL_NES, RDMA_NL_IWPM_NUM_OPS, 
-nes_nl_cb_table))
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 1f91b6e..f334090 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -717,7 +717,9 @@ static int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ 	struct nlattr *tb[LS_NLA_TYPE_MAX];
+ 	int ret;
+ 
+-	if (!netlink_capable(skb, CAP_NET_ADMIN))
++	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
++	    !(NETLINK_CB(skb).sk) ||
++	    !netlink_capable(skb, CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+ 	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+@@ -791,7 +793,9 @@ static int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 	int found = 0;
+ 	int ret;
+ 
+-	if (!netlink_capable(skb, CAP_NET_ADMIN))
++	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
++	    !(NETLINK_CB(skb).sk) ||
++	    !netlink_capable(skb, CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+ 	spin_lock_irqsave(&ib_nl_request_lock, flags);
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
