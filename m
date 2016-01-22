@@ -1,77 +1,48 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/7] IB/rdmavt: Add IB user context allocation and
- de-alloction functions
-Date: Fri, 22 Jan 2016 12:50:05 -0800
-Message-ID: <20160122205003.4351.44989.stgit@scvm10.sc.intel.com>
-References: <20160122204807.4351.24569.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 0/7] Start to add qp support to rdmavt and other verbs
+Date: Fri, 22 Jan 2016 12:49:57 -0800
+Message-ID: <20160122204807.4351.24569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160122204807.4351.24569.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch continues adding the support for queue pairs in rdmavt. It also adds
+the create queue pair, user context alloc, dealloc, and query device verbs.
 
-Adding IB user context alloc and dealloc functions to rdmavt so that the
-drivers that use rdmavt can use these functions instead of defining their
-own functions.
+This patchset builds on the v4 "Begin to use rdmavt for qib" patchset.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Changes since v1:
+Add patch "Support creating qps with GFP_NOIO flag"
+
 ---
- drivers/infiniband/sw/rdmavt/vt.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 18b5f43..df2df36 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -189,6 +189,16 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
- 	return -EOPNOTSUPP;
- }
- 
-+struct rvt_ucontext {
-+	struct ib_ucontext ibucontext;
-+};
-+
-+static inline struct rvt_ucontext *to_iucontext(struct ib_ucontext
-+						*ibucontext)
-+{
-+	return container_of(ibucontext, struct rvt_ucontext, ibucontext);
-+}
-+
- /**
-  * rvt_alloc_ucontext - Allocate a user context
-  * @ibdev: Vers IB dev
-@@ -197,7 +207,12 @@ static int rvt_query_gid(struct ib_device *ibdev, u8 port,
- static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
- 					      struct ib_udata *udata)
- {
--	return ERR_PTR(-EOPNOTSUPP);
-+	struct rvt_ucontext *context;
-+
-+	context = kmalloc(sizeof(*context), GFP_KERNEL);
-+	if (!context)
-+		return ERR_PTR(-ENOMEM);
-+	return &context->ibucontext;
- }
- 
- /**
-@@ -206,7 +221,8 @@ static struct ib_ucontext *rvt_alloc_ucontext(struct ib_device *ibdev,
-  */
- static int rvt_dealloc_ucontext(struct ib_ucontext *context)
- {
--	return -EOPNOTSUPP;
-+	kfree(to_iucontext(context));
-+	return 0;
- }
- 
- static int rvt_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+Dennis Dalessandro (3):
+      IB/rdmavt: Add R and S flags for queue pairs
+      IB/rdmavt: Add create queue pair functionality
+      IB/rdmavt: Export reset_qp in rdmavt
 
+Harish Chegondi (3):
+      IB/rdmavt: Add IB user context allocation and de-alloction functions
+      IB/rdmavt: Allow reserving just one qpn
+      IB/rdmavt: Add support for rvt_query_device function
+
+Mike Marciniszyn (1):
+      IB/rdmavt: Support creating qps with GFP_NOIO flag
+
+
+ drivers/infiniband/sw/rdmavt/qp.c |  466 +++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/sw/rdmavt/vt.c |   30 ++
+ include/rdma/rdma_vt.h            |   19 +-
+ include/rdma/rdmavt_qp.h          |   81 ++++++
+ 4 files changed, 563 insertions(+), 33 deletions(-)
+
+-- 
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
