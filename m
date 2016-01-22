@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 03/10] IB/qib: Use rdmavt protection domain
-Date: Fri, 22 Jan 2016 12:44:44 -0800
-Message-ID: <20160122204441.2022.89781.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v4 04/10] IB/qib: Remove most uses of QIB_PERMISSIVE_LID and
+ QIB_MULTICAST_LID_BASE
+Date: Fri, 22 Jan 2016 12:44:53 -0800
+Message-ID: <20160122204449.2022.69767.stgit@scvm10.sc.intel.com>
 References: <20160122204145.2022.26449.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,231 +14,135 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove protection domain datastructure from qib and use rdmavts version.
+This patch removes most of the uses of QIB_PERMISSIBVE_LID and
+QIB_MULTICAST_LID_BASE in favor of the recently added IB_* versions.
+There are still minor uses in AH functions as well as the QIB_* defines
+but those will be removed in a follow on patch.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_keys.c  |    6 ++-
- drivers/infiniband/hw/qib/qib_mr.c    |    2 +
- drivers/infiniband/hw/qib/qib_ruc.c   |    4 +-
- drivers/infiniband/hw/qib/qib_verbs.c |   66 +++------------------------------
- drivers/infiniband/hw/qib/qib_verbs.h |   13 +------
- 5 files changed, 12 insertions(+), 79 deletions(-)
+ drivers/infiniband/hw/qib/qib_driver.c |    2 +-
+ drivers/infiniband/hw/qib/qib_mad.c    |    4 ++--
+ drivers/infiniband/hw/qib/qib_qp.c     |    5 +++--
+ drivers/infiniband/hw/qib/qib_ud.c     |   11 ++++++-----
+ drivers/infiniband/hw/qib/qib_verbs.c  |    2 +-
+ 5 files changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_keys.c b/drivers/infiniband/hw/qib/qib_keys.c
-index d725c56..04fa272 100644
---- a/drivers/infiniband/hw/qib/qib_keys.c
-+++ b/drivers/infiniband/hw/qib/qib_keys.c
-@@ -152,7 +152,7 @@ out:
-  * Check the IB SGE for validity and initialize our internal version
-  * of it.
-  */
--int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
-+int qib_lkey_ok(struct qib_lkey_table *rkt, struct rvt_pd *pd,
- 		struct qib_sge *isge, struct ib_sge *sge, int acc)
- {
- 	struct qib_mregion *mr;
-@@ -263,7 +263,7 @@ int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
- 	 */
- 	rcu_read_lock();
- 	if (rkey == 0) {
--		struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+		struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
- 		struct qib_ibdev *dev = to_idev(pd->ibpd.device);
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index f58fdc3..57b19ea 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -319,7 +319,7 @@ static u32 qib_rcv_hdrerr(struct qib_ctxtdata *rcd, struct qib_pportdata *ppd,
+ 		if (tlen < 24)
+ 			goto drop;
  
- 		if (pd->user)
-@@ -341,7 +341,7 @@ bail:
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr)
- {
- 	struct qib_lkey_table *rkt = &to_idev(qp->ibqp.device)->lk_table;
--	struct qib_pd *pd = to_ipd(qp->ibqp.pd);
-+	struct rvt_pd *pd = ibpd_to_rvtpd(qp->ibqp.pd);
- 	struct qib_mr *mr = to_imr(wr->mr);
- 	struct qib_mregion *mrg;
- 	u32 key = wr->key;
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 5f53304..9d84e0d 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -99,7 +99,7 @@ struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc)
- 	struct ib_mr *ret;
- 	int rval;
+-		if (lid < QIB_MULTICAST_LID_BASE) {
++		if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
+ 			lid &= ~((1 << ppd->lmc) - 1);
+ 			if (unlikely(lid != ppd->lid))
+ 				goto drop;
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index c65d3aa..70fc1b2 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -691,7 +691,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
  
--	if (to_ipd(pd)->user) {
-+	if (ibpd_to_rvtpd(pd)->user) {
- 		ret = ERR_PTR(-EPERM);
- 		goto bail;
+ 	lid = be16_to_cpu(pip->lid);
+ 	/* Must be a valid unicast LID address. */
+-	if (lid == 0 || lid >= QIB_MULTICAST_LID_BASE)
++	if (lid == 0 || lid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 	else if (ppd->lid != lid || ppd->lmc != (pip->mkeyprot_resv_lmc & 7)) {
+ 		if (ppd->lid != lid)
+@@ -706,7 +706,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	smlid = be16_to_cpu(pip->sm_lid);
+ 	msl = pip->neighbormtu_mastersmsl & 0xF;
+ 	/* Must be a valid unicast LID address. */
+-	if (smlid == 0 || smlid >= QIB_MULTICAST_LID_BASE)
++	if (smlid == 0 || smlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 	else if (smlid != ibp->sm_lid || msl != ibp->sm_sl) {
+ 		spin_lock_irqsave(&ibp->lock, flags);
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 3eff35c..e8beeee 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -590,14 +590,15 @@ int qib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto inval;
+ 
+ 	if (attr_mask & IB_QP_AV) {
+-		if (attr->ah_attr.dlid >= QIB_MULTICAST_LID_BASE)
++		if (attr->ah_attr.dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 			goto inval;
+ 		if (qib_check_ah(qp->ibqp.device, &attr->ah_attr))
+ 			goto inval;
  	}
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index b1aa21b..425c8c2 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -84,11 +84,11 @@ static int qib_init_sge(struct qib_qp *qp, struct qib_rwqe *wqe)
- 	int i, j, ret;
- 	struct ib_wc wc;
- 	struct qib_lkey_table *rkt;
--	struct qib_pd *pd;
-+	struct rvt_pd *pd;
- 	struct qib_sge_state *ss;
  
- 	rkt = &to_idev(qp->ibqp.device)->lk_table;
--	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
-+	pd = ibpd_to_rvtpd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
- 	ss = &qp->r_sge;
- 	ss->sg_list = qp->r_sg_list;
- 	qp->r_len = 0;
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+-		if (attr->alt_ah_attr.dlid >= QIB_MULTICAST_LID_BASE)
++		if (attr->alt_ah_attr.dlid >=
++		    be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 			goto inval;
+ 		if (qib_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
+ 			goto inval;
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index 59193f6..32fc80c 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -32,6 +32,7 @@
+  */
+ 
+ #include <rdma/ib_smi.h>
++#include <rdma/ib_verbs.h>
+ 
+ #include "qib.h"
+ #include "qib_mad.h"
+@@ -278,8 +279,8 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 	ibp = to_iport(qp->ibqp.device, qp->port_num);
+ 	ppd = ppd_from_ibp(ibp);
+ 	ah_attr = &to_iah(wqe->ud_wr.ah)->attr;
+-	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE) {
+-		if (ah_attr->dlid != QIB_PERMISSIVE_LID)
++	if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++		if (ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE))
+ 			this_cpu_inc(ibp->pmastats->n_multicast_xmit);
+ 		else
+ 			this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+@@ -368,8 +369,8 @@ int qib_make_ud_req(struct qib_qp *qp)
+ 	/*
+ 	 * Use the multicast QP if the destination LID is a multicast LID.
+ 	 */
+-	ohdr->bth[1] = ah_attr->dlid >= QIB_MULTICAST_LID_BASE &&
+-		ah_attr->dlid != QIB_PERMISSIVE_LID ?
++	ohdr->bth[1] = ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
++		ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) ?
+ 		cpu_to_be32(QIB_MULTICAST_QPN) :
+ 		cpu_to_be32(wqe->ud_wr.remote_qpn);
+ 	ohdr->bth[2] = cpu_to_be32(qp->s_next_psn++ & QIB_PSN_MASK);
+@@ -576,7 +577,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
+ 	/*
+ 	 * Save the LMC lower bits if the destination LID is a unicast LID.
+ 	 */
+-	wc.dlid_path_bits = dlid >= QIB_MULTICAST_LID_BASE ? 0 :
++	wc.dlid_path_bits = dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) ? 0 :
+ 		dlid & ((1 << ppd_from_ibp(ibp)->lmc) - 1);
+ 	wc.port_num = qp->port_num;
+ 	/* Signal completion event if the solicited bit is set. */
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index ae3c661..c742b0d 100644
+index c742b0d..84c828e 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -346,7 +346,7 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	int ret;
- 	unsigned long flags;
- 	struct qib_lkey_table *rkt;
--	struct qib_pd *pd;
-+	struct rvt_pd *pd;
- 	int avoid_schedule = 0;
+@@ -646,7 +646,7 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
  
- 	spin_lock_irqsave(&qp->s_lock, flags);
-@@ -397,7 +397,7 @@ static int qib_post_one_send(struct qib_qp *qp, struct ib_send_wr *wr,
- 	}
- 
- 	rkt = &to_idev(qp->ibqp.device)->lk_table;
--	pd = to_ipd(qp->ibqp.pd);
-+	pd = ibpd_to_rvtpd(qp->ibqp.pd);
- 	wqe = get_swqe_ptr(qp, qp->s_head);
- 
- 	if (qp->ibqp.qp_type != IB_QPT_UC &&
-@@ -1604,7 +1604,7 @@ static int qib_query_device(struct ib_device *ibdev, struct ib_device_attr *prop
- 	props->max_mr = dev->lk_table.max;
- 	props->max_fmr = dev->lk_table.max;
- 	props->max_map_per_fmr = 32767;
--	props->max_pd = ib_qib_max_pds;
-+	props->max_pd = dev->rdi.dparms.props.max_pd;
- 	props->max_qp_rd_atom = QIB_MAX_RDMA_ATOMIC;
- 	props->max_qp_init_rd_atom = 255;
- 	/* props->max_res_rd_atom */
-@@ -1756,61 +1756,6 @@ static int qib_query_gid(struct ib_device *ibdev, u8 port,
- 	return ret;
- }
- 
--static struct ib_pd *qib_alloc_pd(struct ib_device *ibdev,
--				  struct ib_ucontext *context,
--				  struct ib_udata *udata)
--{
--	struct qib_ibdev *dev = to_idev(ibdev);
--	struct qib_pd *pd;
--	struct ib_pd *ret;
--
--	/*
--	 * This is actually totally arbitrary.  Some correctness tests
--	 * assume there's a maximum number of PDs that can be allocated.
--	 * We don't actually have this limit, but we fail the test if
--	 * we allow allocations of more than we report for this value.
--	 */
--
--	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
--	if (!pd) {
--		ret = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
--
--	spin_lock(&dev->n_pds_lock);
--	if (dev->n_pds_allocated == ib_qib_max_pds) {
--		spin_unlock(&dev->n_pds_lock);
--		kfree(pd);
--		ret = ERR_PTR(-ENOMEM);
--		goto bail;
--	}
--
--	dev->n_pds_allocated++;
--	spin_unlock(&dev->n_pds_lock);
--
--	/* ib_alloc_pd() will initialize pd->ibpd. */
--	pd->user = udata != NULL;
--
--	ret = &pd->ibpd;
--
--bail:
--	return ret;
--}
--
--static int qib_dealloc_pd(struct ib_pd *ibpd)
--{
--	struct qib_pd *pd = to_ipd(ibpd);
--	struct qib_ibdev *dev = to_idev(ibpd->device);
--
--	spin_lock(&dev->n_pds_lock);
--	dev->n_pds_allocated--;
--	spin_unlock(&dev->n_pds_lock);
--
--	kfree(pd);
--
--	return 0;
--}
--
- int qib_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr)
- {
- 	/* A multicast address requires a GRH (see ch. 8.4.1). */
-@@ -2115,7 +2060,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 
- 	/* Only need to initialize non-zero fields. */
- 	spin_lock_init(&dev->qpt_lock);
--	spin_lock_init(&dev->n_pds_lock);
- 	spin_lock_init(&dev->n_ahs_lock);
- 	spin_lock_init(&dev->n_cqs_lock);
- 	spin_lock_init(&dev->n_qps_lock);
-@@ -2239,8 +2183,8 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->query_gid = qib_query_gid;
- 	ibdev->alloc_ucontext = qib_alloc_ucontext;
- 	ibdev->dealloc_ucontext = qib_dealloc_ucontext;
--	ibdev->alloc_pd = qib_alloc_pd;
--	ibdev->dealloc_pd = qib_dealloc_pd;
-+	ibdev->alloc_pd = NULL;
-+	ibdev->dealloc_pd = NULL;
- 	ibdev->create_ah = qib_create_ah;
- 	ibdev->destroy_ah = qib_destroy_ah;
- 	ibdev->modify_ah = qib_modify_ah;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 8ac0724..f1ca5d1 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -222,12 +222,6 @@ struct qib_mcast {
- 	int n_attached;
- };
- 
--/* Protection domain */
--struct qib_pd {
--	struct ib_pd ibpd;
--	int user;               /* non-zero if created from user space */
--};
--
- /* Address Handle */
- struct qib_ah {
- 	struct ib_ah ibah;
-@@ -819,11 +813,6 @@ static inline struct qib_mr *to_imr(struct ib_mr *ibmr)
- 	return container_of(ibmr, struct qib_mr, ibmr);
- }
- 
--static inline struct qib_pd *to_ipd(struct ib_pd *ibpd)
--{
--	return container_of(ibpd, struct qib_pd, ibpd);
--}
--
- static inline struct qib_ah *to_iah(struct ib_ah *ibah)
- {
- 	return container_of(ibah, struct qib_ah, ibah);
-@@ -994,7 +983,7 @@ int qib_alloc_lkey(struct qib_mregion *mr, int dma_region);
- 
- void qib_free_lkey(struct qib_mregion *mr);
- 
--int qib_lkey_ok(struct qib_lkey_table *rkt, struct qib_pd *pd,
-+int qib_lkey_ok(struct qib_lkey_table *rkt, struct rvt_pd *pd,
- 		struct qib_sge *isge, struct ib_sge *sge, int acc);
- 
- int qib_rkey_ok(struct qib_qp *qp, struct qib_sge *sge,
+ 	/* Check for a valid destination LID (see ch. 7.11.1). */
+ 	lid = be16_to_cpu(hdr->lrh[1]);
+-	if (lid < QIB_MULTICAST_LID_BASE) {
++	if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
+ 		lid &= ~((1 << ppd->lmc) - 1);
+ 		if (unlikely(lid != ppd->lid))
+ 			goto drop;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
