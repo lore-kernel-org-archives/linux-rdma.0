@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 3/7] IB/qib: Remove completion queue data structures and
- functions from qib
-Date: Fri, 22 Jan 2016 13:07:36 -0800
-Message-ID: <20160122210735.10962.81473.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 6/7] IB/qib: Remove qib multicast verbs functions
+Date: Fri, 22 Jan 2016 13:07:55 -0800
+Message-ID: <20160122210754.10962.51551.stgit@scvm10.sc.intel.com>
 References: <20160122210559.10962.33295.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,59 +15,162 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use the completion queue functionality provided by rdmavt.
+Multicast is now supported by rdmavt. Remove the verbs multicast functions
+and use that.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/Makefile    |    2 
- drivers/infiniband/hw/qib/qib.h       |    2 
- drivers/infiniband/hw/qib/qib_cq.c    |  545 ---------------------------------
- drivers/infiniband/hw/qib/qib_init.c  |    3 
- drivers/infiniband/hw/qib/qib_qp.c    |    4 
- drivers/infiniband/hw/qib/qib_rc.c    |    6 
- drivers/infiniband/hw/qib/qib_ruc.c   |    8 
- drivers/infiniband/hw/qib/qib_uc.c    |    2 
- drivers/infiniband/hw/qib/qib_ud.c    |    4 
- drivers/infiniband/hw/qib/qib_verbs.c |   17 +
- drivers/infiniband/hw/qib/qib_verbs.h |   62 ----
- 11 files changed, 24 insertions(+), 631 deletions(-)
- delete mode 100644 drivers/infiniband/hw/qib/qib_cq.c
+ drivers/infiniband/hw/qib/Makefile          |    2 
+ drivers/infiniband/hw/qib/qib_qp.c          |    2 
+ drivers/infiniband/hw/qib/qib_verbs.c       |   13 -
+ drivers/infiniband/hw/qib/qib_verbs.h       |   29 --
+ drivers/infiniband/hw/qib/qib_verbs_mcast.c |  363 ---------------------------
+ 5 files changed, 7 insertions(+), 402 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/qib/qib_verbs_mcast.c
 
 diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
-index 45db4fc..d78f688 100644
+index d78f688..8d5e36b 100644
 --- a/drivers/infiniband/hw/qib/Makefile
 +++ b/drivers/infiniband/hw/qib/Makefile
-@@ -1,6 +1,6 @@
- obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
- 
--ib_qib-y := qib_cq.o qib_diag.o qib_driver.o qib_eeprom.o \
-+ib_qib-y := qib_diag.o qib_driver.o qib_eeprom.o \
- 	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o \
+@@ -5,7 +5,7 @@ ib_qib-y := qib_diag.o qib_driver.o qib_eeprom.o \
  	qib_mad.o qib_pcie.o qib_pio_copy.o \
  	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 29cbe67..ccadece 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1097,8 +1097,6 @@ struct qib_devdata {
- 	u16 psxmitwait_check_rate;
- 	/* high volume overflow errors defered to tasklet */
- 	struct tasklet_struct error_tasklet;
--	/* per device cq worker */
--	struct kthread_worker *worker;
+ 	qib_sysfs.o qib_twsi.o qib_tx.o qib_uc.o qib_ud.o \
+-	qib_user_pages.o qib_user_sdma.o qib_verbs_mcast.o qib_iba7220.o \
++	qib_user_pages.o qib_user_sdma.o qib_iba7220.o \
+ 	qib_sd7220.o qib_iba7322.o qib_verbs.o
  
- 	int assigned_node_id; /* NUMA node closest to HCA */
- };
-diff --git a/drivers/infiniband/hw/qib/qib_cq.c b/drivers/infiniband/hw/qib/qib_cq.c
-deleted file mode 100644
-index 094f694..0000000
---- a/drivers/infiniband/hw/qib/qib_cq.c
-+++ /dev/null
-@@ -1,545 +0,0 @@
+ # 6120 has no fallback if no MSI interrupts, others can do INTx
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 65b752c..685b0bb 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -310,8 +310,6 @@ unsigned qib_free_all_qps(struct rvt_dev_info *rdi)
+ 	for (n = 0; n < dd->num_pports; n++) {
+ 		struct qib_ibport *ibp = &dd->pport[n].ibport_data;
+ 
+-		if (!qib_mcast_tree_empty(ibp))
+-			qp_inuse++;
+ 		rcu_read_lock();
+ 		if (rcu_dereference(ibp->rvp.qp[0]))
+ 			qp_inuse++;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index add899b..cbf5f88 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -411,19 +411,19 @@ void qib_ib_rcv(struct qib_ctxtdata *rcd, void *rhdr, void *data, u32 tlen)
+ 	/* Get the destination QP number. */
+ 	qp_num = be32_to_cpu(ohdr->bth[1]) & QIB_QPN_MASK;
+ 	if (qp_num == QIB_MULTICAST_QPN) {
+-		struct qib_mcast *mcast;
+-		struct qib_mcast_qp *p;
++		struct rvt_mcast *mcast;
++		struct rvt_mcast_qp *p;
+ 
+ 		if (lnh != QIB_LRH_GRH)
+ 			goto drop;
+-		mcast = qib_mcast_find(ibp, &hdr->u.l.grh.dgid);
++		mcast = rvt_mcast_find(&ibp->rvp, &hdr->u.l.grh.dgid);
+ 		if (mcast == NULL)
+ 			goto drop;
+ 		this_cpu_inc(ibp->pmastats->n_multicast_rcv);
+ 		list_for_each_entry_rcu(p, &mcast->qp_list, list)
+ 			qib_qp_rcv(rcd, hdr, 1, data, tlen, p->qp);
+ 		/*
+-		 * Notify qib_multicast_detach() if it is waiting for us
++		 * Notify rvt_multicast_detach() if it is waiting for us
+ 		 * to finish.
+ 		 */
+ 		if (atomic_dec_return(&mcast->refcount) <= 1)
+@@ -1657,7 +1657,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	/* Only need to initialize non-zero fields. */
+ 	spin_lock_init(&dev->n_qps_lock);
+ 	spin_lock_init(&dev->n_srqs_lock);
+-	spin_lock_init(&dev->n_mcast_grps_lock);
+ 	init_timer(&dev->mem_timer);
+ 	dev->mem_timer.function = mem_timer;
+ 	dev->mem_timer.data = (unsigned long) dev;
+@@ -1780,8 +1779,8 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->map_phys_fmr = NULL;
+ 	ibdev->unmap_fmr = NULL;
+ 	ibdev->dealloc_fmr = NULL;
+-	ibdev->attach_mcast = qib_multicast_attach;
+-	ibdev->detach_mcast = qib_multicast_detach;
++	ibdev->attach_mcast = NULL;
++	ibdev->detach_mcast = NULL;
+ 	ibdev->process_mad = qib_process_mad;
+ 	ibdev->mmap = NULL;
+ 	ibdev->dma_ops = NULL;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 71c8db4..e3610df 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -185,25 +185,6 @@ struct qib_pio_header {
+ } __packed;
+ 
+ /*
+- * There is one struct qib_mcast for each multicast GID.
+- * All attached QPs are then stored as a list of
+- * struct qib_mcast_qp.
+- */
+-struct qib_mcast_qp {
+-	struct list_head list;
+-	struct rvt_qp *qp;
+-};
+-
+-struct qib_mcast {
+-	struct rb_node rb_node;
+-	union ib_gid mgid;
+-	struct list_head qp_list;
+-	wait_queue_head_t wait;
+-	atomic_t refcount;
+-	int n_attached;
+-};
+-
 -/*
-- * Copyright (c) 2013 Intel Corporation.  All rights reserved.
-- * Copyright (c) 2006, 2007, 2008, 2010 QLogic Corporation. All rights reserved.
+  * qib specific data structure that will be hidden from rvt after the queue pair
+  * is made common.
+  */
+@@ -291,8 +272,6 @@ struct qib_ibdev {
+ 	spinlock_t n_qps_lock;
+ 	u32 n_srqs_allocated;   /* number of SRQs allocated for device */
+ 	spinlock_t n_srqs_lock;
+-	u32 n_mcast_grps_allocated; /* number of mcast groups allocated */
+-	spinlock_t n_mcast_grps_lock;
+ #ifdef CONFIG_DEBUG_FS
+ 	/* per HCA debugfs */
+ 	struct dentry *qib_ibdev_dbg;
+@@ -373,8 +352,6 @@ static inline int qib_cmp24(u32 a, u32 b)
+ 	return (((int) a) - ((int) b)) << 8;
+ }
+ 
+-struct qib_mcast *qib_mcast_find(struct qib_ibport *ibp, union ib_gid *mgid);
+-
+ int qib_snapshot_counters(struct qib_pportdata *ppd, u64 *swords,
+ 			  u64 *rwords, u64 *spkts, u64 *rpkts,
+ 			  u64 *xmit_wait);
+@@ -382,12 +359,6 @@ int qib_snapshot_counters(struct qib_pportdata *ppd, u64 *swords,
+ int qib_get_counters(struct qib_pportdata *ppd,
+ 		     struct qib_verbs_counters *cntrs);
+ 
+-int qib_multicast_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid);
+-
+-int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid);
+-
+-int qib_mcast_tree_empty(struct qib_ibport *ibp);
+-
+ __be32 qib_compute_aeth(struct rvt_qp *qp);
+ 
+ struct rvt_qp *qib_lookup_qpn(struct qib_ibport *ibp, u32 qpn);
+diff --git a/drivers/infiniband/hw/qib/qib_verbs_mcast.c b/drivers/infiniband/hw/qib/qib_verbs_mcast.c
+deleted file mode 100644
+index cf5b88d..0000000
+--- a/drivers/infiniband/hw/qib/qib_verbs_mcast.c
++++ /dev/null
+@@ -1,363 +0,0 @@
+-/*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 - * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
 - *
 - * This software is available to you under a choice of one of two
@@ -100,816 +202,336 @@ index 094f694..0000000
 - * SOFTWARE.
 - */
 -
--#include <linux/err.h>
--#include <linux/slab.h>
--#include <linux/vmalloc.h>
--#include <linux/kthread.h>
+-#include <linux/rculist.h>
 -
--#include "qib_verbs.h"
 -#include "qib.h"
 -
 -/**
-- * qib_cq_enter - add a new entry to the completion queue
-- * @cq: completion queue
-- * @entry: work completion entry to add
-- * @sig: true if @entry is a solicitated entry
-- *
-- * This may be called with qp->s_lock held.
+- * qib_mcast_qp_alloc - alloc a struct to link a QP to mcast GID struct
+- * @qp: the QP to link
 - */
--void qib_cq_enter(struct qib_cq *cq, struct ib_wc *entry, int solicited)
+-static struct qib_mcast_qp *qib_mcast_qp_alloc(struct rvt_qp *qp)
 -{
--	struct qib_cq_wc *wc;
--	unsigned long flags;
--	u32 head;
--	u32 next;
+-	struct qib_mcast_qp *mqp;
 -
--	spin_lock_irqsave(&cq->lock, flags);
+-	mqp = kmalloc(sizeof(*mqp), GFP_KERNEL);
+-	if (!mqp)
+-		goto bail;
 -
--	/*
--	 * Note that the head pointer might be writable by user processes.
--	 * Take care to verify it is a sane value.
--	 */
--	wc = cq->queue;
--	head = wc->head;
--	if (head >= (unsigned) cq->ibcq.cqe) {
--		head = cq->ibcq.cqe;
--		next = 0;
--	} else
--		next = head + 1;
--	if (unlikely(next == wc->tail)) {
--		spin_unlock_irqrestore(&cq->lock, flags);
--		if (cq->ibcq.event_handler) {
--			struct ib_event ev;
+-	mqp->qp = qp;
+-	atomic_inc(&qp->refcount);
 -
--			ev.device = cq->ibcq.device;
--			ev.element.cq = &cq->ibcq;
--			ev.event = IB_EVENT_CQ_ERR;
--			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
--		}
--		return;
--	}
--	if (cq->ip) {
--		wc->uqueue[head].wr_id = entry->wr_id;
--		wc->uqueue[head].status = entry->status;
--		wc->uqueue[head].opcode = entry->opcode;
--		wc->uqueue[head].vendor_err = entry->vendor_err;
--		wc->uqueue[head].byte_len = entry->byte_len;
--		wc->uqueue[head].ex.imm_data =
--			(__u32 __force)entry->ex.imm_data;
--		wc->uqueue[head].qp_num = entry->qp->qp_num;
--		wc->uqueue[head].src_qp = entry->src_qp;
--		wc->uqueue[head].wc_flags = entry->wc_flags;
--		wc->uqueue[head].pkey_index = entry->pkey_index;
--		wc->uqueue[head].slid = entry->slid;
--		wc->uqueue[head].sl = entry->sl;
--		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
--		wc->uqueue[head].port_num = entry->port_num;
--		/* Make sure entry is written before the head index. */
--		smp_wmb();
--	} else
--		wc->kqueue[head] = *entry;
--	wc->head = next;
+-bail:
+-	return mqp;
+-}
 -
--	if (cq->notify == IB_CQ_NEXT_COMP ||
--	    (cq->notify == IB_CQ_SOLICITED &&
--	     (solicited || entry->status != IB_WC_SUCCESS))) {
--		struct kthread_worker *worker;
--		/*
--		 * This will cause send_complete() to be called in
--		 * another thread.
--		 */
--		smp_rmb();
--		worker = cq->dd->worker;
--		if (likely(worker)) {
--			cq->notify = IB_CQ_NONE;
--			cq->triggered++;
--			queue_kthread_work(worker, &cq->comptask);
--		}
--	}
+-static void qib_mcast_qp_free(struct qib_mcast_qp *mqp)
+-{
+-	struct rvt_qp *qp = mqp->qp;
 -
--	spin_unlock_irqrestore(&cq->lock, flags);
+-	/* Notify qib_destroy_qp() if it is waiting. */
+-	if (atomic_dec_and_test(&qp->refcount))
+-		wake_up(&qp->wait);
+-
+-	kfree(mqp);
 -}
 -
 -/**
-- * qib_poll_cq - poll for work completion entries
-- * @ibcq: the completion queue to poll
-- * @num_entries: the maximum number of entries to return
-- * @entry: pointer to array where work completions are placed
+- * qib_mcast_alloc - allocate the multicast GID structure
+- * @mgid: the multicast GID
 - *
-- * Returns the number of completion entries polled.
-- *
-- * This may be called from interrupt context.  Also called by ib_poll_cq()
-- * in the generic verbs code.
+- * A list of QPs will be attached to this structure.
 - */
--int qib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
+-static struct qib_mcast *qib_mcast_alloc(union ib_gid *mgid)
 -{
--	struct qib_cq *cq = to_icq(ibcq);
--	struct qib_cq_wc *wc;
--	unsigned long flags;
--	int npolled;
--	u32 tail;
+-	struct qib_mcast *mcast;
 -
--	/* The kernel can only poll a kernel completion queue */
--	if (cq->ip) {
--		npolled = -EINVAL;
+-	mcast = kmalloc(sizeof(*mcast), GFP_KERNEL);
+-	if (!mcast)
+-		goto bail;
+-
+-	mcast->mgid = *mgid;
+-	INIT_LIST_HEAD(&mcast->qp_list);
+-	init_waitqueue_head(&mcast->wait);
+-	atomic_set(&mcast->refcount, 0);
+-	mcast->n_attached = 0;
+-
+-bail:
+-	return mcast;
+-}
+-
+-static void qib_mcast_free(struct qib_mcast *mcast)
+-{
+-	struct qib_mcast_qp *p, *tmp;
+-
+-	list_for_each_entry_safe(p, tmp, &mcast->qp_list, list)
+-		qib_mcast_qp_free(p);
+-
+-	kfree(mcast);
+-}
+-
+-/**
+- * qib_mcast_find - search the global table for the given multicast GID
+- * @ibp: the IB port structure
+- * @mgid: the multicast GID to search for
+- *
+- * Returns NULL if not found.
+- *
+- * The caller is responsible for decrementing the reference count if found.
+- */
+-struct qib_mcast *qib_mcast_find(struct qib_ibport *ibp, union ib_gid *mgid)
+-{
+-	struct rb_node *n;
+-	unsigned long flags;
+-	struct qib_mcast *mcast;
+-
+-	spin_lock_irqsave(&ibp->rvp.lock, flags);
+-	n = ibp->rvp.mcast_tree.rb_node;
+-	while (n) {
+-		int ret;
+-
+-		mcast = rb_entry(n, struct qib_mcast, rb_node);
+-
+-		ret = memcmp(mgid->raw, mcast->mgid.raw,
+-			     sizeof(union ib_gid));
+-		if (ret < 0)
+-			n = n->rb_left;
+-		else if (ret > 0)
+-			n = n->rb_right;
+-		else {
+-			atomic_inc(&mcast->refcount);
+-			spin_unlock_irqrestore(&ibp->rvp.lock, flags);
+-			goto bail;
+-		}
+-	}
+-	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
+-
+-	mcast = NULL;
+-
+-bail:
+-	return mcast;
+-}
+-
+-/**
+- * qib_mcast_add - insert mcast GID into table and attach QP struct
+- * @mcast: the mcast GID table
+- * @mqp: the QP to attach
+- *
+- * Return zero if both were added.  Return EEXIST if the GID was already in
+- * the table but the QP was added.  Return ESRCH if the QP was already
+- * attached and neither structure was added.
+- */
+-static int qib_mcast_add(struct qib_ibdev *dev, struct qib_ibport *ibp,
+-			 struct qib_mcast *mcast, struct qib_mcast_qp *mqp)
+-{
+-	struct rb_node **n = &ibp->rvp.mcast_tree.rb_node;
+-	struct rb_node *pn = NULL;
+-	int ret;
+-
+-	spin_lock_irq(&ibp->rvp.lock);
+-
+-	while (*n) {
+-		struct qib_mcast *tmcast;
+-		struct qib_mcast_qp *p;
+-
+-		pn = *n;
+-		tmcast = rb_entry(pn, struct qib_mcast, rb_node);
+-
+-		ret = memcmp(mcast->mgid.raw, tmcast->mgid.raw,
+-			     sizeof(union ib_gid));
+-		if (ret < 0) {
+-			n = &pn->rb_left;
+-			continue;
+-		}
+-		if (ret > 0) {
+-			n = &pn->rb_right;
+-			continue;
+-		}
+-
+-		/* Search the QP list to see if this is already there. */
+-		list_for_each_entry_rcu(p, &tmcast->qp_list, list) {
+-			if (p->qp == mqp->qp) {
+-				ret = ESRCH;
+-				goto bail;
+-			}
+-		}
+-		if (tmcast->n_attached == ib_qib_max_mcast_qp_attached) {
+-			ret = ENOMEM;
+-			goto bail;
+-		}
+-
+-		tmcast->n_attached++;
+-
+-		list_add_tail_rcu(&mqp->list, &tmcast->qp_list);
+-		ret = EEXIST;
 -		goto bail;
 -	}
 -
--	spin_lock_irqsave(&cq->lock, flags);
--
--	wc = cq->queue;
--	tail = wc->tail;
--	if (tail > (u32) cq->ibcq.cqe)
--		tail = (u32) cq->ibcq.cqe;
--	for (npolled = 0; npolled < num_entries; ++npolled, ++entry) {
--		if (tail == wc->head)
--			break;
--		/* The kernel doesn't need a RMB since it has the lock. */
--		*entry = wc->kqueue[tail];
--		if (tail >= cq->ibcq.cqe)
--			tail = 0;
--		else
--			tail++;
+-	spin_lock(&dev->n_mcast_grps_lock);
+-	if (dev->n_mcast_grps_allocated == ib_qib_max_mcast_grps) {
+-		spin_unlock(&dev->n_mcast_grps_lock);
+-		ret = ENOMEM;
+-		goto bail;
 -	}
--	wc->tail = tail;
 -
--	spin_unlock_irqrestore(&cq->lock, flags);
+-	dev->n_mcast_grps_allocated++;
+-	spin_unlock(&dev->n_mcast_grps_lock);
+-
+-	mcast->n_attached++;
+-
+-	list_add_tail_rcu(&mqp->list, &mcast->qp_list);
+-
+-	atomic_inc(&mcast->refcount);
+-	rb_link_node(&mcast->rb_node, pn, n);
+-	rb_insert_color(&mcast->rb_node, &ibp->rvp.mcast_tree);
+-
+-	ret = 0;
 -
 -bail:
--	return npolled;
--}
--
--static void send_complete(struct kthread_work *work)
--{
--	struct qib_cq *cq = container_of(work, struct qib_cq, comptask);
--
--	/*
--	 * The completion handler will most likely rearm the notification
--	 * and poll for all pending entries.  If a new completion entry
--	 * is added while we are in this routine, queue_work()
--	 * won't call us again until we return so we check triggered to
--	 * see if we need to call the handler again.
--	 */
--	for (;;) {
--		u8 triggered = cq->triggered;
--
--		/*
--		 * IPoIB connected mode assumes the callback is from a
--		 * soft IRQ. We simulate this by blocking "bottom halves".
--		 * See the implementation for ipoib_cm_handle_tx_wc(),
--		 * netif_tx_lock_bh() and netif_tx_lock().
--		 */
--		local_bh_disable();
--		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
--		local_bh_enable();
--
--		if (cq->triggered == triggered)
--			return;
--	}
--}
--
--/**
-- * qib_create_cq - create a completion queue
-- * @ibdev: the device this completion queue is attached to
-- * @attr: creation attributes
-- * @context: unused by the QLogic_IB driver
-- * @udata: user data for libibverbs.so
-- *
-- * Returns a pointer to the completion queue or negative errno values
-- * for failure.
-- *
-- * Called by ib_create_cq() in the generic verbs code.
-- */
--struct ib_cq *qib_create_cq(struct ib_device *ibdev,
--			    const struct ib_cq_init_attr *attr,
--			    struct ib_ucontext *context,
--			    struct ib_udata *udata)
--{
--	int entries = attr->cqe;
--	struct qib_ibdev *dev = to_idev(ibdev);
--	struct qib_cq *cq;
--	struct qib_cq_wc *wc;
--	struct ib_cq *ret;
--	u32 sz;
--
--	if (attr->flags)
--		return ERR_PTR(-EINVAL);
--
--	if (entries < 1 || entries > ib_qib_max_cqes) {
--		ret = ERR_PTR(-EINVAL);
--		goto done;
--	}
--
--	/* Allocate the completion queue structure. */
--	cq = kmalloc(sizeof(*cq), GFP_KERNEL);
--	if (!cq) {
--		ret = ERR_PTR(-ENOMEM);
--		goto done;
--	}
--
--	/*
--	 * Allocate the completion queue entries and head/tail pointers.
--	 * This is allocated separately so that it can be resized and
--	 * also mapped into user space.
--	 * We need to use vmalloc() in order to support mmap and large
--	 * numbers of entries.
--	 */
--	sz = sizeof(*wc);
--	if (udata && udata->outlen >= sizeof(__u64))
--		sz += sizeof(struct ib_uverbs_wc) * (entries + 1);
--	else
--		sz += sizeof(struct ib_wc) * (entries + 1);
--	wc = vmalloc_user(sz);
--	if (!wc) {
--		ret = ERR_PTR(-ENOMEM);
--		goto bail_cq;
--	}
--
--	/*
--	 * Return the address of the WC as the offset to mmap.
--	 * See qib_mmap() for details.
--	 */
--	if (udata && udata->outlen >= sizeof(__u64)) {
--		int err;
--
--		cq->ip = rvt_create_mmap_info(&dev->rdi, sz, context, wc);
--		if (!cq->ip) {
--			ret = ERR_PTR(-ENOMEM);
--			goto bail_wc;
--		}
--
--		err = ib_copy_to_udata(udata, &cq->ip->offset,
--				       sizeof(cq->ip->offset));
--		if (err) {
--			ret = ERR_PTR(err);
--			goto bail_ip;
--		}
--	} else
--		cq->ip = NULL;
--
--	spin_lock(&dev->n_cqs_lock);
--	if (dev->n_cqs_allocated == ib_qib_max_cqs) {
--		spin_unlock(&dev->n_cqs_lock);
--		ret = ERR_PTR(-ENOMEM);
--		goto bail_ip;
--	}
--
--	dev->n_cqs_allocated++;
--	spin_unlock(&dev->n_cqs_lock);
--
--	if (cq->ip) {
--		spin_lock_irq(&dev->rdi.pending_lock);
--		list_add(&cq->ip->pending_mmaps, &dev->rdi.pending_mmaps);
--		spin_unlock_irq(&dev->rdi.pending_lock);
--	}
--
--	/*
--	 * ib_create_cq() will initialize cq->ibcq except for cq->ibcq.cqe.
--	 * The number of entries should be >= the number requested or return
--	 * an error.
--	 */
--	cq->dd = dd_from_dev(dev);
--	cq->ibcq.cqe = entries;
--	cq->notify = IB_CQ_NONE;
--	cq->triggered = 0;
--	spin_lock_init(&cq->lock);
--	init_kthread_work(&cq->comptask, send_complete);
--	wc->head = 0;
--	wc->tail = 0;
--	cq->queue = wc;
--
--	ret = &cq->ibcq;
--
--	goto done;
--
--bail_ip:
--	kfree(cq->ip);
--bail_wc:
--	vfree(wc);
--bail_cq:
--	kfree(cq);
--done:
--	return ret;
--}
--
--/**
-- * qib_destroy_cq - destroy a completion queue
-- * @ibcq: the completion queue to destroy.
-- *
-- * Returns 0 for success.
-- *
-- * Called by ib_destroy_cq() in the generic verbs code.
-- */
--int qib_destroy_cq(struct ib_cq *ibcq)
--{
--	struct qib_ibdev *dev = to_idev(ibcq->device);
--	struct qib_cq *cq = to_icq(ibcq);
--
--	flush_kthread_work(&cq->comptask);
--	spin_lock(&dev->n_cqs_lock);
--	dev->n_cqs_allocated--;
--	spin_unlock(&dev->n_cqs_lock);
--	if (cq->ip)
--		kref_put(&cq->ip->ref, rvt_release_mmap_info);
--	else
--		vfree(cq->queue);
--	kfree(cq);
--
--	return 0;
--}
--
--/**
-- * qib_req_notify_cq - change the notification type for a completion queue
-- * @ibcq: the completion queue
-- * @notify_flags: the type of notification to request
-- *
-- * Returns 0 for success.
-- *
-- * This may be called from interrupt context.  Also called by
-- * ib_req_notify_cq() in the generic verbs code.
-- */
--int qib_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags)
--{
--	struct qib_cq *cq = to_icq(ibcq);
--	unsigned long flags;
--	int ret = 0;
--
--	spin_lock_irqsave(&cq->lock, flags);
--	/*
--	 * Don't change IB_CQ_NEXT_COMP to IB_CQ_SOLICITED but allow
--	 * any other transitions (see C11-31 and C11-32 in ch. 11.4.2.2).
--	 */
--	if (cq->notify != IB_CQ_NEXT_COMP)
--		cq->notify = notify_flags & IB_CQ_SOLICITED_MASK;
--
--	if ((notify_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
--	    cq->queue->head != cq->queue->tail)
--		ret = 1;
--
--	spin_unlock_irqrestore(&cq->lock, flags);
+-	spin_unlock_irq(&ibp->rvp.lock);
 -
 -	return ret;
 -}
 -
--/**
-- * qib_resize_cq - change the size of the CQ
-- * @ibcq: the completion queue
-- *
-- * Returns 0 for success.
-- */
--int qib_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
+-int qib_multicast_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 -{
--	struct qib_cq *cq = to_icq(ibcq);
--	struct qib_cq_wc *old_wc;
--	struct qib_cq_wc *wc;
--	u32 head, tail, n;
+-	struct rvt_qp *qp = ibqp_to_rvtqp(ibqp);
+-	struct qib_ibdev *dev = to_idev(ibqp->device);
+-	struct qib_ibport *ibp;
+-	struct qib_mcast *mcast;
+-	struct qib_mcast_qp *mqp;
 -	int ret;
--	u32 sz;
 -
--	if (cqe < 1 || cqe > ib_qib_max_cqes) {
+-	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET) {
 -		ret = -EINVAL;
 -		goto bail;
 -	}
 -
 -	/*
--	 * Need to use vmalloc() if we want to support large #s of entries.
+-	 * Allocate data structures since its better to do this outside of
+-	 * spin locks and it will most likely be needed.
 -	 */
--	sz = sizeof(*wc);
--	if (udata && udata->outlen >= sizeof(__u64))
--		sz += sizeof(struct ib_uverbs_wc) * (cqe + 1);
--	else
--		sz += sizeof(struct ib_wc) * (cqe + 1);
--	wc = vmalloc_user(sz);
--	if (!wc) {
+-	mcast = qib_mcast_alloc(gid);
+-	if (mcast == NULL) {
 -		ret = -ENOMEM;
 -		goto bail;
 -	}
--
--	/* Check that we can write the offset to mmap. */
--	if (udata && udata->outlen >= sizeof(__u64)) {
--		__u64 offset = 0;
--
--		ret = ib_copy_to_udata(udata, &offset, sizeof(offset));
--		if (ret)
--			goto bail_free;
+-	mqp = qib_mcast_qp_alloc(qp);
+-	if (mqp == NULL) {
+-		qib_mcast_free(mcast);
+-		ret = -ENOMEM;
+-		goto bail;
 -	}
+-	ibp = to_iport(ibqp->device, qp->port_num);
+-	switch (qib_mcast_add(dev, ibp, mcast, mqp)) {
+-	case ESRCH:
+-		/* Neither was used: OK to attach the same QP twice. */
+-		qib_mcast_qp_free(mqp);
+-		qib_mcast_free(mcast);
+-		break;
 -
--	spin_lock_irq(&cq->lock);
--	/*
--	 * Make sure head and tail are sane since they
--	 * might be user writable.
--	 */
--	old_wc = cq->queue;
--	head = old_wc->head;
--	if (head > (u32) cq->ibcq.cqe)
--		head = (u32) cq->ibcq.cqe;
--	tail = old_wc->tail;
--	if (tail > (u32) cq->ibcq.cqe)
--		tail = (u32) cq->ibcq.cqe;
--	if (head < tail)
--		n = cq->ibcq.cqe + 1 + head - tail;
--	else
--		n = head - tail;
--	if (unlikely((u32)cqe < n)) {
--		ret = -EINVAL;
--		goto bail_unlock;
--	}
--	for (n = 0; tail != head; n++) {
--		if (cq->ip)
--			wc->uqueue[n] = old_wc->uqueue[tail];
--		else
--			wc->kqueue[n] = old_wc->kqueue[tail];
--		if (tail == (u32) cq->ibcq.cqe)
--			tail = 0;
--		else
--			tail++;
--	}
--	cq->ibcq.cqe = cqe;
--	wc->head = n;
--	wc->tail = 0;
--	cq->queue = wc;
--	spin_unlock_irq(&cq->lock);
+-	case EEXIST:            /* The mcast wasn't used */
+-		qib_mcast_free(mcast);
+-		break;
 -
--	vfree(old_wc);
+-	case ENOMEM:
+-		/* Exceeded the maximum number of mcast groups. */
+-		qib_mcast_qp_free(mqp);
+-		qib_mcast_free(mcast);
+-		ret = -ENOMEM;
+-		goto bail;
 -
--	if (cq->ip) {
--		struct qib_ibdev *dev = to_idev(ibcq->device);
--		struct rvt_mmap_info *ip = cq->ip;
--
--		rvt_update_mmap_info(&dev->rdi, ip, sz, wc);
--
--		/*
--		 * Return the offset to mmap.
--		 * See qib_mmap() for details.
--		 */
--		if (udata && udata->outlen >= sizeof(__u64)) {
--			ret = ib_copy_to_udata(udata, &ip->offset,
--					       sizeof(ip->offset));
--			if (ret)
--				goto bail;
--		}
--
--		spin_lock_irq(&dev->rdi.pending_lock);
--		if (list_empty(&ip->pending_mmaps))
--			list_add(&ip->pending_mmaps, &dev->rdi.pending_mmaps);
--		spin_unlock_irq(&dev->rdi.pending_lock);
+-	default:
+-		break;
 -	}
 -
 -	ret = 0;
--	goto bail;
 -
--bail_unlock:
--	spin_unlock_irq(&cq->lock);
--bail_free:
--	vfree(wc);
 -bail:
 -	return ret;
 -}
 -
--int qib_cq_init(struct qib_devdata *dd)
+-int qib_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
 -{
--	int ret = 0;
--	int cpu;
--	struct task_struct *task;
+-	struct rvt_qp *qp = ibqp_to_rvtqp(ibqp);
+-	struct qib_ibdev *dev = to_idev(ibqp->device);
+-	struct qib_ibport *ibp = to_iport(ibqp->device, qp->port_num);
+-	struct qib_mcast *mcast = NULL;
+-	struct qib_mcast_qp *p, *tmp, *delp = NULL;
+-	struct rb_node *n;
+-	int last = 0;
+-	int ret;
 -
--	if (dd->worker)
--		return 0;
--	dd->worker = kzalloc(sizeof(*dd->worker), GFP_KERNEL);
--	if (!dd->worker)
--		return -ENOMEM;
--	init_kthread_worker(dd->worker);
--	task = kthread_create_on_node(
--		kthread_worker_fn,
--		dd->worker,
--		dd->assigned_node_id,
--		"qib_cq%d", dd->unit);
--	if (IS_ERR(task))
--		goto task_fail;
--	cpu = cpumask_first(cpumask_of_node(dd->assigned_node_id));
--	kthread_bind(task, cpu);
--	wake_up_process(task);
--out:
--	return ret;
--task_fail:
--	ret = PTR_ERR(task);
--	kfree(dd->worker);
--	dd->worker = NULL;
--	goto out;
+-	if (ibqp->qp_num <= 1 || qp->state == IB_QPS_RESET)
+-		return -EINVAL;
+-
+-	spin_lock_irq(&ibp->rvp.lock);
+-
+-	/* Find the GID in the mcast table. */
+-	n = ibp->rvp.mcast_tree.rb_node;
+-	while (1) {
+-		if (n == NULL) {
+-			spin_unlock_irq(&ibp->rvp.lock);
+-			return -EINVAL;
+-		}
+-
+-		mcast = rb_entry(n, struct qib_mcast, rb_node);
+-		ret = memcmp(gid->raw, mcast->mgid.raw,
+-			     sizeof(union ib_gid));
+-		if (ret < 0)
+-			n = n->rb_left;
+-		else if (ret > 0)
+-			n = n->rb_right;
+-		else
+-			break;
+-	}
+-
+-	/* Search the QP list. */
+-	list_for_each_entry_safe(p, tmp, &mcast->qp_list, list) {
+-		if (p->qp != qp)
+-			continue;
+-		/*
+-		 * We found it, so remove it, but don't poison the forward
+-		 * link until we are sure there are no list walkers.
+-		 */
+-		list_del_rcu(&p->list);
+-		mcast->n_attached--;
+-		delp = p;
+-
+-		/* If this was the last attached QP, remove the GID too. */
+-		if (list_empty(&mcast->qp_list)) {
+-			rb_erase(&mcast->rb_node, &ibp->rvp.mcast_tree);
+-			last = 1;
+-		}
+-		break;
+-	}
+-
+-	spin_unlock_irq(&ibp->rvp.lock);
+-	/* QP not attached */
+-	if (!delp)
+-		return -EINVAL;
+-	/*
+-	 * Wait for any list walkers to finish before freeing the
+-	 * list element.
+-	 */
+-	wait_event(mcast->wait, atomic_read(&mcast->refcount) <= 1);
+-	qib_mcast_qp_free(delp);
+-
+-	if (last) {
+-		atomic_dec(&mcast->refcount);
+-		wait_event(mcast->wait, !atomic_read(&mcast->refcount));
+-		qib_mcast_free(mcast);
+-		spin_lock_irq(&dev->n_mcast_grps_lock);
+-		dev->n_mcast_grps_allocated--;
+-		spin_unlock_irq(&dev->n_mcast_grps_lock);
+-	}
+-	return 0;
 -}
 -
--void qib_cq_exit(struct qib_devdata *dd)
+-int qib_mcast_tree_empty(struct qib_ibport *ibp)
 -{
--	struct kthread_worker *worker;
--
--	worker = dd->worker;
--	if (!worker)
--		return;
--	/* blocks future queuing from send_complete() */
--	dd->worker = NULL;
--	smp_wmb();
--	flush_kthread_worker(worker);
--	kthread_stop(worker->task);
--	kfree(worker);
+-	return !(ibp->rvp.mcast_tree.rb_node);
 -}
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index a3c74bb..3f062f0 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -457,8 +457,6 @@ static int loadtime_init(struct qib_devdata *dd)
- 	init_timer(&dd->intrchk_timer);
- 	dd->intrchk_timer.function = verify_interrupt;
- 	dd->intrchk_timer.data = (unsigned long) dd;
--
--	ret = qib_cq_init(dd);
- done:
- 	return ret;
- }
-@@ -1435,7 +1433,6 @@ static void cleanup_device_data(struct qib_devdata *dd)
- 	}
- 	kfree(tmp);
- 	kfree(dd->boardname);
--	qib_cq_exit(dd);
- }
- 
- /*
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 83dec69..6e5a05e 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -473,7 +473,7 @@ int qib_error_qp(struct rvt_qp *qp, enum ib_wc_status err)
- 	if (test_and_clear_bit(RVT_R_WRID_VALID, &qp->r_aflags)) {
- 		wc.wr_id = qp->r_wr_id;
- 		wc.status = err;
--		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc, 1);
- 	}
- 	wc.status = IB_WC_WR_FLUSH_ERR;
- 
-@@ -496,7 +496,7 @@ int qib_error_qp(struct rvt_qp *qp, enum ib_wc_status err)
- 			wc.wr_id = get_rwqe_ptr(&qp->r_rq, tail)->wr_id;
- 			if (++tail >= qp->r_rq.size)
- 				tail = 0;
--			qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc, 1);
- 		}
- 		wq->tail = tail;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index e118004..8be5d45 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1026,7 +1026,7 @@ void qib_rc_send_complete(struct rvt_qp *qp, struct qib_ib_header *hdr)
- 			wc.opcode = ib_qib_wc_opcode[wqe->wr.opcode];
- 			wc.byte_len = wqe->length;
- 			wc.qp = &qp->ibqp;
--			qib_cq_enter(to_icq(qp->ibqp.send_cq), &wc, 0);
-+			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &wc, 0);
- 		}
- 		if (++qp->s_last >= qp->s_size)
- 			qp->s_last = 0;
-@@ -1082,7 +1082,7 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
- 			wc.opcode = ib_qib_wc_opcode[wqe->wr.opcode];
- 			wc.byte_len = wqe->length;
- 			wc.qp = &qp->ibqp;
--			qib_cq_enter(to_icq(qp->ibqp.send_cq), &wc, 0);
-+			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &wc, 0);
- 		}
- 		if (++qp->s_last >= qp->s_size)
- 			qp->s_last = 0;
-@@ -2048,7 +2048,7 @@ send_last:
- 		wc.dlid_path_bits = 0;
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
--		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
- 			     (ohdr->bth[0] &
- 			      cpu_to_be32(IB_BTH_SOLICITED)) != 0);
- 		break;
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index f7b3bb7..80f1130 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -120,7 +120,7 @@ bad_lkey:
- 	wc.opcode = IB_WC_RECV;
- 	wc.qp = &qp->ibqp;
- 	/* Signal solicited completion event. */
--	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc, 1);
- 	ret = 0;
- bail:
- 	return ret;
-@@ -563,8 +563,8 @@ again:
- 	wc.sl = qp->remote_ah_attr.sl;
- 	wc.port_num = 1;
- 	/* Signal completion event if the solicited bit is set. */
--	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
--		       wqe->wr.send_flags & IB_SEND_SOLICITED);
-+	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
-+		     wqe->wr.send_flags & IB_SEND_SOLICITED);
- 
- send_comp:
- 	spin_lock_irqsave(&sqp->s_lock, flags);
-@@ -806,7 +806,7 @@ void qib_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
- 		wc.qp = &qp->ibqp;
- 		if (status == IB_WC_SUCCESS)
- 			wc.byte_len = wqe->length;
--		qib_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
-+		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.send_cq), &wc,
- 			     status != IB_WC_SUCCESS);
- 	}
- 
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index deceb45..caf0191 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -415,7 +415,7 @@ last_imm:
- 		wc.dlid_path_bits = 0;
- 		wc.port_num = 0;
- 		/* Signal completion event if the solicited bit is set. */
--		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+		rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
- 			     (ohdr->bth[0] &
- 				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
- 		break;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 76f854e..abca527 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -217,7 +217,7 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
- 	wc.dlid_path_bits = ah_attr->dlid & ((1 << ppd->lmc) - 1);
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
--	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
- 		     swqe->wr.send_flags & IB_SEND_SOLICITED);
- 	ibp->rvp.n_loop_pkts++;
- bail_unlock:
-@@ -583,7 +583,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 		dlid & ((1 << ppd_from_ibp(ibp)->lmc) - 1);
- 	wc.port_num = qp->port_num;
- 	/* Signal completion event if the solicited bit is set. */
--	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
- 		     (ohdr->bth[0] &
- 			cpu_to_be32(IB_BTH_SOLICITED)) != 0);
- 	return;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index a181502..a27166b 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1909,7 +1909,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 		init_ibport(ppd + i);
- 
- 	/* Only need to initialize non-zero fields. */
--	spin_lock_init(&dev->n_cqs_lock);
- 	spin_lock_init(&dev->n_qps_lock);
- 	spin_lock_init(&dev->n_srqs_lock);
- 	spin_lock_init(&dev->n_mcast_grps_lock);
-@@ -2021,11 +2020,11 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->post_send = qib_post_send;
- 	ibdev->post_recv = qib_post_receive;
- 	ibdev->post_srq_recv = qib_post_srq_receive;
--	ibdev->create_cq = qib_create_cq;
--	ibdev->destroy_cq = qib_destroy_cq;
--	ibdev->resize_cq = qib_resize_cq;
--	ibdev->poll_cq = qib_poll_cq;
--	ibdev->req_notify_cq = qib_req_notify_cq;
-+	ibdev->create_cq = NULL;
-+	ibdev->destroy_cq = NULL;
-+	ibdev->resize_cq = NULL;
-+	ibdev->poll_cq = NULL;
-+	ibdev->req_notify_cq = NULL;
- 	ibdev->get_dma_mr = NULL;
- 	ibdev->reg_user_mr = NULL;
- 	ibdev->dereg_mr = NULL;
-@@ -2059,7 +2058,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	dd->verbs_dev.rdi.driver_f.free_all_qps = qib_free_all_qps;
- 	dd->verbs_dev.rdi.driver_f.notify_qp_reset = notify_qp_reset;
- 
--	dd->verbs_dev.rdi.flags = RVT_FLAG_CQ_INIT_DRIVER;
-+	dd->verbs_dev.rdi.flags = 0;
- 
- 	dd->verbs_dev.rdi.dparms.lkey_table_size = qib_lkey_table_size;
- 	dd->verbs_dev.rdi.dparms.qp_table_size = ib_qib_qp_table_size;
-@@ -2070,6 +2069,10 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	dd->verbs_dev.rdi.dparms.qos_shift = 1;
- 	dd->verbs_dev.rdi.dparms.nports = dd->num_pports;
- 	dd->verbs_dev.rdi.dparms.npkeys = qib_get_npkeys(dd);
-+	dd->verbs_dev.rdi.dparms.node = dd->assigned_node_id;
-+	snprintf(dd->verbs_dev.rdi.dparms.cq_name,
-+		 sizeof(dd->verbs_dev.rdi.dparms.cq_name),
-+		 "qib_cq%d", dd->unit);
- 
- 	qib_fill_device_attr(dd);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 3383d56..818ac87 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -46,6 +46,7 @@
- #include <rdma/ib_pack.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/rdma_vt.h>
-+#include <rdma/rdmavt_cq.h>
- 
- struct qib_ctxtdata;
- struct qib_pportdata;
-@@ -61,12 +62,6 @@ struct qib_verbs_txreq;
-  */
- #define QIB_UVERBS_ABI_VERSION       2
- 
--/*
-- * Define an ib_cq_notify value that is not valid so we know when CQ
-- * notifications are armed.
-- */
--#define IB_CQ_NONE      (IB_CQ_NEXT_COMP + 1)
--
- #define IB_SEQ_NAK	(3 << 29)
- 
- /* AETH NAK opcode values */
-@@ -220,35 +215,6 @@ struct qib_mcast {
- };
- 
- /*
-- * This structure is used to contain the head pointer, tail pointer,
-- * and completion queue entries as a single memory allocation so
-- * it can be mmap'ed into user space.
-- */
--struct qib_cq_wc {
--	u32 head;               /* index of next entry to fill */
--	u32 tail;               /* index of next ib_poll_cq() entry */
--	union {
--		/* these are actually size ibcq.cqe + 1 */
--		struct ib_uverbs_wc uqueue[0];
--		struct ib_wc kqueue[0];
--	};
--};
--
--/*
-- * The completion queue structure.
-- */
--struct qib_cq {
--	struct ib_cq ibcq;
--	struct kthread_work comptask;
--	struct qib_devdata *dd;
--	spinlock_t lock; /* protect changes in this struct */
--	u8 notify;
--	u8 triggered;
--	struct qib_cq_wc *queue;
--	struct rvt_mmap_info *ip;
--};
--
--/*
-  * qib specific data structure that will be hidden from rvt after the queue pair
-  * is made common.
-  */
-@@ -345,8 +311,6 @@ struct qib_ibdev {
- 	u32 n_piowait;
- 	u32 n_txwait;
- 
--	u32 n_cqs_allocated;    /* number of CQs allocated for device */
--	spinlock_t n_cqs_lock;
- 	u32 n_qps_allocated;    /* number of QPs allocated for device */
- 	spinlock_t n_qps_lock;
- 	u32 n_srqs_allocated;   /* number of SRQs allocated for device */
-@@ -375,11 +339,6 @@ struct qib_verbs_counters {
- 	u32 vl15_dropped;
- };
- 
--static inline struct qib_cq *to_icq(struct ib_cq *ibcq)
--{
--	return container_of(ibcq, struct qib_cq, ibcq);
--}
--
- static inline struct rvt_qp *to_iqp(struct ib_qp *ibqp)
- {
- 	return container_of(ibqp, struct rvt_qp, ibqp);
-@@ -545,25 +504,6 @@ int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
- 
- int qib_destroy_srq(struct ib_srq *ibsrq);
- 
--int qib_cq_init(struct qib_devdata *dd);
--
--void qib_cq_exit(struct qib_devdata *dd);
--
--void qib_cq_enter(struct qib_cq *cq, struct ib_wc *entry, int sig);
--
--int qib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry);
--
--struct ib_cq *qib_create_cq(struct ib_device *ibdev,
--			    const struct ib_cq_init_attr *attr,
--			    struct ib_ucontext *context,
--			    struct ib_udata *udata);
--
--int qib_destroy_cq(struct ib_cq *ibcq);
--
--int qib_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags notify_flags);
--
--int qib_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata);
--
- void mr_rcu_callback(struct rcu_head *list);
- 
- static inline void qib_put_ss(struct rvt_sge_state *ss)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
