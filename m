@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 4/6] IB/rdmavt: Add mad agents to rdmavt
-Date: Fri, 22 Jan 2016 13:04:51 -0800
-Message-ID: <20160122210450.9932.83496.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 1/6] IB/rdmavt: Remove unused variable from Queue Pair
+Date: Fri, 22 Jan 2016 13:04:32 -0800
+Message-ID: <20160122210430.9932.68371.stgit@scvm10.sc.intel.com>
 References: <20160122210251.9932.46251.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,175 +13,29 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds mad agent create and free to rdmavt.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+s_sde should be in the low level driver QP private data.
+
+Remove the definition from rvt_qp.
+
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mad.c |   72 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/sw/rdmavt/mad.h |    3 +-
- drivers/infiniband/sw/rdmavt/vt.c  |    4 ++
- drivers/infiniband/sw/rdmavt/vt.h  |    1 +
- include/rdma/rdma_vt.h             |    6 +++
- 5 files changed, 84 insertions(+), 2 deletions(-)
+ include/rdma/rdmavt_qp.h |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/mad.c b/drivers/infiniband/sw/rdmavt/mad.c
-index eef7029..e01f3fb 100644
---- a/drivers/infiniband/sw/rdmavt/mad.c
-+++ b/drivers/infiniband/sw/rdmavt/mad.c
-@@ -45,6 +45,7 @@
-  *
-  */
- 
-+#include <rdma/ib_mad.h>
- #include "mad.h"
- 
- /**
-@@ -83,3 +84,74 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 	 */
- 	return IB_MAD_RESULT_FAILURE;
- }
-+
-+static void rvt_send_mad_handler(struct ib_mad_agent *agent,
-+				 struct ib_mad_send_wc *mad_send_wc)
-+{
-+	ib_free_send_mad(mad_send_wc->send_buf);
-+}
-+
-+int rvt_create_mad_agents(struct rvt_dev_info *rdi)
-+{
-+	struct ib_mad_agent *agent;
-+	struct rvt_ibport *rvp;
-+	int p;
-+	int ret;
-+
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		agent = ib_register_mad_agent(&rdi->ibdev, p + 1,
-+					      IB_QPT_SMI,
-+					      NULL, 0, rvt_send_mad_handler,
-+					      NULL, NULL, 0);
-+		if (IS_ERR(agent)) {
-+			ret = PTR_ERR(agent);
-+			goto err;
-+		}
-+
-+		rvp->send_agent = agent;
-+
-+		if (rdi->driver_f.notify_create_mad_agent)
-+			rdi->driver_f.notify_create_mad_agent(rdi, p);
-+	}
-+
-+	return 0;
-+
-+err:
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		if (rvp->send_agent) {
-+			agent = rvp->send_agent;
-+			rvp->send_agent = NULL;
-+			ib_unregister_mad_agent(agent);
-+			if (rdi->driver_f.notify_free_mad_agent)
-+				rdi->driver_f.notify_free_mad_agent(rdi, p);
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+void rvt_free_mad_agents(struct rvt_dev_info *rdi)
-+{
-+	struct ib_mad_agent *agent;
-+	struct rvt_ibport *rvp;
-+	int p;
-+
-+	for (p = 0; p < rdi->dparms.nports; p++) {
-+		rvp = rdi->ports[p];
-+		if (rvp->send_agent) {
-+			agent = rvp->send_agent;
-+			rvp->send_agent = NULL;
-+			ib_unregister_mad_agent(agent);
-+		}
-+		if (rvp->sm_ah) {
-+			ib_destroy_ah(&rvp->sm_ah->ibah);
-+			rvp->sm_ah = NULL;
-+		}
-+
-+		if (rdi->driver_f.notify_free_mad_agent)
-+			rdi->driver_f.notify_free_mad_agent(rdi, p);
-+	}
-+}
-+
-diff --git a/drivers/infiniband/sw/rdmavt/mad.h b/drivers/infiniband/sw/rdmavt/mad.h
-index ee740e9..5d8a6a9 100644
---- a/drivers/infiniband/sw/rdmavt/mad.h
-+++ b/drivers/infiniband/sw/rdmavt/mad.h
-@@ -55,5 +55,6 @@ int rvt_process_mad(struct ib_device *ibdev, int mad_flags, u8 port,
- 		    const struct ib_mad_hdr *in, size_t in_mad_size,
- 		    struct ib_mad_hdr *out, size_t *out_mad_size,
- 		    u16 *out_mad_pkey_index);
--
-+int rvt_create_mad_agents(struct rvt_dev_info *rdi);
-+void rvt_free_mad_agents(struct rvt_dev_info *rdi);
- #endif          /* DEF_RVTMAD_H */
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 450caa7..7496d43 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -416,6 +416,8 @@ int rvt_register_device(struct rvt_dev_info *rdi)
- 		goto bail_cq;
- 	}
- 
-+	rvt_create_mad_agents(rdi);
-+
- 	rvt_pr_info(rdi, "Registration with rdmavt done.\n");
- 	return ret;
- 
-@@ -438,6 +440,8 @@ void rvt_unregister_device(struct rvt_dev_info *rdi)
- 	if (!rdi)
- 		return;
- 
-+	rvt_free_mad_agents(rdi);
-+
- 	ib_unregister_device(&rdi->ibdev);
- 	rvt_cq_exit(rdi);
- 	rvt_mr_exit(rdi);
-diff --git a/drivers/infiniband/sw/rdmavt/vt.h b/drivers/infiniband/sw/rdmavt/vt.h
-index 54ee05a..d9f78cc 100644
---- a/drivers/infiniband/sw/rdmavt/vt.h
-+++ b/drivers/infiniband/sw/rdmavt/vt.h
-@@ -59,6 +59,7 @@
- #include "mcast.h"
- #include "mmap.h"
- #include "cq.h"
-+#include "mad.h"
- 
- #define rvt_pr_info(rdi, fmt, ...) \
- 	__rvt_pr_info(rdi->driver_f.get_pci_dev(rdi), \
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 7768e04..31f9e5a 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -136,7 +136,8 @@ struct rvt_ibport {
- 	 */
- 	u16 *pkey_table;
- 
--	/* TODO: Move sm_ah and smi_ah into here as well*/
-+	struct rvt_ah *sm_ah;
-+	struct rvt_ah *smi_ah;
- };
- 
- #define RVT_CQN_MAX 16 /* maximum length of cq name */
-@@ -263,6 +264,9 @@ struct rvt_driver_provided {
- 			       int attr_mask, struct ib_udata *udata);
- 	void (*modify_qp)(struct rvt_qp *qp, struct ib_qp_attr *attr,
- 			  int attr_mask, struct ib_udata *udata);
-+
-+	void (*notify_create_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
-+	void (*notify_free_mad_agent)(struct rvt_dev_info *rdi, int port_idx);
- };
- 
- struct rvt_dev_info {
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index a97b95b..f0e2426 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -304,7 +304,6 @@ struct rvt_qp {
+ 	struct rvt_swqe *s_wqe;
+ 	struct rvt_sge_state s_sge;     /* current send request data */
+ 	struct rvt_mregion *s_rdma_mr;
+-	struct sdma_engine *s_sde; /* current sde */
+ 	u32 s_cur_size;         /* size of send packet in bytes */
+ 	u32 s_len;              /* total length of s_sge */
+ 	u32 s_rdma_read_len;    /* total length of s_rdma_read_sge */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
