@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 3/9] IB/qib: Remove mmap from qib
-Date: Fri, 22 Jan 2016 12:56:14 -0800
-Message-ID: <20160122205613.6530.81262.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 5/9] IB/qib: Remove qpn,
+ qp tables and related variables from qib
+Date: Fri, 22 Jan 2016 12:56:27 -0800
+Message-ID: <20160122205626.6530.42012.stgit@scvm10.sc.intel.com>
 References: <20160122205437.6530.68843.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,666 +16,477 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Since mmap functionality has been moved into rdmavt, its time for qib to
-use that.
+This patch removes the private queue pair structure and the table which
+holds the queue pair numbers in favor of using what is provided by rdmavt.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/Makefile    |    2 
- drivers/infiniband/hw/qib/qib_cq.c    |   18 ++-
- drivers/infiniband/hw/qib/qib_mmap.c  |  174 ---------------------------------
- drivers/infiniband/hw/qib/qib_qp.c    |   24 ++---
- drivers/infiniband/hw/qib/qib_sdma.c  |    4 -
- drivers/infiniband/hw/qib/qib_srq.c   |   18 ++-
- drivers/infiniband/hw/qib/qib_verbs.c |   44 ++++----
- drivers/infiniband/hw/qib/qib_verbs.h |   15 ---
- 8 files changed, 53 insertions(+), 246 deletions(-)
- delete mode 100644 drivers/infiniband/hw/qib/qib_mmap.c
+ drivers/infiniband/hw/qib/qib_qp.c    |  120 ++++++++++++++++++---------------
+ drivers/infiniband/hw/qib/qib_verbs.c |   29 +++++---
+ drivers/infiniband/hw/qib/qib_verbs.h |   33 +--------
+ 3 files changed, 84 insertions(+), 98 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
-index 75140f5..45db4fc 100644
---- a/drivers/infiniband/hw/qib/Makefile
-+++ b/drivers/infiniband/hw/qib/Makefile
-@@ -2,7 +2,7 @@ obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
- 
- ib_qib-y := qib_cq.o qib_diag.o qib_driver.o qib_eeprom.o \
- 	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o \
--	qib_mad.o qib_mmap.o qib_pcie.o qib_pio_copy.o \
-+	qib_mad.o qib_pcie.o qib_pio_copy.o \
- 	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
- 	qib_sysfs.o qib_twsi.o qib_tx.o qib_uc.o qib_ud.o \
- 	qib_user_pages.o qib_user_sdma.o qib_verbs_mcast.o qib_iba7220.o \
-diff --git a/drivers/infiniband/hw/qib/qib_cq.c b/drivers/infiniband/hw/qib/qib_cq.c
-index c1ea21e..094f694 100644
---- a/drivers/infiniband/hw/qib/qib_cq.c
-+++ b/drivers/infiniband/hw/qib/qib_cq.c
-@@ -264,7 +264,7 @@ struct ib_cq *qib_create_cq(struct ib_device *ibdev,
- 	if (udata && udata->outlen >= sizeof(__u64)) {
- 		int err;
- 
--		cq->ip = qib_create_mmap_info(dev, sz, context, wc);
-+		cq->ip = rvt_create_mmap_info(&dev->rdi, sz, context, wc);
- 		if (!cq->ip) {
- 			ret = ERR_PTR(-ENOMEM);
- 			goto bail_wc;
-@@ -290,9 +290,9 @@ struct ib_cq *qib_create_cq(struct ib_device *ibdev,
- 	spin_unlock(&dev->n_cqs_lock);
- 
- 	if (cq->ip) {
--		spin_lock_irq(&dev->pending_lock);
--		list_add(&cq->ip->pending_mmaps, &dev->pending_mmaps);
--		spin_unlock_irq(&dev->pending_lock);
-+		spin_lock_irq(&dev->rdi.pending_lock);
-+		list_add(&cq->ip->pending_mmaps, &dev->rdi.pending_mmaps);
-+		spin_unlock_irq(&dev->rdi.pending_lock);
- 	}
- 
- 	/*
-@@ -342,7 +342,7 @@ int qib_destroy_cq(struct ib_cq *ibcq)
- 	dev->n_cqs_allocated--;
- 	spin_unlock(&dev->n_cqs_lock);
- 	if (cq->ip)
--		kref_put(&cq->ip->ref, qib_release_mmap_info);
-+		kref_put(&cq->ip->ref, rvt_release_mmap_info);
- 	else
- 		vfree(cq->queue);
- 	kfree(cq);
-@@ -468,7 +468,7 @@ int qib_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
- 		struct qib_ibdev *dev = to_idev(ibcq->device);
- 		struct rvt_mmap_info *ip = cq->ip;
- 
--		qib_update_mmap_info(dev, ip, sz, wc);
-+		rvt_update_mmap_info(&dev->rdi, ip, sz, wc);
- 
- 		/*
- 		 * Return the offset to mmap.
-@@ -481,10 +481,10 @@ int qib_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
- 				goto bail;
- 		}
- 
--		spin_lock_irq(&dev->pending_lock);
-+		spin_lock_irq(&dev->rdi.pending_lock);
- 		if (list_empty(&ip->pending_mmaps))
--			list_add(&ip->pending_mmaps, &dev->pending_mmaps);
--		spin_unlock_irq(&dev->pending_lock);
-+			list_add(&ip->pending_mmaps, &dev->rdi.pending_mmaps);
-+		spin_unlock_irq(&dev->rdi.pending_lock);
- 	}
- 
- 	ret = 0;
-diff --git a/drivers/infiniband/hw/qib/qib_mmap.c b/drivers/infiniband/hw/qib/qib_mmap.c
-deleted file mode 100644
-index c32078c..0000000
---- a/drivers/infiniband/hw/qib/qib_mmap.c
-+++ /dev/null
-@@ -1,174 +0,0 @@
--/*
-- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-- *
-- * This software is available to you under a choice of one of two
-- * licenses.  You may choose to be licensed under the terms of the GNU
-- * General Public License (GPL) Version 2, available from the file
-- * COPYING in the main directory of this source tree, or the
-- * OpenIB.org BSD license below:
-- *
-- *     Redistribution and use in source and binary forms, with or
-- *     without modification, are permitted provided that the following
-- *     conditions are met:
-- *
-- *      - Redistributions of source code must retain the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer.
-- *
-- *      - Redistributions in binary form must reproduce the above
-- *        copyright notice, this list of conditions and the following
-- *        disclaimer in the documentation and/or other materials
-- *        provided with the distribution.
-- *
-- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-- * SOFTWARE.
-- */
--
--#include <linux/module.h>
--#include <linux/slab.h>
--#include <linux/vmalloc.h>
--#include <linux/mm.h>
--#include <linux/errno.h>
--#include <asm/pgtable.h>
--
--#include "qib_verbs.h"
--
--/**
-- * qib_release_mmap_info - free mmap info structure
-- * @ref: a pointer to the kref within struct rvt_mmap_info
-- */
--void qib_release_mmap_info(struct kref *ref)
--{
--	struct rvt_mmap_info *ip =
--		container_of(ref, struct rvt_mmap_info, ref);
--	struct qib_ibdev *dev = to_idev(ip->context->device);
--
--	spin_lock_irq(&dev->pending_lock);
--	list_del(&ip->pending_mmaps);
--	spin_unlock_irq(&dev->pending_lock);
--
--	vfree(ip->obj);
--	kfree(ip);
--}
--
--/*
-- * open and close keep track of how many times the CQ is mapped,
-- * to avoid releasing it.
-- */
--static void qib_vma_open(struct vm_area_struct *vma)
--{
--	struct rvt_mmap_info *ip = vma->vm_private_data;
--
--	kref_get(&ip->ref);
--}
--
--static void qib_vma_close(struct vm_area_struct *vma)
--{
--	struct rvt_mmap_info *ip = vma->vm_private_data;
--
--	kref_put(&ip->ref, qib_release_mmap_info);
--}
--
--static const struct vm_operations_struct qib_vm_ops = {
--	.open =     qib_vma_open,
--	.close =    qib_vma_close,
--};
--
--/**
-- * qib_mmap - create a new mmap region
-- * @context: the IB user context of the process making the mmap() call
-- * @vma: the VMA to be initialized
-- * Return zero if the mmap is OK. Otherwise, return an errno.
-- */
--int qib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
--{
--	struct qib_ibdev *dev = to_idev(context->device);
--	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
--	unsigned long size = vma->vm_end - vma->vm_start;
--	struct rvt_mmap_info *ip, *pp;
--	int ret = -EINVAL;
--
--	/*
--	 * Search the device's list of objects waiting for a mmap call.
--	 * Normally, this list is very short since a call to create a
--	 * CQ, QP, or SRQ is soon followed by a call to mmap().
--	 */
--	spin_lock_irq(&dev->pending_lock);
--	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
--				 pending_mmaps) {
--		/* Only the creator is allowed to mmap the object */
--		if (context != ip->context || (__u64) offset != ip->offset)
--			continue;
--		/* Don't allow a mmap larger than the object. */
--		if (size > ip->size)
--			break;
--
--		list_del_init(&ip->pending_mmaps);
--		spin_unlock_irq(&dev->pending_lock);
--
--		ret = remap_vmalloc_range(vma, ip->obj, 0);
--		if (ret)
--			goto done;
--		vma->vm_ops = &qib_vm_ops;
--		vma->vm_private_data = ip;
--		qib_vma_open(vma);
--		goto done;
--	}
--	spin_unlock_irq(&dev->pending_lock);
--done:
--	return ret;
--}
--
--/*
-- * Allocate information for qib_mmap
-- */
--struct rvt_mmap_info *qib_create_mmap_info(struct qib_ibdev *dev,
--					   u32 size,
--					   struct ib_ucontext *context,
--					   void *obj) {
--	struct rvt_mmap_info *ip;
--
--	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
--	if (!ip)
--		goto bail;
--
--	size = PAGE_ALIGN(size);
--
--	spin_lock_irq(&dev->mmap_offset_lock);
--	if (dev->mmap_offset == 0)
--		dev->mmap_offset = PAGE_SIZE;
--	ip->offset = dev->mmap_offset;
--	dev->mmap_offset += size;
--	spin_unlock_irq(&dev->mmap_offset_lock);
--
--	INIT_LIST_HEAD(&ip->pending_mmaps);
--	ip->size = size;
--	ip->context = context;
--	ip->obj = obj;
--	kref_init(&ip->ref);
--
--bail:
--	return ip;
--}
--
--void qib_update_mmap_info(struct qib_ibdev *dev, struct rvt_mmap_info *ip,
--			  u32 size, void *obj)
--{
--	size = PAGE_ALIGN(size);
--
--	spin_lock_irq(&dev->mmap_offset_lock);
--	if (dev->mmap_offset == 0)
--		dev->mmap_offset = PAGE_SIZE;
--	ip->offset = dev->mmap_offset;
--	dev->mmap_offset += size;
--	spin_unlock_irq(&dev->mmap_offset_lock);
--
--	ip->size = size;
--	ip->obj = obj;
--}
 diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 9cb9be7..b7034d4 100644
+index b7034d4..f18ee76 100644
 --- a/drivers/infiniband/hw/qib/qib_qp.c
 +++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -494,12 +494,12 @@ int qib_error_qp(struct rvt_qp *qp, enum ib_wc_status err)
- 	if (qp->s_flags & QIB_S_ANY_WAIT_SEND)
- 		qp->s_flags &= ~QIB_S_ANY_WAIT_SEND;
+@@ -42,25 +42,31 @@
  
--	spin_lock(&dev->pending_lock);
-+	spin_lock(&dev->rdi.pending_lock);
- 	if (!list_empty(&priv->iowait) && !(qp->s_flags & QIB_S_BUSY)) {
- 		qp->s_flags &= ~QIB_S_ANY_WAIT_IO;
- 		list_del_init(&priv->iowait);
- 	}
--	spin_unlock(&dev->pending_lock);
-+	spin_unlock(&dev->rdi.pending_lock);
+ #include "qib.h"
  
- 	if (!(qp->s_flags & QIB_S_BUSY)) {
- 		qp->s_hdrwords = 0;
-@@ -702,10 +702,10 @@ int qib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	case IB_QPS_RESET:
- 		if (qp->state != IB_QPS_RESET) {
- 			qp->state = IB_QPS_RESET;
--			spin_lock(&dev->pending_lock);
-+			spin_lock(&dev->rdi.pending_lock);
- 			if (!list_empty(&priv->iowait))
- 				list_del_init(&priv->iowait);
--			spin_unlock(&dev->pending_lock);
-+			spin_unlock(&dev->rdi.pending_lock);
- 			qp->s_flags &= ~(QIB_S_TIMER | QIB_S_ANY_WAIT);
- 			spin_unlock(&qp->s_lock);
- 			spin_unlock_irq(&qp->r_lock);
-@@ -1158,7 +1158,7 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 		} else {
- 			u32 s = sizeof(struct rvt_rwq) + qp->r_rq.size * sz;
+-#define BITS_PER_PAGE           (PAGE_SIZE*BITS_PER_BYTE)
+-#define BITS_PER_PAGE_MASK      (BITS_PER_PAGE-1)
++/*
++ * mask field which was present in now deleted qib_qpn_table
++ * is not present in rvt_qpn_table. Defining the same field
++ * as qpt_mask here instead of adding the mask field to
++ * rvt_qpn_table.
++ */
++static u16 qpt_mask;
  
--			qp->ip = qib_create_mmap_info(dev, s,
-+			qp->ip = rvt_create_mmap_info(&dev->rdi, s,
- 						      ibpd->uobject->context,
- 						      qp->r_rq.wq);
- 			if (!qp->ip) {
-@@ -1186,9 +1186,9 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
- 	spin_unlock(&dev->n_qps_lock);
+-static inline unsigned mk_qpn(struct qib_qpn_table *qpt,
+-			      struct qpn_map *map, unsigned off)
++static inline unsigned mk_qpn(struct rvt_qpn_table *qpt,
++			      struct rvt_qpn_map *map, unsigned off)
+ {
+-	return (map - qpt->map) * BITS_PER_PAGE + off;
++	return (map - qpt->map) * RVT_BITS_PER_PAGE + off;
+ }
  
- 	if (qp->ip) {
--		spin_lock_irq(&dev->pending_lock);
--		list_add(&qp->ip->pending_mmaps, &dev->pending_mmaps);
--		spin_unlock_irq(&dev->pending_lock);
-+		spin_lock_irq(&dev->rdi.pending_lock);
-+		list_add(&qp->ip->pending_mmaps, &dev->rdi.pending_mmaps);
-+		spin_unlock_irq(&dev->rdi.pending_lock);
- 	}
+-static inline unsigned find_next_offset(struct qib_qpn_table *qpt,
+-					struct qpn_map *map, unsigned off,
++static inline unsigned find_next_offset(struct rvt_qpn_table *qpt,
++					struct rvt_qpn_map *map, unsigned off,
+ 					unsigned n)
+ {
+-	if (qpt->mask) {
++	if (qpt_mask) {
+ 		off++;
+-		if (((off & qpt->mask) >> 1) >= n)
+-			off = (off | qpt->mask) + 2;
+-	} else
+-		off = find_next_zero_bit(map->page, BITS_PER_PAGE, off);
++		if (((off & qpt_mask) >> 1) >= n)
++			off = (off | qpt_mask) + 2;
++	} else {
++		off = find_next_zero_bit(map->page, RVT_BITS_PER_PAGE, off);
++	}
+ 	return off;
+ }
  
- 	ret = &qp->ibqp;
-@@ -1196,7 +1196,7 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+@@ -101,7 +107,7 @@ static u32 credit_table[31] = {
+ 	32768                   /* 1E */
+ };
  
- bail_ip:
- 	if (qp->ip)
--		kref_put(&qp->ip->ref, qib_release_mmap_info);
-+		kref_put(&qp->ip->ref, rvt_release_mmap_info);
- 	else
- 		vfree(qp->r_rq.wq);
- 	free_qpn(&dev->qpn_table, qp->ibqp.qp_num);
-@@ -1230,10 +1230,10 @@ int qib_destroy_qp(struct ib_qp *ibqp)
- 	spin_lock_irq(&qp->s_lock);
- 	if (qp->state != IB_QPS_RESET) {
- 		qp->state = IB_QPS_RESET;
--		spin_lock(&dev->pending_lock);
-+		spin_lock(&dev->rdi.pending_lock);
- 		if (!list_empty(&priv->iowait))
- 			list_del_init(&priv->iowait);
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		qp->s_flags &= ~(QIB_S_TIMER | QIB_S_ANY_WAIT);
- 		spin_unlock_irq(&qp->s_lock);
- 		cancel_work_sync(&priv->s_work);
-@@ -1256,7 +1256,7 @@ int qib_destroy_qp(struct ib_qp *ibqp)
- 	spin_unlock(&dev->n_qps_lock);
+-static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map,
++static void get_map_page(struct rvt_qpn_table *qpt, struct rvt_qpn_map *map,
+ 			 gfp_t gfp)
+ {
+ 	unsigned long page = get_zeroed_page(gfp);
+@@ -122,11 +128,11 @@ static void get_map_page(struct qib_qpn_table *qpt, struct qpn_map *map,
+  * Allocate the next available QPN or
+  * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
+  */
+-static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
++static int alloc_qpn(struct qib_devdata *dd, struct rvt_qpn_table *qpt,
+ 		     enum ib_qp_type type, u8 port, gfp_t gfp)
+ {
+ 	u32 i, offset, max_scan, qpn;
+-	struct qpn_map *map;
++	struct rvt_qpn_map *map;
+ 	u32 ret;
  
- 	if (qp->ip)
--		kref_put(&qp->ip->ref, qib_release_mmap_info);
-+		kref_put(&qp->ip->ref, rvt_release_mmap_info);
- 	else
- 		vfree(qp->r_rq.wq);
- 	vfree(qp->s_wq);
-diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
-index 9d1104e..bb34bb9 100644
---- a/drivers/infiniband/hw/qib/qib_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_sdma.c
-@@ -697,7 +697,7 @@ busy:
- 		tx->dwords = dwords;
- 		priv->s_tx = tx;
- 		dev = &ppd->dd->verbs_dev;
--		spin_lock(&dev->pending_lock);
-+		spin_lock(&dev->rdi.pending_lock);
- 		if (list_empty(&priv->iowait)) {
- 			struct qib_ibport *ibp;
- 
-@@ -706,7 +706,7 @@ busy:
- 			qp->s_flags |= QIB_S_WAIT_DMA_DESC;
- 			list_add_tail(&priv->iowait, &dev->dmawait);
- 		}
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		qp->s_flags &= ~QIB_S_BUSY;
- 		spin_unlock(&qp->s_lock);
- 		ret = -EBUSY;
-diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
-index e9dfa30..dff8808 100644
---- a/drivers/infiniband/hw/qib/qib_srq.c
-+++ b/drivers/infiniband/hw/qib/qib_srq.c
-@@ -148,7 +148,7 @@ struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
- 		u32 s = sizeof(struct rvt_rwq) + srq->rq.size * sz;
- 
- 		srq->ip =
--		    qib_create_mmap_info(dev, s, ibpd->uobject->context,
-+		    rvt_create_mmap_info(&dev->rdi, s, ibpd->uobject->context,
- 					 srq->rq.wq);
- 		if (!srq->ip) {
- 			ret = ERR_PTR(-ENOMEM);
-@@ -183,9 +183,9 @@ struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
- 	spin_unlock(&dev->n_srqs_lock);
- 
- 	if (srq->ip) {
--		spin_lock_irq(&dev->pending_lock);
--		list_add(&srq->ip->pending_mmaps, &dev->pending_mmaps);
--		spin_unlock_irq(&dev->pending_lock);
-+		spin_lock_irq(&dev->rdi.pending_lock);
-+		list_add(&srq->ip->pending_mmaps, &dev->rdi.pending_mmaps);
-+		spin_unlock_irq(&dev->rdi.pending_lock);
+ 	if (type == IB_QPT_SMI || type == IB_QPT_GSI) {
+@@ -144,12 +150,12 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
  	}
  
- 	ret = &srq->ibsrq;
-@@ -307,7 +307,7 @@ int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
- 			struct qib_ibdev *dev = to_idev(srq->ibsrq.device);
- 			u32 s = sizeof(struct rvt_rwq) + size * sz;
- 
--			qib_update_mmap_info(dev, ip, s, wq);
-+			rvt_update_mmap_info(&dev->rdi, ip, s, wq);
- 
- 			/*
- 			 * Return the offset to mmap.
-@@ -324,11 +324,11 @@ int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
- 			 * Put user mapping info onto the pending list
- 			 * unless it already is on the list.
+ 	qpn = qpt->last + 2;
+-	if (qpn >= QPN_MAX)
++	if (qpn >= RVT_QPN_MAX)
+ 		qpn = 2;
+-	if (qpt->mask && ((qpn & qpt->mask) >> 1) >= dd->n_krcv_queues)
+-		qpn = (qpn | qpt->mask) + 2;
+-	offset = qpn & BITS_PER_PAGE_MASK;
+-	map = &qpt->map[qpn / BITS_PER_PAGE];
++	if (qpt_mask && ((qpn & qpt_mask) >> 1) >= dd->n_krcv_queues)
++		qpn = (qpn | qpt_mask) + 2;
++	offset = qpn & RVT_BITS_PER_PAGE_MASK;
++	map = &qpt->map[qpn / RVT_BITS_PER_PAGE];
+ 	max_scan = qpt->nmaps - !offset;
+ 	for (i = 0;;) {
+ 		if (unlikely(!map->page)) {
+@@ -174,14 +180,14 @@ static int alloc_qpn(struct qib_devdata *dd, struct qib_qpn_table *qpt,
+ 			 * We just need to be sure we don't loop
+ 			 * forever.
  			 */
--			spin_lock_irq(&dev->pending_lock);
-+			spin_lock_irq(&dev->rdi.pending_lock);
- 			if (list_empty(&ip->pending_mmaps))
- 				list_add(&ip->pending_mmaps,
--					 &dev->pending_mmaps);
--			spin_unlock_irq(&dev->pending_lock);
-+					 &dev->rdi.pending_mmaps);
-+			spin_unlock_irq(&dev->rdi.pending_lock);
- 		}
- 	} else if (attr_mask & IB_SRQ_LIMIT) {
- 		spin_lock_irq(&srq->rq.lock);
-@@ -371,7 +371,7 @@ int qib_destroy_srq(struct ib_srq *ibsrq)
- 	dev->n_srqs_allocated--;
- 	spin_unlock(&dev->n_srqs_lock);
- 	if (srq->ip)
--		kref_put(&srq->ip->ref, qib_release_mmap_info);
-+		kref_put(&srq->ip->ref, rvt_release_mmap_info);
- 	else
- 		vfree(srq->rq.wq);
- 	kfree(srq);
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 96e34f4..893d00c 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -731,7 +731,7 @@ static void mem_timer(unsigned long data)
- 	struct qib_qp_priv *priv = NULL;
- 	unsigned long flags;
+-		} while (offset < BITS_PER_PAGE && qpn < QPN_MAX);
++		} while (offset < RVT_BITS_PER_PAGE && qpn < RVT_QPN_MAX);
+ 		/*
+ 		 * In order to keep the number of pages allocated to a
+ 		 * minimum, we scan the all existing pages before increasing
+ 		 * the size of the bitmap table.
+ 		 */
+ 		if (++i > max_scan) {
+-			if (qpt->nmaps == QPNMAP_ENTRIES)
++			if (qpt->nmaps == RVT_QPNMAP_ENTRIES)
+ 				break;
+ 			map = &qpt->map[qpt->nmaps++];
+ 			offset = 0;
+@@ -201,19 +207,19 @@ bail:
+ 	return ret;
+ }
  
--	spin_lock_irqsave(&dev->pending_lock, flags);
-+	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
- 	if (!list_empty(list)) {
- 		priv = list_entry(list->next, struct qib_qp_priv, iowait);
- 		qp = priv->owner;
-@@ -740,7 +740,7 @@ static void mem_timer(unsigned long data)
- 		if (!list_empty(list))
- 			mod_timer(&dev->mem_timer, jiffies + 1);
- 	}
--	spin_unlock_irqrestore(&dev->pending_lock, flags);
-+	spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
+-static void free_qpn(struct qib_qpn_table *qpt, u32 qpn)
++static void free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
+ {
+-	struct qpn_map *map;
++	struct rvt_qpn_map *map;
  
- 	if (qp) {
- 		spin_lock_irqsave(&qp->s_lock, flags);
-@@ -955,13 +955,13 @@ static noinline struct qib_verbs_txreq *__get_txreq(struct qib_ibdev *dev,
- 	unsigned long flags;
+-	map = qpt->map + qpn / BITS_PER_PAGE;
++	map = qpt->map + qpn / RVT_BITS_PER_PAGE;
+ 	if (map->page)
+-		clear_bit(qpn & BITS_PER_PAGE_MASK, map->page);
++		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
+ }
  
- 	spin_lock_irqsave(&qp->s_lock, flags);
--	spin_lock(&dev->pending_lock);
-+	spin_lock(&dev->rdi.pending_lock);
+ static inline unsigned qpn_hash(struct qib_ibdev *dev, u32 qpn)
+ {
+ 	return jhash_1word(qpn, dev->qp_rnd) &
+-		(dev->qp_table_size - 1);
++		(dev->rdi.qp_dev->qp_table_size - 1);
+ }
  
- 	if (!list_empty(&dev->txreq_free)) {
- 		struct list_head *l = dev->txreq_free.next;
  
- 		list_del(l);
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		spin_unlock_irqrestore(&qp->s_lock, flags);
- 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
- 	} else {
-@@ -972,7 +972,7 @@ static noinline struct qib_verbs_txreq *__get_txreq(struct qib_ibdev *dev,
- 			list_add_tail(&priv->iowait, &dev->txwait);
- 		}
- 		qp->s_flags &= ~QIB_S_BUSY;
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		spin_unlock_irqrestore(&qp->s_lock, flags);
- 		tx = ERR_PTR(-EBUSY);
- 	}
-@@ -985,17 +985,17 @@ static inline struct qib_verbs_txreq *get_txreq(struct qib_ibdev *dev,
- 	struct qib_verbs_txreq *tx;
- 	unsigned long flags;
+@@ -228,18 +234,18 @@ static void insert_qp(struct qib_ibdev *dev, struct rvt_qp *qp)
+ 	unsigned n = qpn_hash(dev, qp->ibqp.qp_num);
  
--	spin_lock_irqsave(&dev->pending_lock, flags);
-+	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
- 	/* assume the list non empty */
- 	if (likely(!list_empty(&dev->txreq_free))) {
- 		struct list_head *l = dev->txreq_free.next;
+ 	atomic_inc(&qp->refcount);
+-	spin_lock_irqsave(&dev->qpt_lock, flags);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
  
- 		list_del(l);
--		spin_unlock_irqrestore(&dev->pending_lock, flags);
-+		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
- 		tx = list_entry(l, struct qib_verbs_txreq, txreq.list);
- 	} else {
- 		/* call slow path to get the extra lock */
--		spin_unlock_irqrestore(&dev->pending_lock, flags);
-+		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
- 		tx =  __get_txreq(dev, qp);
- 	}
- 	return tx;
-@@ -1025,7 +1025,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
- 		kfree(tx->align_buf);
+ 	if (qp->ibqp.qp_num == 0)
+ 		rcu_assign_pointer(ibp->rvp.qp[0], qp);
+ 	else if (qp->ibqp.qp_num == 1)
+ 		rcu_assign_pointer(ibp->rvp.qp[1], qp);
+ 	else {
+-		qp->next = dev->qp_table[n];
+-		rcu_assign_pointer(dev->qp_table[n], qp);
++		qp->next = dev->rdi.qp_dev->qp_table[n];
++		rcu_assign_pointer(dev->rdi.qp_dev->qp_table[n], qp);
  	}
  
--	spin_lock_irqsave(&dev->pending_lock, flags);
-+	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
- 
- 	/* Put struct back on free list */
- 	list_add(&tx->txreq.list, &dev->txreq_free);
-@@ -1037,7 +1037,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
- 		qp = priv->owner;
- 		list_del_init(&priv->iowait);
- 		atomic_inc(&qp->refcount);
--		spin_unlock_irqrestore(&dev->pending_lock, flags);
-+		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
- 
- 		spin_lock_irqsave(&qp->s_lock, flags);
- 		if (qp->s_flags & QIB_S_WAIT_TX) {
-@@ -1049,7 +1049,7 @@ void qib_put_txreq(struct qib_verbs_txreq *tx)
- 		if (atomic_dec_and_test(&qp->refcount))
- 			wake_up(&qp->wait);
- 	} else
--		spin_unlock_irqrestore(&dev->pending_lock, flags);
-+		spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
+-	spin_unlock_irqrestore(&dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
  }
  
  /*
-@@ -1068,7 +1068,7 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
+@@ -252,34 +258,36 @@ static void remove_qp(struct qib_ibdev *dev, struct rvt_qp *qp)
+ 	unsigned n = qpn_hash(dev, qp->ibqp.qp_num);
+ 	unsigned long flags;
+ 	int removed = 1;
++	spinlock_t *qpt_lock_ptr; /* Pointer to make checkpatch happy */
  
- 	n = 0;
- 	dev = &ppd->dd->verbs_dev;
--	spin_lock(&dev->pending_lock);
-+	spin_lock(&dev->rdi.pending_lock);
+-	spin_lock_irqsave(&dev->qpt_lock, flags);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
  
- 	/* Search wait list for first QP wanting DMA descriptors. */
- 	list_for_each_entry_safe(qpp, nqpp, &dev->dmawait, iowait) {
-@@ -1086,7 +1086,7 @@ void qib_verbs_sdma_desc_avail(struct qib_pportdata *ppd, unsigned avail)
- 		qps[n++] = qp;
++	qpt_lock_ptr = &dev->rdi.qp_dev->qpt_lock;
+ 	if (rcu_dereference_protected(ibp->rvp.qp[0],
+-				      lockdep_is_held(&dev->qpt_lock)) == qp) {
++				      lockdep_is_held(qpt_lock_ptr)) == qp) {
+ 		RCU_INIT_POINTER(ibp->rvp.qp[0], NULL);
+ 	} else if (rcu_dereference_protected(ibp->rvp.qp[1],
+-			lockdep_is_held(&dev->qpt_lock)) == qp) {
++			lockdep_is_held(&dev->rdi.qp_dev->qpt_lock)) == qp) {
+ 		RCU_INIT_POINTER(ibp->rvp.qp[1], NULL);
+ 	} else {
+ 		struct rvt_qp *q;
+ 		struct rvt_qp __rcu **qpp;
+ 
+ 		removed = 0;
+-		qpp = &dev->qp_table[n];
++		qpp = &dev->rdi.qp_dev->qp_table[n];
+ 		for (; (q = rcu_dereference_protected(*qpp,
+-				lockdep_is_held(&dev->qpt_lock))) != NULL;
++				lockdep_is_held(qpt_lock_ptr))) != NULL;
+ 				qpp = &q->next)
+ 			if (q == qp) {
+ 				RCU_INIT_POINTER(*qpp,
+ 					rcu_dereference_protected(qp->next,
+-					 lockdep_is_held(&dev->qpt_lock)));
++					 lockdep_is_held(qpt_lock_ptr)));
+ 				removed = 1;
+ 				break;
+ 			}
  	}
  
--	spin_unlock(&dev->pending_lock);
-+	spin_unlock(&dev->rdi.pending_lock);
+-	spin_unlock_irqrestore(&dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
+ 	if (removed) {
+ 		synchronize_rcu();
+ 		atomic_dec(&qp->refcount);
+@@ -299,6 +307,7 @@ unsigned qib_free_all_qps(struct qib_devdata *dd)
+ 	unsigned long flags;
+ 	struct rvt_qp *qp;
+ 	unsigned n, qp_inuse = 0;
++	spinlock_t *qpt_lock_ptr; /* Pointer to make checkpatch happy */
  
- 	for (i = 0; i < n; i++) {
- 		qp = qps[i];
-@@ -1147,14 +1147,14 @@ static int wait_kmem(struct qib_ibdev *dev, struct rvt_qp *qp)
- 
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 	if (ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK) {
--		spin_lock(&dev->pending_lock);
-+		spin_lock(&dev->rdi.pending_lock);
- 		if (list_empty(&priv->iowait)) {
- 			if (list_empty(&dev->memwait))
- 				mod_timer(&dev->mem_timer, jiffies + 1);
- 			qp->s_flags |= QIB_S_WAIT_KMEM;
- 			list_add_tail(&priv->iowait, &dev->memwait);
- 		}
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		qp->s_flags &= ~QIB_S_BUSY;
- 		ret = -EBUSY;
+ 	for (n = 0; n < dd->num_pports; n++) {
+ 		struct qib_ibport *ibp = &dd->pport[n].ibport_data;
+@@ -313,17 +322,18 @@ unsigned qib_free_all_qps(struct qib_devdata *dd)
+ 		rcu_read_unlock();
  	}
-@@ -1284,7 +1284,7 @@ static int no_bufs_available(struct rvt_qp *qp)
- 	 */
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 	if (ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK) {
--		spin_lock(&dev->pending_lock);
-+		spin_lock(&dev->rdi.pending_lock);
- 		if (list_empty(&priv->iowait)) {
- 			dev->n_piowait++;
- 			qp->s_flags |= QIB_S_WAIT_PIO;
-@@ -1292,7 +1292,7 @@ static int no_bufs_available(struct rvt_qp *qp)
- 			dd = dd_from_dev(dev);
- 			dd->f_wantpiobuf_intr(dd, 1);
- 		}
--		spin_unlock(&dev->pending_lock);
-+		spin_unlock(&dev->rdi.pending_lock);
- 		qp->s_flags &= ~QIB_S_BUSY;
- 		ret = -EBUSY;
+ 
+-	spin_lock_irqsave(&dev->qpt_lock, flags);
+-	for (n = 0; n < dev->qp_table_size; n++) {
+-		qp = rcu_dereference_protected(dev->qp_table[n],
+-			lockdep_is_held(&dev->qpt_lock));
+-		RCU_INIT_POINTER(dev->qp_table[n], NULL);
++	spin_lock_irqsave(&dev->rdi.qp_dev->qpt_lock, flags);
++	qpt_lock_ptr = &dev->rdi.qp_dev->qpt_lock;
++	for (n = 0; n < dev->rdi.qp_dev->qp_table_size; n++) {
++		qp = rcu_dereference_protected(dev->rdi.qp_dev->qp_table[n],
++					       lockdep_is_held(qpt_lock_ptr));
++		RCU_INIT_POINTER(dev->rdi.qp_dev->qp_table[n], NULL);
+ 
+ 		for (; qp; qp = rcu_dereference_protected(qp->next,
+-					lockdep_is_held(&dev->qpt_lock)))
++					lockdep_is_held(qpt_lock_ptr)))
+ 			qp_inuse++;
  	}
-@@ -1556,7 +1556,7 @@ void qib_ib_piobufavail(struct qib_devdata *dd)
- 	 * could end up with QPs on the wait list with the interrupt
- 	 * disabled.
- 	 */
--	spin_lock_irqsave(&dev->pending_lock, flags);
-+	spin_lock_irqsave(&dev->rdi.pending_lock, flags);
- 	while (!list_empty(list)) {
- 		if (n == ARRAY_SIZE(qps))
- 			goto full;
-@@ -1568,7 +1568,7 @@ void qib_ib_piobufavail(struct qib_devdata *dd)
- 	}
- 	dd->f_wantpiobuf_intr(dd, 0);
- full:
--	spin_unlock_irqrestore(&dev->pending_lock, flags);
-+	spin_unlock_irqrestore(&dev->rdi.pending_lock, flags);
+-	spin_unlock_irqrestore(&dev->qpt_lock, flags);
++	spin_unlock_irqrestore(&dev->rdi.qp_dev->qpt_lock, flags);
+ 	synchronize_rcu();
  
- 	for (i = 0; i < n; i++) {
- 		qp = qps[i];
-@@ -1992,10 +1992,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	return qp_inuse;
+@@ -353,7 +363,7 @@ struct rvt_qp *qib_lookup_qpn(struct qib_ibport *ibp, u32 qpn)
+ 		struct qib_ibdev *dev = &ppd_from_ibp(ibp)->dd->verbs_dev;
+ 		unsigned n = qpn_hash(dev, qpn);
  
- 	qib_init_qpn_table(dd, &dev->qpn_table);
+-		for (qp = rcu_dereference(dev->qp_table[n]); qp;
++		for (qp = rcu_dereference(dev->rdi.qp_dev->qp_table[n]); qp;
+ 			qp = rcu_dereference(qp->next))
+ 			if (qp->ibqp.qp_num == qpn) {
+ 				atomic_inc(&qp->refcount);
+@@ -1121,8 +1131,8 @@ struct ib_qp *qib_create_qp(struct ib_pd *ibpd,
+ 			qp->s_flags = QIB_S_SIGNAL_REQ_WR;
+ 		dev = to_idev(ibpd->device);
+ 		dd = dd_from_dev(dev);
+-		err = alloc_qpn(dd, &dev->qpn_table, init_attr->qp_type,
+-				init_attr->port_num, gfp);
++		err = alloc_qpn(dd, &dev->rdi.qp_dev->qpn_table,
++				init_attr->qp_type, init_attr->port_num, gfp);
+ 		if (err < 0) {
+ 			ret = ERR_PTR(err);
+ 			vfree(qp->r_rq.wq);
+@@ -1199,7 +1209,7 @@ bail_ip:
+ 		kref_put(&qp->ip->ref, rvt_release_mmap_info);
+ 	else
+ 		vfree(qp->r_rq.wq);
+-	free_qpn(&dev->qpn_table, qp->ibqp.qp_num);
++	free_qpn(&dev->rdi.qp_dev->qpn_table, qp->ibqp.qp_num);
+ bail_qp:
+ 	kfree(priv->s_hdr);
+ 	kfree(priv);
+@@ -1250,7 +1260,7 @@ int qib_destroy_qp(struct ib_qp *ibqp)
+ 		spin_unlock_irq(&qp->s_lock);
  
--	INIT_LIST_HEAD(&dev->pending_mmaps);
--	spin_lock_init(&dev->pending_lock);
--	dev->mmap_offset = PAGE_SIZE;
--	spin_lock_init(&dev->mmap_offset_lock);
- 	INIT_LIST_HEAD(&dev->piowait);
- 	INIT_LIST_HEAD(&dev->dmawait);
- 	INIT_LIST_HEAD(&dev->txwait);
-@@ -2115,7 +2111,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->attach_mcast = qib_multicast_attach;
- 	ibdev->detach_mcast = qib_multicast_detach;
- 	ibdev->process_mad = qib_process_mad;
--	ibdev->mmap = qib_mmap;
-+	ibdev->mmap = NULL;
- 	ibdev->dma_ops = NULL;
- 	ibdev->get_port_immutable = qib_port_immutable;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 538d3a6..eade668 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -428,9 +428,6 @@ struct qib_ibport {
- 
- struct qib_ibdev {
- 	struct rvt_dev_info rdi;
--	struct list_head pending_mmaps;
--	spinlock_t mmap_offset_lock; /* protect mmap_offset */
--	u32 mmap_offset;
- 
- 	/* QP numbers are shared by all IB ports */
- 	struct qib_qpn_table qpn_table;
-@@ -444,7 +441,6 @@ struct qib_ibdev {
- 	struct qib_pio_header *pio_hdrs;
- 	dma_addr_t pio_hdrs_phys;
- 	/* list of QPs waiting for RNR timer */
--	spinlock_t pending_lock; /* protect wait lists, PMA counters, etc. */
- 	u32 qp_table_size; /* size of the hash table */
- 	u32 qp_rnd; /* random bytes for hash */
- 	spinlock_t qpt_lock;
-@@ -683,17 +679,6 @@ static inline void qib_put_ss(struct rvt_sge_state *ss)
- 	}
+ 	/* all user's cleaned up, mark it available */
+-	free_qpn(&dev->qpn_table, qp->ibqp.qp_num);
++	free_qpn(&dev->rdi.qp_dev->qpn_table, qp->ibqp.qp_num);
+ 	spin_lock(&dev->n_qps_lock);
+ 	dev->n_qps_allocated--;
+ 	spin_unlock(&dev->n_qps_lock);
+@@ -1270,19 +1280,19 @@ int qib_destroy_qp(struct ib_qp *ibqp)
+  * qib_init_qpn_table - initialize the QP number table for a device
+  * @qpt: the QPN table
+  */
+-void qib_init_qpn_table(struct qib_devdata *dd, struct qib_qpn_table *qpt)
++void qib_init_qpn_table(struct qib_devdata *dd, struct rvt_qpn_table *qpt)
+ {
+ 	spin_lock_init(&qpt->lock);
+ 	qpt->last = 1;          /* start with QPN 2 */
+ 	qpt->nmaps = 1;
+-	qpt->mask = dd->qpn_mask;
++	qpt_mask = dd->qpn_mask;
  }
  
--void qib_release_mmap_info(struct kref *ref);
--
--struct rvt_mmap_info *qib_create_mmap_info(struct qib_ibdev *dev, u32 size,
--					   struct ib_ucontext *context,
--					   void *obj);
--
--void qib_update_mmap_info(struct qib_ibdev *dev, struct rvt_mmap_info *ip,
--			  u32 size, void *obj);
--
--int qib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
--
- int qib_get_rwqe(struct rvt_qp *qp, int wr_id_only);
+ /**
+  * qib_free_qpn_table - free the QP number table for a device
+  * @qpt: the QPN table
+  */
+-void qib_free_qpn_table(struct qib_qpn_table *qpt)
++void qib_free_qpn_table(struct rvt_qpn_table *qpt)
+ {
+ 	int i;
  
- void qib_migrate_qp(struct rvt_qp *qp);
+@@ -1361,11 +1371,11 @@ int qib_qp_iter_next(struct qib_qp_iter *iter)
+ 	struct rvt_qp *pqp = iter->qp;
+ 	struct rvt_qp *qp;
+ 
+-	for (; n < dev->qp_table_size; n++) {
++	for (; n < dev->rdi.qp_dev->qp_table_size; n++) {
+ 		if (pqp)
+ 			qp = rcu_dereference(pqp->next);
+ 		else
+-			qp = rcu_dereference(dev->qp_table[n]);
++			qp = rcu_dereference(dev->rdi.qp_dev->qp_table[n]);
+ 		pqp = qp;
+ 		if (qp) {
+ 			iter->qp = qp;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 74cb501..2daca8f 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1946,24 +1946,29 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	unsigned i, ctxt;
+ 	int ret;
+ 
+-	dev->qp_table_size = ib_qib_qp_table_size;
++	/* allocate parent object */
++	dev->rdi.qp_dev = kzalloc(sizeof(*dev->rdi.qp_dev), GFP_KERNEL);
++	if (!dev->rdi.qp_dev)
++		return -ENOMEM;
++	dev->rdi.qp_dev->qp_table_size = ib_qib_qp_table_size;
++	dev->rdi.qp_dev->qp_table_bits = ilog2(ib_qib_qp_table_size);
+ 	get_random_bytes(&dev->qp_rnd, sizeof(dev->qp_rnd));
+-	dev->qp_table = kmalloc_array(
+-				dev->qp_table_size,
+-				sizeof(*dev->qp_table),
++	dev->rdi.qp_dev->qp_table = kmalloc_array(
++				dev->rdi.qp_dev->qp_table_size,
++				sizeof(*dev->rdi.qp_dev->qp_table),
+ 				GFP_KERNEL);
+-	if (!dev->qp_table) {
++	if (!dev->rdi.qp_dev->qp_table) {
+ 		ret = -ENOMEM;
+ 		goto err_qpt;
+ 	}
+-	for (i = 0; i < dev->qp_table_size; i++)
+-		RCU_INIT_POINTER(dev->qp_table[i], NULL);
++	for (i = 0; i < dev->rdi.qp_dev->qp_table_size; i++)
++		RCU_INIT_POINTER(dev->rdi.qp_dev->qp_table[i], NULL);
+ 
+ 	for (i = 0; i < dd->num_pports; i++)
+ 		init_ibport(ppd + i);
+ 
+ 	/* Only need to initialize non-zero fields. */
+-	spin_lock_init(&dev->qpt_lock);
++	spin_lock_init(&dev->rdi.qp_dev->qpt_lock);
+ 	spin_lock_init(&dev->n_cqs_lock);
+ 	spin_lock_init(&dev->n_qps_lock);
+ 	spin_lock_init(&dev->n_srqs_lock);
+@@ -1972,7 +1977,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	dev->mem_timer.function = mem_timer;
+ 	dev->mem_timer.data = (unsigned long) dev;
+ 
+-	qib_init_qpn_table(dd, &dev->qpn_table);
++	qib_init_qpn_table(dd, &dev->rdi.qp_dev->qpn_table);
+ 
+ 	INIT_LIST_HEAD(&dev->piowait);
+ 	INIT_LIST_HEAD(&dev->dmawait);
+@@ -2159,7 +2164,7 @@ err_tx:
+ 					sizeof(struct qib_pio_header),
+ 				  dev->pio_hdrs, dev->pio_hdrs_phys);
+ err_hdrs:
+-	kfree(dev->qp_table);
++	kfree(dev->rdi.qp_dev->qp_table);
+ err_qpt:
+ 	qib_dev_err(dd, "cannot register verbs: %d!\n", -ret);
+ bail:
+@@ -2192,7 +2197,7 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
+ 			    qps_inuse);
+ 
+ 	del_timer_sync(&dev->mem_timer);
+-	qib_free_qpn_table(&dev->qpn_table);
++	qib_free_qpn_table(&dev->rdi.qp_dev->qpn_table);
+ 	while (!list_empty(&dev->txreq_free)) {
+ 		struct list_head *l = dev->txreq_free.next;
+ 		struct qib_verbs_txreq *tx;
+@@ -2206,7 +2211,7 @@ void qib_unregister_ib_device(struct qib_devdata *dd)
+ 				  dd->pport->sdma_descq_cnt *
+ 					sizeof(struct qib_pio_header),
+ 				  dev->pio_hdrs, dev->pio_hdrs_phys);
+-	kfree(dev->qp_table);
++	kfree(dev->rdi.qp_dev->qp_table);
+ }
+ 
+ /*
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index eade668..e10ab80 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -55,9 +55,6 @@ struct qib_verbs_txreq;
+ #define QIB_MAX_RDMA_ATOMIC     16
+ #define QIB_GUIDS_PER_PORT	5
+ 
+-#define QPN_MAX                 (1 << 24)
+-#define QPNMAP_ENTRIES          (QPN_MAX / PAGE_SIZE / BITS_PER_BYTE)
+-
+ /*
+  * Increment this value if any changes that break userspace ABI
+  * compatibility are made.
+@@ -364,26 +361,6 @@ static inline struct rvt_rwqe *get_rwqe_ptr(struct rvt_rq *rq, unsigned n)
+ 		  rq->max_sge * sizeof(struct ib_sge)) * n);
+ }
+ 
+-/*
+- * QPN-map pages start out as NULL, they get allocated upon
+- * first use and are never deallocated. This way,
+- * large bitmaps are not allocated unless large numbers of QPs are used.
+- */
+-struct qpn_map {
+-	void *page;
+-};
+-
+-struct qib_qpn_table {
+-	spinlock_t lock; /* protect changes in this struct */
+-	unsigned flags;         /* flags for QP0/1 allocated for each port */
+-	u32 last;               /* last QP number allocated */
+-	u32 nmaps;              /* size of the map table */
+-	u16 limit;
+-	u16 mask;
+-	/* bit map of free QP numbers other than 0/1 */
+-	struct qpn_map map[QPNMAP_ENTRIES];
+-};
+-
+ struct qib_opcode_stats {
+ 	u64 n_packets;          /* number of packets */
+ 	u64 n_bytes;            /* total number of bytes */
+@@ -429,21 +406,15 @@ struct qib_ibport {
+ struct qib_ibdev {
+ 	struct rvt_dev_info rdi;
+ 
+-	/* QP numbers are shared by all IB ports */
+-	struct qib_qpn_table qpn_table;
+ 	struct list_head piowait;       /* list for wait PIO buf */
+ 	struct list_head dmawait;	/* list for wait DMA */
+ 	struct list_head txwait;        /* list for wait qib_verbs_txreq */
+ 	struct list_head memwait;       /* list for wait kernel memory */
+ 	struct list_head txreq_free;
+ 	struct timer_list mem_timer;
+-	struct rvt_qp __rcu **qp_table;
+ 	struct qib_pio_header *pio_hdrs;
+ 	dma_addr_t pio_hdrs_phys;
+-	/* list of QPs waiting for RNR timer */
+-	u32 qp_table_size; /* size of the hash table */
+ 	u32 qp_rnd; /* random bytes for hash */
+-	spinlock_t qpt_lock;
+ 
+ 	u32 n_piowait;
+ 	u32 n_txwait;
+@@ -581,9 +552,9 @@ int qib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 
+ unsigned qib_free_all_qps(struct qib_devdata *dd);
+ 
+-void qib_init_qpn_table(struct qib_devdata *dd, struct qib_qpn_table *qpt);
++void qib_init_qpn_table(struct qib_devdata *dd, struct rvt_qpn_table *qpt);
+ 
+-void qib_free_qpn_table(struct qib_qpn_table *qpt);
++void qib_free_qpn_table(struct rvt_qpn_table *qpt);
+ 
+ #ifdef CONFIG_DEBUG_FS
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
