@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 6/8] IB/rdmavt: Add post receive to rdmavt
-Date: Fri, 22 Jan 2016 13:00:48 -0800
-Message-ID: <20160122210047.7850.38796.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 8/8] IB/rdmavt: Add misc dev register functionality
+Date: Fri, 22 Jan 2016 13:01:01 -0800
+Message-ID: <20160122210100.7850.55163.stgit@scvm10.sc.intel.com>
 References: <20160122205822.7850.25466.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,79 +10,80 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160122205822.7850.25466.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the simple post receive verbs call to rdmavt. The actual
-interrupt handling and packet processing is still done in the low level
-driver.
+There are a number of minor things that should be set by rdmavt rather
+than by the drivers. Now that rdmavt has solidified in its design we can
+go ahead and clean up this stuff.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |   47 +++++++++++++++++++++++++++++++------
- 1 files changed, 40 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rdmavt/vt.c |   43 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index cca65a6..0eeef49 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -1244,14 +1244,47 @@ int rvt_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 		  struct ib_recv_wr **bad_wr)
- {
--	/*
--	 * When a packet arrives the driver needs to call up to rvt to process
--	 * the packet. The UD, RC, UC processing will be done in rvt, however
--	 * the driver should be able to override this if it so choses. Perhaps a
--	 * set of function pointers set up at registration time.
--	 */
-+	struct rvt_qp *qp = ibqp_to_rvtqp(ibqp);
-+	struct rvt_rwq *wq = qp->r_rq.wq;
-+	unsigned long flags;
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 5a094eb..cf7cac6 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -50,6 +50,8 @@
+ #include "vt.h"
+ #include "trace.h"
  
--	return -EOPNOTSUPP;
-+	/* Check that state is OK to post receive. */
-+	if (!(ib_rvt_state_ops[qp->state] & RVT_POST_RECV_OK) || !wq) {
-+		*bad_wr = wr;
-+		return -EINVAL;
-+	}
++#define RVT_UVERBS_ABI_VERSION 2
 +
-+	for (; wr; wr = wr->next) {
-+		struct rvt_rwqe *wqe;
-+		u32 next;
-+		int i;
-+
-+		if ((unsigned)wr->num_sge > qp->r_rq.max_sge) {
-+			*bad_wr = wr;
-+			return -EINVAL;
-+		}
-+
-+		spin_lock_irqsave(&qp->r_rq.lock, flags);
-+		next = wq->head + 1;
-+		if (next >= qp->r_rq.size)
-+			next = 0;
-+		if (next == wq->tail) {
-+			spin_unlock_irqrestore(&qp->r_rq.lock, flags);
-+			*bad_wr = wr;
-+			return -ENOMEM;
-+		}
-+
-+		wqe = rvt_get_rwqe_ptr(&qp->r_rq, wq->head);
-+		wqe->wr_id = wr->wr_id;
-+		wqe->num_sge = wr->num_sge;
-+		for (i = 0; i < wr->num_sge; i++)
-+			wqe->sg_list[i] = wr->sg_list[i];
-+		/* Make sure queue entry is written before the head index. */
-+		smp_wmb();
-+		wq->head = next;
-+		spin_unlock_irqrestore(&qp->r_rq.lock, flags);
-+	}
-+	return 0;
- }
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_DESCRIPTION("RDMA Verbs Transport Library");
  
- /**
+@@ -348,6 +350,47 @@ int rvt_register_device(struct rvt_dev_info *rdi)
+ 	spin_lock_init(&rdi->n_pds_lock);
+ 	rdi->n_pds_allocated = 0;
+ 
++	/*
++	 * There are some things which could be set by underlying drivers but
++	 * really should be up to rdmavt to set. For instance drivers can't know
++	 * exactly which functions rdmavt supports, nor do they know the ABI
++	 * version, so we do all of this sort of stuff here.
++	 */
++	rdi->ibdev.uverbs_abi_ver = RVT_UVERBS_ABI_VERSION;
++	rdi->ibdev.uverbs_cmd_mask =
++		(1ull << IB_USER_VERBS_CMD_GET_CONTEXT)         |
++		(1ull << IB_USER_VERBS_CMD_QUERY_DEVICE)        |
++		(1ull << IB_USER_VERBS_CMD_QUERY_PORT)          |
++		(1ull << IB_USER_VERBS_CMD_ALLOC_PD)            |
++		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD)          |
++		(1ull << IB_USER_VERBS_CMD_CREATE_AH)           |
++		(1ull << IB_USER_VERBS_CMD_MODIFY_AH)           |
++		(1ull << IB_USER_VERBS_CMD_QUERY_AH)            |
++		(1ull << IB_USER_VERBS_CMD_DESTROY_AH)          |
++		(1ull << IB_USER_VERBS_CMD_REG_MR)              |
++		(1ull << IB_USER_VERBS_CMD_DEREG_MR)            |
++		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
++		(1ull << IB_USER_VERBS_CMD_CREATE_CQ)           |
++		(1ull << IB_USER_VERBS_CMD_RESIZE_CQ)           |
++		(1ull << IB_USER_VERBS_CMD_DESTROY_CQ)          |
++		(1ull << IB_USER_VERBS_CMD_POLL_CQ)             |
++		(1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ)       |
++		(1ull << IB_USER_VERBS_CMD_CREATE_QP)           |
++		(1ull << IB_USER_VERBS_CMD_QUERY_QP)            |
++		(1ull << IB_USER_VERBS_CMD_MODIFY_QP)           |
++		(1ull << IB_USER_VERBS_CMD_DESTROY_QP)          |
++		(1ull << IB_USER_VERBS_CMD_POST_SEND)           |
++		(1ull << IB_USER_VERBS_CMD_POST_RECV)           |
++		(1ull << IB_USER_VERBS_CMD_ATTACH_MCAST)        |
++		(1ull << IB_USER_VERBS_CMD_DETACH_MCAST)        |
++		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)          |
++		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)          |
++		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)           |
++		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)         |
++		(1ull << IB_USER_VERBS_CMD_POST_SRQ_RECV);
++	rdi->ibdev.node_type = RDMA_NODE_IB_CA;
++	rdi->ibdev.num_comp_vectors = 1;
++
+ 	/* We are now good to announce we exist */
+ 	ret =  ib_register_device(&rdi->ibdev, rdi->driver_f.port_callback);
+ 	if (ret) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
