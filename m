@@ -1,127 +1,110 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Sat, 23 Jan 2016 00:01:04 -0500
-Message-ID: <56A30910.9010002@redhat.com>
+Date: Fri, 22 Jan 2016 21:42:42 -0800
+Message-ID: <CA+55aFzhwDNiBr0MKyFYn8WCLxhPrBxU0TPTSskm5B3VkzhD9g@mail.gmail.com>
 References: <56A2727B.8040809@redhat.com>
- <CA+55aFziXhmMRk3HqvrUtVv+SaUM0zu3=LKbxo0w9HZPVmDuyw@mail.gmail.com>
+	<CA+55aFziXhmMRk3HqvrUtVv+SaUM0zu3=LKbxo0w9HZPVmDuyw@mail.gmail.com>
+	<56A30910.9010002@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="87Pvo71BQTWDLol76EGDOcDQJFM3jXfsq"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFziXhmMRk3HqvrUtVv+SaUM0zu3=LKbxo0w9HZPVmDuyw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <56A30910.9010002-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---87Pvo71BQTWDLol76EGDOcDQJFM3jXfsq
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jan 22, 2016 at 9:01 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> I obviously have my understanding of the development cycle here wrong.
+> I had thought that the merge window was 4 weeks with a following 8 weeks
+> of RC candidates resulting in roughly quarterly pace.  But you tagged
+> v4.4 on 1/10/16, so this Sunday is only 2 weeks.  That certainly changes
+> things.  I did not believe that the merge window was so short when I
+> sent this request.
 
-On 01/22/2016 08:12 PM, Linus Torvalds wrote:
-> On Fri, Jan 22, 2016 at 10:18 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wr=
-ote:
->>
->> This is a rather large update, and it's not entirely complete.  I have=
+We've had this model now for ten years by now. Yes, it's really been that long.
 
->> some changes to merge for the staging/rdma tree too, but I wanted to g=
-et
->> this set in first for dependency reasons, then I'll make a new branch
->> against Greg's staging tree, then send the changes relative to that.
->> Expect that pull request early next week.  Thanks.
->=20
-> No Doug.
->=20
-> The merge window closes this Sunday.
+Two weeks of merge window, followed by weekly release candidates until
+it's "ready" (where the most common last one tends to be rc7, but that
+has certainly fluctuated - we had 3.1 go to rc10 before release, and
+we've had a few that only got to rc6).
 
-I obviously have my understanding of the development cycle here wrong.
-I had thought that the merge window was 4 weeks with a following 8 weeks
-of RC candidates resulting in roughly quarterly pace.  But you tagged
-v4.4 on 1/10/16, so this Sunday is only 2 weeks.  That certainly changes
-things.  I did not believe that the merge window was so short when I
-sent this request.
+This all is not new, and it's not undocumented. I have absolutely no
+idea why you suddenly started multiplying all the times by two.
 
-> It's already damn late to send me anything at all,
+It's actually been very stable over the years. We've had exceptions
+where travel schedules (or just holidays etc) have moved things around
+by a week here and there, but on the whole it's actually not varied a
+lot.
 
-See above about the 2 vs. 4 week misconception.
+> But also, really?  Even ignoring that misconception,  it's the merge
+> window.  And it has a deadline.
 
-But also, really?  Even ignoring that misconception,  it's the merge
-window.  And it has a deadline.  And if you give me a deadline, then
-even though I don't try to cut it too close, I, generally speaking,
-*will* use my available time if needed.  But from your description here,
-there is an additional deadline in the merge window that is an
-unwritten, unspoken, visceral thing that you feel.
+It's a *MERGE* window.
 
-Ok, so be it.  A little guidance on that would be appreciated.  Is the
-deadline really 1 week after the merge window opens?  10 days?  4 days?
- I ask because this stuff is actually important in terms of planning.  I
-had PTO and was off in Hawaii when the merge window opened.  We all have
-personal lives, and schedules don't always line up with the merge
-window.  Knowing how small the merge window *really* is is important for
-me to be able to plan and prioritize actions when I return from
-something like this.  So, for my future planning purpses, some
-elucidation here would be appreciated.
+Not a *DEVELOPMENT* window.
 
-> it is *much* too
-> late to say "this is just part of it".
+See the difference?
 
-There were some issues of coordination between work being committed by
-GKH and myself.  I needed to make the last things relative to what he
-submitted already.  My branch with the code on it that I sent the pull
-request for was based on 4.4-rc6 and therefore did no have GKH's work in
-it.  I didn't like the idea of just blindly merging his branch into mine
-so that his commits were there and I could make my follow on commits, so
-it seemed I needed a new branch based upon either GKH's branch that he
-submitted to you, or on your current master, to plop the last commits
-into.  Given that I thought it was still a couple weeks to go to the
-close of the window, Monday seemed reasonable.  I'll probably still
-submit the deletes to you sometime tomorrow.
+This is not new either. The rule has been that things should basically
+be ready by the time the merge window *opens*. Things should have been
+in linux-next so that they get some testing, and so that people get a
+heads-up not only about what is coming up, but how it interacts with
+other things coming up.
 
-> This can all wait for 4.6, and maybe you'll have the pull requests
-> lined up at the *beginning* of the merge window rather than trying to
-> push them in whan I'm already trying to calm things down for the end
-> of it.
+And no, not everything ends up being in linux-next. But I think we've
+been hitting almost 90% most recent releases, so that whole "things
+should be in linux-next beforehand" is not just some theoretical goal,
+it's something we actually hit in practice pretty well.
 
-Sure.  I can just merge it up to a 4.5-rc sometime then resubmit next
-window.  However, I'm going to have to pull at least a few patches out
-and send them separate as they are needed fixes for the code in tree
-already.  But those are all -rc appropriate patches anyway so it doesn't
-matter if they land by Sunday.
+And yes, I do pull requests until the last minute (although I have
+been known to hurry up the last minute and release -rc1 a day early
+just because I don't want people to game my timing).
 
+But generally at the last minute I want to feel that there was some
+_reason_ for the last minute behavior.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+And no, the reason is not "I am hurrying up to get everything done by
+5pm on a Friday afternoon, and I didn't even get everything done, so
+I'll send the rest on Monday".
 
+Because that just makes me go "ok, this is clearly not ready".
 
+[ And as to why the merge window is two weeks and not just "one single
+day" if everything is supposed to be ready before-hand..
 
---87Pvo71BQTWDLol76EGDOcDQJFM3jXfsq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+  That's actually a valid question, but it's at least partially about
+_me_ (but also about flexibility for others, so that we don't have to
+make the 90% be 100%).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+  In particular, just the merging process itself would take me one
+week. I can do about 20-30 merges a day for the first few days, and I
+don't feel I could do more while still actually feeling like I had
+some kind of overview of what I'm merging (the merge itself is often
+quick, it's looking at it and doing a basic build test etc that takes
+time).
 
-iQIcBAEBCAAGBQJWowkQAAoJELgmozMOVy/dLwoQAIOoVKEtj7r5nB2iMLyfvr5y
-a7eg7cFB314OuJaq1Wz4Krq4vDgFR2lyW5xa99mf9kStuKW3K+uxzg3TLbAU5XRu
-9MiIKRE9x2lr9dbnl++29onvlpkZdDhs1BL1pSnHj+zyXY4QU/hAF35Y1Uu4jvPv
-DCVlvETTWTRcTxloOmCLqHwc702+bi+KtSX+FLqSTVISsfIcc0CjCQfguVnag8lZ
-gO9L1Nl/8MK2B8VHwXulfQbls/+Zt0M8N6GrOtltBfN1QqbTLFyFy0bjrphle76E
-XK+GuTXL8/VJTt6sanwjyBIUENPylxBGBU5m9nH4eAy1kFrnIc3htNNJo1HI/TN6
-ybDXp0cRIanPXvzVGztJqfLi4uuH3OB6afOZF7xznEZ56BN0XuPzwRWP5aAfnqwB
-4GU9jKjGWli8uWxmifLKN8wA9I96UVhwFQCkTSvpYF6AIEm2pDvPB+67Oro4tml1
-LQHAYnfcY2zYS9sdUQ7ZVXNCvKRBBQE8OcmYNFfvffn+Ywf1k1sV5vO6J2zYUhJ/
-R62nkSBxD2cEG7noqp3IkNZcQ7tcLljGy+87GWScmr6BynkovbiS0VlPe/eTCkb7
-zbh1P0dpsv07xiSCuctcGvjDmGKC74Dhm7vxw//N0c8zXvEDhYo7kcGgvkNGgEQV
-kXc9+aMv0KaxpHDCyLnS
-=GQop
------END PGP SIGNATURE-----
+  So one week would be the absolute minimum with the amount of
+different trees I merge - and that assumes that every single tree is
+ready and done at the beginning.
 
---87Pvo71BQTWDLol76EGDOcDQJFM3jXfsq--
+  In practice, things slow down after a few days as I catch up with
+the queue of pull requests.  So in the end the average over the two
+week period is about 10-15 merges per day for me.
+
+  By the end of the two weeks, it really should have turned into a
+slow trickle of merges of things that had dependencies or some other
+valid reason to be late.. Or rather, I _wish_ it turned into a
+trickle, but sadly the last Friday afternoon is seldom anything but
+slow.
+
+  So two weeks "works" - and has worked for the last ten years. It may
+not be perfect, but I think it has worked exceptionally well in the
+end - certainly better than people thought initially when we started
+trying this whole no-longer-very-new-thing. ]
+
+                Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
