@@ -1,122 +1,172 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Sat, 23 Jan 2016 20:26:01 -0500
-Message-ID: <56A42829.90401@redhat.com>
+Date: Sat, 23 Jan 2016 18:03:27 -0800
+Message-ID: <CA+55aFy0OuZ+TOsNRkqyGbpJf1LvLAodO2DqUfpcrKsQHQWLxw@mail.gmail.com>
 References: <56A2727B.8040809@redhat.com>
- <CA+55aFziXhmMRk3HqvrUtVv+SaUM0zu3=LKbxo0w9HZPVmDuyw@mail.gmail.com>
- <56A30910.9010002@redhat.com>
- <CA+55aFzhwDNiBr0MKyFYn8WCLxhPrBxU0TPTSskm5B3VkzhD9g@mail.gmail.com>
- <56A3A777.3@redhat.com>
- <CA+55aFzeW-UjwWarz9hZ3dgnTFSJuNFJ2_YikJPbXAZ_i2+RSw@mail.gmail.com>
- <56A3FE6F.4000800@redhat.com>
- <CA+55aFz9Dnu7Ri8XA291VdSYZ5gqyt+cmaaRNULQ0hVetoAJZg@mail.gmail.com>
+	<CA+55aFziXhmMRk3HqvrUtVv+SaUM0zu3=LKbxo0w9HZPVmDuyw@mail.gmail.com>
+	<56A30910.9010002@redhat.com>
+	<CA+55aFzhwDNiBr0MKyFYn8WCLxhPrBxU0TPTSskm5B3VkzhD9g@mail.gmail.com>
+	<56A3A777.3@redhat.com>
+	<CA+55aFzeW-UjwWarz9hZ3dgnTFSJuNFJ2_YikJPbXAZ_i2+RSw@mail.gmail.com>
+	<56A3FE6F.4000800@redhat.com>
+	<CA+55aFz9Dnu7Ri8XA291VdSYZ5gqyt+cmaaRNULQ0hVetoAJZg@mail.gmail.com>
+	<56A42829.90401@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="rlGeMvAtSck4cJrHQFP1lFwPfq7Iikp7P"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFz9Dnu7Ri8XA291VdSYZ5gqyt+cmaaRNULQ0hVetoAJZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <56A42829.90401-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---rlGeMvAtSck4cJrHQFP1lFwPfq7Iikp7P
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 01/23/2016 07:38 PM, Linus Torvalds wrote:
-> On Sat, Jan 23, 2016 at 2:27 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wro=
-te:
->>>
->>> So how ready and stable is this? IOW, if I do this pull, can I rely o=
-n
->>> that being "it", and really just get fixes.
+On Sat, Jan 23, 2016 at 5:26 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 01/23/2016 07:38 PM, Linus Torvalds wrote:
 >>
->> I still want to send the staging changes.
->=20
-> I'm not at all convinced I will pull them.
->=20
-> And I'm now looking at pulling the stuff you sent yesterday, and I'm
-> close to just saying "screw this". Again.
->=20
-> This is now the *second* time that two different teams inside Mellanox
-> decided to play games with the kernel maintainers, and I'm not at all
-> sure the end result is not worth my time to sort out.
+>> This kind of idiocy where one company has two different groups, and
+>> they are fighting over the same driver, and then expecting upstream to
+>> sort out their mental problems for them is not acceptable. It's not
+>> the job of either me or the subsystem maintainers to sort out your
+>> differences for you.
+>
+> Can I get some specifics of what you are talking about here?  The reason
+> I ask is that I know in this merge cycle there was a function modified
+> in the mlx4 driver (I think, or maybe mlx5) where it was first modified
+> by a patch series that went through Dave's tree, then further modified
+> by a series in my tree.
 
-Understood.
+So these are in your tree:
 
-> Doug, you need to stop taking patches from the Mellanox people until
-> the get their shit together.  Really. I'll spend some time looking at
-> this mess, but next time I see two Mellanox groups fighting inside
-> their own driver, I will just not pull. It's that simple. If you take
-> shit from them, I'll not take the end result.
->=20
-> I don't know what problem the Mellanox people have, but one group
-> sends their changes through the networking tree, and another group
-> sends it through you. They do similar things, but different enough to
-> not be the same.
->=20
-> You tell them to stop sending that stuff to you, because I'm getting
-> it through Davem. And I'm not interested in cleaning up after their
-> mess.
->=20
-> Adding David and Mellanox people to the cc.
->=20
-> This kind of idiocy where one company has two different groups, and
-> they are fighting over the same driver, and then expecting upstream to
-> sort out their mental problems for them is not acceptable. It's not
-> the job of either me or the subsystem maintainers to sort out your
-> differences for you.
+  mlx5_core: Break down the vport mac address query function
+  net/mlx5_core: Introduce access functions to enable/disable RoCE
+  net/mlx5_core: Introduce access functions to query vport RoCE fields
 
-Can I get some specifics of what you are talking about here?  The reason
-I ask is that I know in this merge cycle there was a function modified
-in the mlx4 driver (I think, or maybe mlx5) where it was first modified
-by a patch series that went through Dave's tree, then further modified
-by a series in my tree.  In both cases, the modification was part of a
-larger series that was specific either to the network tree or the rdma
-tree.  If that's the sort of thing you are talking about, I'm not sure
-how we can resolve that.  The fact that the mlx4_core and mlx5_core
-modules essentially straddle the networking and rdma trees presents a
-unique situation with its own difficulties.  If the problem I listed is
-what you are referring to, the only way I know to fix that is to have
-Mellanox send all of their patches through one tree, and that means
-either Dave or myself is going to have to deal with stuff they wouldn't
-normally deal with.  Of course, if I'm wrong about what you are
-referring to, then enlightenment would be appreciated ;-)
+and the networking tree has
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+  net/mlx5: Update access functions to Query/Modify vport MAC address
+  net/mlx5: Introduce access functions to modify/query vport mac lists
+  net/mlx5: Introduce access functions to modify/query vport state
+  net/mlx5: Introduce access functions to modify/query vport promisc mode
+  net/mlx5: Introduce access functions to modify/query vport vlans
 
+which are _similar_ but different. The differences are small annoying
+details, like slightly different error handling ("goto out" vs just
+conditional), slightly different arguments (vport or not), and a mix
+of EXPORT_SYMBOL and EXPORT_SYMBOL_GPL.
 
+The differences are just *stupid*. They are doing very similar things
+in very similar areas, but the two groups didn't try to match things
+up or apparently talk to each other, or try to actively make it easier
+for maintainers to merge their annoying small differences to the exact
+same area of the file.
 
---rlGeMvAtSck4cJrHQFP1lFwPfq7Iikp7P
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+So they just changed their driver as if they were the only people
+working on it. Two separate groups. In the same company.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+What is even more annoying to merge, though, is how the two groups
+again separately changed the structures that apparently describe the
+hardware layout of things.
 
-iQIcBAEBCAAGBQJWpCgpAAoJELgmozMOVy/d27MP/2NG3JbFEInUhUUpHPyxTUvl
-RTAnn3BqiRnB3yvK+qVAHol3EAo8w0//mxpbtdPrLvNyqJOCTDaaJ+E7aOdOFn3b
-qB7y1xyGha19zaMifp91DClderOxXzg1uARUX9i2DxaAt92M7GoMHOCXm+G9pkaU
-wHISRIiR/GaqDbtC9jUUNtBcyaVtTwTwB2i2NGrKRahESugl/DS65Q2DVgmCiK6A
-Xblrm4M1bH9T9fcVVbPcHzzgJiRArBOqS+T7FMjqm6n8Vn74htRkgIpX6uAXsfjZ
-xw2kA/N3KpRFhxh+QAwZMdDmEBnFmKdGWeZFGcn5ivjMwe33I2PD/jSrti0lKpMc
-g6ZTPaLwWjKvLmT4Sr6j9ihCmujVjBV30EeK9Axxst/VD49wiM+qnJzoiheK2DNh
-i/d8/mvjEAgC8hbHvzarZMLwUkZ68B8w+Yguu1WfNGsFJOPPifJYDI3AFOT+JVHq
-ZVp7RmcJxO9HgTr68eDiQQPDxmYlGAi7EVmRN4ihMFi3wqnFaON4W/Oy52GTi8KW
-gXyyBEzwKZhhGWNDGHgCU6qVjBjpT8Vn1Q15LxglWVnCrUDSBZMSNoyYadnFtrzR
-MUencfHyaPUtYGy01NanPDM7Wd+qiDFbNNHEkFmiZ95oYMtMnZZoze5wPFDcyB+l
-7AyThWekvW9TEo3BG90t
-=3U8/
------END PGP SIGNATURE-----
+That "struct mlx5_ifc_cmd_hca_cap_bits" is a major pain in the arse,
+for example. It doesn't help that the *undocumented* parts of that
+array are described with things like
 
---rlGeMvAtSck4cJrHQFP1lFwPfq7Iikp7P--
+    u8 reserved_66[0x8];
+   ...
+    u8 reserved_67[0x40];
+
+and then when one group documents something in the middle of that
+reserved region, it gets split up and the reserved_NNN[xyz] numbers
+change.
+
+In fact, just looking at that particular "struct
+mlx5_ifc_cmd_hca_cap_bits", I think one of the two branches got the
+padding wrong at some point, because they no longer seem to agree
+about the offsets in the structure.
+
+Imagine what a joy it is to merge crap like that.
+
+If it was two different independent groups, I'd go "ok, this is my
+life now", take an extra dose of happy pills, and merge things.
+Because I'd be the person who has to sort that shit out. It's my job.
+
+But what annoys me about this situation is that the two groups that
+crap on each other are in the same company. They should talk to each
+other.
+
+For example, to make those hardware descriptor structures easier to
+keep track of (not just for merging, since apparently people got the
+offsets wrong even outside of the merges), maybe instead of using a
+random number for the reserved field, the code could use the expected
+_offset_. So instead of
+
+    u8 reserved_66[0x8];
+
+it could be something like
+
+    u8 reserved_at_0240[0x8];
+
+to not cause the stupid things to change names just because some
+_earlier_ reserved field was split. Add a few lines of
+offsets-in-comments in the parts that don't have a lot of
+"reserved_xyz[]" fields, and suddenly those hardware description
+structures would be a hell of a lot easier to see what they do.
+
+Because right now they literally have random noise in them. This is a
+random sampling:
+
+   ...
+    u8 reserved_60[0x1b];
+    u8 reserved_61[0xa];
+    u8 reserved_62[0x3];
+    u8 reserved_63[0x3];
+    u8 reserved_64[0x80];
+    u8 reserved_65[0x3];
+    u8 reserved_66[0x8];
+    u8 reserved_67[0x20];
+    u8 reserved_68[0x5f];
+    u8 reserved_69[0x220];
+    u8 reserved_0[0x20];
+    u8 reserved_0[0xa00];
+   ...
+
+and that's a _small_ random sampling: there are about 1500 lines of
+those kinds of "reserved_nn[]" fields in that one file.
+
+Just imagine how fun it is to see one of those random numbers (one of
+the bigger ones), split - completely differently - in the two
+different versions, and everything else get renumbered.
+
+I wish I was kidding. I'm not.
+
+[ I'm actually planning on re-doing my merge with something like that
+in both branches before the merge, just because I want to make sure I
+got the offsets right - maybe the reason I think somebody screwed up
+their offsets earlier was just because I screwed up when trying to
+merge this mess ]
+
+But even more than things like that, I'd expect that two groups inside
+of Mellanox would talk to each other, and NOT MERGE DIFFERENT CHANGES
+TO THE SAME DRIVER THROUGH TWO DIFFERENT MAINTAINERS!
+
+Or maybe they could use a shared git branch to at least handle the
+common changes so that they don't conflict. Or maybe they should split
+up their driver so that the two different groups don't step on each
+others toes. Or maybe the could use tricks like that
+"reserved_at_offset[]" thing to at least make the step-on-each-other
+not be such a pain.
+
+In other words, there are lots of different alternatives to improve on
+what's going on. But this "throw crap against the wall and hope it
+sticks" approach that the two groups are clearly using now is *not*
+acceptable.
+
+If this was the first time it happened, I'd just be annoyed. As it is,
+something similar happened not that long ago, witht he same people. At
+this point I'm past "pissed", and firmly in "if this happens again,
+I'll just stop pulling the crap" camp.
+
+                  Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
