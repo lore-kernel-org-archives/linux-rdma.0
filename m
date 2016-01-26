@@ -1,30 +1,34 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [LSF/MM TOPIC] Remote access to pmem on storage targets
-Date: Tue, 26 Jan 2016 09:00:21 -0800
-Message-ID: <20160126170021.GA21672@infradead.org>
-References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
- <5FD20017-B588-42E6-BBDA-2AA8ABDBA42B@ornl.gov>
- <D0C5C0B9-A1A2-4428-B3CA-7BBCC5BEF10D@oracle.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
+Date: Tue, 26 Jan 2016 09:32:19 -0800
+Message-ID: <56A7ADA3.5080507@sandisk.com>
+References: <568BD0FC.70207@sandisk.com> <568BD1D2.1030609@sandisk.com>
+ <F3529576D8E232409F431C309E29399328F6B06A@CRSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <D0C5C0B9-A1A2-4428-B3CA-7BBCC5BEF10D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>, "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <F3529576D8E232409F431C309E29399328F6B06A-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 26, 2016 at 10:29:35AM -0500, Chuck Lever wrote:
-> As I understand it, NVMf devices look like local devices.
-> NVMf devices need globally unique naming to enable safe use
-> with pNFS and other remote storage access protocols.
+On 01/26/16 08:57, Estrin, Alex wrote:
+> Is it possible to expedite this patch as it actually fixes a real bug in ib_srpt?
+>
+> If srp target receives ABORT TASK, it will crash the kernel while trying to respond.
+> We were able to reproduce it under quite heavy load [ ... ]
 
-NVMe provides global uniqueue identifiers similar to SCSI, and in fact
-there is even a standardised mapping to SCSI.  The current SCSI layout
-draft will work fine with both multi ported PCIe NVMe devices as well
-as future fabrics devices.
+Hello Alex,
+
+Thank you for the feedback. Since the kernel 4.5 merge has been closed I 
+will retest and resend the whole patch series. I would like to see all 
+of these patches to be integrated in the upstream kernel instead of only 
+this single patch. I will Cc stable and I will also add your Tested-by tag.
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
