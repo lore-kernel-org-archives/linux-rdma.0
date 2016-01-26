@@ -1,51 +1,87 @@
-From: "Atchley, Scott" <atchleyes-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [LSF/MM TOPIC] Remote access to pmem on storage targets
-Date: Tue, 26 Jan 2016 15:25:14 +0000
-Message-ID: <5FD20017-B588-42E6-BBDA-2AA8ABDBA42B@ornl.gov>
-References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <06414D5A-0632-4C74-B76C-038093E8AED3-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B4F9AC521CC78544806C5D43EFB9AE64-1Heg1YXhbW8@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Remote access to pmem on storage targets
+Date: Tue, 26 Jan 2016 10:58:44 -0500
+Message-ID: <F0E2108B-891C-4570-B486-7DC7C4FB59C4@oracle.com>
+References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com> <20160126082533.GR24938@quack.suse.cz>
+Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20160126082533.GR24938@quack.suse.cz>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: lsf-pc@lists.linux-foundation.org, Linux RDMA Mailing List <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBPbiBKYW4gMjUsIDIwMTYsIGF0IDQ6MTkgUE0sIENodWNrIExldmVyIDxjaHVjay5sZXZlckBv
-cmFjbGUuY29tPiB3cm90ZToNCj4gDQo+IEknZCBsaWtlIHRvIHByb3Bvc2UgYSBkaXNjdXNzaW9u
-IG9mIGhvdyB0byB0YWtlIGFkdmFudGFnZSBvZg0KPiBwZXJzaXN0ZW50IG1lbW9yeSBpbiBuZXR3
-b3JrLWF0dGFjaGVkIHN0b3JhZ2Ugc2NlbmFyaW9zLg0KPiANCj4gUkRNQSBydW5zIG9uIGhpZ2gg
-c3BlZWQgbmV0d29yayBmYWJyaWNzIGFuZCBvZmZsb2FkcyBkYXRhDQo+IHRyYW5zZmVyIGZyb20g
-aG9zdCBDUFVzLiBUaHVzIGl0IGlzIGEgZ29vZCBtYXRjaCB0byB0aGUNCj4gcGVyZm9ybWFuY2Ug
-Y2hhcmFjdGVyaXN0aWNzIG9mIHBlcnNpc3RlbnQgbWVtb3J5Lg0KPiANCj4gVG9kYXkgTGludXgg
-c3VwcG9ydHMgaVNFUiwgU1JQLCBhbmQgTkZTL1JETUEgb24gUkRNQQ0KPiBmYWJyaWNzLiBXaGF0
-IGtpbmQgb2YgY2hhbmdlcyBhcmUgbmVlZGVkIGluIHRoZSBMaW51eCBJL08NCj4gc3RhY2sgKGlu
-IHBhcnRpY3VsYXIsIHN0b3JhZ2UgdGFyZ2V0cykgYW5kIGluIHRoZXNlIHN0b3JhZ2UNCj4gcHJv
-dG9jb2xzIHRvIGdldCB0aGUgbW9zdCBiZW5lZml0IGZyb20gdWx0cmEtbG93IGxhdGVuY3kNCj4g
-c3RvcmFnZT8NCj4gDQo+IFRoZXJlIGhhdmUgYmVlbiByZWNlbnQgcHJvcG9zYWxzIGFib3V0IGhv
-dyBzdG9yYWdlIHByb3RvY29scw0KPiBhbmQgaW1wbGVtZW50YXRpb25zIG1pZ2h0IG5lZWQgdG8g
-Y2hhbmdlIChlZy4gVG9tIFRhbHBleSdzDQo+IFNOSUEgcHJvcG9zYWxzIGZvciBjaGFuZ2luZyB0
-byBhIHB1c2ggZGF0YSB0cmFuc2ZlciBtb2RlbCwNCj4gU2FnaSdzIHByb3Bvc2FsIHRvIHV0aWxp
-emUgREFYIHVuZGVyIHRoZSBORlMvUkRNQSBzZXJ2ZXIsDQo+IGFuZCBteSBwcm9wb3NhbCBmb3Ig
-YSBuZXcgcE5GUyBsYXlvdXQgdG8gZHJpdmUgUkRNQSBkYXRhDQo+IHRyYW5zZmVyIGRpcmVjdGx5
-KS4NCj4gDQo+IFRoZSBvdXRjb21lIG9mIHRoZSBkaXNjdXNzaW9uIHdvdWxkIGJlIHRvIHVuZGVy
-c3RhbmQgd2hhdA0KPiBwZW9wbGUgYXJlIHdvcmtpbmcgb24gbm93IGFuZCB3aGF0IGlzIHRoZSBk
-ZXNpcmVkDQo+IGFyY2hpdGVjdHVyYWwgYXBwcm9hY2ggaW4gb3JkZXIgdG8gZGV0ZXJtaW5lIHdo
-ZXJlIHN0b3JhZ2UNCj4gZGV2ZWxvcGVycyBzaG91bGQgYmUgZm9jdXNlZC4NCj4gDQo+IFRoaXMg
-Y291bGQgYmUgZWl0aGVyIGEgQm9GIG9yIGEgc2Vzc2lvbiBkdXJpbmcgdGhlIG1haW4NCj4gdHJh
-Y2tzLiBUaGVyZSBpcyBzdXJlIHRvIGJlIGEgbmFycm93IHNlZ21lbnQgb2YgZWFjaA0KPiB0cmFj
-aydzIGF0dGVuZGVlcyB0aGF0IHdvdWxkIGhhdmUgaW50ZXJlc3QgaW4gdGhpcyB0b3BpYy4NCj4g
-DQo+IC0tDQo+IENodWNrIExldmVyDQoNCkNodWNrLA0KDQpPbmUgZGlmZmVyZW5jZSBvbiB0YXJn
-ZXRzIGlzIHRoYXQgc29tZSBOVk0vcGVyc2lzdGVudCBtZW1vcnkgbWF5IGJlIGJ5dGUtYWRkcmVz
-c2FibGUgd2hpbGUgb3RoZXIgTlZNIGlzIG9ubHkgYmxvY2sgYWRkcmVzc2FibGUuDQoNCkFub3Ro
-ZXIgZGlmZmVyZW5jZSBpcyB0aGF0IE5WTWUtb3Zlci1GYWJyaWNzIHdpbGwgYWxsb3cgcmVtb3Rl
-IGFjY2VzcyBvZiB0aGUgdGFyZ2V04oCZcyBOVk1lIGRldmljZXMgdXNpbmcgdGhlIE5WTWUgQVBJ
-Lg0KDQpTY290dA==
+
+> On Jan 26, 2016, at 3:25 AM, Jan Kara <jack@suse.cz> wrote:
+> 
+> Hello,
+> 
+> On Mon 25-01-16 16:19:24, Chuck Lever wrote:
+>> I'd like to propose a discussion of how to take advantage of
+>> persistent memory in network-attached storage scenarios.
+>> 
+>> RDMA runs on high speed network fabrics and offloads data
+>> transfer from host CPUs. Thus it is a good match to the
+>> performance characteristics of persistent memory.
+>> 
+>> Today Linux supports iSER, SRP, and NFS/RDMA on RDMA
+>> fabrics. What kind of changes are needed in the Linux I/O
+>> stack (in particular, storage targets) and in these storage
+>> protocols to get the most benefit from ultra-low latency
+>> storage?
+>> 
+>> There have been recent proposals about how storage protocols
+>> and implementations might need to change (eg. Tom Talpey's
+>> SNIA proposals for changing to a push data transfer model,
+>> Sagi's proposal to utilize DAX under the NFS/RDMA server,
+>> and my proposal for a new pNFS layout to drive RDMA data
+>> transfer directly).
+>> 
+>> The outcome of the discussion would be to understand what
+>> people are working on now and what is the desired
+>> architectural approach in order to determine where storage
+>> developers should be focused.
+>> 
+>> This could be either a BoF or a session during the main
+>> tracks. There is sure to be a narrow segment of each
+>> track's attendees that would have interest in this topic.
+> 
+> So hashing out details of pNFS layout isn't interesting to many people.
+> But if you want a broader architectural discussion about how to overcome
+> issues (and what those issues actually are) with the use of persistent
+> memory for NAS, then that may be interesting. So what do you actually want?
+
+I mentioned pNFS briefly only as an example. There have
+been a variety of proposals and approaches so far, and
+it's time, I believe, to start focusing our efforts.
+
+Thus I'm requesting a "broader architectural discussion
+about how to overcome issues with the use of persistent
+memory for NAS," in particular how we'd like to do this
+with the Linux implementations of the iSER, SRP, and
+NFS/RDMA protocols using DAX/pmem or NVM[ef].
+
+It is not going to be like the well-worn paradigm that
+involves a page cache on the storage target backed by
+slow I/O operations. The protocol layers on storage
+targets need a way to discover memory addresses of
+persistent memory that will be used as source/sink
+buffers for RDMA operations.
+
+And making data durable after a write is going to need
+some thought. So I believe some new plumbing will be
+necessary.
+
+I know this is not everyone's cup of tea. A BoF would
+be fine, if the PC believes that is a better venue (and
+I'm kind of leaning that way myself).
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Chuck Lever
+
+
+
+
