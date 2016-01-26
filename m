@@ -1,64 +1,121 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cm: Expose driver version
-Date: Tue, 26 Jan 2016 18:57:06 +0200
-Message-ID: <20160126165705.GA2691@yuval-ThinkPad-X220>
-References: <1453812983-23987-1-git-send-email-yuval.shaia@oracle.com>
- <20160126145418.GB8059@leon.nu>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
+Date: Tue, 26 Jan 2016 16:57:32 +0000
+Message-ID: <F3529576D8E232409F431C309E29399328F6B06A@CRSMSX102.amr.corp.intel.com>
+References: <568BD0FC.70207@sandisk.com> <568BD1D2.1030609@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160126145418.GB8059-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <568BD1D2.1030609-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 26, 2016 at 04:54:18PM +0200, Leon Romanovsky wrote:
-> On Tue, Jan 26, 2016 at 04:56:23AM -0800, Yuval Shaia wrote:
-> > Expose driver version so admin can query it.
-> > Initial version set to 3.18.1 as 3.18 is the latest OFED version.
-> > 
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/cm.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> > index 1d92e09..cb5dfeb 100644
-> > --- a/drivers/infiniband/core/cm.c
-> > +++ b/drivers/infiniband/core/cm.c
-> > @@ -53,9 +53,12 @@
-> >  #include <rdma/ib_cm.h>
-> >  #include "cm_msgs.h"
-> >  
-> > +#define DRV_VERSION "3.18.1"
-> > +
-> 
-> I recommend to drop this line instead of exposing.
-> The proper way is to use kernel version and not
-> specific module version which is unrelated to
-> anything in the real world.
-Are you suggesting not to use MODULE_VERSION at all?
-Asking because i see many drivers (>600) that use it.
-> 
-> >  MODULE_AUTHOR("Sean Hefty");
-> >  MODULE_DESCRIPTION("InfiniBand CM");
-> >  MODULE_LICENSE("Dual BSD/GPL");
-> > +MODULE_VERSION(DRV_VERSION);
-> >  
-> >  static void cm_add_one(struct ib_device *device);
-> >  static void cm_remove_one(struct ib_device *device, void *client_data);
-> > -- 
-> > 1.7.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgRG91ZywgQmFydCwNCg0KSXMgaXQgcG9zc2libGUgdG8gZXhwZWRpdGUgdGhpcyBwYXRjaCBh
+cyBpdCBhY3R1YWxseSBmaXhlcyBhIHJlYWwgYnVnIGluIGliX3NycHQ/DQoNCklmIHNycCB0YXJn
+ZXQgcmVjZWl2ZXMgQUJPUlQgVEFTSywgaXQgd2lsbCBjcmFzaCB0aGUga2VybmVsIHdoaWxlIHRy
+eWluZyB0byByZXNwb25kLg0KV2Ugd2VyZSBhYmxlIHRvIHJlcHJvZHVjZSBpdCB1bmRlciBxdWl0
+ZSBoZWF2eSBsb2FkOg0KDQpbNzgzOTUuNDQyNDk2XSBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2Vy
+bmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdA0KMDAwMDAwMDAwMDAwMDAwMQ0KWzc4Mzk1
+LjQ0MjUzNF0gSVA6IFs8ZmZmZmZmZmZhMDU2NWYzNz5dIHNycHRfaGFuZGxlX25ld19pdSsweDZk
+Ny8weDc5MA0KW2liX3NycHRdDQpbNzgzOTUuNDQyNTY0XSBQR0QgMA0KWzc4Mzk1LjQ0MjU3NF0g
+T29wczogMDAwMiBbIzFdIFNNUA0KLi4uLg0KWzc4Mzk1LjQ0MzQ0M10gQ2FsbCBUcmFjZToNCls3
+ODM5NS40NDM0NTddICBbPGZmZmZmZmZmYTA1NjYwY2U+XSBzcnB0X3Byb2Nlc3NfY29tcGxldGlv
+bisweGRlLzB4NTcwDQpbaWJfc3JwdF0NCls3ODM5NS40NDM0ODRdICBbPGZmZmZmZmZmYTA1NjY2
+OWY+XSBzcnB0X2NvbXBsX3RocmVhZCsweDEzZi8weDE2MCBbaWJfc3JwdF0NCls3ODM5NS40NDQ0
+MDZdICBbPGZmZmZmZmZmODEwOTgyMzA+XSA/IHdha2VfdXBfYml0KzB4MzAvMHgzMA0KWzc4Mzk1
+LjQ0NTMwN10gIFs8ZmZmZmZmZmZhMDU2NjU2MD5dID8gc3JwdF9wcm9jZXNzX2NvbXBsZXRpb24r
+MHg1NzAvMHg1NzANCltpYl9zcnB0XQ0KWzc4Mzk1LjQ0NjIxOF0gIFs8ZmZmZmZmZmY4MTA5NzI2
+Zj5dIGt0aHJlYWQrMHhjZi8weGUwDQpbNzgzOTUuNDQ3MTI1XSAgWzxmZmZmZmZmZjgxMDk3MWEw
+Pl0gPyBrdGhyZWFkX2NyZWF0ZV9vbl9ub2RlKzB4MTQwLzB4MTQwDQpbNzgzOTUuNDQ4MDMzXSAg
+WzxmZmZmZmZmZjgxNjEzY2ZjPl0gcmV0X2Zyb21fZm9yaysweDdjLzB4YjANCls3ODM5NS40NDg5
+MjddICBbPGZmZmZmZmZmODEwOTcxYTA+XSA/IGt0aHJlYWRfY3JlYXRlX29uX25vZGUrMHgxNDAv
+MHgxNDANCls3ODM5NS40NDk4MTRdIENvZGU6IDFhIDAxIDAwIDAwIDAxIDc0IGEzIDQ4IDhiIDdk
+IGEwIDg5IDU1IGI4IDQ4IDg5IDRkIGMwIGU4DQpmZCAyMCAwMCAwMCA4YiA1NSBiOCA0OCA4YiA0
+ZCBjMCBlYiA4YSAwZiAxZiA0MCAwMCA0OSA4YiA4NSBmOCAwMCAwMCAwMCA8YzY+IDQwDQowMSAw
+MSBlOSA0NCBmZCBmZiBmZiA0OSA4YiBiDQo0IDI0IGI4IDA0IDAwIDAwIDQ5IDhkIDk0IDI0DQpb
+NzgzOTUuNDUxNjkzXSBSSVAgIFs8ZmZmZmZmZmZhMDU2NWYzNz5dIHNycHRfaGFuZGxlX25ld19p
+dSsweDZkNy8weDc5MA0KW2liX3NycHRdDQpbNzgzOTUuNDUyNjAzXSAgUlNQIDxmZmZmODgwODNl
+ODBmZDcwPg0KWzc4Mzk1LjQ1MzQ5OF0gQ1IyOiAwMDAwMDAwMDAwMDAwMDAxDQoNClRyYWNlIHdh
+cyBvYnRhaW5lZCBvbiBSSEVMNy4xIGRpc3RybywgYnV0IGNvdWxkIGhhcHBlbmVkIG9uIGFueSBr
+ZXJuZWwsDQpzbyBJIGJlbGlldmUgdGhpcyBwYXRjaCBzaG91bGQgZ28gdG8gc3RhYmxlIGFzIHdl
+bGwuDQpQbGVhc2Ugc2VlIGJlbG93IHRoZSBoaXQgc2NlbmFyaW8oZml4ZWQgYnkgdGhpcyBwYXRj
+aCkuDQoNCkZpeGVzOiAzZTRmNTc0ODU3ZWUgKCJpYl9zcnB0OiBDb252ZXJ0IFRNUiBwYXRoIHRv
+IHRhcmdldF9zdWJtaXRfdG1yIikNClRlc3RlZC1ieTogQWxleCBFc3RyaW4gPGFsZXguZXN0cmlu
+QGludGVsLmNvbT4NCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxp
+bnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS1vd25lckB2
+Z2VyLmtlcm5lbC5vcmddIE9uDQo+IEJlaGFsZiBPZiBCYXJ0IFZhbiBBc3NjaGUNCj4gU2VudDog
+VHVlc2RheSwgSmFudWFyeSAwNSwgMjAxNiA5OjIzIEFNDQo+IFRvOiBEb3VnIExlZGZvcmQNCj4g
+Q2M6IENocmlzdG9waCBIZWxsd2lnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiBTdWJq
+ZWN0OiBbUEFUQ0ggMDYvMTVdIElCL3NycHQ6IFNpbXBsaWZ5IHNycHRfaGFuZGxlX3Rza19tZ210
+KCkNCj4gDQo+IExldCB0aGUgdGFyZ2V0IGNvcmUgY2hlY2sgdGFzayBleGlzdGVuY2UgaW5zdGVh
+ZCBvZiB0aGUgU1JQIHRhcmdldA0KPiBkcml2ZXIuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBCYXJ0
+IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRpc2suY29tPg0KPiBDYzogQ2hyaXN0b3Bo
+IEhlbGx3aWcgPGhjaEBsc3QuZGU+DQo+IC0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3VscC9z
+cnB0L2liX3NycHQuYyB8IDU0ICsrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+
+ICAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCA1MiBkZWxldGlvbnMoLSkNCj4gDQo+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+IGIv
+ZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiBpbmRleCBmYzE5MjAzLi45
+Y2IxYTE0IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3Jw
+dC5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gQEAg
+LTE1NTQsNDcgKzE1NTQsNiBAQCBzZW5kX3NlbnNlOg0KPiAgCXJldHVybiAtMTsNCj4gIH0NCj4g
+DQo+IC0vKioNCj4gLSAqIHNycHRfcnhfbWdtdF9mbl90YWcoKSAtIFByb2Nlc3MgYSB0YXNrIG1h
+bmFnZW1lbnQgZnVuY3Rpb24gYnkgdGFnLg0KPiAtICogQGNoOiBSRE1BIGNoYW5uZWwgb2YgdGhl
+IHRhc2sgbWFuYWdlbWVudCByZXF1ZXN0Lg0KPiAtICogQGZuOiBUYXNrIG1hbmFnZW1lbnQgZnVu
+Y3Rpb24gdG8gcGVyZm9ybS4NCj4gLSAqIEByZXFfdGFnOiBUYWcgb2YgdGhlIFNSUCB0YXNrIG1h
+bmFnZW1lbnQgcmVxdWVzdC4NCj4gLSAqIEBtZ210X2lvY3R4OiBJL08gY29udGV4dCBvZiB0aGUg
+dGFzayBtYW5hZ2VtZW50IHJlcXVlc3QuDQo+IC0gKg0KPiAtICogUmV0dXJucyB6ZXJvIGlmIHRo
+ZSB0YXJnZXQgY29yZSB3aWxsIHByb2Nlc3MgdGhlIHRhc2sgbWFuYWdlbWVudA0KPiAtICogcmVx
+dWVzdCBhc3luY2hyb25vdXNseS4NCj4gLSAqDQo+IC0gKiBOb3RlOiBJdCBpcyBhc3N1bWVkIHRo
+YXQgdGhlIGluaXRpYXRvciBzZXJpYWxpemVzIHRhZy1iYXNlZCB0YXNrIG1hbmFnZW1lbnQNCj4g
+LSAqIHJlcXVlc3RzLg0KPiAtICovDQo+IC1zdGF0aWMgaW50IHNycHRfcnhfbWdtdF9mbl90YWco
+c3RydWN0IHNycHRfc2VuZF9pb2N0eCAqaW9jdHgsIHU2NCB0YWcpDQo+IC17DQo+IC0Jc3RydWN0
+IHNycHRfZGV2aWNlICpzZGV2Ow0KPiAtCXN0cnVjdCBzcnB0X3JkbWFfY2ggKmNoOw0KPiAtCXN0
+cnVjdCBzcnB0X3NlbmRfaW9jdHggKnRhcmdldDsNCj4gLQlpbnQgcmV0LCBpOw0KPiAtDQo+IC0J
+cmV0ID0gLUVJTlZBTDsNCj4gLQljaCA9IGlvY3R4LT5jaDsNCj4gLQlCVUdfT04oIWNoKTsNCj4g
+LQlCVUdfT04oIWNoLT5zcG9ydCk7DQo+IC0Jc2RldiA9IGNoLT5zcG9ydC0+c2RldjsNCj4gLQlC
+VUdfT04oIXNkZXYpOw0KPiAtCXNwaW5fbG9ja19pcnEoJnNkZXYtPnNwaW5sb2NrKTsNCj4gLQlm
+b3IgKGkgPSAwOyBpIDwgY2gtPnJxX3NpemU7ICsraSkgew0KPiAtCQl0YXJnZXQgPSBjaC0+aW9j
+dHhfcmluZ1tpXTsNCj4gLQkJaWYgKHRhcmdldC0+Y21kLnNlX2x1biA9PSBpb2N0eC0+Y21kLnNl
+X2x1biAmJg0KPiAtCQkgICAgdGFyZ2V0LT5jbWQudGFnID09IHRhZyAmJg0KPiAtCQkgICAgc3Jw
+dF9nZXRfY21kX3N0YXRlKHRhcmdldCkgIT0gU1JQVF9TVEFURV9ET05FKSB7DQo+IC0JCQlyZXQg
+PSAwOw0KPiAtCQkJLyogbm93IGxldCB0aGUgdGFyZ2V0IGNvcmUgYWJvcnQgJnRhcmdldC0+Y21k
+OyAqLw0KPiAtCQkJYnJlYWs7DQo+IC0JCX0NCj4gLQl9DQo+IC0Jc3Bpbl91bmxvY2tfaXJxKCZz
+ZGV2LT5zcGlubG9jayk7DQo+IC0JcmV0dXJuIHJldDsNCj4gLX0NCj4gLQ0KPiAgc3RhdGljIGlu
+dCBzcnBfdG1yX3RvX3RjbShpbnQgZm4pDQo+ICB7DQo+ICAJc3dpdGNoIChmbikgew0KPiBAQCAt
+MTYyOCw3ICsxNTg3LDYgQEAgc3RhdGljIHZvaWQgc3JwdF9oYW5kbGVfdHNrX21nbXQoc3RydWN0
+IHNycHRfcmRtYV9jaCAqY2gsDQo+ICAJc3RydWN0IHNycF90c2tfbWdtdCAqc3JwX3RzazsNCj4g
+IAlzdHJ1Y3Qgc2VfY21kICpjbWQ7DQo+ICAJc3RydWN0IHNlX3Nlc3Npb24gKnNlc3MgPSBjaC0+
+c2VzczsNCj4gLQl1aW50MzJfdCB0YWcgPSAwOw0KPiAgCWludCB0Y21fdG1yOw0KPiAgCWludCBy
+YzsNCj4gDQo+IEBAIC0xNjQ5LDE4ICsxNjA3LDEwIEBAIHN0YXRpYyB2b2lkIHNycHRfaGFuZGxl
+X3Rza19tZ210KHN0cnVjdCBzcnB0X3JkbWFfY2ggKmNoLA0KPiAgCQkJVE1SX1RBU0tfTUdNVF9G
+VU5DVElPTl9OT1RfU1VQUE9SVEVEOw0KPiAgCQlnb3RvIGZhaWw7DQo+ICAJfQ0KPiAtCWlmIChz
+cnBfdHNrLT50c2tfbWdtdF9mdW5jID09IFNSUF9UU0tfQUJPUlRfVEFTSykgew0KPiAtCQlyYyA9
+IHNycHRfcnhfbWdtdF9mbl90YWcoc2VuZF9pb2N0eCwgc3JwX3Rzay0+dGFza190YWcpOw0KPiAt
+CQlpZiAocmMgPCAwKSB7DQo+IC0JCQlzZW5kX2lvY3R4LT5jbWQuc2VfdG1yX3JlcS0+cmVzcG9u
+c2UgPQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXl5eXl5eXl5eXl5eXl5e
+Xl5eXl4gICAhISENCnNlX3Rtcl9yZXEgcG9pbnRlciB3YXMgY2xlYXJlZCBhIGZldyBsaW5lcyBv
+ZiBjb2RlIGVhcmxpZXI6DQoNCnNycHRfaGFuZGxlX25ld19pdSgpIHsNCgkuLi4uLg0KCXNlbmRf
+aW9jdHggPSBzcnB0X2dldF9zZW5kX2lvY3R4KGNoKSB7DQoJCQkJLi4uLi4NCgkJCQltZW1zZXQo
+JmlvY3R4LT5jbWQsIDAgLi4uICEhISByZS1pbml0IHNlX2NtZCBzdHJ1Y3R1cmUgZm9yIHJlc3Bv
+bnNlLg0KCQkJfQ0KCS4uLg0KCXNycHRfaGFuZGxlX3Rza19tZ210KGNoLCByZWN2X2lvY3R4LCBz
+ZW5kX2lvY3R4KSB7DQoJLi4uDQoJQW5kIGhlcmUgd2UgZ290IGl0ICEhIQ0KCQlzZW5kX2lvY3R4
+LT5jbWQuc2VfdG1yX3JlcS0+cmVzcG9uc2UgPSAgIA0KCQkJCQlUTVJfVEFTS19ET0VTX05PVF9F
+WElTVDsNCg0KPiAtCQkJZ290byBmYWlsOw0KPiAtCQl9DQo+IC0JCXRhZyA9IHNycF90c2stPnRh
+c2tfdGFnOw0KPiAtCX0NCj4gIAlyYyA9IHRhcmdldF9zdWJtaXRfdG1yKCZzZW5kX2lvY3R4LT5j
+bWQsIHNlc3MsIE5VTEwsDQo+ICAJCQkgICAgICAgc2NzaWx1bl90b19pbnQoJnNycF90c2stPmx1
+biksIHNycF90c2ssIHRjbV90bXIsDQo+IC0JCQkgICAgICAgR0ZQX0tFUk5FTCwgdGFnLCBUQVJH
+RVRfU0NGX0FDS19LUkVGKTsNCj4gKwkJCSAgICAgICBHRlBfS0VSTkVMLCBzcnBfdHNrLT50YXNr
+X3RhZywNCj4gKwkJCSAgICAgICBUQVJHRVRfU0NGX0FDS19LUkVGKTsNCj4gIAlpZiAocmMgIT0g
+MCkgew0KPiAgCQlzZW5kX2lvY3R4LT5jbWQuc2VfdG1yX3JlcS0+cmVzcG9uc2UgPSBUTVJfRlVO
+Q1RJT05fUkVKRUNURUQ7DQo+ICAJCWdvdG8gZmFpbDsNCj4gLS0NCj4gMi4xLjQNCj4gDQo+IC0t
+DQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNj
+cmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
+QHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5r
+ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
