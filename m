@@ -1,91 +1,69 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
-Date: Tue, 26 Jan 2016 10:46:59 -0800
-Message-ID: <56A7BF23.1060306@sandisk.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
+Date: Tue, 26 Jan 2016 18:52:08 +0000
+Message-ID: <F3529576D8E232409F431C309E29399328F6B0E9@CRSMSX102.amr.corp.intel.com>
 References: <568BD0FC.70207@sandisk.com> <568BD1D2.1030609@sandisk.com>
  <F3529576D8E232409F431C309E29399328F6B06A@CRSMSX102.amr.corp.intel.com>
  <56A7ADA3.5080507@sandisk.com>
  <F3529576D8E232409F431C309E29399328F6B0C3@CRSMSX102.amr.corp.intel.com>
+ <56A7BF23.1060306@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F3529576D8E232409F431C309E29399328F6B0C3-8k97q/ur5Z1cIJlls4ac1rfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <56A7BF23.1060306-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/26/16 10:35, Estrin, Alex wrote:
->> Thank you for the feedback. Since the kernel 4.5 merge has been closed I
->> will retest and resend the whole patch series.
-> 
-> Bart,
-> 
-> In this case I would suggest to extend the patch by removing
-> this unlikely check, since it is also taken care of in target:
-> 
-> @@ -1843,25 +1801,10 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
->          srpt_set_cmd_state(send_ioctx, SRPT_STATE_MGMT);
->          send_ioctx->tag = srp_tsk->tag;
->          tcm_tmr = srp_tmr_to_tcm(srp_tsk->tsk_mgmt_func);
-> -       if (tcm_tmr < 0) {
-> -               send_ioctx->cmd.se_tmr_req->response =
-> -                       TMR_TASK_MGMT_FUNCTION_NOT_SUPPORTED;
-> -               goto fail;
-> -       }
-
-Hello Alex,
-
-How about introducing a symbolic constant for unrecognized task management
-functions, e.g. as in the below variant of your patch ?
-
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 7 +------
- include/target/target_core_base.h     | 1 +
- 2 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 21cdb7e..352dd87 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1595,7 +1595,7 @@ static int srp_tmr_to_tcm(int fn)
- 	case SRP_TSK_CLEAR_ACA:
- 		return TMR_CLEAR_ACA;
- 	default:
--		return -1;
-+		return UNKNOWN_TMR;
- 	}
- }
- 
-@@ -1629,11 +1629,6 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
- 	srpt_set_cmd_state(send_ioctx, SRPT_STATE_MGMT);
- 	send_ioctx->cmd.tag = srp_tsk->tag;
- 	tcm_tmr = srp_tmr_to_tcm(srp_tsk->tsk_mgmt_func);
--	if (tcm_tmr < 0) {
--		send_ioctx->cmd.se_tmr_req->response =
--			TMR_TASK_MGMT_FUNCTION_NOT_SUPPORTED;
--		goto fail;
--	}
- 	rc = target_submit_tmr(&send_ioctx->cmd, sess, NULL,
- 			       scsilun_to_int(&srp_tsk->lun), srp_tsk, tcm_tmr,
- 			       GFP_KERNEL, srp_tsk->task_tag,
-diff --git a/include/target/target_core_base.h b/include/target/target_core_base.h
-index ec2ddbf..2fb005a 100644
---- a/include/target/target_core_base.h
-+++ b/include/target/target_core_base.h
-@@ -192,6 +192,7 @@ enum target_sc_flags_table {
- 
- /* fabric independent task management function values */
- enum tcm_tmreq_table {
-+	UNKNOWN_TMR		= -1,
- 	TMR_ABORT_TASK		= 1,
- 	TMR_ABORT_TASK_SET	= 2,
- 	TMR_CLEAR_ACA		= 3,
--- 
-2.7.0
-
-
+PiANCj4gT24gMDEvMjYvMTYgMTA6MzUsIEVzdHJpbiwgQWxleCB3cm90ZToNCj4gPj4gVGhhbmsg
+eW91IGZvciB0aGUgZmVlZGJhY2suIFNpbmNlIHRoZSBrZXJuZWwgNC41IG1lcmdlIGhhcyBiZWVu
+IGNsb3NlZCBJDQo+ID4+IHdpbGwgcmV0ZXN0IGFuZCByZXNlbmQgdGhlIHdob2xlIHBhdGNoIHNl
+cmllcy4NCj4gPg0KPiA+IEJhcnQsDQo+ID4NCj4gPiBJbiB0aGlzIGNhc2UgSSB3b3VsZCBzdWdn
+ZXN0IHRvIGV4dGVuZCB0aGUgcGF0Y2ggYnkgcmVtb3ZpbmcNCj4gPiB0aGlzIHVubGlrZWx5IGNo
+ZWNrLCBzaW5jZSBpdCBpcyBhbHNvIHRha2VuIGNhcmUgb2YgaW4gdGFyZ2V0Og0KPiA+DQo+ID4g
+QEAgLTE4NDMsMjUgKzE4MDEsMTAgQEAgc3RhdGljIHZvaWQgc3JwdF9oYW5kbGVfdHNrX21nbXQo
+c3RydWN0IHNycHRfcmRtYV9jaCAqY2gsDQo+ID4gICAgICAgICAgc3JwdF9zZXRfY21kX3N0YXRl
+KHNlbmRfaW9jdHgsIFNSUFRfU1RBVEVfTUdNVCk7DQo+ID4gICAgICAgICAgc2VuZF9pb2N0eC0+
+dGFnID0gc3JwX3Rzay0+dGFnOw0KPiA+ICAgICAgICAgIHRjbV90bXIgPSBzcnBfdG1yX3RvX3Rj
+bShzcnBfdHNrLT50c2tfbWdtdF9mdW5jKTsNCj4gPiAtICAgICAgIGlmICh0Y21fdG1yIDwgMCkg
+ew0KPiA+IC0gICAgICAgICAgICAgICBzZW5kX2lvY3R4LT5jbWQuc2VfdG1yX3JlcS0+cmVzcG9u
+c2UgPQ0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIFRNUl9UQVNLX01HTVRfRlVOQ1RJT05f
+Tk9UX1NVUFBPUlRFRDsNCj4gPiAtICAgICAgICAgICAgICAgZ290byBmYWlsOw0KPiA+IC0gICAg
+ICAgfQ0KPiANCj4gSGVsbG8gQWxleCwNCj4gDQo+IEhvdyBhYm91dCBpbnRyb2R1Y2luZyBhIHN5
+bWJvbGljIGNvbnN0YW50IGZvciB1bnJlY29nbml6ZWQgdGFzayBtYW5hZ2VtZW50DQo+IGZ1bmN0
+aW9ucywgZS5nLiBhcyBpbiB0aGUgYmVsb3cgdmFyaWFudCBvZiB5b3VyIHBhdGNoID8NCj4gDQo+
+IC0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYyB8IDcgKy0tLS0t
+LQ0KPiAgaW5jbHVkZS90YXJnZXQvdGFyZ2V0X2NvcmVfYmFzZS5oICAgICB8IDEgKw0KPiAgMiBm
+aWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiBiL2RyaXZl
+cnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gaW5kZXggMjFjZGI3ZS4uMzUyZGQ4
+NyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0K
+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+IEBAIC0xNTk1
+LDcgKzE1OTUsNyBAQCBzdGF0aWMgaW50IHNycF90bXJfdG9fdGNtKGludCBmbikNCj4gIAljYXNl
+IFNSUF9UU0tfQ0xFQVJfQUNBOg0KPiAgCQlyZXR1cm4gVE1SX0NMRUFSX0FDQTsNCj4gIAlkZWZh
+dWx0Og0KPiAtCQlyZXR1cm4gLTE7DQo+ICsJCXJldHVybiBVTktOT1dOX1RNUjsNCj4gIAl9DQo+
+ICB9DQo+IA0KPiBAQCAtMTYyOSwxMSArMTYyOSw2IEBAIHN0YXRpYyB2b2lkIHNycHRfaGFuZGxl
+X3Rza19tZ210KHN0cnVjdCBzcnB0X3JkbWFfY2ggKmNoLA0KPiAgCXNycHRfc2V0X2NtZF9zdGF0
+ZShzZW5kX2lvY3R4LCBTUlBUX1NUQVRFX01HTVQpOw0KPiAgCXNlbmRfaW9jdHgtPmNtZC50YWcg
+PSBzcnBfdHNrLT50YWc7DQo+ICAJdGNtX3RtciA9IHNycF90bXJfdG9fdGNtKHNycF90c2stPnRz
+a19tZ210X2Z1bmMpOw0KPiAtCWlmICh0Y21fdG1yIDwgMCkgew0KPiAtCQlzZW5kX2lvY3R4LT5j
+bWQuc2VfdG1yX3JlcS0+cmVzcG9uc2UgPQ0KPiAtCQkJVE1SX1RBU0tfTUdNVF9GVU5DVElPTl9O
+T1RfU1VQUE9SVEVEOw0KPiAtCQlnb3RvIGZhaWw7DQo+IC0JfQ0KPiAgCXJjID0gdGFyZ2V0X3N1
+Ym1pdF90bXIoJnNlbmRfaW9jdHgtPmNtZCwgc2VzcywgTlVMTCwNCj4gIAkJCSAgICAgICBzY3Np
+bHVuX3RvX2ludCgmc3JwX3Rzay0+bHVuKSwgc3JwX3RzaywgdGNtX3RtciwNCj4gIAkJCSAgICAg
+ICBHRlBfS0VSTkVMLCBzcnBfdHNrLT50YXNrX3RhZywNCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUv
+dGFyZ2V0L3RhcmdldF9jb3JlX2Jhc2UuaCBiL2luY2x1ZGUvdGFyZ2V0L3RhcmdldF9jb3JlX2Jh
+c2UuaA0KPiBpbmRleCBlYzJkZGJmLi4yZmIwMDVhIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL3Rh
+cmdldC90YXJnZXRfY29yZV9iYXNlLmgNCj4gKysrIGIvaW5jbHVkZS90YXJnZXQvdGFyZ2V0X2Nv
+cmVfYmFzZS5oDQo+IEBAIC0xOTIsNiArMTkyLDcgQEAgZW51bSB0YXJnZXRfc2NfZmxhZ3NfdGFi
+bGUgew0KPiANCj4gIC8qIGZhYnJpYyBpbmRlcGVuZGVudCB0YXNrIG1hbmFnZW1lbnQgZnVuY3Rp
+b24gdmFsdWVzICovDQo+ICBlbnVtIHRjbV90bXJlcV90YWJsZSB7DQo+ICsJVU5LTk9XTl9UTVIJ
+CT0gLTEsDQo+ICAJVE1SX0FCT1JUX1RBU0sJCT0gMSwNCj4gIAlUTVJfQUJPUlRfVEFTS19TRVQJ
+PSAyLA0KPiAgCVRNUl9DTEVBUl9BQ0EJCT0gMywNCj4gLS0NCj4gMi43LjANCj4gDQoNCkdvb2Qg
+aWRlYS4NCg0KVGhhbmtzLA0KQWxleC4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
