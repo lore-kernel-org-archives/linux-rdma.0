@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] IB: new common API for draining a queue pair
-Date: Fri, 5 Feb 2016 13:13:16 -0800
-Message-ID: <5560fdb5d150bada87ca30fca3610ef3525fafbe.1454969695.git.swise@chelsio.com>
+Subject: [PATCH 3/3] IB/srp: use ib_drain_qp()
+Date: Wed, 27 Jan 2016 12:09:47 -0800
+Message-ID: <4aeb1cb323fe8d91cc1298bf280cda680294358d.1454969695.git.swise@chelsio.com>
 References: <cover.1454969695.git.swise@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1454969695.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,128 +10,96 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>
-
-Add provider-specific drain_qp function for providers needing special
-drain logic.
-
-Add static function __ib_drain_qp() which posts noop WRs to the RQ and
-SQ and blocks until their completions are processed.  This ensures the
-applications completions have all been processed.
-
-Add API function ib_drain_qp() which calls the provider-specific drain
-if it exists or __ib_drain_qp().
-
-Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 77 +++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         |  2 ++
- 2 files changed, 79 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 45 ++++++-------------------------------
+ 1 file changed, 7 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5af6d02..98ddcb4 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1657,3 +1657,80 @@ next_page:
- 	return i;
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 03022f6..95670ae 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -446,49 +446,17 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
+ 				  dev->max_pages_per_mr);
  }
- EXPORT_SYMBOL(ib_sg_to_pages);
-+
-+struct ib_drain_cqe {
-+	struct ib_cqe cqe;
-+	struct completion done;
-+};
-+
-+static void ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
-+{
-+	struct ib_drain_cqe *cqe = container_of(wc->wr_cqe, struct ib_drain_cqe,
-+						cqe);
-+
-+	complete(&cqe->done);
-+}
-+
-+/*
-+ * Post a WR and block until its completion is reaped for both the RQ and SQ.
-+ */
-+static void __ib_drain_qp(struct ib_qp *qp)
-+{
-+	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
-+	struct ib_drain_cqe rdrain, sdrain;
-+	struct ib_recv_wr rwr = {}, *bad_rwr;
-+	struct ib_send_wr swr = {}, *bad_swr;
-+	int ret;
-+
-+	rwr.wr_cqe = &rdrain.cqe;
-+	rdrain.cqe.done = ib_drain_qp_done;
-+	init_completion(&rdrain.done);
-+
-+	swr.wr_cqe = &sdrain.cqe;
-+	sdrain.cqe.done = ib_drain_qp_done;
-+	init_completion(&sdrain.done);
-+
-+	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
-+		return;
-+	}
-+
-+	ret = ib_post_recv(qp, &rwr, &bad_rwr);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain recv queue: %d\n", ret);
-+		return;
-+	}
-+
-+	ret = ib_post_send(qp, &swr, &bad_swr);
-+	if (ret) {
-+		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
-+		goto err_drain_rq;
-+	}
-+
-+	wait_for_completion(&sdrain.done);
-+err_drain_rq:
-+	wait_for_completion(&rdrain.done);
-+}
-+
-+/**
-+ * ib_drain_qp() - Block until all CQEs have been consumed by the
-+ *		   application.
-+ * @qp:            queue pair to drain
-+ *
-+ * If the device has a provider-specific drain function, then
-+ * call that.  Otherwise call the generic drain function
-+ * __ib_drain_qp().
-+ *
-+ * The consumer must ensure there is room* in the CQ, SQ, and RQ
-+ * for a drain work request.  Also the consumer must allocate the
-+ * CQ using ib_alloc_cq() and thus not directly polling the CQ.
-+ */
-+void ib_drain_qp(struct ib_qp *qp)
-+{
-+	if (qp->device->drain_qp)
-+		qp->device->drain_qp(qp);
-+	else
-+		__ib_drain_qp(qp);
-+}
-+EXPORT_SYMBOL(ib_drain_qp);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 284b00c..d8533ab 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1846,6 +1846,7 @@ struct ib_device {
- 	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
- 						      struct ib_mr_status *mr_status);
- 	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
-+	void			   (*drain_qp)(struct ib_qp *qp);
  
- 	struct ib_dma_mapping_ops   *dma_ops;
+-static void srp_drain_done(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct srp_rdma_ch *ch = cq->cq_context;
+-
+-	complete(&ch->done);
+-}
+-
+-static struct ib_cqe srp_drain_cqe = {
+-	.done		= srp_drain_done,
+-};
+-
+ /**
+  * srp_destroy_qp() - destroy an RDMA queue pair
+  * @ch: SRP RDMA channel.
+  *
+- * Change a queue pair into the error state and wait until all receive
+- * completions have been processed before destroying it. This avoids that
+- * the receive completion handler can access the queue pair while it is
++ * Drain the qp before destroying it.  This avoids that the receive
++ * completion handler can access the queue pair while it is
+  * being destroyed.
+  */
+ static void srp_destroy_qp(struct srp_rdma_ch *ch)
+ {
+-	static struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+-	static struct ib_recv_wr wr = { 0 };
+-	struct ib_recv_wr *bad_wr;
+-	int ret;
+-
+-	wr.wr_cqe = &srp_drain_cqe;
+-	/* Destroying a QP and reusing ch->done is only safe if not connected */
+-	WARN_ON_ONCE(ch->connected);
+-
+-	ret = ib_modify_qp(ch->qp, &attr, IB_QP_STATE);
+-	WARN_ONCE(ret, "ib_cm_init_qp_attr() returned %d\n", ret);
+-	if (ret)
+-		goto out;
+-
+-	init_completion(&ch->done);
+-	ret = ib_post_recv(ch->qp, &wr, &bad_wr);
+-	WARN_ONCE(ret, "ib_post_recv() returned %d\n", ret);
+-	if (ret == 0)
+-		wait_for_completion(&ch->done);
+-
+-out:
++	ib_drain_qp(ch->qp);
+ 	ib_destroy_qp(ch->qp);
+ }
  
-@@ -3094,4 +3095,5 @@ int ib_sg_to_pages(struct ib_mr *mr,
- 		   int sg_nents,
- 		   int (*set_page)(struct ib_mr *, u64));
+@@ -508,7 +476,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	if (!init_attr)
+ 		return -ENOMEM;
  
-+void ib_drain_qp(struct ib_qp *qp);
- #endif /* IB_VERBS_H */
+-	/* queue_size + 1 for ib_drain_qp */
++	/* queue_size + 1 for ib_drain_qp() */
+ 	recv_cq = ib_alloc_cq(dev->dev, ch, target->queue_size + 1,
+ 				ch->comp_vector, IB_POLL_SOFTIRQ);
+ 	if (IS_ERR(recv_cq)) {
+@@ -516,7 +484,8 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 		goto err;
+ 	}
+ 
+-	send_cq = ib_alloc_cq(dev->dev, ch, m * target->queue_size,
++	/* queue_size + 1 for ib_drain_qp() */
++	send_cq = ib_alloc_cq(dev->dev, ch, m * target->queue_size + 1,
+ 				ch->comp_vector, IB_POLL_DIRECT);
+ 	if (IS_ERR(send_cq)) {
+ 		ret = PTR_ERR(send_cq);
+@@ -524,7 +493,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
+ 	}
+ 
+ 	init_attr->event_handler       = srp_qp_event;
+-	init_attr->cap.max_send_wr     = m * target->queue_size;
++	init_attr->cap.max_send_wr     = m * target->queue_size + 1;
+ 	init_attr->cap.max_recv_wr     = target->queue_size + 1;
+ 	init_attr->cap.max_recv_sge    = 1;
+ 	init_attr->cap.max_send_sge    = 1;
 -- 
 2.7.0
 
