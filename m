@@ -1,77 +1,74 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [LSF/MM TOPIC/ATTEND] RDMA passive target
-Date: Wed, 27 Jan 2016 19:27:44 +0200
-Message-ID: <56A8FE10.7000309@dev.mellanox.co.il>
-References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
- <56A8F646.5020003@plexistor.com>
+From: "Laison Computech Inc" <danny-nst7T5aFo3dBDgjK7y7TUQ@public.gmane.org>
+Subject: NEW ARRIVALS, CISCO,CPU's,Memory, LAPTOP AND AVAYA
+Date: Wed, 27 Jan 2016 12:42:07 +0700
+Message-ID: <201601270544.AQX06505__24141.9489415877$1453951409$gmane$org@razorgate1.infokom.net>
+Reply-To: <LaisonComputer-bdq14YP6qtT9W2o6/NvY6w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+	charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <56A8F646.5020003@plexistor.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Boaz Harrosh <boaz@plexistor.com>, Chuck Lever <chuck.lever@oracle.com>, lsf-pc@lists.linux-foundation.org, Dan Williams <dan.j.williams@intel.com>, Yigal Korman <yigal@plexistor.com>
-Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Linux RDMA Mailing List <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, Ric Wheeler <rwheeler@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Boaz,
+Dear Sir/Madam,
 
-> RDMA passive target
-> ~~~~~~~~~~~~~~~~~~~
->
-> The idea is to have a storage brick that exports a very
-> low level pure RDMA API to access its memory based storage.
-> The brick might be battery backed volatile based memory, or
-> pmem based. In any case the brick might utilize a much higher
-> capacity then memory by utilizing a "tiering" to slower media,
-> which is enabled by the API.
->
-> The API is simple:
->
-> 1. Alloc_2M_block_at_virtual_address (ADDR_64_BIT)
->     ADDR_64_BIT is any virtual address and defines the logical ID of the block.
->     If the ID is already allocated an error is returned.
->     If storage is exhausted return => ENOSPC
-> 2. Free_2M_block_at_virtual_address (ADDR_64_BIT)
->     Space for logical ID is returned to free store and the ID becomes free for
->     a new allocation.
-> 3. map_virtual_address(ADDR_64_BIT, flags) => RDMA handle
->     previously allocated virtual address is locked in memory and an RDMA handle
->     is returned.
->     Flags: read-only, read-write, shared and so on...
-> 4. unmap__virtual_address(ADDR_64_BIT)
->     At this point the brick can write data to slower storage if memory space
->     is needed. The RDMA handle from [3] is revoked.
-> 5. List_mapped_IDs
->     An extent based list of all allocated ranges. (This is usually used on
->     mount or after a crash)
+Clean tested working pulls CPUs and QTYs in stock.
 
-My understanding is that you're describing a wire protocol correct?
+115  X   X5650
+65  X   E5410
+75  X   X5660
+145  X   E5530
+100  X   E5645
+40  X   X5680
+75  X   X5690
 
-> The dumb brick is not the Network allocator / storage manager at all. and it
-> is not a smart target / server. like an iser-target or pnfs-DS. A SW defined
-> application can do that, on top of the Dumb-brick. The motivation is a low level
-> very low latency API+library, which can be built upon for higher protocols or
-> used directly for very low latency cluster.
-> It does however mange a virtual allocation map of logical to physical mapping
-> of the 2M blocks.
+Brand new sealed  IP phones and QTYs in stock.
 
-The challenge in my mind would be to have persistence semantics in
-place.
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+......
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640
 
->
-> Currently both drivers initiator and target are in Kernel, but with
-> latest advancement by Dan Williams it can be implemented in user-mode as well,
-> Almost.
->
-> The almost is because:
-> 1. If the target is over a /dev/pmemX then all is fine we have 2M contiguous
->     memory blocks.
-> 2. If the target is over an FS, we have a proposal pending for an falloc_2M_flag
->     to ask the FS for a contiguous 2M allocations only. If any of the 2M allocations
->     fail then return ENOSPC from falloc. This way we guaranty that each 2M block can be
->     mapped by a single RDAM handle.
+All NIB.
 
-Umm, you don't need the 2M to be contiguous in order to represent them
-as a single RDMA handle. If that was true iSER would have never worked.
-Or I misunderstood what you meant...
+Here is our current stock list.
+
+ SSD drives and 750 gig 2.5" sata drives
+
+We also have
+250 x i5 dell
+133 x HP
+360 x Lenevo
+all grade A
+
+Here is the qty in stock for laptops
+ 
+150 x E6500 Dell Latitude E6500 Core 2 Duo 2.80GHz T9600 4GB 160GB DVD+/-RW Win 7
+ 60 x E6510 Dell Ltitude E6510. 15.6" Intel Core i5- M520 @ 2.40GHz. 4GB. 320GB DVD+/-RW Win 7
+30 X 8530P HP EliteBook 8530p 15.4" Laptop 2.53GHz Core 2 Duo T9400, 4GB RAM, 160GB HDD, Win
+100 x  8740W  HP EliteBook 8740w 17" 2.4Ghz Core i5 6GB 250GB Win 7 Pr
+45 x 8760W HP EliteBook 8760W 17.3" 2nd Gen Intel Core i7 2.70GHz 8GB 320GB Windows 7 Pro
+50 x DELL 6520Dell latitude e6520 15.6" i5-2520M 2.5Ghz, 8GB Ram, 500GB HD Win 7 @ $115
+120 x DELL 6420 Laptop Dell Latitude E6420 14" Intel Core i5 2.4Ghz 4GB RAM 250GB HDD DVD Win 7
+150 x T410 Lenovo ThinkPad Laptop T410s 14.1" 2.40GHz Core i5 4GB RAM 160GB Win 7
+180 x 8440P HP EliteBook 8440p 14" M520 Core i5 2.4GHz 4GB 250GB Win 7
+
+
+Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
+
+Thank You
+Barbara Johnson
+Laison Computech Inc
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-047
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
