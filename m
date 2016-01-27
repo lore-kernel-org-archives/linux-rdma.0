@@ -1,69 +1,38 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Remote access to pmem on storage targets
-Date: Wed, 27 Jan 2016 12:52:51 +0200
-Message-ID: <56A8A183.30805@dev.mellanox.co.il>
-References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
- <20160126082533.GR24938@quack.suse.cz>
- <F0E2108B-891C-4570-B486-7DC7C4FB59C4@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F0E2108B-891C-4570-B486-7DC7C4FB59C4-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Cc: lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libmlx5] Add support for create/destroy flow
+Date: Wed, 27 Jan 2016 16:26:36 +0200
+Message-ID: <1453904796-17573-1-git-send-email-maorg@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Add a call to the extended version of ibv_create_flow and
+ibv_destroy_flow.
 
->> So hashing out details of pNFS layout isn't interesting to many people.
->> But if you want a broader architectural discussion about how to overcome
->> issues (and what those issues actually are) with the use of persistent
->> memory for NAS, then that may be interesting. So what do you actually want?
->
-> I mentioned pNFS briefly only as an example. There have
-> been a variety of proposals and approaches so far, and
-> it's time, I believe, to start focusing our efforts.
->
-> Thus I'm requesting a "broader architectural discussion
-> about how to overcome issues with the use of persistent
-> memory for NAS," in particular how we'd like to do this
-> with the Linux implementations of the iSER, SRP, and
-> NFS/RDMA protocols using DAX/pmem or NVM[ef].
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/mlx5.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I agree,
+diff --git a/src/mlx5.c b/src/mlx5.c
+index e44898a..9dff4cc 100644
+--- a/src/mlx5.c
++++ b/src/mlx5.c
+@@ -584,6 +584,8 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	verbs_set_ctx_op(v_ctx, create_srq_ex, mlx5_create_srq_ex);
+ 	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
+ 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
++	verbs_set_ctx_op(v_ctx, ibv_create_flow, ibv_cmd_create_flow);
++	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
+ 
+ 	return 0;
+ 
+-- 
+1.8.3.1
 
-I anticipate that we'll gradually see more and more implementations
-optimizing remote storage access in the presence of pmem devices (maybe
-even not only RDMA?). The straight forward approach would be for each
-implementation to have it's own logic for accessing remote pmem
-devices but I think we have a chance to consolidate that in a single
-API for everyone.
-
-I think the most natural way to start is NFS/RDMA (SCSI would be a bit
-more challenging...)
-
-> It is not going to be like the well-worn paradigm that
-> involves a page cache on the storage target backed by
-> slow I/O operations. The protocol layers on storage
-> targets need a way to discover memory addresses of
-> persistent memory that will be used as source/sink
-> buffers for RDMA operations.
-> And making data durable after a write is going to need
-> some thought. So I believe some new plumbing will be
-> necessary.
-
-The challenge here is persistence semantics that are missing in
-today's HCAs, so I think we should aim to have a SW solution for
-remote persistence semantics with sufficient hooks for possible
-HW that might be able to have it in the future...
-
-> I know this is not everyone's cup of tea. A BoF would
-> be fine, if the PC believes that is a better venue (and
-> I'm kind of leaning that way myself).
-
-I'd be happy to join such a discussion.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
