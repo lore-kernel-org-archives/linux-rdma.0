@@ -1,129 +1,119 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Remote access to pmem on storage targets
-Date: Wed, 27 Jan 2016 10:55:36 -0500
-Message-ID: <D1002C60-C01D-410C-ABD4-7BDDB82E0CC1@oracle.com>
-References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com> <20160126082533.GR24938@quack.suse.cz> <F0E2108B-891C-4570-B486-7DC7C4FB59C4@oracle.com> <20160127000404.GN6033@dastard>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160127000404.GN6033@dastard>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Boaz Harrosh <boaz@plexistor.com>
+Subject: [LSF/MM TOPIC/ATTEND] RDMA passive target
+Date: Wed, 27 Jan 2016 18:54:30 +0200
+Message-ID: <56A8F646.5020003@plexistor.com>
+References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Chuck Lever <chuck.lever@oracle.com>, lsf-pc@lists.linux-foundation.org, Dan Williams <dan.j.williams@intel.com>, Yigal Korman <yigal@plexistor.com>
+Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Linux RDMA Mailing List <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, Ric Wheeler <rwheeler@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Jan 26, 2016, at 7:04 PM, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org> wrote:
+On 01/25/2016 11:19 PM, Chuck Lever wrote:
+> I'd like to propose a discussion of how to take advantage of
+> persistent memory in network-attached storage scenarios.
 > 
-> On Tue, Jan 26, 2016 at 10:58:44AM -0500, Chuck Lever wrote:
->> It is not going to be like the well-worn paradigm that
->> involves a page cache on the storage target backed by
->> slow I/O operations. The protocol layers on storage
->> targets need a way to discover memory addresses of
->> persistent memory that will be used as source/sink
->> buffers for RDMA operations.
->> 
->> And making data durable after a write is going to need
->> some thought. So I believe some new plumbing will be
->> necessary.
+> RDMA runs on high speed network fabrics and offloads data
+> transfer from host CPUs. Thus it is a good match to the
+> performance characteristics of persistent memory.
 > 
-> Haven't we already solve this for the pNFS file driver that XFS
-> implements? i.e. these export operations:
+> Today Linux supports iSER, SRP, and NFS/RDMA on RDMA
+> fabrics. What kind of changes are needed in the Linux I/O
+> stack (in particular, storage targets) and in these storage
+> protocols to get the most benefit from ultra-low latency
+> storage?
 > 
->        int (*get_uuid)(struct super_block *sb, u8 *buf, u32 *len, u64 *offset);
->        int (*map_blocks)(struct inode *inode, loff_t offset,
->                          u64 len, struct iomap *iomap,
->                          bool write, u32 *device_generation);
->        int (*commit_blocks)(struct inode *inode, struct iomap *iomaps,
->                             int nr_iomaps, struct iattr *iattr);
+> There have been recent proposals about how storage protocols
+> and implementations might need to change (eg. Tom Talpey's
+> SNIA proposals for changing to a push data transfer model,
+> Sagi's proposal to utilize DAX under the NFS/RDMA server,
+> and my proposal for a new pNFS layout to drive RDMA data
+> transfer directly).
 > 
-> so mapping/allocation of file offset to sector mappings, which can
-> then trivially be used to grab the memory address through the bdev
-> ->direct_access method, yes?
+> The outcome of the discussion would be to understand what
+> people are working on now and what is the desired
+> architectural approach in order to determine where storage
+> developers should be focused.
+> 
+> This could be either a BoF or a session during the main
+> tracks. There is sure to be a narrow segment of each
+> track's attendees that would have interest in this topic.
+> 
 
-Thanks, that makes sense. How would such addresses be
-utilized?
+I would like to attend this talk, and also talk about
+a target we have been developing / utilizing that we would like
+to propose as a Linux standard driver.
+(It would be very important for me to also attend the other
+ pmem talks in LSF, as well as some of the MM and FS talks
+ proposed so far)
 
-I'll speak about the NFS/RDMA server for this example, as
-I am more familiar with that than with block targets. When
-I say "NFS server" here I mean the software service on the
-storage target that speaks the NFS protocol.
+RDMA passive target
+~~~~~~~~~~~~~~~~~~~
 
-In today's RDMA-enabled storage protocols, an initiator
-exposes its memory (in small segments) to storage targets,
-sends a request, and the target's network transport performs
-RDMA Read and Write operations to move the payload data in
-that request.
+The idea is to have a storage brick that exports a very
+low level pure RDMA API to access its memory based storage.
+The brick might be battery backed volatile based memory, or
+pmem based. In any case the brick might utilize a much higher
+capacity then memory by utilizing a "tiering" to slower media,
+which is enabled by the API.
 
-Assuming the NFS server is somehow aware that what it is
-getting from ->direct_access is a persistent memory address
-and not an LBA, it would then have to pass it down to the
-transport layer (svcrdma) so that the address can be used
-as a source or sink buffer for RDMA operations.
+The API is simple:
 
-For an NFS READ, this should be straightforward. An RPC
-request comes in, the NFS server identifies the memory that
-is to source the READ reply and passes the address of that
-memory to the transport, which then pushes the data in
-that memory via an RDMA Write to the client.
+1. Alloc_2M_block_at_virtual_address (ADDR_64_BIT)
+   ADDR_64_BIT is any virtual address and defines the logical ID of the block.
+   If the ID is already allocated an error is returned.
+   If storage is exhausted return => ENOSPC
+2. Free_2M_block_at_virtual_address (ADDR_64_BIT)
+   Space for logical ID is returned to free store and the ID becomes free for
+   a new allocation.
+3. map_virtual_address(ADDR_64_BIT, flags) => RDMA handle
+   previously allocated virtual address is locked in memory and an RDMA handle
+   is returned.
+   Flags: read-only, read-write, shared and so on...
+4. unmap__virtual_address(ADDR_64_BIT)
+   At this point the brick can write data to slower storage if memory space
+   is needed. The RDMA handle from [3] is revoked.
+5. List_mapped_IDs
+   An extent based list of all allocated ranges. (This is usually used on
+   mount or after a crash)
 
-NFS WRITES are more difficult. An RPC request comes in,
-and today the transport layer gathers incoming payload data
-in anonymous pages before the NFS server even knows there
-is an incoming RPC. We'd have to add some kind of hook to
-enable the NFS server and the underlying filesystem to
-provide appropriate sink buffers to the transport.
+The dumb brick is not the Network allocator / storage manager at all. and it
+is not a smart target / server. like an iser-target or pnfs-DS. A SW defined
+application can do that, on top of the Dumb-brick. The motivation is a low level
+very low latency API+library, which can be built upon for higher protocols or
+used directly for very low latency cluster.
+It does however mange a virtual allocation map of logical to physical mapping
+of the 2M blocks.
 
-After the NFS WRITE request has been wholly received, the
-NFS server today uses vfs_writev to put that data into the
-target file. We'd probably want something more efficient
-for pmem-backed filesystems. We want something more
-efficient for traditional page cache-based filesystems
-anyway.
+Currently both drivers initiator and target are in Kernel, but with
+latest advancement by Dan Williams it can be implemented in user-mode as well,
+Almost.
 
-Every NFS WRITE larger than a page would be essentially
-CoW, since the filesystem would need to provide "anonymous"
-blocks to sink incoming WRITE data and then transition
-those blocks into the target file? Not sure how this works
-for pNFS with block devices.
-
-Finally a client needs to perform an NFS COMMIT to ensure
-that the written data is at rest on durable storage. We
-could insist that all NFS WRITE operations to pmem will
-be DATA_SYNC or better (in other words, abandon UNSTABLE
-mode). If not, then a separate NFS COMMIT/LAYOUTCOMMIT
-is necessary to flush memory caches and ensure data
-durability. An extra RPC round trip is likely not a good
-idea when the cost structure of NFS WRITE is so much
-different than it is for traditional block devices.
-
-NFS WRITE is really the thing we want to go as fast as
-possible, btw. NFS READ on RDMA is already faster, for
-reasons I won't go into here. Aside from that, NFS READ
-results are frequently cached on clients, and some of the
-cost of NFS READ is already hidden by read-ahead. Because
-read(2) is often satisfied from a local cache, application
-progress is more frequently blocked by pending write(2)
-calls than by reads.
-
-A fully generic solution would have to provide NFS service
-for transports that do not enable direct data placement
-(eg TCP), and for filesystems that are legacy page
-cache-based (anything residing on a traditional block
-device).
-
-I imagine that the issues are similar for block targets, if
-they assume block devices are fronted by a memory cache.
+The almost is because:
+1. If the target is over a /dev/pmemX then all is fine we have 2M contiguous
+   memory blocks.
+2. If the target is over an FS, we have a proposal pending for an falloc_2M_flag
+   to ask the FS for a contiguous 2M allocations only. If any of the 2M allocations
+   fail then return ENOSPC from falloc. This way we guaranty that each 2M block can be
+   mapped by a single RDAM handle.
+   An FS for this purpose is nice for an over-allocated / dynamic space usage by
+   a target and other resources in the server.
 
 
---
-Chuck Lever
+RDMA Initiator
+~~~~~~~~~~~~~~~~~~~
 
+The initiator is just a simple library. Both usermode and Kernel side should
+be available, for direct access to the RDMA-passive-brick.
 
+Thanks.
+Boaz
 
+> --
+> Chuck Lever
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
