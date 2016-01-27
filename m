@@ -1,70 +1,49 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 06/15] IB/srpt: Simplify srpt_handle_tsk_mgmt()
-Date: Tue, 26 Jan 2016 18:52:08 +0000
-Message-ID: <F3529576D8E232409F431C309E29399328F6B0E9@CRSMSX102.amr.corp.intel.com>
-References: <568BD0FC.70207@sandisk.com> <568BD1D2.1030609@sandisk.com>
- <F3529576D8E232409F431C309E29399328F6B06A@CRSMSX102.amr.corp.intel.com>
- <56A7ADA3.5080507@sandisk.com>
- <F3529576D8E232409F431C309E29399328F6B0C3@CRSMSX102.amr.corp.intel.com>
- <56A7BF23.1060306@sandisk.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] Remote access to pmem on storage targets
+Date: Wed, 27 Jan 2016 11:04:04 +1100
+Message-ID: <20160127000404.GN6033@dastard>
+References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com>
+ <20160126082533.GR24938@quack.suse.cz>
+ <F0E2108B-891C-4570-B486-7DC7C4FB59C4@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56A7BF23.1060306-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <F0E2108B-891C-4570-B486-7DC7C4FB59C4@oracle.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Chuck Lever <chuck.lever@oracle.com>
+Cc: Jan Kara <jack@suse.cz>, lsf-pc@lists.linux-foundation.org, Linux RDMA Mailing List <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NFS Mailing List <linux-nfs@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gT24gMDEvMjYvMTYgMTA6MzUsIEVzdHJpbiwgQWxleCB3cm90ZToNCj4gPj4gVGhhbmsg
-eW91IGZvciB0aGUgZmVlZGJhY2suIFNpbmNlIHRoZSBrZXJuZWwgNC41IG1lcmdlIGhhcyBiZWVu
-IGNsb3NlZCBJDQo+ID4+IHdpbGwgcmV0ZXN0IGFuZCByZXNlbmQgdGhlIHdob2xlIHBhdGNoIHNl
-cmllcy4NCj4gPg0KPiA+IEJhcnQsDQo+ID4NCj4gPiBJbiB0aGlzIGNhc2UgSSB3b3VsZCBzdWdn
-ZXN0IHRvIGV4dGVuZCB0aGUgcGF0Y2ggYnkgcmVtb3ZpbmcNCj4gPiB0aGlzIHVubGlrZWx5IGNo
-ZWNrLCBzaW5jZSBpdCBpcyBhbHNvIHRha2VuIGNhcmUgb2YgaW4gdGFyZ2V0Og0KPiA+DQo+ID4g
-QEAgLTE4NDMsMjUgKzE4MDEsMTAgQEAgc3RhdGljIHZvaWQgc3JwdF9oYW5kbGVfdHNrX21nbXQo
-c3RydWN0IHNycHRfcmRtYV9jaCAqY2gsDQo+ID4gICAgICAgICAgc3JwdF9zZXRfY21kX3N0YXRl
-KHNlbmRfaW9jdHgsIFNSUFRfU1RBVEVfTUdNVCk7DQo+ID4gICAgICAgICAgc2VuZF9pb2N0eC0+
-dGFnID0gc3JwX3Rzay0+dGFnOw0KPiA+ICAgICAgICAgIHRjbV90bXIgPSBzcnBfdG1yX3RvX3Rj
-bShzcnBfdHNrLT50c2tfbWdtdF9mdW5jKTsNCj4gPiAtICAgICAgIGlmICh0Y21fdG1yIDwgMCkg
-ew0KPiA+IC0gICAgICAgICAgICAgICBzZW5kX2lvY3R4LT5jbWQuc2VfdG1yX3JlcS0+cmVzcG9u
-c2UgPQ0KPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIFRNUl9UQVNLX01HTVRfRlVOQ1RJT05f
-Tk9UX1NVUFBPUlRFRDsNCj4gPiAtICAgICAgICAgICAgICAgZ290byBmYWlsOw0KPiA+IC0gICAg
-ICAgfQ0KPiANCj4gSGVsbG8gQWxleCwNCj4gDQo+IEhvdyBhYm91dCBpbnRyb2R1Y2luZyBhIHN5
-bWJvbGljIGNvbnN0YW50IGZvciB1bnJlY29nbml6ZWQgdGFzayBtYW5hZ2VtZW50DQo+IGZ1bmN0
-aW9ucywgZS5nLiBhcyBpbiB0aGUgYmVsb3cgdmFyaWFudCBvZiB5b3VyIHBhdGNoID8NCj4gDQo+
-IC0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYyB8IDcgKy0tLS0t
-LQ0KPiAgaW5jbHVkZS90YXJnZXQvdGFyZ2V0X2NvcmVfYmFzZS5oICAgICB8IDEgKw0KPiAgMiBm
-aWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiBiL2RyaXZl
-cnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gaW5kZXggMjFjZGI3ZS4uMzUyZGQ4
-NyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0K
-PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+IEBAIC0xNTk1
-LDcgKzE1OTUsNyBAQCBzdGF0aWMgaW50IHNycF90bXJfdG9fdGNtKGludCBmbikNCj4gIAljYXNl
-IFNSUF9UU0tfQ0xFQVJfQUNBOg0KPiAgCQlyZXR1cm4gVE1SX0NMRUFSX0FDQTsNCj4gIAlkZWZh
-dWx0Og0KPiAtCQlyZXR1cm4gLTE7DQo+ICsJCXJldHVybiBVTktOT1dOX1RNUjsNCj4gIAl9DQo+
-ICB9DQo+IA0KPiBAQCAtMTYyOSwxMSArMTYyOSw2IEBAIHN0YXRpYyB2b2lkIHNycHRfaGFuZGxl
-X3Rza19tZ210KHN0cnVjdCBzcnB0X3JkbWFfY2ggKmNoLA0KPiAgCXNycHRfc2V0X2NtZF9zdGF0
-ZShzZW5kX2lvY3R4LCBTUlBUX1NUQVRFX01HTVQpOw0KPiAgCXNlbmRfaW9jdHgtPmNtZC50YWcg
-PSBzcnBfdHNrLT50YWc7DQo+ICAJdGNtX3RtciA9IHNycF90bXJfdG9fdGNtKHNycF90c2stPnRz
-a19tZ210X2Z1bmMpOw0KPiAtCWlmICh0Y21fdG1yIDwgMCkgew0KPiAtCQlzZW5kX2lvY3R4LT5j
-bWQuc2VfdG1yX3JlcS0+cmVzcG9uc2UgPQ0KPiAtCQkJVE1SX1RBU0tfTUdNVF9GVU5DVElPTl9O
-T1RfU1VQUE9SVEVEOw0KPiAtCQlnb3RvIGZhaWw7DQo+IC0JfQ0KPiAgCXJjID0gdGFyZ2V0X3N1
-Ym1pdF90bXIoJnNlbmRfaW9jdHgtPmNtZCwgc2VzcywgTlVMTCwNCj4gIAkJCSAgICAgICBzY3Np
-bHVuX3RvX2ludCgmc3JwX3Rzay0+bHVuKSwgc3JwX3RzaywgdGNtX3RtciwNCj4gIAkJCSAgICAg
-ICBHRlBfS0VSTkVMLCBzcnBfdHNrLT50YXNrX3RhZywNCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUv
-dGFyZ2V0L3RhcmdldF9jb3JlX2Jhc2UuaCBiL2luY2x1ZGUvdGFyZ2V0L3RhcmdldF9jb3JlX2Jh
-c2UuaA0KPiBpbmRleCBlYzJkZGJmLi4yZmIwMDVhIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL3Rh
-cmdldC90YXJnZXRfY29yZV9iYXNlLmgNCj4gKysrIGIvaW5jbHVkZS90YXJnZXQvdGFyZ2V0X2Nv
-cmVfYmFzZS5oDQo+IEBAIC0xOTIsNiArMTkyLDcgQEAgZW51bSB0YXJnZXRfc2NfZmxhZ3NfdGFi
-bGUgew0KPiANCj4gIC8qIGZhYnJpYyBpbmRlcGVuZGVudCB0YXNrIG1hbmFnZW1lbnQgZnVuY3Rp
-b24gdmFsdWVzICovDQo+ICBlbnVtIHRjbV90bXJlcV90YWJsZSB7DQo+ICsJVU5LTk9XTl9UTVIJ
-CT0gLTEsDQo+ICAJVE1SX0FCT1JUX1RBU0sJCT0gMSwNCj4gIAlUTVJfQUJPUlRfVEFTS19TRVQJ
-PSAyLA0KPiAgCVRNUl9DTEVBUl9BQ0EJCT0gMywNCj4gLS0NCj4gMi43LjANCj4gDQoNCkdvb2Qg
-aWRlYS4NCg0KVGhhbmtzLA0KQWxleC4NCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Jan 26, 2016 at 10:58:44AM -0500, Chuck Lever wrote:
+> It is not going to be like the well-worn paradigm that
+> involves a page cache on the storage target backed by
+> slow I/O operations. The protocol layers on storage
+> targets need a way to discover memory addresses of
+> persistent memory that will be used as source/sink
+> buffers for RDMA operations.
+> 
+> And making data durable after a write is going to need
+> some thought. So I believe some new plumbing will be
+> necessary.
+
+Haven't we already solve this for the pNFS file driver that XFS
+implements? i.e. these export operations:
+
+        int (*get_uuid)(struct super_block *sb, u8 *buf, u32 *len, u64 *offset);
+        int (*map_blocks)(struct inode *inode, loff_t offset,
+                          u64 len, struct iomap *iomap,
+                          bool write, u32 *device_generation);
+        int (*commit_blocks)(struct inode *inode, struct iomap *iomaps,
+                             int nr_iomaps, struct iattr *iattr);
+
+so mapping/allocation of file offset to sector mappings, which can
+then trivially be used to grab the memory address through the bdev
+->direct_access method, yes?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
