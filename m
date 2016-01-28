@@ -1,73 +1,56 @@
-From: "Laison Computech Inc" <danny-nst7T5aFo3dBDgjK7y7TUQ@public.gmane.org>
-Subject: NEW ARRIVALS, CISCO,CPU's,Memory, LAPTOP AND AVAYA
-Date: Wed, 27 Jan 2016 12:42:07 +0700
-Message-ID: <201601270544.AQX06505__24141.9489415877$1453951409$gmane$org@razorgate1.infokom.net>
-Reply-To: <LaisonComputer-bdq14YP6qtT9W2o6/NvY6w@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-4.5-rc1 2/5] IB/mlx5: Fix reqlen validation in mlx5_ib_alloc_ucontext
+Date: Thu, 28 Jan 2016 13:04:12 +0200
+Message-ID: <1453979055-25285-3-git-send-email-matanb@mellanox.com>
+References: <1453979055-25285-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1453979055-25285-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir/Madam,
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Clean tested working pulls CPUs and QTYs in stock.
+Older libraries that don't have all the new req_v2 fields
+should be able to work as well. Today, if the library uses v2, it
+will fail to allocate context since the size of reqlen is smaller
+than the req_v2 size.
 
-115  X   X5650
-65  X   E5410
-75  X   X5660
-145  X   E5530
-100  X   E5645
-40  X   X5680
-75  X   X5690
+Fix the validation to be with the original req_v2 size and not
+the current.
 
-Brand new sealed  IP phones and QTYs in stock.
+Fixes: f72300c56c3b ('IB/mlx5: Expose CQE version to user-space')
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-55 x CP-7937G
-77 x CP-7942G
-54 x CP-7945G
-75 x CP-7962G
-......
-45 x Avaya 9630
-65 x Avaya 9641
-55 x Avaya 9640
-
-All NIB.
-
-Here is our current stock list.
-
- SSD drives and 750 gig 2.5" sata drives
-
-We also have
-250 x i5 dell
-133 x HP
-360 x Lenevo
-all grade A
-
-Here is the qty in stock for laptops
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 6f67412..03c418c 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -844,6 +844,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	int err;
+ 	int i;
+ 	size_t reqlen;
++	size_t min_req_v2 = offsetof(struct mlx5_ib_alloc_ucontext_req_v2,
++				     max_cqe_version);
  
-150 x E6500 Dell Latitude E6500 Core 2 Duo 2.80GHz T9600 4GB 160GB DVD+/-RW Win 7
- 60 x E6510 Dell Ltitude E6510. 15.6" Intel Core i5- M520 @ 2.40GHz. 4GB. 320GB DVD+/-RW Win 7
-30 X 8530P HP EliteBook 8530p 15.4" Laptop 2.53GHz Core 2 Duo T9400, 4GB RAM, 160GB HDD, Win
-100 x  8740W  HP EliteBook 8740w 17" 2.4Ghz Core i5 6GB 250GB Win 7 Pr
-45 x 8760W HP EliteBook 8760W 17.3" 2nd Gen Intel Core i7 2.70GHz 8GB 320GB Windows 7 Pro
-50 x DELL 6520Dell latitude e6520 15.6" i5-2520M 2.5Ghz, 8GB Ram, 500GB HD Win 7 @ $115
-120 x DELL 6420 Laptop Dell Latitude E6420 14" Intel Core i5 2.4Ghz 4GB RAM 250GB HDD DVD Win 7
-150 x T410 Lenovo ThinkPad Laptop T410s 14.1" 2.40GHz Core i5 4GB RAM 160GB Win 7
-180 x 8440P HP EliteBook 8440p 14" M520 Core i5 2.4GHz 4GB 250GB Win 7
+ 	if (!dev->ib_active)
+ 		return ERR_PTR(-EAGAIN);
+@@ -854,7 +856,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	reqlen = udata->inlen - sizeof(struct ib_uverbs_cmd_hdr);
+ 	if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req))
+ 		ver = 0;
+-	else if (reqlen >= sizeof(struct mlx5_ib_alloc_ucontext_req_v2))
++	else if (reqlen >= min_req_v2)
+ 		ver = 2;
+ 	else
+ 		return ERR_PTR(-EINVAL);
+-- 
+2.1.0
 
-
-Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
-
-Thank You
-Barbara Johnson
-Laison Computech Inc
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-047
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
