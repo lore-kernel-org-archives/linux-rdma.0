@@ -1,40 +1,63 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-4.5-rc1 1/5] IB/mlx5: Add CREATE_CQ and CREATE_QP
- to uverbs_ex_cmd_mask
-Date: Thu, 28 Jan 2016 17:30:19 +0200
-Message-ID: <56AA340B.3020106@mellanox.com>
-References: <1453979055-25285-1-git-send-email-matanb@mellanox.com>
- <1453979055-25285-2-git-send-email-matanb@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-4.5-rc2 V1 0/5] Mellanox drivers fixes
+Date: Thu, 28 Jan 2016 17:51:45 +0200
+Message-ID: <1453996310-3360-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1453979055-25285-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/28/2016 1:04 PM, Matan Barak wrote:
-> The mlx5_ib supports the extended create_cq and create_qp user verbs.
-> In the current mechanism, a vendor supporting an exteded uverb should
-> set the appropriate bit in the uverbs_ex_cmd_mask field. There was a
-> proposal [1] that lifts this requirement, however, this proposal
-> hasn't been accepted yet. Adding the actual support by setting the
-> required bits in order to support features like completion
-> timestamping and cross-channel.
->
-> [1]http://www.spinics.net/lists/linux-rdma/msg30019.html
->
-> Fixes: 972ecb821379 ('IB/mlx5: Add create_cq extended command')
-> Fixes: ddf9529be19c ('IB/core: Allow setting create flags in QP init
->                        attribute')
-> Signed-off-by: Matan Barak<matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-This change-log is going to stay in the kernel log forever... lets drop 
-the email archive reference
-out of the change-log and put it before the --- lines for ref while 
-reviewing.
+This series is a set of fixes, which mainly targets the mlx5 driver.
+
+Patch 0001 fixes missing bits in uverbs_ex_cmd. These bits were
+omitted as we assumed [1] would be merged to the RDMA tree.
+Since that's not the case, we have to add these two bits in order
+to support features like completion timestamping and cross-channel.
+
+Patch 0002 fixes a compatibility issue between an old libmlx5 and a
+new kernel. Patch 0003 fixes a possibly use of NULL pointer.
+Patch 0004 fixes a wrong size reading of a hardware ABI field.
+These bugs were introduced by the Raw Ethernet series.
+
+Patch 0005 fixes a bug, where an IPv6 header for GSI QP used the
+wrong length. This code is used by the mlx4 driver RoCE v2 code
+path.
+
+These patches are applied on Linux v4.5-rc1.
+
+Regards,
+Matan
+
+[1] http://www.spinics.net/lists/linux-rdma/msg30019.html
+
+Changes from V0:
+  1. Fixed for-4.5-rc1 to for-4.5-rc2.
+  2. Rephrased some commit messages.
+
+Majd Dibbiny (2):
+  IB/mlx5: Fix reqlen validation in mlx5_ib_alloc_ucontext
+  IB/mlx5: Fix use of null pointer PD
+
+Maor Gottlieb (1):
+  IB/mlx5: Use MLX5_GET to get end_padding_mode
+
+Matan Barak (1):
+  IB/mlx5: Add CREATE_CQ and CREATE_QP to uverbs_ex_cmd_mask
+
+Moni Shoua (1):
+  IB/core: Set correct payload length for RoCEv2 over IPv6
+
+ drivers/infiniband/core/ud_header.c |  7 ++++---
+ drivers/infiniband/hw/mlx5/main.c   |  8 ++++++--
+ drivers/infiniband/hw/mlx5/qp.c     | 20 ++++++++++----------
+ 3 files changed, 20 insertions(+), 15 deletions(-)
+
+-- 
+2.1.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
