@@ -1,64 +1,45 @@
-From: "ira.weiny" <ira.weiny@intel.com>
-Subject: Re: Missed patch for hfi1 from Gregs tree.
-Date: Thu, 28 Jan 2016 16:42:24 -0500
-Message-ID: <20160128214224.GB19371@phlsvsds.ph.intel.com>
-References: <20160128203021.GA19371@phlsvsds.ph.intel.com>
- <20160128204802.GA15184@kroah.com>
- <alpine.DEB.2.02.1601282151460.2020@localhost6.localdomain6>
+From: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: [PATCH RESEND] staging: rdma: hfi1: diag: constify hfi1_filter_array
+ structure
+Date: Thu, 28 Jan 2016 22:50:21 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1601282248250.2020@localhost6.localdomain6>
+References: <20160128203021.GA19371@phlsvsds.ph.intel.com> <20160128204802.GA15184@kroah.com> <alpine.DEB.2.02.1601282151460.2020@localhost6.localdomain6> <20160128214224.GB19371@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1601282151460.2020@localhost6.localdomain6>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, Doug Ledford <dledford@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160128214224.GB19371-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 28, 2016 at 09:52:09PM +0100, Julia Lawall wrote:
-> 
-> 
-> On Thu, 28 Jan 2016, gregkh@linuxfoundation.org wrote:
-> 
-> > On Thu, Jan 28, 2016 at 03:30:23PM -0500, ira.weiny wrote:
-> > > Doug,
-> > > 
-> > > The following patch was not accepted by Greg and does not appear in patchworks
-> > > 
-> > > https://marc.info/?l=linux-rdma&m=145090416416677&w=2
-> > 
-> > I have a whole stack of staging patches I have yet to get through.  Over
-> > 1000 at the moment, they will be gotten to eventually...
+The hfi1_filter_array structure is never modified, so declare it as const.
 
-Greg,
+Done with the help of Coccinelle.
 
-As we agreed to here:
+Signed-off-by: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
 
-http://www.spinics.net/lists/linux-rdma/msg31782.html
+---
+No change, resent to be picked up by Doug Ledford
 
-Doug has taken over the staging/rdma tree.  I offered to help direct
-submissions to the staging tree to Doug/linux-rdma so that you would not have
-to worry about them.  That is what I am doing here.
+ drivers/staging/rdma/hfi1/diag.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Therefore, we would like Julia to resubmit to Doug so that we have 1 maintainer
-for this driver and the rdmavt/qib work.
+diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
+index 0c88317..e41159f 100644
+--- a/drivers/staging/rdma/hfi1/diag.c
++++ b/drivers/staging/rdma/hfi1/diag.c
+@@ -257,7 +257,7 @@ static int hfi1_filter_ib_service_level(void *ibhdr, void *packet_data,
+ static int hfi1_filter_ib_pkey(void *ibhdr, void *packet_data, void *value);
+ static int hfi1_filter_direction(void *ibhdr, void *packet_data, void *value);
+ 
+-static struct hfi1_filter_array hfi1_filters[] = {
++static const struct hfi1_filter_array hfi1_filters[] = {
+ 	{ hfi1_filter_lid },
+ 	{ hfi1_filter_dlid },
+ 	{ hfi1_filter_mad_mgmt_class },
 
-
-> > 
-> > greg k-h
-> 
-> Should I resubmit?
-
-Yes please resubmit to Doug/linux-rdma.
-
-Thanks,
-Ira
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
