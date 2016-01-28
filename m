@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-4.5-rc2 V1 2/5] IB/mlx5: Fix reqlen validation in mlx5_ib_alloc_ucontext
-Date: Thu, 28 Jan 2016 17:51:47 +0200
-Message-ID: <1453996310-3360-3-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-4.5-rc2 V1 3/5] IB/mlx5: Fix use of null pointer PD
+Date: Thu, 28 Jan 2016 17:51:48 +0200
+Message-ID: <1453996310-3360-4-git-send-email-matanb@mellanox.com>
 References: <1453996310-3360-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1453996310-3360-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,42 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Older libraries that don't have all the new req_v2 fields
-should be able to work as well. Today, if the library uses v2, it
-will fail to allocate context since the size of reqlen is smaller
-than the req_v2 size.
+When a Raw Ethernet QP is created, a NULL pointer PD could be used.
+Fixing that by only using the PD after validating it's valid.
+smatch also reported this error:
+drivers/infiniband/hw/mlx5/qp.c:1629 mlx5_ib_create_qp()
+	 error: we previously assumed 'pd' could be null (see line 1616)
 
-Fix the validation to be with the original req_v2 size and not
-the current.
-
-Fixes: f72300c56c3b ('IB/mlx5: Expose CQE version to user-space')
+Fixes: 0fb2ed66a14c ('IB/mlx5: Add create and destroy functionality for Raw Packet QP')
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 6f67412..03c418c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -844,6 +844,8 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	int err;
- 	int i;
- 	size_t reqlen;
-+	size_t min_req_v2 = offsetof(struct mlx5_ib_alloc_ucontext_req_v2,
-+				     max_cqe_version);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 8fb9c27..40bbe96 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1615,15 +1615,6 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
  
- 	if (!dev->ib_active)
- 		return ERR_PTR(-EAGAIN);
-@@ -854,7 +856,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	reqlen = udata->inlen - sizeof(struct ib_uverbs_cmd_hdr);
- 	if (reqlen == sizeof(struct mlx5_ib_alloc_ucontext_req))
- 		ver = 0;
--	else if (reqlen >= sizeof(struct mlx5_ib_alloc_ucontext_req_v2))
-+	else if (reqlen >= min_req_v2)
- 		ver = 2;
- 	else
- 		return ERR_PTR(-EINVAL);
+ 	if (pd) {
+ 		dev = to_mdev(pd->device);
+-	} else {
+-		/* being cautious here */
+-		if (init_attr->qp_type != IB_QPT_XRC_TGT &&
+-		    init_attr->qp_type != MLX5_IB_QPT_REG_UMR) {
+-			pr_warn("%s: no PD for transport %s\n", __func__,
+-				ib_qp_type_str(init_attr->qp_type));
+-			return ERR_PTR(-EINVAL);
+-		}
+-		dev = to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
+ 
+ 		if (init_attr->qp_type == IB_QPT_RAW_PACKET) {
+ 			if (!pd->uobject) {
+@@ -1634,6 +1625,15 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
+ 				return ERR_PTR(-EINVAL);
+ 			}
+ 		}
++	} else {
++		/* being cautious here */
++		if (init_attr->qp_type != IB_QPT_XRC_TGT &&
++		    init_attr->qp_type != MLX5_IB_QPT_REG_UMR) {
++			pr_warn("%s: no PD for transport %s\n", __func__,
++				ib_qp_type_str(init_attr->qp_type));
++			return ERR_PTR(-EINVAL);
++		}
++		dev = to_mdev(to_mxrcd(init_attr->xrcd)->ibxrcd.device);
+ 	}
+ 
+ 	switch (init_attr->qp_type) {
 -- 
 2.1.0
 
