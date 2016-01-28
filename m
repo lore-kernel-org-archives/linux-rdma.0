@@ -1,37 +1,35 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Missed patch for hfi1 from Gregs tree.
-Date: Thu, 28 Jan 2016 15:30:23 -0500
-Message-ID: <20160128203021.GA19371@phlsvsds.ph.intel.com>
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: Missed patch for hfi1 from Gregs tree.
+Date: Thu, 28 Jan 2016 12:48:02 -0800
+Message-ID: <20160128204802.GA15184@kroah.com>
+References: <20160128203021.GA19371@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Julia.Lawall-L2FTfq7BK8M@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
+In-Reply-To: <20160128203021.GA19371@phlsvsds.ph.intel.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: "ira.weiny" <ira.weiny@intel.com>
+Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Julia.Lawall@lip6.fr, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug,
+On Thu, Jan 28, 2016 at 03:30:23PM -0500, ira.weiny wrote:
+> Doug,
+> 
+> The following patch was not accepted by Greg and does not appear in patchworks
+> 
+> https://marc.info/?l=linux-rdma&m=145090416416677&w=2
 
-The following patch was not accepted by Greg and does not appear in patchworks
+I have a whole stack of staging patches I have yet to get through.  Over
+1000 at the moment, they will be gotten to eventually...
 
-https://marc.info/?l=linux-rdma&m=145090416416677&w=2
-
-We have this patch and can resubmit it for patchworks but I don't want to
-get in the way of the original author.
-
-Julia,
-
-Would you mind if we resubmit it to get it in the queue for Doug?  Otherwise
-could you resubmit?
-
-Note: the staging/rdma tree is now being maintained by Doug Ledford
-(linux-rdma).
-
-Thanks,
-Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
