@@ -1,8 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 10/22] IB/srpt: Do not complain about initiator names
- without leading "0x"
-Date: Fri, 29 Jan 2016 15:14:55 -0800
-Message-ID: <56ABF26F.4010509@sandisk.com>
+Subject: [PATCH v2 11/22] IB/srpt: Fix srpt_close_session()
+Date: Fri, 29 Jan 2016 15:15:14 -0800
+Message-ID: <56ABF282.1030809@sandisk.com>
 References: <56ABF16E.7070006@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,63 +13,84 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Only log an error message if neither the lookup with leading "0x"
-nor the lookup without leading "0x" succeeds.
+Avoid that srpt_close_session() waits if it doesn't have to wait.
+Additionally, increase the time during which srpt_close_session()
+waits until closing a session has finished. This makes it easier
+to detect session shutdown bugs.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Fixes: f246c941549c ("ib_srpt: Convert acl lookup to modern get_initiator_node_acl usage")
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index b46e8d7..d892736 100644
+index d892736..eb6f812 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2042,7 +2042,6 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 	struct se_node_acl *se_acl;
- 	u32 it_iu_len;
- 	int i, ret = 0;
--	unsigned char *p;
+@@ -1986,8 +1986,8 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 	struct se_session *se_sess;
  
- 	WARN_ON_ONCE(irqs_disabled());
+ 	ch = container_of(w, struct srpt_rdma_ch, release_work);
+-	pr_debug("ch = %p; ch->sess = %p; release_done = %p\n", ch, ch->sess,
+-		 ch->release_done);
++	pr_debug("%s: %s-%d; release_done = %p\n", __func__, ch->sess_name,
++		 ch->qp->qp_num, ch->release_done);
  
-@@ -2200,7 +2199,6 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 			be64_to_cpu(*(__be64 *)(ch->i_port_id + 8)));
+ 	sdev = ch->sport->sdev;
+ 	BUG_ON(!sdev);
+@@ -2011,11 +2011,10 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 			     ch->rsp_size, DMA_TO_DEVICE);
  
- 	pr_debug("registering session %s\n", ch->sess_name);
--	p = &ch->sess_name[0];
+ 	spin_lock_irq(&sdev->spinlock);
+-	list_del(&ch->list);
+-	spin_unlock_irq(&sdev->spinlock);
+-
++	list_del_init(&ch->list);
+ 	if (ch->release_done)
+ 		complete(ch->release_done);
++	spin_unlock_irq(&sdev->spinlock);
  
- 	ch->sess = transport_init_session(TARGET_PROT_NORMAL);
- 	if (IS_ERR(ch->sess)) {
-@@ -2210,18 +2208,15 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
- 		goto destroy_ib;
- 	}
+ 	wake_up(&sdev->ch_releaseQ);
  
--try_again:
--	se_acl = core_tpg_get_initiator_node_acl(&sport->port_tpg_1, p);
-+	se_acl = core_tpg_get_initiator_node_acl(&sport->port_tpg_1,
-+						 &ch->sess_name[0]);
-+	/* If no match, retry without leading '0x'. */
-+	if (!se_acl)
-+		se_acl = core_tpg_get_initiator_node_acl(&sport->port_tpg_1,
-+							 &ch->sess_name[2]);
- 	if (!se_acl) {
- 		pr_info("Rejected login because no ACL has been"
- 			" configured yet for initiator %s.\n", ch->sess_name);
--		/*
--		 * XXX: Hack to retry of ch->i_port_id without leading '0x'
--		 */
--		if (p == &ch->sess_name[0]) {
--			p += 2;
--			goto try_again;
--		}
- 		rej->reason = cpu_to_be32(
- 				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
- 		transport_free_session(ch->sess);
+@@ -3020,24 +3019,26 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
+ static void srpt_close_session(struct se_session *se_sess)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(release_done);
+-	struct srpt_rdma_ch *ch;
+-	struct srpt_device *sdev;
+-	unsigned long res;
+-
+-	ch = se_sess->fabric_sess_ptr;
+-	WARN_ON(ch->sess != se_sess);
++	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
++	struct srpt_device *sdev = ch->sport->sdev;
++	bool wait;
+ 
+-	pr_debug("ch %p state %d\n", ch, ch->state);
++	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
++		 ch->state);
+ 
+-	sdev = ch->sport->sdev;
+ 	spin_lock_irq(&sdev->spinlock);
+ 	BUG_ON(ch->release_done);
+ 	ch->release_done = &release_done;
++	wait = !list_empty(&ch->list);
+ 	__srpt_close_ch(ch);
+ 	spin_unlock_irq(&sdev->spinlock);
+ 
+-	res = wait_for_completion_timeout(&release_done, 60 * HZ);
+-	WARN_ON(res == 0);
++	if (!wait)
++		return;
++
++	while (wait_for_completion_timeout(&release_done, 180 * HZ) == 0)
++		pr_info("%s(%s-%d state %d): still waiting ...\n", __func__,
++			ch->sess_name, ch->qp->qp_num, ch->state);
+ }
+ 
+ /**
 -- 
 2.7.0
 
