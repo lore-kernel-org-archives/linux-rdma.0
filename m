@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 05/22] IB/srpt: Introduce target_reverse_dma_direction()
-Date: Fri, 29 Jan 2016 15:12:49 -0800
-Message-ID: <56ABF1F1.6060102@sandisk.com>
+Subject: [PATCH v2 03/22] IB/srpt: Inline srpt_sdev_name()
+Date: Fri, 29 Jan 2016 15:12:04 -0800
+Message-ID: <56ABF1C4.3090106@sandisk.com>
 References: <56ABF16E.7070006@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,58 +13,55 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the function target_reverse_dma_direction() instead of
-reimplementing it.
+srpt_sdev_name() is too trivial to keep it as a separate function.
+Hence inline this function.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 018be38..1fb8bb6 100644
+index fde32ed..0194624 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -96,19 +96,6 @@ static int srpt_queue_status(struct se_cmd *cmd);
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
- static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc);
- 
--/**
-- * opposite_dma_dir() - Swap DMA_TO_DEVICE and DMA_FROM_DEVICE.
-- */
--static inline
--enum dma_data_direction opposite_dma_dir(enum dma_data_direction dir)
--{
--	switch (dir) {
--	case DMA_TO_DEVICE:	return DMA_FROM_DEVICE;
--	case DMA_FROM_DEVICE:	return DMA_TO_DEVICE;
--	default:		return dir;
--	}
--}
--
- static enum rdma_ch_state
- srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
- {
-@@ -1049,7 +1036,7 @@ static void srpt_unmap_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 		dir = ioctx->cmd.data_direction;
- 		BUG_ON(dir == DMA_NONE);
- 		ib_dma_unmap_sg(ch->sport->sdev->device, sg, ioctx->sg_cnt,
--				opposite_dma_dir(dir));
-+				target_reverse_dma_direction(&ioctx->cmd));
- 		ioctx->mapped_sg_count = 0;
+@@ -109,16 +109,6 @@ enum dma_data_direction opposite_dma_dir(enum dma_data_direction dir)
  	}
  }
-@@ -1086,7 +1073,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
- 	ioctx->sg_cnt = sg_cnt = cmd->t_data_nents;
  
- 	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
--			      opposite_dma_dir(dir));
-+			      target_reverse_dma_direction(cmd));
- 	if (unlikely(!count))
- 		return -EAGAIN;
+-/**
+- * srpt_sdev_name() - Return the name associated with the HCA.
+- *
+- * Examples are ib0, ib1, ...
+- */
+-static inline const char *srpt_sdev_name(struct srpt_device *sdev)
+-{
+-	return sdev->device->name;
+-}
+-
+ static enum rdma_ch_state srpt_get_ch_state(struct srpt_rdma_ch *ch)
+ {
+ 	unsigned long flags;
+@@ -182,7 +172,7 @@ static void srpt_event_handler(struct ib_event_handler *handler,
+ 		return;
  
+ 	pr_debug("ASYNC event= %d on device= %s\n", event->event,
+-		 srpt_sdev_name(sdev));
++		 sdev->device->name);
+ 
+ 	switch (event->event) {
+ 	case IB_EVENT_PORT_ERR:
+@@ -3082,7 +3072,7 @@ static void srpt_add_one(struct ib_device *device)
+ 
+ 		if (srpt_refresh_port(sport)) {
+ 			pr_err("MAD registration failed for %s-%d.\n",
+-			       srpt_sdev_name(sdev), i);
++			       sdev->device->name, i);
+ 			goto err_ring;
+ 		}
+ 		snprintf(sport->port_guid, sizeof(sport->port_guid),
 -- 
 2.7.0
 
