@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 09/22] IB/srpt: Simplify srpt_shutdown_session()
-Date: Fri, 29 Jan 2016 15:14:22 -0800
-Message-ID: <56ABF24E.6070908@sandisk.com>
+Subject: [PATCH v2 12/22] IB/srpt: Fix srpt_handle_cmd() error paths
+Date: Fri, 29 Jan 2016 15:15:34 -0800
+Message-ID: <56ABF296.7040009@sandisk.com>
 References: <56ABF16E.7070006@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,67 +13,80 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The target core guarantees that shutdown_session() is only invoked
-once per session. This means that the ib_srpt target driver doesn't
-have to track whether or not shutdown_session() has been called.
-Additionally, ensure that target_sess_cmd_list_set_waiting() is
-called before target_wait_for_sess_cmds() by moving it into
-srpt_release_channel_work().
+The target core function that should be called if target_submit_cmd()
+fails is target_put_sess_cmd(). Additionally, change the return type
+of srpt_handle_cmd() from int into void.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 16 ++--------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 72f58a7..b46e8d7 100644
+index eb6f812..8ab431f 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1892,20 +1892,7 @@ static void srpt_close_ch(struct srpt_rdma_ch *ch)
+@@ -91,6 +91,7 @@ MODULE_PARM_DESC(srpt_service_guid,
+ 		 " instead of using the node_guid of the first HCA.");
+ 
+ static struct ib_client srpt_client;
++static void srpt_release_cmd(struct se_cmd *se_cmd);
+ static void srpt_release_channel(struct srpt_rdma_ch *ch);
+ static int srpt_queue_status(struct se_cmd *cmd);
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
+@@ -1492,15 +1493,14 @@ static int srpt_check_stop_free(struct se_cmd *cmd)
+ /**
+  * srpt_handle_cmd() - Process SRP_CMD.
   */
- static int srpt_shutdown_session(struct se_session *se_sess)
+-static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+-			   struct srpt_recv_ioctx *recv_ioctx,
+-			   struct srpt_send_ioctx *send_ioctx)
++static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
++			    struct srpt_recv_ioctx *recv_ioctx,
++			    struct srpt_send_ioctx *send_ioctx)
  {
--	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
--	unsigned long flags;
--
--	spin_lock_irqsave(&ch->spinlock, flags);
--	if (ch->in_shutdown) {
--		spin_unlock_irqrestore(&ch->spinlock, flags);
--		return true;
--	}
--
--	ch->in_shutdown = true;
--	target_sess_cmd_list_set_waiting(se_sess);
--	spin_unlock_irqrestore(&ch->spinlock, flags);
--
--	return true;
-+	return 1;
+ 	struct se_cmd *cmd;
+ 	struct srp_cmd *srp_cmd;
+ 	u64 data_len;
+ 	enum dma_data_direction dir;
+-	sense_reason_t ret;
+ 	int rc;
+ 
+ 	BUG_ON(!send_ioctx);
+@@ -1528,8 +1528,7 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
+ 		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
+ 		       srp_cmd->tag);
+-		ret = TCM_INVALID_CDB_FIELD;
+-		goto send_sense;
++		goto release_ioctx;
+ 	}
+ 
+ 	rc = target_submit_cmd(cmd, ch->sess, srp_cmd->cdb,
+@@ -1537,14 +1536,15 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 			       scsilun_to_int(&srp_cmd->lun), data_len,
+ 			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
+ 	if (rc != 0) {
+-		ret = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+-		goto send_sense;
++		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
++			 srp_cmd->tag);
++		goto release_ioctx;
+ 	}
+-	return 0;
++	return;
+ 
+-send_sense:
+-	transport_send_check_condition_and_sense(cmd, ret, 0);
+-	return -1;
++release_ioctx:
++	send_ioctx->state = SRPT_STATE_DONE;
++	srpt_release_cmd(cmd);
  }
  
- /**
-@@ -2008,6 +1995,7 @@ static void srpt_release_channel_work(struct work_struct *w)
- 	se_sess = ch->sess;
- 	BUG_ON(!se_sess);
- 
-+	target_sess_cmd_list_set_waiting(se_sess);
- 	target_wait_for_sess_cmds(se_sess);
- 
- 	transport_deregister_session_configfs(se_sess);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index b0ede97..9c326c7 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -286,7 +286,6 @@ struct srpt_rdma_ch {
- 	u8			sess_name[36];
- 	struct work_struct	release_work;
- 	struct completion	*release_done;
--	bool			in_shutdown;
- };
- 
- /**
+ static int srp_tmr_to_tcm(int fn)
 -- 
 2.7.0
 
