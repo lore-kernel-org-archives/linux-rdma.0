@@ -1,116 +1,160 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCHv3 1/3] rdmacg: Added rdma cgroup controller.
-Date: Sun, 31 Jan 2016 06:04:20 -0500
-Message-ID: <20160131110420.GV32380@htj.duckdns.org>
-References: <1454167387-31260-1-git-send-email-pandit.parav@gmail.com>
- <1454167387-31260-2-git-send-email-pandit.parav@gmail.com>
- <20160130183015.GP32380@htj.duckdns.org>
- <CAG53R5XrnYY1AVBnu1b6BVfWwiUgyq+EsXay=CianRXnsUDviQ@mail.gmail.com>
- <20160131100237.GS32380@htj.duckdns.org>
- <CAG53R5WOLA_=gD9qVnsVk_oPs0iyacL3M+1qD+RAbrnciVXEOA@mail.gmail.com>
+From: Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
+Subject: Re: [LSF/MM TOPIC/ATTEND] RDMA passive target
+Date: Sun, 31 Jan 2016 16:20:10 +0200
+Message-ID: <56AE181A.8030908@plexistor.com>
+References: <06414D5A-0632-4C74-B76C-038093E8AED3@oracle.com> <56A8F646.5020003@plexistor.com> <56A8FE10.7000309@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5WOLA_=gD9qVnsVk_oPs0iyacL3M+1qD+RAbrnciVXEOA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56A8FE10.7000309-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, lsf-pc-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yigal Korman <yigal-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Ric Wheeler <rwheeler-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Parav.
-
-On Sun, Jan 31, 2016 at 04:11:54PM +0530, Parav Pandit wrote:
-> No. We agreed that let IB stack define in the header file that rdmacg
-> can include.
-> However when I started with that I realized that, such design has
-> basic flaw that IB stack is compiled as loadable modules.
-> cgroup which is compiled along with kernel, cannot rely on the header
-> file of the loadable module, as it will lead to incompatibly and
-> possible crash.
-
-Yes, it can.  It just becomes a part of kernel ABI that the IB stack
-module depends on.
-
-> > Keep the resource types in an array in minimal way and match with the
-> > information from core side.  It doesn't make any sense to use match
-> > tokens in defining resources when the resource type is always fixed.
-> >
-> Match token is being used in other places also typically where user
-> configuration is involved.
-> so Match token infrastructure APIs help to avoid rewriting parser.
-> What exactly is the issue in using match token?
-> Resource type is fixed - sure it is with given version of loadable
-> module. But if new feature/resource is added in IB stack, at that
-> point new token will be added in the array.
-
-Sure, use parser for parsing but you end up stripping =%d in other
-places anyway.  Do it the other way.  Let the definitions contain
-what's essential and do the extra stuff in code handling it, not the
-other way around.
-
-> Now coming to remove command's need.
-> If user has previously configured limit of say mr=15. Now if wants to
-> remove that configuration and don't want to bother for the limit.
-> So the way, its done is by issuing "remove" command.
-> Should I name is "reset".
-
-How is this different from setting the limits to max?
-
-> When user issues "remove" command it could still happen that there are
-> active rdma resources. So we cannot really free the rpool object.
-> That is freed when last resource is uncharged.
-> Make sense?
-
-Not really.
-
-> > You're re-stating the same thing without explaining the reasoning
-> > behind it.  Why is this different from other controllers?  What's the
-> > justification?
+On 01/27/2016 07:27 PM, Sagi Grimberg wrote:
+> Hey Boaz,
 > 
-> As in above example of 15-85, if we keep it or create is we will end
-> up allocating rpool objects for all the 100 cgroups, which might not
-> be necessary. If it happens to be multi level hierarchy, it will end
-> up having in each level.
-> So therefore its allocated and freed dynamically.
+>> RDMA passive target
+>> ~~~~~~~~~~~~~~~~~~~
+>>
+>> The idea is to have a storage brick that exports a very
+>> low level pure RDMA API to access its memory based storage.
+>> The brick might be battery backed volatile based memory, or
+>> pmem based. In any case the brick might utilize a much higher
+>> capacity then memory by utilizing a "tiering" to slower media,
+>> which is enabled by the API.
+>>
+>> The API is simple:
+>>
+>> 1. Alloc_2M_block_at_virtual_address (ADDR_64_BIT)
+>>     ADDR_64_BIT is any virtual address and defines the logical ID of the block.
+>>     If the ID is already allocated an error is returned.
+>>     If storage is exhausted return => ENOSPC
+>> 2. Free_2M_block_at_virtual_address (ADDR_64_BIT)
+>>     Space for logical ID is returned to free store and the ID becomes free for
+>>     a new allocation.
+>> 3. map_virtual_address(ADDR_64_BIT, flags) => RDMA handle
+>>     previously allocated virtual address is locked in memory and an RDMA handle
+>>     is returned.
+>>     Flags: read-only, read-write, shared and so on...
+>> 4. unmap__virtual_address(ADDR_64_BIT)
+>>     At this point the brick can write data to slower storage if memory space
+>>     is needed. The RDMA handle from [3] is revoked.
+>> 5. List_mapped_IDs
+>>     An extent based list of all allocated ranges. (This is usually used on
+>>     mount or after a crash)
+> 
+> My understanding is that you're describing a wire protocol correct?
+> 
 
-Just keeping them around till device destruction would work just fine.
-If you wanna insist on freeing them dynamically, free them when both
-their usages and configs are nil.  How the object is created shouldn't
-be a factor.
+Almost. Not yet a wire protocol, Just an high level functionality description.
+first. But yes a wire protocol in the sense that I want an open source library
+that will be good for Kernel and Usermode. Any none Linux platform should be
+able to port the code base and use it.
+That said at some early point we should lock the wire protocol for inter version
+compatibility or at least have a fixture negotiation when things get evolved.
 
-> If its created by user configuration, and if we free the rpool object
-> when last resource is freed which is holding the configuration,
-> user configuration is lost.
-> Also it doesn't make much sense to have two different allocation for
-> limit and usage configuration. Pointer storing overhead is more than
-> the actual content.
+>> The dumb brick is not the Network allocator / storage manager at all. and it
+>> is not a smart target / server. like an iser-target or pnfs-DS. A SW defined
+>> application can do that, on top of the Dumb-brick. The motivation is a low level
+>> very low latency API+library, which can be built upon for higher protocols or
+>> used directly for very low latency cluster.
+>> It does however mange a virtual allocation map of logical to physical mapping
+>> of the 2M blocks.
+> 
+> The challenge in my mind would be to have persistence semantics in
+> place.
+> 
 
-See above.  If you want to free dynamically, free when the thing
-doesn't contain any information.  Better, just don't worry about it.
-It's unlikely to matter.
+Ok Thanks for bringing this up.
 
-> > No, the locking scheme doesn't make any sense.  Except for some
-> > special cases, sequence like the following indicates that the code is
-> > buggy or at least silly.
-> >
-> Help me to understand, silly means - unacceptable?
+So there is two separate issues here. Which are actually not related to the
+above API. It is more an Initiator issue. Since once the server did the above
+map_virtual_address() and return a key to client machine it is out of the way.
 
-Yes, it's a clear anti-pattern for a refcnted object.  Again, just
-push the locking to the users and drop the atomics.
+On the initiator what we do is: All RDMA async sends. Once the user did an fsync
+we do a sync-read(0, 1); so to guaranty both initiator and Server's nicks flush all
+write buffers, to Server's PCIE controller.
 
-> Why you don't want them to be freed when there are no requester
-> allocating the resource?
-> Device usually stays for longer time, but applications go way and come
-> back more often, so freeing them makes more sense when not in use.
-> What exactly is the problem in freeing when uncharing occurs, due to
-> which I should defer it to device unregistration stage?
+But here lays the problem: In modern servers the PCIE/memory_controller chooses
+to write fast PCIE data (or actually any PCI data) directly to L3 cache on the
+principal that receiving application will access that memory very soon.
+This is what is called DDIO.
+Now here there is big uncertainty. and we are still investigating. The only working
+ADR machine we have with an old NvDIMM-type-12 legacy BIOS. (All the newer type-6
+none NFIT BIOS systems never worked and had various problems with persistence)
+So that only working system, though advertised as DDIO machine does not exhibit
+the above problem.
+	On a test of RDMA-SEND x X; RDMA-READ(0,1); POWER-OFF;
+We always are fine and never get a compare error between the machines.
+[I guess it depends on the specific system and the depth of the ADR flushing
+ on power-off, there are 15 milliseconds of power to work with]
 
-Two things.  Freeing dynamically doesn't require creator type or
-refcnting here, so the code makes no sense to me.  It's complicated
-without any purpose.  Second, it's not that big a struct.  Just leave
-them around till it's clear that this is problematic.  For the Nth
-time in this whole thing, keep things simple.  Stop overengineering.
+But the Intel documentation says different. And it says that in a DDIO system
+persistence is not Guaranteed.
 
--- 
-tejun
+There are two ways to solve this:
+1. Put a remote procedure on the passive machine that will do a CLFLUSH of
+   all written regions. We hate that in our system and will not want to do
+   so, this is CPU intensive and will kill our latencies.
+   So NO!
+2. Disable the DDIO for the NIC we use for storage.
+   [In our setup we can do this because there is a 10G management NIC for
+    regular trafic, and a 40/100G Melanox card dedicated to storage, so for
+    the storage NIC DDIO may be disabled. (Though again it makes not difference
+    for us because in our lab with or without it works the same)
+   ]
+3. There is a future option that we asked Intel to do, which we should talk about
+   here. Set a per packet HEADER flag which says DDIO-off/on, and a way for the
+   PCIE card to enforce it. Intel guys where positive for this initiative and said
+   They will support it in the next chipsets.
+   But I do not have any specifics on this option.
+
+For us. Only option two is viable right now.
+
+In any way to answer your question at the Initiator we assume that after a sync-read
+of a single byte from an RDMA channel, all previous writes are persistent.
+[With the DDIO flag set to off when 3. is available]
+
+But this is only the very little Information I was able to gather and the
+little experimentation we did here in the lab. A real working NvDIMM ADR
+system is very scarce so far and all Vendors came out short for us with
+real off-the-shelf systems.
+	I was hoping you might have more information for me.
+
+>>
+>> Currently both drivers initiator and target are in Kernel, but with
+>> latest advancement by Dan Williams it can be implemented in user-mode as well,
+>> Almost.
+>>
+>> The almost is because:
+>> 1. If the target is over a /dev/pmemX then all is fine we have 2M contiguous
+>>     memory blocks.
+>> 2. If the target is over an FS, we have a proposal pending for an falloc_2M_flag
+>>     to ask the FS for a contiguous 2M allocations only. If any of the 2M allocations
+>>     fail then return ENOSPC from falloc. This way we guaranty that each 2M block can be
+>>     mapped by a single RDAM handle.
+> 
+> Umm, you don't need the 2M to be contiguous in order to represent them
+> as a single RDMA handle. If that was true iSER would have never worked.
+> Or I misunderstood what you meant...
+> 
+
+OK I will let our RDMA guy Yigal Korman answer that, I guess you might be right.
+
+But regardless of this little detail we would like to keep everything 2M. Yes
+virtually on the wire protocol. But even on the Server Internal configuration
+we would like to see a single TLB 2M mapping of all Target's pmem. Also on the
+PCIE it is nice a scatter-list with 2M single entry, instead of the 4k.
+And I think it is nice for DAX systems to fallocate and guaranty 2M contiguous
+allocations of heavy accessed / mmap files.
+
+Thank you for your interest.
+Boaz
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
