@@ -1,55 +1,51 @@
-From: Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Use boottime
-Date: Sun, 31 Jan 2016 00:55:52 -0500
-Message-ID: <1454219752-23246-1-git-send-email-klock.android@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv5 0/3] rdmacg: IB/core: rdma controller support
+Date: Sun, 31 Jan 2016 04:46:05 -0500
+Message-ID: <20160131094605.GR32380@htj.duckdns.org>
+References: <1454214912-10965-1-git-send-email-pandit.parav@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1454214912-10965-1-git-send-email-pandit.parav@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Wall time obtained from ktime_get_real_ns is susceptible to sudden jumps due to
-user setting the time or due to NTP.  Boot time is constantly increasing time
-better suited for comparing two timestamps.
----
- drivers/infiniband/hw/mlx4/alias_GUID.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Sun, Jan 31, 2016 at 10:05:09AM +0530, Parav Pandit wrote:
+> Changes from v4:
+>  * Fixed compilation errors for lockdep_assert_held reported by kbuild
+>    test robot
+>  * Fixed compilation warning reported by coccinelle for extra semicolon.
+>  * Fixed compilation error for inclusion of linux/parser.h which cannot 
+>    be included in any header file, as that triggers multiple inclusion
+>    error. Instead parser.h is included in C files which intent to use it.
+>  * Removed unused header file inclusion in cgroup_rdma.c
+> 
+> Changes from v3:
+>  * (To address comments from Tejun)
+>    1. Renamed cg_resource to rdmacg_resource
+>    2. Merged dealloc_cg_rpool and _dealloc_cg_rpool to single function
+>    3. Renamed _find_cg_rpool to find_cg_rpool_locked()
+>    5. Removed RDMACG_MAX_RESOURCE_INDEX limitation
+>    6. Fixed few alignments.
+>    7. Improved description for RDMA cgroup configuration menu
+>    8. Renamed cg_list_lock to rpool_list_lock to reflect the lock
+>       is for rpools.
+>    9. Renamed _get_cg_rpool to find_cg_rpool.
+>    10. Made creator as int variable, instead of atomic as its not 
+>       required to be atomic.
+>  * Fixed freeing right rpool during query_limit error path
+>  * Added copywrite for cgroup.c
+>  * Removed including parser.h from cgroup.c as its included by cgroup_rdma.h
+>  * Reduced try_charge functions to single function and removed duplicate
+>    comments.
 
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index 21cb41a..c74ef26 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -310,7 +310,7 @@ static void aliasguid_query_handler(int status,
- 	if (status) {
- 		pr_debug("(port: %d) failed: status = %d\n",
- 			 cb_ctx->port, status);
--		rec->time_to_run = ktime_get_real_ns() + 1 * NSEC_PER_SEC;
-+		rec->time_to_run = ktime_get_boot_ns() + 1 * NSEC_PER_SEC;
- 		goto out;
- 	}
- 
-@@ -416,7 +416,7 @@ next_entry:
- 			 be64_to_cpu((__force __be64)rec->guid_indexes),
- 			 be64_to_cpu((__force __be64)applied_guid_indexes),
- 			 be64_to_cpu((__force __be64)declined_guid_indexes));
--		rec->time_to_run = ktime_get_real_ns() +
-+		rec->time_to_run = ktime_get_boot_ns() +
- 			resched_delay_sec * NSEC_PER_SEC;
- 	} else {
- 		rec->status = MLX4_GUID_INFO_STATUS_SET;
-@@ -708,7 +708,7 @@ static int get_low_record_time_index(struct mlx4_ib_dev *dev, u8 port,
- 		}
- 	}
- 	if (resched_delay_sec) {
--		u64 curr_time = ktime_get_real_ns();
-+		u64 curr_time = ktime_get_boot_ns();
- 
- 		*resched_delay_sec = (low_record_time < curr_time) ? 0 :
- 			div_u64((low_record_time - curr_time), NSEC_PER_SEC);
+Please don't send out patchsets in rapid succession while design
+discussion is still in progress.  It's tiring for everyone involved.
+
+Thanks.
+
 -- 
-1.7.9.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+tejun
