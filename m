@@ -1,58 +1,29 @@
-From: Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Use boottime
-Date: Sun, 31 Jan 2016 13:53:31 -0500
-Message-ID: <1454266411-25591-1-git-send-email-klock.android@gmail.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Use boottime
+Date: Mon, 1 Feb 2016 11:48:42 +0200
+Message-ID: <20160201094842.GC30795@leon.nu>
 References: <20160131095534.GA30795@leon.nu>
+ <1454266411-25591-1-git-send-email-klock.android@gmail.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160131095534.GA30795-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1454266411-25591-1-git-send-email-klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Wall time obtained from ktime_get_real_ns is susceptible to sudden jumps due to
-user setting the time or due to NTP.  Boot time is constantly increasing time
-better suited for comparing two timestamps.
+On Sun, Jan 31, 2016 at 01:53:31PM -0500, Abhilash Jindal wrote:
+> Wall time obtained from ktime_get_real_ns is susceptible to sudden jumps due to
+> user setting the time or due to NTP.  Boot time is constantly increasing time
+> better suited for comparing two timestamps.
+> 
+> Signed-off-by: Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Abhilash Jindal <klock.android-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/alias_GUID.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index 21cb41a..c74ef26 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -310,7 +310,7 @@ static void aliasguid_query_handler(int status,
- 	if (status) {
- 		pr_debug("(port: %d) failed: status = %d\n",
- 			 cb_ctx->port, status);
--		rec->time_to_run = ktime_get_real_ns() + 1 * NSEC_PER_SEC;
-+		rec->time_to_run = ktime_get_boot_ns() + 1 * NSEC_PER_SEC;
- 		goto out;
- 	}
- 
-@@ -416,7 +416,7 @@ next_entry:
- 			 be64_to_cpu((__force __be64)rec->guid_indexes),
- 			 be64_to_cpu((__force __be64)applied_guid_indexes),
- 			 be64_to_cpu((__force __be64)declined_guid_indexes));
--		rec->time_to_run = ktime_get_real_ns() +
-+		rec->time_to_run = ktime_get_boot_ns() +
- 			resched_delay_sec * NSEC_PER_SEC;
- 	} else {
- 		rec->status = MLX4_GUID_INFO_STATUS_SET;
-@@ -708,7 +708,7 @@ static int get_low_record_time_index(struct mlx4_ib_dev *dev, u8 port,
- 		}
- 	}
- 	if (resched_delay_sec) {
--		u64 curr_time = ktime_get_real_ns();
-+		u64 curr_time = ktime_get_boot_ns();
- 
- 		*resched_delay_sec = (low_record_time < curr_time) ? 0 :
- 			div_u64((low_record_time - curr_time), NSEC_PER_SEC);
--- 
-1.7.9.5
-
+Thanks you.
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
