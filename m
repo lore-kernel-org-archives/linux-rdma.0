@@ -1,78 +1,50 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 v2 1/7] Add infrastructure for resource identification
-Date: Tue,  2 Feb 2016 21:29:45 +0200
-Message-ID: <1454441391-30494-2-git-send-email-majd@mellanox.com>
-References: <1454441391-30494-1-git-send-email-majd@mellanox.com>
+Subject: [PATCH libmlx5 v2 0/7] Raw Packet QP for mlx5 v2
+Date: Tue,  2 Feb 2016 21:29:44 +0200
+Message-ID: <1454441391-30494-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454441391-30494-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Yishai,
 
-Add new struct member, mlx5_resource, for each tracked object,
-mlx5_srq and mlx5_qp, to allow retrieving the object in the
-poll_cq once we need it.
+This patch set adds support for Raw Packet QP for libmlx5.
 
-Reviewed-by:: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/mlx5.h | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+Raw Packet QP enables the user to send and receive raw packets. The user is
+responsible of building the packet including the headers.
 
-diff --git a/src/mlx5.h b/src/mlx5.h
-index 9181ec5..a930bac 100644
---- a/src/mlx5.h
-+++ b/src/mlx5.h
-@@ -228,6 +228,18 @@ enum mlx5_alloc_type {
- 	MLX5_ALLOC_TYPE_ALL
- };
- 
-+enum mlx5_rsc_type {
-+	MLX5_RSC_TYPE_QP,
-+	MLX5_RSC_TYPE_XSRQ,
-+	MLX5_RSC_TYPE_SRQ,
-+	MLX5_RSC_TYPE_INVAL,
-+};
-+
-+struct mlx5_resource {
-+	enum mlx5_rsc_type	type;
-+	uint32_t		rsn;
-+};
-+
- struct mlx5_device {
- 	struct verbs_device	verbs_dev;
- 	int			page_size;
-@@ -341,6 +353,7 @@ struct mlx5_cq {
- };
- 
- struct mlx5_srq {
-+	struct mlx5_resource            rsc;  /* This struct must be first */
- 	struct verbs_srq		vsrq;
- 	struct mlx5_buf			buf;
- 	struct mlx5_spinlock		lock;
-@@ -392,6 +405,7 @@ struct mlx5_mr {
- };
- 
- struct mlx5_qp {
-+	struct mlx5_resource            rsc; /* This struct must be first */
- 	struct verbs_qp			verbs_qp;
- 	struct ibv_qp		       *ibv_qp;
- 	struct mlx5_buf                 buf;
-@@ -491,7 +505,9 @@ static inline struct mlx5_cq *to_mcq(struct ibv_cq *ibcq)
- 
- static inline struct mlx5_srq *to_msrq(struct ibv_srq *ibsrq)
- {
--	return (struct mlx5_srq *)ibsrq;
-+	struct verbs_srq *vsrq = (struct verbs_srq *)ibsrq;
-+
-+	return container_of(vsrq, struct mlx5_srq, vsrq);
- }
- 
- static inline struct mlx5_qp *to_mqp(struct ibv_qp *ibqp)
+Raw Packet QP works with non-default CQE version, and in order to tie
+CQE to Raw Packet QP, we need to provide a user-index in the creation of QPs
+when working with non-default CQE version.
+
+The first 5 patches add support for CQE version 1 for QPs and XSRQs. The later
+patches add support for Raw Packet QP (control and data path).
+
+Changes from v1:
+1. Fix compilation errors when compiling in debug mode
+
+Haggai Abramovsky (5):
+  Add infrastructure for resource identification
+  Add resource tracking database
+  Add new poll_cq according to the new CQE format
+  Add QP and XSRQ create/destroy flow with user index
+  Work with CQE version 1
+
+Majd Dibbiny (2):
+  Allocate separate RQ and SQ buffers for Raw Packet QP
+  Add Raw Packet QP data-path functionality
+
+ src/cq.c       | 271 +++++++++++++++++++++++++++++++++++++++++++++++----------
+ src/mlx5-abi.h |  20 ++++-
+ src/mlx5.c     |  90 +++++++++++++++++++
+ src/mlx5.h     |  63 +++++++++++++-
+ src/qp.c       | 114 ++++++++++++++++++++----
+ src/verbs.c    | 210 +++++++++++++++++++++++++++++++++++---------
+ src/wqe.h      |  20 +++++
+ 7 files changed, 686 insertions(+), 102 deletions(-)
+
 -- 
 1.8.3.1
 
