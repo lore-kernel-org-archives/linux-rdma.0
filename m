@@ -1,83 +1,43 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 22/22] IB/srpt: Fix wait list processing
-Date: Tue, 2 Feb 2016 15:37:42 +0000
-Message-ID: <F3529576D8E232409F431C309E29399328F6BB48@CRSMSX102.amr.corp.intel.com>
-References: <56ABF16E.7070006@sandisk.com> <56ABF365.1020708@sandisk.com>
+From: Mrsnicole marois <nicolebenoitemarois01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Respond to me immediately via my private email address(mrsmarois.nicole-zJpx2rpV7r/QT0dZR+AlfA@public.gmane.org)
+Date: Tue, 2 Feb 2016 17:32:59 +0100
+Message-ID: <CAJ+JwhTotiXFD4hDH9Kg61MrkH6dJydJ9QEQkS4ondmtKxzhzg@mail.gmail.com>
+Reply-To: mrsmarois.nicole-zJpx2rpV7r/QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56ABF365.1020708-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-TmljZS4NClJldmlld2VkLWJ5OiBBbGV4IEVzdHJpbiA8YWxleC5lc3RyaW5AaW50ZWwuY29tPg0K
-DQo+IFNpbmNlIHRoZSB3YWl0IGxpc3QgaXMgbm90IHByb3RlY3RlZCBhZ2FpbnN0IGNvbmN1cnJl
-bnQgYWNjZXNzDQo+IGl0IG11c3QgYmUgcHJvY2Vzc2VkIGZyb20gdGhlIGNvbnRleHQgb2YgdGhl
-IGNvbXBsZXRpb24gaGFuZGxlci4NCj4gUmVwbGFjZSB0aGUgd2FpdCBsaXN0IHByb2Nlc3Npbmcg
-Y29kZSBpbiB0aGUgSUIgQ00gUlRVIGNhbGxiYWNrDQo+IGhhbmRsZXIgYnkgY29kZSB0aGF0IHRy
-aWdnZXJzIGEgY29tcGxldGlvbiBoYW5kbGVyLiBUaGlzIHBhdGNoDQo+IGZpeGVzIHRoZSBmb2xs
-b3dpbmcgcmFyZSBjcmFzaDoNCj4gDQo+IFdBUk5JTkc6IENQVTogMiBQSUQ6IDc4NjU2IGF0IGxp
-Yi9saXN0X2RlYnVnLmM6NTMgX19saXN0X2RlbF9lbnRyeSsweDY3LzB4ZDAoKQ0KPiBsaXN0X2Rl
-bCBjb3JydXB0aW9uLCBmZmZmODgwNDFhZTQwNGI4LT5uZXh0IGlzIExJU1RfUE9JU09OMSAoZGVh
-ZDAwMDAwMDAwMDEwMCkNCj4gQ2FsbCBUcmFjZToNCj4gIFs8ZmZmZmZmZmY4MTI1MWM2Yj5dIGR1
-bXBfc3RhY2srMHg0Zi8weDc0DQo+ICBbPGZmZmZmZmZmODEwNTc0YWI+XSB3YXJuX3Nsb3dwYXRo
-X2NvbW1vbisweDhiLzB4ZDANCj4gIFs8ZmZmZmZmZmY4MTA1NzU5MT5dIHdhcm5fc2xvd3BhdGhf
-Zm10KzB4NDEvMHg3MA0KPiAgWzxmZmZmZmZmZjgxMjZmMDA3Pl0gX19saXN0X2RlbF9lbnRyeSsw
-eDY3LzB4ZDANCj4gIFs8ZmZmZmZmZmY4MTI2ZjA4MT5dIGxpc3RfZGVsKzB4MTEvMHg0MA0KPiAg
-WzxmZmZmZmZmZmEwMjY1MjQyPl0gc3JwdF9jbV9oYW5kbGVyKzB4MTcyLzB4MWE0IFtpYl9zcnB0
-XQ0KPiAgWzxmZmZmZmZmZmEwMzcwMzcwPl0gY21fcHJvY2Vzc193b3JrKzB4MjAvMHhmMCBbaWJf
-Y21dDQo+ICBbPGZmZmZmZmZmYTAzNzBkYWU+XSBjbV9lc3RhYmxpc2hfaGFuZGxlcisweGJlLzB4
-MTEwIFtpYl9jbV0NCj4gIFs8ZmZmZmZmZmZhMDM3MzNlNz5dIGNtX3dvcmtfaGFuZGxlcisweDY3
-LzB4ZDAgW2liX2NtXQ0KPiAgWzxmZmZmZmZmZjgxMDcxODRkPl0gcHJvY2Vzc19vbmVfd29yaysw
-eDFiZC8weDQ2MA0KPiAgWzxmZmZmZmZmZjgxMDczMTQ4Pl0gd29ya2VyX3RocmVhZCsweDExOC8w
-eDQyMA0KPiAgWzxmZmZmZmZmZjgxMDc4NDQ0Pl0ga3RocmVhZCsweGU0LzB4MTAwDQo+ICBbPGZm
-ZmZmZmZmODE1MWNhZmY+XSByZXRfZnJvbV9mb3JrKzB4M2YvMHg3MA0KPiANCj4gU2lnbmVkLW9m
-Zi1ieTogQmFydCBWYW4gQXNzY2hlIDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNrLmNvbT4NCj4gQ2M6
-IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRlPg0KPiBDYzogU2FnaSBHcmltYmVyZyA8c2Fn
-aWdAbWVsbGFub3guY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9p
-Yl9zcnB0LmMgfCAyNCArKysrKysrKysrKysrKystLS0tLS0tLS0NCj4gIDEgZmlsZSBjaGFuZ2Vk
-LCAxNSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gYi9kcml2ZXJzL2luZmluaWJh
-bmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+IGluZGV4IDUxODVlY2EuLjA4YTMwYzYgMTAwNjQ0DQo+
-IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gKysrIGIvZHJp
-dmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiBAQCAtOTYsNyArOTYsNyBAQCBz
-dGF0aWMgdm9pZCBzcnB0X2ZyZWVfY2goc3RydWN0IGtyZWYgKmtyZWYpOw0KPiAgc3RhdGljIGlu
-dCBzcnB0X3F1ZXVlX3N0YXR1cyhzdHJ1Y3Qgc2VfY21kICpjbWQpOw0KPiAgc3RhdGljIHZvaWQg
-c3JwdF9yZWN2X2RvbmUoc3RydWN0IGliX2NxICpjcSwgc3RydWN0IGliX3djICp3Yyk7DQo+ICBz
-dGF0aWMgdm9pZCBzcnB0X3NlbmRfZG9uZShzdHJ1Y3QgaWJfY3EgKmNxLCBzdHJ1Y3QgaWJfd2Mg
-KndjKTsNCj4gLXN0YXRpYyB2b2lkIHNycHRfemVyb2xlbmd0aF93cml0ZV9kb25lKHN0cnVjdCBp
-Yl9jcSAqY3EsIHN0cnVjdCBpYl93YyAqd2MpOw0KPiArc3RhdGljIHZvaWQgc3JwdF9wcm9jZXNz
-X3dhaXRfbGlzdChzdHJ1Y3Qgc3JwdF9yZG1hX2NoICpjaCk7DQo+IA0KPiAgLyoNCj4gICAqIFRo
-ZSBvbmx5IGFsbG93ZWQgY2hhbm5lbCBzdGF0ZSBjaGFuZ2VzIGFyZSB0aG9zZSB0aGF0IGNoYW5n
-ZSB0aGUgY2hhbm5lbA0KPiBAQCAtODMzLDEyICs4MzMsMTQgQEAgc3RhdGljIHZvaWQgc3JwdF96
-ZXJvbGVuZ3RoX3dyaXRlX2RvbmUoc3RydWN0IGliX2NxICpjcSwNCj4gc3RydWN0IGliX3djICp3
-YykNCj4gIHsNCj4gIAlzdHJ1Y3Qgc3JwdF9yZG1hX2NoICpjaCA9IGNxLT5jcV9jb250ZXh0Ow0K
-PiANCj4gLQlXQVJOKHdjLT5zdGF0dXMgPT0gSUJfV0NfU1VDQ0VTUywgIiVzLSVkOiBRUCBub3Qg
-aW4gZXJyb3Igc3RhdGVcbiIsDQo+IC0JICAgICBjaC0+c2Vzc19uYW1lLCBjaC0+cXAtPnFwX251
-bSk7DQo+IC0JaWYgKHNycHRfc2V0X2NoX3N0YXRlKGNoLCBDSF9ESVNDT05ORUNURUQpKQ0KPiAt
-CQlzY2hlZHVsZV93b3JrKCZjaC0+cmVsZWFzZV93b3JrKTsNCj4gLQllbHNlDQo+IC0JCVdBUk5f
-T05DRSgiJXMtJWRcbiIsIGNoLT5zZXNzX25hbWUsIGNoLT5xcC0+cXBfbnVtKTsNCj4gKwlpZiAo
-d2MtPnN0YXR1cyA9PSBJQl9XQ19TVUNDRVNTKSB7DQo+ICsJCXNycHRfcHJvY2Vzc193YWl0X2xp
-c3QoY2gpOw0KPiArCX0gZWxzZSB7DQo+ICsJCWlmIChzcnB0X3NldF9jaF9zdGF0ZShjaCwgQ0hf
-RElTQ09OTkVDVEVEKSkNCj4gKwkJCXNjaGVkdWxlX3dvcmsoJmNoLT5yZWxlYXNlX3dvcmspOw0K
-PiArCQllbHNlDQo+ICsJCQlXQVJOX09OQ0UoIiVzLSVkXG4iLCBjaC0+c2Vzc19uYW1lLCBjaC0+
-cXAtPnFwX251bSk7DQo+ICsJfQ0KPiAgfQ0KPiANCj4gIC8qKg0KPiBAQCAtMjMxOCw5ICsyMzIw
-LDEzIEBAIHN0YXRpYyB2b2lkIHNycHRfY21fcnR1X3JlY3Yoc3RydWN0IHNycHRfcmRtYV9jaCAq
-Y2gpDQo+ICAJaWYgKHNycHRfc2V0X2NoX3N0YXRlKGNoLCBDSF9MSVZFKSkgew0KPiAgCQlyZXQg
-PSBzcnB0X2NoX3FwX3J0cyhjaCwgY2gtPnFwKTsNCj4gDQo+IC0JCXNycHRfcHJvY2Vzc193YWl0
-X2xpc3QoY2gpOw0KPiAtCQlpZiAocmV0KQ0KPiArCQlpZiAocmV0ID09IDApIHsNCj4gKwkJCS8q
-IFRyaWdnZXIgd2FpdCBsaXN0IHByb2Nlc3NpbmcuICovDQo+ICsJCQlyZXQgPSBzcnB0X3plcm9s
-ZW5ndGhfd3JpdGUoY2gpOw0KPiArCQkJV0FSTl9PTkNFKHJldCA8IDAsICIlZFxuIiwgcmV0KTsN
-Cj4gKwkJfSBlbHNlIHsNCj4gIAkJCXNycHRfY2xvc2VfY2goY2gpOw0KPiArCQl9DQo+ICAJfQ0K
-PiAgfQ0KPiANCj4gLS0NCj4gMi43LjANCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20g
-dGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0
-aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
-Lmh0bWwNCg==
+Dear Beloved!
+
+I am Mrs Nicole Marois and i have been suffering from ovarian
+cancer disease and the doctor says that i have just a short time to live.
+I am from (Paris) France but based in Burkina Faso in Africa for over
+Twelve years as a business woman dealing on gold exportation.
+
+Now that my life is coming to end and i do not have any family
+members or children. I am writing this letter now through the help of
+my computer beside my sick bed.
+
+I have $4.5 Million US Dollars deposited in Eco-Bank here in Burkina Faso
+and i will instruct the bank to transfer the fund to you as my foreign Trustee.
+You will apply to the bank, that they should release the fund to you,
+but you will assure me that After receiving the fund you will take 50%
+and the other 50% you are to help the Poor, needy, orphans, victims of war and
+less privileged ones in the society in your country for my soul to
+rest after i have gone.
+In my next email, i will send you the copy of the Certicate of Deposit
+which will enable you apply to the bank and receive the money with ease.
+
+Respond to me immediately via my private email
+address((mrsmarois.nicole-zJpx2rpV7r/QT0dZR+AlfA@public.gmane.org)for further details and
+instructions since
+I am in the end times of my life due to the ovarian cancer disease.
+Hoping to receive your response as soon as possible.
+
+My Regards,
+Mrs Nicole Marois
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
