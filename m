@@ -1,30 +1,25 @@
-From: "Khalid Mahmoud Ahmed" <ipm-r3adZx5qfbc8RZtLRHdnRF6hYfS7NtTn@public.gmane.org>
-Subject: Request For Your Partnership
-Date: Tue, 02 Feb 2016 02:02:58 +0100
-Message-ID: <MXw4bnN3sYyCw0UXDca0007f392__1662.02228651873$1454376147$gmane$org@mx.africa-online.net>
-Reply-To: khalidmahmed49-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v2 02/22] IB/srpt: Remove struct srpt_node_acl
+Date: Tue, 2 Feb 2016 11:57:41 +0100
+Message-ID: <20160202105741.GA28315@lst.de>
+References: <56ABF16E.7070006@sandisk.com> <56ABF1AF.3070301@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+Content-Disposition: inline
+In-Reply-To: <56ABF1AF.3070301-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <ipm-r3adZx5qfbc8RZtLRHdnRF6hYfS7NtTn@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello My Friend,
+> +	.node_acl_size			= sizeof(struct se_node_acl),
 
-I send you greetings. I have found your contact email address listed on an Internet Business Directory and it is my wish to do business with you, hence your receipt of this letter. We are brokering an Investment deal in your country on behalf of a client in Libya. This deal will involve the investment of a high profile client of ours in your country. In selected investment areas in your country, thus the reason for us contacting you.
+This is the default, no need to even set this member.
 
-We are by this letter offering you our partnership, so as to allow us have you as representative and manager of invested funds in your country within the time frame of the investment/partnership scheme. We have kept this proposal brief, if you are Interested in this offer of partnership, please respond and we would send you an elaborate proposal and details of this offer. Please respond to this email: khalidmahmed43-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Otherwise looks fine:
 
-Yours sincerely,
-Khalid Mahmoud Ahmed
-LIBYA CONSULATE,
-Department of International Negotiations.
-Deputy Director, International Affairs.
-
-
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
