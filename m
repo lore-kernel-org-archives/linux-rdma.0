@@ -1,21 +1,51 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v2 22/22] IB/srpt: Fix wait list processing
-Date: Tue, 2 Feb 2016 12:15:05 +0100
-Message-ID: <20160202111505.GL28315@lst.de>
-References: <56ABF16E.7070006@sandisk.com> <56ABF365.1020708@sandisk.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 02/22] IB/srpt: Remove struct srpt_node_acl
+Date: Tue, 2 Feb 2016 15:33:28 +0000
+Message-ID: <F3529576D8E232409F431C309E29399328F6BAB8@CRSMSX102.amr.corp.intel.com>
+References: <56ABF16E.7070006@sandisk.com> <56ABF1AF.3070301@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56ABF365.1020708-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <56ABF1AF.3070301-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Heh, that's an interesting trick.  But this looks reasonable to me:
-
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+TG9va3MgZ29vZC4NCg0KUmV2aWV3ZWQtYnk6IEFsZXggRXN0cmluIDxhbGV4LmVzdHJpbkBpbnRl
+bC5jb20+DQoNCj4gU2luY2Ugc3RydWN0IHNycHRfbm9kZV9hY2wgaXMgaWRlbnRpY2FsIHRvIHN0
+cnVjdCBzZV9ub2RlX2FjbCwNCj4gcmVtb3ZlIHRoZSBkZWZpbml0aW9uIG9mIHRoZSBmb3JtZXIg
+c3RydWN0dXJlLiBUaGlzIHBhdGNoIGRvZXMNCj4gbm90IGNoYW5nZSBhbnkgZnVuY3Rpb25hbGl0
+eS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEJhcnQgVmFuIEFzc2NoZSA8YmFydC52YW5hc3NjaGVA
+c2FuZGlzay5jb20+DQo+IENjOiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4NCj4gQ2M6
+IFNhZ2kgR3JpbWJlcmcgPHNhZ2lnQG1lbGxhbm94LmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2lu
+ZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jIHwgMiArLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5k
+L3VscC9zcnB0L2liX3NycHQuaCB8IDggLS0tLS0tLS0NCj4gIDIgZmlsZXMgY2hhbmdlZCwgMSBp
+bnNlcnRpb24oKyksIDkgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9p
+bmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAv
+c3JwdC9pYl9zcnB0LmMNCj4gaW5kZXggZjY1YWU2MC4uZmRlMzJlZCAxMDA2NDQNCj4gLS0tIGEv
+ZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuYw0KPiArKysgYi9kcml2ZXJzL2lu
+ZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+IEBAIC0zNTY1LDcgKzM1NjUsNyBAQCBzdGF0
+aWMgc3RydWN0IGNvbmZpZ2ZzX2F0dHJpYnV0ZSAqc3JwdF93d25fYXR0cnNbXSA9IHsNCj4gIHN0
+YXRpYyBjb25zdCBzdHJ1Y3QgdGFyZ2V0X2NvcmVfZmFicmljX29wcyBzcnB0X3RlbXBsYXRlID0g
+ew0KPiAgCS5tb2R1bGUJCQkJPSBUSElTX01PRFVMRSwNCj4gIAkubmFtZQkJCQk9ICJzcnB0IiwN
+Cj4gLQkubm9kZV9hY2xfc2l6ZQkJCT0gc2l6ZW9mKHN0cnVjdCBzcnB0X25vZGVfYWNsKSwNCj4g
+Kwkubm9kZV9hY2xfc2l6ZQkJCT0gc2l6ZW9mKHN0cnVjdCBzZV9ub2RlX2FjbCksDQo+ICAJLmdl
+dF9mYWJyaWNfbmFtZQkJPSBzcnB0X2dldF9mYWJyaWNfbmFtZSwNCj4gIAkudHBnX2dldF93d24J
+CQk9IHNycHRfZ2V0X2ZhYnJpY193d24sDQo+ICAJLnRwZ19nZXRfdGFnCQkJPSBzcnB0X2dldF90
+YWcsDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5o
+DQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0L2liX3NycHQuaA0KPiBpbmRleCAwOTAz
+N2YyLi5iMGVkZTk3IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQv
+aWJfc3JwdC5oDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmgN
+Cj4gQEAgLTM2MywxMiArMzYzLDQgQEAgc3RydWN0IHNycHRfZGV2aWNlIHsNCj4gIAlzdHJ1Y3Qg
+bGlzdF9oZWFkCWxpc3Q7DQo+ICB9Ow0KPiANCj4gLS8qKg0KPiAtICogc3RydWN0IHNycHRfbm9k
+ZV9hY2wgLSBQZXItaW5pdGlhdG9yIEFDTCBkYXRhIChtYW5hZ2VkIHZpYSBjb25maWdmcykuDQo+
+IC0gKiBAbmFjbDogICAgICBUYXJnZXQgY29yZSBub2RlIEFDTCBpbmZvcm1hdGlvbi4NCj4gLSAq
+Lw0KPiAtc3RydWN0IHNycHRfbm9kZV9hY2wgew0KPiAtCXN0cnVjdCBzZV9ub2RlX2FjbAluYWNs
+Ow0KPiAtfTsNCj4gLQ0KPiAgI2VuZGlmCQkJCS8qIElCX1NSUFRfSCAqLw0KPiAtLQ0KPiAyLjcu
+MA0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
