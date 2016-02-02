@@ -1,7 +1,7 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 v2 5/7] Work with CQE version 1
-Date: Tue,  2 Feb 2016 21:29:49 +0200
-Message-ID: <1454441391-30494-6-git-send-email-majd@mellanox.com>
+Subject: [PATCH libmlx5 v2 3/7] Add new poll_cq according to the new CQE format
+Date: Tue,  2 Feb 2016 21:29:47 +0200
+Message-ID: <1454441391-30494-4-git-send-email-majd@mellanox.com>
 References: <1454441391-30494-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1454441391-30494-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,89 +12,399 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->From now on, if the kernel supports CQE version 1, the library will
-choose to work with it.
+When working with CQE version 1, the CQE format is different,
+therefore we need a new poll_cq function that is compatible with
+the new CQE format.
+
+In the coming patches in this series, the library will decide
+on the cqe version when allocating the user-context and accordingly
+decide which poll_cq to use for this user-context.
 
 Reviewed-by:: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx5-abi.h | 13 +++++++++++--
- src/mlx5.c     |  4 ++++
- src/mlx5.h     |  5 +++++
- 3 files changed, 20 insertions(+), 2 deletions(-)
+ src/cq.c   | 226 +++++++++++++++++++++++++++++++++++++++++++++++++------------
+ src/mlx5.h |  11 +++
+ 2 files changed, 194 insertions(+), 43 deletions(-)
 
-diff --git a/src/mlx5-abi.h b/src/mlx5-abi.h
-index 4b21a17..6427cca 100644
---- a/src/mlx5-abi.h
-+++ b/src/mlx5-abi.h
-@@ -55,7 +55,11 @@ struct mlx5_alloc_ucontext {
- 	__u32				total_num_uuars;
- 	__u32				num_low_latency_uuars;
- 	__u32				flags;
--	__u32				reserved;
-+	__u32				comp_mask;
-+	__u8				cqe_version;
-+	__u8				reserved0;
-+	__u16				reserved1;
-+	__u32				reserved2;
- };
+diff --git a/src/cq.c b/src/cq.c
+index 231b278..eadc2c7 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -116,7 +116,7 @@ struct mlx5_cqe64 {
+ 	uint16_t	slid;
+ 	uint32_t	flags_rqpn;
+ 	uint8_t		rsvd28[4];
+-	uint32_t	srqn;
++	uint32_t	srqn_uidx;
+ 	uint32_t	imm_inval_pkey;
+ 	uint8_t		rsvd40[4];
+ 	uint32_t	byte_cnt;
+@@ -362,26 +362,153 @@ static void mlx5_get_cycles(uint64_t *cycles)
+ }
+ #endif
  
- struct mlx5_alloc_ucontext_resp {
-@@ -70,7 +74,12 @@ struct mlx5_alloc_ucontext_resp {
- 	__u32				max_recv_wr;
- 	__u32				max_srq_recv_wr;
- 	__u16				num_ports;
--	__u16				reserved;
-+	__u16				reserved1;
-+	__u32				comp_mask;
-+	__u32				response_length;
-+	__u8				cqe_version;
-+	__u8				reserved2;
-+	__u16				reserved3;
- };
- 
- struct mlx5_alloc_pd_resp {
-diff --git a/src/mlx5.c b/src/mlx5.c
-index b942815..0469a78 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -590,8 +590,11 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	}
- 
- 	memset(&req, 0, sizeof(req));
-+	memset(&resp, 0, sizeof(resp));
+-static int mlx5_poll_one(struct mlx5_cq *cq,
+-			 struct mlx5_qp **cur_qp,
++static inline struct mlx5_qp *get_req_context(struct mlx5_context *mctx,
++					      struct mlx5_resource **cur_rsc,
++					      uint32_t rsn, int cqe_ver)
++					      __attribute__((always_inline));
++static inline struct mlx5_qp *get_req_context(struct mlx5_context *mctx,
++					      struct mlx5_resource **cur_rsc,
++					      uint32_t rsn, int cqe_ver)
++{
++	if (!*cur_rsc || (rsn != (*cur_rsc)->rsn))
++		*cur_rsc = cqe_ver ? mlx5_find_uidx(mctx, rsn) :
++				      (struct mlx5_resource *)mlx5_find_qp(mctx, rsn);
 +
- 	req.total_num_uuars = tot_uuars;
- 	req.num_low_latency_uuars = low_lat_uuars;
-+	req.cqe_version = MLX5_CQE_VERSION_V1;
- 	if (ibv_cmd_get_context(&context->ibv_ctx, &req.ibv_req, sizeof req,
- 				&resp.ibv_resp, sizeof resp))
- 		goto err_free_bf;
-@@ -608,6 +611,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	context->max_recv_wr	= resp.max_recv_wr;
- 	context->max_srq_recv_wr = resp.max_srq_recv_wr;
++	return rsc_to_mqp(*cur_rsc);
++}
++
++static inline int get_resp_ctx_v1(struct mlx5_context *mctx,
++				  struct mlx5_resource **cur_rsc,
++				  struct mlx5_srq **cur_srq,
++				  uint32_t uidx, uint8_t *is_srq)
++				  __attribute__((always_inline));
++static inline int get_resp_ctx_v1(struct mlx5_context *mctx,
++				  struct mlx5_resource **cur_rsc,
++				  struct mlx5_srq **cur_srq,
++				  uint32_t uidx, uint8_t *is_srq)
++{
++	struct mlx5_qp *mqp;
++
++	if (!*cur_rsc || (uidx != (*cur_rsc)->rsn)) {
++		*cur_rsc = mlx5_find_uidx(mctx, uidx);
++		if (unlikely(!*cur_rsc))
++			return CQ_POLL_ERR;
++	}
++
++	switch ((*cur_rsc)->type) {
++	case MLX5_RSC_TYPE_QP:
++		mqp = rsc_to_mqp(*cur_rsc);
++		if (mqp->verbs_qp.qp.srq) {
++			*cur_srq = to_msrq(mqp->verbs_qp.qp.srq);
++			*is_srq = 1;
++		}
++		break;
++	case MLX5_RSC_TYPE_XSRQ:
++		*cur_srq = rsc_to_msrq(*cur_rsc);
++		*is_srq = 1;
++		break;
++	default:
++		return CQ_POLL_ERR;
++	}
++
++	return CQ_OK;
++}
++
++static inline int get_qp_ctx(struct mlx5_context *mctx,
++			     struct mlx5_resource **cur_rsc,
++			     uint32_t qpn)
++			       __attribute__((always_inline));
++static inline int get_qp_ctx(struct mlx5_context *mctx,
++			     struct mlx5_resource **cur_rsc,
++			     uint32_t qpn)
++{
++	if (!*cur_rsc || (qpn != (*cur_rsc)->rsn)) {
++		/*
++		 * We do not have to take the QP table lock here,
++		 * because CQs will be locked while QPs are removed
++		 * from the table.
++		 */
++		*cur_rsc = (struct mlx5_resource *)mlx5_find_qp(mctx, qpn);
++		if (unlikely(!*cur_rsc))
++			return CQ_POLL_ERR;
++	}
++
++	return CQ_OK;
++}
++
++static inline int get_srq_ctx(struct mlx5_context *mctx,
++			      struct mlx5_srq **cur_srq,
++			      uint32_t srqn_uidx)
++			      __attribute__((always_inline));
++static inline int get_srq_ctx(struct mlx5_context *mctx,
++			      struct mlx5_srq **cur_srq,
++			      uint32_t srqn)
++{
++	if (!*cur_srq || (srqn != (*cur_srq)->srqn)) {
++		*cur_srq = mlx5_find_srq(mctx, srqn);
++		if (unlikely(!*cur_srq))
++			return CQ_POLL_ERR;
++	}
++
++	return CQ_OK;
++}
++
++static inline int get_cur_rsc(struct mlx5_context *mctx,
++			      int cqe_ver,
++			      uint32_t qpn,
++			      uint32_t srqn_uidx,
++			      struct mlx5_resource **cur_rsc,
++			      struct mlx5_srq **cur_srq,
++			      uint8_t *is_srq)
++{
++	int err;
++
++	if (cqe_ver) {
++		err = get_resp_ctx_v1(mctx, cur_rsc, cur_srq, srqn_uidx,
++				      is_srq);
++	} else {
++		if (srqn_uidx) {
++			*is_srq = 1;
++			err = get_srq_ctx(mctx, cur_srq, srqn_uidx);
++		} else {
++			err = get_qp_ctx(mctx, cur_rsc, qpn);
++		}
++	}
++
++	return err;
++
++}
++
++static inline int mlx5_poll_one(struct mlx5_cq *cq,
++			 struct mlx5_resource **cur_rsc,
++			 struct mlx5_srq **cur_srq,
++			 struct ibv_wc *wc, int cqe_ver)
++			 __attribute__((always_inline));
++static inline int mlx5_poll_one(struct mlx5_cq *cq,
++			 struct mlx5_resource **cur_rsc,
+ 			 struct mlx5_srq **cur_srq,
+-			 struct ibv_wc *wc)
++			 struct ibv_wc *wc, int cqe_ver)
+ {
+ 	struct mlx5_cqe64 *cqe64;
+ 	struct mlx5_wq *wq;
+ 	uint16_t wqe_ctr;
+ 	void *cqe;
+ 	uint32_t qpn;
+-	uint32_t srqn;
++	uint32_t srqn_uidx;
+ 	int idx;
+ 	uint8_t opcode;
+ 	struct mlx5_err_cqe *ecqe;
+ 	int err;
++	struct mlx5_qp *mqp;
++	struct mlx5_context *mctx;
++	uint8_t is_srq = 0;
  
-+	context->cqe_version = resp.cqe_version;
- 	if (context->cqe_version) {
- 		if (context->cqe_version == 1)
- 			mlx5_ctx_ops.poll_cq = mlx5_poll_cq_v1;
+ 	cqe = next_cqe_sw(cq);
+ 	if (!cqe)
+ 		return CQ_EMPTY;
+ 
++	mctx = to_mctx(cq->ibv_cq.context);
++
+ 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
+ 
+ 	++cq->cons_index;
+@@ -396,51 +523,33 @@ static int mlx5_poll_one(struct mlx5_cq *cq,
+ 
+ #ifdef MLX5_DEBUG
+ 	if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
+-		FILE *fp = to_mctx(cq->ibv_cq.context)->dbg_fp;
++		FILE *fp = mctx->dbg_fp;
+ 
+ 		mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
+ 		dump_cqe(fp, cqe64);
+ 	}
+ #endif
+ 
+-	srqn = ntohl(cqe64->srqn) & 0xffffff;
+ 	qpn = ntohl(cqe64->sop_drop_qpn) & 0xffffff;
+-	if (srqn) {
+-		if (!*cur_srq || (srqn != (*cur_srq)->srqn)) {
+-			*cur_srq = mlx5_find_srq(to_mctx(cq->ibv_cq.context),
+-						 srqn);
+-			if (unlikely(!*cur_srq))
+-				return CQ_POLL_ERR;
+-		}
+-	} else {
+-		if (!*cur_qp || (qpn != (*cur_qp)->ibv_qp->qp_num)) {
+-			/*
+-			 * We do not have to take the QP table lock here,
+-			 * because CQs will be locked while QPs are removed
+-			 * from the table.
+-			 */
+-			*cur_qp = mlx5_find_qp(to_mctx(cq->ibv_cq.context),
+-					       qpn);
+-			if (unlikely(!*cur_qp))
+-				return CQ_POLL_ERR;
+-		}
+-	}
+-
+ 	wc->wc_flags = 0;
+ 	wc->qp_num = qpn;
+-
+ 	opcode = cqe64->op_own >> 4;
+ 	switch (opcode) {
+ 	case MLX5_CQE_REQ:
+-		wq = &(*cur_qp)->sq;
++		mqp = get_req_context(mctx, cur_rsc,
++				      (cqe_ver ? (ntohl(cqe64->srqn_uidx) & 0xffffff) : qpn),
++				      cqe_ver);
++		if (unlikely(!mqp))
++			return CQ_POLL_ERR;
++		wq = &mqp->sq;
+ 		wqe_ctr = ntohs(cqe64->wqe_counter);
+ 		idx = wqe_ctr & (wq->wqe_cnt - 1);
+ 		handle_good_req(wc, cqe64);
+ 		if (cqe64->op_own & MLX5_INLINE_SCATTER_32)
+-			err = mlx5_copy_to_send_wqe(*cur_qp, wqe_ctr, cqe,
++			err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe,
+ 						    wc->byte_len);
+ 		else if (cqe64->op_own & MLX5_INLINE_SCATTER_64)
+-			err = mlx5_copy_to_send_wqe(*cur_qp, wqe_ctr, cqe - 1,
++			err = mlx5_copy_to_send_wqe(mqp, wqe_ctr, cqe - 1,
+ 						    wc->byte_len);
+ 		else
+ 			err = 0;
+@@ -453,20 +562,27 @@ static int mlx5_poll_one(struct mlx5_cq *cq,
+ 	case MLX5_CQE_RESP_SEND:
+ 	case MLX5_CQE_RESP_SEND_IMM:
+ 	case MLX5_CQE_RESP_SEND_INV:
+-		wc->status = handle_responder(wc, cqe64, *cur_qp,
+-					      srqn ? *cur_srq : NULL);
++		srqn_uidx = ntohl(cqe64->srqn_uidx) & 0xffffff;
++		err = get_cur_rsc(mctx, cqe_ver, qpn, srqn_uidx, cur_rsc,
++				  cur_srq, &is_srq);
++		if (unlikely(err))
++			return CQ_POLL_ERR;
++
++		wc->status = handle_responder(wc, cqe64, rsc_to_mqp(*cur_rsc),
++					      is_srq ? *cur_srq : NULL);
+ 		break;
+ 	case MLX5_CQE_RESIZE_CQ:
+ 		break;
+ 	case MLX5_CQE_REQ_ERR:
+ 	case MLX5_CQE_RESP_ERR:
++		srqn_uidx = ntohl(cqe64->srqn_uidx) & 0xffffff;
+ 		ecqe = (struct mlx5_err_cqe *)cqe64;
+ 		mlx5_handle_error_cqe(ecqe, wc);
+ 		if (unlikely(ecqe->syndrome != MLX5_CQE_SYNDROME_WR_FLUSH_ERR &&
+ 			     ecqe->syndrome != MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR)) {
+-			FILE *fp = to_mctx(cq->ibv_cq.context)->dbg_fp;
++			FILE *fp = mctx->dbg_fp;
+ 			fprintf(fp, PFX "%s: got completion with error:\n",
+-				to_mctx(cq->ibv_cq.context)->hostname);
++				mctx->hostname);
+ 			dump_cqe(fp, ecqe);
+ 			if (mlx5_freeze_on_error_cqe) {
+ 				fprintf(fp, PFX "freezing at poll cq...");
+@@ -476,18 +592,28 @@ static int mlx5_poll_one(struct mlx5_cq *cq,
+ 		}
+ 
+ 		if (opcode == MLX5_CQE_REQ_ERR) {
+-			wq = &(*cur_qp)->sq;
++			mqp = get_req_context(mctx, cur_rsc,
++					      (cqe_ver ? srqn_uidx : qpn), cqe_ver);
++			if (unlikely(!mqp))
++				return CQ_POLL_ERR;
++			wq = &mqp->sq;
+ 			wqe_ctr = ntohs(cqe64->wqe_counter);
+ 			idx = wqe_ctr & (wq->wqe_cnt - 1);
+ 			wc->wr_id = wq->wrid[idx];
+ 			wq->tail = wq->wqe_head[idx] + 1;
+ 		} else {
+-			if (*cur_srq) {
++			err = get_cur_rsc(mctx, cqe_ver, qpn, srqn_uidx,
++					  cur_rsc, cur_srq, &is_srq);
++			if (unlikely(err))
++				return CQ_POLL_ERR;
++
++			if (is_srq) {
+ 				wqe_ctr = ntohs(cqe64->wqe_counter);
+ 				wc->wr_id = (*cur_srq)->wrid[wqe_ctr];
+ 				mlx5_free_srq_wqe(*cur_srq, wqe_ctr);
+ 			} else {
+-				wq = &(*cur_qp)->rq;
++				mqp = rsc_to_mqp(*cur_rsc);
++				wq = &mqp->rq;
+ 				wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
+ 				++wq->tail;
+ 			}
+@@ -498,10 +624,14 @@ static int mlx5_poll_one(struct mlx5_cq *cq,
+ 	return CQ_OK;
+ }
+ 
+-int mlx5_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
++static inline int poll_cq(struct ibv_cq *ibcq, int ne,
++		      struct ibv_wc *wc, int cqe_ver)
++		      __attribute__((always_inline));
++static inline int poll_cq(struct ibv_cq *ibcq, int ne,
++		      struct ibv_wc *wc, int cqe_ver)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibcq);
+-	struct mlx5_qp *qp = NULL;
++	struct mlx5_resource *rsc = NULL;
+ 	struct mlx5_srq *srq = NULL;
+ 	int npolled;
+ 	int err = CQ_OK;
+@@ -519,7 +649,7 @@ int mlx5_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
+ 	mlx5_spin_lock(&cq->lock);
+ 
+ 	for (npolled = 0; npolled < ne; ++npolled) {
+-		err = mlx5_poll_one(cq, &qp, &srq, wc + npolled);
++		err = mlx5_poll_one(cq, &rsc, &srq, wc + npolled, cqe_ver);
+ 		if (err != CQ_OK)
+ 			break;
+ 	}
+@@ -551,6 +681,16 @@ int mlx5_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
+ 	return err == CQ_POLL_ERR ? err : npolled;
+ }
+ 
++int mlx5_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
++{
++	return poll_cq(ibcq, ne, wc, 0);
++}
++
++int mlx5_poll_cq_v1(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
++{
++	return poll_cq(ibcq, ne, wc, 1);
++}
++
+ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibvcq);
+@@ -622,7 +762,7 @@ void __mlx5_cq_clean(struct mlx5_cq *cq, uint32_t rsn, struct mlx5_srq *srq)
+ 		cqe = get_cqe(cq, prod_index & cq->ibv_cq.cqe);
+ 		cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
+ 		if (is_equal_rsn(cqe64, rsn)) {
+-			if (srq && (ntohl(cqe64->srqn) & 0xffffff))
++			if (srq && (ntohl(cqe64->srqn_uidx) & 0xffffff))
+ 				mlx5_free_srq_wqe(srq, ntohs(cqe64->wqe_counter));
+ 			++nfreed;
+ 		} else if (nfreed) {
 diff --git a/src/mlx5.h b/src/mlx5.h
-index cda7c71..6b982c4 100644
+index 2691031..8190062 100644
 --- a/src/mlx5.h
 +++ b/src/mlx5.h
-@@ -120,6 +120,11 @@ enum {
- 	MLX5_MMAP_GET_CONTIGUOUS_PAGES_CMD = 1
- };
+@@ -544,6 +544,16 @@ static inline int max_int(int a, int b)
+ 	return a > b ? a : b;
+ }
  
-+enum {
-+	MLX5_CQE_VERSION_V0	= 0,
-+	MLX5_CQE_VERSION_V1	= 1,
-+};
++static inline struct mlx5_qp *rsc_to_mqp(struct mlx5_resource *rsc)
++{
++	return (struct mlx5_qp *)rsc;
++}
 +
- #define MLX5_CQ_PREFIX "MLX_CQ"
- #define MLX5_QP_PREFIX "MLX_QP"
- #define MLX5_MR_PREFIX "MLX_MR"
++static inline struct mlx5_srq *rsc_to_msrq(struct mlx5_resource *rsc)
++{
++	return (struct mlx5_srq *)rsc;
++}
++
+ int mlx5_alloc_buf(struct mlx5_buf *buf, size_t size, int page_size);
+ void mlx5_free_buf(struct mlx5_buf *buf);
+ int mlx5_alloc_buf_contig(struct mlx5_context *mctx, struct mlx5_buf *buf,
+@@ -590,6 +600,7 @@ int mlx5_free_cq_buf(struct mlx5_context *ctx, struct mlx5_buf *buf);
+ int mlx5_resize_cq(struct ibv_cq *cq, int cqe);
+ int mlx5_destroy_cq(struct ibv_cq *cq);
+ int mlx5_poll_cq(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
++int mlx5_poll_cq_v1(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
+ int mlx5_arm_cq(struct ibv_cq *cq, int solicited);
+ void mlx5_cq_event(struct ibv_cq *cq);
+ void __mlx5_cq_clean(struct mlx5_cq *cq, uint32_t qpn, struct mlx5_srq *srq);
 -- 
 1.8.3.1
 
