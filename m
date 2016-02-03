@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/54] staging/rdma/hfi1: Fix QSFP memory read/write across
- 128 byte boundary
-Date: Wed, 03 Feb 2016 14:31:05 -0800
-Message-ID: <20160203223102.5923.24152.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 01/54] staging/rdma/hfi1: Remove srq functionality
+Date: Wed, 03 Feb 2016 14:30:40 -0800
+Message-ID: <20160203223035.5923.91448.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,205 +10,499 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160203222512.5923.30980.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The QSFP memory cache reads both lower and upper page 0H in one shot,
-which leads to the address counter wrapping around to the beginning of
-lower page 00H at byte 128, as defined by SFF-8636.
-This patch fixes this by modifying the underlying QSFP read and writes
-to avoid this wrap around.
+srq functionality is now in rdmavt. Remove it from the hfi1 driver.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/qsfp.c |   44 +++++++++++++++++++++++++-------------
- drivers/staging/rdma/hfi1/qsfp.h |   28 +++++++++++++++++-------
- 2 files changed, 49 insertions(+), 23 deletions(-)
+ drivers/staging/rdma/hfi1/Makefile |    2 
+ drivers/staging/rdma/hfi1/srq.c    |  397 ------------------------------------
+ drivers/staging/rdma/hfi1/verbs.c  |    6 -
+ drivers/staging/rdma/hfi1/verbs.h  |   17 --
+ 4 files changed, 1 insertions(+), 421 deletions(-)
+ delete mode 100644 drivers/staging/rdma/hfi1/srq.c
 
-diff --git a/drivers/staging/rdma/hfi1/qsfp.c b/drivers/staging/rdma/hfi1/qsfp.c
-index 6e9c56f..0d2ec97 100644
---- a/drivers/staging/rdma/hfi1/qsfp.c
-+++ b/drivers/staging/rdma/hfi1/qsfp.c
-@@ -186,6 +186,10 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	return ret;
- }
+diff --git a/drivers/staging/rdma/hfi1/Makefile b/drivers/staging/rdma/hfi1/Makefile
+index 0069796..ca2dea5 100644
+--- a/drivers/staging/rdma/hfi1/Makefile
++++ b/drivers/staging/rdma/hfi1/Makefile
+@@ -9,7 +9,7 @@ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
  
-+/*
-+ * Write page n, offset m of QSFP memory as defined by SFF 8636
-+ * in the cache by writing @addr = ((256 * n) + m)
-+ */
- int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	       int len)
- {
-@@ -217,15 +221,15 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 			break;
- 		}
+ hfi1-y := chip.o device.o diag.o driver.o efivar.o eprom.o file_ops.o firmware.o \
+ 	init.o intr.o mad.o pcie.o pio.o pio_copy.o \
+-	qp.o qsfp.o rc.o ruc.o sdma.o srq.o sysfs.o trace.o twsi.o \
++	qp.o qsfp.o rc.o ruc.o sdma.o sysfs.o trace.o twsi.o \
+ 	uc.o ud.o user_exp_rcv.o user_pages.o user_sdma.o verbs.o
+ hfi1-$(CONFIG_DEBUG_FS) += debugfs.o
  
--		/* truncate write to end of page if crossing page boundary */
- 		offset = addr % QSFP_PAGESIZE;
- 		nwrite = len - count;
--		if ((offset + nwrite) > QSFP_PAGESIZE)
--			nwrite = QSFP_PAGESIZE - offset;
-+		/* truncate write to boundary if crossing boundary */
-+		if (((addr % QSFP_RW_BOUNDARY) + nwrite) > QSFP_RW_BOUNDARY)
-+			nwrite = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
- 
- 		ret = __i2c_write(ppd, target, QSFP_DEV, offset, bp + count,
- 					nwrite);
--		if (ret <= 0)	/* stop on error or nothing read */
-+		if (ret <= 0)	/* stop on error or nothing written */
- 			break;
- 
- 		count += ret;
-@@ -239,6 +243,10 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	return count;
- }
- 
-+/*
-+ * Access page n, offset m of QSFP memory as defined by SFF 8636
-+ * in the cache by reading @addr = ((256 * n) + m)
-+ */
- int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	      int len)
- {
-@@ -269,11 +277,11 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 			break;
- 		}
- 
--		/* truncate read to end of page if crossing page boundary */
- 		offset = addr % QSFP_PAGESIZE;
- 		nread = len - count;
--		if ((offset + nread) > QSFP_PAGESIZE)
--			nread = QSFP_PAGESIZE - offset;
-+		/* truncate read to boundary if crossing boundary */
-+		if (((addr % QSFP_RW_BOUNDARY) + nread) > QSFP_RW_BOUNDARY)
-+			nread = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
- 
- 		ret = __i2c_read(ppd, target, QSFP_DEV, offset, bp + count,
- 					nread);
-@@ -295,6 +303,11 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-  * This function caches the QSFP memory range in 128 byte chunks.
-  * As an example, the next byte after address 255 is byte 128 from
-  * upper page 01H (if existing) rather than byte 0 from lower page 00H.
-+ * Access page n, offset m of QSFP memory as defined by SFF 8636
-+ * in the cache by reading byte ((128 * n) + m)
-+ * The calls to qsfp_{read,write} in this function correctly handle the
-+ * address map difference between this mapping and the mapping implemented
-+ * by those functions
-  */
- int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
- {
-@@ -305,23 +318,24 @@ int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
- 
- 	/* ensure sane contents on invalid reads, for cable swaps */
- 	memset(cache, 0, (QSFP_MAX_NUM_PAGES*128));
--	dd_dev_info(ppd->dd, "%s: called\n", __func__);
-+	spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-+	ppd->qsfp_info.cache_valid = 0;
-+	spin_unlock_irqrestore(&ppd->qsfp_info.qsfp_lock, flags);
-+
-+	dd_dev_info(ppd->dd, "%s called\n", __func__);
- 	if (!qsfp_mod_present(ppd)) {
- 		ret = -ENODEV;
- 		goto bail;
- 	}
- 
--	ret = qsfp_read(ppd, target, 0, cache, 256);
--	if (ret != 256) {
-+	ret = qsfp_read(ppd, target, 0, cache, QSFP_PAGESIZE);
-+	if (ret != QSFP_PAGESIZE) {
- 		dd_dev_info(ppd->dd,
--			"%s: Read of pages 00H failed, expected 256, got %d\n",
--			__func__, ret);
-+			    "%s: Page 0 read failed, expected %d, got %d\n",
-+			    __func__, QSFP_PAGESIZE, ret);
- 		goto bail;
- 	}
- 
--	if (cache[0] != 0x0C && cache[0] != 0x0D)
--		goto bail;
--
- 	/* Is paging enabled? */
- 	if (!(cache[2] & 4)) {
- 
-diff --git a/drivers/staging/rdma/hfi1/qsfp.h b/drivers/staging/rdma/hfi1/qsfp.h
-index 16aebdc..3422250 100644
---- a/drivers/staging/rdma/hfi1/qsfp.h
-+++ b/drivers/staging/rdma/hfi1/qsfp.h
-@@ -67,15 +67,16 @@
- 
- /* QSFP is paged at 256 bytes */
- #define QSFP_PAGESIZE 256
-+/* Reads/writes cannot cross 128 byte boundaries */
-+#define QSFP_RW_BOUNDARY 128
- 
- /* Defined fields that Intel requires of qualified cables */
- /* Byte 0 is Identifier, not checked */
- /* Byte 1 is reserved "status MSB" */
--/* Byte 2 is "status LSB" We only care that D2 "Flat Mem" is set. */
+diff --git a/drivers/staging/rdma/hfi1/srq.c b/drivers/staging/rdma/hfi1/srq.c
+deleted file mode 100644
+index f71dff0..0000000
+--- a/drivers/staging/rdma/hfi1/srq.c
++++ /dev/null
+@@ -1,397 +0,0 @@
 -/*
-- * Rest of first 128 not used, although 127 is reserved for page select
-- * if module is not "Flat memory".
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * Copyright(c) 2015 Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Copyright(c) 2015 Intel Corporation.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
 - */
-+#define QSFP_TX_CTRL_BYTE_OFFS 86
-+#define QSFP_PWR_CTRL_BYTE_OFFS 93
-+#define QSFP_CDR_CTRL_BYTE_OFFS 98
-+
- #define QSFP_PAGE_SELECT_BYTE_OFFS 127
- /* Byte 128 is Identifier: must be 0x0c for QSFP, or 0x0d for QSFP+ */
- #define QSFP_MOD_ID_OFFS 128
-@@ -87,7 +88,8 @@
- /* Byte 130 is Connector type. Not Intel req'd */
- /* Bytes 131..138 are Transceiver types, bit maps for various tech, none IB */
- /* Byte 139 is encoding. code 0x01 is 8b10b. Not Intel req'd */
--/* byte 140 is nominal bit-rate, in units of 100Mbits/sec Not Intel req'd */
-+/* byte 140 is nominal bit-rate, in units of 100Mbits/sec */
-+#define QSFP_NOM_BIT_RATE_100_OFFS 140
- /* Byte 141 is Extended Rate Select. Not Intel req'd */
- /* Bytes 142..145 are lengths for various fiber types. Not Intel req'd */
- /* Byte 146 is length for Copper. Units of 1 meter */
-@@ -135,11 +137,18 @@ extern const char *const hfi1_qsfp_devtech[16];
-  */
- #define QSFP_ATTEN_OFFS 186
- #define QSFP_ATTEN_LEN 2
--/* Bytes 188,189 are Wavelength tolerance, not Intel req'd */
-+/*
-+ * Bytes 188,189 are Wavelength tolerance, if optical
-+ * If copper, they are attenuation in dB:
-+ * Byte 188 is at 12.5 Gb/s, Byte 189 at 25 Gb/s
-+ */
-+#define QSFP_CU_ATTEN_7G_OFFS 188
-+#define QSFP_CU_ATTEN_12G_OFFS 189
- /* Byte 190 is Max Case Temp. Not Intel req'd */
- /* Byte 191 is LSB of sum of bytes 128..190. Not Intel req'd */
- #define QSFP_CC_OFFS 191
--/* Bytes 192..195 are Options implemented in qsfp. Not Intel req'd */
-+#define QSFP_EQ_INFO_OFFS 193
-+#define QSFP_CDR_INFO_OFFS 194
- /* Bytes 196..211 are Serial Number, String */
- #define QSFP_SN_OFFS 196
- #define QSFP_SN_LEN 16
-@@ -150,6 +159,8 @@ extern const char *const hfi1_qsfp_devtech[16];
- #define QSFP_LOT_OFFS 218
- #define QSFP_LOT_LEN 2
- /* Bytes 220, 221 indicate monitoring options, Not Intel req'd */
-+/* Byte 222 indicates nominal bitrate in units of 250Mbits/sec */
-+#define QSFP_NOM_BIT_RATE_250_OFFS 222
- /* Byte 223 is LSB of sum of bytes 192..222 */
- #define QSFP_CC_EXT_OFFS 223
+-
+-#include <linux/err.h>
+-#include <linux/slab.h>
+-#include <linux/vmalloc.h>
+-
+-#include "verbs.h"
+-
+-/**
+- * hfi1_post_srq_receive - post a receive on a shared receive queue
+- * @ibsrq: the SRQ to post the receive on
+- * @wr: the list of work requests to post
+- * @bad_wr: A pointer to the first WR to cause a problem is put here
+- *
+- * This may be called from interrupt context.
+- */
+-int hfi1_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+-			  struct ib_recv_wr **bad_wr)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct rvt_rwq *wq;
+-	unsigned long flags;
+-	int ret;
+-
+-	for (; wr; wr = wr->next) {
+-		struct rvt_rwqe *wqe;
+-		u32 next;
+-		int i;
+-
+-		if ((unsigned) wr->num_sge > srq->rq.max_sge) {
+-			*bad_wr = wr;
+-			ret = -EINVAL;
+-			goto bail;
+-		}
+-
+-		spin_lock_irqsave(&srq->rq.lock, flags);
+-		wq = srq->rq.wq;
+-		next = wq->head + 1;
+-		if (next >= srq->rq.size)
+-			next = 0;
+-		if (next == wq->tail) {
+-			spin_unlock_irqrestore(&srq->rq.lock, flags);
+-			*bad_wr = wr;
+-			ret = -ENOMEM;
+-			goto bail;
+-		}
+-
+-		wqe = rvt_get_rwqe_ptr(&srq->rq, wq->head);
+-		wqe->wr_id = wr->wr_id;
+-		wqe->num_sge = wr->num_sge;
+-		for (i = 0; i < wr->num_sge; i++)
+-			wqe->sg_list[i] = wr->sg_list[i];
+-		/* Make sure queue entry is written before the head index. */
+-		smp_wmb();
+-		wq->head = next;
+-		spin_unlock_irqrestore(&srq->rq.lock, flags);
+-	}
+-	ret = 0;
+-
+-bail:
+-	return ret;
+-}
+-
+-/**
+- * hfi1_create_srq - create a shared receive queue
+- * @ibpd: the protection domain of the SRQ to create
+- * @srq_init_attr: the attributes of the SRQ
+- * @udata: data from libibverbs when creating a user SRQ
+- */
+-struct ib_srq *hfi1_create_srq(struct ib_pd *ibpd,
+-			       struct ib_srq_init_attr *srq_init_attr,
+-			       struct ib_udata *udata)
+-{
+-	struct hfi1_ibdev *dev = to_idev(ibpd->device);
+-	struct rvt_srq *srq;
+-	u32 sz;
+-	struct ib_srq *ret;
+-
+-	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
+-		ret = ERR_PTR(-ENOSYS);
+-		goto done;
+-	}
+-
+-	if (srq_init_attr->attr.max_sge == 0 ||
+-	    srq_init_attr->attr.max_sge > hfi1_max_srq_sges ||
+-	    srq_init_attr->attr.max_wr == 0 ||
+-	    srq_init_attr->attr.max_wr > hfi1_max_srq_wrs) {
+-		ret = ERR_PTR(-EINVAL);
+-		goto done;
+-	}
+-
+-	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
+-	if (!srq) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto done;
+-	}
+-
+-	/*
+-	 * Need to use vmalloc() if we want to support large #s of entries.
+-	 */
+-	srq->rq.size = srq_init_attr->attr.max_wr + 1;
+-	srq->rq.max_sge = srq_init_attr->attr.max_sge;
+-	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
+-		sizeof(struct rvt_rwqe);
+-	srq->rq.wq = vmalloc_user(sizeof(struct rvt_rwq) + srq->rq.size * sz);
+-	if (!srq->rq.wq) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail_srq;
+-	}
+-
+-	/*
+-	 * Return the address of the RWQ as the offset to mmap.
+-	 * See hfi1_mmap() for details.
+-	 */
+-	if (udata && udata->outlen >= sizeof(__u64)) {
+-		int err;
+-		u32 s = sizeof(struct rvt_rwq) + srq->rq.size * sz;
+-
+-		srq->ip =
+-		    rvt_create_mmap_info(&dev->rdi, s, ibpd->uobject->context,
+-					 srq->rq.wq);
+-		if (!srq->ip) {
+-			ret = ERR_PTR(-ENOMEM);
+-			goto bail_wq;
+-		}
+-
+-		err = ib_copy_to_udata(udata, &srq->ip->offset,
+-				       sizeof(srq->ip->offset));
+-		if (err) {
+-			ret = ERR_PTR(err);
+-			goto bail_ip;
+-		}
+-	} else
+-		srq->ip = NULL;
+-
+-	/*
+-	 * ib_create_srq() will initialize srq->ibsrq.
+-	 */
+-	spin_lock_init(&srq->rq.lock);
+-	srq->rq.wq->head = 0;
+-	srq->rq.wq->tail = 0;
+-	srq->limit = srq_init_attr->attr.srq_limit;
+-
+-	spin_lock(&dev->n_srqs_lock);
+-	if (dev->n_srqs_allocated == hfi1_max_srqs) {
+-		spin_unlock(&dev->n_srqs_lock);
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail_ip;
+-	}
+-
+-	dev->n_srqs_allocated++;
+-	spin_unlock(&dev->n_srqs_lock);
+-
+-	if (srq->ip) {
+-		spin_lock_irq(&dev->rdi.pending_lock);
+-		list_add(&srq->ip->pending_mmaps, &dev->rdi.pending_mmaps);
+-		spin_unlock_irq(&dev->rdi.pending_lock);
+-	}
+-
+-	ret = &srq->ibsrq;
+-	goto done;
+-
+-bail_ip:
+-	kfree(srq->ip);
+-bail_wq:
+-	vfree(srq->rq.wq);
+-bail_srq:
+-	kfree(srq);
+-done:
+-	return ret;
+-}
+-
+-/**
+- * hfi1_modify_srq - modify a shared receive queue
+- * @ibsrq: the SRQ to modify
+- * @attr: the new attributes of the SRQ
+- * @attr_mask: indicates which attributes to modify
+- * @udata: user data for libibverbs.so
+- */
+-int hfi1_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+-		    enum ib_srq_attr_mask attr_mask,
+-		    struct ib_udata *udata)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct rvt_rwq *wq;
+-	int ret = 0;
+-
+-	if (attr_mask & IB_SRQ_MAX_WR) {
+-		struct rvt_rwq *owq;
+-		struct rvt_rwqe *p;
+-		u32 sz, size, n, head, tail;
+-
+-		/* Check that the requested sizes are below the limits. */
+-		if ((attr->max_wr > hfi1_max_srq_wrs) ||
+-		    ((attr_mask & IB_SRQ_LIMIT) ?
+-		     attr->srq_limit : srq->limit) > attr->max_wr) {
+-			ret = -EINVAL;
+-			goto bail;
+-		}
+-
+-		sz = sizeof(struct rvt_rwqe) +
+-			srq->rq.max_sge * sizeof(struct ib_sge);
+-		size = attr->max_wr + 1;
+-		wq = vmalloc_user(sizeof(struct rvt_rwq) + size * sz);
+-		if (!wq) {
+-			ret = -ENOMEM;
+-			goto bail;
+-		}
+-
+-		/* Check that we can write the offset to mmap. */
+-		if (udata && udata->inlen >= sizeof(__u64)) {
+-			__u64 offset_addr;
+-			__u64 offset = 0;
+-
+-			ret = ib_copy_from_udata(&offset_addr, udata,
+-						 sizeof(offset_addr));
+-			if (ret)
+-				goto bail_free;
+-			udata->outbuf =
+-				(void __user *) (unsigned long) offset_addr;
+-			ret = ib_copy_to_udata(udata, &offset,
+-					       sizeof(offset));
+-			if (ret)
+-				goto bail_free;
+-		}
+-
+-		spin_lock_irq(&srq->rq.lock);
+-		/*
+-		 * validate head and tail pointer values and compute
+-		 * the number of remaining WQEs.
+-		 */
+-		owq = srq->rq.wq;
+-		head = owq->head;
+-		tail = owq->tail;
+-		if (head >= srq->rq.size || tail >= srq->rq.size) {
+-			ret = -EINVAL;
+-			goto bail_unlock;
+-		}
+-		n = head;
+-		if (n < tail)
+-			n += srq->rq.size - tail;
+-		else
+-			n -= tail;
+-		if (size <= n) {
+-			ret = -EINVAL;
+-			goto bail_unlock;
+-		}
+-		n = 0;
+-		p = wq->wq;
+-		while (tail != head) {
+-			struct rvt_rwqe *wqe;
+-			int i;
+-
+-			wqe = rvt_get_rwqe_ptr(&srq->rq, tail);
+-			p->wr_id = wqe->wr_id;
+-			p->num_sge = wqe->num_sge;
+-			for (i = 0; i < wqe->num_sge; i++)
+-				p->sg_list[i] = wqe->sg_list[i];
+-			n++;
+-			p = (struct rvt_rwqe *)((char *)p + sz);
+-			if (++tail >= srq->rq.size)
+-				tail = 0;
+-		}
+-		srq->rq.wq = wq;
+-		srq->rq.size = size;
+-		wq->head = n;
+-		wq->tail = 0;
+-		if (attr_mask & IB_SRQ_LIMIT)
+-			srq->limit = attr->srq_limit;
+-		spin_unlock_irq(&srq->rq.lock);
+-
+-		vfree(owq);
+-
+-		if (srq->ip) {
+-			struct rvt_mmap_info *ip = srq->ip;
+-			struct hfi1_ibdev *dev = to_idev(srq->ibsrq.device);
+-			u32 s = sizeof(struct rvt_rwq) + size * sz;
+-
+-			rvt_update_mmap_info(&dev->rdi, ip, s, wq);
+-
+-			/*
+-			 * Return the offset to mmap.
+-			 * See hfi1_mmap() for details.
+-			 */
+-			if (udata && udata->inlen >= sizeof(__u64)) {
+-				ret = ib_copy_to_udata(udata, &ip->offset,
+-						       sizeof(ip->offset));
+-				if (ret)
+-					goto bail;
+-			}
+-
+-			/*
+-			 * Put user mapping info onto the pending list
+-			 * unless it already is on the list.
+-			 */
+-			spin_lock_irq(&dev->rdi.pending_lock);
+-			if (list_empty(&ip->pending_mmaps))
+-				list_add(&ip->pending_mmaps,
+-					 &dev->rdi.pending_mmaps);
+-			spin_unlock_irq(&dev->rdi.pending_lock);
+-		}
+-	} else if (attr_mask & IB_SRQ_LIMIT) {
+-		spin_lock_irq(&srq->rq.lock);
+-		if (attr->srq_limit >= srq->rq.size)
+-			ret = -EINVAL;
+-		else
+-			srq->limit = attr->srq_limit;
+-		spin_unlock_irq(&srq->rq.lock);
+-	}
+-	goto bail;
+-
+-bail_unlock:
+-	spin_unlock_irq(&srq->rq.lock);
+-bail_free:
+-	vfree(wq);
+-bail:
+-	return ret;
+-}
+-
+-int hfi1_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-
+-	attr->max_wr = srq->rq.size - 1;
+-	attr->max_sge = srq->rq.max_sge;
+-	attr->srq_limit = srq->limit;
+-	return 0;
+-}
+-
+-/**
+- * hfi1_destroy_srq - destroy a shared receive queue
+- * @ibsrq: the SRQ to destroy
+- */
+-int hfi1_destroy_srq(struct ib_srq *ibsrq)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct hfi1_ibdev *dev = to_idev(ibsrq->device);
+-
+-	spin_lock(&dev->n_srqs_lock);
+-	dev->n_srqs_allocated--;
+-	spin_unlock(&dev->n_srqs_lock);
+-	if (srq->ip)
+-		kref_put(&srq->ip->ref, rvt_release_mmap_info);
+-	else
+-		vfree(srq->rq.wq);
+-	kfree(srq);
+-
+-	return 0;
+-}
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index f5cc0b9..a53d93a 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -1474,7 +1474,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
  
-@@ -191,6 +202,7 @@ extern const char *const hfi1_qsfp_devtech[16];
-  */
+ 	/* Only need to initialize non-zero fields. */
  
- #define QSFP_PWR(pbyte) (((pbyte) >> 6) & 3)
-+#define QSFP_HIGH_PWR(pbyte) (((pbyte) & 3) | 4)
- #define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
- #define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
+-	spin_lock_init(&dev->n_srqs_lock);
+ 	init_timer(&dev->mem_timer);
+ 	dev->mem_timer.function = mem_timer;
+ 	dev->mem_timer.data = (unsigned long) dev;
+@@ -1513,11 +1512,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	ibdev->query_port = query_port;
+ 	ibdev->modify_port = modify_port;
+ 	ibdev->query_gid = query_gid;
+-	ibdev->create_srq = hfi1_create_srq;
+-	ibdev->modify_srq = hfi1_modify_srq;
+-	ibdev->query_srq = hfi1_query_srq;
+-	ibdev->destroy_srq = hfi1_destroy_srq;
+-	ibdev->post_srq_recv = hfi1_post_srq_receive;
  
+ 	/* keep process mad in the driver */
+ 	ibdev->process_mad = hfi1_process_mad;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index c845514..79bcab6 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -272,8 +272,6 @@ struct hfi1_ibdev {
+ 	u64 n_kmem_wait;
+ 	u64 n_send_schedule;
+ 
+-	u32 n_srqs_allocated;   /* number of SRQs allocated for device */
+-	spinlock_t n_srqs_lock;
+ #ifdef CONFIG_DEBUG_FS
+ 	/* per HFI debugfs */
+ 	struct dentry *hfi1_ibdev_dbg;
+@@ -431,21 +429,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet);
+ 
+ int hfi1_lookup_pkey_idx(struct hfi1_ibport *ibp, u16 pkey);
+ 
+-int hfi1_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+-			  struct ib_recv_wr **bad_wr);
+-
+-struct ib_srq *hfi1_create_srq(struct ib_pd *ibpd,
+-			       struct ib_srq_init_attr *srq_init_attr,
+-			       struct ib_udata *udata);
+-
+-int hfi1_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+-		    enum ib_srq_attr_mask attr_mask,
+-		    struct ib_udata *udata);
+-
+-int hfi1_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
+-
+-int hfi1_destroy_srq(struct ib_srq *ibsrq);
+-
+ int hfi1_rvt_get_rwqe(struct rvt_qp *qp, int wr_id_only);
+ 
+ void hfi1_migrate_qp(struct rvt_qp *qp);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
