@@ -1,58 +1,498 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/7] IB/qib: Finish adding core rdmavt verbs support
-Date: Wed, 03 Feb 2016 14:19:51 -0800
-Message-ID: <20160203221808.4030.95183.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 1/7] IB/qib: Remove srq functionality
+Date: Wed, 03 Feb 2016 14:20:02 -0800
+Message-ID: <20160203221957.4030.77015.stgit@scvm10.sc.intel.com>
+References: <20160203221808.4030.95183.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160203221808.4030.95183.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the rest of the rdmavt core verbs support in qib, this mostly entails
-removing existing operations.
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch series applies on the previously posted "IB/rdmavt: Finish
-adding core verbs support" and can be seen in context at:
-https://github.com/ddalessa/kernel/tree/for-4.6
+srq functionality is now in rdmavt. Remove it from the qib driver.
 
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-
-Dennis Dalessandro (2):
-      IB/qib: Clean up register_ib_device
-      IB/qib: Support query gid in rdmavt
-
-Harish Chegondi (4):
-      IB/qib: Remove qib_lookup_qpn and use rvt_lookup_qpn instead
-      IB/qib: Remove modify queue pair code
-      IB/qib: Remove destroy queue pair code
-      IB/qib: Remove modify_port and port_immutable functions
-
-Jubin John (1):
-      IB/qib: Remove srq functionality
-
-
- drivers/infiniband/hw/qib/Makefile     |    2 
- drivers/infiniband/hw/qib/qib.h        |   13 +
- drivers/infiniband/hw/qib/qib_common.h |    1 
- drivers/infiniband/hw/qib/qib_driver.c |   27 -
- drivers/infiniband/hw/qib/qib_mad.c    |    5 
- drivers/infiniband/hw/qib/qib_qp.c     |  636 +++-----------------------------
- drivers/infiniband/hw/qib/qib_rc.c     |   10 -
- drivers/infiniband/hw/qib/qib_ruc.c    |   17 +
- drivers/infiniband/hw/qib/qib_sdma.c   |    2 
- drivers/infiniband/hw/qib/qib_srq.c    |  380 -------------------
- drivers/infiniband/hw/qib/qib_uc.c     |   10 -
- drivers/infiniband/hw/qib/qib_ud.c     |   17 +
- drivers/infiniband/hw/qib/qib_verbs.c  |  213 ++---------
- drivers/infiniband/hw/qib/qib_verbs.h  |   51 ---
- 14 files changed, 168 insertions(+), 1216 deletions(-)
+ drivers/infiniband/hw/qib/Makefile    |    2 
+ drivers/infiniband/hw/qib/qib_srq.c   |  380 ---------------------------------
+ drivers/infiniband/hw/qib/qib_verbs.c |    6 -
+ drivers/infiniband/hw/qib/qib_verbs.h |   17 -
+ 4 files changed, 1 insertions(+), 404 deletions(-)
  delete mode 100644 drivers/infiniband/hw/qib/qib_srq.c
 
--- 
--Denny
+diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
+index 8d5e36b..79ebd79 100644
+--- a/drivers/infiniband/hw/qib/Makefile
++++ b/drivers/infiniband/hw/qib/Makefile
+@@ -3,7 +3,7 @@ obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
+ ib_qib-y := qib_diag.o qib_driver.o qib_eeprom.o \
+ 	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o \
+ 	qib_mad.o qib_pcie.o qib_pio_copy.o \
+-	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
++	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o \
+ 	qib_sysfs.o qib_twsi.o qib_tx.o qib_uc.o qib_ud.o \
+ 	qib_user_pages.o qib_user_sdma.o qib_iba7220.o \
+ 	qib_sd7220.o qib_iba7322.o qib_verbs.o
+diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
+deleted file mode 100644
+index dff8808..0000000
+--- a/drivers/infiniband/hw/qib/qib_srq.c
++++ /dev/null
+@@ -1,380 +0,0 @@
+-/*
+- * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
+- * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include <linux/err.h>
+-#include <linux/slab.h>
+-#include <linux/vmalloc.h>
+-
+-#include "qib_verbs.h"
+-
+-/**
+- * qib_post_srq_receive - post a receive on a shared receive queue
+- * @ibsrq: the SRQ to post the receive on
+- * @wr: the list of work requests to post
+- * @bad_wr: A pointer to the first WR to cause a problem is put here
+- *
+- * This may be called from interrupt context.
+- */
+-int qib_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+-			 struct ib_recv_wr **bad_wr)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct rvt_rwq *wq;
+-	unsigned long flags;
+-	int ret;
+-
+-	for (; wr; wr = wr->next) {
+-		struct rvt_rwqe *wqe;
+-		u32 next;
+-		int i;
+-
+-		if ((unsigned) wr->num_sge > srq->rq.max_sge) {
+-			*bad_wr = wr;
+-			ret = -EINVAL;
+-			goto bail;
+-		}
+-
+-		spin_lock_irqsave(&srq->rq.lock, flags);
+-		wq = srq->rq.wq;
+-		next = wq->head + 1;
+-		if (next >= srq->rq.size)
+-			next = 0;
+-		if (next == wq->tail) {
+-			spin_unlock_irqrestore(&srq->rq.lock, flags);
+-			*bad_wr = wr;
+-			ret = -ENOMEM;
+-			goto bail;
+-		}
+-
+-		wqe = get_rwqe_ptr(&srq->rq, wq->head);
+-		wqe->wr_id = wr->wr_id;
+-		wqe->num_sge = wr->num_sge;
+-		for (i = 0; i < wr->num_sge; i++)
+-			wqe->sg_list[i] = wr->sg_list[i];
+-		/* Make sure queue entry is written before the head index. */
+-		smp_wmb();
+-		wq->head = next;
+-		spin_unlock_irqrestore(&srq->rq.lock, flags);
+-	}
+-	ret = 0;
+-
+-bail:
+-	return ret;
+-}
+-
+-/**
+- * qib_create_srq - create a shared receive queue
+- * @ibpd: the protection domain of the SRQ to create
+- * @srq_init_attr: the attributes of the SRQ
+- * @udata: data from libibverbs when creating a user SRQ
+- */
+-struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
+-			      struct ib_srq_init_attr *srq_init_attr,
+-			      struct ib_udata *udata)
+-{
+-	struct qib_ibdev *dev = to_idev(ibpd->device);
+-	struct rvt_srq *srq;
+-	u32 sz;
+-	struct ib_srq *ret;
+-
+-	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
+-		ret = ERR_PTR(-ENOSYS);
+-		goto done;
+-	}
+-
+-	if (srq_init_attr->attr.max_sge == 0 ||
+-	    srq_init_attr->attr.max_sge > ib_qib_max_srq_sges ||
+-	    srq_init_attr->attr.max_wr == 0 ||
+-	    srq_init_attr->attr.max_wr > ib_qib_max_srq_wrs) {
+-		ret = ERR_PTR(-EINVAL);
+-		goto done;
+-	}
+-
+-	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
+-	if (!srq) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto done;
+-	}
+-
+-	/*
+-	 * Need to use vmalloc() if we want to support large #s of entries.
+-	 */
+-	srq->rq.size = srq_init_attr->attr.max_wr + 1;
+-	srq->rq.max_sge = srq_init_attr->attr.max_sge;
+-	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
+-		sizeof(struct rvt_rwqe);
+-	srq->rq.wq = vmalloc_user(sizeof(struct rvt_rwq) + srq->rq.size * sz);
+-	if (!srq->rq.wq) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail_srq;
+-	}
+-
+-	/*
+-	 * Return the address of the RWQ as the offset to mmap.
+-	 * See qib_mmap() for details.
+-	 */
+-	if (udata && udata->outlen >= sizeof(__u64)) {
+-		int err;
+-		u32 s = sizeof(struct rvt_rwq) + srq->rq.size * sz;
+-
+-		srq->ip =
+-		    rvt_create_mmap_info(&dev->rdi, s, ibpd->uobject->context,
+-					 srq->rq.wq);
+-		if (!srq->ip) {
+-			ret = ERR_PTR(-ENOMEM);
+-			goto bail_wq;
+-		}
+-
+-		err = ib_copy_to_udata(udata, &srq->ip->offset,
+-				       sizeof(srq->ip->offset));
+-		if (err) {
+-			ret = ERR_PTR(err);
+-			goto bail_ip;
+-		}
+-	} else
+-		srq->ip = NULL;
+-
+-	/*
+-	 * ib_create_srq() will initialize srq->ibsrq.
+-	 */
+-	spin_lock_init(&srq->rq.lock);
+-	srq->rq.wq->head = 0;
+-	srq->rq.wq->tail = 0;
+-	srq->limit = srq_init_attr->attr.srq_limit;
+-
+-	spin_lock(&dev->n_srqs_lock);
+-	if (dev->n_srqs_allocated == ib_qib_max_srqs) {
+-		spin_unlock(&dev->n_srqs_lock);
+-		ret = ERR_PTR(-ENOMEM);
+-		goto bail_ip;
+-	}
+-
+-	dev->n_srqs_allocated++;
+-	spin_unlock(&dev->n_srqs_lock);
+-
+-	if (srq->ip) {
+-		spin_lock_irq(&dev->rdi.pending_lock);
+-		list_add(&srq->ip->pending_mmaps, &dev->rdi.pending_mmaps);
+-		spin_unlock_irq(&dev->rdi.pending_lock);
+-	}
+-
+-	ret = &srq->ibsrq;
+-	goto done;
+-
+-bail_ip:
+-	kfree(srq->ip);
+-bail_wq:
+-	vfree(srq->rq.wq);
+-bail_srq:
+-	kfree(srq);
+-done:
+-	return ret;
+-}
+-
+-/**
+- * qib_modify_srq - modify a shared receive queue
+- * @ibsrq: the SRQ to modify
+- * @attr: the new attributes of the SRQ
+- * @attr_mask: indicates which attributes to modify
+- * @udata: user data for libibverbs.so
+- */
+-int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+-		   enum ib_srq_attr_mask attr_mask,
+-		   struct ib_udata *udata)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct rvt_rwq *wq;
+-	int ret = 0;
+-
+-	if (attr_mask & IB_SRQ_MAX_WR) {
+-		struct rvt_rwq *owq;
+-		struct rvt_rwqe *p;
+-		u32 sz, size, n, head, tail;
+-
+-		/* Check that the requested sizes are below the limits. */
+-		if ((attr->max_wr > ib_qib_max_srq_wrs) ||
+-		    ((attr_mask & IB_SRQ_LIMIT) ?
+-		     attr->srq_limit : srq->limit) > attr->max_wr) {
+-			ret = -EINVAL;
+-			goto bail;
+-		}
+-
+-		sz = sizeof(struct rvt_rwqe) +
+-			srq->rq.max_sge * sizeof(struct ib_sge);
+-		size = attr->max_wr + 1;
+-		wq = vmalloc_user(sizeof(struct rvt_rwq) + size * sz);
+-		if (!wq) {
+-			ret = -ENOMEM;
+-			goto bail;
+-		}
+-
+-		/* Check that we can write the offset to mmap. */
+-		if (udata && udata->inlen >= sizeof(__u64)) {
+-			__u64 offset_addr;
+-			__u64 offset = 0;
+-
+-			ret = ib_copy_from_udata(&offset_addr, udata,
+-						 sizeof(offset_addr));
+-			if (ret)
+-				goto bail_free;
+-			udata->outbuf =
+-				(void __user *) (unsigned long) offset_addr;
+-			ret = ib_copy_to_udata(udata, &offset,
+-					       sizeof(offset));
+-			if (ret)
+-				goto bail_free;
+-		}
+-
+-		spin_lock_irq(&srq->rq.lock);
+-		/*
+-		 * validate head and tail pointer values and compute
+-		 * the number of remaining WQEs.
+-		 */
+-		owq = srq->rq.wq;
+-		head = owq->head;
+-		tail = owq->tail;
+-		if (head >= srq->rq.size || tail >= srq->rq.size) {
+-			ret = -EINVAL;
+-			goto bail_unlock;
+-		}
+-		n = head;
+-		if (n < tail)
+-			n += srq->rq.size - tail;
+-		else
+-			n -= tail;
+-		if (size <= n) {
+-			ret = -EINVAL;
+-			goto bail_unlock;
+-		}
+-		n = 0;
+-		p = wq->wq;
+-		while (tail != head) {
+-			struct rvt_rwqe *wqe;
+-			int i;
+-
+-			wqe = get_rwqe_ptr(&srq->rq, tail);
+-			p->wr_id = wqe->wr_id;
+-			p->num_sge = wqe->num_sge;
+-			for (i = 0; i < wqe->num_sge; i++)
+-				p->sg_list[i] = wqe->sg_list[i];
+-			n++;
+-			p = (struct rvt_rwqe *)((char *)p + sz);
+-			if (++tail >= srq->rq.size)
+-				tail = 0;
+-		}
+-		srq->rq.wq = wq;
+-		srq->rq.size = size;
+-		wq->head = n;
+-		wq->tail = 0;
+-		if (attr_mask & IB_SRQ_LIMIT)
+-			srq->limit = attr->srq_limit;
+-		spin_unlock_irq(&srq->rq.lock);
+-
+-		vfree(owq);
+-
+-		if (srq->ip) {
+-			struct rvt_mmap_info *ip = srq->ip;
+-			struct qib_ibdev *dev = to_idev(srq->ibsrq.device);
+-			u32 s = sizeof(struct rvt_rwq) + size * sz;
+-
+-			rvt_update_mmap_info(&dev->rdi, ip, s, wq);
+-
+-			/*
+-			 * Return the offset to mmap.
+-			 * See qib_mmap() for details.
+-			 */
+-			if (udata && udata->inlen >= sizeof(__u64)) {
+-				ret = ib_copy_to_udata(udata, &ip->offset,
+-						       sizeof(ip->offset));
+-				if (ret)
+-					goto bail;
+-			}
+-
+-			/*
+-			 * Put user mapping info onto the pending list
+-			 * unless it already is on the list.
+-			 */
+-			spin_lock_irq(&dev->rdi.pending_lock);
+-			if (list_empty(&ip->pending_mmaps))
+-				list_add(&ip->pending_mmaps,
+-					 &dev->rdi.pending_mmaps);
+-			spin_unlock_irq(&dev->rdi.pending_lock);
+-		}
+-	} else if (attr_mask & IB_SRQ_LIMIT) {
+-		spin_lock_irq(&srq->rq.lock);
+-		if (attr->srq_limit >= srq->rq.size)
+-			ret = -EINVAL;
+-		else
+-			srq->limit = attr->srq_limit;
+-		spin_unlock_irq(&srq->rq.lock);
+-	}
+-	goto bail;
+-
+-bail_unlock:
+-	spin_unlock_irq(&srq->rq.lock);
+-bail_free:
+-	vfree(wq);
+-bail:
+-	return ret;
+-}
+-
+-int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-
+-	attr->max_wr = srq->rq.size - 1;
+-	attr->max_sge = srq->rq.max_sge;
+-	attr->srq_limit = srq->limit;
+-	return 0;
+-}
+-
+-/**
+- * qib_destroy_srq - destroy a shared receive queue
+- * @ibsrq: the SRQ to destroy
+- */
+-int qib_destroy_srq(struct ib_srq *ibsrq)
+-{
+-	struct rvt_srq *srq = ibsrq_to_rvtsrq(ibsrq);
+-	struct qib_ibdev *dev = to_idev(ibsrq->device);
+-
+-	spin_lock(&dev->n_srqs_lock);
+-	dev->n_srqs_allocated--;
+-	spin_unlock(&dev->n_srqs_lock);
+-	if (srq->ip)
+-		kref_put(&srq->ip->ref, rvt_release_mmap_info);
+-	else
+-		vfree(srq->rq.wq);
+-	kfree(srq);
+-
+-	return 0;
+-}
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 8b97ca1..3785a52 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1656,7 +1656,6 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 
+ 	/* Only need to initialize non-zero fields. */
+ 	spin_lock_init(&dev->n_qps_lock);
+-	spin_lock_init(&dev->n_srqs_lock);
+ 	init_timer(&dev->mem_timer);
+ 	dev->mem_timer.function = mem_timer;
+ 	dev->mem_timer.data = (unsigned long) dev;
+@@ -1754,17 +1753,12 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->destroy_ah = NULL;
+ 	ibdev->modify_ah = NULL;
+ 	ibdev->query_ah = NULL;
+-	ibdev->create_srq = qib_create_srq;
+-	ibdev->modify_srq = qib_modify_srq;
+-	ibdev->query_srq = qib_query_srq;
+-	ibdev->destroy_srq = qib_destroy_srq;
+ 	ibdev->create_qp = NULL;
+ 	ibdev->modify_qp = qib_modify_qp;
+ 	ibdev->query_qp = NULL;
+ 	ibdev->destroy_qp = qib_destroy_qp;
+ 	ibdev->post_send = NULL;
+ 	ibdev->post_recv = NULL;
+-	ibdev->post_srq_recv = qib_post_srq_receive;
+ 	ibdev->create_cq = NULL;
+ 	ibdev->destroy_cq = NULL;
+ 	ibdev->resize_cq = NULL;
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index 34f7784..a7e3c71 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -270,8 +270,6 @@ struct qib_ibdev {
+ 
+ 	u32 n_qps_allocated;    /* number of QPs allocated for device */
+ 	spinlock_t n_qps_lock;
+-	u32 n_srqs_allocated;   /* number of SRQs allocated for device */
+-	spinlock_t n_srqs_lock;
+ #ifdef CONFIG_DEBUG_FS
+ 	/* per HCA debugfs */
+ 	struct dentry *qib_ibdev_dbg;
+@@ -428,21 +426,6 @@ int qib_post_ud_send(struct rvt_qp *qp, struct ib_send_wr *wr);
+ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
+ 		int has_grh, void *data, u32 tlen, struct rvt_qp *qp);
+ 
+-int qib_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
+-			 struct ib_recv_wr **bad_wr);
+-
+-struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
+-			      struct ib_srq_init_attr *srq_init_attr,
+-			      struct ib_udata *udata);
+-
+-int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+-		   enum ib_srq_attr_mask attr_mask,
+-		   struct ib_udata *udata);
+-
+-int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr);
+-
+-int qib_destroy_srq(struct ib_srq *ibsrq);
+-
+ void mr_rcu_callback(struct rcu_head *list);
+ 
+ static inline void qib_put_ss(struct rvt_sge_state *ss)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
