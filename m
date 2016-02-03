@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 33/54] staging/rdma/hfi1: correctly check for post-interrupt
- packets
-Date: Wed, 03 Feb 2016 14:35:14 -0800
-Message-ID: <20160203223511.5923.76996.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 52/54] staging/rdma/hfi1: Replacement of goto's for
+ break/returns
+Date: Wed, 03 Feb 2016 14:37:59 -0800
+Message-ID: <20160203223755.5923.77914.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,99 +11,212 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160203222512.5923.30980.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-At the end of the packet processing interrupt and thread handler,
-the RcvAvail interrupt is finally cleared down.  There is a window
-between the last packet check (via DMA to memory) and interrupt
-clear-down.  The code to recheck for a packet once the RcvAVail
-interrupt is enabled must ultimately use a CSR read of RcvHdrTail
-rather than depend on DMA'ed memory.
+It replaces goto's for break and return statements in process_perf_opa().
 
-This change adds a CSR read of RcvHdrTail if the memory check does
-not show a packet preset.  The memory check is retained as a quick
-test before doing the more expensive, but always correct, CSR read.
-
-In the ASIC, the CSR read used to force the RcvAvail clear-down write
-to complete may bypass queued DMA writes to memory.  The only correct
-way to decide if a packet has arrived without an interrupt to push DMA
-to memory ahead of itself is to read the tail directly after RcvAvail
-has been cleared down.  It is not sufficient to just read the tail and
-skip pushing the clear-down.  Both must be done.  The tail read will not
-push clear-down write due to it being in a different area of the chip.
-
-At this point, it is OK to have packet data still being DMA'ed to
-memory.  This is the end of packet processing for previous packets.
-If the driver detects a new packet has arrived before interrputs were
-re-enabled, it will force a new interrupt and the interrupt will push
-the packet DMAs to memory, where the driver will then react to the
-interrupt and do normal packet processing.
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |   32 +++++++++++++++++++++++++-------
- 1 files changed, 25 insertions(+), 7 deletions(-)
+ drivers/staging/rdma/hfi1/mad.c |   56 +++++++++++++++++++++------------------
+ 1 files changed, 30 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 13b92a3..a67483e 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -8022,9 +8022,9 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 97bdcb7..a315579 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -3828,7 +3828,7 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
+ 	if (smp->class_version != OPA_SMI_CLASS_VERSION) {
+ 		smp->status |= IB_SMP_UNSUP_VERSION;
+ 		ret = reply((struct ib_mad_hdr *)smp);
+-		goto bail;
++		return ret;
+ 	}
+ 	ret = check_mkey(ibp, (struct ib_mad_hdr *)smp, mad_flags, smp->mkey,
+ 			 smp->route.dr.dr_slid, smp->route.dr.return_path,
+@@ -3854,7 +3854,7 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
+ 					  smp->route.dr.return_path,
+ 					  smp->hop_cnt);
+ 		ret = IB_MAD_RESULT_FAILURE;
+-		goto bail;
++		return ret;
+ 	}
+ 
+ 	*resp_len = opa_get_smp_header_size(smp);
+@@ -3866,23 +3866,25 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
+ 			clear_opa_smp_data(smp);
+ 			ret = subn_get_opa_sma(attr_id, smp, am, data,
+ 					       ibdev, port, resp_len);
+-			goto bail;
++			break;
+ 		case OPA_ATTRIB_ID_AGGREGATE:
+ 			ret = subn_get_opa_aggregate(smp, ibdev, port,
+ 						     resp_len);
+-			goto bail;
++			break;
+ 		}
++		break;
+ 	case IB_MGMT_METHOD_SET:
+ 		switch (attr_id) {
+ 		default:
+ 			ret = subn_set_opa_sma(attr_id, smp, am, data,
+ 					       ibdev, port, resp_len);
+-			goto bail;
++			break;
+ 		case OPA_ATTRIB_ID_AGGREGATE:
+ 			ret = subn_set_opa_aggregate(smp, ibdev, port,
+ 						     resp_len);
+-			goto bail;
++			break;
+ 		}
++		break;
+ 	case IB_MGMT_METHOD_TRAP:
+ 	case IB_MGMT_METHOD_REPORT:
+ 	case IB_MGMT_METHOD_REPORT_RESP:
+@@ -3893,13 +3895,13 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
+ 		 * Just tell the caller to process it normally.
+ 		 */
+ 		ret = IB_MAD_RESULT_SUCCESS;
+-		goto bail;
++		break;
+ 	default:
+ 		smp->status |= IB_SMP_UNSUP_METHOD;
+ 		ret = reply((struct ib_mad_hdr *)smp);
++		break;
+ 	}
+ 
+-bail:
+ 	return ret;
  }
  
- /*
-- * Clear the receive interrupt, forcing the write and making sure
-- * we have data from the chip, pushing everything in front of it
-- * back to the host.
-+ * Clear the receive interrupt.  Use a read of the interrupt clear CSR
-+ * to insure that the write completed.  This does NOT guarantee that
-+ * queued DMA writes to memory from the chip are pushed.
-  */
- static inline void clear_recv_intr(struct hfi1_ctxtdata *rcd)
- {
-@@ -8043,15 +8043,33 @@ void force_recv_intr(struct hfi1_ctxtdata *rcd)
- 	write_csr(rcd->dd, CCE_INT_FORCE + (8 * rcd->ireg), rcd->imask);
+@@ -3915,7 +3917,7 @@ static int process_subn(struct ib_device *ibdev, int mad_flags,
+ 	if (smp->class_version != 1) {
+ 		smp->status |= IB_SMP_UNSUP_VERSION;
+ 		ret = reply((struct ib_mad_hdr *)smp);
+-		goto bail;
++		return ret;
+ 	}
+ 
+ 	ret = check_mkey(ibp, (struct ib_mad_hdr *)smp, mad_flags,
+@@ -3942,7 +3944,7 @@ static int process_subn(struct ib_device *ibdev, int mad_flags,
+ 					  (__force __be32)smp->dr_slid,
+ 					  smp->return_path, smp->hop_cnt);
+ 		ret = IB_MAD_RESULT_FAILURE;
+-		goto bail;
++		return ret;
+ 	}
+ 
+ 	switch (smp->method) {
+@@ -3950,15 +3952,15 @@ static int process_subn(struct ib_device *ibdev, int mad_flags,
+ 		switch (smp->attr_id) {
+ 		case IB_SMP_ATTR_NODE_INFO:
+ 			ret = subn_get_nodeinfo(smp, ibdev, port);
+-			goto bail;
++			break;
+ 		default:
+ 			smp->status |= IB_SMP_UNSUP_METH_ATTR;
+ 			ret = reply((struct ib_mad_hdr *)smp);
+-			goto bail;
++			break;
+ 		}
++		break;
+ 	}
+ 
+-bail:
+ 	return ret;
  }
  
--/* return non-zero if a packet is present */
-+/*
-+ * Return non-zero if a packet is present.
-+ *
-+ * This routine is called when rechecking for packets after the RcvAvail
-+ * interrupt has been cleared down.  First, do a quick check of memory for
-+ * a packet present.  If not found, use an expensive CSR read of the context
-+ * tail to determine the actual tail.  The CSR read is necessary because there
-+ * is no method to push pending DMAs to memory other than an interrupt and we
-+ * are trying to determine if we need to force an interrupt.
-+ */
- static inline int check_packet_present(struct hfi1_ctxtdata *rcd)
- {
-+	u32 tail;
-+	int present;
-+
- 	if (!HFI1_CAP_IS_KSET(DMA_RTAIL))
--		return (rcd->seq_cnt ==
-+		present = (rcd->seq_cnt ==
- 				rhf_rcv_seq(rhf_to_cpu(get_rhf_addr(rcd))));
-+	else /* is RDMA rtail */
-+		present = (rcd->head != get_rcvhdrtail(rcd));
-+
-+	if (present)
-+		return 1;
+@@ -3983,44 +3985,46 @@ static int process_perf_opa(struct ib_device *ibdev, u8 port,
+ 		switch (pmp->mad_hdr.attr_id) {
+ 		case IB_PMA_CLASS_PORT_INFO:
+ 			ret = pma_get_opa_classportinfo(pmp, ibdev, resp_len);
+-			goto bail;
++			break;
+ 		case OPA_PM_ATTRIB_ID_PORT_STATUS:
+ 			ret = pma_get_opa_portstatus(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		case OPA_PM_ATTRIB_ID_DATA_PORT_COUNTERS:
+ 			ret = pma_get_opa_datacounters(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		case OPA_PM_ATTRIB_ID_ERROR_PORT_COUNTERS:
+ 			ret = pma_get_opa_porterrors(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		case OPA_PM_ATTRIB_ID_ERROR_INFO:
+ 			ret = pma_get_opa_errorinfo(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		default:
+ 			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
+ 			ret = reply((struct ib_mad_hdr *)pmp);
+-			goto bail;
++			break;
+ 		}
++		break;
  
--	/* else is RDMA rtail */
--	return (rcd->head != get_rcvhdrtail(rcd));
-+	/* fall back to a CSR read, correct indpendent of DMA_RTAIL */
-+	tail = (u32)read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_TAIL);
-+	return rcd->head != tail;
+ 	case IB_MGMT_METHOD_SET:
+ 		switch (pmp->mad_hdr.attr_id) {
+ 		case OPA_PM_ATTRIB_ID_CLEAR_PORT_STATUS:
+ 			ret = pma_set_opa_portstatus(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		case OPA_PM_ATTRIB_ID_ERROR_INFO:
+ 			ret = pma_set_opa_errorinfo(pmp, ibdev, port,
+ 								resp_len);
+-			goto bail;
++			break;
+ 		default:
+ 			pmp->mad_hdr.status |= IB_SMP_UNSUP_METH_ATTR;
+ 			ret = reply((struct ib_mad_hdr *)pmp);
+-			goto bail;
++			break;
+ 		}
++		break;
+ 
+ 	case IB_MGMT_METHOD_TRAP:
+ 	case IB_MGMT_METHOD_GET_RESP:
+@@ -4030,14 +4034,14 @@ static int process_perf_opa(struct ib_device *ibdev, u8 port,
+ 		 * Just tell the caller to process it normally.
+ 		 */
+ 		ret = IB_MAD_RESULT_SUCCESS;
+-		goto bail;
++		break;
+ 
+ 	default:
+ 		pmp->mad_hdr.status |= IB_SMP_UNSUP_METHOD;
+ 		ret = reply((struct ib_mad_hdr *)pmp);
++		break;
+ 	}
+ 
+-bail:
+ 	return ret;
  }
  
- /*
+@@ -4102,12 +4106,12 @@ static int hfi1_process_ib_mad(struct ib_device *ibdev, int mad_flags, u8 port,
+ 	case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
+ 	case IB_MGMT_CLASS_SUBN_LID_ROUTED:
+ 		ret = process_subn(ibdev, mad_flags, port, in_mad, out_mad);
+-		goto bail;
++		break;
+ 	default:
+ 		ret = IB_MAD_RESULT_SUCCESS;
++		break;
+ 	}
+ 
+-bail:
+ 	return ret;
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
