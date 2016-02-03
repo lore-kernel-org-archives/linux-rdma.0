@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 31/54] staging/rdma/hfi1: Use device file minor to identify
- EPROM
-Date: Wed, 03 Feb 2016 14:34:58 -0800
-Message-ID: <20160203223454.5923.97221.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 42/54] staging/rdma/hfi1: Clean up init_cntrs()
+Date: Wed, 03 Feb 2016 14:36:31 -0800
+Message-ID: <20160203223627.5923.47449.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,85 +10,135 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160203222512.5923.30980.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When writing to the EPROM, the driver will always use the
-"first" device.  This is incorrect for multiple cards.
+Clean up init_cntrs() by removing unnecessary memsets and debug
+statements
 
-Use the device file minor to determine the device to use.
-Reject the generic device file.
-
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Suggested-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/eprom.c    |   15 ++++++++++-----
- drivers/staging/rdma/hfi1/eprom.h    |    2 +-
- drivers/staging/rdma/hfi1/file_ops.c |    2 +-
- 3 files changed, 12 insertions(+), 7 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |   18 ------------------
+ 1 files changed, 0 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/eprom.c b/drivers/staging/rdma/hfi1/eprom.c
-index fb620c9..8104a11 100644
---- a/drivers/staging/rdma/hfi1/eprom.c
-+++ b/drivers/staging/rdma/hfi1/eprom.c
-@@ -353,21 +353,26 @@ static inline u32 extract_rstart(u32 composite)
-  *
-  * Return 0 on success, -ERRNO on error
-  */
--int handle_eprom_command(const struct hfi1_cmd *cmd)
-+int handle_eprom_command(struct file *fp, const struct hfi1_cmd *cmd)
- {
- 	struct hfi1_devdata *dd;
- 	u32 dev_id;
- 	u32 rlen;	/* range length */
- 	u32 rstart;	/* range start */
-+	int i_minor;
- 	int ret = 0;
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 5b8fb02..8c06e3b 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -11813,17 +11813,14 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 	sz = 0;
  
- 	/*
--	 * The EPROM is per-device, so use unit 0 as that will always
--	 * exist.
-+	 * Map the device file to device data using the relative minor.
-+	 * The device file minor number is the unit number + 1.  0 is
-+	 * the generic device file - reject it.
- 	 */
--	dd = hfi1_lookup(0);
-+	i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
-+	if (i_minor <= 0)
-+		return -EINVAL;
-+	dd = hfi1_lookup(i_minor - 1);
- 	if (!dd) {
--		pr_err("%s: cannot find unit 0!\n", __func__);
-+		pr_err("%s: cannot find unit %d!\n", __func__, i_minor);
- 		return -EINVAL;
+ 	for (i = 0; i < DEV_CNTR_LAST; i++) {
+-		hfi1_dbg_early("Init cntr %s\n", dev_cntrs[i].name);
+ 		if (dev_cntrs[i].flags & CNTR_DISABLED) {
+ 			hfi1_dbg_early("\tSkipping %s\n", dev_cntrs[i].name);
+ 			continue;
+ 		}
+ 
+ 		if (dev_cntrs[i].flags & CNTR_VL) {
+-			hfi1_dbg_early("\tProcessing VL cntr\n");
+ 			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			for (j = 0; j < C_VL_COUNT; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					dev_cntrs[i].name,
+ 					vl_from_idx(j));
+@@ -11832,16 +11829,11 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				if (dev_cntrs[i].flags & CNTR_32BIT)
+ 					sz += bit_type_32_sz;
+ 				sz++;
+-				hfi1_dbg_early("\t\t%s\n", name);
+ 				dd->ndevcntrs++;
+ 			}
+ 		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
+-			hfi1_dbg_early(
+-				       "\tProcessing per SDE counters chip enginers %u\n",
+-				       dd->chip_sdma_engines);
+ 			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			for (j = 0; j < dd->chip_sdma_engines; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					 dev_cntrs[i].name, j);
+ 				sz += strlen(name);
+@@ -11849,7 +11841,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				if (dev_cntrs[i].flags & CNTR_32BIT)
+ 					sz += bit_type_32_sz;
+ 				sz++;
+-				hfi1_dbg_early("\t\t%s\n", name);
+ 				dd->ndevcntrs++;
+ 			}
+ 		} else {
+@@ -11860,7 +11851,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				sz += bit_type_32_sz;
+ 			dev_cntrs[i].offset = dd->ndevcntrs;
+ 			dd->ndevcntrs++;
+-			hfi1_dbg_early("\tAdding %s\n", dev_cntrs[i].name);
+ 		}
  	}
  
-diff --git a/drivers/staging/rdma/hfi1/eprom.h b/drivers/staging/rdma/hfi1/eprom.h
-index 64a6427..5a61ba3 100644
---- a/drivers/staging/rdma/hfi1/eprom.h
-+++ b/drivers/staging/rdma/hfi1/eprom.h
-@@ -52,4 +52,4 @@ struct hfi1_cmd;
- struct hfi1_devdata;
+@@ -11886,7 +11876,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 			/* Nothing */
+ 		} else if (dev_cntrs[i].flags & CNTR_VL) {
+ 			for (j = 0; j < C_VL_COUNT; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					 dev_cntrs[i].name,
+ 					 vl_from_idx(j));
+@@ -11903,7 +11892,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 			}
+ 		} else if (dev_cntrs[i].flags & CNTR_SDMA) {
+ 			for (j = 0; j < dd->chip_sdma_engines; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					 dev_cntrs[i].name, j);
+ 				memcpy(p, name, strlen(name));
+@@ -11950,17 +11938,14 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 	sz = 0;
+ 	dd->nportcntrs = 0;
+ 	for (i = 0; i < PORT_CNTR_LAST; i++) {
+-		hfi1_dbg_early("Init pcntr %s\n", port_cntrs[i].name);
+ 		if (port_cntrs[i].flags & CNTR_DISABLED) {
+ 			hfi1_dbg_early("\tSkipping %s\n", port_cntrs[i].name);
+ 			continue;
+ 		}
  
- int eprom_init(struct hfi1_devdata *dd);
--int handle_eprom_command(const struct hfi1_cmd *cmd);
-+int handle_eprom_command(struct file *fp, const struct hfi1_cmd *cmd);
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index 2de9032..cc681f7 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -409,7 +409,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 	case HFI1_CMD_EP_ERASE_RANGE:
- 	case HFI1_CMD_EP_READ_RANGE:
- 	case HFI1_CMD_EP_WRITE_RANGE:
--		ret = handle_eprom_command(&cmd);
-+		ret = handle_eprom_command(fp, &cmd);
- 		break;
+ 		if (port_cntrs[i].flags & CNTR_VL) {
+-			hfi1_dbg_early("\tProcessing VL cntr\n");
+ 			port_cntrs[i].offset = dd->nportcntrs;
+ 			for (j = 0; j < C_VL_COUNT; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					port_cntrs[i].name,
+ 					vl_from_idx(j));
+@@ -11969,7 +11954,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				if (port_cntrs[i].flags & CNTR_32BIT)
+ 					sz += bit_type_32_sz;
+ 				sz++;
+-				hfi1_dbg_early("\t\t%s\n", name);
+ 				dd->nportcntrs++;
+ 			}
+ 		} else {
+@@ -11980,7 +11964,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 				sz += bit_type_32_sz;
+ 			port_cntrs[i].offset = dd->nportcntrs;
+ 			dd->nportcntrs++;
+-			hfi1_dbg_early("\tAdding %s\n", port_cntrs[i].name);
+ 		}
  	}
  
+@@ -11997,7 +11980,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 
+ 		if (port_cntrs[i].flags & CNTR_VL) {
+ 			for (j = 0; j < C_VL_COUNT; j++) {
+-				memset(name, '\0', C_MAX_NAME);
+ 				snprintf(name, C_MAX_NAME, "%s%d",
+ 					port_cntrs[i].name,
+ 					vl_from_idx(j));
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
