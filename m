@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 47/54] staging/rdma/hfi1: Add credits for VL0 to VL7 in
- snoop mode
-Date: Wed, 03 Feb 2016 14:37:15 -0800
-Message-ID: <20160203223712.5923.25590.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 46/54] staging/rdma/hfi1: Improve performance of user SDMA
+Date: Wed, 03 Feb 2016 14:37:06 -0800
+Message-ID: <20160203223703.5923.8090.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,147 +10,216 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160203222512.5923.30980.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a new option to the snoop ioctl which allows credits to be allocated
-across all VLs. Previously only VL0 and VL15 had credits allocated.
-The new option used in the ioctl HFI1_SNOOP_IOCSET_OPTS allows credits
-to be allocated so that VL15 will have at least 8.5KB credits and the
-other VLs will have the rest of the credits divided equally across
-themselves.
+To facilitate locked page counting, the user SDMA
+routines would maintain a list of io vectors, which
+were freed in the completion callback and then unpin
+the associated pages during the next call into the
+kernel.
 
-The total number of credits are stored in the upper 16 bits of the
-integer passed and the cumulative value should ensure that VL0 has at
-least 8.5KB and each VL a minimum of 2KB + 128 bytes
+Since the size of this list was unbounded, doing this
+was bad for performance because the driver ended up
+spending too much time freeing the io vectors.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sadanand Warrier <sadanand.warrier-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This commit changes how the io vector freeing is done
+by moving the actual page unpinning in the callback and
+maintaining a count of unpinned pages. This count can
+then be used during the next call into the kernel to
+update the mm->pinned_vm variable (since that requires
+process context and the ability to sleep.)
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |    3 +-
- drivers/staging/rdma/hfi1/diag.c |   64 ++++++++++++++++++++++++++++++++++++++
- drivers/staging/rdma/hfi1/hfi.h  |    1 +
- 3 files changed, 66 insertions(+), 2 deletions(-)
+ drivers/staging/rdma/hfi1/user_sdma.c |   55 +++++++++++----------------------
+ drivers/staging/rdma/hfi1/user_sdma.h |    7 ++--
+ 2 files changed, 22 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index f31cc23..77b07c3 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -10711,8 +10711,7 @@ static void wait_for_vl_status_clear(struct hfi1_devdata *dd, u64 mask,
-  * raise = if the new limit is higher than the current value (may be changed
-  *	earlier in the algorithm), set the new limit to the new value
-  */
--static int set_buffer_control(struct hfi1_devdata *dd,
--			      struct buffer_control *new_bc)
-+int set_buffer_control(struct hfi1_devdata *dd, struct buffer_control *new_bc)
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index 0c32eaf..55c7e6a 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -5,7 +5,7 @@
+  *
+  * GPL LICENSE SUMMARY
+  *
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2015, 2016 Intel Corporation.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of version 2 of the GNU General Public License as
+@@ -18,7 +18,7 @@
+  *
+  * BSD LICENSE
+  *
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2015, 2016 Intel Corporation.
+  *
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted provided that the following conditions
+@@ -236,8 +236,6 @@ struct user_sdma_request {
+ 	u64 seqcomp;
+ 	u64 seqsubmitted;
+ 	struct list_head txps;
+-	spinlock_t txcmp_lock;  /* protect txcmp list */
+-	struct list_head txcmp;
+ 	unsigned long flags;
+ 	/* status of the last txreq completed */
+ 	int status;
+@@ -381,14 +379,12 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt, struct file *fp)
+ 		goto pq_reqs_nomem;
+ 
+ 	INIT_LIST_HEAD(&pq->list);
+-	INIT_LIST_HEAD(&pq->iovec_list);
+ 	pq->dd = dd;
+ 	pq->ctxt = uctxt->ctxt;
+ 	pq->subctxt = fd->subctxt;
+ 	pq->n_max_reqs = hfi1_sdma_comp_ring_size;
+ 	pq->state = SDMA_PKT_Q_INACTIVE;
+ 	atomic_set(&pq->n_reqs, 0);
+-	spin_lock_init(&pq->iovec_lock);
+ 	init_waitqueue_head(&pq->wait);
+ 
+ 	iowait_init(&pq->busy, 0, NULL, defer_packet_queue,
+@@ -444,7 +440,6 @@ int hfi1_user_sdma_free_queues(struct hfi1_filedata *fd)
  {
- 	u64 changing_mask, ld_mask, stat_mask;
- 	int change_count;
-diff --git a/drivers/staging/rdma/hfi1/diag.c b/drivers/staging/rdma/hfi1/diag.c
-index fafb3d7..bfce812 100644
---- a/drivers/staging/rdma/hfi1/diag.c
-+++ b/drivers/staging/rdma/hfi1/diag.c
-@@ -80,6 +80,7 @@
- /* Snoop option mask */
- #define SNOOP_DROP_SEND		BIT(0)
- #define SNOOP_USE_METADATA	BIT(1)
-+#define SNOOP_SET_VL0TOVL15     BIT(2)
+ 	struct hfi1_ctxtdata *uctxt = fd->uctxt;
+ 	struct hfi1_user_sdma_pkt_q *pq;
+-	struct user_sdma_iovec *iov;
+ 	unsigned long flags;
  
- static u8 snoop_flags;
+ 	hfi1_cdbg(SDMA, "[%u:%u:%u] Freeing user SDMA queues", uctxt->dd->unit,
+@@ -460,15 +455,6 @@ int hfi1_user_sdma_free_queues(struct hfi1_filedata *fd)
+ 		wait_event_interruptible(
+ 			pq->wait,
+ 			(ACCESS_ONCE(pq->state) == SDMA_PKT_Q_INACTIVE));
+-		/* Unpin any left over buffers. */
+-		while (!list_empty(&pq->iovec_list)) {
+-			spin_lock_irqsave(&pq->iovec_lock, flags);
+-			iov = list_first_entry(&pq->iovec_list,
+-					       struct user_sdma_iovec, list);
+-			list_del_init(&iov->list);
+-			spin_unlock_irqrestore(&pq->iovec_lock, flags);
+-			unpin_vector_pages(iov);
+-		}
+ 		kfree(pq->reqs);
+ 		kmem_cache_destroy(pq->txreq_cache);
+ 		kfree(pq);
+@@ -492,11 +478,10 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 	struct hfi1_user_sdma_pkt_q *pq = fd->pq;
+ 	struct hfi1_user_sdma_comp_q *cq = fd->cq;
+ 	struct hfi1_devdata *dd = pq->dd;
+-	unsigned long idx = 0, flags;
++	unsigned long idx = 0, unpinned;
+ 	u8 pcount = initial_pkt_count;
+ 	struct sdma_req_info info;
+ 	struct user_sdma_request *req;
+-	struct user_sdma_iovec *ioptr;
+ 	u8 opcode, sc, vl;
  
-@@ -965,6 +966,65 @@ static ssize_t hfi1_snoop_read(struct file *fp, char __user *data,
- 	return ret;
+ 	if (iovec[idx].iov_len < sizeof(info) + sizeof(req->hdr)) {
+@@ -515,13 +500,11 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 	}
+ 
+ 	/* Process any completed vectors */
+-	while (!list_empty(&pq->iovec_list)) {
+-		spin_lock_irqsave(&pq->iovec_lock, flags);
+-		ioptr = list_first_entry(&pq->iovec_list,
+-					 struct user_sdma_iovec, list);
+-		list_del_init(&ioptr->list);
+-		spin_unlock_irqrestore(&pq->iovec_lock, flags);
+-		unpin_vector_pages(ioptr);
++	unpinned = xchg(&pq->unpinned, 0);
++	if (unpinned) {
++		down_write(&current->mm->mmap_sem);
++		current->mm->pinned_vm -= unpinned;
++		up_write(&current->mm->mmap_sem);
+ 	}
+ 
+ 	trace_hfi1_sdma_user_reqinfo(dd, uctxt->ctxt, fd->subctxt,
+@@ -1075,10 +1058,6 @@ static int pin_vector_pages(struct user_sdma_request *req,
+ 		unpin_vector_pages(iovec);
+ 		return -EFAULT;
+ 	}
+-	/*
+-	 * Get a reference to the process's mm so we can use it when
+-	 * unpinning the io vectors.
+-	 */
+ 	return 0;
  }
  
-+/**
-+ * hfi1_assign_snoop_link_credits -- Set up credits for VL15 and others
-+ * @ppd : ptr to hfi1 port data
-+ * @value : options from user space
-+ *
-+ * Assumes the rest of the CM credit registers are zero from a
-+ * previous global or credit reset.
-+ * Leave shared count at zero for both global and all vls.
-+ * In snoop mode ideally we don't use shared credits
-+ * Reserve 8.5k for VL15
-+ * If total credits less than 8.5kbytes return error.
-+ * Divide the rest of the credits across VL0 to VL7 and if
-+ * each of these levels has less than 34 credits (at least 2048 + 128 bytes)
-+ * return with an error.
-+ * The credit registers will be reset to zero on link negotiation or link up
-+ * so this function should be activated from user space only if the port has
-+ * gone past link negotiation and link up.
-+ *
-+ * Return -- 0 if successful else error condition
-+ *
-+ */
-+static long hfi1_assign_snoop_link_credits(struct hfi1_pportdata *ppd,
-+					   int value)
-+{
-+#define  OPA_MIN_PER_VL_CREDITS  34  /* 2048 + 128 bytes */
-+	struct buffer_control t;
-+	int i;
-+	struct hfi1_devdata *dd = ppd->dd;
-+	u16  total_credits = (value >> 16) & 0xffff;
-+	u16  vl15_credits = dd->vl15_init / 2;
-+	u16  per_vl_credits;
-+	__be16 be_per_vl_credits;
-+
-+	if (!(ppd->host_link_state & HLS_UP))
-+		goto err_exit;
-+	if (total_credits  <  vl15_credits)
-+		goto err_exit;
-+
-+	per_vl_credits = (total_credits - vl15_credits) / TXE_NUM_DATA_VL;
-+
-+	if (per_vl_credits < OPA_MIN_PER_VL_CREDITS)
-+		goto err_exit;
-+
-+	memset(&t, 0, sizeof(t));
-+	be_per_vl_credits = cpu_to_be16(per_vl_credits);
-+
-+	for (i = 0; i < TXE_NUM_DATA_VL; i++)
-+		t.vl[i].dedicated = be_per_vl_credits;
-+
-+	t.vl[15].dedicated  = cpu_to_be16(vl15_credits);
-+	return set_buffer_control(ppd->dd, &t);
-+
-+err_exit:
-+	snoop_dbg("port_state = 0x%x, total_credits = %d, vl15_credits = %d",
-+		  ppd->host_link_state, total_credits, vl15_credits);
-+
-+	return -EINVAL;
-+}
-+
- static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- {
- 	struct hfi1_devdata *dd;
-@@ -1191,6 +1251,10 @@ static long hfi1_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
- 			snoop_flags |= SNOOP_DROP_SEND;
- 		if (value & SNOOP_USE_METADATA)
- 			snoop_flags |= SNOOP_USE_METADATA;
-+		if (value & (SNOOP_SET_VL0TOVL15)) {
-+			ppd = &dd->pport[0];  /* first port will do */
-+			ret = hfi1_assign_snoop_link_credits(ppd, value);
-+		}
- 		break;
- 	default:
- 		return -ENOTTY;
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index 363e6ef..023c504 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1515,6 +1515,7 @@ int snoop_send_pio_handler(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 			   u64 pbc);
- void snoop_inline_pio_send(struct hfi1_devdata *dd, struct pio_buf *pbuf,
- 			   u64 pbc, const void *from, size_t count);
-+int set_buffer_control(struct hfi1_devdata *dd, struct buffer_control *bc);
+@@ -1368,7 +1347,7 @@ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status,
+ 	struct hfi1_user_sdma_pkt_q *pq;
+ 	struct hfi1_user_sdma_comp_q *cq;
+ 	u16 idx;
+-	int i;
++	int i, j;
  
- static inline struct hfi1_devdata *dd_from_ppd(struct hfi1_pportdata *ppd)
- {
+ 	if (!tx->req)
+ 		return;
+@@ -1379,15 +1358,19 @@ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status,
+ 
+ 	/*
+ 	 * If we have any io vectors associated with this txreq,
+-	 * check whether they need to be 'freed'. We can't free them
+-	 * here because the unpin function needs to be able to sleep.
++	 * check whether they need to be 'freed'.
+ 	 */
+ 	for (i = tx->idx; i >= 0; i--) {
+ 		if (tx->iovecs[i].flags & TXREQ_FLAGS_IOVEC_LAST_PKT) {
+-			spin_lock(&pq->iovec_lock);
+-			list_add_tail(&tx->iovecs[i].vec->list,
+-				      &pq->iovec_list);
+-			spin_unlock(&pq->iovec_lock);
++			struct user_sdma_iovec *vec =
++				tx->iovecs[i].vec;
++
++			for (j = 0; j < vec->npages; j++)
++				put_page(vec->pages[j]);
++			xadd(&pq->unpinned, vec->npages);
++			kfree(vec->pages);
++			vec->pages = NULL;
++			vec->npages = 0;
+ 		}
+ 	}
+ 
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.h b/drivers/staging/rdma/hfi1/user_sdma.h
+index 317f0e8..7ef31a6 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.h
++++ b/drivers/staging/rdma/hfi1/user_sdma.h
+@@ -5,7 +5,7 @@
+  *
+  * GPL LICENSE SUMMARY
+  *
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2015, 2016 Intel Corporation.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of version 2 of the GNU General Public License as
+@@ -18,7 +18,7 @@
+  *
+  * BSD LICENSE
+  *
+- * Copyright(c) 2015 Intel Corporation.
++ * Copyright(c) 2015, 2016 Intel Corporation.
+  *
+  * Redistribution and use in source and binary forms, with or without
+  * modification, are permitted provided that the following conditions
+@@ -69,8 +69,7 @@ struct hfi1_user_sdma_pkt_q {
+ 	struct iowait busy;
+ 	unsigned state;
+ 	wait_queue_head_t wait;
+-	struct list_head iovec_list;
+-	spinlock_t iovec_lock;   /* protect iovec_list */
++	unsigned long unpinned;
+ };
+ 
+ struct hfi1_user_sdma_comp_q {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
