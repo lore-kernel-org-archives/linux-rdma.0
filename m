@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 04/10] rpcrdma: Add missing XDR union fields for RDMA
- errors
-Date: Wed, 03 Feb 2016 10:51:55 -0500
-Message-ID: <20160203155155.13868.64840.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 02/10] svcrdma: Make svc_rdma_get_frmr() not sleep
+Date: Wed, 03 Feb 2016 10:51:38 -0500
+Message-ID: <20160203155138.13868.38423.stgit@klimt.1015granger.net>
 References: <20160203154411.13868.48268.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,58 +12,97 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add some infrastructure (shared between xprtrdma and svcrdma) for
-constructing and parsing RPC-over-RDMA error status information.
+Want to call it in a context that cannot sleep. So pre-alloc
+the memory and the MRs.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   44 ++++++++++++++++++++++++++----
+ 1 file changed, 38 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index f33c5a4..a5a36c0 100644
---- a/include/linux/sunrpc/rpc_rdma.h
-+++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -93,6 +93,12 @@ struct rpcrdma_msg {
- 			__be32 rm_pempty[3];	/* 3 empty chunk lists */
- 		} rm_padded;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 5763825..02eee12 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -949,7 +949,7 @@ static struct svc_rdma_fastreg_mr *rdma_alloc_frmr(struct svcxprt_rdma *xprt)
+ 	return ERR_PTR(-ENOMEM);
+ }
  
-+		struct {
-+			__be32 rm_err;
-+			__be32 rm_vers_low;
-+			__be32 rm_vers_hi;
-+		} rm_error;
+-static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
++static void svc_rdma_destroy_frmrs(struct svcxprt_rdma *xprt)
+ {
+ 	struct svc_rdma_fastreg_mr *frmr;
+ 
+@@ -963,6 +963,37 @@ static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
+ 	}
+ }
+ 
++static bool svc_rdma_prealloc_frmrs(struct svcxprt_rdma *xprt)
++{
++	struct ib_device *dev = xprt->sc_cm_id->device;
++	unsigned int i;
 +
- 		__be32 rm_chunks[0];	/* read, write and reply chunks */
- 
- 	} rm_body;
-@@ -102,12 +108,16 @@ struct rpcrdma_msg {
-  * Smallest RPC/RDMA header: rm_xid through rm_type, then rm_nochunks
-  */
- #define RPCRDMA_HDRLEN_MIN	(sizeof(__be32) * 7)
-+#define RPCRDMA_HDRLEN_ERR	(sizeof(__be32) * 5)
- 
- enum rpcrdma_errcode {
- 	ERR_VERS = 1,
- 	ERR_CHUNK = 2
- };
- 
-+#define err_vers	cpu_to_be32(ERR_VERS)
-+#define err_chunk	cpu_to_be32(ERR_CHUNK)
++	/* Pre-allocate based on the maximum amount of payload
++	 * the server's HCA can handle per RDMA Read, to keep
++	 * the number of MRs per connection in check.
++	 *
++	 * If a client sends small Read chunks (eg. it may be
++	 * using physical registration), more RDMA Reads per
++	 * NFS WRITE will be needed.  svc_rdma_get_frmr() dips
++	 * into its reserve in that case. Better would be for
++	 * the server to reduce the connection's credit limit.
++	 */
++	i = 1 + RPCSVC_MAXPAGES / dev->attrs.max_fast_reg_page_list_len;
++	i *= xprt->sc_max_requests;
 +
- struct rpcrdma_err_vers {
- 	uint32_t rdma_vers_low;	/* Version range supported by peer */
- 	uint32_t rdma_vers_high;
-@@ -118,7 +128,8 @@ enum rpcrdma_proc {
- 	RDMA_NOMSG = 1,		/* An RPC call or reply msg - separate body */
- 	RDMA_MSGP = 2,		/* An RPC call or reply msg with padding */
- 	RDMA_DONE = 3,		/* Client signals reply completion */
--	RDMA_ERROR = 4		/* An RPC RDMA encoding error */
-+	RDMA_ERROR = 4,		/* An RPC RDMA encoding error */
-+	RDMA_LAST
- };
++	while (i--) {
++		struct svc_rdma_fastreg_mr *frmr;
++
++		frmr = rdma_alloc_frmr(xprt);
++		if (!frmr) {
++			dprintk("svcrdma: No memory for request map\n");
++			return false;
++		}
++		list_add(&frmr->frmr_list, &xprt->sc_frmr_q);
++	}
++	return true;
++}
++
+ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+ {
+ 	struct svc_rdma_fastreg_mr *frmr = NULL;
+@@ -975,10 +1006,9 @@ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+ 		frmr->sg_nents = 0;
+ 	}
+ 	spin_unlock_bh(&rdma->sc_frmr_q_lock);
+-	if (frmr)
+-		return frmr;
+-
+-	return rdma_alloc_frmr(rdma);
++	if (!frmr)
++		return ERR_PTR(-ENOMEM);
++	return frmr;
+ }
  
- #define rdma_msg	cpu_to_be32(RDMA_MSG)
+ void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
+@@ -1149,6 +1179,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 			dev->attrs.max_fast_reg_page_list_len;
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
+ 		newxprt->sc_reader = rdma_read_chunk_frmr;
++		if (!svc_rdma_prealloc_frmrs(newxprt))
++			goto errout;
+ 	}
+ 
+ 	/*
+@@ -1310,7 +1342,7 @@ static void __svc_rdma_free(struct work_struct *work)
+ 		xprt->xpt_bc_xprt = NULL;
+ 	}
+ 
+-	rdma_dealloc_frmr_q(rdma);
++	svc_rdma_destroy_frmrs(rdma);
+ 	svc_rdma_destroy_ctxts(rdma);
+ 	svc_rdma_destroy_maps(rdma);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
