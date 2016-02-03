@@ -1,43 +1,58 @@
-From: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
-Subject: [PATCH] IB/IPoIB: Do not set skb truesize since using one linearskb
-Date: Wed,  3 Feb 2016 15:55:37 -0500
-Message-ID: <1454532937-22649-1-git-send-email-clsoto@linux.vnet.ibm.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/7] IB/rdmavt: Finish adding core verbs support
+Date: Wed, 03 Feb 2016 14:14:25 -0800
+Message-ID: <20160203221136.1765.8947.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: brking-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Add the rest of the core verbs support to rdmavt. This includes query/modify
+port as well as get_port_immutable and query quid. SRQ functionality is also
+added as is support for memory affinity.
 
-We are seeing this warning: at net/core/skbuff.c:4174
-and before commit a44878d10063 ("IB/ipoib: Use one linear skb in RX flow")
-skb truesize was not being set when ipoib was using just one skb. 
-Removing this line avoids the warning when running tcp tests like iperf. 
-
-Fixes: a44878d10063 ("IB/ipoib: Use one linear skb in RX flow")
-Signed-off-by: Carol L Soto <clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+his patch series applies on the previously posted "staging/rdma/hfi1: Add
+rdmavt support to hfi1" and can be seen in context at:
+https://github.com/ddalessa/kernel/tree/for-4.6
 
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 2 --
- 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 5ea0c14..fa9c42f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -245,8 +245,6 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	skb_reset_mac_header(skb);
- 	skb_pull(skb, IPOIB_ENCAP_LEN);
- 
--	skb->truesize = SKB_TRUESIZE(skb->len);
--
- 	++dev->stats.rx_packets;
- 	dev->stats.rx_bytes += skb->len;
- 
+Dennis Dalessandro (2):
+      IB/rdmavt: Clean up distinction between port number and index
+      IB/rdmavt: Add query gid support.
+
+Harish Chegondi (1):
+      IB/rdmavt: Add support for query_port, modify_port and get_port_immutable
+
+Ira Weiny (2):
+      IB/rdmavt: Add hardware driver send work request check
+      IB/rdmavt: Properly pass gfp to hw driver function
+
+Jubin John (1):
+      IB/rdmavt: Add srq functionality to rdmavt
+
+Mitko Haralanov (1):
+      IB/rdmavt: Add Mem affinity support
+
+
+ drivers/infiniband/sw/rdmavt/mad.c  |    8 +
+ drivers/infiniband/sw/rdmavt/mad.h  |    2 
+ drivers/infiniband/sw/rdmavt/mmap.c |    2 
+ drivers/infiniband/sw/rdmavt/mr.c   |    2 
+ drivers/infiniband/sw/rdmavt/qp.c   |   80 +++++++++--
+ drivers/infiniband/sw/rdmavt/srq.c  |  257 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/sw/rdmavt/srq.h  |    1 
+ drivers/infiniband/sw/rdmavt/vt.c   |  125 ++++++++++++-----
+ drivers/infiniband/sw/rdmavt/vt.h   |   12 ++
+ include/rdma/rdma_vt.h              |   17 ++
+ 10 files changed, 441 insertions(+), 65 deletions(-)
+
 -- 
-1.8.3.1
-
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
