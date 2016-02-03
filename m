@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 13/54] staging/rdma/hfi1: No firmware retry for simulation
-Date: Wed, 03 Feb 2016 14:32:23 -0800
-Message-ID: <20160203223219.5923.68956.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 14/54] staging/rdma/hfi1: Skip lcb init for simulation
+Date: Wed, 03 Feb 2016 14:32:31 -0800
+Message-ID: <20160203223228.5923.97823.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,30 +15,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Simulation has no firmware, so it will never move firmware
-acquire to the FINAL state.  Avoid that by skiping the TRY
-state and moving directly to FINAL.
+The simulator does not correctly handle LCB cclk loopback.
+Skip that step for simulation - it is not needed.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/firmware.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index 817cbf9..4ba524b 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -631,7 +631,8 @@ done:
- 		fw_err = -ENOENT;
- 	} else {
- 		/* success */
--		if (fw_state == FW_EMPTY)
-+		if (fw_state == FW_EMPTY &&
-+		    dd->icode != ICODE_FUNCTIONAL_SIMULATOR)
- 			fw_state = FW_TRY;	/* may retry later */
- 		else
- 			fw_state = FW_FINAL;	/* cannot try again */
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 81b48d6..d45e271 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -9315,6 +9315,10 @@ static void init_qsfp_int(struct hfi1_devdata *dd)
+  */
+ static void init_lcb(struct hfi1_devdata *dd)
+ {
++	/* simulator does not correctly handle LCB cclk loopback, skip */
++	if (dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
++		return;
++
+ 	/* the DC has been reset earlier in the driver load */
+ 
+ 	/* set LCB for cclk loopback on the port */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
