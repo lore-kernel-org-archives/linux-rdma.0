@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 45/54] staging/rdma/hfi1,
- IB/core: Fix LinkDownReason define for consistency
-Date: Wed, 03 Feb 2016 14:36:58 -0800
-Message-ID: <20160203223654.5923.82285.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 43/54] staging/rdma/hfi1: Support query gid in rdmavt
+Date: Wed, 03 Feb 2016 14:36:40 -0800
+Message-ID: <20160203223636.5923.37863.stgit@scvm10.sc.intel.com>
 References: <20160203222512.5923.30980.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,68 +10,79 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160203222512.5923.30980.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Query gid is in rdmavt, but still relies on the driver to maintain the
+guid table. Add the necessary driver call back and remove the existing
+verb handler.
 
-LinkDownReason LocalMediaNotInstalled lacked an underscore
-and was inconsistent with other defines in the same family.
-This patch fixes this.
-
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c     |    4 ++--
- drivers/staging/rdma/hfi1/platform.c |    2 +-
- include/rdma/opa_port_info.h         |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/staging/rdma/hfi1/verbs.c |   32 ++++++++++++--------------------
+ 1 files changed, 12 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index 8c06e3b..f31cc23 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -5950,12 +5950,12 @@ static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index 8f351bc..a85fd81 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -1345,28 +1345,20 @@ static int modify_port(struct ib_device *ibdev, u8 port,
+ 	return ret;
+ }
  
- 			if ((ppd->offline_disabled_reason >
- 			  HFI1_ODR_MASK(
--			  OPA_LINKDOWN_REASONLOCAL_MEDIA_NOT_INSTALLED)) ||
-+			  OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED)) ||
- 			  (ppd->offline_disabled_reason ==
- 			  HFI1_ODR_MASK(OPA_LINKDOWN_REASON_NONE)))
- 				ppd->offline_disabled_reason =
- 				HFI1_ODR_MASK(
--				OPA_LINKDOWN_REASONLOCAL_MEDIA_NOT_INSTALLED);
-+				OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED);
+-static int query_gid(struct ib_device *ibdev, u8 port,
+-		     int index, union ib_gid *gid)
++static int hfi1_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
++			    int guid_index, __be64 *guid)
+ {
+-	struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
+-	int ret = 0;
++	struct hfi1_ibport *ibp = container_of(rvp, struct hfi1_ibport, rvp);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
  
- 			if (ppd->host_link_state == HLS_DN_POLL) {
- 				/*
-diff --git a/drivers/staging/rdma/hfi1/platform.c b/drivers/staging/rdma/hfi1/platform.c
-index c3df1d8..506a827 100644
---- a/drivers/staging/rdma/hfi1/platform.c
-+++ b/drivers/staging/rdma/hfi1/platform.c
-@@ -816,7 +816,7 @@ void tune_serdes(struct hfi1_pportdata *ppd)
- 		} else
- 			ppd->offline_disabled_reason =
- 			   HFI1_ODR_MASK(
--				OPA_LINKDOWN_REASONLOCAL_MEDIA_NOT_INSTALLED);
-+				OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED);
- 		break;
- 	default:
- 		dd_dev_info(ppd->dd, "%s: Unknown port type\n", __func__);
-diff --git a/include/rdma/opa_port_info.h b/include/rdma/opa_port_info.h
-index a0fa975..2b95c2c 100644
---- a/include/rdma/opa_port_info.h
-+++ b/include/rdma/opa_port_info.h
-@@ -97,7 +97,7 @@
- #define OPA_LINKDOWN_REASON_WIDTH_POLICY			41
- /* 42-48 reserved */
- #define OPA_LINKDOWN_REASON_DISCONNECTED			49
--#define OPA_LINKDOWN_REASONLOCAL_MEDIA_NOT_INSTALLED		50
-+#define OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED		50
- #define OPA_LINKDOWN_REASON_NOT_INSTALLED			51
- #define OPA_LINKDOWN_REASON_CHASSIS_CONFIG			52
- /* 53 reserved */
+-	if (!port || port > dd->num_pports)
+-		ret = -EINVAL;
+-	else {
+-		struct hfi1_ibport *ibp = to_iport(ibdev, port);
+-		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-
+-		gid->global.subnet_prefix = ibp->rvp.gid_prefix;
+-		if (index == 0)
+-			gid->global.interface_id = cpu_to_be64(ppd->guid);
+-		else if (index < HFI1_GUIDS_PER_PORT)
+-			gid->global.interface_id = ibp->guids[index - 1];
+-		else
+-			ret = -EINVAL;
+-	}
++	if (guid_index == 0)
++		*guid = cpu_to_be64(ppd->guid);
++	else if (guid_index < HFI1_GUIDS_PER_PORT)
++		*guid = ibp->guids[guid_index - 1];
++	else
++		return -EINVAL;
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+@@ -1538,7 +1530,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	ibdev->modify_device = modify_device;
+ 	ibdev->query_port = query_port;
+ 	ibdev->modify_port = modify_port;
+-	ibdev->query_gid = query_gid;
+ 
+ 	/* keep process mad in the driver */
+ 	ibdev->process_mad = hfi1_process_mad;
+@@ -1555,6 +1546,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	dd->verbs_dev.rdi.driver_f.get_pci_dev = get_pci_dev;
+ 	dd->verbs_dev.rdi.driver_f.check_ah = hfi1_check_ah;
+ 	dd->verbs_dev.rdi.driver_f.notify_new_ah = hfi1_notify_new_ah;
++	dd->verbs_dev.rdi.driver_f.get_guid_be = hfi1_get_guid_be;
+ 	/*
+ 	 * Fill in rvt info device attributes.
+ 	 */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
