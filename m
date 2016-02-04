@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 15/21] IB/srpt: Log private data associated with REJ
-Date: Thu, 4 Feb 2016 14:57:07 -0800
-Message-ID: <56B3D743.80004@sandisk.com>
+Subject: [PATCH v3 18/21] IB/srpt: Fix srpt_write_pending()
+Date: Thu, 4 Feb 2016 14:58:14 -0800
+Message-ID: <56B3D786.1050707@sandisk.com>
 References: <56B3D453.7030409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,41 +13,68 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-To make it possible to determine why an initiator sent a REJ,
-log the private data associated with the received REJ packet.
+The only allowed return values for the write_pending() callback
+function are 0, -EAGAIN and -ENOMEM. Since attempting to perform
+RDMA over a disconnecting channel will result in an IB error
+completion anyway, remove the code that checks the channel state
+from srpt_write_pending().
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 33 ++++-----------------------------
+ 1 file changed, 4 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 8473515..3f8925e 100644
+index ed1a261..0c88190 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2252,8 +2252,17 @@ static void srpt_cm_rej_recv(struct srpt_rdma_ch *ch,
- 			     const u8 *private_data,
- 			     u8 private_data_len)
+@@ -2486,39 +2486,14 @@ static int srpt_write_pending_status(struct se_cmd *se_cmd)
+  */
+ static int srpt_write_pending(struct se_cmd *se_cmd)
  {
--	pr_info("Received CM REJ for ch %s-%d; reason %d.\n",
--		ch->sess_name, ch->qp->qp_num, reason);
-+	char *priv = kmalloc(private_data_len * 3 + 1, GFP_KERNEL);
-+	int i;
-+
-+	if (priv) {
-+		priv[0] = '\0';
-+		for (i = 0; i < private_data_len; i++)
-+			sprintf(priv + 3 * i, "%02x ", private_data[i]);
-+	}
-+	pr_info("Received CM REJ for ch %s-%d; reason %d; private data %s.\n",
-+		ch->sess_name, ch->qp->qp_num, reason, priv ? : "(?)");
-+	kfree(priv);
- 	srpt_drain_channel(ch);
+-	struct srpt_rdma_ch *ch;
+-	struct srpt_send_ioctx *ioctx;
++	struct srpt_send_ioctx *ioctx =
++		container_of(se_cmd, struct srpt_send_ioctx, cmd);
++	struct srpt_rdma_ch *ch = ioctx->ch;
+ 	enum srpt_command_state new_state;
+-	int ret;
+-
+-	ioctx = container_of(se_cmd, struct srpt_send_ioctx, cmd);
+ 
+ 	new_state = srpt_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA);
+ 	WARN_ON(new_state == SRPT_STATE_DONE);
+-
+-	ch = ioctx->ch;
+-	BUG_ON(!ch);
+-
+-	switch (ch->state) {
+-	case CH_CONNECTING:
+-		WARN(true, "unexpected channel state %d\n", ch->state);
+-		ret = -EINVAL;
+-		goto out;
+-	case CH_LIVE:
+-		break;
+-	case CH_DISCONNECTING:
+-	case CH_DRAINING:
+-	case CH_DISCONNECTED:
+-		pr_debug("cmd with tag %lld: channel disconnecting\n",
+-			 ioctx->cmd.tag);
+-		srpt_set_cmd_state(ioctx, SRPT_STATE_DATA_IN);
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-	ret = srpt_xfer_data(ch, ioctx);
+-
+-out:
+-	return ret;
++	return srpt_xfer_data(ch, ioctx);
  }
  
+ static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
 -- 
 2.7.0
 
