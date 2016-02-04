@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 12/21] IB/srpt: Fix how aborted commands are processed
-Date: Thu, 4 Feb 2016 14:52:41 -0800
-Message-ID: <56B3D639.1000109@sandisk.com>
+Subject: [PATCH v3 16/21] IB/srpt: Use a mutex to protect the channel list
+Date: Thu, 4 Feb 2016 14:57:31 -0800
+Message-ID: <56B3D75B.3030202@sandisk.com>
 References: <56B3D453.7030409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,159 +13,166 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-srpt_abort_cmd() must not be called in state SRPT_STATE_DATA_IN. Issue
-a warning if this occurs.
-
-srpt_abort_cmd() must not invoke target_put_sess_cmd() for commands
-in state SRPT_STATE_DONE because the srpt_abort_cmd() callers already
-do this when necessary. Hence remove this call.
-
-If an RDMA read fails the corresponding SCSI command must fail. Hence
-add a transport_generic_request_failure() call.
-
-Remove an incorrect srpt_abort_cmd() call from srpt_rdma_write_done().
-
-Avoid that srpt_send_done() calls srpt_abort_cmd() for finished SCSI
-commands.
+In a later patch a function that can block will be called while
+iterating over the rch_list. Hence protect that list with a
+mutex instead of a spinlock. And since it is not allowed to sleep
+while the task state != TASK_RUNNING, convert the list test in
+srpt_ch_list_empty() into a lockless test.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 49 ++++++++++++-----------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 42 +++++++++++++----------------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  4 ++--
+ 2 files changed, 17 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 569820a..5b204f8 100644
+index 3f8925e..4e0e64b 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1267,10 +1267,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+@@ -1862,12 +1862,11 @@ static void __srpt_close_ch(struct srpt_rdma_ch *ch)
+  */
+ static void srpt_close_ch(struct srpt_rdma_ch *ch)
+ {
+-	struct srpt_device *sdev;
++	struct srpt_device *sdev = ch->sport->sdev;
  
- 	/*
- 	 * If the command is in a state where the target core is waiting for
--	 * the ib_srpt driver, change the state to the next state. Changing
--	 * the state of the command from SRPT_STATE_NEED_DATA to
--	 * SRPT_STATE_DATA_IN ensures that srpt_xmit_response() will call this
--	 * function a second time.
-+	 * the ib_srpt driver, change the state to the next state.
- 	 */
- 
- 	spin_lock_irqsave(&ioctx->spinlock, flags);
-@@ -1279,25 +1276,17 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 	case SRPT_STATE_NEED_DATA:
- 		ioctx->state = SRPT_STATE_DATA_IN;
- 		break;
--	case SRPT_STATE_DATA_IN:
- 	case SRPT_STATE_CMD_RSP_SENT:
- 	case SRPT_STATE_MGMT_RSP_SENT:
- 		ioctx->state = SRPT_STATE_DONE;
- 		break;
- 	default:
-+		WARN_ONCE(true, "%s: unexpected I/O context state %d\n",
-+			  __func__, state);
- 		break;
- 	}
- 	spin_unlock_irqrestore(&ioctx->spinlock, flags);
- 
--	if (state == SRPT_STATE_DONE) {
--		struct srpt_rdma_ch *ch = ioctx->ch;
--
--		BUG_ON(ch->sess == NULL);
--
--		target_put_sess_cmd(&ioctx->cmd);
--		goto out;
--	}
--
- 	pr_debug("Aborting cmd with state %d and tag %lld\n", state,
- 		 ioctx->cmd.tag);
- 
-@@ -1305,19 +1294,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 	case SRPT_STATE_NEW:
- 	case SRPT_STATE_DATA_IN:
- 	case SRPT_STATE_MGMT:
-+	case SRPT_STATE_DONE:
- 		/*
- 		 * Do nothing - defer abort processing until
- 		 * srpt_queue_response() is invoked.
- 		 */
--		WARN_ON(!transport_check_aborted_status(&ioctx->cmd, false));
- 		break;
- 	case SRPT_STATE_NEED_DATA:
--		/* DMA_TO_DEVICE (write) - RDMA read error. */
--
--		/* XXX(hch): this is a horrible layering violation.. */
--		spin_lock_irqsave(&ioctx->cmd.t_state_lock, flags);
--		ioctx->cmd.transport_state &= ~CMD_T_ACTIVE;
--		spin_unlock_irqrestore(&ioctx->cmd.t_state_lock, flags);
-+		pr_debug("tag %#llx: RDMA read error\n", ioctx->cmd.tag);
-+		transport_generic_request_failure(&ioctx->cmd,
-+					TCM_CHECK_CONDITION_ABORT_CMD);
- 		break;
- 	case SRPT_STATE_CMD_RSP_SENT:
- 		/*
-@@ -1325,18 +1311,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 		 * not been received in time.
- 		 */
- 		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
--		target_put_sess_cmd(&ioctx->cmd);
-+		transport_generic_free_cmd(&ioctx->cmd, 0);
- 		break;
- 	case SRPT_STATE_MGMT_RSP_SENT:
--		srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
--		target_put_sess_cmd(&ioctx->cmd);
-+		transport_generic_free_cmd(&ioctx->cmd, 0);
- 		break;
- 	default:
- 		WARN(1, "Unexpected command state (%d)", state);
- 		break;
- 	}
- 
--out:
- 	return state;
+-	sdev = ch->sport->sdev;
+-	spin_lock_irq(&sdev->spinlock);
++	mutex_lock(&sdev->mutex);
+ 	__srpt_close_ch(ch);
+-	spin_unlock_irq(&sdev->spinlock);
++	mutex_unlock(&sdev->mutex);
  }
  
-@@ -1376,9 +1360,14 @@ static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
- 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ /**
+@@ -1954,11 +1953,11 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 			     ch->sport->sdev, ch->rq_size,
+ 			     ch->rsp_size, DMA_TO_DEVICE);
  
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-+		/*
-+		 * Note: if an RDMA write error completion is received that
-+		 * means that a SEND also has been posted. Defer further
-+		 * processing of the associated command until the send error
-+		 * completion has been received.
-+		 */
- 		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
- 			ioctx, wc->status);
--		srpt_abort_cmd(ioctx);
+-	spin_lock_irq(&sdev->spinlock);
++	mutex_lock(&sdev->mutex);
+ 	list_del_init(&ch->list);
+ 	if (ch->release_done)
+ 		complete(ch->release_done);
+-	spin_unlock_irq(&sdev->spinlock);
++	mutex_unlock(&sdev->mutex);
+ 
+ 	wake_up(&sdev->ch_releaseQ);
+ 
+@@ -2039,7 +2038,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	if ((req->req_flags & SRP_MTCH_ACTION) == SRP_MULTICHAN_SINGLE) {
+ 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_NO_CHAN;
+ 
+-		spin_lock_irq(&sdev->spinlock);
++		mutex_lock(&sdev->mutex);
+ 
+ 		list_for_each_entry_safe(ch, tmp_ch, &sdev->rch_list, list) {
+ 			if (!memcmp(ch->i_port_id, req->initiator_port_id, 16)
+@@ -2063,7 +2062,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 			}
+ 		}
+ 
+-		spin_unlock_irq(&sdev->spinlock);
++		mutex_unlock(&sdev->mutex);
+ 
+ 	} else
+ 		rsp->rsp_flags = SRP_LOGIN_RSP_MULTICHAN_MAINTAINED;
+@@ -2208,9 +2207,9 @@ try_again:
+ 		goto release_channel;
  	}
+ 
+-	spin_lock_irq(&sdev->spinlock);
++	mutex_lock(&sdev->mutex);
+ 	list_add_tail(&ch->list, &sdev->rch_list);
+-	spin_unlock_irq(&sdev->spinlock);
++	mutex_unlock(&sdev->mutex);
+ 
+ 	goto out;
+ 
+@@ -2652,17 +2651,6 @@ static void srpt_refresh_port_work(struct work_struct *work)
+ 	srpt_refresh_port(sport);
  }
  
-@@ -1721,15 +1710,10 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
- 
- 	atomic_inc(&ch->sq_wr_avail);
- 
--	if (wc->status != IB_WC_SUCCESS) {
-+	if (wc->status != IB_WC_SUCCESS)
- 		pr_info("sending response for ioctx 0x%p failed"
- 			" with status %d\n", ioctx, wc->status);
- 
--		atomic_dec(&ch->req_lim);
--		srpt_abort_cmd(ioctx);
--		goto out;
--	}
+-static int srpt_ch_list_empty(struct srpt_device *sdev)
+-{
+-	int res;
 -
- 	if (state != SRPT_STATE_DONE) {
- 		srpt_unmap_sg_to_ib_sge(ch, ioctx);
- 		transport_generic_free_cmd(&ioctx->cmd, 0);
-@@ -1738,7 +1722,6 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
- 		       " wr_id = %u.\n", ioctx->ioctx.index);
- 	}
+-	spin_lock_irq(&sdev->spinlock);
+-	res = list_empty(&sdev->rch_list);
+-	spin_unlock_irq(&sdev->spinlock);
+-
+-	return res;
+-}
+-
+ /**
+  * srpt_release_sdev() - Free the channel resources associated with a target.
+  */
+@@ -2675,13 +2663,13 @@ static int srpt_release_sdev(struct srpt_device *sdev)
  
--out:
- 	while (!list_empty(&ch->cmd_wait_list) &&
- 	       ch->state == CH_LIVE &&
- 	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
+ 	BUG_ON(!sdev);
+ 
+-	spin_lock_irq(&sdev->spinlock);
++	mutex_lock(&sdev->mutex);
+ 	list_for_each_entry_safe(ch, tmp_ch, &sdev->rch_list, list)
+ 		__srpt_close_ch(ch);
+-	spin_unlock_irq(&sdev->spinlock);
++	mutex_unlock(&sdev->mutex);
+ 
+ 	res = wait_event_interruptible(sdev->ch_releaseQ,
+-				       srpt_ch_list_empty(sdev));
++				       list_empty_careful(&sdev->rch_list));
+ 	if (res)
+ 		pr_err("%s: interrupted.\n", __func__);
+ 
+@@ -2742,7 +2730,7 @@ static void srpt_add_one(struct ib_device *device)
+ 	sdev->device = device;
+ 	INIT_LIST_HEAD(&sdev->rch_list);
+ 	init_waitqueue_head(&sdev->ch_releaseQ);
+-	spin_lock_init(&sdev->spinlock);
++	mutex_init(&sdev->mutex);
+ 
+ 	sdev->pd = ib_alloc_pd(device);
+ 	if (IS_ERR(sdev->pd))
+@@ -2970,12 +2958,12 @@ static void srpt_close_session(struct se_session *se_sess)
+ 	pr_debug("ch %s-%d state %d\n", ch->sess_name, ch->qp->qp_num,
+ 		 ch->state);
+ 
+-	spin_lock_irq(&sdev->spinlock);
++	mutex_lock(&sdev->mutex);
+ 	BUG_ON(ch->release_done);
+ 	ch->release_done = &release_done;
+ 	wait = !list_empty(&ch->list);
+ 	__srpt_close_ch(ch);
+-	spin_unlock_irq(&sdev->spinlock);
++	mutex_unlock(&sdev->mutex);
+ 
+ 	if (!wait)
+ 		return;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 9c326c7..5883295 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -342,7 +342,7 @@ struct srpt_port {
+  * @ioctx_ring:    Per-HCA SRQ.
+  * @rch_list:      Per-device channel list -- see also srpt_rdma_ch.list.
+  * @ch_releaseQ:   Enables waiting for removal from rch_list.
+- * @spinlock:      Protects rch_list and tpg.
++ * @mutex:         Protects rch_list.
+  * @port:          Information about the ports owned by this HCA.
+  * @event_handler: Per-HCA asynchronous IB event handler.
+  * @list:          Node in srpt_dev_list.
+@@ -356,7 +356,7 @@ struct srpt_device {
+ 	struct srpt_recv_ioctx	**ioctx_ring;
+ 	struct list_head	rch_list;
+ 	wait_queue_head_t	ch_releaseQ;
+-	spinlock_t		spinlock;
++	struct mutex		mutex;
+ 	struct srpt_port	port[2];
+ 	struct ib_event_handler	event_handler;
+ 	struct list_head	list;
 -- 
 2.7.0
 
