@@ -1,13 +1,13 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/5] staging/rdma/hfi1: use new RNR timer
-Date: Thu, 04 Feb 2016 10:59:36 -0800
-Message-ID: <20160204185932.6973.6932.stgit@scvm10.sc.intel.com>
-References: <20160204185718.6973.92668.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 1/6] staging/rdma/hfi1: remove duplicate timeout print
+Date: Thu, 04 Feb 2016 11:03:02 -0800
+Message-ID: <20160204190257.8378.93099.stgit@scvm10.sc.intel.com>
+References: <20160204190024.8378.5080.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160204185718.6973.92668.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160204190024.8378.5080.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -15,181 +15,39 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use the new RNR timer for hfi1.
+The qp->timeout field is duplicated in the
+seqfile print.
 
-For qib, this timer doesn't exist, so exploit driver
-callbacks to use the new timer as appropriate.
+Remove it.
 
 Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_qp.c |    1 +
- drivers/infiniband/sw/rdmavt/qp.c  |    1 -
- drivers/staging/rdma/hfi1/qp.c     |    3 +++
- drivers/staging/rdma/hfi1/rc.c     |   22 +++++++++++++---------
- drivers/staging/rdma/hfi1/verbs.h  |    2 ++
- 5 files changed, 19 insertions(+), 10 deletions(-)
+ drivers/staging/rdma/hfi1/qp.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 45bed5f..787116f 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -412,6 +412,7 @@ void stop_send_queue(struct rvt_qp *qp)
- 	struct qib_qp_priv *priv = qp->priv;
- 
- 	cancel_work_sync(&priv->s_work);
-+	del_timer_sync(&qp->s_timer);
- }
- 
- void quiesce_qp(struct rvt_qp *qp)
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 322de64..439213c 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -405,7 +405,6 @@ void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 
- 		/* Stop the send queue and the retry timer */
- 		rdi->driver_f.stop_send_queue(qp);
--		del_timer_sync(&qp->s_timer);
- 
- 		/* Wait for things to stop */
- 		rdi->driver_f.quiesce_qp(qp);
 diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index e138d43..20473b6 100644
+index 20473b6..afa115c 100644
 --- a/drivers/staging/rdma/hfi1/qp.c
 +++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -609,6 +609,7 @@ void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 		return ERR_PTR(-ENOMEM);
- 	}
- 	setup_timer(&priv->s_rnr_timer, hfi1_rc_rnr_retry, (unsigned long)qp);
-+	qp->s_timer.function = hfi1_rc_timeout;
- 	return priv;
- }
- 
-@@ -648,6 +649,7 @@ unsigned free_all_qps(struct rvt_dev_info *rdi)
- void flush_qp_waiters(struct rvt_qp *qp)
- {
- 	flush_iowait(qp);
-+	hfi1_stop_rc_timers(qp);
- }
- 
- void stop_send_queue(struct rvt_qp *qp)
-@@ -655,6 +657,7 @@ void stop_send_queue(struct rvt_qp *qp)
- 	struct hfi1_qp_priv *priv = qp->priv;
- 
- 	cancel_work_sync(&priv->s_iowait.iowork);
-+	hfi1_del_timers_sync(qp);
- }
- 
- void quiesce_qp(struct rvt_qp *qp)
-diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 1ff19aa..2c46491 100644
---- a/drivers/staging/rdma/hfi1/rc.c
-+++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -60,8 +60,6 @@
- /* cut down ridiculously long IB macro names */
- #define OP(x) IB_OPCODE_RC_##x
- 
--static void rc_timeout(unsigned long arg);
--
- /**
-  * hfi1_add_retry_timer - add/start a retry timer
-  * @qp - the QP
-@@ -71,7 +69,6 @@ static void rc_timeout(unsigned long arg);
- static inline void hfi1_add_retry_timer(struct rvt_qp *qp)
- {
- 	qp->s_flags |= RVT_S_TIMER;
--	qp->s_timer.function = rc_timeout;
- 	/* 4.096 usec. * (1 << qp->timeout) */
- 	qp->s_timer.expires = jiffies + qp->timeout_jiffies;
- 	add_timer(&qp->s_timer);
-@@ -86,10 +83,11 @@ static inline void hfi1_add_retry_timer(struct rvt_qp *qp)
-  */
- static inline void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
- {
-+	struct hfi1_qp_priv *priv = qp->priv;
-+
- 	qp->s_flags |= RVT_S_WAIT_RNR;
--	qp->s_timer.function = hfi1_rc_rnr_retry;
- 	qp->s_timer.expires = jiffies + usecs_to_jiffies(to);
--	add_timer(&qp->s_timer);
-+	add_timer(&priv->s_rnr_timer);
- }
- 
- /**
-@@ -102,7 +100,6 @@ static inline void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
- static inline void hfi1_mod_retry_timer(struct rvt_qp *qp)
- {
- 	qp->s_flags |= RVT_S_TIMER;
--	qp->s_timer.function = rc_timeout;
- 	/* 4.096 usec. * (1 << qp->timeout) */
- 	mod_timer(&qp->s_timer, jiffies + qp->timeout_jiffies);
- }
-@@ -132,12 +129,15 @@ static inline int hfi1_stop_retry_timer(struct rvt_qp *qp)
-  *
-  * stop any pending timers
-  */
--static inline void hfi1_stop_rc_timers(struct rvt_qp *qp)
-+void hfi1_stop_rc_timers(struct rvt_qp *qp)
- {
-+	struct hfi1_qp_priv *priv = qp->priv;
-+
- 	/* Remove QP from all timers */
- 	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
- 		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
- 		del_timer(&qp->s_timer);
-+		del_timer(&priv->s_rnr_timer);
- 	}
- }
- 
-@@ -151,11 +151,12 @@ static inline void hfi1_stop_rc_timers(struct rvt_qp *qp)
- static inline int hfi1_stop_rnr_timer(struct rvt_qp *qp)
- {
- 	int rval = 0;
-+	struct hfi1_qp_priv *priv = qp->priv;
- 
- 	/* Remove QP from rnr timer */
- 	if (qp->s_flags & RVT_S_WAIT_RNR) {
- 		qp->s_flags &= ~RVT_S_WAIT_RNR;
--		rval = del_timer(&qp->s_timer);
-+		rval = del_timer(&priv->s_rnr_timer);
- 	}
- 	return rval;
- }
-@@ -166,7 +167,10 @@ static inline int hfi1_stop_rnr_timer(struct rvt_qp *qp)
-  */
- void hfi1_del_timers_sync(struct rvt_qp *qp)
- {
-+	struct hfi1_qp_priv *priv = qp->priv;
-+
- 	del_timer_sync(&qp->s_timer);
-+	del_timer_sync(&priv->s_rnr_timer);
- }
- 
- static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
-@@ -1015,7 +1019,7 @@ static void restart_rc(struct rvt_qp *qp, u32 psn, int wait)
- /*
-  * This is called from s_timer for missing responses.
-  */
--static void rc_timeout(unsigned long arg)
-+void hfi1_rc_timeout(unsigned long arg)
- {
- 	struct rvt_qp *qp = (struct rvt_qp *)arg;
- 	struct hfi1_ibport *ibp;
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 6294fa8..26eda8a 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -404,7 +404,9 @@ u8 ah_to_sc(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
- struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid);
- 
- void hfi1_rc_rnr_retry(unsigned long arg);
-+void hfi1_rc_timeout(unsigned long arg);
- void hfi1_del_timers_sync(struct rvt_qp *qp);
-+void hfi1_stop_rc_timers(struct rvt_qp *qp);
- 
- void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_ib_header *hdr);
- 
+@@ -547,7 +547,7 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
+ 	sde = qp_to_sdma_engine(qp, priv->s_sc);
+ 	wqe = rvt_get_swqe_ptr(qp, qp->s_last);
+ 	seq_printf(s,
+-		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u) QP%u LID %x SL %u MTU %d %u %u %u SDE %p,%u\n",
++		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u) QP%u LID %x SL %u MTU %u %u %u SDE %p,%u\n",
+ 		   iter->n,
+ 		   qp_idle(qp) ? "I" : "B",
+ 		   qp->ibqp.qp_num,
+@@ -572,7 +572,6 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
+ 		   qp->remote_ah_attr.sl,
+ 		   qp->pmtu,
+ 		   qp->s_retry_cnt,
+-		   qp->timeout,
+ 		   qp->s_rnr_retry_cnt,
+ 		   sde,
+ 		   sde ? sde->this_idx : 0);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
