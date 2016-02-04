@@ -1,45 +1,43 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [v1] libmlx5: Add support for RAW_ETH TX/RX checksum offload
-Date: Thu, 4 Feb 2016 18:15:34 +0200
-Message-ID: <56B37926.1070204@dev.mellanox.co.il>
-References: <1454519132-46636-1-git-send-email-bodong@mellanox.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] staging: rdma: use setup_timer() api
+Date: Thu, 4 Feb 2016 12:32:07 -0500
+Message-ID: <20160204173206.GA23057@phlsvsds.ph.intel.com>
+References: <20160204132316.GA25672@IND12F0122> <32E1700B9017364D9B60AED9960492BC25A05B89@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454519132-46636-1-git-send-email-bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC25A05B89-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzXQFizaE/u3fw@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gujulan Elango, Hari Prasath (H.)" <hgujulan-Vi+0cqmPEYlBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/3/2016 7:05 PM, Bodong Wang wrote:
-> RX checksum verification status is reported through wc_flag when polling
-> CQ. When IBV_WC_IP_CSUM_OK is set, that means both IPv4 header checksum and
-> TCP/UDP checksum are OK.
->
-> TX checksum offload will be enabled for TCP/UDP over IPv4 if user sets
-> send_flag IBV_SEND_IP_CSUM.
->
-> A new field, qp_cap_cache, is added to mlx5_qp in order to 'cache'
-> the csum capabilities to minimize perfromance hit on poll_one
-> function. The device and port capabilities are cached inside
-> mlx5_init_context.
->
-> Change-Id: I4d26f43027c08e7142e77a977744e2abe08a6e58
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   src/cq.c    | 31 ++++++++++++++++++++++++++++---
->   src/mlx5.c  | 12 ++++++++++++
->   src/mlx5.h  | 16 ++++++++++++++++
->   src/qp.c    | 10 ++++++++++
->   src/verbs.c | 16 ++++++++++++++++
->   src/wqe.h   |  5 +++++
->   6 files changed, 87 insertions(+), 3 deletions(-)
->
+On Thu, Feb 04, 2016 at 09:38:32AM -0600, Mike Marciniszyn wrote:
+> > Subject: [PATCH] staging: rdma: use setup_timer() api
+> > 
+> > From: Hari Prasath Gujulan Elango <hgujulan-Vi+0cqmPEYlBDgjK7y7TUQ@public.gmane.org>
+> > 
+> 
+> Doug,
+> 
+> We are going to add this to the rdmavt/hfi1/qib work, with the appropriate authorship credit.   Otherwise, there will certainly be conflicts.
+> 
+> Hari,
+> 
+> Note that ehca is going away.
 
-Applied.
+Actually ehca is already gone.  From Dougs for-4.5-rc tree.
 
+12:30:25 > ls
+Kconfig  Makefile  hfi1/
+
+Ira
+
+> 
+> In addition,  you missed exploiting the third argument to setup_timer() for the callback context.
+> 
+> Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
