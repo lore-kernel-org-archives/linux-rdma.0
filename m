@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/6] iw_cxgb4: add drain_qp function
-Date: Thu, 4 Feb 2016 13:52:12 -0800
-Message-ID: <c28fbc3d942d4805bc30ccc9ec1e288cb6388a32.1454709715.git.swise@chelsio.com>
+Subject: [PATCH 3/6] nvme-rdma: use ib_drain_qp() function
+Date: Thu, 4 Feb 2016 13:52:25 -0800
+Message-ID: <46311d109c4e440ba7d3a890f92b7b3b2fadcaf4.1454709715.git.swise@chelsio.com>
 References: <cover.1454709715.git.swise@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1454709715.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -15,85 +15,158 @@ Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Signed-off-by: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cq.c       | 6 +++++-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 2 ++
- drivers/infiniband/hw/cxgb4/provider.c | 1 +
- drivers/infiniband/hw/cxgb4/qp.c       | 8 ++++++++
- 4 files changed, 16 insertions(+), 1 deletion(-)
+ drivers/nvme/host/rdma.c   | 35 +++--------------------------------
+ drivers/nvme/target/rdma.c | 36 +++---------------------------------
+ 2 files changed, 6 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index cf21df4..6fdcf78 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -815,8 +815,12 @@ static int c4iw_poll_cq_one(struct c4iw_cq *chp, struct ib_wc *wc)
- 		}
- 	}
- out:
--	if (wq)
-+	if (wq) {
-+		if (unlikely(qhp->attr.state != C4IW_QP_STATE_RTS &&
-+			     t4_sq_empty(wq) && t4_rq_empty(wq)))
-+			complete(&qhp->qp_drained);
- 		spin_unlock(&qhp->lock);
-+	}
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index a3e5c3a..613cc39 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -101,8 +101,6 @@ struct nvme_rdma_queue {
+ 	struct rdma_cm_id	*cm_id;
+ 	int			cm_error;
+ 	struct completion	cm_done;
+-
+-	struct completion	drain_done;
+ };
+ 
+ enum nvme_rdma_ctrl_state {
+@@ -283,7 +281,8 @@ static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue, const int factor)
+ 		return -ENOMEM;
+ 
+ 	init_attr->event_handler = nvme_rdma_qp_event;
+-	init_attr->cap.max_send_wr = factor * queue->queue_size;
++	/* +1 for drain */
++	init_attr->cap.max_send_wr = factor * queue->queue_size + 1;
+ 	/* +1 for drain */
+ 	init_attr->cap.max_recv_wr = queue->queue_size + 1;
+ 	init_attr->cap.max_recv_sge = 1;
+@@ -638,7 +637,6 @@ static int nvme_rdma_init_queue(struct nvme_rdma_ctrl *ctrl,
+ 	queue = &ctrl->queues[idx];
+ 	queue->ctrl = ctrl;
+ 	init_completion(&queue->cm_done);
+-	init_completion(&queue->drain_done);
+ 
+ 	if (idx > 0) {
+ 		queue->cmnd_capsule_len =
+@@ -682,40 +680,13 @@ out_destroy_cm_id:
  	return ret;
  }
  
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index fb2de75..fdb9d9a 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -476,6 +476,7 @@ struct c4iw_qp {
- 	wait_queue_head_t wait;
- 	struct timer_list timer;
- 	int sq_sig_all;
-+	struct completion qp_drained;
+-static void nvme_rdma_drain_done(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct nvme_rdma_queue *queue = cq->cq_context;
+-
+-	complete(&queue->drain_done);
+-}
+-
+-static struct ib_cqe nvme_rdma_drain_cqe = {
+-	.done		= nvme_rdma_drain_done,
+-};
+-
+-static void nvme_rdma_drain_qp(struct nvme_rdma_queue *queue)
+-{
+-	struct ib_qp *qp = queue->cm_id->qp;
+-	struct ib_recv_wr wr = { }, *bad_wr;
+-	int ret;
+-
+-	wr.wr_cqe = &nvme_rdma_drain_cqe;
+-	ret = ib_post_recv(qp, &wr, &bad_wr);
+-	if (ret) {
+-		WARN_ONCE(ret, "ib_post_recv(returned %d\n", ret);
+-		return;
+-	}
+-
+-	wait_for_completion(&queue->drain_done);
+-}
+-
+ static void nvme_rdma_free_queue(struct nvme_rdma_queue *queue)
+ {
+ 	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags))
+ 		return;
+ 
+ 	rdma_disconnect(queue->cm_id);
+-	nvme_rdma_drain_qp(queue);
++	ib_drain_qp(queue->cm_id->qp);
+ 	nvme_rdma_destroy_queue_ib(queue);
+ 	rdma_destroy_id(queue->cm_id);
+ }
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 85fd44a..19137c3 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -87,7 +87,6 @@ struct nvmet_rdma_queue {
+ 	int			recv_queue_size;
+ 	int			send_queue_size;
+ 
+-	struct completion	drain_done;
+ 	struct list_head	queue_list;
  };
  
- static inline struct c4iw_qp *to_c4iw_qp(struct ib_qp *ibqp)
-@@ -1016,6 +1017,7 @@ extern int c4iw_wr_log;
- extern int db_fc_threshold;
- extern int db_coalescing_threshold;
- extern int use_dsgl;
-+void c4iw_drain_qp(struct ib_qp *qp);
+@@ -901,7 +900,8 @@ static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
+ 	if (ndev->srq) {
+ 		qp_attr->srq = ndev->srq;
+ 	} else {
+-		qp_attr->cap.max_recv_wr = queue->recv_queue_size;
++		/* +1 for drain */
++		qp_attr->cap.max_recv_wr = 1 + queue->recv_queue_size;
+ 		qp_attr->cap.max_recv_sge = 2;
+ 	}
  
+@@ -1165,7 +1165,6 @@ static int nvmet_rdma_queue_connect(struct rdma_cm_id *cm_id,
+ 		ret = -ENOMEM;
+ 		goto put_device;
+ 	}
+-	init_completion(&queue->drain_done);
+ 	cm_id->context = queue;
  
- #endif
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index ec04272..0ab942f 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -564,6 +564,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.get_protocol_stats = c4iw_get_mib;
- 	dev->ibdev.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION;
- 	dev->ibdev.get_port_immutable = c4iw_port_immutable;
-+	dev->ibdev.drain_qp = c4iw_drain_qp;
- 
- 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
- 	if (!dev->ibdev.iwcm)
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index e99345e..2e70c01 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1697,6 +1697,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	qhp->attr.max_ird = 0;
- 	qhp->sq_sig_all = attrs->sq_sig_type == IB_SIGNAL_ALL_WR;
- 	spin_lock_init(&qhp->lock);
-+	init_completion(&qhp->qp_drained);
- 	mutex_init(&qhp->mutex);
- 	init_waitqueue_head(&qhp->wait);
- 	atomic_set(&qhp->refcnt, 1);
-@@ -1888,3 +1889,10 @@ int c4iw_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	init_attr->sq_sig_type = qhp->sq_sig_all ? IB_SIGNAL_ALL_WR : 0;
- 	return 0;
+ 	ret = nvmet_rdma_cm_accept(cm_id, queue);
+@@ -1214,35 +1213,6 @@ out_unlock:
+ 	spin_unlock_irqrestore(&queue->state_lock, flags);
  }
-+
-+void c4iw_drain_qp(struct ib_qp *ibqp)
-+{
-+	struct c4iw_qp *qp = to_c4iw_qp(ibqp);
-+
-+	wait_for_completion(&qp->qp_drained);
-+}
+ 
+-static void nvmet_rdma_drain_done(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct nvmet_rdma_queue *queue = cq->cq_context;
+-
+-	complete(&queue->drain_done);
+-}
+-
+-static struct ib_cqe nvmet_rdma_drain_cqe = {
+-	.done		= nvmet_rdma_drain_done,
+-};
+-
+-static void nvmet_rdma_queue_drain(struct nvmet_rdma_queue *queue)
+-{
+-	struct ib_qp *qp = queue->cm_id->qp;
+-	struct ib_send_wr wr = { }, *bad_wr;
+-	int ret;
+-
+-	wr.wr_cqe = &nvmet_rdma_drain_cqe;
+-	wr.opcode = IB_WR_RDMA_WRITE;
+-	wr.send_flags = IB_SEND_SIGNALED;
+-	ret = ib_post_send(qp, &wr, &bad_wr);
+-	if (ret) {
+-		WARN_ONCE(ret, "ib_post_send(returned %d\n", ret);
+-		return;
+-	}
+-
+-	wait_for_completion(&queue->drain_done);
+-}
+-
+ static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
+ {
+ 	bool disconnect = false;
+@@ -1264,7 +1234,7 @@ static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
+ 
+ 	if (disconnect) {
+ 		rdma_disconnect(queue->cm_id);
+-		nvmet_rdma_queue_drain(queue);
++		ib_drain_qp(queue->cm_id->qp);
+ 		kref_put(&queue->ref, nvmet_rdma_queue_put);
+ 	}
+ }
 -- 
 2.7.0
 
