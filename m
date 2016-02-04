@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 4/6] IB: add a simple MR pool
-Date: Thu, 4 Feb 2016 13:52:40 -0800
-Message-ID: <e55b00d8b6b73b66d89bae85d0a422776b9bef7d.1454709715.git.swise@chelsio.com>
+Subject: [PATCH 5/6] IB: generic RDMA READ/WRITE API
+Date: Thu, 4 Feb 2016 13:56:03 -0800
+Message-ID: <1af28b3afc682caa90dc3e25b1a5aad3dab7e070.1454709715.git.swise@chelsio.com>
 References: <cover.1454709715.git.swise@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1454709715.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -9,39 +9,42 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+
+This supports both manual mapping of lots of SGEs, as well as using MRs
+from the QP's MR pool, for iWarp or other cases where it's more optimal.
+For now, MRs are only used for iWARP transports.  The user of the RDMA-RW
+API must allocate the QP MR pool as well as size the SQ accordingly.
+
+XXX: for now added under drivers/nvme.  Should move to drivers/infiniband
+before submitting upstream.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Signed-off-by: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile  |  2 +-
- drivers/infiniband/core/mr_pool.c | 85 +++++++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/verbs.c   |  4 ++
- include/rdma/ib_verbs.h           | 10 ++++-
- include/rdma/mr_pool.h            | 20 +++++++++
- 5 files changed, 119 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/core/mr_pool.c
- create mode 100644 include/rdma/mr_pool.h
+ drivers/nvme/target/Makefile |   2 +-
+ drivers/nvme/target/rw.c     | 348 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvme/target/rw.h     |  81 ++++++++++
+ 3 files changed, 430 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/nvme/target/rw.c
+ create mode 100644 drivers/nvme/target/rw.h
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index f818538..48bd9d8 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -10,7 +10,7 @@ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
+diff --git a/drivers/nvme/target/Makefile b/drivers/nvme/target/Makefile
+index e5b8680..a9b50b5 100644
+--- a/drivers/nvme/target/Makefile
++++ b/drivers/nvme/target/Makefile
+@@ -6,4 +6,4 @@ obj-$(CONFIG_NVME_TARGET_RDMA)		+= nvmet-rdma.o
+ nvmet-y		+= core.o configfs.o admin-cmd.o io-cmd.o fabrics-cmd.o
  
- ib_core-y :=			packer.o ud_header.o verbs.o cq.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o \
--				roce_gid_mgmt.o
-+				roce_gid_mgmt.o mr_pool.o
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
- ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
- 
-diff --git a/drivers/infiniband/core/mr_pool.c b/drivers/infiniband/core/mr_pool.c
+ nvme-loop-y	+= loop.o
+-nvmet-rdma-y	+= rdma.o
++nvmet-rdma-y	+= rdma.o rw.o
+diff --git a/drivers/nvme/target/rw.c b/drivers/nvme/target/rw.c
 new file mode 100644
-index 0000000..b0a04c8
+index 0000000..0350207
 --- /dev/null
-+++ b/drivers/infiniband/core/mr_pool.c
-@@ -0,0 +1,85 @@
++++ b/drivers/nvme/target/rw.c
+@@ -0,0 +1,348 @@
 +/*
 + * Copyright (c) 2016 HGST, a Western Digital Company.
 + *
@@ -54,133 +57,348 @@ index 0000000..b0a04c8
 + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 + * more details.
 + */
-+#include <rdma/ib_verbs.h>
++#include <linux/slab.h>
 +#include <rdma/mr_pool.h>
++#include "rw.h"
 +
-+struct ib_mr *ib_mr_pool_get(struct ib_qp *qp)
++static inline u32 rdma_max_sge(struct rdma_rw_ctx *ctx, struct ib_device *dev)
 +{
-+	struct ib_mr *mr = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qp->mr_lock, flags);
-+	mr = list_first_entry_or_null(&qp->free_mrs, struct ib_mr, qp_entry);
-+	if (mr)
-+		list_move(&mr->qp_entry, &qp->used_mrs);
-+	spin_unlock_irqrestore(&qp->mr_lock, flags);
-+
-+	return mr;
++	return ctx->dma_dir == DMA_TO_DEVICE ? dev->attrs.max_sge : dev->attrs.max_sge_rd;
 +}
-+EXPORT_SYMBOL(ib_mr_pool_get);
 +
-+void ib_mr_pool_put(struct ib_qp *qp, struct ib_mr *mr)
++static int rdma_rw_init_single_wr(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u64 remote_addr, u32 rkey)
 +{
-+	unsigned long flags;
++	struct ib_device *dev = qp->pd->device;
++	struct ib_rdma_wr *rdma_wr = &ctx->single.wr;
 +
-+	spin_lock_irqsave(&qp->mr_lock, flags);
-+	list_move(&mr->qp_entry, &qp->free_mrs);
-+	spin_unlock_irqrestore(&qp->mr_lock, flags);
++	ctx->nr_wrs = 1;
++
++	ctx->single.sge.lkey = qp->pd->local_dma_lkey;
++	ctx->single.sge.addr = ib_sg_dma_address(dev, ctx->sg);
++	ctx->single.sge.length = ib_sg_dma_len(dev, ctx->sg);
++
++	memset(rdma_wr, 0, sizeof(*rdma_wr));
++	rdma_wr->wr.opcode = ctx->dma_dir == DMA_TO_DEVICE ?
++			IB_WR_RDMA_WRITE : IB_WR_RDMA_READ;
++	rdma_wr->wr.sg_list = &ctx->single.sge;
++	rdma_wr->wr.num_sge = 1;
++	rdma_wr->remote_addr = remote_addr;
++	rdma_wr->rkey = rkey;
++
++	return 1;
 +}
-+EXPORT_SYMBOL(ib_mr_pool_put);
 +
-+int ib_mr_pool_init(struct ib_qp *qp, int nr, enum ib_mr_type type,
-+		u32 max_num_sg)
++static int rdma_rw_build_sg_list(struct rdma_rw_ctx *ctx, struct ib_pd *pd,
++		struct ib_sge *sge, u32 data_left, u32 offset)
 +{
-+	struct ib_mr *mr;
-+	unsigned long flags;
-+	int ret, i;
++	struct scatterlist *sg;
++	u32 sg_nents = min(ctx->dma_nents, rdma_max_sge(ctx, pd->device));
++	u32 page_off = offset % PAGE_SIZE;
++	int i;
 +
-+	for (i = 0; i < nr; i++) {
-+		mr = ib_alloc_mr(qp->pd, type, max_num_sg);
-+		if (IS_ERR(mr)) {
-+			ret = PTR_ERR(mr);
-+			goto out;
++	for_each_sg(ctx->sg, sg, sg_nents, i) {
++		sge->addr = ib_sg_dma_address(pd->device, sg) + page_off;
++		sge->length = min_t(u32, data_left,
++				ib_sg_dma_len(pd->device, sg) - page_off);
++		sge->lkey = pd->local_dma_lkey;
++
++		page_off = 0;
++		data_left -= sge->length;
++		if (!data_left)
++			break;
++		sge++;
++	}
++
++	return i + 1;
++}
++
++static int rdma_rw_init_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u64 remote_addr, u32 rkey, u32 length, u32 offset)
++{
++	u32 max_sge = rdma_max_sge(ctx, qp->pd->device);
++	u32 rdma_write_max = max_sge * PAGE_SIZE;
++	struct ib_sge *sge;
++	u32 va_offset = 0, i;
++
++	ctx->map.sges = sge =
++		kcalloc(ctx->dma_nents, sizeof(*ctx->map.sges), GFP_KERNEL);
++	if (!ctx->map.sges)
++		goto out;
++
++	ctx->nr_wrs = DIV_ROUND_UP(ctx->dma_nents, max_sge);
++	ctx->map.wrs = kcalloc(ctx->nr_wrs, sizeof(*ctx->map.wrs), GFP_KERNEL);
++	if (!ctx->map.wrs)
++		goto out_free_sges;
++
++	for (i = 0; i < ctx->nr_wrs; i++) {
++		struct ib_rdma_wr *rdma_wr = &ctx->map.wrs[i];
++		u32 data_len = min(length - va_offset, rdma_write_max);
++
++		rdma_wr->wr.opcode = ctx->dma_dir == DMA_TO_DEVICE ?
++				IB_WR_RDMA_WRITE : IB_WR_RDMA_READ;
++		rdma_wr->wr.sg_list = sge;
++		rdma_wr->wr.num_sge = rdma_rw_build_sg_list(ctx, qp->pd, sge,
++				data_len, offset + va_offset);
++		rdma_wr->remote_addr = remote_addr + va_offset;
++		rdma_wr->rkey = rkey;
++
++		if (i + 1 != ctx->nr_wrs)
++			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
++
++		sge += rdma_wr->wr.num_sge;
++		va_offset += data_len;
++	}
++
++	return ctx->nr_wrs;
++
++out_free_sges:
++	kfree(ctx->map.sges);
++out:
++	return -ENOMEM;
++}
++
++static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u64 remote_addr, u32 rkey)
++{
++	int pages_per_mr = qp->pd->device->attrs.max_fast_reg_page_list_len;
++	int pages_left = ctx->dma_nents;
++	struct scatterlist *sg = ctx->sg;
++	bool use_read_w_invalidate = ctx->dma_dir == DMA_FROM_DEVICE &&
++				rdma_protocol_iwarp(qp->device, ctx->port_num);
++	u32 va_offset = 0;
++	int i, ret = 0, count = 0;
++
++	ctx->nr_wrs = (ctx->dma_nents + pages_per_mr - 1) / pages_per_mr;
++	ctx->reg = kcalloc(ctx->nr_wrs, sizeof(*ctx->reg), GFP_KERNEL);
++	if (!ctx->reg) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	for (i = 0; i < ctx->nr_wrs; i++) {
++		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
++		int nents = min(pages_left, pages_per_mr);
++
++		reg->mr = ib_mr_pool_get(qp);
++		if (!reg->mr) {
++			pr_info("failed to allocate MR from pool\n");
++			ret = -EAGAIN;
++			goto out_free;
 +		}
 +
-+		spin_lock_irqsave(&qp->mr_lock, flags);
-+		list_add_tail(&mr->qp_entry, &qp->free_mrs);
-+		spin_unlock_irqrestore(&qp->mr_lock, flags);
++		ib_update_fast_reg_key(reg->mr, ib_inc_rkey(reg->mr->lkey));
++
++		/* XXX: what about a non page sized offset into the SG? */
++		ret = ib_map_mr_sg(reg->mr, sg, nents, PAGE_SIZE);
++		if (ret < nents) {
++			pr_info("failed to map MR\n");
++			ib_mr_pool_put(qp, reg->mr);
++			ret = -EINVAL;
++			goto out_free;
++		}
++
++		reg->reg_wr.wr.opcode = IB_WR_REG_MR;
++		reg->reg_wr.mr = reg->mr;
++		reg->reg_wr.key = reg->mr->lkey;
++
++		reg->reg_wr.access = IB_ACCESS_LOCAL_WRITE;
++		if (use_read_w_invalidate)
++			reg->reg_wr.access |= IB_ACCESS_REMOTE_WRITE;
++
++		reg->sge.lkey = reg->mr->lkey;
++		reg->sge.addr = reg->mr->iova;
++		reg->sge.length = reg->mr->length;
++
++		reg->wr.wr.sg_list = &reg->sge;
++		reg->wr.wr.num_sge = 1;
++		reg->wr.remote_addr = remote_addr + va_offset;
++		reg->wr.rkey = rkey;
++
++		if (use_read_w_invalidate) {
++			reg->wr.wr.opcode = IB_WR_RDMA_READ_WITH_INV;
++			reg->wr.wr.ex.invalidate_rkey = reg->mr->lkey;
++
++			count += 2; /* REG_MR + READ_W_INV  */
++		} else {
++			if (ctx->dma_dir == DMA_TO_DEVICE)
++				reg->wr.wr.opcode = IB_WR_RDMA_WRITE;
++			else
++				reg->wr.wr.opcode = IB_WR_RDMA_READ;
++
++			reg->inv_wr.opcode = IB_WR_LOCAL_INV;
++			reg->inv_wr.ex.invalidate_rkey = reg->mr->lkey;
++
++			/*
++			 * FIXME: IB_SEND_FENCE can stall SQ processing.
++			 * The LINV WR should be posted after the RDMA
++			 * WR completes instead.
++			 */
++			if (i == 0)
++				reg->inv_wr.send_flags |= IB_SEND_FENCE;
++
++			count += 3; /* REG_MR + READ + LOCAL_INV */
++		}
++
++		if (i + 1 == ctx->nr_wrs) {
++			struct rdma_rw_reg_ctx *first = &ctx->reg[0];
++
++			reg->reg_wr.wr.next = &first->wr.wr;
++			if (!use_read_w_invalidate)
++				reg->wr.wr.next = &first->inv_wr;
++		} else {
++			struct rdma_rw_reg_ctx *next = &ctx->reg[i + 1];
++
++			reg->reg_wr.wr.next = &next->reg_wr.wr;
++			reg->wr.wr.next = &next->wr.wr;
++			if (!use_read_w_invalidate)
++				reg->inv_wr.next = &next->inv_wr;
++		}
++
++		va_offset += reg->sge.length;
++		pages_left -= nents;
++		sg += nents; // XXX: use accessors for chained SGLs
 +	}
 +
-+	return 0;
++	return count;
++
++out_free:
++	while (--i >= 0)
++		ib_mr_pool_put(qp, ctx->reg[i].mr);
++	kfree(ctx->reg);
 +out:
-+	ib_mr_pool_destroy(qp);
 +	return ret;
 +}
-+EXPORT_SYMBOL(ib_mr_pool_init);
 +
-+void ib_mr_pool_destroy(struct ib_qp *qp)
++/**
++ * rdma_rw_ctx_init - initialize a RDMA READ/WRITE context
++ * @ctx:	context to initialize
++ * @qp:		queue pair to operate on
++ * @port_num:	port num to which the connection is bound
++ * @sg:		scatterlist to READ/WRITE from/to
++ * @nents:	number of entries in @sg
++ * @total_len:	total length of @sg in bytes
++ * @remote_addr:remote address to read/write (relative to @rkey)
++ * @rkey:	remote key to operate on
++ * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
++ * @offset:	current byte offset into @sg
++ *
++ * If we're going to use a FR to map this context @max_nents should be smaller
++ * or equal to the MR size.
++ *
++ * Returns the number of WRs that will be needed on the workqueue if successful,
++ * or a negative error code.
++ */
++int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 nents, u32 total_len,
++		u64 remote_addr, u32 rkey, enum dma_data_direction dir,
++		u32 offset)
 +{
-+	struct ib_mr *mr;
-+	unsigned long flags;
++	struct ib_device *dev = qp->pd->device;
++	u32 first_sg_index = offset / PAGE_SIZE;
++	int ret = -ENOMEM;
 +
-+	WARN_ON_ONCE(!list_empty(&qp->used_mrs));
++	ctx->sg = sg + first_sg_index;
++	ctx->dma_dir = dir;
 +
-+	spin_lock_irqsave(&qp->mr_lock, flags);
-+	while (!list_empty(&qp->free_mrs)) {
-+		mr = list_first_entry(&qp->free_mrs, struct ib_mr, qp_entry);
-+		list_del(&mr->qp_entry);
++	ctx->orig_nents = nents - first_sg_index;
++	ctx->dma_nents =
++		ib_dma_map_sg(dev, ctx->sg, ctx->orig_nents, ctx->dma_dir);
++	if (!ctx->dma_nents)
++		goto out;
 +
-+		spin_unlock_irqrestore(&qp->mr_lock, flags);
-+		ib_dereg_mr(mr);
-+		spin_lock_irqsave(&qp->mr_lock, flags);
-+	}
-+	spin_unlock_irqrestore(&qp->mr_lock, flags);
++	ctx->port_num = port_num;
++	if (rdma_protocol_iwarp(qp->device, ctx->port_num))
++		ret = rdma_rw_init_mr_wrs(ctx, qp, remote_addr, rkey);
++	else if (ctx->dma_nents == 1)
++		ret = rdma_rw_init_single_wr(ctx, qp, remote_addr, rkey);
++	else
++		ret = rdma_rw_init_wrs(ctx, qp, remote_addr, rkey,
++				total_len - offset, offset);
++
++	if (ret < 0)
++		goto out_unmap_sg;
++
++	return ret;
++
++out_unmap_sg:
++	ib_dma_unmap_sg(dev, ctx->sg, ctx->orig_nents, ctx->dma_dir);
++out:
++	return ret;
 +}
-+EXPORT_SYMBOL(ib_mr_pool_destroy);
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 31b82cd..879839f 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -738,6 +738,10 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 		qp->uobject    = NULL;
- 		qp->qp_type    = qp_init_attr->qp_type;
- 
-+		spin_lock_init(&qp->mr_lock);
-+		INIT_LIST_HEAD(&qp->free_mrs);
-+		INIT_LIST_HEAD(&qp->used_mrs);
++EXPORT_SYMBOL(rdma_rw_ctx_init);
 +
- 		atomic_set(&qp->usecnt, 0);
- 		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
- 			qp->event_handler = __ib_shared_qp_event_handler;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index d8533ab..380d03d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1408,6 +1408,11 @@ struct ib_qp {
- 	struct ib_srq	       *srq;
- 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
- 	struct list_head	xrcd_list;
++/**
++ * rdma_rw_ctx_destroy - release all resources allocated by rdma_rw_ctx_init
++ * @ctx:	context to release
++ * @qp:		queue pair to operate on
++ */
++void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp)
++{
++	if (rdma_protocol_iwarp(qp->device, ctx->port_num)) {
++		int i;
 +
-+	spinlock_t		mr_lock;
-+	struct list_head	free_mrs;
-+	struct list_head	used_mrs;
++		for (i = 0; i < ctx->nr_wrs; i++)
++			ib_mr_pool_put(qp, ctx->reg[i].mr);
++		kfree(ctx->reg);
++	} else if (ctx->nr_wrs > 1) {
++		kfree(ctx->map.wrs);
++		kfree(ctx->map.sges);
++	}
 +
- 	/* count times opened, mcast attaches, flow attaches */
- 	atomic_t		usecnt;
- 	struct list_head	open_list;
-@@ -1422,12 +1427,15 @@ struct ib_qp {
- struct ib_mr {
- 	struct ib_device  *device;
- 	struct ib_pd	  *pd;
--	struct ib_uobject *uobject;
- 	u32		   lkey;
- 	u32		   rkey;
- 	u64		   iova;
- 	u32		   length;
- 	unsigned int	   page_size;
-+	union {
-+		struct ib_uobject	*uobject;	/* user */
-+		struct list_head	qp_entry;	/* FR */
-+	};
- };
- 
- struct ib_mw {
-diff --git a/include/rdma/mr_pool.h b/include/rdma/mr_pool.h
++	ib_dma_unmap_sg(qp->pd->device, ctx->sg, ctx->orig_nents, ctx->dma_dir);
++}
++EXPORT_SYMBOL(rdma_rw_ctx_destroy);
++
++/**
++ * rdma_rw_post - post a RDMA READ or RDMA WRITE operation
++ * @ctx:		context to operate on
++ * @qp:			queue pair to operate on
++ * @cqe:		completion queue entry for the last WR
++ * @chain_wr:		WR to append to the posted chain
++ *
++ * Post the set of RDMA READ/WRITE operations described by @ctx, as well as
++ * any memory registration operations needed.  If @chain_wr is non-NULL the
++ * WR it points to will be appended to the chain of WRs posted.  If @chain_wr
++ * is not set @cqe must be set so that the caller gets a completion
++ * notification.
++ */
++int rdma_rw_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, struct ib_cqe *cqe,
++		struct ib_send_wr *chain_wr)
++{
++	struct ib_send_wr *first_wr, *last_wr, *bad_wr;
++
++	if (rdma_protocol_iwarp(qp->device, ctx->port_num)) {
++		first_wr = &ctx->reg[0].reg_wr.wr;
++		if (ctx->dma_dir == DMA_FROM_DEVICE &&
++		    rdma_protocol_iwarp(qp->device, ctx->port_num))
++			last_wr = &ctx->reg[ctx->nr_wrs - 1].wr.wr;
++		else
++			last_wr = &ctx->reg[ctx->nr_wrs - 1].inv_wr;
++	} else if (ctx->dma_nents == 1) {
++		first_wr = &ctx->single.wr.wr;
++		last_wr = &ctx->single.wr.wr;
++	} else {
++		first_wr = &ctx->map.wrs[0].wr;
++		last_wr = &ctx->map.wrs[ctx->nr_wrs - 1].wr;
++	}
++
++	if (chain_wr) {
++		last_wr->next = chain_wr;
++	} else {
++		last_wr->wr_cqe = cqe;
++		last_wr->send_flags |= IB_SEND_SIGNALED;
++	}
++
++	return ib_post_send(qp, first_wr, &bad_wr);
++}
++EXPORT_SYMBOL(rdma_rw_post);
+diff --git a/drivers/nvme/target/rw.h b/drivers/nvme/target/rw.h
 new file mode 100644
-index 0000000..b4ee196
+index 0000000..27e2bfe
 --- /dev/null
-+++ b/include/rdma/mr_pool.h
-@@ -0,0 +1,20 @@
++++ b/drivers/nvme/target/rw.h
+@@ -0,0 +1,81 @@
 +/*
 + * Copyright (c) 2016 HGST, a Western Digital Company.
 + *
@@ -193,14 +411,75 @@ index 0000000..b4ee196
 + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 + * more details.
 + */
++#ifndef _RDMA_RW_H
++#define _RDMA_RW_H
++
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
 +#include <rdma/ib_verbs.h>
++#include <rdma/rdma_cm.h>
++#include <rdma/mr_pool.h>
 +
-+struct ib_mr *ib_mr_pool_get(struct ib_qp *qp);
-+void ib_mr_pool_put(struct ib_qp *qp, struct ib_mr *mr);
++struct rdma_rw_ctx {
++	/*
++	 * The scatterlist passed in, and the number of entries and total
++	 * length operated on.  Note that these might be smaller than the
++	 * values originally passed in if an offset or max_nents value was
++	 * passed to rdma_rw_ctx_init.
++	 *
++	 * dma_nents is the value returned from dma_map_sg, which might be
++	 * smaller than the original value passed in.
++	 */
++	struct scatterlist     *sg;
++	u32			orig_nents;
++	u32			dma_nents;
 +
-+int ib_mr_pool_init(struct ib_qp *qp, int nr, enum ib_mr_type type,
-+		u32 max_num_sg);
-+void ib_mr_pool_destroy(struct ib_qp *qp);
++	/* data direction of the transfer */
++	enum dma_data_direction dma_dir;
++
++	/* number of RDMA READ/WRITE WRs (not counting MR WRs) */
++	int			nr_wrs;
++
++	/*
++	 * The device port number pass in for the connection. Needed to call
++	 * rdma_protocol_iwarp() for enabling iwarp-specific features.
++	 */
++	u8			port_num;
++
++	union {
++		/* for mapping a single SGE or registering a single WR: */
++		struct {
++			struct ib_sge		sge;
++			struct ib_rdma_wr	wr;
++		} single;
++
++		/* for mapping of multiple SGEs: */
++		struct {
++			struct ib_sge		*sges;
++			struct ib_rdma_wr	*wrs;
++		} map;
++
++		/* for registering multiple WRs: */
++		struct rdma_rw_reg_ctx {
++			struct ib_sge		sge;
++			struct ib_rdma_wr	wr;
++			struct ib_reg_wr	reg_wr;
++			struct ib_send_wr	inv_wr;
++			struct ib_mr		*mr;
++		} *reg;
++	};
++};
++
++int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 nents, u32 length,
++		u64 remote_addr, u32 rkey, enum dma_data_direction dir,
++		u32 offset);
++void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp);
++
++int rdma_rw_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, struct ib_cqe *cqe,
++		struct ib_send_wr *chain_wr);
++
++#endif /* _RDMA_RW_H */
 -- 
 2.7.0
 
