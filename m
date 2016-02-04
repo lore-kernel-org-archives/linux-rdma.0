@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] staging/rdma/hfi1: use mod_timer when appropriate
-Date: Thu, 04 Feb 2016 10:59:18 -0800
-Message-ID: <20160204185914.6973.72636.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 5/5] staging/rdma/hfi1: use new RNR timer
+Date: Thu, 04 Feb 2016 10:59:36 -0800
+Message-ID: <20160204185932.6973.6932.stgit@scvm10.sc.intel.com>
 References: <20160204185718.6973.92668.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,137 +15,180 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use new timer API to optimize maintenance of
-timers during ACK processing.
+Use the new RNR timer for hfi1.
 
-When we are still expecting ACKs, mod the timer
-to avoid a heavyweight delete/add. Otherwise, insure
-do_rc_ack() maintains the timer as it had.
+For qib, this timer doesn't exist, so exploit driver
+callbacks to use the new timer as appropriate.
 
 Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/rc.c |   42 +++++++++++++++++++++-------------------
- 1 files changed, 22 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/qib/qib_qp.c |    1 +
+ drivers/infiniband/sw/rdmavt/qp.c  |    1 -
+ drivers/staging/rdma/hfi1/qp.c     |    3 +++
+ drivers/staging/rdma/hfi1/rc.c     |   22 +++++++++++++---------
+ drivers/staging/rdma/hfi1/verbs.h  |    2 ++
+ 5 files changed, 19 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 45bed5f..787116f 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -412,6 +412,7 @@ void stop_send_queue(struct rvt_qp *qp)
+ 	struct qib_qp_priv *priv = qp->priv;
+ 
+ 	cancel_work_sync(&priv->s_work);
++	del_timer_sync(&qp->s_timer);
+ }
+ 
+ void quiesce_qp(struct rvt_qp *qp)
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 322de64..439213c 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -405,7 +405,6 @@ void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 
+ 		/* Stop the send queue and the retry timer */
+ 		rdi->driver_f.stop_send_queue(qp);
+-		del_timer_sync(&qp->s_timer);
+ 
+ 		/* Wait for things to stop */
+ 		rdi->driver_f.quiesce_qp(qp);
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index e138d43..20473b6 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -609,6 +609,7 @@ void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 	setup_timer(&priv->s_rnr_timer, hfi1_rc_rnr_retry, (unsigned long)qp);
++	qp->s_timer.function = hfi1_rc_timeout;
+ 	return priv;
+ }
+ 
+@@ -648,6 +649,7 @@ unsigned free_all_qps(struct rvt_dev_info *rdi)
+ void flush_qp_waiters(struct rvt_qp *qp)
+ {
+ 	flush_iowait(qp);
++	hfi1_stop_rc_timers(qp);
+ }
+ 
+ void stop_send_queue(struct rvt_qp *qp)
+@@ -655,6 +657,7 @@ void stop_send_queue(struct rvt_qp *qp)
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 
+ 	cancel_work_sync(&priv->s_iowait.iowork);
++	hfi1_del_timers_sync(qp);
+ }
+ 
+ void quiesce_qp(struct rvt_qp *qp)
 diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 5c32182..700d849 100644
+index 1ff19aa..2c46491 100644
 --- a/drivers/staging/rdma/hfi1/rc.c
 +++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -1266,9 +1266,6 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 	int diff;
- 	unsigned long to;
+@@ -60,8 +60,6 @@
+ /* cut down ridiculously long IB macro names */
+ #define OP(x) IB_OPCODE_RC_##x
  
--	/* Remove QP from retry timer */
--	hfi1_stop_rc_timers(qp);
+-static void rc_timeout(unsigned long arg);
 -
- 	/*
- 	 * Note that NAKs implicitly ACK outstanding SEND and RDMA write
- 	 * requests and implicitly NAK RDMA read and atomic requests issued
-@@ -1296,7 +1293,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		    opcode == OP(RDMA_READ_RESPONSE_ONLY) &&
- 		    diff == 0) {
- 			ret = 1;
--			goto bail;
-+			goto bail_stop;
- 		}
- 		/*
- 		 * If this request is a RDMA read or atomic, and the ACK is
-@@ -1327,7 +1324,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 			 * No need to process the ACK/NAK since we are
- 			 * restarting an earlier request.
- 			 */
--			goto bail;
-+			goto bail_stop;
- 		}
- 		if (wqe->wr.opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
- 		    wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) {
-@@ -1362,18 +1359,22 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		if (qp->s_acked != qp->s_tail) {
- 			/*
- 			 * We are expecting more ACKs so
--			 * reset the re-transmit timer.
-+			 * mod the retry timer.
- 			 */
--			hfi1_add_retry_timer(qp);
-+			hfi1_mod_retry_timer(qp);
- 			/*
- 			 * We can stop re-sending the earlier packets and
- 			 * continue with the next packet the receiver wants.
- 			 */
- 			if (cmp_psn(qp->s_psn, psn) <= 0)
- 				reset_psn(qp, psn + 1);
--		} else if (cmp_psn(qp->s_psn, psn) <= 0) {
--			qp->s_state = OP(SEND_LAST);
--			qp->s_psn = psn + 1;
-+		} else {
-+			/* No more acks - kill all timers */
-+			hfi1_stop_rc_timers(qp);
-+			if (cmp_psn(qp->s_psn, psn) <= 0) {
-+				qp->s_state = OP(SEND_LAST);
-+				qp->s_psn = psn + 1;
-+			}
- 		}
- 		if (qp->s_flags & RVT_S_WAIT_ACK) {
- 			qp->s_flags &= ~RVT_S_WAIT_ACK;
-@@ -1383,15 +1384,14 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		qp->s_rnr_retry = qp->s_rnr_retry_cnt;
- 		qp->s_retry = qp->s_retry_cnt;
- 		update_last_psn(qp, psn);
--		ret = 1;
--		goto bail;
-+		return 1;
- 
- 	case 1:         /* RNR NAK */
- 		ibp->rvp.n_rnr_naks++;
- 		if (qp->s_acked == qp->s_tail)
--			goto bail;
-+			goto bail_stop;
- 		if (qp->s_flags & RVT_S_WAIT_RNR)
--			goto bail;
-+			goto bail_stop;
- 		if (qp->s_rnr_retry == 0) {
- 			status = IB_WC_RNR_RETRY_EXC_ERR;
- 			goto class_b;
-@@ -1407,15 +1407,16 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		reset_psn(qp, psn);
- 
- 		qp->s_flags &= ~(RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_ACK);
-+		hfi1_stop_rc_timers(qp);
- 		to =
- 			ib_hfi1_rnr_table[(aeth >> HFI1_AETH_CREDIT_SHIFT) &
- 					   HFI1_AETH_CREDIT_MASK];
- 		hfi1_add_rnr_timer(qp, to);
--		goto bail;
-+		return 0;
- 
- 	case 3:         /* NAK */
- 		if (qp->s_acked == qp->s_tail)
--			goto bail;
-+			goto bail_stop;
- 		/* The last valid PSN is the previous PSN. */
- 		update_last_psn(qp, psn - 1);
- 		switch ((aeth >> HFI1_AETH_CREDIT_SHIFT) &
-@@ -1458,15 +1459,16 @@ class_b:
- 		}
- 		qp->s_retry = qp->s_retry_cnt;
- 		qp->s_rnr_retry = qp->s_rnr_retry_cnt;
--		goto bail;
-+		goto bail_stop;
- 
- 	default:                /* 2: reserved */
- reserved:
- 		/* Ignore reserved NAK codes. */
--		goto bail;
-+		goto bail_stop;
- 	}
--
--bail:
-+	return ret;
-+bail_stop:
-+	hfi1_stop_rc_timers(qp);
- 	return ret;
+ /**
+  * hfi1_add_retry_timer - add/start a retry timer
+  * @qp - the QP
+@@ -71,7 +69,6 @@ static void rc_timeout(unsigned long arg);
+ static inline void hfi1_add_retry_timer(struct rvt_qp *qp)
+ {
+ 	qp->s_flags |= RVT_S_TIMER;
+-	qp->s_timer.function = rc_timeout;
+ 	/* 4.096 usec. * (1 << qp->timeout) */
+ 	qp->s_timer.expires = jiffies + qp->timeout_jiffies;
+ 	add_timer(&qp->s_timer);
+@@ -86,10 +83,11 @@ static inline void hfi1_add_retry_timer(struct rvt_qp *qp)
+  */
+ static inline void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
+ {
++	struct hfi1_qp_priv *priv = qp->priv;
++
+ 	qp->s_flags |= RVT_S_WAIT_RNR;
+-	qp->s_timer.function = hfi1_rc_rnr_retry;
+ 	qp->s_timer.expires = jiffies + usecs_to_jiffies(to);
+-	add_timer(&qp->s_timer);
++	add_timer(&priv->s_rnr_timer);
  }
+ 
+ /**
+@@ -102,7 +100,6 @@ static inline void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
+ static inline void hfi1_mod_retry_timer(struct rvt_qp *qp)
+ {
+ 	qp->s_flags |= RVT_S_TIMER;
+-	qp->s_timer.function = rc_timeout;
+ 	/* 4.096 usec. * (1 << qp->timeout) */
+ 	mod_timer(&qp->s_timer, jiffies + qp->timeout_jiffies);
+ }
+@@ -132,12 +129,15 @@ static inline int hfi1_stop_retry_timer(struct rvt_qp *qp)
+  *
+  * stop any pending timers
+  */
+-static inline void hfi1_stop_rc_timers(struct rvt_qp *qp)
++void hfi1_stop_rc_timers(struct rvt_qp *qp)
+ {
++	struct hfi1_qp_priv *priv = qp->priv;
++
+ 	/* Remove QP from all timers */
+ 	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
+ 		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
+ 		del_timer(&qp->s_timer);
++		del_timer(&priv->s_rnr_timer);
+ 	}
+ }
+ 
+@@ -151,11 +151,12 @@ static inline void hfi1_stop_rc_timers(struct rvt_qp *qp)
+ static inline int hfi1_stop_rnr_timer(struct rvt_qp *qp)
+ {
+ 	int rval = 0;
++	struct hfi1_qp_priv *priv = qp->priv;
+ 
+ 	/* Remove QP from rnr timer */
+ 	if (qp->s_flags & RVT_S_WAIT_RNR) {
+ 		qp->s_flags &= ~RVT_S_WAIT_RNR;
+-		rval = del_timer(&qp->s_timer);
++		rval = del_timer(&priv->s_rnr_timer);
+ 	}
+ 	return rval;
+ }
+@@ -166,7 +167,10 @@ static inline int hfi1_stop_rnr_timer(struct rvt_qp *qp)
+  */
+ void hfi1_del_timers_sync(struct rvt_qp *qp)
+ {
++	struct hfi1_qp_priv *priv = qp->priv;
++
+ 	del_timer_sync(&qp->s_timer);
++	del_timer_sync(&priv->s_rnr_timer);
+ }
+ 
+ static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
+@@ -1015,7 +1019,7 @@ static void restart_rc(struct rvt_qp *qp, u32 psn, int wait)
+ /*
+  * This is called from s_timer for missing responses.
+  */
+-static void rc_timeout(unsigned long arg)
++void hfi1_rc_timeout(unsigned long arg)
+ {
+ 	struct rvt_qp *qp = (struct rvt_qp *)arg;
+ 	struct hfi1_ibport *ibp;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index 6294fa8..26eda8a 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -404,7 +404,9 @@ u8 ah_to_sc(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
+ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid);
+ 
+ void hfi1_rc_rnr_retry(unsigned long arg);
++void hfi1_rc_timeout(unsigned long arg);
+ void hfi1_del_timers_sync(struct rvt_qp *qp);
++void hfi1_stop_rc_timers(struct rvt_qp *qp);
+ 
+ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_ib_header *hdr);
  
 
 --
