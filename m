@@ -1,29 +1,41 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libmlx5] Add support for standard atomic operations
-Date: Thu, 4 Feb 2016 18:01:47 +0200
-Message-ID: <56B375EB.209@dev.mellanox.co.il>
-References: <1454499186-7000-1-git-send-email-eranbe@mellanox.com>
+Subject: Re: [v1] libmlx5: Add support for RAW_ETH TX/RX checksum offload
+Date: Thu, 4 Feb 2016 18:15:34 +0200
+Message-ID: <56B37926.1070204@dev.mellanox.co.il>
+References: <1454519132-46636-1-git-send-email-bodong@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454499186-7000-1-git-send-email-eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1454519132-46636-1-git-send-email-bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzXQFizaE/u3fw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/3/2016 1:33 PM, Eran Ben Elisha wrote:
-> Enable post send for atomic operation codes in case it is supported by
-> the hardware.
+On 2/3/2016 7:05 PM, Bodong Wang wrote:
+> RX checksum verification status is reported through wc_flag when polling
+> CQ. When IBV_WC_IP_CSUM_OK is set, that means both IPv4 header checksum and
+> TCP/UDP checksum are OK.
 >
-> Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> TX checksum offload will be enabled for TCP/UDP over IPv4 if user sets
+> send_flag IBV_SEND_IP_CSUM.
+>
+> A new field, qp_cap_cache, is added to mlx5_qp in order to 'cache'
+> the csum capabilities to minimize perfromance hit on poll_one
+> function. The device and port capabilities are cached inside
+> mlx5_init_context.
+>
+> Change-Id: I4d26f43027c08e7142e77a977744e2abe08a6e58
+> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->   src/mlx5.c  |  6 ++++++
->   src/mlx5.h  |  2 ++
->   src/qp.c    | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++-----
->   src/verbs.c |  3 +++
->   4 files changed, 61 insertions(+), 5 deletions(-)
+>   src/cq.c    | 31 ++++++++++++++++++++++++++++---
+>   src/mlx5.c  | 12 ++++++++++++
+>   src/mlx5.h  | 16 ++++++++++++++++
+>   src/qp.c    | 10 ++++++++++
+>   src/verbs.c | 16 ++++++++++++++++
+>   src/wqe.h   |  5 +++++
+>   6 files changed, 87 insertions(+), 3 deletions(-)
 >
 
 Applied.
