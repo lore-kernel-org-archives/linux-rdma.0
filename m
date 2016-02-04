@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/5] staging/rdma/hfi1: use new timer routines
-Date: Thu, 04 Feb 2016 10:59:09 -0800
-Message-ID: <20160204185906.6973.19856.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 4/5] staging/rdma/hfi1: add unique rnr timer
+Date: Thu, 04 Feb 2016 10:59:27 -0800
+Message-ID: <20160204185923.6973.30849.stgit@scvm10.sc.intel.com>
 References: <20160204185718.6973.92668.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,108 +15,64 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use the new timer routines.
+Add a new rnr timer to hfi1.
+
+This allows for future optimizations having the
+retry and rnr timers separate.
 
 Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/rc.c |   39 ++++++++++-----------------------------
- 1 files changed, 10 insertions(+), 29 deletions(-)
+ drivers/staging/rdma/hfi1/qp.c    |    2 +-
+ drivers/staging/rdma/hfi1/rc.c    |    2 +-
+ drivers/staging/rdma/hfi1/verbs.h |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index 1a34e6e..e138d43 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -608,7 +608,7 @@ void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp,
+ 		kfree(priv);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-
++	setup_timer(&priv->s_rnr_timer, hfi1_rc_rnr_retry, (unsigned long)qp);
+ 	return priv;
+ }
+ 
 diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index 350faaa..5c32182 100644
+index 700d849..1ff19aa 100644
 --- a/drivers/staging/rdma/hfi1/rc.c
 +++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -183,15 +183,6 @@ static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
- 	return wqe->length - len;
+@@ -164,7 +164,7 @@ static inline int hfi1_stop_rnr_timer(struct rvt_qp *qp)
+  * hfi1_del_timers_sync - wait for any timeout routines to exit
+  * @qp - the QP
+  */
+-static inline void hfi1_del_timers_sync(struct rvt_qp *qp)
++void hfi1_del_timers_sync(struct rvt_qp *qp)
+ {
+ 	del_timer_sync(&qp->s_timer);
  }
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index 335e3a8..6294fa8 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -210,6 +210,7 @@ struct hfi1_qp_priv {
+ 	u8 s_sc;		     /* SC[0..4] for next packet */
+ 	u8 r_adefered;               /* number of acks defered */
+ 	struct iowait s_iowait;
++	struct timer_list s_rnr_timer;
+ 	struct rvt_qp *owner;
+ };
  
--static void start_timer(struct rvt_qp *qp)
--{
--	qp->s_flags |= RVT_S_TIMER;
--	qp->s_timer.function = rc_timeout;
--	/* 4.096 usec. * (1 << qp->timeout) */
--	qp->s_timer.expires = jiffies + qp->timeout_jiffies;
--	add_timer(&qp->s_timer);
--}
--
- /**
-  * make_rc_ack - construct a response packet (ACK, NAK, or RDMA read)
-  * @dev: the device for this QP
-@@ -1054,11 +1045,8 @@ void hfi1_rc_rnr_retry(unsigned long arg)
- 	unsigned long flags;
+@@ -403,6 +404,7 @@ u8 ah_to_sc(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
+ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid);
  
- 	spin_lock_irqsave(&qp->s_lock, flags);
--	if (qp->s_flags & RVT_S_WAIT_RNR) {
--		qp->s_flags &= ~RVT_S_WAIT_RNR;
--		del_timer(&qp->s_timer);
--		hfi1_schedule_send(qp);
--	}
-+	hfi1_stop_rnr_timer(qp);
-+	hfi1_schedule_send(qp);
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
- }
+ void hfi1_rc_rnr_retry(unsigned long arg);
++void hfi1_del_timers_sync(struct rvt_qp *qp);
  
-@@ -1128,7 +1116,7 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_ib_header *hdr)
- 	    !(qp->s_flags &
- 		(RVT_S_TIMER | RVT_S_WAIT_RNR | RVT_S_WAIT_PSN)) &&
- 		(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
--		start_timer(qp);
-+		hfi1_add_retry_timer(qp);
- 
- 	while (qp->s_last != qp->s_acked) {
- 		wqe = rvt_get_swqe_ptr(qp, qp->s_last);
-@@ -1276,12 +1264,10 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 	int ret = 0;
- 	u32 ack_psn;
- 	int diff;
-+	unsigned long to;
- 
- 	/* Remove QP from retry timer */
--	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
--		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
--		del_timer(&qp->s_timer);
--	}
-+	hfi1_stop_rc_timers(qp);
- 
- 	/*
- 	 * Note that NAKs implicitly ACK outstanding SEND and RDMA write
-@@ -1378,7 +1364,7 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 			 * We are expecting more ACKs so
- 			 * reset the re-transmit timer.
- 			 */
--			start_timer(qp);
-+			hfi1_add_retry_timer(qp);
- 			/*
- 			 * We can stop re-sending the earlier packets and
- 			 * continue with the next packet the receiver wants.
-@@ -1421,12 +1407,10 @@ static int do_rc_ack(struct rvt_qp *qp, u32 aeth, u32 psn, int opcode,
- 		reset_psn(qp, psn);
- 
- 		qp->s_flags &= ~(RVT_S_WAIT_SSN_CREDIT | RVT_S_WAIT_ACK);
--		qp->s_flags |= RVT_S_WAIT_RNR;
--		qp->s_timer.function = hfi1_rc_rnr_retry;
--		qp->s_timer.expires = jiffies + usecs_to_jiffies(
-+		to =
- 			ib_hfi1_rnr_table[(aeth >> HFI1_AETH_CREDIT_SHIFT) &
--					   HFI1_AETH_CREDIT_MASK]);
--		add_timer(&qp->s_timer);
-+					   HFI1_AETH_CREDIT_MASK];
-+		hfi1_add_rnr_timer(qp, to);
- 		goto bail;
- 
- 	case 3:         /* NAK */
-@@ -1496,10 +1480,7 @@ static void rdma_seq_err(struct rvt_qp *qp, struct hfi1_ibport *ibp, u32 psn,
- 	struct rvt_swqe *wqe;
- 
- 	/* Remove QP from retry timer */
--	if (qp->s_flags & (RVT_S_TIMER | RVT_S_WAIT_RNR)) {
--		qp->s_flags &= ~(RVT_S_TIMER | RVT_S_WAIT_RNR);
--		del_timer(&qp->s_timer);
--	}
-+	hfi1_stop_rc_timers(qp);
- 
- 	wqe = rvt_get_swqe_ptr(qp, qp->s_acked);
+ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_ib_header *hdr);
  
 
 --
