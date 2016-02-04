@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 03/21] IB/srpt: Remove struct srpt_node_acl
-Date: Thu, 4 Feb 2016 14:46:47 -0800
-Message-ID: <56B3D4D7.8060800@sandisk.com>
+Subject: [PATCH v3 06/21] IB/srpt: Introduce target_reverse_dma_direction()
+Date: Thu, 4 Feb 2016 14:48:06 -0800
+Message-ID: <56B3D526.9000103@sandisk.com>
 References: <56B3D453.7030409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,49 +13,59 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since struct srpt_node_acl is identical to struct se_node_acl,
-remove the definition of the former structure. This patch does
-not change any functionality.
+Use the function target_reverse_dma_direction() instead of
+reimplementing it.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.h | 8 --------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 4ee9678..e9e062d 100644
+index bd98efc..c50f05c 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -3508,7 +3508,7 @@ static struct configfs_attribute *srpt_wwn_attrs[] = {
- static const struct target_core_fabric_ops srpt_template = {
- 	.module				= THIS_MODULE,
- 	.name				= "srpt",
--	.node_acl_size			= sizeof(struct srpt_node_acl),
-+	.node_acl_size			= sizeof(struct se_node_acl),
- 	.get_fabric_name		= srpt_get_fabric_name,
- 	.tpg_get_wwn			= srpt_get_fabric_wwn,
- 	.tpg_get_tag			= srpt_get_tag,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 09037f2..b0ede97 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -363,12 +363,4 @@ struct srpt_device {
- 	struct list_head	list;
- };
+@@ -96,19 +96,6 @@ static int srpt_queue_status(struct se_cmd *cmd);
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
+ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc);
  
 -/**
-- * struct srpt_node_acl - Per-initiator ACL data (managed via configfs).
-- * @nacl:      Target core node ACL information.
+- * opposite_dma_dir() - Swap DMA_TO_DEVICE and DMA_FROM_DEVICE.
 - */
--struct srpt_node_acl {
--	struct se_node_acl	nacl;
--};
+-static inline
+-enum dma_data_direction opposite_dma_dir(enum dma_data_direction dir)
+-{
+-	switch (dir) {
+-	case DMA_TO_DEVICE:	return DMA_FROM_DEVICE;
+-	case DMA_FROM_DEVICE:	return DMA_TO_DEVICE;
+-	default:		return dir;
+-	}
+-}
 -
- #endif				/* IB_SRPT_H */
+ static enum rdma_ch_state
+ srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
+ {
+@@ -1049,7 +1036,7 @@ static void srpt_unmap_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+ 		dir = ioctx->cmd.data_direction;
+ 		BUG_ON(dir == DMA_NONE);
+ 		ib_dma_unmap_sg(ch->sport->sdev->device, sg, ioctx->sg_cnt,
+-				opposite_dma_dir(dir));
++				target_reverse_dma_direction(&ioctx->cmd));
+ 		ioctx->mapped_sg_count = 0;
+ 	}
+ }
+@@ -1086,7 +1073,7 @@ static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+ 	ioctx->sg_cnt = sg_cnt = cmd->t_data_nents;
+ 
+ 	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
+-			      opposite_dma_dir(dir));
++			      target_reverse_dma_direction(cmd));
+ 	if (unlikely(!count))
+ 		return -EAGAIN;
+ 
 -- 
 2.7.0
 
