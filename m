@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 21/21] IB/srpt: Fix wait list processing
-Date: Thu, 4 Feb 2016 14:59:41 -0800
-Message-ID: <56B3D7DD.70406@sandisk.com>
+Subject: [PATCH v3 20/21] IB/srpt: Introduce srpt_process_wait_list()
+Date: Thu, 4 Feb 2016 14:59:05 -0800
+Message-ID: <56B3D7B9.5060307@sandisk.com>
 References: <56B3D453.7030409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,87 +13,85 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since the wait list is not protected against concurrent access
-it must be processed from the context of the completion handler.
-Replace the wait list processing code in the IB CM RTU callback
-handler by code that triggers a completion handler. This patch
-fixes the following rare crash:
-
-WARNING: CPU: 2 PID: 78656 at lib/list_debug.c:53 __list_del_entry+0x67/0xd0()
-list_del corruption, ffff88041ae404b8->next is LIST_POISON1 (dead000000000100)
-Call Trace:
- [<ffffffff81251c6b>] dump_stack+0x4f/0x74
- [<ffffffff810574ab>] warn_slowpath_common+0x8b/0xd0
- [<ffffffff81057591>] warn_slowpath_fmt+0x41/0x70
- [<ffffffff8126f007>] __list_del_entry+0x67/0xd0
- [<ffffffff8126f081>] list_del+0x11/0x40
- [<ffffffffa0265242>] srpt_cm_handler+0x172/0x1a4 [ib_srpt]
- [<ffffffffa0370370>] cm_process_work+0x20/0xf0 [ib_cm]
- [<ffffffffa0370dae>] cm_establish_handler+0xbe/0x110 [ib_cm]
- [<ffffffffa03733e7>] cm_work_handler+0x67/0xd0 [ib_cm]
- [<ffffffff8107184d>] process_one_work+0x1bd/0x460
- [<ffffffff81073148>] worker_thread+0x118/0x420
- [<ffffffff81078444>] kthread+0xe4/0x100
- [<ffffffff8151caff>] ret_from_fork+0x3f/0x70
+This patch does not change any functionality.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 42 ++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 2b5448c..a562962 100644
+index 48009f5..2b5448c 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -96,7 +96,7 @@ static void srpt_free_ch(struct kref *kref);
- static int srpt_queue_status(struct se_cmd *cmd);
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
- static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc);
--static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc);
-+static void srpt_process_wait_list(struct srpt_rdma_ch *ch);
- 
- /*
-  * The only allowed channel state changes are those that change the channel
-@@ -833,12 +833,14 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct srpt_rdma_ch *ch = cq->cq_context;
- 
--	WARN(wc->status == IB_WC_SUCCESS, "%s-%d: QP not in error state\n",
--	     ch->sess_name, ch->qp->qp_num);
--	if (srpt_set_ch_state(ch, CH_DISCONNECTED))
--		schedule_work(&ch->release_work);
--	else
--		WARN_ONCE("%s-%d\n", ch->sess_name, ch->qp->qp_num);
-+	if (wc->status == IB_WC_SUCCESS) {
-+		srpt_process_wait_list(ch);
-+	} else {
-+		if (srpt_set_ch_state(ch, CH_DISCONNECTED))
-+			schedule_work(&ch->release_work);
-+		else
-+			WARN_ONCE("%s-%d\n", ch->sess_name, ch->qp->qp_num);
-+	}
- }
- 
- /**
-@@ -2323,9 +2325,13 @@ static void srpt_cm_rtu_recv(struct srpt_rdma_ch *ch)
- 	if (srpt_set_ch_state(ch, CH_LIVE)) {
- 		ret = srpt_ch_qp_rts(ch, ch->qp);
- 
--		srpt_process_wait_list(ch);
--		if (ret)
-+		if (ret == 0) {
-+			/* Trigger wait list processing. */
-+			ret = srpt_zerolength_write(ch);
-+			WARN_ONCE(ret < 0, "%d\n", ret);
-+		} else {
- 			srpt_close_ch(ch);
-+		}
+@@ -1730,6 +1730,28 @@ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
  	}
  }
  
++/*
++ * This function must be called from the context in which RDMA completions are
++ * processed because it accesses the wait list without protection against
++ * access from other threads.
++ */
++static void srpt_process_wait_list(struct srpt_rdma_ch *ch)
++{
++	struct srpt_send_ioctx *ioctx;
++
++	while (!list_empty(&ch->cmd_wait_list) &&
++	       ch->state >= CH_LIVE &&
++	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
++		struct srpt_recv_ioctx *recv_ioctx;
++
++		recv_ioctx = list_first_entry(&ch->cmd_wait_list,
++					      struct srpt_recv_ioctx,
++					      wait_list);
++		list_del(&recv_ioctx->wait_list);
++		srpt_handle_new_iu(ch, recv_ioctx, ioctx);
++	}
++}
++
+ /**
+  * Note: Although this has not yet been observed during tests, at least in
+  * theory it is possible that the srpt_get_send_ioctx() call invoked by
+@@ -1769,17 +1791,7 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		       " wr_id = %u.\n", ioctx->ioctx.index);
+ 	}
+ 
+-	while (!list_empty(&ch->cmd_wait_list) &&
+-	       ch->state == CH_LIVE &&
+-	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
+-		struct srpt_recv_ioctx *recv_ioctx;
+-
+-		recv_ioctx = list_first_entry(&ch->cmd_wait_list,
+-					      struct srpt_recv_ioctx,
+-					      wait_list);
+-		list_del(&recv_ioctx->wait_list);
+-		srpt_handle_new_iu(ch, recv_ioctx, ioctx);
+-	}
++	srpt_process_wait_list(ch);
+ }
+ 
+ /**
+@@ -2309,15 +2321,9 @@ static void srpt_cm_rtu_recv(struct srpt_rdma_ch *ch)
+ 	int ret;
+ 
+ 	if (srpt_set_ch_state(ch, CH_LIVE)) {
+-		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
+-
+ 		ret = srpt_ch_qp_rts(ch, ch->qp);
+ 
+-		list_for_each_entry_safe(ioctx, ioctx_tmp, &ch->cmd_wait_list,
+-					 wait_list) {
+-			list_del(&ioctx->wait_list);
+-			srpt_handle_new_iu(ch, ioctx, NULL);
+-		}
++		srpt_process_wait_list(ch);
+ 		if (ret)
+ 			srpt_close_ch(ch);
+ 	}
 -- 
 2.7.0
 
