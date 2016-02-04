@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/6] staging/rdma/hfi1: add s_retry to diagnostics
-Date: Thu, 04 Feb 2016 11:03:11 -0800
-Message-ID: <20160204190307.8378.80077.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 6/6] IB/qib,staging/rdma/hfi1: use setup_timer api
+Date: Thu, 04 Feb 2016 11:03:45 -0800
+Message-ID: <20160204190342.8378.4594.stgit@scvm10.sc.intel.com>
 References: <20160204190024.8378.5080.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,42 +10,51 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160204190024.8378.5080.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hari Prasath Gujulan Elango <hgujulan-Vi+0cqmPEYlBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Hari Prasath Gujulan Elango <hgujulan-Vi+0cqmPEYlBDgjK7y7TUQ@public.gmane.org>
 
-This is needed to debug ULP issues with getting retry attributes
-correctly specified.
+Replace the timer API's to initialize a timer & then assign the callback
+function by the setup_timer() API.
 
-Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Hari Prasath Gujulan Elango <hgujulan-Vi+0cqmPEYlBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/qp.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/qib/qib_verbs.c |    4 +---
+ drivers/staging/rdma/hfi1/verbs.c     |    4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index afa115c..a0bf23d 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -547,7 +547,7 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 	sde = qp_to_sdma_engine(qp, priv->s_sc);
- 	wqe = rvt_get_swqe_ptr(qp, qp->s_last);
- 	seq_printf(s,
--		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u) QP%u LID %x SL %u MTU %u %u %u SDE %p,%u\n",
-+		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u) QP%u LID %x SL %u MTU %u %u %u %u SDE %p,%u\n",
- 		   iter->n,
- 		   qp_idle(qp) ? "I" : "B",
- 		   qp->ibqp.qp_num,
-@@ -571,6 +571,7 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 		   qp->remote_ah_attr.dlid,
- 		   qp->remote_ah_attr.sl,
- 		   qp->pmtu,
-+		   qp->s_retry,
- 		   qp->s_retry_cnt,
- 		   qp->s_rnr_retry_cnt,
- 		   sde,
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 4158362..2abe31d 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1602,9 +1602,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 		init_ibport(ppd + i);
+ 
+ 	/* Only need to initialize non-zero fields. */
+-	init_timer(&dev->mem_timer);
+-	dev->mem_timer.function = mem_timer;
+-	dev->mem_timer.data = (unsigned long) dev;
++	setup_timer(&dev->mem_timer, mem_timer, (unsigned long)dev);
+ 
+ 	qpt_mask = dd->qpn_mask;
+ 
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index 0ee6b1d..35f6d92 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -1455,9 +1455,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 
+ 	/* Only need to initialize non-zero fields. */
+ 
+-	init_timer(&dev->mem_timer);
+-	dev->mem_timer.function = mem_timer;
+-	dev->mem_timer.data = (unsigned long) dev;
++	setup_timer(&dev->mem_timer, mem_timer, (unsigned long)dev);
+ 
+ 	seqlock_init(&dev->iowait_lock);
+ 	INIT_LIST_HEAD(&dev->txwait);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
