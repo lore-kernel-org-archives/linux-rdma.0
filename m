@@ -1,70 +1,84 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH][V2] IB/sysfs: remove unused va_list args
-Date: Thu, 4 Feb 2016 07:12:43 -0500
-Message-ID: <56B3403B.2020708@redhat.com>
-References: <1453747086-31000-1-git-send-email-colin.king@canonical.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] staging: amso1100: fix format string for 64-bit phys_addr
+Date: Thu, 4 Feb 2016 07:15:05 -0500
+Message-ID: <56B340C9.2060303@redhat.com>
+References: <2307631.X1DYNXxKPZ@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="OfEPKBNa4Pdc123wNR1iwo653O5numivA"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1453747086-31000-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============2881327648499234347=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <2307631.X1DYNXxKPZ@wuerfel>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Arnd Bergmann <arnd@arndb.de>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OfEPKBNa4Pdc123wNR1iwo653O5numivA
+--===============2881327648499234347==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="TfXDq459stieGfTPL357f35kb5KxC2AAm"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--TfXDq459stieGfTPL357f35kb5KxC2AAm
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 01/25/2016 01:38 PM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+On 02/01/2016 11:34 AM, Arnd Bergmann wrote:
+> The amso1100 driver prints a phys_addr_t by casting it to a pointer,
+> which causes a warning when phys_addr_t is 64-bit and pointers
+> are 32-bit:
 >=20
-> _show_port_gid_attr performs a va_end on some unused va_list args.
-> Clean this up by removing the args completely.
+> drivers/staging/rdma/amso1100/c2.c: In function 'c2_rx_error':
+> drivers/staging/rdma/amso1100/c2.c:430:4: warning: cast to pointer from=
+ integer of different size [-Wint-to-pointer-cast]
 >=20
-> Fixes: 470be516a226e8 ("IB/core: Add gid attributes to sysfs")
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> This changes the format string to print the address as a 64-bit
+> number all the time to avoids the warnings. Ideally we would use
+> the %pap format string for phys_addr_t, but that doesn't work
+> here easily as it requires passing a pointer to the address.
+>=20
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/infiniband/core/sysfs.c | 2 --
->  1 file changed, 2 deletions(-)
+> Found on ARM randconfig testing. This must have been there forever but =
+is
+> rather hard to trigger even with randconfig builds.
 >=20
-> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/=
-sysfs.c
-> index 3de9351..ec46386 100644
-> --- a/drivers/infiniband/core/sysfs.c
-> +++ b/drivers/infiniband/core/sysfs.c
-> @@ -336,7 +336,6 @@ static ssize_t _show_port_gid_attr(struct ib_port *=
-p,
->  	union ib_gid gid;
->  	struct ib_gid_attr gid_attr =3D {};
->  	ssize_t ret;
-> -	va_list args;
-> =20
->  	ret =3D ib_query_gid(p->ibdev, p->port_num, tab_attr->index, &gid,
->  			   &gid_attr);
-> @@ -348,7 +347,6 @@ static ssize_t _show_port_gid_attr(struct ib_port *=
-p,
->  err:
->  	if (gid_attr.ndev)
->  		dev_put(gid_attr.ndev);
-> -	va_end(args);
->  	return ret;
->  }
-> =20
+> diff --git a/drivers/staging/rdma/amso1100/c2.c b/drivers/staging/rdma/=
+amso1100/c2.c
+> index b46ebd1ae15a..170a42a60552 100644
+> --- a/drivers/staging/rdma/amso1100/c2.c
+> +++ b/drivers/staging/rdma/amso1100/c2.c
+> @@ -426,8 +426,8 @@ static void c2_rx_error(struct c2_port *c2_port, st=
+ruct c2_element *elem)
+>  		pr_debug("    index : %Zu\n",
+>  			elem - c2_port->rx_ring.start);
+>  		pr_debug("    len   : %u\n", rx_desc->len);
+> -		pr_debug("  rxp_hdr : %p [PA %p]\n", rxp_hdr,
+> -			(void *) __pa((unsigned long) rxp_hdr));
+> +		pr_debug("  rxp_hdr : %p [PA %016llx\n", rxp_hdr,
+> +			(u64)__pa((unsigned long) rxp_hdr));
+>  		pr_debug("    flags : 0x%x\n", rxp_hdr->flags);
+>  		pr_debug("    status: 0x%x\n", rxp_hdr->status);
+>  		pr_debug("    len   : %u\n", rxp_hdr->len);
 >=20
 
-Thanks, applied.
+I've sent off a deletion of this file to Linus already, sorry.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---OfEPKBNa4Pdc123wNR1iwo653O5numivA
+--TfXDq459stieGfTPL357f35kb5KxC2AAm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,23 +87,32 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWs0A7AAoJELgmozMOVy/dh+MQAIHQfcMo+LQcYvGEywQeQ/2h
-3X/95XhUnXY7cQkvYLPwoTFuehcmUQD0V+ITu/NW90rsUVEWTmmFmW/d0sPXGVv2
-z0x7Hb61qAT0H90QCAHH8XlS25yoLhakBxR84U54EAQ/wt4MuribehlXk6cw6+MM
-vtn4+BI4O1YOjDQ395ZUFxFwCCuyF3YP8yBurKtuvh19TtgxMbaApAc4Qg4KJJbX
-UhBU+nUK7QDQrjTuZEFaYtEv7nLOkWxjoSj7Dx6vV4jw8AlBAsNa5XZBTmHSmrKh
-wiDuuVAckakC91OqLvUdM8RZNzY7HzqsXRyDcSZM6Xu+MoYCCmmrJ0egx2GrFm2f
-9yFThGiG5C4hgTJYpqQUaEcleJiiiILaVHuSMXLRSzQop5tx2kfwNM5He0eQIuI/
-zHfXIBRIqFt7lyv9KFHKOE/K9p+dE/0nkFBE2n+aVW+Fruf6oYHqFXvLpHBEw99N
-sui3BIabfKu8QSS3BcrDj5GQpXoG6BWLr0UCTa2gch50tgdRePVBSa5DWuf4lCCo
-1Oa296eZJbMpxe0aHiEIhKZgei6DXMq6ZWfXJlf22YctLuAXEiU8jESp9ImkeJ20
-DrvilnPJZLnEhA/AxkVL+QU5jh19M1P/LWSJ/BDg79WQz8omU3Ktq4yccxn9EREb
-1xdOtkObfwv+gaG846TU
-=peGO
+iQIcBAEBCAAGBQJWs0DJAAoJELgmozMOVy/dpCcQAKamySMMWSqDpl4Zfwg+Df+w
+tlBG50/qkg22qdawiIwMkAJ+ksTNQudNfmY45Na3Jcb+eJXyJJhjJ+LhzaC7qkGT
+u41cc16bE0LoImjdU4Hzb0x4MixDNIQ22wb1rZf78EluSSUViTMRC9sgi4ZNmmdM
+qTuSXJkXk2OcZ6FSyy/sX9nZSQmvg6p2HVxFcoSdwEJMsHWittEdhFvl8uSjKneO
+xZ0amNQQNNB1Tx2I3DNpjSnDgTILEbUtAeum64I40SWjavJTRPtpPDkTmeS78yfc
+ut2IUjxoj+6bE2HATUiiU8PHKSFaOhUm0tOHKhHS7XJ6G22mEOszJa4k9IU0IH4D
+ob+BqfE4cDeZ9FABrVWB3qYNJLKLu61SrRYdJa9yAUihJEQYetTwKKz9YhMMIVmT
+YsqKpxejKfTbTDIhDobStXM5LDWq/D7Md9i4bM58gCOcWA6eFJ4ypXP+ivCjneHH
+HfO3mdiPy7v8tZwdW7qTvRkWm/GGq2JkjYsQh/iCmeRBp1uk/WM7QQuEMWAr18Ad
+kbjoDalEyGLukHjZCRn3e158ZJ3NzksoOnuITOWGq11QYCl79hcrykt4r4GI/5Mq
+pAPdkgWahd/C9IC54SyICoqDDrzNgaI4Cq3J2UTvAXMFJpb2n4OHL8/XlOUgTO94
+YK2teFCkfhSWST8dHQLw
+=wE+3
 -----END PGP SIGNATURE-----
 
---OfEPKBNa4Pdc123wNR1iwo653O5numivA--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--TfXDq459stieGfTPL357f35kb5KxC2AAm--
+
+--===============2881327648499234347==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+
+--===============2881327648499234347==--
