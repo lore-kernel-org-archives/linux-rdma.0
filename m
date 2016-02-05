@@ -1,18 +1,108 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 0/6] iWARP patches for the 4.5-rc2 rebase
-Date: Fri, 5 Feb 2016 15:54:16 -0600
-Message-ID: <56B51A08.9020508@opengridcomputing.com>
-References: <cover.1454709715.git.swise@chelsio.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB: new common API for draining a queue pair
+Date: Fri, 5 Feb 2016 17:00:26 -0500
+Message-ID: <53AAECEE-AC46-4E28-9FC0-DB1E567A2A50@oracle.com>
+References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com> <3AB519EB-3BFE-4A02-A825-F74EECD2CE19@oracle.com> <00e501d1605f$a16c1630$e4444290$@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1454709715.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <00e501d1605f$a16c1630$e4444290$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ignore these.  I sent them to the wrong list :(
+
+> On Feb 5, 2016, at 4:53 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> 
+>>> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>
+>>> 
+>>> Add provider-specific drain_qp function for providers needing special
+>>> drain logic.
+>>> 
+>>> Add static function __ib_drain_qp() which posts noop WRs to the RQ and
+>>> SQ and blocks until their completions are processed.  This ensures the
+>>> applications completions have all been processed.
+>>> 
+>>> Add API function ib_drain_qp() which calls the provider-specific drain
+>>> if it exists or __ib_drain_qp().
+>>> 
+>>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>>> ---
+>>> drivers/infiniband/core/verbs.c | 72 +++++++++++++++++++++++++++++++++++++++++
+>>> include/rdma/ib_verbs.h         |  2 ++
+>>> 2 files changed, 74 insertions(+)
+>>> 
+>>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+>>> index 5af6d02..31b82cd 100644
+>>> --- a/drivers/infiniband/core/verbs.c
+>>> +++ b/drivers/infiniband/core/verbs.c
+>>> @@ -1657,3 +1657,75 @@ next_page:
+>>> 	return i;
+>>> }
+>>> EXPORT_SYMBOL(ib_sg_to_pages);
+>>> +
+>>> +struct ib_drain_cqe {
+>>> +	struct ib_cqe cqe;
+>>> +	struct completion done;
+>>> +};
+>>> +
+>>> +static void ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
+>>> +{
+>>> +	struct ib_drain_cqe *cqe = container_of(wc->wr_cqe, struct ib_drain_cqe,
+>>> +						cqe);
+>>> +
+>>> +	complete(&cqe->done);
+>>> +}
+>>> +
+>>> +/*
+>>> + * Post a WR and block until its completion is reaped for both the RQ and SQ.
+>>> + */
+>>> +static void __ib_drain_qp(struct ib_qp *qp)
+>>> +{
+>>> +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+>>> +	struct ib_drain_cqe rdrain, sdrain;
+>>> +	struct ib_recv_wr rwr = {}, *bad_rwr;
+>>> +	struct ib_send_wr swr = {}, *bad_swr;
+>>> +	int ret;
+>>> +
+>>> +	rwr.wr_cqe = &rdrain.cqe;
+>>> +	rdrain.cqe.done = ib_drain_qp_done;
+>>> +	init_completion(&rdrain.done);
+>>> +
+>>> +	swr.wr_cqe = &sdrain.cqe;
+>>> +	sdrain.cqe.done = ib_drain_qp_done;
+>> 
+>> OK. ib_cqe is what hooks the completion events for these
+>> blank WRs, so those completions are never exposed to the
+>> RDMA consumer.
+>> 
+> 
+> Right, which means only consumers that use the new style CQ processing can make use of this.
+> 
+>> But does a consumer have to bump its SQE and RQE count
+>> when allocating its CQs, or is that done automatically
+>> by ib_alloc_cq() ?
+>> 
+> 
+> The consumer has to make sure there is room in the SQ, RQ and CQ.
+
+The documenting comment in front of ib_drain_qp() should
+mention this, and it should also state the requirement to
+use ib_alloc_cq().
+
+
+> Going forward, we could enhance QP and CQ allocation to allow the
+> consumer to specify it wants drain capability so the consumer doesn't have to do this. It could be done under the covers.  In fact,
+> if we did that, then ib_destroy_qp() could do the drain if need be.
+
+
+--
+Chuck Lever
+
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
