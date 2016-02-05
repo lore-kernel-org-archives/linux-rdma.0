@@ -1,49 +1,38 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 111921] New: Severe IPoIB Routed Performance Regression
-Date: Fri, 05 Feb 2016 05:23:14 +0000
-Message-ID: <bug-111921-11804@https.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next 0/3] Add TOS support and some cleanup
+Date: Fri,  5 Feb 2016 11:43:27 +0530
+Message-ID: <1454652810-25086-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=111921
+Hi,
 
-            Bug ID: 111921
-           Summary: Severe IPoIB Routed Performance Regression
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 4.4.1
-          Hardware: All
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: thesaxophonist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-        Regression: No
+This series adds TOS support for iWARP and also does some cleanup to make
+code more readable. Patch series is created against infiniband tree and 
+includes patches on iw_cxgb4 and cxgb4 driver.
 
-(Apologies if this is in the wrong section)
+We have included all the maintainers of respective drivers. Kindly review
+the change and let us know in case of any review comments.
 
-There appears to be a significant performance regression somewhere in the
-Infiniband or IPoIB stack starting with kernel 4.4. IP performance over the
-infiniband network itself is fine, however I have my internet connection routed
-from my ethernet network to my infiniband network. In kernel versions up
-through 4.3.3, this worked fine and provided my ISP line speed of ~180Mbps over
-IB. However in 4.4 this has dropped over an order of magnitude and I can now
-only achieve ~5Mbps when traversing from ethernet to infiniband or vice versa.
-I'm running IPoIB in connected mode.
+Thanks
 
-Reference: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1536837
+Hariprasad Shenai (3):
+  iw_cxgb4: make queue allocation code more readable
+  iw_cxgb4: remove false error log entry
+  cxgb4/iw_cxgb4: TOS support
+
+ drivers/infiniband/hw/cxgb4/cm.c              | 54 +++++++++++-------
+ drivers/infiniband/hw/cxgb4/qp.c              | 81 ++++++++++++++-------------
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h   |  2 +
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h |  1 +
+ 4 files changed, 80 insertions(+), 58 deletions(-)
 
 -- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
+2.3.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
