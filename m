@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 07/13] staging/rdma/hfi1: Start adding building blocks for TID caching
-Date: Fri,  5 Feb 2016 11:57:52 -0500
-Message-ID: <1454691478-15444-8-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 12/13] staging/rdma/hfi1: Add TID entry program function body
+Date: Fri,  5 Feb 2016 11:57:57 -0500
+Message-ID: <1454691478-15444-13-git-send-email-ira.weiny@intel.com>
 References: <1454691478-15444-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1454691478-15444-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,389 +12,315 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Functions added by this patch are building blocks for the upcoming
-TID caching functionality. The functions added are currently unsed
-(and marked as such.)
+The previous patch in the series added the free/invalidate
+function bodies. Now, it's time for the programming side.
 
-The functions' purposes are to find physically contigous pages in
-the user's virtual buffer, program the RcvArray group entries with
-these physical chunks, and unprogram the RcvArray groups.
+This large function takes the user's buffer, breaks it up
+into manageable chunks, allocates enough RcvArray groups
+and programs the chunks into the RcvArray entries in the
+hardware.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+With this function, the TID caching functionality is implemented.
+However, it is still unused. The switch will come in a later
+patch in the series, which will remove the old functionality and
+switch the driver over to TID caching.
+
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes from V1:
-	Add comment to program_rcvarray
-	Fix >= on tididx
-
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 337 +++++++++++++++++++++++++++++++
- 1 file changed, 337 insertions(+)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 263 ++++++++++++++++++++++++++++++-
+ 1 file changed, 259 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 7f15024daab9..5a7e455b9f58 100644
+index 776ce003248e..d33f579675b7 100644
 --- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
 +++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -83,8 +83,20 @@ static const char * const mmu_types[] = {
- 	"RANGE"
- };
+@@ -97,8 +97,7 @@ struct tid_pageset {
  
-+struct tid_pageset {
-+	u16 idx;
-+	u16 count;
-+};
-+
- #define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
- 
-+static void unlock_exp_tids(struct hfi1_ctxtdata *, struct exp_tid_set *,
-+			    struct rb_root *) __maybe_unused;
-+static u32 find_phys_blocks(struct page **, unsigned,
-+			    struct tid_pageset *) __maybe_unused;
-+static int set_rcvarray_entry(struct file *, unsigned long, u32,
-+			      struct tid_group *, struct page **,
-+			      unsigned) __maybe_unused;
+ static void unlock_exp_tids(struct hfi1_ctxtdata *, struct exp_tid_set *,
+ 			    struct rb_root *);
+-static u32 find_phys_blocks(struct page **, unsigned,
+-			    struct tid_pageset *) __maybe_unused;
++static u32 find_phys_blocks(struct page **, unsigned, struct tid_pageset *);
+ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+ 			      struct tid_group *, struct page **, unsigned);
  static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
- 			       unsigned long);
- static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
-@@ -103,6 +115,21 @@ static inline void mmu_notifier_page(struct mmu_notifier *, struct mm_struct *,
- static inline void mmu_notifier_range_start(struct mmu_notifier *,
- 					    struct mm_struct *,
+@@ -119,7 +118,7 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
  					    unsigned long, unsigned long);
-+static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
-+			    struct tid_pageset *, unsigned, u16, struct page **,
-+			    u32 *, unsigned *, unsigned *) __maybe_unused;
-+static int unprogram_rcvarray(struct file *, u32,
-+			      struct tid_group **) __maybe_unused;
-+static void clear_tid_node(struct hfi1_filedata *, u16,
-+			   struct mmu_rb_node *) __maybe_unused;
-+
-+static inline u32 rcventry2tidinfo(u32 rcventry)
-+{
-+	u32 pair = rcventry & ~0x1;
-+
-+	return EXP_TID_SET(IDX, pair >> 1) |
-+		EXP_TID_SET(CTRL, 1 << (rcventry - pair));
-+}
+ static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
+ 			    struct tid_pageset *, unsigned, u16, struct page **,
+-			    u32 *, unsigned *, unsigned *) __maybe_unused;
++			    u32 *, unsigned *, unsigned *);
+ static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
+ static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
  
- static inline void exp_tid_group_init(struct exp_tid_set *set)
- {
-@@ -193,6 +220,316 @@ int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
- 	return -EINVAL;
+@@ -339,9 +338,265 @@ static inline void rcv_array_wc_fill(struct hfi1_devdata *dd, u32 index)
+ 		writeq(0, dd->rcvarray_wc + (index * 8));
  }
  
-+static u32 find_phys_blocks(struct page **pages, unsigned npages,
-+			    struct tid_pageset *list)
-+{
-+	unsigned pagecount, pageidx, setcount = 0, i;
-+	unsigned long pfn, this_pfn;
-+
-+	if (!npages)
-+		return 0;
-+
-+	/*
-+	 * Look for sets of physically contiguous pages in the user buffer.
-+	 * This will allow us to optimize Expected RcvArray entry usage by
-+	 * using the bigger supported sizes.
-+	 */
-+	pfn = page_to_pfn(pages[0]);
-+	for (pageidx = 0, pagecount = 1, i = 1; i <= npages; i++) {
-+		this_pfn = i < npages ? page_to_pfn(pages[i]) : 0;
-+
-+		/*
-+		 * If the pfn's are not sequential, pages are not physically
-+		 * contiguous.
-+		 */
-+		if (this_pfn != ++pfn) {
-+			/*
-+			 * At this point we have to loop over the set of
-+			 * physically contiguous pages and break them down it
-+			 * sizes supported by the HW.
-+			 * There are two main constraints:
-+			 *     1. The max buffer size is MAX_EXPECTED_BUFFER.
-+			 *        If the total set size is bigger than that
-+			 *        program only a MAX_EXPECTED_BUFFER chunk.
-+			 *     2. The buffer size has to be a power of two. If
-+			 *        it is not, round down to the closes power of
-+			 *        2 and program that size.
-+			 */
-+			while (pagecount) {
-+				int maxpages = pagecount;
-+				u32 bufsize = pagecount * PAGE_SIZE;
-+
-+				if (bufsize > MAX_EXPECTED_BUFFER)
-+					maxpages =
-+						MAX_EXPECTED_BUFFER >>
-+						PAGE_SHIFT;
-+				else if (!is_power_of_2(bufsize))
-+					maxpages =
-+						rounddown_pow_of_two(bufsize) >>
-+						PAGE_SHIFT;
-+
-+				list[setcount].idx = pageidx;
-+				list[setcount].count = maxpages;
-+				pagecount -= maxpages;
-+				pageidx += maxpages;
-+				setcount++;
-+			}
-+			pageidx = i;
-+			pagecount = 1;
-+			pfn = this_pfn;
-+		} else {
-+			pagecount++;
-+		}
-+	}
-+	return setcount;
-+}
-+
-+/**
-+ * program_rcvarray() - program an RcvArray group with receive buffers
-+ * @fp: file pointer
-+ * @vaddr: starting user virtual address
-+ * @grp: RcvArray group
-+ * @sets: array of struct tid_pageset holding information on physically
-+ *        contiguous chunks from the user buffer
-+ * @start: starting index into sets array
-+ * @count: number of struct tid_pageset's to program
-+ * @pages: an array of struct page * for the user buffer
-+ * @tidlist: the array of u32 elements when the information about the
-+ *           programmed RcvArray entries is to be encoded.
-+ * @tididx: starting offset into tidlist
-+ * @pmapped: (output parameter) number of pages programmed into the RcvArray
-+ *           entries.
++/*
++ * RcvArray entry allocation for Expected Receives is done by the
++ * following algorithm:
 + *
-+ * This function will program up to 'count' number of RcvArray entries from the
-+ * group 'grp'. To make best use of write-combining writes, the function will
-+ * perform writes to the unused RcvArray entries which will be ignored by the
-+ * HW. Each RcvArray entry will be programmed with a physically contiguous
-+ * buffer chunk from the user's virtual buffer.
++ * The context keeps 3 lists of groups of RcvArray entries:
++ *   1. List of empty groups - tid_group_list
++ *      This list is created during user context creation and
++ *      contains elements which describe sets (of 8) of empty
++ *      RcvArray entries.
++ *   2. List of partially used groups - tid_used_list
++ *      This list contains sets of RcvArray entries which are
++ *      not completely used up. Another mapping request could
++ *      use some of all of the remaining entries.
++ *   3. List of full groups - tid_full_list
++ *      This is the list where sets that are completely used
++ *      up go.
 + *
-+ * Return:
-+ * -EINVAL if the requested count is larger than the size of the group,
-+ * -ENOMEM or -EFAULT on error from set_rcvarray_entry(), or
-+ * number of RcvArray entries programmed.
++ * An attempt to optimize the usage of RcvArray entries is
++ * made by finding all sets of physically contiguous pages in a
++ * user's buffer.
++ * These physically contiguous sets are further split into
++ * sizes supported by the receive engine of the HFI. The
++ * resulting sets of pages are stored in struct tid_pageset,
++ * which describes the sets as:
++ *    * .count - number of pages in this set
++ *    * .idx - starting index into struct page ** array
++ *                    of this set
++ *
++ * From this point on, the algorithm deals with the page sets
++ * described above. The number of pagesets is divided by the
++ * RcvArray group size to produce the number of full groups
++ * needed.
++ *
++ * Groups from the 3 lists are manipulated using the following
++ * rules:
++ *   1. For each set of 8 pagesets, a complete group from
++ *      tid_group_list is taken, programmed, and moved to
++ *      the tid_full_list list.
++ *   2. For all remaining pagesets:
++ *      2.1 If the tid_used_list is empty and the tid_group_list
++ *          is empty, stop processing pageset and return only
++ *          what has been programmed up to this point.
++ *      2.2 If the tid_used_list is empty and the tid_group_list
++ *          is not empty, move a group from tid_group_list to
++ *          tid_used_list.
++ *      2.3 For each group is tid_used_group, program as much as
++ *          can fit into the group. If the group becomes fully
++ *          used, move it to tid_full_list.
 + */
-+static int program_rcvarray(struct file *fp, unsigned long vaddr,
-+			    struct tid_group *grp,
-+			    struct tid_pageset *sets,
-+			    unsigned start, u16 count, struct page **pages,
-+			    u32 *tidlist, unsigned *tididx, unsigned *pmapped)
-+{
+ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ {
+-	return -EINVAL;
++	int ret = 0, need_group = 0, pinned;
 +	struct hfi1_filedata *fd = fp->private_data;
 +	struct hfi1_ctxtdata *uctxt = fd->uctxt;
 +	struct hfi1_devdata *dd = uctxt->dd;
-+	u16 idx;
-+	u32 tidinfo = 0, rcventry, useidx = 0;
-+	int mapped = 0;
++	unsigned npages, ngroups, pageidx = 0, pageset_count, npagesets,
++		tididx = 0, mapped, mapped_pages = 0;
++	unsigned long vaddr = tinfo->vaddr;
++	struct page **pages = NULL;
++	u32 *tidlist = NULL;
++	struct tid_pageset *pagesets = NULL;
 +
-+	/* Count should never be larger than the group size */
-+	if (count > grp->size)
++	/* Get the number of pages the user buffer spans */
++	npages = num_user_pages(vaddr, tinfo->length);
++	if (!npages)
 +		return -EINVAL;
 +
-+	/* Find the first unused entry in the group */
-+	for (idx = 0; idx < grp->size; idx++) {
-+		if (!(grp->map & (1 << idx))) {
-+			useidx = idx;
-+			break;
-+		}
-+		rcv_array_wc_fill(dd, grp->base + idx);
++	if (npages > uctxt->expected_count) {
++		dd_dev_err(dd, "Expected buffer too big\n");
++		return -EINVAL;
 +	}
 +
-+	idx = 0;
-+	while (idx < count) {
-+		u16 npages, pageidx, setidx = start + idx;
-+		int ret = 0;
-+
-+		/*
-+		 * If this entry in the group is used, move to the next one.
-+		 * If we go past the end of the group, exit the loop.
-+		 */
-+		if (useidx >= grp->size) {
-+			break;
-+		} else if (grp->map & (1 << useidx)) {
-+			rcv_array_wc_fill(dd, grp->base + useidx);
-+			useidx++;
-+			continue;
-+		}
-+
-+		rcventry = grp->base + useidx;
-+		npages = sets[setidx].count;
-+		pageidx = sets[setidx].idx;
-+
-+		ret = set_rcvarray_entry(fp, vaddr + (pageidx * PAGE_SIZE),
-+					 rcventry, grp, pages + pageidx,
-+					 npages);
-+		if (ret)
-+			return ret;
-+		mapped += npages;
-+
-+		tidinfo = rcventry2tidinfo(rcventry - uctxt->expected_base) |
-+			EXP_TID_SET(LEN, npages);
-+		tidlist[(*tididx)++] = tidinfo;
-+		grp->used++;
-+		grp->map |= 1 << useidx++;
-+		idx++;
++	/* Verify that access is OK for the user buffer */
++	if (!access_ok(VERIFY_WRITE, (void __user *)vaddr,
++		       npages * PAGE_SIZE)) {
++		dd_dev_err(dd, "Fail vaddr %p, %u pages, !access_ok\n",
++			   (void *)vaddr, npages);
++		return -EFAULT;
 +	}
 +
-+	/* Fill the rest of the group with "blank" writes */
-+	for (; useidx < grp->size; useidx++)
-+		rcv_array_wc_fill(dd, grp->base + useidx);
-+	*pmapped = mapped;
-+	return idx;
-+}
-+
-+static int set_rcvarray_entry(struct file *fp, unsigned long vaddr,
-+			      u32 rcventry, struct tid_group *grp,
-+			      struct page **pages, unsigned npages)
-+{
-+	int ret;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	struct mmu_rb_node *node;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	struct rb_root *root = &fd->tid_rb_root;
-+	dma_addr_t phys;
-+
-+	/*
-+	 * Allocate the node first so we can handle a potential
-+	 * failure before we've programmed anything.
-+	 */
-+	node = kzalloc(sizeof(*node) + (sizeof(struct page *) * npages),
-+		       GFP_KERNEL);
-+	if (!node)
++	pagesets = kcalloc(uctxt->expected_count, sizeof(*pagesets),
++			   GFP_KERNEL);
++	if (!pagesets)
 +		return -ENOMEM;
 +
-+	phys = pci_map_single(dd->pcidev,
-+			      __va(page_to_phys(pages[0])),
-+			      npages * PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+	if (dma_mapping_error(&dd->pcidev->dev, phys)) {
-+		dd_dev_err(dd, "Failed to DMA map Exp Rcv pages 0x%llx\n",
-+			   phys);
-+		kfree(node);
-+		return -EFAULT;
++	/* Allocate the array of struct page pointers needed for pinning */
++	pages = kcalloc(npages, sizeof(*pages), GFP_KERNEL);
++	if (!pages) {
++		ret = -ENOMEM;
++		goto bail;
 +	}
 +
-+	node->virt = vaddr;
-+	node->phys = page_to_phys(pages[0]);
-+	node->len = npages * PAGE_SIZE;
-+	node->npages = npages;
-+	node->rcventry = rcventry;
-+	node->dma_addr = phys;
-+	node->grp = grp;
-+	node->freed = false;
-+	memcpy(node->pages, pages, sizeof(struct page *) * npages);
-+
-+	spin_lock(&fd->rb_lock);
-+	ret = fd->mmu_rb_insert(root, node);
-+	spin_unlock(&fd->rb_lock);
-+
-+	if (ret) {
-+		hfi1_cdbg(TID, "Failed to insert RB node %u 0x%lx, 0x%lx %d",
-+			  node->rcventry, node->virt, node->phys, ret);
-+		pci_unmap_single(dd->pcidev, phys, npages * PAGE_SIZE,
-+				 PCI_DMA_FROMDEVICE);
-+		kfree(node);
-+		return -EFAULT;
-+	}
-+	hfi1_put_tid(dd, rcventry, PT_EXPECTED, phys, ilog2(npages) + 1);
-+	return 0;
-+}
-+
-+static int unprogram_rcvarray(struct file *fp, u32 tidinfo,
-+			      struct tid_group **grp)
-+{
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+	struct mmu_rb_node *node;
-+	u8 tidctrl = EXP_TID_GET(tidinfo, CTRL);
-+	u32 tidbase = uctxt->expected_base,
-+		tididx = EXP_TID_GET(tidinfo, IDX) << 1, rcventry;
-+
-+	if (tididx >= uctxt->expected_count) {
-+		dd_dev_err(dd, "Invalid RcvArray entry (%u) index for ctxt %u\n",
-+			   tididx, uctxt->ctxt);
-+		return -EINVAL;
-+	}
-+
-+	if (tidctrl == 0x3)
-+		return -EINVAL;
-+
-+	rcventry = tidbase + tididx + (tidctrl - 1);
-+
-+	spin_lock(&fd->rb_lock);
-+	node = mmu_rb_search_by_entry(&fd->tid_rb_root, rcventry);
-+	if (!node) {
-+		spin_unlock(&fd->rb_lock);
-+		return -EBADF;
-+	}
-+	rb_erase(&node->rbnode, &fd->tid_rb_root);
-+	spin_unlock(&fd->rb_lock);
-+	if (grp)
-+		*grp = node->grp;
-+	clear_tid_node(fd, fd->subctxt, node);
-+	return 0;
-+}
-+
-+static void clear_tid_node(struct hfi1_filedata *fd, u16 subctxt,
-+			   struct mmu_rb_node *node)
-+{
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	struct hfi1_devdata *dd = uctxt->dd;
-+
-+	hfi1_put_tid(dd, node->rcventry, PT_INVALID, 0, 0);
 +	/*
-+	 * Make sure device has seen the write before we unpin the
-+	 * pages.
++	 * Pin all the pages of the user buffer. If we can't pin all the
++	 * pages, accept the amount pinned so far and program only that.
++	 * User space knows how to deal with partially programmed buffers.
 +	 */
-+	flush_wc();
++	pinned = hfi1_acquire_user_pages(vaddr, npages, true, pages);
++	if (pinned <= 0) {
++		ret = pinned;
++		goto bail;
++	}
 +
-+	pci_unmap_single(dd->pcidev, node->dma_addr, node->len,
-+			 PCI_DMA_FROMDEVICE);
-+	hfi1_release_user_pages(node->pages, node->npages, true);
++	/* Find sets of physically contiguous pages */
++	npagesets = find_phys_blocks(pages, pinned, pagesets);
 +
-+	node->grp->used--;
-+	node->grp->map &= ~(1 << (node->rcventry - node->grp->base));
++	/*
++	 * We don't need to access this under a lock since tid_used is per
++	 * process and the same process cannot be in hfi1_user_exp_rcv_clear()
++	 * and hfi1_user_exp_rcv_setup() at the same time.
++	 */
++	spin_lock(&fd->tid_lock);
++	if (fd->tid_used + npagesets > fd->tid_limit)
++		pageset_count = fd->tid_limit - fd->tid_used;
++	else
++		pageset_count = npagesets;
++	spin_unlock(&fd->tid_lock);
 +
-+	if (node->grp->used == node->grp->size - 1)
-+		tid_group_move(node->grp, &uctxt->tid_full_list,
-+			       &uctxt->tid_used_list);
-+	else if (!node->grp->used)
-+		tid_group_move(node->grp, &uctxt->tid_used_list,
-+			       &uctxt->tid_group_list);
-+	kfree(node);
-+}
++	if (!pageset_count)
++		goto bail;
 +
-+static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
-+			    struct exp_tid_set *set, struct rb_root *root)
-+{
-+	struct tid_group *grp, *ptr;
-+	struct hfi1_filedata *fd = container_of(root, struct hfi1_filedata,
-+						tid_rb_root);
-+	int i;
++	ngroups = pageset_count / dd->rcv_entries.group_size;
++	tidlist = kcalloc(pageset_count, sizeof(*tidlist), GFP_KERNEL);
++	if (!tidlist) {
++		ret = -ENOMEM;
++		goto nomem;
++	}
 +
-+	list_for_each_entry_safe(grp, ptr, &set->list, list) {
-+		list_del_init(&grp->list);
++	tididx = 0;
 +
-+		spin_lock(&fd->rb_lock);
-+		for (i = 0; i < grp->size; i++) {
-+			if (grp->map & (1 << i)) {
-+				u16 rcventry = grp->base + i;
-+				struct mmu_rb_node *node;
++	/*
++	 * From this point on, we are going to be using shared (between master
++	 * and subcontexts) context resources. We need to take the lock.
++	 */
++	mutex_lock(&uctxt->exp_lock);
++	/*
++	 * The first step is to program the RcvArray entries which are complete
++	 * groups.
++	 */
++	while (ngroups && uctxt->tid_group_list.count) {
++		struct tid_group *grp =
++			tid_group_pop(&uctxt->tid_group_list);
 +
-+				node = mmu_rb_search_by_entry(root, rcventry);
-+				if (!node)
-+					continue;
-+				rb_erase(&node->rbnode, root);
-+				clear_tid_node(fd, -1, node);
++		ret = program_rcvarray(fp, vaddr, grp, pagesets,
++				       pageidx, dd->rcv_entries.group_size,
++				       pages, tidlist, &tididx, &mapped);
++		/*
++		 * If there was a failure to program the RcvArray
++		 * entries for the entire group, reset the grp fields
++		 * and add the grp back to the free group list.
++		 */
++		if (ret <= 0) {
++			tid_group_add_tail(grp, &uctxt->tid_group_list);
++			hfi1_cdbg(TID,
++				  "Failed to program RcvArray group %d", ret);
++			goto unlock;
++		}
++
++		tid_group_add_tail(grp, &uctxt->tid_full_list);
++		ngroups--;
++		pageidx += ret;
++		mapped_pages += mapped;
++	}
++
++	while (pageidx < pageset_count) {
++		struct tid_group *grp, *ptr;
++		/*
++		 * If we don't have any partially used tid groups, check
++		 * if we have empty groups. If so, take one from there and
++		 * put in the partially used list.
++		 */
++		if (!uctxt->tid_used_list.count || need_group) {
++			if (!uctxt->tid_group_list.count)
++				goto unlock;
++
++			grp = tid_group_pop(&uctxt->tid_group_list);
++			tid_group_add_tail(grp, &uctxt->tid_used_list);
++			need_group = 0;
++		}
++		/*
++		 * There is an optimization opportunity here - instead of
++		 * fitting as many page sets as we can, check for a group
++		 * later on in the list that could fit all of them.
++		 */
++		list_for_each_entry_safe(grp, ptr, &uctxt->tid_used_list.list,
++					 list) {
++			unsigned use = min_t(unsigned, pageset_count - pageidx,
++					     grp->size - grp->used);
++
++			ret = program_rcvarray(fp, vaddr, grp, pagesets,
++					       pageidx, use, pages, tidlist,
++					       &tididx, &mapped);
++			if (ret < 0) {
++				hfi1_cdbg(TID,
++					  "Failed to program RcvArray entries %d",
++					  ret);
++				ret = -EFAULT;
++				goto unlock;
++			} else if (ret > 0) {
++				if (grp->used == grp->size)
++					tid_group_move(grp,
++						       &uctxt->tid_used_list,
++						       &uctxt->tid_full_list);
++				pageidx += ret;
++				mapped_pages += mapped;
++				need_group = 0;
++				/* Check if we are done so we break out early */
++				if (pageidx >= pageset_count)
++					break;
++			} else if (WARN_ON(ret == 0)) {
++				/*
++				 * If ret is 0, we did not program any entries
++				 * into this group, which can only happen if
++				 * we've screwed up the accounting somewhere.
++				 * Warn and try to continue.
++				 */
++				need_group = 1;
 +			}
 +		}
-+		spin_unlock(&fd->rb_lock);
 +	}
-+}
++unlock:
++	mutex_unlock(&uctxt->exp_lock);
++nomem:
++	hfi1_cdbg(TID, "total mapped: tidpairs:%u pages:%u (%d)", tididx,
++		  mapped_pages, ret);
++	if (tididx) {
++		spin_lock(&fd->tid_lock);
++		fd->tid_used += tididx;
++		spin_unlock(&fd->tid_lock);
++		tinfo->tidcnt = tididx;
++		tinfo->length = mapped_pages * PAGE_SIZE;
 +
- static inline void mmu_notifier_page(struct mmu_notifier *mn,
- 				     struct mm_struct *mm, unsigned long addr)
- {
++		if (copy_to_user((void __user *)(unsigned long)tinfo->tidlist,
++				 tidlist, sizeof(tidlist[0]) * tididx)) {
++			/*
++			 * On failure to copy to the user level, we need to undo
++			 * everything done so far so we don't leak resources.
++			 */
++			tinfo->tidlist = (unsigned long)&tidlist;
++			hfi1_user_exp_rcv_clear(fp, tinfo);
++			tinfo->tidlist = 0;
++			ret = -EFAULT;
++			goto bail;
++		}
++	}
++
++	/*
++	 * If not everything was mapped (due to insufficient RcvArray entries,
++	 * for example), unpin all unmapped pages so we can pin them nex time.
++	 */
++	if (mapped_pages != pinned)
++		hfi1_release_user_pages(&pages[mapped_pages],
++					pinned - mapped_pages,
++					false);
++bail:
++	kfree(pagesets);
++	kfree(pages);
++	kfree(tidlist);
++	return ret > 0 ? 0 : ret;
+ }
+ 
+ int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
 -- 
 1.8.2
 
