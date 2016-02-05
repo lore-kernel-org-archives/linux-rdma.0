@@ -1,159 +1,139 @@
-From: Hariprasad Shenai <hariprasad@chelsio.com>
-Subject: [PATCH for-next 1/3] iw_cxgb4: make queue allocation code more readable
-Date: Fri,  5 Feb 2016 11:43:28 +0530
-Message-ID: <1454652810-25086-2-git-send-email-hariprasad@chelsio.com>
-References: <1454652810-25086-1-git-send-email-hariprasad@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1454652810-25086-1-git-send-email-hariprasad@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
-Cc: dledford@redhat.com, davem@davemloft.net, swise@opengridcomputing.com, nirranjan@chelsio.com, Hariprasad Shenai <hariprasad@chelsio.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 03/10] svcrdma: svc_rdma_post_recv() should close
+ connection on error
+Date: Fri, 5 Feb 2016 15:47:15 +0530
+Message-ID: <CANjDDBiHk-tHqH-xwSqY7R8xo3BUm5XfPB2obD5w-9V7z2PE+g@mail.gmail.com>
+References: <20160203154411.13868.48268.stgit@klimt.1015granger.net> <20160203155146.13868.14354.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160203155146.13868.14354.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Rename local mm* variables to more meaningful names
+Looks good.
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-Signed-off-by: Hariprasad Shenai <hariprasad@chelsio.com>
----
- drivers/infiniband/hw/cxgb4/qp.c | 81 +++++++++++++++++++++-------------------
- 1 file changed, 42 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index e99345eb875a..dadf5f1855b3 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1621,7 +1621,8 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	unsigned int sqsize, rqsize;
- 	struct c4iw_ucontext *ucontext;
- 	int ret;
--	struct c4iw_mm_entry *mm1, *mm2, *mm3, *mm4, *mm5 = NULL;
-+	struct c4iw_mm_entry *sq_key_mm, *rq_key_mm = NULL, *sq_db_key_mm;
-+	struct c4iw_mm_entry *rq_db_key_mm = NULL, *ma_sync_key_mm = NULL;
- 
- 	PDBG("%s ib_pd %p\n", __func__, pd);
- 
-@@ -1706,29 +1707,30 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 		goto err2;
- 
- 	if (udata) {
--		mm1 = kmalloc(sizeof *mm1, GFP_KERNEL);
--		if (!mm1) {
-+		sq_key_mm = kmalloc(sizeof(*sq_key_mm), GFP_KERNEL);
-+		if (!sq_key_mm) {
- 			ret = -ENOMEM;
- 			goto err3;
- 		}
--		mm2 = kmalloc(sizeof *mm2, GFP_KERNEL);
--		if (!mm2) {
-+		rq_key_mm = kmalloc(sizeof(*rq_key_mm), GFP_KERNEL);
-+		if (!rq_key_mm) {
- 			ret = -ENOMEM;
- 			goto err4;
- 		}
--		mm3 = kmalloc(sizeof *mm3, GFP_KERNEL);
--		if (!mm3) {
-+		sq_db_key_mm = kmalloc(sizeof(*sq_db_key_mm), GFP_KERNEL);
-+		if (!sq_db_key_mm) {
- 			ret = -ENOMEM;
- 			goto err5;
- 		}
--		mm4 = kmalloc(sizeof *mm4, GFP_KERNEL);
--		if (!mm4) {
-+		rq_db_key_mm = kmalloc(sizeof(*rq_db_key_mm), GFP_KERNEL);
-+		if (!rq_db_key_mm) {
- 			ret = -ENOMEM;
- 			goto err6;
- 		}
- 		if (t4_sq_onchip(&qhp->wq.sq)) {
--			mm5 = kmalloc(sizeof *mm5, GFP_KERNEL);
--			if (!mm5) {
-+			ma_sync_key_mm = kmalloc(sizeof(*ma_sync_key_mm),
-+						 GFP_KERNEL);
-+			if (!ma_sync_key_mm) {
- 				ret = -ENOMEM;
- 				goto err7;
- 			}
-@@ -1743,7 +1745,7 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 		uresp.rq_size = qhp->wq.rq.size;
- 		uresp.rq_memsize = qhp->wq.rq.memsize;
- 		spin_lock(&ucontext->mmap_lock);
--		if (mm5) {
-+		if (ma_sync_key_mm) {
- 			uresp.ma_sync_key = ucontext->key;
- 			ucontext->key += PAGE_SIZE;
- 		} else {
-@@ -1761,28 +1763,29 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 		ret = ib_copy_to_udata(udata, &uresp, sizeof uresp);
- 		if (ret)
- 			goto err8;
--		mm1->key = uresp.sq_key;
--		mm1->addr = qhp->wq.sq.phys_addr;
--		mm1->len = PAGE_ALIGN(qhp->wq.sq.memsize);
--		insert_mmap(ucontext, mm1);
--		mm2->key = uresp.rq_key;
--		mm2->addr = virt_to_phys(qhp->wq.rq.queue);
--		mm2->len = PAGE_ALIGN(qhp->wq.rq.memsize);
--		insert_mmap(ucontext, mm2);
--		mm3->key = uresp.sq_db_gts_key;
--		mm3->addr = (__force unsigned long)qhp->wq.sq.bar2_pa;
--		mm3->len = PAGE_SIZE;
--		insert_mmap(ucontext, mm3);
--		mm4->key = uresp.rq_db_gts_key;
--		mm4->addr = (__force unsigned long)qhp->wq.rq.bar2_pa;
--		mm4->len = PAGE_SIZE;
--		insert_mmap(ucontext, mm4);
--		if (mm5) {
--			mm5->key = uresp.ma_sync_key;
--			mm5->addr = (pci_resource_start(rhp->rdev.lldi.pdev, 0)
--				    + PCIE_MA_SYNC_A) & PAGE_MASK;
--			mm5->len = PAGE_SIZE;
--			insert_mmap(ucontext, mm5);
-+		sq_key_mm->key = uresp.sq_key;
-+		sq_key_mm->addr = qhp->wq.sq.phys_addr;
-+		sq_key_mm->len = PAGE_ALIGN(qhp->wq.sq.memsize);
-+		insert_mmap(ucontext, sq_key_mm);
-+		rq_key_mm->key = uresp.rq_key;
-+		rq_key_mm->addr = virt_to_phys(qhp->wq.rq.queue);
-+		rq_key_mm->len = PAGE_ALIGN(qhp->wq.rq.memsize);
-+		insert_mmap(ucontext, rq_key_mm);
-+		sq_db_key_mm->key = uresp.sq_db_gts_key;
-+		sq_db_key_mm->addr = (u64)(unsigned long)qhp->wq.sq.bar2_pa;
-+		sq_db_key_mm->len = PAGE_SIZE;
-+		insert_mmap(ucontext, sq_db_key_mm);
-+		rq_db_key_mm->key = uresp.rq_db_gts_key;
-+		rq_db_key_mm->addr = (u64)(unsigned long)qhp->wq.rq.bar2_pa;
-+		rq_db_key_mm->len = PAGE_SIZE;
-+		insert_mmap(ucontext, rq_db_key_mm);
-+		if (ma_sync_key_mm) {
-+			ma_sync_key_mm->key = uresp.ma_sync_key;
-+			ma_sync_key_mm->addr =
-+				(pci_resource_start(rhp->rdev.lldi.pdev, 0) +
-+				PCIE_MA_SYNC_A) & PAGE_MASK;
-+			ma_sync_key_mm->len = PAGE_SIZE;
-+			insert_mmap(ucontext, ma_sync_key_mm);
- 		}
- 	}
- 	qhp->ibqp.qp_num = qhp->wq.sq.qid;
-@@ -1795,15 +1798,15 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
- 	     qhp->wq.rq.memsize, attrs->cap.max_recv_wr);
- 	return &qhp->ibqp;
- err8:
--	kfree(mm5);
-+	kfree(ma_sync_key_mm);
- err7:
--	kfree(mm4);
-+	kfree(rq_db_key_mm);
- err6:
--	kfree(mm3);
-+	kfree(sq_db_key_mm);
- err5:
--	kfree(mm2);
-+	kfree(rq_key_mm);
- err4:
--	kfree(mm1);
-+	kfree(sq_key_mm);
- err3:
- 	remove_handle(rhp, &rhp->qpidr, qhp->wq.sq.qid);
- err2:
--- 
-2.3.4
+On Wed, Feb 3, 2016 at 9:21 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Clean up: Most svc_rdma_post_recv() call sites close the transport
+> connection when a receive cannot be posted. Wrap that in a common
+> helper.
+>
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/svc_rdma.h            |    1 +
+>  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   11 ++---------
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   10 +---------
+>  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |    7 +------
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c   |   15 +++++++++++++++
+>  5 files changed, 20 insertions(+), 24 deletions(-)
+>
+> diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+> index 5322fea..d8fc58d 100644
+> --- a/include/linux/sunrpc/svc_rdma.h
+> +++ b/include/linux/sunrpc/svc_rdma.h
+> @@ -234,6 +234,7 @@ extern int svc_rdma_send(struct svcxprt_rdma *, struct ib_send_wr *);
+>  extern void svc_rdma_send_error(struct svcxprt_rdma *, struct rpcrdma_msg *,
+>                                 enum rpcrdma_errcode);
+>  extern int svc_rdma_post_recv(struct svcxprt_rdma *, gfp_t);
+> +extern int svc_rdma_repost_recv(struct svcxprt_rdma *, gfp_t);
+>  extern int svc_rdma_create_listen(struct svc_serv *, int, struct sockaddr *);
+>  extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *);
+>  extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+> index 65a7c23..4498eaf 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+> @@ -111,16 +111,9 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+>         if (ret)
+>                 goto out_err;
+>
+> -       /* Post a recv buffer to handle the reply for this request. */
+> -       ret = svc_rdma_post_recv(rdma, GFP_NOIO);
+> -       if (ret) {
+> -               pr_err("svcrdma: Failed to post bc receive buffer, err=%d.\n",
+> -                      ret);
+> -               pr_err("svcrdma: closing transport %p.\n", rdma);
+> -               set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+> -               ret = -ENOTCONN;
+> +       ret = svc_rdma_repost_recv(rdma, GFP_NOIO);
+> +       if (ret)
+>                 goto out_err;
+> -       }
+>
+>         ctxt = svc_rdma_get_context(rdma);
+>         ctxt->pages[0] = virt_to_page(rqst->rq_buffer);
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> index c8b8a8b..acf15b8 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+> @@ -711,13 +711,5 @@ defer:
+>         return 0;
+>
+>  repost:
+> -       ret = svc_rdma_post_recv(rdma_xprt, GFP_KERNEL);
+> -       if (ret) {
+> -               pr_err("svcrdma: could not post a receive buffer, err=%d.\n",
+> -                      ret);
+> -               pr_err("svcrdma: closing transport %p.\n", rdma_xprt);
+> -               set_bit(XPT_CLOSE, &rdma_xprt->sc_xprt.xpt_flags);
+> -               ret = -ENOTCONN;
+> -       }
+> -       return ret;
+> +       return svc_rdma_repost_recv(rdma_xprt, GFP_KERNEL);
+>  }
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> index 8591314..687a91afe 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+> @@ -464,13 +464,8 @@ static int send_reply(struct svcxprt_rdma *rdma,
+>         int pages;
+>         int ret;
+>
+> -       /* Post a recv buffer to handle another request. */
+> -       ret = svc_rdma_post_recv(rdma, GFP_KERNEL);
+> +       ret = svc_rdma_repost_recv(rdma, GFP_KERNEL);
+>         if (ret) {
+> -               printk(KERN_INFO
+> -                      "svcrdma: could not post a receive buffer, err=%d."
+> -                      "Closing transport %p.\n", ret, rdma);
+> -               set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+>                 svc_rdma_put_context(ctxt, 0);
+>                 return -ENOTCONN;
+>         }
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> index 02eee12..da82e36 100644
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -722,6 +722,21 @@ int svc_rdma_post_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+>         return -ENOMEM;
+>  }
+>
+> +int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+> +{
+> +       int ret = 0;
+> +
+> +       ret = svc_rdma_post_recv(xprt, flags);
+> +       if (ret) {
+> +               pr_err("svcrdma: could not post a receive buffer, err=%d.\n",
+> +                      ret);
+> +               pr_err("svcrdma: closing transport %p.\n", xprt);
+> +               set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+> +               ret = -ENOTCONN;
+> +       }
+> +       return ret;
+> +}
+> +
+>  /*
+>   * This function handles the CONNECT_REQUEST event on a listening
+>   * endpoint. It is passed the cma_id for the _new_ connection. The context in
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
