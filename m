@@ -1,75 +1,126 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1 00/10] NFS/RDMA server patches for v4.6
-Date: Fri, 5 Feb 2016 16:29:07 +0530
-Message-ID: <CANjDDBhaEfkssb+HzGovpJUn+9mVFm=H4mcLyYR6Lf7=cOC7LA@mail.gmail.com>
-References: <20160203154411.13868.48268.stgit@klimt.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-4.5-rc 1/4] RDMA/ocrdma: Initialize stats resources in the driver before ib device registration.
+Date: Fri,  5 Feb 2016 20:06:37 +0530
+Message-ID: <1454683001-21275-2-git-send-email-selvin.xavier@broadcom.com>
+References: <1454683001-21275-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160203154411.13868.48268.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1454683001-21275-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-While there are some bug fixes for ocrdma are on the way, I tested
-this series with a modified ocrdma driver.
-following tests passed:
-iozone, cable-pull short duration, cable pull long duration (more than 5 mins).
+In the latest kernel, process_mad hook of the driver can be invoked as
+soon as device is registered. In this hook, ocrdma driver is issuing a
+command to get the stats counters from the HW. This is triggering system
+crash since the statistics command resources are not allocated by the driver.
+Changing the sequence of initialization to avoid this crash.
 
-Series Reviewed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Series Tested-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  6 ++++++
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 14 ++++----------
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.h |  2 ++
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+index 5738493..f387430 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
+@@ -228,6 +228,11 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
+ 
+ 	ocrdma_alloc_pd_pool(dev);
+ 
++	if (!ocrdma_alloc_stats_resources(dev)) {
++		pr_err("%s: stats resource allocation failed\n", __func__);
++		goto alloc_err;
++	}
++
+ 	spin_lock_init(&dev->av_tbl.lock);
+ 	spin_lock_init(&dev->flush_q_lock);
+ 	return 0;
+@@ -238,6 +243,7 @@ alloc_err:
+ 
+ static void ocrdma_free_resources(struct ocrdma_dev *dev)
+ {
++	ocrdma_release_stats_resources(dev);
+ 	kfree(dev->stag_arr);
+ 	kfree(dev->qp_tbl);
+ 	kfree(dev->cq_tbl);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+index 86c303a..fc02e86 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+@@ -64,10 +64,11 @@ static int ocrdma_add_stat(char *start, char *pcur,
+ 	return cpy_len;
+ }
+ 
+-static bool ocrdma_alloc_stats_mem(struct ocrdma_dev *dev)
++bool ocrdma_alloc_stats_resources(struct ocrdma_dev *dev)
+ {
+ 	struct stats_mem *mem = &dev->stats_mem;
+ 
++	mutex_init(&dev->stats_lock);
+ 	/* Alloc mbox command mem*/
+ 	mem->size = max_t(u32, sizeof(struct ocrdma_rdma_stats_req),
+ 			sizeof(struct ocrdma_rdma_stats_resp));
+@@ -91,13 +92,14 @@ static bool ocrdma_alloc_stats_mem(struct ocrdma_dev *dev)
+ 	return true;
+ }
+ 
+-static void ocrdma_release_stats_mem(struct ocrdma_dev *dev)
++void ocrdma_release_stats_resources(struct ocrdma_dev *dev)
+ {
+ 	struct stats_mem *mem = &dev->stats_mem;
+ 
+ 	if (mem->va)
+ 		dma_free_coherent(&dev->nic_info.pdev->dev, mem->size,
+ 				  mem->va, mem->pa);
++	mem->va = NULL;
+ 	kfree(mem->debugfs_mem);
+ }
+ 
+@@ -838,15 +840,9 @@ void ocrdma_add_port_stats(struct ocrdma_dev *dev)
+ 				&dev->reset_stats, &ocrdma_dbg_ops))
+ 		goto err;
+ 
+-	/* Now create dma_mem for stats mbx command */
+-	if (!ocrdma_alloc_stats_mem(dev))
+-		goto err;
+-
+-	mutex_init(&dev->stats_lock);
+ 
+ 	return;
+ err:
+-	ocrdma_release_stats_mem(dev);
+ 	debugfs_remove_recursive(dev->dir);
+ 	dev->dir = NULL;
+ }
+@@ -856,8 +852,6 @@ void ocrdma_rem_port_stats(struct ocrdma_dev *dev)
+ 	if (!dev->dir)
+ 		return;
+ 	debugfs_remove(dev->dir);
+-	mutex_destroy(&dev->stats_lock);
+-	ocrdma_release_stats_mem(dev);
+ }
+ 
+ void ocrdma_init_debugfs(void)
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.h b/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
+index c9e58d0..bba1fec 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.h
+@@ -65,6 +65,8 @@ enum OCRDMA_STATS_TYPE {
+ 
+ void ocrdma_rem_debugfs(void);
+ void ocrdma_init_debugfs(void);
++bool ocrdma_alloc_stats_resources(struct ocrdma_dev *dev);
++void ocrdma_release_stats_resources(struct ocrdma_dev *dev);
+ void ocrdma_rem_port_stats(struct ocrdma_dev *dev);
+ void ocrdma_add_port_stats(struct ocrdma_dev *dev);
+ int ocrdma_pma_counters(struct ocrdma_dev *dev,
+-- 
+2.2.0
 
-
-
-On Wed, Feb 3, 2016 at 9:21 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> For review.
->
-> - Fix XDR round-up in write chunks (take 3)
-> - Pre-allocate FRWRs when accepting a connection
-> - Add proper handling of bad header XDR
-> - Convert the server to use the new core CQ API added in v4.5.
->
-> Also available in the "nfsd-rdma-for-4.6" topic branch of this git
-> repo:
->
-> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->
-> Or for browsing:
->
-> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.6
->
-> ---
->
-> Chuck Lever (10):
->       svcrdma: Do not send XDR roundup bytes for a write chunk
->       svcrdma: Make svc_rdma_get_frmr() not sleep
->       svcrdma: svc_rdma_post_recv() should close connection on error
->       rpcrdma: Add missing XDR union fields for RDMA errors
->       svcrdma: Make RDMA_ERROR messages work
->       svcrdma: Use correct XID in error replies
->       svcrdma: Hook up the logic to return ERR_CHUNK
->       svcrdma: Remove close_out exit path
->       svcrdma: Use new CQ API for RPC-over-RDMA server receive CQs
->       svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
->
->
->  include/linux/sunrpc/rpc_rdma.h            |   13 +
->  include/linux/sunrpc/svc_rdma.h            |   18 +
->  net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   15 -
->  net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   62 ++--
->  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   61 +---
->  net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   79 ++++-
->  net/sunrpc/xprtrdma/svc_rdma_transport.c   |  488 +++++++++++-----------------
->  7 files changed, 346 insertions(+), 390 deletions(-)
->
-> --
-> Chuck Lever
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
