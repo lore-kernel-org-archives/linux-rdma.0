@@ -1,126 +1,115 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB: new common API for draining a queue pair
-Date: Fri, 5 Feb 2016 17:20:40 -0500
-Message-ID: <D714AA8A-F799-4792-9146-42AAAB0B5DD0@oracle.com>
-References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com> <3AB519EB-3BFE-4A02-A825-F74EECD2CE19@oracle.com> <00e501d1605f$a16c1630$e4444290$@opengridcomputing.com> <53AAECEE-AC46-4E28-9FC0-DB1E567A2A50@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/ipoib: fix for rare multicast join race condition.
+Date: Fri, 05 Feb 2016 18:35:42 -0500
+Message-ID: <20160205233542.20595.29241.stgit@phlsvlogin03.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53AAECEE-AC46-4E28-9FC0-DB1E567A2A50-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+A narrow window for race condition still exist between
+multicast join thread and *dev_flush workers.
+A kernel crash caused by prolong erratic link state changes
+was observed (most likely a faulty cabling):
 
-> On Feb 5, 2016, at 5:00 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
->> 
->> On Feb 5, 2016, at 4:53 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->> 
->>>> From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>
->>>> 
->>>> Add provider-specific drain_qp function for providers needing special
->>>> drain logic.
->>>> 
->>>> Add static function __ib_drain_qp() which posts noop WRs to the RQ and
->>>> SQ and blocks until their completions are processed.  This ensures the
->>>> applications completions have all been processed.
->>>> 
->>>> Add API function ib_drain_qp() which calls the provider-specific drain
->>>> if it exists or __ib_drain_qp().
->>>> 
->>>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->>>> ---
->>>> drivers/infiniband/core/verbs.c | 72 +++++++++++++++++++++++++++++++++++++++++
->>>> include/rdma/ib_verbs.h         |  2 ++
->>>> 2 files changed, 74 insertions(+)
->>>> 
->>>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
->>>> index 5af6d02..31b82cd 100644
->>>> --- a/drivers/infiniband/core/verbs.c
->>>> +++ b/drivers/infiniband/core/verbs.c
->>>> @@ -1657,3 +1657,75 @@ next_page:
->>>> 	return i;
->>>> }
->>>> EXPORT_SYMBOL(ib_sg_to_pages);
->>>> +
->>>> +struct ib_drain_cqe {
->>>> +	struct ib_cqe cqe;
->>>> +	struct completion done;
->>>> +};
->>>> +
->>>> +static void ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
->>>> +{
->>>> +	struct ib_drain_cqe *cqe = container_of(wc->wr_cqe, struct ib_drain_cqe,
->>>> +						cqe);
->>>> +
->>>> +	complete(&cqe->done);
->>>> +}
->>>> +
->>>> +/*
->>>> + * Post a WR and block until its completion is reaped for both the RQ and SQ.
->>>> + */
->>>> +static void __ib_drain_qp(struct ib_qp *qp)
->>>> +{
->>>> +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
->>>> +	struct ib_drain_cqe rdrain, sdrain;
->>>> +	struct ib_recv_wr rwr = {}, *bad_rwr;
->>>> +	struct ib_send_wr swr = {}, *bad_swr;
->>>> +	int ret;
->>>> +
->>>> +	rwr.wr_cqe = &rdrain.cqe;
->>>> +	rdrain.cqe.done = ib_drain_qp_done;
->>>> +	init_completion(&rdrain.done);
->>>> +
->>>> +	swr.wr_cqe = &sdrain.cqe;
->>>> +	sdrain.cqe.done = ib_drain_qp_done;
->>> 
->>> OK. ib_cqe is what hooks the completion events for these
->>> blank WRs, so those completions are never exposed to the
->>> RDMA consumer.
->>> 
->> 
->> Right, which means only consumers that use the new style CQ processing can make use of this.
->> 
->>> But does a consumer have to bump its SQE and RQE count
->>> when allocating its CQs, or is that done automatically
->>> by ib_alloc_cq() ?
->>> 
->> 
->> The consumer has to make sure there is room in the SQ, RQ and CQ.
-> 
-> The documenting comment in front of ib_drain_qp() should
-> mention this, and it should also state the requirement to
-> use ib_alloc_cq().
+[167275.656270] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000020
+[167275.665973] IP: [<ffffffffa05f8f2e>] ipoib_mcast_join+0xae/0x1d0 [ib_ipoib]
+[167275.674443] PGD 0
+[167275.677373] Oops: 0000 [#1] SMP
+...
+[167275.977530] Call Trace:
+[167275.982225]  [<ffffffffa05f92f0>] ? ipoib_mcast_free+0x200/0x200 [ib_ipoib]
+[167275.992024]  [<ffffffffa05fa1b7>] ipoib_mcast_join_task+0x2a7/0x490
+[ib_ipoib]
+[167276.002149]  [<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+[167276.010754]  [<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+[167276.019088]  [<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+[167276.027737]  [<ffffffff810a5aef>] kthread+0xcf/0xe0
+Here was a hit spot:
+ipoib_mcast_join() {
+..............
+      rec.qkey      = priv->broadcast->mcmember.qkey;
+                                       ^^^^^^^
+.....
+ }
+Proposed patch should prevent multicast join task to continue
+if link state change is detected.
 
-And otherwise, I'm happy to see this work!
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
-Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-
->> Going forward, we could enhance QP and CQ allocation to allow the
->> consumer to specify it wants drain capability so the consumer doesn't have to do this. It could be done under the covers.  In fact,
->> if we did that, then ib_destroy_qp() could do the drain if need be.
-> 
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 050dfa1..07eb431 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -456,7 +456,7 @@ out_locked:
+ 	return status;
+ }
+ 
+-static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
++static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ib_sa_multicast *multicast;
+@@ -466,6 +466,9 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 	ib_sa_comp_mask comp_mask;
+ 	int ret = 0;
+ 
++	if (!priv->broadcast)
++		return -EINVAL;
++
+ 	ipoib_dbg_mcast(priv, "joining MGID %pI6\n", mcast->mcmember.mgid.raw);
+ 
+ 	rec.mgid     = mcast->mcmember.mgid;
+@@ -539,6 +542,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 		spin_unlock_irq(&priv->lock);
+ 		complete(&mcast->done);
+ 	}
++	return 0;
+ }
+ 
+ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -549,6 +553,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	struct ib_port_attr port_attr;
+ 	unsigned long delay_until = 0;
+ 	struct ipoib_mcast *mcast = NULL;
++	int ret;
+ 
+ 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
+ 		return;
+@@ -611,6 +616,11 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 	 * and attached
+ 	 */
+ 	list_for_each_entry(mcast, &priv->multicast_list, list) {
++		if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags)) {
++			mcast = NULL;
++			delay_until = 0;
++			goto out;
++		}
+ 		if (IS_ERR_OR_NULL(mcast->mc) &&
+ 		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
+ 		    (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ||
+@@ -621,8 +631,13 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 				init_completion(&mcast->done);
+ 				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 				spin_unlock_irq(&priv->lock);
+-				ipoib_mcast_join(dev, mcast);
++				ret = ipoib_mcast_join(dev, mcast);
+ 				spin_lock_irq(&priv->lock);
++				if (ret != 0) {
++					mcast = NULL;
++					delay_until = 0;
++					goto out;
++				}
+ 			} else if (!delay_until ||
+ 				 time_before(mcast->delay_until, delay_until))
+ 				delay_until = mcast->delay_until;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
