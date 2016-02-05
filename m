@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 04/13] staging/rdma/hfi1: Add definitions needed for TID caching support
-Date: Fri,  5 Feb 2016 11:57:49 -0500
-Message-ID: <1454691478-15444-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 06/13] staging/rdma/hfi1: Add definitions and support functions for TID groups
+Date: Fri,  5 Feb 2016 11:57:51 -0500
+Message-ID: <1454691478-15444-7-git-send-email-ira.weiny@intel.com>
 References: <1454691478-15444-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1454691478-15444-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,61 +12,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In preparation for adding the TID caching support, there is a set
-of headers, structures, and variables which will be needed. This
-commit adds them to the hfi.h header file.
+Definitions and functions use to manage sets of TID/RcvArray groups.
+These will be used by the TID cacheline functionality coming with
+later patches.
+
+TID groups (or RcvArray groups) are groups of TID/RcvArray entries
+organized in sets of 8 and aligned on cacheline boundaries. The
+TID/RcvArray entries are managed in this way to make taking
+advantage of write-combining easier - each group is a entire
+cacheline.
+
+rcv_array_wc_fill() is provided to allow of generating writes to
+TIDs which are not currently being used in order to cause the
+flush of the write-combining buffer.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/hfi.h | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 64 ++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index ddb21f0fffe7..51ecf45ef70b 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -179,6 +179,11 @@ struct ctxt_eager_bufs {
- 	} *rcvtids;
- };
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+index bafeddf67c8f..7f15024daab9 100644
+--- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+@@ -52,6 +52,14 @@
+ #include "user_exp_rcv.h"
+ #include "trace.h"
  
-+struct exp_tid_set {
++struct tid_group {
 +	struct list_head list;
-+	u32 count;
++	unsigned base;
++	u8 size;
++	u8 used;
++	u8 map;
 +};
 +
- struct hfi1_ctxtdata {
- 	/* shadow the ctxt's RcvCtrl register */
- 	u64 rcvctrl;
-@@ -247,6 +252,11 @@ struct hfi1_ctxtdata {
- 	struct page **tid_pg_list;
- 	/* dma handles for exp tid pages */
- 	dma_addr_t *physshadow;
-+
-+	struct exp_tid_set tid_group_list;
-+	struct exp_tid_set tid_used_list;
-+	struct exp_tid_set tid_full_list;
-+
- 	/* lock protecting all Expected TID data */
- 	spinlock_t exp_lock;
- 	/* number of pio bufs for this ctxt (all procs, if shared) */
-@@ -1137,6 +1147,16 @@ struct hfi1_filedata {
- 	struct hfi1_user_sdma_pkt_q *pq;
- 	/* for cpu affinity; -1 if none */
- 	int rec_cpu_num;
-+	struct mmu_notifier mn;
-+	struct rb_root tid_rb_root;
-+	spinlock_t tid_lock; /* protect tid_[limit,used] counters */
-+	u32 tid_limit;
-+	u32 tid_used;
-+	spinlock_t rb_lock; /* protect tid_rb_root RB tree */
-+	u32 *invalid_tids;
-+	u32 invalid_tid_idx;
-+	spinlock_t invalid_lock; /* protect the invalid_tids array */
-+	int (*mmu_rb_insert)(struct rb_root *, struct mmu_rb_node *);
+ struct mmu_rb_node {
+ 	struct rb_node rbnode;
+ 	unsigned long virt;
+@@ -75,6 +83,8 @@ static const char * const mmu_types[] = {
+ 	"RANGE"
  };
  
- extern struct list_head hfi1_dev_list;
++#define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
++
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+@@ -94,6 +104,43 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
+ 					    struct mm_struct *,
+ 					    unsigned long, unsigned long);
+ 
++static inline void exp_tid_group_init(struct exp_tid_set *set)
++{
++	INIT_LIST_HEAD(&set->list);
++	set->count = 0;
++}
++
++static inline void tid_group_remove(struct tid_group *grp,
++				    struct exp_tid_set *set)
++{
++	list_del_init(&grp->list);
++	set->count--;
++}
++
++static inline void tid_group_add_tail(struct tid_group *grp,
++				      struct exp_tid_set *set)
++{
++	list_add_tail(&grp->list, &set->list);
++	set->count++;
++}
++
++static inline struct tid_group *tid_group_pop(struct exp_tid_set *set)
++{
++	struct tid_group *grp =
++		list_first_entry(&set->list, struct tid_group, list);
++	list_del_init(&grp->list);
++	set->count--;
++	return grp;
++}
++
++static inline void tid_group_move(struct tid_group *group,
++				  struct exp_tid_set *s1,
++				  struct exp_tid_set *s2)
++{
++	tid_group_remove(group, s1);
++	tid_group_add_tail(group, s2);
++}
++
+ static struct mmu_notifier_ops __maybe_unused mn_opts = {
+ 	.invalidate_page = mmu_notifier_page,
+ 	.invalidate_range_start = mmu_notifier_range_start,
+@@ -114,6 +161,23 @@ int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
+ 	return -EINVAL;
+ }
+ 
++/*
++ * Write an "empty" RcvArray entry.
++ * This function exists so the TID registaration code can use it
++ * to write to unused/unneeded entries and still take advantage
++ * of the WC performance improvements. The HFI will ignore this
++ * write to the RcvArray entry.
++ */
++static inline void rcv_array_wc_fill(struct hfi1_devdata *dd, u32 index)
++{
++	/*
++	 * Doing the WC fill writes only makes sense if the device is
++	 * present and the RcvArray has been mapped as WC memory.
++	 */
++	if ((dd->flags & HFI1_PRESENT) && dd->rcvarray_wc)
++		writeq(0, dd->rcvarray_wc + (index * 8));
++}
++
+ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
+ {
+ 	return -EINVAL;
 -- 
 1.8.2
 
