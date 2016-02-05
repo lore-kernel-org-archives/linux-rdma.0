@@ -1,105 +1,49 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 13/21] IB/srpt: Inline trivial CM callback functions
-Date: Thu, 4 Feb 2016 14:55:50 -0800
-Message-ID: <56B3D6F6.8000308@sandisk.com>
-References: <56B3D453.7030409@sandisk.com>
+From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Subject: [Bug 111921] New: Severe IPoIB Routed Performance Regression
+Date: Fri, 05 Feb 2016 05:23:14 +0000
+Message-ID: <bug-111921-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56B3D453.7030409-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Inline those CM callback functions that are only two lines long.
-Additionally, change the log messages that refer to IB events into
-"CM ...".
+https://bugzilla.kernel.org/show_bug.cgi?id=111921
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 37 ++++++++++-------------------------
- 1 file changed, 10 insertions(+), 27 deletions(-)
+            Bug ID: 111921
+           Summary: Severe IPoIB Routed Performance Regression
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 4.4.1
+          Hardware: All
+                OS: Linux
+              Tree: Mainline
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+          Reporter: thesaxophonist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+        Regression: No
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 5b204f8..dca07f1 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2320,18 +2320,6 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
- 	}
- }
- 
--static void srpt_cm_timewait_exit(struct ib_cm_id *cm_id)
--{
--	pr_info("Received IB TimeWait exit for cm_id %p.\n", cm_id);
--	srpt_drain_channel(cm_id);
--}
--
--static void srpt_cm_rep_error(struct ib_cm_id *cm_id)
--{
--	pr_info("Received IB REP error for cm_id %p.\n", cm_id);
--	srpt_drain_channel(cm_id);
--}
--
- /**
-  * srpt_cm_dreq_recv() - Process reception of a DREQ message.
-  */
-@@ -2370,15 +2358,6 @@ static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
- }
- 
- /**
-- * srpt_cm_drep_recv() - Process reception of a DREP message.
-- */
--static void srpt_cm_drep_recv(struct ib_cm_id *cm_id)
--{
--	pr_info("Received InfiniBand DREP message for cm_id %p.\n", cm_id);
--	srpt_drain_channel(cm_id);
--}
--
--/**
-  * srpt_cm_handler() - IB connection manager callback function.
-  *
-  * A non-zero return value will cause the caller destroy the CM ID.
-@@ -2409,22 +2388,26 @@ static int srpt_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 		srpt_cm_dreq_recv(cm_id);
- 		break;
- 	case IB_CM_DREP_RECEIVED:
--		srpt_cm_drep_recv(cm_id);
-+		pr_info("Received CM DREP message for cm_id %p.\n",
-+			cm_id);
-+		srpt_drain_channel(cm_id);
- 		break;
- 	case IB_CM_TIMEWAIT_EXIT:
--		srpt_cm_timewait_exit(cm_id);
-+		pr_info("Received CM TimeWait exit for cm_id %p.\n", cm_id);
-+		srpt_drain_channel(cm_id);
- 		break;
- 	case IB_CM_REP_ERROR:
--		srpt_cm_rep_error(cm_id);
-+		pr_info("Received CM REP error for cm_id %p.\n", cm_id);
-+		srpt_drain_channel(cm_id);
- 		break;
- 	case IB_CM_DREQ_ERROR:
--		pr_info("Received IB DREQ ERROR event.\n");
-+		pr_info("Received CM DREQ ERROR event.\n");
- 		break;
- 	case IB_CM_MRA_RECEIVED:
--		pr_info("Received IB MRA event\n");
-+		pr_info("Received CM MRA event\n");
- 		break;
- 	default:
--		pr_err("received unrecognized IB CM event %d\n", event->event);
-+		pr_err("received unrecognized CM event %d\n", event->event);
- 		break;
- 	}
- 
+(Apologies if this is in the wrong section)
+
+There appears to be a significant performance regression somewhere in the
+Infiniband or IPoIB stack starting with kernel 4.4. IP performance over the
+infiniband network itself is fine, however I have my internet connection routed
+from my ethernet network to my infiniband network. In kernel versions up
+through 4.3.3, this worked fine and provided my ISP line speed of ~180Mbps over
+IB. However in 4.4 this has dropped over an order of magnitude and I can now
+only achieve ~5Mbps when traversing from ethernet to infiniband or vice versa.
+I'm running IPoIB in connected mode.
+
+Reference: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1536837
+
 -- 
-2.7.0
-
+You are receiving this mail because:
+You are watching the assignee of the bug.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
