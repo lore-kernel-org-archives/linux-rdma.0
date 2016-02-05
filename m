@@ -1,104 +1,52 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 3/3] IB/srp: use ib_drain_qp()
-Date: Wed, 27 Jan 2016 12:09:47 -0800
-Message-ID: <4cb51de7f5449fe1de9db18f2c5d3fa379ccb0ad.1454709317.git.swise@chelsio.com>
-References: <cover.1454709317.git.swise@chelsio.com>
+From: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/6] iWARP patches for the 4.5-rc2 rebase
+Date: Fri, 5 Feb 2016 14:01:55 -0800
+Message-ID: <cover.1454709715.git.swise@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1454709317.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 45 ++++++-------------------------------
- 1 file changed, 7 insertions(+), 38 deletions(-)
+Here are the remaining iwarp-wip patches rebased on nvmf-4.5.  I've pushed
+this to branch nvmf-4.5-iwarp.  
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 03022f6..95670ae 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -446,49 +446,17 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
- 				  dev->max_pages_per_mr);
- }
- 
--static void srp_drain_done(struct ib_cq *cq, struct ib_wc *wc)
--{
--	struct srp_rdma_ch *ch = cq->cq_context;
--
--	complete(&ch->done);
--}
--
--static struct ib_cqe srp_drain_cqe = {
--	.done		= srp_drain_done,
--};
--
- /**
-  * srp_destroy_qp() - destroy an RDMA queue pair
-  * @ch: SRP RDMA channel.
-  *
-- * Change a queue pair into the error state and wait until all receive
-- * completions have been processed before destroying it. This avoids that
-- * the receive completion handler can access the queue pair while it is
-+ * Drain the qp before destroying it.  This avoids that the receive
-+ * completion handler can access the queue pair while it is
-  * being destroyed.
-  */
- static void srp_destroy_qp(struct srp_rdma_ch *ch)
- {
--	static struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
--	static struct ib_recv_wr wr = { 0 };
--	struct ib_recv_wr *bad_wr;
--	int ret;
--
--	wr.wr_cqe = &srp_drain_cqe;
--	/* Destroying a QP and reusing ch->done is only safe if not connected */
--	WARN_ON_ONCE(ch->connected);
--
--	ret = ib_modify_qp(ch->qp, &attr, IB_QP_STATE);
--	WARN_ONCE(ret, "ib_cm_init_qp_attr() returned %d\n", ret);
--	if (ret)
--		goto out;
--
--	init_completion(&ch->done);
--	ret = ib_post_recv(ch->qp, &wr, &bad_wr);
--	WARN_ONCE(ret, "ib_post_recv() returned %d\n", ret);
--	if (ret == 0)
--		wait_for_completion(&ch->done);
--
--out:
-+	ib_drain_qp(ch->qp);
- 	ib_destroy_qp(ch->qp);
- }
- 
-@@ -508,7 +476,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	if (!init_attr)
- 		return -ENOMEM;
- 
--	/* queue_size + 1 for ib_drain_qp */
-+	/* queue_size + 1 for ib_drain_qp() */
- 	recv_cq = ib_alloc_cq(dev->dev, ch, target->queue_size + 1,
- 				ch->comp_vector, IB_POLL_SOFTIRQ);
- 	if (IS_ERR(recv_cq)) {
-@@ -516,7 +484,8 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 		goto err;
- 	}
- 
--	send_cq = ib_alloc_cq(dev->dev, ch, m * target->queue_size,
-+	/* queue_size + 1 for ib_drain_qp() */
-+	send_cq = ib_alloc_cq(dev->dev, ch, m * target->queue_size + 1,
- 				ch->comp_vector, IB_POLL_DIRECT);
- 	if (IS_ERR(send_cq)) {
- 		ret = PTR_ERR(send_cq);
-@@ -524,7 +493,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	}
- 
- 	init_attr->event_handler       = srp_qp_event;
--	init_attr->cap.max_send_wr     = m * target->queue_size;
-+	init_attr->cap.max_send_wr     = m * target->queue_size + 1;
- 	init_attr->cap.max_recv_wr     = target->queue_size + 1;
- 	init_attr->cap.max_recv_sge    = 1;
- 	init_attr->cap.max_send_sge    = 1;
+Sagi, it would be great if you could add these when you rebase.
+
+Thanks!
+
+Steve
+---
+
+Christoph Hellwig (2):
+  IB: add a simple MR pool
+  nvmet_rdma: use generic RDMA READ/WRITE path
+
+Steve Wise (4):
+  IB: New common API for draining a queue pair
+  iw_cxgb4: add drain_qp function
+  nvme-rdma: use ib_drain_qp() function
+  IB: generic RDMA READ/WRITE API
+
+ drivers/infiniband/core/Makefile       |   2 +-
+ drivers/infiniband/core/mr_pool.c      |  85 ++++++++
+ drivers/infiniband/core/verbs.c        |  76 +++++++
+ drivers/infiniband/hw/cxgb4/cq.c       |   6 +-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   2 +
+ drivers/infiniband/hw/cxgb4/provider.c |   1 +
+ drivers/infiniband/hw/cxgb4/qp.c       |   8 +
+ drivers/nvme/host/rdma.c               |  35 +---
+ drivers/nvme/target/Makefile           |   2 +-
+ drivers/nvme/target/rdma.c             | 205 +++++--------------
+ drivers/nvme/target/rw.c               | 348 +++++++++++++++++++++++++++++++++
+ drivers/nvme/target/rw.h               |  81 ++++++++
+ include/rdma/ib_verbs.h                |  12 +-
+ include/rdma/mr_pool.h                 |  20 ++
+ 14 files changed, 696 insertions(+), 187 deletions(-)
+ create mode 100644 drivers/infiniband/core/mr_pool.c
+ create mode 100644 drivers/nvme/target/rw.c
+ create mode 100644 drivers/nvme/target/rw.h
+ create mode 100644 include/rdma/mr_pool.h
+
 -- 
 2.7.0
 
