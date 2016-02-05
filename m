@@ -1,163 +1,189 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 11/13] staging/rdma/hfi1: Add TID free/clear function bodies
-Date: Fri,  5 Feb 2016 11:57:56 -0500
-Message-ID: <1454691478-15444-12-git-send-email-ira.weiny@intel.com>
-References: <1454691478-15444-1-git-send-email-ira.weiny@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454691478-15444-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 02/10] svcrdma: Make svc_rdma_get_frmr() not sleep
+Date: Fri, 5 Feb 2016 23:19:17 +0530
+Message-ID: <CANjDDBj56NoQBAVH6jfMAbfraOuGfA=ZVip-RVRp63NycpH2AQ@mail.gmail.com>
+References: <20160203154411.13868.48268.stgit@klimt.1015granger.net>
+ <20160203155138.13868.38423.stgit@klimt.1015granger.net> <CANjDDBgcNhpcyMpUF7SbD5eHZeXhx5ge+qSyfhhtHQbW-Gaqew@mail.gmail.com>
+ <3714E63E-275C-4AFC-BFA7-0208500FC39E@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3714E63E-275C-4AFC-BFA7-0208500FC39E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Fri, Feb 5, 2016 at 9:59 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>
+>> On Feb 5, 2016, at 5:15 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>>
+>> As I understand, you are pre-allocating because alloc_mr() can sleep
+>> so separate it out while map-frmr-wqe would be non-blocking context by
+>> definition, we are on the same page?
+>
+> alloc_mr() can sleep, and so can kmalloc(GFP_KERNEL).
+> Currently svc_rdma_get_frmr() is called in a worker thread,
+> so it's in a process context and can sleep, but if we were
+> to move the RDMA Read logic into a softIRQ context (say,
+> invoked during Receive processing), it would be a problem
+> to sleep.
 
-Up to now, the functions which cleared the programmed
-TID entries and gave PSM the list of invalidated TID entries
-were just stubs. With this commit, the bodies of these
-functions are added.
+Got it.
 
-This commit is a bit asymmetric as it only contains the
-free code path. This is done on purpose to help with patch
-reviews as the programming code path is much longer.
+>
+> Another goal is to get rid of memory allocation operations
+> that can fail in low memory situations in areas of the code
+> where an error is hard to handle.
 
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/user_exp_rcv.c | 91 +++++++++++++++++++++++++++++---
- 1 file changed, 85 insertions(+), 6 deletions(-)
+>
+> So the patch description is misleading and incorrect.
 
-diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-index 1787c55d21d6..776ce003248e 100644
---- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
-+++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
-@@ -120,10 +120,8 @@ static inline void mmu_notifier_range_start(struct mmu_notifier *,
- static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
- 			    u32 *, unsigned *, unsigned *) __maybe_unused;
--static int unprogram_rcvarray(struct file *, u32,
--			      struct tid_group **) __maybe_unused;
--static void clear_tid_node(struct hfi1_filedata *, u16,
--			   struct mmu_rb_node *) __maybe_unused;
-+static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
-+static void clear_tid_node(struct hfi1_filedata *, u16, struct mmu_rb_node *);
- 
- static inline u32 rcventry2tidinfo(u32 rcventry)
- {
-@@ -264,6 +262,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	 * Make sure that we set the tid counts only after successful
- 	 * init.
- 	 */
-+	spin_lock(&fd->tid_lock);
- 	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
- 		u16 remainder;
- 
-@@ -274,6 +273,7 @@ int hfi1_user_exp_rcv_init(struct file *fp)
- 	} else {
- 		fd->tid_limit = uctxt->expected_count;
- 	}
-+	spin_unlock(&fd->tid_lock);
- done:
- 	return ret;
- }
-@@ -346,12 +346,91 @@ int hfi1_user_exp_rcv_setup(struct file *fp, struct hfi1_tid_info *tinfo)
- 
- int hfi1_user_exp_rcv_clear(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	int ret = 0;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	u32 *tidinfo;
-+	unsigned tididx;
-+
-+	tidinfo = kcalloc(tinfo->tidcnt, sizeof(*tidinfo), GFP_KERNEL);
-+	if (!tidinfo)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(tidinfo, (void __user *)(unsigned long)
-+			   tinfo->tidlist, sizeof(tidinfo[0]) *
-+			   tinfo->tidcnt)) {
-+		ret = -EFAULT;
-+		goto done;
-+	}
-+
-+	mutex_lock(&uctxt->exp_lock);
-+	for (tididx = 0; tididx < tinfo->tidcnt; tididx++) {
-+		ret = unprogram_rcvarray(fp, tidinfo[tididx], NULL);
-+		if (ret) {
-+			hfi1_cdbg(TID, "Failed to unprogram rcv array %d",
-+				  ret);
-+			break;
-+		}
-+	}
-+	spin_lock(&fd->tid_lock);
-+	fd->tid_used -= tididx;
-+	spin_unlock(&fd->tid_lock);
-+	tinfo->tidcnt = tididx;
-+	mutex_unlock(&uctxt->exp_lock);
-+done:
-+	kfree(tidinfo);
-+	return ret;
- }
- 
- int hfi1_user_exp_rcv_invalid(struct file *fp, struct hfi1_tid_info *tinfo)
- {
--	return -EINVAL;
-+	struct hfi1_filedata *fd = fp->private_data;
-+	struct hfi1_ctxtdata *uctxt = fd->uctxt;
-+	unsigned long *ev = uctxt->dd->events +
-+		(((uctxt->ctxt - uctxt->dd->first_user_ctxt) *
-+		  HFI1_MAX_SHARED_CTXTS) + fd->subctxt);
-+	u32 *array;
-+	int ret = 0;
-+
-+	if (!fd->invalid_tids)
-+		return -EINVAL;
-+
-+	/*
-+	 * copy_to_user() can sleep, which will leave the invalid_lock
-+	 * locked and cause the MMU notifier to be blocked on the lock
-+	 * for a long time.
-+	 * Copy the data to a local buffer so we can release the lock.
-+	 */
-+	array = kcalloc(uctxt->expected_count, sizeof(*array), GFP_KERNEL);
-+	if (!array)
-+		return -EFAULT;
-+
-+	spin_lock(&fd->invalid_lock);
-+	if (fd->invalid_tid_idx) {
-+		memcpy(array, fd->invalid_tids, sizeof(*array) *
-+		       fd->invalid_tid_idx);
-+		memset(fd->invalid_tids, 0, sizeof(*fd->invalid_tids) *
-+		       fd->invalid_tid_idx);
-+		tinfo->tidcnt = fd->invalid_tid_idx;
-+		fd->invalid_tid_idx = 0;
-+		/*
-+		 * Reset the user flag while still holding the lock.
-+		 * Otherwise, PSM can miss events.
-+		 */
-+		clear_bit(_HFI1_EVENT_TID_MMU_NOTIFY_BIT, ev);
-+	} else {
-+		tinfo->tidcnt = 0;
-+	}
-+	spin_unlock(&fd->invalid_lock);
-+
-+	if (tinfo->tidcnt) {
-+		if (copy_to_user((void __user *)tinfo->tidlist,
-+				 array, sizeof(*array) * tinfo->tidcnt))
-+			ret = -EFAULT;
-+	}
-+	kfree(array);
-+
-+	return ret;
- }
- 
- static u32 find_phys_blocks(struct page **pages, unsigned npages,
--- 
-1.8.2
+Got it
 
+>
+> However, the problem with pre-allocating frmrs is that it
+> is not possible for the server to determine how many will
+> be needed at accept time. The maximum number depends on the
+> largest possible ULP payload size, the page list depth of
+> the server's device, and the maximum chunk size the client
+> is using (it could be as small as 4KB for some registration
+> modes). That would mean allocating thousands per connection
+> up front to cover every contingency.
+
+Can't it decide on the fly? start with 'n' smaller size of frmrs
+where 'n' is derived from some static calculation. Then if the
+connection demands bigger size, increase the depth of all 'n' frmrs and
+reuse them till the life of the connection. if it demands more frmr,
+don't do anything
+and try to manage with 'n'. Does it makes sense I am sure I am missing
+few points here.
+
+>
+> Perhaps a better solution would be to understand how to
+> deal with an frmr allocation failure in rdma_read_chunk_frmr().
+> I think just dropping the connection would be reasonable.
+> If ib_post_recv() fails, for example, this is exactly what
+> the server does.
+
+Dropping the connection seems logical, however, I think it would be
+a harsh decision for any hypothetical device which has less IB/RoCE
+resources e.g. any given VM in SRIOV enabled environment where lots
+of VFs are enabled.
+
+As suggested earlier in this mail,  just continue the connection with whatever
+resources it has would let low-resource-device still to use it. if
+the system is recovered from memory-pressure, the allocations would
+succeed eventually.
+drawback is performance penalty.
+
+>
+> Christoph says he is about to modify or replace the NFS
+> server's RDMA Read code paths, however.
+>
+> I'll drop this one.
+>
+>
+>> On Wed, Feb 3, 2016 at 9:21 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>> Want to call it in a context that cannot sleep. So pre-alloc
+>>> the memory and the MRs.
+>>>
+>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>> net/sunrpc/xprtrdma/svc_rdma_transport.c |   44 ++++++++++++++++++++++++++----
+>>> 1 file changed, 38 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>> index 5763825..02eee12 100644
+>>> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>> @@ -949,7 +949,7 @@ static struct svc_rdma_fastreg_mr *rdma_alloc_frmr(struct svcxprt_rdma *xprt)
+>>>        return ERR_PTR(-ENOMEM);
+>>> }
+>>>
+>>> -static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
+>>> +static void svc_rdma_destroy_frmrs(struct svcxprt_rdma *xprt)
+>>> {
+>>>        struct svc_rdma_fastreg_mr *frmr;
+>>>
+>>> @@ -963,6 +963,37 @@ static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
+>>>        }
+>>> }
+>>>
+>>> +static bool svc_rdma_prealloc_frmrs(struct svcxprt_rdma *xprt)
+>>> +{
+>>> +       struct ib_device *dev = xprt->sc_cm_id->device;
+>>> +       unsigned int i;
+>>> +
+>>> +       /* Pre-allocate based on the maximum amount of payload
+>>> +        * the server's HCA can handle per RDMA Read, to keep
+>>> +        * the number of MRs per connection in check.
+>>> +        *
+>>> +        * If a client sends small Read chunks (eg. it may be
+>>> +        * using physical registration), more RDMA Reads per
+>>> +        * NFS WRITE will be needed.  svc_rdma_get_frmr() dips
+>>> +        * into its reserve in that case. Better would be for
+>>> +        * the server to reduce the connection's credit limit.
+>>> +        */
+>>> +       i = 1 + RPCSVC_MAXPAGES / dev->attrs.max_fast_reg_page_list_len;
+>>> +       i *= xprt->sc_max_requests;
+>>> +
+>>> +       while (i--) {
+>>> +               struct svc_rdma_fastreg_mr *frmr;
+>>> +
+>>> +               frmr = rdma_alloc_frmr(xprt);
+>>> +               if (!frmr) {
+>>> +                       dprintk("svcrdma: No memory for request map\n");
+>>> +                       return false;
+>>> +               }
+>>> +               list_add(&frmr->frmr_list, &xprt->sc_frmr_q);
+>>> +       }
+>>> +       return true;
+>>> +}
+>>> +
+>>> struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+>>> {
+>>>        struct svc_rdma_fastreg_mr *frmr = NULL;
+>>> @@ -975,10 +1006,9 @@ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+>>>                frmr->sg_nents = 0;
+>>>        }
+>>>        spin_unlock_bh(&rdma->sc_frmr_q_lock);
+>>> -       if (frmr)
+>>> -               return frmr;
+>>> -
+>>> -       return rdma_alloc_frmr(rdma);
+>>> +       if (!frmr)
+>>> +               return ERR_PTR(-ENOMEM);
+>>> +       return frmr;
+>>> }
+>>>
+>>> void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
+>>> @@ -1149,6 +1179,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+>>>                        dev->attrs.max_fast_reg_page_list_len;
+>>>                newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
+>>>                newxprt->sc_reader = rdma_read_chunk_frmr;
+>>> +               if (!svc_rdma_prealloc_frmrs(newxprt))
+>>> +                       goto errout;
+>>>        }
+>>>
+>>>        /*
+>>> @@ -1310,7 +1342,7 @@ static void __svc_rdma_free(struct work_struct *work)
+>>>                xprt->xpt_bc_xprt = NULL;
+>>>        }
+>>>
+>>> -       rdma_dealloc_frmr_q(rdma);
+>>> +       svc_rdma_destroy_frmrs(rdma);
+>>>        svc_rdma_destroy_ctxts(rdma);
+>>>        svc_rdma_destroy_maps(rdma);
+>>>
+>
+> --
+> Chuck Lever
+>
+>
+>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
