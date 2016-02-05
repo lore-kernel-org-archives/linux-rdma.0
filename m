@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH v3 03/13] uapi/rdma/hfi/hfi1_user.h: Add command and event for TID caching
-Date: Fri,  5 Feb 2016 11:57:48 -0500
-Message-ID: <1454691478-15444-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH v3 09/13] staging/rdma/hfi1: Add Expected receive init and free functions
+Date: Fri,  5 Feb 2016 11:57:54 -0500
+Message-ID: <1454691478-15444-10-git-send-email-ira.weiny@intel.com>
 References: <1454691478-15444-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1454691478-15444-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,67 +12,212 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-TID caching will use a new event to signal userland that cache
-invalidation has occurred and needs a matching command code that
-will be used to read the invalidated TIDs.
+The upcoming TID caching feature requires different data
+structures and, by extension, different initialization for each
+of the MPI processes.
 
-Add the event bit and the new command to the exported header file.
-
-The command is also added to the switch() statement in file_ops.c
-for completeness and in preparation for its usage later.
+The two new functions (currently unused) perform the required
+initialization and freeing of required resources and structures.
 
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
 ---
-Changes from V2:
-	Don't use BIT macro for user space header
+ drivers/staging/rdma/hfi1/user_exp_rcv.c | 154 +++++++++++++++++++++++++++++--
+ 1 file changed, 144 insertions(+), 10 deletions(-)
 
- drivers/staging/rdma/hfi1/file_ops.c | 1 +
- include/uapi/rdma/hfi/hfi1_user.h    | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index d57d549052c8..c66693532be0 100644
---- a/drivers/staging/rdma/hfi1/file_ops.c
-+++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -241,6 +241,7 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		must_be_root = 1;	/* validate user */
- 		copy = 0;
- 		break;
-+	case HFI1_CMD_TID_INVAL_READ:
- 	default:
- 		ret = -EINVAL;
- 		goto bail;
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index cf172718e3d5..92be2e373019 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -134,6 +134,7 @@
- #define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
- #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
- #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
-+#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
- /* separate EPROM commands from normal PSM commands */
- #define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
- #define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
-@@ -147,13 +148,15 @@
- #define _HFI1_EVENT_LID_CHANGE_BIT     2
- #define _HFI1_EVENT_LMC_CHANGE_BIT     3
- #define _HFI1_EVENT_SL2VL_CHANGE_BIT   4
--#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_SL2VL_CHANGE_BIT
-+#define _HFI1_EVENT_TID_MMU_NOTIFY_BIT 5
-+#define _HFI1_MAX_EVENT_BIT _HFI1_EVENT_TID_MMU_NOTIFY_BIT
+diff --git a/drivers/staging/rdma/hfi1/user_exp_rcv.c b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+index 5a7e455b9f58..843023e2e2c7 100644
+--- a/drivers/staging/rdma/hfi1/user_exp_rcv.c
++++ b/drivers/staging/rdma/hfi1/user_exp_rcv.c
+@@ -90,23 +90,25 @@ struct tid_pageset {
  
- #define HFI1_EVENT_FROZEN            (1UL << _HFI1_EVENT_FROZEN_BIT)
- #define HFI1_EVENT_LINKDOWN          (1UL << _HFI1_EVENT_LINKDOWN_BIT)
- #define HFI1_EVENT_LID_CHANGE        (1UL << _HFI1_EVENT_LID_CHANGE_BIT)
- #define HFI1_EVENT_LMC_CHANGE        (1UL << _HFI1_EVENT_LMC_CHANGE_BIT)
- #define HFI1_EVENT_SL2VL_CHANGE      (1UL << _HFI1_EVENT_SL2VL_CHANGE_BIT)
-+#define HFI1_EVENT_TID_MMU_NOTIFY    (1UL << _HFI1_EVENT_TID_MMU_NOTIFY_BIT)
+ #define EXP_TID_SET_EMPTY(set) (set.count == 0 && list_empty(&set.list))
+ 
++#define num_user_pages(vaddr, len)				       \
++	(1 + (((((unsigned long)(vaddr) +			       \
++		 (unsigned long)(len) - 1) & PAGE_MASK) -	       \
++	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
++
+ static void unlock_exp_tids(struct hfi1_ctxtdata *, struct exp_tid_set *,
+-			    struct rb_root *) __maybe_unused;
++			    struct rb_root *);
+ static u32 find_phys_blocks(struct page **, unsigned,
+ 			    struct tid_pageset *) __maybe_unused;
+ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+-			      struct tid_group *, struct page **,
+-			      unsigned) __maybe_unused;
++			      struct tid_group *, struct page **, unsigned);
+ static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+ 			       unsigned long);
+ static struct mmu_rb_node *mmu_rb_search_by_addr(struct rb_root *,
+ 						 unsigned long) __maybe_unused;
+ static inline struct mmu_rb_node *mmu_rb_search_by_entry(struct rb_root *,
+ 							 u32);
+-static int mmu_rb_insert_by_addr(struct rb_root *,
+-				 struct mmu_rb_node *) __maybe_unused;
+-static int mmu_rb_insert_by_entry(struct rb_root *,
+-				  struct mmu_rb_node *) __maybe_unused;
++static int mmu_rb_insert_by_addr(struct rb_root *, struct mmu_rb_node *);
++static int mmu_rb_insert_by_entry(struct rb_root *, struct mmu_rb_node *);
+ static void mmu_notifier_mem_invalidate(struct mmu_notifier *,
+ 					unsigned long, unsigned long,
+ 					enum mmu_call_types);
+@@ -168,7 +170,7 @@ static inline void tid_group_move(struct tid_group *group,
+ 	tid_group_add_tail(group, s2);
+ }
+ 
+-static struct mmu_notifier_ops __maybe_unused mn_opts = {
++static struct mmu_notifier_ops mn_opts = {
+ 	.invalidate_page = mmu_notifier_page,
+ 	.invalidate_range_start = mmu_notifier_range_start,
+ };
+@@ -180,12 +182,144 @@ static struct mmu_notifier_ops __maybe_unused mn_opts = {
+  */
+ int hfi1_user_exp_rcv_init(struct file *fp)
+ {
+-	return -EINVAL;
++	struct hfi1_filedata *fd = fp->private_data;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	struct hfi1_devdata *dd = uctxt->dd;
++	unsigned tidbase;
++	int i, ret = 0;
++
++	INIT_HLIST_NODE(&fd->mn.hlist);
++	spin_lock_init(&fd->rb_lock);
++	spin_lock_init(&fd->tid_lock);
++	spin_lock_init(&fd->invalid_lock);
++	fd->mn.ops = &mn_opts;
++	fd->tid_rb_root = RB_ROOT;
++
++	if (!uctxt->subctxt_cnt || !fd->subctxt) {
++		exp_tid_group_init(&uctxt->tid_group_list);
++		exp_tid_group_init(&uctxt->tid_used_list);
++		exp_tid_group_init(&uctxt->tid_full_list);
++
++		tidbase = uctxt->expected_base;
++		for (i = 0; i < uctxt->expected_count /
++			     dd->rcv_entries.group_size; i++) {
++			struct tid_group *grp;
++
++			grp = kzalloc(sizeof(*grp), GFP_KERNEL);
++			if (!grp) {
++				/*
++				 * If we fail here, the groups already
++				 * allocated will be freed by the close
++				 * call.
++				 */
++				ret = -ENOMEM;
++				goto done;
++			}
++			grp->size = dd->rcv_entries.group_size;
++			grp->base = tidbase;
++			tid_group_add_tail(grp, &uctxt->tid_group_list);
++			tidbase += dd->rcv_entries.group_size;
++		}
++	}
++
++	if (!HFI1_CAP_IS_USET(TID_UNMAP)) {
++		fd->invalid_tid_idx = 0;
++		fd->invalid_tids = kzalloc(uctxt->expected_count *
++					   sizeof(u32), GFP_KERNEL);
++		if (!fd->invalid_tids) {
++			ret = -ENOMEM;
++			goto done;
++		} else {
++			/*
++			 * Register MMU notifier callbacks. If the registration
++			 * fails, continue but turn off the TID caching for
++			 * all user contexts.
++			 */
++			ret = mmu_notifier_register(&fd->mn, current->mm);
++			if (ret) {
++				dd_dev_info(dd,
++					    "Failed MMU notifier registration %d\n",
++					    ret);
++				HFI1_CAP_USET(TID_UNMAP);
++				ret = 0;
++			}
++		}
++	}
++
++	if (HFI1_CAP_IS_USET(TID_UNMAP))
++		fd->mmu_rb_insert = mmu_rb_insert_by_entry;
++	else
++		fd->mmu_rb_insert = mmu_rb_insert_by_addr;
++
++	/*
++	 * PSM does not have a good way to separate, count, and
++	 * effectively enforce a limit on RcvArray entries used by
++	 * subctxts (when context sharing is used) when TID caching
++	 * is enabled. To help with that, we calculate a per-process
++	 * RcvArray entry share and enforce that.
++	 * If TID caching is not in use, PSM deals with usage on its
++	 * own. In that case, we allow any subctxt to take all of the
++	 * entries.
++	 *
++	 * Make sure that we set the tid counts only after successful
++	 * init.
++	 */
++	if (uctxt->subctxt_cnt && !HFI1_CAP_IS_USET(TID_UNMAP)) {
++		u16 remainder;
++
++		fd->tid_limit = uctxt->expected_count / uctxt->subctxt_cnt;
++		remainder = uctxt->expected_count % uctxt->subctxt_cnt;
++		if (remainder && fd->subctxt < remainder)
++			fd->tid_limit++;
++	} else {
++		fd->tid_limit = uctxt->expected_count;
++	}
++done:
++	return ret;
+ }
+ 
+ int hfi1_user_exp_rcv_free(struct hfi1_filedata *fd)
+ {
+-	return -EINVAL;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	struct tid_group *grp, *gptr;
++
++	/*
++	 * The notifier would have been removed when the process'es mm
++	 * was freed.
++	 */
++	if (current->mm && !HFI1_CAP_IS_USET(TID_UNMAP))
++		mmu_notifier_unregister(&fd->mn, current->mm);
++
++	kfree(fd->invalid_tids);
++
++	if (!uctxt->cnt) {
++		if (!EXP_TID_SET_EMPTY(uctxt->tid_full_list))
++			unlock_exp_tids(uctxt, &uctxt->tid_full_list,
++					&fd->tid_rb_root);
++		if (!EXP_TID_SET_EMPTY(uctxt->tid_used_list))
++			unlock_exp_tids(uctxt, &uctxt->tid_used_list,
++					&fd->tid_rb_root);
++		list_for_each_entry_safe(grp, gptr, &uctxt->tid_group_list.list,
++					 list) {
++			list_del_init(&grp->list);
++			kfree(grp);
++		}
++		spin_lock(&fd->rb_lock);
++		if (!RB_EMPTY_ROOT(&fd->tid_rb_root)) {
++			struct rb_node *node;
++			struct mmu_rb_node *rbnode;
++
++			while ((node = rb_first(&fd->tid_rb_root))) {
++				rbnode = rb_entry(node, struct mmu_rb_node,
++						  rbnode);
++				rb_erase(&rbnode->rbnode, &fd->tid_rb_root);
++				kfree(rbnode);
++			}
++		}
++		spin_unlock(&fd->rb_lock);
++		hfi1_clear_tids(uctxt);
++	}
++	return 0;
+ }
  
  /*
-  * These are the status bits readable (in ASCII form, 64bit value)
 -- 
 1.8.2
 
