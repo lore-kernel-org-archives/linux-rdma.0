@@ -1,125 +1,253 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: mlx5_core Issue
-Date: Sat, 6 Feb 2016 17:36:13 +0200
-Message-ID: <20160206153613.GB8584@leon.nu>
-References: <CAHkw+Lc3h5-0Km6J5j7xOHa0d-5gx1RO_dBRXYLfgGoyKzHkoA@mail.gmail.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1 02/10] svcrdma: Make svc_rdma_get_frmr() not sleep
+Date: Sat, 6 Feb 2016 21:26:32 +0530
+Message-ID: <CANjDDBj_BK3H3Gc+Vzai9v0Uhk5HT+yHjvCLYssLZunvmGOcFQ@mail.gmail.com>
+References: <20160203154411.13868.48268.stgit@klimt.1015granger.net>
+ <20160203155138.13868.38423.stgit@klimt.1015granger.net> <CANjDDBgcNhpcyMpUF7SbD5eHZeXhx5ge+qSyfhhtHQbW-Gaqew@mail.gmail.com>
+ <3714E63E-275C-4AFC-BFA7-0208500FC39E@oracle.com> <CANjDDBj56NoQBAVH6jfMAbfraOuGfA=ZVip-RVRp63NycpH2AQ@mail.gmail.com>
+ <5F13C308-89C7-4F98-ADB1-D43AA0A1EB50@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAHkw+Lc3h5-0Km6J5j7xOHa0d-5gx1RO_dBRXYLfgGoyKzHkoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marc Smith <marc.smith-FHhu8y7Kp0U@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5F13C308-89C7-4F98-ADB1-D43AA0A1EB50-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 04, 2016 at 10:09:19AM -0500, Marc Smith wrote:
-> Hi,
+On Fri, Feb 5, 2016 at 11:43 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>
+>> On Feb 5, 2016, at 12:49 PM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>>
+>> On Fri, Feb 5, 2016 at 9:59 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>>
+>>>> On Feb 5, 2016, at 5:15 AM, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>>>>
+>>>> As I understand, you are pre-allocating because alloc_mr() can sleep
+>>>> so separate it out while map-frmr-wqe would be non-blocking context by
+>>>> definition, we are on the same page?
+>>>
+>>> alloc_mr() can sleep, and so can kmalloc(GFP_KERNEL).
+>>> Currently svc_rdma_get_frmr() is called in a worker thread,
+>>> so it's in a process context and can sleep, but if we were
+>>> to move the RDMA Read logic into a softIRQ context (say,
+>>> invoked during Receive processing), it would be a problem
+>>> to sleep.
+>>
+>> Got it.
+>>
+>>>
+>>> Another goal is to get rid of memory allocation operations
+>>> that can fail in low memory situations in areas of the code
+>>> where an error is hard to handle.
+>>
+>>>
+>>> So the patch description is misleading and incorrect.
+>>
+>> Got it
+>>
+>>>
+>>> However, the problem with pre-allocating frmrs is that it
+>>> is not possible for the server to determine how many will
+>>> be needed at accept time. The maximum number depends on the
+>>> largest possible ULP payload size, the page list depth of
+>>> the server's device, and the maximum chunk size the client
+>>> is using (it could be as small as 4KB for some registration
+>>> modes). That would mean allocating thousands per connection
+>>> up front to cover every contingency.
+>>
+>> Can't it decide on the fly? start with 'n' smaller size of frmrs
+>> where 'n' is derived from some static calculation. Then if the
+>> connection demands bigger size, increase the depth of all 'n' frmrs and
+>> reuse them till the life of the connection. if it demands more frmr,
+>> don't do anything
+>> and try to manage with 'n'. Does it makes sense I am sure I am missing
+>> few points here.
+>
+> Currently, all svc_rdma_frmrs are the same. They are allocated
+> on-demand then cached after an RDMA Read operation is complete.
 
-For any reasons, I found this email in SPAM folder.
+Yes, it does the same.
 
-> 
-> I'm using Linux 4.1.11 and trying to get Mellanox 100 Gb adapters
-> working. When loading 'mlx5_core' I get the following messages (no
-> usable interfaces):
-> 
-> --snip--
-> Jan 25 12:18:08 myhost kernel: [  209.537341] mlx5_core 0000:41:00.0:
-> firmware version: 12.12.1100
-> Jan 25 12:18:09 myhost kernel: [  210.104954] mlx5_core 0000:41:00.1:
-> firmware version: 12.12.1100
-> Jan 25 12:18:09 myhost kernel: [  210.679413] mlx5_ib: Mellanox
-> Connect-IB Infiniband driver v2.2-1 (Feb 2014)
-> Jan 25 12:18:09 myhost kernel: [  210.692783]
-> 0000:41:00.0:mlx5_core_create_qp:202:(pid 769): current num of QPs 0x0
-> Jan 25 12:18:09 myhost kernel: [  210.692788] command failed, status
-> bad parameter(0x3), syndrome 0x48b5c0
-> Jan 25 12:18:09 myhost kernel: [  210.692799] infiniband mlx5_0:
-> Couldn't create ib_mad QP0
-> Jan 25 12:18:09 myhost kernel: [  210.693374] infiniband mlx5_0:
-> Couldn't open port 1
-> Jan 25 12:18:09 myhost kernel: [  210.693381] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.693579] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.695172] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.696323]
-> 0000:41:00.0:mlx5_core_create_qp:202:(pid 769): current num of QPs 0x0
-> Jan 25 12:18:09 myhost kernel: [  210.696326] command failed, status
-> bad resource(0x5), syndrome 0x15a3c9
-> Jan 25 12:18:09 myhost kernel: [  210.697452] infiniband mlx5_0: Port
-> 1 not found
-> Jan 25 12:18:09 myhost kernel: [  210.697456] infiniband mlx5_0:
-> Couldn't close port 1 for agents
-> Jan 25 12:18:09 myhost kernel: [  210.697460] infiniband mlx5_0: Port
-> 1 not found
-> Jan 25 12:18:09 myhost kernel: [  210.697463] infiniband mlx5_0:
-> Couldn't close port 1
-> Jan 25 12:18:09 myhost kernel: [  210.710739]
-> 0000:41:00.1:mlx5_core_create_qp:202:(pid 769): current num of QPs 0x0
-> Jan 25 12:18:09 myhost kernel: [  210.710742] command failed, status
-> bad parameter(0x3), syndrome 0x48b5c0
-> Jan 25 12:18:09 myhost kernel: [  210.710751] infiniband mlx5_0:
-> Couldn't create ib_mad QP0
-> Jan 25 12:18:09 myhost kernel: [  210.711171] infiniband mlx5_0:
-> Couldn't open port 1
-> Jan 25 12:18:09 myhost kernel: [  210.711175] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.711357] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.712729] infiniband mlx5_0:
-> ib_register_mad_agent: Invalid port
-> Jan 25 12:18:09 myhost kernel: [  210.713834]
-> 0000:41:00.1:mlx5_core_create_qp:202:(pid 769): current num of QPs 0x0
-> Jan 25 12:18:09 myhost kernel: [  210.713837] command failed, status
-> bad resource(0x5), syndrome 0x15a3c9
-> Jan 25 12:18:09 myhost kernel: [  210.714960] infiniband mlx5_0: Port
-> 1 not found
-> Jan 25 12:18:09 myhost kernel: [  210.714964] infiniband mlx5_0:
-> Couldn't close port 1 for agents
-> Jan 25 12:18:09 myhost kernel: [  210.714968] infiniband mlx5_0: Port
-> 1 not found
-> Jan 25 12:18:09 myhost kernel: [  210.714971] infiniband mlx5_0:
-> Couldn't close port 1
-> --snip--
-> 
-> Here is the Mellanox adapter information:
-> 41:00.0 Network controller [0207]: Mellanox Technologies MT27620
-> Family [15b3:1013]
-> 41:00.1 Network controller [0207]: Mellanox Technologies MT27620
-> Family [15b3:1013]
-> 
-> I tried using the Mellanox provided driver
-> (http://www.mellanox.com/page/products_dyn?product_family=27) and it
-> works fine.
-> 
-> Obviously the Mellanox provided driver is newer then what's in my
-> kernel version (4.1.11). Is there some type of configuration issue on
-> my end, or is this an issue that is fixed with newer kernel versions
-> (eg, later version 4.1.x or some other branch)? Or maybe some
-> firmware/driver incompatibility (eg, too new of firmware on the
-> adapters for the vanilla Linux kernel driver)?
-> 
-> I'd prefer to use the vanilla Linux kernel provided mlx5_core driver
-> and not the Mellanox third-party driver.
+>
+>
+>>> Perhaps a better solution would be to understand how to
+>>> deal with an frmr allocation failure in rdma_read_chunk_frmr().
+>>> I think just dropping the connection would be reasonable.
+>>> If ib_post_recv() fails, for example, this is exactly what
+>>> the server does.
+>>
+>> Dropping the connection seems logical, however, I think it would be
+>> a harsh decision for any hypothetical device which has less IB/RoCE
+>> resources e.g. any given VM in SRIOV enabled environment where lots
+>> of VFs are enabled.
+>>
+>> As suggested earlier in this mail,  just continue the connection with whatever
+>> resources it has would let low-resource-device still to use it. if
+>> the system is recovered from memory-pressure, the allocations would
+>> succeed eventually.
+>> drawback is performance penalty.
+>
+> When an frmr allocation fails, the RDMA Read to pull the
+> RPC data over can't be done, so there's no recourse but for
+> the server to discard that RPC request. NFSv4.x requires a
+> connection drop when an RPC is lost. The client will retransmit
+> that RPC.
+>
+> Dropping the connection frees all resources for that connection.
+> Clients will typically reconnect pretty quickly when they have
+> more work to do. The server will drop the connection repeatedly
+> until enough resources are available to handle the client's
+> workload.
 
-Can you please try 4.5-rc2 version [1]?
+Ok, effectively user will see "failed to reconnect" messages in syslog
+until it succeeds. I think if the syslog messages displays a valid reason
+then we are covered here.
 
-[1] https://git.kernel.org/cgit/linux/kernel/git/dledford/rdma.git/log/?h=k.o/for-4.5-rc
+>
+> Eventually we could add a retry mechanism to the RDMA Read
+> logic. Wait a bit and try the allocation again. That's probably
+> not worth the effort, this really should be very very rare.
 
-> 
-> 
-> Thanks for your time.
-> 
-> 
-> --Marc
+Makes sense, I agree with you here.
+
+>
+> If a device is ultimately resource-starved, that's a different
+> problem. The server may never be able to allocate enough MRs
+> even if the client tries again later.
+
+Yes
+
+>
+> That kind of issue should be obvious at accept time. The server
+> should adjust the connection's credit limit downward to fit the
+> device's available resource budget.
+>
+> Alternately, if the device is not an iWARP device, RDMA Reads
+> can use physical addressing, and no frwrs are needed.
+>
+>
+
+Ok, lets wait for Christoph's patch in NFS server. Till then I agree
+with your decision on this patch.
+
+>>> Christoph says he is about to modify or replace the NFS
+>>> server's RDMA Read code paths, however.
+>>>
+>>> I'll drop this one.
+>>>
+>>>
+>>>> On Wed, Feb 3, 2016 at 9:21 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+>>>>> Want to call it in a context that cannot sleep. So pre-alloc
+>>>>> the memory and the MRs.
+>>>>>
+>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>>> ---
+>>>>> net/sunrpc/xprtrdma/svc_rdma_transport.c |   44 ++++++++++++++++++++++++++----
+>>>>> 1 file changed, 38 insertions(+), 6 deletions(-)
+>>>>>
+>>>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>>>> index 5763825..02eee12 100644
+>>>>> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+>>>>> @@ -949,7 +949,7 @@ static struct svc_rdma_fastreg_mr *rdma_alloc_frmr(struct svcxprt_rdma *xprt)
+>>>>>       return ERR_PTR(-ENOMEM);
+>>>>> }
+>>>>>
+>>>>> -static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
+>>>>> +static void svc_rdma_destroy_frmrs(struct svcxprt_rdma *xprt)
+>>>>> {
+>>>>>       struct svc_rdma_fastreg_mr *frmr;
+>>>>>
+>>>>> @@ -963,6 +963,37 @@ static void rdma_dealloc_frmr_q(struct svcxprt_rdma *xprt)
+>>>>>       }
+>>>>> }
+>>>>>
+>>>>> +static bool svc_rdma_prealloc_frmrs(struct svcxprt_rdma *xprt)
+>>>>> +{
+>>>>> +       struct ib_device *dev = xprt->sc_cm_id->device;
+>>>>> +       unsigned int i;
+>>>>> +
+>>>>> +       /* Pre-allocate based on the maximum amount of payload
+>>>>> +        * the server's HCA can handle per RDMA Read, to keep
+>>>>> +        * the number of MRs per connection in check.
+>>>>> +        *
+>>>>> +        * If a client sends small Read chunks (eg. it may be
+>>>>> +        * using physical registration), more RDMA Reads per
+>>>>> +        * NFS WRITE will be needed.  svc_rdma_get_frmr() dips
+>>>>> +        * into its reserve in that case. Better would be for
+>>>>> +        * the server to reduce the connection's credit limit.
+>>>>> +        */
+>>>>> +       i = 1 + RPCSVC_MAXPAGES / dev->attrs.max_fast_reg_page_list_len;
+>>>>> +       i *= xprt->sc_max_requests;
+>>>>> +
+>>>>> +       while (i--) {
+>>>>> +               struct svc_rdma_fastreg_mr *frmr;
+>>>>> +
+>>>>> +               frmr = rdma_alloc_frmr(xprt);
+>>>>> +               if (!frmr) {
+>>>>> +                       dprintk("svcrdma: No memory for request map\n");
+>>>>> +                       return false;
+>>>>> +               }
+>>>>> +               list_add(&frmr->frmr_list, &xprt->sc_frmr_q);
+>>>>> +       }
+>>>>> +       return true;
+>>>>> +}
+>>>>> +
+>>>>> struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+>>>>> {
+>>>>>       struct svc_rdma_fastreg_mr *frmr = NULL;
+>>>>> @@ -975,10 +1006,9 @@ struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *rdma)
+>>>>>               frmr->sg_nents = 0;
+>>>>>       }
+>>>>>       spin_unlock_bh(&rdma->sc_frmr_q_lock);
+>>>>> -       if (frmr)
+>>>>> -               return frmr;
+>>>>> -
+>>>>> -       return rdma_alloc_frmr(rdma);
+>>>>> +       if (!frmr)
+>>>>> +               return ERR_PTR(-ENOMEM);
+>>>>> +       return frmr;
+>>>>> }
+>>>>>
+>>>>> void svc_rdma_put_frmr(struct svcxprt_rdma *rdma,
+>>>>> @@ -1149,6 +1179,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+>>>>>                       dev->attrs.max_fast_reg_page_list_len;
+>>>>>               newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_FAST_REG;
+>>>>>               newxprt->sc_reader = rdma_read_chunk_frmr;
+>>>>> +               if (!svc_rdma_prealloc_frmrs(newxprt))
+>>>>> +                       goto errout;
+>>>>>       }
+>>>>>
+>>>>>       /*
+>>>>> @@ -1310,7 +1342,7 @@ static void __svc_rdma_free(struct work_struct *work)
+>>>>>               xprt->xpt_bc_xprt = NULL;
+>>>>>       }
+>>>>>
+>>>>> -       rdma_dealloc_frmr_q(rdma);
+>>>>> +       svc_rdma_destroy_frmrs(rdma);
+>>>>>       svc_rdma_destroy_ctxts(rdma);
+>>>>>       svc_rdma_destroy_maps(rdma);
+>>>>>
+>>>
+>>> --
+>>> Chuck Lever
+>>>
+>>>
+>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Chuck Lever
+>
+>
+>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
