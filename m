@@ -1,7 +1,7 @@
 From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/ipoib: fix for rare multicast join race condition.
-Date: Fri, 05 Feb 2016 18:35:42 -0500
-Message-ID: <20160205233542.20595.29241.stgit@phlsvlogin03.ph.intel.com>
+Subject: [PATCH v2] IB/ipoib: fix for rare multicast join race condition.
+Date: Sat, 06 Feb 2016 08:50:41 -0500
+Message-ID: <20160206135041.11630.77019.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -41,11 +41,15 @@ if link state change is detected.
 
 Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   19 +++++++++++++++++--
- 1 files changed, 17 insertions(+), 2 deletions(-)
+
+Changes from v1:
+No need to lock again if error detected.
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 050dfa1..07eb431 100644
+index 050dfa1..3ce2f0a 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
 @@ -456,7 +456,7 @@ out_locked:
@@ -75,15 +79,7 @@ index 050dfa1..07eb431 100644
  }
  
  void ipoib_mcast_join_task(struct work_struct *work)
-@@ -549,6 +553,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	struct ib_port_attr port_attr;
- 	unsigned long delay_until = 0;
- 	struct ipoib_mcast *mcast = NULL;
-+	int ret;
- 
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
- 		return;
-@@ -611,6 +616,11 @@ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -611,6 +615,11 @@ void ipoib_mcast_join_task(struct work_struct *work)
  	 * and attached
  	 */
  	list_for_each_entry(mcast, &priv->multicast_list, list) {
@@ -95,21 +91,16 @@ index 050dfa1..07eb431 100644
  		if (IS_ERR_OR_NULL(mcast->mc) &&
  		    !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
  		    (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ||
-@@ -621,8 +631,13 @@ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -621,7 +630,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
  				init_completion(&mcast->done);
  				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
  				spin_unlock_irq(&priv->lock);
 -				ipoib_mcast_join(dev, mcast);
-+				ret = ipoib_mcast_join(dev, mcast);
++				if (ipoib_mcast_join(dev, mcast) != 0)
++					return;
  				spin_lock_irq(&priv->lock);
-+				if (ret != 0) {
-+					mcast = NULL;
-+					delay_until = 0;
-+					goto out;
-+				}
  			} else if (!delay_until ||
  				 time_before(mcast->delay_until, delay_until))
- 				delay_until = mcast->delay_until;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
