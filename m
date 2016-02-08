@@ -1,42 +1,55 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: RE: [PATCH 1/3] IB: new common API for draining a queue pair
-Date: Mon, 8 Feb 2016 09:23:05 -0600
-Message-ID: <00f301d16284$9b563ba0$d202b2e0$@opengridcomputing.com>
-References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com> <3AB519EB-3BFE-4A02-A825-F74EECD2CE19@oracle.com> <00e501d1605f$a16c1630$e4444290$@opengridcomputing.com> <53AAECEE-AC46-4E28-9FC0-DB1E567A2A50@oracle.com>
+Date: Mon, 8 Feb 2016 09:24:25 -0600
+Message-ID: <00f801d16284$cb6d0620$62471260$@opengridcomputing.com>
+References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com> <20160206170838.GC8584@leon.nu> <56B72FD4.3060407@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53AAECEE-AC46-4E28-9FC0-DB1E567A2A50-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <56B72FD4.3060407-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> >> OK. ib_cqe is what hooks the completion events for these
-> >> blank WRs, so those completions are never exposed to the
-> >> RDMA consumer.
-> >>
-> >
-> > Right, which means only consumers that use the new style CQ processing can make use of this.
-> >
-> >> But does a consumer have to bump its SQE and RQE count
-> >> when allocating its CQs, or is that done automatically
-> >> by ib_alloc_cq() ?
-> >>
-> >
-> > The consumer has to make sure there is room in the SQ, RQ and CQ.
+
+
+> -----Original Message-----
+> From: Sagi Grimberg [mailto:sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org]
+> Sent: Sunday, February 07, 2016 5:52 AM
+> To: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH 1/3] IB: new common API for draining a queue pair
 > 
-> The documenting comment in front of ib_drain_qp() should
-> mention this, and it should also state the requirement to
-> use ib_alloc_cq().
->
+> 
+> >> +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+> >> +	if (ret) {
+> >> +		WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	ret = ib_post_recv(qp, &rwr, &bad_rwr);
+> >> +	if (ret) {
+> >> +		WARN_ONCE(ret, "failed to drain recv queue: %d\n", ret);
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	ret = ib_post_send(qp, &swr, &bad_swr);
+> >> +	if (ret) {
+> >> +		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
+> >> +		return;
+> >
+> > You are returning here despite the fact that recv queue drained
+> > successfully and you can wait for completion of rdrain safely.
+> > Is it done on purpose?
+> 
+> Good catch, the completion structures are on-stack.
+> 
+> Steve, you need to wait for the completion of the
+> successful post in this case...
 
-Will do.
- 
-
+Yup.  Will do.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
