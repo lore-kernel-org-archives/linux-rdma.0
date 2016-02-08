@@ -1,25 +1,64 @@
-From: Ms Ayala <ana.mascarenhas-9PaTqGyBpItQFI55V6+gNQ@public.gmane.org>
-Subject: Very Urgent,response needed.
-Date: Mon, 8 Feb 2016 00:28:22 +0300
-Message-ID: <06adc144-ed7d-422a-8363-91fa9bca071e__25700.4925203093$1454903490$gmane$org@TIMON.mj.gov.br>
-Reply-To: msayalabrnaca101-9Onoh4P/yGk@public.gmane.org
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB: new common API for draining a queue pair
+Date: Mon, 8 Feb 2016 16:07:54 +0530
+Message-ID: <CANjDDBiGVxmMn7H-__z48hS93mHoqejiZgsry0DmLwJKxZ=MqQ@mail.gmail.com>
+References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com>
+ <CANjDDBjFY+u=8UXVCkKkK0LKSWiRcfZYnP9035m5owAYZnfn6w@mail.gmail.com> <56B73049.5040901@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <56B73049.5040901-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <ana.mascarenhas-9PaTqGyBpItQFI55V6+gNQ@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Sun, Feb 7, 2016 at 5:23 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>
+>>> +/*
+>>> + * Post a WR and block until its completion is reaped for both the RQ
+>>> and SQ.
+>>> + */
+>>> +static void __ib_drain_qp(struct ib_qp *qp)
+>>> +{
+>>> +       struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+>>> +       struct ib_drain_cqe rdrain, sdrain;
+>>> +       struct ib_recv_wr rwr = {}, *bad_rwr;
+>>> +       struct ib_send_wr swr = {}, *bad_swr;
+>>> +       int ret;
+>>> +
+>>> +       rwr.wr_cqe = &rdrain.cqe;
+>>> +       rdrain.cqe.done = ib_drain_qp_done;
+>>> +       init_completion(&rdrain.done);
+>>> +
+>>> +       swr.wr_cqe = &sdrain.cqe;
+>>> +       sdrain.cqe.done = ib_drain_qp_done;
+>>> +       init_completion(&sdrain.done);
+>>> +
+>>> +       ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+>>> +       if (ret) {
+>>> +               WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
+>>> +               return;
+>>> +       }
+>>
+>>
+>> I was thinking if we really need this modify_qp here. generally
+>> drain_qp is called on
+>> an error'ed out QP. In a graceful tear down rdma_disconnect takes care
+>> to modify-qp
+>> to error. while in error state qp is already in error state.
+>
+>
+> We could get it conditional, but I don't see any harm done
+> in having it as it would mean a passed in flag.
+>
 
-I am Ms. Ayala; I am getting in touch with you regarding an extremely
-important and urgent matter.If you would oblige me the opportunity,I shall
-provide you with details upon your response.Please respond to: msayalabrnaca101-9Onoh4P/yGk@public.gmane.org
+Since Spec allows this, I would say okay let it be there.
 
-Faithfully,
-Ms. Ayala Bracha
+> It would be better to have the modify_qp implementers do
+> nothing for a ERROR -> ERROR modify...
+
+Driver implementer has a choice here which is okay.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
