@@ -1,38 +1,119 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs 4/7] Expose device capability for Memory Window type one
-Date: Mon,  8 Feb 2016 14:43:19 +0200
-Message-ID: <1454935402-15192-5-git-send-email-yishaih@mellanox.com>
-References: <1454935402-15192-1-git-send-email-yishaih@mellanox.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2] IB/ipoib: fix for rare multicast join race condition.
+Date: Mon, 8 Feb 2016 15:34:57 +0200
+Message-ID: <CAAk-MO8b_bpb=cd0Ki7wu3sUSG_rC+fS0sxhmdn5cA-91WfR4g@mail.gmail.com>
+References: <20160206135041.11630.77019.stgit@phlsvlogin03.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454935402-15192-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160206135041.11630.77019.stgit-u2TXY/5TJkdZ7WVY1cDZ9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-At that step Memory Window type one is ready to be used, exposing
-its device capability.
+On Sat, Feb 6, 2016 at 3:50 PM, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> A narrow window for race condition still exist between
+> multicast join thread and *dev_flush workers.
+> A kernel crash caused by prolong erratic link state changes
+> was observed (most likely a faulty cabling):
+>
+> [167275.656270] BUG: unable to handle kernel NULL pointer dereference at
+> 0000000000000020
+> [167275.665973] IP: [<ffffffffa05f8f2e>] ipoib_mcast_join+0xae/0x1d0 [ib_ipoib]
+> [167275.674443] PGD 0
+> [167275.677373] Oops: 0000 [#1] SMP
+> ...
+> [167275.977530] Call Trace:
+> [167275.982225]  [<ffffffffa05f92f0>] ? ipoib_mcast_free+0x200/0x200 [ib_ipoib]
+> [167275.992024]  [<ffffffffa05fa1b7>] ipoib_mcast_join_task+0x2a7/0x490
+> [ib_ipoib]
+> [167276.002149]  [<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+> [167276.010754]  [<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+> [167276.019088]  [<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+> [167276.027737]  [<ffffffff810a5aef>] kthread+0xcf/0xe0
+> Here was a hit spot:
+> ipoib_mcast_join() {
+> ..............
+>       rec.qkey      = priv->broadcast->mcmember.qkey;
+>                                        ^^^^^^^
+> .....
+>  }
+> Proposed patch should prevent multicast join task to continue
+> if link state change is detected.
+>
+> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>
+> Changes from v1:
+> No need to lock again if error detected.
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   14 ++++++++++++--
+>  1 files changed, 12 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index 050dfa1..3ce2f0a 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -456,7 +456,7 @@ out_locked:
+>         return status;
+>  }
+>
+> -static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+> +static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>  {
+>         struct ipoib_dev_priv *priv = netdev_priv(dev);
+>         struct ib_sa_multicast *multicast;
+> @@ -466,6 +466,9 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>         ib_sa_comp_mask comp_mask;
+>         int ret = 0;
+>
+> +       if (!priv->broadcast)
+> +               return -EINVAL;
+> +
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/infiniband/verbs.h | 1 +
- 1 file changed, 1 insertion(+)
+Can you please elaborate what will avoid the other task that
+invalidate the priv->broadcast (ipoib_mcast_dev_flush) to do it right
+after that check?
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 528bff5..81cc3d9 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -116,6 +116,7 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
- 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
- 	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
-+	IBV_DEVICE_MEM_WINDOW           = 1 << 17,
- 	IBV_DEVICE_UD_IP_CSUM		= 1 << 18,
- 	IBV_DEVICE_XRC			= 1 << 20,
- 	IBV_DEVICE_RC_IP_CSUM		= 1 << 25,
--- 
-1.8.3.1
-
+>         ipoib_dbg_mcast(priv, "joining MGID %pI6\n", mcast->mcmember.mgid.raw);
+>
+>         rec.mgid     = mcast->mcmember.mgid;
+> @@ -539,6 +542,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>                 spin_unlock_irq(&priv->lock);
+>                 complete(&mcast->done);
+>         }
+> +       return 0;
+>  }
+>
+>  void ipoib_mcast_join_task(struct work_struct *work)
+> @@ -611,6 +615,11 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>          * and attached
+>          */
+>         list_for_each_entry(mcast, &priv->multicast_list, list) {
+> +               if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags)) {
+> +                       mcast = NULL;
+> +                       delay_until = 0;
+> +                       goto out;
+> +               }
+>                 if (IS_ERR_OR_NULL(mcast->mc) &&
+>                     !test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags) &&
+>                     (!test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) ||
+> @@ -621,7 +630,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>                                 init_completion(&mcast->done);
+>                                 set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+>                                 spin_unlock_irq(&priv->lock);
+> -                               ipoib_mcast_join(dev, mcast);
+> +                               if (ipoib_mcast_join(dev, mcast) != 0)
+> +                                       return;
+>                                 spin_lock_irq(&priv->lock);
+>                         } else if (!delay_until ||
+>                                  time_before(mcast->delay_until, delay_until))
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
