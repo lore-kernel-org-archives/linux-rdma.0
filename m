@@ -1,64 +1,50 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB: new common API for draining a queue pair
-Date: Mon, 8 Feb 2016 16:07:54 +0530
-Message-ID: <CANjDDBiGVxmMn7H-__z48hS93mHoqejiZgsry0DmLwJKxZ=MqQ@mail.gmail.com>
-References: <cover.1454709317.git.swise@chelsio.com> <2da1db58d642789e8df154e34d622a37295d1ba3.1454709317.git.swise@chelsio.com>
- <CANjDDBjFY+u=8UXVCkKkK0LKSWiRcfZYnP9035m5owAYZnfn6w@mail.gmail.com> <56B73049.5040901@dev.mellanox.co.il>
+Subject: Re: [PATCH 0/4] RDMA/ocrdma: Add RoCE-v2 support
+Date: Mon, 8 Feb 2016 16:18:33 +0530
+Message-ID: <CANjDDBgVeADqgDTtC1L7QMOLmuH6UE5L3+wXTTetWzKA6+nMnw@mail.gmail.com>
+References: <1453989599-21307-1-git-send-email-devesh.sharma@avagotech.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56B73049.5040901-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1453989599-21307-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 7, 2016 at 5:23 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->
->>> +/*
->>> + * Post a WR and block until its completion is reaped for both the RQ
->>> and SQ.
->>> + */
->>> +static void __ib_drain_qp(struct ib_qp *qp)
->>> +{
->>> +       struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
->>> +       struct ib_drain_cqe rdrain, sdrain;
->>> +       struct ib_recv_wr rwr = {}, *bad_rwr;
->>> +       struct ib_send_wr swr = {}, *bad_swr;
->>> +       int ret;
->>> +
->>> +       rwr.wr_cqe = &rdrain.cqe;
->>> +       rdrain.cqe.done = ib_drain_qp_done;
->>> +       init_completion(&rdrain.done);
->>> +
->>> +       swr.wr_cqe = &sdrain.cqe;
->>> +       sdrain.cqe.done = ib_drain_qp_done;
->>> +       init_completion(&sdrain.done);
->>> +
->>> +       ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
->>> +       if (ret) {
->>> +               WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
->>> +               return;
->>> +       }
->>
->>
->> I was thinking if we really need this modify_qp here. generally
->> drain_qp is called on
->> an error'ed out QP. In a graceful tear down rdma_disconnect takes care
->> to modify-qp
->> to error. while in error state qp is already in error state.
->
->
-> We could get it conditional, but I don't see any harm done
-> in having it as it would mean a passed in flag.
->
+Hi Dough,
 
-Since Spec allows this, I would say okay let it be there.
+This is a gentle reminder to pull this patch series into upstream.
+Please let me know if you are targeting a specific kernel version.
 
-> It would be better to have the modify_qp implementers do
-> nothing for a ERROR -> ERROR modify...
+-Regards
+Devesh
 
-Driver implementer has a choice here which is okay.
+On Thu, Jan 28, 2016 at 7:29 PM, Devesh Sharma
+<devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
+> This patch series adds support for RoCE-v2 protocol
+> on Avago's RoCE enabled adapters.
+>
+> Devesh Sharma (3):
+>   RDMA/ocrdma: Support RoCE-v2 in the UD path
+>   RDMA/ocrdma: Support RoCE-v2 in the RC path
+>   RDMA/ocrdma: Support user AH creation for RoCE-v2
+>
+> Somnath Kotur (1):
+>   RDMA/ocrdma: Export udp encapsulation capability
+>
+>  drivers/infiniband/hw/ocrdma/ocrdma.h       |  8 +++
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 75 ++++++++++++++++++++++++-----
+>  drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |  5 +-
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 26 +++++++++-
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  4 ++
+>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 16 ++++--
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 22 +++++++--
+>  7 files changed, 134 insertions(+), 22 deletions(-)
+>
+> --
+> 1.8.3.1
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
