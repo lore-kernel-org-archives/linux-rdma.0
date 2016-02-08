@@ -1,60 +1,133 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 0/9] NFS/RDMA server patches for v4.6
-Date: Mon, 08 Feb 2016 12:24:21 -0500
-Message-ID: <20160208171756.13423.14384.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 2/9] svcrdma: svc_rdma_post_recv() should close
+ connection on error
+Date: Mon, 08 Feb 2016 12:24:39 -0500
+Message-ID: <20160208172439.13423.65592.stgit@klimt.1015granger.net>
+References: <20160208171756.13423.14384.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160208171756.13423.14384.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A round of fixes and clean-ups.
+Clean up: Most svc_rdma_post_recv() call sites close the transport
+connection when a receive cannot be posted. Wrap that in a common
+helper.
 
-Also available in the "nfsd-rdma-for-4.6" topic branch of this git
-repo:
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.6
-
-
-Changes since v1:
-o Rebased on v4.5-rc3
-o Patch 02/10 (pre-allocate frmrs) dropped
-o Patch 04/10 replaced with more surgical patch
-o Refined reporting of flushed completions
-o Function names of completion methods changed to match client's
-   new completion function naming convention
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Tested-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
+ include/linux/sunrpc/svc_rdma.h            |    1 +
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   11 ++---------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   10 +---------
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |    7 +------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |   15 +++++++++++++++
+ 5 files changed, 20 insertions(+), 24 deletions(-)
 
-Chuck Lever (9):
-      svcrdma: Do not send XDR roundup bytes for a write chunk
-      svcrdma: svc_rdma_post_recv() should close connection on error
-      rpcrdma: Add RPCRDMA_HDRLEN_ERR
-      svcrdma: Make RDMA_ERROR messages work
-      svcrdma: Use correct XID in error replies
-      svcrdma: Hook up the logic to return ERR_CHUNK
-      svcrdma: Remove close_out exit path
-      svcrdma: Use new CQ API for RPC-over-RDMA server receive CQs
-      svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index 5322fea..d8fc58d 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -234,6 +234,7 @@ extern int svc_rdma_send(struct svcxprt_rdma *, struct ib_send_wr *);
+ extern void svc_rdma_send_error(struct svcxprt_rdma *, struct rpcrdma_msg *,
+ 				enum rpcrdma_errcode);
+ extern int svc_rdma_post_recv(struct svcxprt_rdma *, gfp_t);
++extern int svc_rdma_repost_recv(struct svcxprt_rdma *, gfp_t);
+ extern int svc_rdma_create_listen(struct svc_serv *, int, struct sockaddr *);
+ extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *);
+ extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 65a7c23..4498eaf 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -111,16 +111,9 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
+ 	if (ret)
+ 		goto out_err;
+ 
+-	/* Post a recv buffer to handle the reply for this request. */
+-	ret = svc_rdma_post_recv(rdma, GFP_NOIO);
+-	if (ret) {
+-		pr_err("svcrdma: Failed to post bc receive buffer, err=%d.\n",
+-		       ret);
+-		pr_err("svcrdma: closing transport %p.\n", rdma);
+-		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+-		ret = -ENOTCONN;
++	ret = svc_rdma_repost_recv(rdma, GFP_NOIO);
++	if (ret)
+ 		goto out_err;
+-	}
+ 
+ 	ctxt = svc_rdma_get_context(rdma);
+ 	ctxt->pages[0] = virt_to_page(rqst->rq_buffer);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index c8b8a8b..acf15b8 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -711,13 +711,5 @@ defer:
+ 	return 0;
+ 
+ repost:
+-	ret = svc_rdma_post_recv(rdma_xprt, GFP_KERNEL);
+-	if (ret) {
+-		pr_err("svcrdma: could not post a receive buffer, err=%d.\n",
+-		       ret);
+-		pr_err("svcrdma: closing transport %p.\n", rdma_xprt);
+-		set_bit(XPT_CLOSE, &rdma_xprt->sc_xprt.xpt_flags);
+-		ret = -ENOTCONN;
+-	}
+-	return ret;
++	return svc_rdma_repost_recv(rdma_xprt, GFP_KERNEL);
+ }
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index 8591314..687a91afe 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -464,13 +464,8 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 	int pages;
+ 	int ret;
+ 
+-	/* Post a recv buffer to handle another request. */
+-	ret = svc_rdma_post_recv(rdma, GFP_KERNEL);
++	ret = svc_rdma_repost_recv(rdma, GFP_KERNEL);
+ 	if (ret) {
+-		printk(KERN_INFO
+-		       "svcrdma: could not post a receive buffer, err=%d."
+-		       "Closing transport %p.\n", ret, rdma);
+-		set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
+ 		svc_rdma_put_context(ctxt, 0);
+ 		return -ENOTCONN;
+ 	}
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 5763825..03fdfce 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -722,6 +722,21 @@ int svc_rdma_post_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+ 	return -ENOMEM;
+ }
+ 
++int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
++{
++	int ret = 0;
++
++	ret = svc_rdma_post_recv(xprt, flags);
++	if (ret) {
++		pr_err("svcrdma: could not post a receive buffer, err=%d.\n",
++		       ret);
++		pr_err("svcrdma: closing transport %p.\n", xprt);
++		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
++		ret = -ENOTCONN;
++	}
++	return ret;
++}
++
+ /*
+  * This function handles the CONNECT_REQUEST event on a listening
+  * endpoint. It is passed the cma_id for the _new_ connection. The context in
 
-
- include/linux/sunrpc/rpc_rdma.h            |    1 
- include/linux/sunrpc/svc_rdma.h            |   18 +
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   15 -
- net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   62 +++-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   61 ++--
- net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   79 ++++-
- net/sunrpc/xprtrdma/svc_rdma_transport.c   |  446 +++++++++-------------------
- 7 files changed, 299 insertions(+), 383 deletions(-)
-
---
-Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
