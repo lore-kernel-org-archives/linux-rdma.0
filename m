@@ -1,50 +1,40 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/4] RDMA/ocrdma: Add RoCE-v2 support
-Date: Mon, 8 Feb 2016 16:18:33 +0530
-Message-ID: <CANjDDBgVeADqgDTtC1L7QMOLmuH6UE5L3+wXTTetWzKA6+nMnw@mail.gmail.com>
-References: <1453989599-21307-1-git-send-email-devesh.sharma@avagotech.com>
+From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] IB/ipoib: fix for rare multicast join race condition.
+Date: Mon, 8 Feb 2016 12:23:07 +0000
+Message-ID: <F3529576D8E232409F431C309E29399328F6C7FE@CRSMSX102.amr.corp.intel.com>
+References: <20160206135041.11630.77019.stgit@phlsvlogin03.ph.intel.com>
+ <20160206171828.GD8584@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1453989599-21307-1-git-send-email-devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <20160206171828.GD8584-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dough,
+Hi Leon,
 
-This is a gentle reminder to pull this patch series into upstream.
-Please let me know if you are targeting a specific kernel version.
+> A number of very minor comments:
+> 1. Please remove dot at the end of commit message title.
+> 
+Ok. Thanks.
 
--Regards
-Devesh
+> 2. This function declared as a void, it is an error to add "return 0".
+> 
+ipoib_mcast_join() is declared as int.  Please see a very first change.
 
-On Thu, Jan 28, 2016 at 7:29 PM, Devesh Sharma
-<devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
-> This patch series adds support for RoCE-v2 protocol
-> on Avago's RoCE enabled adapters.
->
-> Devesh Sharma (3):
->   RDMA/ocrdma: Support RoCE-v2 in the UD path
->   RDMA/ocrdma: Support RoCE-v2 in the RC path
->   RDMA/ocrdma: Support user AH creation for RoCE-v2
->
-> Somnath Kotur (1):
->   RDMA/ocrdma: Export udp encapsulation capability
->
->  drivers/infiniband/hw/ocrdma/ocrdma.h       |  8 +++
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 75 ++++++++++++++++++++++++-----
->  drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |  5 +-
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 26 +++++++++-
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  4 ++
->  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 16 ++++--
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 22 +++++++--
->  7 files changed, 134 insertions(+), 22 deletions(-)
->
-> --
-> 1.8.3.1
->
+> -static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+> +static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+
+> 3. There is no need to compare with 0. Just use "if (ipoib...(...))"
+> construction.
+Ok. No problem.
+
+Thanks,
+Alex.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
