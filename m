@@ -1,31 +1,64 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Tue, 9 Feb 2016 14:04:36 -0600
-Message-ID: <010901d16375$1a023210$4e069630$@opengridcomputing.com>
-References: <cover.1454969695.git.swise@chelsio.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1454969695.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 0/5] pre-decrement in error paths considered harmful
+Date: Tue,  9 Feb 2016 21:11:11 +0100
+Message-ID: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> This series creates a new helper API for draining a queue pair.  It is a
-> rework of an original patch created by Christoph Hellwig as part of the CQ
-> API rework and was dropped to be resubmitted by me with iw_cxgb4 support.
+There are a few instances of
 
-I finally got SRP running to test this series and it isn't working. :(  Anyway, there will be v3 posted once I fix it.
+  for (i = 0; i < FOO; ++i) {
+    ret = do_stuff(i)
+    if (ret)
+      goto err;
+  }
+  ...
+  err:
+  while (--i)
+    undo_stuff(i);
 
-Steve.
+At best, this fails to undo_stuff for i==0, but if i==0 was the case
+that failed, we'll end up with an "infinite" loop in the error path
+doing nasty stuff.
 
+These were found with a simple coccinelle script
+
+@@
+expression i;
+identifier l;
+statement S;
+@@
+* l:
+* while (--i)
+    S
+
+(and there were no false positives).
+
+There's no dependencies between the patches; I just wanted to include
+a common cover letter with a little background info.
+
+Rasmus Villemoes (5):
+  drm/gma500: fix error path in gma_intel_setup_gmbus()
+  drm/i915: fix error path in intel_setup_gmbus()
+  net/mlx4: fix some error handling in mlx4_multi_func_init()
+  net: sxgbe: fix error paths in sxgbe_platform_probe()
+  mm/backing-dev.c: fix error path in wb_init()
+
+ drivers/gpu/drm/gma500/intel_gmbus.c                | 2 +-
+ drivers/gpu/drm/i915/intel_i2c.c                    | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c            | 4 ++--
+ drivers/net/ethernet/samsung/sxgbe/sxgbe_platform.c | 4 ++--
+ mm/backing-dev.c                                    | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+
+-- 
+2.1.4
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
