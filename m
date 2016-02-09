@@ -1,54 +1,57 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Tue, 9 Feb 2016 17:23:43 -0500
-Message-ID: <47D5799E-57BD-4BD2-84B8-1E9459393706@oracle.com>
-References: <cover.1454969695.git.swise@chelsio.com> <010901d16375$1a023210$4e069630$@opengridcomputing.com> <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com> <56BA540B.4040405@sandisk.com> <011901d1637d$b5286400$1f792c00$@opengridcomputing.com> <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/5] IB/rdmavt,staging/rdma/hfi1: Misc bug fixes for hfi1
+Date: Tue, 09 Feb 2016 14:29:02 -0800
+Message-ID: <20160209222705.7444.85189.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This series adds some more bug fixes for hfi1. It also adds a performance fix
+for qp timeouts that is incorporated into rdmavt.
 
-> On Feb 9, 2016, at 4:58 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
-> 
->>> Hello Steve,
->>> 
->>> How about creating three functions - one that drains the receive queue,
->>> one that drains the send queue and a third function that drains both ?
->>> The latter function then can call the two former functions. And since
->>> only one of these three functions will have a user in your patch series
->>> (the function that drains the RQ), how about only introducing only that
->>> function now and to wait with introducing the two other functions until
->>> these have a user ?
->> 
->> That sounds reasonable.  Simpler too perhaps.  We'll see if anyone else
->> has an opinion.
-> 
-> Another option is for ib_drain_qp() to just skip queues with IB_POLL_DIRECT CQ processing.
+Series applies on the previously submitted "Dual lock pre-reqs" series and can
+be seen in context at: https://github.com/ddalessa/kernel/tree/for-4.6
 
-Does ib_drain_qp() recognize when one CQ is new-style, and one
-is old school? How about QPs with a single CQ? Since there is
-a requirement that each CQ is allocated via ib_alloc_cq, it
-would be good to assert that is true in ib_drain_qp() before
-you prepare and post the blank WRs.
+---
 
-Or if you prefer not to handle it automatically, you could add
-a flag parameter to ib_drain_qp (IB_DRAIN_RQ, IB_DRAIN_SQ, or
-IB_DRAIN_BOTH).
+Easwar Hariharan (2):
+      staging/rdma/hfi1: Fetch platform configuration data from EFI variable
+      staging/rdma/hfi1: Tune for unknown channel if configuration file is absent
+
+Mike Marciniszyn (1):
+      staging/rdma/hfi1: actually use new RNR timer API in loopback path
+
+Sebastian Sanchez (1):
+      staging/rdma/hfi1: Turning off LED without checking if stepping is Ax
+
+Vennila Megavannan (1):
+      IB/rdmavt, staging/rdma/hfi1: use qps to dynamically scale timeout value
 
 
---
-Chuck Lever
+ drivers/infiniband/sw/rdmavt/qp.c    |   17 ++++
+ drivers/staging/rdma/hfi1/chip.c     |    7 +-
+ drivers/staging/rdma/hfi1/chip.h     |    6 +
+ drivers/staging/rdma/hfi1/firmware.c |  112 ++++++++++++++++++++++---
+ drivers/staging/rdma/hfi1/hfi.h      |    1 
+ drivers/staging/rdma/hfi1/init.c     |    1 
+ drivers/staging/rdma/hfi1/pcie.c     |    3 -
+ drivers/staging/rdma/hfi1/platform.c |  151 ++++++++++++++++++++++------------
+ drivers/staging/rdma/hfi1/platform.h |    9 ++
+ drivers/staging/rdma/hfi1/qsfp.c     |    1 
+ drivers/staging/rdma/hfi1/rc.c       |   14 ++-
+ drivers/staging/rdma/hfi1/ruc.c      |    8 +-
+ drivers/staging/rdma/hfi1/verbs.h    |    1 
+ include/rdma/rdma_vt.h               |    4 +
+ include/rdma/rdmavt_qp.h             |    2 
+ 15 files changed, 255 insertions(+), 82 deletions(-)
 
-
-
-
+-- 
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
