@@ -1,55 +1,37 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 3/5] net/mlx4: fix some error handling in mlx4_multi_func_init()
-Date: Tue,  9 Feb 2016 21:11:14 +0100
-Message-ID: <1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
-References: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@mellanox.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v2 0/3] new ib_drain_qp() API
+Date: Tue, 9 Feb 2016 14:50:45 -0600
+Message-ID: <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
+References: <cover.1454969695.git.swise@chelsio.com> <010901d16375$1a023210$4e069630$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <010901d16375$1a023210$4e069630$@opengridcomputing.com>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The while loop after err_slaves should use post-decrement; otherwise
-we'll fail to do the kfrees for i==0, and will run into out-of-bounds
-accesses if the setup above failed already at i==0.
+> > This series creates a new helper API for draining a queue pair.  It is a
+> > rework of an original patch created by Christoph Hellwig as part of the CQ
+> > API rework and was dropped to be resubmitted by me with iw_cxgb4 support.
+> 
+> I finally got SRP running to test this series and it isn't working. :(  Anyway, there will be v3 posted once I fix it.
+> 
+> Steve.
 
-The predecrement in the --port is ok, since ->vlan_filter is
-(bizarrely) 1-indexed. But I'm changing 'if' to 'while' since it's a
-bit ugly to rely on MLX4_MAX_PORTS being 2.
+The problem is SRP creates its SQ CQ with IB_POLL_DIRECT context, so the CQ is never armed for interrupts, and SRP polls the CQ
+directly.  So the drain logic won't work.  
 
-[I'm not sure why one even bothers populating the ->vlan_filter array:
-mlx4.h isn't #included by anything outside
-drivers/net/ethernet/mellanox/mlx4/, and "git grep -C2 -w vlan_filter
-drivers/net/ethernet/mellanox/mlx4/" seems to suggest that the
-vlan_filter elements aren't used at all.]
+I propose ib_drain_qp() takes a new parameter that tells it which queues to drain.  Then the SRP code will only drain the RQ (which
+is what it is doing prior to this series).
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/net/ethernet/mellanox/mlx4/cmd.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thoughts?
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index d48d5793407d..bfe8234abbba 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -2369,7 +2369,7 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
- 					kzalloc(sizeof(struct mlx4_vlan_fltr),
- 						GFP_KERNEL);
- 				if (!s_state->vlan_filter[port]) {
--					if (--port)
-+					while (--port)
- 						kfree(s_state->vlan_filter[port]);
- 					goto err_slaves;
- 				}
-@@ -2429,7 +2429,7 @@ err_thread:
- 	flush_workqueue(priv->mfunc.master.comm_wq);
- 	destroy_workqueue(priv->mfunc.master.comm_wq);
- err_slaves:
--	while (--i) {
-+	while (i--) {
- 		for (port = 1; port <= MLX4_MAX_PORTS; port++)
- 			kfree(priv->mfunc.master.slave_state[i].vlan_filter[port]);
- 	}
--- 
-2.1.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
