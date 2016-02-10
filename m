@@ -1,59 +1,56 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Wed, 10 Feb 2016 12:33:20 +0200
-Message-ID: <56BB11F0.9090203@dev.mellanox.co.il>
-References: <cover.1454969695.git.swise@chelsio.com>
- <010901d16375$1a023210$4e069630$@opengridcomputing.com>
- <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
- <56BA540B.4040405@sandisk.com>
- <011901d1637d$b5286400$1f792c00$@opengridcomputing.com>
- <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 1/3] IB/mlx5: Define mlx5 interface bits for IPoIB offloads
+Date: Wed, 10 Feb 2016 15:35:36 +0200
+Message-ID: <1455111338-26748-2-git-send-email-erezsh@mellanox.com>
+References: <1455111338-26748-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
+In-Reply-To: <1455111338-26748-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
->>> Hello Steve,
->>>
->>> How about creating three functions - one that drains the receive queue,
->>> one that drains the send queue and a third function that drains both ?
->>> The latter function then can call the two former functions. And since
->>> only one of these three functions will have a user in your patch series
->>> (the function that drains the RQ), how about only introducing only that
->>> function now and to wait with introducing the two other functions until
->>> these have a user ?
->>
->> That sounds reasonable.  Simpler too perhaps.  We'll see if anyone else
->> has an opinion.
->
-> Another option is for ib_drain_qp() to just skip queues with IB_POLL_DIRECT CQ processing.
+The HW can supply several offloads for UD QP, added  offloads for
+checksumming for both TX and RX and LSO for TX.
 
-I'd rather not skip silently anything. ib_drain_qp() semantics is that
-it drains all the pending posts on the queue-pair (i.e. both send and
-receive queues).
+Two new bits were added in order to expose and enable these offloads:
+1. HCA capability bit: declares the support for IPoIB basic offloads.
+2. QPC bit which will be used in the QP creation flow, which set these
+abilities in the QP.
 
-We can split to send and receive, but the fact that srp uses direct
-polling CQ is not sufficient for that, most if not all will benefit from
-both.
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/linux/mlx5/mlx5_ifc.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-I'd suggest to look at the CQ context and act accordingly, something
-like:
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 51f1e54..601821f 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -736,7 +736,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         cqe_version[0x4];
+ 
+ 	u8         compact_address_vector[0x1];
+-	u8         reserved_at_200[0xe];
++	u8         reserved_at_200[0x1];
++	u8         ipoib_basic_offloads[0x1];
++	u8         reserved_at_202[0xc];
+ 	u8         drain_sigerr[0x1];
+ 	u8         cmdif_checksum[0x2];
+ 	u8         sigerr_cqe[0x1];
+@@ -1780,7 +1782,7 @@ struct mlx5_ifc_qpc_bits {
+ 	u8         log_sq_size[0x4];
+ 	u8         reserved_at_55[0x6];
+ 	u8         rlky[0x1];
+-	u8         reserved_at_5c[0x4];
++	u8         ulp_stateless_offload_mode[0x4];
+ 
+ 	u8         counter_set_id[0x8];
+ 	u8         uar_page[0x18];
+-- 
+1.7.11.3
 
-	if (cq->poll_ctx == IB_POLL_DIRECT) {
-		while (!wait_for_completion_timeout(&sdrain.done,
-				mescs_to_jiffies(100))
-			ib_process_cq_direct(cq, 1024)
-	} else {
-		wait_for_completion(&sdrain.done);
-	}
-
-Thoughts?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
