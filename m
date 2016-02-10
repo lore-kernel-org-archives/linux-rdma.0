@@ -1,70 +1,116 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Wed, 10 Feb 2016 06:08:57 -0800
-Message-ID: <56BB4479.8090009@sandisk.com>
-References: <cover.1454969695.git.swise@chelsio.com>
- <010901d16375$1a023210$4e069630$@opengridcomputing.com>
- <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
- <56BA540B.4040405@sandisk.com>
- <011901d1637d$b5286400$1f792c00$@opengridcomputing.com>
- <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
- <56BB11F0.9090203@dev.mellanox.co.il>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3 1/1] IB/ipoib: fix for rare multicast join race condition
+Date: Wed, 10 Feb 2016 17:15:59 +0200
+Message-ID: <CAAk-MO9RdXNqhM1QKtqK+1DVc-kQzkm=C6tmLYzkd2vd+j_QbQ@mail.gmail.com>
+References: <20160209193525.20351.78895.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BB11F0.9090203-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160209193525.20351.78895.stgit-u2TXY/5TJkdZ7WVY1cDZ9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/10/16 02:33, Sagi Grimberg wrote:
+On Tue, Feb 9, 2016 at 9:35 PM, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> A narrow window for race condition still exist between
+> multicast join thread and *dev_flush workers.
+> A kernel crash caused by prolong erratic link state changes
+> was observed (most likely a faulty cabling):
 >
->>>> Hello Steve,
->>>>
->>>> How about creating three functions - one that drains the receive queue,
->>>> one that drains the send queue and a third function that drains both ?
->>>> The latter function then can call the two former functions. And since
->>>> only one of these three functions will have a user in your patch series
->>>> (the function that drains the RQ), how about only introducing only that
->>>> function now and to wait with introducing the two other functions until
->>>> these have a user ?
->>>
->>> That sounds reasonable.  Simpler too perhaps.  We'll see if anyone else
->>> has an opinion.
->>
->> Another option is for ib_drain_qp() to just skip queues with IB_POLL_DIRECT CQ processing.
+> [167275.656270] BUG: unable to handle kernel NULL pointer dereference at
+> 0000000000000020
+> [167275.665973] IP: [<ffffffffa05f8f2e>] ipoib_mcast_join+0xae/0x1d0 [ib_ipoib]
+> [167275.674443] PGD 0
+> [167275.677373] Oops: 0000 [#1] SMP
+> ...
+> [167275.977530] Call Trace:
+> [167275.982225]  [<ffffffffa05f92f0>] ? ipoib_mcast_free+0x200/0x200 [ib_ipoib]
+> [167275.992024]  [<ffffffffa05fa1b7>] ipoib_mcast_join_task+0x2a7/0x490
+> [ib_ipoib]
+> [167276.002149]  [<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+> [167276.010754]  [<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+> [167276.019088]  [<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+> [167276.027737]  [<ffffffff810a5aef>] kthread+0xcf/0xe0
+> Here was a hit spot:
+> ipoib_mcast_join() {
+> ..............
+>       rec.qkey      = priv->broadcast->mcmember.qkey;
+>                                        ^^^^^^^
+> .....
+>  }
+> Proposed patch should prevent multicast join task to continue
+> if link state change is detected.
 >
-> I'd rather not skip silently anything. ib_drain_qp() semantics is that
-> it drains all the pending posts on the queue-pair (i.e. both send and
-> receive queues).
+> Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> We can split to send and receive, but the fact that srp uses direct
-> polling CQ is not sufficient for that, most if not all will benefit from
-> both.
+> Chages from v2:
+> - Move check for OPER_UP flag state to mcast_join() to
+> ensure no event worker is in progress.
+> - minor style fixes.
 >
-> I'd suggest to look at the CQ context and act accordingly, something
-> like:
+> Changes from v1:
+> No need to lock again if error detected.
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 >
-> 	if (cq->poll_ctx == IB_POLL_DIRECT) {
-> 		while (!wait_for_completion_timeout(&sdrain.done,
-> 				mescs_to_jiffies(100))
-> 			ib_process_cq_direct(cq, 1024)
-> 	} else {
-> 		wait_for_completion(&sdrain.done);
-> 	}
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index 050dfa1..6320d39 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -456,7 +456,7 @@ out_locked:
+>         return status;
+>  }
 >
-> Thoughts?
+> -static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+> +static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>  {
+>         struct ipoib_dev_priv *priv = netdev_priv(dev);
+>         struct ib_sa_multicast *multicast;
+> @@ -466,6 +466,10 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>         ib_sa_comp_mask comp_mask;
+>         int ret = 0;
+>
+> +       if (!priv->broadcast ||
+> +           !test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
+> +               return -EINVAL;
+> +
 
-Hello Sagi,
+The check over the priv->flags is not satisfied, because one line
+after the check the other work dev_flush_xxx (from other work queue,
+so they are not sync)  which calls to ipoib_ib_dev_down
+will cause the broadcast to be null.
+you can't prevent it by checking the flags.
+you need to take the lock priv->lock (and make sure no deadlocks ..)
+or some other mechanism.
 
-The above code will only work as expected if the caller won't call 
-ib_process_cq_direct() for the same queue from another context. This 
-needs to be documented clearly and all drivers in which a call to that 
-code is introduced have to be verified to see whether that assumption holds.
-
-Bart.
+>         ipoib_dbg_mcast(priv, "joining MGID %pI6\n", mcast->mcmember.mgid.raw);
+>
+>         rec.mgid     = mcast->mcmember.mgid;
+> @@ -539,6 +543,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+>                 spin_unlock_irq(&priv->lock);
+>                 complete(&mcast->done);
+>         }
+> +       return 0;
+>  }
+>
+>  void ipoib_mcast_join_task(struct work_struct *work)
+> @@ -621,7 +626,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
+>                                 init_completion(&mcast->done);
+>                                 set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+>                                 spin_unlock_irq(&priv->lock);
+> -                               ipoib_mcast_join(dev, mcast);
+> +                               if (!ipoib_mcast_join(dev, mcast))
+> +                                       return;
+>                                 spin_lock_irq(&priv->lock);
+>                         } else if (!delay_until ||
+>                                  time_before(mcast->delay_until, delay_until))
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
