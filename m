@@ -1,86 +1,71 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] staging/rdma/hfi1: actually use new RNR timer API in
- loopback path
-Date: Tue, 09 Feb 2016 14:29:31 -0800
-Message-ID: <20160209222927.7444.81023.stgit@scvm10.sc.intel.com>
-References: <20160209222705.7444.85189.stgit@scvm10.sc.intel.com>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH 3/5] net/mlx4: fix some error handling in
+ mlx4_multi_func_init()
+Date: Wed, 10 Feb 2016 11:40:07 +0200
+Message-ID: <56BB0577.8000000@dev.mellanox.co.il>
+References: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
+ <1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160209222705.7444.85189.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "jackm@mellanox.com" <jackm@mellanox.com>, Majd Dibbiny <majd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 2/9/2016 10:11 PM, Rasmus Villemoes wrote:
+> The while loop after err_slaves should use post-decrement; otherwise
+> we'll fail to do the kfrees for i==0, and will run into out-of-bounds
+> accesses if the setup above failed already at i==0.
+>
+> The predecrement in the --port is ok, since ->vlan_filter is
+> (bizarrely) 1-indexed. But I'm changing 'if' to 'while' since it's a
+> bit ugly to rely on MLX4_MAX_PORTS being 2.
+>
+> [I'm not sure why one even bothers populating the ->vlan_filter array:
+> mlx4.h isn't #included by anything outside
+> drivers/net/ethernet/mellanox/mlx4/, and "git grep -C2 -w vlan_filter
+> drivers/net/ethernet/mellanox/mlx4/" seems to suggest that the
+> vlan_filter elements aren't used at all.]
+>
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> ---
+>   drivers/net/ethernet/mellanox/mlx4/cmd.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> index d48d5793407d..bfe8234abbba 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> @@ -2369,7 +2369,7 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
+>   					kzalloc(sizeof(struct mlx4_vlan_fltr),
+>   						GFP_KERNEL);
+>   				if (!s_state->vlan_filter[port]) {
+> -					if (--port)
+> +					while (--port)
 
-The patch series which added a new API for the RNR timer did not include an
-updated call in the loopback path. RC/UC RNR loopback would be broken
-without this.
+Prefer to leave as-is. There is no way that mlx4 will ever have more 
+than 2 ports.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/rc.c    |    2 +-
- drivers/staging/rdma/hfi1/ruc.c   |    8 +++-----
- drivers/staging/rdma/hfi1/verbs.h |    1 +
- 3 files changed, 5 insertions(+), 6 deletions(-)
+>   						kfree(s_state->vlan_filter[port]);
+>   					goto err_slaves;
+>   				}
+> @@ -2429,7 +2429,7 @@ err_thread:
+>   	flush_workqueue(priv->mfunc.master.comm_wq);
+>   	destroy_workqueue(priv->mfunc.master.comm_wq);
+>   err_slaves:
+> -	while (--i) {
+> +	while (i--) {
 
-diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
-index e54e0b4..ba2a2cc 100644
---- a/drivers/staging/rdma/hfi1/rc.c
-+++ b/drivers/staging/rdma/hfi1/rc.c
-@@ -81,7 +81,7 @@ static inline void hfi1_add_retry_timer(struct rvt_qp *qp)
-  *
-  * add an rnr timer on the QP
-  */
--static inline void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
-+void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
- 
-diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
-index 66449ac..a7add3c 100644
---- a/drivers/staging/rdma/hfi1/ruc.c
-+++ b/drivers/staging/rdma/hfi1/ruc.c
-@@ -371,6 +371,7 @@ static void ruc_loopback(struct rvt_qp *sqp)
- 	int release;
- 	int ret;
- 	int copy_last = 0;
-+	u32 to;
- 
- 	rcu_read_lock();
- 
-@@ -600,11 +601,8 @@ rnr_nak:
- 	spin_lock_irqsave(&sqp->s_lock, flags);
- 	if (!(ib_rvt_state_ops[sqp->state] & RVT_PROCESS_RECV_OK))
- 		goto clr_busy;
--	sqp->s_flags |= RVT_S_WAIT_RNR;
--	sqp->s_timer.function = hfi1_rc_rnr_retry;
--	sqp->s_timer.expires = jiffies +
--		usecs_to_jiffies(ib_hfi1_rnr_table[qp->r_min_rnr_timer]);
--	add_timer(&sqp->s_timer);
-+	to = ib_hfi1_rnr_table[qp->r_min_rnr_timer];
-+	hfi1_add_rnr_timer(sqp, to);
- 	goto clr_busy;
- 
- op_err:
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 26eda8a..adb63bb 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -404,6 +404,7 @@ u8 ah_to_sc(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
- struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid);
- 
- void hfi1_rc_rnr_retry(unsigned long arg);
-+void hfi1_add_rnr_timer(struct rvt_qp *qp, u32 to);
- void hfi1_rc_timeout(unsigned long arg);
- void hfi1_del_timers_sync(struct rvt_qp *qp);
- void hfi1_stop_rc_timers(struct rvt_qp *qp);
+This fix is wrong as it hits the case that i arrived the last value then 
+below code will access to a non valid entry in the array.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The expected fix should be:
+while (--i >= 0)
+
+>   		for (port = 1; port <= MLX4_MAX_PORTS; port++)
+>   			kfree(priv->mfunc.master.slave_state[i].vlan_filter[port]);
+>   	}
+>
