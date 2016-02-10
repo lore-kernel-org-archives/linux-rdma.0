@@ -1,27 +1,39 @@
-From: "Estrin, Alex" <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3 1/1] IB/ipoib: fix for rare multicast join race
- condition
-Date: Wed, 10 Feb 2016 16:47:32 +0000
-Message-ID: <F3529576D8E232409F431C309E29399328F6CD0C@CRSMSX102.amr.corp.intel.com>
-References: <20160209193525.20351.78895.stgit@phlsvlogin03.ph.intel.com>
- <CAAk-MO9RdXNqhM1QKtqK+1DVc-kQzkm=C6tmLYzkd2vd+j_QbQ@mail.gmail.com>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: Re: [PATCH 3/5] net/mlx4: fix some error handling in mlx4_multi_func_init()
+Date: Wed, 10 Feb 2016 19:15:20 +0100
+Message-ID: <87twlgtosn.fsf@rasmusvillemoes.dk>
+References: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
+	<1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
+	<56BB0577.8000000@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAk-MO9RdXNqhM1QKtqK+1DVc-kQzkm=C6tmLYzkd2vd+j_QbQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56BB0577.8000000@dev.mellanox.co.il> (Yishai Hadas's message of
+	"Wed, 10 Feb 2016 11:40:07 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Cc: Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "jackm@mellanox.com" <jackm@mellanox.com>, Majd Dibbiny <majd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRXJleiwNCg0KPiANCj4gVGhlIGNoZWNrIG92ZXIgdGhlIHByaXYtPmZsYWdzIGlzIG5vdCBz
-YXRpc2ZpZWQsIGJlY2F1c2Ugb25lIGxpbmUNCj4gYWZ0ZXIgdGhlIGNoZWNrIHRoZSBvdGhlciB3
-b3JrIGRldl9mbHVzaF94eHggKGZyb20gb3RoZXIgd29yayBxdWV1ZSwNCj4gc28gdGhleSBhcmUg
-bm90IHN5bmMpICB3aGljaCBjYWxscyB0byBpcG9pYl9pYl9kZXZfZG93bg0KQWdyZWUuIExvY2sg
-aXMgbmVjZXNzYXJ5LiB2NCB3aWxsIGZvbGxvdy4NCg0KVGhhbmtzLA0KQWxleC4NCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Feb 10 2016, Yishai Hadas <yishaih@dev.mellanox.co.il> wrote:
+
+>> @@ -2429,7 +2429,7 @@ err_thread:
+>>   	flush_workqueue(priv->mfunc.master.comm_wq);
+>>   	destroy_workqueue(priv->mfunc.master.comm_wq);
+>>   err_slaves:
+>> -	while (--i) {
+>> +	while (i--) {
+>
+> This fix is wrong as it hits the case that i arrived the last value
+> then below code will access to a non valid entry in the array.
+>
+> The expected fix should be:
+> while (--i >= 0)
+>
+
+Huh? They're completely equivalent (given that i is necessarily
+non-negative before we evaluate the loop condition). I don't really care
+either way, but git grep says that 'while (i--)' is 5 times more common
+than 'while (--i >= 0)'.
+
+Rasmus
