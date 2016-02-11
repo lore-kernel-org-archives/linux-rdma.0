@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 11/21] IB/srpt: Fix srpt_handle_cmd() error paths
-Date: Thu, 11 Feb 2016 11:06:55 -0800
-Message-ID: <56BCDBCF.4080107@sandisk.com>
+Subject: [PATCH v4 12/21] IB/srpt: Fix how aborted commands are processed
+Date: Thu, 11 Feb 2016 11:07:11 -0800
+Message-ID: <56BCDBDF.7080801@sandisk.com>
 References: <56BCDAAD.7030906@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,81 +13,159 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The target core function that should be called if target_submit_cmd()
-fails is target_put_sess_cmd(). Additionally, change the return type
-of srpt_handle_cmd() from int into void.
+srpt_abort_cmd() must not be called in state SRPT_STATE_DATA_IN. Issue
+a warning if this occurs.
+
+srpt_abort_cmd() must not invoke target_put_sess_cmd() for commands
+in state SRPT_STATE_DONE because the srpt_abort_cmd() callers already
+do this when necessary. Hence remove this call.
+
+If an RDMA read fails the corresponding SCSI command must fail. Hence
+add a transport_generic_request_failure() call.
+
+Remove an incorrect srpt_abort_cmd() call from srpt_rdma_write_done().
+
+Avoid that srpt_send_done() calls srpt_abort_cmd() for finished SCSI
+commands.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 49 ++++++++++++-----------------------
+ 1 file changed, 16 insertions(+), 33 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index d644606..5b0fbc1 100644
+index 5b0fbc1..64e9107 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -91,6 +91,7 @@ MODULE_PARM_DESC(srpt_service_guid,
- 		 " instead of using the node_guid of the first HCA.");
+@@ -1267,10 +1267,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
  
- static struct ib_client srpt_client;
-+static void srpt_release_cmd(struct se_cmd *se_cmd);
- static void srpt_release_channel(struct srpt_rdma_ch *ch);
- static int srpt_queue_status(struct se_cmd *cmd);
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
-@@ -1492,15 +1493,14 @@ static int srpt_check_stop_free(struct se_cmd *cmd)
- /**
-  * srpt_handle_cmd() - Process SRP_CMD.
-  */
--static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
--			   struct srpt_recv_ioctx *recv_ioctx,
--			   struct srpt_send_ioctx *send_ioctx)
-+static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
-+			    struct srpt_recv_ioctx *recv_ioctx,
-+			    struct srpt_send_ioctx *send_ioctx)
- {
- 	struct se_cmd *cmd;
- 	struct srp_cmd *srp_cmd;
- 	u64 data_len;
- 	enum dma_data_direction dir;
--	sense_reason_t ret;
- 	int rc;
+ 	/*
+ 	 * If the command is in a state where the target core is waiting for
+-	 * the ib_srpt driver, change the state to the next state. Changing
+-	 * the state of the command from SRPT_STATE_NEED_DATA to
+-	 * SRPT_STATE_DATA_IN ensures that srpt_xmit_response() will call this
+-	 * function a second time.
++	 * the ib_srpt driver, change the state to the next state.
+ 	 */
  
- 	BUG_ON(!send_ioctx);
-@@ -1528,8 +1528,7 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
- 	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
- 		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
- 		       srp_cmd->tag);
--		ret = TCM_INVALID_CDB_FIELD;
--		goto send_sense;
-+		goto release_ioctx;
+ 	spin_lock_irqsave(&ioctx->spinlock, flags);
+@@ -1279,25 +1276,17 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 	case SRPT_STATE_NEED_DATA:
+ 		ioctx->state = SRPT_STATE_DATA_IN;
+ 		break;
+-	case SRPT_STATE_DATA_IN:
+ 	case SRPT_STATE_CMD_RSP_SENT:
+ 	case SRPT_STATE_MGMT_RSP_SENT:
+ 		ioctx->state = SRPT_STATE_DONE;
+ 		break;
+ 	default:
++		WARN_ONCE(true, "%s: unexpected I/O context state %d\n",
++			  __func__, state);
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&ioctx->spinlock, flags);
+ 
+-	if (state == SRPT_STATE_DONE) {
+-		struct srpt_rdma_ch *ch = ioctx->ch;
+-
+-		BUG_ON(ch->sess == NULL);
+-
+-		target_put_sess_cmd(&ioctx->cmd);
+-		goto out;
+-	}
+-
+ 	pr_debug("Aborting cmd with state %d and tag %lld\n", state,
+ 		 ioctx->cmd.tag);
+ 
+@@ -1305,19 +1294,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 	case SRPT_STATE_NEW:
+ 	case SRPT_STATE_DATA_IN:
+ 	case SRPT_STATE_MGMT:
++	case SRPT_STATE_DONE:
+ 		/*
+ 		 * Do nothing - defer abort processing until
+ 		 * srpt_queue_response() is invoked.
+ 		 */
+-		WARN_ON(!transport_check_aborted_status(&ioctx->cmd, false));
+ 		break;
+ 	case SRPT_STATE_NEED_DATA:
+-		/* DMA_TO_DEVICE (write) - RDMA read error. */
+-
+-		/* XXX(hch): this is a horrible layering violation.. */
+-		spin_lock_irqsave(&ioctx->cmd.t_state_lock, flags);
+-		ioctx->cmd.transport_state &= ~CMD_T_ACTIVE;
+-		spin_unlock_irqrestore(&ioctx->cmd.t_state_lock, flags);
++		pr_debug("tag %#llx: RDMA read error\n", ioctx->cmd.tag);
++		transport_generic_request_failure(&ioctx->cmd,
++					TCM_CHECK_CONDITION_ABORT_CMD);
+ 		break;
+ 	case SRPT_STATE_CMD_RSP_SENT:
+ 		/*
+@@ -1325,18 +1311,16 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 		 * not been received in time.
+ 		 */
+ 		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
+-		target_put_sess_cmd(&ioctx->cmd);
++		transport_generic_free_cmd(&ioctx->cmd, 0);
+ 		break;
+ 	case SRPT_STATE_MGMT_RSP_SENT:
+-		srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
+-		target_put_sess_cmd(&ioctx->cmd);
++		transport_generic_free_cmd(&ioctx->cmd, 0);
+ 		break;
+ 	default:
+ 		WARN(1, "Unexpected command state (%d)", state);
+ 		break;
  	}
  
- 	rc = target_submit_cmd(cmd, ch->sess, srp_cmd->cdb,
-@@ -1537,14 +1536,15 @@ static int srpt_handle_cmd(struct srpt_rdma_ch *ch,
- 			       scsilun_to_int(&srp_cmd->lun), data_len,
- 			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
- 	if (rc != 0) {
--		ret = TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
--		goto send_sense;
-+		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
-+			 srp_cmd->tag);
-+		goto release_ioctx;
- 	}
--	return 0;
-+	return;
- 
--send_sense:
--	transport_send_check_condition_and_sense(cmd, ret, 0);
--	return -1;
-+release_ioctx:
-+	send_ioctx->state = SRPT_STATE_DONE;
-+	srpt_release_cmd(cmd);
+-out:
+ 	return state;
  }
  
- static int srp_tmr_to_tcm(int fn)
+@@ -1376,9 +1360,14 @@ static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
++		/*
++		 * Note: if an RDMA write error completion is received that
++		 * means that a SEND also has been posted. Defer further
++		 * processing of the associated command until the send error
++		 * completion has been received.
++		 */
+ 		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
+ 			ioctx, wc->status);
+-		srpt_abort_cmd(ioctx);
+ 	}
+ }
+ 
+@@ -1721,15 +1710,10 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ 	atomic_inc(&ch->sq_wr_avail);
+ 
+-	if (wc->status != IB_WC_SUCCESS) {
++	if (wc->status != IB_WC_SUCCESS)
+ 		pr_info("sending response for ioctx 0x%p failed"
+ 			" with status %d\n", ioctx, wc->status);
+ 
+-		atomic_dec(&ch->req_lim);
+-		srpt_abort_cmd(ioctx);
+-		goto out;
+-	}
+-
+ 	if (state != SRPT_STATE_DONE) {
+ 		srpt_unmap_sg_to_ib_sge(ch, ioctx);
+ 		transport_generic_free_cmd(&ioctx->cmd, 0);
+@@ -1738,7 +1722,6 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		       " wr_id = %u.\n", ioctx->ioctx.index);
+ 	}
+ 
+-out:
+ 	while (!list_empty(&ch->cmd_wait_list) &&
+ 	       ch->state == CH_LIVE &&
+ 	       (ioctx = srpt_get_send_ioctx(ch)) != NULL) {
 -- 
 2.7.0
 
