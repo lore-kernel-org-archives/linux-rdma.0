@@ -1,78 +1,134 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 00/21] IB/srpt patches for Linux kernel v4.6
-Date: Thu, 11 Feb 2016 11:02:05 -0800
-Message-ID: <56BCDAAD.7030906@sandisk.com>
+Subject: [PATCH v4 01/21] IB/srpt: Simplify srpt_handle_tsk_mgmt()
+Date: Thu, 11 Feb 2016 11:03:09 -0800
+Message-ID: <56BCDAED.2050701@sandisk.com>
+References: <56BCDAAD.7030906@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56BCDAAD.7030906-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+Let the target core check task existence instead of the SRP target
+driver. Additionally, let the target core check the validity of the
+task management request instead of the ib_srpt driver.
 
-This series of patches is what I came up with while testing the most
-recent version of my SCSI target patch series (see also
-http://thread.gmane.org/gmane.linux.scsi.target.devel/10905). This
-includes fixes for ABORT handling and lockups during driver shutdown.
-All review comments that have been posted so far have been addressed in 
-this patch series.
+This patch fixes the following kernel crash:
 
-Changes compared to v3 of this patch series:
-- Removed node_acl_size member from the srpt_template structure.
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000001
+IP: [<ffffffffa0565f37>] srpt_handle_new_iu+0x6d7/0x790 [ib_srpt]
+Oops: 0002 [#1] SMP
+Call Trace:
+ [<ffffffffa05660ce>] srpt_process_completion+0xde/0x570 [ib_srpt]
+ [<ffffffffa056669f>] srpt_compl_thread+0x13f/0x160 [ib_srpt]
+ [<ffffffff8109726f>] kthread+0xcf/0xe0
+ [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
 
-Changes compared to v2 of this patch series:
-- Moved patch "Simplify srpt_handle_tsk_mgmt()" to the front of this
-   patch series and added a "Cc: stable" tag.
-- Removed the UNKNOWN_TMR definition again from
-   include/target/target_core_base.h.
-- Switched to list_empty_careful() in patch "Use a mutex to protect the
-   channel list" such that it is no longer needed to introduce RCU in
-   this patch series.
-- Dropped patch "Do not complain about initiator names without leading
-   0x" because it modifies the same code as a pending patch series from
-   Nic.
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Fixes: 3e4f574857ee ("ib_srpt: Convert TMR path to target_submit_tmr")
+Tested-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 59 +----------------------------------
+ 1 file changed, 1 insertion(+), 58 deletions(-)
 
-Changes compared to v1 of this patch series:
-- Rebased this patch series on top of kernel v4.5-rc1.
-- As proposed by Alex Estrin, modified patch "Simplify
-   srpt_handle_tsk_mgmt()" such that task management function code
-   validity is now checked by the target core.
-- Added a comment in patch "Simplify channel state management".
-- Changed "return true" into "return 1" in patch "Simplify
-   srpt_shutdown_session()" as suggested by Christoph.
-- Fixed patch "Fix srpt_handle_cmd() error paths" based on the feedback
-   provided by Sagi.
-- Split patch "Eliminate srpt_find_channel()" in three patches.
-- Left out patch "Fix a rare crash in srpt_close_session()". It is no
-   longer needed because srpt_disconnect_ch() is now called with the
-   sdev mutex held.
-- Added several new patches.
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 0c37fee..4328679 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1670,47 +1670,6 @@ send_sense:
+ 	return -1;
+ }
+ 
+-/**
+- * srpt_rx_mgmt_fn_tag() - Process a task management function by tag.
+- * @ch: RDMA channel of the task management request.
+- * @fn: Task management function to perform.
+- * @req_tag: Tag of the SRP task management request.
+- * @mgmt_ioctx: I/O context of the task management request.
+- *
+- * Returns zero if the target core will process the task management
+- * request asynchronously.
+- *
+- * Note: It is assumed that the initiator serializes tag-based task management
+- * requests.
+- */
+-static int srpt_rx_mgmt_fn_tag(struct srpt_send_ioctx *ioctx, u64 tag)
+-{
+-	struct srpt_device *sdev;
+-	struct srpt_rdma_ch *ch;
+-	struct srpt_send_ioctx *target;
+-	int ret, i;
+-
+-	ret = -EINVAL;
+-	ch = ioctx->ch;
+-	BUG_ON(!ch);
+-	BUG_ON(!ch->sport);
+-	sdev = ch->sport->sdev;
+-	BUG_ON(!sdev);
+-	spin_lock_irq(&sdev->spinlock);
+-	for (i = 0; i < ch->rq_size; ++i) {
+-		target = ch->ioctx_ring[i];
+-		if (target->cmd.se_lun == ioctx->cmd.se_lun &&
+-		    target->cmd.tag == tag &&
+-		    srpt_get_cmd_state(target) != SRPT_STATE_DONE) {
+-			ret = 0;
+-			/* now let the target core abort &target->cmd; */
+-			break;
+-		}
+-	}
+-	spin_unlock_irq(&sdev->spinlock);
+-	return ret;
+-}
+-
+ static int srp_tmr_to_tcm(int fn)
+ {
+ 	switch (fn) {
+@@ -1745,7 +1704,6 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
+ 	struct se_cmd *cmd;
+ 	struct se_session *sess = ch->sess;
+ 	uint64_t unpacked_lun;
+-	uint32_t tag = 0;
+ 	int tcm_tmr;
+ 	int rc;
+ 
+@@ -1761,25 +1719,10 @@ static void srpt_handle_tsk_mgmt(struct srpt_rdma_ch *ch,
+ 	srpt_set_cmd_state(send_ioctx, SRPT_STATE_MGMT);
+ 	send_ioctx->cmd.tag = srp_tsk->tag;
+ 	tcm_tmr = srp_tmr_to_tcm(srp_tsk->tsk_mgmt_func);
+-	if (tcm_tmr < 0) {
+-		send_ioctx->cmd.se_tmr_req->response =
+-			TMR_TASK_MGMT_FUNCTION_NOT_SUPPORTED;
+-		goto fail;
+-	}
+ 	unpacked_lun = srpt_unpack_lun((uint8_t *)&srp_tsk->lun,
+ 				       sizeof(srp_tsk->lun));
+-
+-	if (srp_tsk->tsk_mgmt_func == SRP_TSK_ABORT_TASK) {
+-		rc = srpt_rx_mgmt_fn_tag(send_ioctx, srp_tsk->task_tag);
+-		if (rc < 0) {
+-			send_ioctx->cmd.se_tmr_req->response =
+-					TMR_TASK_DOES_NOT_EXIST;
+-			goto fail;
+-		}
+-		tag = srp_tsk->task_tag;
+-	}
+ 	rc = target_submit_tmr(&send_ioctx->cmd, sess, NULL, unpacked_lun,
+-				srp_tsk, tcm_tmr, GFP_KERNEL, tag,
++				srp_tsk, tcm_tmr, GFP_KERNEL, srp_tsk->task_tag,
+ 				TARGET_SCF_ACK_KREF);
+ 	if (rc != 0) {
+ 		send_ioctx->cmd.se_tmr_req->response = TMR_FUNCTION_REJECTED;
+-- 
+2.7.0
 
-The patches in this patch series are:
-0001-IB-srpt-Simplify-srpt_handle_tsk_mgmt.patch
-0002-IB-srpt-Add-parentheses-around-sizeof-argument.patch
-0003-IB-srpt-Remove-struct-srpt_node_acl.patch
-0004-IB-srpt-Inline-srpt_sdev_name.patch
-0005-IB-srpt-Inline-srpt_get_ch_state.patch
-0006-IB-srpt-Introduce-target_reverse_dma_direction.patch
-0007-IB-srpt-Use-scsilun_to_int.patch
-0008-IB-srpt-Simplify-channel-state-management.patch
-0009-IB-srpt-Simplify-srpt_shutdown_session.patch
-0010-IB-srpt-Fix-srpt_close_session.patch
-0011-IB-srpt-Fix-srpt_handle_cmd-error-paths.patch
-0012-IB-srpt-Fix-how-aborted-commands-are-processed.patch
-0013-IB-srpt-Inline-trivial-CM-callback-functions.patch
-0014-IB-srpt-Eliminate-srpt_find_channel.patch
-0015-IB-srpt-Log-private-data-associated-with-REJ.patch
-0016-IB-srpt-Use-a-mutex-to-protect-the-channel-list.patch
-0017-IB-srpt-Detect-session-shutdown-reliably.patch
-0018-IB-srpt-Fix-srpt_write_pending.patch
-0019-IB-srpt-Log-out-all-initiators-if-a-port-is-disabled.patch
-0020-IB-srpt-Introduce-srpt_process_wait_list.patch
-0021-IB-srpt-Fix-wait-list-processing.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
