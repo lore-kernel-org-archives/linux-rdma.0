@@ -1,127 +1,142 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv3 1/3] rdmacg: Added rdma cgroup controller.
-Date: Fri, 12 Feb 2016 02:49:38 +0530
-Message-ID: <CAG53R5WC17nLL2qjtB-_RZR+45qBDmJ2=12UtHxuKtvWhfN5XA@mail.gmail.com>
-References: <1454167387-31260-1-git-send-email-pandit.parav@gmail.com>
-	<1454167387-31260-2-git-send-email-pandit.parav@gmail.com>
-	<20160130183015.GP32380@htj.duckdns.org>
-	<CAG53R5XrnYY1AVBnu1b6BVfWwiUgyq+EsXay=CianRXnsUDviQ@mail.gmail.com>
-	<20160131100237.GS32380@htj.duckdns.org>
-	<CAG53R5WOLA_=gD9qVnsVk_oPs0iyacL3M+1qD+RAbrnciVXEOA@mail.gmail.com>
-	<20160131110420.GV32380@htj.duckdns.org>
-	<CAG53R5XXaW-fhb9megcp+Xnv05bSuonDws2fE-D6Wk3JNqS2Aw@mail.gmail.com>
-	<20160201184046.GD14091@mtj.duckdns.org>
-	<CAG53R5U=ojbn5tQoq=xR0DUb3Tm6yw+oO6mXVAQ2cUOhbvCdKQ@mail.gmail.com>
-	<56BB6502.8040507@mellanox.com>
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v5 1/1] IB/ipoib: fix for rare multicast join race condition
+Date: Thu, 11 Feb 2016 16:30:51 -0500
+Message-ID: <20160211213051.29589.31877.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56BB6502.8040507@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+A narrow window for race condition still exist between
+multicast join thread and *dev_flush workers.
+A kernel crash caused by prolong erratic link state changes
+was observed (most likely a faulty cabling):
 
-(Sending again as by mistake previous mail was non plain text, sorry
-about that).
+[167275.656270] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000020
+[167275.665973] IP: [<ffffffffa05f8f2e>] ipoib_mcast_join+0xae/0x1d0 [ib_ipoib]
+[167275.674443] PGD 0
+[167275.677373] Oops: 0000 [#1] SMP
+...
+[167275.977530] Call Trace:
+[167275.982225]  [<ffffffffa05f92f0>] ? ipoib_mcast_free+0x200/0x200 [ib_ipoib]
+[167275.992024]  [<ffffffffa05fa1b7>] ipoib_mcast_join_task+0x2a7/0x490
+[ib_ipoib]
+[167276.002149]  [<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+[167276.010754]  [<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+[167276.019088]  [<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+[167276.027737]  [<ffffffff810a5aef>] kthread+0xcf/0xe0
+Here was a hit spot:
+ipoib_mcast_join() {
+..............
+      rec.qkey      = priv->broadcast->mcmember.qkey;
+                                       ^^^^^^^
+.....
+ }
+Proposed patch should prevent multicast join task to continue
+if link state change is detected.
 
-So based on your comments, Haggai's comments below and past
-experience, I will spin v6.o
-I have made changes, and testing them. I am likely to post during
-coming long weekend.
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I have simplified many pieces.
-Can you please confirm below design/implementation looks ok to you?
-If you want to review v6 directly, I am fine with that too instead of
-below post.
+Changes from v4:
+- as suggested by Doug Ledford, optimized spinlock usage,
+i.e. ipoib_mcast_join() is called with lock held.
+Changes from v3:
+- sync with priv->lock before flag check.
+Chages from v2:
+- Move check for OPER_UP flag state to mcast_join() to
+ensure no event worker is in progress.
+- minor style fixes.
+Changes from v1:
+- No need to lock again if error detected.
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   24 +++++++++++++++++-------
+ 1 files changed, 17 insertions(+), 7 deletions(-)
 
-1. Removed two type of resource pool, made is single type (as you
-described in past comment)
-2. Removed match tokens and have array definition like "qp", "mr", "cq" etc.
-3. Wrote small parser and avoided match_token API as that won't work
-due to different array definition
-4. Removed one-off remove API to unconfigure cgroup, instead all
-resource should be set to max.
-5. Removed resource pool type (user/default), instead having max_num_cnt,
-when ref_cnt drops to zero and max_num_cnt = total_rescource_cnt, pool is freed.
-6. Resource definition ownership is now only with IB stack at single
-header file, no longer in each low level driver.
-This goes through IB maintainer and other reviewers eyes.
-This continue to give flexibility to not force kernel upgrade for few
-enums additions for new resource type.
-7. Wherever possible pool lock is pushed out, except for hierarchical
-charging/unchanging points, as it not possible to do so, due to
-iterative process involves blocking allocations of rpool. Coming up
-more levels up to release locks doesn't make any sense either.
-This is anyway slow path where rpool is not allocated. Except for
-typical first resource allocation, this is less traveled path.
-8.Other minor cleanups.
-9. Avoided %d manipulation due to removal of match_token and replaced
-with seq_putc etc friend functions.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 050dfa1..2588931 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -456,7 +456,10 @@ out_locked:
+ 	return status;
+ }
+ 
+-static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
++/*
++ * Caller must hold 'priv->lock'
++ */
++static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ib_sa_multicast *multicast;
+@@ -466,6 +469,10 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 	ib_sa_comp_mask comp_mask;
+ 	int ret = 0;
+ 
++	if (!priv->broadcast ||
++	    !test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
++		return -EINVAL;
++
+ 	ipoib_dbg_mcast(priv, "joining MGID %pI6\n", mcast->mcmember.mgid.raw);
+ 
+ 	rec.mgid     = mcast->mcmember.mgid;
+@@ -525,20 +532,23 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 			rec.join_state = 4;
+ #endif
+ 	}
++	spin_unlock_irq(&priv->lock);
+ 
+ 	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
+ 					 &rec, comp_mask, GFP_KERNEL,
+ 					 ipoib_mcast_join_complete, mcast);
++	spin_lock_irq(&priv->lock);
+ 	if (IS_ERR(multicast)) {
+ 		ret = PTR_ERR(multicast);
+ 		ipoib_warn(priv, "ib_sa_join_multicast failed, status %d\n", ret);
+-		spin_lock_irq(&priv->lock);
+ 		/* Requeue this join task with a backoff delay */
+ 		__ipoib_mcast_schedule_join_thread(priv, mcast, 1);
+ 		clear_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 		spin_unlock_irq(&priv->lock);
+ 		complete(&mcast->done);
++		spin_lock_irq(&priv->lock);
+ 	}
++	return 0;
+ }
+ 
+ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -620,9 +630,10 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 				/* Found the next unjoined group */
+ 				init_completion(&mcast->done);
+ 				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+-				spin_unlock_irq(&priv->lock);
+-				ipoib_mcast_join(dev, mcast);
+-				spin_lock_irq(&priv->lock);
++				if (ipoib_mcast_join(dev, mcast)) {
++					spin_unlock_irq(&priv->lock);
++					return;
++				}
+ 			} else if (!delay_until ||
+ 				 time_before(mcast->delay_until, delay_until))
+ 				delay_until = mcast->delay_until;
+@@ -641,10 +652,9 @@ out:
+ 	if (mcast) {
+ 		init_completion(&mcast->done);
+ 		set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
++		ipoib_mcast_join(dev, mcast);
+ 	}
+ 	spin_unlock_irq(&priv->lock);
+-	if (mcast)
+-		ipoib_mcast_join(dev, mcast);
+ }
+ 
+ int ipoib_mcast_start_thread(struct net_device *dev)
 
-Parav
-
-On Wed, Feb 10, 2016 at 9:57 PM, Haggai Eran <haggaie@mellanox.com> wrote:
-> On 01/02/2016 20:59, Parav Pandit wrote:
->> On Tue, Feb 2, 2016 at 12:10 AM, Tejun Heo <tj@kernel.org> wrote:
->>> So, I'm really not gonna go for individual drivers defining resources
->>> on their own.  That's a trainwreck waiting to happen.  There needs to
->>> be a lot more scrutiny than that.
->>>
->> Not every low level driver. I started with that infrastructure in
->> v2,v3 but I got your inputs and
->> I align with that. It could be just single IB stack in one header file
->> in one enum list would be sufficient.
->> You have already given that example.
->> With that mostly two resource type that I have can also shrink to just
->> single type.
->> Will wait to hear from them, in case if they have any different thought.
->
-> Hi,
->
-> Sorry for the late reply.
->
-> I think that starting with the standard set of resources that uverbs
-> provide is good, and if we need in the future new types of resources
-> we can add them later.
->
-> On 31/01/2016 19:50, Parav Pandit wrote:
->> How would you like to see RDMA verb resources being defined - in RDMA
->> cgroup or in IB stack?
->> In current patch v5, its defined by the IB stack which is often
->> shipped as different package due to high amount of changes, bug fixes,
->> features.
->> In v0 patch it was defined by the RDMA cgroup, which means any new
->> resource addition/definition requires kernel upgrade. Which is hard to
->> change often.
->
-> There is indeed an effort to backport the latest RDMA subsystem modules to
-> older kernels, and it would be preferable to be able to introduce new
-> resources through these modules. However, I understand that there are no
-> other cgroups that are modules or depend on modules this way, so I would
-> understand if you decide against it.
->
->> If resources are defined by RDMA cgroup kernel than adding/removing
->> resource means, someone have to do lot of engineering with different
->> versions of kernel support and loadable module support using compat.h
->> etc at driver level, which in my mind is some amount of engineering
->> compare to what v5 has to offer and its already available. With one
->> round of cleanup in resource definition, it should be usable.
-> If I understand correctly, if the resources are defined in the cgroup,
-> you simply won't be able to add new resources with a module update,
-> no matter how hard you work.
->
-> I agree that if the cgroup code is changed for cleanup or whatever
-> reason, the backporting may become difficult, but that's just life.
->
->> Its important to provide this feedback to Tejun and me, so that we
->> take informed design decision.
->
-> Sure. I hope this patchset gets accepted eventually, as I believe it
-> solves a real problem. Today RDMA application can easily hog these
-> resources and the rdma cgroup allows users to prevent that.
->
-> Regards,
-> Haggai
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
