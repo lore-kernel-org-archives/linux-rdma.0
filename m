@@ -1,167 +1,258 @@
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 0/7] Peer-direct memory
-Date: Thu, 11 Feb 2016 18:12:50 +0200
-Message-ID: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
+Subject: [RFC 3/7] IB/core: Umem tunneling peer memory APIs
+Date: Thu, 11 Feb 2016 18:12:53 +0200
+Message-ID: <1455207177-11949-4-git-send-email-artemyko@mellanox.com>
+References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1455207177-11949-1-git-send-email-artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-Dj0/KMMU01E@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following set of patches implements Peer-Direct support
-over RDMA stack.
+Builds umem over peer memory client functionality.
+It tries to get a peer client for a given address range.
+In case it was found further memory calls are tunneled to that peer client.
+ib_umem_get_flags was added as successor of ib_umem_get to have additional
+flags, for instance indication whether this umem
+can be part of a peer client.
+Deprecated ib_umem_get left for backward compatibility.
 
-Peer-Direct technology allows RDMA operations to directly target memory
-in external hardware devices, such as GPU cards, SSD based storage,
-dedicated ASIC accelerators, etc.
+Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/umem.c | 100 ++++++++++++++++++++++++++++++++++++++---
+ include/rdma/ib_umem.h         |  34 +++++++++++---
+ 2 files changed, 123 insertions(+), 11 deletions(-)
 
-This technology allows RDMA-based (over InfiniBand/RoCE) application to avoid
-unneeded data copying when sharing data between peer hardware devices.
-
-Recently introduced ZONE_DEVICE patch [1] allows to register devices as
-providers of "device memory" regions, making RDMA operation with them
-transparantly available. This patch is intended for scenarios which not fit
-into ZONE_DEVICE infrastrcture, but device still want to exposure it's
-IO regions to RDMA access.
-
-To implement this technology, we defined an API to securely expose the memory
-of a hardware device (peer memory) to an RDMA hardware device.
-
-This cover letter describes the API defined for Peer-Direct.
-It also details the required implementation for a hardware device to expose
-memory buffers over Peer-Direct.
-
-In addition, it describes the flow and the API that IB core and low level IB hardware
-drivers implement to support the technology
-
-Flow:
------------------
-Each peer memory should register itself into the IB core (ib_core) module, and
-provide a set of callbacks to manage its memory basic functionality.
-
-The required functionality includes getting pages descriptors based upon user space
-virtual address, dma mapping these pages, getting the memory page size,
-removing the DMA mapping of the pages and releasing page descriptors.
-Those callbacks are quite similar to the kernel API used to pin normal host memory
-and exposed it to the hardware.
-Detailed description of the API is included later in this cover letter.
-
-The peer direct controller, implemented as part of the IB core services, provides registry
-and brokering services between peer memory providers and low level IB hardware drivers.
-This makes the usage of peer-direct almost completely transparent to the individual hardware drivers.
-The only changes required in the low level IB hardware drivers is supporting an interface
-for immediate invalidation of registered memory regions.
-
-The IB hardware driver should use ib_umem_get with an extra signaling
-that the requested memory may reside on a peer memory. When a given
-user space virtual memory address found to belong to a peer memory
-client, an ib_umem is built using the callbacks provided by the peer
-memory client. In case the IB hardware driver supports invalidation
-on that ib_umem it must be signaled as part of ib_umem_get, otherwise
-if the peer memory requires invalidation support the registration will
-be rejected.
-
-After getting the ib_umem, if it is residing on a peer memory that requires
-invalidation support, the low level IB hardware driver must register the
-invalidation callback for this ib_umem.
-If this callback is called, the driver should ensure that no access to
-the memory mapped by the umem will happen once the callback returns.
-
-===============================================================================
-Peer memory API
-===============================================================================
-
-Peer client structure:
--------------------------------------------------------------------------------
-struct peer_memory_client {
-       int (*acquire) (unsigned long addr, size_t size, void **client_context);
-       int (*get_pages) (unsigned long addr, size_t size, int write, int force,
-			 struct sg_table *sg_head,
-			 void *client_context, void *core_context);
-       int (*dma_map) (struct sg_table *sg_head, void *client_context,
-		       struct device *dma_device, int dmasync, int *nmap);
-       int (*dma_unmap) (struct sg_table *sg_head, void *client_context,
-			 struct device  *dma_device);
-       void (*put_pages) (struct sg_table *sg_head, void *client_context);
-       unsigned long (*get_page_size) (void *client_context);
-       void (*release) (void *client_context);
-
-};
-
-A detailed description of above callbacks is defined as part of the first patch
-in peer_mem.h header file.
------------------------------------------------------------------------------------
-void *ib_register_peer_memory_client(struct peer_memory_client *peer_client,
-				     int (**invalidate_callback)
-				     (void *reg_handle, u64 core_context));
-
-Description:
-Each peer memory should use this function to register as an available
-peer memory client during its initialization. The callbacks provided
-as part of the peer_client may be used later on by the IB core when
-registering and unregistering its memory. When the invalidation callback
-returns, the user of the allocation is guaranteed not to access it.
-
-----------------------------------------------------------------------------------
-
-void ib_unregister_peer_memory_client(void *reg_handle);
-
-Description:
-On unload, the peer memory client must unregister itself, to prevent
-any additional callbacks to the unloaded module.
-
-----------------------------------------------------------------------------------
-
-The structure of the patchset
-
-Patches 1-3:
-This set of patches introduces the API, adds the required support to the IB core layer,
-allowing Peers to be registered and be part of the flow. The first
-patch introduces the API, the next two patches add the infrastructure to manage peer client
-and use its registration callbacks.
-
-Patches 4-5,7:
-Those patches add the required functionality for peers to notify IB core that
-a specific registration should be invalidated.
-
-Patch 6:
-This patch adds kernel module allowing RDMA transfers with various types of memory
-like mmaped devices (that create PFN mappings) and mmaped files from DAX
-filesystems.
-
-[1] https://lkml.org/lkml/2015/8/25/841
-
-Artemy Kovalyov (7):
-  IB/core: Introduce peer client interface
-  IB/core: Get/put peer memory client
-  IB/core: Umem tunneling peer memory APIs
-  IB/core: Infrastructure to manage peer core context
-  IB/core: Invalidation support for peer memory
-  IB/core: Peer memory client for IO memory
-  IB/mlx5: Invalidation support for MR over peer memory
-
- drivers/infiniband/Kconfig            |  19 ++
- drivers/infiniband/core/Makefile      |   5 +
- drivers/infiniband/core/io_peer_mem.c | 332 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/peer_mem.c    | 304 +++++++++++++++++++++++++++++++
- drivers/infiniband/core/umem.c        | 138 +++++++++++++-
- drivers/infiniband/hw/mlx5/cq.c       |  15 +-
- drivers/infiniband/hw/mlx5/doorbell.c |   6 +-
- drivers/infiniband/hw/mlx5/main.c     |   3 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |  12 ++
- drivers/infiniband/hw/mlx5/mr.c       | 166 +++++++++++++----
- drivers/infiniband/hw/mlx5/qp.c       |   3 +-
- drivers/infiniband/hw/mlx5/srq.c      |   4 +-
- include/rdma/ib_peer_mem.h            |  76 ++++++++
- include/rdma/ib_umem.h                |  61 ++++++-
- include/rdma/ib_verbs.h               |   5 +
- include/rdma/peer_mem.h               | 238 ++++++++++++++++++++++++
- 16 files changed, 1330 insertions(+), 57 deletions(-)
- create mode 100644 drivers/infiniband/core/io_peer_mem.c
- create mode 100644 drivers/infiniband/core/peer_mem.c
- create mode 100644 include/rdma/ib_peer_mem.h
- create mode 100644 include/rdma/peer_mem.h
-
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 38acb3c..2eab34e 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -43,6 +43,63 @@
+ 
+ #include "uverbs.h"
+ 
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
++				     struct ib_umem *umem, unsigned long addr,
++				     int dmasync)
++{
++	int ret;
++	const struct peer_memory_client *peer_mem = ib_peer_mem->peer_mem;
++
++	umem->ib_peer_mem = ib_peer_mem;
++	/*
++	 * We always request write permissions to the pages, to force breaking
++	 * of any CoW during the registration of the MR. For read-only MRs we
++	 * use the "force" flag to indicate that CoW breaking is required but
++	 * the registration should not fail if referencing read-only areas.
++	 */
++	ret = peer_mem->get_pages(addr, umem->length,
++				  1, !umem->writable,
++				  &umem->sg_head,
++				  umem->peer_mem_client_context,
++				  0);
++	if (ret)
++		goto out;
++
++	umem->page_size = peer_mem->get_page_size
++					(umem->peer_mem_client_context);
++	ret = peer_mem->dma_map(&umem->sg_head,
++				umem->peer_mem_client_context,
++				umem->context->device->dma_device,
++				dmasync,
++				&umem->nmap);
++	if (ret)
++		goto put_pages;
++
++	return umem;
++
++put_pages:
++	peer_mem->put_pages(&umem->sg_head,
++			    umem->peer_mem_client_context);
++out:
++	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
++	return ERR_PTR(ret);
++}
++
++static void peer_umem_release(struct ib_umem *umem)
++{
++	const struct peer_memory_client *peer_mem =
++				umem->ib_peer_mem->peer_mem;
++
++	peer_mem->dma_unmap(&umem->sg_head,
++			    umem->peer_mem_client_context,
++			    umem->context->device->dma_device);
++	peer_mem->put_pages(&umem->sg_head,
++			    umem->peer_mem_client_context);
++	ib_put_peer_client(umem->ib_peer_mem, umem->peer_mem_client_context);
++	kfree(umem);
++}
++#endif
+ 
+ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
+ {
+@@ -69,7 +126,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ }
+ 
+ /**
+- * ib_umem_get - Pin and DMA map userspace memory.
++ * ib_umem_get_flags - Pin and DMA map userspace memory.
+  *
+  * If access flags indicate ODP memory, avoid pinning. Instead, stores
+  * the mm for future page fault handling in conjunction with MMU notifiers.
+@@ -78,10 +135,12 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+  * @addr: userspace virtual address to start at
+  * @size: length of region to pin
+  * @access: IB_ACCESS_xxx flags for memory being pinned
+- * @dmasync: flush in-flight DMA when the memory region is written
++ * @flags: IB_UMEM_xxx flags for memory being used
+  */
+-struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+-			    size_t size, int access, int dmasync)
++struct ib_umem *ib_umem_get_flags(struct ib_ucontext *context,
++				  unsigned long addr,
++				  size_t size, int access,
++				  unsigned long flags)
+ {
+ 	struct ib_umem *umem;
+ 	struct page **page_list;
+@@ -96,7 +155,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	struct scatterlist *sg, *sg_list_start;
+ 	int need_release = 0;
+ 
+-	if (dmasync)
++	if (flags & IB_UMEM_DMA_SYNC)
+ 		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
+ 
+ 	if (!size)
+@@ -144,6 +203,28 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 
+ 	umem->odp_data = NULL;
+ 
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++	if (flags & IB_UMEM_PEER_ALLOW) {
++		struct ib_peer_memory_client *peer_mem_client;
++		struct ib_umem *peer_umem;
++
++		peer_mem_client =
++			ib_get_peer_client(context, addr, size,
++					   &umem->peer_mem_client_context);
++		if (IS_ERR(peer_mem_client)) {
++			kfree(umem);
++			return ERR_CAST(peer_mem_client);
++
++		} else if (peer_mem_client) {
++			peer_umem = peer_umem_get(peer_mem_client, umem, addr,
++						  flags & IB_UMEM_DMA_SYNC);
++			if (IS_ERR(peer_umem))
++				kfree(umem);
++			return peer_umem;
++		}
++	}
++#endif
++
+ 	/* We assume the memory is from hugetlb until proved otherwise */
+ 	umem->hugetlb   = 1;
+ 
+@@ -240,7 +321,7 @@ out:
+ 
+ 	return ret < 0 ? ERR_PTR(ret) : umem;
+ }
+-EXPORT_SYMBOL(ib_umem_get);
++EXPORT_SYMBOL(ib_umem_get_flags);
+ 
+ static void ib_umem_account(struct work_struct *work)
+ {
+@@ -264,6 +345,13 @@ void ib_umem_release(struct ib_umem *umem)
+ 	struct task_struct *task;
+ 	unsigned long diff;
+ 
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++	if (umem->ib_peer_mem) {
++		peer_umem_release(umem);
++		return;
++	}
++#endif
++
+ 	if (umem->odp_data) {
+ 		ib_umem_odp_release(umem);
+ 		return;
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 2d83cfd..bb760f9 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -36,6 +36,9 @@
+ #include <linux/list.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++#include <rdma/ib_peer_mem.h>
++#endif
+ 
+ struct ib_ucontext;
+ struct ib_umem_odp;
+@@ -55,6 +58,12 @@ struct ib_umem {
+ 	struct sg_table sg_head;
+ 	int             nmap;
+ 	int             npages;
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++	/* peer memory that manages this umem */
++	struct ib_peer_memory_client *ib_peer_mem;
++	/* peer memory private context */
++	void *peer_mem_client_context;
++#endif
+ };
+ 
+ /* Returns the offset of the umem start relative to the first page. */
+@@ -80,10 +89,16 @@ static inline size_t ib_umem_num_pages(struct ib_umem *umem)
+ 	return (ib_umem_end(umem) - ib_umem_start(umem)) >> PAGE_SHIFT;
+ }
+ 
++enum ib_peer_mem_flags {
++	IB_UMEM_DMA_SYNC	= (1 << 0),
++	IB_UMEM_PEER_ALLOW	= (1 << 1),
++};
++
+ #ifdef CONFIG_INFINIBAND_USER_MEM
++struct ib_umem *ib_umem_get_flags(struct ib_ucontext *context,
++				  unsigned long addr, size_t size,
++				  int access, unsigned long flags);
+ 
+-struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+-			    size_t size, int access, int dmasync);
+ void ib_umem_release(struct ib_umem *umem);
+ int ib_umem_page_count(struct ib_umem *umem);
+ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+@@ -93,11 +108,13 @@ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ 
+ #include <linux/err.h>
+ 
+-static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
+-					  unsigned long addr, size_t size,
+-					  int access, int dmasync) {
++static inline struct ib_umem *ib_umem_get_flags(struct ib_ucontext *context,
++						unsigned long addr, size_t size,
++						int access,
++						unsigned long flags) {
+ 	return ERR_PTR(-EINVAL);
+ }
++
+ static inline void ib_umem_release(struct ib_umem *umem) { }
+ static inline int ib_umem_page_count(struct ib_umem *umem) { return 0; }
+ static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+@@ -106,4 +123,11 @@ static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offs
+ }
+ #endif /* CONFIG_INFINIBAND_USER_MEM */
+ 
++static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
++					  unsigned long addr, size_t size,
++					  int access, int dmasync) {
++	return ib_umem_get_flags(context, addr, size, access,
++				 dmasync ? IB_UMEM_DMA_SYNC : 0);
++}
++
+ #endif /* IB_UMEM_H */
 -- 
 1.8.4.3
 
