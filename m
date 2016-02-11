@@ -1,18 +1,18 @@
 From: LAURENT-aOLfTzvfSPh81dzp8sp80Hd/aTyc4CdzJpSdj+wVz21fJ/NunPodnw@public.gmane.org,
 	"EYADEMA <berndmenker"@versanet.de
 Subject: Business Partnership
-Date: Thu, 11 Feb 2016 08:02:25 +0700
-Message-ID: <20160211010611.0F9D7F89B85__45037.3460808352$1455154792$gmane$org@srv-zimbra1.globalinformatica.com.br>
+Date: Thu, 11 Feb 2016 08:30:51 +0700
+Message-ID: <20160211013437.73D0FF8AF4D__495.723603717302$1455157301$gmane$org@srv-zimbra1.globalinformatica.com.br>
 Reply-To: lau.eya66-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0180860205=="
+Content-Type: multipart/mixed; boundary="===============1238259395=="
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Recipients <berndmenker-t/9kahPp1Zsb1SvskN2V4Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 You will not see this in a MIME-aware mail reader.
---===============0180860205==
+--===============1238259395==
 Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
@@ -26,7 +26,7 @@ Thanks in anticipation of your urgent response,
 
 
 LAURENT EYADEMA
---===============0180860205==
+--===============1238259395==
 Content-Type: application/octet-stream
 MIME-Version: 1.0
 Content-Transfer-Encoding: base64
@@ -88,7 +88,7 @@ AAATCAAAd29yZC9udW1iZXJpbmcueG1sUEsBAi0AFAAIAAgAVShLSK9TyEF5AAAAigAAAA8AAAAA
 AAAAAAAAAAAAzwgAAHdvcmQvc3R5bGVzLnhtbFBLAQItABQACAAIAFUoS0i17ehY5AAAAEgCAAAT
 AAAAAAAAAAAAAAAAAIUJAABbQ29udGVudF9UeXBlc10ueG1sUEsFBgAAAAAGAAYAgAEAAKoKAAAA
 AA==
---===============0180860205==--
+--===============1238259395==--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
