@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 08/21] IB/srpt: Simplify channel state management
-Date: Thu, 11 Feb 2016 11:05:38 -0800
-Message-ID: <56BCDB82.9070804@sandisk.com>
+Subject: [PATCH v4 09/21] IB/srpt: Simplify srpt_shutdown_session()
+Date: Thu, 11 Feb 2016 11:05:58 -0800
+Message-ID: <56BCDB96.4070404@sandisk.com>
 References: <56BCDAAD.7030906@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,104 +13,68 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The only allowed channel state changes are those that change
-the channel state into a state with a higher numerical value.
-This allows to merge the functions srpt_set_ch_state() and
-srpt_test_and_set_ch_state() into a single function.
+The target core guarantees that shutdown_session() is only invoked
+once per session. This means that the ib_srpt target driver doesn't
+have to track whether or not shutdown_session() has been called.
+Additionally, ensure that target_sess_cmd_list_set_waiting() is
+called before target_wait_for_sess_cmds() by moving it into
+srpt_release_channel_work().
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 44 +++++++++++------------------------
- 1 file changed, 13 insertions(+), 31 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 16 ++--------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  1 -
+ 2 files changed, 2 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 716f429..863fdd1 100644
+index 863fdd1..bffca47 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -96,37 +96,25 @@ static int srpt_queue_status(struct se_cmd *cmd);
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc);
- static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc);
- 
--static enum rdma_ch_state
--srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
--{
+@@ -1892,20 +1892,7 @@ static void srpt_close_ch(struct srpt_rdma_ch *ch)
+  */
+ static int srpt_shutdown_session(struct se_session *se_sess)
+ {
+-	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
 -	unsigned long flags;
--	enum rdma_ch_state prev;
 -
 -	spin_lock_irqsave(&ch->spinlock, flags);
--	prev = ch->state;
--	ch->state = new_state;
--	spin_unlock_irqrestore(&ch->spinlock, flags);
--	return prev;
--}
+-	if (ch->in_shutdown) {
+-		spin_unlock_irqrestore(&ch->spinlock, flags);
+-		return true;
+-	}
 -
--/**
-- * srpt_test_and_set_ch_state() - Test and set the channel state.
-- *
-- * Returns true if and only if the channel state has been set to the new state.
-+/*
-+ * The only allowed channel state changes are those that change the channel
-+ * state into a state with a higher numerical value. Hence the new > prev test.
-  */
--static bool
--srpt_test_and_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state old,
--			   enum rdma_ch_state new)
-+static bool srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new)
- {
- 	unsigned long flags;
- 	enum rdma_ch_state prev;
-+	bool changed = false;
- 
- 	spin_lock_irqsave(&ch->spinlock, flags);
- 	prev = ch->state;
--	if (prev == old)
-+	if (new > prev) {
- 		ch->state = new;
-+		changed = true;
-+	}
- 	spin_unlock_irqrestore(&ch->spinlock, flags);
--	return prev == old;
-+
-+	return changed;
+-	ch->in_shutdown = true;
+-	target_sess_cmd_list_set_waiting(se_sess);
+-	spin_unlock_irqrestore(&ch->spinlock, flags);
+-
+-	return true;
++	return 1;
  }
  
  /**
-@@ -199,8 +187,7 @@ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
- 		ib_cm_notify(ch->cm_id, event->event);
- 		break;
- 	case IB_EVENT_QP_LAST_WQE_REACHED:
--		if (srpt_test_and_set_ch_state(ch, CH_DRAINING,
--					       CH_RELEASING))
-+		if (srpt_set_ch_state(ch, CH_RELEASING))
- 			srpt_release_channel(ch);
- 		else
- 			pr_debug("%s: state %d - ignored LAST_WQE.\n",
-@@ -1947,12 +1934,7 @@ static void srpt_drain_channel(struct ib_cm_id *cm_id)
- 	spin_lock_irq(&sdev->spinlock);
- 	list_for_each_entry(ch, &sdev->rch_list, list) {
- 		if (ch->cm_id == cm_id) {
--			do_reset = srpt_test_and_set_ch_state(ch,
--					CH_CONNECTING, CH_DRAINING) ||
--				   srpt_test_and_set_ch_state(ch,
--					CH_LIVE, CH_DRAINING) ||
--				   srpt_test_and_set_ch_state(ch,
--					CH_DISCONNECTING, CH_DRAINING);
-+			do_reset = srpt_set_ch_state(ch, CH_DRAINING);
- 			break;
- 		}
- 	}
-@@ -2353,7 +2335,7 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
- 	ch = srpt_find_channel(cm_id->context, cm_id);
- 	BUG_ON(!ch);
+@@ -2008,6 +1995,7 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 	se_sess = ch->sess;
+ 	BUG_ON(!se_sess);
  
--	if (srpt_test_and_set_ch_state(ch, CH_CONNECTING, CH_LIVE)) {
-+	if (srpt_set_ch_state(ch, CH_LIVE)) {
- 		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
++	target_sess_cmd_list_set_waiting(se_sess);
+ 	target_wait_for_sess_cmds(se_sess);
  
- 		ret = srpt_ch_qp_rts(ch, ch->qp);
+ 	transport_deregister_session_configfs(se_sess);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index b0ede97..9c326c7 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -286,7 +286,6 @@ struct srpt_rdma_ch {
+ 	u8			sess_name[36];
+ 	struct work_struct	release_work;
+ 	struct completion	*release_done;
+-	bool			in_shutdown;
+ };
+ 
+ /**
 -- 
 2.7.0
 
