@@ -1,99 +1,44 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 9/9] svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
-Date: Thu, 11 Feb 2016 13:48:54 -0500
-Message-ID: <46CB2961-FCAC-4901-B66C-B7B6503ADDF3@oracle.com>
-References: <20160208171756.13423.14384.stgit@klimt.1015granger.net> <20160208172537.13423.97332.stgit@klimt.1015granger.net> <01d001d164fc$78fae5e0$6af0b1a0$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
+Date: Thu, 11 Feb 2016 10:54:22 -0800
+Message-ID: <56BCD8DE.8010505@sandisk.com>
+References: <cover.1454969695.git.swise@chelsio.com>
+ <010901d16375$1a023210$4e069630$@opengridcomputing.com>
+ <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
+ <56BA540B.4040405@sandisk.com>
+ <011901d1637d$b5286400$1f792c00$@opengridcomputing.com>
+ <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
+ <56BB11F0.9090203@dev.mellanox.co.il> <56BB4479.8090009@sandisk.com>
+ <56BC6686.8030301@dev.mellanox.co.il> <56BCA57A.4000500@sandisk.com>
+ <56BCB2C3.9060408@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01d001d164fc$78fae5e0$6af0b1a0$@opengridcomputing.com>
+In-Reply-To: <56BCB2C3.9060408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 02/11/2016 08:11 AM, Sagi Grimberg wrote:
+>> The srp_send_done() function accesses the ch->free_tx list without
+>> locking. This is safe because all existing
+>> ib_process_cq_direct(ch->send_cq, ...) calls occur while holding
+>> ch->lock. The approach suggested above breaks that assumption.
+>
+> But srp_send_done won't get invoked for the ib_drain_qp post send
+> because ->done doesn't point to it, Am I missing something?
 
-> On Feb 11, 2016, at 1:46 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
-> 
-> 
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
->> Sent: Monday, February 08, 2016 11:26 AM
->> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: [PATCH v2 9/9] svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
->> 
->> Calling ib_poll_cq() to sort through WCs during a completion is a
->> common pattern amongst RDMA consumers. Since commit 14d3a3b2498e
->> ("IB: add a proper completion queue abstraction"), WC sorting can
->> be handled by the IB core.
->> 
->> By converting to this new API, svcrdma is made a better neighbor to
->> other RDMA consumers, as it allows the core to schedule the delivery
->> of completions more fairly amongst all active consumers.
->> 
->> This new API also aims each completion at a function that is
->> specific to the WR's opcode. Thus the ctxt->wr_op field and the
->> switch in process_context is replaced by a set of methods that
->> handle each completion type.
->> 
->> The server's rdma_stat_sq_poll and rdma_stat_sq_prod metrics are no
->> longer updated.
->> 
->> As a clean up, the cq_event_handler, the dto_tasklet, and all
->> associated locking is removed, as they are no longer referenced or
->> used.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
-> 
-> <snip>
-> 
->> @@ -310,26 +311,26 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
->> 
->> 	/* Prepare RDMA_READ */
->> 	memset(&read_wr, 0, sizeof(read_wr));
->> +	ctxt->cqe.done = svc_rdma_wc_read;
->> +	read_wr.wr.wr_cqe = &ctxt->cqe;
->> 	read_wr.wr.send_flags = IB_SEND_SIGNALED;
->> 	read_wr.rkey = rs_handle;
->> 	read_wr.remote_addr = rs_offset;
->> 	read_wr.wr.sg_list = ctxt->sge;
->> 	read_wr.wr.num_sge = 1;
->> 	if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_READ_W_INV) {
->> -		read_wr.wr.opcode = IB_WR_RDMA_READ_WITH_INV;
->> -		read_wr.wr.wr_id = (unsigned long)ctxt;
->> 		read_wr.wr.ex.invalidate_rkey = ctxt->frmr->mr->lkey;
-> 
-> Hey Chuck, I found this bug by testing.  You mistakenly removed setting the wr opcode for READ_WITH_INV above.
-> 
-> This fixed it:
-> 
-> @@ -319,6 +319,7 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
->        read_wr.wr.sg_list = ctxt->sge;
->        read_wr.wr.num_sge = 1;
->        if (xprt->sc_dev_caps & SVCRDMA_DEVCAP_READ_W_INV) {
-> +               read_wr.wr.opcode = IB_WR_RDMA_READ_WITH_INV;
->                read_wr.wr.ex.invalidate_rkey = ctxt->frmr->mr->lkey;
->        } else {
->                read_wr.wr.opcode = IB_WR_RDMA_READ;
-> 
-> And with this patch, it tests out over iWARP/cxgb4.
-> 
-> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Hello Sagi,
 
-I was attempting to remove all instances of ctxt->wr_op
-and got overzealous. Thanks for the testing and bug report!
-This fix will appear in the next version of the series.
+If it would be known that the send completion queue is empty then it 
+wouldn't be needed to drain the send queue. And if it is not known 
+whether or not the send queue is empty then for the SRP driver it is 
+possible that calling ib_process_cq_direct() from inside the drain 
+function will trigger a call to srp_send_done().
 
-
---
-Chuck Lever
-
-
-
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
