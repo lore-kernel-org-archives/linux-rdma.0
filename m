@@ -1,80 +1,84 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Thu, 11 Feb 2016 10:22:41 -0500
-Message-ID: <56BCA741.6020800@redhat.com>
-References: <cover.1454969695.git.swise@chelsio.com>
- <010901d16375$1a023210$4e069630$@opengridcomputing.com>
- <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
- <56BA540B.4040405@sandisk.com>
- <011901d1637d$b5286400$1f792c00$@opengridcomputing.com>
- <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
- <56BB11F0.9090203@dev.mellanox.co.il>
- <00ca01d16417$9e9fc030$dbdf4090$@opengridcomputing.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 3/5] net/mlx4: fix some error handling in
+ mlx4_multi_func_init()
+Date: Thu, 11 Feb 2016 11:02:10 -0500
+Message-ID: <56BCB082.4030701@redhat.com>
+References: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
+ <1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="6WSvBTWtJSAwaqHAL2A5Q4eWEQFBCt8CK"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00ca01d16417$9e9fc030$dbdf4090$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+ boundary="6CtGDLX8xG9kQD68FaNV7IHKnhQBqTMQL"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Yishai Hadas <yishaih@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---6WSvBTWtJSAwaqHAL2A5Q4eWEQFBCt8CK
+--6CtGDLX8xG9kQD68FaNV7IHKnhQBqTMQL
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 02/10/2016 10:27 AM, Steve Wise wrote:
->>>>> Hello Steve,
->>>>>
->>>>> How about creating three functions - one that drains the receive qu=
-eue,
->>>>> one that drains the send queue and a third function that drains bot=
-h ?
->>>>> The latter function then can call the two former functions. And sin=
-ce
->>>>> only one of these three functions will have a user in your patch se=
-ries
->>>>> (the function that drains the RQ), how about only introducing only =
-that
->>>>> function now and to wait with introducing the two other functions u=
-ntil
->>>>> these have a user ?
->>>>
->>>> That sounds reasonable.  Simpler too perhaps.  We'll see if anyone e=
-lse
->>>> has an opinion.
->>>
->>> Another option is for ib_drain_qp() to just skip queues with IB_POLL_=
-DIRECT CQ processing.
->>
->> I'd rather not skip silently anything. ib_drain_qp() semantics is that=
-
->> it drains all the pending posts on the queue-pair (i.e. both send and
->> receive queues).
->>
->> We can split to send and receive, but the fact that srp uses direct
->> polling CQ is not sufficient for that, most if not all will benefit fr=
-om
->> both.
->>
+On 02/09/2016 03:11 PM, Rasmus Villemoes wrote:
+> The while loop after err_slaves should use post-decrement; otherwise
+> we'll fail to do the kfrees for i=3D=3D0, and will run into out-of-boun=
+ds
+> accesses if the setup above failed already at i=3D=3D0.
 >=20
-> If we split it into ib_drain_rq(), ib_drain_sq(), and ib_drain_qp(), th=
-en srp would only call ib_drain_rq().  Others can call
-> ib_drain_qp() if they want both SQ and RQ drained.
+> The predecrement in the --port is ok, since ->vlan_filter is
+> (bizarrely) 1-indexed. But I'm changing 'if' to 'while' since it's a
+> bit ugly to rely on MLX4_MAX_PORTS being 2.
+>=20
+> [I'm not sure why one even bothers populating the ->vlan_filter array:
+> mlx4.h isn't #included by anything outside
+> drivers/net/ethernet/mellanox/mlx4/, and "git grep -C2 -w vlan_filter
+> drivers/net/ethernet/mellanox/mlx4/" seems to suggest that the
+> vlan_filter elements aren't used at all.]
+>=20
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/cmd.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/eth=
+ernet/mellanox/mlx4/cmd.c
+> index d48d5793407d..bfe8234abbba 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+> @@ -2369,7 +2369,7 @@ int mlx4_multi_func_init(struct mlx4_dev *dev)
+>  					kzalloc(sizeof(struct mlx4_vlan_fltr),
+>  						GFP_KERNEL);
+>  				if (!s_state->vlan_filter[port]) {
+> -					if (--port)
+> +					while (--port)
+>  						kfree(s_state->vlan_filter[port]);
+>  					goto err_slaves;
+>  				}
+> @@ -2429,7 +2429,7 @@ err_thread:
+>  	flush_workqueue(priv->mfunc.master.comm_wq);
+>  	destroy_workqueue(priv->mfunc.master.comm_wq);
+>  err_slaves:
+> -	while (--i) {
+> +	while (i--) {
+>  		for (port =3D 1; port <=3D MLX4_MAX_PORTS; port++)
+>  			kfree(priv->mfunc.master.slave_state[i].vlan_filter[port]);
+>  	}
+>=20
 
-I'm in favor of this kind of flexibility at the API level.
-
+I'm modifying your patch slightly (dropping the first hunk, it isn't
+really necessary as Yishai pointed out in review) and adjusting the
+description to compensate.  I'll apply the result to my next for-rc serie=
+s.
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
               GPG KeyID: 0E572FDD
 
 
 
---6WSvBTWtJSAwaqHAL2A5Q4eWEQFBCt8CK
+--6CtGDLX8xG9kQD68FaNV7IHKnhQBqTMQL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -83,23 +87,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWvKdBAAoJELgmozMOVy/dBHUP/2DUleENpBMnnWJVD7MRDLKf
-RIX9RUj13e4xUhyXopIlcPbhRONQ36QHC8PRzL+ONtVXSQrfsHIV4QIpGC0asrZQ
-usBoAntU6IAVV/exreVlQoTdIBvfHBsiwTffLXmJ0kkXNdaZI6Ovk/Wk91kTAGsc
-e9SurAxwcl/xUqEDWmRvNLQyRhIoTksTiIDKaa2FupLpDUCXz0ZkTPW+JukcJK5w
-QMrPvlVV9NIXeBg9IOFp53D/AEUls7fWbtkR0WkKkKX870wqqxFwGs9EMYm00FdG
-GndYjuvOAMXVUB0sA3K2v1vCMXhXtTNGD+pwWK0PAHqEXsjBXqHbkNOeANqfY1TQ
-YHwORd3DG9gBRVqgOIJ1RE/YtthkmWuuTC248QG2J8hW+YEmdGBIjVYrywhd2yWW
-gyR5DJ73YuO7QDFxY7EjM2aaTVHowge1QOFHvvnV9Idu0DW0d8MWslSVfXW2qGVy
-FWVwB1i9PNQLizP+ll4aPMvbjClMyGAx/ZJO6kybrbBrgQHW7GRfwmx2lVAsnLLT
-wuBKqSVwCLHgecimrgndpTk5H2swUS/owOojKHb1wrjkr6vIKMd+6nKNYhZFDfJp
-cpvdjoqqV+oulb5ZkdJZPYXPRzrPRHyxDAPXY16KQgxan+rejnpuKlHPR6S2M40z
-9A0yq/YBPL6EdcgObuF5
-=pfqv
+iQIcBAEBCAAGBQJWvLCCAAoJELgmozMOVy/dKSAP/iVuuwBs4zyk6ZZGQiqZ0+a+
+QoUw8M7aj7MOEs25qMLxVCiQRzsRpgHp1zfGxyUmHXX3LyxpxwIqeFfhN4Ycxc4l
+0lO4Z/xxRX2aT0Nvgg+R6oPq6RgaOIlSAZ5WU2cCOSUZvrYXPRfuIa5czhQee+/m
+UHkcBgSm+TxrgwMLwm9GKa8T/WZ7Pf9IeZhkhBKu+Z314wthuwPEZkw9e3Jj3TN0
+Fa0TWPLRNeYTlOSw4FZz49TYvuoVDRZEtHeH0kgC/lXiB7AtRs78FYObNunJb8CU
+tDEfubAyl3jImPpOKM/hT074kOpyem1o7tWHlOPmOMNRRv1mGbLsZ+13a1y/TkPj
++7he4felQAO7U1Xb4xskYx6xcRZVkLNAgywiIP5XtKJMBogu0WWCPu18eBqvTaUt
+CZ0W+u8FJ7VeIuEXKX3d/3Qo4omWgwS8kkzgs/Tf1yFaLdM4RHbm5lidxik18V4P
+kwJCZDggX4S6DBWBxfsaBXcFL9kTF60ym++Mwl/yWfXNNEo49xjKzL1im5GC20S0
+Npsp1gAUFd6JZFd4HbtUdlbsV0nFotlnIGPeS3SzcvuHsGFjDxYVK4fkst8yDZQ2
+cefUst/Cag/L4SeZPj8dW+KZXwaJQhTiUEOdxIY7L3xb3UGfNrCaUQZ0Ij8YLT69
+IxuLaRW6M/PEAy7GWDfl
+=nPkL
 -----END PGP SIGNATURE-----
 
---6WSvBTWtJSAwaqHAL2A5Q4eWEQFBCt8CK--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--6CtGDLX8xG9kQD68FaNV7IHKnhQBqTMQL--
