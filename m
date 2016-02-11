@@ -1,44 +1,78 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Thu, 11 Feb 2016 10:54:22 -0800
-Message-ID: <56BCD8DE.8010505@sandisk.com>
-References: <cover.1454969695.git.swise@chelsio.com>
- <010901d16375$1a023210$4e069630$@opengridcomputing.com>
- <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com>
- <56BA540B.4040405@sandisk.com>
- <011901d1637d$b5286400$1f792c00$@opengridcomputing.com>
- <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com>
- <56BB11F0.9090203@dev.mellanox.co.il> <56BB4479.8090009@sandisk.com>
- <56BC6686.8030301@dev.mellanox.co.il> <56BCA57A.4000500@sandisk.com>
- <56BCB2C3.9060408@dev.mellanox.co.il>
+Subject: [PATCH v4 00/21] IB/srpt patches for Linux kernel v4.6
+Date: Thu, 11 Feb 2016 11:02:05 -0800
+Message-ID: <56BCDAAD.7030906@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BCB2C3.9060408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/11/2016 08:11 AM, Sagi Grimberg wrote:
->> The srp_send_done() function accesses the ch->free_tx list without
->> locking. This is safe because all existing
->> ib_process_cq_direct(ch->send_cq, ...) calls occur while holding
->> ch->lock. The approach suggested above breaks that assumption.
->
-> But srp_send_done won't get invoked for the ib_drain_qp post send
-> because ->done doesn't point to it, Am I missing something?
+Hi Doug,
 
-Hello Sagi,
+This series of patches is what I came up with while testing the most
+recent version of my SCSI target patch series (see also
+http://thread.gmane.org/gmane.linux.scsi.target.devel/10905). This
+includes fixes for ABORT handling and lockups during driver shutdown.
+All review comments that have been posted so far have been addressed in 
+this patch series.
 
-If it would be known that the send completion queue is empty then it 
-wouldn't be needed to drain the send queue. And if it is not known 
-whether or not the send queue is empty then for the SRP driver it is 
-possible that calling ib_process_cq_direct() from inside the drain 
-function will trigger a call to srp_send_done().
+Changes compared to v3 of this patch series:
+- Removed node_acl_size member from the srpt_template structure.
 
-Bart.
+Changes compared to v2 of this patch series:
+- Moved patch "Simplify srpt_handle_tsk_mgmt()" to the front of this
+   patch series and added a "Cc: stable" tag.
+- Removed the UNKNOWN_TMR definition again from
+   include/target/target_core_base.h.
+- Switched to list_empty_careful() in patch "Use a mutex to protect the
+   channel list" such that it is no longer needed to introduce RCU in
+   this patch series.
+- Dropped patch "Do not complain about initiator names without leading
+   0x" because it modifies the same code as a pending patch series from
+   Nic.
+
+Changes compared to v1 of this patch series:
+- Rebased this patch series on top of kernel v4.5-rc1.
+- As proposed by Alex Estrin, modified patch "Simplify
+   srpt_handle_tsk_mgmt()" such that task management function code
+   validity is now checked by the target core.
+- Added a comment in patch "Simplify channel state management".
+- Changed "return true" into "return 1" in patch "Simplify
+   srpt_shutdown_session()" as suggested by Christoph.
+- Fixed patch "Fix srpt_handle_cmd() error paths" based on the feedback
+   provided by Sagi.
+- Split patch "Eliminate srpt_find_channel()" in three patches.
+- Left out patch "Fix a rare crash in srpt_close_session()". It is no
+   longer needed because srpt_disconnect_ch() is now called with the
+   sdev mutex held.
+- Added several new patches.
+
+The patches in this patch series are:
+0001-IB-srpt-Simplify-srpt_handle_tsk_mgmt.patch
+0002-IB-srpt-Add-parentheses-around-sizeof-argument.patch
+0003-IB-srpt-Remove-struct-srpt_node_acl.patch
+0004-IB-srpt-Inline-srpt_sdev_name.patch
+0005-IB-srpt-Inline-srpt_get_ch_state.patch
+0006-IB-srpt-Introduce-target_reverse_dma_direction.patch
+0007-IB-srpt-Use-scsilun_to_int.patch
+0008-IB-srpt-Simplify-channel-state-management.patch
+0009-IB-srpt-Simplify-srpt_shutdown_session.patch
+0010-IB-srpt-Fix-srpt_close_session.patch
+0011-IB-srpt-Fix-srpt_handle_cmd-error-paths.patch
+0012-IB-srpt-Fix-how-aborted-commands-are-processed.patch
+0013-IB-srpt-Inline-trivial-CM-callback-functions.patch
+0014-IB-srpt-Eliminate-srpt_find_channel.patch
+0015-IB-srpt-Log-private-data-associated-with-REJ.patch
+0016-IB-srpt-Use-a-mutex-to-protect-the-channel-list.patch
+0017-IB-srpt-Detect-session-shutdown-reliably.patch
+0018-IB-srpt-Fix-srpt_write_pending.patch
+0019-IB-srpt-Log-out-all-initiators-if-a-port-is-disabled.patch
+0020-IB-srpt-Introduce-srpt_process_wait_list.patch
+0021-IB-srpt-Fix-wait-list-processing.patch
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
