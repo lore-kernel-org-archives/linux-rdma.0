@@ -1,29 +1,115 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 0/3] new ib_drain_qp() API
-Date: Thu, 11 Feb 2016 10:10:22 -0600
-Message-ID: <00fd01d164e6$b605e3b0$2211ab10$@opengridcomputing.com>
-References: <cover.1454969695.git.swise@chelsio.com> <010901d16375$1a023210$4e069630$@opengridcomputing.com> <011601d1637b$8c01a3e0$a404eba0$@opengridcomputing.com> <56BA540B.4040405@sandisk.com> <011901d1637d$b5286400$1f792c00$@opengridcomputing.com> <012801d16384$f68884f0$e3998ed0$@opengridcomputing.com> <56BB11F0.9090203@dev.mellanox.co.il> <00ca01d16417$9e9fc030$dbdf4090$@opengridcomputing.com> <56BCA741.6020800@redhat.com> <56BCB239.3020505@dev.mellanox.co.il>
+From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v4 1/1] IB/ipoib: fix for rare multicast join race condition
+Date: Thu, 11 Feb 2016 11:10:52 -0500
+Message-ID: <20160211161052.22025.1263.stgit@phlsvlogin03.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BCB239.3020505-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Sagi Grimberg' <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> >>
-> >> If we split it into ib_drain_rq(), ib_drain_sq(), and ib_drain_qp(), then srp would only call ib_drain_rq().  Others can call
-> >> ib_drain_qp() if they want both SQ and RQ drained.
-> >
-> > I'm in favor of this kind of flexibility at the API level.
-> 
-> I'm fine with having three flavors...
+A narrow window for race condition still exist between
+multicast join thread and *dev_flush workers.
+A kernel crash caused by prolong erratic link state changes
+was observed (most likely a faulty cabling):
 
-Me too.  I'll respin. 
+[167275.656270] BUG: unable to handle kernel NULL pointer dereference at
+0000000000000020
+[167275.665973] IP: [<ffffffffa05f8f2e>] ipoib_mcast_join+0xae/0x1d0 [ib_ipoib]
+[167275.674443] PGD 0
+[167275.677373] Oops: 0000 [#1] SMP
+...
+[167275.977530] Call Trace:
+[167275.982225]  [<ffffffffa05f92f0>] ? ipoib_mcast_free+0x200/0x200 [ib_ipoib]
+[167275.992024]  [<ffffffffa05fa1b7>] ipoib_mcast_join_task+0x2a7/0x490
+[ib_ipoib]
+[167276.002149]  [<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+[167276.010754]  [<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+[167276.019088]  [<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+[167276.027737]  [<ffffffff810a5aef>] kthread+0xcf/0xe0
+Here was a hit spot:
+ipoib_mcast_join() {
+..............
+      rec.qkey      = priv->broadcast->mcmember.qkey;
+                                       ^^^^^^^
+.....
+ }
+Proposed patch should prevent multicast join task to continue
+if link state change is detected.
+
+Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Changes from v3:
+- sync with priv->lock before flag check.
+Chages from v2:
+- Move check for OPER_UP flag state to mcast_join() to
+ensure no event worker is in progress.
+- minor style fixes.
+Changes from v1:
+- No need to lock again if error detected.
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 050dfa1..938e5d5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -456,7 +456,7 @@ out_locked:
+ 	return status;
+ }
+ 
+-static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
++static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ib_sa_multicast *multicast;
+@@ -464,8 +464,16 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 		.join_state = 1
+ 	};
+ 	ib_sa_comp_mask comp_mask;
++	unsigned long flags;
+ 	int ret = 0;
+ 
++	spin_lock_irqsave(&priv->lock, flags);
++	if (!priv->broadcast ||
++	    !test_bit(IPOIB_FLAG_OPER_UP, &priv->flags)) {
++		spin_unlock_irqrestore(&priv->lock, flags);
++		return -EINVAL;
++	}
++
+ 	ipoib_dbg_mcast(priv, "joining MGID %pI6\n", mcast->mcmember.mgid.raw);
+ 
+ 	rec.mgid     = mcast->mcmember.mgid;
+@@ -525,6 +533,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 			rec.join_state = 4;
+ #endif
+ 	}
++	spin_unlock_irqrestore(&priv->lock, flags);
+ 
+ 	multicast = ib_sa_join_multicast(&ipoib_sa_client, priv->ca, priv->port,
+ 					 &rec, comp_mask, GFP_KERNEL,
+@@ -539,6 +548,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
+ 		spin_unlock_irq(&priv->lock);
+ 		complete(&mcast->done);
+ 	}
++	return 0;
+ }
+ 
+ void ipoib_mcast_join_task(struct work_struct *work)
+@@ -621,7 +631,8 @@ void ipoib_mcast_join_task(struct work_struct *work)
+ 				init_completion(&mcast->done);
+ 				set_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags);
+ 				spin_unlock_irq(&priv->lock);
+-				ipoib_mcast_join(dev, mcast);
++				if (!ipoib_mcast_join(dev, mcast))
++					return;
+ 				spin_lock_irq(&priv->lock);
+ 			} else if (!delay_until ||
+ 				 time_before(mcast->delay_until, delay_until))
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
