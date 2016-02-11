@@ -1,62 +1,47 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 03/21] IB/srpt: Remove struct srpt_node_acl
-Date: Thu, 11 Feb 2016 11:04:02 -0800
-Message-ID: <56BCDB22.5070907@sandisk.com>
-References: <56BCDAAD.7030906@sandisk.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: missing commit for 4.4 stable
+Date: Thu, 11 Feb 2016 14:30:58 -0600
+Message-ID: <020601d1650b$1d7ecd30$587c6790$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BCDAAD.7030906-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org
+Cc: 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since struct srpt_node_acl is identical to struct se_node_acl,
-remove the definition of the former structure. This patch does
-not change any functionality.
+Hey Greg,
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 1 -
- drivers/infiniband/ulp/srpt/ib_srpt.h | 8 --------
- 2 files changed, 9 deletions(-)
+I don't see the following patch in linux-4.4.y yet.  Is there something else that needs to be done to get it queued up?  Or is it in
+the pipeline?
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 4ee9678..9f5cd3f 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -3508,7 +3508,6 @@ static struct configfs_attribute *srpt_wwn_attrs[] = {
- static const struct target_core_fabric_ops srpt_template = {
- 	.module				= THIS_MODULE,
- 	.name				= "srpt",
--	.node_acl_size			= sizeof(struct srpt_node_acl),
- 	.get_fabric_name		= srpt_get_fabric_name,
- 	.tpg_get_wwn			= srpt_get_fabric_wwn,
- 	.tpg_get_tag			= srpt_get_tag,
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 09037f2..b0ede97 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -363,12 +363,4 @@ struct srpt_device {
- 	struct list_head	list;
- };
- 
--/**
-- * struct srpt_node_acl - Per-initiator ACL data (managed via configfs).
-- * @nacl:      Target core node ACL information.
-- */
--struct srpt_node_acl {
--	struct se_node_acl	nacl;
--};
--
- #endif				/* IB_SRPT_H */
--- 
-2.7.0
+Thanks,
+
+Steve.
+
+commit 649367735ee5dedb128d9fac0b86ba7e0fe7ae3b
+Author: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date:   Thu Jan 7 11:19:29 2016 +0200
+
+    IB/cma: Fix RDMA port validation for iWarp
+
+    cma_validate_port wrongly assumed that Ethernet devices are RoCE
+    devices and thus their ndev should be matched in the GID table.
+    This broke the iWarp support. Fixing that matching the ndev only if
+    we work on a RoCE port.
+
+    Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.4.x-
+    Fixes: abae1b71dd37 ('IB/cma: cma_validate_port should verify the port
+                     and netdevice')
+    Reported-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+    Tested-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+    Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+    Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
