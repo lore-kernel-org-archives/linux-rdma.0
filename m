@@ -1,7 +1,7 @@
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 2/7] IB/core: Get/put peer memory client
-Date: Thu, 11 Feb 2016 18:12:52 +0200
-Message-ID: <1455207177-11949-3-git-send-email-artemyko@mellanox.com>
+Subject: [RFC 5/7] IB/core: Invalidation support for peer memory
+Date: Thu, 11 Feb 2016 18:12:55 +0200
+Message-ID: <1455207177-11949-6-git-send-email-artemyko@mellanox.com>
 References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455207177-11949-1-git-send-email-artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,155 +10,356 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-Dj0/KMMU01E@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Supplies an API to get/put a peer client functionality.
-It encapsulates the details of how to acquire/release a peer client from
-its callers and let them get the required peer client in case it exists.
+Adds the required functionality to invalidate a given peer
+memory represented by some core context.
 
-The 'get' call iterates over registered peer clients looking for an
-owner of a given address range by calling peer's 'acquire' call.
-In case an owner is found the loop is stopped.
+Each umem that was built over peer memory and supports invalidation has
+some invalidation context assigned to it with the required data to
+manage, once peer will call the invalidation callback below actions are
+taken:
 
-The 'put' call does the opposite, lets peer release its resources for
-that given address range.
+1) Taking lock on peer client to sync with inflight dereg_mr on that
+memory.
+2) Once lock is taken have a lookup for ticket id to find the matching
+core context.
+3) In case found will call umem invalidation function, otherwise call is
+returned.
 
-A reference counting/completion mechanism is used to prevent a peer
-memory client from going down once there are active users for its memory.
+Some notes:
+1) As peer invalidate callback defined to be blocking it must return
+just after that pages are not going to be accessed any more. For that
+reason ib_invalidate_peer_memory is waiting for a completion event in
+case there is other inflight call coming as part of dereg_mr.
 
-In addition:
-- an extra device capability named IB_DEVICE_PEER_MEMORY was introduced,
-  to be used by low level drivers to mark that they support this
-  functionality.
+2) The peer memory API assumes that a lock might be taken by a peer
+client to protect its memory operations. Specifically, its invalidate
+callback might be called under that lock which may lead to an AB/BA
+dead-lock in case IB core will call get/put pages APIs with the IB core
+peer's lock taken, for that reason as part of
+ib_umem_activate_invalidation_notifier lock is taken
+then checking for some inflight invalidation state before activating it.
+
+3) Once a peer client admits as part of its registration that it may
+require invalidation support, it can't be an owner of a memory range
+which doesn't support it.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/peer_mem.c | 55 ++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_peer_mem.h         | 12 +++++++++
- include/rdma/ib_verbs.h            |  5 ++++
- 3 files changed, 72 insertions(+)
+ drivers/infiniband/core/peer_mem.c | 85 ++++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/core/umem.c     | 56 +++++++++++++++++++++----
+ include/rdma/ib_peer_mem.h         |  1 +
+ include/rdma/ib_umem.h             | 19 +++++++++
+ 4 files changed, 148 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/infiniband/core/peer_mem.c b/drivers/infiniband/core/peer_mem.c
-index 2c26a39..74e4caa 100644
+index 57afb76..f9aaef2 100644
 --- a/drivers/infiniband/core/peer_mem.c
 +++ b/drivers/infiniband/core/peer_mem.c
-@@ -42,6 +42,14 @@ static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
- 	return -ENOSYS;
- }
+@@ -37,9 +37,56 @@
+ static DEFINE_MUTEX(peer_memory_mutex);
+ static LIST_HEAD(peer_memory_list);
  
-+static void complete_peer(struct kref *kref)
++/* Caller should be holding the peer client lock, ib_peer_client->lock */
++static struct core_ticket *ib_peer_search_context(
++		struct ib_peer_memory_client *ib_peer_client,
++		u64 key)
 +{
-+	struct ib_peer_memory_client *ib_peer_client =
-+		container_of(kref, struct ib_peer_memory_client, ref);
++	struct core_ticket *core_ticket;
 +
-+	complete(&ib_peer_client->unload_comp);
-+}
-+
- void *ib_register_peer_memory_client(struct peer_memory_client *peer_client,
- 				     int (**invalidate_callback)
- 				     (void *reg_handle, u64 core_context))
-@@ -52,6 +60,8 @@ void *ib_register_peer_memory_client(struct peer_memory_client *peer_client,
- 	if (!ib_peer_client)
- 		return NULL;
- 
-+	init_completion(&ib_peer_client->unload_comp);
-+	kref_init(&ib_peer_client->ref);
- 	ib_peer_client->peer_mem = peer_client;
- 	/* Once peer supplied a non NULL callback it's an indication that
- 	 * invalidation support is required for any memory owning.
-@@ -77,6 +87,51 @@ void ib_unregister_peer_memory_client(void *reg_handle)
- 	list_del(&ib_peer_client->core_peer_list);
- 	mutex_unlock(&peer_memory_mutex);
- 
-+	kref_put(&ib_peer_client->ref, complete_peer);
-+	wait_for_completion(&ib_peer_client->unload_comp);
- 	kfree(ib_peer_client);
- }
- EXPORT_SYMBOL(ib_unregister_peer_memory_client);
-+
-+struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context,
-+						 unsigned long addr,
-+						 size_t size,
-+						 void **peer_client_context)
-+{
-+	struct ib_peer_memory_client *ib_peer_client;
-+	int ret;
-+
-+	mutex_lock(&peer_memory_mutex);
-+	list_for_each_entry(ib_peer_client, &peer_memory_list, core_peer_list) {
-+		ret = ib_peer_client->peer_mem->acquire(addr, size,
-+							peer_client_context);
-+		if (ret > 0)
-+			goto found;
-+
-+		if (ret < 0) {
-+			mutex_unlock(&peer_memory_mutex);
-+			return ERR_PTR(ret);
-+		}
++	list_for_each_entry(core_ticket, &ib_peer_client->core_ticket_list,
++			    ticket_list) {
++		if (core_ticket->key == key)
++			return core_ticket;
 +	}
 +
-+	ib_peer_client = NULL;
-+
-+found:
-+	mutex_unlock(&peer_memory_mutex);
-+
-+	if (ib_peer_client)
-+		kref_get(&ib_peer_client->ref);
-+
-+	return ib_peer_client;
++	return NULL;
 +}
-+EXPORT_SYMBOL(ib_get_peer_client);
 +
-+void ib_put_peer_client(struct ib_peer_memory_client *ib_peer_client,
-+			void *peer_client_context)
+ static int ib_invalidate_peer_memory(void *reg_handle, u64 core_context)
+ {
+-	return -ENOSYS;
++	struct ib_peer_memory_client *ib_peer_client = reg_handle;
++	struct invalidation_ctx *invalidation_ctx;
++	struct core_ticket *core_ticket;
++
++	mutex_lock(&ib_peer_client->lock);
++	core_ticket = ib_peer_search_context(ib_peer_client, core_context);
++	if (!core_ticket) {
++		mutex_unlock(&ib_peer_client->lock);
++		return 0;
++	}
++
++	invalidation_ctx = (struct invalidation_ctx *)core_ticket->context;
++	/* If context is not ready yet, mark it to be invalidated */
++	if (!invalidation_ctx->func) {
++		invalidation_ctx->peer_invalidated = 1;
++		mutex_unlock(&ib_peer_client->lock);
++		return 0;
++	}
++	invalidation_ctx->func(invalidation_ctx->cookie,
++					invalidation_ctx->umem, 0, 0);
++	if (invalidation_ctx->inflight_invalidation) {
++		/* init the completion to wait on
++		 * before letting other thread to run
++		 */
++		init_completion(&invalidation_ctx->comp);
++		mutex_unlock(&ib_peer_client->lock);
++		wait_for_completion(&invalidation_ctx->comp);
++	}
++
++	kfree(invalidation_ctx);
++
++	return 0;
+ }
+ 
+ static int ib_peer_insert_context(struct ib_peer_memory_client *ib_peer_client,
+@@ -122,11 +169,33 @@ int ib_peer_create_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem,
+ void ib_peer_destroy_invalidation_ctx(struct ib_peer_memory_client *ib_peer_mem,
+ 				      struct invalidation_ctx *invalidation_ctx)
+ {
+-	mutex_lock(&ib_peer_mem->lock);
++	int peer_callback;
++	int inflight_invalidation;
++
++	/* If we are under peer callback lock was already taken.*/
++	if (!invalidation_ctx->peer_callback)
++		mutex_lock(&ib_peer_mem->lock);
+ 	ib_peer_remove_context(ib_peer_mem, invalidation_ctx->context_ticket);
+-	mutex_unlock(&ib_peer_mem->lock);
++	/* Make sure to check inflight flag after took the lock and remove
++	 * from tree. In addition, from that point using local variables for
++	 * peer_callback and inflight_invalidation as after the complete
++	 * invalidation_ctx can't be accessed any more as it may be freed
++	 * by the callback.
++	 */
++	peer_callback = invalidation_ctx->peer_callback;
++	inflight_invalidation = invalidation_ctx->inflight_invalidation;
++	if (inflight_invalidation)
++		complete(&invalidation_ctx->comp);
+ 
+-	kfree(invalidation_ctx);
++	/* On peer callback lock is handled externally */
++	if (!peer_callback)
++		mutex_unlock(&ib_peer_mem->lock);
++
++	/* In case under callback context or callback is pending
++	 * let it free the invalidation context
++	 */
++	if (!peer_callback && !inflight_invalidation)
++		kfree(invalidation_ctx);
+ }
+ 
+ static void complete_peer(struct kref *kref)
+@@ -186,6 +255,7 @@ EXPORT_SYMBOL(ib_unregister_peer_memory_client);
+ struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context,
+ 						 unsigned long addr,
+ 						 size_t size,
++						 unsigned long flags,
+ 						 void **peer_client_context)
+ {
+ 	struct ib_peer_memory_client *ib_peer_client;
+@@ -193,6 +263,13 @@ struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context,
+ 
+ 	mutex_lock(&peer_memory_mutex);
+ 	list_for_each_entry(ib_peer_client, &peer_memory_list, core_peer_list) {
++		/* In case peer requires invalidation it can't own memory
++		 * which doesn't support it
++		 */
++		if (ib_peer_client->invalidation_required &&
++		    (!(flags & IB_UMEM_PEER_INVAL_SUPP)))
++			continue;
++
+ 		ret = ib_peer_client->peer_mem->acquire(addr, size,
+ 							peer_client_context);
+ 		if (ret > 0)
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 2eab34e..f478f63 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -46,12 +46,19 @@
+ #ifdef CONFIG_INFINIBAND_PEER_MEM
+ static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
+ 				     struct ib_umem *umem, unsigned long addr,
+-				     int dmasync)
++				     unsigned long flags)
+ {
+ 	int ret;
+ 	const struct peer_memory_client *peer_mem = ib_peer_mem->peer_mem;
++	struct invalidation_ctx *ictx = NULL;
+ 
+ 	umem->ib_peer_mem = ib_peer_mem;
++	if (flags & IB_UMEM_PEER_INVAL_SUPP) {
++		ret = ib_peer_create_invalidation_ctx(ib_peer_mem, umem, &ictx);
++		if (ret)
++			goto end;
++	}
++
+ 	/*
+ 	 * We always request write permissions to the pages, to force breaking
+ 	 * of any CoW during the registration of the MR. For read-only MRs we
+@@ -62,7 +69,7 @@ static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
+ 				  1, !umem->writable,
+ 				  &umem->sg_head,
+ 				  umem->peer_mem_client_context,
+-				  0);
++				  ictx ? ictx->context_ticket : 0);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -71,7 +78,7 @@ static struct ib_umem *peer_umem_get(struct ib_peer_memory_client *ib_peer_mem,
+ 	ret = peer_mem->dma_map(&umem->sg_head,
+ 				umem->peer_mem_client_context,
+ 				umem->context->device->dma_device,
+-				dmasync,
++				flags & IB_UMEM_DMA_SYNC,
+ 				&umem->nmap);
+ 	if (ret)
+ 		goto put_pages;
+@@ -82,23 +89,54 @@ put_pages:
+ 	peer_mem->put_pages(&umem->sg_head,
+ 			    umem->peer_mem_client_context);
+ out:
++	if (ictx)
++		ib_peer_destroy_invalidation_ctx(ib_peer_mem, ictx);
++end:
+ 	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
+ 	return ERR_PTR(ret);
+ }
+ 
+ static void peer_umem_release(struct ib_umem *umem)
+ {
+-	const struct peer_memory_client *peer_mem =
+-				umem->ib_peer_mem->peer_mem;
++	struct ib_peer_memory_client *ib_peer_mem = umem->ib_peer_mem;
++	const struct peer_memory_client *peer_mem = ib_peer_mem->peer_mem;
++	struct invalidation_ctx *ictx = umem->invalidation_ctx;
++
++	if (ictx)
++		ib_peer_destroy_invalidation_ctx(ib_peer_mem, ictx);
+ 
+ 	peer_mem->dma_unmap(&umem->sg_head,
+ 			    umem->peer_mem_client_context,
+ 			    umem->context->device->dma_device);
+ 	peer_mem->put_pages(&umem->sg_head,
+ 			    umem->peer_mem_client_context);
+-	ib_put_peer_client(umem->ib_peer_mem, umem->peer_mem_client_context);
++	ib_put_peer_client(ib_peer_mem, umem->peer_mem_client_context);
+ 	kfree(umem);
+ }
++
++int ib_umem_activate_invalidation_notifier(struct ib_umem *umem,
++					   void (*func)(void *cookie,
++					   struct ib_umem *umem,
++					   unsigned long addr, size_t size),
++					   void *cookie)
 +{
-+	if (ib_peer_client->peer_mem->release)
-+		ib_peer_client->peer_mem->release(peer_client_context);
++	struct invalidation_ctx *ictx = umem->invalidation_ctx;
++	int ret = 0;
 +
-+	kref_put(&ib_peer_client->ref, complete_peer);
++	mutex_lock(&umem->ib_peer_mem->lock);
++	if (ictx->peer_invalidated) {
++		pr_err("ib_umem_activate_invalidation_notifier: pages were invalidated by peer\n");
++		ret = -EINVAL;
++		goto end;
++	}
++	ictx->func = func;
++	ictx->cookie = cookie;
++	/* from that point any pending invalidations can be called */
++end:
++	mutex_unlock(&umem->ib_peer_mem->lock);
++	return ret;
 +}
-+EXPORT_SYMBOL(ib_put_peer_client);
++EXPORT_SYMBOL(ib_umem_activate_invalidation_notifier);
+ #endif
+ 
+ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int dirty)
+@@ -209,15 +247,15 @@ struct ib_umem *ib_umem_get_flags(struct ib_ucontext *context,
+ 		struct ib_umem *peer_umem;
+ 
+ 		peer_mem_client =
+-			ib_get_peer_client(context, addr, size,
++			ib_get_peer_client(context, addr, size, flags,
+ 					   &umem->peer_mem_client_context);
+ 		if (IS_ERR(peer_mem_client)) {
+ 			kfree(umem);
+ 			return ERR_CAST(peer_mem_client);
+ 
+ 		} else if (peer_mem_client) {
+-			peer_umem = peer_umem_get(peer_mem_client, umem, addr,
+-						  flags & IB_UMEM_DMA_SYNC);
++			peer_umem = peer_umem_get(peer_mem_client, umem,
++						  addr, flags);
+ 			if (IS_ERR(peer_umem))
+ 				kfree(umem);
+ 			return peer_umem;
 diff --git a/include/rdma/ib_peer_mem.h b/include/rdma/ib_peer_mem.h
-index cbe928e..7f41ce5 100644
+index 6f3dc84..d2b2d5f 100644
 --- a/include/rdma/ib_peer_mem.h
 +++ b/include/rdma/ib_peer_mem.h
-@@ -35,10 +35,22 @@
+@@ -60,6 +60,7 @@ struct core_ticket {
+ struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context,
+ 						 unsigned long addr,
+ 						 size_t size,
++						 unsigned long flags,
+ 						 void **peer_client_context);
  
- #include <rdma/peer_mem.h>
+ void ib_put_peer_client(struct ib_peer_memory_client *ib_peer_client,
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 5d0fb41..002da1e 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -42,11 +42,20 @@
  
-+struct ib_ucontext;
-+
- struct ib_peer_memory_client {
- 	const struct peer_memory_client *peer_mem;
- 	struct list_head	core_peer_list;
- 	int invalidation_required;
-+	struct kref ref;
-+	struct completion unload_comp;
+ struct ib_ucontext;
+ struct ib_umem_odp;
++struct ib_umem;
+ 
+ #ifdef CONFIG_INFINIBAND_PEER_MEM
+ struct invalidation_ctx {
+ 	struct ib_umem *umem;
+ 	u64 context_ticket;
++	void (*func)(void *invalidation_cookie,
++		     struct ib_umem *umem,
++		     unsigned long addr, size_t size);
++	void *cookie;
++	int peer_callback;
++	int inflight_invalidation;
++	int peer_invalidated;
++	struct completion comp;
+ };
+ #endif
+ 
+@@ -100,6 +109,7 @@ static inline size_t ib_umem_num_pages(struct ib_umem *umem)
+ enum ib_peer_mem_flags {
+ 	IB_UMEM_DMA_SYNC	= (1 << 0),
+ 	IB_UMEM_PEER_ALLOW	= (1 << 1),
++	IB_UMEM_PEER_INVAL_SUPP	= (1 << 2),
  };
  
-+struct ib_peer_memory_client *ib_get_peer_client(struct ib_ucontext *context,
-+						 unsigned long addr,
-+						 size_t size,
-+						 void **peer_client_context);
+ #ifdef CONFIG_INFINIBAND_USER_MEM
+@@ -112,6 +122,14 @@ int ib_umem_page_count(struct ib_umem *umem);
+ int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offset,
+ 		      size_t length);
+ 
++#ifdef CONFIG_INFINIBAND_PEER_MEM
++int ib_umem_activate_invalidation_notifier(struct ib_umem *umem,
++					   void (*func)(void *cookie,
++					   struct ib_umem *umem,
++					   unsigned long addr, size_t size),
++					   void *cookie);
++#endif
 +
-+void ib_put_peer_client(struct ib_peer_memory_client *ib_peer_client,
-+			void *peer_client_context);
+ #else /* CONFIG_INFINIBAND_USER_MEM */
+ 
+ #include <linux/err.h>
+@@ -129,6 +147,7 @@ static inline int ib_umem_copy_from(void *dst, struct ib_umem *umem, size_t offs
+ 		      		    size_t length) {
+ 	return -EINVAL;
+ }
 +
- #endif
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 284b00c..3917230 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -209,6 +209,11 @@ enum ib_device_cap_flags {
- 	 * by hardware.
- 	 */
- 	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
-+	/*
-+	 * Device supports RDMA access to memory registered by
-+	 * other locally connected devices (e.g. GPU).
-+	 */
-+	IB_DEVICE_PEER_MEMORY			= (1 << 28),
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
- 	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
+ #endif /* CONFIG_INFINIBAND_USER_MEM */
+ 
+ static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
 -- 
 1.8.4.3
 
