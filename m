@@ -1,89 +1,37 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 3/3] IB/srp: use ib_drain_rq()
-Date: Wed, 27 Jan 2016 12:09:47 -0800
-Message-ID: <c11baa726a6440549ab46b9525116d9fe74eb5a0.1455230646.git.swise@chelsio.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB: new common API for draining queues
+Date: Thu, 11 Feb 2016 14:59:20 -0800
+Message-ID: <56BD1248.80805@sandisk.com>
 References: <cover.1455230646.git.swise@chelsio.com>
+ <3e7261d1436d33320223d365974ff38945f0d558.1455230646.git.swise@chelsio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1455230646.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <3e7261d1436d33320223d365974ff38945f0d558.1455230646.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 40 ++++---------------------------------
- 1 file changed, 4 insertions(+), 36 deletions(-)
+On 02/05/2016 01:13 PM, Steve Wise wrote:
+> +static void wait_for_drain(struct ib_cq *cq, struct completion *c)
+> +{
+> +	if (cq->poll_ctx == IB_POLL_DIRECT)
+> +		do
+> +			ib_process_cq_direct(cq, 1024);
+> +		while (!wait_for_completion_timeout(c, msecs_to_jiffies(100)));
+> +	else
+> +		wait_for_completion(c);
+> +}
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 03022f6..b6bf204 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -446,49 +446,17 @@ static struct srp_fr_pool *srp_alloc_fr_pool(struct srp_target_port *target)
- 				  dev->max_pages_per_mr);
- }
- 
--static void srp_drain_done(struct ib_cq *cq, struct ib_wc *wc)
--{
--	struct srp_rdma_ch *ch = cq->cq_context;
--
--	complete(&ch->done);
--}
--
--static struct ib_cqe srp_drain_cqe = {
--	.done		= srp_drain_done,
--};
--
- /**
-  * srp_destroy_qp() - destroy an RDMA queue pair
-  * @ch: SRP RDMA channel.
-  *
-- * Change a queue pair into the error state and wait until all receive
-- * completions have been processed before destroying it. This avoids that
-- * the receive completion handler can access the queue pair while it is
-+ * Drain the qp before destroying it.  This avoids that the receive
-+ * completion handler can access the queue pair while it is
-  * being destroyed.
-  */
- static void srp_destroy_qp(struct srp_rdma_ch *ch)
- {
--	static struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
--	static struct ib_recv_wr wr = { 0 };
--	struct ib_recv_wr *bad_wr;
--	int ret;
--
--	wr.wr_cqe = &srp_drain_cqe;
--	/* Destroying a QP and reusing ch->done is only safe if not connected */
--	WARN_ON_ONCE(ch->connected);
--
--	ret = ib_modify_qp(ch->qp, &attr, IB_QP_STATE);
--	WARN_ONCE(ret, "ib_cm_init_qp_attr() returned %d\n", ret);
--	if (ret)
--		goto out;
--
--	init_completion(&ch->done);
--	ret = ib_post_recv(ch->qp, &wr, &bad_wr);
--	WARN_ONCE(ret, "ib_post_recv() returned %d\n", ret);
--	if (ret == 0)
--		wait_for_completion(&ch->done);
--
--out:
-+	ib_drain_rq(ch->qp);
- 	ib_destroy_qp(ch->qp);
- }
- 
-@@ -508,7 +476,7 @@ static int srp_create_ch_ib(struct srp_rdma_ch *ch)
- 	if (!init_attr)
- 		return -ENOMEM;
- 
--	/* queue_size + 1 for ib_drain_qp */
-+	/* queue_size + 1 for ib_drain_rq() */
- 	recv_cq = ib_alloc_cq(dev->dev, ch, target->queue_size + 1,
- 				ch->comp_vector, IB_POLL_SOFTIRQ);
- 	if (IS_ERR(recv_cq)) {
--- 
-2.7.0
+Hello Steve,
 
+Have you verified this patch with checkpatch ? I expect that checkpatch 
+will report that six braces are missing from this function.
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
