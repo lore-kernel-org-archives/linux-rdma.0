@@ -1,52 +1,85 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH  1/3] IB/core: Fix reading capability mask of the port info class
-Date: Thu, 11 Feb 2016 10:24:42 +0200
-Message-ID: <1455179084-4778-2-git-send-email-matanb@mellanox.com>
-References: <1455179084-4778-1-git-send-email-matanb@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455179084-4778-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH 3/5] net/mlx4: fix some error handling in
+ mlx4_multi_func_init()
+Date: Thu, 11 Feb 2016 11:29:43 +0200
+Message-ID: <20160211112943.20c0de19@jpm-OptiPlex-GX620>
+References: <1455048677-19882-1-git-send-email-linux@rasmusvillemoes.dk>
+	<1455048677-19882-4-git-send-email-linux@rasmusvillemoes.dk>
+	<56BB0577.8000000@dev.mellanox.co.il>
+	<87twlgtosn.fsf@rasmusvillemoes.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87twlgtosn.fsf@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yishai Hadas <yishaih@dev.mellanox.co.il>, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "jackm@mellanox.com" <jackm@mellanox.com>, Majd Dibbiny <majd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 10 Feb 2016 19:15:20 +0100
+Rasmus Villemoes <linux@rasmusvillemoes.dk> wrote:
 
-When checking specific attribute from a bit mask, need to use bitwise
-AND and not logical AND, fixed that.
+> On Wed, Feb 10 2016, Yishai Hadas <yishaih@dev.mellanox.co.il> wrote:
+> 
+> >> @@ -2429,7 +2429,7 @@ err_thread:
+> >>   	flush_workqueue(priv->mfunc.master.comm_wq);
+> >>   	destroy_workqueue(priv->mfunc.master.comm_wq);
+> >>   err_slaves:
+> >> -	while (--i) {
+> >> +	while (i--) {
+> >
+> > This fix is wrong as it hits the case that i arrived the last value
+> > then below code will access to a non valid entry in the array.
+> >
+> > The expected fix should be:
+> > while (--i >= 0)
+> >
+> 
+> Huh? They're completely equivalent (given that i is necessarily
+> non-negative before we evaluate the loop condition)
 
-Fixes: 145d9c541032 ('IB/core: Display extended counter set if
-available')
-Signed-off-by: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/sysfs.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+No, they are not equivalent.
+if i == the max value (dev->num_slaves) when entering your proposed
+while loop, the kfree call index (i) will be out of range!  This can
+happen, for example, if the failure occurs downstream from the "i"
+for-loop (e.g., if the call to mlx4_init_resource_tracker() fails).
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 3de9351..e981f6a 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -722,12 +722,11 @@ static struct attribute_group *get_counter_table(struct ib_device *dev,
- 
- 	if (get_perf_mad(dev, port_num, IB_PMA_CLASS_PORT_INFO,
- 				&cpi, 40, sizeof(cpi)) >= 0) {
--
--		if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH)
-+		if (cpi.capability_mask & IB_PMA_CLASS_CAP_EXT_WIDTH)
- 			/* We have extended counters */
- 			return &pma_group_ext;
- 
--		if (cpi.capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF)
-+		if (cpi.capability_mask & IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF)
- 			/* But not the IETF ones */
- 			return &pma_group_noietf;
- 	}
--- 
-1.8.3.1
+Therefore, we DO require the pre-decrement format.  Therefore, the
+one-line fix proposed by Yishai is the correct fix.
+>. I don't really
+> care either way, but git grep says that 'while (i--)' is 5 times more
+> common than 'while (--i >= 0)'.
+Not relevant, while (i--) is simply not correct, because of the case
+where the for-loop involving i completes successfully and an error
+occurs later.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+FYI, you also had another bug in your solution -- a double-free when
+kzalloc for port 2 fails.  For your code, you should also have reset
+s_state->vlan_filter[port] to NULL as shown below:
+			for (port = 1; port <= MLX4_MAX_PORTS; port++) {
+				struct mlx4_vport_state *admin_vport;
+				struct mlx4_vport_state *oper_vport;
+
+				s_state->vlan_filter[port] =
+					kzalloc(sizeof(struct
+				mlx4_vlan_fltr), GFP_KERNEL);
+				if (!s_state->vlan_filter[port]) {
+					if (--port) {
+ 						kfree(s_state->vlan_filter[port]);
+	==> You should have added this		s_state->vlan_filter[port] = NULL;
+					}
+					goto err_slaves;
+				}
+
+However, again, the correct solution is to do what Yishai suggests:
+	while (--i >= 0)
+so that if i is already zero the while-loop will not be entered.
+
+-Jack
+> 
+> Rasmus
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
