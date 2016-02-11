@@ -1,112 +1,82 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] rdma: amso1100: c2_provider: Use netdev_dbg()
-Date: Thu, 11 Feb 2016 11:27:27 -0500
-Message-ID: <56BCB66F.4070305@redhat.com>
-References: <20160206151114.GA18959@amitoj-Inspiron-3542>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 0/3] IB/mlx4: Fix extended counters support
+Date: Thu, 11 Feb 2016 18:49:51 +0200
+Message-ID: <CAAKD3BDQ7x2JzeWrPz+bzG_otRzWmhEmh8cMJ_DXkYGH+SqAzw@mail.gmail.com>
+References: <1455179084-4778-1-git-send-email-matanb@mellanox.com>
+	<56BCB215.4050802@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="jCTNt4u7apn41l8Pu6c05gMh0qhiKnfKR"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160206151114.GA18959@amitoj-Inspiron-3542>
+In-Reply-To: <56BCB215.4050802-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: julia.lawall-L2FTfq7BK8M@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---jCTNt4u7apn41l8Pu6c05gMh0qhiKnfKR
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Feb 11, 2016 at 6:08 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 02/11/2016 03:24 AM, Matan Barak wrote:
+>> From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Hi Doug,
+>>
+>> This series fixes an issue introduced in 4.5 after applying Christoph Lameter's
+>> "IB 64 bit counter support" series.  Christoph used a mad in order to query the
+>> vendor driver for extended counters support, however this mad wasn't handled in
+>> mlx4 when link layer is Ethernet.  Thus, extended counters support was broken.
+>> In addition, this series fixes a bug in IB/core sysfs which was also introduced
+>> in "IB 64 bit counter support" series.
+>>
+>> Patch 0001 fixes wrong handling of port info capability mask, which caused
+>> setting of extended counters sysfs even if underlying device doesn't support
+>> it.
+>> Patch 0002-0003 align mlx4 counters sysfs for extended counters scheme in case
+>> link layer is Ethernet.
+>>
+>> Thanks,
+>> Eran and Matan.
+>>
+>> Eran Ben Elisha (3):
+>>   IB/core: Fix reading capability mask of the port info class
+>>   IB/mlx4: Add support for extended counters over RoCE ports
+>>   IB/mlx4: Add support for the port info class for RoCE ports
+>>
+>>  drivers/infiniband/core/sysfs.c  |  5 ++--
+>>  drivers/infiniband/hw/mlx4/mad.c | 63 +++++++++++++++++++++++++++++++---------
+>>  2 files changed, 52 insertions(+), 16 deletions(-)
+>>
+>
+> Hi Matan,
+>
+> The first patch is a true bug fix while the next two add the feature to
+> RoCE mode.  Based upon the code patches, the RoCE code should work fine
+> for 4.5 without the new support, there isn't a bug there (they simply
+> won't respond to the ext counters port request).  So I took the first
+> patch for-rc and the next two I'll put in for-next.
+>
 
-On 02/06/2016 10:11 AM, Amitoj Kaur Chawla wrote:
-> Replace generic pr_debug() with netdev_dbg() for net devices.
->=20
-> Found using Coccinelle. The semantic patch used to find this is as
-> follows:
->=20
-> //<smpl>
-> @@
-> expression e;
-> identifier f,i;
-> position p;
-> @@
->=20
-> f(...,struct net_device *i,...) {
->   ...
-> -  pr_debug@p(e);
-> +  netdev_dbg(i, e);
->   ...
-> }
-> //</smpl>
->=20
-> Signed-off-by: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hi Doug,
 
-This driver has been removed entire as of 4.5-rc2, so this patch can no
-longer be applied.
+I think it's partially correct. In RoCE, mlx4_ib_process_mad calls
+iboe_process_mad directly.
+iboe_process_mad assumes that we should always fill counters in the MAD's
+response buffer (without checking it). Therefore, when IB_PMA_CLASS_PORT_INFO
+is sent, we'll actually fill counters data. If the sysfs parses this data as
+"extended counters are supported", it'll call the mlx4 driver
+expecting to get these
+counters. However, this functionality won't exist.
 
-> ---
->  drivers/staging/rdma/amso1100/c2_provider.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/staging/rdma/amso1100/c2_provider.c b/drivers/stag=
-ing/rdma/amso1100/c2_provider.c
-> index e44ad22..75a7de5 100644
-> --- a/drivers/staging/rdma/amso1100/c2_provider.c
-> +++ b/drivers/staging/rdma/amso1100/c2_provider.c
-> @@ -659,7 +659,7 @@ static int c2_pseudo_up(struct net_device *netdev)
->  	if (!ind)
->  		return 0;
-> =20
-> -	pr_debug("adding...\n");
-> +	netdev_dbg(netdev, "adding...\n");
->  	for_ifa(ind) {
->  #ifdef DEBUG
->  		u8 *ip =3D (u8 *) & ifa->ifa_address;
-> @@ -684,7 +684,7 @@ static int c2_pseudo_down(struct net_device *netdev=
-)
->  	if (!ind)
->  		return 0;
-> =20
-> -	pr_debug("deleting...\n");
-> +	netdev_dbg(netdev, "deleting...\n");
->  	for_ifa(ind) {
->  #ifdef DEBUG
->  		u8 *ip =3D (u8 *) & ifa->ifa_address;
->=20
+If you don't want to merge these two mlx4 patches, we could send a
+patch that catches
+IB_PMA_CLASS_PORT_INFO MAD and returns that only basic counters are supported.
 
+Thanks for applying these patches,
+Matan
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---jCTNt4u7apn41l8Pu6c05gMh0qhiKnfKR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWvLZvAAoJELgmozMOVy/d7qgP/jOvG4kKEqOBKhZing+qfqVA
-9HxboGUmAJHjSyjw5fPXNwBcT4RlE6VQQpVo3ChcO1nbV38MW/umhnT1TLKp7vzR
-r/Rgo86fQt35OLfH+fUTykBxHsnPvKad+xKPYBu5HPE4YngFpwzPnje8e7Iblfzi
-bcwgpMxrBgc/zdzYZzIQgCYmyOoMV1VMUxfW/RHcF3t6OL7qmAfJOU/kBm8+DBRL
-mTW+jJN4MuUD9CBxI7CPIRxYWCVFB58oUqYQWPT/BGCp9bXmIaG5tSyr3p4uFH/x
-JkffRJlOFGU4ezz5OlNkNA8n1R0uzd1L5K8RiFLAJJLQctqF43nyVG0ETJGVZRHl
-onP8RuZqHCPulMYAoApRYa4D4kt8lNZOfm7C0jRMqT9EV4KltzZpv0aCyUF8q4lD
-yuAfJ7EOItHmqOXS6wwv1XCxaZeRO22DIs1axqZOn8tCiIEmolpSHyrfu5SLhzt5
-+7Ym+DCohtZmf0NTNV0I5RPEOvJQuiliKNeXutszF+9S/0oOo9m/uh5UligkC7jD
-OyfCt4Kdtgr7hg2V3uWaErAJAgadNRIhEE4sRVoM70oGfXxgtgP6j+JHh1HSweeT
-UHZZgK0a8aRcaE3PDMkZMwfkyZ+hhBq+pa0P+qyyai4z4VLzArWcKjxD6CRSBbif
-/N86B5pkew9IaPwWy6a7
-=s9V8
------END PGP SIGNATURE-----
-
---jCTNt4u7apn41l8Pu6c05gMh0qhiKnfKR--
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
