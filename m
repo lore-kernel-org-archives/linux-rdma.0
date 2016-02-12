@@ -1,52 +1,134 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC 0/7] Peer-direct memory
-Date: Fri, 12 Feb 2016 13:36:49 -0700
-Message-ID: <20160212203649.GA10540@obsidianresearch.com>
-References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
- <20160211191838.GA23675@obsidianresearch.com>
- <20160212201328.GA14122@infradead.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 1/8] xprtrdma: Segment head and tail XDR buffers on page
+ boundaries
+Date: Fri, 12 Feb 2016 16:06:02 -0500
+Message-ID: <20160212210602.5278.57457.stgit@manet.1015granger.net>
+References: <20160212205107.5278.55938.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160212201328.GA14122-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160212205107.5278.55938.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-Dj0/KMMU01E@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 12, 2016 at 12:13:28PM -0800, Christoph Hellwig wrote:
-> On Thu, Feb 11, 2016 at 12:18:38PM -0700, Jason Gunthorpe wrote:
-> > Most of this stuff (eg the whole peer_memory_client thing) has no
-> > buisness being part of the RDMA stack. We can't ask other drivers to
-> > call IB functions just because their devices have ZONE_DIRECT memory.
-> > 
-> > Resubmit those parts under the mm subsystem, or another more
-> > appropriate place.
-> > 
-> > This is the same comment as last time this was submitted.
-> > 
-> > If you want to make some incremental progress then implement the
-> > existing ZONE_DEVICE API for the IB core and add the invalidate stuff
-> > later, once you've negotiated a common API for that with linux-mm.
-> 
-> Agreed on all points.  Nevermind that seems to be missing a user of all
-> the newly added infrastructure, which should come with the series.
+A single memory allocation is used for the pair of buffers wherein
+the RPC client builds an RPC call message and decodes its matching
+reply. These buffers are sized based on the maximum possible size
+of the RPC call and reply messages for the operation in progress.
 
-Yep!
+This means that as the call buffer increases in size, the start of
+the reply buffer is pushed farther into the memory allocation.
 
-I've heard from the people working on NVMe cards that this approach
-isn't needed, desired, or correct. I'm deeply skeptical that there
-would be an in-kernel user.
+RPC requests are growing in size. It used to be that both the call
+and reply buffers fit inside a single page.
 
-AFAIK, this specific interface is only needed to support nvidia's
-propritary kernel module, which has some oddball design where these
-extra callbacks are needed.
+But these days, thanks to NFSv4 (and especially security labels in
+NFSv4.2) the maximum call and reply sizes are large. NFSv4.0 OPEN,
+for example, now requires a 6KB allocation for a pair of call and
+reply buffers, and NFSv4 LOOKUP is not far behind.
 
-But who knows, maybe someone can think up reason why filesystems might
-want to do an invalidate as well.
+As the maximum size of a call increases, the reply buffer is pushed
+far enough into the buffer's memory allocation that a page boundary
+can appear in the middle of it.
 
-Jason
+When the maximum possible reply size is larger than the client's
+RDMA receive buffers (currently 1KB), the client has to register a
+Reply chunk for the server to RDMA Write the reply into.
+
+The logic in rpcrdma_convert_iovs() assumes that xdr_buf head and
+tail buffers would always be contained on a single page. It supplies
+just one segment for the head and one for the tail.
+
+FMR, for example, registers up to a page boundary (only a portion of
+the reply buffer in the OPEN case above). But without additional
+segments, it doesn't register the rest of the buffer.
+
+When the server tries to write the OPEN reply, the RDMA Write fails
+with a remote access error since the client registered only part of
+the Reply chunk.
+
+rpcrdma_convert_iovs() must split the XDR buffer into multiple
+segments, each of which are guaranteed not to contain a page
+boundary. That way fmr_op_map is given the proper number of segments
+to register the whole reply buffer.
+
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/rpc_rdma.c |   42 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 32 insertions(+), 10 deletions(-)
+
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 0f28f2d..add1f98 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -132,6 +132,33 @@ rpcrdma_tail_pullup(struct xdr_buf *buf)
+ 	return tlen;
+ }
+ 
++/* Split "vec" on page boundaries into segments. FMR registers pages,
++ * not a byte range. Other modes coalesce these segments into a single
++ * MR when they can.
++ */
++static int
++rpcrdma_convert_kvec(struct kvec *vec, struct rpcrdma_mr_seg *seg,
++		     int n, int nsegs)
++{
++	size_t page_offset;
++	u32 remaining;
++	char *base;
++
++	base = vec->iov_base;
++	page_offset = offset_in_page(base);
++	remaining = vec->iov_len;
++	while (remaining && n < nsegs) {
++		seg[n].mr_page = NULL;
++		seg[n].mr_offset = base;
++		seg[n].mr_len = min_t(u32, PAGE_SIZE - page_offset, remaining);
++		remaining -= seg[n].mr_len;
++		base += seg[n].mr_len;
++		++n;
++		page_offset = 0;
++	}
++	return n;
++}
++
+ /*
+  * Chunk assembly from upper layer xdr_buf.
+  *
+@@ -150,11 +177,10 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+ 	int page_base;
+ 	struct page **ppages;
+ 
+-	if (pos == 0 && xdrbuf->head[0].iov_len) {
+-		seg[n].mr_page = NULL;
+-		seg[n].mr_offset = xdrbuf->head[0].iov_base;
+-		seg[n].mr_len = xdrbuf->head[0].iov_len;
+-		++n;
++	if (pos == 0) {
++		n = rpcrdma_convert_kvec(&xdrbuf->head[0], seg, n, nsegs);
++		if (n == nsegs)
++			return -EIO;
+ 	}
+ 
+ 	len = xdrbuf->page_len;
+@@ -192,13 +218,9 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+ 		 * xdr pad bytes, saving the server an RDMA operation. */
+ 		if (xdrbuf->tail[0].iov_len < 4 && xprt_rdma_pad_optimize)
+ 			return n;
++		n = rpcrdma_convert_kvec(&xdrbuf->tail[0], seg, n, nsegs);
+ 		if (n == nsegs)
+-			/* Tail remains, but we're out of segments */
+ 			return -EIO;
+-		seg[n].mr_page = NULL;
+-		seg[n].mr_offset = xdrbuf->tail[0].iov_base;
+-		seg[n].mr_len = xdrbuf->tail[0].iov_len;
+-		++n;
+ 	}
+ 
+ 	return n;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
