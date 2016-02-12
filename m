@@ -1,55 +1,57 @@
-From: dann frazier <dann.frazier-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] perftest: Fix typos in s390x support
-Date: Fri, 12 Feb 2016 08:38:29 -0700
-Message-ID: <1455291509-24868-1-git-send-email-dann.frazier@canonical.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alexey Ishchuk <alexey_ishchuk-JgLE2wv1ufrQT0dZR+AlfA@public.gmane.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv3 1/3] rdmacg: Added rdma cgroup controller.
+Date: Fri, 12 Feb 2016 11:45:21 -0500
+Message-ID: <20160212164521.GH3741@mtj.duckdns.org>
+References: <20160130183015.GP32380@htj.duckdns.org>
+ <CAG53R5XrnYY1AVBnu1b6BVfWwiUgyq+EsXay=CianRXnsUDviQ@mail.gmail.com>
+ <20160131100237.GS32380@htj.duckdns.org>
+ <CAG53R5WOLA_=gD9qVnsVk_oPs0iyacL3M+1qD+RAbrnciVXEOA@mail.gmail.com>
+ <20160131110420.GV32380@htj.duckdns.org>
+ <CAG53R5XXaW-fhb9megcp+Xnv05bSuonDws2fE-D6Wk3JNqS2Aw@mail.gmail.com>
+ <20160201184046.GD14091@mtj.duckdns.org>
+ <CAG53R5U=ojbn5tQoq=xR0DUb3Tm6yw+oO6mXVAQ2cUOhbvCdKQ@mail.gmail.com>
+ <56BB6502.8040507@mellanox.com>
+ <CAG53R5WC17nLL2qjtB-_RZR+45qBDmJ2=12UtHxuKtvWhfN5XA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5WC17nLL2qjtB-_RZR+45qBDmJ2=12UtHxuKtvWhfN5XA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>
+Cc: Haggai Eran <haggaie@mellanox.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 472171fbd5a8 added support for s390x systems, but it looks like the
-changeset got corrupted between submit and commit, resulting in a compile
-failure. The version on the mailing list looks fine:
+Hello, Parav.
 
-    http://www.spinics.net/lists/linux-rdma/msg19592.html
+On Fri, Feb 12, 2016 at 02:49:38AM +0530, Parav Pandit wrote:
+> 1. Removed two type of resource pool, made is single type (as you
+> described in past comment)
+> 2. Removed match tokens and have array definition like "qp", "mr", "cq" etc.
+> 3. Wrote small parser and avoided match_token API as that won't work
+> due to different array definition
+> 4. Removed one-off remove API to unconfigure cgroup, instead all
+> resource should be set to max.
+> 5. Removed resource pool type (user/default), instead having max_num_cnt,
+> when ref_cnt drops to zero and max_num_cnt = total_rescource_cnt, pool is freed.
+> 6. Resource definition ownership is now only with IB stack at single
+> header file, no longer in each low level driver.
+> This goes through IB maintainer and other reviewers eyes.
+> This continue to give flexibility to not force kernel upgrade for few
+> enums additions for new resource type.
+> 7. Wherever possible pool lock is pushed out, except for hierarchical
+> charging/unchanging points, as it not possible to do so, due to
+> iterative process involves blocking allocations of rpool. Coming up
+> more levels up to release locks doesn't make any sense either.
+> This is anyway slow path where rpool is not allocated. Except for
+> typical first resource allocation, this is less traveled path.
+> 8.Other minor cleanups.
+> 9. Avoided %d manipulation due to removal of match_token and replaced
+> with seq_putc etc friend functions.
 
-Signed-off-by: dann frazier <dann.frazier-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- README          | 2 +-
- src/get_clock.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Sounds great.  Can't tell too much without looking at the code tho.
 
-diff --git a/README b/README
-index 935379f..0447e7f 100644
---- a/README
-+++ b/README
-@@ -237,7 +237,7 @@ Special feature detailed explanation in tests:
-     ./configure --disable-verbs_exp
-     make
- 
-- 6. In te x390x platform virtualized environment the results shown by package test applications can be incorrect.
-+ 6. In the s390x platform virtualized environment the results shown by package test applications can be incorrect.
- 
-  7. perftest-2.3 release includes support for dualport VPI test - port1-Ethernet , port2-IB. (in addition to Eth:Eth, IB:IB)
-     Currently, running dualport when port1-IB , port2-Ethernet still not working.
-diff --git a/src/get_clock.c b/src/get_clock.c
-index 9b0c23e..fd27be1 100755
---- a/src/get_clock.c
-+++ b/src/get_clock.c
-@@ -201,7 +201,7 @@ static double proc_get_cpu_mhz(int no_cpu_freq_warn)
- double get_cpu_mhz(int no_cpu_freq_warn)
- {
- 	#ifdef __s390x__
--	return sample_get_cpu_mgz();
-+	return sample_get_cpu_mhz();
- 	#else
- 	double sample, proc, delta;
- 	sample = sample_get_cpu_mhz();
+Thanks.
+
 -- 
-2.7.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+tejun
