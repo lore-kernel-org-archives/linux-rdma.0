@@ -1,135 +1,57 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 1/8] xprtrdma: Segment head and tail XDR buffers on page
- boundaries
-Date: Fri, 12 Feb 2016 16:06:02 -0500
-Message-ID: <20160212210602.5278.57457.stgit@manet.1015granger.net>
-References: <20160212205107.5278.55938.stgit@manet.1015granger.net>
+Subject: [PATCH v1 0/8] NFS/RDMA client patches for v4.6
+Date: Fri, 12 Feb 2016 16:05:53 -0500
+Message-ID: <20160212205107.5278.55938.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160212205107.5278.55938.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A single memory allocation is used for the pair of buffers wherein
-the RPC client builds an RPC call message and decodes its matching
-reply. These buffers are sized based on the maximum possible size
-of the RPC call and reply messages for the operation in progress.
+There continues to be some fallout from enabling NFSv4.1/RDMA, and
+from converting the reply handler to use a work queue.  This series
+includes some bug fixes for those issues.
 
-This means that as the call buffer increases in size, the start of
-the reply buffer is pushed farther into the memory allocation.
+Logic to handle the RPC-over-RDMA RDMA_ERROR message type is also
+introduced into the RPC reply handler.
 
-RPC requests are growing in size. It used to be that both the call
-and reply buffers fit inside a single page.
+Also included is a patch set to convert xprtrdma to use the new core
+CQ API.
 
-But these days, thanks to NFSv4 (and especially security labels in
-NFSv4.2) the maximum call and reply sizes are large. NFSv4.0 OPEN,
-for example, now requires a 6KB allocation for a pair of call and
-reply buffers, and NFSv4 LOOKUP is not far behind.
+Available in the "nfs-rdma-for-4.6" topic branch of this git repo:
 
-As the maximum size of a call increases, the reply buffer is pushed
-far enough into the buffer's memory allocation that a page boundary
-can appear in the middle of it.
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-When the maximum possible reply size is larger than the client's
-RDMA receive buffers (currently 1KB), the client has to register a
-Reply chunk for the server to RDMA Write the reply into.
+Or for browsing:
 
-The logic in rpcrdma_convert_iovs() assumes that xdr_buf head and
-tail buffers would always be contained on a single page. It supplies
-just one segment for the head and one for the tail.
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.6
 
-FMR, for example, registers up to a page boundary (only a portion of
-the reply buffer in the OPEN case above). But without additional
-segments, it doesn't register the rest of the buffer.
 
-When the server tries to write the OPEN reply, the RDMA Write fails
-with a remote access error since the client registered only part of
-the Reply chunk.
+Chuck Lever (8):
+      xprtrdma: Segment head and tail XDR buffers on page boundaries
+      xprtrdma: Invalidate memory when a signal is caught
+      rpcrdma: Add RPCRDMA_HDRLEN_ERR
+      xprtrdma: Properly handle RDMA_ERROR replies
+      xprtrdma: Serialize credit accounting again
+      xprtrdma: Use new CQ API for RPC-over-RDMA client receive CQs
+      xprtrdma: Use an anonymous union in struct rpcrdma_mw
+      xprtrdma: Use new CQ API for RPC-over-RDMA client send CQs
 
-rpcrdma_convert_iovs() must split the XDR buffer into multiple
-segments, each of which are guaranteed not to contain a page
-boundary. That way fmr_op_map is given the proper number of segments
-to register the whole reply buffer.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/rpc_rdma.c |   42 ++++++++++++++++++++++++++++++----------
- 1 file changed, 32 insertions(+), 10 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 0f28f2d..add1f98 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -132,6 +132,33 @@ rpcrdma_tail_pullup(struct xdr_buf *buf)
- 	return tlen;
- }
- 
-+/* Split "vec" on page boundaries into segments. FMR registers pages,
-+ * not a byte range. Other modes coalesce these segments into a single
-+ * MR when they can.
-+ */
-+static int
-+rpcrdma_convert_kvec(struct kvec *vec, struct rpcrdma_mr_seg *seg,
-+		     int n, int nsegs)
-+{
-+	size_t page_offset;
-+	u32 remaining;
-+	char *base;
-+
-+	base = vec->iov_base;
-+	page_offset = offset_in_page(base);
-+	remaining = vec->iov_len;
-+	while (remaining && n < nsegs) {
-+		seg[n].mr_page = NULL;
-+		seg[n].mr_offset = base;
-+		seg[n].mr_len = min_t(u32, PAGE_SIZE - page_offset, remaining);
-+		remaining -= seg[n].mr_len;
-+		base += seg[n].mr_len;
-+		++n;
-+		page_offset = 0;
-+	}
-+	return n;
-+}
-+
- /*
-  * Chunk assembly from upper layer xdr_buf.
-  *
-@@ -150,11 +177,10 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 	int page_base;
- 	struct page **ppages;
- 
--	if (pos == 0 && xdrbuf->head[0].iov_len) {
--		seg[n].mr_page = NULL;
--		seg[n].mr_offset = xdrbuf->head[0].iov_base;
--		seg[n].mr_len = xdrbuf->head[0].iov_len;
--		++n;
-+	if (pos == 0) {
-+		n = rpcrdma_convert_kvec(&xdrbuf->head[0], seg, n, nsegs);
-+		if (n == nsegs)
-+			return -EIO;
- 	}
- 
- 	len = xdrbuf->page_len;
-@@ -192,13 +218,9 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 		 * xdr pad bytes, saving the server an RDMA operation. */
- 		if (xdrbuf->tail[0].iov_len < 4 && xprt_rdma_pad_optimize)
- 			return n;
-+		n = rpcrdma_convert_kvec(&xdrbuf->tail[0], seg, n, nsegs);
- 		if (n == nsegs)
--			/* Tail remains, but we're out of segments */
- 			return -EIO;
--		seg[n].mr_page = NULL;
--		seg[n].mr_offset = xdrbuf->tail[0].iov_base;
--		seg[n].mr_len = xdrbuf->tail[0].iov_len;
--		++n;
- 	}
- 
- 	return n;
+ include/linux/sunrpc/rpc_rdma.h |   12 +-
+ net/sunrpc/xprtrdma/fmr_ops.c   |   28 +++---
+ net/sunrpc/xprtrdma/frwr_ops.c  |  137 ++++++++++++++++++---------
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   89 +++++++++++++-----
+ net/sunrpc/xprtrdma/transport.c |   41 +++++++-
+ net/sunrpc/xprtrdma/verbs.c     |  198 ++++++++++++---------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |   15 +--
+ 7 files changed, 279 insertions(+), 241 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
