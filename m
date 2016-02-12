@@ -1,30 +1,35 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB: new common API for draining queues
-Date: Thu, 11 Feb 2016 18:32:35 -0600
-Message-ID: <56BD2823.3020804@opengridcomputing.com>
-References: <cover.1455230646.git.swise@chelsio.com>
- <3e7261d1436d33320223d365974ff38945f0d558.1455230646.git.swise@chelsio.com>
- <56BD1248.80805@sandisk.com> <56BD1624.4090309@sandisk.com>
- <024401d16522$d7bbfd50$8733f7f0$@opengridcomputing.com>
- <56BD1800.9050508@sandisk.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] RDMA/ocrdma: Fix arm logic to align with new cq API
+Date: Fri, 12 Feb 2016 09:16:47 +0530
+Message-ID: <CANjDDBgH-4Foq02f8wE2bdg7OprvT84gLNY6-9uPNgYWEFKLPg@mail.gmail.com>
+References: <1455168112-12803-1-git-send-email-devesh.sharma@broadcom.com> <CAG53R5UnRqq9Gf5fFZJr+e_3DQvz7ViveJJAz6FBFYBaADtMJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56BD1800.9050508-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CAG53R5UnRqq9Gf5fFZJr+e_3DQvz7ViveJJAz6FBFYBaADtMJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Parav,
 
+I have tested this patch with nfsrdma + linux-4.4 (i.e. without
+Chuck's patches to use new CQ API)
+iozone on nfsrdma mount point passed.
 
-On 2/11/2016 5:23 PM, Bart Van Assche wrote:
-> On 02/11/2016 03:20 PM, Steve Wise wrote:
->> I guess you're making your point to not post code that has no user...
+-Regards
+Devesh
+
+On Fri, Feb 12, 2016 at 2:43 AM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Feb 11, 2016 at 10:51 AM, Devesh Sharma
+> <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>> CQ is never armed before calling poll on it. Most of the kernel
+>> ULPs have already moved to use this new API or have a code where
+>> poll is called before arming the CQ.
 >
-> How about using WARN_ONCE(cq->poll_ctx == IB_POLL_DIRECT) instead ?
-
-That's fine with me.
+> You might want to wait for NFS whose patches are in pipe to migrate to
+> newer APIs before merging this?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
