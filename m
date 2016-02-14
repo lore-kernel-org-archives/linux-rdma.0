@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/16] staging/rdma/hfi1: Add s_sendcontext priv field
-Date: Sun, 14 Feb 2016 12:45:00 -0800
-Message-ID: <20160214204457.29247.20311.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 07/16] staging/rdma/hfi1: avoid passing pmtu
+Date: Sun, 14 Feb 2016 12:45:09 -0800
+Message-ID: <20160214204505.29247.34527.stgit@scvm10.sc.intel.com>
 References: <20160214203612.29247.59915.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,104 +10,57 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160214203612.29247.59915.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-s_sendcontext will be used to map the QPs to the send contexts
-for PIO.
+It is in the qp.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/qp.c    |   13 +++++++++++--
- drivers/staging/rdma/hfi1/ud.c    |    1 +
- drivers/staging/rdma/hfi1/verbs.h |    9 +++++----
- 3 files changed, 17 insertions(+), 6 deletions(-)
+ drivers/staging/rdma/hfi1/rc.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index 129a70d..b81dc50 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -191,6 +191,9 @@ int hfi1_check_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
- 		if (!qp_to_sdma_engine(qp, sc) &&
- 		    dd->flags & HFI1_HAS_SEND_DMA)
- 			return -EINVAL;
-+
-+		if (!qp_to_send_context(qp, sc))
-+			return -EINVAL;
- 	}
- 
- 	if (attr_mask & IB_QP_ALT_PATH) {
-@@ -201,6 +204,9 @@ int hfi1_check_modify_qp(struct rvt_qp *qp, struct ib_qp_attr *attr,
- 		if (!qp_to_sdma_engine(qp, sc) &&
- 		    dd->flags & HFI1_HAS_SEND_DMA)
- 			return -EINVAL;
-+
-+		if (!qp_to_send_context(qp, sc))
-+			return -EINVAL;
- 	}
- 
- 	return 0;
-@@ -608,11 +614,13 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 	struct rvt_qp *qp = iter->qp;
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	struct sdma_engine *sde;
-+	struct send_context *send_context;
- 
- 	sde = qp_to_sdma_engine(qp, priv->s_sc);
- 	wqe = rvt_get_swqe_ptr(qp, qp->s_last);
-+	send_context = qp_to_send_context(qp, priv->s_sc);
- 	seq_printf(s,
--		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u %u) QP%u LID %x SL %u MTU %u %u %u %u SDE %p,%u\n",
-+		   "N %d %s QP%u R %u %s %u %u %u f=%x %u %u %u %u %u PSN %x %x %x %x %x (%u %u %u %u %u %u %u) QP%u LID %x SL %u MTU %u %u %u %u SDE %p,%u SC %p\n",
- 		   iter->n,
- 		   qp_idle(qp) ? "I" : "B",
- 		   qp->ibqp.qp_num,
-@@ -641,7 +649,8 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 		   qp->s_retry_cnt,
- 		   qp->s_rnr_retry_cnt,
- 		   sde,
--		   sde ? sde->this_idx : 0);
-+		   sde ? sde->this_idx : 0,
-+		   send_context);
- }
- 
- void qp_comm_est(struct rvt_qp *qp)
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index a7118bc..1b4b191 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -394,6 +394,7 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		priv->s_sc = sc5;
- 	}
- 	priv->s_sde = qp_to_sdma_engine(qp, priv->s_sc);
-+	priv->s_sendcontext = qp_to_send_context(qp, priv->s_sc);
- 	ps->s_txreq->phdr.hdr.lrh[0] = cpu_to_be16(lrh0);
- 	ps->s_txreq->phdr.hdr.lrh[1] = cpu_to_be16(ah_attr->dlid);
- 	ps->s_txreq->phdr.hdr.lrh[2] =
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 73f471a..3d25ad4 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -199,10 +199,11 @@ struct hfi1_pio_header {
-  * pair is made common
+diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
+index c075e85..d54d3ad 100644
+--- a/drivers/staging/rdma/hfi1/rc.c
++++ b/drivers/staging/rdma/hfi1/rc.c
+@@ -200,7 +200,6 @@ static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
+  * @dev: the device for this QP
+  * @qp: a pointer to the QP
+  * @ohdr: a pointer to the IB header being constructed
+- * @pmtu: the path MTU
+  * @ps: the xmit packet state
+  *
+  * Return 1 if constructed; otherwise, return 0.
+@@ -208,7 +207,7 @@ static u32 restart_sge(struct rvt_sge_state *ss, struct rvt_swqe *wqe,
+  * Note the QP s_lock must be held.
   */
- struct hfi1_qp_priv {
--	struct ahg_ib_header *s_hdr; /* next packet header to send */
--	struct sdma_engine *s_sde;   /* current sde */
--	u8 s_sc;		     /* SC[0..4] for next packet */
--	u8 r_adefered;               /* number of acks defered */
-+	struct ahg_ib_header *s_hdr;              /* next header to send */
-+	struct sdma_engine *s_sde;                /* current sde */
-+	struct send_context *s_sendcontext;       /* current sendcontext */
-+	u8 s_sc;		                  /* SC[0..4] for next packet */
-+	u8 r_adefered;                            /* number of acks defered */
- 	struct iowait s_iowait;
- 	struct timer_list s_rnr_timer;
- 	struct rvt_qp *owner;
+ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+-		       struct hfi1_other_headers *ohdr, u32 pmtu,
++		       struct hfi1_other_headers *ohdr,
+ 		       struct hfi1_pkt_state *ps)
+ {
+ 	struct rvt_ack_entry *e;
+@@ -217,6 +216,7 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
+ 	u32 bth0;
+ 	u32 bth2;
+ 	int middle = 0;
++	u32 pmtu = qp->pmtu;
+ 
+ 	/* Don't send an ACK if we aren't supposed to. */
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
+@@ -400,7 +400,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 
+ 	/* Sending responses has higher priority over sending requests. */
+ 	if ((qp->s_flags & RVT_S_RESP_PENDING) &&
+-	    make_rc_ack(dev, qp, ohdr, pmtu, ps))
++	    make_rc_ack(dev, qp, ohdr, ps))
+ 		return 1;
+ 
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_SEND_OK)) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
