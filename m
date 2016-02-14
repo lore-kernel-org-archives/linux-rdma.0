@@ -1,57 +1,35 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: 4.5-rc iser issues
-Date: Sun, 14 Feb 2016 13:36:15 +0200
-Message-ID: <56C066AF.6050901@dev.mellanox.co.il>
-References: <20160214074119.GA24558@infradead.org>
- <56C04294.3090701@dev.mellanox.co.il> <56C05000.1040001@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 0/2] Fix counters support in mlx4
+Date: Sun, 14 Feb 2016 15:51:09 +0200
+Message-ID: <1455457871-17354-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C05000.1040001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lin-SSI <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> I'm bisecting now, there are a couple of patches from Ming in
-> the area of the bio splitting code...
->
-> CC'ing Ming, Linux-block and Linux-nvme as iser is identical to nvme
-> wrt the virtual boundary so I think nvme will break as well.
+Hi Doug,
 
-Bisection reveals that this one is the culprit:
+This series fixes an issue introduced in 4.5 after applying Christoph Lameter's
+"IB 64 bit counter support" series.  Christoph used a mad in order to query the
+vendor driver for extended counters support, however this mad wasn't handled in
+mlx4 when link layer is Ethernet.  Thus, counters in RoCE could be broken.
 
-commit 52cc6eead9095e2faf2ec7afc013aa3af1f01ac5
-Author: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Date:   Thu Sep 17 09:58:38 2015 -0600
+Thanks,
+Eran and Matan.
 
-     block: blk-merge: fast-clone bio when splitting rw bios
+Eran Ben Elisha (2):
+  IB/mlx4: Add support for extended counters over RoCE ports
+  IB/mlx4: Add support for the port info class for RoCE ports
 
-     biovecs has become immutable since v3.13, so it isn't necessary
-     to allocate biovecs for the new cloned bios, then we can save
-     one extra biovecs allocation/copy, and the allocation is often
-     not fixed-length and a bit more expensive.
+ drivers/infiniband/hw/mlx4/mad.c | 63 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 50 insertions(+), 13 deletions(-)
 
-     For example, if the 'max_sectors_kb' of null blk's queue is set
-     as 16(32 sectors) via sysfs just for making more splits, this patch
-     can increase throught about ~70% in the sequential read test over
-     null_blk(direct io, bs: 1M).
+-- 
+1.8.3.1
 
-     Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-     Cc: Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-     Cc: Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>
-     Cc: Dongsu Park <dpark-VwIFZPTo/vqsTnJN9+BGXg@public.gmane.org>
-     Signed-off-by: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-
-     This fixes a performance regression introduced by commit 54efd50bfd,
-     and allows us to take full advantage of the fact that we have immutable
-     bio_vecs. Hand applied, as it rejected violently with commit
-     5014c311baa2.
-
-     Signed-off-by: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
---
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
