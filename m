@@ -1,58 +1,56 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [RFC 0/7] Peer-direct memory
-Date: Sun, 14 Feb 2016 16:27:20 +0200
-Message-ID: <56C08EC8.10207@mellanox.com>
-References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
- <20160211191838.GA23675@obsidianresearch.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] new ib_drain_qp() API
+Date: Sun, 14 Feb 2016 08:51:26 -0600
+Message-ID: <56C0946E.50100@opengridcomputing.com>
+References: <cover.1455230646.git.swise@chelsio.com>
+ <20160213161049.GB14741@leon.nu> <20160213163253.GA8843@infradead.org>
+ <20160213165001.GC14741@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20160211191838.GA23675@obsidianresearch.com>
-Sender: owner-linux-mm@kvack.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Kovalyov Artemy <artemyko@mellanox.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "leon@leon.ro" <leon@leon.ro>, Sagi Grimberg <sagig@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160213165001.GC14741-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-[apologies: sending again because linux-mm address was wrong]
 
-On 11/02/2016 21:18, Jason Gunthorpe wrote:
-> Resubmit those parts under the mm subsystem, or another more
-> appropriate place.
 
-We want the feedback from linux-mm, and they are now Cced.
+On 2/13/2016 10:50 AM, Leon Romanovsky wrote:
+> On Sat, Feb 13, 2016 at 08:32:53AM -0800, Christoph Hellwig wrote:
+>> On Sat, Feb 13, 2016 at 06:10:49PM +0200, Leon Romanovsky wrote:
+>>> Hi Steve,
+>>> For future submission, can you please use versioning on all patches
+>>> submitted in the series and not only in cover letter?
+>>>
+>>> In such way, internal filtering of new emails will be more informative.
+>> That's very unusual and not the git-send-email default for a reason.
+>> I'd suggest you fix your 'internal filtering' instead.
+> >From my perspective there are many top developers which are using
+> proposed format as you said "for a reason".
+>
+> My flow is based on mutt mail reader and I'll be glad to hear how
+> it can be fixed.
+>
+> Can you suggest me how do I suppose "to fix" my filtering?
+> Right now, the flow is:
+> 1. Open mutt
+> 2. Navigate to linux-rdma mailbox
+> 3. Hit "l" (limit open)
+> 4. Write "new"
+> 5. Get only new (unread) mails.
+> 6. Read all emails and for Steve's mails only, I need to disable
+> limit in order to say if it is new version of patches or old ones.
+>
+> P.S. get_maintainer.pl script has strange defaults too, it doesn't say
+> that we need to follow blindly them.
+>
 
-> If you want to make some incremental progress then implement the
-> existing ZONE_DEVICE API for the IB core and add the invalidate stuff
-> later, once you've negotiated a common API for that with linux-mm.
+The patches are threaded in that they all reference the cover letter 
+email.  Is there a way you can thread your view with mutt?
 
-So there are couple of issues we currently have with ZONE_DEVICE. 
-Perhaps they can be solved and then we could use it directly.
-
-First, I'm not sure it is intended to be used for our purpose. 
-memremap() has this comment [1]:
-> memremap() is "ioremap" for cases where it is known that the resource
-> being mapped does not have i/o side effects and the __iomem
-> annotation is not applicable. 
-
-Does this apply also to devm_memremap_pages()? Because the HCA BAR 
-clearly doesn't fall under this definition.
-
-Second, there's a requirement that ZONE_DEVICE ranges are aligned to 
-section-boundary, right? We have devices that have 8MB or 32MB BARs, 
-so they won't work with 128MB sections on x86_64.
-
-Third, I understand there was a desire to place ZONE_DEVICE page structs 
-in the device itself. This can work for pmem, but obviously won't work 
-for an I/O device BAR like an HCA.
-
-Regards,
-Haggai
-
-[1] http://lxr.free-electrons.com/source/kernel/memremap.c?v=4.4#L38
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
