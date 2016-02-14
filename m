@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/2] IB/mlx5: Avoid using user-index for SRQs
-Date: Sun, 14 Feb 2016 18:35:51 +0200
-Message-ID: <1455467752-3170-2-git-send-email-matanb@mellanox.com>
+Subject: [PATCH 2/2] IB/{core, mlx5}: Fix input len in vendor specific part of create_qp/srq cmd
+Date: Sun, 14 Feb 2016 18:35:52 +0200
+Message-ID: <1455467752-3170-3-git-send-email-matanb@mellanox.com>
 References: <1455467752-3170-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455467752-3170-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,101 +12,94 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Normal SRQs, unlike XRC SRQs, don't have user-index, therefore
-avoid verifying it and using it.
+Currently, the inlen field of the vendor's part of the command
+doesn't match the command buffer. This happens because the inlen
+accommodates ib_uverbs_cmd_hdr which is deducted from the in buffer.
+This is problematic since the vendor function could be called either
+from the legacy verb (where the input length mismatches the actual
+length) or by the extended verb (where the length matches). The vendor
+has no idea which function calls it and therefore has no way to know
+how the length variable should be treated.
+
+Fixing this by aligning the inlen to the correct length.
+
+All vendor drivers either assumed that inlen >= sizeof(vendor_uhw_cmd)
+or just failed wrongly (mlx5) and fixed in this patch.
 
 Fixes: cfb5e088e26a ('IB/mlx5: Add CQE version 1 support to user QPs and SRQs')
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/srq.c | 30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c |  9 ++++++---
+ drivers/infiniband/hw/mlx5/srq.c     | 11 +++--------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6ffc9c4..6c6fbff 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1970,7 +1970,8 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 		   resp_size);
+ 	INIT_UDATA(&uhw, buf + sizeof(cmd),
+ 		   (unsigned long)cmd.response + resp_size,
+-		   in_len - sizeof(cmd), out_len - resp_size);
++		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
++		   out_len - resp_size);
+ 
+ 	memset(&cmd_ex, 0, sizeof(cmd_ex));
+ 	cmd_ex.user_handle = cmd.user_handle;
+@@ -3413,7 +3414,8 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
+ 
+ 	INIT_UDATA(&udata, buf + sizeof cmd,
+ 		   (unsigned long) cmd.response + sizeof resp,
+-		   in_len - sizeof cmd, out_len - sizeof resp);
++		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
++		   out_len - sizeof resp);
+ 
+ 	ret = __uverbs_create_xsrq(file, ib_dev, &xcmd, &udata);
+ 	if (ret)
+@@ -3439,7 +3441,8 @@ ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
+ 
+ 	INIT_UDATA(&udata, buf + sizeof cmd,
+ 		   (unsigned long) cmd.response + sizeof resp,
+-		   in_len - sizeof cmd, out_len - sizeof resp);
++		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
++		   out_len - sizeof resp);
+ 
+ 	ret = __uverbs_create_xsrq(file, ib_dev, &cmd, &udata);
+ 	if (ret)
 diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 4659256..a1b7122 100644
+index a1b7122..3b2ddd6 100644
 --- a/drivers/infiniband/hw/mlx5/srq.c
 +++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -75,7 +75,8 @@ static void mlx5_ib_srq_event(struct mlx5_core_srq *srq, enum mlx5_event type)
+@@ -88,13 +88,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 	int ncont;
+ 	u32 offset;
+ 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
+-	int drv_data = udata->inlen - sizeof(struct ib_uverbs_cmd_hdr);
  
- static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 			   struct mlx5_create_srq_mbox_in **in,
--			   struct ib_udata *udata, int buf_size, int *inlen)
-+			   struct ib_udata *udata, int buf_size, int *inlen,
-+			   int is_xrc)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
- 	struct mlx5_ib_create_srq ucmd = {};
-@@ -108,10 +109,12 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 				 drv_data - sizeof(ucmd)))
+-	if (drv_data < 0)
+-		return -EINVAL;
+-
+-	ucmdlen = (drv_data < sizeof(ucmd)) ?
+-		  drv_data : sizeof(ucmd);
++	ucmdlen = min(udata->inlen, sizeof(ucmd));
+ 
+ 	if (ib_copy_from_udata(&ucmd, udata, ucmdlen)) {
+ 		mlx5_ib_dbg(dev, "failed copy udata\n");
+@@ -104,9 +99,9 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 	if (ucmd.reserved0 || ucmd.reserved1)
  		return -EINVAL;
  
--	err = get_srq_user_index(to_mucontext(pd->uobject->context),
--				 &ucmd, udata->inlen, &uidx);
--	if (err)
--		return err;
-+	if (is_xrc) {
-+		err = get_srq_user_index(to_mucontext(pd->uobject->context),
-+					 &ucmd, udata->inlen, &uidx);
-+		if (err)
-+			return err;
-+	}
+-	if (drv_data > sizeof(ucmd) &&
++	if (udata->inlen > sizeof(ucmd) &&
+ 	    !ib_is_udata_cleared(udata, sizeof(ucmd),
+-				 drv_data - sizeof(ucmd)))
++				 udata->inlen - sizeof(ucmd)))
+ 		return -EINVAL;
  
- 	srq->wq_sig = !!(ucmd.flags & MLX5_SRQ_FLAG_SIGNATURE);
- 
-@@ -151,7 +154,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	(*in)->ctx.log_pg_sz = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	(*in)->ctx.pgoff_cqn = cpu_to_be32(offset << 26);
- 
--	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1) {
-+	if ((MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1) &&
-+	     is_xrc){
- 		xsrqc = MLX5_ADDR_OF(create_xrc_srq_in, *in,
- 				     xrc_srq_context_entry);
- 		MLX5_SET(xrc_srqc, xsrqc, user_index, uidx);
-@@ -170,7 +174,7 @@ err_umem:
- 
- static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 			     struct mlx5_create_srq_mbox_in **in, int buf_size,
--			     int *inlen)
-+			     int *inlen, int is_xrc)
- {
- 	int err;
- 	int i;
-@@ -224,7 +228,8 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 
- 	(*in)->ctx.log_pg_sz = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 
--	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1) {
-+	if ((MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1) &&
-+	     is_xrc){
- 		xsrqc = MLX5_ADDR_OF(create_xrc_srq_in, *in,
- 				     xrc_srq_context_entry);
- 		/* 0xffffff means we ask to work with cqe version 0 */
-@@ -302,10 +307,14 @@ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
- 		    desc_size, init_attr->attr.max_wr, srq->msrq.max, srq->msrq.max_gs,
- 		    srq->msrq.max_avail_gather);
- 
-+	is_xrc = (init_attr->srq_type == IB_SRQT_XRC);
-+
- 	if (pd->uobject)
--		err = create_srq_user(pd, srq, &in, udata, buf_size, &inlen);
-+		err = create_srq_user(pd, srq, &in, udata, buf_size, &inlen,
-+				      is_xrc);
- 	else
--		err = create_srq_kernel(dev, srq, &in, buf_size, &inlen);
-+		err = create_srq_kernel(dev, srq, &in, buf_size, &inlen,
-+					is_xrc);
- 
- 	if (err) {
- 		mlx5_ib_warn(dev, "create srq %s failed, err %d\n",
-@@ -313,7 +322,6 @@ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
- 		goto err_srq;
- 	}
- 
--	is_xrc = (init_attr->srq_type == IB_SRQT_XRC);
- 	in->ctx.state_log_sz = ilog2(srq->msrq.max);
- 	flgs = ((srq->msrq.wqe_shift - 4) | (is_xrc << 5) | (srq->wq_sig << 7)) << 24;
- 	xrcdn = 0;
+ 	if (is_xrc) {
 -- 
 1.8.3.1
 
