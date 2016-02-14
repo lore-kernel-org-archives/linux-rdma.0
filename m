@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 08/12] IB/qib,rdmavt: Move smi_ah to qib
-Date: Sun, 14 Feb 2016 12:10:55 -0800
-Message-ID: <20160214201050.1410.7572.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 09/12] IB/rdmavt: Remove RVT_FLAGs
+Date: Sun, 14 Feb 2016 12:11:03 -0800
+Message-ID: <20160214201100.1410.58605.stgit@scvm10.sc.intel.com>
 References: <20160214200613.1410.63195.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,80 +13,101 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Rdmavt adopted an smi_ah from qib which is not needed by hfi1. Move this
-back to qib and get it out of the common library.
+While hfi1 and qib were still supporting bits and pieces of core verbs
+components there needed to be a way to convey if rdmavt should handle
+allocation and initialize of resources like the queue pair table. Now
+that all of this is moved into rdmavt there is no need for these flags.
+They are no longer used in the drivers.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c |   10 +++++-----
- drivers/infiniband/hw/qib/qib_verbs.h   |    1 +
- include/rdma/rdma_vt.h                  |    1 -
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/sw/rdmavt/cq.c |    5 -----
+ drivers/infiniband/sw/rdmavt/mr.c |    5 -----
+ drivers/infiniband/sw/rdmavt/qp.c |    8 --------
+ include/rdma/rdma_vt.h            |   10 ----------
+ 4 files changed, 0 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index a159922..ca28c19 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2910,8 +2910,8 @@ static void qib_setup_7322_cleanup(struct qib_devdata *dd)
- 			spin_unlock_irqrestore(&dd->cspec->gpio_lock, flags);
- 			qib_qsfp_deinit(&dd->pport[i].cpspec->qsfp_data);
- 		}
--		if (dd->pport[i].ibport_data.rvp.smi_ah)
--			ib_destroy_ah(&dd->pport[i].ibport_data.rvp.smi_ah->ibah);
-+		if (dd->pport[i].ibport_data.smi_ah)
-+			ib_destroy_ah(&dd->pport[i].ibport_data.smi_ah->ibah);
- 	}
- }
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index c69c070..b1ffc8b 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -508,11 +508,6 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
+ 	int cpu;
+ 	struct task_struct *task;
  
-@@ -5507,7 +5507,7 @@ static void try_7322_ipg(struct qib_pportdata *ppd)
- 	if (IS_ERR(send_buf))
- 		goto retry;
+-	if (rdi->flags & RVT_FLAG_CQ_INIT_DRIVER) {
+-		rvt_pr_info(rdi, "Driver is doing CQ init.\n");
+-		return 0;
+-	}
+-
+ 	if (rdi->worker)
+ 		return 0;
+ 	rdi->worker = kzalloc(sizeof(*rdi->worker), GFP_KERNEL);
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 8549652..4d5ef73 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -66,11 +66,6 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
+ 	unsigned lk_tab_size;
+ 	int i;
  
--	if (!ibp->rvp.smi_ah) {
-+	if (!ibp->smi_ah) {
- 		struct ib_ah *ah;
+-	if (rdi->flags & RVT_FLAG_MR_INIT_DRIVER) {
+-		rvt_pr_info(rdi, "Driver is doing MR init.\n");
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * The top hfi1_lkey_table_size bits are used to index the
+ 	 * table.  The lower 8 bits can be owned by the user (copied from
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 5809562..441e17a 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -173,11 +173,6 @@ int rvt_driver_qp_init(struct rvt_dev_info *rdi)
+ 	int i;
+ 	int ret = -ENOMEM;
  
- 		ah = qib_create_qp0_ah(ibp, be16_to_cpu(IB_LID_PERMISSIVE));
-@@ -5515,11 +5515,11 @@ static void try_7322_ipg(struct qib_pportdata *ppd)
- 			ret = PTR_ERR(ah);
- 		else {
- 			send_buf->ah = ah;
--			ibp->rvp.smi_ah = ibah_to_rvtah(ah);
-+			ibp->smi_ah = ibah_to_rvtah(ah);
- 			ret = 0;
- 		}
- 	} else {
--		send_buf->ah = &ibp->rvp.smi_ah->ibah;
-+		send_buf->ah = &ibp->smi_ah->ibah;
- 		ret = 0;
- 	}
+-	if (rdi->flags & RVT_FLAG_QP_INIT_DRIVER) {
+-		rvt_pr_info(rdi, "Driver is doing QP init.\n");
+-		return 0;
+-	}
+-
+ 	if (!rdi->dparms.qp_table_size)
+ 		return -EINVAL;
  
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index d137d71..4b76a8d 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -219,6 +219,7 @@ struct qib_pma_counters {
+@@ -284,9 +279,6 @@ void rvt_qp_exit(struct rvt_dev_info *rdi)
+ 	if (!rdi->qp_dev)
+ 		return;
  
- struct qib_ibport {
- 	struct rvt_ibport rvp;
-+	struct rvt_ah *smi_ah;
- 	__be64 guids[QIB_GUIDS_PER_PORT	- 1];	/* writable GUIDs */
- 	struct qib_pma_counters __percpu *pmastats;
- 	u64 z_unicast_xmit;     /* starting count for PMA */
+-	if (rdi->flags & RVT_FLAG_QP_INIT_DRIVER)
+-		return; /* driver did the qp init so nothing else to do */
+-
+ 	kfree(rdi->qp_dev->qp_table);
+ 	free_qpn_table(&rdi->qp_dev->qpn_table);
+ 	kfree(rdi->qp_dev);
 diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index ec658d8..2c3a04c 100644
+index 2c3a04c..264c514 100644
 --- a/include/rdma/rdma_vt.h
 +++ b/include/rdma/rdma_vt.h
-@@ -137,7 +137,6 @@ struct rvt_ibport {
- 	u16 *pkey_table;
+@@ -60,16 +60,6 @@
+ #include <rdma/rdmavt_mr.h>
+ #include <rdma/rdmavt_qp.h>
  
- 	struct rvt_ah *sm_ah;
--	struct rvt_ah *smi_ah;
- };
+-/*
+- * For some of the IBTA objects there will likely be some
+- * initializations required. We need flags to determine whether it is OK
+- * for rdmavt to do this or not. This does not imply any functions of a
+- * partiuclar IBTA object are overridden.
+- */
+-#define RVT_FLAG_MR_INIT_DRIVER BIT(1)
+-#define RVT_FLAG_QP_INIT_DRIVER BIT(2)
+-#define RVT_FLAG_CQ_INIT_DRIVER BIT(3)
+-
+ #define RVT_MAX_PKEY_VALUES 16
  
- #define RVT_CQN_MAX 16 /* maximum length of cq name */
+ struct rvt_ibport {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
