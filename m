@@ -1,28 +1,32 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] new ib_drain_qp() API
-Date: Sun, 14 Feb 2016 06:58:31 -0800
-Message-ID: <20160214145831.GA26575@infradead.org>
-References: <cover.1455230646.git.swise@chelsio.com>
- <20160213161049.GB14741@leon.nu>
- <20160213163253.GA8843@infradead.org>
- <20160213165001.GC14741@leon.nu>
- <56C0946E.50100@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH rdma-next 0/3] IB/core uverbs support for legacy commands
+Date: Sun, 14 Feb 2016 17:07:46 +0200
+Message-ID: <1455462469-9124-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56C0946E.50100-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 14, 2016 at 08:51:26AM -0600, Steve Wise wrote:
-> The patches are threaded in that they all reference the cover letter email.
-> Is there a way you can thread your view with mutt?
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-mutt works perfectly fine threaded.  I've happy to share the muttrc
-I use to read dozends of mailing lists every day..
+Hi Doug,
+I'm resending the Eli's patches [1] which adds uverbs support for
+legacy commands.
+
+[1] http://permalink.gmane.org/gmane.linux.drivers.rdma/30545
+
+Eli Cohen (3):
+  IB/core: Avoid duplicate code
+  IB/core: IB/core: Allow legacy verbs through extended interfaces
+  IB/core: Modify conditional on ucontext existence
+
+ drivers/infiniband/core/uverbs_main.c | 70 +++++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 36 deletions(-)
+
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
