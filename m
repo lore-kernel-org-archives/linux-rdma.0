@@ -1,10 +1,8 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] IB/{core, mlx5}: Fix input len in vendor specific part of create_qp/srq cmd
-Date: Sun, 14 Feb 2016 18:35:52 +0200
-Message-ID: <1455467752-3170-3-git-send-email-matanb@mellanox.com>
-References: <1455467752-3170-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH 0/2] User-index fixes
+Date: Sun, 14 Feb 2016 18:35:50 +0200
+Message-ID: <1455467752-3170-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455467752-3170-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,94 +10,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently, the inlen field of the vendor's part of the command
-doesn't match the command buffer. This happens because the inlen
-accommodates ib_uverbs_cmd_hdr which is deducted from the in buffer.
-This is problematic since the vendor function could be called either
-from the legacy verb (where the input length mismatches the actual
-length) or by the extended verb (where the length matches). The vendor
-has no idea which function calls it and therefore has no way to know
-how the length variable should be treated.
+Hi Doug,
 
-Fixing this by aligning the inlen to the correct length.
+This series fixes two issues introduced in 4.5 after applying my
+series "Raw Packet QP user-space support for mlx5".
 
-All vendor drivers either assumed that inlen >= sizeof(vendor_uhw_cmd)
-or just failed wrongly (mlx5) and fixed in this patch.
+SRQs don't use user-index, therefore the user shouldn't pass it and the
+kernel shouldn't verify. The first patch fixes this by avoiding
+user-index verification for non-xrc srqs.
 
-Fixes: cfb5e088e26a ('IB/mlx5: Add CQE version 1 support to user QPs and SRQs')
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c |  9 ++++++---
- drivers/infiniband/hw/mlx5/srq.c     | 11 +++--------
- 2 files changed, 9 insertions(+), 11 deletions(-)
+The mlx5_ib driver fails libraries that support user-index but don't
+pass it. It relies on the input length of the vendor specific part to
+determine whether the user-space supports user-index.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 6ffc9c4..6c6fbff 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1970,7 +1970,8 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 		   resp_size);
- 	INIT_UDATA(&uhw, buf + sizeof(cmd),
- 		   (unsigned long)cmd.response + resp_size,
--		   in_len - sizeof(cmd), out_len - resp_size);
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - resp_size);
- 
- 	memset(&cmd_ex, 0, sizeof(cmd_ex));
- 	cmd_ex.user_handle = cmd.user_handle;
-@@ -3413,7 +3414,8 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
- 
- 	INIT_UDATA(&udata, buf + sizeof cmd,
- 		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof resp);
- 
- 	ret = __uverbs_create_xsrq(file, ib_dev, &xcmd, &udata);
- 	if (ret)
-@@ -3439,7 +3441,8 @@ ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
- 
- 	INIT_UDATA(&udata, buf + sizeof cmd,
- 		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof resp);
- 
- 	ret = __uverbs_create_xsrq(file, ib_dev, &cmd, &udata);
- 	if (ret)
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index a1b7122..3b2ddd6 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -88,13 +88,8 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	int ncont;
- 	u32 offset;
- 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
--	int drv_data = udata->inlen - sizeof(struct ib_uverbs_cmd_hdr);
- 
--	if (drv_data < 0)
--		return -EINVAL;
--
--	ucmdlen = (drv_data < sizeof(ucmd)) ?
--		  drv_data : sizeof(ucmd);
-+	ucmdlen = min(udata->inlen, sizeof(ucmd));
- 
- 	if (ib_copy_from_udata(&ucmd, udata, ucmdlen)) {
- 		mlx5_ib_dbg(dev, "failed copy udata\n");
-@@ -104,9 +99,9 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	if (ucmd.reserved0 || ucmd.reserved1)
- 		return -EINVAL;
- 
--	if (drv_data > sizeof(ucmd) &&
-+	if (udata->inlen > sizeof(ucmd) &&
- 	    !ib_is_udata_cleared(udata, sizeof(ucmd),
--				 drv_data - sizeof(ucmd)))
-+				 udata->inlen - sizeof(ucmd)))
- 		return -EINVAL;
- 
- 	if (is_xrc) {
+
+In Legacy verbs, the given vendor specific part input length is given
+including struct ib_uverbs_cmd_hdr. In contrast, extended commands
+pass the same length exluding the header size.
+The vendor driver doesn't know whether the command is a legacy
+command or an extended command. Thus, we need to modify IB/core
+in order to pass a consistent size. The second patch fixes the input
+length in the IB/core and the wrong usage in the mlx5_ib.
+
+We verified that other vendors don't use the inlen parameter and thus
+won't break by this change.
+
+Thanks,
+Majd and Matan
+
+
+Majd Dibbiny (2):
+  IB/mlx5: Avoid using user-index for SRQs
+  IB/{core, mlx5}: Fix input len in vendor specific part of
+    create_qp/srq cmd
+
+ drivers/infiniband/core/uverbs_cmd.c |  9 +++++---
+ drivers/infiniband/hw/mlx5/srq.c     | 41 +++++++++++++++++++-----------------
+ 2 files changed, 28 insertions(+), 22 deletions(-)
+
 -- 
 1.8.3.1
 
