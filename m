@@ -1,80 +1,54 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: 4.5-rc iser issues
-Date: Sun, 14 Feb 2016 16:02:18 +0200
-Message-ID: <56C088EA.1050901@dev.mellanox.co.il>
-References: <20160214074119.GA24558@infradead.org>
- <56C04294.3090701@dev.mellanox.co.il> <56C05000.1040001@dev.mellanox.co.il>
- <56C066AF.6050901@dev.mellanox.co.il>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/7] Peer-direct memory
+Date: Sun, 14 Feb 2016 16:05:31 +0200
+Message-ID: <56C089AB.4060100@mellanox.com>
+References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
+ <20160211191838.GA23675@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C066AF.6050901-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160211191838.GA23675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lin-SSI <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Kovalyov Artemy <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-Dj0/KMMU01E@public.gmane.org" <leon-Dj0/KMMU01E@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11/02/2016 21:18, Jason Gunthorpe wrote:
+> Resubmit those parts under the mm subsystem, or another more
+> appropriate place.
 
->> I'm bisecting now, there are a couple of patches from Ming in
->> the area of the bio splitting code...
->>
->> CC'ing Ming, Linux-block and Linux-nvme as iser is identical to nvme
->> wrt the virtual boundary so I think nvme will break as well.
->
-> Bisection reveals that this one is the culprit:
->
-> commit 52cc6eead9095e2faf2ec7afc013aa3af1f01ac5
-> Author: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> Date:   Thu Sep 17 09:58:38 2015 -0600
->
->      block: blk-merge: fast-clone bio when splitting rw bios
->
->      biovecs has become immutable since v3.13, so it isn't necessary
->      to allocate biovecs for the new cloned bios, then we can save
->      one extra biovecs allocation/copy, and the allocation is often
->      not fixed-length and a bit more expensive.
->
->      For example, if the 'max_sectors_kb' of null blk's queue is set
->      as 16(32 sectors) via sysfs just for making more splits, this patch
->      can increase throught about ~70% in the sequential read test over
->      null_blk(direct io, bs: 1M).
->
->      Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
->      Cc: Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->      Cc: Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>
->      Cc: Dongsu Park <dpark-VwIFZPTo/vqsTnJN9+BGXg@public.gmane.org>
->      Signed-off-by: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->
->      This fixes a performance regression introduced by commit 54efd50bfd,
->      and allows us to take full advantage of the fact that we have
-> immutable
->      bio_vecs. Hand applied, as it rejected violently with commit
->      5014c311baa2.
->
->      Signed-off-by: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
-> --
+We want the feedback from linux-mm, and they are Cced. 
 
-Looks like there is a problem with bio_clone_fast()
+> If you want to make some incremental progress then implement the
+> existing ZONE_DEVICE API for the IB core and add the invalidate stuff
+> later, once you've negotiated a common API for that with linux-mm.
 
-This change makes the problem go away:
---
-diff --git a/block/bio.c b/block/bio.c
-index dbabd48..5e93733 100644
---- a/block/bio.c
-+++ b/block/bio.c
-@@ -1791,7 +1791,7 @@ struct bio *bio_split(struct bio *bio, int sectors,
-          * Discards need a mutable bio_vec to accommodate the payload
-          * required by the DSM TRIM and UNMAP commands.
-          */
--       if (bio->bi_rw & REQ_DISCARD)
-+       if (1 || bio->bi_rw & REQ_DISCARD)
-                 split = bio_clone_bioset(bio, gfp, bs);
-         else
-                 split = bio_clone_fast(bio, gfp, bs);
---
+So there are couple of issues we currently have with ZONE_DEVICE. 
+Perhaps they can be solved and then we could use it directly.
 
-Any thoughts?
+First, I'm not sure it is intended to be used for our purpose. 
+memremap() has this comment [1]:
+> memremap() is "ioremap" for cases where it is known that the resource
+> being mapped does not have i/o side effects and the __iomem
+> annotation is not applicable. 
+
+Does this apply also to devm_memremap_pages()? Because the HCA BAR 
+clearly doesn't fall under this definition.
+
+Second, there's a requirement that ZONE_DEVICE ranges are aligned to 
+section-boundary, right? We have devices that have 8MB or 32MB BARs, 
+so they won't work with 128MB sections on x86_64.
+
+Third, I understand there was a desire to place ZONE_DEVICE page structs 
+in the device itself. This can work for pmem, but obviously won't work 
+for an I/O device BAR like an HCA.
+
+Regards,
+Haggai
+
+[1] http://lxr.free-electrons.com/source/kernel/memremap.c?v=4.4#L38
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
