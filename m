@@ -1,164 +1,167 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: SRPt oops with 4.5-rc3-ish
-Date: Sun, 14 Feb 2016 11:09:39 -0500
-Message-ID: <56C0A6C3.3010903@redhat.com>
+From: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: Re: 4.5-rc iser issues
+Date: Mon, 15 Feb 2016 00:20:58 +0800
+Message-ID: <CACVXFVNAkf5+XFyf2JkcfeEPO2sv9bqHMR+N+=kKFzrtXpFEnA@mail.gmail.com>
+References: <20160214074119.GA24558@infradead.org>
+	<56C04294.3090701@dev.mellanox.co.il>
+	<56C05000.1040001@dev.mellanox.co.il>
+	<56C066AF.6050901@dev.mellanox.co.il>
+	<56C088EA.1050901@dev.mellanox.co.il>
+	<20160214152223.GA5323@infradead.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="IS01u4sBTLuo5KiNBRwiooT5Ba6Te6hM9"
+Content-Type: multipart/mixed; boundary=94eb2c05d8081cc312052bbd495e
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160214152223.GA5323-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ming Lin-SSI <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---IS01u4sBTLuo5KiNBRwiooT5Ba6Te6hM9
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+--94eb2c05d8081cc312052bbd495e
+Content-Type: text/plain; charset=UTF-8
 
-While testing with my latest kernel (rc3 plus pening RDMA patches), I
-ran across this oops:
+Hi Sagi,
 
-[dledford@linux-ws ~]$ console rdma-storage-04
-Enter dledford-Qj3k6FK1/F6RgOCG8Jv1mWcM3YSXpimQh7FX57BcuXVWk0Htik3J/w@public.gmane.org's password:
-[Enter `^Ec?' for help]
-[-- MOTD -- https://home.corp.redhat.com/wiki/conserver]
-[playback]
-[160605.947614]  [<ffffffff81150545>] ? call_rcu_sched+0x25/0x30
-[160605.954074]  [<ffffffffc0b3dd84>]
-target_fabric_nacl_base_release+0x64/0x70]
-[160605.963731]  [<ffffffff813ccc6f>] config_item_release+0x9f/0x1c0
-[160605.970579]  [<ffffffff813ccdf2>] config_item_put+0x62/0x80
-[160605.976936]  [<ffffffff813c97d3>] configfs_rmdir+0x343/0x500
-[160605.983396]  [<ffffffff8131287a>] vfs_rmdir+0x13a/0x220
-[160605.989375]  [<ffffffff813197db>] do_rmdir+0x1fb/0x260
-[160605.995244]  [<ffffffff8131adde>] SyS_rmdir+0x1e/0x30
-[160606.001019]  [<ffffffff81a0922e>] entry_SYSCALL_64_fastpath+0x12/0x71=
+On Sun, Feb 14, 2016 at 11:22 PM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> Adding Ming to Cc.
+>
+> But I don't think simply not cloning the biovecs is the right thing
+> to do in the end.  This must be something with the bvec iterators.
 
-[160606.009586] ---[ end trace 820588f5ef5f6148 ]---
-[160607.051593] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-0x7f0ee700032d1de)
-[160607.078225] ib_srpt rejected SRP_LOGIN_REQ because the target port
-has not d
-[160611.228909] ib_srpt Received IB DREQ ERROR event.
-[160613.276862] ib_srpt Received IB TimeWait exit for cm_id
-ffff881cc9dc7a00.
-[160613.290322] BUG: unable to handle kernel paging request at
-0000000000018630
-[160613.301470] IP: [<ffffffff81125694>]
-native_queued_spin_lock_slowpath+0x2e40
-[160613.313112] PGD 0
-[160613.318577] Oops: 0002 [#1] SMP
-[160613.325358] Modules linked in: nfnetlink(+) ip6t_rpfilter 8021q garp
-ip6t_R]
-[160613.492357] CPU: 1 PID: 44982 Comm: kworker/1:1 Tainted: G        W
-I     44
-[160613.505978] Hardware name: Dell Inc. PowerEdge R730xd/0599V5, BIOS
-1.0.4 084
-[160613.517697] Workqueue: events srpt_release_channel_work [ib_srpt]
-[160613.527634] task: ffff881d01099000 ti: ffff881d02014000 task.ti:
-ffff881d020
-[160613.539130] RIP: 0010:[<ffffffff81125694>]  [<ffffffff81125694>]
-native_que0
-[160613.553326] RSP: 0018:ffff881d02017d90  EFLAGS: 00010006
-[160613.562332] RAX: 00000000000000ea RBX: 0000000000000206 RCX:
-000000000001860
-[160613.573401] RDX: 0000000000080000 RSI: ffff881d4c818600 RDI:
-ffff880f2d7c7d8
-[160613.584472] RBP: ffff881d02017d90 R08: 0000000000000023 R09:
-000000000000000
-[160613.595491] R10: 00000000ffffffd8 R11: 00000000000211c0 R12:
-ffff880f2d7c7d0
-[160613.606568] R13: ffff881ce426d000 R14: ffff881cca702a00 R15:
-000000000000000
-[160613.617643] FS:  0000000000000000(0000) GS:ffff881d4c800000(0000)
-knlGS:0000
-[160613.629793] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[160613.639315] CR2: 0000000000018630 CR3: 0000000001ca9000 CR4:
-000000000014060
-[160613.650471] Stack:
-[160613.655843]  ffff881d02017da0 ffffffff8122ac4c ffff881d02017db8
-ffffffff81a7
-[160613.667361]  ffff880f2d7c7d18 ffff881d02017de0 ffffffff81121255
-ffff881cca70
-[160613.678885]  ffff881ce426d058 ffff881ce426d000 ffff881d02017e10
-ffffffffc070
-[160613.690366] Call Trace:
-[160613.696195]  [<ffffffff8122ac4c>] queued_spin_lock_slowpath+0x12/0x1d=
+I agree with Christoph, and there might be issues somewhere.
 
-[160613.706533]  [<ffffffff81a08ea7>] _raw_spin_lock_irqsave+0x87/0xa0
-[160613.716586]  [<ffffffff81121255>] complete+0x25/0x70
-[160613.725318]  [<ffffffffc07e7e80>]
-srpt_release_channel_work+0x180/0x210 [ib]
-[160613.736889]  [<ffffffff810e6dd8>] process_one_work+0x228/0x650
-[160613.746616]  [<ffffffff810e79be>] worker_thread+0x21e/0x800
-[160613.756047]  [<ffffffff81a02035>] ? __schedule+0x4b5/0xe6a
-[160613.765371]  [<ffffffff810e77a0>] ? kzalloc+0x30/0x30
-[160613.774203]  [<ffffffff810efc38>] kthread+0x118/0x150
-[160613.783000]  [<ffffffff810efb20>] ? flush_kthread_worker+0xd0/0xd0
-[160613.792932]  [<ffffffff81a0958f>] ret_from_fork+0x3f/0x70
-[160613.801994]  [<ffffffff810efb20>] ? flush_kthread_worker+0xd0/0xd0
-[160613.811897] Code: 01 00 00 74 ec e9 d7 fd ff ff 48 89 c1 c1 e8 12 48
-c1 e9
-[160613.840260] RIP  [<ffffffff81125694>]
-native_queued_spin_lock_slowpath+0x2e0
-[160613.851846]  RSP <ffff881d02017d90>
-[160613.858812] CR2: 0000000000018630
-[160613.874762] ---[ end trace 820588f5ef5f6149 ]---
-[160613.937225] Kernel panic - not syncing: Fatal exception
-[160613.946167] Kernel Offset: disabled
-[160614.004693] ---[ end Kernel panic - not syncing: Fatal exception
-[-- MARK -- Sun Feb 14 15:50:00 2016]
-[-- dledford-CKb8VAQLn9hXrIkS9f7CXA@public.gmane.org@ovpn-116-26.rdu2.redhat.com attached -- Sun Feb
-14 15:5]
+> From the log:
+> iser: sg[0] dma_addr:0x85FC06000 off:0x0 sz:0x200 dma_len:0x200
+> iser: sg[1] dma_addr:0x860334000 off:0x0 sz:0x200 dma_len:0x200 <-- gap
+> iser: sg[2] dma_addr:0x860335000 off:0x0 sz:0x200 dma_len:0x200 <-- gap
 
+The above gap shouldn't have come since blk_bio_segment_split() splits
+out one new bio if gap is detected.
 
+Sort of the following code can be added in driver or prep_fn to check if
+bvec of  the rq is correct:
 
-Basic description of situation that cause the oops:
+rq_for_each_segment(bvec, sc->request, iter) {
+     //check if there is gap between bvec
+}
 
-Server with 30+ SRPt luns, 2 SRP devices, 1 active client busy beating
-away on 1 lun via two paths (active/passive setup)
+I don't know how to use iser, and looks everything works fine after
+I setup virt boundary as 4095 for null_blk by the attachment
+patch.
 
-Run dnf upgrade (dnf is yum's replacement, so just a system wide
-software update).
+> Full quote for Ming:
+>
+> On Sun, Feb 14, 2016 at 04:02:18PM +0200, Sagi Grimberg wrote:
+>>
+>> >>I'm bisecting now, there are a couple of patches from Ming in
+>> >>the area of the bio splitting code...
+>> >>
+>> >>CC'ing Ming, Linux-block and Linux-nvme as iser is identical to nvme
+>> >>wrt the virtual boundary so I think nvme will break as well.
 
-Get to the cleanup for targetcli/target-restore and it invokes an
-attempt to reload the target service while still in use.  During the
-process of deconfiguring the luns that are in use, this oops occurred.
-Sending the report to you because it appears to involve the
-multi-channel support.
+The bisected commit is merged to v4.3, and looks no such kind of
+report from nvme.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+>> >
+>> >Bisection reveals that this one is the culprit:
+>> >
+>> >commit 52cc6eead9095e2faf2ec7afc013aa3af1f01ac5
+>> >Author: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+>> >Date:   Thu Sep 17 09:58:38 2015 -0600
+>> >
+>> >     block: blk-merge: fast-clone bio when splitting rw bios
+>> >
+>> >     biovecs has become immutable since v3.13, so it isn't necessary
+>> >     to allocate biovecs for the new cloned bios, then we can save
+>> >     one extra biovecs allocation/copy, and the allocation is often
+>> >     not fixed-length and a bit more expensive.
+>> >
+>> >     For example, if the 'max_sectors_kb' of null blk's queue is set
+>> >     as 16(32 sectors) via sysfs just for making more splits, this patch
+>> >     can increase throught about ~70% in the sequential read test over
+>> >     null_blk(direct io, bs: 1M).
+>> >
+>> >     Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+>> >     Cc: Kent Overstreet <kent.overstreet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> >     Cc: Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>
+>> >     Cc: Dongsu Park <dpark-VwIFZPTo/vqsTnJN9+BGXg@public.gmane.org>
+>> >     Signed-off-by: Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+>> >
+>> >     This fixes a performance regression introduced by commit 54efd50bfd,
+>> >     and allows us to take full advantage of the fact that we have
+>> >immutable
+>> >     bio_vecs. Hand applied, as it rejected violently with commit
+>> >     5014c311baa2.
+>> >
+>> >     Signed-off-by: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>
+>> >--
+>>
+>> Looks like there is a problem with bio_clone_fast()
+>>
+>> This change makes the problem go away:
+>> --
+>> diff --git a/block/bio.c b/block/bio.c
+>> index dbabd48..5e93733 100644
+>> --- a/block/bio.c
+>> +++ b/block/bio.c
+>> @@ -1791,7 +1791,7 @@ struct bio *bio_split(struct bio *bio, int sectors,
+>>          * Discards need a mutable bio_vec to accommodate the payload
+>>          * required by the DSM TRIM and UNMAP commands.
+>>          */
+>> -       if (bio->bi_rw & REQ_DISCARD)
+>> +       if (1 || bio->bi_rw & REQ_DISCARD)
+>>                 split = bio_clone_bioset(bio, gfp, bs);
+>>         else
+>>                 split = bio_clone_fast(bio, gfp, bs);
+>> --
+>>
+>> Any thoughts?
 
+I don't think bio_clone_fast() is wrong, which use bvec table from
+the original bio, and drivers are not allowed to change the table, and
+should just call the standard iterator helpers to access bvec.
 
+Also bio_for_each_segment_all() can't be used to iterate over one
+cloned bio.
 
---IS01u4sBTLuo5KiNBRwiooT5Ba6Te6hM9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+--94eb2c05d8081cc312052bbd495e
+Content-Type: text/x-patch; charset=US-ASCII; name="null_blk_sg_virt_boundary.patch"
+Content-Disposition: attachment; filename="null_blk_sg_virt_boundary.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ikmqfwr40
 
-iQIcBAEBCAAGBQJWwKbEAAoJELgmozMOVy/d/1cQAIrWypgy3n9edk2IhEhmMSzE
-01PjPWIBCOgnVdWbRTt0xR7uZ+BwROidMkUzlMezBMzPDY6jC77r+yZG84rikN8s
-0egOu4/WOfMDnjeCs3+8j4CE/WfWPnvRSD17BgbdRY545Oz+vppEPkYs/OjkYV3O
-DjYa92rj2XCsbV/+J/WT1C/P95ZKols53q0M2N9uXSDQQn7ZEcQe/21dVAb6yi7c
-tJwd5+2XxDl4/LtxgJpuF5XrQYums6AGFavDTnAfJDpKmk8ZKZtfZoqR0qf433Ln
-fjoYqhfvQf2ChmY6BtJH4bPmhZCqQ0phmzx3csHtr6nWa/u3nW5+1DRvrf4F6qcn
-HTf6qd4G3CKcU64Nb2UhIvaVkgZXUu68kZ2zbz+dcRlCxz1+RgLGiAge962I9aZ9
-BQMDppf6kp31JEtE1CVm5MzncW9HIf2KjHddl0/xDEhdiSJlejsUOoSlx3UEI5xg
-1HntTqkTg1pU22L7oJQzjaVwohAugq7g9fp3doo/7ScWNZMEx1g788tsFlArRMaD
-H/GCFNGIqTYI8YGU0YX4IqEqb9zCaNxaSFUvGbJtMGiyA0WGzNC3E+pce+J9+0ti
-rNR75/Lgx5KKMyroZ9oAtX8cL+znWpdu85focLPmeADkZfqf+ArJ/Jk52KRl1RaV
-bjj52mZuWksXIz4ZsdW6
-=CgZl
------END PGP SIGNATURE-----
-
---IS01u4sBTLuo5KiNBRwiooT5Ba6Te6hM9--
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmxvY2svbnVsbF9ibGsuYyBiL2RyaXZlcnMvYmxvY2svbnVs
+bF9ibGsuYwppbmRleCA4YmExZTk3Li41MzI4ZjNjIDEwMDY0NAotLS0gYS9kcml2ZXJzL2Jsb2Nr
+L251bGxfYmxrLmMKKysrIGIvZHJpdmVycy9ibG9jay9udWxsX2Jsay5jCkBAIC0xMCw2ICsxMCw4
+IEBACiAjaW5jbHVkZSA8bGludXgvaHJ0aW1lci5oPgogI2luY2x1ZGUgPGxpbnV4L2xpZ2h0bnZt
+Lmg+CiAKKyNkZWZpbmUgTUFYX1NHCTEyOAorCiBzdHJ1Y3QgbnVsbGJfY21kIHsKIAlzdHJ1Y3Qg
+bGlzdF9oZWFkIGxpc3Q7CiAJc3RydWN0IGxsaXN0X25vZGUgbGxfbGlzdDsKQEAgLTE5LDYgKzIx
+LDcgQEAgc3RydWN0IG51bGxiX2NtZCB7CiAJdW5zaWduZWQgaW50IHRhZzsKIAlzdHJ1Y3QgbnVs
+bGJfcXVldWUgKm5xOwogCXN0cnVjdCBocnRpbWVyIHRpbWVyOworCXN0cnVjdCBzY2F0dGVybGlz
+dCBzZ1tNQVhfU0ddOwogfTsKIAogc3RydWN0IG51bGxiX3F1ZXVlIHsKQEAgLTM1MSw2ICszNTQs
+MjMgQEAgc3RhdGljIHZvaWQgbnVsbF9yZXF1ZXN0X2ZuKHN0cnVjdCByZXF1ZXN0X3F1ZXVlICpx
+KQogCX0KIH0KIAorc3RhdGljIGludCBoYW5kbGVfc2coc3RydWN0IG51bGxiX2NtZCAqY21kKQor
+eworCWludCBudW0sIGk7CisJc3RydWN0IHJlcXVlc3QgKnJxID0gY21kLT5ycTsKKworCW51bSA9
+IGJsa19ycV9tYXBfc2cocnEtPnEsIHJxLCBjbWQtPnNnKTsKKwl0cmFjZV9wcmludGsoIiVzIGR1
+bXAgc2cgZm9yICVwKCVkKVxuIiwgX19mdW5jX18sIHJxLCBycS0+dGFnKTsKKwlmb3IgKGkgPSAw
+OyBpIDwgbnVtOyBpKyspIHsKKwkJc3RydWN0IHNjYXR0ZXJsaXN0ICpzZyA9ICZjbWQtPnNnW2ld
+OworCQl0cmFjZV9wcmludGsoIlx0ICU0ZDogJXUgJXUgJWxsdVxuIiwKKwkJCSAgICAgaSwgc2ct
+Pm9mZnNldCwgc2ctPmxlbmd0aCwKKwkJCSAgICAgKHVuc2lnbmVkIGxvbmcgbG9uZylzZy0+ZG1h
+X2FkZHJlc3MpOworCX0KKworCXJldHVybiAwOworfQorCiBzdGF0aWMgaW50IG51bGxfcXVldWVf
+cnEoc3RydWN0IGJsa19tcV9od19jdHggKmhjdHgsCiAJCQkgY29uc3Qgc3RydWN0IGJsa19tcV9x
+dWV1ZV9kYXRhICpiZCkKIHsKQEAgLTM2NSw2ICszODUsOCBAQCBzdGF0aWMgaW50IG51bGxfcXVl
+dWVfcnEoc3RydWN0IGJsa19tcV9od19jdHggKmhjdHgsCiAKIAlibGtfbXFfc3RhcnRfcmVxdWVz
+dChiZC0+cnEpOwogCisJaGFuZGxlX3NnKGNtZCk7CisKIAludWxsX2hhbmRsZV9jbWQoY21kKTsK
+IAlyZXR1cm4gQkxLX01RX1JRX1FVRVVFX09LOwogfQpAQCAtNzA3LDYgKzcyOSw4IEBAIHN0YXRp
+YyBpbnQgbnVsbF9hZGRfZGV2KHZvaWQpCiAJcXVldWVfZmxhZ19zZXRfdW5sb2NrZWQoUVVFVUVf
+RkxBR19OT05ST1QsIG51bGxiLT5xKTsKIAlxdWV1ZV9mbGFnX2NsZWFyX3VubG9ja2VkKFFVRVVF
+X0ZMQUdfQUREX1JBTkRPTSwgbnVsbGItPnEpOwogCisJYmxrX3F1ZXVlX3ZpcnRfYm91bmRhcnko
+bnVsbGItPnEsICgxVUwgPDwgMTIpIC0gMSk7CisJYmxrX3F1ZXVlX21heF9zZWdtZW50cyhudWxs
+Yi0+cSwgTUFYX1NHKTsKIAogCW11dGV4X2xvY2soJmxvY2spOwogCWxpc3RfYWRkX3RhaWwoJm51
+bGxiLT5saXN0LCAmbnVsbGJfbGlzdCk7Cg==
+--94eb2c05d8081cc312052bbd495e--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
