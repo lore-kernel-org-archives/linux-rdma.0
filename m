@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 12/16] staging/rdma/hfi: fix CQ completion order issue
-Date: Sun, 14 Feb 2016 12:45:53 -0800
-Message-ID: <20160214204549.29247.97900.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 14/16] staging/rdma/hfi1: Add qp to send context mapping for
+ PIO
+Date: Sun, 14 Feb 2016 12:46:10 -0800
+Message-ID: <20160214204606.29247.56566.stgit@scvm10.sc.intel.com>
 References: <20160214203612.29247.59915.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,398 +11,564 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160214203612.29247.59915.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The current implementation of the sdma_wait variable
-has a timing hole that can cause a completion Q entry
-to be returned from a pio send prior to an older
-sdma packets completion queue entry.
+PIO send context mapping is changed from per-VL to QPN based.
 
-The sdma_wait variable used to be decremented prior to
-calling the packet complete routine.  The hole is between decrement
-and the verbs completion where send engine using pio could return
-a out of order completion in that window.
+qp to send context mapping is done using a mapping infrastructure
+similar to the current vl to sdma engine mapping.
 
-This patch closes the hole by allowing an API option to
-specify an sdma_drained callback.   The atomic dec
-is positioned after the complete callback to avoid the
-window as long as the pio path doesn't execute when
-there is a non-zero sdma count.
-
-Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/iowait.h     |   12 +++-
- drivers/staging/rdma/hfi1/qp.c         |   20 ++++++-
- drivers/staging/rdma/hfi1/sdma.c       |   94 ++++++++++----------------------
- drivers/staging/rdma/hfi1/sdma.h       |    4 +
- drivers/staging/rdma/hfi1/sdma_txreq.h |    2 -
- drivers/staging/rdma/hfi1/user_sdma.c  |    7 +-
- drivers/staging/rdma/hfi1/verbs.c      |   18 +-----
- 7 files changed, 65 insertions(+), 92 deletions(-)
+ drivers/staging/rdma/hfi1/hfi.h   |    6 +
+ drivers/staging/rdma/hfi1/init.c  |    2 
+ drivers/staging/rdma/hfi1/pio.c   |  241 ++++++++++++++++++++++++++++++++++++-
+ drivers/staging/rdma/hfi1/pio.h   |  106 ++++++++++++++++
+ drivers/staging/rdma/hfi1/qp.c    |   24 ++++
+ drivers/staging/rdma/hfi1/qp.h    |    1 
+ drivers/staging/rdma/hfi1/verbs.c |   12 --
+ drivers/staging/rdma/hfi1/verbs.h |    2 
+ 8 files changed, 375 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/iowait.h b/drivers/staging/rdma/hfi1/iowait.h
-index b5eb1e0..2cb3f04 100644
---- a/drivers/staging/rdma/hfi1/iowait.h
-+++ b/drivers/staging/rdma/hfi1/iowait.h
-@@ -69,7 +69,8 @@ struct sdma_engine;
-  * @list: used to add/insert into QP/PQ wait lists
-  * @tx_head: overflow list of sdma_txreq's
-  * @sleep: no space callback
-- * @wakeup: space callback
-+ * @wakeup: space callback wakeup
-+ * @sdma_drained: sdma count drained
-  * @iowork: workqueue overhead
-  * @wait_dma: wait for sdma_busy == 0
-  * @wait_pio: wait for pio_busy == 0
-@@ -104,6 +105,7 @@ struct iowait {
- 		struct sdma_txreq *tx,
- 		unsigned seq);
- 	void (*wakeup)(struct iowait *wait, int reason);
-+	void (*sdma_drained)(struct iowait *wait);
- 	struct work_struct iowork;
- 	wait_queue_head_t wait_dma;
- 	wait_queue_head_t wait_pio;
-@@ -122,7 +124,7 @@ struct iowait {
-  * @tx_limit: limit for overflow queuing
-  * @func: restart function for workqueue
-  * @sleep: sleep function for no space
-- * @wakeup: wakeup function for no space
-+ * @resume: wakeup function for no space
-  *
-  * This function initializes the iowait
-  * structure embedded in the QP or PQ.
-@@ -138,7 +140,8 @@ static inline void iowait_init(
- 		struct iowait *wait,
- 		struct sdma_txreq *tx,
- 		unsigned seq),
--	void (*wakeup)(struct iowait *wait, int reason))
-+	void (*wakeup)(struct iowait *wait, int reason),
-+	void (*sdma_drained)(struct iowait *wait))
- {
- 	wait->count = 0;
- 	INIT_LIST_HEAD(&wait->list);
-@@ -151,6 +154,7 @@ static inline void iowait_init(
- 	wait->tx_limit = tx_limit;
- 	wait->sleep = sleep;
- 	wait->wakeup = wakeup;
-+	wait->sdma_drained = sdma_drained;
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 4ac3de6..e8c4e56 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -842,6 +842,12 @@ struct hfi1_devdata {
+ 	spinlock_t sc_lock;
+ 	/* Per VL data. Enough for all VLs but not all elements are set/used. */
+ 	struct per_vl_data vld[PER_VL_SEND_CONTEXTS];
++	/* lock for pio_map */
++	spinlock_t pio_map_lock;
++	/* array of kernel send contexts */
++	struct send_context **kernel_send_context;
++	/* array of vl maps */
++	struct pio_vl_map __rcu *pio_map;
+ 	/* seqlock for sc2vl */
+ 	seqlock_t sc2vl_lock;
+ 	u64 sc2vl[4];
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index 112cb6c..423c699 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -1050,6 +1050,7 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 	mutex_init(&dd->qsfp_i2c_mutex);
+ 	seqlock_init(&dd->sc2vl_lock);
+ 	spin_lock_init(&dd->sde_map_lock);
++	spin_lock_init(&dd->pio_map_lock);
+ 	init_waitqueue_head(&dd->event_queue);
+ 
+ 	dd->int_counter = alloc_percpu(u64);
+@@ -1317,6 +1318,7 @@ static void cleanup_device_data(struct hfi1_devdata *dd)
+ 		}
+ 	}
+ 	kfree(tmp);
++	free_pio_map(dd);
+ 	/* must follow rcv context free - need to remove rcv's hooks */
+ 	for (ctxt = 0; ctxt < dd->num_send_contexts; ctxt++)
+ 		sc_free(dd->send_contexts[ctxt].sc);
+diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
+index f5aab0e..69bbe22 100644
+--- a/drivers/staging/rdma/hfi1/pio.c
++++ b/drivers/staging/rdma/hfi1/pio.c
+@@ -312,7 +312,7 @@ int init_sc_pools_and_sizes(struct hfi1_devdata *dd)
+ 		if (i == SC_ACK) {
+ 			count = dd->n_krcv_queues;
+ 		} else if (i == SC_KERNEL) {
+-			count = num_vls + 1 /* VL15 */;
++			count = (INIT_SC_PER_VL * num_vls) + 1 /* VL15 */;
+ 		} else if (count == SCC_PER_CPU) {
+ 			count = dd->num_rcv_contexts - dd->n_krcv_queues;
+ 		} else if (count < 0) {
+@@ -1687,11 +1687,217 @@ done:
+ 	spin_unlock(&dd->sc_lock);
  }
  
- /**
-@@ -273,6 +277,8 @@ static inline void iowait_drain_wakeup(struct iowait *wait)
- {
- 	wake_up(&wait->wait_dma);
- 	wake_up(&wait->wait_pio);
-+	if (wait->sdma_drained)
-+		wait->sdma_drained(wait);
- }
- 
- /**
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index e699b6a..ead7aed 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -73,6 +73,7 @@ static int iowait_sleep(
- 	struct sdma_txreq *stx,
- 	unsigned seq);
- static void iowait_wakeup(struct iowait *wait, int reason);
-+static void iowait_sdma_drained(struct iowait *wait);
- static void qp_pio_drain(struct rvt_qp *qp);
- 
- static inline unsigned mk_qpn(struct rvt_qpn_table *qpt,
-@@ -509,6 +510,22 @@ static void iowait_wakeup(struct iowait *wait, int reason)
- 	hfi1_qp_wakeup(qp, RVT_S_WAIT_DMA_DESC);
- }
- 
-+static void iowait_sdma_drained(struct iowait *wait)
++/*
++ * pio_select_send_context_vl() - select send context
++ * @dd: devdata
++ * @selector: a spreading factor
++ * @vl: this vl
++ *
++ * This function returns a send context based on the selector and a vl.
++ * The mapping fields are protected by RCU
++ */
++struct send_context *pio_select_send_context_vl(struct hfi1_devdata *dd,
++						u32 selector, u8 vl)
 +{
-+	struct rvt_qp *qp = iowait_to_qp(wait);
++	struct pio_vl_map *m;
++	struct pio_map_elem *e;
++	struct send_context *rval;
 +
 +	/*
-+	 * This happens when the send engine notes
-+	 * a QP in the error state and cannot
-+	 * do the flush work until that QP's
-+	 * sdma work has finished.
++	 * NOTE This should only happen if SC->VL changed after the initial
++	 * checks on the QP/AH
++	 * Default will return VL0's send context below
 +	 */
-+	if (qp->s_flags & RVT_S_WAIT_DMA) {
-+		qp->s_flags &= ~RVT_S_WAIT_DMA;
-+		hfi1_schedule_send(qp);
++	if (unlikely(vl >= num_vls)) {
++		rval = NULL;
++		goto done;
 +	}
++
++	rcu_read_lock();
++	m = rcu_dereference(dd->pio_map);
++	if (unlikely(!m)) {
++		rcu_read_unlock();
++		return dd->vld[0].sc;
++	}
++	e = m->map[vl & m->mask];
++	rval = e->ksc[selector & e->mask];
++	rcu_read_unlock();
++
++done:
++	rval = !rval ? dd->vld[0].sc : rval;
++	return rval;
 +}
 +
- /**
-  *
-  * qp_to_sdma_engine - map a qp to a send engine
-@@ -774,7 +791,8 @@ void notify_qp_reset(struct rvt_qp *qp)
- 		1,
- 		_hfi1_do_send,
- 		iowait_sleep,
--		iowait_wakeup);
-+		iowait_wakeup,
-+		iowait_sdma_drained);
- 	priv->r_adefered = 0;
- 	clear_ahg(qp);
- }
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 49e567a..3f29f0a 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -361,6 +361,28 @@ static inline void sdma_set_desc_cnt(struct sdma_engine *sde, unsigned cnt)
- 	write_sde_csr(sde, SD(DESC_CNT), reg);
- }
- 
-+static inline void complete_tx(struct sdma_engine *sde,
-+			       struct sdma_txreq *tx,
-+			       int res)
++/*
++ * pio_select_send_context_sc() - select send context
++ * @dd: devdata
++ * @selector: a spreading factor
++ * @sc5: the 5 bit sc
++ *
++ * This function returns an send context based on the selector and an sc
++ */
++struct send_context *pio_select_send_context_sc(struct hfi1_devdata *dd,
++						u32 selector, u8 sc5)
 +{
-+	/* protect against complete modifying */
-+	struct iowait *wait = tx->wait;
-+	callback_t complete = tx->complete;
++	u8 vl = sc_to_vlt(dd, sc5);
 +
-+#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
-+	trace_hfi1_sdma_out_sn(sde, txp->sn);
-+	if (WARN_ON_ONCE(sde->head_sn != txp->sn))
-+		dd_dev_err(sde->dd, "expected %llu got %llu\n",
-+			   sde->head_sn, txp->sn);
-+	sde->head_sn++;
-+#endif
-+	sdma_txclean(sde->dd, tx);
-+	if (complete)
-+		(*complete)(tx, res);
-+	if (iowait_sdma_dec(wait) && wait)
-+		iowait_drain_wakeup(wait);
++	return pio_select_send_context_vl(dd, selector, vl);
 +}
 +
- /*
-  * Complete all the sdma requests with a SDMA_TXREQ_S_ABORTED status
-  *
-@@ -395,27 +417,8 @@ static void sdma_flush(struct sdma_engine *sde)
- 	}
- 	spin_unlock_irqrestore(&sde->flushlist_lock, flags);
- 	/* flush from flush list */
--	list_for_each_entry_safe(txp, txp_next, &flushlist, list) {
--		int drained = 0;
--		/* protect against complete modifying */
--		struct iowait *wait = txp->wait;
--
--		list_del_init(&txp->list);
--#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
--		trace_hfi1_sdma_out_sn(sde, txp->sn);
--		if (WARN_ON_ONCE(sde->head_sn != txp->sn))
--			dd_dev_err(sde->dd, "expected %llu got %llu\n",
--				sde->head_sn, txp->sn);
--		sde->head_sn++;
--#endif
--		sdma_txclean(sde->dd, txp);
--		if (wait)
--			drained = iowait_sdma_dec(wait);
--		if (txp->complete)
--			(*txp->complete)(txp, SDMA_TXREQ_S_ABORTED, drained);
--		if (wait && drained)
--			iowait_drain_wakeup(wait);
--	}
-+	list_for_each_entry_safe(txp, txp_next, &flushlist, list)
-+		complete_tx(sde, txp, SDMA_TXREQ_S_ABORTED);
- }
- 
- /*
-@@ -577,31 +580,10 @@ static void sdma_flush_descq(struct sdma_engine *sde)
- 		head = ++sde->descq_head & sde->sdma_mask;
- 		/* if now past this txp's descs, do the callback */
- 		if (txp && txp->next_descq_idx == head) {
--			int drained = 0;
--			/* protect against complete modifying */
--			struct iowait *wait = txp->wait;
--
- 			/* remove from list */
- 			sde->tx_ring[sde->tx_head++ & sde->sdma_mask] = NULL;
--			if (wait)
--				drained = iowait_sdma_dec(wait);
--#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
--			trace_hfi1_sdma_out_sn(sde, txp->sn);
--			if (WARN_ON_ONCE(sde->head_sn != txp->sn))
--				dd_dev_err(sde->dd, "expected %llu got %llu\n",
--					sde->head_sn, txp->sn);
--			sde->head_sn++;
--#endif
--			sdma_txclean(sde->dd, txp);
-+			complete_tx(sde, txp, SDMA_TXREQ_S_ABORTED);
- 			trace_hfi1_sdma_progress(sde, head, tail, txp);
--			if (txp->complete)
--				(*txp->complete)(
--					txp,
--					SDMA_TXREQ_S_ABORTED,
--					drained);
--			if (wait && drained)
--				iowait_drain_wakeup(wait);
--			/* see if there is another txp */
- 			txp = get_txhead(sde);
- 		}
- 		progress++;
-@@ -1471,7 +1453,7 @@ static void sdma_make_progress(struct sdma_engine *sde, u64 status)
- {
- 	struct sdma_txreq *txp = NULL;
- 	int progress = 0;
--	u16 hwhead, swhead, swtail;
-+	u16 hwhead, swhead;
- 	int idle_check_done = 0;
- 
- 	hwhead = sdma_gethead(sde);
-@@ -1492,29 +1474,9 @@ retry:
- 
- 		/* if now past this txp's descs, do the callback */
- 		if (txp && txp->next_descq_idx == swhead) {
--			int drained = 0;
--			/* protect against complete modifying */
--			struct iowait *wait = txp->wait;
--
- 			/* remove from list */
- 			sde->tx_ring[sde->tx_head++ & sde->sdma_mask] = NULL;
--			if (wait)
--				drained = iowait_sdma_dec(wait);
--#ifdef CONFIG_HFI1_DEBUG_SDMA_ORDER
--			trace_hfi1_sdma_out_sn(sde, txp->sn);
--			if (WARN_ON_ONCE(sde->head_sn != txp->sn))
--				dd_dev_err(sde->dd, "expected %llu got %llu\n",
--					sde->head_sn, txp->sn);
--			sde->head_sn++;
--#endif
--			sdma_txclean(sde->dd, txp);
--			if (txp->complete)
--				(*txp->complete)(
--					txp,
--					SDMA_TXREQ_S_OK,
--					drained);
--			if (wait && drained)
--				iowait_drain_wakeup(wait);
-+			complete_tx(sde, txp, SDMA_TXREQ_S_OK);
- 			/* see if there is another txp */
- 			txp = get_txhead(sde);
- 		}
-@@ -1532,6 +1494,8 @@ retry:
- 	 * of sdma_make_progress(..) which is ensured by idle_check_done flag
- 	 */
- 	if ((status & sde->idle_mask) && !idle_check_done) {
-+		u16 swtail;
++/*
++ * Free the indicated map struct
++ */
++static void pio_map_free(struct pio_vl_map *m)
++{
++	int i;
 +
- 		swtail = ACCESS_ONCE(sde->descq_tail) & sde->sdma_mask;
- 		if (swtail != hwhead) {
- 			hwhead = (u16)read_sde_csr(sde, SD(HEAD));
-diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
-index 76ed215..f24b5a1 100644
---- a/drivers/staging/rdma/hfi1/sdma.h
-+++ b/drivers/staging/rdma/hfi1/sdma.h
-@@ -555,7 +555,7 @@ static inline int sdma_txinit_ahg(
- 	u8 num_ahg,
- 	u32 *ahg,
- 	u8 ahg_hlen,
--	void (*cb)(struct sdma_txreq *, int, int))
-+	void (*cb)(struct sdma_txreq *, int))
++	for (i = 0; m && i < m->actual_vls; i++)
++		kfree(m->map[i]);
++	kfree(m);
++}
++
++/*
++ * Handle RCU callback
++ */
++static void pio_map_rcu_callback(struct rcu_head *list)
++{
++	struct pio_vl_map *m = container_of(list, struct pio_vl_map, list);
++
++	pio_map_free(m);
++}
++
++/*
++ * pio_map_init - called when #vls change
++ * @dd: hfi1_devdata
++ * @port: port number
++ * @num_vls: number of vls
++ * @vl_scontexts: per vl send context mapping (optional)
++ *
++ * This routine changes the mapping based on the number of vls.
++ *
++ * vl_scontexts is used to specify a non-uniform vl/send context
++ * loading. NULL implies auto computing the loading and giving each
++ * VL an uniform distribution of send contexts per VL.
++ *
++ * The auto algorithm computers the sc_per_vl and the number of extra
++ * send contexts. Any extra send contexts are added from the last VL
++ * on down
++ *
++ * rcu locking is used here to control access to the mapping fields.
++ *
++ * If either the num_vls or num_send_contexts are non-power of 2, the
++ * array sizes in the struct pio_vl_map and the struct pio_map_elem are
++ * rounded up to the next highest power of 2 and the first entry is
++ * reused in a round robin fashion.
++ *
++ * If an error occurs the map change is not done and the mapping is not
++ * chaged.
++ *
++ */
++int pio_map_init(struct hfi1_devdata *dd, u8 port, u8 num_vls, u8 *vl_scontexts)
++{
++	int i, j;
++	int extra, sc_per_vl;
++	int scontext = 1;
++	int num_kernel_send_contexts = 0;
++	u8 lvl_scontexts[OPA_MAX_VLS];
++	struct pio_vl_map *oldmap, *newmap;
++
++	if (!vl_scontexts) {
++		/* send context 0 reserved for VL15 */
++		for (i = 1; i < dd->num_send_contexts; i++)
++			if (dd->send_contexts[i].type == SC_KERNEL)
++				num_kernel_send_contexts++;
++		/* truncate divide */
++		sc_per_vl = num_kernel_send_contexts / num_vls;
++		/* extras */
++		extra = num_kernel_send_contexts % num_vls;
++		vl_scontexts = lvl_scontexts;
++		/* add extras from last vl down */
++		for (i = num_vls - 1; i >= 0; i--, extra--)
++			vl_scontexts[i] = sc_per_vl + (extra > 0 ? 1 : 0);
++	}
++	/* build new map */
++	newmap = kzalloc(sizeof(*newmap) +
++			 roundup_pow_of_two(num_vls) *
++			 sizeof(struct pio_map_elem *),
++			 GFP_KERNEL);
++	if (!newmap)
++		goto bail;
++	newmap->actual_vls = num_vls;
++	newmap->vls = roundup_pow_of_two(num_vls);
++	newmap->mask = (1 << ilog2(newmap->vls)) - 1;
++	for (i = 0; i < newmap->vls; i++) {
++		/* save for wrap around */
++		int first_scontext = scontext;
++
++		if (i < newmap->actual_vls) {
++			int sz = roundup_pow_of_two(vl_scontexts[i]);
++
++			/* only allocate once */
++			newmap->map[i] = kzalloc(sizeof(*newmap->map[i]) +
++						 sz * sizeof(struct
++							     send_context *),
++						 GFP_KERNEL);
++			if (!newmap->map[i])
++				goto bail;
++			newmap->map[i]->mask = (1 << ilog2(sz)) - 1;
++			/* assign send contexts */
++			for (j = 0; j < sz; j++) {
++				if (dd->kernel_send_context[scontext])
++					newmap->map[i]->ksc[j] =
++					dd->kernel_send_context[scontext];
++				if (++scontext >= first_scontext +
++						  vl_scontexts[i])
++					/* wrap back to first send context */
++					scontext = first_scontext;
++			}
++		} else {
++			/* just re-use entry without allocating */
++			newmap->map[i] = newmap->map[i % num_vls];
++		}
++		scontext = first_scontext + vl_scontexts[i];
++	}
++	/* newmap in hand, save old map */
++	spin_lock_irq(&dd->pio_map_lock);
++	oldmap = rcu_dereference_protected(dd->pio_map,
++					   lockdep_is_held(&dd->pio_map_lock));
++
++	/* publish newmap */
++	rcu_assign_pointer(dd->pio_map, newmap);
++
++	spin_unlock_irq(&dd->pio_map_lock);
++	/* success, free any old map after grace period */
++	if (oldmap)
++		call_rcu(&oldmap->list, pio_map_rcu_callback);
++	return 0;
++bail:
++	/* free any partial allocation */
++	pio_map_free(newmap);
++	return -ENOMEM;
++}
++
++void free_pio_map(struct hfi1_devdata *dd)
++{
++	/* Free PIO map if allocated */
++	if (rcu_access_pointer(dd->pio_map)) {
++		spin_lock_irq(&dd->pio_map_lock);
++		kfree(rcu_access_pointer(dd->pio_map));
++		RCU_INIT_POINTER(dd->pio_map, NULL);
++		spin_unlock_irq(&dd->pio_map_lock);
++		synchronize_rcu();
++	}
++	kfree(dd->kernel_send_context);
++	dd->kernel_send_context = NULL;
++}
++
+ int init_pervl_scs(struct hfi1_devdata *dd)
  {
- 	if (tlen == 0)
- 		return -ENODATA;
-@@ -618,7 +618,7 @@ static inline int sdma_txinit(
- 	struct sdma_txreq *tx,
- 	u16 flags,
- 	u16 tlen,
--	void (*cb)(struct sdma_txreq *, int, int))
-+	void (*cb)(struct sdma_txreq *, int))
- {
- 	return sdma_txinit_ahg(tx, flags, tlen, 0, 0, NULL, 0, cb);
+ 	int i;
+-	u64 mask, all_vl_mask = (u64) 0x80ff; /* VLs 0-7, 15 */
++	u64 mask, all_vl_mask = (u64)0x80ff; /* VLs 0-7, 15 */
++	u64 data_vls_mask = (u64)0x00ff; /* VLs 0-7 */
+ 	u32 ctxt;
++	struct hfi1_pportdata *ppd = dd->pport;
+ 
+ 	dd->vld[15].sc = sc_alloc(dd, SC_KERNEL,
+ 				  dd->rcd[0]->rcvhdrqentsize, dd->node);
+@@ -1699,6 +1905,12 @@ int init_pervl_scs(struct hfi1_devdata *dd)
+ 		goto nomem;
+ 	hfi1_init_ctxt(dd->vld[15].sc);
+ 	dd->vld[15].mtu = enum_to_mtu(OPA_MTU_2048);
++
++	dd->kernel_send_context = kmalloc_node(dd->num_send_contexts *
++					sizeof(struct send_context *),
++					GFP_KERNEL, dd->node);
++	dd->kernel_send_context[0] = dd->vld[15].sc;
++
+ 	for (i = 0; i < num_vls; i++) {
+ 		/*
+ 		 * Since this function does not deal with a specific
+@@ -1711,12 +1923,19 @@ int init_pervl_scs(struct hfi1_devdata *dd)
+ 					 dd->rcd[0]->rcvhdrqentsize, dd->node);
+ 		if (!dd->vld[i].sc)
+ 			goto nomem;
+-
++		dd->kernel_send_context[i + 1] = dd->vld[i].sc;
+ 		hfi1_init_ctxt(dd->vld[i].sc);
+-
+ 		/* non VL15 start with the max MTU */
+ 		dd->vld[i].mtu = hfi1_max_mtu;
+ 	}
++	for (i = num_vls; i < INIT_SC_PER_VL * num_vls; i++) {
++		dd->kernel_send_context[i + 1] =
++		sc_alloc(dd, SC_KERNEL, dd->rcd[0]->rcvhdrqentsize, dd->node);
++		if (!dd->kernel_send_context[i + 1])
++			goto nomem;
++		hfi1_init_ctxt(dd->kernel_send_context[i + 1]);
++	}
++
+ 	sc_enable(dd->vld[15].sc);
+ 	ctxt = dd->vld[15].sc->hw_context;
+ 	mask = all_vl_mask & ~(1LL << 15);
+@@ -1724,17 +1943,29 @@ int init_pervl_scs(struct hfi1_devdata *dd)
+ 	dd_dev_info(dd,
+ 		    "Using send context %u(%u) for VL15\n",
+ 		    dd->vld[15].sc->sw_index, ctxt);
++
+ 	for (i = 0; i < num_vls; i++) {
+ 		sc_enable(dd->vld[i].sc);
+ 		ctxt = dd->vld[i].sc->hw_context;
+-		mask = all_vl_mask & ~(1LL << i);
++		mask = all_vl_mask & ~(data_vls_mask);
+ 		write_kctxt_csr(dd, ctxt, SC(CHECK_VL), mask);
+ 	}
++	for (i = num_vls; i < INIT_SC_PER_VL * num_vls; i++) {
++		sc_enable(dd->kernel_send_context[i + 1]);
++		ctxt = dd->kernel_send_context[i + 1]->hw_context;
++		mask = all_vl_mask & ~(data_vls_mask);
++		write_kctxt_csr(dd, ctxt, SC(CHECK_VL), mask);
++	}
++
++	if (pio_map_init(dd, ppd->port - 1, num_vls, NULL))
++		goto nomem;
+ 	return 0;
+ nomem:
+ 	sc_free(dd->vld[15].sc);
+ 	for (i = 0; i < num_vls; i++)
+ 		sc_free(dd->vld[i].sc);
++	for (i = num_vls; i < INIT_SC_PER_VL * num_vls; i++)
++		sc_free(dd->kernel_send_context[i + 1]);
+ 	return -ENOMEM;
  }
-diff --git a/drivers/staging/rdma/hfi1/sdma_txreq.h b/drivers/staging/rdma/hfi1/sdma_txreq.h
-index 2effb35..bf7d777 100644
---- a/drivers/staging/rdma/hfi1/sdma_txreq.h
-+++ b/drivers/staging/rdma/hfi1/sdma_txreq.h
-@@ -93,7 +93,7 @@ struct sdma_desc {
- #define SDMA_TXREQ_F_USE_AHG      0x0004
  
- struct sdma_txreq;
--typedef void (*callback_t)(struct sdma_txreq *, int, int);
-+typedef void (*callback_t)(struct sdma_txreq *, int);
+diff --git a/drivers/staging/rdma/hfi1/pio.h b/drivers/staging/rdma/hfi1/pio.h
+index 53d3e0a..1dedeb2 100644
+--- a/drivers/staging/rdma/hfi1/pio.h
++++ b/drivers/staging/rdma/hfi1/pio.h
+@@ -165,6 +165,112 @@ struct sc_config_sizes {
+ 	short int count;
+ };
  
- struct iowait;
- struct sdma_txreq {
-diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
-index ac90309..dfa9ef2 100644
---- a/drivers/staging/rdma/hfi1/user_sdma.c
-+++ b/drivers/staging/rdma/hfi1/user_sdma.c
-@@ -273,7 +273,7 @@ struct user_sdma_txreq {
++/*
++ * The diagram below details the relationship of the mapping structures
++ *
++ * Since the mapping now allows for non-uniform send contexts per vl, the
++ * number of send contexts for a vl is either the vl_scontexts[vl] or
++ * a computation based on num_kernel_send_contexts/num_vls:
++ *
++ * For example:
++ * nactual = vl_scontexts ? vl_scontexts[vl] : num_kernel_send_contexts/num_vls
++ *
++ * n = roundup to next highest power of 2 using nactual
++ *
++ * In the case where there are num_kernel_send_contexts/num_vls doesn't divide
++ * evenly, the extras are added from the last vl downward.
++ *
++ * For the case where n > nactual, the send contexts are assigned
++ * in a round robin fashion wrapping back to the first send context
++ * for a particular vl.
++ *
++ *               dd->pio_map
++ *                    |                                   pio_map_elem[0]
++ *                    |                                +--------------------+
++ *                    v                                |       mask         |
++ *               pio_vl_map                            |--------------------|
++ *      +--------------------------+                   | ksc[0] -> sc 1     |
++ *      |    list (RCU)            |                   |--------------------|
++ *      |--------------------------|                 ->| ksc[1] -> sc 2     |
++ *      |    mask                  |              --/  |--------------------|
++ *      |--------------------------|            -/     |        *           |
++ *      |    actual_vls (max 8)    |          -/       |--------------------|
++ *      |--------------------------|       --/         | ksc[n] -> sc n     |
++ *      |    vls (max 8)           |     -/            +--------------------+
++ *      |--------------------------|  --/
++ *      |    map[0]                |-/
++ *      |--------------------------|                   +--------------------+
++ *      |    map[1]                |---                |       mask         |
++ *      |--------------------------|   \----           |--------------------|
++ *      |           *              |        \--        | ksc[0] -> sc 1+n   |
++ *      |           *              |           \----   |--------------------|
++ *      |           *              |                \->| ksc[1] -> sc 2+n   |
++ *      |--------------------------|                   |--------------------|
++ *      |   map[vls - 1]           |-                  |         *          |
++ *      +--------------------------+ \-                |--------------------|
++ *                                     \-              | ksc[m] -> sc m+n   |
++ *                                       \             +--------------------+
++ *                                        \-
++ *                                          \
++ *                                           \-        +--------------------+
++ *                                             \-      |       mask         |
++ *                                               \     |--------------------|
++ *                                                \-   | ksc[0] -> sc 1+m+n |
++ *                                                  \- |--------------------|
++ *                                                    >| ksc[1] -> sc 2+m+n |
++ *                                                     |--------------------|
++ *                                                     |         *          |
++ *                                                     |--------------------|
++ *                                                     | ksc[o] -> sc o+m+n |
++ *                                                     +--------------------+
++ *
++ */
++
++/* Initial number of send contexts per VL */
++#define INIT_SC_PER_VL 2
++
++/*
++ * struct pio_map_elem - mapping for a vl
++ * @mask - selector mask
++ * @ksc - array of kernel send contexts for this vl
++ *
++ * The mask is used to "mod" the selector to
++ * produce index into the trailing array of
++ * kscs
++ */
++struct pio_map_elem {
++	u32 mask;
++	struct send_context *ksc[0];
++};
++
++/*
++ * struct pio_vl_map - mapping for a vl
++ * @list - rcu head for free callback
++ * @mask - vl mask to "mod" the vl to produce an index to map array
++ * @actual_vls - number of vls
++ * @vls - numbers of vls rounded to next power of 2
++ * @map - array of pio_map_elem entries
++ *
++ * This is the parent mapping structure. The trailing members of the
++ * struct point to pio_map_elem entries, which in turn point to an
++ * array of kscs for that vl.
++ */
++struct pio_vl_map {
++	struct rcu_head list;
++	u32 mask;
++	u8 actual_vls;
++	u8 vls;
++	struct pio_map_elem *map[0];
++};
++
++int pio_map_init(struct hfi1_devdata *dd, u8 port, u8 num_vls,
++		 u8 *vl_scontexts);
++void free_pio_map(struct hfi1_devdata *dd);
++struct send_context *pio_select_send_context_vl(struct hfi1_devdata *dd,
++						u32 selector, u8 vl);
++struct send_context *pio_select_send_context_sc(struct hfi1_devdata *dd,
++						u32 selector, u8 sc5);
++
+ /* send context functions */
+ int init_credit_return(struct hfi1_devdata *dd);
+ void free_credit_return(struct hfi1_devdata *dd);
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index ead7aed..1274172 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -552,6 +552,30 @@ struct sdma_engine *qp_to_sdma_engine(struct rvt_qp *qp, u8 sc5)
+ 	return sde;
+ }
  
- static int user_sdma_send_pkts(struct user_sdma_request *, unsigned);
- static int num_user_pages(const struct iovec *);
--static void user_sdma_txreq_cb(struct sdma_txreq *, int, int);
-+static void user_sdma_txreq_cb(struct sdma_txreq *, int);
- static inline void pq_update(struct hfi1_user_sdma_pkt_q *);
- static void user_sdma_free_request(struct user_sdma_request *, bool);
- static int pin_vector_pages(struct user_sdma_request *,
-@@ -388,7 +388,7 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt, struct file *fp)
- 	init_waitqueue_head(&pq->wait);
++/*
++ * qp_to_send_context - map a qp to a send context
++ * @qp: the QP
++ * @sc5: the 5 bit sc
++ *
++ * Return:
++ * A send context for the qp
++ */
++struct send_context *qp_to_send_context(struct rvt_qp *qp, u8 sc5)
++{
++	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
++
++	switch (qp->ibqp.qp_type) {
++	case IB_QPT_SMI:
++		/* SMA packets to VL15 */
++		return dd->vld[15].sc;
++	default:
++		break;
++	}
++
++	return pio_select_send_context_sc(dd, qp->ibqp.qp_num >> dd->qos_shift,
++					  sc5);
++}
++
+ struct qp_iter {
+ 	struct hfi1_ibdev *dev;
+ 	struct rvt_qp *qp;
+diff --git a/drivers/staging/rdma/hfi1/qp.h b/drivers/staging/rdma/hfi1/qp.h
+index afc2b4d..7b1c57e 100644
+--- a/drivers/staging/rdma/hfi1/qp.h
++++ b/drivers/staging/rdma/hfi1/qp.h
+@@ -109,6 +109,7 @@ void hfi1_get_credit(struct rvt_qp *qp, u32 aeth);
+ void hfi1_qp_wakeup(struct rvt_qp *qp, u32 flag);
  
- 	iowait_init(&pq->busy, 0, NULL, defer_packet_queue,
--		    activate_packet_queue);
-+		    activate_packet_queue, NULL);
- 	pq->reqidx = 0;
- 	snprintf(buf, 64, "txreq-kmem-cache-%u-%u-%u", dd->unit, uctxt->ctxt,
- 		 fd->subctxt);
-@@ -1341,8 +1341,7 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
-  * tx request have been processed by the DMA engine. Called in
-  * interrupt context.
-  */
--static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status,
--			       int drain)
-+static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status)
- {
- 	struct user_sdma_txreq *tx =
- 		container_of(txreq, struct user_sdma_txreq, txreq);
+ struct sdma_engine *qp_to_sdma_engine(struct rvt_qp *qp, u8 sc5);
++struct send_context *qp_to_send_context(struct rvt_qp *qp, u8 sc5);
+ 
+ struct qp_iter;
+ 
 diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
-index d900374..3141966 100644
+index 3141966..10b14da 100644
 --- a/drivers/staging/rdma/hfi1/verbs.c
 +++ b/drivers/staging/rdma/hfi1/verbs.c
-@@ -130,8 +130,7 @@ MODULE_PARM_DESC(piothreshold, "size used to determine sdma vs. pio");
+@@ -783,18 +783,6 @@ static int pio_wait(struct rvt_qp *qp,
+ 	return ret;
+ }
  
- static void verbs_sdma_complete(
- 	struct sdma_txreq *cookie,
--	int status,
--	int drained);
-+	int status);
- 
- static int pio_wait(struct rvt_qp *qp,
- 		    struct send_context *sc,
-@@ -523,8 +522,7 @@ void update_sge(struct rvt_sge_state *ss, u32 length)
- /* New API */
- static void verbs_sdma_complete(
- 	struct sdma_txreq *cookie,
--	int status,
--	int drained)
-+	int status)
+-struct send_context *qp_to_send_context(struct rvt_qp *qp, u8 sc5)
+-{
+-	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
+-	struct hfi1_pportdata *ppd = dd->pport + (qp->port_num - 1);
+-	u8 vl;
+-
+-	vl = sc_to_vlt(dd, sc5);
+-	if (vl >= ppd->vls_supported && vl != 15)
+-		return NULL;
+-	return dd->vld[vl].sc;
+-}
+-
+ static void verbs_pio_complete(void *arg, int code)
  {
- 	struct verbs_txreq *tx =
- 		container_of(cookie, struct verbs_txreq, txreq);
-@@ -539,18 +537,6 @@ static void verbs_sdma_complete(
- 		hdr = &tx->phdr.hdr;
- 		hfi1_rc_send_complete(qp, hdr);
- 	}
--	if (drained) {
--		/*
--		 * This happens when the send engine notes
--		 * a QP in the error state and cannot
--		 * do the flush work until that QP's
--		 * sdma work has finished.
--		 */
--		if (qp->s_flags & RVT_S_WAIT_DMA) {
--			qp->s_flags &= ~RVT_S_WAIT_DMA;
--			hfi1_schedule_send(qp);
--		}
--	}
- 	spin_unlock(&qp->s_lock);
+ 	struct rvt_qp *qp = (struct rvt_qp *)arg;
+diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
+index 8f1fde8..c736015 100644
+--- a/drivers/staging/rdma/hfi1/verbs.h
++++ b/drivers/staging/rdma/hfi1/verbs.h
+@@ -478,8 +478,6 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 			u64 pbc);
  
- 	hfi1_put_txreq(tx);
+-struct send_context *qp_to_send_context(struct rvt_qp *qp, u8 sc5);
+-
+ extern const enum ib_wc_opcode ib_hfi1_wc_opcode[];
+ 
+ extern const u8 hdr_len_by_opcode[];
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
