@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 01/12] IB/qib: Rename several functions by adding a "qib_"
- prefix
-Date: Sun, 14 Feb 2016 12:09:55 -0800
-Message-ID: <20160214200950.1410.66763.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 03/12] IB/rdmavt: Add trace and error print statements in
+ post_one_wr
+Date: Sun, 14 Feb 2016 12:10:12 -0800
+Message-ID: <20160214201009.1410.63577.stgit@scvm10.sc.intel.com>
 References: <20160214200613.1410.63195.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,218 +16,130 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This would avoid conflict with the functions in hfi1 that have similar
-names when both qib and hfi1 drivers are configured to be built into
-the kernel. This issue came up in the 0-day build report.
+These trace and error print statements would help in debugging issues which
+are caused due to messed up QP ring buffer pointers.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h       |   16 ++++++++--------
- drivers/infiniband/hw/qib/qib_qp.c    |   26 +++++++++++++-------------
- drivers/infiniband/hw/qib/qib_verbs.c |   26 +++++++++++++-------------
- drivers/infiniband/hw/qib/qib_verbs.h |   10 +++++-----
- 4 files changed, 39 insertions(+), 39 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c    |    8 +++-
+ drivers/infiniband/sw/rdmavt/trace.h |   70 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 5ba073e..bbf0a16 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1540,13 +1540,13 @@ void qib_format_hwerrors(u64 hwerrs,
- 			 const struct qib_hwerror_msgs *hwerrmsgs,
- 			 size_t nhwerrmsgs, char *msg, size_t lmsg);
- 
--void stop_send_queue(struct rvt_qp *qp);
--void quiesce_qp(struct rvt_qp *qp);
--void flush_qp_waiters(struct rvt_qp *qp);
--int mtu_to_path_mtu(u32 mtu);
--u32 mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu);
--void notify_error_qp(struct rvt_qp *qp);
--int get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
--		       struct ib_qp_attr *attr);
-+void qib_stop_send_queue(struct rvt_qp *qp);
-+void qib_quiesce_qp(struct rvt_qp *qp);
-+void qib_flush_qp_waiters(struct rvt_qp *qp);
-+int qib_mtu_to_path_mtu(u32 mtu);
-+u32 qib_mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu);
-+void qib_notify_error_qp(struct rvt_qp *qp);
-+int qib_get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
-+			   struct ib_qp_attr *attr);
- 
- #endif                          /* _QIB_KERNEL_H */
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index 787116f..01d49dc 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -127,8 +127,8 @@ static void get_map_page(struct rvt_qpn_table *qpt, struct rvt_qpn_map *map,
-  * Allocate the next available QPN or
-  * zero/one for QP type IB_QPT_SMI/IB_QPT_GSI.
-  */
--int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
--	      enum ib_qp_type type, u8 port, gfp_t gfp)
-+int qib_alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
-+		  enum ib_qp_type type, u8 port, gfp_t gfp)
- {
- 	u32 i, offset, max_scan, qpn;
- 	struct rvt_qpn_map *map;
-@@ -232,14 +232,14 @@ unsigned qib_free_all_qps(struct rvt_dev_info *rdi)
- 	return qp_inuse;
- }
- 
--void notify_qp_reset(struct rvt_qp *qp)
-+void qib_notify_qp_reset(struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 
- 	atomic_set(&priv->s_dma_busy, 0);
- }
- 
--void notify_error_qp(struct rvt_qp *qp)
-+void qib_notify_error_qp(struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_ibdev *dev = to_idev(qp->ibqp.device);
-@@ -290,8 +290,8 @@ static int mtu_to_enum(u32 mtu)
- 	return enum_mtu;
- }
- 
--int get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
--		       struct ib_qp_attr *attr)
-+int qib_get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
-+			   struct ib_qp_attr *attr)
- {
- 	int mtu, pmtu, pidx = qp->port_num - 1;
- 	struct qib_ibdev *verbs_dev = container_of(rdi, struct qib_ibdev, rdi);
-@@ -308,12 +308,12 @@ int get_pmtu_from_attr(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 	return pmtu;
- }
- 
--int mtu_to_path_mtu(u32 mtu)
-+int qib_mtu_to_path_mtu(u32 mtu)
- {
- 	return mtu_to_enum(mtu);
- }
- 
--u32 mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu)
-+u32 qib_mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu)
- {
- 	return ib_mtu_enum_to_int(pmtu);
- }
-@@ -378,7 +378,7 @@ __be32 qib_compute_aeth(struct rvt_qp *qp)
- 	return cpu_to_be32(aeth);
- }
- 
--void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp, gfp_t gfp)
-+void *qib_qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp, gfp_t gfp)
- {
- 	struct qib_qp_priv *priv;
- 
-@@ -399,7 +399,7 @@ void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp, gfp_t gfp)
- 	return priv;
- }
- 
--void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp)
-+void qib_qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 
-@@ -407,7 +407,7 @@ void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp)
- 	kfree(priv);
- }
- 
--void stop_send_queue(struct rvt_qp *qp)
-+void qib_stop_send_queue(struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 
-@@ -415,7 +415,7 @@ void stop_send_queue(struct rvt_qp *qp)
- 	del_timer_sync(&qp->s_timer);
- }
- 
--void quiesce_qp(struct rvt_qp *qp)
-+void qib_quiesce_qp(struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 
-@@ -426,7 +426,7 @@ void quiesce_qp(struct rvt_qp *qp)
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 522404a..d629911 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1441,7 +1441,12 @@ static int rvt_post_one_wr(struct rvt_qp *qp, struct ib_send_wr *wr)
+ 	/* check for avail */
+ 	if (unlikely(!qp->s_avail)) {
+ 		qp->s_avail = qp_get_savail(qp);
+-		WARN_ON(qp->s_avail > (qp->s_size - 1));
++		if (WARN_ON(qp->s_avail > (qp->s_size - 1)))
++			rvt_pr_err(rdi,
++				   "More avail entries than QP RB size.\nQP: %u, size: %u, avail: %u\nhead: %u, tail: %u, cur: %u, acked: %u, last: %u",
++				   qp->ibqp.qp_num, qp->s_size, qp->s_avail,
++				   qp->s_head, qp->s_tail, qp->s_cur,
++				   qp->s_acked, qp->s_last);
+ 		if (!qp->s_avail)
+ 			return -ENOMEM;
  	}
- }
+@@ -1510,6 +1515,7 @@ static int rvt_post_one_wr(struct rvt_qp *qp, struct ib_send_wr *wr)
+ 	wqe->lpsn = wqe->psn +
+ 			(wqe->length ? ((wqe->length - 1) >> log_pmtu) : 0);
+ 	qp->s_next_psn = wqe->lpsn + 1;
++	trace_rvt_post_one_wr(qp, wqe);
+ 	smp_wmb(); /* see request builders */
+ 	qp->s_avail--;
+ 	qp->s_head = next;
+diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
+index d5b1281..6c0457d 100644
+--- a/drivers/infiniband/sw/rdmavt/trace.h
++++ b/drivers/infiniband/sw/rdmavt/trace.h
+@@ -54,6 +54,7 @@
+ #include <linux/tracepoint.h>
+ #include <linux/trace_seq.h>
  
--void flush_qp_waiters(struct rvt_qp *qp)
-+void qib_flush_qp_waiters(struct rvt_qp *qp)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_ibdev *dev = to_idev(qp->ibqp.device);
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 2abe31d..fa94f78 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1394,7 +1394,7 @@ bail:
- 	return ret;
- }
++#include <rdma/ib_verbs.h>
+ #include <rdma/rdma_vt.h>
  
--static int shut_down_port(struct rvt_dev_info *rdi, u8 port_num)
-+static int qib_shut_down_port(struct rvt_dev_info *rdi, u8 port_num)
- {
- 	struct qib_ibdev *ibdev = container_of(rdi, struct qib_ibdev, rdi);
- 	struct qib_devdata *dd = dd_from_dev(ibdev);
-@@ -1663,22 +1663,22 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	dd->verbs_dev.rdi.driver_f.get_pci_dev = qib_get_pci_dev;
- 	dd->verbs_dev.rdi.driver_f.check_ah = qib_check_ah;
- 	dd->verbs_dev.rdi.driver_f.notify_new_ah = qib_notify_new_ah;
--	dd->verbs_dev.rdi.driver_f.alloc_qpn = alloc_qpn;
--	dd->verbs_dev.rdi.driver_f.qp_priv_alloc = qp_priv_alloc;
--	dd->verbs_dev.rdi.driver_f.qp_priv_free = qp_priv_free;
-+	dd->verbs_dev.rdi.driver_f.alloc_qpn = qib_alloc_qpn;
-+	dd->verbs_dev.rdi.driver_f.qp_priv_alloc = qib_qp_priv_alloc;
-+	dd->verbs_dev.rdi.driver_f.qp_priv_free = qib_qp_priv_free;
- 	dd->verbs_dev.rdi.driver_f.free_all_qps = qib_free_all_qps;
--	dd->verbs_dev.rdi.driver_f.notify_qp_reset = notify_qp_reset;
-+	dd->verbs_dev.rdi.driver_f.notify_qp_reset = qib_notify_qp_reset;
- 	dd->verbs_dev.rdi.driver_f.do_send = qib_do_send;
- 	dd->verbs_dev.rdi.driver_f.schedule_send = qib_schedule_send;
--	dd->verbs_dev.rdi.driver_f.quiesce_qp = quiesce_qp;
--	dd->verbs_dev.rdi.driver_f.stop_send_queue = stop_send_queue;
--	dd->verbs_dev.rdi.driver_f.flush_qp_waiters = flush_qp_waiters;
--	dd->verbs_dev.rdi.driver_f.notify_error_qp = notify_error_qp;
--	dd->verbs_dev.rdi.driver_f.mtu_to_path_mtu = mtu_to_path_mtu;
--	dd->verbs_dev.rdi.driver_f.mtu_from_qp = mtu_from_qp;
--	dd->verbs_dev.rdi.driver_f.get_pmtu_from_attr = get_pmtu_from_attr;
-+	dd->verbs_dev.rdi.driver_f.quiesce_qp = qib_quiesce_qp;
-+	dd->verbs_dev.rdi.driver_f.stop_send_queue = qib_stop_send_queue;
-+	dd->verbs_dev.rdi.driver_f.flush_qp_waiters = qib_flush_qp_waiters;
-+	dd->verbs_dev.rdi.driver_f.notify_error_qp = qib_notify_error_qp;
-+	dd->verbs_dev.rdi.driver_f.mtu_to_path_mtu = qib_mtu_to_path_mtu;
-+	dd->verbs_dev.rdi.driver_f.mtu_from_qp = qib_mtu_from_qp;
-+	dd->verbs_dev.rdi.driver_f.get_pmtu_from_attr = qib_get_pmtu_from_attr;
- 	dd->verbs_dev.rdi.driver_f.query_port_state = qib_query_port;
--	dd->verbs_dev.rdi.driver_f.shut_down_port = shut_down_port;
-+	dd->verbs_dev.rdi.driver_f.shut_down_port = qib_shut_down_port;
- 	dd->verbs_dev.rdi.driver_f.cap_mask_chg = qib_cap_mask_chg;
+ #define RDI_DEV_ENTRY(rdi)   __string(dev, rdi->driver_f.get_card_name(rdi))
+@@ -108,6 +109,75 @@ DEFINE_EVENT(rvt_qphash_template, rvt_qpremove,
+ 	TP_PROTO(struct rvt_qp *qp, u32 bucket),
+ 	TP_ARGS(qp, bucket));
  
- 	dd->verbs_dev.rdi.dparms.max_rdma_atomic = QIB_MAX_RDMA_ATOMIC;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index cd73a97..b88e027 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -350,11 +350,11 @@ __be32 qib_compute_aeth(struct rvt_qp *qp);
-  * Functions provided by qib driver for rdmavt to use
-  */
- unsigned qib_free_all_qps(struct rvt_dev_info *rdi);
--void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp, gfp_t gfp);
--void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp);
--void notify_qp_reset(struct rvt_qp *qp);
--int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
--	      enum ib_qp_type type, u8 port, gfp_t gfp);
-+void *qib_qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp, gfp_t gfp);
-+void qib_qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp);
-+void qib_notify_qp_reset(struct rvt_qp *qp);
-+int qib_alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
-+		  enum ib_qp_type type, u8 port, gfp_t gfp);
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rvt_tx
++
++#define wr_opcode_name(opcode) { IB_WR_##opcode, #opcode  }
++#define show_wr_opcode(opcode)                             \
++__print_symbolic(opcode,                                   \
++	wr_opcode_name(RDMA_WRITE),                        \
++	wr_opcode_name(RDMA_WRITE_WITH_IMM),               \
++	wr_opcode_name(SEND),                              \
++	wr_opcode_name(SEND_WITH_IMM),                     \
++	wr_opcode_name(RDMA_READ),                         \
++	wr_opcode_name(ATOMIC_CMP_AND_SWP),                \
++	wr_opcode_name(ATOMIC_FETCH_AND_ADD),              \
++	wr_opcode_name(LSO),                               \
++	wr_opcode_name(SEND_WITH_INV),                     \
++	wr_opcode_name(RDMA_READ_WITH_INV),                \
++	wr_opcode_name(LOCAL_INV),                         \
++	wr_opcode_name(MASKED_ATOMIC_CMP_AND_SWP),         \
++	wr_opcode_name(MASKED_ATOMIC_FETCH_AND_ADD))
++
++#define POS_PRN \
++"[%s] wr_id %llx qpn %x psn 0x%x lpsn 0x%x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u"
++
++TRACE_EVENT(
++	rvt_post_one_wr,
++	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe),
++	TP_ARGS(qp, wqe),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
++		__field(u64, wr_id)
++		__field(u32, qpn)
++		__field(u32, psn)
++		__field(u32, lpsn)
++		__field(u32, length)
++		__field(u32, opcode)
++		__field(u32, size)
++		__field(u32, avail)
++		__field(u32, head)
++		__field(u32, last)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
++		__entry->wr_id = wqe->wr.wr_id;
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->psn = wqe->psn;
++		__entry->lpsn = wqe->lpsn;
++		__entry->length = wqe->length;
++		__entry->opcode = wqe->wr.opcode;
++		__entry->size = qp->s_size;
++		__entry->avail = qp->s_avail;
++		__entry->head = qp->s_head;
++		__entry->last = qp->s_last;
++	),
++	TP_printk(
++		POS_PRN,
++		__get_str(dev),
++		__entry->wr_id,
++		__entry->qpn,
++		__entry->psn,
++		__entry->lpsn,
++		__entry->length,
++		__entry->opcode, show_wr_opcode(__entry->opcode),
++		__entry->size,
++		__entry->avail,
++		__entry->head,
++		__entry->last
++	)
++);
++
+ #endif /* __RDMAVT_TRACE_H */
  
- #ifdef CONFIG_DEBUG_FS
- 
+ #undef TRACE_INCLUDE_PATH
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
