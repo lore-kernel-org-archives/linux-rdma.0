@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/21] staging/rdma/hfi1: Remove blank line after an open
+Subject: [PATCH 06/21] staging/rdma/hfi1: Remove blank line before close
  brace
-Date: Sun, 14 Feb 2016 20:19:58 -0800
-Message-ID: <20160215041954.351.10805.stgit@scvm10.sc.intel.com>
+Date: Sun, 14 Feb 2016 20:20:06 -0800
+Message-ID: <20160215042003.351.12252.stgit@scvm10.sc.intel.com>
 References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,166 +16,155 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Remove blank line after an open brace to fix checkpatch check:
-CHECK: Blank lines aren't necessary after an open brace '{'
+Remove extra blank line before close brace to fix checkpatch check:
+CHECK: Blank lines aren't necessary before a close brace '}'
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c   |    5 -----
- drivers/staging/rdma/hfi1/driver.c |    3 ---
- drivers/staging/rdma/hfi1/mad.c    |    2 --
- drivers/staging/rdma/hfi1/qp.c     |    1 -
- drivers/staging/rdma/hfi1/qsfp.c   |    2 --
- drivers/staging/rdma/hfi1/sdma.c   |    2 --
- 6 files changed, 0 insertions(+), 15 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c      |    1 -
+ drivers/staging/rdma/hfi1/driver.c    |    1 -
+ drivers/staging/rdma/hfi1/intr.c      |    1 -
+ drivers/staging/rdma/hfi1/mad.c       |    2 --
+ drivers/staging/rdma/hfi1/pcie.c      |    1 -
+ drivers/staging/rdma/hfi1/sysfs.c     |    1 -
+ drivers/staging/rdma/hfi1/uc.c        |    1 -
+ drivers/staging/rdma/hfi1/ud.c        |    2 --
+ drivers/staging/rdma/hfi1/user_sdma.c |    2 --
+ 9 files changed, 0 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index ea0ffd4..05e4f07 100644
+index 05e4f07..51256ba 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -1538,7 +1538,6 @@ static u64 read_write_cpu(struct hfi1_devdata *dd, u64 *z_val,
- 			  u64 __percpu *cntr,
- 			  int vl, int mode, u64 data)
- {
+@@ -13710,7 +13710,6 @@ static void assign_cm_au_table(struct hfi1_devdata *dd, u32 cu,
+ 			SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE6_SHIFT
+ 		| 64ull * cu <<
+ 			SEND_CM_LOCAL_AU_TABLE4_TO7_LOCAL_AU_TABLE7_SHIFT);
 -
- 	u64 ret = 0;
+ }
  
- 	if (vl != CNTR_INVALID_VL)
-@@ -5931,7 +5930,6 @@ static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
- 	u64 qsfp_int_mgmt = (u64)(QSFP_HFI0_INT_N | QSFP_HFI0_MODPRST_N);
- 
- 	if (reg & QSFP_HFI0_MODPRST_N) {
--
- 		dd_dev_info(dd, "%s: ModPresent triggered QSFP interrupt\n",
- 				__func__);
- 
-@@ -5995,7 +5993,6 @@ static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
- 	}
- 
- 	if (reg & QSFP_HFI0_INT_N) {
--
- 		dd_dev_info(dd, "%s: IntN triggered QSFP interrupt\n",
- 				__func__);
- 		spin_lock_irqsave(&ppd->qsfp_info.qsfp_lock, flags);
-@@ -9266,7 +9263,6 @@ void qsfp_event(struct work_struct *work)
- 	dc_start(dd);
- 
- 	if (qd->cache_refresh_required) {
--
- 		set_qsfp_int_n(ppd, 0);
- 
- 		wait_for_qsfp_init(ppd);
-@@ -10122,7 +10118,6 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
- 				"%s: logical state did not change to ACTIVE\n",
- 				__func__);
- 		} else {
--
- 			/* tell all engines to go running */
- 			sdma_all_running(dd);
- 
+ static void assign_local_cm_au_table(struct hfi1_devdata *dd, u8 vcu)
 diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
-index 0c8bd91..b5dfdb6 100644
+index b5dfdb6..fee5e39 100644
 --- a/drivers/staging/rdma/hfi1/driver.c
 +++ b/drivers/staging/rdma/hfi1/driver.c
-@@ -440,7 +440,6 @@ drop:
- static inline void init_packet(struct hfi1_ctxtdata *rcd,
- 			      struct hfi1_packet *packet)
- {
+@@ -762,7 +762,6 @@ static inline void finish_packet(struct hfi1_packet *packet)
+ 	 */
+ 	update_usrhead(packet->rcd, packet->rcd->head, packet->updegr,
+ 		       packet->etail, rcv_intr_dynamic, packet->numpkt);
 -
- 	packet->rsize = rcd->rcvhdrqentsize; /* words */
- 	packet->maxcnt = rcd->rcvhdrq_cnt * packet->rsize; /* words */
- 	packet->rcd = rcd;
-@@ -755,7 +754,6 @@ static inline void process_rcv_update(int last, struct hfi1_packet *packet)
- 
- static inline void finish_packet(struct hfi1_packet *packet)
- {
--
- 	/*
- 	 * Nothing we need to free for the packet.
- 	 *
-@@ -769,7 +767,6 @@ static inline void finish_packet(struct hfi1_packet *packet)
+ }
  
  static inline void process_rcv_qp_work(struct hfi1_packet *packet)
- {
+diff --git a/drivers/staging/rdma/hfi1/intr.c b/drivers/staging/rdma/hfi1/intr.c
+index 9a9b331..685fb4d 100644
+--- a/drivers/staging/rdma/hfi1/intr.c
++++ b/drivers/staging/rdma/hfi1/intr.c
+@@ -178,7 +178,6 @@ void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup)
+ 		/* notify IB of the link change */
+ 		signal_ib_event(ppd, ev);
+ 	}
 -
- 	struct hfi1_ctxtdata *rcd;
- 	struct rvt_qp *qp, *nqp;
+ }
  
+ /*
 diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index 44e7fbd..a7e5f92 100644
+index a7e5f92..adfd0a9 100644
 --- a/drivers/staging/rdma/hfi1/mad.c
 +++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -2183,7 +2183,6 @@ struct opa_port_error_info_msg {
- 	__be32 error_info_select_mask;
- 	__be32 reserved1;
- 	struct _port_ei {
+@@ -3805,7 +3805,6 @@ static int subn_get_opa_aggregate(struct opa_smp *smp,
+ 			return reply((struct ib_mad_hdr *)smp);
+ 		}
+ 		next_smp += agg_size;
 -
- 		u8 port_number;
- 		u8 reserved2[7];
+ 	}
  
-@@ -3140,7 +3139,6 @@ static int pma_set_opa_portstatus(struct opa_pma_mad *pmp,
- 
- 	for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
- 			 8 * sizeof(vl_select_mask)) {
+ 	return reply((struct ib_mad_hdr *)smp);
+@@ -3849,7 +3848,6 @@ static int subn_set_opa_aggregate(struct opa_smp *smp,
+ 			return reply((struct ib_mad_hdr *)smp);
+ 		}
+ 		next_smp += agg_size;
 -
- 		if (counter_select & CS_PORT_XMIT_DATA)
- 			write_port_cntr(ppd, C_TX_FLIT_VL, idx_from_vl(vl), 0);
+ 	}
  
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index c78b7bd..50309f6 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -464,7 +464,6 @@ static int iowait_sleep(
- 
- 	spin_lock_irqsave(&qp->s_lock, flags);
- 	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+ 	return reply((struct ib_mad_hdr *)smp);
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index 0368516..725e282 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -316,7 +316,6 @@ do_intx:
+ 		   nvec, ret);
+ 	*msixcnt = 0;
+ 	hfi1_enable_intx(dd->pcidev);
 -
- 		/*
- 		 * If we couldn't queue the DMA request, save the info
- 		 * and try again later rather than destroying the
-diff --git a/drivers/staging/rdma/hfi1/qsfp.c b/drivers/staging/rdma/hfi1/qsfp.c
-index a6d55a6..aa9c62b 100644
---- a/drivers/staging/rdma/hfi1/qsfp.c
-+++ b/drivers/staging/rdma/hfi1/qsfp.c
-@@ -359,7 +359,6 @@ int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
+ }
  
- 	/* Is paging enabled? */
- 	if (!(cache[2] & 4)) {
+ /* return the PCIe link speed from the given link status */
+diff --git a/drivers/staging/rdma/hfi1/sysfs.c b/drivers/staging/rdma/hfi1/sysfs.c
+index 3c34f77..fe232c1 100644
+--- a/drivers/staging/rdma/hfi1/sysfs.c
++++ b/drivers/staging/rdma/hfi1/sysfs.c
+@@ -568,7 +568,6 @@ static ssize_t show_serial(struct device *device,
+ 	struct hfi1_devdata *dd = dd_from_dev(dev);
+ 
+ 	return scnprintf(buf, PAGE_SIZE, "%s", dd->serial);
 -
- 		/* Paging enabled, page 03 required */
- 		if ((cache[195] & 0xC0) == 0xC0) {
- 			/* all */
-@@ -520,7 +519,6 @@ int qsfp_dump(struct hfi1_pportdata *ppd, char *buf, int len)
- 	lenstr[1] = '\0';
+ }
  
- 	if (ppd->qsfp_info.cache_valid) {
+ static ssize_t store_chip_reset(struct device *device,
+diff --git a/drivers/staging/rdma/hfi1/uc.c b/drivers/staging/rdma/hfi1/uc.c
+index e58ec15..afdf539 100644
+--- a/drivers/staging/rdma/hfi1/uc.c
++++ b/drivers/staging/rdma/hfi1/uc.c
+@@ -604,5 +604,4 @@ drop:
+ op_err:
+ 	hfi1_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
+ 	return;
 -
- 		if (QSFP_IS_CU(cache[QSFP_MOD_TECH_OFFS]))
- 			sprintf(lenstr, "%dM ", cache[QSFP_MOD_LEN_OFFS]);
- 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index 3312324..d8edf9b 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -475,7 +475,6 @@ static void sdma_err_halt_wait(struct work_struct *work)
- static void sdma_err_progress_check_schedule(struct sdma_engine *sde)
- {
- 	if (!is_bx(sde->dd) && HFI1_CAP_IS_KSET(SDMA_AHG)) {
+ }
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index 5779f3a..c3f0697 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -772,7 +772,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 			mgmt_pkey_idx = hfi1_lookup_pkey_idx(ibp, pkey);
+ 			if (mgmt_pkey_idx < 0)
+ 				goto drop;
 -
- 		unsigned index;
- 		struct hfi1_devdata *dd = sde->dd;
- 
-@@ -1239,7 +1238,6 @@ void sdma_exit(struct hfi1_devdata *dd)
- 
- 	for (this_idx = 0; dd->per_sdma && this_idx < dd->num_sdma;
- 			++this_idx) {
+ 		}
+ 		if (unlikely(qkey != qp->qkey)) {
+ 			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey,
+@@ -810,7 +809,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		mgmt_pkey_idx = hfi1_lookup_pkey_idx(ibp, pkey);
+ 		if (mgmt_pkey_idx < 0)
+ 			goto drop;
 -
- 		sde = &dd->per_sdma[this_idx];
- 		if (!list_empty(&sde->dmawait))
- 			dd_dev_err(dd, "sde %u: dmawait list not empty!\n",
+ 	}
+ 
+ 	if (qp->ibqp.qp_num > 1 &&
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index 03a10c8..097d278 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -713,7 +713,6 @@ int hfi1_user_sdma_process_request(struct file *fp, struct iovec *iovec,
+ 				msecs_to_jiffies(
+ 					SDMA_IOWAIT_TIMEOUT));
+ 		}
+-
+ 	}
+ 	*count += idx;
+ 	return 0;
+@@ -1194,7 +1193,6 @@ static int set_txreq_header(struct user_sdma_request *req,
+ 		if (ret)
+ 			return ret;
+ 		goto done;
+-
+ 	}
+ 
+ 	hdr->bth[2] = cpu_to_be32(
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
