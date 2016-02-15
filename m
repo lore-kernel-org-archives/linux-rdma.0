@@ -1,274 +1,249 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 1/3] IB: new common API for draining queues
-Date: Mon, 15 Feb 2016 15:20:36 -0600
-Message-ID: <01aa01d16836$b6510220$22f30660$@opengridcomputing.com>
-References: <cover.1455230646.git.swise@chelsio.com> <3e7261d1436d33320223d365974ff38945f0d558.1455230646.git.swise@chelsio.com> <56C23DA8.40905@redhat.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: [PATCH net-next 2/3] RDMA/nes: Replace LRO with GRO
+Date: Mon, 15 Feb 2016 21:25:44 +0000
+Message-ID: <20160215212544.GD5231@decadent.org.uk>
+References: <20160215212351.GB5231@decadent.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C23DA8.40905-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="9dgjiU4MmWPVapMU"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160215212351.GB5231@decadent.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--9dgjiU4MmWPVapMU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Monday, February 15, 2016 3:06 PM
-> To: Steve Wise; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
-> Subject: Re: [PATCH 1/3] IB: new common API for draining queues
-> 
-> On 02/05/2016 04:13 PM, Steve Wise wrote:
-> > From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>
-> >
-> > Add provider-specific drain_sq/drain_rq functions for providers needing
-> > special drain logic.
-> >
-> > Add static functions __ib_drain_sq() and __ib_drain_rq() which post noop
-> > WRs to the SQ or RQ and block until their completions are processed.
-> > This ensures the applications completions have all been processed.
-> 
-> Except it doesn't, comments inline below...and applications is
-> possessive, so needs a '
-> 
-> > Add API functions ib_drain_sq(), ib_drain_rq(), and ib_drain_qp().
-> >
-> > Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/verbs.c | 144 ++++++++++++++++++++++++++++++++++++++++
-> >  include/rdma/ib_verbs.h         |   5 ++
-> >  2 files changed, 149 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> > index 5af6d02..aed521e 100644
-> > --- a/drivers/infiniband/core/verbs.c
-> > +++ b/drivers/infiniband/core/verbs.c
-> > @@ -1657,3 +1657,147 @@ next_page:
-> >  	return i;
-> >  }
-> >  EXPORT_SYMBOL(ib_sg_to_pages);
-> > +
-> > +struct ib_drain_cqe {
-> > +	struct ib_cqe cqe;
-> > +	struct completion done;
-> > +};
-> > +
-> > +static void ib_drain_qp_done(struct ib_cq *cq, struct ib_wc *wc)
-> > +{
-> > +	struct ib_drain_cqe *cqe = container_of(wc->wr_cqe, struct ib_drain_cqe,
-> > +						cqe);
-> > +
-> > +	complete(&cqe->done);
-> > +}
-> > +
-> > +static void wait_for_drain(struct ib_cq *cq, struct completion *c)
-> > +{
-> > +	if (cq->poll_ctx == IB_POLL_DIRECT)
-> > +		do
-> > +			ib_process_cq_direct(cq, 1024);
-> > +		while (!wait_for_completion_timeout(c, msecs_to_jiffies(100)));
-> > +	else
-> > +		wait_for_completion(c);
-> > +}
-> > +
-> > +/*
-> > + * Post a WR and block until its completion is reaped for the SQ.
-> > + */
-> > +static void __ib_drain_sq(struct ib_qp *qp)
-> > +{
-> > +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
-> > +	struct ib_drain_cqe sdrain;
-> > +	struct ib_send_wr swr = {}, *bad_swr;
-> > +	int ret;
-> > +
-> > +	swr.wr_cqe = &sdrain.cqe;
-> > +	sdrain.cqe.done = ib_drain_qp_done;
-> > +	init_completion(&sdrain.done);
-> > +
-> > +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-> > +	if (ret) {
-> > +		WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
-> > +		return;
-> > +	}
-> 
-> Set QP to ERR state...OK...
-> 
-> > +	ret = ib_post_send(qp, &swr, &bad_swr);
-> > +	if (ret) {
-> > +		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
-> > +		return;
-> > +	}
-> 
-> Post command to QP in ERR state (admittedly, I never do this and hadn't
-> even thought about whether or not it is allowed...obviously it is, but
-> my initial reaction would have been "won't ib_post_send return an error
-> when you try to post to a QP in ERR state?")....OK...
-> 
+GRO is simpler to use than the old inet_lro library, and is compatible
+with forwarding and bridging configurations.
 
-IBTA spec sez a post to a QP in ERR will result in a CQE in the CQ with status FLUSHED.  IE it mandates this behavior.
+Compile-tested only.
 
-> > +	wait_for_drain(qp->send_cq, &sdrain.done);
-> 
-> Wait for your posted WR to complete...OK...
-> 
-> As I mentioned in my comment above, I would have thought that the
-> attempt to post a send to a QP in ERR state would have returned an
-> error.  It must not or else this patch is worthless because of the order
-> of actions.  What that highlights though, is that this code will drain a
-> QP, but only if the caller has taken the time to stop all possible
-> contexts that might run on other cores and post commands to the QP.
-> Those commands will error out, but the caller must, none the less, take
-> steps to block other contexts from sending or else this drain is
-> useless.  That might be fine for the API, but it should be clearly
-> documented, and currently it isn't.
-> 
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+ drivers/infiniband/hw/nes/Kconfig   |  1 -
+ drivers/infiniband/hw/nes/nes_hw.c  | 44 +--------------------------------=
+----
+ drivers/infiniband/hw/nes/nes_hw.h  |  7 ------
+ drivers/infiniband/hw/nes/nes_nic.c |  7 ------
+ 4 files changed, 1 insertion(+), 58 deletions(-)
 
-I'll clarify this in the function header comments.
-
-> > +}
-> > +
-> > +/*
-> > + * Post a WR and block until its completion is reaped for the RQ.
-> > + */
-> > +static void __ib_drain_rq(struct ib_qp *qp)
-> > +{
-> > +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
-> > +	struct ib_drain_cqe rdrain;
-> > +	struct ib_recv_wr rwr = {}, *bad_rwr;
-> > +	int ret;
-> > +
-> > +	rwr.wr_cqe = &rdrain.cqe;
-> > +	rdrain.cqe.done = ib_drain_qp_done;
-> > +	init_completion(&rdrain.done);
-> > +
-> > +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
-> > +	if (ret) {
-> > +		WARN_ONCE(ret, "failed to drain QP: %d\n", ret);
-> > +		return;
-> > +	}
-> > +
-> > +	ret = ib_post_recv(qp, &rwr, &bad_rwr);
-> > +	if (ret) {
-> > +		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
-> > +		return;
-> > +	}
-> > +
-> > +	wait_for_drain(qp->recv_cq, &rdrain.done);
-> > +}
-> > +
-> > +/**
-> > + * ib_drain_sq() - Block until all SQ CQEs have been consumed by the
-> > + *		   application.
-> > + * @qp:            queue pair to drain
-> > + *
-> > + * If the device has a provider-specific drain function, then
-> > + * call that.  Otherwise call the generic drain function
-> > + * __ib_drain_sq().
-> > + *
-> > + * The consumer must ensure there is room in the CQ and SQ
-> > + * for a drain work requests.  Also the consumer must allocate the
-> 
-> Either requests should be singular, or you should remove the article 'a'.
-> 
-
-agreed (and agree to all the dittos)
-
-
-> > + * CQ using ib_alloc_cq().  It is up to the consumer to handle concurrency
-> > + * issues if the CQs are using the IB_POLL_DIRECT polling context.
-> > + */
-> > +void ib_drain_sq(struct ib_qp *qp)
-> > +{
-> > +	if (qp->device->drain_sq)
-> > +		qp->device->drain_sq(qp);
-> > +	else
-> > +		__ib_drain_sq(qp);
-> > +}
-> > +EXPORT_SYMBOL(ib_drain_sq);
-> > +
-> > +/**
-> > + * ib_drain_rq() - Block until all RQ CQEs have been consumed by the
-> > + *		   application.
-> > + * @qp:            queue pair to drain
-> > + *
-> > + * If the device has a provider-specific drain function, then
-> > + * call that.  Otherwise call the generic drain function
-> > + * __ib_drain_rq().
-> > + *
-> > + * The consumer must ensure there is room in the CQ and RQ
-> > + * for a drain work requests.  Also the consumer must allocate the
-> 
-> Ditto...
-> 
-> > + * CQ using ib_alloc_cq().  It is up to the consumer to handle concurrency
-> > + * issues if the CQs are using the IB_POLL_DIRECT polling context.
-> > + */
-> > +void ib_drain_rq(struct ib_qp *qp)
-> > +{
-> > +	if (qp->device->drain_rq)
-> > +		qp->device->drain_rq(qp);
-> > +	else
-> > +		__ib_drain_rq(qp);
-> > +}
-> > +EXPORT_SYMBOL(ib_drain_rq);
-> > +
-> > +/**
-> > + * ib_drain_qp() - Block until all CQEs have been consumed by the
-> > + *		   application on both the RQ and SQ.
-> > + * @qp:            queue pair to drain
-> > + *
-> > + * The consumer must ensure there is room in the CQ(s), SQ, and RQ
-> > + * for a drain work requests.  Also the consumer must allocate the
-> 
-> Ditto...
-> 
-> > + * CQ using ib_alloc_cq().  It is up to the consumer to handle concurrency
-> > + * issues if the CQs are using the IB_POLL_DIRECT polling context.
-> > + */
-> > +void ib_drain_qp(struct ib_qp *qp)
-> > +{
-> > +	ib_drain_sq(qp);
-> > +	ib_drain_rq(qp);
-> > +}
-> > +EXPORT_SYMBOL(ib_drain_qp);
-> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > index 284b00c..68b7e97 100644
-> > --- a/include/rdma/ib_verbs.h
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -1846,6 +1846,8 @@ struct ib_device {
-> >  	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
-> >  						      struct ib_mr_status *mr_status);
-> >  	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
-> > +	void			   (*drain_rq)(struct ib_qp *qp);
-> > +	void			   (*drain_sq)(struct ib_qp *qp);
-> >
-> >  	struct ib_dma_mapping_ops   *dma_ops;
-> >
-> > @@ -3094,4 +3096,7 @@ int ib_sg_to_pages(struct ib_mr *mr,
-> >  		   int sg_nents,
-> >  		   int (*set_page)(struct ib_mr *, u64));
-> >
-> > +void ib_drain_rq(struct ib_qp *qp);
-> > +void ib_drain_sq(struct ib_qp *qp);
-> > +void ib_drain_qp(struct ib_qp *qp);
-> >  #endif /* IB_VERBS_H */
-> >
-> 
-> 
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
-> 
+diff --git a/drivers/infiniband/hw/nes/Kconfig b/drivers/infiniband/hw/nes/=
+Kconfig
+index 846dc97cf260..7964eba8e7ed 100644
+--- a/drivers/infiniband/hw/nes/Kconfig
++++ b/drivers/infiniband/hw/nes/Kconfig
+@@ -2,7 +2,6 @@ config INFINIBAND_NES
+ 	tristate "NetEffect RNIC Driver"
+ 	depends on PCI && INET && INFINIBAND
+ 	select LIBCRC32C
+-	select INET_LRO
+ 	---help---
+ 	  This is the RDMA Network Interface Card (RNIC) driver for
+ 	  NetEffect Ethernet Cluster Server Adapters.
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes=
+/nes_hw.c
+index 4713dd7ed764..a1c6481d8038 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -35,18 +35,11 @@
+ #include <linux/moduleparam.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+-#include <linux/ip.h>
+-#include <linux/tcp.h>
+ #include <linux/if_vlan.h>
+-#include <linux/inet_lro.h>
+ #include <linux/slab.h>
+=20
+ #include "nes.h"
+=20
+-static unsigned int nes_lro_max_aggr =3D NES_LRO_MAX_AGGR;
+-module_param(nes_lro_max_aggr, uint, 0444);
+-MODULE_PARM_DESC(nes_lro_max_aggr, "NIC LRO max packet aggregation");
+-
+ static int wide_ppm_offset;
+ module_param(wide_ppm_offset, int, 0644);
+ MODULE_PARM_DESC(wide_ppm_offset, "Increase CX4 interface clock ppm offset=
+, 0=3D100ppm (default), 1=3D300ppm");
+@@ -1642,25 +1635,6 @@ static void nes_rq_wqes_timeout(unsigned long parm)
+ }
+=20
+=20
+-static int nes_lro_get_skb_hdr(struct sk_buff *skb, void **iphdr,
+-			       void **tcph, u64 *hdr_flags, void *priv)
+-{
+-	unsigned int ip_len;
+-	struct iphdr *iph;
+-	skb_reset_network_header(skb);
+-	iph =3D ip_hdr(skb);
+-	if (iph->protocol !=3D IPPROTO_TCP)
+-		return -1;
+-	ip_len =3D ip_hdrlen(skb);
+-	skb_set_transport_header(skb, ip_len);
+-	*tcph =3D tcp_hdr(skb);
+-
+-	*hdr_flags =3D LRO_IPV4 | LRO_TCP;
+-	*iphdr =3D iph;
+-	return 0;
+-}
+-
+-
+ /**
+  * nes_init_nic_qp
+  */
+@@ -1895,14 +1869,6 @@ int nes_init_nic_qp(struct nes_device *nesdev, struc=
+t net_device *netdev)
+ 		return -ENOMEM;
+ 	}
+=20
+-	nesvnic->lro_mgr.max_aggr       =3D nes_lro_max_aggr;
+-	nesvnic->lro_mgr.max_desc       =3D NES_MAX_LRO_DESCRIPTORS;
+-	nesvnic->lro_mgr.lro_arr        =3D nesvnic->lro_desc;
+-	nesvnic->lro_mgr.get_skb_header =3D nes_lro_get_skb_hdr;
+-	nesvnic->lro_mgr.features       =3D LRO_F_NAPI | LRO_F_EXTRACT_VLAN_ID;
+-	nesvnic->lro_mgr.dev            =3D netdev;
+-	nesvnic->lro_mgr.ip_summed      =3D CHECKSUM_UNNECESSARY;
+-	nesvnic->lro_mgr.ip_summed_aggr =3D CHECKSUM_UNNECESSARY;
+ 	return 0;
+ }
+=20
+@@ -2809,13 +2775,10 @@ void nes_nic_ce_handler(struct nes_device *nesdev, =
+struct nes_hw_nic_cq *cq)
+ 	u16 pkt_type;
+ 	u16 rqes_processed =3D 0;
+ 	u8 sq_cqes =3D 0;
+-	u8 nes_use_lro =3D 0;
+=20
+ 	head =3D cq->cq_head;
+ 	cq_size =3D cq->cq_size;
+ 	cq->cqes_pending =3D 1;
+-	if (nesvnic->netdev->features & NETIF_F_LRO)
+-		nes_use_lro =3D 1;
+ 	do {
+ 		if (le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX]) &
+ 				NES_NIC_CQE_VALID) {
+@@ -2950,10 +2913,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev, s=
+truct nes_hw_nic_cq *cq)
+=20
+ 					__vlan_hwaccel_put_tag(rx_skb, htons(ETH_P_8021Q), vlan_tag);
+ 				}
+-				if (nes_use_lro)
+-					lro_receive_skb(&nesvnic->lro_mgr, rx_skb, NULL);
+-				else
+-					netif_receive_skb(rx_skb);
++				napi_gro_receive(&nesvnic->napi, rx_skb);
+=20
+ skip_rx_indicate0:
+ 				;
+@@ -2984,8 +2944,6 @@ skip_rx_indicate0:
+=20
+ 	} while (1);
+=20
+-	if (nes_use_lro)
+-		lro_flush_all(&nesvnic->lro_mgr);
+ 	if (sq_cqes) {
+ 		barrier();
+ 		/* restart the queue if it had been stopped */
+diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw/nes=
+/nes_hw.h
+index c9080208aad2..1b66ef1e9937 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.h
++++ b/drivers/infiniband/hw/nes/nes_hw.h
+@@ -33,8 +33,6 @@
+ #ifndef __NES_HW_H
+ #define __NES_HW_H
+=20
+-#include <linux/inet_lro.h>
+-
+ #define NES_PHY_TYPE_CX4       1
+ #define NES_PHY_TYPE_1G        2
+ #define NES_PHY_TYPE_ARGUS     4
+@@ -1049,8 +1047,6 @@ struct nes_hw_tune_timer {
+ #define NES_TIMER_ENABLE_LIMIT      4
+ #define NES_MAX_LINK_INTERRUPTS     128
+ #define NES_MAX_LINK_CHECK          200
+-#define NES_MAX_LRO_DESCRIPTORS     32
+-#define NES_LRO_MAX_AGGR            64
+=20
+ struct nes_adapter {
+ 	u64              fw_ver;
+@@ -1263,9 +1259,6 @@ struct nes_vnic {
+ 	u8  next_qp_nic_index;
+ 	u8  of_device_registered;
+ 	u8  rdma_enabled;
+-	u32 lro_max_aggr;
+-	struct net_lro_mgr lro_mgr;
+-	struct net_lro_desc lro_desc[NES_MAX_LRO_DESCRIPTORS];
+ 	struct timer_list event_timer;
+ 	enum ib_event_type delayed_event;
+ 	enum ib_event_type last_dispatched_event;
+diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/ne=
+s/nes_nic.c
+index 6a0bdfa0ce2e..3ea9e055fdd3 100644
+--- a/drivers/infiniband/hw/nes/nes_nic.c
++++ b/drivers/infiniband/hw/nes/nes_nic.c
+@@ -1085,9 +1085,6 @@ static const char nes_ethtool_stringset[][ETH_GSTRING=
+_LEN] =3D {
+ 	"Free 4Kpbls",
+ 	"Free 256pbls",
+ 	"Timer Inits",
+-	"LRO aggregated",
+-	"LRO flushed",
+-	"LRO no_desc",
+ 	"PAU CreateQPs",
+ 	"PAU DestroyQPs",
+ };
+@@ -1302,9 +1299,6 @@ static void nes_netdev_get_ethtool_stats(struct net_d=
+evice *netdev,
+ 	target_stat_values[++index] =3D nesadapter->free_4kpbl;
+ 	target_stat_values[++index] =3D nesadapter->free_256pbl;
+ 	target_stat_values[++index] =3D int_mod_timer_init;
+-	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.aggregated;
+-	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.flushed;
+-	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.no_desc;
+ 	target_stat_values[++index] =3D atomic_read(&pau_qps_created);
+ 	target_stat_values[++index] =3D atomic_read(&pau_qps_destroyed);
+ }
+@@ -1709,7 +1703,6 @@ struct net_device *nes_netdev_init(struct nes_device =
+*nesdev,
+ 		netdev->hw_features |=3D NETIF_F_TSO;
+=20
+ 	netdev->features =3D netdev->hw_features | NETIF_F_HIGHDMA | NETIF_F_HW_V=
+LAN_CTAG_TX;
+-	netdev->hw_features |=3D NETIF_F_LRO;
+=20
+ 	nes_debug(NES_DBG_INIT, "nesvnic =3D %p, reported features =3D 0x%lX, QPi=
+d =3D %d,"
+ 			" nic_index =3D %d, logical_port =3D %d, mac_index =3D %d.\n",
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--9dgjiU4MmWPVapMU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIVAwUBVsJCV+e/yOyVhhEJAQqSDg//Ul34zkO5V7LnXGCGPYcXhr9xv7ahmaNg
+7XcSJ6PJ8ZUhxGYynas9BqBobIANkUorkFqlksx3fvmHgCmWtcpljYFQF80DCx2o
+sVjr2/jcVssWjwqasBOM6FiFjyyxgwKs9WrTzFfL10dbC0V5zeZid5YymL/1I95x
+09kZPlFlQHo/OzSXzaNx2aEgnpbhOwHMrBqPL09PTF4/lL/3B9WVVSdffZdZKmwx
+JoyABXuFuKStph8qOmL2tH2xIRxyhD3zlibtHfRxbDVWNcO/airjPe5cXTJxLzcm
+cS2REeT8pJ0lRqMu2V3fHQKEoVg4jPzRu6yfazLeRTAQTnY6GFHdio1ZuxI/4xhL
++d4IB8oXyvphwWGpOI+A5NBDLaQRI9bCrOQPDERoJjjV1p7NqzVuMYRg5fqiq4aR
+KOSwtXG173Q3eFJK9PgzwVa6nOFo4v4e/uPF+fdq+AHUisnUoHnXnqPnkVJhzk8F
+Of9asOHJazpsH8RuH+Zl26Axhd2wPTc3K4uBXYqfJ7VR5vOkg5+0SXGUriwegHu7
+uwIT/NmLU7M+TMuDxkmbxZYJYhB7QPBXDFQ6FHf0IEnvnbuE/yCc6DEn8BY6xUph
+Arcoosxc9sc9TFI6vziQoUs8dl1DQYm/fiokoX4Rq3aq/HS+AOcg+ZoXv/Tdlr9m
+gYChlSw7/20=
+=BMHH
+-----END PGP SIGNATURE-----
+
+--9dgjiU4MmWPVapMU--
