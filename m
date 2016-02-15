@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 08/21] staging/rdma/hfi1: Add blank link after declarations
-Date: Sun, 14 Feb 2016 20:20:25 -0800
-Message-ID: <20160215042020.351.41442.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 09/21] staging/rdma/hfi1: Remove unnecessary parentheses
+Date: Sun, 14 Feb 2016 20:20:33 -0800
+Message-ID: <20160215042030.351.24464.stgit@scvm10.sc.intel.com>
 References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,111 +15,85 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add blank line after declarations to fix checkpatch check:
-CHECK: Please use a blank line after function/struct/union/enum
-declarations
+Remove unnecessary parentheses around addressof single $Lvals to fix
+checkpatch check:
+CHECK: Unnecessary parentheses around $var
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c     |    2 ++
- drivers/staging/rdma/hfi1/debugfs.c  |    1 +
- drivers/staging/rdma/hfi1/firmware.c |    2 ++
- drivers/staging/rdma/hfi1/hfi.h      |    1 +
- drivers/staging/rdma/hfi1/pcie.c     |    1 +
- drivers/staging/rdma/hfi1/pio.h      |    1 +
- 6 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/staging/rdma/hfi1/mad.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index b4c017a..bdc5610 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -6995,6 +6995,7 @@ static u16 link_width_to_bits(struct hfi1_devdata *dd, u16 width)
- static const u8 bit_counts[16] = {
- 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
- };
-+
- static inline u8 nibble_to_count(u8 nibble)
- {
- 	return bit_counts[nibble & 0xf];
-@@ -10410,6 +10411,7 @@ static int vl_arb_match_cache(struct vl_arb_cache *cache,
- {
- 	return !memcmp(cache->table, vl, VL_ARB_TABLE_SIZE * sizeof(*vl));
- }
-+
- /* end functions related to vl arbitration table caching */
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index ae594f4..36bd6fa 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -2416,7 +2416,7 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
+ 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
  
- static int set_vl_weights(struct hfi1_pportdata *ppd, u32 target,
-diff --git a/drivers/staging/rdma/hfi1/debugfs.c b/drivers/staging/rdma/hfi1/debugfs.c
-index fa3df1f..e02c527 100644
---- a/drivers/staging/rdma/hfi1/debugfs.c
-+++ b/drivers/staging/rdma/hfi1/debugfs.c
-@@ -71,6 +71,7 @@ static const struct seq_operations _##name##_seq_ops = { \
- 	.stop  = _##name##_seq_stop, \
- 	.show  = _##name##_seq_show \
- }
-+
- #define DEBUGFS_SEQ_FILE_OPEN(name) \
- static int _##name##_open(struct inode *inode, struct file *s) \
- { \
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index 1af5e34..16c9dc7 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -113,6 +113,7 @@ struct css_header {
- 	u32 exponent_size;	/* in DWORDs */
- 	u32 reserved[22];
- };
-+
- /* expected field values */
- #define CSS_MODULE_TYPE	   0x00000006
- #define CSS_HEADER_LEN	   0x000000a1
-@@ -172,6 +173,7 @@ enum fw_state {
- 	FW_FINAL,
- 	FW_ERR
- };
-+
- static enum fw_state fw_state = FW_EMPTY;
- static int fw_err;
- static struct firmware_details fw_8051;
-diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
-index de82f8e..805535e 100644
---- a/drivers/staging/rdma/hfi1/hfi.h
-+++ b/drivers/staging/rdma/hfi1/hfi.h
-@@ -1495,6 +1495,7 @@ static inline int valid_ib_mtu(unsigned int mtu)
- 		mtu == 1024 || mtu == 2048 ||
- 		mtu == 4096;
- }
-+
- static inline int valid_opa_max_mtu(unsigned int mtu)
- {
- 	return mtu >= 2048 &&
-diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
-index 725e282..b169166 100644
---- a/drivers/staging/rdma/hfi1/pcie.c
-+++ b/drivers/staging/rdma/hfi1/pcie.c
-@@ -529,6 +529,7 @@ static void tune_pcie_caps(struct hfi1_devdata *dd)
- 		pcie_set_readrq(dd->pcidev, ep_mrrs);
+-	vlinfo = &(rsp->vls[0]);
++	vlinfo = &rsp->vls[0];
+ 	vfi = 0;
+ 	/* The vl_select_mask has been checked above, and we know
+ 	 * that it contains only entries which represent valid VLs.
+@@ -2609,7 +2609,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 		return reply((struct ib_mad_hdr *)pmp);
  	}
- }
-+
- /* End of PCIe capability tuning */
  
- /*
-diff --git a/drivers/staging/rdma/hfi1/pio.h b/drivers/staging/rdma/hfi1/pio.h
-index 8d0cf1b..09a5eeb 100644
---- a/drivers/staging/rdma/hfi1/pio.h
-+++ b/drivers/staging/rdma/hfi1/pio.h
-@@ -105,6 +105,7 @@ struct send_context {
- 	struct hfi1_devdata *dd;		/* device */
- 	void __iomem *base_addr;	/* start of PIO memory */
- 	union pio_shadow_ring *sr;	/* shadow ring */
-+
- 	volatile __le64 *hw_free;	/* HW free counter */
- 	struct work_struct halt_work;	/* halted context work queue entry */
- 	unsigned long flags;		/* flags */
+-	rsp = (struct _port_dctrs *)&(req->port[0]);
++	rsp = (struct _port_dctrs *)&req->port[0];
+ 	memset(rsp, 0, sizeof(*rsp));
+ 
+ 	rsp->port_number = port;
+@@ -2632,7 +2632,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
+ 		cpu_to_be64(get_error_counter_summary(ibdev, port,
+ 						      res_lli, res_ler));
+ 
+-	vlinfo = &(rsp->vls[0]);
++	vlinfo = &rsp->vls[0];
+ 	vfi = 0;
+ 	/* The vl_select_mask has been checked above, and we know
+ 	 * that it contains only entries which represent valid VLs.
+@@ -2816,7 +2816,7 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
+ 		return reply((struct ib_mad_hdr *)pmp);
+ 	}
+ 
+-	rsp = (struct _port_ectrs *)&(req->port[0]);
++	rsp = (struct _port_ectrs *)&req->port[0];
+ 
+ 	ibp = to_iport(ibdev, port_num);
+ 	ppd = ppd_from_ibp(ibp);
+@@ -2836,7 +2836,7 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
+ 
+ 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
+ 
+-	vlinfo = (struct _vls_ectrs *)&(rsp->vls[0]);
++	vlinfo = (struct _vls_ectrs *)&rsp->vls[0];
+ 	vfi = 0;
+ 	vl_select_mask = be32_to_cpu(req->vl_select_mask);
+ 	for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
+@@ -2952,7 +2952,7 @@ static int pma_get_opa_errorinfo(struct opa_pma_mad *pmp,
+ 	u64 reg;
+ 
+ 	req = (struct opa_port_error_info_msg *)pmp->data;
+-	rsp = (struct _port_ei *)&(req->port[0]);
++	rsp = (struct _port_ei *)&req->port[0];
+ 
+ 	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
+ 	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
+@@ -3192,7 +3192,7 @@ static int pma_set_opa_errorinfo(struct opa_pma_mad *pmp,
+ 	u32 error_info_select;
+ 
+ 	req = (struct opa_port_error_info_msg *)pmp->data;
+-	rsp = (struct _port_ei *)&(req->port[0]);
++	rsp = (struct _port_ei *)&req->port[0];
+ 
+ 	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
+ 	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
