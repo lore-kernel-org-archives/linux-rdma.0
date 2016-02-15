@@ -1,109 +1,447 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 00/21] staging/rdma/hfi1: finish checkpatch fixes
-Date: Sun, 14 Feb 2016 20:19:13 -0800
-Message-ID: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 02/21] staging/rdma/hfi1: Remove multiple blank lines
+Date: Sun, 14 Feb 2016 20:19:32 -0800
+Message-ID: <20160215041929.351.44389.stgit@scvm10.sc.intel.com>
+References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160215041616.351.42119.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series adds the remaining checkpatch fixes for the hfi1 driver. This was
-done with strict. Any remaining checkpatch issues are intentionally left and
-should not be changed. A lot of the checkpatch issues were cleaned up as the
-code moved to rdmavt, this is the remainder.
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Applies on the "Adaptive PIO performance improvement" series and can be seen in
-context at https://github.com/ddalessa/kernel/tree/for-4.6.
+Remove multiple blank lines to fix checkpatch check:
+CHECK: Please don't use multiple blank lines
 
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/staging/rdma/hfi1/chip.c     |    6 ------
+ drivers/staging/rdma/hfi1/debugfs.c  |    3 ---
+ drivers/staging/rdma/hfi1/file_ops.c |    2 --
+ drivers/staging/rdma/hfi1/hfi.h      |    2 --
+ drivers/staging/rdma/hfi1/init.c     |    1 -
+ drivers/staging/rdma/hfi1/intr.c     |    1 -
+ drivers/staging/rdma/hfi1/mad.c      |    1 -
+ drivers/staging/rdma/hfi1/mad.h      |    1 -
+ drivers/staging/rdma/hfi1/pcie.c     |    1 -
+ drivers/staging/rdma/hfi1/pio.c      |    1 -
+ drivers/staging/rdma/hfi1/pio.h      |    2 --
+ drivers/staging/rdma/hfi1/sdma.c     |    2 --
+ drivers/staging/rdma/hfi1/sdma.h     |    4 ----
+ drivers/staging/rdma/hfi1/sysfs.c    |    6 ------
+ drivers/staging/rdma/hfi1/trace.h    |    4 ----
+ drivers/staging/rdma/hfi1/twsi.h     |    1 -
+ drivers/staging/rdma/hfi1/ud.c       |    1 -
+ drivers/staging/rdma/hfi1/verbs.c    |    2 --
+ 18 files changed, 0 insertions(+), 41 deletions(-)
 
-Jubin John (21):
-      staging/rdma/hfi1: Add spaces around binary operators
-      staging/rdma/hfi1: Remove multiple blank lines
-      staging/rdma/hfi1: Remove space after cast
-      staging/rdma/hfi1: Fix comparison to NULL
-      staging/rdma/hfi1: Remove blank line after an open brace
-      staging/rdma/hfi1: Remove blank line before close brace
-      staging/rdma/hfi1: Fix logical continuations
-      staging/rdma/hfi1: Add blank link after declarations
-      staging/rdma/hfi1: Remove unnecessary parentheses
-      staging/rdma/hfi1: Use BIT_ULL macro
-      staging/rdma/hfi1: Split multiple assignments
-      staging/rdma/hfi1: Fix misspellings
-      staging/rdma/hfi1: Remove CamelCase
-      staging/rdma/hfi1: Use pointer instead of struct name
-      staging/rdma/hfi1: Remove void function return statement
-      staging/rdma/hfi1: Add comment for spinlock_t definition
-      staging/rdma/hfi1: Fix block comments
-      staging/rdma/hfi1: Fix code alignment
-      staging/rdma/hfi1: Add braces on all arms of statement
-      staging/rdma/hfi1: Remove else after break
-      staging/rdma/hfi1: Fix header
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 79c215e..0a593bd 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -986,7 +986,6 @@ static struct flag_table dc8051_info_host_msg_flags[] = {
+ 	FLAG_ENTRY0("Link going down", 0x0100),
+ };
+ 
+-
+ static u32 encoded_size(u32 size);
+ static u32 chip_to_opa_lstate(struct hfi1_devdata *dd, u32 chip_lstate);
+ static int set_physical_link_state(struct hfi1_devdata *dd, u64 state);
+@@ -1285,7 +1284,6 @@ static inline u64 read_write_csr(const struct hfi1_devdata *dd, u32 csr,
+ {
+ 	u64 ret;
+ 
+-
+ 	if (mode == CNTR_MODE_R) {
+ 		ret = read_csr(dd, csr);
+ 	} else if (mode == CNTR_MODE_W) {
+@@ -10748,7 +10746,6 @@ int set_buffer_control(struct hfi1_pportdata *ppd,
+ #define valid_vl(idx) ((idx) < TXE_NUM_DATA_VL || (idx) == 15)
+ #define NUM_USABLE_VLS 16	/* look at VL15 and less */
+ 
+-
+ 	/* find the new total credits, do sanity check on unused VLs */
+ 	for (i = 0; i < OPA_MAX_VLS; i++) {
+ 		if (valid_vl(i)) {
+@@ -11891,7 +11888,6 @@ static int init_cntrs(struct hfi1_devdata *dd)
+ 	if (!dd->scntrs)
+ 		goto bail;
+ 
+-
+ 	/* allocate space for the counter names */
+ 	dd->cntrnameslen = sz;
+ 	dd->cntrnames = kmalloc(sz, GFP_KERNEL);
+@@ -12060,7 +12056,6 @@ bail:
+ 	return -ENOMEM;
+ }
+ 
+-
+ static u32 chip_to_opa_lstate(struct hfi1_devdata *dd, u32 chip_lstate)
+ {
+ 	switch (chip_lstate) {
+@@ -14282,7 +14277,6 @@ static u16 delay_cycles(struct hfi1_pportdata *ppd, u32 desired_egress_rate,
+ 	return (u16)delta_cycles;
+ }
+ 
+-
+ /**
+  * create_pbc - build a pbc for transmission
+  * @flags: special case flags or-ed in built pbc
+diff --git a/drivers/staging/rdma/hfi1/debugfs.c b/drivers/staging/rdma/hfi1/debugfs.c
+index 0ee7217..7cb4348 100644
+--- a/drivers/staging/rdma/hfi1/debugfs.c
++++ b/drivers/staging/rdma/hfi1/debugfs.c
+@@ -102,7 +102,6 @@ do { \
+ 		pr_warn("create of %s failed\n", name); \
+ } while (0)
+ 
+-
+ #define DEBUGFS_SEQ_FILE_CREATE(name, parent, data) \
+ 	DEBUGFS_FILE_CREATE(#name, parent, data, &_##name##_file_ops, S_IRUGO)
+ 
+@@ -127,7 +126,6 @@ static void *_opcode_stats_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ 	return pos;
+ }
+ 
+-
+ static void _opcode_stats_seq_stop(struct seq_file *s, void *v)
+ __releases(RCU)
+ {
+@@ -308,7 +306,6 @@ static void *_sdes_seq_next(struct seq_file *s, void *v, loff_t *pos)
+ 	return pos;
+ }
+ 
+-
+ static void _sdes_seq_stop(struct seq_file *s, void *v)
+ __releases(RCU)
+ {
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index cc681f7..b52cb78 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -162,7 +162,6 @@ enum mmap_types {
+ #define dbg(fmt, ...)				\
+ 	pr_info(fmt, ##__VA_ARGS__)
+ 
+-
+ static inline int is_valid_mmap(u64 token)
+ {
+ 	return (HFI1_MMAP_TOKEN_GET(MAGIC, token) == HFI1_MMAP_MAGIC);
+@@ -1589,7 +1588,6 @@ static loff_t ui_lseek(struct file *filp, loff_t offset, int whence)
+ 	return filp->f_pos;
+ }
+ 
+-
+ /* NOTE: assumes unsigned long is 8 bytes */
+ static ssize_t ui_read(struct file *filp, char __user *buf, size_t count,
+ 			loff_t *f_pos)
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 70decdf..347ceca 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -878,7 +878,6 @@ struct hfi1_devdata {
+ 	wait_queue_head_t		  sdma_unfreeze_wq;
+ 	atomic_t			  sdma_unfreeze_count;
+ 
+-
+ 	/* hfi1_pportdata, points to array of (physical) port-specific
+ 	 * data structs, indexed by pidx (0..n-1)
+ 	 */
+@@ -1598,7 +1597,6 @@ static inline struct cc_state *get_cc_state(struct hfi1_pportdata *ppd)
+ /* IB dword length mask in PBC (lower 11 bits); same for all chips */
+ #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
+ 
+-
+ /* ctxt_flag bit offsets */
+ 		/* context has been setup */
+ #define HFI1_CTXT_SETUP_DONE 1
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index 423c699..3071fbc 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -1723,7 +1723,6 @@ int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *rcd)
+ 		  rcd->ctxt, rcd->egrbufs.alloced, rcd->egrbufs.rcvtid_size,
+ 		  rcd->egrbufs.size);
+ 
+-
+ 	/*
+ 	 * Set the contexts rcv array head update threshold to the closest
+ 	 * power of 2 (so we can use a mask instead of modulo) below half
+diff --git a/drivers/staging/rdma/hfi1/intr.c b/drivers/staging/rdma/hfi1/intr.c
+index 5e6d77d..9a9b331 100644
+--- a/drivers/staging/rdma/hfi1/intr.c
++++ b/drivers/staging/rdma/hfi1/intr.c
+@@ -179,7 +179,6 @@ void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup)
+ 		signal_ib_event(ppd, ev);
+ 	}
+ 
+-
+ }
+ 
+ /*
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index 1a9eb50..b687e3f 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -2310,7 +2310,6 @@ static void a0_portstatus(struct hfi1_pportdata *ppd,
+ 	}
+ }
+ 
+-
+ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
+ 			struct ib_device *ibdev, u8 port, u32 *resp_len)
+ {
+diff --git a/drivers/staging/rdma/hfi1/mad.h b/drivers/staging/rdma/hfi1/mad.h
+index b6c88be..f9e93c0 100644
+--- a/drivers/staging/rdma/hfi1/mad.h
++++ b/drivers/staging/rdma/hfi1/mad.h
+@@ -235,7 +235,6 @@ struct ib_pma_portcounters_cong {
+ #define IB_CC_SVCTYPE_RD 0x2
+ #define IB_CC_SVCTYPE_UD 0x3
+ 
+-
+ /*
+  * There should be an equivalent IB #define for the following, but
+  * I cannot find it.
+diff --git a/drivers/staging/rdma/hfi1/pcie.c b/drivers/staging/rdma/hfi1/pcie.c
+index 019b4f8..26eb610 100644
+--- a/drivers/staging/rdma/hfi1/pcie.c
++++ b/drivers/staging/rdma/hfi1/pcie.c
+@@ -447,7 +447,6 @@ void restore_pci_variables(struct hfi1_devdata *dd)
+ 	pci_write_config_dword(dd->pcidev, PCIE_CFG_TPH2, dd->pci_tph2);
+ }
+ 
+-
+ /*
+  * BIOS may not set PCIe bus-utilization parameters for best performance.
+  * Check and optionally adjust them to maximize our throughput.
+diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
+index 9bafedf..f1f30b3 100644
+--- a/drivers/staging/rdma/hfi1/pio.c
++++ b/drivers/staging/rdma/hfi1/pio.c
+@@ -852,7 +852,6 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 		  sc->credit_ctrl,
+ 		  thresh);
+ 
+-
+ 	return sc;
+ }
+ 
+diff --git a/drivers/staging/rdma/hfi1/pio.h b/drivers/staging/rdma/hfi1/pio.h
+index 1dedeb2..8d0cf1b 100644
+--- a/drivers/staging/rdma/hfi1/pio.h
++++ b/drivers/staging/rdma/hfi1/pio.h
+@@ -50,7 +50,6 @@
+  *
+  */
+ 
+-
+ /* send context types */
+ #define SC_KERNEL 0
+ #define SC_ACK    1
+@@ -318,7 +317,6 @@ void pio_kernel_unfreeze(struct hfi1_devdata *dd);
+ void __cm_reset(struct hfi1_devdata *dd, u64 sendctrl);
+ void pio_send_control(struct hfi1_devdata *dd, int op);
+ 
+-
+ /* PIO copy routines */
+ void pio_copy(struct hfi1_devdata *dd, struct pio_buf *pbuf, u64 pbc,
+ 	      const void *from, size_t count);
+diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+index 2e574ef..122b390 100644
+--- a/drivers/staging/rdma/hfi1/sdma.c
++++ b/drivers/staging/rdma/hfi1/sdma.c
+@@ -609,7 +609,6 @@ static void sdma_sw_clean_up_task(unsigned long opaque)
+ 	 *   descq are ours to play with.
+ 	 */
+ 
+-
+ 	/*
+ 	 * In the error clean up sequence, software clean must be called
+ 	 * before the hardware clean so we can use the hardware head in
+@@ -1691,7 +1690,6 @@ static void set_sdma_integrity(struct sdma_engine *sde)
+ 	write_sde_csr(sde, SD(CHECK_ENABLE), reg);
+ }
+ 
+-
+ static void init_sdma_regs(
+ 	struct sdma_engine *sde,
+ 	u32 credits,
+diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
+index c106d3c..cc01e81 100644
+--- a/drivers/staging/rdma/hfi1/sdma.h
++++ b/drivers/staging/rdma/hfi1/sdma.h
+@@ -65,7 +65,6 @@
+ /* Hardware limit for SDMA packet size */
+ #define MAX_SDMA_PKT_SIZE ((16 * 1024) - 1)
+ 
+-
+ #define SDMA_TXREQ_S_OK        0
+ #define SDMA_TXREQ_S_SENDERROR 1
+ #define SDMA_TXREQ_S_ABORTED   2
+@@ -418,7 +417,6 @@ struct sdma_engine {
+ 	struct list_head flushlist;
+ };
+ 
+-
+ int sdma_init(struct hfi1_devdata *dd, u8 port);
+ void sdma_start(struct hfi1_devdata *dd);
+ void sdma_exit(struct hfi1_devdata *dd);
+@@ -464,7 +462,6 @@ static inline int __sdma_running(struct sdma_engine *engine)
+ 	return engine->state.current_state == sdma_state_s99_running;
+ }
+ 
+-
+ /**
+  * sdma_running() - state suitability test
+  * @engine: sdma engine
+@@ -494,7 +491,6 @@ void _sdma_txreq_ahgadd(
+ 	u32 *ahg,
+ 	u8 ahg_hlen);
+ 
+-
+ /**
+  * sdma_txinit_ahg() - initialize an sdma_txreq struct with AHG
+  * @tx: tx request to initialize
+diff --git a/drivers/staging/rdma/hfi1/sysfs.c b/drivers/staging/rdma/hfi1/sysfs.c
+index f1d47e7..1f3a747 100644
+--- a/drivers/staging/rdma/hfi1/sysfs.c
++++ b/drivers/staging/rdma/hfi1/sysfs.c
+@@ -53,7 +53,6 @@
+ #include "mad.h"
+ #include "trace.h"
+ 
+-
+ /*
+  * Start of per-port congestion control structures and support code
+  */
+@@ -254,7 +253,6 @@ HFI1_SC2VL_ATTR(29);
+ HFI1_SC2VL_ATTR(30);
+ HFI1_SC2VL_ATTR(31);
+ 
+-
+ static struct attribute *sc2vl_default_attributes[] = {
+ 	&hfi1_sc2vl_attr_0.attr,
+ 	&hfi1_sc2vl_attr_1.attr,
+@@ -360,7 +358,6 @@ HFI1_SL2SC_ATTR(29);
+ HFI1_SL2SC_ATTR(30);
+ HFI1_SL2SC_ATTR(31);
+ 
+-
+ static struct attribute *sl2sc_default_attributes[] = {
+ 	&hfi1_sl2sc_attr_0.attr,
+ 	&hfi1_sl2sc_attr_1.attr,
+@@ -493,7 +490,6 @@ static struct kobj_type hfi1_vl2mtu_ktype = {
+ 	.default_attrs = vl2mtu_default_attributes
+ };
+ 
+-
+ /* end of per-port file structures and support code */
+ 
+ /*
+@@ -535,7 +531,6 @@ static ssize_t show_boardversion(struct device *device,
+ 	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
+ }
+ 
+-
+ static ssize_t show_nctxts(struct device *device,
+ 			   struct device_attribute *attr, char *buf)
+ {
+@@ -702,7 +697,6 @@ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
+ 	}
+ 	kobject_uevent(&ppd->vl2mtu_kobj, KOBJ_ADD);
+ 
+-
+ 	ret = kobject_init_and_add(&ppd->pport_cc_kobj, &port_cc_ktype,
+ 				   kobj, "CCMgtA");
+ 	if (ret) {
+diff --git a/drivers/staging/rdma/hfi1/trace.h b/drivers/staging/rdma/hfi1/trace.h
+index fcae96e..a13215f 100644
+--- a/drivers/staging/rdma/hfi1/trace.h
++++ b/drivers/staging/rdma/hfi1/trace.h
+@@ -380,7 +380,6 @@ const char *parse_sdma_flags(
+ 
+ #define __parse_sdma_flags(desc0, desc1) parse_sdma_flags(p, desc0, desc1)
+ 
+-
+ #define lrh_name(lrh) { HFI1_##lrh, #lrh }
+ #define show_lnh(lrh)                    \
+ __print_symbolic(lrh,                    \
+@@ -427,7 +426,6 @@ __print_symbolic(opcode,                                   \
+ 	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
+ 	ib_opcode_name(CNP))
+ 
+-
+ #define LRH_PRN "vl %d lver %d sl %d lnh %d,%s dlid %.4x len %d slid %.4x"
+ #define BTH_PRN \
+ 	"op 0x%.2x,%s se %d m %d pad %d tver %d pkey 0x%.4x " \
+@@ -563,7 +561,6 @@ DEFINE_EVENT(hfi1_ibhdr_template, output_ibhdr,
+ #undef TRACE_SYSTEM
+ #define TRACE_SYSTEM hfi1_snoop
+ 
+-
+ TRACE_EVENT(snoop_capture,
+ 	TP_PROTO(struct hfi1_devdata *dd,
+ 		 int hdr_len,
+@@ -760,7 +757,6 @@ DECLARE_EVENT_CLASS(hfi1_bct_template,
+ 	)
+ );
+ 
+-
+ DEFINE_EVENT(hfi1_bct_template, bct_set,
+ 	     TP_PROTO(struct hfi1_devdata *dd, struct buffer_control *bc),
+ 	     TP_ARGS(dd, bc));
+diff --git a/drivers/staging/rdma/hfi1/twsi.h b/drivers/staging/rdma/hfi1/twsi.h
+index 6cb30e5..0722ac8 100644
+--- a/drivers/staging/rdma/hfi1/twsi.h
++++ b/drivers/staging/rdma/hfi1/twsi.h
+@@ -65,5 +65,4 @@ int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+ int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+ 		     const void *buffer, int len);
+ 
+-
+ #endif /* _TWSI_H */
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index da4e465..5779f3a 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -647,7 +647,6 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
+ 	return 0;
+ }
+ 
+-
+ /**
+  * hfi1_ud_rcv - receive an incoming UD packet
+  * @ibp: the port the packet came in on
+diff --git a/drivers/staging/rdma/hfi1/verbs.c b/drivers/staging/rdma/hfi1/verbs.c
+index acf1132..466055b 100644
+--- a/drivers/staging/rdma/hfi1/verbs.c
++++ b/drivers/staging/rdma/hfi1/verbs.c
+@@ -376,7 +376,6 @@ dropit:
+ 	return 0;
+ }
+ 
+-
+ /**
+  * hfi1_ib_rcv - process an incoming packet
+  * @packet: data packet information
+@@ -965,7 +964,6 @@ static inline int egress_pkey_check(struct hfi1_pportdata *ppd,
+ 	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
+ 		goto bad;
+ 
+-
+ 	/* Is the pkey = 0x0, or 0x8000? */
+ 	if ((pkey & PKEY_LOW_15_MASK) == 0)
+ 		goto bad;
 
-
- drivers/staging/rdma/hfi1/affinity.c       |    5 
- drivers/staging/rdma/hfi1/affinity.h       |    5 
- drivers/staging/rdma/hfi1/aspm.h           |    5 
- drivers/staging/rdma/hfi1/chip.c           | 1200 +++++++++++++-------------
- drivers/staging/rdma/hfi1/chip.h           |   35 -
- drivers/staging/rdma/hfi1/chip_registers.h |    5 
- drivers/staging/rdma/hfi1/common.h         |    5 
- drivers/staging/rdma/hfi1/debugfs.c        |   47 -
- drivers/staging/rdma/hfi1/debugfs.h        |    5 
- drivers/staging/rdma/hfi1/device.c         |    5 
- drivers/staging/rdma/hfi1/device.h         |    5 
- drivers/staging/rdma/hfi1/diag.c           |    5 
- drivers/staging/rdma/hfi1/dma.c            |   17 
- drivers/staging/rdma/hfi1/driver.c         |   75 +-
- drivers/staging/rdma/hfi1/efivar.c         |    5 
- drivers/staging/rdma/hfi1/efivar.h         |    5 
- drivers/staging/rdma/hfi1/eprom.c          |   56 +
- drivers/staging/rdma/hfi1/eprom.h          |    5 
- drivers/staging/rdma/hfi1/file_ops.c       |   42 -
- drivers/staging/rdma/hfi1/firmware.c       |  177 ++--
- drivers/staging/rdma/hfi1/hfi.h            |   28 -
- drivers/staging/rdma/hfi1/init.c           |   49 +
- drivers/staging/rdma/hfi1/intr.c           |   24 -
- drivers/staging/rdma/hfi1/iowait.h         |    5 
- drivers/staging/rdma/hfi1/mad.c            |  342 ++++---
- drivers/staging/rdma/hfi1/mad.h            |   14 
- drivers/staging/rdma/hfi1/opa_compat.h     |    5 
- drivers/staging/rdma/hfi1/pcie.c           |  120 +--
- drivers/staging/rdma/hfi1/pio.c            |   99 +-
- drivers/staging/rdma/hfi1/pio.h            |   12 
- drivers/staging/rdma/hfi1/pio_copy.c       |   67 +
- drivers/staging/rdma/hfi1/platform.c       |    5 
- drivers/staging/rdma/hfi1/platform.h       |   13 
- drivers/staging/rdma/hfi1/qp.c             |   15 
- drivers/staging/rdma/hfi1/qp.h             |    5 
- drivers/staging/rdma/hfi1/qsfp.c           |   17 
- drivers/staging/rdma/hfi1/qsfp.h           |    8 
- drivers/staging/rdma/hfi1/rc.c             |   52 +
- drivers/staging/rdma/hfi1/ruc.c            |   27 -
- drivers/staging/rdma/hfi1/sdma.c           |  219 ++---
- drivers/staging/rdma/hfi1/sdma.h           |   23 
- drivers/staging/rdma/hfi1/sysfs.c          |   52 -
- drivers/staging/rdma/hfi1/trace.c          |   52 +
- drivers/staging/rdma/hfi1/trace.h          | 1289 +++++++++++++---------------
- drivers/staging/rdma/hfi1/twsi.c           |   11 
- drivers/staging/rdma/hfi1/twsi.h           |    6 
- drivers/staging/rdma/hfi1/uc.c             |   40 -
- drivers/staging/rdma/hfi1/ud.c             |   38 -
- drivers/staging/rdma/hfi1/user_exp_rcv.c   |    5 
- drivers/staging/rdma/hfi1/user_exp_rcv.h   |    5 
- drivers/staging/rdma/hfi1/user_pages.c     |    5 
- drivers/staging/rdma/hfi1/user_sdma.c      |   61 +
- drivers/staging/rdma/hfi1/user_sdma.h      |    5 
- drivers/staging/rdma/hfi1/verbs.c          |   27 -
- drivers/staging/rdma/hfi1/verbs.h          |    9 
- 55 files changed, 2131 insertions(+), 2332 deletions(-)
-
--- 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
