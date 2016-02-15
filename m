@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/21] staging/rdma/hfi1: Remove unnecessary parentheses
-Date: Sun, 14 Feb 2016 20:20:33 -0800
-Message-ID: <20160215042030.351.24464.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 10/21] staging/rdma/hfi1: Use BIT_ULL macro
+Date: Sun, 14 Feb 2016 20:20:42 -0800
+Message-ID: <20160215042038.351.88108.stgit@scvm10.sc.intel.com>
 References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,85 +15,86 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Remove unnecessary parentheses around addressof single $Lvals to fix
-checkpatch check:
-CHECK: Unnecessary parentheses around $var
+Use BIT_ULL macro to fix checkpatch check:
+CHECK: Prefer using the BIT_ULL macro
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/mad.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/staging/rdma/hfi1/chip.h  |   16 ++++++++--------
+ drivers/staging/rdma/hfi1/eprom.c |    2 +-
+ drivers/staging/rdma/hfi1/sdma.h  |    8 ++++----
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index ae594f4..36bd6fa 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -2416,7 +2416,7 @@ static int pma_get_opa_portstatus(struct opa_pma_mad *pmp,
- 	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
- 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
+diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
+index 6c581e0..2b30aaa 100644
+--- a/drivers/staging/rdma/hfi1/chip.h
++++ b/drivers/staging/rdma/hfi1/chip.h
+@@ -93,15 +93,15 @@
+ #define TXE_PIO_SEND (TXE + TXE_PIO_SEND_OFFSET)
  
--	vlinfo = &(rsp->vls[0]);
-+	vlinfo = &rsp->vls[0];
- 	vfi = 0;
- 	/* The vl_select_mask has been checked above, and we know
- 	 * that it contains only entries which represent valid VLs.
-@@ -2609,7 +2609,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 		return reply((struct ib_mad_hdr *)pmp);
- 	}
+ /* PBC flags */
+-#define PBC_INTR		(1ull << 31)
++#define PBC_INTR		BIT_ULL(31)
+ #define PBC_DC_INFO_SHIFT	(30)
+-#define PBC_DC_INFO		(1ull << PBC_DC_INFO_SHIFT)
+-#define PBC_TEST_EBP	(1ull << 29)
+-#define PBC_PACKET_BYPASS	(1ull << 28)
+-#define PBC_CREDIT_RETURN	(1ull << 25)
+-#define PBC_INSERT_BYPASS_ICRC (1ull << 24)
+-#define PBC_TEST_BAD_ICRC	(1ull << 23)
+-#define PBC_FECN		(1ull << 22)
++#define PBC_DC_INFO		BIT_ULL(PBC_DC_INFO_SHIFT)
++#define PBC_TEST_EBP		BIT_ULL(29)
++#define PBC_PACKET_BYPASS	BIT_ULL(28)
++#define PBC_CREDIT_RETURN	BIT_ULL(25)
++#define PBC_INSERT_BYPASS_ICRC	BIT_ULL(24)
++#define PBC_TEST_BAD_ICRC	BIT_ULL(23)
++#define PBC_FECN		BIT_ULL(22)
  
--	rsp = (struct _port_dctrs *)&(req->port[0]);
-+	rsp = (struct _port_dctrs *)&req->port[0];
- 	memset(rsp, 0, sizeof(*rsp));
+ /* PbcInsertHcrc field settings */
+ #define PBC_IHCRC_LKDETH 0x0	/* insert @ local KDETH offset */
+diff --git a/drivers/staging/rdma/hfi1/eprom.c b/drivers/staging/rdma/hfi1/eprom.c
+index 9a0ddd7..d7250af 100644
+--- a/drivers/staging/rdma/hfi1/eprom.c
++++ b/drivers/staging/rdma/hfi1/eprom.c
+@@ -102,7 +102,7 @@
+ #define COUNT_DELAY_SEC(n) ((n) * (1000000 / WAIT_SLEEP_US))
  
- 	rsp->port_number = port;
-@@ -2632,7 +2632,7 @@ static int pma_get_opa_datacounters(struct opa_pma_mad *pmp,
- 		cpu_to_be64(get_error_counter_summary(ibdev, port,
- 						      res_lli, res_ler));
+ /* GPIO pins */
+-#define EPROM_WP_N (1ull << 14)	/* EPROM write line */
++#define EPROM_WP_N BIT_ULL(14)	/* EPROM write line */
  
--	vlinfo = &(rsp->vls[0]);
-+	vlinfo = &rsp->vls[0];
- 	vfi = 0;
- 	/* The vl_select_mask has been checked above, and we know
- 	 * that it contains only entries which represent valid VLs.
-@@ -2816,7 +2816,7 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
- 		return reply((struct ib_mad_hdr *)pmp);
- 	}
+ /*
+  * Use the EP mutex to guard against other callers from within the driver.
+diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
+index cc01e81..0ee22c4 100644
+--- a/drivers/staging/rdma/hfi1/sdma.h
++++ b/drivers/staging/rdma/hfi1/sdma.h
+@@ -107,8 +107,8 @@
+ /*
+  * Bits defined in the send DMA descriptor.
+  */
+-#define SDMA_DESC0_FIRST_DESC_FLAG      (1ULL << 63)
+-#define SDMA_DESC0_LAST_DESC_FLAG       (1ULL << 62)
++#define SDMA_DESC0_FIRST_DESC_FLAG      BIT_ULL(63)
++#define SDMA_DESC0_LAST_DESC_FLAG       BIT_ULL(62)
+ #define SDMA_DESC0_BYTE_COUNT_SHIFT     48
+ #define SDMA_DESC0_BYTE_COUNT_WIDTH     14
+ #define SDMA_DESC0_BYTE_COUNT_MASK \
+@@ -152,8 +152,8 @@
+ 	((1ULL << SDMA_DESC1_GENERATION_WIDTH) - 1)
+ #define SDMA_DESC1_GENERATION_SMASK \
+ 	(SDMA_DESC1_GENERATION_MASK << SDMA_DESC1_GENERATION_SHIFT)
+-#define SDMA_DESC1_INT_REQ_FLAG         (1ULL << 1)
+-#define SDMA_DESC1_HEAD_TO_HOST_FLAG    (1ULL << 0)
++#define SDMA_DESC1_INT_REQ_FLAG         BIT_ULL(1)
++#define SDMA_DESC1_HEAD_TO_HOST_FLAG    BIT_ULL(0)
  
--	rsp = (struct _port_ectrs *)&(req->port[0]);
-+	rsp = (struct _port_ectrs *)&req->port[0];
- 
- 	ibp = to_iport(ibdev, port_num);
- 	ppd = ppd_from_ibp(ibp);
-@@ -2836,7 +2836,7 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
- 
- 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
- 
--	vlinfo = (struct _vls_ectrs *)&(rsp->vls[0]);
-+	vlinfo = (struct _vls_ectrs *)&rsp->vls[0];
- 	vfi = 0;
- 	vl_select_mask = be32_to_cpu(req->vl_select_mask);
- 	for_each_set_bit(vl, (unsigned long *)&(vl_select_mask),
-@@ -2952,7 +2952,7 @@ static int pma_get_opa_errorinfo(struct opa_pma_mad *pmp,
- 	u64 reg;
- 
- 	req = (struct opa_port_error_info_msg *)pmp->data;
--	rsp = (struct _port_ei *)&(req->port[0]);
-+	rsp = (struct _port_ei *)&req->port[0];
- 
- 	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
- 	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
-@@ -3192,7 +3192,7 @@ static int pma_set_opa_errorinfo(struct opa_pma_mad *pmp,
- 	u32 error_info_select;
- 
- 	req = (struct opa_port_error_info_msg *)pmp->data;
--	rsp = (struct _port_ei *)&(req->port[0]);
-+	rsp = (struct _port_ei *)&req->port[0];
- 
- 	num_ports = OPA_AM_NPORT(be32_to_cpu(pmp->mad_hdr.attr_mod));
- 	num_pslm = hweight64(be64_to_cpu(req->port_select_mask[3]));
+ enum sdma_states {
+ 	sdma_state_s00_hw_down,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
