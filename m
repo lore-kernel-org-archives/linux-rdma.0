@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/21] staging/rdma/hfi1: Remove void function return
- statement
-Date: Sun, 14 Feb 2016 20:21:26 -0800
-Message-ID: <20160215042121.351.30148.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 16/21] staging/rdma/hfi1: Add comment for spinlock_t
+ definition
+Date: Sun, 14 Feb 2016 20:21:34 -0800
+Message-ID: <20160215042131.351.34725.stgit@scvm10.sc.intel.com>
 References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,28 +16,72 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Remove return statement at the end of a void function to fix
-checkpatch warning:
-WARNING: void function return statements are not generally useful
+Add comments describing the spinlock for spinlock_t definitions to
+fix checkpatch check:
+CHECK: spinlock_t definition without comment
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/uc.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/hfi.h  |    3 +++
+ drivers/staging/rdma/hfi1/qsfp.h |    1 +
+ drivers/staging/rdma/hfi1/sdma.h |    1 +
+ 3 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/uc.c b/drivers/staging/rdma/hfi1/uc.c
-index afdf539..8915401 100644
---- a/drivers/staging/rdma/hfi1/uc.c
-+++ b/drivers/staging/rdma/hfi1/uc.c
-@@ -603,5 +603,4 @@ drop:
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index 805535e..774d8ff 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -313,6 +313,7 @@ struct hfi1_ctxtdata {
+ 	 */
+ 	struct task_struct *progress;
+ 	struct list_head sdma_queues;
++	/* protect sdma queues */
+ 	spinlock_t sdma_qlock;
  
- op_err:
- 	hfi1_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
--	return;
- }
+ 	/* Is ASPM interrupt supported for this context */
+@@ -380,6 +381,7 @@ struct hfi1_snoop_data {
+ 	int mode_flag;
+ 	struct cdev cdev;
+ 	struct device *class_dev;
++	/* protect snoop data */
+ 	spinlock_t snoop_lock;
+ 	struct list_head queue;
+ 	wait_queue_head_t waitq;
+@@ -561,6 +563,7 @@ enum {
+ };
+ 
+ struct vl_arb_cache {
++	/* protect vl arb cache */
+ 	spinlock_t lock;
+ 	struct ib_vl_weight_elem table[VL_ARB_TABLE_SIZE];
+ };
+diff --git a/drivers/staging/rdma/hfi1/qsfp.h b/drivers/staging/rdma/hfi1/qsfp.h
+index 9f6e2f3..c391750 100644
+--- a/drivers/staging/rdma/hfi1/qsfp.h
++++ b/drivers/staging/rdma/hfi1/qsfp.h
+@@ -215,6 +215,7 @@ struct qsfp_data {
+ 	struct hfi1_pportdata *ppd;
+ 	struct work_struct qsfp_work;
+ 	u8 cache[QSFP_MAX_NUM_PAGES * 128];
++	/* protect qsfp data */
+ 	spinlock_t qsfp_lock;
+ 	u8 check_interrupt_flags;
+ 	u8 reset_needed;
+diff --git a/drivers/staging/rdma/hfi1/sdma.h b/drivers/staging/rdma/hfi1/sdma.h
+index 0c5f501..5aec18b 100644
+--- a/drivers/staging/rdma/hfi1/sdma.h
++++ b/drivers/staging/rdma/hfi1/sdma.h
+@@ -412,6 +412,7 @@ struct sdma_engine {
+ 	u32                   progress_check_head;
+ 	/* private: */
+ 	struct work_struct flush_worker;
++	/* protect flush list */
+ 	spinlock_t flushlist_lock;
+ 	/* private: */
+ 	struct list_head flushlist;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
