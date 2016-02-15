@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 13/21] staging/rdma/hfi1: Remove CamelCase
-Date: Sun, 14 Feb 2016 20:21:07 -0800
-Message-ID: <20160215042103.351.76031.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 14/21] staging/rdma/hfi1: Use pointer instead of struct name
+Date: Sun, 14 Feb 2016 20:21:16 -0800
+Message-ID: <20160215042112.351.37854.stgit@scvm10.sc.intel.com>
 References: <20160215041616.351.42119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,30 +15,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Remove CamelCase to fix checkpatch check:
-CHECK: Avoid CamelCase: <PLS_CONFIGPHY_ESTcOMM_LOCAL_COMPLETE>
+Use sizeof(*p) instead of sizeof(struct foo) to fix checkpatch check:
+CHECK: Prefer alloc(sizeof(*p)...) over alloc(sizeof(struct foo)...)
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.h |    2 +-
+ drivers/staging/rdma/hfi1/pio.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.h b/drivers/staging/rdma/hfi1/chip.h
-index 2b30aaa..32e91e7 100644
---- a/drivers/staging/rdma/hfi1/chip.h
-+++ b/drivers/staging/rdma/hfi1/chip.h
-@@ -212,7 +212,7 @@
- #define PLS_CONFIGPHY_DEBOUCE		   0x40
- #define PLS_CONFIGPHY_ESTCOMM		   0x41
- #define PLS_CONFIGPHY_ESTCOMM_TXRX_HUNT	   0x42
--#define PLS_CONFIGPHY_ESTcOMM_LOCAL_COMPLETE   0x43
-+#define PLS_CONFIGPHY_ESTCOMM_LOCAL_COMPLETE   0x43
- #define PLS_CONFIGPHY_OPTEQ			   0x44
- #define PLS_CONFIGPHY_OPTEQ_OPTIMIZING	   0x44
- #define PLS_CONFIGPHY_OPTEQ_LOCAL_COMPLETE	   0x45
+diff --git a/drivers/staging/rdma/hfi1/pio.c b/drivers/staging/rdma/hfi1/pio.c
+index 7907e4c..b0a2a45 100644
+--- a/drivers/staging/rdma/hfi1/pio.c
++++ b/drivers/staging/rdma/hfi1/pio.c
+@@ -700,7 +700,7 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
+ 	if (dd->flags & HFI1_FROZEN)
+ 		return NULL;
+ 
+-	sc = kzalloc_node(sizeof(struct send_context), GFP_KERNEL, numa);
++	sc = kzalloc_node(sizeof(*sc), GFP_KERNEL, numa);
+ 	if (!sc)
+ 		return NULL;
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
