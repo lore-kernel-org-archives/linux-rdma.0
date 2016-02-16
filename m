@@ -1,26 +1,31 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH 1/4] IB/isert: properly type the login buffer
-Date: Tue, 16 Feb 2016 08:47:12 +0200
-Message-ID: <CAJ3xEMizSPkgD4jhZiYD2s33AoY1i0R6P7uCTYwTFvpr1k50Dg@mail.gmail.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: isert: convert to the new CQ API and a few random cleanups
+Date: Tue, 16 Feb 2016 12:53:18 +0200
+Message-ID: <56C2FF9E.2060206@dev.mellanox.co.il>
 References: <1455567060-18381-1-git-send-email-hch@lst.de>
-	<1455567060-18381-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1455567060-18381-2-git-send-email-hch@lst.de>
+In-Reply-To: <1455567060-18381-1-git-send-email-hch@lst.de>
 Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagig@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagig@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Max Gurtovoy <maxg@mellanox.com>, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 15, 2016 at 10:10 PM, Christoph Hellwig <hch@lst.de> wrote:
-> and separate the request and the response separately, as it's not in a
-> performance critical path anyway.
+Christoph! :)
 
-We have simple conventions for iser driver commits, can you please follow them.
+> This series uses the new CQ API and cleans up a few random lose arounds
+> around the R/W path.  I have a few more changes for the RW path in the
+> works, but I think this is a good enough standalone series for now.
 
-The 1st word of the subject to start with Capital letter (e.g
-s/properly/Properly/)
+Thanks for doing this! I have a developer in my team working on this
+but seems you beat him to it :)
 
-Also, "and XXX" isn't how we want sentences to begin in change-logs,
-no reason to run anywhere.
+I'll have a closer review comments following shortly. We have a few
+patches in the pipe for isert so I'll have to see how these fit
+together... I'll try to incorporate the needed changes so it'll
+save you some respins.
+
+Cheers,
+Sagi.
