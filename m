@@ -1,64 +1,75 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs] Add QP creation flags, support blocking
- self multicast loopback
-Date: Tue, 16 Feb 2016 16:47:07 +0200
-Message-ID: <56C3366B.4080001@dev.mellanox.co.il>
-References: <1455198849-32192-1-git-send-email-yishaih@mellanox.com>
- <56C2158D.50801@redhat.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/4] IB/isert: properly type the login buffer
+Date: Tue, 16 Feb 2016 19:19:19 +0200
+Message-ID: <56C35A17.6050305@mellanox.com>
+References: <1455567060-18381-1-git-send-email-hch@lst.de>
+ <1455567060-18381-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1255"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C2158D.50801-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1455567060-18381-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/15/2016 8:14 PM, Doug Ledford wrote:
-> On 02/11/2016 08:54 AM, Yishai Hadas wrote:
->> From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> Add QP creation flags, specifically add a flag to indicate that
->> the QP will not receive self multicast loopback traffic.
->>
->> To pass the QP creation flags to the kernel need to add
->> ibv_cmd_create_qp_ex2 API which follows the extended scheme
->> and uses the CREATE_QP_EX command.
->> ibv_cmd_create_qp_ex API doesn't follow the extended scheme,
->> it uses the CREATE_QP command and can't be used.
+Hi Christoph,
+I have noticed that we are allocating login_req_buf sized 
+ISCSI_DEF_MAX_RECV_SEG_LEN but the sge.lenth we post_recv is 
+ISER_RX_LOGIN_SIZE, thus the rx_buflen in the recv completion is also 
+ISER_RX_LOGIN_SIZE in case we are in login stage.
+I think we might crash here in case the initiator send request bigger 
+than ISCSI_DEF_MAX_RECV_SEG_LEN, won't we ?
+
+
+>   static int
+> @@ -609,50 +611,48 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
+>   {
+>   	int ret;
 >
-> I've been reviewing this patchset and this is just *ugly*.  This seems
-> like an example of where proper gcc library symbol versions could be
-> used to avoid this being so ugly.
+> -	isert_conn->login_buf = kzalloc(ISCSI_DEF_MAX_RECV_SEG_LEN +
+> -					ISER_RX_LOGIN_SIZE, GFP_KERNEL);
+> -	if (!isert_conn->login_buf) {
+> -		isert_err("Unable to allocate isert_conn->login_buf\n");
+> +	isert_conn->login_req_buf =
+> +		kzalloc(ISCSI_DEF_MAX_RECV_SEG_LEN, GFP_KERNEL);
+> +	if (!isert_conn->login_req_buf) {
+> +		isert_err("Unable to allocate isert_conn->login_req_buf\n");
+>   		return -ENOMEM;
+>   	}
+>
+> -	isert_conn->login_req_buf = isert_conn->login_buf;
+> -	isert_conn->login_rsp_buf = isert_conn->login_buf +
+> -				    ISCSI_DEF_MAX_RECV_SEG_LEN;
+> -
+> -	isert_dbg("Set login_buf: %p login_req_buf: %p login_rsp_buf: %p\n",
+> -		 isert_conn->login_buf, isert_conn->login_req_buf,
+> -		 isert_conn->login_rsp_buf);
+> -
+>   	isert_conn->login_req_dma = ib_dma_map_single(ib_dev,
+> -				(void *)isert_conn->login_req_buf,
+> +				isert_conn->login_req_buf,
+>   				ISCSI_DEF_MAX_RECV_SEG_LEN, DMA_FROM_DEVICE);
+> -
+>
 
-In my understanding, you suggest to have in driver.h only one function 
-ibv_cmd_create_qp_ex and use the symbol versions mechanism to have 
-binary compatibility for legacy providers.
 
-Before going to that approach need to consider below notes:
-1) That approach breaks source comparability, re-compile legacy 
-providers will fail as the signature of ibv_cmd_create_qp_ex is changed.
-Current patch that we sent preserves also source compatibility.
 
-2) Usually symbol versions comes to solve ABI compatibility with an 
-application, here the application calls ibv_create_qp_ex and the 
-decision which command to call is done under the wood by the driver.
+>
+> -	if ((char *)desc == isert_conn->login_req_buf) {
+> +	if (desc == isert_conn->login_req_buf) {
+>   		rx_dma = isert_conn->login_req_dma;
+>   		rx_buflen = ISER_RX_LOGIN_SIZE;
+>   		isert_dbg("login_buf: Using rx_dma: 0x%llx, rx_buflen: %d\n",
+> @@ -1615,7 +1615,7 @@ isert_rcv_completion(struct iser_rx_desc *desc,
+>   		 hdr->opcode, hdr->itt, hdr->flags,
+>   		 (int)(xfer_len - ISER_HEADERS_LEN));
+>
 
-3) In your approach will have also some *ugly* code around:
-Need to hold the code of current ibv_cmd_create_qp_ex API for binary 
-comparability, it will result in some extra compat file to be added to 
-libibverbs (e.g. compat-1_1.c) increase DEFAULT_ABI, etc.
 
-4) In your approach ibv_cmd_create_qp_ex code might be more *complex* 
-comparing current code. As it needs to support also legacy kernel which 
-doesn't have the CREATE_QP_EX command, it might include some *non clean* 
-adaptation from the in/out parameters of its API which match to the EX 
-scheme and adapt to the non EX scheme. Current suggestion have 2 APIs 
-with the matching in/out parameters for.
+Max.
 
-I believe that we should consider staying with current patch, would 
-appreciate your input on.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
