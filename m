@@ -1,35 +1,64 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB: new common API for draining queues
-Date: Tue, 16 Feb 2016 13:00:29 +0200
-Message-ID: <56C3014D.3070204@dev.mellanox.co.il>
-References: <cover.1455230646.git.swise@chelsio.com>
- <3e7261d1436d33320223d365974ff38945f0d558.1455230646.git.swise@chelsio.com>
- <56C23DA8.40905@redhat.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V1 libibverbs] Add QP creation flags, support blocking
+ self multicast loopback
+Date: Tue, 16 Feb 2016 16:47:07 +0200
+Message-ID: <56C3366B.4080001@dev.mellanox.co.il>
+References: <1455198849-32192-1-git-send-email-yishaih@mellanox.com>
+ <56C2158D.50801@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C23DA8.40905-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <56C2158D.50801-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/15/2016 8:14 PM, Doug Ledford wrote:
+> On 02/11/2016 08:54 AM, Yishai Hadas wrote:
+>> From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> Add QP creation flags, specifically add a flag to indicate that
+>> the QP will not receive self multicast loopback traffic.
+>>
+>> To pass the QP creation flags to the kernel need to add
+>> ibv_cmd_create_qp_ex2 API which follows the extended scheme
+>> and uses the CREATE_QP_EX command.
+>> ibv_cmd_create_qp_ex API doesn't follow the extended scheme,
+>> it uses the CREATE_QP command and can't be used.
+>
+> I've been reviewing this patchset and this is just *ugly*.  This seems
+> like an example of where proper gcc library symbol versions could be
+> used to avoid this being so ugly.
 
-> As I mentioned in my comment above, I would have thought that the
-> attempt to post a send to a QP in ERR state would have returned an
-> error.  It must not or else this patch is worthless because of the order
-> of actions.  What that highlights though, is that this code will drain a
-> QP, but only if the caller has taken the time to stop all possible
-> contexts that might run on other cores and post commands to the QP.
-> Those commands will error out, but the caller must, none the less, take
-> steps to block other contexts from sending or else this drain is
-> useless.  That might be fine for the API, but it should be clearly
-> documented, and currently it isn't.
+In my understanding, you suggest to have in driver.h only one function 
+ibv_cmd_create_qp_ex and use the symbol versions mechanism to have 
+binary compatibility for legacy providers.
 
-I agree, it should be documented that if there are other contexts that
-post concurrently then the QP drain is not guaranteed. That's a valid
-requirement I think...
+Before going to that approach need to consider below notes:
+1) That approach breaks source comparability, re-compile legacy 
+providers will fail as the signature of ibv_cmd_create_qp_ex is changed.
+Current patch that we sent preserves also source compatibility.
+
+2) Usually symbol versions comes to solve ABI compatibility with an 
+application, here the application calls ibv_create_qp_ex and the 
+decision which command to call is done under the wood by the driver.
+
+3) In your approach will have also some *ugly* code around:
+Need to hold the code of current ibv_cmd_create_qp_ex API for binary 
+comparability, it will result in some extra compat file to be added to 
+libibverbs (e.g. compat-1_1.c) increase DEFAULT_ABI, etc.
+
+4) In your approach ibv_cmd_create_qp_ex code might be more *complex* 
+comparing current code. As it needs to support also legacy kernel which 
+doesn't have the CREATE_QP_EX command, it might include some *non clean* 
+adaptation from the in/out parameters of its API which match to the EX 
+scheme and adapt to the non EX scheme. Current suggestion have 2 APIs 
+with the matching in/out parameters for.
+
+I believe that we should consider staying with current patch, would 
+appreciate your input on.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
