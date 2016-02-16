@@ -1,249 +1,147 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: [PATCH net-next 2/3] RDMA/nes: Replace LRO with GRO
-Date: Mon, 15 Feb 2016 21:25:44 +0000
-Message-ID: <20160215212544.GD5231@decadent.org.uk>
-References: <20160215212351.GB5231@decadent.org.uk>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: SRPt oops with 4.5-rc3-ish
+Date: Mon, 15 Feb 2016 17:42:52 -0800
+Message-ID: <56C27E9C.6030403@sandisk.com>
+References: <56C0A6C3.3010903@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="9dgjiU4MmWPVapMU"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160215212351.GB5231@decadent.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: Faisal Latif <faisal.latif@intel.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56C0A6C3.3010903-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 02/14/16 08:09, Doug Ledford wrote:
+> While testing with my latest kernel (rc3 plus pending RDMA patches), I
+> ran across this oops:
+>
+> [dledford@linux-ws ~]$ console rdma-storage-04
+> Enter dledford-Qj3k6FK1/F6RgOCG8Jv1mWcM3YSXpimQh7FX57BcuXVWk0Htik3J/w@public.gmane.org's password:
+> [Enter `^Ec?' for help]
+> [-- MOTD -- https://home.corp.redhat.com/wiki/conserver]
+> [playback]
+> [160605.947614]  [<ffffffff81150545>] ? call_rcu_sched+0x25/0x30
+> [160605.954074]  [<ffffffffc0b3dd84>]
+> target_fabric_nacl_base_release+0x64/0x70]
+> [160605.963731]  [<ffffffff813ccc6f>] config_item_release+0x9f/0x1c0
+> [160605.970579]  [<ffffffff813ccdf2>] config_item_put+0x62/0x80
+> [160605.976936]  [<ffffffff813c97d3>] configfs_rmdir+0x343/0x500
+> [160605.983396]  [<ffffffff8131287a>] vfs_rmdir+0x13a/0x220
+> [160605.989375]  [<ffffffff813197db>] do_rmdir+0x1fb/0x260
+> [160605.995244]  [<ffffffff8131adde>] SyS_rmdir+0x1e/0x30
+> [160606.001019]  [<ffffffff81a0922e>] entry_SYSCALL_64_fastpath+0x12/0x71
+> [160606.009586] ---[ end trace 820588f5ef5f6148 ]---
+> [160607.051593] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+> 0x7f0ee700032d1de)
+> [160607.078225] ib_srpt rejected SRP_LOGIN_REQ because the target port
+> has not d
+> [160611.228909] ib_srpt Received IB DREQ ERROR event.
+> [160613.276862] ib_srpt Received IB TimeWait exit for cm_id
+> ffff881cc9dc7a00.
+> [160613.290322] BUG: unable to handle kernel paging request at
+> 0000000000018630
+> [160613.301470] IP: [<ffffffff81125694>]
+> native_queued_spin_lock_slowpath+0x2e40
+> [160613.313112] PGD 0
+> [160613.318577] Oops: 0002 [#1] SMP
+> [160613.325358] Modules linked in: nfnetlink(+) ip6t_rpfilter 8021q garp
+> ip6t_R]
+> [160613.492357] CPU: 1 PID: 44982 Comm: kworker/1:1 Tainted: G        W
+> I     44
+> [160613.505978] Hardware name: Dell Inc. PowerEdge R730xd/0599V5, BIOS
+> 1.0.4 084
+> [160613.517697] Workqueue: events srpt_release_channel_work [ib_srpt]
+> [160613.527634] task: ffff881d01099000 ti: ffff881d02014000 task.ti:
+> ffff881d020
+> [160613.539130] RIP: 0010:[<ffffffff81125694>]  [<ffffffff81125694>]
+> native_que0
+> [160613.553326] RSP: 0018:ffff881d02017d90  EFLAGS: 00010006
+> [160613.562332] RAX: 00000000000000ea RBX: 0000000000000206 RCX:
+> 000000000001860
+> [160613.573401] RDX: 0000000000080000 RSI: ffff881d4c818600 RDI:
+> ffff880f2d7c7d8
+> [160613.584472] RBP: ffff881d02017d90 R08: 0000000000000023 R09:
+> 000000000000000
+> [160613.595491] R10: 00000000ffffffd8 R11: 00000000000211c0 R12:
+> ffff880f2d7c7d0
+> [160613.606568] R13: ffff881ce426d000 R14: ffff881cca702a00 R15:
+> 000000000000000
+> [160613.617643] FS:  0000000000000000(0000) GS:ffff881d4c800000(0000)
+> knlGS:0000
+> [160613.629793] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [160613.639315] CR2: 0000000000018630 CR3: 0000000001ca9000 CR4:
+> 000000000014060
+> [160613.650471] Stack:
+> [160613.655843]  ffff881d02017da0 ffffffff8122ac4c ffff881d02017db8
+> ffffffff81a7
+> [160613.667361]  ffff880f2d7c7d18 ffff881d02017de0 ffffffff81121255
+> ffff881cca70
+> [160613.678885]  ffff881ce426d058 ffff881ce426d000 ffff881d02017e10
+> ffffffffc070
+> [160613.690366] Call Trace:
+> [160613.696195]  [<ffffffff8122ac4c>] queued_spin_lock_slowpath+0x12/0x1d
+> [160613.706533]  [<ffffffff81a08ea7>] _raw_spin_lock_irqsave+0x87/0xa0
+> [160613.716586]  [<ffffffff81121255>] complete+0x25/0x70
+> [160613.725318]  [<ffffffffc07e7e80>]
+> srpt_release_channel_work+0x180/0x210 [ib]
+> [160613.736889]  [<ffffffff810e6dd8>] process_one_work+0x228/0x650
+> [160613.746616]  [<ffffffff810e79be>] worker_thread+0x21e/0x800
+> [160613.756047]  [<ffffffff81a02035>] ? __schedule+0x4b5/0xe6a
+> [160613.765371]  [<ffffffff810e77a0>] ? kzalloc+0x30/0x30
+> [160613.774203]  [<ffffffff810efc38>] kthread+0x118/0x150
+> [160613.783000]  [<ffffffff810efb20>] ? flush_kthread_worker+0xd0/0xd0
+> [160613.792932]  [<ffffffff81a0958f>] ret_from_fork+0x3f/0x70
+> [160613.801994]  [<ffffffff810efb20>] ? flush_kthread_worker+0xd0/0xd0
+> [160613.811897] Code: 01 00 00 74 ec e9 d7 fd ff ff 48 89 c1 c1 e8 12 48
+> c1 e9
+> [160613.840260] RIP  [<ffffffff81125694>]
+> native_queued_spin_lock_slowpath+0x2e0
+> [160613.851846]  RSP <ffff881d02017d90>
+> [160613.858812] CR2: 0000000000018630
+> [160613.874762] ---[ end trace 820588f5ef5f6149 ]---
+> [160613.937225] Kernel panic - not syncing: Fatal exception
+> [160613.946167] Kernel Offset: disabled
+> [160614.004693] ---[ end Kernel panic - not syncing: Fatal exception
+> [-- MARK -- Sun Feb 14 15:50:00 2016]
+> [-- dledford-CKb8VAQLn9hXrIkS9f7CXA@public.gmane.org@ovpn-116-26.rdu2.redhat.com attached -- Sun Feb
+> 14 15:5]
+>
+>
+>
+> Basic description of situation that cause the oops:
+>
+> Server with 30+ SRPt luns, 2 SRP devices, 1 active client busy beating
+> away on 1 lun via two paths (active/passive setup)
+>
+> Run dnf upgrade (dnf is yum's replacement, so just a system wide
+> software update).
+>
+> Get to the cleanup for targetcli/target-restore and it invokes an
+> attempt to reload the target service while still in use.  During the
+> process of deconfiguring the luns that are in use, this oops occurred.
+> Sending the report to you because it appears to involve the
+> multi-channel support.
 
---9dgjiU4MmWPVapMU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Doug,
 
-GRO is simpler to use than the old inet_lro library, and is compatible
-with forwarding and bridging configurations.
+As far as I know the session shutdown code in the LIO core has never 
+worked reliably in the presence of active I/O in any upstream kernel 
+version. All my tests of the ib_srpt patch series I submitted recently 
+have been performed on top of a long series of bug fixes for the LIO 
+core. The tree I have been testing is available at 
+https://github.com/bvanassche/linux/tree/lio-tmf-fixes-2016-01-13. I 
+have tried a few times to submit the LIO core patches to Nic Bellinger 
+(making TMF handling synchronous + several fixes for race conditions 
+related to session shutdown). Apparently Nic is trying to fix the 
+existing approach for TMF handling (handling TMF from another context 
+than the regular command execution context) but so far without success 
+(see e.g. http://www.spinics.net/lists/target-devel/index.html#11822).
 
-Compile-tested only.
-
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/infiniband/hw/nes/Kconfig   |  1 -
- drivers/infiniband/hw/nes/nes_hw.c  | 44 +--------------------------------=
-----
- drivers/infiniband/hw/nes/nes_hw.h  |  7 ------
- drivers/infiniband/hw/nes/nes_nic.c |  7 ------
- 4 files changed, 1 insertion(+), 58 deletions(-)
-
-diff --git a/drivers/infiniband/hw/nes/Kconfig b/drivers/infiniband/hw/nes/=
-Kconfig
-index 846dc97cf260..7964eba8e7ed 100644
---- a/drivers/infiniband/hw/nes/Kconfig
-+++ b/drivers/infiniband/hw/nes/Kconfig
-@@ -2,7 +2,6 @@ config INFINIBAND_NES
- 	tristate "NetEffect RNIC Driver"
- 	depends on PCI && INET && INFINIBAND
- 	select LIBCRC32C
--	select INET_LRO
- 	---help---
- 	  This is the RDMA Network Interface Card (RNIC) driver for
- 	  NetEffect Ethernet Cluster Server Adapters.
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes=
-/nes_hw.c
-index 4713dd7ed764..a1c6481d8038 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -35,18 +35,11 @@
- #include <linux/moduleparam.h>
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
--#include <linux/ip.h>
--#include <linux/tcp.h>
- #include <linux/if_vlan.h>
--#include <linux/inet_lro.h>
- #include <linux/slab.h>
-=20
- #include "nes.h"
-=20
--static unsigned int nes_lro_max_aggr =3D NES_LRO_MAX_AGGR;
--module_param(nes_lro_max_aggr, uint, 0444);
--MODULE_PARM_DESC(nes_lro_max_aggr, "NIC LRO max packet aggregation");
--
- static int wide_ppm_offset;
- module_param(wide_ppm_offset, int, 0644);
- MODULE_PARM_DESC(wide_ppm_offset, "Increase CX4 interface clock ppm offset=
-, 0=3D100ppm (default), 1=3D300ppm");
-@@ -1642,25 +1635,6 @@ static void nes_rq_wqes_timeout(unsigned long parm)
- }
-=20
-=20
--static int nes_lro_get_skb_hdr(struct sk_buff *skb, void **iphdr,
--			       void **tcph, u64 *hdr_flags, void *priv)
--{
--	unsigned int ip_len;
--	struct iphdr *iph;
--	skb_reset_network_header(skb);
--	iph =3D ip_hdr(skb);
--	if (iph->protocol !=3D IPPROTO_TCP)
--		return -1;
--	ip_len =3D ip_hdrlen(skb);
--	skb_set_transport_header(skb, ip_len);
--	*tcph =3D tcp_hdr(skb);
--
--	*hdr_flags =3D LRO_IPV4 | LRO_TCP;
--	*iphdr =3D iph;
--	return 0;
--}
--
--
- /**
-  * nes_init_nic_qp
-  */
-@@ -1895,14 +1869,6 @@ int nes_init_nic_qp(struct nes_device *nesdev, struc=
-t net_device *netdev)
- 		return -ENOMEM;
- 	}
-=20
--	nesvnic->lro_mgr.max_aggr       =3D nes_lro_max_aggr;
--	nesvnic->lro_mgr.max_desc       =3D NES_MAX_LRO_DESCRIPTORS;
--	nesvnic->lro_mgr.lro_arr        =3D nesvnic->lro_desc;
--	nesvnic->lro_mgr.get_skb_header =3D nes_lro_get_skb_hdr;
--	nesvnic->lro_mgr.features       =3D LRO_F_NAPI | LRO_F_EXTRACT_VLAN_ID;
--	nesvnic->lro_mgr.dev            =3D netdev;
--	nesvnic->lro_mgr.ip_summed      =3D CHECKSUM_UNNECESSARY;
--	nesvnic->lro_mgr.ip_summed_aggr =3D CHECKSUM_UNNECESSARY;
- 	return 0;
- }
-=20
-@@ -2809,13 +2775,10 @@ void nes_nic_ce_handler(struct nes_device *nesdev, =
-struct nes_hw_nic_cq *cq)
- 	u16 pkt_type;
- 	u16 rqes_processed =3D 0;
- 	u8 sq_cqes =3D 0;
--	u8 nes_use_lro =3D 0;
-=20
- 	head =3D cq->cq_head;
- 	cq_size =3D cq->cq_size;
- 	cq->cqes_pending =3D 1;
--	if (nesvnic->netdev->features & NETIF_F_LRO)
--		nes_use_lro =3D 1;
- 	do {
- 		if (le32_to_cpu(cq->cq_vbase[head].cqe_words[NES_NIC_CQE_MISC_IDX]) &
- 				NES_NIC_CQE_VALID) {
-@@ -2950,10 +2913,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev, s=
-truct nes_hw_nic_cq *cq)
-=20
- 					__vlan_hwaccel_put_tag(rx_skb, htons(ETH_P_8021Q), vlan_tag);
- 				}
--				if (nes_use_lro)
--					lro_receive_skb(&nesvnic->lro_mgr, rx_skb, NULL);
--				else
--					netif_receive_skb(rx_skb);
-+				napi_gro_receive(&nesvnic->napi, rx_skb);
-=20
- skip_rx_indicate0:
- 				;
-@@ -2984,8 +2944,6 @@ skip_rx_indicate0:
-=20
- 	} while (1);
-=20
--	if (nes_use_lro)
--		lro_flush_all(&nesvnic->lro_mgr);
- 	if (sq_cqes) {
- 		barrier();
- 		/* restart the queue if it had been stopped */
-diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw/nes=
-/nes_hw.h
-index c9080208aad2..1b66ef1e9937 100644
---- a/drivers/infiniband/hw/nes/nes_hw.h
-+++ b/drivers/infiniband/hw/nes/nes_hw.h
-@@ -33,8 +33,6 @@
- #ifndef __NES_HW_H
- #define __NES_HW_H
-=20
--#include <linux/inet_lro.h>
--
- #define NES_PHY_TYPE_CX4       1
- #define NES_PHY_TYPE_1G        2
- #define NES_PHY_TYPE_ARGUS     4
-@@ -1049,8 +1047,6 @@ struct nes_hw_tune_timer {
- #define NES_TIMER_ENABLE_LIMIT      4
- #define NES_MAX_LINK_INTERRUPTS     128
- #define NES_MAX_LINK_CHECK          200
--#define NES_MAX_LRO_DESCRIPTORS     32
--#define NES_LRO_MAX_AGGR            64
-=20
- struct nes_adapter {
- 	u64              fw_ver;
-@@ -1263,9 +1259,6 @@ struct nes_vnic {
- 	u8  next_qp_nic_index;
- 	u8  of_device_registered;
- 	u8  rdma_enabled;
--	u32 lro_max_aggr;
--	struct net_lro_mgr lro_mgr;
--	struct net_lro_desc lro_desc[NES_MAX_LRO_DESCRIPTORS];
- 	struct timer_list event_timer;
- 	enum ib_event_type delayed_event;
- 	enum ib_event_type last_dispatched_event;
-diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/ne=
-s/nes_nic.c
-index 6a0bdfa0ce2e..3ea9e055fdd3 100644
---- a/drivers/infiniband/hw/nes/nes_nic.c
-+++ b/drivers/infiniband/hw/nes/nes_nic.c
-@@ -1085,9 +1085,6 @@ static const char nes_ethtool_stringset[][ETH_GSTRING=
-_LEN] =3D {
- 	"Free 4Kpbls",
- 	"Free 256pbls",
- 	"Timer Inits",
--	"LRO aggregated",
--	"LRO flushed",
--	"LRO no_desc",
- 	"PAU CreateQPs",
- 	"PAU DestroyQPs",
- };
-@@ -1302,9 +1299,6 @@ static void nes_netdev_get_ethtool_stats(struct net_d=
-evice *netdev,
- 	target_stat_values[++index] =3D nesadapter->free_4kpbl;
- 	target_stat_values[++index] =3D nesadapter->free_256pbl;
- 	target_stat_values[++index] =3D int_mod_timer_init;
--	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.aggregated;
--	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.flushed;
--	target_stat_values[++index] =3D nesvnic->lro_mgr.stats.no_desc;
- 	target_stat_values[++index] =3D atomic_read(&pau_qps_created);
- 	target_stat_values[++index] =3D atomic_read(&pau_qps_destroyed);
- }
-@@ -1709,7 +1703,6 @@ struct net_device *nes_netdev_init(struct nes_device =
-*nesdev,
- 		netdev->hw_features |=3D NETIF_F_TSO;
-=20
- 	netdev->features =3D netdev->hw_features | NETIF_F_HIGHDMA | NETIF_F_HW_V=
-LAN_CTAG_TX;
--	netdev->hw_features |=3D NETIF_F_LRO;
-=20
- 	nes_debug(NES_DBG_INIT, "nesvnic =3D %p, reported features =3D 0x%lX, QPi=
-d =3D %d,"
- 			" nic_index =3D %d, logical_port =3D %d, mac_index =3D %d.\n",
+Bart.
 
 
---9dgjiU4MmWPVapMU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUBVsJCV+e/yOyVhhEJAQqSDg//Ul34zkO5V7LnXGCGPYcXhr9xv7ahmaNg
-7XcSJ6PJ8ZUhxGYynas9BqBobIANkUorkFqlksx3fvmHgCmWtcpljYFQF80DCx2o
-sVjr2/jcVssWjwqasBOM6FiFjyyxgwKs9WrTzFfL10dbC0V5zeZid5YymL/1I95x
-09kZPlFlQHo/OzSXzaNx2aEgnpbhOwHMrBqPL09PTF4/lL/3B9WVVSdffZdZKmwx
-JoyABXuFuKStph8qOmL2tH2xIRxyhD3zlibtHfRxbDVWNcO/airjPe5cXTJxLzcm
-cS2REeT8pJ0lRqMu2V3fHQKEoVg4jPzRu6yfazLeRTAQTnY6GFHdio1ZuxI/4xhL
-+d4IB8oXyvphwWGpOI+A5NBDLaQRI9bCrOQPDERoJjjV1p7NqzVuMYRg5fqiq4aR
-KOSwtXG173Q3eFJK9PgzwVa6nOFo4v4e/uPF+fdq+AHUisnUoHnXnqPnkVJhzk8F
-Of9asOHJazpsH8RuH+Zl26Axhd2wPTc3K4uBXYqfJ7VR5vOkg5+0SXGUriwegHu7
-uwIT/NmLU7M+TMuDxkmbxZYJYhB7QPBXDFQ6FHf0IEnvnbuE/yCc6DEn8BY6xUph
-Arcoosxc9sc9TFI6vziQoUs8dl1DQYm/fiokoX4Rq3aq/HS+AOcg+ZoXv/Tdlr9m
-gYChlSw7/20=
-=BMHH
------END PGP SIGNATURE-----
-
---9dgjiU4MmWPVapMU--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
