@@ -1,49 +1,93 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ocrdma: Fix arm logic to align with new cq API
-Date: Wed, 17 Feb 2016 10:57:35 -0500
-Message-ID: <56C4986F.7050808@redhat.com>
-References: <1455168112-12803-1-git-send-email-devesh.sharma@broadcom.com>
- <CAG53R5UnRqq9Gf5fFZJr+e_3DQvz7ViveJJAz6FBFYBaADtMJA@mail.gmail.com>
- <CANjDDBgH-4Foq02f8wE2bdg7OprvT84gLNY6-9uPNgYWEFKLPg@mail.gmail.com>
+Subject: Re: [PATCH v4 00/21] IB/srpt patches for Linux kernel v4.6
+Date: Wed, 17 Feb 2016 11:18:15 -0500
+Message-ID: <56C49D47.9010904@redhat.com>
+References: <56BCDAAD.7030906@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="Cq4JT418G7pN9P7QnEVXSvrPewh0wgV3g"
+ boundary="EgSA1p5OfAKuDnscmbGUPoGivXadILrQP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CANjDDBgH-4Foq02f8wE2bdg7OprvT84gLNY6-9uPNgYWEFKLPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <56BCDAAD.7030906-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Cq4JT418G7pN9P7QnEVXSvrPewh0wgV3g
+--EgSA1p5OfAKuDnscmbGUPoGivXadILrQP
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 02/11/2016 10:46 PM, Devesh Sharma wrote:
-> Hi Parav,
+On 02/11/2016 02:02 PM, Bart Van Assche wrote:
+> Hi Doug,
 >=20
-> I have tested this patch with nfsrdma + linux-4.4 (i.e. without
-> Chuck's patches to use new CQ API)
-> iozone on nfsrdma mount point passed.
->=20
-> -Regards
-> Devesh
->=20
-> On Fri, Feb 12, 2016 at 2:43 AM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> =
-wrote:
->> On Thu, Feb 11, 2016 at 10:51 AM, Devesh Sharma
->> <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
->>> CQ is never armed before calling poll on it. Most of the kernel
->>> ULPs have already moved to use this new API or have a code where
->>> poll is called before arming the CQ.
->>
->> You might want to wait for NFS whose patches are in pipe to migrate to=
+> This series of patches is what I came up with while testing the most
+> recent version of my SCSI target patch series (see also
+> http://thread.gmane.org/gmane.linux.scsi.target.devel/10905). This
+> includes fixes for ABORT handling and lockups during driver shutdown.
+> All review comments that have been posted so far have been addressed in=
 
->> newer APIs before merging this?
+> this patch series.
+>=20
+> Changes compared to v3 of this patch series:
+> - Removed node_acl_size member from the srpt_template structure.
+>=20
+> Changes compared to v2 of this patch series:
+> - Moved patch "Simplify srpt_handle_tsk_mgmt()" to the front of this
+>   patch series and added a "Cc: stable" tag.
+> - Removed the UNKNOWN_TMR definition again from
+>   include/target/target_core_base.h.
+> - Switched to list_empty_careful() in patch "Use a mutex to protect the=
 
-Thanks, I've picked this up for 4.5-rc.
+>   channel list" such that it is no longer needed to introduce RCU in
+>   this patch series.
+> - Dropped patch "Do not complain about initiator names without leading
+>   0x" because it modifies the same code as a pending patch series from
+>   Nic.
+>=20
+> Changes compared to v1 of this patch series:
+> - Rebased this patch series on top of kernel v4.5-rc1.
+> - As proposed by Alex Estrin, modified patch "Simplify
+>   srpt_handle_tsk_mgmt()" such that task management function code
+>   validity is now checked by the target core.
+> - Added a comment in patch "Simplify channel state management".
+> - Changed "return true" into "return 1" in patch "Simplify
+>   srpt_shutdown_session()" as suggested by Christoph.
+> - Fixed patch "Fix srpt_handle_cmd() error paths" based on the feedback=
+
+>   provided by Sagi.
+> - Split patch "Eliminate srpt_find_channel()" in three patches.
+> - Left out patch "Fix a rare crash in srpt_close_session()". It is no
+>   longer needed because srpt_disconnect_ch() is now called with the
+>   sdev mutex held.
+> - Added several new patches.
+>=20
+> The patches in this patch series are:
+> 0001-IB-srpt-Simplify-srpt_handle_tsk_mgmt.patch
+> 0002-IB-srpt-Add-parentheses-around-sizeof-argument.patch
+> 0003-IB-srpt-Remove-struct-srpt_node_acl.patch
+> 0004-IB-srpt-Inline-srpt_sdev_name.patch
+> 0005-IB-srpt-Inline-srpt_get_ch_state.patch
+> 0006-IB-srpt-Introduce-target_reverse_dma_direction.patch
+> 0007-IB-srpt-Use-scsilun_to_int.patch
+> 0008-IB-srpt-Simplify-channel-state-management.patch
+> 0009-IB-srpt-Simplify-srpt_shutdown_session.patch
+> 0010-IB-srpt-Fix-srpt_close_session.patch
+> 0011-IB-srpt-Fix-srpt_handle_cmd-error-paths.patch
+> 0012-IB-srpt-Fix-how-aborted-commands-are-processed.patch
+> 0013-IB-srpt-Inline-trivial-CM-callback-functions.patch
+> 0014-IB-srpt-Eliminate-srpt_find_channel.patch
+> 0015-IB-srpt-Log-private-data-associated-with-REJ.patch
+> 0016-IB-srpt-Use-a-mutex-to-protect-the-channel-list.patch
+> 0017-IB-srpt-Detect-session-shutdown-reliably.patch
+> 0018-IB-srpt-Fix-srpt_write_pending.patch
+> 0019-IB-srpt-Log-out-all-initiators-if-a-port-is-disabled.patch
+> 0020-IB-srpt-Introduce-srpt_process_wait_list.patch
+> 0021-IB-srpt-Fix-wait-list-processing.patch
+
+Modulo the one patch I touched up, the rest looked good.  I've picked
+this up for 4.6.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -51,7 +95,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---Cq4JT418G7pN9P7QnEVXSvrPewh0wgV3g
+--EgSA1p5OfAKuDnscmbGUPoGivXadILrQP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -60,22 +104,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWxJhvAAoJELgmozMOVy/dBGAQAJs9+wXCd9xuvTMjaNYZh6Ex
-/egEaULNbLRJf2Ik/lPJmUIWRJkFz1GVqVBRqjLNgpZgwdO3JUD45L7mZxV17XgM
-g0k3IBqZu3F+L9vu5uKlEowqtVTSUZByRhVBo6Y5dzQ/5PmjQeBxN0B/9w76hhou
-LAC1dArGNj7XFj8U2rg/FQ5Eaobb60ABPGCrlQ2MBATlsJ94Kz6u7PSqPDeny7g7
-FcrrD/Wk/Ato+LlS8wGnclHsSNQxnAX7BxA8XHZCu3i1VQfnqcA+nmOWZ9DHaKlf
-LxowAHTNBtKhoa1Z+xNcCMnm2c2FwFgYbSEike5E8QuEyQO46+qJK6yTIZaoU/HX
-D66F6OkoL4ayqGKpU/xAunf/e0xJ5IV5/6V/P6jWcAzZqqAdgQyvHC85HvOcQZF8
-pzrNki7YHmVGq2THEVC7gyg8ACzMPR9fBYAafoiNI93t9+35m+tMOc6O8C4mvdtq
-YrSy6j1wi7qQp3Kv/fR6zCU2j6RrhAbqfhHcdWJ/mowRtOO3pBHMKvuoX0Lg/eV5
-u6NeJueEbqdlp7K6NI0TBg06QfkA/JaqmsAFAM1PBsOAHDuupqNLVenhPQs/GlAd
-a16DRVFF3KDu4dqArVzofpSdvRuk/GqusLOyIxSFEXxkRvciGlYzhFUmuCtLhdQN
-RzOcTsilKw7ZQKEqHpoz
-=YnWs
+iQIcBAEBCAAGBQJWxJ1HAAoJELgmozMOVy/dogcQAKNP0YGzRsJxA+FmGo9ouBYd
+gFn/Ff405PE4KqkTpu8rGQ2qXBRB4CcvTgX1J0mxL5K/07+yIxL+t4ZkEC/FcQ6Y
+/r8srW7wr/UkQQB879kWPhq9YsGykYKso7FQqcN6MYtOuoKct5bioKFUO6UZ5Yol
+Bnpl11eo6jvX5WrsJR3LthfSvAmIgLKuav5wXy/apVJqyPosEKfWezHtTp1B+0Qm
+hUB7MNPkWByKv58mQ705Rw0lr37SS2/GPA9aishmAtXLId5A8A8m1MDyCOId5DMF
+/vhKYGajoIYeBRUDhjcQk+wLzGhWTtxsRmKORPOpmPjeVcXnfQZFglYG0paFvLBp
+fcp1Ufnt+j1l4wGyq0FzplSQNDBsDlOBlpCvXrrEXDKRYLE7L2/cD3GxLjuMBZBx
+2tPKf+CwAqdQbr+aqzrmy0BgqtsiJCfscJxAkF5dAXM/Gi0GqYkbGXs0z/pX847Y
+oyLGKnUHuP6tEMnVbkiZX5Ebr3277Qll4q75x//TiVfZG3wlKcQQpbEvWVrAcmCg
+f2LuECxXAdq3LhNqEJOYnPEE9h6DuCSAQkSXfvhNnLFI9HLBMBqtNTONxKqPnXSb
+xmqK0f2Y64LlhxgTnCizxLR/K6jR6PfRixRld/cJmzUZ9VUkSFfOY8dQP9jMp26w
+F7B86zk70RktRRqWbiVz
+=bhp0
 -----END PGP SIGNATURE-----
 
---Cq4JT418G7pN9P7QnEVXSvrPewh0wgV3g--
+--EgSA1p5OfAKuDnscmbGUPoGivXadILrQP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
