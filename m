@@ -1,26 +1,25 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 4/4] IB/isert: the kill ->isert_cmd back pointer in the
-	struct iser_tx_desc
-Date: Wed, 17 Feb 2016 15:19:10 +0100
-Message-ID: <20160217141910.GB15646@lst.de>
-References: <1455567060-18381-1-git-send-email-hch@lst.de> <1455567060-18381-5-git-send-email-hch@lst.de> <56C43DF3.8080509@mellanox.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: vendor extension moratorium?
+Date: Wed, 17 Feb 2016 07:05:00 -0800
+Message-ID: <20160217150500.GA8164@infradead.org>
+References: <20160217085508.GA3578@infradead.org>
+ <20160217100207.GB30450@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56C43DF3.8080509@mellanox.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>
-Cc: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+In-Reply-To: <20160217100207.GB30450-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 17, 2016 at 11:31:31AM +0200, Max Gurtovoy wrote:
-> maybe we can define it once as:
-> static inline struct isert_cmd *
-> isert_tx_to_cmd(iser_tx_desc *tx_desc)
-> {
->    return container_of(tx_desc, struct isert_cmd, tx_desc);
-> }
-> in the .h file ?
+On Wed, Feb 17, 2016 at 12:02:07PM +0200, Leon Romanovsky wrote:
+> Do you have any suggestions on how to handle the adding and exporting
+> of new IB features?
 
-Sure.
+Mostly by slowing down and asking if there is a) a real need and
+b) if this really is the right interface.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
