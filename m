@@ -1,49 +1,92 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 15/21] IB/srpt: Log private data associated with REJ
-Date: Wed, 17 Feb 2016 15:24:00 -0800
-Message-ID: <56C50110.7060003@sandisk.com>
-References: <56BCDAAD.7030906@sandisk.com> <56BCDC1C.107@sandisk.com>
- <56C49854.6010204@redhat.com>
+Subject: Re: [PATCH v4 1/4] IB: new common API for draining queues
+Date: Wed, 17 Feb 2016 15:35:44 -0800
+Message-ID: <56C503D0.7060402@sandisk.com>
+References: <cover.1455741336.git.swise@chelsio.com>
+ <5b4799151723516ec440191b3f0ae98a46b356f0.1455741336.git.swise@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C49854.6010204-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <5b4799151723516ec440191b3f0ae98a46b356f0.1455741336.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+p6NamaJ0bNTAL8bYrjMMd8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/17/2016 07:57 AM, Doug Ledford wrote:
-> On 02/11/2016 02:08 PM, Bart Van Assche wrote:
->> To make it possible to determine why an initiator sent a REJ,
->> log the private data associated with the received REJ packet.
->
-> This particular function is all sorts of broken...I fixed it up as I
-> took it in.  But, issues were:
->
-> 1) We always allocate priv even when private_data_len is 0
-> 2) Since we always allocate priv, the test for priv in the pr_info args
-> isn't really helpful, but the way the test is set up, if priv exists,
-> then we actually pass NULL, if it doesn't, we pass the static string.
-> 3) In the event we have priv and private data, then there is a nit about
-> formatting because priv will end with a space right before the null
-> terminator, which makes the period in the pr_info format hang out in
-> open space.
->
-> My changes:
->
-> 1) Only alloc priv if private_data_len is not 0
-> 2) Change priv to be space prepended instead of space postpended
-> 3) Change pr_info format to work with space prepended string
-> 4) Fix test in pr_info args
+On 02/17/2016 08:15 AM, Steve Wise wrote:
+> +static void __ib_drain_sq(struct ib_qp *qp)
+> +{
+> +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+> +	struct ib_drain_cqe sdrain;
+> +	struct ib_send_wr swr = {}, *bad_swr;
+> +	int ret;
+> +
+> +	if (qp->send_cq->poll_ctx == IB_POLL_DIRECT) {
+> +		WARN_ONCE(qp->send_cq->poll_ctx == IB_POLL_DIRECT,
+> +			  "IB_POLL_DIRECT poll_ctx not supported for drain\n");
+> +		return;
+> +	}
+> +
+> +	swr.wr_cqe = &sdrain.cqe;
+> +	sdrain.cqe.done = ib_drain_qp_done;
+> +	init_completion(&sdrain.done);
+> +
+> +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+> +	if (ret) {
+> +		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
+> +		return;
+> +	}
+> +
+> +	ret = ib_post_send(qp, &swr, &bad_swr);
+> +	if (ret) {
+> +		WARN_ONCE(ret, "failed to drain send queue: %d\n", ret);
+> +		return;
+> +	}
+> +
+> +	wait_for_completion(&sdrain.done);
+> +}
+> +
+> +/*
+> + * Post a WR and block until its completion is reaped for the RQ.
+> + */
+> +static void __ib_drain_rq(struct ib_qp *qp)
+> +{
+> +	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+> +	struct ib_drain_cqe rdrain;
+> +	struct ib_recv_wr rwr = {}, *bad_rwr;
+> +	int ret;
+> +
+> +	if (qp->recv_cq->poll_ctx == IB_POLL_DIRECT) {
+> +		WARN_ONCE(qp->recv_cq->poll_ctx == IB_POLL_DIRECT,
+> +			  "IB_POLL_DIRECT poll_ctx not supported for drain\n");
+> +		return;
+> +	}
+> +
+> +	rwr.wr_cqe = &rdrain.cqe;
+> +	rdrain.cqe.done = ib_drain_qp_done;
+> +	init_completion(&rdrain.done);
+> +
+> +	ret = ib_modify_qp(qp, &attr, IB_QP_STATE);
+> +	if (ret) {
+> +		WARN_ONCE(ret, "failed to drain recv queue: %d\n", ret);
+> +		return;
+> +	}
+> +
+> +	ret = ib_post_recv(qp, &rwr, &bad_rwr);
+> +	if (ret) {
+> +		WARN_ONCE(ret, "failed to drain recv queue: %d\n", ret);
+> +		return;
+> +	}
+> +
+> +	wait_for_completion(&rdrain.done);
+> +}
 
-Hello Doug,
+Hello Steve,
 
-Thanks for stepping in and addressing this. But as far as I can see 
-these changes have not yet been pushed out to the k.o/for-4.6 branch on 
-git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git ? I will 
-have another look once your tree is publicly available.
+I only have one comment about this patch: are you aware that the six 
+invocations of WARN_ONCE() can be made less verbose by rewriting if (c) 
+{ WARN_ONCE(c, m); ... } as if (WARN_ONCE(c, m)) { ... } ?
 
 Bart.
 --
