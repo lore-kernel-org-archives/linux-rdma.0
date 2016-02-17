@@ -1,57 +1,36 @@
-From: Insu Yun <wuninsu@gmail.com>
-Subject: [PATCH] nes: handling failed allocation when creating workqueue
-Date: Wed, 17 Feb 2016 13:06:33 -0500
-Message-ID: <1455732393-11029-1-git-send-email-wuninsu@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu, changwoo@gatech.edu, Insu Yun <wuninsu@gmail.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: vendor extension moratorium?
+Date: Wed, 17 Feb 2016 21:18:26 +0200
+Message-ID: <20160217191826.GE30450@leon.nu>
+References: <20160217085508.GA3578@infradead.org>
+ <20160217100207.GB30450@leon.nu>
+ <20160217150500.GA8164@infradead.org>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160217150500.GA8164-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since create_singlethread_workqueue uses kzalloc internally, 
-it can be failed in memory pressure, so need to handle it.
+On Wed, Feb 17, 2016 at 07:05:00AM -0800, Christoph Hellwig wrote:
+> On Wed, Feb 17, 2016 at 12:02:07PM +0200, Leon Romanovsky wrote:
+> > Do you have any suggestions on how to handle the adding and exporting
+> > of new IB features?
+> 
+> Mostly by slowing down and asking if there is a) a real need and
+> b) if this really is the right interface.
 
-Signed-off-by: Insu Yun <wuninsu@gmail.com>
----
- drivers/infiniband/hw/nes/nes_cm.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+Every vendor has different opinion on (a) and (b). It is not scalable.
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index cb9f0f2..23afad6 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -2833,7 +2833,7 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
- 	/* alloc top level core control structure */
- 	cm_core = kzalloc(sizeof(*cm_core), GFP_KERNEL);
- 	if (!cm_core)
--		return NULL;
-+		goto enomem_3;
- 
- 	INIT_LIST_HEAD(&cm_core->connected_nodes);
- 	init_timer(&cm_core->tcp_timer);
-@@ -2856,12 +2856,23 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
- 
- 	nes_debug(NES_DBG_CM, "Enable QUEUE EVENTS\n");
- 	cm_core->event_wq = create_singlethread_workqueue("nesewq");
-+	if (!cm_core->event_wq)
-+		goto enomem_2;
- 	cm_core->post_event = nes_cm_post_event;
- 	nes_debug(NES_DBG_CM, "Enable QUEUE DISCONNECTS\n");
- 	cm_core->disconn_wq = create_singlethread_workqueue("nesdwq");
-+	if (!cm_core->disconn_wq)
-+		goto enomem_1;
- 
- 	print_core(cm_core);
- 	return cm_core;
-+
-+enomem_1:
-+	destroy_workqueue(cm_core->event_wq);
-+enomem_2:
-+	kfree(cm_core);
-+enomem_3:
-+	return NULL;
- }
- 
- 
--- 
-1.9.1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
