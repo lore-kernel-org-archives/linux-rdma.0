@@ -1,44 +1,40 @@
-From: Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: [PATCH 4/4] IB/isert: the kill ->isert_cmd back pointer in the
- struct iser_tx_desc
-Date: Wed, 17 Feb 2016 11:31:31 +0200
-Message-ID: <56C43DF3.8080509@mellanox.com>
-References: <1455567060-18381-1-git-send-email-hch@lst.de>
- <1455567060-18381-5-git-send-email-hch@lst.de>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: vendor extension moratorium?
+Date: Wed, 17 Feb 2016 12:02:07 +0200
+Message-ID: <20160217100207.GB30450@leon.nu>
+References: <20160217085508.GA3578@infradead.org>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1455567060-18381-5-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagig@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160217085508.GA3578-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Wed, Feb 17, 2016 at 12:55:08AM -0800, Christoph Hellwig wrote:
+> While doing heavy lifting in the RDMA stack I keep running into
+> badly designed vendor extensions over and over.
+> 
+> Is there any support for requiring that we'll only add features that
+> actually are peer reviewed and standardized before keeping on piling
+> up crap?  It seems like at least vendors seems to be fighting for death
+> by features unfortunately.
 
-On 2/15/2016 10:11 PM, Christoph Hellwig wrote:
-> We only use the pointer when processing regular iSER commands, and it then
-> always points to the struct iser_cmd that contains the TX descriptor.
->
-> Remove it and rely on container_of to save a little space and avoid a
-> pointer that is updated multiple times per processed command.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->   drivers/infiniband/ulp/isert/ib_isert.c | 14 ++++++--------
->   drivers/infiniband/ulp/isert/ib_isert.h |  1 -
->   2 files changed, 6 insertions(+), 9 deletions(-)
->
+Your description of current state is pretty accurate, except one thing -
+there are a lot of actively used code in user space with real consumers
+which eager to get new features.
 
-maybe we can define it once as:
-static inline struct isert_cmd *
-isert_tx_to_cmd(iser_tx_desc *tx_desc)
-{
-    return container_of(tx_desc, struct isert_cmd, tx_desc);
-}
-in the .h file ?
+Do you have any suggestions on how to handle the adding and exporting
+of new IB features?
 
-
-cheers,
-Max.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
