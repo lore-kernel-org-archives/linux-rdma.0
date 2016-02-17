@@ -1,41 +1,41 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 0/3] Enable LSO and Checksum for IPoIB over mlx5
-Date: Wed, 17 Feb 2016 09:48:56 +0200
-Message-ID: <1455695339-10389-1-git-send-email-erezsh@mellanox.com>
+Subject: [PATCH V1 for-next 3/3] IB/mlx5: Add support for CSUM in RX flow
+Date: Wed, 17 Feb 2016 09:48:59 +0200
+Message-ID: <1455695339-10389-4-git-send-email-erezsh@mellanox.com>
+References: <1455695339-10389-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1455695339-10389-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The patch set exposes the UD QP's HW abilities to receive CSUM and LSO.
-When these offloads are enabled, IPoIB over mlx5 (when uses UD QP) can benefit
-from the above without additional changes in the IPoIB code.
 
-The first patch in the series "IB/mlx5: Define mlx5 interface bits for IPoIB
-offloads" is on top of the next patch "[PATCH net V2 1/3] net/mlx5: Use offset
-based reserved field names in the IFC header file" that was sent to "net"
-branch.
-(see http://www.spinics.net/lists/netdev/msg362410.html)
+The driver checks the csum from the HW when completion arrived and marks
+it in the wc->wc_flags field for the ulp drivers.
+These is for packets from type IB_WC_RECV only.
 
-Changes from v0:
-	Fixed variable type from u16 to u64
-	Returned back empty line.
-	sync capability bit from new FW
-	Change "likely" to "unlikely".
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/cq.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Erez Shitrit (3):
-  IB/mlx5: Define mlx5 interface bits for IPoIB offloads
-  IB/mlx5: Implement UD QP offloads for IPoIB in the TX flow
-  IB/mlx5: Add support for CSUM in RX flow
-
- drivers/infiniband/hw/mlx5/cq.c      |   3 +
- drivers/infiniband/hw/mlx5/main.c    |   5 ++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  11 ++--
- drivers/infiniband/hw/mlx5/qp.c      | 123 ++++++++++++++++++++++++++++++++---
- include/linux/mlx5/mlx5_ifc.h        |   6 +-
- 5 files changed, 133 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 7ddc790..b0bdc31 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -207,7 +207,10 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
+ 		break;
+ 	case MLX5_CQE_RESP_SEND:
+ 		wc->opcode   = IB_WC_RECV;
+-		wc->wc_flags = 0;
++		wc->wc_flags = IB_WC_IP_CSUM_OK;
++		if (!(unlikely(cqe->hds_ip_ext & CQE_L3_OK) &&
++		      unlikely(cqe->hds_ip_ext & CQE_L4_OK)))
++			wc->wc_flags = 0;
+ 		break;
+ 	case MLX5_CQE_RESP_SEND_IMM:
+ 		wc->opcode	= IB_WC_RECV;
 -- 
 1.7.11.3
 
