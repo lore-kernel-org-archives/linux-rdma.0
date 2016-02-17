@@ -1,58 +1,79 @@
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 1/3] IB/mlx5: Define mlx5 interface bits for IPoIB offloads
-Date: Wed, 17 Feb 2016 09:48:57 +0200
-Message-ID: <1455695339-10389-2-git-send-email-erezsh@mellanox.com>
-References: <1455695339-10389-1-git-send-email-erezsh@mellanox.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [RFC 0/7] Peer-direct memory
+Date: Wed, 17 Feb 2016 00:44:12 -0800
+Message-ID: <20160217084412.GA13616@infradead.org>
+References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
+ <20160211191838.GA23675@obsidianresearch.com>
+ <56C08EC8.10207@mellanox.com>
+ <20160216182212.GA21071@obsidianresearch.com>
+ <CAPSaadxbFCOcKV=c3yX7eGw9Wqzn3jvPRZe2LMWYmiQcijT4nw@mail.gmail.com>
+ <CAPSaadx3vNBSxoWuvjrTp2n8_-DVqofttFGZRR+X8zdWwV86nw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455695339-10389-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAPSaadx3vNBSxoWuvjrTp2n8_-DVqofttFGZRR+X8zdWwV86nw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: davide rossetti <davide.rossetti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kovalyov Artemy <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "leon-Dj0/KMMU01E@public.gmane.org" <leon-Dj0/KMMU01E@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+[disclaimer: I've been involved with ZONE_DEVICE support and the pmem
+ driver and wrote parts of the code and discussed a lot of the tradeoffs
+ on how we handle I/O to memory in BARs]
 
-The HW can supply several offloads for UD QP, added  offloads for
-checksumming for both TX and RX and LSO for TX.
+On Tue, Feb 16, 2016 at 08:13:58PM -0800, davide rossetti wrote:
+> 1) I see mm as appropriate for real memory, i.e. something that
+> user-space apps can pass around.
 
-Two new bits were added in order to expose and enable these offloads:
-1. HCA capability bit: declares the support for IPoIB basic offloads.
-2. QPC bit which will be used in the QP creation flow, which set these
-abilities in the QP.
+mm is memory management, and this clearly falls under the umbrella,
+so it absolutely needs to be under mm/ and reviewed by the linux-mm
+crowd.
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/linux/mlx5/mlx5_ifc.h | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+> This is not totally true for BAR
+> memory, for instance:
+>  a) as long as CPU initiated atomic ops are not supported on BAR space
+> of PCIe devices.
+>  b) OTOT, CPU reading from BAR is awful (BW being abysmal,~10MB/s),
+> while high BW writing requires use of vector instructions (at least on
+> x86_64).
+> Bottom line is, BAR mappings are not like plain memory.
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 51f1e54..5f61afe 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -736,7 +736,11 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         cqe_version[0x4];
- 
- 	u8         compact_address_vector[0x1];
--	u8         reserved_at_200[0xe];
-+	u8         reserved_at_200[0x1];
-+	u8         ipoib_basic_offloads_deprecated[0x1];
-+	u8         ipoib_enhanced_offloads[0x1];
-+	u8         ipoib_basic_offloads[0x1];
-+	u8         reserved_at_204[0xa];
- 	u8         drain_sigerr[0x1];
- 	u8         cmdif_checksum[0x2];
- 	u8         sigerr_cqe[0x1];
-@@ -1780,7 +1784,7 @@ struct mlx5_ifc_qpc_bits {
- 	u8         log_sq_size[0x4];
- 	u8         reserved_at_55[0x6];
- 	u8         rlky[0x1];
--	u8         reserved_at_5c[0x4];
-+	u8         ulp_stateless_offload_mode[0x4];
- 
- 	u8         counter_set_id[0x8];
- 	u8         uar_page[0x18];
--- 
-1.7.11.3
+That doesn't change how the are managed.  We've always suppored mapping
+BARs to userspace in various drivers, and the only real news with things
+like the pmem driver with DAX or some of the things people want to do
+with the NVMe controller memoery buffer is that there are much bigger
+quantities of it, and:
 
+ a) people want to be able  have cachable mappings of various kinds
+    instead of the old uncachable default.
+ b) we want to be able to DMA (including RDMA) to the regions in the
+    BARs.
+
+a) is something that needs smaller amounts in all kinds of areas to be
+done properly, but in principle GPU drivers have been doing this forever
+using all kinds of hacks.
+
+b) is the real issue.  The Linux DMA support code doesn't really operate
+on just physical addresses, but on page structures, and we don't
+allocate for BARs.  We investigated two ways to address this:  1) allow
+DMA operations without struct page and 2) create struct page structures
+for BARs that we want to be able to use DMA operations on.  For various
+reasons version 2) was favored and this is how we ended up with
+ZONE_DEVICE.  Read the linux-mm and linux-nvdimm lists for the lenghty
+discussions how we ended up here.
+
+Additional issues like which instructions to use for access build on top
+of these basic building blocks.
+
+> 2) Instead, I see appropriate that two sophisticated devices, like an
+> IB NIC and a storage/accelerator device, can freely target each other
+> for I/O, i.e. exchanging peer-to-peer PCIe transactions. And as long
+> as the existing sophisticated initiators are confined to the RDMA
+> subsystem, that is where this support belongs to.
+
+It doesn't.  There is absolutely nothing RDMA specific here - please
+work with the overall community to do the right thing here.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
