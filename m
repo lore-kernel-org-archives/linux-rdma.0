@@ -1,75 +1,209 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 15/21] IB/srpt: Log private data associated with REJ
-Date: Thu, 18 Feb 2016 10:14:18 -0500
-Message-ID: <56C5DFCA.9000609@redhat.com>
-References: <56BCDAAD.7030906@sandisk.com> <56BCDC1C.107@sandisk.com>
- <56C49854.6010204@redhat.com> <56C50110.7060003@sandisk.com>
+Subject: Re: [PATCH rdma-next V2 30/32] IB/rxe: Shared objects between user
+ and kernel
+Date: Thu, 18 Feb 2016 11:17:43 -0500
+Message-ID: <56C5EEA7.8070503@redhat.com>
+References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
+ <1450948698-13383-31-git-send-email-kamalh@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="qq3JGBWgQJv09i3oLkfeuBmL9k56m0Jmv"
+ boundary="8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56C50110.7060003-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1450948698-13383-31-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qq3JGBWgQJv09i3oLkfeuBmL9k56m0Jmv
-Content-Type: text/plain; charset=utf-8
+--8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 02/17/2016 06:24 PM, Bart Van Assche wrote:
-> On 02/17/2016 07:57 AM, Doug Ledford wrote:
->> On 02/11/2016 02:08 PM, Bart Van Assche wrote:
->>> To make it possible to determine why an initiator sent a REJ,
->>> log the private data associated with the received REJ packet.
->>
->> This particular function is all sorts of broken...I fixed it up as I
->> took it in.  But, issues were:
->>
->> 1) We always allocate priv even when private_data_len is 0
->> 2) Since we always allocate priv, the test for priv in the pr_info arg=
-s
->> isn't really helpful, but the way the test is set up, if priv exists,
->> then we actually pass NULL, if it doesn't, we pass the static string.
->> 3) In the event we have priv and private data, then there is a nit abo=
-ut
->> formatting because priv will end with a space right before the null
->> terminator, which makes the period in the pr_info format hang out in
->> open space.
->>
->> My changes:
->>
->> 1) Only alloc priv if private_data_len is not 0
->> 2) Change priv to be space prepended instead of space postpended
->> 3) Change pr_info format to work with space prepended string
->> 4) Fix test in pr_info args
+On 12/24/2015 4:18 AM, Kamal Heib wrote:
+> From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> Hello Doug,
+> Objects used by the userspace to post work requests.
 >=20
-> Thanks for stepping in and addressing this. But as far as I can see
-> these changes have not yet been pushed out to the k.o/for-4.6 branch on=
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git ? I wil=
-l
-> have another look once your tree is publicly available.
+> Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  include/uapi/rdma/Kbuild   |   1 +
+>  include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++=
+++++++++
+>  2 files changed, 140 insertions(+)
+>  create mode 100644 include/uapi/rdma/ib_rxe.h
 >=20
-> Bart.
+> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+> index 231901b..94f9401 100644
+> --- a/include/uapi/rdma/Kbuild
+> +++ b/include/uapi/rdma/Kbuild
+> @@ -6,3 +6,4 @@ header-y +=3D ib_user_verbs.h
+>  header-y +=3D rdma_netlink.h
+>  header-y +=3D rdma_user_cm.h
+>  header-y +=3D hfi/
+> +header-y +=3D ib_rxe.h
+> diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
+> new file mode 100644
+> index 0000000..fc1d9ca
+> --- /dev/null
+> +++ b/include/uapi/rdma/ib_rxe.h
+> @@ -0,0 +1,139 @@
+> +/*
+> + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU=
 
-It's in my srpt branch at the moment.  I haven't pulled the topic
-branches into my k.o/for-4.6 branch yet (when I pushed it last night to
-github it was to get 0day testing before committing it to my k.o branch
-and pushing it to k.o).
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following=
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+> + *     conditions are met:
+> + *
+> + *	- Redistributions of source code must retain the above
+> + *	  copyright notice, this list of conditions and the following
+> + *	  disclaimer.
+> + *
+> + *	- Redistributions in binary form must reproduce the above
+> + *	  copyright notice, this list of conditions and the following
+> + *	  disclaimer in the documentation and/or other materials
+> + *	  provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS=
+
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef IB_RXE_H
+> +#define IB_RXE_H
+> +
+> +#include <linux/types.h>
+> +
+> +union rxe_gid {
+> +	__u8	raw[16];
+> +	struct {
+> +		__be64	subnet_prefix;
+> +		__be64	interface_id;
+> +	} global;
+> +};
+> +
+> +struct rxe_global_route {
+> +	union rxe_gid	dgid;
+> +	__u32		flow_label;
+> +	__u8		sgid_index;
+> +	__u8		hop_limit;
+> +	__u8		traffic_class;
+> +};
+> +
+> +struct rxe_av {
+> +	__u8			port_num;
+> +	__u8			network_type;
+> +	struct rxe_global_route	grh;
+> +	union {
+> +		struct sockaddr		_sockaddr;
+> +		struct sockaddr_in	_sockaddr_in;
+> +		struct sockaddr_in6	_sockaddr_in6;
+> +	} sgid_addr, dgid_addr;
+> +};
+> +
+> +struct rxe_send_wr {
+> +	__u64			wr_id;
+> +	__u32			num_sge;
+> +	__u32			opcode;
+> +	__u32			send_flags;
+> +	union {
+> +		__u32		imm_data;
+> +		__u32		invalidate_rkey;
+> +	} ex;
+> +	union {
+> +		struct {
+> +			__u64	remote_addr;
+> +			__u32	rkey;
+> +		} rdma;
+> +		struct {
+> +			__u64	remote_addr;
+> +			__u64	compare_add;
+> +			__u64	swap;
+> +			__u32	rkey;
+> +		} atomic;
+> +		struct {
+> +			__u32	remote_qpn;
+> +			__u32	remote_qkey;
+> +			__u16	pkey_index;
+> +		} ud;
+> +	} wr;
+> +};
+> +
+> +struct rxe_sge {
+> +	__u64	addr;
+> +	__u32	length;
+> +	__u32	lkey;
+> +};
+> +
+> +struct mminfo {
+> +	__u64			offset;
+> +	__u32			size;
+> +	__u32			pad;
+> +};
+
+I'm highly leary of using this name for an rxe shared object.  I would
+much prefer that this be rxe specific just to avoid the possibility of
+future conflicts (I checked, there are no current conflicts, but the
+name is still so generic that it could have future issues).
+
+> +
+> +struct rxe_dma_info {
+> +	__u32			length;
+> +	__u32			resid;
+> +	__u32			cur_sge;
+> +	__u32			num_sge;
+> +	__u32			sge_offset;
+> +	union {
+> +		__u8		inline_data[0];
+> +		struct rxe_sge	sge[0];
+> +	};
+> +};
+> +
+> +struct rxe_send_wqe {
+> +	struct rxe_send_wr	wr;
+> +	struct rxe_av		av;
+> +	__u32			status;
+> +	__u32			state;
+> +	__u64			iova;
+> +	__u32			mask;
+> +	__u32			first_psn;
+> +	__u32			last_psn;
+> +	__u32			ack_length;
+> +	__u32			ssn;
+> +	__u32			has_rd_atomic;
+> +	struct rxe_dma_info	dma;
+> +};
+> +
+> +struct rxe_recv_wqe {
+> +	__u64			wr_id;
+> +	__u32			num_sge;
+> +	__u32			padding;
+> +	struct rxe_dma_info	dma;
+> +};
+> +
+> +#endif /* IB_RXE_H */
+>=20
 
 
 
---qq3JGBWgQJv09i3oLkfeuBmL9k56m0Jmv
+--8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -78,22 +212,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJWxd/TAAoJELgmozMOVy/d4M0P/Rivdi2wMQIblo/7BAFR1Tt5
-tPqTltgEeHPB6XJrk69Q9SZcuBWY25rKotau4JjASJfyA0dd2IVPkYC4yLakTgML
-Ye2wMaBAMq3ErhZZNBAyVe6JELhFegW9mxR2QUAiq3hC3Ehc2m1HA+Vxz6irp479
-Mx5+YPjXo5qvG5Dj4MCiup0WOfbP9fw4mtqQYjE6B4ucgbZOWyZF10nsLy2Ym28E
-s76gpzQxdxdkcsiJzUdufW9EEN8IijWDydzNNcKg/xLZbR0105THPSVNiUSJLY9f
-yC2a/DnCjMMPMYWG+6DAYSJ7jjWjba7ybUQ7fgGLd3NXKN62kKKy/RchBck+/lpR
-3dEbvlJWDm+jlw0nvgwDl9GA27vo0/r1rM2aeNEQBc6uCqKe5YaqDgnS9Kwu+Fkt
-C2kDEHO9/QpLM3ID+CZZCtJWtWZ+lEjAwYdPIBsDd/VpzOFvnexe/9uuVmE/O3CA
-uRnGVaq9W7123J02+ub/wzcwYX7NBP3AFrvSZj5d7PzDTXHWN1DVh9mUGrXqiMfC
-XaP0Nj4POjosDgGIaqkYRJ6tSvGY5Q1SNqi7l/jvJOK3Rfp3Ne5Hz699LyQJuNE7
-UaNfrO2lZrjW89FMMJhTKpaaO0aDG3o2OckML/rrS/BUnqUUMFFBdYVmfPR+P7rd
-Ubuhstplm30EGJjR9Ci3
-=/7Kc
+iQIcBAEBCAAGBQJWxe6nAAoJELgmozMOVy/dk5YQAIH5VJh8xAMTpKh158ufWm/z
+U6g2frjl6p5egJSCGm/2G/JHpw4et7ey6BeYT2a9jLFrOb1MUII4O5FAgcxP5BMN
+aJd+o1hbKUvp5lpqVBduETNUurZ5aLrh0Oo74InS/Cb5bG/8aYTjXQqVk8My933c
+o3/g/eRb5y1UTOGAjlrVqN1K9JD2ON9Cr4b1DjTnk6PA/a70PggurX48Pb+CSTN2
+YNNyhYsAYf7uKiPMlJRI19UIj0vZzSl12JaJgWz9cCJhendOF033BlIZcblv5E/f
+UkK/zckV6Lio3YHtUOcmLHCfWknqlNitIc7Y1TSjqW+X8z81bioeJRnU1sP3GI79
+maDGlX1BbzBJujIyGgehYyR5R/ilZXX5C6+aqDMXhc71TUlZWzV+AltpU+Ccq2Zq
+ROohXfBjAWnXLQRSxNIZwz8cMZbVwFjO+rcu77a9ltHElEWARIG3mzAQ/vwCGWeS
+uXS+qorbpf/x4Xu/3UfRR+yYnhV3m1eI5VMAgndNkC9NZD/BxWLcT0W2w3OKCwEe
+NGpPvUxNy04AWNb/nHcC42TtcFPJ3PLz1EAizc0dNk72ndF/TmYVuDZXz4rgRlQW
+G3GHJc79M6bEti3HAAgUY4+TJK4eVX/xYdKBdZ+rmZcGJCUB9d6C01YMhCFUw2Sh
+GMuE2Nxa+IqKw4xFyRgV
+=w/5I
 -----END PGP SIGNATURE-----
 
---qq3JGBWgQJv09i3oLkfeuBmL9k56m0Jmv--
+--8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
