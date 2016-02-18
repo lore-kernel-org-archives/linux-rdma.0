@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/3] net/mlx5_core: Add helper function to read IB error counters
-Date: Thu, 18 Feb 2016 18:15:00 +0200
-Message-ID: <1455812101-1258-3-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 3/3] IB/mlx5: Modify MAD reading counters method to use counter registers
+Date: Thu, 18 Feb 2016 18:15:01 +0200
+Message-ID: <1455812101-1258-4-git-send-email-matanb@mellanox.com>
 References: <1455812101-1258-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455812101-1258-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,140 +12,255 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Added helper function to read IB standard error counters
-via the PPCNT register.
+Modify mlx5_ib_process_mad to use PPCNT and query_vport commands
+instead of MAD_IFC, as MAD_IFC is deprecated on new firmware
+versions (and doesn't support RoCE anyway).
 
-The PPCNT register read command provides the 32-bit error counters
-of both IB/RoCE link layer and transport layer.
+Traffic counters exist in both 32-bit and 64-bit forms.
+Declaring support of extended coutners results in traffic counters
+to be read in their 64-bit form only via the query_vport command.
+Error counters exist only in 32-bit form and read via PPCNT command.
+
+This commit also adds counters support in RoCE.
 
 Signed-off-by: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/port.c | 23 ++++++++++++++++++
- include/linux/mlx5/device.h                    |  3 ++-
- include/linux/mlx5/driver.h                    |  2 ++
- include/linux/mlx5/mlx5_ifc.h                  | 32 ++++++++++++++++++++++++++
- 4 files changed, 59 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/mad.c | 166 ++++++++++++++++++++++++++++++++++++---
+ include/linux/mlx5/device.h      |  23 ++++++
+ 2 files changed, 178 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/port.c b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-index 19571de..9088df6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/port.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/port.c
-@@ -325,6 +325,29 @@ int mlx5_query_port_vl_hw_cap(struct mlx5_core_dev *dev,
- }
- EXPORT_SYMBOL_GPL(mlx5_query_port_vl_hw_cap);
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index b84d13a..41d8a00 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -31,8 +31,10 @@
+  */
  
-+int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
-+			     u8 port_num, void *out, size_t sz)
+ #include <linux/mlx5/cmd.h>
++#include <linux/mlx5/vport.h>
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_smi.h>
++#include <rdma/ib_pma.h>
+ #include "mlx5_ib.h"
+ 
+ enum {
+@@ -57,20 +59,12 @@ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 	return mlx5_core_mad_ifc(dev->mdev, in_mad, response_mad, op_modifier, port);
+ }
+ 
+-int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+-			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+-			const struct ib_mad_hdr *in, size_t in_mad_size,
+-			struct ib_mad_hdr *out, size_t *out_mad_size,
+-			u16 *out_mad_pkey_index)
++static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
++		       const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++		       const struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+ 	u16 slid;
+ 	int err;
+-	const struct ib_mad *in_mad = (const struct ib_mad *)in;
+-	struct ib_mad *out_mad = (struct ib_mad *)out;
+-
+-	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
+-			 *out_mad_size != sizeof(*out_mad)))
+-		return IB_MAD_RESULT_FAILURE;
+ 
+ 	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+ 
+@@ -117,6 +111,156 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
+ }
+ 
++static void pma_cnt_ext_assign(struct ib_pma_portcounters_ext *pma_cnt_ext,
++			       void *out)
 +{
-+	u32 *in;
-+	int err;
++#define MLX5_SUM_CNT(p, cntr1, cntr2)	\
++	(MLX5_GET64(query_vport_counter_out, p, cntr1) + \
++	MLX5_GET64(query_vport_counter_out, p, cntr2))
 +
-+	in  = mlx5_vzalloc(sz);
-+	if (!in) {
-+		err = -ENOMEM;
-+		return err;
++	pma_cnt_ext->port_xmit_data =
++		cpu_to_be64(MLX5_SUM_CNT(out, transmitted_ib_unicast.octets,
++					 transmitted_ib_multicast.octets) >> 2);
++	pma_cnt_ext->port_xmit_data =
++		cpu_to_be64(MLX5_SUM_CNT(out, received_ib_unicast.octets,
++					 received_ib_multicast.octets) >> 2);
++	pma_cnt_ext->port_xmit_packets =
++		cpu_to_be64(MLX5_SUM_CNT(out, transmitted_ib_unicast.packets,
++					 transmitted_ib_multicast.packets));
++	pma_cnt_ext->port_rcv_packets =
++		cpu_to_be64(MLX5_SUM_CNT(out, received_ib_unicast.packets,
++					 received_ib_multicast.packets));
++	pma_cnt_ext->port_unicast_xmit_packets =
++		MLX5_GET64_BE(query_vport_counter_out,
++			      out, transmitted_ib_unicast.packets);
++	pma_cnt_ext->port_unicast_rcv_packets =
++		MLX5_GET64_BE(query_vport_counter_out,
++			      out, received_ib_unicast.packets);
++	pma_cnt_ext->port_multicast_xmit_packets =
++		MLX5_GET64_BE(query_vport_counter_out,
++			      out, transmitted_ib_multicast.packets);
++	pma_cnt_ext->port_multicast_rcv_packets =
++		MLX5_GET64_BE(query_vport_counter_out,
++			      out, received_ib_multicast.packets);
++}
++
++static void pma_cnt_assign(struct ib_pma_portcounters *pma_cnt,
++			   void *out)
++{
++	/* Traffic counters will be reported in
++	 * their 64bit form via ib_pma_portcounters_ext by default.
++	 */
++	void *out_pma = MLX5_ADDR_OF(ppcnt_reg, out,
++				     counter_set);
++
++#define MLX5_ASSIGN_PMA_CNTR(counter_var, counter_name)	{		\
++	counter_var = MLX5_GET_BE(typeof(counter_var),			\
++				  ib_port_cntrs_grp_data_layout,	\
++				  out_pma, counter_name);		\
 +	}
 +
-+	MLX5_SET(ppcnt_reg, in, local_port, port_num);
-+
-+	MLX5_SET(ppcnt_reg, in, grp, MLX5_INFINIBAND_PORT_COUNTERS_GROUP);
-+	err = mlx5_core_access_reg(dev, in, sz, out,
-+				   sz, MLX5_REG_PPCNT, 0, 0);
-+
-+	kvfree(in);
-+	return err;
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->symbol_error_counter,
++			     symbol_error_counter);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_error_recovery_counter,
++			     link_error_recovery_counter);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_downed_counter,
++			     link_downed_counter);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_errors,
++			     port_rcv_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_remphys_errors,
++			     port_rcv_remote_physical_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_switch_relay_errors,
++			     port_rcv_switch_relay_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_discards,
++			     port_xmit_discards);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_constraint_errors,
++			     port_xmit_constraint_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_constraint_errors,
++			     port_rcv_constraint_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_overrun_errors,
++			     link_overrun_errors);
++	MLX5_ASSIGN_PMA_CNTR(pma_cnt->vl15_dropped,
++			     vl_15_dropped);
 +}
-+EXPORT_SYMBOL_GPL(mlx5_core_query_ib_ppcnt);
 +
- int mlx5_set_port_pause(struct mlx5_core_dev *dev, u32 rx_pause, u32 tx_pause)
++static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
++			   const struct ib_mad *in_mad, struct ib_mad *out_mad)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++	int err;
++	void *out_cnt;
++
++	/* Decalring support of extended counters */
++	if (in_mad->mad_hdr.attr_id == IB_PMA_CLASS_PORT_INFO) {
++		struct ib_class_port_info cpi = {};
++
++		cpi.capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
++		memcpy((out_mad->data + 40), &cpi, sizeof(cpi));
++		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
++	}
++
++	if (in_mad->mad_hdr.attr_id == IB_PMA_PORT_COUNTERS_EXT) {
++		struct ib_pma_portcounters_ext *pma_cnt_ext =
++			(struct ib_pma_portcounters_ext *)(out_mad->data + 40);
++		int sz = MLX5_ST_SZ_BYTES(query_vport_counter_out);
++
++		out_cnt = mlx5_vzalloc(sz);
++		if (!out_cnt)
++			return IB_MAD_RESULT_FAILURE;
++
++		err = mlx5_core_query_vport_counter(dev->mdev, 0,
++						    port_num, out_cnt, sz);
++		if (!err)
++			pma_cnt_ext_assign(pma_cnt_ext, out_cnt);
++	} else {
++		struct ib_pma_portcounters *pma_cnt =
++			(struct ib_pma_portcounters *)(out_mad->data + 40);
++		int sz = MLX5_ST_SZ_BYTES(ppcnt_reg);
++
++		out_cnt = mlx5_vzalloc(sz);
++		if (!out_cnt)
++			return IB_MAD_RESULT_FAILURE;
++
++		err = mlx5_core_query_ib_ppcnt(dev->mdev, port_num,
++					       out_cnt, sz);
++		if (!err)
++			pma_cnt_assign(pma_cnt, out_cnt);
++		}
++
++	kvfree(out_cnt);
++	if (err)
++		return IB_MAD_RESULT_FAILURE;
++
++	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
++}
++
++int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
++			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
++			const struct ib_mad_hdr *in, size_t in_mad_size,
++			struct ib_mad_hdr *out, size_t *out_mad_size,
++			u16 *out_mad_pkey_index)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	const struct ib_mad *in_mad = (const struct ib_mad *)in;
++	struct ib_mad *out_mad = (struct ib_mad *)out;
++
++	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
++			 *out_mad_size != sizeof(*out_mad)))
++		return IB_MAD_RESULT_FAILURE;
++
++	memset(out_mad->data, 0, sizeof(out_mad->data));
++
++	if (MLX5_CAP_GEN(mdev, vport_counters) &&
++	    in_mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_PERF_MGMT &&
++	    in_mad->mad_hdr.method == IB_MGMT_METHOD_GET) {
++		return process_pma_cmd(ibdev, port_num, in_mad, out_mad);
++	} else {
++		return process_mad(ibdev, mad_flags, port_num, in_wc, in_grh,
++				   in_mad, out_mad);
++	}
++}
++
+ int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port)
  {
- 	u32 in[MLX5_ST_SZ_DW(pfcc_reg)];
+ 	struct ib_smp *in_mad  = NULL;
 diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index fb527e7..1af4090 100644
+index 1af4090..b6968a3 100644
 --- a/include/linux/mlx5/device.h
 +++ b/include/linux/mlx5/device.h
-@@ -1311,7 +1311,8 @@ enum {
- 	MLX5_RFC_3635_COUNTERS_GROUP	      = 0x3,
- 	MLX5_ETHERNET_EXTENDED_COUNTERS_GROUP = 0x5,
- 	MLX5_PER_PRIORITY_COUNTERS_GROUP      = 0x10,
--	MLX5_PER_TRAFFIC_CLASS_COUNTERS_GROUP = 0x11
-+	MLX5_PER_TRAFFIC_CLASS_COUNTERS_GROUP = 0x11,
-+	MLX5_INFINIBAND_PORT_COUNTERS_GROUP   = 0x20,
- };
+@@ -105,6 +105,29 @@ __mlx5_mask(typ, fld))
+ 	___t; \
+ })
  
- static inline u16 mlx5_to_sw_pkey_sz(int pkey_sz)
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index d299737..ce3a85a 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -830,6 +830,8 @@ int mlx5_core_destroy_psv(struct mlx5_core_dev *dev, int psv_num);
- void mlx5_core_put_rsc(struct mlx5_core_rsc_common *common);
- int mlx5_query_odp_caps(struct mlx5_core_dev *dev,
- 			struct mlx5_odp_caps *odp_caps);
-+int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
-+			     u8 port_num, void *out, size_t sz);
- 
- static inline int fw_initializing(struct mlx5_core_dev *dev)
- {
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 7dd48b32..2511129 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1250,6 +1250,36 @@ struct mlx5_ifc_phys_layer_cntrs_bits {
- 	u8         reserved_at_640[0x180];
- };
- 
-+struct mlx5_ifc_ib_port_cntrs_grp_data_layout_bits {
-+	u8	   symbol_error_counter[0x10];
++/* Big endian getters */
++#define MLX5_GET64_BE(typ, p, fld) (*((__be64 *)(p) +\
++	__mlx5_64_off(typ, fld)))
 +
-+	u8         link_error_recovery_counter[0x8];
++#define MLX5_GET_BE(type_t, typ, p, fld) ({				  \
++		type_t tmp;						  \
++		switch (sizeof(tmp)) {					  \
++		case sizeof(u8):					  \
++			tmp = (__force type_t)MLX5_GET(typ, p, fld);	  \
++			break;						  \
++		case sizeof(u16):					  \
++			tmp = (__force type_t)cpu_to_be16(MLX5_GET(typ, p, fld)); \
++			break;						  \
++		case sizeof(u32):					  \
++			tmp = (__force type_t)cpu_to_be32(MLX5_GET(typ, p, fld)); \
++			break;						  \
++		case sizeof(u64):					  \
++			tmp = (__force type_t)MLX5_GET64_BE(typ, p, fld); \
++			break;						  \
++			}						  \
++		tmp;							  \
++		})
 +
-+	u8         link_downed_counter[0x8];
-+
-+	u8         port_rcv_errors[0x10];
-+
-+	u8         port_rcv_remote_physical_errors[0x10];
-+
-+	u8         port_rcv_switch_relay_errors[0x10];
-+
-+	u8         port_xmit_discards[0x10];
-+
-+	u8         port_xmit_constraint_errors[0x8];
-+
-+	u8         port_rcv_constraint_errors[0x8];
-+
-+	u8         reserved_at_70[0x8];
-+
-+	u8         link_overrun_errors[0x8];
-+
-+	u8	   reserved_at_80[0x10];
-+
-+	u8         vl_15_dropped[0x10];
-+
-+	u8	   reserved_at_a0[0xa0];
-+};
-+
- struct mlx5_ifc_eth_per_traffic_grp_data_layout_bits {
- 	u8         transmit_queue_high[0x20];
- 
-@@ -2661,6 +2691,7 @@ union mlx5_ifc_eth_cntrs_grp_data_layout_auto_bits {
- 	struct mlx5_ifc_eth_extended_cntrs_grp_data_layout_bits eth_extended_cntrs_grp_data_layout;
- 	struct mlx5_ifc_eth_per_prio_grp_data_layout_bits eth_per_prio_grp_data_layout;
- 	struct mlx5_ifc_eth_per_traffic_grp_data_layout_bits eth_per_traffic_grp_data_layout;
-+	struct mlx5_ifc_ib_port_cntrs_grp_data_layout_bits ib_port_cntrs_grp_data_layout;
- 	struct mlx5_ifc_phys_layer_cntrs_bits phys_layer_cntrs;
- 	u8         reserved_at_0[0x7c0];
- };
-@@ -7046,6 +7077,7 @@ union mlx5_ifc_ports_control_registers_document_bits {
- 	struct mlx5_ifc_peir_reg_bits peir_reg;
- 	struct mlx5_ifc_pelc_reg_bits pelc_reg;
- 	struct mlx5_ifc_pfcc_reg_bits pfcc_reg;
-+	struct mlx5_ifc_ib_port_cntrs_grp_data_layout_bits ib_port_cntrs_grp_data_layout;
- 	struct mlx5_ifc_phys_layer_cntrs_bits phys_layer_cntrs;
- 	struct mlx5_ifc_pifr_reg_bits pifr_reg;
- 	struct mlx5_ifc_pipg_reg_bits pipg_reg;
+ enum {
+ 	MLX5_MAX_COMMANDS		= 32,
+ 	MLX5_CMD_DATA_BLOCK_SIZE	= 512,
 -- 
 1.8.3.1
 
