@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/8] staging/rdma/hfi1: Disclose more information when i2c
- fails
-Date: Thu, 18 Feb 2016 11:12:34 -0800
-Message-ID: <20160218191230.20983.38523.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 4/8] staging/rdma/hfi1: Fix debugfs access race
+Date: Thu, 18 Feb 2016 11:12:25 -0800
+Message-ID: <20160218191221.20983.47974.stgit@scvm10.sc.intel.com>
 References: <20160218191005.20983.64127.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,130 +10,64 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160218191005.20983.64127.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Improve logging messages when there are i2c failures.
-Clean i2c read error handling.
+Debugfs access races with the driver being ready.  Make sure the
+driver is ready before debugfs files appear and debufs files are
+gone before the driver starts tearing down.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/qsfp.c |   42 ++++++++++++++++++--------------------
- 1 files changed, 20 insertions(+), 22 deletions(-)
+ drivers/staging/rdma/hfi1/init.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/qsfp.c b/drivers/staging/rdma/hfi1/qsfp.c
-index 07330b0..7e76b93 100644
---- a/drivers/staging/rdma/hfi1/qsfp.c
-+++ b/drivers/staging/rdma/hfi1/qsfp.c
-@@ -102,7 +102,8 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	ret = hfi1_twsi_reset(ppd->dd, target);
- 	if (ret) {
- 		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "I2C write interface reset failed\n");
-+				 "I2C chain %d write interface reset failed\n",
-+				 target);
- 		goto done;
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index 2def538..371ed29 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -983,7 +983,6 @@ void hfi1_free_devdata(struct hfi1_devdata *dd)
+ 	list_del(&dd->list);
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
+ 	free_platform_config(dd);
+-	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
+ 	rcu_barrier(); /* wait for rcu callbacks to complete */
+ 	free_percpu(dd->int_counter);
+ 	free_percpu(dd->rcv_limit);
+@@ -1088,7 +1087,6 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 			&pdev->dev,
+ 			"Could not alloc cpulist info, cpu affinity might be wrong\n");
  	}
+-	hfi1_dbg_ibdev_init(&dd->verbs_dev);
+ 	return dd;
  
-@@ -121,15 +122,14 @@ static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
- {
- 	struct hfi1_devdata *dd = ppd->dd;
- 	int ret, cnt, pass = 0;
--	int stuck = 0;
--	u8 *buff = bp;
-+	int orig_offset = offset;
- 
- 	cnt = 0;
- 	while (cnt < len) {
- 		int rlen = len - cnt;
- 
- 		ret = hfi1_twsi_blk_rd(dd, target, i2c_addr, offset,
--				       buff + cnt, rlen);
-+				       bp + cnt, rlen);
- 		/* Some QSFP's fail first try. Retry as experiment */
- 		if (ret && cnt == 0 && ++pass < I2C_MAX_RETRY)
- 			continue;
-@@ -145,14 +145,11 @@ static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
- 	ret = cnt;
- 
- exit:
--	if (stuck)
--		dd_dev_err(dd, "I2C interface bus stuck non-idle\n");
--
--	if (pass >= I2C_MAX_RETRY && ret)
-+	if (ret < 0) {
- 		hfi1_dev_porterr(dd, ppd->port,
--				 "I2C failed even retrying\n");
--	else if (pass)
--		hfi1_dev_porterr(dd, ppd->port, "I2C retries: %d\n", pass);
-+				 "I2C chain %d read failed, addr 0x%x, offset 0x%x, len %d\n",
-+				 target, i2c_addr, orig_offset, len);
+ bail:
+@@ -1445,8 +1443,11 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	 * we still create devices, so diags, etc. can be used
+ 	 * to determine cause of problem.
+ 	 */
+-	if (!initfail && !ret)
++	if (!initfail && !ret) {
+ 		dd->flags |= HFI1_INITTED;
++		/* create debufs files after init and ib register */
++		hfi1_dbg_ibdev_init(&dd->verbs_dev);
 +	}
  
- 	/* Must wait min 20us between qsfp i2c transactions */
- 	udelay(20);
-@@ -174,7 +171,8 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	ret = hfi1_twsi_reset(ppd->dd, target);
- 	if (ret) {
- 		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "I2C read interface reset failed\n");
-+				 "I2C chain %d read interface reset failed\n",
-+				 target);
- 		goto done;
- 	}
+ 	j = hfi1_device_create(dd);
+ 	if (j)
+@@ -1487,6 +1488,8 @@ static void remove_one(struct pci_dev *pdev)
+ {
+ 	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
  
-@@ -206,7 +204,8 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	ret = hfi1_twsi_reset(ppd->dd, target);
- 	if (ret) {
- 		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "QSFP write interface reset failed\n");
-+				 "QSFP chain %d write interface reset failed\n",
-+				 target);
- 		mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
- 		return ret;
- 	}
-@@ -221,10 +220,9 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
- 		if (ret != 1) {
--			hfi1_dev_porterr(
--			ppd->dd,
--			ppd->port,
--			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
-+			hfi1_dev_porterr(ppd->dd, ppd->port,
-+					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-+					 target, ret);
- 			ret = -EIO;
- 			break;
- 		}
-@@ -272,7 +270,8 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	ret = hfi1_twsi_reset(ppd->dd, target);
- 	if (ret) {
- 		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "QSFP read interface reset failed\n");
-+				 "QSFP chain %d read interface reset failed\n",
-+				 target);
- 		mutex_unlock(&ppd->dd->qsfp_i2c_mutex);
- 		return ret;
- 	}
-@@ -286,10 +285,9 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
- 		if (ret != 1) {
--			hfi1_dev_porterr(
--			ppd->dd,
--			ppd->port,
--			"can't write QSFP_PAGE_SELECT_BYTE: %d\n", ret);
-+			hfi1_dev_porterr(ppd->dd, ppd->port,
-+					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
-+					 target, ret);
- 			ret = -EIO;
- 			break;
- 		}
++	/* close debugfs files before ib unregister */
++	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
+ 	/* unregister from IB core */
+ 	hfi1_unregister_ib_device(dd);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
