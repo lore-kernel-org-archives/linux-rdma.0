@@ -1,66 +1,82 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.1.8 release
-Date: Thu, 18 Feb 2016 01:10:07 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F980D5FDA9@ORSMSX101.amr.corp.intel.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH] nes: handling failed allocation when creating workqueue
+Date: Thu, 18 Feb 2016 06:59:05 +0200
+Message-ID: <20160218045905.GF30450@leon.nu>
+References: <1455732393-11029-1-git-send-email-wuninsu@gmail.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1455732393-11029-1-git-send-email-wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, taesoo-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, yeongjin.jang-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, insu-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org, changwoo-/4noJB3qBVQ3uPMLIKxrzw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Please see my minor comments below.
+Reviewed-by: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
 
-New release for uDAPL (2.1.8) is available at http://downloads.openfabr=
-ics.org/dapl/dapl-2.1.8.tar.gz
+On Wed, Feb 17, 2016 at 01:06:33PM -0500, Insu Yun wrote:
+> Since create_singlethread_workqueue uses kzalloc internally, 
+> it can be failed in memory pressure, so need to handle it.
 
-Vlad, please pull into OFED 3.18-2=20
+s/can be failed/can fail/
 
-=A0=A0=A0=A0 md5sum: 47cc7eb0302c20ab4fc08910e17e3c47 dapl-2.1.8.tar.gz=
-=20
+> 
+> Signed-off-by: Insu Yun <wuninsu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/nes/nes_cm.c | 13 ++++++++++++-
+>  1 file changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+> index cb9f0f2..23afad6 100644
+> --- a/drivers/infiniband/hw/nes/nes_cm.c
+> +++ b/drivers/infiniband/hw/nes/nes_cm.c
+> @@ -2833,7 +2833,7 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
+>  	/* alloc top level core control structure */
+>  	cm_core = kzalloc(sizeof(*cm_core), GFP_KERNEL);
+>  	if (!cm_core)
+> -		return NULL;
+> +		goto enomem_3;
 
-=46or v2.1 package install RPM packages as follow:
+IMHO, there is no need to define goto label for one return.
 
-=A0=A0=A0=A0 dapl-2.1.8-1
-=A0=A0=A0=A0 dapl-utils-2.1.8-1=A0=20
-=A0=A0=A0=A0=A0dapl-devel-2.1.8-1
-=A0=A0=A0=A0 dapl-debuginfo-2.1.8-1
-
-Release notes: http://downloads.openfabrics.org/dapl/documentation/uDAP=
-L_release_notes.txt
-
-Summary of changes:
-
-Release 2.1.8
- mpxyd: fix segfault in proxy_out debug logging
- mpxyd: fix debug memory buffer log function
- dtest: -D option is not valid with scif providers
- dtest/dapltest: add new automated test suite for HOST to MIC testing
- openib: update attributes correctly for iWARP transports
- openib_common: set providers mtu to active_mtu instead of 2048
- mpxyd: set affinity default to 2 for best performance
- mcm: cleanup unused variable in dapls_ib_mr_register
- dtest: enhancement to test, -D option for data check
- mcm: add support for Intel Omni-Path driver (hfi) via mic MFO mode
- mpxyd: fix ordering issues with the CCL Proxy receive side forwarding =
-mechanism
- dtest: report results only if one of the pingpong tests are run
- mpxyd: with abnormal CM termination a CM object can be referenced afte=
-r QP destroy
- mpxyd: proxy out WR resources exhausted with MFO mode endpoints
- release note update for CCL Proxy and Platform BIOS recommendations
- dtestx: add dat_ib_open_query only option with -q
- scm: CONN_PENDING: SOCKOPT ERR Connection refused ->
-
-Release commit: http://git.openfabrics.org/?p=3D~ardavis/dapl.git;a=3Dc=
-ommit;h=3Dc9a7fd2e658efa9021cc386d1b8ec3691a903959
-
-Regards, Arlin
-
+>  
+>  	INIT_LIST_HEAD(&cm_core->connected_nodes);
+>  	init_timer(&cm_core->tcp_timer);
+> @@ -2856,12 +2856,23 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
+>  
+>  	nes_debug(NES_DBG_CM, "Enable QUEUE EVENTS\n");
+>  	cm_core->event_wq = create_singlethread_workqueue("nesewq");
+> +	if (!cm_core->event_wq)
+> +		goto enomem_2;
+>  	cm_core->post_event = nes_cm_post_event;
+>  	nes_debug(NES_DBG_CM, "Enable QUEUE DISCONNECTS\n");
+>  	cm_core->disconn_wq = create_singlethread_workqueue("nesdwq");
+> +	if (!cm_core->disconn_wq)
+> +		goto enomem_1;
+>  
+>  	print_core(cm_core);
+>  	return cm_core;
+> +
+> +enomem_1:
+> +	destroy_workqueue(cm_core->event_wq);
+> +enomem_2:
+> +	kfree(cm_core);
+> +enomem_3:
+> +	return NULL;
+>  }
+>  
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
