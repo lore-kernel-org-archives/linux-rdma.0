@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/2] IB/mlx4: Add support for the don't trap rule
-Date: Thu, 18 Feb 2016 18:31:06 +0200
-Message-ID: <1455813066-13028-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH for-next 1/2] IB/core: Add don't trap flag to flow creation
+Date: Thu, 18 Feb 2016 18:31:05 +0200
+Message-ID: <1455813066-13028-2-git-send-email-yishaih@mellanox.com>
 References: <1455813066-13028-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455813066-13028-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,205 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Marina Varshaver <marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add support for receiving multicast/unicast traffic with
-the don't trap rule.
+Don't trap flag (i.e. IB_FLOW_ATTR_FLAGS_DONT_TRAP) indicates that QP
+will receive traffic, but will not steal it.
 
-Sniffing these packets requires a flow steering rule of type NORMAL
-at priority 0 with flag IB_FLOW_ATTR_FLAGS_DONT_TRAP set.
-Choosing between multicast or unicast is done via ethernet L2 dest_mac
-mask and value:
-- If mask is all zeros - unicast and multicast are set.
-- If mask non zero - only mask with multicast bit 1 and rest 0 is
-                     supported, the mac value will choose if it is
-                     multicast or unicast rule.
+When a packet matches a flow steering rule that was created with
+the don't trap flag, the QPs assigned to this rule will get this
+packet, but matching will continue to other equal/lower priority
+rules. This will let other QPs assigned to those rules to get the
+packet too.
 
-If the mask multicast bit is on and some other bits are on too, it means
-a request for specific multicast or unicast, this is not supported,
-either receive all multicast or all unicast.
+If both don't trap rule and other rules have the same priority
+and match the same packet, the behavior is undefined.
 
-Only when limitations are met registered QP will receive requested type
-but other QPs can receive same traffic if registered for it.
-Otherwise, if limitations are not met, an error will be returned.
-
-Limitations:
-- Rule must be with priority 0.
-- A0 mode is not supported.
-- Sniffer QP cannot appear in any other flow steering rule.
+The don't trap flag can't be set with default rule types
+(i.e. IB_FLOW_ATTR_ALL_DEFAULT, IB_FLOW_ATTR_MC_DEFAULT) as default rules
+don't have rules after them and don't trap has no meaning here.
 
 Signed-off-by: Marina Varshaver <marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c        | 71 ++++++++++++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx4/fw.c  |  5 ++-
- drivers/net/ethernet/mellanox/mlx4/mcg.c |  6 ++-
- include/linux/mlx4/device.h              |  3 ++
- 4 files changed, 78 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 8 ++++++++
+ drivers/infiniband/hw/mlx4/main.c    | 3 +++
+ include/rdma/ib_verbs.h              | 5 +++++
+ 3 files changed, 16 insertions(+)
 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6ffc9c4..0f05de6 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3085,6 +3085,14 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	     !capable(CAP_NET_ADMIN)) || !capable(CAP_NET_RAW))
+ 		return -EPERM;
+ 
++	if (cmd.flow_attr.flags >= IB_FLOW_ATTR_FLAGS_RESERVED)
++		return -EINVAL;
++
++	if ((cmd.flow_attr.flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP) &&
++	    ((cmd.flow_attr.type == IB_FLOW_ATTR_ALL_DEFAULT) ||
++	     (cmd.flow_attr.type == IB_FLOW_ATTR_MC_DEFAULT)))
++		return -EINVAL;
++
+ 	if (cmd.flow_attr.num_of_specs > IB_FLOW_SPEC_SUPPORT_LAYERS)
+ 		return -EINVAL;
+ 
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 41f2c25..914bc98 100644
+index 1c7ab6c..41f2c25 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1643,6 +1643,56 @@ static int mlx4_ib_tunnel_steer_add(struct ib_qp *qp, struct ib_flow_attr *flow_
- 	return err;
- }
- 
-+static int mlx4_ib_add_dont_trap_rule(struct mlx4_dev *dev,
-+				      struct ib_flow_attr *flow_attr,
-+				      enum mlx4_net_trans_promisc_mode *type)
-+{
-+	int err = 0;
-+
-+	if (!(dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER) ||
-+	    (dev->caps.dmfs_high_steer_mode == MLX4_STEERING_DMFS_A0_STATIC) ||
-+	    (flow_attr->num_of_specs > 1) || (flow_attr->priority != 0)) {
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (flow_attr->num_of_specs == 0) {
-+		type[0] = MLX4_FS_MC_SNIFFER;
-+		type[1] = MLX4_FS_UC_SNIFFER;
-+	} else {
-+		union ib_flow_spec *ib_spec;
-+
-+		ib_spec = (union ib_flow_spec *)(flow_attr + 1);
-+		if (ib_spec->type !=  IB_FLOW_SPEC_ETH)
-+			return -EINVAL;
-+
-+		/* if all is zero than MC and UC */
-+		if (is_zero_ether_addr(ib_spec->eth.mask.dst_mac)) {
-+			type[0] = MLX4_FS_MC_SNIFFER;
-+			type[1] = MLX4_FS_UC_SNIFFER;
-+		} else {
-+			u8 mac[ETH_ALEN] = {ib_spec->eth.mask.dst_mac[0] ^ 0x01,
-+					    ib_spec->eth.mask.dst_mac[1],
-+					    ib_spec->eth.mask.dst_mac[2],
-+					    ib_spec->eth.mask.dst_mac[3],
-+					    ib_spec->eth.mask.dst_mac[4],
-+					    ib_spec->eth.mask.dst_mac[5]};
-+
-+			/* Above xor was only on MC bit, non empty mask is valid
-+			 * only if this bit is set and rest are zero.
-+			 */
-+			if (!is_zero_ether_addr(&mac[0]))
-+				return -EINVAL;
-+
-+			if (is_multicast_ether_addr(ib_spec->eth.val.dst_mac))
-+				type[0] = MLX4_FS_MC_SNIFFER;
-+			else
-+				type[0] = MLX4_FS_UC_SNIFFER;
-+		}
-+	}
-+
-+	return err;
-+}
-+
- static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
- 				    struct ib_flow_attr *flow_attr,
- 				    int domain)
-@@ -1653,7 +1703,8 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
+@@ -1653,6 +1653,9 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
  	struct mlx4_dev *dev = (to_mdev(qp->device))->dev;
  	int is_bonded = mlx4_is_bonded(dev);
  
--	if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)
-+	if ((flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP) &&
-+	    (flow_attr->type != IB_FLOW_ATTR_NORMAL))
- 		return ERR_PTR(-EOPNOTSUPP);
- 
++	if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)
++		return ERR_PTR(-EOPNOTSUPP);
++
  	memset(type, 0, sizeof(type));
-@@ -1666,7 +1717,19 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
  
- 	switch (flow_attr->type) {
- 	case IB_FLOW_ATTR_NORMAL:
--		type[0] = MLX4_FS_REGULAR;
-+		/* If dont trap flag (continue match) is set, under specific
-+		 * condition traffic be replicated to given qp,
-+		 * without stealing it
-+		 */
-+		if (unlikely(flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)) {
-+			err = mlx4_ib_add_dont_trap_rule(dev,
-+							 flow_attr,
-+							 type);
-+			if (err)
-+				goto err_free;
-+		} else {
-+			type[0] = MLX4_FS_REGULAR;
-+		}
- 		break;
- 
- 	case IB_FLOW_ATTR_ALL_DEFAULT:
-@@ -1678,8 +1741,8 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
- 		break;
- 
- 	case IB_FLOW_ATTR_SNIFFER:
--		type[0] = MLX4_FS_UC_SNIFFER;
--		type[1] = MLX4_FS_MC_SNIFFER;
-+		type[0] = MLX4_FS_MIRROR_RX_PORT;
-+		type[1] = MLX4_FS_MIRROR_SX_PORT;
- 		break;
- 
- 	default:
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index d66c690..e970945 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -157,7 +157,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
- 		[29] = "802.1ad offload support",
- 		[31] = "Modifying loopback source checks using UPDATE_QP support",
- 		[32] = "Loopback source checks support",
--		[33] = "RoCEv2 support"
-+		[33] = "RoCEv2 support",
-+		[34] = "DMFS Sniffer support (UC & MC)"
- 	};
- 	int i;
- 
-@@ -810,6 +811,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
- 	if (field & 0x80)
- 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_FS_EN;
- 	dev_cap->fs_log_max_ucast_qp_range_size = field & 0x1f;
-+	if (field & 0x20)
-+		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER;
- 	MLX4_GET(field, outbox, QUERY_DEV_CAP_PORT_BEACON_OFFSET);
- 	if (field & 0x80)
- 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_BEACON;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-index 1d4e2e0..42d8de8 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
-@@ -752,8 +752,10 @@ static const u8 __promisc_mode[] = {
- 	[MLX4_FS_REGULAR]   = 0x0,
- 	[MLX4_FS_ALL_DEFAULT] = 0x1,
- 	[MLX4_FS_MC_DEFAULT] = 0x3,
--	[MLX4_FS_UC_SNIFFER] = 0x4,
--	[MLX4_FS_MC_SNIFFER] = 0x5,
-+	[MLX4_FS_MIRROR_RX_PORT] = 0x4,
-+	[MLX4_FS_MIRROR_SX_PORT] = 0x5,
-+	[MLX4_FS_UC_SNIFFER] = 0x6,
-+	[MLX4_FS_MC_SNIFFER] = 0x7,
+ 	mflow = kzalloc(sizeof(*mflow), GFP_KERNEL);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 284b00c..514223f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1487,6 +1487,11 @@ enum ib_flow_domain {
+ 	IB_FLOW_DOMAIN_NUM /* Must be last */
  };
  
- int mlx4_map_sw_to_hw_steering_mode(struct mlx4_dev *dev,
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 430a929..b7a2862 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -217,6 +217,7 @@ enum {
- 	MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB = 1ULL << 31,
- 	MLX4_DEV_CAP_FLAG2_LB_SRC_CHK           = 1ULL << 32,
- 	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1ULL <<  33,
-+	MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER   = 1ULL <<  34,
- };
- 
- enum {
-@@ -1157,6 +1158,8 @@ enum mlx4_net_trans_promisc_mode {
- 	MLX4_FS_REGULAR = 1,
- 	MLX4_FS_ALL_DEFAULT,
- 	MLX4_FS_MC_DEFAULT,
-+	MLX4_FS_MIRROR_RX_PORT,
-+	MLX4_FS_MIRROR_SX_PORT,
- 	MLX4_FS_UC_SNIFFER,
- 	MLX4_FS_MC_SNIFFER,
- 	MLX4_FS_MODE_NUM, /* should be last */
++enum ib_flow_flags {
++	IB_FLOW_ATTR_FLAGS_DONT_TRAP = 1UL << 1, /* Continue match, no steal */
++	IB_FLOW_ATTR_FLAGS_RESERVED  = 1UL << 2  /* Must be last */
++};
++
+ struct ib_flow_eth_filter {
+ 	u8	dst_mac[6];
+ 	u8	src_mac[6];
 -- 
 1.8.3.1
 
