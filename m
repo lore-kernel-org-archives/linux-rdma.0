@@ -1,233 +1,106 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 30/32] IB/rxe: Shared objects between user
- and kernel
-Date: Thu, 18 Feb 2016 11:17:43 -0500
-Message-ID: <56C5EEA7.8070503@redhat.com>
-References: <1450948698-13383-1-git-send-email-kamalh@mellanox.com>
- <1450948698-13383-31-git-send-email-kamalh@mellanox.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6"
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 1/3] net/mlx5_core: Add helper function to read virtual port counters
+Date: Thu, 18 Feb 2016 18:14:59 +0200
+Message-ID: <1455812101-1258-2-git-send-email-matanb@mellanox.com>
+References: <1455812101-1258-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1450948698-13383-31-git-send-email-kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1455812101-1258-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+From: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On 12/24/2015 4:18 AM, Kamal Heib wrote:
-> From: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Objects used by the userspace to post work requests.
->=20
-> Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  include/uapi/rdma/Kbuild   |   1 +
->  include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++=
-++++++++
->  2 files changed, 140 insertions(+)
->  create mode 100644 include/uapi/rdma/ib_rxe.h
->=20
-> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-> index 231901b..94f9401 100644
-> --- a/include/uapi/rdma/Kbuild
-> +++ b/include/uapi/rdma/Kbuild
-> @@ -6,3 +6,4 @@ header-y +=3D ib_user_verbs.h
->  header-y +=3D rdma_netlink.h
->  header-y +=3D rdma_user_cm.h
->  header-y +=3D hfi/
-> +header-y +=3D ib_rxe.h
-> diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
-> new file mode 100644
-> index 0000000..fc1d9ca
-> --- /dev/null
-> +++ b/include/uapi/rdma/ib_rxe.h
-> @@ -0,0 +1,139 @@
-> +/*
-> + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
-> + *
-> + * This software is available to you under a choice of one of two
-> + * licenses.  You may choose to be licensed under the terms of the GNU=
+Added helper function to read 64bit virtual port Infiniband traffic
+counters.
 
-> + * General Public License (GPL) Version 2, available from the file
-> + * COPYING in the main directory of this source tree, or the
-> + * OpenIB.org BSD license below:
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following=
+Signed-off-by: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 40 +++++++++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h                   |  3 +-
+ include/linux/mlx5/vport.h                      |  2 ++
+ 3 files changed, 44 insertions(+), 1 deletion(-)
 
-> + *     conditions are met:
-> + *
-> + *	- Redistributions of source code must retain the above
-> + *	  copyright notice, this list of conditions and the following
-> + *	  disclaimer.
-> + *
-> + *	- Redistributions in binary form must reproduce the above
-> + *	  copyright notice, this list of conditions and the following
-> + *	  disclaimer in the documentation and/or other materials
-> + *	  provided with the distribution.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS=
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index c7398b9..90ab09e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -850,3 +850,43 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev)
+ 	return mlx5_nic_vport_update_roce_state(mdev, MLX5_VPORT_ROCE_DISABLED);
+ }
+ EXPORT_SYMBOL_GPL(mlx5_nic_vport_disable_roce);
++
++int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
++				  u8 port_num, void *out, size_t out_sz)
++{
++	int	in_sz = MLX5_ST_SZ_BYTES(query_vport_counter_in);
++	int	is_group_manager;
++	void   *in;
++	int	err;
++
++	is_group_manager = MLX5_CAP_GEN(dev, vport_group_manager);
++	in = mlx5_vzalloc(in_sz);
++	if (!in) {
++		err = -ENOMEM;
++		return err;
++	}
++
++	MLX5_SET(query_vport_counter_in, in, opcode,
++		 MLX5_CMD_OP_QUERY_VPORT_COUNTER);
++	if (other_vport) {
++		if (is_group_manager) {
++			MLX5_SET(query_vport_counter_in, in, other_vport, 1);
++			MLX5_SET(query_vport_counter_in, in, vport_number, 0);
++		} else {
++			err = -EPERM;
++			goto free;
++		}
++	}
++	if (MLX5_CAP_GEN(dev, num_ports) == 2)
++		MLX5_SET(query_vport_counter_in, in, port_num, port_num);
++
++	err = mlx5_cmd_exec(dev, in, in_sz, out,  out_sz);
++	if (err)
++		goto free;
++	err = mlx5_cmd_status_to_err_v2(out);
++
++free:
++	kvfree(in);
++	return err;
++}
++EXPORT_SYMBOL_GPL(mlx5_core_query_vport_counter);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index d34ad50..7dd48b32 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -3169,7 +3169,8 @@ struct mlx5_ifc_query_vport_counter_in_bits {
+ 	u8         op_mod[0x10];
+ 
+ 	u8         other_vport[0x1];
+-	u8         reserved_at_41[0xf];
++	u8         reserved_at_41[0xb];
++	u8	   port_num[0x4];
+ 	u8         vport_number[0x10];
+ 
+ 	u8         reserved_at_60[0x60];
+diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
+index 1237710..a9f2bcc 100644
+--- a/include/linux/mlx5/vport.h
++++ b/include/linux/mlx5/vport.h
+@@ -92,5 +92,7 @@ int mlx5_modify_nic_vport_vlans(struct mlx5_core_dev *dev,
+ 
+ int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev);
+ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
++int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
++				  u8 port_num, void *out, size_t out_sz);
+ 
+ #endif /* __MLX5_VPORT_H__ */
+-- 
+1.8.3.1
 
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#ifndef IB_RXE_H
-> +#define IB_RXE_H
-> +
-> +#include <linux/types.h>
-> +
-> +union rxe_gid {
-> +	__u8	raw[16];
-> +	struct {
-> +		__be64	subnet_prefix;
-> +		__be64	interface_id;
-> +	} global;
-> +};
-> +
-> +struct rxe_global_route {
-> +	union rxe_gid	dgid;
-> +	__u32		flow_label;
-> +	__u8		sgid_index;
-> +	__u8		hop_limit;
-> +	__u8		traffic_class;
-> +};
-> +
-> +struct rxe_av {
-> +	__u8			port_num;
-> +	__u8			network_type;
-> +	struct rxe_global_route	grh;
-> +	union {
-> +		struct sockaddr		_sockaddr;
-> +		struct sockaddr_in	_sockaddr_in;
-> +		struct sockaddr_in6	_sockaddr_in6;
-> +	} sgid_addr, dgid_addr;
-> +};
-> +
-> +struct rxe_send_wr {
-> +	__u64			wr_id;
-> +	__u32			num_sge;
-> +	__u32			opcode;
-> +	__u32			send_flags;
-> +	union {
-> +		__u32		imm_data;
-> +		__u32		invalidate_rkey;
-> +	} ex;
-> +	union {
-> +		struct {
-> +			__u64	remote_addr;
-> +			__u32	rkey;
-> +		} rdma;
-> +		struct {
-> +			__u64	remote_addr;
-> +			__u64	compare_add;
-> +			__u64	swap;
-> +			__u32	rkey;
-> +		} atomic;
-> +		struct {
-> +			__u32	remote_qpn;
-> +			__u32	remote_qkey;
-> +			__u16	pkey_index;
-> +		} ud;
-> +	} wr;
-> +};
-> +
-> +struct rxe_sge {
-> +	__u64	addr;
-> +	__u32	length;
-> +	__u32	lkey;
-> +};
-> +
-> +struct mminfo {
-> +	__u64			offset;
-> +	__u32			size;
-> +	__u32			pad;
-> +};
-
-I'm highly leary of using this name for an rxe shared object.  I would
-much prefer that this be rxe specific just to avoid the possibility of
-future conflicts (I checked, there are no current conflicts, but the
-name is still so generic that it could have future issues).
-
-> +
-> +struct rxe_dma_info {
-> +	__u32			length;
-> +	__u32			resid;
-> +	__u32			cur_sge;
-> +	__u32			num_sge;
-> +	__u32			sge_offset;
-> +	union {
-> +		__u8		inline_data[0];
-> +		struct rxe_sge	sge[0];
-> +	};
-> +};
-> +
-> +struct rxe_send_wqe {
-> +	struct rxe_send_wr	wr;
-> +	struct rxe_av		av;
-> +	__u32			status;
-> +	__u32			state;
-> +	__u64			iova;
-> +	__u32			mask;
-> +	__u32			first_psn;
-> +	__u32			last_psn;
-> +	__u32			ack_length;
-> +	__u32			ssn;
-> +	__u32			has_rd_atomic;
-> +	struct rxe_dma_info	dma;
-> +};
-> +
-> +struct rxe_recv_wqe {
-> +	__u64			wr_id;
-> +	__u32			num_sge;
-> +	__u32			padding;
-> +	struct rxe_dma_info	dma;
-> +};
-> +
-> +#endif /* IB_RXE_H */
->=20
-
-
-
---8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWxe6nAAoJELgmozMOVy/dk5YQAIH5VJh8xAMTpKh158ufWm/z
-U6g2frjl6p5egJSCGm/2G/JHpw4et7ey6BeYT2a9jLFrOb1MUII4O5FAgcxP5BMN
-aJd+o1hbKUvp5lpqVBduETNUurZ5aLrh0Oo74InS/Cb5bG/8aYTjXQqVk8My933c
-o3/g/eRb5y1UTOGAjlrVqN1K9JD2ON9Cr4b1DjTnk6PA/a70PggurX48Pb+CSTN2
-YNNyhYsAYf7uKiPMlJRI19UIj0vZzSl12JaJgWz9cCJhendOF033BlIZcblv5E/f
-UkK/zckV6Lio3YHtUOcmLHCfWknqlNitIc7Y1TSjqW+X8z81bioeJRnU1sP3GI79
-maDGlX1BbzBJujIyGgehYyR5R/ilZXX5C6+aqDMXhc71TUlZWzV+AltpU+Ccq2Zq
-ROohXfBjAWnXLQRSxNIZwz8cMZbVwFjO+rcu77a9ltHElEWARIG3mzAQ/vwCGWeS
-uXS+qorbpf/x4Xu/3UfRR+yYnhV3m1eI5VMAgndNkC9NZD/BxWLcT0W2w3OKCwEe
-NGpPvUxNy04AWNb/nHcC42TtcFPJ3PLz1EAizc0dNk72ndF/TmYVuDZXz4rgRlQW
-G3GHJc79M6bEti3HAAgUY4+TJK4eVX/xYdKBdZ+rmZcGJCUB9d6C01YMhCFUw2Sh
-GMuE2Nxa+IqKw4xFyRgV
-=w/5I
------END PGP SIGNATURE-----
-
---8RmnFuB8WXhckEiup3L9Ei8Itb99E1PD6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
