@@ -1,266 +1,216 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 3/3] IB/mlx5: Modify MAD reading counters method to use counter registers
-Date: Thu, 18 Feb 2016 18:15:01 +0200
-Message-ID: <1455812101-1258-4-git-send-email-matanb@mellanox.com>
-References: <1455812101-1258-1-git-send-email-matanb@mellanox.com>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 2/2] IB/mlx4: Add support for the don't trap rule
+Date: Thu, 18 Feb 2016 18:31:06 +0200
+Message-ID: <1455813066-13028-3-git-send-email-yishaih@mellanox.com>
+References: <1455813066-13028-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455812101-1258-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1455813066-13028-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Marina Varshaver <marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Modify mlx5_ib_process_mad to use PPCNT and query_vport commands
-instead of MAD_IFC, as MAD_IFC is deprecated on new firmware
-versions (and doesn't support RoCE anyway).
+Add support for receiving multicast/unicast traffic with
+the don't trap rule.
 
-Traffic counters exist in both 32-bit and 64-bit forms.
-Declaring support of extended coutners results in traffic counters
-to be read in their 64-bit form only via the query_vport command.
-Error counters exist only in 32-bit form and read via PPCNT command.
+Sniffing these packets requires a flow steering rule of type NORMAL
+at priority 0 with flag IB_FLOW_ATTR_FLAGS_DONT_TRAP set.
+Choosing between multicast or unicast is done via ethernet L2 dest_mac
+mask and value:
+- If mask is all zeros - unicast and multicast are set.
+- If mask non zero - only mask with multicast bit 1 and rest 0 is
+                     supported, the mac value will choose if it is
+                     multicast or unicast rule.
 
-This commit also adds counters support in RoCE.
+If the mask multicast bit is on and some other bits are on too, it means
+a request for specific multicast or unicast, this is not supported,
+either receive all multicast or all unicast.
 
-Signed-off-by: Meny Yossefi <menyy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Only when limitations are met registered QP will receive requested type
+but other QPs can receive same traffic if registered for it.
+Otherwise, if limitations are not met, an error will be returned.
+
+Limitations:
+- Rule must be with priority 0.
+- A0 mode is not supported.
+- Sniffer QP cannot appear in any other flow steering rule.
+
+Signed-off-by: Marina Varshaver <marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mad.c | 166 ++++++++++++++++++++++++++++++++++++---
- include/linux/mlx5/device.h      |  23 ++++++
- 2 files changed, 178 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c        | 71 ++++++++++++++++++++++++++++++--
+ drivers/net/ethernet/mellanox/mlx4/fw.c  |  5 ++-
+ drivers/net/ethernet/mellanox/mlx4/mcg.c |  6 ++-
+ include/linux/mlx4/device.h              |  3 ++
+ 4 files changed, 78 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index b84d13a..41d8a00 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -31,8 +31,10 @@
-  */
- 
- #include <linux/mlx5/cmd.h>
-+#include <linux/mlx5/vport.h>
- #include <rdma/ib_mad.h>
- #include <rdma/ib_smi.h>
-+#include <rdma/ib_pma.h>
- #include "mlx5_ib.h"
- 
- enum {
-@@ -57,20 +59,12 @@ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
- 	return mlx5_core_mad_ifc(dev->mdev, in_mad, response_mad, op_modifier, port);
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 41f2c25..914bc98 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1643,6 +1643,56 @@ static int mlx4_ib_tunnel_steer_add(struct ib_qp *qp, struct ib_flow_attr *flow_
+ 	return err;
  }
  
--int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
--			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
--			const struct ib_mad_hdr *in, size_t in_mad_size,
--			struct ib_mad_hdr *out, size_t *out_mad_size,
--			u16 *out_mad_pkey_index)
-+static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
-+		       const struct ib_wc *in_wc, const struct ib_grh *in_grh,
-+		       const struct ib_mad *in_mad, struct ib_mad *out_mad)
- {
- 	u16 slid;
- 	int err;
--	const struct ib_mad *in_mad = (const struct ib_mad *)in;
--	struct ib_mad *out_mad = (struct ib_mad *)out;
--
--	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
--			 *out_mad_size != sizeof(*out_mad)))
--		return IB_MAD_RESULT_FAILURE;
- 
- 	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
- 
-@@ -117,6 +111,156 @@ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
- }
- 
-+static void pma_cnt_ext_assign(struct ib_pma_portcounters_ext *pma_cnt_ext,
-+			       void *out)
++static int mlx4_ib_add_dont_trap_rule(struct mlx4_dev *dev,
++				      struct ib_flow_attr *flow_attr,
++				      enum mlx4_net_trans_promisc_mode *type)
 +{
-+#define MLX5_SUM_CNT(p, cntr1, cntr2)	\
-+	(MLX5_GET64(query_vport_counter_out, p, cntr1) + \
-+	MLX5_GET64(query_vport_counter_out, p, cntr2))
++	int err = 0;
 +
-+	pma_cnt_ext->port_xmit_data =
-+		cpu_to_be64(MLX5_SUM_CNT(out, transmitted_ib_unicast.octets,
-+					 transmitted_ib_multicast.octets) >> 2);
-+	pma_cnt_ext->port_xmit_data =
-+		cpu_to_be64(MLX5_SUM_CNT(out, received_ib_unicast.octets,
-+					 received_ib_multicast.octets) >> 2);
-+	pma_cnt_ext->port_xmit_packets =
-+		cpu_to_be64(MLX5_SUM_CNT(out, transmitted_ib_unicast.packets,
-+					 transmitted_ib_multicast.packets));
-+	pma_cnt_ext->port_rcv_packets =
-+		cpu_to_be64(MLX5_SUM_CNT(out, received_ib_unicast.packets,
-+					 received_ib_multicast.packets));
-+	pma_cnt_ext->port_unicast_xmit_packets =
-+		MLX5_GET64_BE(query_vport_counter_out,
-+			      out, transmitted_ib_unicast.packets);
-+	pma_cnt_ext->port_unicast_rcv_packets =
-+		MLX5_GET64_BE(query_vport_counter_out,
-+			      out, received_ib_unicast.packets);
-+	pma_cnt_ext->port_multicast_xmit_packets =
-+		MLX5_GET64_BE(query_vport_counter_out,
-+			      out, transmitted_ib_multicast.packets);
-+	pma_cnt_ext->port_multicast_rcv_packets =
-+		MLX5_GET64_BE(query_vport_counter_out,
-+			      out, received_ib_multicast.packets);
-+}
-+
-+static void pma_cnt_assign(struct ib_pma_portcounters *pma_cnt,
-+			   void *out)
-+{
-+	/* Traffic counters will be reported in
-+	 * their 64bit form via ib_pma_portcounters_ext by default.
-+	 */
-+	void *out_pma = MLX5_ADDR_OF(ppcnt_reg, out,
-+				     counter_set);
-+
-+#define MLX5_ASSIGN_PMA_CNTR(counter_var, counter_name)	{		\
-+	counter_var = MLX5_GET_BE(typeof(counter_var),			\
-+				  ib_port_cntrs_grp_data_layout,	\
-+				  out_pma, counter_name);		\
++	if (!(dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER) ||
++	    (dev->caps.dmfs_high_steer_mode == MLX4_STEERING_DMFS_A0_STATIC) ||
++	    (flow_attr->num_of_specs > 1) || (flow_attr->priority != 0)) {
++		return -EOPNOTSUPP;
 +	}
 +
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->symbol_error_counter,
-+			     symbol_error_counter);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_error_recovery_counter,
-+			     link_error_recovery_counter);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_downed_counter,
-+			     link_downed_counter);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_errors,
-+			     port_rcv_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_remphys_errors,
-+			     port_rcv_remote_physical_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_switch_relay_errors,
-+			     port_rcv_switch_relay_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_discards,
-+			     port_xmit_discards);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_constraint_errors,
-+			     port_xmit_constraint_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_constraint_errors,
-+			     port_rcv_constraint_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_overrun_errors,
-+			     link_overrun_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->vl15_dropped,
-+			     vl_15_dropped);
-+}
-+
-+static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
-+			   const struct ib_mad *in_mad, struct ib_mad *out_mad)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	int err;
-+	void *out_cnt;
-+
-+	/* Decalring support of extended counters */
-+	if (in_mad->mad_hdr.attr_id == IB_PMA_CLASS_PORT_INFO) {
-+		struct ib_class_port_info cpi = {};
-+
-+		cpi.capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
-+		memcpy((out_mad->data + 40), &cpi, sizeof(cpi));
-+		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
-+	}
-+
-+	if (in_mad->mad_hdr.attr_id == IB_PMA_PORT_COUNTERS_EXT) {
-+		struct ib_pma_portcounters_ext *pma_cnt_ext =
-+			(struct ib_pma_portcounters_ext *)(out_mad->data + 40);
-+		int sz = MLX5_ST_SZ_BYTES(query_vport_counter_out);
-+
-+		out_cnt = mlx5_vzalloc(sz);
-+		if (!out_cnt)
-+			return IB_MAD_RESULT_FAILURE;
-+
-+		err = mlx5_core_query_vport_counter(dev->mdev, 0,
-+						    port_num, out_cnt, sz);
-+		if (!err)
-+			pma_cnt_ext_assign(pma_cnt_ext, out_cnt);
++	if (flow_attr->num_of_specs == 0) {
++		type[0] = MLX4_FS_MC_SNIFFER;
++		type[1] = MLX4_FS_UC_SNIFFER;
 +	} else {
-+		struct ib_pma_portcounters *pma_cnt =
-+			(struct ib_pma_portcounters *)(out_mad->data + 40);
-+		int sz = MLX5_ST_SZ_BYTES(ppcnt_reg);
++		union ib_flow_spec *ib_spec;
 +
-+		out_cnt = mlx5_vzalloc(sz);
-+		if (!out_cnt)
-+			return IB_MAD_RESULT_FAILURE;
++		ib_spec = (union ib_flow_spec *)(flow_attr + 1);
++		if (ib_spec->type !=  IB_FLOW_SPEC_ETH)
++			return -EINVAL;
 +
-+		err = mlx5_core_query_ib_ppcnt(dev->mdev, port_num,
-+					       out_cnt, sz);
-+		if (!err)
-+			pma_cnt_assign(pma_cnt, out_cnt);
++		/* if all is zero than MC and UC */
++		if (is_zero_ether_addr(ib_spec->eth.mask.dst_mac)) {
++			type[0] = MLX4_FS_MC_SNIFFER;
++			type[1] = MLX4_FS_UC_SNIFFER;
++		} else {
++			u8 mac[ETH_ALEN] = {ib_spec->eth.mask.dst_mac[0] ^ 0x01,
++					    ib_spec->eth.mask.dst_mac[1],
++					    ib_spec->eth.mask.dst_mac[2],
++					    ib_spec->eth.mask.dst_mac[3],
++					    ib_spec->eth.mask.dst_mac[4],
++					    ib_spec->eth.mask.dst_mac[5]};
++
++			/* Above xor was only on MC bit, non empty mask is valid
++			 * only if this bit is set and rest are zero.
++			 */
++			if (!is_zero_ether_addr(&mac[0]))
++				return -EINVAL;
++
++			if (is_multicast_ether_addr(ib_spec->eth.val.dst_mac))
++				type[0] = MLX4_FS_MC_SNIFFER;
++			else
++				type[0] = MLX4_FS_UC_SNIFFER;
 +		}
-+
-+	kvfree(out_cnt);
-+	if (err)
-+		return IB_MAD_RESULT_FAILURE;
-+
-+	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
-+}
-+
-+int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
-+			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
-+			const struct ib_mad_hdr *in, size_t in_mad_size,
-+			struct ib_mad_hdr *out, size_t *out_mad_size,
-+			u16 *out_mad_pkey_index)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	struct mlx5_core_dev *mdev = dev->mdev;
-+	const struct ib_mad *in_mad = (const struct ib_mad *)in;
-+	struct ib_mad *out_mad = (struct ib_mad *)out;
-+
-+	if (WARN_ON_ONCE(in_mad_size != sizeof(*in_mad) ||
-+			 *out_mad_size != sizeof(*out_mad)))
-+		return IB_MAD_RESULT_FAILURE;
-+
-+	memset(out_mad->data, 0, sizeof(out_mad->data));
-+
-+	if (MLX5_CAP_GEN(mdev, vport_counters) &&
-+	    in_mad->mad_hdr.mgmt_class == IB_MGMT_CLASS_PERF_MGMT &&
-+	    in_mad->mad_hdr.method == IB_MGMT_METHOD_GET) {
-+		return process_pma_cmd(ibdev, port_num, in_mad, out_mad);
-+	} else {
-+		return process_mad(ibdev, mad_flags, port_num, in_wc, in_grh,
-+				   in_mad, out_mad);
 +	}
++
++	return err;
 +}
 +
- int mlx5_query_ext_port_caps(struct mlx5_ib_dev *dev, u8 port)
- {
- 	struct ib_smp *in_mad  = NULL;
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 1af4090..b6968a3 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -105,6 +105,29 @@ __mlx5_mask(typ, fld))
- 	___t; \
- })
+ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
+ 				    struct ib_flow_attr *flow_attr,
+ 				    int domain)
+@@ -1653,7 +1703,8 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
+ 	struct mlx4_dev *dev = (to_mdev(qp->device))->dev;
+ 	int is_bonded = mlx4_is_bonded(dev);
  
-+/* Big endian getters */
-+#define MLX5_GET64_BE(typ, p, fld) (*((__be64 *)(p) +\
-+	__mlx5_64_off(typ, fld)))
-+
-+#define MLX5_GET_BE(type_t, typ, p, fld) ({				  \
-+		type_t tmp;						  \
-+		switch (sizeof(tmp)) {					  \
-+		case sizeof(u8):					  \
-+			tmp = (__force type_t)MLX5_GET(typ, p, fld);	  \
-+			break;						  \
-+		case sizeof(u16):					  \
-+			tmp = (__force type_t)cpu_to_be16(MLX5_GET(typ, p, fld)); \
-+			break;						  \
-+		case sizeof(u32):					  \
-+			tmp = (__force type_t)cpu_to_be32(MLX5_GET(typ, p, fld)); \
-+			break;						  \
-+		case sizeof(u64):					  \
-+			tmp = (__force type_t)MLX5_GET64_BE(typ, p, fld); \
-+			break;						  \
-+			}						  \
-+		tmp;							  \
-+		})
-+
+-	if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)
++	if ((flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP) &&
++	    (flow_attr->type != IB_FLOW_ATTR_NORMAL))
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	memset(type, 0, sizeof(type));
+@@ -1666,7 +1717,19 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
+ 
+ 	switch (flow_attr->type) {
+ 	case IB_FLOW_ATTR_NORMAL:
+-		type[0] = MLX4_FS_REGULAR;
++		/* If dont trap flag (continue match) is set, under specific
++		 * condition traffic be replicated to given qp,
++		 * without stealing it
++		 */
++		if (unlikely(flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)) {
++			err = mlx4_ib_add_dont_trap_rule(dev,
++							 flow_attr,
++							 type);
++			if (err)
++				goto err_free;
++		} else {
++			type[0] = MLX4_FS_REGULAR;
++		}
+ 		break;
+ 
+ 	case IB_FLOW_ATTR_ALL_DEFAULT:
+@@ -1678,8 +1741,8 @@ static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
+ 		break;
+ 
+ 	case IB_FLOW_ATTR_SNIFFER:
+-		type[0] = MLX4_FS_UC_SNIFFER;
+-		type[1] = MLX4_FS_MC_SNIFFER;
++		type[0] = MLX4_FS_MIRROR_RX_PORT;
++		type[1] = MLX4_FS_MIRROR_SX_PORT;
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
+index d66c690..e970945 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
+@@ -157,7 +157,8 @@ static void dump_dev_cap_flags2(struct mlx4_dev *dev, u64 flags)
+ 		[29] = "802.1ad offload support",
+ 		[31] = "Modifying loopback source checks using UPDATE_QP support",
+ 		[32] = "Loopback source checks support",
+-		[33] = "RoCEv2 support"
++		[33] = "RoCEv2 support",
++		[34] = "DMFS Sniffer support (UC & MC)"
+ 	};
+ 	int i;
+ 
+@@ -810,6 +811,8 @@ int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	if (field & 0x80)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_FS_EN;
+ 	dev_cap->fs_log_max_ucast_qp_range_size = field & 0x1f;
++	if (field & 0x20)
++		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER;
+ 	MLX4_GET(field, outbox, QUERY_DEV_CAP_PORT_BEACON_OFFSET);
+ 	if (field & 0x80)
+ 		dev_cap->flags2 |= MLX4_DEV_CAP_FLAG2_PORT_BEACON;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+index 1d4e2e0..42d8de8 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+@@ -752,8 +752,10 @@ static const u8 __promisc_mode[] = {
+ 	[MLX4_FS_REGULAR]   = 0x0,
+ 	[MLX4_FS_ALL_DEFAULT] = 0x1,
+ 	[MLX4_FS_MC_DEFAULT] = 0x3,
+-	[MLX4_FS_UC_SNIFFER] = 0x4,
+-	[MLX4_FS_MC_SNIFFER] = 0x5,
++	[MLX4_FS_MIRROR_RX_PORT] = 0x4,
++	[MLX4_FS_MIRROR_SX_PORT] = 0x5,
++	[MLX4_FS_UC_SNIFFER] = 0x6,
++	[MLX4_FS_MC_SNIFFER] = 0x7,
+ };
+ 
+ int mlx4_map_sw_to_hw_steering_mode(struct mlx4_dev *dev,
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 430a929..b7a2862 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -217,6 +217,7 @@ enum {
+ 	MLX4_DEV_CAP_FLAG2_UPDATE_QP_SRC_CHECK_LB = 1ULL << 31,
+ 	MLX4_DEV_CAP_FLAG2_LB_SRC_CHK           = 1ULL << 32,
+ 	MLX4_DEV_CAP_FLAG2_ROCE_V1_V2		= 1ULL <<  33,
++	MLX4_DEV_CAP_FLAG2_DMFS_UC_MC_SNIFFER   = 1ULL <<  34,
+ };
+ 
  enum {
- 	MLX5_MAX_COMMANDS		= 32,
- 	MLX5_CMD_DATA_BLOCK_SIZE	= 512,
+@@ -1157,6 +1158,8 @@ enum mlx4_net_trans_promisc_mode {
+ 	MLX4_FS_REGULAR = 1,
+ 	MLX4_FS_ALL_DEFAULT,
+ 	MLX4_FS_MC_DEFAULT,
++	MLX4_FS_MIRROR_RX_PORT,
++	MLX4_FS_MIRROR_SX_PORT,
+ 	MLX4_FS_UC_SNIFFER,
+ 	MLX4_FS_MC_SNIFFER,
+ 	MLX4_FS_MODE_NUM, /* should be last */
 -- 
 1.8.3.1
 
