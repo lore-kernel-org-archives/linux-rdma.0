@@ -1,42 +1,54 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 04/12] xprtrdma: Clean up dprintk format string
- containing a newline
-Date: Thu, 18 Feb 2016 12:30:27 -0500
-Message-ID: <20160218173027.14009.26305.stgit@manet.1015granger.net>
+Subject: [PATCH v2 06/12] xprtrdma: Do not wait if ib_post_send() fails
+Date: Thu, 18 Feb 2016 12:30:43 -0500
+Message-ID: <20160218173043.14009.19155.stgit@manet.1015granger.net>
 References: <20160218172449.14009.47311.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160218172449.14009.47311.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+If ib_post_send() in ro_unmap_sync() fails, the WRs have not been
+posted, no completions will fire, and wait_for_completion() will
+wait forever. Skip the wait in that case.
+
+To ensure the MRs are invalid, disconnect.
+
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 0f28f2d..e9dfd6a 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -809,10 +809,8 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index e165673..ecb005f 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -520,14 +520,18 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 	 * unless ri_id->qp is a valid pointer.
  	 */
- 	list_del_init(&rqst->rq_list);
- 	spin_unlock_bh(&xprt->transport_lock);
--	dprintk("RPC:       %s: reply 0x%p completes request 0x%p\n"
--		"                   RPC request 0x%p xid 0x%08x\n",
--			__func__, rep, req, rqst,
--			be32_to_cpu(headerp->rm_xid));
-+	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
-+		__func__, rep, req, be32_to_cpu(headerp->rm_xid));
+ 	rc = ib_post_send(ia->ri_id->qp, invalidate_wrs, &bad_wr);
+-	if (rc)
++	if (rc) {
+ 		pr_warn("%s: ib_post_send failed %i\n", __func__, rc);
++		rdma_disconnect(ia->ri_id);
++		goto unmap;
++	}
  
- 	/* from here on, the reply is no longer an orphan */
- 	req->rl_reply = rep;
+ 	wait_for_completion(&f->fr_linv_done);
+ 
+ 	/* ORDER: Now DMA unmap all of the req's MRs, and return
+ 	 * them to the free MW list.
+ 	 */
++unmap:
+ 	for (i = 0, nchunks = req->rl_nchunks; nchunks; nchunks--) {
+ 		seg = &req->rl_segments[i];
+ 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
