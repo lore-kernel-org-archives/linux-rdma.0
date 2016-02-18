@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 02/12] xprtrdma: Clean up unused
- RPCRDMA_INLINE_PAD_THRESH macro
-Date: Thu, 18 Feb 2016 12:30:11 -0500
-Message-ID: <20160218173011.14009.4267.stgit@manet.1015granger.net>
+Subject: [PATCH v2 03/12] xprtrdma: Clean up physical_op_map()
+Date: Thu, 18 Feb 2016 12:30:19 -0500
+Message-ID: <20160218173019.14009.86549.stgit@manet.1015granger.net>
 References: <20160218172449.14009.47311.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,25 +12,26 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: b3221d6a53c4 ('xprtrdma: Remove logic that constructs...')
+physical_op_unmap{_sync} don't use mr_nsegs, so don't bother to set
+it in physical_op_map.
+
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/xprtrdma.h |    2 --
- 1 file changed, 2 deletions(-)
+ net/sunrpc/xprtrdma/physical_ops.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
-index b7b279b..767190b 100644
---- a/include/linux/sunrpc/xprtrdma.h
-+++ b/include/linux/sunrpc/xprtrdma.h
-@@ -54,8 +54,6 @@
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index dbb302e..481b9b6 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -68,7 +68,6 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	rpcrdma_map_one(ia->ri_device, seg, rpcrdma_data_dir(writing));
+ 	seg->mr_rkey = ia->ri_dma_mr->rkey;
+ 	seg->mr_base = seg->mr_dma;
+-	seg->mr_nsegs = 1;
+ 	return 1;
+ }
  
- #define RPCRDMA_DEF_INLINE  (1024)	/* default inline max */
- 
--#define RPCRDMA_INLINE_PAD_THRESH  (512)/* payload threshold to pad (bytes) */
--
- /* Memory registration strategies, by number.
-  * This is part of a kernel / user space API. Do not remove. */
- enum rpcrdma_memreg {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
