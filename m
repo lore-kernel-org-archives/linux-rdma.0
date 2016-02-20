@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH rdma-next 6/8] IB/core: Add offload arithmetic operations support
-Date: Sat, 20 Feb 2016 09:47:43 +0200
-Message-ID: <1455954465-15141-7-git-send-email-leon@leon.nu>
+Subject: [PATCH rdma-next 5/8] IB/{core,ulp} Support above 32 possible device capability flags
+Date: Sat, 20 Feb 2016 09:47:42 +0200
+Message-ID: <1455954465-15141-6-git-send-email-leon@leon.nu>
 References: <1455954465-15141-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455954465-15141-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
@@ -12,72 +12,56 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The offload arithmetic operations support allows to the user to
-benefit from the parallel calculation of several input vectors of
-equal length.
-
-The newly added flag indicates this ability.
+The old bitwise device_cap_flags variable was limited to u32 which
+has all bits already defined. In order to overcome it, we converted
+device_cap_flags variable to be u64 type.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 3 +++
- include/rdma/ib_verbs.h              | 8 +++++++-
- include/uapi/rdma/ib_user_verbs.h    | 5 +++++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c      | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
+ include/rdma/ib_verbs.h                   | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 6887252..3a3f573 100644
+index c647d67..6887252 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3638,6 +3638,9 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
- 	resp.hca_core_clock = attr.hca_core_clock;
- 	resp.response_length += sizeof(resp.hca_core_clock);
+@@ -402,7 +402,7 @@ static void copy_query_dev_fields(struct ib_uverbs_file *file,
+ 	resp->hw_ver		= attr->hw_ver;
+ 	resp->max_qp		= attr->max_qp;
+ 	resp->max_qp_wr		= attr->max_qp_wr;
+-	resp->device_cap_flags	= attr->device_cap_flags;
++	resp->device_cap_flags	= lower_32_bits(attr->device_cap_flags);
+ 	resp->max_sge		= attr->max_sge;
+ 	resp->max_sge_rd	= attr->max_sge_rd;
+ 	resp->max_cq		= attr->max_cq;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 25509bb..6d53330 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1762,7 +1762,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
  
-+	resp.device_cap_flags2 = upper_32_bits(attr.device_cap_flags);
-+	resp.response_length += sizeof(resp.device_cap_flags2);
-+
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
+ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+ {
+-	priv->hca_caps = hca->attrs.device_cap_flags;
++	priv->hca_caps = (int)hca->attrs.device_cap_flags;
+ 
+ 	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
+ 		priv->dev->hw_features = NETIF_F_SG |
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 2ff1fd1..51aabf8 100644
+index 284b00c..2ff1fd1 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -208,10 +208,16 @@ enum ib_device_cap_flags {
- 	 * of I/O operations with single completion queue managed
- 	 * by hardware.
- 	 */
--	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
-+	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
- 	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
-+	/*
-+	 * The offload arithmetic operations support allows to
-+	 * the user to benefit from the parallel calculation of
-+	 * several input vectors of equal length.
-+	 */
-+	IB_DEVICE_VECTOR_CALC                   = (1ULL << 32),
- };
- 
- enum ib_signature_prot_cap {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 8126c14..e024c82 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -226,6 +226,11 @@ struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_odp_caps odp_caps;
- 	__u64 timestamp_mask;
- 	__u64 hca_core_clock; /* in KHZ */
-+	/*
-+	 * Original capability field is limited
-+	 * by __u32 variable.  Need to increase this field
-+	 */
-+	__u64 device_cap_flags2;
- };
- 
- struct ib_uverbs_query_port {
+@@ -273,7 +273,7 @@ struct ib_device_attr {
+ 	u32			hw_ver;
+ 	int			max_qp;
+ 	int			max_qp_wr;
+-	int			device_cap_flags;
++	u64			device_cap_flags;
+ 	int			max_sge;
+ 	int			max_sge_rd;
+ 	int			max_cq;
 -- 
 2.1.4
 
