@@ -1,126 +1,110 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH rdma-next 3/8] net/mlx5_core: Introduce offload arithmetic hardware capabilities
-Date: Sat, 20 Feb 2016 09:47:40 +0200
-Message-ID: <1455954465-15141-4-git-send-email-leon@leon.nu>
+Subject: [PATCH rdma-next 7/8] IB/core: Exposure supported CALC capabilities
+Date: Sat, 20 Feb 2016 09:47:44 +0200
+Message-ID: <1455954465-15141-8-git-send-email-leon@leon.nu>
 References: <1455954465-15141-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455954465-15141-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Define the necessary hardware structures for the offload
-arithmetic capabilities and read/cache them on driver load.
+Add support to return CALC capabilities.
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c |  6 ++++++
- include/linux/mlx5/device.h                  |  6 ++++++
- include/linux/mlx5/mlx5_ifc.h                | 31 +++++++++++++++++++++++++++-
- 3 files changed, 42 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c |  9 +++++++++
+ include/rdma/ib_verbs.h              | 19 +++++++++++++++++++
+ include/uapi/rdma/ib_user_verbs.h    |  8 ++++++++
+ 3 files changed, 36 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index fe6dfd8..75c7ae6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -145,6 +145,12 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 			return err;
- 	}
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 3a3f573..3618ca5 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3641,6 +3641,15 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	resp.device_cap_flags2 = upper_32_bits(attr.device_cap_flags);
+ 	resp.response_length += sizeof(resp.device_cap_flags2);
  
-+	if (MLX5_CAP_GEN(dev, vector_calc)) {
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_VECTOR_CALC);
-+		if (err)
-+			return err;
-+	}
++	if (ucore->outlen < resp.response_length + sizeof(resp.calc_caps))
++		goto end;
 +
- 	return 0;
- }
- 
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 987764a..1f2cedf 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -1196,6 +1196,8 @@ enum mlx5_cap_type {
- 	MLX5_CAP_FLOW_TABLE,
- 	MLX5_CAP_ESWITCH_FLOW_TABLE,
- 	MLX5_CAP_ESWITCH,
-+	MLX5_CAP_RESERVED,
-+	MLX5_CAP_VECTOR_CALC,
- 	/* NUM OF CAP Types */
- 	MLX5_CAP_NUM
- };
-@@ -1258,6 +1260,10 @@ enum mlx5_cap_type {
- #define MLX5_CAP_ODP(mdev, cap)\
- 	MLX5_GET(odp_cap, mdev->hca_caps_cur[MLX5_CAP_ODP], cap)
- 
-+#define MLX5_CAP_VECTOR_CALC(mdev, cap) \
-+	MLX5_GET(vector_calc_cap, \
-+		 mdev->hca_caps_cur[MLX5_CAP_VECTOR_CALC], cap)
++	resp.calc_caps.calc_matrix = attr.calc_caps.calc_matrix;
++	resp.calc_caps.max_vector_count = attr.calc_caps.max_vector_count;
++	resp.calc_caps.max_chunk_size = attr.calc_caps.max_chunk_size;
++	resp.calc_caps.op_cap = attr.calc_caps.op_cap;
++	resp.response_length += sizeof(resp.calc_caps);
 +
- enum {
- 	MLX5_CMD_STAT_OK			= 0x0,
- 	MLX5_CMD_STAT_INT_ERR			= 0x1,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 455d9cc..d34ad50 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -617,6 +617,33 @@ struct mlx5_ifc_odp_cap_bits {
- 	u8         reserved_at_80[0x720];
+ end:
+ 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+ 	return err;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 51aabf8..1f74ebb 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -258,6 +258,24 @@ struct ib_odp_caps {
+ 	} per_transport_caps;
  };
  
-+struct mlx5_ifc_calc_op {
-+	u8        reserved_at_0[0x10];
-+	u8        reserved_at_10[0x9];
-+	u8        op_swap_endianness[0x1];
-+	u8        op_min[0x1];
-+	u8        op_xor[0x1];
-+	u8        op_or[0x1];
-+	u8        op_and[0x1];
-+	u8        op_max[0x1];
-+	u8        op_add[0x1];
++enum ib_calc_operations {
++	IB_CALC_NONE,
++	IB_CALC_ADD,
++	IB_CALC_MAX,
++	IB_CALC_AND,
++	IB_CALC_OR,
++	IB_CALC_XOR,
++	IB_CALC_MIN,
++	IB_CALC_SWAP_ENDIANNESS
 +};
 +
-+struct mlx5_ifc_vector_calc_cap_bits {
-+	u8         calc_matrix[0x1];
-+	u8         reserved_at_1[0x1f];
-+	u8         reserved_at_20[0x8];
-+	u8         max_vec_count[0x8];
-+	u8         reserved_at_30[0xd];
-+	u8         max_chunk_size[0x3];
-+	struct mlx5_ifc_calc_op calc0;
-+	struct mlx5_ifc_calc_op calc1;
-+	struct mlx5_ifc_calc_op calc2;
-+	struct mlx5_ifc_calc_op calc3;
-+
-+	u8         reserved_at_e0[0x720];
++struct ib_calc_caps {
++	u32	calc_matrix;
++	u32	max_vector_count;
++	u32	max_chunk_size;
++	u32	op_cap;
 +};
 +
- enum {
- 	MLX5_WQ_TYPE_LINKED_LIST  = 0x0,
- 	MLX5_WQ_TYPE_CYCLIC       = 0x1,
-@@ -781,7 +808,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         cd[0x1];
- 	u8         reserved_at_22c[0x1];
- 	u8         apm[0x1];
--	u8         reserved_at_22e[0x7];
-+	u8         vector_calc[0x1];
-+	u8         reserved_at_22f[0x6];
- 	u8         qkv[0x1];
- 	u8         pkv[0x1];
- 	u8         reserved_at_237[0x4];
-@@ -1918,6 +1946,7 @@ union mlx5_ifc_hca_cap_union_bits {
- 	struct mlx5_ifc_flow_table_nic_cap_bits flow_table_nic_cap;
- 	struct mlx5_ifc_flow_table_eswitch_cap_bits flow_table_eswitch_cap;
- 	struct mlx5_ifc_e_switch_cap_bits e_switch_cap;
-+	struct mlx5_ifc_vector_calc_cap_bits vector_calc_cap;
- 	u8         reserved_at_0[0x8000];
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
+ 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
+@@ -315,6 +333,7 @@ struct ib_device_attr {
+ 	struct ib_odp_caps	odp_caps;
+ 	uint64_t		timestamp_mask;
+ 	uint64_t		hca_core_clock; /* in KHZ */
++	struct ib_calc_caps	calc_caps;
  };
  
+ enum ib_mtu {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index e024c82..c88d8e2 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -219,6 +219,13 @@ struct ib_uverbs_odp_caps {
+ 	__u32 reserved;
+ };
+ 
++struct ib_uverbs_calc_caps {
++	__u32	calc_matrix;
++	__u32	max_vector_count;
++	__u32	max_chunk_size;
++	__u32	op_cap;
++};
++
+ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_query_device_resp base;
+ 	__u32 comp_mask;
+@@ -231,6 +238,7 @@ struct ib_uverbs_ex_query_device_resp {
+ 	 * by __u32 variable.  Need to increase this field
+ 	 */
+ 	__u64 device_cap_flags2;
++	struct ib_uverbs_calc_caps calc_caps;
+ };
+ 
+ struct ib_uverbs_query_port {
 -- 
 2.1.4
 
