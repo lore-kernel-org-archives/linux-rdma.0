@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH rdma-next 2/8] net/mlx5_core: Refactor device capability function
-Date: Sat, 20 Feb 2016 09:47:39 +0200
-Message-ID: <1455954465-15141-3-git-send-email-leon@leon.nu>
+Subject: [PATCH rdma-next 4/8] IB/core: Replace setting the zero values in ib_uverbs_ex_query_device
+Date: Sat, 20 Feb 2016 09:47:41 +0200
+Message-ID: <1455954465-15141-5-git-send-email-leon@leon.nu>
 References: <1455954465-15141-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1455954465-15141-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
@@ -12,195 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Device capability function was called similar in all places.
-It was called twice for every queried parameter, while the
-difference between calls was in HCA capability mode only.
-
-The change proposed unify these calls into one function.
+The setting to zero during variable initialization eliminates
+the need to explicitly set to zero variables and structures.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 55 ++++----------------------
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 28 +++++++------
- include/linux/mlx5/driver.h                    |  3 +-
- 3 files changed, 24 insertions(+), 62 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index aa1ab47..fe6dfd8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -98,88 +98,49 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6ffc9c4..c647d67 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3583,9 +3583,9 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 			      struct ib_udata *ucore,
+ 			      struct ib_udata *uhw)
  {
+-	struct ib_uverbs_ex_query_device_resp resp;
++	struct ib_uverbs_ex_query_device_resp resp = { {0} };
+ 	struct ib_uverbs_ex_query_device  cmd;
+-	struct ib_device_attr attr;
++	struct ib_device_attr attr = {0};
  	int err;
  
--	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_CUR);
--	if (err)
--		return err;
+ 	if (ucore->inlen < sizeof(cmd))
+@@ -3606,14 +3606,11 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 	if (ucore->outlen < resp.response_length)
+ 		return -ENOSPC;
+ 
+-	memset(&attr, 0, sizeof(attr));
 -
--	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_MAX);
-+	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL);
+ 	err = ib_dev->query_device(ib_dev, &attr, uhw);
  	if (err)
  		return err;
  
- 	if (MLX5_CAP_GEN(dev, eth_net_offloads)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS);
- 		if (err)
- 			return err;
- 	}
+ 	copy_query_dev_fields(file, ib_dev, &resp.base, &attr);
+-	resp.comp_mask = 0;
  
- 	if (MLX5_CAP_GEN(dev, pg)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP);
- 		if (err)
- 			return err;
- 	}
+ 	if (ucore->outlen < resp.response_length + sizeof(resp.odp_caps))
+ 		goto end;
+@@ -3626,9 +3623,6 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 		attr.odp_caps.per_transport_caps.uc_odp_caps;
+ 	resp.odp_caps.per_transport_caps.ud_odp_caps =
+ 		attr.odp_caps.per_transport_caps.ud_odp_caps;
+-	resp.odp_caps.reserved = 0;
+-#else
+-	memset(&resp.odp_caps, 0, sizeof(resp.odp_caps));
+ #endif
+ 	resp.response_length += sizeof(resp.odp_caps);
  
- 	if (MLX5_CAP_GEN(dev, atomic)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC);
- 		if (err)
- 			return err;
- 	}
+@@ -3646,8 +3640,5 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
  
- 	if (MLX5_CAP_GEN(dev, roce)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE);
- 		if (err)
- 			return err;
- 	}
- 
- 	if (MLX5_CAP_GEN(dev, nic_flow_table)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE);
- 		if (err)
- 			return err;
- 	}
- 
- 	if (MLX5_CAP_GEN(dev, vport_group_manager) &&
- 	    MLX5_CAP_GEN(dev, eswitch_flow_table)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE);
- 		if (err)
- 			return err;
- 	}
- 
- 	if (MLX5_CAP_GEN(dev, eswitch_flow_table)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH);
- 		if (err)
- 			return err;
- 	}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index b86fe50..9397768 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -341,8 +341,9 @@ static u16 to_fw_pkey_sz(u32 size)
- 	}
- }
- 
--int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type,
--		       enum mlx5_cap_mode cap_mode)
-+static int mlx5_core_get_caps_mode(struct mlx5_core_dev *dev,
-+				   enum mlx5_cap_type cap_type,
-+				   enum mlx5_cap_mode cap_mode)
- {
- 	u8 in[MLX5_ST_SZ_BYTES(query_hca_cap_in)];
- 	int out_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
-@@ -392,6 +393,16 @@ query_ex:
- 	return err;
- }
- 
-+int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type)
-+{
-+	int ret;
-+
-+	ret = mlx5_core_get_caps_mode(dev, cap_type, HCA_CAP_OPMOD_GET_CUR);
-+	if (ret)
-+		return ret;
-+	return mlx5_core_get_caps_mode(dev, cap_type, HCA_CAP_OPMOD_GET_MAX);
-+}
-+
- static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz, int opmod)
- {
- 	u32 out[MLX5_ST_SZ_DW(set_hca_cap_out)];
-@@ -419,12 +430,7 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
- 	int err;
- 
- 	if (MLX5_CAP_GEN(dev, atomic)) {
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
--					 HCA_CAP_OPMOD_GET_CUR);
--		if (err)
--			return err;
--		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
--					 HCA_CAP_OPMOD_GET_MAX);
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC);
- 		if (err)
- 			return err;
- 	} else {
-@@ -466,11 +472,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	if (!set_ctx)
- 		goto query_ex;
- 
--	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_MAX);
+ end:
+ 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
 -	if (err)
--		goto query_ex;
+-		return err;
 -
--	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_CUR);
-+	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL);
- 	if (err)
- 		goto query_ex;
- 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 1e3006d..1f1d971 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -706,8 +706,7 @@ void mlx5_cmd_use_events(struct mlx5_core_dev *dev);
- void mlx5_cmd_use_polling(struct mlx5_core_dev *dev);
- int mlx5_cmd_status_to_err(struct mlx5_outbox_hdr *hdr);
- int mlx5_cmd_status_to_err_v2(void *ptr);
--int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type,
--		       enum mlx5_cap_mode cap_mode);
-+int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type);
- int mlx5_cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
- 		  int out_size);
- int mlx5_cmd_exec_cb(struct mlx5_core_dev *dev, void *in, int in_size,
+-	return 0;
++	return err;
+ }
 -- 
 2.1.4
 
