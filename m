@@ -1,102 +1,72 @@
-From: Doug Ledford <dledford-HHGe/kKACDifJOJzLBvvIA@public.gmane.org>
-Subject: [PULL REQUEST] Please pull rdma.git
-Date: Sat, 20 Feb 2016 20:14:36 -0500
-Message-ID: <56C90F7C.3030605@xsintricity.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [RFC 0/7] Peer-direct memory
+Date: Sun, 21 Feb 2016 11:06:27 +0200
+Message-ID: <56C97E13.9090101@mellanox.com>
+References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
+ <20160211191838.GA23675@obsidianresearch.com>
+ <20160212201328.GA14122@infradead.org>
+ <20160212203649.GA10540@obsidianresearch.com>
+ <56C09C7E.4060808@dev.mellanox.co.il>
+ <36F6EBABA23FEF4391AF72944D228901EB70C102@BBYEXM01.pmc-sierra.internal>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="XLaMEfdmFNjVLhkAfwSNmWmj7hcA0tTvC"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <36F6EBABA23FEF4391AF72944D228901EB70C102@BBYEXM01.pmc-sierra.internal>
+Sender: owner-linux-mm@kvack.org
+To: Stephen Bates <Stephen.Bates@pmcs.com>, Sagi Grimberg <sagig@dev.mellanox.co.il>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@infradead.org>, "'Logan Gunthorpe' (logang@deltatee.com)" <logang@deltatee.com>
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Leon Romanovsky <leonro@mellanox.com>, "sagig@mellanox.com" <sagig@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---XLaMEfdmFNjVLhkAfwSNmWmj7hcA0tTvC
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On 18/02/2016 16:44, Stephen Bates wrote:
+> Sagi
+> 
+>> CC'ing sbates who played with this stuff at some point...
+> 
+> Thanks for inviting me to this party Sagi ;-). Here are some comments and responses based on our experiences. Apologies in advance for the list format:
+> 
+> 1. As it stands in 4.5-rc4 devm_memremap_pages will not work with iomem. Myself and  (mostly) Logan (cc'ed here) developed the ability to do that in an out of tree patch for memremap.c. We also developed a simple example driver for a PCIe device that exposes DRAM on the card via a BAR. We used this code to provide some feedback to Dan (e.g.  [1]-[3]). At this time we are preparing an RFC to extend devm_memremap_pages for IO memory and we hope to have that ready soon but there is no guarantee our approach is acceptable to the community. My hope is that it will be a good starting point for moving forward...
+I'd be happy to see your RFC when you are ready. I see in the thread 
+of [3] that you are using write-combining. Do you think your patchset 
+will also be suitable for uncachable memory?
 
-Hi Linus,
+> 2. The two good things about Peer-Direct are that is works and it is here today. That said, I do think an approach based on ZONE_DEVICE is more general and a preferred way to allow IO devices to communicate with each other. The question is can we find such an approach that is acceptable to the community? As noted in point 1 I hope the coming RFC will initiate a discussion. I have also requested attendance at LSF/MM to discuss this topic (among others). 
+> 
+> 3. As of now the section alignment requirement is somewhat relaxed. I quote from [4]. 
+> 
+> "I could loosen the restriction a bit to allow one unaligned mapping
+> per section.  However, if another mapping request came along that
+> tried to map a free part of the section it would fail because the code
+> depends on a  "1 dev_pagemap per section" relationship.  Seems an ok
+> compromise to me..."
+> 
+> This is implemented in 4.5-rc4 (see memremap.c line 315).
 
-The following changes since commit 75c1657e1d50730dc0130a67977f7831a4e241=
-f4:
+I don't think that's enough for our purposes. We have devices with 
+rather small BARs (32MB) and multiple PFs that all need to expose their 
+BAR to peer to peer access. One can expect these PFs will be assigned 
+adjacent addresses and they will break the "one dev_pagemap per 
+section" rule.
 
-  IB/mlx5: Fix RC transport send queue overhead computation (2016-02-12
-14:56:08 -0500)
+> 4. The out of tree patch we did allows one to register the device memory as IO memory. However, we were only concerned with DRAM exposed on the BAR and so were not affected by the "i/o side effects" issues. Someone would need to think about how this applies to IOMEM that does have side-effects when accessed.
+With this RFC, we map parts of the HCA BAR that were mmapped to a process 
+(both uncacheable and write-combining) and map them to a peer device 
+(another HCA). As long as the kernel doesn't do anything else with 
+these pages, and leaves them to be controlled by the user-space 
+application and/or the peer device, I don't see a problem with mapping
+IO memory with side effects. However, I'm not an expert here, and I'd
+be happy to hear what others think about this.
 
-are available in the git repository at:
+> 5. I concur with Sagi's comment below that one approach we can use to inform 3rd party device drives about vanishing memory regions is via mmu_notifiers. However this needs to be fleshed out and tied into the relevant driver(s).
+> 
+> 6. In full disclosure, my main interest in this ties in to NVM Express devices which can act as DMA masters and expose regions of IOMEM at the same time (via CMBs). I want to be able to tie these devices together with other IO devices (like RDMA NICs, FPGA and GPGPU based offload engines, other NVMe devices and storage adaptors) in a peer-2-peer fashion and may not always have a RDMA device in the mix...
+I understand.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-tags/for-linus
+Regards,
+Haggai
 
-for you to fetch changes up to c2bab619813a525d3f58b5ffbfcdc4edee27e497:
-
-  IB/mlx4: Add support for the port info class for RoCE ports
-(2016-02-17 10:07:20 -0500)
-
-----------------------------------------------------------------
-Additional 4.5-rc5 fixes
-
-- One fix ocrdma - The new CQ API support was added to ocrdma, but they
-  got the arming logic wrong, so without this, transfers eventually fail
-  when they fail to arm the interrupt properly under load
-- Two related fixes for mlx4 - When we added the 64bit extended counters
-  support to the core IB code, they forgot to update the RoCE side of the=
-
-  mlx4 driver (the IB side they properly updated).  I debated whether or
-  not to include these patches as they could be considered feature
-  enablement patches, but the existing code will blindy copy the 32bit
-  counters, whether any counters were requested at all (a bug).  These
-  two patches make it A) check to see that counters were requested and
-  B) copy the right counters (the 64bit support is new, the 32bit is
-  not).  For that reason I went ahead and took them.
-
-----------------------------------------------------------------
-Devesh Sharma (1):
-      RDMA/ocrdma: Fix arm logic to align with new cq API
-
-Eran Ben Elisha (2):
-      IB/mlx4: Add support for extended counters over RoCE ports
-      IB/mlx4: Add support for the port info class for RoCE ports
-
- drivers/infiniband/hw/mlx4/mad.c            | 63
-+++++++++++++++++++++++------
- drivers/infiniband/hw/ocrdma/ocrdma.h       |  3 --
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 18 ++-------
- 3 files changed, 54 insertions(+), 30 deletions(-)
-
---=20
-Doug Ledford <dledford-HHGe/kKACDifJOJzLBvvIA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---XLaMEfdmFNjVLhkAfwSNmWmj7hcA0tTvC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJWyQ98AAoJELgmozMOVy/dWB0P/0usS9pms3cR4NagTyw5fz3u
-wx+zkYJQWfWpHqJCGQnSsbKG0OPlUUqeJTTMH/qF7NGDc1Eloky1OMLmVNooEDJY
-X8TV/tW2piEb6hKQTxx4aYcMhecL9DU83xLrwpRenANq3kpG+yWvzvAnsjvbmVqA
-K+dMmrypWRiPScLQXRkIwnfrbFYt06OxKpVGUHNf2APEoai2mhHwszFm6+LlmlGw
-g3ilhFyxIRvvkpeXeaZambmfh73lQc0POZJA4IfdbAD2JlgI+rXfrT06/5NUajMX
-7+HkZ6z+e+7y3ZNzhcmvWf5G6gxmIKiKU0ei3ppWo+tj73/yO0+XKAW5Ut9au6pj
-wXRgX+OjYnAglPUmNxH+dFdVKSd3QoKhgFqy4ClcFMf87Hf3picRbEipjeTuI0R5
-HEPByvtfvyNdsdjiPvUeQkTJQ8V7ELXSTAVfz64G9RABQAVjefINDQXxdFUhjykA
-fjXwbUJLP7RW1MdT/k2GHODnil7lEzEdI0tv7Fk8YvPS5OlqjAj4+NcwmknKaS4Z
-HzuVmFVIq5X8PFl4ZuQChoe0kWjPNlGCqcdda4OqPRQ8wQdie26e3FkQydTRlNHJ
-PO/XmMrXH7XxiJfuSn/g5R0seRtwXM7vb5jXQ5ZrccSp5xNchiXDhLiNHbpuvKv0
-v6YmVsPQeOd6Zp3Wk+em
-=pg0U
------END PGP SIGNATURE-----
-
---XLaMEfdmFNjVLhkAfwSNmWmj7hcA0tTvC--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
