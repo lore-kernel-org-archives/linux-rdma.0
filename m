@@ -1,72 +1,50 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [RFC 0/7] Peer-direct memory
-Date: Sun, 21 Feb 2016 11:06:27 +0200
-Message-ID: <56C97E13.9090101@mellanox.com>
-References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
- <20160211191838.GA23675@obsidianresearch.com>
- <20160212201328.GA14122@infradead.org>
- <20160212203649.GA10540@obsidianresearch.com>
- <56C09C7E.4060808@dev.mellanox.co.il>
- <36F6EBABA23FEF4391AF72944D228901EB70C102@BBYEXM01.pmc-sierra.internal>
+From: Jannik Becher <becher.jannik@gmail.com>
+Subject: [PATCH] Staging: rdma: hfi1: verbs_mcast: fixed a brace coding style
+ issue
+Date: Sun, 21 Feb 2016 16:30:39 +0100
+Message-ID: <1456068639-4745-1-git-send-email-Becher.Jannik@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <36F6EBABA23FEF4391AF72944D228901EB70C102@BBYEXM01.pmc-sierra.internal>
-Sender: owner-linux-mm@kvack.org
-To: Stephen Bates <Stephen.Bates@pmcs.com>, Sagi Grimberg <sagig@dev.mellanox.co.il>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@infradead.org>, "'Logan Gunthorpe' (logang@deltatee.com)" <logang@deltatee.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Leon Romanovsky <leonro@mellanox.com>, "sagig@mellanox.com" <sagig@mellanox.com>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: infinipath@intel.com
+Cc: linux-rdma@vger.kernel.org, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18/02/2016 16:44, Stephen Bates wrote:
-> Sagi
-> 
->> CC'ing sbates who played with this stuff at some point...
-> 
-> Thanks for inviting me to this party Sagi ;-). Here are some comments and responses based on our experiences. Apologies in advance for the list format:
-> 
-> 1. As it stands in 4.5-rc4 devm_memremap_pages will not work with iomem. Myself and  (mostly) Logan (cc'ed here) developed the ability to do that in an out of tree patch for memremap.c. We also developed a simple example driver for a PCIe device that exposes DRAM on the card via a BAR. We used this code to provide some feedback to Dan (e.g.  [1]-[3]). At this time we are preparing an RFC to extend devm_memremap_pages for IO memory and we hope to have that ready soon but there is no guarantee our approach is acceptable to the community. My hope is that it will be a good starting point for moving forward...
-I'd be happy to see your RFC when you are ready. I see in the thread 
-of [3] that you are using write-combining. Do you think your patchset 
-will also be suitable for uncachable memory?
+Fixed a coding style issue.
 
-> 2. The two good things about Peer-Direct are that is works and it is here today. That said, I do think an approach based on ZONE_DEVICE is more general and a preferred way to allow IO devices to communicate with each other. The question is can we find such an approach that is acceptable to the community? As noted in point 1 I hope the coming RFC will initiate a discussion. I have also requested attendance at LSF/MM to discuss this topic (among others). 
-> 
-> 3. As of now the section alignment requirement is somewhat relaxed. I quote from [4]. 
-> 
-> "I could loosen the restriction a bit to allow one unaligned mapping
-> per section.  However, if another mapping request came along that
-> tried to map a free part of the section it would fail because the code
-> depends on a  "1 dev_pagemap per section" relationship.  Seems an ok
-> compromise to me..."
-> 
-> This is implemented in 4.5-rc4 (see memremap.c line 315).
+Signed-off-by: Jannik Becher <Becher.Jannik@gmail.com>
+---
+ drivers/staging/rdma/hfi1/verbs_mcast.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I don't think that's enough for our purposes. We have devices with 
-rather small BARs (32MB) and multiple PFs that all need to expose their 
-BAR to peer to peer access. One can expect these PFs will be assigned 
-adjacent addresses and they will break the "one dev_pagemap per 
-section" rule.
-
-> 4. The out of tree patch we did allows one to register the device memory as IO memory. However, we were only concerned with DRAM exposed on the BAR and so were not affected by the "i/o side effects" issues. Someone would need to think about how this applies to IOMEM that does have side-effects when accessed.
-With this RFC, we map parts of the HCA BAR that were mmapped to a process 
-(both uncacheable and write-combining) and map them to a peer device 
-(another HCA). As long as the kernel doesn't do anything else with 
-these pages, and leaves them to be controlled by the user-space 
-application and/or the peer device, I don't see a problem with mapping
-IO memory with side effects. However, I'm not an expert here, and I'd
-be happy to hear what others think about this.
-
-> 5. I concur with Sagi's comment below that one approach we can use to inform 3rd party device drives about vanishing memory regions is via mmu_notifiers. However this needs to be fleshed out and tied into the relevant driver(s).
-> 
-> 6. In full disclosure, my main interest in this ties in to NVM Express devices which can act as DMA masters and expose regions of IOMEM at the same time (via CMBs). I want to be able to tie these devices together with other IO devices (like RDMA NICs, FPGA and GPGPU based offload engines, other NVMe devices and storage adaptors) in a peer-2-peer fashion and may not always have a RDMA device in the mix...
-I understand.
-
-Regards,
-Haggai
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/staging/rdma/hfi1/verbs_mcast.c b/drivers/staging/rdma/hfi1/verbs_mcast.c
+index afc6b4c..c45d4b1 100644
+--- a/drivers/staging/rdma/hfi1/verbs_mcast.c
++++ b/drivers/staging/rdma/hfi1/verbs_mcast.c
+@@ -140,11 +140,11 @@ struct hfi1_mcast *hfi1_mcast_find(struct hfi1_ibport *ibp, union ib_gid *mgid)
+ 
+ 		ret = memcmp(mgid->raw, mcast->mgid.raw,
+ 			     sizeof(union ib_gid));
+-		if (ret < 0)
++		if (ret < 0) {
+ 			n = n->rb_left;
+-		else if (ret > 0)
++		} else if (ret > 0) {
+ 			n = n->rb_right;
+-		else {
++		} else {
+ 			atomic_inc(&mcast->refcount);
+ 			spin_unlock_irqrestore(&ibp->lock, flags);
+ 			goto bail;
+-- 
+2.5.0
