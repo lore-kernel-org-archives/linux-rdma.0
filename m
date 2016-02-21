@@ -1,39 +1,41 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Recovering from IBV_EVENT_DEVICE_FATAL in librdmacm application?
-Date: Sun, 21 Feb 2016 17:19:56 +0000
-Message-ID: <HE1PR05MB14183BC769D1A5CD3D8BD276B1A20@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <CAL1RGDXux9KFEUkBeegeiGGJdvKpGv_rRRs-cqNj1U6Nq0YSiw@mail.gmail.com>
- <HE1PR05MB1418BB2F8E162955160E2D3EB1A20@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <CAG4TOxPy1LQf4cfYm=_zSyr1RuEhLds+ZDiuYKcrD-cFmKUEnA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: [PATCH] IB/core: Fix missed clean call in registration path
+Date: Sun, 21 Feb 2016 18:12:26 +0200
+Message-ID: <1456071146-28101-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxPy1LQf4cfYm=_zSyr1RuEhLds+ZDiuYKcrD-cFmKUEnA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiByb2xhbmQuZHJlaWVyQGdtYWlsLmNvbSBbbWFpbHRvOnJvbGFuZC5kcmVpZXJAZ21h
-aWwuY29tXSBPbiBCZWhhbGYNCj4gT2YgUm9sYW5kIERyZWllcg0KPiANCj4gUmlnaHQsIHRoYXQn
-cyBwcmV0dHkgbXVjaCB3aGF0IEkgd3JvdGUuICBIb3dldmVyIEkgdGhpbmsgaXQncyBhIGJpdCB3
-b3JzZSB0aGFuICJiZQ0KPiBpbmZvcm1lZCBvZiB0aGlzIGV2ZW50IGFuZCByZS1vcGVuIHRoZSBI
-Q0EgY29udGV4dC4iDQo+IFVzZXJzcGFjZSBuZWVkcyB0byBzeW5jaHJvbml6ZSB3aXRoIHRoZSBr
-ZXJuZWwgdG8gd2FpdCBmb3IgdGhlIHV2ZXJicyBkZXZpY2UgdG8NCj4gYmUgdG9ybiBkb3duIGFu
-ZCByZWNyZWF0ZWQsIGFuZCB0aGVyZSdzIG5vIGd1YXJhbnRlZSB0aGF0IHRoZSBkZXZpY2Ugd2ls
-bCBjb21lDQo+IGJhY2sgd2l0aCB0aGUgc2FtZSBuYW1lLiAgKEEgcGVyaGFwcyBjb250cml2ZWQg
-ZXhhbXBsZSBpcyBhIGdsaXRjaCBvZiBhIFBDSQ0KPiBzd2l0Y2ggd2l0aCBtdWx0aXBsZSBIQ0Fz
-IGJlbG93IGl0IC0gd2UgbWlnaHQgcmVzZXQgYW5kIHJlLWVudW1lcmF0ZSB0aGUgSENBcw0KPiBp
-biBhIGRpZmZlcmVudCBvcmRlciB0aGUgc2Vjb25kIHRpbWUgYXJvdW5kKQ0KPiANCj4gIC0gUi4N
-Cg0KVGhlICJ0b3JuIiBwYXJ0IGhhcHBlbnMgaW1tZWRpYXRlbHkuIEFGQUlLLCB5b3Ugd29uJ3Qg
-YmUgYWJsZSB0byByZWJpbmQgdG8gYSBmYWlsZWQgZGV2aWNlIGJlY2F1c2UgaXQgdW5yZWdpc3Rl
-cnMgaW1tZWRpYXRlbHkuDQpXZSBhcmUgbWlzc2luZyB0aGUgcGx1Zy1pbiBldmVudCwgYnV0IHJl
-Z2FyZGluZyBkZXZpY2UgbmFtZXMgYW4gYXBwIGNhbiByZWx5IG9uIHRoZSBOb2RlR1VJRC4NCkRv
-IHlvdSB0aGluayB0aGF0IHdlIG5lZWQgc29tZXRoaW5nIG1vcmUgcG93ZXJmdWwgdG8gbWFpbnRh
-aW4gdGhlIGFjdHVhbCBuYW1lcywgYXMgZG9uZSBmb3IgbmV0ZGV2cyAoZS5nLiwgc29tZSB1ZGV2
-IHJ1bGUgdGhhdCBjYW4gbW9kaWZ5IHRoZSBuYW1lIGFzc2lnbm1lbnQpPw0KDQotLUxpcmFuDQo=
+In case of failure returned from query function in
+IB device registration, we need to clean IB cache which
+was missed.
+
+This change fixes it.
+
+Fixes: 3e153a93a1c1 ('IB/core: Save the device attributes on the device
+structure')
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 00da80e..94b80a5 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -358,6 +358,7 @@ int ib_register_device(struct ib_device *device,
+ 	ret = device->query_device(device, &device->attrs, &uhw);
+ 	if (ret) {
+ 		printk(KERN_WARNING "Couldn't query the device attributes\n");
++		ib_cache_cleanup_one(device);
+ 		goto out;
+ 	}
+ 
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
