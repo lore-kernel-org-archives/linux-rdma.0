@@ -1,48 +1,24 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH rdma-next 5/8] IB/{core,ulp} Support above 32 possible
- device capability flags
-Date: Sun, 21 Feb 2016 10:00:53 +0200
-Message-ID: <20160221080053.GL30450@leon.nu>
-References: <1455954465-15141-1-git-send-email-leon@leon.nu>
- <1455954465-15141-6-git-send-email-leon@leon.nu>
- <56C969B5.5080802@mellanox.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: reniko-KvP5wT2u2U0@public.gmane.org
+Subject: CONGRATULATION:contact   davidcarolm-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+Date: Mon, 22 Feb 2016 00:32:43 +0100 (CET)
+Message-ID: <2004642216.126261.1456097563993.JavaMail.ngmail__45942.1733780347$1456097582$gmane$org@webmail11.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56C969B5.5080802-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: info-S0/GAf8tV78@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 21, 2016 at 09:39:33AM +0200, Haggai Eran wrote:
-> On 20/02/2016 09:47, Leon Romanovsky wrote:
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -1762,7 +1762,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
-> >  
-> >  int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
-> >  {
-> > -	priv->hca_caps = hca->attrs.device_cap_flags;
-> > +	priv->hca_caps = (int)hca->attrs.device_cap_flags;
-> 
-> Won't it be better to increase the size of priv->hca_caps? Someone in the 
-> future will probably attempt to check one of the new device caps through
-> this field and will be surprised to see it is only partial.
-
-My changes were intended to minimize the impact on the existing code base. The future
-developer will be expected to check his code when he adds new device
-capability above 32 bit limit. In this change, he will update the ipoib
-properly expose it.
-
-Current implementation doesn't change ipoib behavior and easy for
-review without extra knowledge of ipoib internals, so let's stay this
-change as is.
-
-Thanks.
+This is David and Carol Martin, We both won  =A333million lottery, we j=
+ust commenced a Charity Donation by giving out 1,500,000.00 GBP to five=
+ (5) individuals; we listed you as a recipient of our cash donation of =
+1,500,000 GBP. get back to us for more with this email: davidcarolm@yah=
+oo.com.hk
+http://www.chroniclelive.co.uk/news/uk-news/33-million-lottery-winners-=
+named-10726516
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
