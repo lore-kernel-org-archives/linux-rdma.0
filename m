@@ -1,64 +1,47 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Recovering from IBV_EVENT_DEVICE_FATAL in librdmacm application?
-Date: Sun, 21 Feb 2016 11:56:30 +0000
-Message-ID: <HE1PR05MB1418BB2F8E162955160E2D3EB1A20@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <CAL1RGDXux9KFEUkBeegeiGGJdvKpGv_rRRs-cqNj1U6Nq0YSiw@mail.gmail.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH rdma-next 5/8] IB/{core,ulp} Support above 32 possible
+ device capability flags
+Date: Sun, 21 Feb 2016 10:00:53 +0200
+Message-ID: <20160221080053.GL30450@leon.nu>
+References: <1455954465-15141-1-git-send-email-leon@leon.nu>
+ <1455954465-15141-6-git-send-email-leon@leon.nu>
+ <56C969B5.5080802@mellanox.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXux9KFEUkBeegeiGGJdvKpGv_rRRs-cqNj1U6Nq0YSiw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <56C969B5.5080802-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgUm9sYW5kLA0KDQpUaGUga2VybmVsIHBhcnQgaXMgaW4gcGxhY2UsIGJ1dCB1c2VyLXNwYWNl
-IHN1cHBvcnQgaXMgbm90IGNvbXBsZXRlLg0KDQpXaGVuIGEgc3BlY2lmaWMgUkRNQSBkZXZpY2Ug
-cmVjZWl2ZXMgYSBmYXRhbCBldmVudCwgdGhlIHVzZXIgaXMgZ3VhcmFudGVlZCB0byBnZXQgdGhp
-cyBldmVudC4NCldoYXQgaXMgbWlzc2luZyBpcyBhIHdheSBmb3IgcmRtYWNtIChtYXliZSB2aWEg
-YSB3ZWxsLWJlaGF2ZWQgYXBwIHRoYXQgcHJvdmlkZXMgdGhlIGNvbnRleHQgZm9yIHJlYWRpbmcg
-YXN5bmNoIGVycm9ycykgdG8gYmUgaW5mb3JtZWQgb2YgdGhpcyBldmVudCBhbmQgcmUtb3BlbiB0
-aGUgSENBIGNvbnRleHQuDQoNCkJUVywgcmRtYWNtIGFsc28gZG9lc24ndCBub3RpY2Ugd2hlbiBu
-ZXcgUkRNQSBkZXZpY2VzIHBvcCB1cC4uLg0KLS1MaXJhbg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBN
-ZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21h
-aWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBS
-b2xhbmQgRHJlaWVyDQo+IFNlbnQ6IEZyaWRheSwgRmVicnVhcnkgMTksIDIwMTYgODowMyBQTQ0K
-PiBUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IFNlYW4gSGVmdHkgPHNlYW4uaGVmdHlA
-aW50ZWwuY29tPjsgRG91Zw0KPiBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPjsgSGFsIFJv
-c2Vuc3RvY2sgPGhhbEBkZXYubWVsbGFub3guY28uaWw+DQo+IFN1YmplY3Q6IFJlY292ZXJpbmcg
-ZnJvbSBJQlZfRVZFTlRfREVWSUNFX0ZBVEFMIGluIGxpYnJkbWFjbSBhcHBsaWNhdGlvbj8NCj4g
-DQo+IEhlbGxvIGFnYWluIGV2ZXJ5b25lLA0KPiANCj4gSSdtIGFzc2Vzc2luZyB0aGUgc3RhdGUg
-b2YgdGhlIGFydCBpbiB3cml0aW5nIGFuIGFwcGxpY2F0aW9uIHRoYXQgY2FuIHJlY292ZXIgZnJv
-bQ0KPiBhbiBIQ0EgY2FzdGFzdHJvcGhpYyBlcnJvciAoYWthIElCVl9FVkVOVF9ERVZJQ0VfRkFU
-QUwgYXN5bmMgZXZlbnQpLCBhbmQgaXQNCj4gYXBwZWFycyB0aGUgcGllY2VzIGFyZSBub3QgdGhl
-cmUgeWV0LiAgV2hhdCBpcyBzdXBwb3NlZCB0byBoYXBwZW4gZnJvbSB0aGUNCj4ga2VybmVsIHNp
-ZGUgaXMgdGhhdCB1c2Vyc3BhY2UgY2xvc2VzIGFsbCBvZiBpdHMgY29udGV4dHMsIHRoZW4gdGhl
-IGtlcm5lbCB0ZWFycyBkb3duDQo+IGFuZCByZWNyZWF0ZXMgdGhlIGRldmljZSwgYW5kIHVzZXJz
-cGFjZSByZW9wZW5zIHRoZSBkZXZpY2UgYW5kIHN0YXJ0cyBvdmVyLg0KPiANCj4gSG93ZXZlciBp
-dCBkb2Vzbid0IGxvb2sgbGlrZSB0aGVyZSBpcyBhbnkgd2F5IGZvciBsaWJyZG1hY20gdG8gY2Fs
-bA0KPiBpYnZfY2xvc2VfZGV2aWNlKCkgd2l0aG91dCB0ZWFyaW5nIGRvd24gdGhlIHdob2xlIGxp
-YnJhcnkgYW5kIGNsb3NpbmcgYWxsDQo+IGRldmljZXMgKHdoaWNoIGlzIGRpc3J1cHRpdmUgaWYg
-bXkgYXBwbGljYXRpb24gaXMgYWxzbyB1c2luZyBhbm90aGVyIEhDQSB0aGF0DQo+IGRpZG4ndCBo
-aXQgYSBjYXRhc3Ryb3BoaWMgZXJyb3IpLiAgQnV0IGV2ZW4gaWYgd2UgYWRkIGFuIGludGVyZmFj
-ZSB0byBjbG9zZSBhIHNpbmdsZQ0KPiBjbWFfZGV2aWNlLCBsaWJpYnZlcmJzIGRvZXNuJ3QgcmVh
-bGx5IGhhdmUgYSB3YXkgdG8gd2FpdCBmb3IgdGhlIGRldmljZSB0byBiZQ0KPiB0b3JuIGRvd24g
-YW5kIHJlaW5pdGlhbGl6ZWQuDQo+IChJbiB0aGUga2VybmVsLCB3ZSBoYXZlIHRoZSBpYl9jbGll
-bnQuYWRkIGFuZCBpYl9jbGllbnQucmVtb3ZlIGNhbGxiYWNrcywgYnV0DQo+IGxpYmlidmVyYnMg
-anVzdCBpbml0aWFsaXplcyBhIHN0YXRpYyBhcnJheSBvZiBkZXZpY2VzIGF0IGxpYnJhcnkgaW5p
-dGlhbGl6YXRpb24pDQo+IA0KPiBJcyB0aGVyZSBhbnkgd29yayBvbiBjbG9zaW5nIHRoZXNlIGdh
-cHMgdGhhdCBoYXMgYmVlbiBkb25lIHlldCAocGVyaGFwcyBpbiBPRkVEDQo+IG9yIGluIHBlbmRp
-bmcgcGF0Y2hlcyksIG9yIGhhdmUgSSBmb3VuZCBhIHdpZGUgb3BlbiBmaWVsZCB0byBpbm5vdmF0
-ZSBpbj8NCj4gDQo+IA0KPiBBcyBhIHNpZGUgbm90ZSwgaG93IGRvZXMgb3BlbnNtIGhhbmRsZSB0
-aGlzPyAgSSBoYXZlbid0IHRyaWVkIGl0IHlldCwgYnV0IGZyb20NCj4gcmVhZGluZyBjb2RlIEkg
-YmVsaWV2ZSB0aGF0IGxpYmlidW1hZCB3aWxsIG5vdCBjb3JyZWN0bHkgcGFzcyB0aGUgaWJfdW1h
-ZCBmYWlsdXJlDQo+IGJhY2sgdXAgdG8gb3BlbnNtLCBhbmQgc28gb3BlbnNtIHdpbGwgYmUgc3R1
-Y2sgd2l0aCBhIGRlYWQNCj4gL2Rldi9pbmZpbmliYW5kL3VtYWRYIGZpbGUgaGFuZGxlIGZvcmV2
-ZXIuICBJcyB0aGF0IGFzc2Vzc21lbnQgY29ycmVjdD8NCj4gDQo+IFRoYW5rcyENCj4gICBSb2xh
-bmQNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
-InVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5DQo+IG9mIGEgbWVzc2FnZSB0byBt
-YWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQNCj4gaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Sun, Feb 21, 2016 at 09:39:33AM +0200, Haggai Eran wrote:
+> On 20/02/2016 09:47, Leon Romanovsky wrote:
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -1762,7 +1762,7 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+> >  
+> >  int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+> >  {
+> > -	priv->hca_caps = hca->attrs.device_cap_flags;
+> > +	priv->hca_caps = (int)hca->attrs.device_cap_flags;
+> 
+> Won't it be better to increase the size of priv->hca_caps? Someone in the 
+> future will probably attempt to check one of the new device caps through
+> this field and will be surprised to see it is only partial.
+
+My changes were intended to minimize the impact on the existing code base. The future
+developer will be expected to check his code when he adds new device
+capability above 32 bit limit. In this change, he will update the ipoib
+properly expose it.
+
+Current implementation doesn't change ipoib behavior and easy for
+review without extra knowledge of ipoib internals, so let's stay this
+change as is.
+
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
