@@ -1,46 +1,54 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv6 1/3] rdmacg: Added rdma cgroup controller
-Date: Sun, 21 Feb 2016 19:41:08 +0530
-Message-ID: <CAG53R5U53sDQAURaWVeYmhnQSe+ncj+KWHdpOwbnrhE+OLVnMw@mail.gmail.com>
-References: <1455966006-13774-1-git-send-email-pandit.parav@gmail.com>
-	<1455966006-13774-2-git-send-email-pandit.parav@gmail.com>
-	<20160221074301.GK30450@leon.nu>
-	<CAG53R5XGJESb+_-FtjLsK+jHoEmbePLd==G2knBMOcrfdPm62Q@mail.gmail.com>
-	<20160221134518.GM30450@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 for-next 0/3] Enable LSO and Checksum for IPoIB over mlx5
+Date: Sun, 21 Feb 2016 16:27:15 +0200
+Message-ID: <1456064838-31710-1-git-send-email-eranbe@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160221134518.GM30450-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CONFIG_CGROUP_RDMA
+The patch set exposes the UD QP's HW abilities to receive CSUM and LSO.
+When these offloads are enabled, IPoIB over mlx5 (when uses UD QP) can benefit
+from the above without additional changes in the IPoIB code.
 
-On Sun, Feb 21, 2016 at 7:15 PM, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org> wrote:
-> On Sun, Feb 21, 2016 at 05:03:05PM +0530, Parav Pandit wrote:
->> On Sun, Feb 21, 2016 at 1:13 PM, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org> wrote:
->> > On Sat, Feb 20, 2016 at 04:30:04PM +0530, Parav Pandit wrote:
->> > Can you place this ifdef before declaring struct rdma_cgroup?
->> Yes. I missed out this cleanup. Done locally now.
->
-> Great, additional thing which spotted my attention was related to
-> declaring and using the new cgroups functions. There are number of
-> places where you protected the calls by specific ifdefs in the
-> IB/core c-files and not in h-files as it is usually done.
->
-ib_device_register_rdmacg, ib_device_unregister_rdmacg are the only
-two functions called from IB/core as its tied to functionality.
-They can also be implemented as NULL call when CONFIG_CGROUP_RDMA is undefined.
-(Similar to ib_rdmacg_try_charge and others).
-I didn't do because occurrence of call of register and unregister is
-limited to single file and only twice compare to charge/uncharge
-functions.
-Either way is fine with me, I can make the changes which you
-described. Let me know.
+The first patch in the series "IB/mlx5: Define mlx5 interface bits for IPoIB
+offloads" is on top of the next patch "[PATCH net V2 1/3] net/mlx5: Use offset
+based reserved field names in the IFC header file" that was sent to "net"
+branch.
+(see http://www.spinics.net/lists/netdev/msg362410.html
+ see http://www.spinics.net/lists/netdev/msg363553.html)
 
->>
->> > Thanks
+Changes from v0:
+	Fixed variable type from u16 to u64
+	Returned back empty line.
+	sync capability bit from new FW
+	Change "likely" to "unlikely".
+
+Changes from v1:
+	Reviewed by was added
+	Removed two wrongly exposed capability bits
+	Rework QP UD LSO create flag checks
+	Performance optimization of set_eth_seg
+
+Thanks,
+Eran and Erez.
+
+Erez Shitrit (3):
+  IB/mlx5: Define interface bits for IPoIB offloads
+  IB/mlx5: Implement UD QP offloads for IPoIB in the TX flow
+  IB/mlx5: Add support for CSUM in RX flow
+
+ drivers/infiniband/hw/mlx5/cq.c      |   5 +-
+ drivers/infiniband/hw/mlx5/main.c    |   5 ++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  11 ++--
+ drivers/infiniband/hw/mlx5/qp.c      | 113 ++++++++++++++++++++++++++++++++---
+ include/linux/mlx5/mlx5_ifc.h        |   6 +-
+ 5 files changed, 125 insertions(+), 15 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
