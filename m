@@ -1,30 +1,51 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 1/5] IB/isert: Remove ISER_RECV_DATA_SEG_LEN
-Date: Mon, 22 Feb 2016 16:05:58 +0100
-Message-ID: <20160222150558.GA29553@lst.de>
-References: <1456148958-27973-1-git-send-email-hch@lst.de> <1456148958-27973-2-git-send-email-hch@lst.de> <CAJ3xEMiGhnsZMdPkqCo25cjdOE8pqZ3A=TfiEvMHsU8Sj3PM8Q@mail.gmail.com> <CAJ3xEMgN+j=_zaUfqYQ1yQzUG3fXnKgnJLWU17AeP-51WRcrNw@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [net-next][PATCH 11/13] RDS: IB: add Fastreg MR (FRMR) detection
+ support
+Date: Mon, 22 Feb 2016 07:38:38 -0800
+Message-ID: <56CB2B7E.5000402@sandisk.com>
+References: <1455967804-27644-1-git-send-email-santosh.shilimkar@oracle.com>
+ <1455967804-27644-12-git-send-email-santosh.shilimkar@oracle.com>
+ <20160221.223656.2213596964617869651.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMgN+j=_zaUfqYQ1yQzUG3fXnKgnJLWU17AeP-51WRcrNw@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160221.223656.2213596964617869651.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 22, 2016 at 04:57:50PM +0200, Or Gerlitz wrote:
-> >> @@ -92,7 +90,7 @@ enum iser_conn_state {
-> >>  struct iser_rx_desc {
-> >>         struct iser_ctrl iser_header;
-> >>         struct iscsi_hdr iscsi_header;
-> >> -       char            data[ISER_RECV_DATA_SEG_LEN];
-> >> +       char            data[ISCSI_DEF_MAX_RECV_SEG_LEN];
-> >>         u64             dma_addr;
-> >>         struct ib_sge   rx_sg;
-> >>         char            pad[ISER_RX_PAD_SIZE];
-> 
-> BTW that pad is probably just c&p from the initiator, has nothing to do here
+On 02/21/16 19:36, David Miller wrote:
+> From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Date: Sat, 20 Feb 2016 03:30:02 -0800
+>
+>> @@ -54,6 +55,8 @@ module_param(rds_ib_mr_8k_pool_size, int, 0444);
+>>   MODULE_PARM_DESC(rds_ib_mr_8k_pool_size, " Max number of 8K mr per HCA");
+>>   module_param(rds_ib_retry_count, int, 0444);
+>>   MODULE_PARM_DESC(rds_ib_retry_count, " Number of hw retries before reporting an error");
+>> +module_param(prefer_frmr, bool, 0444);
+>> +MODULE_PARM_DESC(prefer_frmr, "Preferred MR method if both FMR and FRMR supported");
+>
+> Sorry, you're going to have to create a real run time method to configure
+> this parameter.
+>
+> I'm strongly against module parameters.
+>
+> Please don't go into details about why this might be difficult to do,
+> I'm totally not interested.  Doing things properly is sometimes not
+> easy, that's life.
 
-The way the RX descriptors work is rather odd in many ways. It's on
-my todo list to investigate and rework them.
+Hello Santosh,
+
+What is the purpose of the prefer_frmr kernel module parameter ? Is this 
+a parameter that is useful to RDS users or is its only purpose to allow 
+developers of the RDS module to test both the FMR and FRMR code paths on 
+hardware that supports both MR methods ?
+
+Bart.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
