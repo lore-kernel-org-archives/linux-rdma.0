@@ -1,21 +1,38 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
 Subject: Re: [PATCH] IB/core: Fix missed clean call in registration path
-Date: Mon, 22 Feb 2016 10:31:00 +0200
-Message-ID: <56CAC744.9090809@dev.mellanox.co.il>
+Date: Mon, 22 Feb 2016 10:53:27 +0200
+Message-ID: <20160222085327.GO30450@leon.nu>
 References: <1456071146-28101-1-git-send-email-leonro@mellanox.com>
+ <20160222011334.GA24657@phlsvsds.ph.intel.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456071146-28101-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160222011334.GA24657-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks fine,
+On Sun, Feb 21, 2016 at 08:13:36PM -0500, ira.weiny wrote:
+> On Sun, Feb 21, 2016 at 06:12:26PM +0200, Leon Romanovsky wrote:
+> > In case of failure returned from query function in
+> > IB device registration, we need to clean IB cache which
+> > was missed.
+> > 
+> > This change fixes it.
+> > 
+> > Fixes: 3e153a93a1c1 ('IB/core: Save the device attributes on the device
+> > structure')
+> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
 
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Thanks Ira and Sagi,
+Do you see the need to push this fix to -stable too?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
