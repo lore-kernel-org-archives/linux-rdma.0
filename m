@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 02/13] svcrdma: Do not write xdr_buf::tail in a Write
- chunk
-Date: Mon, 22 Feb 2016 15:41:02 -0500
-Message-ID: <20160222204102.3274.86385.stgit@sisley.1015granger.net>
+Subject: [PATCH v4 04/13] nfsd: Lower NFSv4.1 callback message size limit
+Date: Mon, 22 Feb 2016 15:41:20 -0500
+Message-ID: <20160222204120.3274.53538.stgit@sisley.1015granger.net>
 References: <20160222203550.3274.82777.stgit@sisley.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,77 +12,127 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the Linux NFS server writes an odd-length data item into a
-Write chunk, it finishes with XDR pad bytes. If the data item is
-smaller than the Write chunk, the pad bytes are written at the end
-of the data item, but still inside the chunk (ie, in the
-application's buffer). Since this is direct data placement, that
-exposes the pad bytes.
+The maximum size of a backchannel message on RPC-over-RDMA depends
+on the connection's inline threshold. Today that threshold is
+typically 1024 bytes, making the maximum message size 996 bytes.
 
-XDR pad bytes are inserted in order to preserve the XDR alignment
-of the next XDR data item in an XDR stream. But Write chunks do not
-appear in the payload XDR stream, and only one data item is allowed
-in each chunk. Thus XDR padding is not needed in a Write chunk.
+The Linux server's CREATE_SESSION operation checks that the size
+of callback Calls can be as large as 1044 bytes, to accommodate
+RPCSEC_GSS. Thus CREATE_SESSION fails if a client advertises the
+true message size maximum of 996 bytes.
 
-With NFSv4, the Linux NFS server places the results of any
-operations that follow an NFSv4 READ or READLINK in the xdr_buf's
-tail. Those results also should never be sent as a part of a Write
-chunk. The current logic in send_write_chunks() appears to assume
-that the xdr_buf's tail contains only pad bytes (ie, NFSv3).
+But the server's backchannel currently does not support RPCSEC_GSS.
+The actual maximum size it needs is much smaller. It is safe to
+reduce the limit to enable NFSv4.1 on RDMA backchannel operation.
 
-The server should write only the contents of the xdr_buf's page list
-in a Write chunk. If there's more than an XDR pad in the tail, that
-needs to go inline or in the Reply chunk.
-
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=294
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4state.c         |   21 +++++++++++++--------
+ include/linux/sunrpc/auth.h |    7 +++++++
+ net/sunrpc/auth_null.c      |    4 ++--
+ net/sunrpc/auth_unix.c      |    6 ++----
+ 4 files changed, 24 insertions(+), 14 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 79fa661..86fea5c 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -50,6 +50,11 @@
+diff --git a/fs/nfsd/nfs4state.c b/fs/nfsd/nfs4state.c
+index c484a2b..ffd6394 100644
+--- a/fs/nfsd/nfs4state.c
++++ b/fs/nfsd/nfs4state.c
+@@ -2586,21 +2586,26 @@ static __be32 check_forechannel_attrs(struct nfsd4_channel_attrs *ca, struct nfs
+ 	return nfs_ok;
+ }
  
- #define RPCDBG_FACILITY	RPCDBG_SVCXPRT
- 
-+static u32 xdr_padsize(u32 len)
-+{
-+	return (len & 3) ? (4 - (len & 3)) : 0;
-+}
++/*
++ * Server's NFSv4.1 backchannel support is AUTH_SYS-only for now.
++ * These are based on similar macros in linux/sunrpc/msg_prot.h .
++ */
++#define RPC_MAX_HEADER_WITH_AUTH_SYS \
++	(RPC_CALLHDRSIZE + 2 * (2 + UNX_CALLSLACK))
 +
- int svc_rdma_map_xdr(struct svcxprt_rdma *xprt,
- 		     struct xdr_buf *xdr,
- 		     struct svc_rdma_req_map *vec)
-@@ -308,7 +313,7 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
- 			     struct svc_rqst *rqstp,
- 			     struct svc_rdma_req_map *vec)
++#define RPC_MAX_REPHEADER_WITH_AUTH_SYS \
++	(RPC_REPHDRSIZE + (2 + NUL_REPLYSLACK))
++
+ #define NFSD_CB_MAX_REQ_SZ	((NFS4_enc_cb_recall_sz + \
+-				 RPC_MAX_HEADER_WITH_AUTH) * sizeof(__be32))
++				 RPC_MAX_HEADER_WITH_AUTH_SYS) * sizeof(__be32))
+ #define NFSD_CB_MAX_RESP_SZ	((NFS4_dec_cb_recall_sz + \
+-				 RPC_MAX_REPHEADER_WITH_AUTH) * sizeof(__be32))
++				 RPC_MAX_REPHEADER_WITH_AUTH_SYS) * \
++				 sizeof(__be32))
+ 
+ static __be32 check_backchannel_attrs(struct nfsd4_channel_attrs *ca)
  {
--	u32 xfer_len = rqstp->rq_res.page_len + rqstp->rq_res.tail[0].iov_len;
-+	u32 xfer_len = rqstp->rq_res.page_len;
- 	int write_len;
- 	u32 xdr_off;
- 	int chunk_off;
-@@ -357,7 +362,7 @@ static int send_write_chunks(struct svcxprt_rdma *xprt,
- 	/* Update the req with the number of chunks actually used */
- 	svc_rdma_xdr_encode_write_list(rdma_resp, chunk_no);
+ 	ca->headerpadsz = 0;
  
--	return rqstp->rq_res.page_len + rqstp->rq_res.tail[0].iov_len;
-+	return rqstp->rq_res.page_len;
+-	/*
+-	 * These RPC_MAX_HEADER macros are overkill, especially since we
+-	 * don't even do gss on the backchannel yet.  But this is still
+-	 * less than 1k.  Tighten up this estimate in the unlikely event
+-	 * it turns out to be a problem for some client:
+-	 */
+ 	if (ca->maxreq_sz < NFSD_CB_MAX_REQ_SZ)
+ 		return nfserr_toosmall;
+ 	if (ca->maxresp_sz < NFSD_CB_MAX_RESP_SZ)
+diff --git a/include/linux/sunrpc/auth.h b/include/linux/sunrpc/auth.h
+index 1ecf13e..6a241a2 100644
+--- a/include/linux/sunrpc/auth.h
++++ b/include/linux/sunrpc/auth.h
+@@ -21,10 +21,17 @@
+ #include <linux/utsname.h>
  
- out_err:
- 	pr_err("svcrdma: failed to send write chunks, rc=%d\n", ret);
-@@ -612,7 +617,7 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 		ret = send_write_chunks(rdma, wr_ary, rdma_resp, rqstp, vec);
- 		if (ret < 0)
- 			goto err1;
--		inline_bytes -= ret;
-+		inline_bytes -= ret + xdr_padsize(ret);
- 	}
+ /*
++ * Maximum size of AUTH_NONE authentication information, in XDR words.
++ */
++#define NUL_CALLSLACK	(4)
++#define NUL_REPLYSLACK	(2)
++
++/*
+  * Size of the nodename buffer. RFC1831 specifies a hard limit of 255 bytes,
+  * but Linux hostnames are actually limited to __NEW_UTS_LEN bytes.
+  */
+ #define UNX_MAXNODENAME	__NEW_UTS_LEN
++#define UNX_CALLSLACK	(21 + XDR_QUADLEN(UNX_MAXNODENAME))
  
- 	/* Send any reply-list data and update resp reply-list */
+ struct rpcsec_gss_info;
+ 
+diff --git a/net/sunrpc/auth_null.c b/net/sunrpc/auth_null.c
+index c2a2b58..8d9eb4d 100644
+--- a/net/sunrpc/auth_null.c
++++ b/net/sunrpc/auth_null.c
+@@ -113,8 +113,8 @@ const struct rpc_authops authnull_ops = {
+ 
+ static
+ struct rpc_auth null_auth = {
+-	.au_cslack	= 4,
+-	.au_rslack	= 2,
++	.au_cslack	= NUL_CALLSLACK,
++	.au_rslack	= NUL_REPLYSLACK,
+ 	.au_ops		= &authnull_ops,
+ 	.au_flavor	= RPC_AUTH_NULL,
+ 	.au_count	= ATOMIC_INIT(0),
+diff --git a/net/sunrpc/auth_unix.c b/net/sunrpc/auth_unix.c
+index 548240d..0d3dd36 100644
+--- a/net/sunrpc/auth_unix.c
++++ b/net/sunrpc/auth_unix.c
+@@ -23,8 +23,6 @@ struct unx_cred {
+ };
+ #define uc_uid			uc_base.cr_uid
+ 
+-#define UNX_WRITESLACK		(21 + XDR_QUADLEN(UNX_MAXNODENAME))
+-
+ #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+ # define RPCDBG_FACILITY	RPCDBG_AUTH
+ #endif
+@@ -228,8 +226,8 @@ const struct rpc_authops authunix_ops = {
+ 
+ static
+ struct rpc_auth		unix_auth = {
+-	.au_cslack	= UNX_WRITESLACK,
+-	.au_rslack	= 2,			/* assume AUTH_NULL verf */
++	.au_cslack	= UNX_CALLSLACK,
++	.au_rslack	= NUL_REPLYSLACK,
+ 	.au_ops		= &authunix_ops,
+ 	.au_flavor	= RPC_AUTH_UNIX,
+ 	.au_count	= ATOMIC_INIT(0),
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
