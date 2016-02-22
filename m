@@ -1,111 +1,62 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 03/13] svcrdma: Do not send Write chunk XDR pad with
- inline content
-Date: Mon, 22 Feb 2016 15:41:12 -0500
-Message-ID: <20160222204112.3274.32393.stgit@sisley.1015granger.net>
+Subject: [PATCH v4 05/13] svcrdma: Close connection when a send error occurs
+Date: Mon, 22 Feb 2016 15:41:28 -0500
+Message-ID: <20160222204128.3274.64201.stgit@sisley.1015granger.net>
 References: <20160222203550.3274.82777.stgit@sisley.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160222203550.3274.82777.stgit-MxQ+bVWvw4zwdl/1UfZZQIVfYA8g3rJ/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The NFS server's XDR encoders adds an XDR pad for content in the
-xdr_buf page list at the beginning of the xdr_buf's tail buffer.
-
-On RDMA transports, Write chunks are sent separately and without an
-XDR pad.
-
-If a Write chunk is being sent, strip off the pad in the tail buffer
-so that inline content following the Write chunk remains XDR-aligned
-when it is sent to the client.
-
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=294
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h            |    2 +-
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |    2 +-
- net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   22 +++++++++++++++++-----
- 3 files changed, 19 insertions(+), 7 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 5322fea..40b6785 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -224,7 +224,7 @@ extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
- 
- /* svc_rdma_sendto.c */
- extern int svc_rdma_map_xdr(struct svcxprt_rdma *, struct xdr_buf *,
--			    struct svc_rdma_req_map *);
-+			    struct svc_rdma_req_map *, bool);
- extern int svc_rdma_sendto(struct svc_rqst *);
- extern struct rpcrdma_read_chunk *
- 	svc_rdma_get_read_chunk(struct rpcrdma_msg *);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-index 65a7c23..de39196 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -107,7 +107,7 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
- 	int ret;
- 
- 	vec = svc_rdma_get_req_map(rdma);
--	ret = svc_rdma_map_xdr(rdma, sndbuf, vec);
-+	ret = svc_rdma_map_xdr(rdma, sndbuf, vec, false);
- 	if (ret)
- 		goto out_err;
- 
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 86fea5c..a8fab99 100644
+index a8fab99..0f8798d 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -57,7 +57,8 @@ static u32 xdr_padsize(u32 len)
+@@ -314,7 +314,6 @@ static int send_write(struct svcxprt_rdma *xprt, struct svc_rqst *rqstp,
+  err:
+ 	svc_rdma_unmap_dma(ctxt);
+ 	svc_rdma_put_context(ctxt, 0);
+-	/* Fatal error, close transport */
+ 	return -EIO;
+ }
  
- int svc_rdma_map_xdr(struct svcxprt_rdma *xprt,
- 		     struct xdr_buf *xdr,
--		     struct svc_rdma_req_map *vec)
-+		     struct svc_rdma_req_map *vec,
-+		     bool write_chunk_present)
- {
- 	int sge_no;
- 	u32 sge_bytes;
-@@ -97,9 +98,20 @@ int svc_rdma_map_xdr(struct svcxprt_rdma *xprt,
+@@ -571,6 +570,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
+  err:
+ 	svc_rdma_unmap_dma(ctxt);
+ 	svc_rdma_put_context(ctxt, 1);
++	pr_err("svcrdma: failed to send reply, rc=%d\n", ret);
+ 	return -EIO;
+ }
  
- 	/* Tail SGE */
- 	if (xdr->tail[0].iov_len) {
--		vec->sge[sge_no].iov_base = xdr->tail[0].iov_base;
--		vec->sge[sge_no].iov_len = xdr->tail[0].iov_len;
--		sge_no++;
-+		unsigned char *base = xdr->tail[0].iov_base;
-+		size_t len = xdr->tail[0].iov_len;
-+		u32 xdr_pad = xdr_padsize(xdr->page_len);
+@@ -642,6 +642,9 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 
+ 	ret = send_reply(rdma, rqstp, res_page, rdma_resp, ctxt, vec,
+ 			 inline_bytes);
++	if (ret < 0)
++		goto err1;
 +
-+		if (write_chunk_present && xdr_pad) {
-+			base += xdr_pad;
-+			len -= xdr_pad;
-+		}
-+
-+		if (len) {
-+			vec->sge[sge_no].iov_base = base;
-+			vec->sge[sge_no].iov_len = len;
-+			sge_no++;
-+		}
- 	}
- 
- 	dprintk("svcrdma: %s: sge_no %d page_no %d "
-@@ -594,7 +606,7 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 	ctxt = svc_rdma_get_context(rdma);
- 	ctxt->direction = DMA_TO_DEVICE;
- 	vec = svc_rdma_get_req_map(rdma);
--	ret = svc_rdma_map_xdr(rdma, &rqstp->rq_res, vec);
-+	ret = svc_rdma_map_xdr(rdma, &rqstp->rq_res, vec, wr_ary != NULL);
- 	if (ret)
- 		goto err0;
- 	inline_bytes = rqstp->rq_res.len;
+ 	svc_rdma_put_req_map(rdma, vec);
+ 	dprintk("svcrdma: send_reply returns %d\n", ret);
+ 	return ret;
+@@ -651,5 +654,6 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+  err0:
+ 	svc_rdma_put_req_map(rdma, vec);
+ 	svc_rdma_put_context(ctxt, 0);
+-	return ret;
++	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
++	return -ENOTCONN;
+ }
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
