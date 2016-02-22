@@ -1,29 +1,87 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 7/8] IB/core: Exposure supported CALC
- capabilities
-Date: Mon, 22 Feb 2016 13:04:15 -0700
-Message-ID: <20160222200415.GB26459@obsidianresearch.com>
-References: <1455954465-15141-1-git-send-email-leon@leon.nu>
- <1455954465-15141-8-git-send-email-leon@leon.nu>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 00/13] NFS/RDMA server patches for v4.6
+Date: Mon, 22 Feb 2016 15:40:45 -0500
+Message-ID: <20160222203550.3274.82777.stgit@sisley.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1455954465-15141-8-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Feb 20, 2016 at 09:47:44AM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Add support to return CALC capabilities.
+Two major changes: Finish server-side support for RDMA_ERROR type
+messages, and convert the server's completion handlers to the new
+core CQ API.
 
-Can we please fully document these non-standard things?
+Also available in the "nfsd-rdma-for-4.6" topic branch of this git
+repo:
 
-Jason
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.6
+
+
+Changes since v3:
+- Rebased on v4.5-rc5
+- Completed fix for Write chunk XDR padding
+- On error, svc_rdma_sendto() should close connection
+
+
+Changes since v2:
+- Rebased on v4.5-rc4
+- checkpatch.pl passes
+- Fix iWARP RDMA Read path regression
+- Reduce NFSv4.1 CB message size maximum in CREATE_SESSION
+- Another pass at fixing Write chunk XDR padding
+- Various clean ups
+
+
+Changes since v1:
+- Rebased on v4.5-rc3
+- Patch 02/10 (pre-allocate frmrs) dropped
+- Patch 04/10 replaced with more surgical patch
+- Refined reporting of flushed completions
+- Function names of completion methods changed to match client's
+ new completion function naming convention
+
+
+---
+
+Chuck Lever (13):
+      svcrdma: Find client-provided write and reply chunks once per reply
+      svcrdma: Do not write xdr_buf::tail in a Write chunk
+      svcrdma: Do not send Write chunk XDR pad with inline content
+      nfsd: Lower NFSv4.1 callback message size limit
+      svcrdma: Close connection when a send error occurs
+      svcrdma: svc_rdma_post_recv() should close connection on error
+      rpcrdma: Add RPCRDMA_HDRLEN_ERR
+      svcrdma: Make RDMA_ERROR messages work
+      svcrdma: Use correct XID in error replies
+      svcrdma: Hook up the logic to return ERR_CHUNK
+      svcrdma: Remove close_out exit path
+      svcrdma: Use new CQ API for RPC-over-RDMA server receive CQs
+      svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
+
+
+ fs/nfsd/nfs4state.c                        |   21 +
+ include/linux/sunrpc/auth.h                |    7 
+ include/linux/sunrpc/rpc_rdma.h            |    1 
+ include/linux/sunrpc/svc_rdma.h            |   20 +
+ net/sunrpc/auth_null.c                     |    4 
+ net/sunrpc/auth_unix.c                     |    6 
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   17 -
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   64 +++-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   60 ++--
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  196 ++++++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  445 +++++++++-------------------
+ 11 files changed, 390 insertions(+), 451 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
