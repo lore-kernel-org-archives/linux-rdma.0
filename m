@@ -1,78 +1,39 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/8] Introduce vector CALC support
-Date: Tue, 23 Feb 2016 10:25:20 +0200
-Message-ID: <1456215928-9305-1-git-send-email-leon@leon.nu>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RESEND] infiniband:core:Fix error handling in the function
+ cm_lap_handler
+Date: Tue, 23 Feb 2016 10:54:23 +0200
+Message-ID: <56CC1E3F.9070500@mellanox.com>
+References: <1456167558-10123-1-git-send-email-xerofoify@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456167558-10123-1-git-send-email-xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, david.ahern-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 2/22/2016 8:59 PM, Nicholas Krause wrote:
+> This fixes error handling in the function cm_lap_handler to properly
+> check if the internal call to the function cm_init_av_for_response
+> has failed by returning a error code and if so exit immediately from
+> this particular function by freeing all previously allocated
+> resources before returning the error code to this function's caller
+> in order to allow the caller to handle the error properly in it's
+>
+> Signed-off-by: Nicholas Krause<xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-This patch set introduces vector CALC support.
+I think this is the longest sentence I have ever read in English, and it 
+even doesn't have a end... please break it and tell us the (hopefully) 
+happy end.
 
-This feature takes as input several vectors of equal length,
-combines them with a single operation type, producing result vectors
-which are sent to the destination.
+Use IB/core: prefix and point to the commit you are fixing
 
-The proposed operations are "add, and, or, xor, max, min" and "swap
-endianness".
+Fixes: xxx ('yyy')
 
-The hardware processes the data an MTU of at a time, processing the elements
-of each segment in parallel.
-
-This patch set depends on commit b4ff3a36d3e4 ("net/mlx5: Use offset based
-reserved field names in the IFC header file") which is part of net tree.
-
-The series consists from two parts: IB and net.
-
-NET part (patches #1-3)
-* Patch #1 fixes ATOMIC capability mode. This change has  no impact on
-* the system, since MAX property is not in use for ATOMIC.
-* Patch #2 merges two device capability calls in one.
-* Patch #3 adds infrastructure to support vector CALC querying.
-
-IB part (patches #4-8)
-* Patch #4 refactors device query code by eliminating the unnecessary zeroing
-  of variables
-* Patch #5 converts device capability mask from u32 to be u64 and support more
-  than 32 device capabilities.
-* Patch #6 adds vector CALC device capability flag.
-* Patch #7 exports all possible supported operations.
-* Patch #8 advertises the mlx5 driver support of vector CALC.
-
-Changes since v0:
-- Fixed author part of patch #3
-- Updated hca_cap field in ipoib to be u64 and not u32.
-- Enrich commit message of patch #7
-
-Leon Romanovsky (7):
-  net/mlx5_core: Fix caching ATOMIC endian mode capability
-  net/mlx5_core: Refactor device capability function
-  IB/core: Replace setting the zero values in ib_uverbs_ex_query_device
-  IB/{core,ulp} Support above 32 possible device capability flags
-  IB/core: Add offload arithmetic operations support
-  IB/core: Advertise supported vector CALC capabilities
-  IB/mlx5: Exposure offload arithmetic operations
-
-Sagi Grimberg (1):
-  net/mlx5_core: Introduce offload arithmetic hardware capabilities
-
- drivers/infiniband/core/uverbs_cmd.c           | 29 +++++++------
- drivers/infiniband/hw/mlx5/main.c              |  3 ++
- drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 57 ++++++--------------------
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 24 +++++++----
- include/linux/mlx5/device.h                    |  6 +++
- include/linux/mlx5/driver.h                    |  3 +-
- include/linux/mlx5/mlx5_ifc.h                  | 31 +++++++++++++-
- include/rdma/ib_verbs.h                        | 29 ++++++++++++-
- include/uapi/rdma/ib_user_verbs.h              | 13 ++++++
- 10 files changed, 124 insertions(+), 73 deletions(-)
-
--- 
-2.1.4
+where xxx is the 12 digit abbrev-iated git short log  and yyy the commit 
+title
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
