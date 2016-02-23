@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: [PATCH rdma-next V1 5/8] IB/{core,ulp} Support above 32 possible device capability flags
-Date: Tue, 23 Feb 2016 10:25:25 +0200
-Message-ID: <1456215928-9305-6-git-send-email-leon@leon.nu>
+Subject: [PATCH rdma-next V1 2/8] net/mlx5_core: Refactor device capability function
+Date: Tue, 23 Feb 2016 10:25:22 +0200
+Message-ID: <1456215928-9305-3-git-send-email-leon@leon.nu>
 References: <1456215928-9305-1-git-send-email-leon@leon.nu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456215928-9305-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
@@ -12,57 +12,195 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The old bitwise device_cap_flags variable was limited to u32 which
-has all bits already defined. In order to overcome it, we converted
-device_cap_flags variable to be u64 type.
+Device capability function was called similar in all places.
+It was called twice for every queried parameter, while the
+difference between calls was in HCA capability mode only.
+
+The change proposed unify these calls into one function.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 2 +-
- drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
- include/rdma/ib_verbs.h              | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c   | 55 ++++----------------------
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 28 +++++++------
+ include/linux/mlx5/driver.h                    |  3 +-
+ 3 files changed, 24 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index c647d67..6887252 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -402,7 +402,7 @@ static void copy_query_dev_fields(struct ib_uverbs_file *file,
- 	resp->hw_ver		= attr->hw_ver;
- 	resp->max_qp		= attr->max_qp;
- 	resp->max_qp_wr		= attr->max_qp_wr;
--	resp->device_cap_flags	= attr->device_cap_flags;
-+	resp->device_cap_flags	= lower_32_bits(attr->device_cap_flags);
- 	resp->max_sge		= attr->max_sge;
- 	resp->max_sge_rd	= attr->max_sge_rd;
- 	resp->max_cq		= attr->max_cq;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index a6f3eab..4dd05f0 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -387,7 +387,7 @@ struct ipoib_dev_priv {
- 	struct dentry *mcg_dentry;
- 	struct dentry *path_dentry;
- #endif
--	int	hca_caps;
-+	u64	hca_caps;
- 	struct ipoib_ethtool_st ethtool;
- 	struct timer_list poll_timer;
- };
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 284b00c..2ff1fd1 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -273,7 +273,7 @@ struct ib_device_attr {
- 	u32			hw_ver;
- 	int			max_qp;
- 	int			max_qp_wr;
--	int			device_cap_flags;
-+	u64			device_cap_flags;
- 	int			max_sge;
- 	int			max_sge_rd;
- 	int			max_cq;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+index aa1ab47..fe6dfd8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
+@@ -98,88 +98,49 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
+ {
+ 	int err;
+ 
+-	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_CUR);
+-	if (err)
+-		return err;
+-
+-	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_MAX);
++	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL);
+ 	if (err)
+ 		return err;
+ 
+ 	if (MLX5_CAP_GEN(dev, eth_net_offloads)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ETHERNET_OFFLOADS);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, pg)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, atomic)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, roce)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ROCE);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, nic_flow_table)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, vport_group_manager) &&
+ 	    MLX5_CAP_GEN(dev, eswitch_flow_table)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH_FLOW_TABLE);
+ 		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (MLX5_CAP_GEN(dev, eswitch_flow_table)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ESWITCH);
+ 		if (err)
+ 			return err;
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index b86fe50..9397768 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -341,8 +341,9 @@ static u16 to_fw_pkey_sz(u32 size)
+ 	}
+ }
+ 
+-int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type,
+-		       enum mlx5_cap_mode cap_mode)
++static int mlx5_core_get_caps_mode(struct mlx5_core_dev *dev,
++				   enum mlx5_cap_type cap_type,
++				   enum mlx5_cap_mode cap_mode)
+ {
+ 	u8 in[MLX5_ST_SZ_BYTES(query_hca_cap_in)];
+ 	int out_sz = MLX5_ST_SZ_BYTES(query_hca_cap_out);
+@@ -392,6 +393,16 @@ query_ex:
+ 	return err;
+ }
+ 
++int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type)
++{
++	int ret;
++
++	ret = mlx5_core_get_caps_mode(dev, cap_type, HCA_CAP_OPMOD_GET_CUR);
++	if (ret)
++		return ret;
++	return mlx5_core_get_caps_mode(dev, cap_type, HCA_CAP_OPMOD_GET_MAX);
++}
++
+ static int set_caps(struct mlx5_core_dev *dev, void *in, int in_sz, int opmod)
+ {
+ 	u32 out[MLX5_ST_SZ_DW(set_hca_cap_out)];
+@@ -419,12 +430,7 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
+ 	int err;
+ 
+ 	if (MLX5_CAP_GEN(dev, atomic)) {
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
+-					 HCA_CAP_OPMOD_GET_CUR);
+-		if (err)
+-			return err;
+-		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC,
+-					 HCA_CAP_OPMOD_GET_MAX);
++		err = mlx5_core_get_caps(dev, MLX5_CAP_ATOMIC);
+ 		if (err)
+ 			return err;
+ 	} else {
+@@ -466,11 +472,7 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	if (!set_ctx)
+ 		goto query_ex;
+ 
+-	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_MAX);
+-	if (err)
+-		goto query_ex;
+-
+-	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL, HCA_CAP_OPMOD_GET_CUR);
++	err = mlx5_core_get_caps(dev, MLX5_CAP_GENERAL);
+ 	if (err)
+ 		goto query_ex;
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 1e3006d..1f1d971 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -706,8 +706,7 @@ void mlx5_cmd_use_events(struct mlx5_core_dev *dev);
+ void mlx5_cmd_use_polling(struct mlx5_core_dev *dev);
+ int mlx5_cmd_status_to_err(struct mlx5_outbox_hdr *hdr);
+ int mlx5_cmd_status_to_err_v2(void *ptr);
+-int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type,
+-		       enum mlx5_cap_mode cap_mode);
++int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type);
+ int mlx5_cmd_exec(struct mlx5_core_dev *dev, void *in, int in_size, void *out,
+ 		  int out_size);
+ int mlx5_cmd_exec_cb(struct mlx5_core_dev *dev, void *in, int in_size,
 -- 
 2.1.4
 
