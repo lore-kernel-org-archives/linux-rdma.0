@@ -1,81 +1,235 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 05/12] iser-target: Remove redundant wait in release_conn
-Date: Wed, 24 Feb 2016 19:24:02 +0200
-Message-ID: <1456334649-21437-6-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH 04/12] iser-target: Rework connection termination
+Date: Wed, 24 Feb 2016 19:24:01 +0200
+Message-ID: <1456334649-21437-5-git-send-email-sagig@mellanox.com>
 References: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456334649-21437-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jenny Derzhavetz <jennyf@mellanox.com>
 
-With current termination flow we call release_conn after completion.
+When we receive an event that triggers connection termination,
+we have a a couple of things we may want to do:
+1. In case we are already terminating, bailout early
+2. In case we are connected but not bound, disconnect and schedule
+   a connection cleanup silently (don't reinstate)
+3. In case we are connected and bound, disconnect and reinstate the connection
 
-Signed-off-by: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This rework fixes a bug that was detected against a mis-behaved
+initiator which rejected our rdma_cm accept, in this stage the
+isert_conn is no bound and reinstate caused a bogus dereference.
+
+What's great about this is that we don't need the
+post_recv_buf_count anymore, so get rid of it.
+
+Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 7 -------
- drivers/infiniband/ulp/isert/ib_isert.h | 1 -
- 2 files changed, 8 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 107 ++++++++++++++++----------------
+ drivers/infiniband/ulp/isert/ib_isert.h |   1 -
+ 2 files changed, 52 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 0e1a802c3618..01d37260a8d8 100644
+index 73b2233edcff..0e1a802c3618 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -583,7 +583,6 @@ isert_init_conn(struct isert_conn *isert_conn)
- 	INIT_LIST_HEAD(&isert_conn->node);
- 	init_completion(&isert_conn->login_comp);
- 	init_completion(&isert_conn->login_req_comp);
--	init_completion(&isert_conn->wait);
- 	kref_init(&isert_conn->kref);
- 	mutex_init(&isert_conn->mutex);
- 	spin_lock_init(&isert_conn->pool_lock);
-@@ -834,7 +833,6 @@ isert_handle_unbound_conn(struct isert_conn *isert_conn)
- 		 */
- 		list_del_init(&isert_conn->node);
- 		isert_put_conn(isert_conn);
--		complete(&isert_conn->wait);
- 		queue_work(isert_release_wq, &isert_conn->release_work);
- 	}
- 	mutex_unlock(&isert_np->mutex);
-@@ -867,9 +865,6 @@ isert_conn_terminate(struct isert_conn *isert_conn)
- 	if (err)
- 		isert_warn("Failed rdma_disconnect isert_conn %p\n",
- 			   isert_conn);
--
--	isert_info("conn %p completing wait\n", isert_conn);
--	complete(&isert_conn->wait);
+@@ -65,6 +65,7 @@ isert_rdma_accept(struct isert_conn *isert_conn);
+ struct rdma_cm_id *isert_setup_id(struct isert_np *isert_np);
+ 
+ static void isert_release_work(struct work_struct *work);
++static void isert_wait4flush(struct isert_conn *isert_conn);
+ 
+ static inline bool
+ isert_prot_cmd(struct isert_conn *conn, struct se_cmd *cmd)
+@@ -820,6 +821,25 @@ isert_put_conn(struct isert_conn *isert_conn)
+ 	kref_put(&isert_conn->kref, isert_release_kref);
+ }
+ 
++static void
++isert_handle_unbound_conn(struct isert_conn *isert_conn)
++{
++	struct isert_np *isert_np = isert_conn->cm_id->context;
++
++	mutex_lock(&isert_np->mutex);
++	if (!list_empty(&isert_conn->node)) {
++		/*
++		 * This means iscsi doesn't know this connection
++		 * so schedule a cleanup ourselves
++		 */
++		list_del_init(&isert_conn->node);
++		isert_put_conn(isert_conn);
++		complete(&isert_conn->wait);
++		queue_work(isert_release_wq, &isert_conn->release_work);
++	}
++	mutex_unlock(&isert_np->mutex);
++}
++
+ /**
+  * isert_conn_terminate() - Initiate connection termination
+  * @isert_conn: isert connection struct
+@@ -837,24 +857,19 @@ isert_conn_terminate(struct isert_conn *isert_conn)
+ {
+ 	int err;
+ 
+-	switch (isert_conn->state) {
+-	case ISER_CONN_TERMINATING:
+-		break;
+-	case ISER_CONN_UP:
+-	case ISER_CONN_BOUND:
+-	case ISER_CONN_FULL_FEATURE: /* FALLTHRU */
+-		isert_info("Terminating conn %p state %d\n",
+-			   isert_conn, isert_conn->state);
+-		isert_conn->state = ISER_CONN_TERMINATING;
+-		err = rdma_disconnect(isert_conn->cm_id);
+-		if (err)
+-			isert_warn("Failed rdma_disconnect isert_conn %p\n",
+-				   isert_conn);
+-		break;
+-	default:
+-		isert_warn("conn %p teminating in state %d\n",
+-			   isert_conn, isert_conn->state);
+-	}
++	if (isert_conn->state >= ISER_CONN_TERMINATING)
++		return;
++
++	isert_info("Terminating conn %p state %d\n",
++		   isert_conn, isert_conn->state);
++	isert_conn->state = ISER_CONN_TERMINATING;
++	err = rdma_disconnect(isert_conn->cm_id);
++	if (err)
++		isert_warn("Failed rdma_disconnect isert_conn %p\n",
++			   isert_conn);
++
++	isert_info("conn %p completing wait\n", isert_conn);
++	complete(&isert_conn->wait);
  }
  
  static int
-@@ -3274,8 +3269,6 @@ static void isert_release_work(struct work_struct *work)
+@@ -888,30 +903,27 @@ static int
+ isert_disconnected_handler(struct rdma_cm_id *cma_id,
+ 			   enum rdma_cm_event_type event)
+ {
+-	struct isert_np *isert_np = cma_id->context;
+ 	struct isert_conn *isert_conn = cma_id->qp->qp_context;
+-	bool terminating = false;
  
- 	isert_info("Starting release conn %p\n", isert_conn);
- 
--	wait_for_completion(&isert_conn->wait);
--
  	mutex_lock(&isert_conn->mutex);
- 	isert_conn->state = ISER_CONN_DOWN;
- 	mutex_unlock(&isert_conn->mutex);
+-	terminating = (isert_conn->state == ISER_CONN_TERMINATING);
+-	isert_conn_terminate(isert_conn);
+-	mutex_unlock(&isert_conn->mutex);
+-
+-	isert_info("conn %p completing wait\n", isert_conn);
+-	complete(&isert_conn->wait);
+-
+-	if (terminating)
+-		goto out;
+-
+-	mutex_lock(&isert_np->mutex);
+-	if (!list_empty(&isert_conn->node)) {
+-		list_del_init(&isert_conn->node);
+-		isert_put_conn(isert_conn);
+-		queue_work(isert_release_wq, &isert_conn->release_work);
++	switch (isert_conn->state) {
++	case ISER_CONN_TERMINATING:
++		break;
++	case ISER_CONN_UP:
++		isert_conn_terminate(isert_conn);
++		isert_wait4flush(isert_conn);
++		isert_handle_unbound_conn(isert_conn);
++		break;
++	case ISER_CONN_BOUND:
++	case ISER_CONN_FULL_FEATURE: /* FALLTHRU */
++		iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
++		break;
++	default:
++		isert_warn("conn %p teminating in state %d\n",
++			   isert_conn, isert_conn->state);
+ 	}
+-	mutex_unlock(&isert_np->mutex);
++	mutex_unlock(&isert_conn->mutex);
+ 
+-out:
+ 	return 0;
+ }
+ 
+@@ -985,13 +997,10 @@ isert_post_recvm(struct isert_conn *isert_conn, u32 count)
+ 	rx_wr--;
+ 	rx_wr->next = NULL; /* mark end of work requests list */
+ 
+-	isert_conn->post_recv_buf_count += count;
+ 	ret = ib_post_recv(isert_conn->qp, isert_conn->rx_wr,
+ 			   &rx_wr_failed);
+-	if (ret) {
++	if (ret)
+ 		isert_err("ib_post_recv() failed with ret: %d\n", ret);
+-		isert_conn->post_recv_buf_count -= count;
+-	}
+ 
+ 	return ret;
+ }
+@@ -1007,12 +1016,9 @@ isert_post_recv(struct isert_conn *isert_conn, struct iser_rx_desc *rx_desc)
+ 	rx_wr.num_sge = 1;
+ 	rx_wr.next = NULL;
+ 
+-	isert_conn->post_recv_buf_count++;
+ 	ret = ib_post_recv(isert_conn->qp, &rx_wr, &rx_wr_failed);
+-	if (ret) {
++	if (ret)
+ 		isert_err("ib_post_recv() failed with ret: %d\n", ret);
+-		isert_conn->post_recv_buf_count--;
+-	}
+ 
+ 	return ret;
+ }
+@@ -1132,12 +1138,9 @@ isert_rdma_post_recvl(struct isert_conn *isert_conn)
+ 	rx_wr.sg_list = &sge;
+ 	rx_wr.num_sge = 1;
+ 
+-	isert_conn->post_recv_buf_count++;
+ 	ret = ib_post_recv(isert_conn->qp, &rx_wr, &rx_wr_fail);
+-	if (ret) {
++	if (ret)
+ 		isert_err("ib_post_recv() failed: %d\n", ret);
+-		isert_conn->post_recv_buf_count--;
+-	}
+ 
+ 	return ret;
+ }
+@@ -1633,7 +1636,6 @@ isert_rcv_completion(struct iser_rx_desc *desc,
+ 	ib_dma_sync_single_for_device(ib_dev, rx_dma, rx_buflen,
+ 				      DMA_FROM_DEVICE);
+ 
+-	isert_conn->post_recv_buf_count--;
+ }
+ 
+ static int
+@@ -2073,11 +2075,6 @@ isert_cq_comp_err(struct isert_conn *isert_conn, struct ib_wc *wc)
+ 			isert_unmap_tx_desc(desc, ib_dev);
+ 		else
+ 			isert_completion_put(desc, isert_cmd, ib_dev, true);
+-	} else {
+-		isert_conn->post_recv_buf_count--;
+-		if (!isert_conn->post_recv_buf_count &&
+-		    isert_conn->state >= ISER_CONN_BOUND)
+-			iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
+ 	}
+ }
+ 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 1aa019ab9d78..9f916b12cf40 100644
+index b80ec44fb4e1..1aa019ab9d78 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.h
 +++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -201,7 +201,6 @@ struct isert_conn {
- 	struct ib_qp		*qp;
- 	struct isert_device	*device;
- 	struct mutex		mutex;
--	struct completion	wait;
- 	struct completion	wait_comp_err;
- 	struct kref		kref;
- 	struct list_head	fr_pool;
+@@ -180,7 +180,6 @@ struct isert_device;
+ 
+ struct isert_conn {
+ 	enum iser_conn_state	state;
+-	int			post_recv_buf_count;
+ 	u32			responder_resources;
+ 	u32			initiator_depth;
+ 	bool			pi_support;
 -- 
 1.8.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
