@@ -1,84 +1,61 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 02/12] iser-target: Add new state ISER_CONN_BOUND to isert_conn
-Date: Wed, 24 Feb 2016 19:23:59 +0200
-Message-ID: <1456334649-21437-3-git-send-email-sagig@mellanox.com>
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: [PATCH 03/12] iser-target: Separate flows for np listeners and connections cma events
+Date: Wed, 24 Feb 2016 19:24:00 +0200
+Message-ID: <1456334649-21437-4-git-send-email-sagig@mellanox.com>
 References: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456334649-21437-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Jenny Derzhavetz <jennyf@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Jenny Derzhavetz <jennyf@mellanox.com>
 
-We need an indication that isert_conn->iscsi_conn binding has
-happened so we'll know not to invoke a connection reinstatement
-on an unbound connection which will lead to a bogus isert_conn->conn
-dereferece.
+No need to restrict this check to specific events.
 
-Signed-off-by: Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jenny Derzhavetz <jennyf@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 7 +++++--
- drivers/infiniband/ulp/isert/ib_isert.h | 1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 09ded3c704e5..320d3a55249c 100644
+index 320d3a55249c..73b2233edcff 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -825,7 +825,7 @@ isert_put_conn(struct isert_conn *isert_conn)
-  * @isert_conn: isert connection struct
-  *
-  * Notes:
-- * In case the connection state is FULL_FEATURE, move state
-+ * In case the connection state is BOUND, move state
-  * to TEMINATING and start teardown sequence (rdma_disconnect).
-  * In case the connection state is UP, complete flush as well.
-  *
-@@ -841,6 +841,7 @@ isert_conn_terminate(struct isert_conn *isert_conn)
- 	case ISER_CONN_TERMINATING:
- 		break;
- 	case ISER_CONN_UP:
-+	case ISER_CONN_BOUND:
- 	case ISER_CONN_FULL_FEATURE: /* FALLTHRU */
- 		isert_info("Terminating conn %p state %d\n",
- 			   isert_conn, isert_conn->state);
-@@ -2075,7 +2076,8 @@ isert_cq_comp_err(struct isert_conn *isert_conn, struct ib_wc *wc)
- 			isert_completion_put(desc, isert_cmd, ib_dev, true);
- 	} else {
- 		isert_conn->post_recv_buf_count--;
--		if (!isert_conn->post_recv_buf_count)
-+		if (!isert_conn->post_recv_buf_count &&
-+		    isert_conn->state >= ISER_CONN_BOUND)
- 			iscsit_cause_connection_reinstatement(isert_conn->conn, 0);
- 	}
- }
-@@ -3215,6 +3217,7 @@ accept_wait:
+@@ -889,14 +889,9 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
+ 			   enum rdma_cm_event_type event)
+ {
+ 	struct isert_np *isert_np = cma_id->context;
+-	struct isert_conn *isert_conn;
++	struct isert_conn *isert_conn = cma_id->qp->qp_context;
+ 	bool terminating = false;
  
- 	conn->context = isert_conn;
- 	isert_conn->conn = conn;
-+	isert_conn->state = ISER_CONN_BOUND;
+-	if (isert_np->cm_id == cma_id)
+-		return isert_np_cma_handler(cma_id->context, event);
+-
+-	isert_conn = cma_id->qp->qp_context;
+-
+ 	mutex_lock(&isert_conn->mutex);
+ 	terminating = (isert_conn->state == ISER_CONN_TERMINATING);
+ 	isert_conn_terminate(isert_conn);
+@@ -935,12 +930,16 @@ isert_connect_error(struct rdma_cm_id *cma_id)
+ static int
+ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ {
++	struct isert_np *isert_np = cma_id->context;
+ 	int ret = 0;
  
- 	isert_set_conn_info(np, conn, isert_conn);
+ 	isert_info("%s (%d): status %d id %p np %p\n",
+ 		   rdma_event_msg(event->event), event->event,
+ 		   event->status, cma_id, cma_id->context);
  
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 8d50453eef66..b80ec44fb4e1 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -84,6 +84,7 @@ enum iser_ib_op_code {
- enum iser_conn_state {
- 	ISER_CONN_INIT,
- 	ISER_CONN_UP,
-+	ISER_CONN_BOUND,
- 	ISER_CONN_FULL_FEATURE,
- 	ISER_CONN_TERMINATING,
- 	ISER_CONN_DOWN,
++	if (isert_np->cm_id == cma_id)
++		return isert_np_cma_handler(cma_id->context, event->event);
++
+ 	switch (event->event) {
+ 	case RDMA_CM_EVENT_CONNECT_REQUEST:
+ 		ret = isert_connect_request(cma_id, event);
 -- 
 1.8.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
