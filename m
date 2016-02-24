@@ -1,38 +1,94 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 3/5] IB/isert: Convert to new CQ API
-Date: Wed, 24 Feb 2016 18:01:27 +0200
-Message-ID: <56CDD3D7.7060408@dev.mellanox.co.il>
-References: <1456148958-27973-1-git-send-email-hch@lst.de>
- <1456148958-27973-4-git-send-email-hch@lst.de>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv6 2/3] IB/core: added support to use rdma cgroup controller
+Date: Wed, 24 Feb 2016 21:35:00 +0530
+Message-ID: <CAG53R5WmLucikiKbFbwJipY936Z07UvvDtWST88S4g10HyJ2Ng@mail.gmail.com>
+References: <1455966006-13774-1-git-send-email-pandit.parav@gmail.com>
+	<1455966006-13774-3-git-send-email-pandit.parav@gmail.com>
+	<56CDB374.602@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456148958-27973-4-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <56CDB374.602@mellanox.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tejun Heo <tj@kernel.org>, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Feb 24, 2016 at 7:13 PM, Haggai Eran <haggaie@mellanox.com> wrote:
 
-> -isert_rx_do_work(struct iser_rx_desc *rx_desc, struct isert_conn *isert_conn)
-> +isert_print_wc(struct ib_wc *wc)
-> +{
-> +	if (wc->status != IB_WC_WR_FLUSH_ERR)
-> +		isert_err("%s (%d): cqe 0x%p vend_err %x\n",
-> +			  ib_wc_status_msg(wc->status), wc->status,
-> +			  wc->wr_cqe, wc->vendor_err);
-> +	else
-> +		isert_dbg("%s (%d): cqe 0x%p\n",
-> +			  ib_wc_status_msg(wc->status), wc->status,
-> +			  wc->wr_cqe);
-> +
-> +}
+>> + * all the resources are deallocated, and after a stage when any
+>> + * other resource allocation of user application cannot be done
+>> + * for this device to avoid any leak in accounting.
+>> + * HCA drivers should clear resource pool ops after ib stack
+>> + * unregisters with rdma cgroup.
+> HCA drivers don't supply their own ops in this version, right?
+> If so, you can update the comment.
+Yes. I will update.
 
-I don't find the wr_cqe address all that useful. I modified
-isert_print_wc to get a error type instead ("send", "recv", "rdma
-write"...) sounds fine?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +
+> I'm not sure I understand why you need to keep the PD here. Why
+> don't you use the same ib_device that is used to create the QP?
+> The same applies comment also applies to other uverbs commands.
+
+My bad. Left out of previous implementation. I have changed it now.
+
+>
+>>       if (cmd->qp_type == IB_QPT_XRC_TGT) {
+>>               xrcd = idr_read_xrcd(cmd->pd_handle, file->ucontext,
+>>                                    &xrcd_uobj);
+>> @@ -1811,8 +1891,7 @@ static int create_qp(struct ib_uverbs_file *file,
+>>
+>>               scq = idr_read_cq(cmd->send_cq_handle, file->ucontext, !!rcq);
+>>               rcq = rcq ?: scq;
+>> -             pd  = idr_read_pd(cmd->pd_handle, file->ucontext);
+>> -             if (!pd || !scq) {
+>> +             if (!scq) {
+>>                       ret = -EINVAL;
+>>                       goto err_put;
+>>               }
+>> @@ -1858,6 +1937,11 @@ static int create_qp(struct ib_uverbs_file *file,
+>>                       goto err_put;
+>>               }
+>>
+>> +     ret = ib_rdmacg_try_charge(&obj->uevent.uobject.cg_obj, pd->device,
+>> +                                RDMA_VERB_RESOURCE_QP, 1);
+>> +     if (ret)
+>> +             goto err_put;
+>> +
+>>       if (cmd->qp_type == IB_QPT_XRC_TGT)
+>>               qp = ib_create_qp(pd, &attr);
+>>       else
+>> @@ -1865,7 +1949,7 @@ static int create_qp(struct ib_uverbs_file *file,
+>>
+>>       if (IS_ERR(qp)) {
+>>               ret = PTR_ERR(qp);
+>> -             goto err_put;
+>> +             goto err_create;
+>>       }
+>>
+>>       if (cmd->qp_type != IB_QPT_XRC_TGT) {
+>> @@ -1940,6 +2024,10 @@ err_cb:
+>>  err_destroy:
+>>       ib_destroy_qp(qp);
+>>
+>> +err_create:
+>> +     ib_rdmacg_uncharge(&obj->uevent.uobject.cg_obj, device,
+>> +                        RDMA_VERB_RESOURCE_QP, 1);
+>> +
+>>  err_put:
+>>       if (xrcd)
+>>               put_xrcd_read(xrcd_uobj);
+>
+>> @@ -3323,6 +3441,11 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
+>>       obj->uevent.events_reported = 0;
+>>       INIT_LIST_HEAD(&obj->uevent.event_list);
+>>
+>> +     ret = ib_rdmacg_try_charge(&obj->uevent.uobject.cg_obj, pd->device,
+>> +                                RDMA_VERB_RESOURCE_SRQ, 1);
+>> +     if (ret)
+>> +             goto err_put_cq;
+>> +
+> I think you need a new error label to release the PD IDR but not
+> uncharge.
+
+Yes. Changed.
