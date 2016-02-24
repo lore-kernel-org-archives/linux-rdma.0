@@ -1,127 +1,110 @@
 From: Sagi Grimberg <sagig@mellanox.com>
-Subject: [PATCH 12/12] iser-target: Use ib_drain_qp
-Date: Wed, 24 Feb 2016 19:24:09 +0200
-Message-ID: <1456334649-21437-13-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 11/12] iser-target: Kill the ->isert_cmd back pointer in struct iser_tx_desc
+Date: Wed, 24 Feb 2016 19:24:08 +0200
+Message-ID: <1456334649-21437-12-git-send-email-sagig@mellanox.com>
 References: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
 Sender: target-devel-owner@vger.kernel.org
 To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-Now the rdma core offers a QP draining service, use it
-instead of our own.
+From: Christoph Hellwig <hch@lst.de>
 
+We only use the pointer when processing regular iSER commands, and it then
+always points to the struct iser_cmd that contains the TX descriptor.
+
+Remove it and rely on container_of to save a little space and avoid a
+pointer that is updated multiple times per processed command.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 39 ++++-----------------------------
- drivers/infiniband/ulp/isert/ib_isert.h |  2 --
- 2 files changed, 4 insertions(+), 37 deletions(-)
+ drivers/infiniband/ulp/isert/ib_isert.c | 11 +++--------
+ drivers/infiniband/ulp/isert/ib_isert.h |  6 +++++-
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index 57e4edd661c5..411e4464ca23 100644
+index dbaf784ae190..57e4edd661c5 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.c
 +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -63,7 +63,6 @@ isert_rdma_accept(struct isert_conn *isert_conn);
- struct rdma_cm_id *isert_setup_id(struct isert_np *isert_np);
+@@ -1041,7 +1041,6 @@ isert_create_send_desc(struct isert_conn *isert_conn,
+ 	tx_desc->iser_header.flags = ISCSI_CTRL;
  
- static void isert_release_work(struct work_struct *work);
--static void isert_wait4flush(struct isert_conn *isert_conn);
- static void isert_recv_done(struct ib_cq *cq, struct ib_wc *wc);
- static void isert_send_done(struct ib_cq *cq, struct ib_wc *wc);
- static void isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc);
-@@ -141,7 +140,7 @@ isert_create_qp(struct isert_conn *isert_conn,
- 	attr.qp_context = isert_conn;
- 	attr.send_cq = comp->cq;
- 	attr.recv_cq = comp->cq;
--	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS;
-+	attr.cap.max_send_wr = ISERT_QP_MAX_REQ_DTOS + 1;
- 	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_send_sge = device->ib_device->attrs.max_sge;
- 	isert_conn->max_sge = min(device->ib_device->attrs.max_sge,
-@@ -887,7 +886,7 @@ isert_disconnected_handler(struct rdma_cm_id *cma_id,
- 		break;
- 	case ISER_CONN_UP:
- 		isert_conn_terminate(isert_conn);
--		isert_wait4flush(isert_conn);
-+		ib_drain_qp(isert_conn->qp);
- 		isert_handle_unbound_conn(isert_conn);
- 		break;
- 	case ISER_CONN_BOUND:
-@@ -3213,36 +3212,6 @@ isert_wait4cmds(struct iscsi_conn *conn)
- 	}
- }
+ 	tx_desc->num_sge = 1;
+-	tx_desc->isert_cmd = isert_cmd;
  
--static void
--isert_beacon_done(struct ib_cq *cq, struct ib_wc *wc)
--{
--	struct isert_conn *isert_conn = wc->qp->qp_context;
--
--	isert_print_wc(wc);
--
--	isert_info("conn %p completing wait_comp_err\n", isert_conn);
--	complete(&isert_conn->wait_comp_err);
--}
--
--static void
--isert_wait4flush(struct isert_conn *isert_conn)
--{
--	struct ib_recv_wr *bad_wr;
--	static struct ib_cqe cqe = { .done = isert_beacon_done };
--
--	isert_info("conn %p\n", isert_conn);
--
--	init_completion(&isert_conn->wait_comp_err);
--	isert_conn->beacon.wr_cqe = &cqe;
--	/* post an indication that all flush errors were consumed */
--	if (ib_post_recv(isert_conn->qp, &isert_conn->beacon, &bad_wr)) {
--		isert_err("conn %p failed to post beacon", isert_conn);
--		return;
--	}
--
--	wait_for_completion(&isert_conn->wait_comp_err);
--}
--
- /**
-  * isert_put_unsol_pending_cmds() - Drop commands waiting for
-  *     unsolicitate dataout
-@@ -3288,7 +3257,7 @@ static void isert_wait_conn(struct iscsi_conn *conn)
- 	isert_conn_terminate(isert_conn);
- 	mutex_unlock(&isert_conn->mutex);
+ 	if (tx_desc->tx_sg[0].lkey != device->pd->local_dma_lkey) {
+ 		tx_desc->tx_sg[0].lkey = device->pd->local_dma_lkey;
+@@ -1882,7 +1881,7 @@ isert_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct isert_conn *isert_conn = wc->qp->qp_context;
+ 	struct isert_device *device = isert_conn->device;
+ 	struct iser_tx_desc *desc = cqe_to_tx_desc(wc->wr_cqe);
+-	struct isert_cmd *isert_cmd = desc->isert_cmd;
++	struct isert_cmd *isert_cmd = tx_desc_to_cmd(desc);
+ 	struct se_cmd *cmd = &isert_cmd->iscsi_cmd->se_cmd;
+ 	int ret = 0;
  
--	isert_wait4flush(isert_conn);
-+	ib_drain_qp(isert_conn->qp);
- 	isert_put_unsol_pending_cmds(conn);
- 	isert_wait4cmds(conn);
- 	isert_wait4logout(isert_conn);
-@@ -3300,7 +3269,7 @@ static void isert_free_conn(struct iscsi_conn *conn)
- {
- 	struct isert_conn *isert_conn = conn->context;
+@@ -1916,7 +1915,7 @@ isert_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct isert_conn *isert_conn = wc->qp->qp_context;
+ 	struct isert_device *device = isert_conn->device;
+ 	struct iser_tx_desc *desc = cqe_to_tx_desc(wc->wr_cqe);
+-	struct isert_cmd *isert_cmd = desc->isert_cmd;
++	struct isert_cmd *isert_cmd = tx_desc_to_cmd(desc);
+ 	struct iscsi_cmd *cmd = isert_cmd->iscsi_cmd;
+ 	struct se_cmd *se_cmd = &cmd->se_cmd;
+ 	int ret = 0;
+@@ -2009,7 +2008,7 @@ isert_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct isert_conn *isert_conn = wc->qp->qp_context;
+ 	struct ib_device *ib_dev = isert_conn->cm_id->device;
+ 	struct iser_tx_desc *tx_desc = cqe_to_tx_desc(wc->wr_cqe);
+-	struct isert_cmd *isert_cmd = tx_desc->isert_cmd;
++	struct isert_cmd *isert_cmd = tx_desc_to_cmd(tx_desc);
  
--	isert_wait4flush(isert_conn);
-+	ib_drain_qp(isert_conn->qp);
- 	isert_put_conn(isert_conn);
- }
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		isert_print_wc(wc, "send");
+@@ -2339,8 +2338,6 @@ isert_map_rdma(struct isert_cmd *isert_cmd, struct iscsi_conn *conn)
+ 	u32 offset, data_len, data_left, rdma_write_max, va_offset = 0;
+ 	int ret = 0, i, ib_sge_cnt;
  
+-	isert_cmd->tx_desc.isert_cmd = isert_cmd;
+-
+ 	offset = isert_cmd->iser_ib_op == ISER_IB_RDMA_READ ?
+ 			cmd->write_data_done : 0;
+ 	ret = isert_map_data_buf(isert_conn, isert_cmd, se_cmd->t_data_sg,
+@@ -2702,8 +2699,6 @@ isert_reg_rdma(struct isert_cmd *isert_cmd, struct iscsi_conn *conn)
+ 	int ret = 0;
+ 	unsigned long flags;
+ 
+-	isert_cmd->tx_desc.isert_cmd = isert_cmd;
+-
+ 	offset = isert_cmd->iser_ib_op == ISER_IB_RDMA_READ ?
+ 			cmd->write_data_done : 0;
+ 	ret = isert_map_data_buf(isert_conn, isert_cmd, se_cmd->t_data_sg,
 diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index 192788a4820c..147900cbb578 100644
+index f552797dc863..192788a4820c 100644
 --- a/drivers/infiniband/ulp/isert/ib_isert.h
 +++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -209,14 +209,12 @@ struct isert_conn {
- 	struct ib_qp		*qp;
- 	struct isert_device	*device;
- 	struct mutex		mutex;
--	struct completion	wait_comp_err;
- 	struct kref		kref;
- 	struct list_head	fr_pool;
- 	int			fr_pool_size;
- 	/* lock to protect fastreg pool */
- 	spinlock_t		pool_lock;
- 	struct work_struct	release_work;
--	struct ib_recv_wr       beacon;
- 	bool                    logout_posted;
- 	bool                    snd_w_inv;
+@@ -110,7 +110,6 @@ struct iser_tx_desc {
+ 	struct ib_sge	tx_sg[2];
+ 	struct ib_cqe	tx_cqe;
+ 	int		num_sge;
+-	struct isert_cmd *isert_cmd;
+ 	struct ib_send_wr send_wr;
+ } __packed;
+ 
+@@ -181,6 +180,11 @@ struct isert_cmd {
+ 	struct scatterlist	sg;
  };
+ 
++static inline struct isert_cmd *tx_desc_to_cmd(struct iser_tx_desc *desc)
++{
++	return container_of(desc, struct isert_cmd, tx_desc);
++}
++
+ struct isert_device;
+ 
+ struct isert_conn {
 -- 
 1.8.4.3
