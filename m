@@ -1,30 +1,66 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 12/12] iser-target: Use ib_drain_qp
-Date: Thu, 25 Feb 2016 10:49:30 +0200
-Message-ID: <56CEC01A.1050806@dev.mellanox.co.il>
-References: <201602250232.0MaJNmx5%fengguang.wu@intel.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH 09/12] iser-target: Convert to new CQ API
+Date: Thu, 25 Feb 2016 10:53:45 +0200
+Message-ID: <56CEC119.9000702@dev.mellanox.co.il>
+References: <201602250552.AzC8mEaU%fengguang.wu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201602250232.0MaJNmx5%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <201602250552.AzC8mEaU%fengguang.wu@intel.com>
+Sender: target-devel-owner@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>, Sagi Grimberg <sagig@mellanox.com>
+Cc: kbuild-all@01.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hi Sagi,
+> Hi Christoph,
 >
 > [auto build test ERROR on target/master]
 > [also build test ERROR on v4.5-rc5 next-20160224]
 > [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Sagi-Grimberg/iser-target-patches-for-4-6/20160225-012959
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git master
+> config: s390-allmodconfig (attached as .config)
+> reproduce:
+>          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>          chmod +x ~/bin/make.cross
+>          # save the attached .config to linux build tree
+>          make.cross ARCH=s390
+>
+> Note: the linux-review/Sagi-Grimberg/iser-target-patches-for-4-6/20160225-012959 HEAD 587105db403a346e5e1b003873f189e0d174efe5 builds fine.
+>        It only hurts bisectibility.
+>
+> All errors (new ones prefixed by >>):
+>
+>     drivers/infiniband/ulp/isert/ib_isert.c: In function 'isert_beacon_done':
+>>> drivers/infiniband/ulp/isert/ib_isert.c:3231:2: error: too few arguments to function 'isert_print_wc'
+>       isert_print_wc(wc);
+>       ^
+>     drivers/infiniband/ulp/isert/ib_isert.c:1541:1: note: declared here
+>      isert_print_wc(struct ib_wc *wc, const char *type)
+>      ^
 
-OK, this patch depends on a new API that is expected to be included from
-doug's tree, and that is why compilation fails.
+OK, that's my fault...
 
-Nic, should we just push this in rc1 after doug pull request landed?
+Nic, care to fold this in the patch?
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
+b/drivers/infiniband/ulp/isert/ib_isert.c
+index 76ff338..4269f22 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -3228,7 +3228,7 @@ isert_beacon_done(struct ib_cq *cq, struct ib_wc *wc)
+  {
+         struct isert_conn *isert_conn = wc->qp->qp_context;
+
+-       isert_print_wc(wc);
++       isert_print_wc(wc, "beacon");
+
+         isert_info("conn %p completing wait_comp_err\n", isert_conn);
+         complete(&isert_conn->wait_comp_err);
+--
+
+Patch 12/12 drops this anyways...
