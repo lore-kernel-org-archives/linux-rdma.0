@@ -1,66 +1,38 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 09/12] iser-target: Convert to new CQ API
-Date: Thu, 25 Feb 2016 10:53:45 +0200
-Message-ID: <56CEC119.9000702@dev.mellanox.co.il>
-References: <201602250552.AzC8mEaU%fengguang.wu@intel.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [RFC 0/7] Peer-direct memory
+Date: Thu, 25 Feb 2016 13:27:45 +0200
+Message-ID: <56CEE531.5050807@mellanox.com>
+References: <1455207177-11949-1-git-send-email-artemyko@mellanox.com>
+ <20160211191838.GA23675@obsidianresearch.com>
+ <20160212201328.GA14122@infradead.org>
+ <20160212203649.GA10540@obsidianresearch.com>
+ <56C09C7E.4060808@dev.mellanox.co.il>
+ <36F6EBABA23FEF4391AF72944D228901EB70C102@BBYEXM01.pmc-sierra.internal>
+ <56C97E13.9090101@mellanox.com>
+ <36F6EBABA23FEF4391AF72944D228901EB712F72@BBYEXM01.pmc-sierra.internal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <201602250552.AzC8mEaU%fengguang.wu@intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>, Sagi Grimberg <sagig@mellanox.com>
-Cc: kbuild-all@01.org, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <36F6EBABA23FEF4391AF72944D228901EB712F72@BBYEXM01.pmc-sierra.internal>
+Sender: owner-linux-mm@kvack.org
+To: Stephen Bates <Stephen.Bates@pmcs.com>, Sagi Grimberg <sagig@dev.mellanox.co.il>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@infradead.org>, "'Logan Gunthorpe' (logang@deltatee.com)" <logang@deltatee.com>
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Leon Romanovsky <leonro@mellanox.com>, "sagig@mellanox.com" <sagig@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 25/02/2016 01:45, Stephen Bates wrote:
+> Great, we hope to have the RFC soon. It will be able to accept different flags for devm_memremap() call with regards to caching. Though one question I have is when does the caching flag affect Peer-2-Peer memory accesses? I can see caching causing issues when performing accesses from the CPU but P2P accesses should bypass any caches in the system?
+I don't think the caching flag will affect peer to peer directly, but we need 
+to keep the BAR mapped to the host the same way it is today. If we change the
+driver to map page structs returned from devm_memremap_pages() instead of using
+io_remap_pfn_range() it needs to continue working with host uses and not only
+with peers.
 
-> Hi Christoph,
->
-> [auto build test ERROR on target/master]
-> [also build test ERROR on v4.5-rc5 next-20160224]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Sagi-Grimberg/iser-target-patches-for-4-6/20160225-012959
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git master
-> config: s390-allmodconfig (attached as .config)
-> reproduce:
->          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->          chmod +x ~/bin/make.cross
->          # save the attached .config to linux build tree
->          make.cross ARCH=s390
->
-> Note: the linux-review/Sagi-Grimberg/iser-target-patches-for-4-6/20160225-012959 HEAD 587105db403a346e5e1b003873f189e0d174efe5 builds fine.
->        It only hurts bisectibility.
->
-> All errors (new ones prefixed by >>):
->
->     drivers/infiniband/ulp/isert/ib_isert.c: In function 'isert_beacon_done':
->>> drivers/infiniband/ulp/isert/ib_isert.c:3231:2: error: too few arguments to function 'isert_print_wc'
->       isert_print_wc(wc);
->       ^
->     drivers/infiniband/ulp/isert/ib_isert.c:1541:1: note: declared here
->      isert_print_wc(struct ib_wc *wc, const char *type)
->      ^
-
-OK, that's my fault...
-
-Nic, care to fold this in the patch?
+Regards,
+Haggai
 
 --
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
-b/drivers/infiniband/ulp/isert/ib_isert.c
-index 76ff338..4269f22 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -3228,7 +3228,7 @@ isert_beacon_done(struct ib_cq *cq, struct ib_wc *wc)
-  {
-         struct isert_conn *isert_conn = wc->qp->qp_context;
-
--       isert_print_wc(wc);
-+       isert_print_wc(wc, "beacon");
-
-         isert_info("conn %p completing wait_comp_err\n", isert_conn);
-         complete(&isert_conn->wait_comp_err);
---
-
-Patch 12/12 drops this anyways...
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
