@@ -1,105 +1,89 @@
-From: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: staging/rdma/hfi1: Add support for enabling/disabling PCIe ASPM
-Date: Wed, 24 Feb 2016 22:00:48 -0500
-Message-ID: <tnm1t60xd334v.fsf@phwtpriv05.ph.intel.com>
-References: <20160203223302.5923.92377.stgit@scvm10.sc.intel.com>
-	<20160223115728.GA6058@smile.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 1/4] RDMA/libocrdma: Add user space support for RoCE-v2
+Date: Thu, 25 Feb 2016 02:50:44 -0500
+Message-ID: <1456386647-22315-2-git-send-email-devesh.sharma@broadcom.com>
+References: <1456386647-22315-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160223115728.GA6058-XvqNBM/wLWRrdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Andy Shevchenko's
-	message of "Tue, 23 Feb 2016 04:57:28 -0700")
+In-Reply-To: <1456386647-22315-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Shevchenko, Andriy" <andriy.shevchenko-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 23 2016 at 06:57:28 AM, Andy Shevchenko <andriy.shevchenko@=
-linux.intel.com> wrote:
->> +/* ASPM processing for each receive context interrupt */
->> +static inline void aspm_ctx_disable(struct hfi1_ctxtdata *rcd)
->> +{
->> +	bool restart_timer;
->> +	bool close_interrupts;
->> +	unsigned long flags;
->> +	ktime_t now, prev;
->> +
->> +	/* Quickest exit for minimum impact */
->> +	if (!rcd->aspm_intr_supported)
->> +		return;
->> +
->> +	spin_lock_irqsave(&rcd->aspm_lock, flags);
->> +	/* PSM contexts are open */
->> +	if (!rcd->aspm_intr_enable)
->> +		goto ret;
->> +
->> +	prev =3D rcd->aspm_ts_last_intr;
->> +	now =3D ktime_get();
->> +	rcd->aspm_ts_last_intr =3D now;
->> +
->> +	/* An interrupt pair close together in time */
->> +	close_interrupts =3D ktime_to_ns(ktime_sub(now, prev)) <
->> ASPM_TRIGGER_NS;
->> +
->> +	/* Don't push out our timer till this much time has elapsed
->> */
->> +	restart_timer =3D ktime_to_ms(ktime_sub(now, rcd-
->> >aspm_ts_timer_sched)) >
->> +				ASPM_RESCHED_TIMER_MS;
->
->> +	restart_timer =3D restart_timer && close_interrupts;
->> +
->> +	/* Disable ASPM and schedule timer */
->> +	if (rcd->aspm_enabled && close_interrupts) {
->> +		aspm_disable_inc(rcd->dd);
->> +		rcd->aspm_enabled =3D false;
->> +		restart_timer =3D true;
->> +	}
->> +
->> +	if (restart_timer) {
->> +		mod_timer(&rcd->aspm_timer,
->> +			=C2=A0=C2=A0jiffies +
->> msecs_to_jiffies(ASPM_TIMER_MS));
->> +		rcd->aspm_ts_timer_sched =3D now;
->> +	}
->
-> What about the following changes (mostly about replacing divisions by
-> multiplications)?
->
->
-> ktime_t eta, restart;
->
-> eta =3D ktime_add_ns(rcd->aspm_ts_last_intr, ASPM_TRIGGER_NS);
->
-> rcd->aspm_ts_last_intr =3D ktime_get();
->
-> /* Close interrupts? */
-> if (ktime_before(now, eta)) {
-> =C2=A0 /* Disable ASPM? */
-> =C2=A0 if (rcd->aspm_enabled) {
-> =C2=A0 =C2=A0
-> aspm_disable_inc(rcd->dd);
-> =C2=A0 =C2=A0 rcd->aspm_enabled =3D false;
-> =C2=A0 } else {
-> =C2=A0 =C2=A0
-> restart =3D ktime_add_ms(rcd->aspm_ts_timer_sched,
-> ASPM_RESCHED_TIMER_MS);
-> =C2=A0 =C2=A0 if (ktime_before(rcd->aspm_ts_last_intr,
-> restart))
-> =C2=A0 =C2=A0 =C2=A0 goto exit_unlock;
-> =C2=A0 }
->
-> =C2=A0 /* Restart timer */
-> =C2=A0 mod_timer(&rcd->aspm_timer, jiffies + msecs_to_jiffies(ASPM_TI=
-MER_MS));
-> =C2=A0 rcd->aspm_ts_timer_sched =3D rcd->aspm_ts_last_intr;
-> }
+RoCE-v2 is a recently added extension to original RoCE protocol
+it uses UDP encapsulation to achieve routability of RoCE packets.
 
-There are no divisions in the code segment above. We discussed it
-internally and there is agreement to leave the patch as is.
+This patch avails RoCE-v2 for userland applications.
+
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ src/ocrdma_abi.h   | 2 +-
+ src/ocrdma_main.h  | 5 ++++-
+ src/ocrdma_verbs.c | 4 ++++
+ 3 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/src/ocrdma_abi.h b/src/ocrdma_abi.h
+index 8102c1c..8670a1d 100644
+--- a/src/ocrdma_abi.h
++++ b/src/ocrdma_abi.h
+@@ -350,7 +350,7 @@ struct ocrdma_ewqe_ud_hdr {
+ 	uint32_t rsvd_dest_qpn;
+ 	uint32_t qkey;
+ 	uint32_t rsvd_ahid;
+-	uint32_t rsvd;
++	uint32_t hdr_type;
+ } __attribute__ ((packed));
+ 
+ #endif				/* __OCRDMA_ABI_H__ */
+diff --git a/src/ocrdma_main.h b/src/ocrdma_main.h
+index 4e7be75..c81188b 100644
+--- a/src/ocrdma_main.h
++++ b/src/ocrdma_main.h
+@@ -214,7 +214,9 @@ struct ocrdma_qp {
+ enum {
+ 	OCRDMA_AH_ID_MASK               = 0x3FF,
+ 	OCRDMA_AH_VLAN_VALID_MASK       = 0x01,
+-	OCRDMA_AH_VLAN_VALID_SHIFT      = 0x1F
++	OCRDMA_AH_VLAN_VALID_SHIFT      = 0x1F,
++	OCRDMA_AH_L3_TYPE_MASK		= 0x03,
++	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D
+ };
+ 
+ struct ocrdma_ah {
+@@ -222,6 +224,7 @@ struct ocrdma_ah {
+ 	struct ocrdma_pd *pd;
+ 	uint16_t id;
+ 	uint8_t isvlan;
++	uint8_t hdr_type;
+ };
+ 
+ #define get_ocrdma_xxx(xxx, type)				\
+diff --git a/src/ocrdma_verbs.c b/src/ocrdma_verbs.c
+index cf6f72c..c62ced0 100644
+--- a/src/ocrdma_verbs.c
++++ b/src/ocrdma_verbs.c
+@@ -1199,6 +1199,7 @@ static void ocrdma_build_ud_hdr(struct ocrdma_qp *qp,
+ 	if (ah->isvlan)
+ 		hdr->cw |= (OCRDMA_FLAG_AH_VLAN_PR <<
+ 			    OCRDMA_WQE_FLAGS_SHIFT);
++	ud_hdr->hdr_type = ah->hdr_type;
+ }
+ 
+ static void ocrdma_build_sges(struct ocrdma_hdr_wqe *hdr,
+@@ -2159,6 +2160,9 @@ struct ibv_ah *ocrdma_create_ah(struct ibv_pd *ibpd, struct ibv_ah_attr *attr)
+ 	ah->id = pd->uctx->ah_tbl[ahtbl_idx] & OCRDMA_AH_ID_MASK;
+ 	ah->isvlan = (pd->uctx->ah_tbl[ahtbl_idx] >>
+ 			OCRDMA_AH_VLAN_VALID_SHIFT);
++	ah->hdr_type = ((pd->uctx->ah_tbl[ahtbl_idx] >> OCRDMA_AH_L3_TYPE_SHIFT)
++			& OCRDMA_AH_L3_TYPE_MASK);
++
+ 	return &ah->ibv_ah;
+ cmd_err:
+ 	ocrdma_free_ah_tbl_id(pd->uctx, ahtbl_idx);
+-- 
+1.8.3.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
