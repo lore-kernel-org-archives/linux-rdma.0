@@ -1,80 +1,27 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv6 1/3] rdmacg: Added rdma cgroup controller
-Date: Thu, 25 Feb 2016 16:30:45 +0200
-Message-ID: <56CF1015.4040408@mellanox.com>
-References: <1455966006-13774-1-git-send-email-pandit.parav@gmail.com>
- <1455966006-13774-2-git-send-email-pandit.parav@gmail.com>
- <56CDAC7A.6030206@mellanox.com>
- <CAG53R5Uof+Ve7CndWy=BrgtxxCisQpzP_Ls0kw=Q270DhoEsZw@mail.gmail.com>
- <56CEED81.7010507@mellanox.com>
- <CAG53R5UZb=9WR7zk2b5C_FuKmt+WdNkbcrVbW+g1-oAj6J=w_Q@mail.gmail.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/5] IB/isert: Remove ISER_RECV_DATA_SEG_LEN
+Date: Thu, 25 Feb 2016 16:37:29 +0200
+Message-ID: <56CF11A9.3030007@mellanox.com>
+References: <1456148958-27973-1-git-send-email-hch@lst.de>
+ <1456148958-27973-2-git-send-email-hch@lst.de>
+ <56CC3C95.7090301@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5UZb=9WR7zk2b5C_FuKmt+WdNkbcrVbW+g1-oAj6J=w_Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56CC3C95.7090301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 25/02/2016 15:34, Parav Pandit wrote:
-> On Thu, Feb 25, 2016 at 5:33 PM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>>>> +retry:
->>>>> +     spin_lock(&cg->rpool_list_lock);
->>>>> +     rpool = find_cg_rpool_locked(cg, device);
->>>>> +     if (!rpool) {
->>>>> +             spin_unlock(&cg->rpool_list_lock);
->>>>> +             ret = alloc_cg_rpool(cg, device);
->>>>> +             if (ret)
->>>>> +                     goto err;
->>>>> +             else
->>>>> +                     goto retry;
->>>> Instead of retrying after allocation of a new rpool, why not just return the
->>>> newly allocated rpool (or the existing one) from alloc_cg_rpool?
->>>
->>> It can be done, but locking semantics just becomes difficult to
->>> review/maintain with that where alloc_cg_rpool will unlock and lock
->>> conditionally later on.
->> Maybe I'm missing something, but couldn't you simply lock rpool_list_lock
->> inside alloc_cg_rpool()? It already does that around its call to
->> find_cg_rpool_locked() and the insertion to cg_list.
-> 
-> No. ref_count and usage counters are updated at level where lock is
-> taken in charge_cg_resource().
-> If I move locking rpool_list_lock inside alloc_cg_rpool, unlocking
-> will continue outside, alloc_cg_rpool() when its found or allocated.
-> As you acknowledged in below comment that this makes confusing to
-> lock/unlock from different context, I think current implementation
-> achieves both.
-> (a) take lock from single context
-> (b) keep functionality of find and alloc in two separate individual functions
+I agree.
 
-Okay, fair enough.
-
->> I thought that was about functions that only locked the lock, called the
->> find function, and released the lock. What I'm suggesting is to have one
->> function that does "lock + find + allocate if needed + unlock",
-> 
-> I had similar function in past which does,
-> "lock + find + allocate if needed + + inc_ref_cnt + unlock", (get_cg_rpool)
-> update usage_counter atomically, because other thread/process might update too.
-> check atomic_dec_cnt - on reaching zero, "lock + del_entry + unlock + free".
-> 
-> Tejun asked to simplify this to,
-> 
-> "lock + find + allocate if needed + inc_ref_cnt_without_atomic" + unlock".
-> which I did in this patch v6.
-
-Okay.
-
->> and another
->> function that does (under caller's lock) "check ref count + check max count +
->> release rpool".
-> This can be done. Have one dumb basic question for thiat.
-> Can we call kfree() with spin_lock held? All these years I tend to
-> avoid doing so.
-> 
-
-I think so. This is an old link but I think it still applies: 
-https://lkml.org/lkml/2004/11/21/130
+On 2/23/2016 1:03 PM, Sagi Grimberg wrote:
+> Looks good,
+>
+> Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
