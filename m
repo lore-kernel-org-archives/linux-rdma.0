@@ -1,26 +1,34 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/5] IB/isert: Remove ISER_RECV_DATA_SEG_LEN
-Date: Thu, 25 Feb 2016 16:37:29 +0200
-Message-ID: <56CF11A9.3030007@mellanox.com>
-References: <1456148958-27973-1-git-send-email-hch@lst.de>
- <1456148958-27973-2-git-send-email-hch@lst.de>
- <56CC3C95.7090301@dev.mellanox.co.il>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv6 1/3] rdmacg: Added rdma cgroup controller
+Date: Thu, 25 Feb 2016 16:42:01 +0200
+Message-ID: <56CF12B9.5060709@mellanox.com>
+References: <1455966006-13774-1-git-send-email-pandit.parav@gmail.com>
+ <1455966006-13774-2-git-send-email-pandit.parav@gmail.com>
+ <56CDAC7A.6030206@mellanox.com>
+ <CAG53R5Uof+Ve7CndWy=BrgtxxCisQpzP_Ls0kw=Q270DhoEsZw@mail.gmail.com>
+ <56CEED81.7010507@mellanox.com>
+ <CAG53R5UZb=9WR7zk2b5C_FuKmt+WdNkbcrVbW+g1-oAj6J=w_Q@mail.gmail.com>
+ <CAG53R5WxXYZof4QzuJndakzvG1+t388pDRXL2O466eEDkYJ+bw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56CC3C95.7090301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CAG53R5WxXYZof4QzuJndakzvG1+t388pDRXL2O466eEDkYJ+bw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I agree.
+On 25/02/2016 16:26, Parav Pandit wrote:
+>> Can we call kfree() with spin_lock held? All these years I tend to
+>> avoid doing so.
+> Also it doesn't look correct to hold the lock while freeing the memory
+> which is totally unrelated to the lock.
+> With that I think current code appears ok with exception that its
+> duplicated at two place for code readability around lock.
+> What say?
+Yes, the only thing that bothered me there was the duplication.
 
-On 2/23/2016 1:03 PM, Sagi Grimberg wrote:
-> Looks good,
->
-> Acked-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
