@@ -1,59 +1,68 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
-Date: Thu, 25 Feb 2016 10:05:41 -0700
-Message-ID: <20160225170541.GA22513@obsidianresearch.com>
-References: <1456306924-31298-1-git-send-email-yishaih@mellanox.com>
- <1456306924-31298-2-git-send-email-yishaih@mellanox.com>
- <20160224190230.GA10588@obsidianresearch.com>
- <56CEB4C7.60607@dev.mellanox.co.il>
+From: Tom Peter <tpeter-F4690COoD9GU+1/U8MakDg@public.gmane.org>
+Subject: Server's Users List
+Date: Thu, 25 Feb 2016 17:35:00 -0500
+Message-ID: <56CF8194.4050703@switchways.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56CEB4C7.60607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 25, 2016 at 10:01:11AM +0200, Yishai Hadas wrote:
-> On 2/24/2016 9:02 PM, Jason Gunthorpe wrote:
-> >On Wed, Feb 24, 2016 at 11:41:57AM +0200, Yishai Hadas wrote:
-> >
-> >>+enum {
-> >>+	IBV_WC_EX_WITH_8BIT_FIELDS = IBV_WC_EX_WITH_SL			|
-> >>+				     IBV_WC_EX_WITH_DLID_PATH_BITS
-> >>+};
-> >>+
-> >>+struct ibv_wc_ex {
-> >>+	uint64_t		wr_id;
-> >>+	/* wc_flags is a combination of ibv_wc_flags_ex flags. The IBV_WC_EX_WITH_XXX
-> >>+	 * flags dynamically define the valid fields in buffer[0].
-> >>+	 */
-> >>+	uint64_t		wc_flags;
-> >>+	uint32_t		status;
-> >>+	uint32_t		opcode;
-> >>+	uint32_t		vendor_err;
-> >>+	uint32_t		reserved;
-> >>+	uint8_t			buffer[0];
-> >>+};
-> >
-> >Um, maybe you should give an example of how on earth anyone is
-> >supposed to use this, all of this looks like a *really bad idea* to
-> >me.
-> >
-> 
-> The last patch is this series is a clear example of a typical usage of.
-> It was added as part of rc_pingpong, please look at.
-> 
-> In addition, there are detailed man pages that describe the idea/usage of
-> the new verbs around, see patch #7.
 
-The manual page and rc_pingpong do different things.
+Hi,
 
-This still looks like a horrible user API.
+I just wanted to drop you a quick note to see if you would be interested in a discussion about " Server's Users List " and the benefits it can bring your organization for your Marketing Initiatives like Email Marketing, Tele Marketing, Direct Mailings etc.
 
-Jason
+Every contact will include: Company Name, Web Address, Contact Name, Verified Email, Job Title,  Complete Mailing Address, Phone Number, FAX Number, Total  Employees, SIC Code, and Industry details.
+
+We guarantee 100% on that list type that means every individual on that list will be as per your criteria for sure, any irrelevant contact will be replaced at no cost.
+
+Few Technology Specific Lists:-
+
+(1) Akamai AQUA Web Solutions
+(2) Android OS
+(3) Apache HTTP Server
+(4) Avaya Media Servers
+(5) Blackberry Enterprise Server (BES)
+(6) Citrix Thin Clients
+(7) CruiseControl.NET
+(8) Dell PowerEdge Servers
+(9)  HP Integrity Superdome Servers
+(10) HP Tru64 UNIX
+(11) IBM Customer Information Control System (CICS)
+(12) IBM Multiple Virtual Storage (MVS)
+(13) IBM Tivoli Application Dependency and Discovery Manager (TADDM)
+(14) Intel-Based Servers
+(15) Microsoft Internet Information Services (IIS)
+(16) Microsoft Windows Cluster
+(17) Microsoft Windows Servers
+(18) Oracle iPlanet (formerly Sun Java System) Web Server
+(19) Oracle Sun Java System Portal Servers
+(20) Red Hat Network Satellite Server
+(21) Unisys Clearpath
+(22) UNIX and more....
+
+Let me know your target criteria / market like:
+
+Target Title:
+Target Industry:
+Target Geography:
+
+Appreciate your enquiry and valuable time.
+
+Thanks and Regards,
+Tom Peter
+Research Analyst
+==============================================================================
+If you do not wish to receive further emails kindly reply with "Leave Out"
+
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
