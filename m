@@ -1,29 +1,60 @@
-From: Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: [PATCH 3/5] IB/isert: Convert to new CQ API
-Date: Thu, 25 Feb 2016 18:41:02 +0200
-Message-ID: <56CF2E9E.6030006@mellanox.com>
-References: <1456148958-27973-1-git-send-email-hch@lst.de>
- <1456148958-27973-4-git-send-email-hch@lst.de>
- <56CDD3D7.7060408@dev.mellanox.co.il> <20160224184348.GA5241@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
+Date: Thu, 25 Feb 2016 10:05:41 -0700
+Message-ID: <20160225170541.GA22513@obsidianresearch.com>
+References: <1456306924-31298-1-git-send-email-yishaih@mellanox.com>
+ <1456306924-31298-2-git-send-email-yishaih@mellanox.com>
+ <20160224190230.GA10588@obsidianresearch.com>
+ <56CEB4C7.60607@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160224184348.GA5241@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Sagi Grimberg <sagig@mellanox.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56CEB4C7.60607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Feb 25, 2016 at 10:01:11AM +0200, Yishai Hadas wrote:
+> On 2/24/2016 9:02 PM, Jason Gunthorpe wrote:
+> >On Wed, Feb 24, 2016 at 11:41:57AM +0200, Yishai Hadas wrote:
+> >
+> >>+enum {
+> >>+	IBV_WC_EX_WITH_8BIT_FIELDS = IBV_WC_EX_WITH_SL			|
+> >>+				     IBV_WC_EX_WITH_DLID_PATH_BITS
+> >>+};
+> >>+
+> >>+struct ibv_wc_ex {
+> >>+	uint64_t		wr_id;
+> >>+	/* wc_flags is a combination of ibv_wc_flags_ex flags. The IBV_WC_EX_WITH_XXX
+> >>+	 * flags dynamically define the valid fields in buffer[0].
+> >>+	 */
+> >>+	uint64_t		wc_flags;
+> >>+	uint32_t		status;
+> >>+	uint32_t		opcode;
+> >>+	uint32_t		vendor_err;
+> >>+	uint32_t		reserved;
+> >>+	uint8_t			buffer[0];
+> >>+};
+> >
+> >Um, maybe you should give an example of how on earth anyone is
+> >supposed to use this, all of this looks like a *really bad idea* to
+> >me.
+> >
+> 
+> The last patch is this series is a clear example of a typical usage of.
+> It was added as part of rc_pingpong, please look at.
+> 
+> In addition, there are detailed man pages that describe the idea/usage of
+> the new verbs around, see patch #7.
 
+The manual page and rc_pingpong do different things.
 
-On 2/24/2016 8:43 PM, Christoph Hellwig wrote:
-> On Wed, Feb 24, 2016 at 06:01:27PM +0200, Sagi Grimberg wrote:
->> I don't find the wr_cqe address all that useful. I modified
->> isert_print_wc to get a error type instead ("send", "recv", "rdma
->> write"...) sounds fine?
->
-> Fine with me.
->
+This still looks like a horrible user API.
 
-sounds good.
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
