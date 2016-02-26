@@ -1,67 +1,34 @@
-From: Tom Peter <tpeter-F4690COoD9GU+1/U8MakDg@public.gmane.org>
-Subject: Server's Users List
-Date: Thu, 25 Feb 2016 17:35:00 -0500
-Message-ID: <56CF8194.4050703@switchways.com>
+From: "casmire.kere-sh/6fXdz2Rs@public.gmane.org" <casmire.kere-sh/6fXdz2Rs@public.gmane.org>
+Subject: GOOD DAY YOUR URGENT REPLY NEEDED.
+Date: Fri, 26 Feb 2016 06:19:22 +0100 (CET)
+Message-ID: <10200092.30131456463962342.JavaMail.defaultUser@defaultHost>
+Reply-To: casmire.kere-sh/6fXdz2Rs@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-Hi,
-
-I just wanted to drop you a quick note to see if you would be interested in a discussion about " Server's Users List " and the benefits it can bring your organization for your Marketing Initiatives like Email Marketing, Tele Marketing, Direct Mailings etc.
-
-Every contact will include: Company Name, Web Address, Contact Name, Verified Email, Job Title,  Complete Mailing Address, Phone Number, FAX Number, Total  Employees, SIC Code, and Industry details.
-
-We guarantee 100% on that list type that means every individual on that list will be as per your criteria for sure, any irrelevant contact will be replaced at no cost.
-
-Few Technology Specific Lists:-
-
-(1) Akamai AQUA Web Solutions
-(2) Android OS
-(3) Apache HTTP Server
-(4) Avaya Media Servers
-(5) Blackberry Enterprise Server (BES)
-(6) Citrix Thin Clients
-(7) CruiseControl.NET
-(8) Dell PowerEdge Servers
-(9)  HP Integrity Superdome Servers
-(10) HP Tru64 UNIX
-(11) IBM Customer Information Control System (CICS)
-(12) IBM Multiple Virtual Storage (MVS)
-(13) IBM Tivoli Application Dependency and Discovery Manager (TADDM)
-(14) Intel-Based Servers
-(15) Microsoft Internet Information Services (IIS)
-(16) Microsoft Windows Cluster
-(17) Microsoft Windows Servers
-(18) Oracle iPlanet (formerly Sun Java System) Web Server
-(19) Oracle Sun Java System Portal Servers
-(20) Red Hat Network Satellite Server
-(21) Unisys Clearpath
-(22) UNIX and more....
-
-Let me know your target criteria / market like:
-
-Target Title:
-Target Industry:
-Target Geography:
-
-Appreciate your enquiry and valuable time.
-
-Thanks and Regards,
-Tom Peter
-Research Analyst
-==============================================================================
-If you do not wish to receive further emails kindly reply with "Leave Out"
-
-
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+Compliment of the day,
+I am Mr.Kere Casmire I Have a Business Proposal 
+of $5.3 million For You.I am aware of the unsafe nature of the 
+internet, and was compelled to use this medium due to the nature of 
+this project.I have access to very vital information that can be used 
+to transfer this huge amount of money,which may culminate into the 
+investment of the said funds into your company or any lucrative venture 
+in your country.If you will like to assist me as a partner then 
+indicate your interest,after which we shall both discuss the modalities 
+and the sharing percentage.Upon receipt of your reply on your 
+expression of Interest I will give you full details,on how the business 
+will be executed I am open for negotiation.You should forward your 
+reply to this private email id (casimirekere11-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org) Thanks for 
+your anticipated cooperation.Note you might receive this message in 
+your inbox or spam or junk folder, depends on your web host or server 
+network. 
+Regards,
+Mr.Kere Casmire
++226 66416702
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
