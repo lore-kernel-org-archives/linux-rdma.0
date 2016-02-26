@@ -1,7 +1,7 @@
 From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/6] iwcm: common code for port mapper
-Date: Fri, 26 Feb 2016 09:18:00 -0600
-Message-ID: <1456499885-8044-2-git-send-email-faisal.latif@intel.com>
+Subject: [PATCH 6/6] iwpm: crash fix for large connections test
+Date: Fri, 26 Feb 2016 09:18:05 -0600
+Message-ID: <1456499885-8044-7-git-send-email-faisal.latif@intel.com>
 References: <1456499885-8044-1-git-send-email-faisal.latif@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456499885-8044-1-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,354 +10,120 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-moved port mapper related code from drivers into common code
+During large connection test, there is a crash at wake_up() in the callback as waitq is
+not yet initialized. Callback can happen before iwpm_wait_complete_req() is called to
+initialize waitq.
+To resolve, using signaling semaphore instead of waitq.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tatyana E. Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Tatyana E Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/iwcm.c     | 190 ++++++++++++++++++++++++++++++++-----
- drivers/infiniband/core/iwpm_msg.c |   2 +-
- include/rdma/iw_cm.h               |   6 +-
- include/uapi/rdma/rdma_netlink.h   |   5 +-
- 4 files changed, 172 insertions(+), 31 deletions(-)
+ drivers/infiniband/core/iwpm_msg.c  | 10 +++++-----
+ drivers/infiniband/core/iwpm_util.c | 14 +++++++-------
+ drivers/infiniband/core/iwpm_util.h |  2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index ff9163d..e28a160 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -50,6 +50,8 @@
- 
- #include <rdma/iw_cm.h>
- #include <rdma/ib_addr.h>
-+#include <rdma/iw_portmap.h>
-+#include <rdma/rdma_netlink.h>
- 
- #include "iwcm.h"
- 
-@@ -57,6 +59,16 @@ MODULE_AUTHOR("Tom Tucker");
- MODULE_DESCRIPTION("iWARP CM");
- MODULE_LICENSE("Dual BSD/GPL");
- 
-+static struct ibnl_client_cbs iwcm_nl_cb_table[] = {
-+	[RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
-+	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
-+	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
-+	[RDMA_NL_IWPM_REMOTE_INFO] = {.dump = iwpm_remote_info_cb},
-+	[RDMA_NL_IWPM_HANDLE_ERR] = {.dump = iwpm_mapping_error_cb},
-+	[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb},
-+	[RDMA_NL_IWPM_MAPINFO_NUM] = {.dump = iwpm_ack_mapping_info_cb}
-+};
-+
- static struct workqueue_struct *iwcm_wq;
- struct iwcm_work {
- 	struct work_struct work;
-@@ -402,6 +414,11 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
- 	}
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 
-+	if (cm_id->mapped) {
-+		iwpm_remove_mapinfo(&cm_id->local_addr, &cm_id->m_local_addr);
-+		iwpm_remove_mapping(&cm_id->local_addr, RDMA_NL_IWCM);
-+	}
-+
- 	(void)iwcm_deref_id(cm_id_priv);
- }
- 
-@@ -426,6 +443,97 @@ void iw_destroy_cm_id(struct iw_cm_id *cm_id)
- }
- EXPORT_SYMBOL(iw_destroy_cm_id);
- 
-+/**
-+ * iw_cm_check_wildcard - If IP address is 0 then use original
-+ * @pm_addr: sockaddr containing the ip to check for wildcard
-+ * @cm_addr: sockaddr containing the actual IP address
-+ * @cm_outaddr: sockaddr to set IP addr which leaving port
-+ *
-+ *  Checks the pm_addr for wildcard and then sets cm_outaddr's
-+ *  IP to the actual (cm_addr).
-+ */
-+static void iw_cm_check_wildcard(struct sockaddr_storage *pm_addr,
-+				 struct sockaddr_storage *cm_addr,
-+				 struct sockaddr_storage *cm_outaddr)
-+{
-+	if (pm_addr->ss_family == AF_INET) {
-+		struct sockaddr_in *pm4_addr = (struct sockaddr_in *)pm_addr;
-+
-+		if (pm4_addr->sin_addr.s_addr == INADDR_ANY) {
-+			struct sockaddr_in *cm4_addr =
-+				(struct sockaddr_in *)cm_addr;
-+			struct sockaddr_in *cm4_outaddr =
-+				(struct sockaddr_in *)cm_outaddr;
-+
-+			cm4_outaddr->sin_addr = cm4_addr->sin_addr;
-+		}
-+	} else {
-+		struct sockaddr_in6 *pm6_addr = (struct sockaddr_in6 *)pm_addr;
-+
-+		if (ipv6_addr_type(&pm6_addr->sin6_addr) == IPV6_ADDR_ANY) {
-+			struct sockaddr_in6 *cm6_addr =
-+				(struct sockaddr_in6 *)cm_addr;
-+			struct sockaddr_in6 *cm6_outaddr =
-+				(struct sockaddr_in6 *)cm_outaddr;
-+
-+			cm6_outaddr->sin6_addr = cm6_addr->sin6_addr;
-+		}
-+	}
-+}
-+
-+/**
-+ * iw_cm_map - Use portmapper to map the ports
-+ * @cm_id: connection manager pointer
-+ * @active: Indicates the active side when true
-+ * returns nonzero for error only if iwpm_create_mapinfo() fails
-+ *
-+ * Tries to add a mapping for a port using the Portmapper. If
-+ * successful in mapping the IP/Port it will check the remote
-+ * mapped IP address for a wildcard IP address and replace the
-+ * zero IP address with the remote_addr.
-+ */
-+static int iw_cm_map(struct iw_cm_id *cm_id, bool active)
-+{
-+	struct iwpm_dev_data pm_reg_msg;
-+	struct iwpm_sa_data pm_msg;
-+	int status;
-+
-+	cm_id->m_local_addr = cm_id->local_addr;
-+	cm_id->m_remote_addr = cm_id->remote_addr;
-+
-+	memcpy(pm_reg_msg.dev_name, cm_id->device->name,
-+	       sizeof(pm_reg_msg.dev_name));
-+	memcpy(pm_reg_msg.if_name, cm_id->device->iwcm->ifname,
-+	       sizeof(pm_reg_msg.if_name));
-+
-+	if (iwpm_register_pid(&pm_reg_msg, RDMA_NL_IWCM) ||
-+	    !iwpm_valid_pid())
-+		return 0;
-+
-+	cm_id->mapped = true;
-+	pm_msg.loc_addr = cm_id->local_addr;
-+	pm_msg.rem_addr = cm_id->remote_addr;
-+	if (active)
-+		status = iwpm_add_and_query_mapping(&pm_msg,
-+						    RDMA_NL_IWCM);
-+	else
-+		status = iwpm_add_mapping(&pm_msg, RDMA_NL_IWCM);
-+
-+	if (!status) {
-+		cm_id->m_local_addr = pm_msg.mapped_loc_addr;
-+		if (active) {
-+			cm_id->m_remote_addr = pm_msg.mapped_rem_addr;
-+			iw_cm_check_wildcard(&pm_msg.mapped_rem_addr,
-+					     &cm_id->remote_addr,
-+					     &cm_id->m_remote_addr);
-+		}
-+	}
-+
-+	return iwpm_create_mapinfo(&cm_id->local_addr,
-+				   &cm_id->m_local_addr,
-+				   RDMA_NL_IWCM);
-+}
-+
- /*
-  * CM_ID <-- LISTEN
-  *
-@@ -452,7 +560,9 @@ int iw_cm_listen(struct iw_cm_id *cm_id, int backlog)
- 	case IW_CM_STATE_IDLE:
- 		cm_id_priv->state = IW_CM_STATE_LISTEN;
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		ret = cm_id->device->iwcm->create_listen(cm_id, backlog);
-+		ret = iw_cm_map(cm_id, false);
-+		if (!ret)
-+			ret = cm_id->device->iwcm->create_listen(cm_id, backlog);
- 		if (ret)
- 			cm_id_priv->state = IW_CM_STATE_IDLE;
- 		spin_lock_irqsave(&cm_id_priv->lock, flags);
-@@ -582,39 +692,37 @@ int iw_cm_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *iw_param)
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
- 
- 	if (cm_id_priv->state != IW_CM_STATE_IDLE) {
--		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
--		wake_up_all(&cm_id_priv->connect_wait);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
- 	/* Get the ib_qp given the QPN */
- 	qp = cm_id->device->iwcm->get_qp(cm_id->device, iw_param->qpn);
- 	if (!qp) {
--		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
--		wake_up_all(&cm_id_priv->connect_wait);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 	cm_id->device->iwcm->add_ref(qp);
- 	cm_id_priv->qp = qp;
- 	cm_id_priv->state = IW_CM_STATE_CONN_SENT;
- 	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 
--	ret = cm_id->device->iwcm->connect(cm_id, iw_param);
--	if (ret) {
--		spin_lock_irqsave(&cm_id_priv->lock, flags);
--		if (cm_id_priv->qp) {
--			cm_id->device->iwcm->rem_ref(qp);
--			cm_id_priv->qp = NULL;
--		}
--		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
--		BUG_ON(cm_id_priv->state != IW_CM_STATE_CONN_SENT);
--		cm_id_priv->state = IW_CM_STATE_IDLE;
--		clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
--		wake_up_all(&cm_id_priv->connect_wait);
--	}
-+	ret = iw_cm_map(cm_id, true);
-+	if (!ret)
-+		ret = cm_id->device->iwcm->connect(cm_id, iw_param);
-+	if (!ret)
-+		return 0;	/* success */
- 
-+	spin_lock_irqsave(&cm_id_priv->lock, flags);
-+	if (cm_id_priv->qp) {
-+		cm_id->device->iwcm->rem_ref(qp);
-+		cm_id_priv->qp = NULL;
-+	}
-+	cm_id_priv->state = IW_CM_STATE_IDLE;
-+err:
-+	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
-+	clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
-+	wake_up_all(&cm_id_priv->connect_wait);
- 	return ret;
- }
- EXPORT_SYMBOL(iw_cm_connect);
-@@ -656,8 +764,23 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
- 		goto out;
- 
- 	cm_id->provider_data = iw_event->provider_data;
--	cm_id->local_addr = iw_event->local_addr;
--	cm_id->remote_addr = iw_event->remote_addr;
-+	cm_id->m_local_addr = iw_event->local_addr;
-+	cm_id->m_remote_addr = iw_event->remote_addr;
-+	cm_id->local_addr = listen_id_priv->id.local_addr;
-+
-+	ret = iwpm_get_remote_info(&listen_id_priv->id.m_local_addr,
-+				   &iw_event->remote_addr,
-+				   &cm_id->remote_addr,
-+				   RDMA_NL_IWCM);
-+	if (ret) {
-+		cm_id->remote_addr = iw_event->remote_addr;
-+	} else {
-+		iw_cm_check_wildcard(&listen_id_priv->id.m_local_addr,
-+				     &iw_event->local_addr,
-+				     &cm_id->local_addr);
-+		iw_event->local_addr = cm_id->local_addr;
-+		iw_event->remote_addr = cm_id->remote_addr;
-+	}
- 
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
- 	cm_id_priv->state = IW_CM_STATE_CONN_RECV;
-@@ -753,8 +876,10 @@ static int cm_conn_rep_handler(struct iwcm_id_private *cm_id_priv,
- 	clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
- 	BUG_ON(cm_id_priv->state != IW_CM_STATE_CONN_SENT);
- 	if (iw_event->status == 0) {
--		cm_id_priv->id.local_addr = iw_event->local_addr;
--		cm_id_priv->id.remote_addr = iw_event->remote_addr;
-+		cm_id_priv->id.m_local_addr = iw_event->local_addr;
-+		cm_id_priv->id.m_remote_addr = iw_event->remote_addr;
-+		iw_event->local_addr = cm_id_priv->id.local_addr;
-+		iw_event->remote_addr = cm_id_priv->id.remote_addr;
- 		cm_id_priv->state = IW_CM_STATE_ESTABLISHED;
- 	} else {
- 		/* REJECTED or RESET */
-@@ -1044,6 +1169,17 @@ EXPORT_SYMBOL(iw_cm_init_qp_attr);
- 
- static int __init iw_cm_init(void)
- {
-+	int ret;
-+
-+	ret = iwpm_init(RDMA_NL_IWCM);
-+	if (ret)
-+		pr_err("iw_cm: couldn't init iwpm\n");
-+
-+	ret = ibnl_add_client(RDMA_NL_IWCM, RDMA_NL_IWPM_NUM_OPS,
-+			      iwcm_nl_cb_table);
-+	if (ret)
-+		pr_err("iw_cm: couldn't register netlink callbacks\n");
-+
- 	iwcm_wq = create_singlethread_workqueue("iw_cm_wq");
- 	if (!iwcm_wq)
- 		return -ENOMEM;
-@@ -1063,6 +1199,8 @@ static void __exit iw_cm_cleanup(void)
- {
- 	unregister_net_sysctl_table(iwcm_ctl_table_hdr);
- 	destroy_workqueue(iwcm_wq);
-+	ibnl_remove_client(RDMA_NL_IWCM);
-+	iwpm_exit(RDMA_NL_IWCM);
- }
- 
- module_init(iw_cm_init);
 diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index 22a3abe..c2b4ce6 100644
+index c2b4ce6..43e3fa2 100644
 --- a/drivers/infiniband/core/iwpm_msg.c
 +++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -88,7 +88,7 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 	ret = ibnl_put_attr(skb, nlh, sizeof(u32), &msg_seq, IWPM_NLA_REG_PID_SEQ);
+@@ -89,7 +89,7 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
  	if (ret)
  		goto pid_query_error;
--	ret = ibnl_put_attr(skb, nlh, IWPM_IFNAME_SIZE,
-+	ret = ibnl_put_attr(skb, nlh, IFNAMSIZ,
- 				pm_msg->if_name, IWPM_NLA_REG_IF_NAME);
+ 	ret = ibnl_put_attr(skb, nlh, IFNAMSIZ,
+-				pm_msg->if_name, IWPM_NLA_REG_IF_NAME);
++			    pm_msg->if_name, IWPM_NLA_REG_IF_NAME);
  	if (ret)
  		goto pid_query_error;
-diff --git a/include/rdma/iw_cm.h b/include/rdma/iw_cm.h
-index 036bd27..6d0065c 100644
---- a/include/rdma/iw_cm.h
-+++ b/include/rdma/iw_cm.h
-@@ -83,8 +83,10 @@ struct iw_cm_id {
- 	iw_cm_handler		cm_handler;      /* client callback function */
- 	void		        *context;	 /* client cb context */
- 	struct ib_device	*device;
--	struct sockaddr_storage local_addr;
-+	struct sockaddr_storage local_addr;      /* local addr */
- 	struct sockaddr_storage	remote_addr;
-+	struct sockaddr_storage m_local_addr;	 /* nmapped local addr */
-+	struct sockaddr_storage	m_remote_addr;	 /* nmapped rem addr */
- 	void			*provider_data;	 /* provider private data */
- 	iw_event_handler        event_handler;   /* cb for provider
- 						    events */
-@@ -92,6 +94,7 @@ struct iw_cm_id {
- 	void (*add_ref)(struct iw_cm_id *);
- 	void (*rem_ref)(struct iw_cm_id *);
- 	u8  tos;
-+	bool mapped;
- };
+ 	ret = ibnl_put_attr(skb, nlh, IWPM_DEVNAME_SIZE,
+@@ -394,7 +394,7 @@ register_pid_response_exit:
+ 	/* always for found nlmsg_request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	wake_up(&nlmsg_request->waitq);
++	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_register_pid_cb);
+@@ -463,7 +463,7 @@ add_mapping_response_exit:
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	wake_up(&nlmsg_request->waitq);
++	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_add_mapping_cb);
+@@ -555,7 +555,7 @@ query_mapping_response_exit:
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	wake_up(&nlmsg_request->waitq);
++	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
+@@ -749,7 +749,7 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	/* always for found request */
+ 	kref_put(&nlmsg_request->kref, iwpm_free_nlmsg_request);
+ 	barrier();
+-	wake_up(&nlmsg_request->waitq);
++	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(iwpm_mapping_error_cb);
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 5fb089e..9b2bf2f 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -254,9 +254,9 @@ void iwpm_add_remote_info(struct iwpm_remote_info *rem_info)
+ }
  
- struct iw_cm_conn_param {
-@@ -123,6 +126,7 @@ struct iw_cm_verbs {
- 					 int backlog);
+ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
+-				struct sockaddr_storage *mapped_rem_addr,
+-				struct sockaddr_storage *remote_addr,
+-				u8 nl_client)
++			 struct sockaddr_storage *mapped_rem_addr,
++			 struct sockaddr_storage *remote_addr,
++			 u8 nl_client)
+ {
+ 	struct hlist_node *tmp_hlist_node;
+ 	struct hlist_head *hash_bucket_head;
+@@ -322,6 +322,8 @@ struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
+ 	nlmsg_request->nl_client = nl_client;
+ 	nlmsg_request->request_done = 0;
+ 	nlmsg_request->err_code = 0;
++	sema_init(&nlmsg_request->sem, 1);
++	down(&nlmsg_request->sem);
+ 	return nlmsg_request;
+ }
  
- 	int		(*destroy_listen)(struct iw_cm_id *cm_id);
-+	char		ifname[IFNAMSIZ];
- };
+@@ -364,11 +366,9 @@ struct iwpm_nlmsg_request *iwpm_find_nlmsg_request(__u32 echo_seq)
+ int iwpm_wait_complete_req(struct iwpm_nlmsg_request *nlmsg_request)
+ {
+ 	int ret;
+-	init_waitqueue_head(&nlmsg_request->waitq);
  
- /**
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 4fa418d..f7d7b6f 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -5,10 +5,9 @@
- 
- enum {
- 	RDMA_NL_RDMA_CM = 1,
--	RDMA_NL_NES,
--	RDMA_NL_C4IW,
-+	RDMA_NL_IWCM,
-+	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
--	RDMA_NL_I40IW,
- 	RDMA_NL_NUM_CLIENTS
+-	ret = wait_event_timeout(nlmsg_request->waitq,
+-			(nlmsg_request->request_done != 0), IWPM_NL_TIMEOUT);
+-	if (!ret) {
++	ret = down_timeout(&nlmsg_request->sem, IWPM_NL_TIMEOUT);
++	if (ret) {
+ 		ret = -EINVAL;
+ 		pr_info("%s: Timeout %d sec for netlink request (seq = %u)\n",
+ 			__func__, (IWPM_NL_TIMEOUT/HZ), nlmsg_request->nlmsg_seq);
+diff --git a/drivers/infiniband/core/iwpm_util.h b/drivers/infiniband/core/iwpm_util.h
+index b7b9e19..af1fc14 100644
+--- a/drivers/infiniband/core/iwpm_util.h
++++ b/drivers/infiniband/core/iwpm_util.h
+@@ -69,7 +69,7 @@ struct iwpm_nlmsg_request {
+ 	u8	            nl_client;
+ 	u8                  request_done;
+ 	u16                 err_code;
+-	wait_queue_head_t   waitq;
++	struct semaphore    sem;
+ 	struct kref         kref;
  };
  
 -- 
