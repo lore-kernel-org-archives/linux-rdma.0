@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/7] staging/rdma/hfi1: Check interrupt registers mapping
-Date: Fri, 26 Feb 2016 13:33:23 -0800
-Message-ID: <20160226213323.16535.980.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/7] staging/rdma/hfi1: Fix header size calculation for
+ RC/UC QPs with GRH enabled
+Date: Fri, 26 Feb 2016 13:33:13 -0800
+Message-ID: <20160226213313.16535.27104.stgit@scvm10.sc.intel.com>
 References: <20160226213022.16535.8149.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,108 +11,82 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160226213022.16535.8149.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch tests the interrupt registers when the driver has no access to
-its upstream component. In this case, it is highly likely that it is
-running in a virtual machine (eg, Qemu-kvm guest). If the interrupt
-registers are not mapped properly by the virtual machine monitor, an
-error message will be printed and the probing will be terminated. This
-will help the user identify the issue. On the other hand, if the driver
-is running in a host or has access to its upstream component in some
-other VM, it will do nothing.
+There is a header size counter in both the QP struture and the txreq
+structure. The counter in the txreq structure is not updated properly
+for RC and UC queue pairs with GRH enabled, and thus causing SDMA
+send to fail. This patch fixes the RC and UC path.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |   56 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 56 insertions(+), 0 deletions(-)
+ drivers/staging/rdma/hfi1/rc.c |    8 ++++----
+ drivers/staging/rdma/hfi1/uc.c |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index fe73ebf..7799652 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -13943,6 +13943,50 @@ static int obtain_boardname(struct hfi1_devdata *dd)
- 	return 0;
- }
+diff --git a/drivers/staging/rdma/hfi1/rc.c b/drivers/staging/rdma/hfi1/rc.c
+index 8caad18..1ce0e08 100644
+--- a/drivers/staging/rdma/hfi1/rc.c
++++ b/drivers/staging/rdma/hfi1/rc.c
+@@ -358,11 +358,11 @@ normal:
+ 	}
+ 	qp->s_rdma_ack_cnt++;
+ 	qp->s_hdrwords = hwords;
+-	/* pbc */
+-	ps->s_txreq->hdr_dwords = hwords + 2;
+ 	ps->s_txreq->sde = priv->s_sde;
+ 	qp->s_cur_size = len;
+ 	hfi1_make_ruc_header(qp, ohdr, bth0, bth2, middle, ps);
++	/* pbc */
++	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
+ 	return 1;
  
-+/*
-+ * Check the interrupt registers to make sure that they are mapped correctly.
-+ * It is intended to help user identify any mismapping by VMM when the driver
-+ * is running in a VM. This function should only be called before interrupt
-+ * is set up properly.
-+ *
-+ * Return 0 on success, -EINVAL on failure.
-+ */
-+static int check_int_registers(struct hfi1_devdata *dd)
-+{
-+	u64 reg;
-+	u64 all_bits = ~(u64)0;
-+	u64 mask;
-+
-+	/* Clear CceIntMask[0] to avoid raising any interrupts */
-+	mask = read_csr(dd, CCE_INT_MASK);
-+	write_csr(dd, CCE_INT_MASK, 0ull);
-+	reg = read_csr(dd, CCE_INT_MASK);
-+	if (reg)
-+		goto err_exit;
-+
-+	/* Clear all interrupt status bits */
-+	write_csr(dd, CCE_INT_CLEAR, all_bits);
-+	reg = read_csr(dd, CCE_INT_STATUS);
-+	if (reg)
-+		goto err_exit;
-+
-+	/* Set all interrupt status bits */
-+	write_csr(dd, CCE_INT_FORCE, all_bits);
-+	reg = read_csr(dd, CCE_INT_STATUS);
-+	if (reg != all_bits)
-+		goto err_exit;
-+
-+	/* Restore the interrupt mask */
-+	write_csr(dd, CCE_INT_CLEAR, all_bits);
-+	write_csr(dd, CCE_INT_MASK, mask);
-+
-+	return 0;
-+err_exit:
-+	write_csr(dd, CCE_INT_MASK, mask);
-+	dd_dev_err(dd, "Interrupt registers not properly mapped by VMM\n");
-+	return -EINVAL;
-+}
-+
- /**
-  * Allocate and initialize the device structure for the hfi.
-  * @dev: the pci_dev for hfi1_ib device
-@@ -13967,6 +14011,7 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 		"RTL FPGA emulation",
- 		"Functional simulator"
- 	};
-+	struct pci_dev *parent = pdev->bus->self;
+ bail:
+@@ -763,8 +763,6 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	}
+ 	qp->s_len -= len;
+ 	qp->s_hdrwords = hwords;
+-	/* pbc */
+-	ps->s_txreq->hdr_dwords = hwords + 2;
+ 	ps->s_txreq->sde = priv->s_sde;
+ 	qp->s_cur_sge = ss;
+ 	qp->s_cur_size = len;
+@@ -775,6 +773,8 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		bth2,
+ 		middle,
+ 		ps);
++	/* pbc */
++	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
+ 	return 1;
  
- 	dd = hfi1_alloc_devdata(pdev, NUM_IB_PORTS *
- 				sizeof(struct hfi1_pportdata));
-@@ -14046,6 +14091,17 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 			& CCE_REVISION_CHIP_REV_MINOR_MASK;
+ done_free_tx:
+diff --git a/drivers/staging/rdma/hfi1/uc.c b/drivers/staging/rdma/hfi1/uc.c
+index 5ba29af..df773d4 100644
+--- a/drivers/staging/rdma/hfi1/uc.c
++++ b/drivers/staging/rdma/hfi1/uc.c
+@@ -239,13 +239,13 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	}
+ 	qp->s_len -= len;
+ 	qp->s_hdrwords = hwords;
+-	/* pbc */
+-	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
+ 	ps->s_txreq->sde = priv->s_sde;
+ 	qp->s_cur_sge = &qp->s_sge;
+ 	qp->s_cur_size = len;
+ 	hfi1_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
+ 			     mask_psn(qp->s_psn++), middle, ps);
++	/* pbc */
++	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
+ 	return 1;
  
- 	/*
-+	 * Check interrupt registers mapping if the driver has no access to
-+	 * the upstream component. In this case, it is likely that the driver
-+	 * is running in a VM.
-+	 */
-+	if (!parent) {
-+		ret = check_int_registers(dd);
-+		if (ret)
-+			goto bail_cleanup;
-+	}
-+
-+	/*
- 	 * obtain the hardware ID - NOT related to unit, which is a
- 	 * software enumeration
- 	 */
+ done_free_tx:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
