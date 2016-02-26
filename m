@@ -1,116 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] net/mlx5e: make VXLAN support conditional
-Date: Fri, 26 Feb 2016 22:13:31 +0100
-Message-ID: <1456521217-2174580-1-git-send-email-arnd@arndb.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
-Cc: linux-arm-kernel@lists.infradead.org, "David S . Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/7] IB/rdmavt: Check lkey_table_size value before use
+Date: Fri, 26 Feb 2016 13:33:08 -0800
+Message-ID: <20160226213307.16535.52542.stgit@scvm10.sc.intel.com>
+References: <20160226213022.16535.8149.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160226213022.16535.8149.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VXLAN can be disabled at compile-time or it can be a loadable
-module while mlx5 is built-in, which leads to a link error:
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-drivers/net/built-in.o: In function `mlx5e_create_netdev':
-ntb_netdev.c:(.text+0x106de4): undefined reference to `vxlan_get_rx_port'
+The lkey_table_size driver specific parameter value is used before its
+value is sanity checked and restricted to RVT_MAX_LKEY_TABLE_BITS.
 
-This avoids the link error and makes the vxlan code optional,
-like the other ethernet drivers do as well.
+This causes a vmalloc allocation failure for large values. Fix this
+by moving the value check before the first usage of the value.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: b3f63c3d5e2c ("net/mlx5e: Add netdev support for VXLAN tunneling")
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/Kconfig   |  7 +++++++
- drivers/net/ethernet/mellanox/mlx5/core/Makefile  |  4 +++-
- drivers/net/ethernet/mellanox/mlx5/core/en.h      |  2 ++
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  3 +++
- drivers/net/ethernet/mellanox/mlx5/core/vxlan.h   | 11 +++++++++--
- 5 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rdmavt/mr.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-index 1cf722eba607..f5c3b9465d8d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -31,3 +31,10 @@ config MLX5_CORE_EN_DCB
- 	  This flag is depended on the kernel's DCB support.
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 4d5ef73..0ff765b 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -76,8 +76,6 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
  
- 	  If unsure, set to Y
-+
-+config MLX5_CORE_EN_VXLAN
-+	bool "VXLAN offloads Support"
-+	default y
-+	depends on MLX5_CORE_EN && VXLAN && !(MLX5_CORE=y && VXLAN=m)
-+	---help---
-+	  Say Y here if you want to use VXLAN offloads in the driver.
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-index 11b592dbf16a..3ecef5f74ccf 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
-@@ -6,6 +6,8 @@ mlx5_core-y :=	main.o cmd.o debugfs.o fw.o eq.o uar.o pagealloc.o \
+ 	spin_lock_init(&rdi->lkey_table.lock);
  
- mlx5_core-$(CONFIG_MLX5_CORE_EN) += wq.o eswitch.o \
- 		en_main.o en_fs.o en_ethtool.o en_tx.o en_rx.o \
--		en_txrx.o en_clock.o vxlan.o
-+		en_txrx.o en_clock.o
-+
-+mlx5_core-$(CONFIG_MLX5_CORE_EN_VXLAN) += vxlan.o
- 
- mlx5_core-$(CONFIG_MLX5_CORE_EN_DCB) +=  en_dcbnl.o
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 1dca3dcf90f5..18040da1c3a5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -552,7 +552,9 @@ struct mlx5e_priv {
- 	struct mlx5e_flow_tables   fts;
- 	struct mlx5e_eth_addr_db   eth_addr;
- 	struct mlx5e_vlan_db       vlan;
-+#ifdef CONFIG_MLX5_CORE_EN_VXLAN
- 	struct mlx5e_vxlan_db      vxlan;
-+#endif
- 
- 	struct mlx5e_params        params;
- 	spinlock_t                 async_events_spinlock; /* sync hw events */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 0d45f35aee72..44fc4bc35ffd 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2116,6 +2116,9 @@ static netdev_features_t mlx5e_vxlan_features_check(struct mlx5e_priv *priv,
- 	u16 proto;
- 	u16 port = 0;
- 
-+	if (!IS_ENABLED(CONFIG_MLX5_CORE_EN_VXLAN))
-+		goto out;
-+
- 	switch (vlan_get_protocol(skb)) {
- 	case htons(ETH_P_IP):
- 		proto = ip_hdr(skb)->protocol;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vxlan.h b/drivers/net/ethernet/mellanox/mlx5/core/vxlan.h
-index a01685056ab1..8c57861e0f8a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vxlan.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vxlan.h
-@@ -41,14 +41,21 @@ struct mlx5e_vxlan {
- 
- static inline bool mlx5e_vxlan_allowed(struct mlx5_core_dev *mdev)
- {
--	return (MLX5_CAP_ETH(mdev, tunnel_stateless_vxlan) &&
-+	return IS_ENABLED(CONFIG_MLX5_CORE_EN_VXLAN) &&
-+		(MLX5_CAP_ETH(mdev, tunnel_stateless_vxlan) &&
- 		mlx5_core_is_pf(mdev));
- }
- 
-+#ifdef CONFIG_MLX5_CORE_EN_VXLAN
- void mlx5e_vxlan_init(struct mlx5e_priv *priv);
-+void mlx5e_vxlan_cleanup(struct mlx5e_priv *priv);
-+#else
-+static inline void mlx5e_vxlan_init(struct mlx5e_priv *priv) {}
-+static inline void mlx5e_vxlan_cleanup(struct mlx5e_priv *priv) {}
-+#endif
-+
- int  mlx5e_vxlan_add_port(struct mlx5e_priv *priv, u16 port);
- void mlx5e_vxlan_del_port(struct mlx5e_priv *priv, u16 port);
- struct mlx5e_vxlan *mlx5e_vxlan_lookup_port(struct mlx5e_priv *priv, u16 port);
--void mlx5e_vxlan_cleanup(struct mlx5e_priv *priv);
- 
- #endif /* __MLX5_VXLAN_H__ */
--- 
-2.7.0
+-	rdi->lkey_table.max = 1 << lkey_table_size;
+-
+ 	/* ensure generation is at least 4 bits */
+ 	if (lkey_table_size > RVT_MAX_LKEY_TABLE_BITS) {
+ 		rvt_pr_warn(rdi, "lkey bits %u too large, reduced to %u\n",
+@@ -85,6 +83,7 @@ int rvt_driver_mr_init(struct rvt_dev_info *rdi)
+ 		rdi->dparms.lkey_table_size = RVT_MAX_LKEY_TABLE_BITS;
+ 		lkey_table_size = rdi->dparms.lkey_table_size;
+ 	}
++	rdi->lkey_table.max = 1 << lkey_table_size;
+ 	lk_tab_size = rdi->lkey_table.max * sizeof(*rdi->lkey_table.table);
+ 	rdi->lkey_table.table = (struct rvt_mregion __rcu **)
+ 			       vmalloc_node(lk_tab_size, rdi->dparms.node);
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
