@@ -1,36 +1,47 @@
-From: "casmire.kere-sh/6fXdz2Rs@public.gmane.org" <casmire.kere-sh/6fXdz2Rs@public.gmane.org>
-Subject: GOOD DAY YOUR URGENT REPLY NEEDED.
-Date: Fri, 26 Feb 2016 06:19:22 +0100 (CET)
-Message-ID: <10200092.30131456463962342.JavaMail.defaultUser@defaultHost>
-Reply-To: casmire.kere-sh/6fXdz2Rs@public.gmane.org
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH 00/12] iser target patches for 4.6
+Date: Thu, 25 Feb 2016 21:59:07 -0800
+Message-ID: <1456466347.32369.54.camel@haakon3.risingtidesystems.com>
+References: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
+	 <56CDE7E1.8010001@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <56CDE7E1.8010001@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Sagi Grimberg <sagig@mellanox.com>, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Compliment of the day,
-I am Mr.Kere Casmire I Have a Business Proposal 
-of $5.3 million For You.I am aware of the unsafe nature of the 
-internet, and was compelled to use this medium due to the nature of 
-this project.I have access to very vital information that can be used 
-to transfer this huge amount of money,which may culminate into the 
-investment of the said funds into your company or any lucrative venture 
-in your country.If you will like to assist me as a partner then 
-indicate your interest,after which we shall both discuss the modalities 
-and the sharing percentage.Upon receipt of your reply on your 
-expression of Interest I will give you full details,on how the business 
-will be executed I am open for negotiation.You should forward your 
-reply to this private email id (casimirekere11-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org) Thanks for 
-your anticipated cooperation.Note you might receive this message in 
-your inbox or spam or junk folder, depends on your web host or server 
-network. 
-Regards,
-Mr.Kere Casmire
-+226 66416702
+On Wed, 2016-02-24 at 19:26 +0200, Sagi Grimberg wrote:
+> > Hi Nic,
+> >
+> > This patchset targets 4.6 merge window, it passed
+> > our nightly regression tests.
+> >
+> > The set consists of:
+> > - Several patches for error flow fixes and rework from Jenny
+> 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied patches #1-11 to target-pending/for-next.
+
+Since your last ib_drain_qp patch depends on external > 4.5 changes in
+rdma.git, it's been dropped for the moment.
+
+> Oh and I forgot to mention that patches 1-6 are stable material.
+> 
+
+Wrt to stable tags, looking at:
+
+iser-target: Separate flows for np listeners and connections cma events
+iser-target: Remove redundant wait in release_conn
+iser-target: Remove impossible condition from isert_wait_conn
+
+they don't appear to be fixes, or at least it's not clear from commit
+log what bug they address.
+
+So leaving the stable tags off #3, #5 and #6 for now, other please
+confirm.
+
+Thanks Sagi.
