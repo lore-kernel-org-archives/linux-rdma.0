@@ -1,193 +1,52 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
-Date: Sat, 27 Feb 2016 10:39:44 +0100
-Message-ID: <1456565984-28998-2-git-send-email-hch@lst.de>
-References: <1456565984-28998-1-git-send-email-hch@lst.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456565984-28998-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Dominique Martinet <asmadeus@codewreck.org>
+Subject: Re: [V9fs-developer] [PATCH] net/9p: convert to new CQ API
+Date: Sat, 27 Feb 2016 16:49:57 +0100
+Message-ID: <20160227154957.GA21186@nautica>
+References: <1456565151-27115-1-git-send-email-hch@lst.de>
+ <1456565151-27115-2-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1456565151-27115-2-git-send-email-hch@lst.de>
+Sender: netdev-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: v9fs-developer@lists.sourceforge.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Simplifies the code, and makes it more fair vs other users by using a
-softirq for polling.
+Hi,
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c    |  9 +++-----
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  8 +------
- drivers/infiniband/hw/mlx5/mr.c      | 43 +++++++++++++++++-------------------
- 3 files changed, 24 insertions(+), 36 deletions(-)
+Couple of checkpatch complains:
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 03c418c..d91673e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1838,7 +1838,7 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
- 		mlx5_ib_warn(dev, "mr cache cleanup failed\n");
- 
- 	mlx5_ib_destroy_qp(dev->umrc.qp);
--	ib_destroy_cq(dev->umrc.cq);
-+	ib_free_cq(dev->umrc.cq);
- 	ib_dealloc_pd(dev->umrc.pd);
- }
- 
-@@ -1853,7 +1853,6 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 	struct ib_pd *pd;
- 	struct ib_cq *cq;
- 	struct ib_qp *qp;
--	struct ib_cq_init_attr cq_attr = {};
- 	int ret;
- 
- 	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
-@@ -1870,9 +1869,7 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 		goto error_0;
- 	}
- 
--	cq_attr.cqe = 128;
--	cq = ib_create_cq(&dev->ib_dev, mlx5_umr_cq_handler, NULL, NULL,
--			  &cq_attr);
-+	cq = ib_alloc_cq(&dev->ib_dev, NULL, 128, 0, IB_POLL_SOFTIRQ);
- 	if (IS_ERR(cq)) {
- 		mlx5_ib_dbg(dev, "Couldn't create CQ for sync UMR QP\n");
- 		ret = PTR_ERR(cq);
-@@ -1945,7 +1942,7 @@ error_4:
- 	mlx5_ib_destroy_qp(qp);
- 
- error_3:
--	ib_destroy_cq(cq);
-+	ib_free_cq(cq);
- 
- error_2:
- 	ib_dealloc_pd(pd);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 2d05bb5..5d0686e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -428,16 +428,11 @@ struct mlx5_ib_mr {
- };
- 
- struct mlx5_ib_umr_context {
-+	struct ib_cqe		cqe;
- 	enum ib_wc_status	status;
- 	struct completion	done;
- };
- 
--static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
--{
--	context->status = -1;
--	init_completion(&context->done);
--}
--
- struct umr_common {
- 	struct ib_pd	*pd;
- 	struct ib_cq	*cq;
-@@ -699,7 +694,6 @@ int mlx5_ib_get_cqe_size(struct mlx5_ib_dev *dev, struct ib_cq *ibcq);
- int mlx5_mr_cache_init(struct mlx5_ib_dev *dev);
- int mlx5_mr_cache_cleanup(struct mlx5_ib_dev *dev);
- int mlx5_mr_ib_cont_pages(struct ib_umem *umem, u64 addr, int *count, int *shift);
--void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context);
- int mlx5_ib_check_mr_status(struct ib_mr *ibmr, u32 check_mask,
- 			    struct ib_mr_status *mr_status);
- 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 2afcb61..0822d907 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -734,26 +734,20 @@ static void prep_umr_unreg_wqe(struct mlx5_ib_dev *dev,
- 	umrwr->mkey = key;
- }
- 
--void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context)
-+static void mlx5_ib_umr_done(struct ib_cq *cq, struct ib_wc *wc)
- {
--	struct mlx5_ib_umr_context *context;
--	struct ib_wc wc;
--	int err;
-+	struct mlx5_ib_umr_context *context =
-+		container_of(wc->wr_cqe, struct mlx5_ib_umr_context, cqe);
- 
--	while (1) {
--		err = ib_poll_cq(cq, 1, &wc);
--		if (err < 0) {
--			pr_warn("poll cq error %d\n", err);
--			return;
--		}
--		if (err == 0)
--			break;
-+	context->status = wc->status;
-+	complete(&context->done);
-+}
- 
--		context = (struct mlx5_ib_umr_context *) (unsigned long) wc.wr_id;
--		context->status = wc.status;
--		complete(&context->done);
--	}
--	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
-+static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
-+{
-+	context->cqe.done = mlx5_ib_umr_done;
-+	context->status = -1;
-+	init_completion(&context->done);
- }
- 
- static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
-@@ -811,12 +805,13 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
- 		goto free_pas;
- 	}
- 
-+	mlx5_ib_init_umr_context(&umr_context);
-+
- 	memset(&umrwr, 0, sizeof(umrwr));
--	umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+	umrwr.wr.wr_cqe = &umr_context.cqe;
- 	prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmr.key,
- 			 page_shift, virt_addr, len, access_flags);
- 
--	mlx5_ib_init_umr_context(&umr_context);
- 	down(&umrc->sem);
- 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
- 	if (err) {
-@@ -929,8 +924,10 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 
- 		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
- 
-+		mlx5_ib_init_umr_context(&umr_context);
-+
- 		memset(&wr, 0, sizeof(wr));
--		wr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+		wr.wr.wr_cqe = &umr_context.cqe;
- 
- 		sg.addr = dma;
- 		sg.length = ALIGN(npages * sizeof(u64),
-@@ -947,7 +944,6 @@ int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index, int npages,
- 		wr.mkey = mr->mmr.key;
- 		wr.target.offset = start_page_index;
- 
--		mlx5_ib_init_umr_context(&umr_context);
- 		down(&umrc->sem);
- 		err = ib_post_send(umrc->qp, &wr.wr, &bad);
- 		if (err) {
-@@ -1139,11 +1135,12 @@ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- 	struct ib_send_wr *bad;
- 	int err;
- 
-+	mlx5_ib_init_umr_context(&umr_context);
-+
- 	memset(&umrwr.wr, 0, sizeof(umrwr));
--	umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+	umrwr.wr.wr_cqe = &umr_context.cqe;
- 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmr.key);
- 
--	mlx5_ib_init_umr_context(&umr_context);
- 	down(&umrc->sem);
- 	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
- 	if (err) {
+Christoph Hellwig wrote on Sat, Feb 27, 2016:
+> -struct p9_rdma_context {
+> -	enum ib_wc_opcode wc_op;
+> +struct p9_rdma_context {	
+
+trailing tab
+
+> -	p9_debug(P9_DEBUG_ERROR, "req %p err %d status %d\n", req, err, status);
+> +	p9_debug(P9_DEBUG_ERROR, "req %p err %d status %d\n", req, err, wc->status);
+
+line over 80 chars
+
+
+That aside it looks good ; I need to check on the new API (hadn't
+noticed the change) but it looks nice.
+
+Will do the actual testing likely only next week only though;
+Eric has been taking my patches for 9p/RDMA so I suspect he'll take
+your's as well eventually (get_maintainer.pl has a long-ish list of CC
+for us usually)
+
+
+BTW I think it's easy enough to do the testing if you have a server that
+can dish it out. diod[1] and nfs-ganesha[2] are the only two I'm aware
+of but there might be more (using ganesha myself; happy to help you set
+it up in private if you need)
+
+[1] https://github.com/chaos/diod
+[2] https://github.com/nfs-ganesha/nfs-ganesha
+
 -- 
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dominique Martinet
