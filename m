@@ -1,44 +1,48 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 03/13] IB/core: add a helper to check for READ WITH INVALIDATE support
-Date: Sat, 27 Feb 2016 19:10:21 +0100
-Message-ID: <1456596631-19418-4-git-send-email-hch@lst.de>
-References: <1456596631-19418-1-git-send-email-hch@lst.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456596631-19418-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Christoph Hellwig <hch@lst.de>
+Subject: RFC: a first draft of a generic RDMA READ/WRITE API
+Date: Sat, 27 Feb 2016 19:10:18 +0100
+Message-ID: <1456596631-19418-1-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- include/rdma/ib_verbs.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+This series contains patches that implement a first version of a generi=
+c
+API to handle RDMA READ/WRITE operations as commonly used on the target
+(or server) side for storage protocols.
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 2114929..267f11e 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2286,6 +2286,15 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
- 		device->add_gid && device->del_gid;
- }
- 
-+/*
-+ * Check if the device supports READ W/ INVALIDATE.
-+ */
-+static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
-+{
-+	/* iWarp requires READ W/ INVALIDATE.  No other device supports it yet */
-+	return rdma_protocol_iwarp(dev, port_num);
-+}
-+
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid,
- 		 struct ib_gid_attr *attr);
--- 
-2.1.4
+This has been developed for the upcoming NVMe over Fabrics target, and
+extensively te=D1=95ted as part of that, although this upstream version=
+ has
+additional updates over the one we're currently using.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It hides details such as the use of MRs for iWarp devices, and will all=
+ow
+looking at other HCA specifics easily in the future.
+
+This series contains a RFC conversion of the iSER target, although that
+has hacky and probably not working signature MR support, otherwise I
+would have actually proposed it for inclusion.  The iSER conversion
+also contains my conversion to the CQ API, which now landed =D1=96n the
+target tree in an updated version.  It is only included for conveniance=
+=2E
+
+One thing that I could not wrap my head around is support for the
+current SRP target - SRP allows for multiple rkeys in a single request,
+and the SRP target driver wants to map those to a single struct
+scatterlist.  If anyone has ideas how to support that nicely: ideas
+are welcome.
+
+I also have a git tree available at:
+
+	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
+
+Gitweb:
+
+	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
+w-api
