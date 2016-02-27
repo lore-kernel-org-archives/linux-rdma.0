@@ -1,143 +1,44 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 04/13] IB/core: refactor ib_create_qp
-Date: Sat, 27 Feb 2016 19:10:22 +0100
-Message-ID: <1456596631-19418-5-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 03/13] IB/core: add a helper to check for READ WITH INVALIDATE support
+Date: Sat, 27 Feb 2016 19:10:21 +0100
+Message-ID: <1456596631-19418-4-git-send-email-hch@lst.de>
 References: <1456596631-19418-1-git-send-email-hch@lst.de>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1456596631-19418-1-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456596631-19418-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Split the XRC magic into a separate function, and return early on failure
-to make the initialization code readable.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 103 +++++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 49 deletions(-)
+ include/rdma/ib_verbs.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5aa1e0b..61131f8 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -723,62 +723,67 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2114929..267f11e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2286,6 +2286,15 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
+ 		device->add_gid && device->del_gid;
  }
- EXPORT_SYMBOL(ib_open_qp);
  
-+static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
-+		struct ib_qp_init_attr *qp_init_attr)
++/*
++ * Check if the device supports READ W/ INVALIDATE.
++ */
++static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
 +{
-+	struct ib_qp *real_qp = qp;
-+
-+	qp->event_handler = __ib_shared_qp_event_handler;
-+	qp->qp_context = qp;
-+	qp->pd = NULL;
-+	qp->send_cq = qp->recv_cq = NULL;
-+	qp->srq = NULL;
-+	qp->xrcd = qp_init_attr->xrcd;
-+	atomic_inc(&qp_init_attr->xrcd->usecnt);
-+	INIT_LIST_HEAD(&qp->open_list);
-+
-+	qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
-+			  qp_init_attr->qp_context);
-+	if (IS_ERR(qp))
-+		real_qp->device->destroy_qp(real_qp);
-+	else
-+		__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
-+	return qp;
++	/* iWarp requires READ W/ INVALIDATE.  No other device supports it yet */
++	return rdma_protocol_iwarp(dev, port_num);
 +}
 +
- struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			   struct ib_qp_init_attr *qp_init_attr)
- {
--	struct ib_qp *qp, *real_qp;
--	struct ib_device *device;
-+	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
-+	struct ib_qp *qp;
- 
--	device = pd ? pd->device : qp_init_attr->xrcd->device;
- 	qp = device->create_qp(pd, qp_init_attr, NULL);
--
--	if (!IS_ERR(qp)) {
--		qp->device     = device;
--		qp->real_qp    = qp;
--		qp->uobject    = NULL;
--		qp->qp_type    = qp_init_attr->qp_type;
--
--		atomic_set(&qp->usecnt, 0);
--		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
--			qp->event_handler = __ib_shared_qp_event_handler;
--			qp->qp_context = qp;
--			qp->pd = NULL;
--			qp->send_cq = qp->recv_cq = NULL;
--			qp->srq = NULL;
--			qp->xrcd = qp_init_attr->xrcd;
--			atomic_inc(&qp_init_attr->xrcd->usecnt);
--			INIT_LIST_HEAD(&qp->open_list);
--
--			real_qp = qp;
--			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
--					  qp_init_attr->qp_context);
--			if (!IS_ERR(qp))
--				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
--			else
--				real_qp->device->destroy_qp(real_qp);
--		} else {
--			qp->event_handler = qp_init_attr->event_handler;
--			qp->qp_context = qp_init_attr->qp_context;
--			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
--				qp->recv_cq = NULL;
--				qp->srq = NULL;
--			} else {
--				qp->recv_cq = qp_init_attr->recv_cq;
--				atomic_inc(&qp_init_attr->recv_cq->usecnt);
--				qp->srq = qp_init_attr->srq;
--				if (qp->srq)
--					atomic_inc(&qp_init_attr->srq->usecnt);
--			}
--
--			qp->pd	    = pd;
--			qp->send_cq = qp_init_attr->send_cq;
--			qp->xrcd    = NULL;
--
--			atomic_inc(&pd->usecnt);
--			atomic_inc(&qp_init_attr->send_cq->usecnt);
--		}
-+	if (IS_ERR(qp))
-+		return qp;
-+
-+	qp->device     = device;
-+	qp->real_qp    = qp;
-+	qp->uobject    = NULL;
-+	qp->qp_type    = qp_init_attr->qp_type;
-+
-+	atomic_set(&qp->usecnt, 0);
-+	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
-+		return ib_create_xrc_qp(qp, qp_init_attr);
-+
-+	qp->event_handler = qp_init_attr->event_handler;
-+	qp->qp_context = qp_init_attr->qp_context;
-+	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
-+		qp->recv_cq = NULL;
-+		qp->srq = NULL;
-+	} else {
-+		qp->recv_cq = qp_init_attr->recv_cq;
-+		atomic_inc(&qp_init_attr->recv_cq->usecnt);
-+		qp->srq = qp_init_attr->srq;
-+		if (qp->srq)
-+			atomic_inc(&qp_init_attr->srq->usecnt);
- 	}
- 
-+	qp->pd	    = pd;
-+	qp->send_cq = qp_init_attr->send_cq;
-+	qp->xrcd    = NULL;
-+
-+	atomic_inc(&pd->usecnt);
-+	atomic_inc(&qp_init_attr->send_cq->usecnt);
- 	return qp;
- }
- EXPORT_SYMBOL(ib_create_qp);
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid,
+ 		 struct ib_gid_attr *attr);
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
