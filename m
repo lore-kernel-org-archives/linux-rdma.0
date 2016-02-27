@@ -1,58 +1,32 @@
 From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH] configfs: switch ->default groups to a linked list
-Date: Sat, 27 Feb 2016 15:22:22 -0800
-Message-ID: <1456615342.1750.49.camel@haakon3.risingtidesystems.com>
-References: <1456490031-7132-1-git-send-email-hch@lst.de>
+Subject: Re: [PATCH 12/12] iser-target: Use ib_drain_qp
+Date: Sat, 27 Feb 2016 15:36:30 -0800
+Message-ID: <1456616190.1750.54.camel@haakon3.risingtidesystems.com>
+References: <201602250232.0MaJNmx5%fengguang.wu@intel.com>
+	 <56CEC01A.1050806@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1456490031-7132-1-git-send-email-hch@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: jlbec@evilplan.org, balbi@kernel.org, laurent.pinchart@ideasonboard.com, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, cluster-devel@redhat.com, ocfs2-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <56CEC01A.1050806@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: kbuild test robot <lkp@intel.com>, Sagi Grimberg <sagig@mellanox.com>, kbuild-all@01.org, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-02-26 at 13:33 +0100, Christoph Hellwig wrote:
-> Replace the current NULL-terminated array of default groups with a linked
-> list.  This gets rid of lots of nasty code to size and/or dynamically
-> allocate the array.
+On Thu, 2016-02-25 at 10:49 +0200, Sagi Grimberg wrote:
+> > Hi Sagi,
+> >
+> > [auto build test ERROR on target/master]
+> > [also build test ERROR on v4.5-rc5 next-20160224]
+> > [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 > 
-> While we're at it also provide a conveniant helper to remove the default
-> groups.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  Documentation/filesystems/configfs/configfs.txt |  11 +-
->  drivers/infiniband/core/cma_configfs.c          |  31 ++--
->  drivers/target/iscsi/iscsi_target_configfs.c    |  75 +++------
->  drivers/target/target_core_configfs.c           | 203 +++++-------------------
->  drivers/target/target_core_fabric_configfs.c    | 194 ++++++----------------
->  drivers/target/target_core_internal.h           |   1 -
->  drivers/target/target_core_stat.c               |  41 ++---
->  drivers/usb/gadget/configfs.c                   |  36 ++---
->  drivers/usb/gadget/function/f_mass_storage.c    |   6 +-
->  drivers/usb/gadget/function/f_rndis.c           |   1 -
->  drivers/usb/gadget/function/uvc_configfs.c      | 198 +++++++++--------------
->  fs/configfs/dir.c                               |  44 +++--
->  fs/configfs/item.c                              |   1 +
->  fs/dlm/config.c                                 |  38 +----
->  fs/ocfs2/cluster/nodemanager.c                  |  22 +--
->  include/linux/configfs.h                        |  11 +-
->  include/target/target_core_base.h               |   3 -
->  17 files changed, 284 insertions(+), 632 deletions(-)
+> OK, this patch depends on a new API that is expected to be included from
+> doug's tree, and that is why compilation fails.
 > 
 
-This is a very nice simplification to drop the long-standing fixed size
-->default_groups[] usage tree-wide for configfs consumers.
+Er, missed this earlier message..
 
-For the target parts:
+> Nic, should we just push this in rc1 after doug pull request landed?
 
-Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
-
-Also, this applies cleanly to target-pending/for-next, so I don't see a
-problem merging it up via your new configfs tree.
-
-Otherwise let me know, and I'll be happy to merge via target-pending.
-
-Thanks HCH.
+Sure, I'll plan to include in the post -rc1 fixes PULL request.
