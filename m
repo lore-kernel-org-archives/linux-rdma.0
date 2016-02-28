@@ -1,41 +1,31 @@
 From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH] configfs: switch ->default groups to a linked list
-Date: Sun, 28 Feb 2016 12:58:42 +0200
-Message-ID: <56D2D2E2.3000200@dev.mellanox.co.il>
-References: <1456490031-7132-1-git-send-email-hch@lst.de>
+Subject: Re: [PATCH] net/9p: convert to new CQ API
+Date: Sun, 28 Feb 2016 13:03:47 +0200
+Message-ID: <56D2D413.7080008@dev.mellanox.co.il>
+References: <1456565151-27115-1-git-send-email-hch@lst.de>
+ <1456565151-27115-2-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1456490031-7132-1-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, jlbec@evilplan.org
-Cc: balbi@kernel.org, laurent.pinchart@ideasonboard.com, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, cluster-devel@redhat.com, ocfs2-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1456565151-27115-2-git-send-email-hch@lst.de>
+Sender: netdev-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, v9fs-developer@lists.sourceforge.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+> Trivial conversion to the new RDMA CQ API.
 
-On 26/02/2016 14:33, Christoph Hellwig wrote:
-> Replace the current NULL-terminated array of default groups with a linked
-> list.  This gets rid of lots of nasty code to size and/or dynamically
-> allocate the array.
->
-> While we're at it also provide a conveniant helper to remove the default
-> groups.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
+Looks nice and simple :)
 
-Nice!
+But I think that the fact that CQ processing is now
+done in soft-IRQ (which is an improvement!) needs to
+be documented.
 
-> -As a consequence of this, default_groups cannot be removed directly via
-> +As a consequence of this, default groups cannot be removed directly via
->   rmdir(2).  They also are not considered when rmdir(2) on the parent
->   group is checking for children.
->
-
-What's changed here?
-
-Other than that, looks good
+Other than that, looks great
 
 Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
+
+P.S.
+I was also confused in the past about 9p and if anyone
+actually uses it...
