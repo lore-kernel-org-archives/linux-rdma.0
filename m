@@ -1,29 +1,41 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 12/12] iser-target: Use ib_drain_qp
-Date: Sun, 28 Feb 2016 12:54:59 +0200
-Message-ID: <56D2D203.7010907@dev.mellanox.co.il>
-References: <201602250232.0MaJNmx5%fengguang.wu@intel.com>
- <56CEC01A.1050806@dev.mellanox.co.il>
- <1456616190.1750.54.camel@haakon3.risingtidesystems.com>
+From: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Subject: Re: [PATCH] configfs: switch ->default groups to a linked list
+Date: Sun, 28 Feb 2016 12:58:42 +0200
+Message-ID: <56D2D2E2.3000200@dev.mellanox.co.il>
+References: <1456490031-7132-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456616190.1750.54.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456490031-7132-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, jlbec@evilplan.org
+Cc: balbi@kernel.org, laurent.pinchart@ideasonboard.com, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, linux-rdma@vger.kernel.org, cluster-devel@redhat.com, ocfs2-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Er, missed this earlier message..
->
->> Nic, should we just push this in rc1 after doug pull request landed?
->
-> Sure, I'll plan to include in the post -rc1 fixes PULL request.
 
-Thanks Nic!
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 26/02/2016 14:33, Christoph Hellwig wrote:
+> Replace the current NULL-terminated array of default groups with a linked
+> list.  This gets rid of lots of nasty code to size and/or dynamically
+> allocate the array.
+>
+> While we're at it also provide a conveniant helper to remove the default
+> groups.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+
+Nice!
+
+> -As a consequence of this, default_groups cannot be removed directly via
+> +As a consequence of this, default groups cannot be removed directly via
+>   rmdir(2).  They also are not considered when rmdir(2) on the parent
+>   group is checking for children.
+>
+
+What's changed here?
+
+Other than that, looks good
+
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
