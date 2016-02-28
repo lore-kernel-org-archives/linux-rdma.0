@@ -1,232 +1,71 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCHv7 3/3] rdmacg: Added documentation for rdmacg
-Date: Sun, 28 Feb 2016 19:43:41 +0530
-Message-ID: <1456668821-25799-4-git-send-email-pandit.parav@gmail.com>
-References: <1456668821-25799-1-git-send-email-pandit.parav@gmail.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 02/13] IB/core: allow passing mapping an offset into the
+ SG in ib_map_mr_sg
+Date: Sun, 28 Feb 2016 16:57:59 +0200
+Message-ID: <56D30AF7.1060205@dev.mellanox.co.il>
+References: <1456596631-19418-1-git-send-email-hch@lst.de>
+ <1456596631-19418-3-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456668821-25799-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1456596631-19418-3-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Added documentation for v1 and v2 version describing high
-level design and usage examples on using rdma controller.
 
-Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- Documentation/cgroup-v1/rdma.txt | 111 +++++++++++++++++++++++++++++++=
-++++++++
- Documentation/cgroup-v2.txt      |  33 ++++++++++++
- 2 files changed, 144 insertions(+)
- create mode 100644 Documentation/cgroup-v1/rdma.txt
+> @@ -1593,6 +1592,7 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+>    * @mr:            memory region
+>    * @sgl:           dma mapped scatterlist
+>    * @sg_nents:      number of entries in sg
+> + * @sg_offset:     offset in byes into sg
+>    * @set_page:      driver page assignment function pointer
+>    *
+>    * Core service helper for drivers to convert the largest
+> @@ -1603,10 +1603,8 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+>    * Returns the number of sg elements that were assigned to
+>    * a page vector.
+>    */
+> -int ib_sg_to_pages(struct ib_mr *mr,
+> -		   struct scatterlist *sgl,
+> -		   int sg_nents,
+> -		   int (*set_page)(struct ib_mr *, u64))
+> +int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
+> +		unsigned int sg_offset, int (*set_page)(struct ib_mr *, u64))
+>   {
+>   	struct scatterlist *sg;
+>   	u64 last_end_dma_addr = 0;
+> @@ -1618,8 +1616,8 @@ int ib_sg_to_pages(struct ib_mr *mr,
+>   	mr->length = 0;
+>
+>   	for_each_sg(sgl, sg, sg_nents, i) {
+> -		u64 dma_addr = sg_dma_address(sg);
+> -		unsigned int dma_len = sg_dma_len(sg);
+> +		u64 dma_addr = sg_dma_address(sg) + sg_offset;
+> +		unsigned int dma_len = sg_dma_len(sg) - sg_offset;
+>   		u64 end_dma_addr = dma_addr + dma_len;
+>   		u64 page_addr = dma_addr & page_mask;
+>
+> @@ -1652,6 +1650,8 @@ next_page:
+>   		mr->length += dma_len;
+>   		last_end_dma_addr = end_dma_addr;
+>   		last_page_off = end_dma_addr & ~page_mask;
+> +
+> +		sg_offset = 0;
+>   	}
 
-diff --git a/Documentation/cgroup-v1/rdma.txt b/Documentation/cgroup-v1=
-/rdma.txt
-new file mode 100644
-index 0000000..1973502
---- /dev/null
-+++ b/Documentation/cgroup-v1/rdma.txt
-@@ -0,0 +1,111 @@
-+				RDMA Controller
-+				----------------
-+
-+Contents
-+--------
-+
-+1. Overview
-+  1-1. What is RDMA controller?
-+  1-2. Why RDMA controller needed?
-+  1-3. How is RDMA controller implemented?
-+2. Usage Examples
-+
-+1. Overview
-+
-+1-1. What is RDMA controller?
-+-----------------------------
-+
-+RDMA controller allows user to limit RDMA/IB specific resources
-+that a given set of processes can use. These processes are grouped usi=
-ng
-+RDMA controller.
-+
-+RDMA controller allows operating on resources defined by the IB stack
-+which are mainly IB verb resources and in future hardware specific
-+well defined resources.
-+
-+1-2. Why RDMA controller needed?
-+--------------------------------
-+
-+Currently user space applications can easily take away all the rdma de=
-vice
-+specific resources such as AH, CQ, QP, MR etc. Due to which other appl=
-ications
-+in other cgroup or kernel space ULPs may not even get chance to alloca=
-te any
-+rdma resources. This leads to service unavailability.
-+
-+Therefore RDMA controller is needed through which resource consumption
-+of processes can be limited. Through this controller various different=
- rdma
-+resources described by IB stack can be accounted.
-+
-+1-3. How is RDMA controller implemented?
-+----------------------------------------
-+
-+RDMA cgroup allows limit configuration of resources. These resources a=
-re not
-+defined by the rdma controller. Instead they are defined by the IB sta=
-ck.
-+This provides great flexibility to allow IB stack to define new resour=
-ces,
-+without any changes to rdma cgroup.
-+Rdma cgroup maintains resource accounting per cgroup, per device using
-+resource pool structure. Each such resource pool is limited up to
-+64 resources in given resource pool by rdma cgroup, which can be exten=
-ded
-+later if required.
-+
-+This resource pool object is linked to the cgroup css. Typically there
-+are 0 to 4 resource pool instances per cgroup, per device in most use =
-cases.
-+But nothing limits to have it more. At present hundreds of RDMA device=
-s per
-+single cgroup may not be handled optimally, however there is no
-+known use case for such configuration either.
-+
-+Since RDMA resources can be allocated from any process and can be free=
-d by any
-+of the child processes which shares the address space, rdma resources =
-are
-+always owned by the creator cgroup css. This allows process migration =
-from one
-+to other cgroup without major complexity of transferring resource owne=
-rship;
-+because such ownership is not really present due to shared nature of
-+rdma resources. Linking resources around css also ensures that cgroups=
- can be
-+deleted after processes migrated. This allow progress migration as wel=
-l with
-+active resources, even though that=E2=80=99s not the primary use case.
-+
-+Whenever RDMA resource charing occurs, owner rdma cgroup is returned t=
-o
-+the caller. Same rdma cgroup should be passed while uncharging the res=
-ource.
-+This also allows process migrated with active RDMA resource to charge
-+to new owner cgroup for new resource. It also allows to uncharge resou=
-rce of
-+a process from previously charged cgroup which is migrated to new cgro=
-up,
-+even though that is not a primary use case.
-+
-+Resource pool object is created in following situations.
-+(a) User sets the limit and no previous resource pool exist for the de=
-vice
-+of interest for the cgroup.
-+(b) No resource limits were configured, but IB/RDMA stack tries to
-+charge the resource. So that it correctly uncharge them when applicati=
-ons are
-+running without limits and later on when limits are enforced during un=
-charging,
-+otherwise usage count will drop to negative.
-+
-+Resource pool is destroyed if it all the resource limits are set to ma=
-x
-+and it is the last resource getting deallocated.
-+
-+User should set all the limit to max value if it intents to remove/unc=
-onfigure
-+the resource pool for a particular device.
-+
-+IB stack honors limits enforced by the rdma controller. When applicati=
-on
-+query about maximum resource limits of IB device, it returns minimum o=
-f
-+what is configured by user for a given cgroup and what is supported by
-+IB device.
-+
-+2. Usage Examples
-+-----------------
-+
-+(a) Configure resource limit:
-+echo mlx4_0 mr=3D100 qp=3D10 ah=3D2 > /sys/fs/cgroup/rdma/1/rdma.max
-+echo ocrdma1 mr=3D120 qp=3D20 cq=3D10 > /sys/fs/cgroup/rdma/2/rdma.max
-+
-+(b) Query resource limit:
-+cat /sys/fs/cgroup/rdma/2/rdma.max
-+#Output:
-+mlx4_0 mr=3D100 qp=3D10 ah=3D2 pd=3Dmax
-+ocrdma1 mr=3D120 qp=3D20 cq=3D10 pd=3Dmax ah=3Dmax
-+
-+(c) Query current usage:
-+cat /sys/fs/cgroup/rdma/2/rdma.current
-+#Output:
-+mlx4_0 mr=3D95 qp=3D8 ah=3D2
-+ocrdma1 mr=3D0 qp=3D20 cq=3D10
-+
-+(d) Delete resource limit:
-+echo mlx4_0 mr=3Dmax qp=3Dmax ah=3Dmax > /sys/fs/cgroup/rdma/1/rdma.ma=
-x
-diff --git a/Documentation/cgroup-v2.txt b/Documentation/cgroup-v2.txt
-index ff49cf9..0ec4605 100644
---- a/Documentation/cgroup-v2.txt
-+++ b/Documentation/cgroup-v2.txt
-@@ -47,6 +47,8 @@ CONTENTS
-   5-3. IO
-     5-3-1. IO Interface Files
-     5-3-2. Writeback
-+  5-4. RDMA
-+    5-4-1. RDMA Interface Files
- P. Information on Kernel Programming
-   P-1. Filesystem Support for Writeback
- D. Deprecated v1 Core Features
-@@ -1088,6 +1090,37 @@ writeback as follows.
- 	total available memory and applied the same way as
- 	vm.dirty[_background]_ratio.
-=20
-+5-4. RDMA
-+
-+The "rdma" controller regulates the distribution of RDMA resources.
-+This controller implements resource accounting of resources defined
-+by IB stack.
-+
-+5-4-1. RDMA Interface Files
-+
-+  rdma.max
-+	A readwrite file that exists for all the cgroups except root that
-+	describes current configured resource limit for a RDMA/IB device.
-+
-+	Lines are keyed by device name and are not ordered.
-+	Each line contains space separated resource name and its configured
-+	limit that can be distributed.
-+
-+	An example for mlx4 and ocrdma device follows.
-+
-+	  mlx4_0 ah=3D2 mr=3D1000 qp=3D104
-+	  ocrdma1 cq=3D10 mr=3D900 qp=3D89
-+	  mlx4_1 uctx=3Dmax ah=3Dmax pd=3Dmax cq=3Dmax qp=3Dmax
-+
-+  rdma.current
-+	A read-only file that describes current resource usage.
-+	It exists for all the cgroup except root.
-+
-+	An example for mlx4 and ocrdma device follows.
-+
-+	  mlx4_0 mr=3D1000 qp=3D102 ah=3D2 flow=3D10 srq=3D0
-+	  ocrdma1 mr=3D900 qp=3D79 cq=3D10 flow=3D0 srq=3D0
-+	  mlx4_1 uctx=3Dmax ah=3Dmax pd=3Dmax cq=3Dmax qp=3Dmax
-=20
- P. Information on Kernel Programming
-=20
---=20
-1.8.3.1
+This looks wrong...
 
+The SG offset should not be taken into account in the address
+translation vector that is given to the HW. The sg_offset needs to
+be accounted in the mr->iova:
+
+mr->iova = sg_dma_address(&sgl[0]) + sg_offset;
+
+I think the page mappings should stay as the are.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
