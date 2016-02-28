@@ -1,30 +1,29 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH] net/9p: convert to new CQ API
-Date: Sun, 28 Feb 2016 17:04:08 +0100
-Message-ID: <20160228160408.GA23421@lst.de>
-References: <1456565151-27115-1-git-send-email-hch@lst.de> <1456565151-27115-2-git-send-email-hch@lst.de> <56D2D413.7080008@dev.mellanox.co.il>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 13/13] IB/isert: RW API WIP
+Date: Sun, 28 Feb 2016 17:04:34 +0100
+Message-ID: <20160228160434.GB23421@lst.de>
+References: <1456596631-19418-1-git-send-email-hch@lst.de> <1456596631-19418-14-git-send-email-hch@lst.de> <56D2FCBB.508@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56D2D413.7080008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <56D2FCBB.508@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 28, 2016 at 01:03:47PM +0200, Sagi Grimberg wrote:
+On Sun, Feb 28, 2016 at 03:57:15PM +0200, Sagi Grimberg wrote:
 >
->> Trivial conversion to the new RDMA CQ API.
+>>   drivers/infiniband/ulp/isert/ib_isert.c | 855 ++++++--------------------------
+>>   drivers/infiniband/ulp/isert/ib_isert.h |  70 +--
+>>   2 files changed, 161 insertions(+), 764 deletions(-)
 >
-> Looks nice and simple :)
+> Ha! 603 LOC deletion!
 >
-> But I think that the fact that CQ processing is now
-> done in soft-IRQ (which is an improvement!) needs to
-> be documented.
+> I plan to incorporate the signature stuff into the rdma_rw API
+> and then we can reduce it even further! It'll take me some time
+> though...
 
-Yeah, I meant to do that, but ended up beeing lazy as usual :)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The whole series including the CQ API actually removes more code
+than it adds even with a single consumer.
