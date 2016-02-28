@@ -1,28 +1,34 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 06/13] IB/core: add a need_inval flag to struct ib_mr
-Date: Sun, 28 Feb 2016 17:05:45 +0100
-Message-ID: <20160228160545.GC23421@lst.de>
-References: <1456596631-19418-1-git-send-email-hch@lst.de> <1456596631-19418-7-git-send-email-hch@lst.de> <56D30DE2.9080007@dev.mellanox.co.il>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: SRPt oops with 4.5-rc3-ish
+Date: Sun, 28 Feb 2016 08:14:01 -0800
+Message-ID: <56D31CC9.7000609@sandisk.com>
+References: <56C0A6C3.3010903@redhat.com>
+ <1456630639.19657.47.camel@haakon3.risingtidesystems.com>
+ <1456647963.19657.135.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56D30DE2.9080007@dev.mellanox.co.il>
+In-Reply-To: <1456647963.19657.135.camel@haakon3.risingtidesystems.com>
 Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org, Steve Wise <swise@chelsio.com>
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Feb 28, 2016 at 05:10:26PM +0200, Sagi Grimberg wrote:
->> This is the first step toward moving MR invalidation decisions
->> to the core.  It will be needed by the upcoming RW API.
->
-> This makes sense even before the rdma rw stuff. We can
-> add this bit and get rid of the iser flagging (and when
-> nfs/srp will support remote invalidate they will use it too)
+On 02/28/16 00:26, Nicholas A. Bellinger wrote:
+> Please confirm when you started triggering this regression during target
+> service restart.
 
-If someone else has a use for it ASAP feel free to send it along
-with that.  The R/W code currently is my priority project because
-the NVMe target driver will need it.  Once that and a few other
-urgent items are off my plate I'll happily help out with various
-cleanups on the client side MR API again.
+Hi Nic,
+
+Are you aware that Doug was not the first person to report this crash? I 
+had already reported this crash myself seven weeks ago. Together with 
+the report of this crash I had also sent a root cause analysis to you 
+and a fix. In the patch description I explained clearly that this crash 
+is caused by a bug in the LIO core and should be fixed in the LIO core. 
+See also Bart Van Assche, [PATCH 07/21] target: Fix a use-after-free in 
+core_tpg_del_initiator_node_acl(), target-devel mailing list, January 5, 
+2016 
+(http://thread.gmane.org/gmane.linux.scsi.target.devel/10905/focus=10891).
+
+Bart.
