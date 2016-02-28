@@ -1,43 +1,30 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv6 3/3] rdmacg: Added documentation for rdmacg
-Date: Sun, 28 Feb 2016 14:32:45 +0530
-Message-ID: <CAG53R5XH2SbvNH=z7OL4v9i+r7cj4D8vPNZDSutjay3myoRkVw@mail.gmail.com>
-References: <1455966006-13774-1-git-send-email-pandit.parav@gmail.com>
-	<1455966006-13774-4-git-send-email-pandit.parav@gmail.com>
-	<56CDBD8B.4050503@mellanox.com>
-	<CAG53R5XApY76+ACGsQvuWnQcPSsUfYqD1zxn=Dq_iFShUOxZYA@mail.gmail.com>
-	<56D2B5EA.5090701@mellanox.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/6] move port mapper code to iwcm
+Date: Sun, 28 Feb 2016 11:41:24 +0200
+Message-ID: <CAJ3xEMjdLCNfUY9r7KfH4iMi=CRHjqAQcmpyLxbCQLSCeQxOXQ@mail.gmail.com>
+References: <1456499885-8044-1-git-send-email-faisal.latif@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <56D2B5EA.5090701@mellanox.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tejun Heo <tj@kernel.org>, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456499885-8044-1-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-o.k. I will add a note there that IB stack would honor the limits
-given by the rdma cgroup.
+On Fri, Feb 26, 2016 at 5:17 PM, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-On Sun, Feb 28, 2016 at 2:25 PM, Haggai Eran <haggaie@mellanox.com> wrote:
-> On 24/02/2016 17:21, Parav Pandit wrote:
->> On Wed, Feb 24, 2016 at 7:56 PM, Haggai Eran <haggaie@mellanox.com> wrote:
->>> On 20/02/2016 13:00, Parav Pandit wrote:
->>>> Added documentation for v1 and v2 version describing high
->>>> level design and usage examples on using rdma controller.
->>>>
->>>> Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
->>>
->>> I think you might want to mention that resource limits are reflected
->>> in the results returned from ib_uverbs_query_device/ibv_query_device
->>> or printed from "ibv_devinfo -v".
->>>
->> Its valid point.
->> Since this documentation is for rdma controller, I was wondering
->> should I have it this documentation or should I add the uverbs_cmds.c?
->
-> I was thinking it should be in the documentation because an application
-> developer might look there first, without reading uverbs_cmd.c.
->
-> Haggai
->
+>  18 files changed, 414 insertions(+), 1019 deletions(-)
+
+Didn't look on the patches, but LOC wise, nice cleanup!
+
+The i40 iwarp driver is not upstream yet.
+
+Hence, it's wrong to add duplicated code there and  then come up with
+a patch that fixes that.
+
+You need to rebase the i40w series on this one and not the other way around.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
