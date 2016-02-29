@@ -1,60 +1,43 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 02/13] IB/core: allow passing mapping an offset into the
- SG in ib_map_mr_sg
-Date: Mon, 29 Feb 2016 14:08:42 +0200
-Message-ID: <56D434CA.3090902@dev.mellanox.co.il>
-References: <1456596631-19418-1-git-send-email-hch@lst.de>
- <1456596631-19418-3-git-send-email-hch@lst.de>
- <56D30AF7.1060205@dev.mellanox.co.il> <20160229111557.GA11499@lst.de>
- <56D42D10.8080101@dev.mellanox.co.il> <20160229115611.GA12790@lst.de>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH] net/mlx5e: make VXLAN support conditional
+Date: Mon, 29 Feb 2016 13:51:51 +0100
+Message-ID: <2455934.lWxXaHB90g@wuerfel>
+References: <1456521217-2174580-1-git-send-email-arnd@arndb.de> <CALzJLG8MG9y8yr7zi4UTED0FwgBTJ+_5vSSWHB5SHFs-e8WTbg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160229115611.GA12790@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CALzJLG8MG9y8yr7zi4UTED0FwgBTJ+_5vSSWHB5SHFs-e8WTbg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sunday 28 February 2016 15:26:53 Saeed Mahameed wrote:
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > index 0d45f35aee72..44fc4bc35ffd 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+> > @@ -2116,6 +2116,9 @@ static netdev_features_t mlx5e_vxlan_features_check(struct mlx5e_priv *priv,
+> >         u16 proto;
+> >         u16 port = 0;
+> >
+> > +       if (!IS_ENABLED(CONFIG_MLX5_CORE_EN_VXLAN))
+> > +               goto out;
+> > +
+> 
+> I would rather wrap the whole mlx5e_features_check with the suggested
+> config flag and disable it in case CONFIG_MLX5_CORE_EN_VXLAN is OFF,
+> since this function is only needed for when vxlan is supported.
 
+Sounds good.
 
-On 29/02/2016 13:56, Christoph Hellwig wrote:
-> On Mon, Feb 29, 2016 at 01:35:44PM +0200, Sagi Grimberg wrote:
->>> But for lager SG entries we need it to calculate the correct
->>> base address.
->>
->> I'm not sure if this is true either. Can you explain why?
->
-> Assume we get a SG entry that is exactly 2 pages (8k) long.  But we
-> also have an offset of 6k into it, so we need to skip into the
-> second page to make the following work:
->
->>
->> The Memory region mapping is described by:
->> 1. page vector: [addr0, addr1, addr2,...]
->> 2. iova: the first byte offset
->> 3. length: the total byte count of the mr
->> 4. page_size: size of each page in the page vector
->>
->> This means that the HCA assumes that each address in
->> the page vector has the size of page_size, also the region
->> can start at some offset (iova - addr0), and it has some length.
->
-> Exactly.
->
-> For the above case we don't need the page at sg_dma_address(), though.
-> We need the one after it, so we need to make sure the page address
-> is calculated for the second page in the SG entry.
->
-> If we add sg_offset to dma_addr is in my page this means we get the
-> right page address from this line:
->
-> 		u64 page_addr = dma_addr & page_mask;
->
-> without that's we'd get the address of the first page, which doesn't
-> actually contain any data we want to map.
+I think moving the IS_ENABLED() check into the caller(s) will still
+result in the same object code, but it makes sense to structure
+the code for best readability.
 
-Yea, makes sense...
-
-I get it now! Thanks!
+	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
