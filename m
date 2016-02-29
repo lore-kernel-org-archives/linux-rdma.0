@@ -1,56 +1,40 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 8/8] IB/mlx5: Exposure offload arithmetic
- operations
-Date: Mon, 29 Feb 2016 00:40:52 +0200
-Message-ID: <56D37774.2010800@mellanox.com>
-References: <1455954465-15141-1-git-send-email-leon@leon.nu>
- <1455954465-15141-9-git-send-email-leon@leon.nu>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: SRPt oops with 4.5-rc3-ish
+Date: Sun, 28 Feb 2016 16:37:40 -0800
+Message-ID: <56D392D4.2000105@sandisk.com>
+References: <56C0A6C3.3010903@redhat.com>
+ <1456630639.19657.47.camel@haakon3.risingtidesystems.com>
+ <1456647963.19657.135.camel@haakon3.risingtidesystems.com>
+ <56D31CC9.7000609@sandisk.com>
+ <1456692183.19657.151.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1455954465-15141-9-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456692183.19657.151.camel@haakon3.risingtidesystems.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
+On 02/28/16 12:43, Nicholas A. Bellinger wrote:
+> Anyways, I'll sit down this week and figure out what's going on with
+> Doug's active I/O shutdown regression.
 
+The crash occurs in the core_tpg_del_initiator_node_acl() function
+and a call to that function has been added recently in
+target_fabric_nacl_base_release(). I think it was added through the
+following patch:
 
-On 2/20/2016 9:47 AM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Advertise the offload arithmetic operations support.
->
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/infiniband/hw/mlx5/main.c | 3 +++
->   1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index 03c418c..9e92f48 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -549,6 +549,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
->   	if (MLX5_CAP_GEN(mdev, cd))
->   		props->device_cap_flags |= IB_DEVICE_CROSS_CHANNEL;
->
-> +	if (MLX5_CAP_GEN(dev->mdev, vector_calc))
-> +		props->device_cap_flags |= IB_DEVICE_VECTOR_CALC;
+commit c7d6a803926bae9bbf4510a18fc8dd8957cc0e01
+Date:   Mon Apr 13 19:51:14 2015 +0200
 
-won't you like to advertise max_vector_count cap ?
-
-props->calc_caps.max_vector_count =
-                 MLX5_CAP_VECTOR_CALC(dev->mdev, max_vec_count);
-
-
-> +
->   	return 0;
->   }
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    target: refactor init/drop_nodeacl methods
+    
+    By always allocating and adding, respectively removing and freeing
+    the se_node_acl structure in core code we can remove tons of repeated
+    code in the init_nodeacl and drop_nodeacl routines.  Additionally
+    this now respects the get_default_queue_depth method in this code
+    path as well.
+    
+Bart.
