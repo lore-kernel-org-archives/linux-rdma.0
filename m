@@ -1,34 +1,41 @@
-From: "Alecssandro" <contactalecssandrokonart65-EMRzualFZlQ@public.gmane.org>
-Subject: =?utf-8?q?INFORMA=C3=87=C3=83O_IMPORTANTE__RE=3A_Consultoria_de_Investime?=
- =?utf-8?q?nto_em_sua_Localidade=2E?=
-Date: Sun, 28 Feb 2016 04:48:54 -0800
-Message-ID: <20160228134749.E8A708FDA5F@webmail.cefet-rj.br>
-Reply-To: contactalecssandrokonart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 1/6] iwcm: common code for port mapper
+Date: Mon, 29 Feb 2016 09:20:58 -0600
+Message-ID: <00f701d17304$ca86f280$5f94d780$@opengridcomputing.com>
+References: <1456499885-8044-1-git-send-email-faisal.latif@intel.com> <1456499885-8044-2-git-send-email-faisal.latif@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <1456499885-8044-2-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <contactalecssandrokonart65-EMRzualFZlQ@public.gmane.org>
+To: 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Oi Amigo,
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Faisal Latif
+> Sent: Friday, February 26, 2016 9:18 AM
+> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; e1000-
+> rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Faisal Latif
+> Subject: [PATCH 1/6] iwcm: common code for port mapper
+> 
+> moved port mapper related code from drivers into common code
+> 
+> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Tatyana E. Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-INFORMA=C7=C3O IMPORTANTE
 
-Nossa fam=EDlia est=E1 interessada em investir fundos em sua localidade=
-=2E
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Mais informa=E7=F5es para voc=EA se interessou.
 
-Sauda=E7=F5es,
-Sir Henry Neville Lindley Keswick
-Presidente da Jardine Matheson Holdings Ltd
-https://en.wikipedia.org/wiki/Keswick_family
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
