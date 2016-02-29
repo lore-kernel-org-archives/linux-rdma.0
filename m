@@ -1,55 +1,66 @@
-From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 02/13] IB/core: allow passing mapping an offset into the
- SG in ib_map_mr_sg
-Date: Mon, 29 Feb 2016 13:35:44 +0200
-Message-ID: <56D42D10.8080101@dev.mellanox.co.il>
-References: <1456596631-19418-1-git-send-email-hch@lst.de>
- <1456596631-19418-3-git-send-email-hch@lst.de>
- <56D30AF7.1060205@dev.mellanox.co.il> <20160229111557.GA11499@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 02/13] IB/core: allow passing mapping an offset into
+	the SG in ib_map_mr_sg
+Date: Mon, 29 Feb 2016 12:56:11 +0100
+Message-ID: <20160229115611.GA12790@lst.de>
+References: <1456596631-19418-1-git-send-email-hch@lst.de> <1456596631-19418-3-git-send-email-hch@lst.de> <56D30AF7.1060205@dev.mellanox.co.il> <20160229111557.GA11499@lst.de> <56D42D10.8080101@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160229111557.GA11499-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56D42D10.8080101@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-> I looked at this in a bit more detail, and I think we need both.
+On Mon, Feb 29, 2016 at 01:35:44PM +0200, Sagi Grimberg wrote:
+>> But for lager SG entries we need it to calculate the correct
+>> base address.
 >
-> For PAGE_SIZE or smaller SG entries you're correct, and we don't
-> need the offset for dma_addr.  But it doesn't harm either.
+> I'm not sure if this is true either. Can you explain why?
 
-I think it can harm us.
+Assume we get a SG entry that is exactly 2 pages (8k) long.  But we
+also have an offset of 6k into it, so we need to skip into the
+second page to make the following work:
 
-> But for lager SG entries we need it to calculate the correct
-> base address.
+>
+> The Memory region mapping is described by:
+> 1. page vector: [addr0, addr1, addr2,...]
+> 2. iova: the first byte offset
+> 3. length: the total byte count of the mr
+> 4. page_size: size of each page in the page vector
+>
+> This means that the HCA assumes that each address in
+> the page vector has the size of page_size, also the region
+> can start at some offset (iova - addr0), and it has some length.
 
-I'm not sure if this is true either. Can you explain why?
+Exactly.
 
-The Memory region mapping is described by:
-1. page vector: [addr0, addr1, addr2,...]
-2. iova: the first byte offset
-3. length: the total byte count of the mr
-4. page_size: size of each page in the page vector
+For the above case we don't need the page at sg_dma_address(), though.
+We need the one after it, so we need to make sure the page address
+is calculated for the second page in the SG entry.
 
-This means that the HCA assumes that each address in
-the page vector has the size of page_size, also the region
-can start at some offset (iova - addr0), and it has some length.
+If we add sg_offset to dma_addr is in my page this means we get the
+right page address from this line:
 
-So say the HCA wants to write 8k to the MR:
-first page_size (4k) will be written starting from addr0, and
-the next page_size (4k) will be written starting from addr1.
-If you set addr0 = page_addr + offset then the HW will assume it can
-access addr0 + page_size which is not what we want.
+		u64 page_addr = dma_addr & page_mask;
 
-I think that the page vectors should contain page addresses and not
-incorporate offsets.
+without that's we'd get the address of the first page, which doesn't
+actually contain any data we want to map.
 
-Thoughts?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> So say the HCA wants to write 8k to the MR:
+> first page_size (4k) will be written starting from addr0, and
+> the next page_size (4k) will be written starting from addr1.
+> If you set addr0 = page_addr + offset then the HW will assume it can
+> access addr0 + page_size which is not what we want.
+>
+> I think that the page vectors should contain page addresses and not
+> incorporate offsets.
+
+The
+
+		u64 page_addr = dma_addr & page_mask;
+
+line ensures we always have a page address.  But to get the page address
+for the correct page we need to add the offset to dma_addr.
