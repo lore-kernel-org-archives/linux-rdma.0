@@ -1,44 +1,54 @@
-From: "Mr. DOUGLAS" <douglascontact6048-EMRzualFZlQ@public.gmane.org>
-Subject: =?utf-8?q?INFORMA=C3=87=C3=83O_IMPORTANTE__RE=3A_Consultoria_de_Investime?=
- =?utf-8?q?nto_em_sua_Localidade=2E?=
-Date: Sun, 28 Feb 2016 04:45:36 -0800
-Message-ID: <20160228134432.7891F8FD840@webmail.cefet-rj.br>
-Reply-To: johnsondouglas8738-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/3] Arbitrary SG list registration support
+Date: Mon, 29 Feb 2016 19:07:31 +0200
+Message-ID: <1456765654-27592-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <douglascontact6048-EMRzualFZlQ@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Oi,
+This patch adds arbitrary SG list memory registration support
+which is pending on the device capability (Introduced in Mellanox
+ConnectX-4).
 
-Temos planejado investir alguns fundos no seu pa=EDs.
+Now that the core is able to handle sg lists, the addition of
+this support is pretty straight-forward and with minimal changes
+to the core and ULP conversion.
 
-Responder se voc=EA estiver interessado.
+Just add another MR creation type which is capable of handling
+SG lists with gaps (pending on the device capability).
 
-Sauda=E7=F5es,
-Sir Henry Neville Lindley Keswick
-Presidente da Jardine Matheson Holdings Ltd
-https://en.wikipedia.org/wiki/Keswick_family
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
+Patch 0001 - IB core flagging
+Patch 0002 - mlx5 support
+Patch 0003 - First consumer, iser initiator (more will follow!)
 
-Hi friend,
+This has come up just now because I've been waiting for FW cap
+exposure that now is included in patchset "Add memory window user-space
+support to mlx5" by Matan (so it obviously depends on it).
 
-Our family is interested in investing funds in your locality.
+Code is available at:
+git-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org:sagigrimberg/linux.git arb_sg.3
 
-More information for you interest .
+Sagi Grimberg (3):
+  IB/core: Add arbitrary sg_list support
+  mlx5: Add arbitrary sg list support
+  iser: Accept arbitrary sg lists mapping if the device supports it
 
-Greetings,
-Sir Henry Neville Lindley Keswick
-Chairman of Jardine Matheson Holdings Ltd
-https://en.wikipedia.org/wiki/Keswick_family
+ drivers/infiniband/core/verbs.c          |  2 ++
+ drivers/infiniband/hw/mlx5/main.c        |  2 ++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |  1 +
+ drivers/infiniband/hw/mlx5/mr.c          | 50 ++++++++++++++++++++++++++++----
+ drivers/infiniband/hw/mlx5/qp.c          | 15 ++++++++--
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 11 ++++++-
+ drivers/infiniband/ulp/iser/iser_verbs.c | 23 ++++++++++-----
+ include/rdma/ib_verbs.h                  |  6 ++++
+ 8 files changed, 93 insertions(+), 17 deletions(-)
+
+-- 
+1.8.4.3
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
