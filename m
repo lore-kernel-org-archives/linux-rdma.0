@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/3] iser: Accept arbitrary sg lists mapping if the device supports it
-Date: Mon, 29 Feb 2016 19:07:34 +0200
-Message-ID: <1456765654-27592-4-git-send-email-sagig@mellanox.com>
+Subject: [PATCH 2/3] mlx5: Add arbitrary sg list support
+Date: Mon, 29 Feb 2016 19:07:33 +0200
+Message-ID: <1456765654-27592-3-git-send-email-sagig@mellanox.com>
 References: <1456765654-27592-1-git-send-email-sagig@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456765654-27592-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,118 +10,188 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the device support arbitrary sg list mapping (device cap
-IB_DEVICE_SG_GAPS_REG set) we allocate the memory regions with
-IB_MR_TYPE_SG_GAPS and allow the block layer to pass us
-gaps by skip setting the queue virt_boundary.
+Allocate proper context for arbitrary scatterlist registration
+If ib_alloc_mr is called with IB_MR_MAP_ARB_SG, the driver
+allocate a private klm list instead of a private page list.
+Set the UMR wqe correctly when posting the fast registration.
+
+Also, expose device cap IB_DEVICE_MAP_ARB_SG according to the
+device id (until we have a FW bit that correctly exposes it).
 
 Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c | 11 ++++++++++-
- drivers/infiniband/ulp/iser/iser_verbs.c | 23 +++++++++++++++--------
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    |  2 ++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ drivers/infiniband/hw/mlx5/mr.c      | 50 +++++++++++++++++++++++++++++++-----
+ drivers/infiniband/hw/mlx5/qp.c      | 15 +++++++++--
+ 4 files changed, 60 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index c827c93f46c5..80b6bedc172f 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -969,7 +969,16 @@ static umode_t iser_attr_is_visible(int param_type, int param)
- 
- static int iscsi_iser_slave_alloc(struct scsi_device *sdev)
- {
--	blk_queue_virt_boundary(sdev->request_queue, ~MASK_4K);
-+	struct iscsi_session *session;
-+	struct iser_conn *iser_conn;
-+	struct ib_device *ib_dev;
-+
-+	session = starget_to_session(scsi_target(sdev))->dd_data;
-+	iser_conn = session->leadconn->dd_data;
-+	ib_dev = iser_conn->ib_conn.device->ib_device;
-+
-+	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG))
-+		blk_queue_virt_boundary(sdev->request_queue, ~MASK_4K);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 40c0f4978e2f..f21bdcc34d59 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -252,14 +252,21 @@ void iser_free_fmr_pool(struct ib_conn *ib_conn)
- }
- 
- static int
--iser_alloc_reg_res(struct ib_device *ib_device,
-+iser_alloc_reg_res(struct iser_device *device,
- 		   struct ib_pd *pd,
- 		   struct iser_reg_resources *res,
- 		   unsigned int size)
- {
-+	struct ib_device *ib_dev = device->ib_device;
-+	enum ib_mr_type mr_type;
- 	int ret;
- 
--	res->mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, size);
-+	if (ib_dev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG)
-+		mr_type = IB_MR_TYPE_SG_GAPS;
-+	else
-+		mr_type = IB_MR_TYPE_MEM_REG;
-+
-+	res->mr = ib_alloc_mr(pd, mr_type, size);
- 	if (IS_ERR(res->mr)) {
- 		ret = PTR_ERR(res->mr);
- 		iser_err("Failed to allocate ib_fast_reg_mr err=%d\n", ret);
-@@ -277,7 +284,7 @@ iser_free_reg_res(struct iser_reg_resources *rsc)
- }
- 
- static int
--iser_alloc_pi_ctx(struct ib_device *ib_device,
-+iser_alloc_pi_ctx(struct iser_device *device,
- 		  struct ib_pd *pd,
- 		  struct iser_fr_desc *desc,
- 		  unsigned int size)
-@@ -291,7 +298,7 @@ iser_alloc_pi_ctx(struct ib_device *ib_device,
- 
- 	pi_ctx = desc->pi_ctx;
- 
--	ret = iser_alloc_reg_res(ib_device, pd, &pi_ctx->rsc, size);
-+	ret = iser_alloc_reg_res(device, pd, &pi_ctx->rsc, size);
- 	if (ret) {
- 		iser_err("failed to allocate reg_resources\n");
- 		goto alloc_reg_res_err;
-@@ -324,7 +331,7 @@ iser_free_pi_ctx(struct iser_pi_context *pi_ctx)
- }
- 
- static struct iser_fr_desc *
--iser_create_fastreg_desc(struct ib_device *ib_device,
-+iser_create_fastreg_desc(struct iser_device *device,
- 			 struct ib_pd *pd,
- 			 bool pi_enable,
- 			 unsigned int size)
-@@ -336,12 +343,12 @@ iser_create_fastreg_desc(struct ib_device *ib_device,
- 	if (!desc)
- 		return ERR_PTR(-ENOMEM);
- 
--	ret = iser_alloc_reg_res(ib_device, pd, &desc->rsc, size);
-+	ret = iser_alloc_reg_res(device, pd, &desc->rsc, size);
- 	if (ret)
- 		goto reg_res_alloc_failure;
- 
- 	if (pi_enable) {
--		ret = iser_alloc_pi_ctx(ib_device, pd, desc, size);
-+		ret = iser_alloc_pi_ctx(device, pd, desc, size);
- 		if (ret)
- 			goto pi_ctx_alloc_failure;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index bccd11837bcf..90c5e2423242 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -491,6 +491,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_MEM_WINDOW |
+ 					   IB_DEVICE_MEM_WINDOW_TYPE_2B;
+ 		props->max_mw = 1 << MLX5_CAP_GEN(mdev, log_max_mkey);
++		/* We support 'Gappy' memory registration too */
++		props->device_cap_flags |= IB_DEVICE_SG_GAPS_REG;
  	}
-@@ -374,7 +381,7 @@ int iser_alloc_fastreg_pool(struct ib_conn *ib_conn,
- 	spin_lock_init(&fr_pool->lock);
- 	fr_pool->size = 0;
- 	for (i = 0; i < cmds_max; i++) {
--		desc = iser_create_fastreg_desc(device->ib_device, device->pd,
-+		desc = iser_create_fastreg_desc(device, device->pd,
- 						ib_conn->pi_support, size);
- 		if (IS_ERR(desc)) {
- 			ret = PTR_ERR(desc);
+ 	props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
+ 	if (MLX5_CAP_GEN(mdev, sho)) {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 86ab9b83a1fd..b007f66c6bed 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -413,6 +413,7 @@ struct mlx5_ib_mr {
+ 	int			ndescs;
+ 	int			max_descs;
+ 	int			desc_size;
++	int			access_mode;
+ 	struct mlx5_core_mkey	mmkey;
+ 	struct ib_umem	       *umem;
+ 	struct mlx5_shared_mr_info	*smr_info;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 25c56b562315..967ac89a1d7f 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1300,8 +1300,8 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_create_mkey_mbox_in *in;
+ 	struct mlx5_ib_mr *mr;
+-	int access_mode, err;
+-	int ndescs = roundup(max_num_sg, 4);
++	int ndescs = ALIGN(max_num_sg, 4);
++	int err;
+ 
+ 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+ 	if (!mr)
+@@ -1319,7 +1319,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 	in->seg.flags_pd = cpu_to_be32(to_mpd(pd)->pdn);
+ 
+ 	if (mr_type == IB_MR_TYPE_MEM_REG) {
+-		access_mode = MLX5_ACCESS_MODE_MTT;
++		mr->access_mode = MLX5_ACCESS_MODE_MTT;
+ 		in->seg.log2_page_size = PAGE_SHIFT;
+ 
+ 		err = mlx5_alloc_priv_descs(pd->device, mr,
+@@ -1329,6 +1329,15 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 
+ 		mr->desc_size = sizeof(u64);
+ 		mr->max_descs = ndescs;
++	} else if (mr_type == IB_MR_TYPE_SG_GAPS) {
++		mr->access_mode = MLX5_ACCESS_MODE_KLM;
++
++		err = mlx5_alloc_priv_descs(pd->device, mr,
++					    ndescs, sizeof(struct mlx5_klm));
++		if (err)
++			goto err_free_in;
++		mr->desc_size = sizeof(struct mlx5_klm);
++		mr->max_descs = ndescs;
+ 	} else if (mr_type == IB_MR_TYPE_SIGNATURE) {
+ 		u32 psv_index[2];
+ 
+@@ -1347,7 +1356,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 		if (err)
+ 			goto err_free_sig;
+ 
+-		access_mode = MLX5_ACCESS_MODE_KLM;
++		mr->access_mode = MLX5_ACCESS_MODE_KLM;
+ 		mr->sig->psv_memory.psv_idx = psv_index[0];
+ 		mr->sig->psv_wire.psv_idx = psv_index[1];
+ 
+@@ -1361,7 +1370,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 		goto err_free_in;
+ 	}
+ 
+-	in->seg.flags = MLX5_PERM_UMR_EN | access_mode;
++	in->seg.flags = MLX5_PERM_UMR_EN | mr->access_mode;
+ 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmkey, in, sizeof(*in),
+ 				    NULL, NULL, NULL);
+ 	if (err)
+@@ -1482,6 +1491,32 @@ done:
+ 	return ret;
+ }
+ 
++static int
++mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
++		   struct scatterlist *sgl,
++		   unsigned short sg_nents)
++{
++	struct scatterlist *sg = sgl;
++	struct mlx5_klm *klms = mr->descs;
++	u32 lkey = mr->ibmr.pd->local_dma_lkey;
++	int i;
++
++	mr->ibmr.iova = sg_dma_address(sg);
++	mr->ibmr.length = 0;
++	mr->ndescs = sg_nents;
++
++	for_each_sg(sgl, sg, sg_nents, i) {
++		if (unlikely(i > mr->max_descs))
++			break;
++		klms[i].va = cpu_to_be64(sg_dma_address(sg));
++		klms[i].bcount = cpu_to_be32(sg_dma_len(sg));
++		klms[i].key = cpu_to_be32(lkey);
++		mr->ibmr.length += sg_dma_len(sg);
++	}
++
++	return i;
++}
++
+ static int mlx5_set_page(struct ib_mr *ibmr, u64 addr)
+ {
+ 	struct mlx5_ib_mr *mr = to_mmr(ibmr);
+@@ -1509,7 +1544,10 @@ int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
+ 				   mr->desc_size * mr->max_descs,
+ 				   DMA_TO_DEVICE);
+ 
+-	n = ib_sg_to_pages(ibmr, sg, sg_nents, mlx5_set_page);
++	if (mr->access_mode == MLX5_ACCESS_MODE_KLM)
++		n = mlx5_ib_sg_to_klms(mr, sg, sg_nents);
++	else
++		n = ib_sg_to_pages(ibmr, sg, sg_nents, mlx5_set_page);
+ 
+ 	ib_dma_sync_single_for_device(ibmr->device, mr->desc_map,
+ 				      mr->desc_size * mr->max_descs,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 34cb8e87c7b8..3aff9658696e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2509,6 +2509,11 @@ static void set_reg_umr_seg(struct mlx5_wqe_umr_ctrl_seg *umr,
+ 	int ndescs = mr->ndescs;
+ 
+ 	memset(umr, 0, sizeof(*umr));
++
++	if (mr->access_mode == MLX5_ACCESS_MODE_KLM)
++		/* KLMs take twice the size of MTTs */
++		ndescs *= 2;
++
+ 	umr->flags = MLX5_UMR_CHECK_NOT_FREE;
+ 	umr->klm_octowords = get_klm_octo(ndescs);
+ 	umr->mkey_mask = frwr_mkey_mask();
+@@ -2603,13 +2608,19 @@ static void set_reg_mkey_seg(struct mlx5_mkey_seg *seg,
+ 	int ndescs = ALIGN(mr->ndescs, 8) >> 1;
+ 
+ 	memset(seg, 0, sizeof(*seg));
+-	seg->flags = get_umr_flags(access) | MLX5_ACCESS_MODE_MTT;
++
++	if (mr->access_mode == MLX5_ACCESS_MODE_MTT)
++		seg->log2_page_size = ilog2(mr->ibmr.page_size);
++	else if (mr->access_mode == MLX5_ACCESS_MODE_KLM)
++		/* KLMs take twice the size of MTTs */
++		ndescs *= 2;
++
++	seg->flags = get_umr_flags(access) | mr->access_mode;
+ 	seg->qpn_mkey7_0 = cpu_to_be32((key & 0xff) | 0xffffff00);
+ 	seg->flags_pd = cpu_to_be32(MLX5_MKEY_REMOTE_INVAL);
+ 	seg->start_addr = cpu_to_be64(mr->ibmr.iova);
+ 	seg->len = cpu_to_be64(mr->ibmr.length);
+ 	seg->xlt_oct_size = cpu_to_be32(ndescs);
+-	seg->log2_page_size = ilog2(mr->ibmr.page_size);
+ }
+ 
+ static void set_linv_mkey_seg(struct mlx5_mkey_seg *seg)
 -- 
 1.8.4.3
 
