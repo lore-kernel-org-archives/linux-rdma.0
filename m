@@ -1,35 +1,37 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
-Date: Mon, 29 Feb 2016 09:23:22 +0200
-Message-ID: <56D3F1EA.9090800@mellanox.com>
-References: <1456565984-28998-1-git-send-email-hch@lst.de>
- <1456565984-28998-2-git-send-email-hch@lst.de>
- <56D2D731.5060904@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: SRPt oops with 4.5-rc3-ish
+Date: Mon, 29 Feb 2016 01:11:18 -0800
+Message-ID: <20160229091118.GA8927@infradead.org>
+References: <56C0A6C3.3010903@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D2D731.5060904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56C0A6C3.3010903-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 28/02/2016 13:17, Sagi Grimberg wrote:
-> 
->> Simplifies the code, and makes it more fair vs other users by using a
->> softirq for polling.
->>
->> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
->> ---
-> 
-> This effects user-space and ODP.
-> 
-> CC'ing Haggai
+Hi Doug,
 
-Looks good to me. 
+can you give my series at:
 
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+http://thread.gmane.org/gmane.linux.scsi.target.devel/11518
+
+a a try?  This sorts out the session list handling so that whoever
+removes a session from the list on the node ACLs gets to tear it down
+fully.  Previously the old kref papered over the lack of clear
+responsibility here.
+
+I think this should sort out this race, but as I can't reproduce it on
+my SRP test setup I'm not 100% sure.
+
+I've also uploaded a git tree to make your life easier, as it sits on
+top of Nic's for-next branch:
+
+	git://git.infradead.org/users/hch/scsi.git target-session-cleanup
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
