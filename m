@@ -1,38 +1,39 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 1/9] IB/cma: pass the port number to ib_create_qp
-Date: Mon, 29 Feb 2016 23:20:02 +0100
-Message-ID: <1456784410-20166-2-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 3/9] IB/core: add a helper to check for READ WITH INVALIDATE support
+Date: Mon, 29 Feb 2016 23:20:04 +0100
+Message-ID: <1456784410-20166-4-git-send-email-hch@lst.de>
 References: <1456784410-20166-1-git-send-email-hch@lst.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456784410-20166-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456784410-20166-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The new RW API will need this.
-
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/infiniband/core/cma.c | 1 +
- 1 file changed, 1 insertion(+)
+ include/rdma/ib_verbs.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 9729639..a791522 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -800,6 +800,7 @@ int rdma_create_qp(struct rdma_cm_id *id, struct ib_pd *pd,
- 	if (id->device != pd->device)
- 		return -EINVAL;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2114929..267f11e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2286,6 +2286,15 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
+ 		device->add_gid && device->del_gid;
+ }
  
-+	qp_init_attr->port_num = id->port_num;
- 	qp = ib_create_qp(pd, qp_init_attr);
- 	if (IS_ERR(qp))
- 		return PTR_ERR(qp);
++/*
++ * Check if the device supports READ W/ INVALIDATE.
++ */
++static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
++{
++	/* iWarp requires READ W/ INVALIDATE.  No other device supports it yet */
++	return rdma_protocol_iwarp(dev, port_num);
++}
++
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid,
+ 		 struct ib_gid_attr *attr);
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
