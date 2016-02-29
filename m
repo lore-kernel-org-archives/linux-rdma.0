@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/2] IB/mlx5: Added support for re-registration of MRs
-Date: Mon, 29 Feb 2016 16:46:51 +0200
-Message-ID: <1456757211-8112-3-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 1/2] IB/mlx5: Refactoring register MR code
+Date: Mon, 29 Feb 2016 16:46:50 +0200
+Message-ID: <1456757211-8112-2-git-send-email-matanb@mellanox.com>
 References: <1456757211-8112-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456757211-8112-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,346 +12,338 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds support for re-registration of memory regions in MLX5.
-The functionality is basically the same as deregister followed by
-register, but attempts to reuse the existing resources as much as
-possible.
-Original memory keys are kept if possible, saving the need to
-communicate new ones to remote peers.
+In order to add re-registration of memory region, some logic was
+extracted to separate functions:
+- ODP related logic.
+- Some of the UMR WQE preparation code.
+- DMA mapping.
+- Umem creation.
+- Creating MKey using FW interface.
+- MR fields assignments after successful creation.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    |   2 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   9 ++
- drivers/infiniband/hw/mlx5/mr.c      | 168 +++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/qp.c      |  51 ++++++++++-
- 4 files changed, 227 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 207 +++++++++++++++++++++++++---------------
+ 1 file changed, 132 insertions(+), 75 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 03c418ccbc98..6da3f0d1d1f8 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2198,6 +2198,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		(1ull << IB_USER_VERBS_CMD_ALLOC_PD)		|
- 		(1ull << IB_USER_VERBS_CMD_DEALLOC_PD)		|
- 		(1ull << IB_USER_VERBS_CMD_REG_MR)		|
-+		(1ull << IB_USER_VERBS_CMD_REREG_MR)		|
- 		(1ull << IB_USER_VERBS_CMD_DEREG_MR)		|
- 		(1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL)	|
- 		(1ull << IB_USER_VERBS_CMD_CREATE_CQ)		|
-@@ -2258,6 +2259,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.req_notify_cq	= mlx5_ib_arm_cq;
- 	dev->ib_dev.get_dma_mr		= mlx5_ib_get_dma_mr;
- 	dev->ib_dev.reg_user_mr		= mlx5_ib_reg_user_mr;
-+	dev->ib_dev.rereg_user_mr	= mlx5_ib_rereg_user_mr;
- 	dev->ib_dev.dereg_mr		= mlx5_ib_dereg_mr;
- 	dev->ib_dev.attach_mcast	= mlx5_ib_mcg_attach;
- 	dev->ib_dev.detach_mcast	= mlx5_ib_mcg_detach;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d2b9737baa36..15be0c44c4c5 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -162,6 +162,11 @@ struct mlx5_ib_flow_db {
- #define MLX5_IB_SEND_UMR_UNREG	IB_SEND_RESERVED_START
- #define MLX5_IB_SEND_UMR_FAIL_IF_FREE (IB_SEND_RESERVED_START << 1)
- #define MLX5_IB_SEND_UMR_UPDATE_MTT (IB_SEND_RESERVED_START << 2)
-+
-+#define MLX5_IB_SEND_UMR_UPDATE_TRANSLATION	(IB_SEND_RESERVED_START << 3)
-+#define MLX5_IB_SEND_UMR_UPDATE_PD		(IB_SEND_RESERVED_START << 4)
-+#define MLX5_IB_SEND_UMR_UPDATE_ACCESS		IB_SEND_RESERVED_END
-+
- #define MLX5_IB_QPT_REG_UMR	IB_QPT_RESERVED1
- #define MLX5_IB_WR_UMR		IB_WR_RESERVED1
- 
-@@ -425,6 +430,7 @@ struct mlx5_ib_mr {
- 	struct mlx5_core_sig_ctx    *sig;
- 	int			live;
- 	void			*descs_alloc;
-+	int			access_flags; /* Needed for rereg MR */
- };
- 
- struct mlx5_ib_umr_context {
-@@ -650,6 +656,9 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
- 				  struct ib_udata *udata);
- int mlx5_ib_update_mtt(struct mlx5_ib_mr *mr, u64 start_page_index,
- 		       int npages, int zap);
-+int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
-+			  u64 length, u64 virt_addr, int access_flags,
-+			  struct ib_pd *pd, struct ib_udata *udata);
- int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
- struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- 			       enum ib_mr_type mr_type,
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 9d6dade31b5f..cf26cd1f1fa2 100644
+index 6000f7aeede9..9d6dade31b5f 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -77,6 +77,12 @@ static int order2idx(struct mlx5_ib_dev *dev, int order)
+@@ -77,6 +77,34 @@ static int order2idx(struct mlx5_ib_dev *dev, int order)
  		return order - cache->ent[0].order;
  }
  
-+static bool use_umr_mtt_update(struct mlx5_ib_mr *mr, u64 start, u64 length)
-+{
-+	return ((u64)1 << mr->order) * MLX5_ADAPTER_PAGE_SIZE >=
-+		length + (start & (MLX5_ADAPTER_PAGE_SIZE - 1));
-+}
-+
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- static void update_odp_mr(struct mlx5_ib_mr *mr)
- {
-@@ -1127,6 +1133,7 @@ static void set_mr_fileds(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
- 	mr->ibmr.lkey = mr->mmr.key;
- 	mr->ibmr.rkey = mr->mmr.key;
- 	mr->ibmr.length = length;
-+	mr->access_flags = access_flags;
- }
- 
- struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-@@ -1222,6 +1229,167 @@ error:
- 	return err;
- }
- 
-+static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
-+		     u64 length, int npages, int page_shift, int order,
-+		     int access_flags, int flags)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(pd->device);
-+	struct device *ddev = dev->ib_dev.dma_device;
-+	struct mlx5_ib_umr_context umr_context;
-+	struct ib_send_wr *bad;
-+	struct mlx5_umr_wr umrwr = {};
-+	struct ib_sge sg;
-+	struct umr_common *umrc = &dev->umrc;
-+	dma_addr_t dma = 0;
-+	__be64 *mr_pas = NULL;
-+	int size;
-+	int err;
-+
-+	umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
-+	umrwr.wr.send_flags = MLX5_IB_SEND_UMR_FAIL_IF_FREE;
-+
-+	if (flags & IB_MR_REREG_TRANS) {
-+		err = dma_map_mr_pas(dev, mr->umem, npages, page_shift, &size,
-+				     &mr_pas, &dma);
-+		if (err)
-+			return err;
-+
-+		umrwr.target.virt_addr = virt_addr;
-+		umrwr.length = length;
-+		umrwr.wr.send_flags |= MLX5_IB_SEND_UMR_UPDATE_TRANSLATION;
-+	}
-+
-+	prep_umr_wqe_common(pd, &umrwr.wr, &sg, dma, npages, mr->mmr.key,
-+			    page_shift);
-+
-+	if (flags & IB_MR_REREG_PD) {
-+		umrwr.pd = pd;
-+		umrwr.wr.send_flags |= MLX5_IB_SEND_UMR_UPDATE_PD;
-+	}
-+
-+	if (flags & IB_MR_REREG_ACCESS) {
-+		umrwr.access_flags = access_flags;
-+		umrwr.wr.send_flags |= MLX5_IB_SEND_UMR_UPDATE_ACCESS;
-+	}
-+
-+	mlx5_ib_init_umr_context(&umr_context);
-+
-+	/* post send request to UMR QP */
-+	down(&umrc->sem);
-+	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
-+
-+	if (err) {
-+		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
-+	} else {
-+		wait_for_completion(&umr_context.done);
-+		if (umr_context.status != IB_WC_SUCCESS) {
-+			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
-+				     umr_context.status);
-+			err = -EFAULT;
-+		}
-+	}
-+
-+	up(&umrc->sem);
-+	if (flags & IB_MR_REREG_TRANS) {
-+		dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
-+		kfree(mr_pas);
-+	}
-+	return err;
-+}
-+
-+int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
-+			  u64 length, u64 virt_addr, int new_access_flags,
-+			  struct ib_pd *new_pd, struct ib_udata *udata)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ib_mr->device);
-+	struct mlx5_ib_mr *mr = to_mmr(ib_mr);
-+	struct ib_pd *pd = (flags & IB_MR_REREG_PD) ? new_pd : ib_mr->pd;
-+	int access_flags = flags & IB_MR_REREG_ACCESS ?
-+			    new_access_flags :
-+			    mr->access_flags;
-+	u64 addr = (flags & IB_MR_REREG_TRANS) ? virt_addr : mr->umem->address;
-+	u64 len = (flags & IB_MR_REREG_TRANS) ? length : mr->umem->length;
-+	int page_shift = 0;
-+	int npages = 0;
-+	int ncont = 0;
-+	int order = 0;
-+	int err;
-+
-+	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
-+		    start, virt_addr, length, access_flags);
-+
-+	if (flags != IB_MR_REREG_PD) {
-+		/*
-+		 * Replace umem. This needs to be done whether or not UMR is
-+		 * used.
-+		 */
-+		flags |= IB_MR_REREG_TRANS;
-+		ib_umem_release(mr->umem);
-+		mr->umem = mr_umem_get(pd, addr, len, access_flags, &npages,
-+				       &page_shift, &ncont, &order);
-+		if (IS_ERR(mr->umem)) {
-+			err = PTR_ERR(mr->umem);
-+			mr->umem = NULL;
-+			return err;
-+		}
-+	}
-+
-+	if (flags & IB_MR_REREG_TRANS && !use_umr_mtt_update(mr, addr, len)) {
-+		/*
-+		 * UMR can't be used - MKey needs to be replaced.
-+		 */
-+		if (mr->umred) {
-+			err = unreg_umr(dev, mr);
-+			if (err)
-+				mlx5_ib_warn(dev, "Failed to unregister MR\n");
-+		} else {
-+			err = destroy_mkey(dev, mr);
-+			if (err)
-+				mlx5_ib_warn(dev, "Failed to destroy MKey\n");
-+		}
-+		if (err)
-+			return err;
-+
-+		mr = reg_create(ib_mr, pd, addr, len, mr->umem, ncont,
-+				page_shift, access_flags);
-+
-+		if (IS_ERR(mr))
-+			return PTR_ERR(mr);
-+
-+		mr->umred = 0;
-+	} else {
-+		/*
-+		 * Send a UMR WQE
-+		 */
-+		err = rereg_umr(pd, mr, addr, len, npages, page_shift,
-+				order, access_flags, flags);
-+		if (err) {
-+			mlx5_ib_warn(dev, "Failed to rereg UMR\n");
-+			return err;
-+		}
-+	}
-+
-+	if (flags & IB_MR_REREG_PD) {
-+		ib_mr->pd = pd;
-+		mr->mmr.pd = to_mpd(pd)->pdn;
-+	}
-+
-+	if (flags & IB_MR_REREG_ACCESS)
-+		mr->access_flags = access_flags;
-+
-+	if (flags & IB_MR_REREG_TRANS) {
-+		atomic_sub(mr->npages, &dev->mdev->priv.reg_pages);
-+		set_mr_fileds(dev, mr, npages, len, access_flags);
-+		mr->mmr.iova = addr;
-+		mr->mmr.size = len;
-+	}
 +#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	update_odp_mr(mr);
++static void update_odp_mr(struct mlx5_ib_mr *mr)
++{
++	if (mr->umem->odp_data) {
++		/*
++		 * This barrier prevents the compiler from moving the
++		 * setting of umem->odp_data->private to point to our
++		 * MR, before reg_umr finished, to ensure that the MR
++		 * initialization have finished before starting to
++		 * handle invalidations.
++		 */
++		smp_wmb();
++		mr->umem->odp_data->private = mr;
++		/*
++		 * Make sure we will see the new
++		 * umem->odp_data->private value in the invalidation
++		 * routines, before we can get page faults on the
++		 * MR. Page faults can happen once we put the MR in
++		 * the tree, below this line. Without the barrier,
++		 * there can be a fault handling and an invalidation
++		 * before umem->odp_data->private == mr is visible to
++		 * the invalidation handler.
++		 */
++		smp_wmb();
++	}
++}
 +#endif
++
+ static void reg_mr_callback(int status, void *context)
+ {
+ 	struct mlx5_ib_mr *mr = context;
+@@ -693,10 +721,40 @@ static int use_umr(int order)
+ 	return order <= MLX5_MAX_UMR_SHIFT;
+ }
+ 
+-static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
+-			     struct ib_sge *sg, u64 dma, int n, u32 key,
+-			     int page_shift, u64 virt_addr, u64 len,
+-			     int access_flags)
++static int dma_map_mr_pas(struct mlx5_ib_dev *dev, struct ib_umem *umem,
++			  int npages, int page_shift, int *size,
++			  __be64 **mr_pas, dma_addr_t *dma)
++{
++	__be64 *pas;
++	struct device *ddev = dev->ib_dev.dma_device;
++
++	/*
++	 * UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes.
++	 * To avoid copying garbage after the pas array, we allocate
++	 * a little more.
++	 */
++	*size = ALIGN(sizeof(u64) * npages, MLX5_UMR_MTT_ALIGNMENT);
++	*mr_pas = kmalloc(*size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
++	if (!(*mr_pas))
++		return -ENOMEM;
++
++	pas = PTR_ALIGN(*mr_pas, MLX5_UMR_ALIGN);
++	mlx5_ib_populate_pas(dev, umem, page_shift, pas, MLX5_IB_MTT_PRESENT);
++	/* Clear padding after the actual pages. */
++	memset(pas + npages, 0, *size - npages * sizeof(u64));
++
++	*dma = dma_map_single(ddev, pas, *size, DMA_TO_DEVICE);
++	if (dma_mapping_error(ddev, *dma)) {
++		kfree(*mr_pas);
++		return -ENOMEM;
++	}
 +
 +	return 0;
 +}
 +
- static int
- mlx5_alloc_priv_descs(struct ib_device *device,
- 		      struct mlx5_ib_mr *mr,
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 34cb8e87c7b8..af0c2febcf4b 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2558,6 +2558,44 @@ static __be64 get_umr_update_mtt_mask(void)
- 	return cpu_to_be64(result);
++static void prep_umr_wqe_common(struct ib_pd *pd, struct ib_send_wr *wr,
++				struct ib_sge *sg, u64 dma, int n, u32 key,
++				int page_shift)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_umr_wr *umrwr = umr_wr(wr);
+@@ -706,7 +764,6 @@ static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
+ 	sg->lkey = dev->umrc.pd->local_dma_lkey;
+ 
+ 	wr->next = NULL;
+-	wr->send_flags = 0;
+ 	wr->sg_list = sg;
+ 	if (n)
+ 		wr->num_sge = 1;
+@@ -718,6 +775,19 @@ static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
+ 	umrwr->npages = n;
+ 	umrwr->page_shift = page_shift;
+ 	umrwr->mkey = key;
++}
++
++static void prep_umr_reg_wqe(struct ib_pd *pd, struct ib_send_wr *wr,
++			     struct ib_sge *sg, u64 dma, int n, u32 key,
++			     int page_shift, u64 virt_addr, u64 len,
++			     int access_flags)
++{
++	struct mlx5_umr_wr *umrwr = umr_wr(wr);
++
++	prep_umr_wqe_common(pd, wr, sg, dma, n, key, page_shift);
++
++	wr->send_flags = 0;
++
+ 	umrwr->target.virt_addr = virt_addr;
+ 	umrwr->length = len;
+ 	umrwr->access_flags = access_flags;
+@@ -734,6 +804,31 @@ static void prep_umr_unreg_wqe(struct mlx5_ib_dev *dev,
+ 	umrwr->mkey = key;
  }
  
-+static __be64 get_umr_update_translation_mask(void)
++static struct ib_umem *mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
++				   int access_flags, int *npages,
++				   int *page_shift, int *ncont, int *order)
 +{
-+	u64 result;
++	struct mlx5_ib_dev *dev = to_mdev(pd->device);
++	struct ib_umem *umem = ib_umem_get(pd->uobject->context, start, length,
++					   access_flags, 0);
++	if (IS_ERR(umem)) {
++		mlx5_ib_err(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
++		return (void *)umem;
++	}
 +
-+	result = MLX5_MKEY_MASK_LEN |
-+		 MLX5_MKEY_MASK_PAGE_SIZE |
-+		 MLX5_MKEY_MASK_START_ADDR |
-+		 MLX5_MKEY_MASK_KEY |
-+		 MLX5_MKEY_MASK_FREE;
++	mlx5_ib_cont_pages(umem, start, npages, page_shift, ncont, order);
++	if (!*npages) {
++		mlx5_ib_warn(dev, "avoid zero region\n");
++		ib_umem_release(umem);
++		return ERR_PTR(-EINVAL);
++	}
 +
-+	return cpu_to_be64(result);
++	mlx5_ib_dbg(dev, "npages %d, ncont %d, order %d, page_shift %d\n",
++		    *npages, *ncont, *order, *page_shift);
++
++	return umem;
 +}
 +
-+static __be64 get_umr_update_access_mask(void)
-+{
-+	u64 result;
-+
-+	result = MLX5_MKEY_MASK_LW |
-+		 MLX5_MKEY_MASK_RR |
-+		 MLX5_MKEY_MASK_RW |
-+		 MLX5_MKEY_MASK_A |
-+		 MLX5_MKEY_MASK_KEY |
-+		 MLX5_MKEY_MASK_FREE;
-+
-+	return cpu_to_be64(result);
-+}
-+
-+static __be64 get_umr_update_pd_mask(void)
-+{
-+	u64 result;
-+
-+	result = MLX5_MKEY_MASK_PD |
-+		 MLX5_MKEY_MASK_KEY |
-+		 MLX5_MKEY_MASK_FREE;
-+
-+	return cpu_to_be64(result);
-+}
-+
- static void set_reg_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
- 				struct ib_send_wr *wr)
+ void mlx5_umr_cq_handler(struct ib_cq *cq, void *cq_context)
  {
-@@ -2576,9 +2614,15 @@ static void set_reg_umr_segment(struct mlx5_wqe_umr_ctrl_seg *umr,
- 			umr->mkey_mask = get_umr_update_mtt_mask();
- 			umr->bsf_octowords = get_klm_octo(umrwr->target.offset);
- 			umr->flags |= MLX5_UMR_TRANSLATION_OFFSET_EN;
--		} else {
--			umr->mkey_mask = get_umr_reg_mr_mask();
- 		}
-+		if (wr->send_flags & MLX5_IB_SEND_UMR_UPDATE_TRANSLATION)
-+			umr->mkey_mask |= get_umr_update_translation_mask();
-+		if (wr->send_flags & MLX5_IB_SEND_UMR_UPDATE_ACCESS)
-+			umr->mkey_mask |= get_umr_update_access_mask();
-+		if (wr->send_flags & MLX5_IB_SEND_UMR_UPDATE_PD)
-+			umr->mkey_mask |= get_umr_update_pd_mask();
-+		if (!umr->mkey_mask)
-+			umr->mkey_mask = get_umr_reg_mr_mask();
- 	} else {
- 		umr->mkey_mask = get_umr_unreg_mr_mask();
- 	}
-@@ -2630,7 +2674,8 @@ static void set_reg_mkey_segment(struct mlx5_mkey_seg *seg, struct ib_send_wr *w
+ 	struct mlx5_ib_umr_context *context;
+@@ -770,7 +865,6 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	struct ib_sge sg;
+ 	int size;
+ 	__be64 *mr_pas;
+-	__be64 *pas;
+ 	dma_addr_t dma;
+ 	int err = 0;
+ 	int i;
+@@ -790,26 +884,10 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (!mr)
+ 		return ERR_PTR(-EAGAIN);
  
- 	seg->flags = convert_access(umrwr->access_flags);
- 	if (!(wr->send_flags & MLX5_IB_SEND_UMR_UPDATE_MTT)) {
--		seg->flags_pd = cpu_to_be32(to_mpd(umrwr->pd)->pdn);
-+		if (umrwr->pd)
-+			seg->flags_pd = cpu_to_be32(to_mpd(umrwr->pd)->pdn);
- 		seg->start_addr = cpu_to_be64(umrwr->target.virt_addr);
+-	/* UMR copies MTTs in units of MLX5_UMR_MTT_ALIGNMENT bytes.
+-	 * To avoid copying garbage after the pas array, we allocate
+-	 * a little more. */
+-	size = ALIGN(sizeof(u64) * npages, MLX5_UMR_MTT_ALIGNMENT);
+-	mr_pas = kmalloc(size + MLX5_UMR_ALIGN - 1, GFP_KERNEL);
+-	if (!mr_pas) {
+-		err = -ENOMEM;
++	err = dma_map_mr_pas(dev, umem, npages, page_shift, &size, &mr_pas,
++			     &dma);
++	if (err)
+ 		goto free_mr;
+-	}
+-
+-	pas = PTR_ALIGN(mr_pas, MLX5_UMR_ALIGN);
+-	mlx5_ib_populate_pas(dev, umem, page_shift, pas, MLX5_IB_MTT_PRESENT);
+-	/* Clear padding after the actual pages. */
+-	memset(pas + npages, 0, size - npages * sizeof(u64));
+-
+-	dma = dma_map_single(ddev, pas, size, DMA_TO_DEVICE);
+-	if (dma_mapping_error(ddev, dma)) {
+-		err = -ENOMEM;
+-		goto free_pas;
+-	}
+ 
+ 	memset(&umrwr, 0, sizeof(umrwr));
+ 	umrwr.wr.wr_id = (u64)(unsigned long)&umr_context;
+@@ -840,7 +918,6 @@ unmap_dma:
+ 	up(&umrc->sem);
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 
+-free_pas:
+ 	kfree(mr_pas);
+ 
+ free_mr:
+@@ -974,10 +1051,14 @@ free_pas:
+ }
+ #endif
+ 
+-static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+-				     u64 length, struct ib_umem *umem,
+-				     int npages, int page_shift,
+-				     int access_flags)
++/*
++ * If ibmr is NULL it will be allocated by reg_create.
++ * Else, the given ibmr will be used.
++ */
++static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
++				     u64 virt_addr, u64 length,
++				     struct ib_umem *umem, int npages,
++				     int page_shift, int access_flags)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_create_mkey_mbox_in *in;
+@@ -986,7 +1067,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_pd *pd, u64 virt_addr,
+ 	int err;
+ 	bool pg_cap = !!(MLX5_CAP_GEN(dev->mdev, pg));
+ 
+-	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	mr = ibmr ? to_mmr(ibmr) : kzalloc(sizeof(*mr), GFP_KERNEL);
+ 	if (!mr)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -1032,11 +1113,22 @@ err_2:
+ 	kvfree(in);
+ 
+ err_1:
+-	kfree(mr);
++	if (!ibmr)
++		kfree(mr);
+ 
+ 	return ERR_PTR(err);
+ }
+ 
++static void set_mr_fileds(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
++			  int npages, u64 length, int access_flags)
++{
++	mr->npages = npages;
++	atomic_add(npages, &dev->mdev->priv.reg_pages);
++	mr->ibmr.lkey = mr->mmr.key;
++	mr->ibmr.rkey = mr->mmr.key;
++	mr->ibmr.length = length;
++}
++
+ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
+ 				  struct ib_udata *udata)
+@@ -1052,22 +1144,11 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
+ 		    start, virt_addr, length, access_flags);
+-	umem = ib_umem_get(pd->uobject->context, start, length, access_flags,
+-			   0);
+-	if (IS_ERR(umem)) {
+-		mlx5_ib_dbg(dev, "umem get failed (%ld)\n", PTR_ERR(umem));
+-		return (void *)umem;
+-	}
++	umem = mr_umem_get(pd, start, length, access_flags, &npages,
++			   &page_shift, &ncont, &order);
+ 
+-	mlx5_ib_cont_pages(umem, start, &npages, &page_shift, &ncont, &order);
+-	if (!npages) {
+-		mlx5_ib_warn(dev, "avoid zero region\n");
+-		err = -EINVAL;
+-		goto error;
+-	}
+-
+-	mlx5_ib_dbg(dev, "npages %d, ncont %d, order %d, page_shift %d\n",
+-		    npages, ncont, order, page_shift);
++	if (IS_ERR(umem))
++		return (void *)umem;
+ 
+ 	if (use_umr(order)) {
+ 		mr = reg_umr(pd, umem, virt_addr, length, ncont, page_shift,
+@@ -1083,8 +1164,8 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
  	}
- 	seg->len = cpu_to_be64(umrwr->length);
+ 
+ 	if (!mr)
+-		mr = reg_create(pd, virt_addr, length, umem, ncont, page_shift,
+-				access_flags);
++		mr = reg_create(NULL, pd, virt_addr, length, umem, ncont,
++				page_shift, access_flags);
+ 
+ 	if (IS_ERR(mr)) {
+ 		err = PTR_ERR(mr);
+@@ -1094,34 +1175,10 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	mlx5_ib_dbg(dev, "mkey 0x%x\n", mr->mmr.key);
+ 
+ 	mr->umem = umem;
+-	mr->npages = npages;
+-	atomic_add(npages, &dev->mdev->priv.reg_pages);
+-	mr->ibmr.lkey = mr->mmr.key;
+-	mr->ibmr.rkey = mr->mmr.key;
++	set_mr_fileds(dev, mr, npages, length, access_flags);
+ 
+ #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+-	if (umem->odp_data) {
+-		/*
+-		 * This barrier prevents the compiler from moving the
+-		 * setting of umem->odp_data->private to point to our
+-		 * MR, before reg_umr finished, to ensure that the MR
+-		 * initialization have finished before starting to
+-		 * handle invalidations.
+-		 */
+-		smp_wmb();
+-		mr->umem->odp_data->private = mr;
+-		/*
+-		 * Make sure we will see the new
+-		 * umem->odp_data->private value in the invalidation
+-		 * routines, before we can get page faults on the
+-		 * MR. Page faults can happen once we put the MR in
+-		 * the tree, below this line. Without the barrier,
+-		 * there can be a fault handling and an invalidation
+-		 * before umem->odp_data->private == mr is visible to
+-		 * the invalidation handler.
+-		 */
+-		smp_wmb();
+-	}
++	update_odp_mr(mr);
+ #endif
+ 
+ 	return &mr->ibmr;
 -- 
 1.8.3.1
 
