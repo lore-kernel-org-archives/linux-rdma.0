@@ -1,24 +1,25 @@
-From: Sagi Grimberg <sagig@dev.mellanox.co.il>
-Subject: Re: [PATCH 3/9] IB/core: add a helper to check for READ WITH
- INVALIDATE support
-Date: Tue, 1 Mar 2016 11:02:50 +0200
-Message-ID: <56D55ABA.6070007@dev.mellanox.co.il>
-References: <1456784410-20166-1-git-send-email-hch@lst.de>
- <1456784410-20166-4-git-send-email-hch@lst.de>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [PATCHv7 2/3] IB/core: added support to use rdma cgroup
+ controller
+Date: Tue, 1 Mar 2016 11:08:22 +0200
+Message-ID: <56D55C06.8090102@mellanox.com>
+References: <1456668821-25799-1-git-send-email-pandit.parav@gmail.com>
+ <1456668821-25799-3-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1456784410-20166-4-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org
-Cc: swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1456668821-25799-3-git-send-email-pandit.parav@gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com
+Cc: corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 28/02/2016 16:13, Parav Pandit wrote:
+> +void ib_rdmacg_query_limit(struct ib_device *device, int *limits, int max_count)
+> +{
+> +	rdmacg_query_limit(&device->cg_device, limits);
+> +}
+> +EXPORT_SYMBOL(ib_rdmacg_query_limit);
 
-> +/*
-> + * Check if the device supports READ W/ INVALIDATE.
-> + */
-> +static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
-
-Is rdma_device_sup_read_inv() a better name?
+You can remove the max_count parameter here as well.
