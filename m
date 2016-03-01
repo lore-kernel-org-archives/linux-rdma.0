@@ -1,42 +1,23 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: SRPt oops with 4.5-rc3-ish
-Date: Mon, 29 Feb 2016 22:49:58 -0800
-Message-ID: <1456814998.19657.223.camel@haakon3.risingtidesystems.com>
-References: <56C0A6C3.3010903@redhat.com>
-	 <1456630639.19657.47.camel@haakon3.risingtidesystems.com>
-	 <1456647963.19657.135.camel@haakon3.risingtidesystems.com>
-	 <56D31CC9.7000609@sandisk.com>
-	 <1456692183.19657.151.camel@haakon3.risingtidesystems.com>
-	 <56D392D4.2000105@sandisk.com> <20160229060504.GA6024@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Tue, 1 Mar 2016 07:50:07 +0100
+Message-ID: <20160301065007.GB31969@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D4D077.9020706@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160229060504.GA6024@lst.de>
+Content-Disposition: inline
+In-Reply-To: <56D4D077.9020706@sandisk.com>
 Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2016-02-29 at 07:05 +0100, Christoph Hellwig wrote:
-> On Sun, Feb 28, 2016 at 04:37:40PM -0800, Bart Van Assche wrote:
-> > On 02/28/16 12:43, Nicholas A. Bellinger wrote:
-> > > Anyways, I'll sit down this week and figure out what's going on with
-> > > Doug's active I/O shutdown regression.
-> > 
-> > The crash occurs in the core_tpg_del_initiator_node_acl() function
-> > and a call to that function has been added recently in
-> > target_fabric_nacl_base_release(). I think it was added through the
-> > following patch:
-> 
-> That patch just moved the call from the .fabric_drop_nodeacl instances
-> (in the SRPT case srpt_drop_nodeacl) to the caller in
-> target_fabric_nacl_base_release.
+On Mon, Feb 29, 2016 at 03:12:55PM -0800, Bart Van Assche wrote:
+> Hi Christoph,
+>
+> Are you aware that using max_sge is safe for some but not for all HCAs? See 
+> also http://thread.gmane.org/gmane.linux.drivers.rdma/22043.
 
-I've not re-produced with v4.5-rc, but IIRC pre-commit 59fae4de usage of
-ib_create_cq() w/ srpt_compl_thread() -> kthread_stop(ch->thread) in
-srpt_destroy_ch_ib() did play a role wrt IB CQ active I/O shutdown
-completion in original code.
-
-Btw, is original ib_create_cq() usage a incompatible with chain RDMA
-READ/WRITE requests, or was that an extra improvement..?
+It should be safe, and the mlx4 bug has been fixed by Sagi a while ago
+in commit a5e14b ("mlx4: Expose correct max_sge_rd limit").
