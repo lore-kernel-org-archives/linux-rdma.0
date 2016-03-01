@@ -1,44 +1,37 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/3] IB/core: Add vendor's specific data to alloc
- mw
-Date: Tue, 1 Mar 2016 11:04:38 +0200
-Message-ID: <56D55B26.3050102@mellanox.com>
-References: <1456761930-11222-1-git-send-email-matanb@mellanox.com>
- <1456761930-11222-3-git-send-email-matanb@mellanox.com>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv7 2/3] IB/core: added support to use rdma cgroup controller
+Date: Tue, 1 Mar 2016 14:52:15 +0530
+Message-ID: <CAG53R5UrM7WAuamCEynDRKV0YMJsJUe=SEYfTrueQD0rtx71bA@mail.gmail.com>
+References: <1456668821-25799-1-git-send-email-pandit.parav@gmail.com>
+	<1456668821-25799-3-git-send-email-pandit.parav@gmail.com>
+	<56D55CE6.7030103@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456761930-11222-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <56D55CE6.7030103@mellanox.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Tejun Heo <tj@kernel.org>, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2/29/2016 6:05 PM, Matan Barak wrote:
-> Passing udata to the vendor's driver in order to pass data from the
-> user-space driver to the kernel-space driver. This data will be
-> used in downstream patches.
+On Tue, Mar 1, 2016 at 2:42 PM, Haggai Eran <haggaie@mellanox.com> wrote:
+> On 28/02/2016 16:13, Parav Pandit wrote:
+>> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+>> index 00da80e..54ea8ce 100644
+>> --- a/drivers/infiniband/core/device.c
+>> +++ b/drivers/infiniband/core/device.c
+>> @@ -343,28 +343,38 @@ int ib_register_device(struct ib_device *device,
+>>
+>>       ret = read_port_immutable(device);
+>>       if (ret) {
+>> -             printk(KERN_WARNING "Couldn't create per port immutable data %s\n",
+>> -                    device->name);
+>> +             pr_warn("Couldn't create per port immutable data %s\n",
+>> +                     device->name);
+>>               goto out;
 >
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   drivers/infiniband/core/uverbs_cmd.c        | 8 +++++++-
->   drivers/infiniband/hw/cxgb3/iwch_provider.c | 3 ++-
->   drivers/infiniband/hw/cxgb4/iw_cxgb4.h      | 3 ++-
->   drivers/infiniband/hw/cxgb4/mem.c           | 4 +++-
->   drivers/infiniband/hw/mlx4/mlx4_ib.h        | 3 ++-
->   drivers/infiniband/hw/mlx4/mr.c             | 4 +++-
->   drivers/infiniband/hw/nes/nes_verbs.c       | 3 ++-
->   include/rdma/ib_verbs.h                     | 3 ++-
->   8 files changed, 23 insertions(+), 8 deletions(-)
->
-
-Looks good,
-Max.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This change doesn't belong in the patch.
+I agree, but few warnings are with pr_warn and few with printk just
+make code look uneven.
+So I changed printk to pr_warn in same function instead of spinning
+complete new patch.
