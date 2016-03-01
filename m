@@ -1,26 +1,21 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 6/9] IB/core: add a need_inval flag to struct ib_mr
-Date: Tue, 1 Mar 2016 08:09:41 +0100
-Message-ID: <20160301070941.GA32390@lst.de>
-References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-7-git-send-email-hch@lst.de> <56D4C8EC.8020805@sandisk.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: SRPt oops with 4.5-rc3-ish
+Date: Tue, 1 Mar 2016 08:16:57 +0100
+Message-ID: <20160301071657.GA32453@lst.de>
+References: <56C0A6C3.3010903@redhat.com> <1456630639.19657.47.camel@haakon3.risingtidesystems.com> <1456647963.19657.135.camel@haakon3.risingtidesystems.com> <56D31CC9.7000609@sandisk.com> <1456692183.19657.151.camel@haakon3.risingtidesystems.com> <56D392D4.2000105@sandisk.com> <20160229060504.GA6024@lst.de> <1456814998.19657.223.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56D4C8EC.8020805-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1456814998.19657.223.camel@haakon3.risingtidesystems.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 29, 2016 at 02:40:44PM -0800, Bart Van Assche wrote:
-> Hi Christoph,
->
-> mthca uses kmalloc() to allocate a struct mr. Are you sure we don't need to 
-> initialize the 'need_inval' member in ib_alloc_mr()?
+On Mon, Feb 29, 2016 at 10:49:58PM -0800, Nicholas A. Bellinger wrote:
+> Btw, is original ib_create_cq() usage a incompatible with chain RDMA
+> READ/WRITE requests, or was that an extra improvement..?
 
-I'll initialize it just to be sure, thanks!
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Old-style CQs can be used for chained requests, see the iser target
+for an example.  It's just a lot more painful.
