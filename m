@@ -1,33 +1,49 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Tue, 1 Mar 2016 08:21:04 +0100
-Message-ID: <20160301072104.GA32603@lst.de>
-References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D4C615.5010202@opengridcomputing.com>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv7 1/3] rdmacg: Added rdma cgroup controller
+Date: Tue, 1 Mar 2016 10:26:53 +0200
+Message-ID: <56D5524D.1060905@mellanox.com>
+References: <1456668821-25799-1-git-send-email-pandit.parav@gmail.com>
+ <1456668821-25799-2-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56D4C615.5010202-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1456668821-25799-2-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 29, 2016 at 04:28:37PM -0600, Steve Wise wrote:
->> +		ret = rdma_rw_init_mr_wrs(ctx, qp, port_num, sg, sg_offset,
->> +				remote_addr, rkey, dir);
->
-> At some point I would like the iWARP IO to do no-mr for WRITE/dma_nents == 
-> 1, and WRITE/dma_nents <= max_send_sge for the device. I think this will 
-> help smaller iSER/NVMEF READ IOPs.  I'm testing this out now on the NVMEF 
-> code, which is slightly different.  If it proves out to better the 
-> performance, I'll post a follow-on patch...
+On 28/02/2016 16:13, Parav Pandit wrote:
+> Added rdma cgroup controller that does accounting, limit enforcement
+> on rdma/IB verbs and hw resources.
+> 
+> Added rdma cgroup header file which defines its APIs to perform
+> charing/uncharing functionality and device registration which will
+> participate in controller functions of accounting and limit
+> enforcements. It also define rdmacg_device structure to bind IB stack
+> and RDMA cgroup controller.
+> 
+> RDMA resources are tracked using resource pool. Resource pool is per
+> device, per cgroup entity which allows setting up accounting limits
+> on per device basis.
+> 
+> Resources are not defined by the RDMA cgroup, instead they are defined
+> by the external module IB stack. This allows extending IB stack
+> without changing kernel, as IB stack is going through changes
+> and enhancements.
+> 
+> Resource pool is created/destroyed dynamically whenever
+> charging/uncharging occurs respectively and whenever user
+> configuration is done. Its a tradeoff of memory vs little more code
+> space that creates resource pool whenever necessary,
+> instead of creating them during cgroup creation and device registration
+> time.
+> 
+> Signed-off-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Yes, this should work fine.  My plan was to have the bare API in place
-for now and then allow HCA drivers to fine tune the idea eventually.
-My idea was to have a threshold set by the driver from where to start
-registering the memory for case where it not required (WRITE on all HCAs,
-READ for !iWarp).
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
