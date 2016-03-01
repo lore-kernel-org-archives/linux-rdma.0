@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 04/10] IB/core: Add interfaces to control VF attributes
-Date: Tue,  1 Mar 2016 18:52:17 +0200
-Message-ID: <1456851143-138332-5-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 08/10] IB/mlx5: Implement callbacks for manipulating VFs
+Date: Tue,  1 Mar 2016 18:52:21 +0200
+Message-ID: <1456851143-138332-9-git-send-email-eli@mellanox.com>
 References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456851143-138332-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,138 +10,332 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Following the practice exercised for network devices which allow the PF
-net device to configure attributes of its virtual functions, we
-introduce the following functions to be used by IPoIB which is the
-network driver implementation for IB devices.
+Implement the IB defined callbacks used to manipulate the policy for the
+link state, set GUIDs or get statistics information. This functionality
+is added into a new file that will be used to add any SRIOV related
+functionality to the mlx5 IB layer.
 
-ib_set_vf_link_state - set the policy for a VF link. More below.
-ib_get_vf_config - read configuration information of a VF
-ib_get_vf_stats - read VF statistics
-ib_set_vf_guid - set the node or port GUID of a VF
+The following callbacks have been added:
 
-Also add an indication in the device cap flags that indicates that this
-IB devices is based on a virtual function.
+mlx5_ib_get_vf_config
+mlx5_ib_set_vf_link_state
+mlx5_ib_get_vf_stats
+mlx5_ib_set_vf_guid
 
-A VF shares the physical port with the PF and other VFs. When setting
-the link state we have three options:
+In addition, publish whether this device is based on a virtual function.
 
-1. Auto - in this mode, the virtual port follows the state of the
-   physical port and becomes active only if the physical port's state is
-   active. In all other cases it remains in a Down state.
-2. Down - sets the state of the virtual port to Down
-3. Up - causes the virtual port to transition into Initialize state if
-   it was not already in this state. A virtualization aware subnet manager
-   can then bring the state of the port into the Active state.
+In mlx5 supported devices, virtual functions are implemented as vHCAs.
+vHCAs have their own QP number space so it is possible that two vHCAs
+will use a QP with the same number at the same time.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 40 ++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         | 19 +++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ drivers/infiniband/hw/mlx5/Makefile  |   2 +-
+ drivers/infiniband/hw/mlx5/ib_virt.c | 194 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c    |  10 ++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   8 ++
+ include/linux/mlx5/driver.h          |   5 +-
+ include/linux/mlx5/mlx5_ifc.h        |   6 ++
+ 6 files changed, 223 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx5/ib_virt.c
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5af6d024e053..d8e70ff68456 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1551,6 +1551,46 @@ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
+index 27a70159e2ea..82e074f47cf2 100644
+--- a/drivers/infiniband/hw/mlx5/Makefile
++++ b/drivers/infiniband/hw/mlx5/Makefile
+@@ -1,4 +1,4 @@
+ obj-$(CONFIG_MLX5_INFINIBAND)	+= mlx5_ib.o
+ 
+-mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o
++mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o ib_virt.o
+ mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
+diff --git a/drivers/infiniband/hw/mlx5/ib_virt.c b/drivers/infiniband/hw/mlx5/ib_virt.c
+new file mode 100644
+index 000000000000..c1b9de800fe5
+--- /dev/null
++++ b/drivers/infiniband/hw/mlx5/ib_virt.c
+@@ -0,0 +1,194 @@
++/*
++ * Copyright (c) 2016, Mellanox Technologies. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/module.h>
++#include <linux/mlx5/vport.h>
++#include "mlx5_ib.h"
++
++static inline u32 mlx_to_net_policy(enum port_state_policy mlx_policy)
++{
++	switch (mlx_policy) {
++	case MLX5_POLICY_DOWN:
++		return IFLA_VF_LINK_STATE_DISABLE;
++	case MLX5_POLICY_UP:
++		return IFLA_VF_LINK_STATE_ENABLE;
++	case MLX5_POLICY_FOLLOW:
++		return IFLA_VF_LINK_STATE_AUTO;
++	default:
++		return __IFLA_VF_LINK_STATE_MAX;
++	}
++}
++
++int mlx5_ib_get_vf_config(struct ib_device *device, int vf, u8 port,
++			  struct ifla_vf_info *info)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_hca_vport_context *rep;
++	int err;
++
++	rep = kzalloc(sizeof(*rep), GFP_KERNEL);
++	if (!rep)
++		return -ENOMEM;
++
++	err = mlx5_query_hca_vport_context(mdev, 1, 1,  vf + 1, rep);
++	if (err) {
++		mlx5_ib_warn(dev, "failed to query port policy for vf %d (%d)\n",
++			     vf, err);
++		goto free;
++	}
++	memset(info, 0, sizeof(*info));
++	info->linkstate = mlx_to_net_policy(rep->policy);
++	if (info->linkstate == __IFLA_VF_LINK_STATE_MAX)
++		err = -EINVAL;
++
++free:
++	kfree(rep);
++	return err;
++}
++
++static inline enum port_state_policy net_to_mlx_policy(int policy)
++{
++	switch (policy) {
++	case IFLA_VF_LINK_STATE_DISABLE:
++		return MLX5_POLICY_DOWN;
++	case IFLA_VF_LINK_STATE_ENABLE:
++		return MLX5_POLICY_UP;
++	case IFLA_VF_LINK_STATE_AUTO:
++		return MLX5_POLICY_FOLLOW;
++	default:
++		return MLX5_POLICY_INVALID;
++	}
++}
++
++int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
++			      u8 port, int state)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_hca_vport_context *in;
++	int err;
++
++	in = kzalloc(sizeof(*in), GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
++
++	in->policy = net_to_mlx_policy(state);
++	if (in->policy == MLX5_POLICY_INVALID) {
++		err = -EINVAL;
++		goto out;
++	}
++	in->field_select = MLX5_HCA_VPORT_SEL_STATE_POLICY;
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++
++out:
++	kfree(in);
++	return err;
++}
++
++int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
++			 u8 port, struct ifla_vf_stats *stats)
++{
++	int out_sz = MLX5_ST_SZ_BYTES(query_vport_counter_out);
++	struct mlx5_core_dev *mdev;
++	struct mlx5_ib_dev *dev;
++	void *out;
++	int err;
++
++	dev = to_mdev(device);
++	mdev = dev->mdev;
++
++	out = kzalloc(out_sz, GFP_KERNEL);
++	if (!out)
++		return -ENOMEM;
++
++	err = mlx5_core_query_vport_counter(mdev, true, vf, port, out, out_sz);
++	if (err)
++		goto ex;
++
++	stats->rx_packets = MLX5_GET64_PR(query_vport_counter_out, out, received_ib_unicast.packets);
++	stats->tx_packets = MLX5_GET64_PR(query_vport_counter_out, out, transmitted_ib_unicast.packets);
++	stats->rx_bytes = MLX5_GET64_PR(query_vport_counter_out, out, received_ib_unicast.octets);
++	stats->tx_bytes = MLX5_GET64_PR(query_vport_counter_out, out, transmitted_ib_unicast.octets);
++	stats->multicast = MLX5_GET64_PR(query_vport_counter_out, out, received_ib_multicast.packets);
++
++ex:
++	kfree(out);
++	return err;
++}
++
++static int set_vf_node_guid(struct ib_device *device, int vf, u8 port, u64 guid)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_hca_vport_context *in;
++	int err;
++
++	in = kzalloc(sizeof(*in), GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
++
++	in->field_select = MLX5_HCA_VPORT_SEL_NODE_GUID;
++	in->node_guid = guid;
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++	kfree(in);
++	return err;
++}
++
++static int set_vf_port_guid(struct ib_device *device, int vf, u8 port, u64 guid)
++{
++	struct mlx5_ib_dev *dev = to_mdev(device);
++	struct mlx5_core_dev *mdev = dev->mdev;
++	struct mlx5_hca_vport_context *in;
++	int err;
++
++	in = kzalloc(sizeof(*in), GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
++
++	in->field_select = MLX5_HCA_VPORT_SEL_PORT_GUID;
++	in->port_guid = guid;
++	err = mlx5_core_modify_hca_vport_context(mdev, 1, 1, vf + 1, in);
++	kfree(in);
++	return err;
++}
++
++int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
++			u64 guid, int type)
++{
++	if (type == IFLA_VF_IB_NODE_GUID)
++		return set_vf_node_guid(device, vf, port, guid);
++	else if (type == IFLA_VF_IB_PORT_GUID)
++		return set_vf_port_guid(device, vf, port, guid);
++
++	return -EINVAL;
++}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 399049b70a72..00ca1e998254 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -549,6 +549,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, cd))
+ 		props->device_cap_flags |= IB_DEVICE_CROSS_CHANNEL;
+ 
++	if (!mlx5_core_is_pf(mdev))
++		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
++
+ 	return 0;
  }
- EXPORT_SYMBOL(ib_check_mr_status);
  
-+int ib_set_vf_link_state(struct ib_device *device, int vf, u8 port,
-+			 int state)
-+{
-+	if (!device->set_vf_link_state)
-+		return -ENOSYS;
-+
-+	return device->set_vf_link_state(device, vf, port, state);
-+}
-+EXPORT_SYMBOL(ib_set_vf_link_state);
-+
-+int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
-+		     struct ifla_vf_info *info)
-+{
-+	if (!device->get_vf_config)
-+		return -ENOSYS;
-+
-+	return device->get_vf_config(device, vf, port, info);
-+}
-+EXPORT_SYMBOL(ib_get_vf_config);
-+
-+int ib_get_vf_stats(struct ib_device *device, int vf, u8 port,
-+		    struct ifla_vf_stats *stats)
-+{
-+	if (!device->get_vf_stats)
-+		return -ENOSYS;
-+
-+	return device->get_vf_stats(device, vf, port, stats);
-+}
-+EXPORT_SYMBOL(ib_get_vf_stats);
-+
-+int ib_set_vf_guid(struct ib_device *device, int vf, u8 port, u64 guid,
-+		   int type)
-+{
-+	if (!device->set_vf_guid)
-+		return -ENOSYS;
-+
-+	return device->set_vf_guid(device, vf, port, guid, type);
-+}
-+EXPORT_SYMBOL(ib_set_vf_guid);
-+
- /**
-  * ib_map_mr_sg() - Map the largest prefix of a dma mapped SG list
-  *     and set it the memory region.
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5c1f11742c65..d6a4c3d879fb 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -56,6 +56,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
+@@ -686,6 +689,7 @@ static int mlx5_query_hca_port(struct ib_device *ibdev, u8 port,
+ 	props->qkey_viol_cntr	= rep->qkey_violation_counter;
+ 	props->subnet_timeout	= rep->subnet_timeout;
+ 	props->init_type_reply	= rep->init_type_reply;
++	props->grh_required	= rep->grh_required;
  
-+#include <linux/if_link.h>
- #include <linux/atomic.h>
- #include <linux/mmu_notifier.h>
- #include <asm/uaccess.h>
-@@ -217,6 +218,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
- 	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
-+	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 32),
+ 	err = mlx5_query_port_link_width_oper(mdev, &ib_link_width_oper, port);
+ 	if (err)
+@@ -2266,6 +2270,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.map_mr_sg		= mlx5_ib_map_mr_sg;
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
++	if (mlx5_core_is_pf(mdev)) {
++		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
++		dev->ib_dev.set_vf_link_state	= mlx5_ib_set_vf_link_state;
++		dev->ib_dev.get_vf_stats	= mlx5_ib_get_vf_stats;
++		dev->ib_dev.set_vf_guid		= mlx5_ib_set_vf_guid;
++	}
+ 
+ 	mlx5_ib_internal_fill_odp_caps(dev);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index d2b9737baa36..752e3e33bcbc 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -719,6 +719,14 @@ void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp);
+ void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp);
+ void mlx5_ib_invalidate_range(struct ib_umem *umem, unsigned long start,
+ 			      unsigned long end);
++int mlx5_ib_get_vf_config(struct ib_device *device, int vf,
++			  u8 port, struct ifla_vf_info *info);
++int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
++			      u8 port, int state);
++int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
++			 u8 port, struct ifla_vf_stats *stats);
++int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
++			u64 guid, int type);
+ 
+ #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+ static inline void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 8edcd08853dd..ea00549e45aa 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -613,7 +613,10 @@ struct mlx5_pas {
  };
  
- enum ib_signature_prot_cap {
-@@ -1852,6 +1854,14 @@ struct ib_device {
- 	int			   (*check_mr_status)(struct ib_mr *mr, u32 check_mask,
- 						      struct ib_mr_status *mr_status);
- 	void			   (*disassociate_ucontext)(struct ib_ucontext *ibcontext);
-+	int			   (*set_vf_link_state)(struct ib_device *device, int vf, u8 port,
-+							int state);
-+	int			   (*get_vf_config)(struct ib_device *device, int vf, u8 port,
-+						    struct ifla_vf_info *ivf);
-+	int			   (*get_vf_stats)(struct ib_device *device, int vf, u8 port,
-+						   struct ifla_vf_stats *stats);
-+	int			   (*set_vf_guid)(struct ib_device *device, int vf, u8 port, u64 guid,
-+						  int type);
+ enum port_state_policy {
+-	MLX5_AAA_000
++	MLX5_POLICY_DOWN	= 0,
++	MLX5_POLICY_UP		= 1,
++	MLX5_POLICY_FOLLOW	= 2,
++	MLX5_POLICY_INVALID	= 0xffffffff
+ };
  
- 	struct ib_dma_mapping_ops   *dma_ops;
+ enum phy_port_state {
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 9f404de5f99b..7a146074d428 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -3661,6 +3661,12 @@ struct mlx5_ifc_query_hca_vport_pkey_in_bits {
+ 	u8         pkey_index[0x10];
+ };
  
-@@ -2295,6 +2305,15 @@ int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid,
- 		 struct ib_gid_attr *attr);
- 
-+int ib_set_vf_link_state(struct ib_device *device, int vf, u8 port,
-+			 int state);
-+int ib_get_vf_config(struct ib_device *device, int vf, u8 port,
-+		     struct ifla_vf_info *info);
-+int ib_get_vf_stats(struct ib_device *device, int vf, u8 port,
-+		    struct ifla_vf_stats *stats);
-+int ib_set_vf_guid(struct ib_device *device, int vf, u8 port, u64 guid,
-+		   int type);
++enum {
++	MLX5_HCA_VPORT_SEL_PORT_GUID	= 1 << 0,
++	MLX5_HCA_VPORT_SEL_NODE_GUID	= 1 << 1,
++	MLX5_HCA_VPORT_SEL_STATE_POLICY	= 1 << 2,
++};
 +
- int ib_query_pkey(struct ib_device *device,
- 		  u8 port_num, u16 index, u16 *pkey);
- 
+ struct mlx5_ifc_query_hca_vport_gid_out_bits {
+ 	u8         status[0x8];
+ 	u8         reserved_at_8[0x18];
 -- 
 1.8.3.1
 
