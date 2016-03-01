@@ -1,69 +1,42 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 5/9] IB/core: add a simple MR pool
-Date: Tue, 1 Mar 2016 11:12:09 -0800
-Message-ID: <56D5E989.9010006@sandisk.com>
-References: <1456784410-20166-1-git-send-email-hch@lst.de>
- <1456784410-20166-6-git-send-email-hch@lst.de>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 03/10] IB/core: Support accessing SA in
+ virtualized environment
+Date: Tue, 1 Mar 2016 21:07:42 +0200
+Message-ID: <20160301190742.GC19366@x-vnc01.mtx.labs.mlnx>
+References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
+ <1456851143-138332-4-git-send-email-eli@mellanox.com>
+ <20160301174401.GC25176@obsidianresearch.com>
+ <20160301181742.GB19366@x-vnc01.mtx.labs.mlnx>
+ <20160301183256.GB12495@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1456784410-20166-6-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160301183256.GB12495-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/29/2016 02:20 PM, Christoph Hellwig wrote:
-> +int ib_mr_pool_init(struct ib_qp *qp, struct list_head *list, int nr,
-> +		enum ib_mr_type type, u32 max_num_sg)
-> +{
-> +	struct ib_mr *mr;
-> +	unsigned long flags;
-> +	int ret, i;
-> +
-> +	for (i = 0; i < nr; i++) {
-> +		mr = ib_alloc_mr(qp->pd, type, max_num_sg);
-> +		if (IS_ERR(mr)) {
-> +			ret = PTR_ERR(mr);
-> +			goto out;
-> +		}
-> +
-> +		spin_lock_irqsave(&qp->mr_lock, flags);
-> +		list_add_tail(&mr->qp_entry, list);
-> +		spin_unlock_irqrestore(&qp->mr_lock, flags);
-> +	}
-> +
-> +	return 0;
-> +out:
-> +	ib_mr_pool_destroy(qp, list);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(ib_mr_pool_init);
-> +
-> +void ib_mr_pool_destroy(struct ib_qp *qp, struct list_head *list)
-> +{
-> +	struct ib_mr *mr;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&qp->mr_lock, flags);
-> +	while (!list_empty(list)) {
-> +		mr = list_first_entry(list, struct ib_mr, qp_entry);
-> +		list_del(&mr->qp_entry);
-> +
-> +		spin_unlock_irqrestore(&qp->mr_lock, flags);
-> +		ib_dereg_mr(mr);
-> +		spin_lock_irqsave(&qp->mr_lock, flags);
-> +	}
-> +	spin_unlock_irqrestore(&qp->mr_lock, flags);
-> +}
-> +EXPORT_SYMBOL(ib_mr_pool_destroy);
+On Tue, Mar 01, 2016 at 11:32:56AM -0700, Jason Gunthorpe wrote:
+> 
+> How does this interact with the existing SRIOV stuff? It is already
+> very annoying that mlx5 is incompatible with the old scheme. Is the
+> proposal to shift all IB to this new scheme, or still keep mlx4/mlx5 with
+> different approaches?
 
-Hello Christoph,
-
-A second question about this patch: why do we need locking in 
-ib_mr_pool_init() and ib_mr_pool_destroy()? Calling ib_mr_pool_get() or 
-ib_mr_pool_put() while one of these two functions is in progress is a 
-bug (race condition). Can the locking be left out from these two functions?
-
-Bart.
+Now we have proper interfaces so we can use these interfaces to
+implement the same functionality in mlx4 which is there but accessible
+in a different manner.
+> 
+> We can't just have the kernel become incompatible with existing
+> SMs. Eg opensm only supports the old scheme last I looked.
+> 
+You need a SM which support virtualizaion to have virtualization
+supported but if you don't you can still work with physical functions
+in the same way you did before so we don't break anything, we just
+adding new functionality.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
