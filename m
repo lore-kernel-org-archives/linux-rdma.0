@@ -1,21 +1,34 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: SRPt oops with 4.5-rc3-ish
-Date: Tue, 1 Mar 2016 08:16:57 +0100
-Message-ID: <20160301071657.GA32453@lst.de>
-References: <56C0A6C3.3010903@redhat.com> <1456630639.19657.47.camel@haakon3.risingtidesystems.com> <1456647963.19657.135.camel@haakon3.risingtidesystems.com> <56D31CC9.7000609@sandisk.com> <1456692183.19657.151.camel@haakon3.risingtidesystems.com> <56D392D4.2000105@sandisk.com> <20160229060504.GA6024@lst.de> <1456814998.19657.223.camel@haakon3.risingtidesystems.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Tue, 1 Mar 2016 08:21:04 +0100
+Message-ID: <20160301072104.GA32603@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D4C615.5010202@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1456814998.19657.223.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Christoph Hellwig <hch@lst.de>, Bart Van Assche <bart.vanassche@sandisk.com>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+In-Reply-To: <56D4C615.5010202-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 29, 2016 at 10:49:58PM -0800, Nicholas A. Bellinger wrote:
-> Btw, is original ib_create_cq() usage a incompatible with chain RDMA
-> READ/WRITE requests, or was that an extra improvement..?
+On Mon, Feb 29, 2016 at 04:28:37PM -0600, Steve Wise wrote:
+>> +		ret = rdma_rw_init_mr_wrs(ctx, qp, port_num, sg, sg_offset,
+>> +				remote_addr, rkey, dir);
+>
+> At some point I would like the iWARP IO to do no-mr for WRITE/dma_nents == 
+> 1, and WRITE/dma_nents <= max_send_sge for the device. I think this will 
+> help smaller iSER/NVMEF READ IOPs.  I'm testing this out now on the NVMEF 
+> code, which is slightly different.  If it proves out to better the 
+> performance, I'll post a follow-on patch...
 
-Old-style CQs can be used for chained requests, see the iser target
-for an example.  It's just a lot more painful.
+Yes, this should work fine.  My plan was to have the bare API in place
+for now and then allow HCA drivers to fine tune the idea eventually.
+My idea was to have a threshold set by the driver from where to start
+registering the memory for case where it not required (WRITE on all HCAs,
+READ for !iWarp).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
