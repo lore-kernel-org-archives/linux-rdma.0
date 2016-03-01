@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 09/10] IB/ipoib: Allow mcast packets from other VFs
-Date: Tue,  1 Mar 2016 18:52:22 +0200
-Message-ID: <1456851143-138332-10-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 02/10] IB/mlx5: Fix decision on using MAD_IFC
+Date: Tue,  1 Mar 2016 18:52:15 +0200
+Message-ID: <1456851143-138332-3-git-send-email-eli@mellanox.com>
 References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456851143-138332-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,70 +10,28 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With SRIOV enabled, two VFs on the same HCA which have the same port LID
-and may have the same QP number. To enable receiving multicasts from
-such VFs, further qualify the check: ignore the receive only if, in
-addition, the packet source gid equals the receiving VF's source gid.
+Fix the condition that dictates when MAD_IFC should be used. According
+to firmware specifications, MAD_IFC commands must be used only if the
+ib_virt capability is off.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index fa9c42ff1fb0..e0b953cdab50 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -180,6 +180,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	struct sk_buff *skb;
- 	u64 mapping[IPOIB_UD_RX_SG];
- 	union ib_gid *dgid;
-+	union ib_gid *sgid;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 03c418ccbc98..399049b70a72 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -283,7 +283,7 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
  
- 	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
- 		       wr_id, wc->status);
-@@ -203,13 +204,6 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 		return;
- 	}
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ {
+-	return !dev->mdev->issi;
++	return !MLX5_CAP_GEN(dev->mdev, ib_virt);
+ }
  
--	/*
--	 * Drop packets that this interface sent, ie multicast packets
--	 * that the HCA has replicated.
--	 */
--	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
--		goto repost;
--
- 	memcpy(mapping, priv->rx_ring[wr_id].mapping,
- 	       IPOIB_UD_RX_SG * sizeof *mapping);
- 
-@@ -239,6 +233,27 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	else
- 		skb->pkt_type = PACKET_MULTICAST;
- 
-+	sgid = &((struct ib_grh *)skb->data)->sgid;
-+
-+	/*
-+	 * Drop packets that this interface sent, ie multicast packets
-+	 * that the HCA has replicated.
-+	 */
-+	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num) {
-+		int need_repost = 1;
-+
-+		if ((wc->wc_flags & IB_WC_GRH) &&
-+		    memcmp(&sgid->global.interface_id,
-+			   &priv->local_gid.global.interface_id,
-+			   sizeof(sgid->global.interface_id)))
-+			need_repost = 0;
-+
-+		if (need_repost) {
-+			dev_kfree_skb_any(skb);
-+			goto repost;
-+		}
-+	}
-+
- 	skb_pull(skb, IB_GRH_BYTES);
- 
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
+ enum {
 -- 
 1.8.3.1
 
