@@ -1,75 +1,132 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 00/10] IB SR-IOV support
-Date: Tue,  1 Mar 2016 18:52:13 +0200
-Message-ID: <1456851143-138332-1-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 07/10] net/mlx5_core: Implement modify HCA vport command
+Date: Tue,  1 Mar 2016 18:52:20 +0200
+Message-ID: <1456851143-138332-8-git-send-email-eli@mellanox.com>
+References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1456851143-138332-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug, Dave 
+Implement the modify HCA vport commands used to modify the parameters of
+virtual HCA's ports.
 
-The following series adds support for managing SRIOV IB VFs in a standard 
-way (rtnetlink, iproute2) through IPoIB ndo entries which translate to 
-corresponding verbs calls. 
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |  6 +++
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 67 +++++++++++++++++++++++++
+ include/linux/mlx5/vport.h                      |  4 ++
+ 3 files changed, 77 insertions(+)
 
-In IB networks, 64 bit GUIDs are used as the primary means of identification. 
-To support that for VFs, we added a set_vf_guid ndo which is used to program 
-the VF node and port GUID from the PF. 
-
-Those verbs are implemented by the mlx5 driver along with some more changes 
-needed in the driver, IPoIB and the IB core to support IB virtualization.
-
-We've copied netdev only on the 1st patch of the series, as the rest of it just 
-uses the patch along with the existing ndos in IPoIB plus add things which 
-are internal to the IB stack. 
-
-The series is rebased against 4.5-rc6 and Meny's patches:
-http://www.spinics.net/lists/linux-rdma/msg33536.html and also assumes
-Leon's patch that extends the kernel ib device attr caps field to u64.
-
-Eli 
-
-Eli Cohen (9):
-  net/core: Add support for configuring VF GUIDs
-  IB/mlx5: Fix decision on using MAD_IFC
-  IB/core: Support accessing SA in virtualized environment
-  IB/core: Add interfaces to control VF attributes
-  IB/ipoib: Add ndo operations for configuring VFs
-  net/mlx5_core: Add VF param when querying vport counter
-  net/mlx5_core: Implement modify HCA vport command
-  IB/mlx5: Implement callbacks for manipulating VFs
-  IB/ipoib: Allow mcast packets from other VFs
-
-Or Gerlitz (1):
-  IB/core: Use GRH when the path hop-limit > 0
-
- drivers/infiniband/core/device.c                |   1 +
- drivers/infiniband/core/sa_query.c              |   7 +-
- drivers/infiniband/core/verbs.c                 |  40 +++++
- drivers/infiniband/hw/mlx5/Makefile             |   2 +-
- drivers/infiniband/hw/mlx5/ib_virt.c            | 194 ++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mad.c                |   2 +-
- drivers/infiniband/hw/mlx5/main.c               |  12 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h            |   8 +
- drivers/infiniband/ulp/ipoib/ipoib_ib.c         |  29 +++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c       |  65 +++++++-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |   6 +
- drivers/net/ethernet/mellanox/mlx5/core/vport.c |  72 ++++++++-
- include/linux/mlx5/driver.h                     |   5 +-
- include/linux/mlx5/mlx5_ifc.h                   |   6 +
- include/linux/mlx5/vport.h                      |   7 +-
- include/linux/netdevice.h                       |   3 +
- include/rdma/ib_verbs.h                         |  25 +++
- include/uapi/linux/if_link.h                    |   7 +
- net/core/rtnetlink.c                            |  79 +++++++++-
- 19 files changed, 547 insertions(+), 23 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/ib_virt.c
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 037fc4cdf5af..ebb4036b98e5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -407,6 +407,12 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ const char *mlx5_command_str(int command)
+ {
+ 	switch (command) {
++	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
++		return "QUERY_HCA_VPORT_CONTEXT";
++
++	case MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT:
++		return "MODIFY_HCA_VPORT_CONTEXT";
++
+ 	case MLX5_CMD_OP_QUERY_HCA_CAP:
+ 		return "QUERY_HCA_CAP";
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index 2b836d0b4738..bd518405859e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -891,3 +891,70 @@ free:
+ 	return err;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_core_query_vport_counter);
++
++int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
++				       u8 other_vport, u8 port_num,
++				       int vf,
++				       struct mlx5_hca_vport_context *req)
++{
++	int in_sz = MLX5_ST_SZ_BYTES(modify_hca_vport_context_in);
++	u8 out[MLX5_ST_SZ_BYTES(modify_hca_vport_context_out)];
++	int is_group_manager;
++	void *in;
++	int err;
++	void *ctx;
++
++	mlx5_core_dbg(dev, "vf %d\n", vf);
++	is_group_manager = MLX5_CAP_GEN(dev, vport_group_manager);
++	in = kzalloc(in_sz, GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
++
++	memset(out, 0, sizeof(out));
++	MLX5_SET(modify_hca_vport_context_in, in, opcode, MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT);
++	if (other_vport) {
++		if (is_group_manager) {
++			MLX5_SET(modify_hca_vport_context_in, in, other_vport, 1);
++			MLX5_SET(modify_hca_vport_context_in, in, vport_number, vf);
++		} else {
++			err = -EPERM;
++			goto ex;
++		}
++	}
++
++	if (MLX5_CAP_GEN(dev, num_ports) > 1)
++		MLX5_SET(modify_hca_vport_context_in, in, port_num, port_num);
++
++	ctx = MLX5_ADDR_OF(modify_hca_vport_context_in, in, hca_vport_context);
++	MLX5_SET(hca_vport_context, ctx, field_select, req->field_select);
++	MLX5_SET(hca_vport_context, ctx, sm_virt_aware, req->sm_virt_aware);
++	MLX5_SET(hca_vport_context, ctx, has_smi, req->has_smi);
++	MLX5_SET(hca_vport_context, ctx, has_raw, req->has_raw);
++	MLX5_SET(hca_vport_context, ctx, vport_state_policy, req->policy);
++	MLX5_SET(hca_vport_context, ctx, port_physical_state, req->phys_state);
++	MLX5_SET(hca_vport_context, ctx, vport_state, req->vport_state);
++	MLX5_SET64(hca_vport_context, ctx, port_guid, req->port_guid);
++	MLX5_SET64(hca_vport_context, ctx, node_guid, req->node_guid);
++	MLX5_SET(hca_vport_context, ctx, cap_mask1, req->cap_mask1);
++	MLX5_SET(hca_vport_context, ctx, cap_mask1_field_select, req->cap_mask1_perm);
++	MLX5_SET(hca_vport_context, ctx, cap_mask2, req->cap_mask2);
++	MLX5_SET(hca_vport_context, ctx, cap_mask2_field_select, req->cap_mask2_perm);
++	MLX5_SET(hca_vport_context, ctx, lid, req->lid);
++	MLX5_SET(hca_vport_context, ctx, init_type_reply, req->init_type_reply);
++	MLX5_SET(hca_vport_context, ctx, lmc, req->lmc);
++	MLX5_SET(hca_vport_context, ctx, subnet_timeout, req->subnet_timeout);
++	MLX5_SET(hca_vport_context, ctx, sm_lid, req->sm_lid);
++	MLX5_SET(hca_vport_context, ctx, sm_sl, req->sm_sl);
++	MLX5_SET(hca_vport_context, ctx, qkey_violation_counter, req->qkey_violation_counter);
++	MLX5_SET(hca_vport_context, ctx, pkey_violation_counter, req->pkey_violation_counter);
++	err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
++	if (err)
++		goto ex;
++
++	err = mlx5_cmd_status_to_err_v2(out);
++
++ex:
++	kfree(in);
++	return err;
++}
++EXPORT_SYMBOL_GPL(mlx5_core_modify_hca_vport_context);
+diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
+index aafb3e48b5f8..bd93e6323603 100644
+--- a/include/linux/mlx5/vport.h
++++ b/include/linux/mlx5/vport.h
+@@ -95,5 +95,9 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
+ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
+ 				  int vf, u8 port_num, void *out,
+ 				  size_t out_sz);
++int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
++				       u8 other_vport, u8 port_num,
++				       int vf,
++				       struct mlx5_hca_vport_context *req);
+ 
+ #endif /* __MLX5_VPORT_H__ */
 -- 
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-
 1.8.3.1
 
 --
