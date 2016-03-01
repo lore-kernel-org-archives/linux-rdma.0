@@ -1,35 +1,21 @@
-From: David Dai <zdai-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH 2/2] rds kernel space part of change for rds-stress -D option failure
-Date: Mon, 29 Feb 2016 19:47:26 -0600
-Message-ID: <1456796846-8596-3-git-send-email-zdai@linux.vnet.ibm.com>
-References: <1456796846-8596-1-git-send-email-zdai@linux.vnet.ibm.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456796846-8596-1-git-send-email-zdai-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: clsoto-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, zdai-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 5/9] IB/core: add a simple MR pool
+Date: Tue, 1 Mar 2016 07:48:16 +0100
+Message-ID: <20160301064816.GA31969@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-6-git-send-email-hch@lst.de> <56D4C805.8040507@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56D4C805.8040507@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
----
- net/rds/rdma.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On Mon, Feb 29, 2016 at 02:36:53PM -0800, Bart Van Assche wrote:
+> So ib_mr_pool_get() does not remove the returned element from the list and 
+> ib_mr_pool_put() adds it to the list? Why this asymmetry?
 
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index b08ca60..d603645 100755
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -657,6 +657,7 @@ int rds_cmsg_rdma_args(struct rds_sock *rs, struct rds_message *rm,
- 		ret = rds_pin_pages(iov->addr, nr, pages, !op->op_write);
- 		if (ret < 0)
- 			goto out;
-+		ret = 0;	
- 
- 		rdsdebug("RDS: nr_bytes %u nr %u iov->bytes %llu iov->addr %llx\n",
- 			 nr_bytes, nr, iov->bytes, iov->addr);
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It should removed it.  I already fixed this up twice after testing,
+not sure why this sneaked back in..
