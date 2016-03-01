@@ -1,40 +1,51 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 03/10] IB/core: Support accessing SA in
- virtualized environment
-Date: Tue, 1 Mar 2016 21:46:08 +0200
-Message-ID: <20160301194608.GF19366@x-vnc01.mtx.labs.mlnx>
-References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
- <1456851143-138332-4-git-send-email-eli@mellanox.com>
- <20160301174401.GC25176@obsidianresearch.com>
- <20160301181742.GB19366@x-vnc01.mtx.labs.mlnx>
- <20160301183256.GB12495@obsidianresearch.com>
- <20160301190742.GC19366@x-vnc01.mtx.labs.mlnx>
- <20160301193153.GA25755@obsidianresearch.com>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RESEND v3 5/6] staging/rdma/hfi1: adding per SDMA engine stats to hfistats
+Date: Tue, 1 Mar 2016 15:27:37 -0500
+Message-ID: <20160301202736.GA8501@phlsvsds.ph.intel.com>
+References: <1452555057-5155-1-git-send-email-jubin.john@intel.com> <1452555057-5155-6-git-send-email-jubin.john@intel.com> <56D5B567.4040706@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160301193153.GA25755-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <56D5B567.4040706-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 01, 2016 at 12:31:53PM -0700, Jason Gunthorpe wrote:
-> 
-> I mean opensm supports the GUID Alias scheme for virtualization, this
-> new virtualization scheme is not compatible, and we shouldn't have the
-> kernel drop support for existing working SMs, by, eg, replacing the
-> mlx4 guid alias scheme with this new scheme.
-> 
-> I'm guessing a user controlled switch is going to be necessary here to
-> pick GUID alias or port port virtualization.
+> > diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
+> > index 1d38be5..cb66bd0 100644
+> > --- a/drivers/staging/rdma/hfi1/sdma.c
+> > +++ b/drivers/staging/rdma/hfi1/sdma.c
+> > @@ -1061,7 +1061,6 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+> >  		sde->desc_avail = sdma_descq_freecnt(sde);
+> >  		sde->sdma_shift = ilog2(descq_cnt);
+> >  		sde->sdma_mask = (1 << sde->sdma_shift) - 1;
+> > -		sde->descq_full_count = 0;
+> >  
+> >  		/* Create a mask for all 3 chip interrupt sources */
+> >  		sde->imask = (u64)1 << (0*TXE_NUM_SDMA_ENGINES + this_idx)
+> > @@ -1073,6 +1072,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
+> >  		/* Create a mask specifically for sdma_progress */
+> >  		sde->progress_mask =
+> >  			(u64)1 << (TXE_NUM_SDMA_ENGINES + this_idx);
+> > +		sde->int_mask =
+> > +			(u64)1 << (0 * TXE_NUM_SDMA_ENGINES + this_idx);
+>                                    ^^^^^^^^^^^^^^^^^^^^^^^^
+> Why is that there?
 > 
 
-The alias GUID mechanism remains and can be used with mlx4 devices.
-With this scheme the admin configures the port and node GUIDs using
-iprout2 which ends up in the hardware driver configuring the deivce. A
-virtualization aware SM can read this configuration through MADs.
+Hi Doug,
+
+The zero was intentionally added in an attempt to highlight that this
+was for the first interrupt source, like we do in other places above this
+where we have 1 * TXE_NUM_SDMA_ENGINES, 2 * TXE_NUM_SDMA_ENGINES etc.
+The interrupt sources are separated by the number of SDMA engines
+i.e TXE_NUM_SDMA_ENGINES. However, we agree that the code is not
+consistent throughout. Would you like us to do a cleanup of this code
+in a follow-on patch or rework this patch and resend the series?
+
+Jubin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
