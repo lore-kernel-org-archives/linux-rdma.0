@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 06/10] net/mlx5_core: Add VF param when querying vport counter
-Date: Tue,  1 Mar 2016 18:52:19 +0200
-Message-ID: <1456851143-138332-7-git-send-email-eli@mellanox.com>
+Subject: [PATCH for-next 03/10] IB/core: Support accessing SA in virtualized environment
+Date: Tue,  1 Mar 2016 18:52:16 +0200
+Message-ID: <1456851143-138332-4-git-send-email-eli@mellanox.com>
 References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1456851143-138332-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,72 +10,76 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a vf parameter to mlx5_core_query_vport_counter so we can call it to
-query counters of virtual functions. Also update current users of the
-API.
+Per the ongoing standardisation process, when virtual HCAs are present
+in a network, traffic is routed based on a destination GID. In order to
+access the SA we use the well known SA GID.
 
-PFs may call mlx5_core_query_vport_counter with other_vport set to
-indicate that they are querying a virtual function. The virtual
-function to be queried is given by the vf parameter. Virtual function
-numbering is zero based so the first VF is 0 and so on. When a PF
-queries its own function, the other_vport parameter is cleared.
+We also add a GRH required boolean field to the port attributes which is
+used to report to the verbs consumer whether this port is connected to a
+virtual network. We use this field to realize whether we need to create
+an address vector with GRH to access the subnet administrator. We clear
+the port attributes struct before calling the hardware driver to make
+sure the default remains that GRH is not required.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mad.c                | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 5 +++--
- include/linux/mlx5/vport.h                      | 3 ++-
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/device.c   | 1 +
+ drivers/infiniband/core/sa_query.c | 5 +++++
+ include/rdma/ib_verbs.h            | 6 ++++++
+ 3 files changed, 12 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 41d8a0036465..1534af113058 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -208,7 +208,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
- 		if (!out_cnt)
- 			return IB_MAD_RESULT_FAILURE;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 00da80e02154..24926acd4bcd 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -652,6 +652,7 @@ int ib_query_port(struct ib_device *device,
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
  
--		err = mlx5_core_query_vport_counter(dev->mdev, 0,
-+		err = mlx5_core_query_vport_counter(dev->mdev, 0, 0,
- 						    port_num, out_cnt, sz);
- 		if (!err)
- 			pma_cnt_ext_assign(pma_cnt_ext, out_cnt);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 90ab09e375b8..2b836d0b4738 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -852,7 +852,8 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev)
- EXPORT_SYMBOL_GPL(mlx5_nic_vport_disable_roce);
++	memset(port_attr, 0, sizeof(*port_attr));
+ 	return device->query_port(device, port_num, port_attr);
+ }
+ EXPORT_SYMBOL(ib_query_port);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index f334090bb612..833d2a99a311 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -886,6 +886,11 @@ static void update_sm_ah(struct work_struct *work)
+ 	ah_attr.dlid     = port_attr.sm_lid;
+ 	ah_attr.sl       = port_attr.sm_sl;
+ 	ah_attr.port_num = port->port_num;
++	if (port_attr.grh_required) {
++		ah_attr.ah_flags = IB_AH_GRH;
++		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(IB_SA_WELL_KNOWN_GID_PREFIX);
++		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
++	}
  
- int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
--				  u8 port_num, void *out, size_t out_sz)
-+				  int vf, u8 port_num, void *out,
-+				  size_t out_sz)
- {
- 	int	in_sz = MLX5_ST_SZ_BYTES(query_vport_counter_in);
- 	int	is_group_manager;
-@@ -871,7 +872,7 @@ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
- 	if (other_vport) {
- 		if (is_group_manager) {
- 			MLX5_SET(query_vport_counter_in, in, other_vport, 1);
--			MLX5_SET(query_vport_counter_in, in, vport_number, 0);
-+			MLX5_SET(query_vport_counter_in, in, vport_number, vf + 1);
- 		} else {
- 			err = -EPERM;
- 			goto free;
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index a9f2bcc98cab..aafb3e48b5f8 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -93,6 +93,7 @@ int mlx5_modify_nic_vport_vlans(struct mlx5_core_dev *dev,
- int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev);
- int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
- int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
--				  u8 port_num, void *out, size_t out_sz);
-+				  int vf, u8 port_num, void *out,
-+				  size_t out_sz);
+ 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(new_ah->ah)) {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 284b00c8fea4..5c1f11742c65 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -97,6 +97,11 @@ enum rdma_node_type {
+ 	RDMA_NODE_USNIC_UDP,
+ };
  
- #endif /* __MLX5_VPORT_H__ */
++enum {
++	IB_SA_WELL_KNOWN_GID_PREFIX	= 0xfe80000000000000ull,
++	IB_SA_WELL_KNOWN_GUID		= 2,
++};
++
+ enum rdma_transport_type {
+ 	RDMA_TRANSPORT_IB,
+ 	RDMA_TRANSPORT_IWARP,
+@@ -508,6 +513,7 @@ struct ib_port_attr {
+ 	u8			active_width;
+ 	u8			active_speed;
+ 	u8                      phys_state;
++	bool			grh_required;
+ };
+ 
+ enum ib_device_modify_flags {
 -- 
 1.8.3.1
 
