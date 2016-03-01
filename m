@@ -1,32 +1,97 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 01/10] net/core: Add support for configuring VF
- GUIDs
-Date: Tue, 1 Mar 2016 19:49:51 +0200
-Message-ID: <20160301174951.GA19366@x-vnc01.mtx.labs.mlnx>
-References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
- <1456851143-138332-2-git-send-email-eli@mellanox.com>
- <20160301173751.GA25176@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v5 00/14] NFS/RDMA server patches for v4.6
+Date: Tue, 01 Mar 2016 13:05:14 -0500
+Message-ID: <20160301180337.2492.4255.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160301173751.GA25176-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 01, 2016 at 10:37:51AM -0700, Jason Gunthorpe wrote:
-> > +	return handle_infiniband_guid(dev, &ivt, IFLA_VF_IB_PORT_GUID);
-> 
-> But is this emulation really necessary? It seems dangerous and
-> continues the bad practice of assuming IFLA_VF_MAC is fixed to 6 bytes
-> in size, and is not just LLADDR bytes. I'd rather see mac sets fail on
-> IB.
-> 
-struct ifla_vf_mac  already defines mac as 32 bytes but the idea here
-is that applications that configure six byte Ethernet MACs to VFs will
-continue to work without any change. 
+Hi Bruce-
+
+I think these are ready for linux-next.
+
+Two major changes: Finish server-side support for RDMA_ERROR type
+messages, and convert the server's completion handlers to the new
+core CQ API.
+
+Also available in the "nfsd-rdma-for-4.6" topic branch of this git
+repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.6
+
+
+Changes since v4:
+- Rebased on v4.5-rc6
+- Replace confusing comments about NFSv4.1 over RDMA support
+
+
+Changes since v3:
+- Rebased on v4.5-rc5
+- Completed fix for Write chunk XDR padding
+- On error, svc_rdma_sendto() should close connection
+
+
+Changes since v2:
+- Rebased on v4.5-rc4
+- checkpatch.pl passes
+- Fix iWARP RDMA Read path regression
+- Reduce NFSv4.1 CB message size maximum in CREATE_SESSION
+- Another pass at fixing Write chunk XDR padding
+- Various clean ups
+
+
+Changes since v1:
+- Rebased on v4.5-rc3
+- Patch 02/10 (pre-allocate frmrs) dropped
+- Patch 04/10 replaced with more surgical patch
+- Refined reporting of flushed completions
+- Function names of completion methods changed to match client's
+new completion function naming convention
+
+---
+
+Chuck Lever (14):
+      nfsd: Update NFS server comments related to RDMA support
+      svcrdma: Find client-provided write and reply chunks once per reply
+      svcrdma: Do not write xdr_buf::tail in a Write chunk
+      svcrdma: Do not send Write chunk XDR pad with inline content
+      nfsd: Lower NFSv4.1 callback message size limit
+      svcrdma: Close connection when a send error occurs
+      svcrdma: svc_rdma_post_recv() should close connection on error
+      rpcrdma: Add RPCRDMA_HDRLEN_ERR
+      svcrdma: Make RDMA_ERROR messages work
+      svcrdma: Use correct XID in error replies
+      svcrdma: Hook up the logic to return ERR_CHUNK
+      svcrdma: Remove close_out exit path
+      svcrdma: Use new CQ API for RPC-over-RDMA server receive CQs
+      svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
+
+
+ fs/nfsd/nfs4state.c                        |   26 +-
+ fs/nfsd/nfs4xdr.c                          |    2 
+ include/linux/sunrpc/auth.h                |    7 
+ include/linux/sunrpc/rpc_rdma.h            |    1 
+ include/linux/sunrpc/svc_rdma.h            |   20 +
+ net/sunrpc/auth_null.c                     |    4 
+ net/sunrpc/auth_unix.c                     |    6 
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   17 -
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   64 +++-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   60 ++--
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  196 ++++++++----
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  445 +++++++++-------------------
+ 12 files changed, 393 insertions(+), 455 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
