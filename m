@@ -1,170 +1,228 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
-Date: Wed, 2 Mar 2016 12:51:38 -0700
-Message-ID: <20160302195138.GA8427@obsidianresearch.com>
-References: <20160224190230.GA10588@obsidianresearch.com>
- <56CEB4C7.60607@dev.mellanox.co.il>
- <20160225170541.GA22513@obsidianresearch.com>
- <56D31A58.20205@mellanox.com>
- <20160229191734.GA15042@obsidianresearch.com>
- <56D55851.60206@mellanox.com>
- <20160301172448.GA24031@obsidianresearch.com>
- <56D6979F.6000400@mellanox.com>
- <20160302182836.GA7084@obsidianresearch.com>
- <alpine.DEB.2.20.1603021300491.15609@east.gentwo.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
+Date: Thu, 3 Mar 2016 01:28:55 +0530
+Message-ID: <CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
+References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
+	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
+	<20160302173949.GG29826@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1603021300491.15609-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160302173949.GG29826@mtj.duckdns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 02, 2016 at 01:08:30PM -0600, Christoph Lameter wrote:
-> On Wed, 2 Mar 2016, Jason Gunthorpe wrote:
-> 
-> > So all this ugly API to minimize cache line usage has no measured
-> > performance gain?
-> 
-> We have seen an increased cacheline footprint adding ~100-200ns to receive
-> latencies during loops. This does not show up in synthetic loads that do
-> not do much processing since their cache footprint is minimal.
+On Wed, Mar 2, 2016 at 11:09 PM, Tejun Heo <tj@kernel.org> wrote:
+> Hello,
+>
+>> +struct rdma_cgroup {
+>> +     struct cgroup_subsys_state      css;
+>> +
+>> +     spinlock_t rpool_list_lock;     /* protects resource pool list */
+>> +     struct list_head rpool_head;    /* head to keep track of all resource
+>> +                                      * pools that belongs to this cgroup.
+>> +                                      */
+>
+> I think we usually don't tail wing these comments.
 
-I know you've seen effects..
+ok. I will put comments in separate line.
 
-But apparently the patch authors haven't.
+>
+>> +};
+>> +
+>> +struct rdmacg_pool_info {
+>> +     const char **resource_name_table;
+>> +     int table_len;
+>
+> Align fields consistently?  I've said this multiple times now but
+> please make the available resources constant and document them in
+> Documentation/cgroup-v2.txt.
 
-> > > Does the opaque pointer guarantees an aligned access? Who allocates the
-> > > space for the vendor's CQE? Any concrete example?
-> > > One of the problems here are that CQEs could be formatted as -
-> > > "if QP type is y, then copy the field z from o". Doing that this way may
-> > > result doing the same "if" multiple times. The current approach could still
-> > > avoid memcpy and write straight to the user's buffer.
-> >
-> > No, none of that...
-> >
-> > struct ibv_cq
-> > {
-> >     int (*read_next_cq)(ibv_cq *cq,struct common_wr *res);
-> >     int (*read_address)(ibv_cq *cq,struct wr_address *res);
-> >     uint64_t (*read_timestamp(ibv_cq *cq);
-> >     uint32_t (*read_immediate_data(ibv_cq *cq);
-> >     void (*read_something_else)(ibv_cq *cq,struct something_else *res);
-> > };
-> 
-> Argh. You are requiring multiple indirect function calls
-> top retrieve the same imformation and therefore significantly increase
-> latency.
+o.k. I will align them.
+o.k. I will document the resource constants defined by IB stack in
+cgroup-v2.txt.
 
-It depends. These are unconditional branches and they elide alot of
-other code and conditional branches by their design.
+>> +
+>> +/* APIs for RDMA/IB stack to publish when a device wants to
+>> + * participate in resource accounting
+>> + */
+>
+> Please follow CodingStyle.  Wasn't this pointed out a couple times
+> already?
+Yes. You did. I fixed at few places. I missed this out. Sorry. I am doing now.
 
-The mlx4 driver does something like this on every CQE to parse the
-immediate data:
+>
+>> +enum rdmacg_file_type {
+>> +     RDMACG_RESOURCE_MAX,
+>> +     RDMACG_RESOURCE_STAT,
+>> +};
+>
+> Heh, usually not a good sign.  If you're using this to call into a
+> common function and then switch out on the file type, just switch out
+> at the method level and factor out common part into helpers.
+>
+Methods for both the constants are same. Code changes between two file
+type is hardly 4 lines of code.
+So there is no need of additional helper functions.
+So in currently defined functions rdmacg_resource_read() and
+rdmacg_resource_set_max() works on file type.
 
-+	if (is_send) {
-+		switch (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
-+		case MLX4_RECV_OPCODE_RDMA_WRITE_IMM:
-+			if (wc_flags & IBV_WC_EX_WITH_IMM) {
-+				*wc_buffer.b32++ = cqe->immed_rss_invalid;
+>> +/* resource tracker per resource for rdma cgroup */
+>> +struct rdmacg_resource {
+>> +     int max;
+>> +     int usage;
+>> +};
+>
+> Align fields?
 
-With this additional overhead for all the parse paths that have no
-immediate:
+Above one seems to be aligned. Not sure what am I missing.
+I am aligning all the structures anyways.
 
-+			if (wc_flags & IBV_WC_EX_WITH_IMM)
-+				wc_buffer.b32++; // No imm to set
+>
+>> +/**
+>
+> The above indicates kerneldoc comments, which this isn't.
+Fixed for this comment.
 
-Whereas my suggestion would looke more like:
+>
+>> + * resource pool object which represents, per cgroup, per device
+>> + * resources. There are multiple instance
+>> + * of this object per cgroup, therefore it cannot be embedded within
+>> + * rdma_cgroup structure. It is maintained as list.
+>
+> Consistent paragraph fill?
+Fixed.
 
-mlx4_read_immediate_data(cq) {return cq->cur_cqe->immed_rss_invalid;};
+>
 
-[and even that can be micro-optimized further]
+>> + */
+>> +struct rdmacg_resource_pool {
+>> +     struct list_head cg_list;
+>> +     struct list_head dev_list;
+>> +
+>> +     struct rdmacg_device *device;
+>> +     struct rdmacg_resource *resources;
+>> +     struct rdma_cgroup *cg; /* owner cg used during device cleanup */
+>> +
+>> +     int     refcnt;         /* count active user tasks of this pool */
+>> +     int     num_max_cnt;    /* total number counts which are set to max */
+>> +};
+>
+> Formatting.
 
-And the setting of WITH_IMM during the common parse is much less branchy:
+Aligning all the fields now in next patch.
 
-opcode = cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK;
-wc->flags |= WITH_IMM_BIT << ((unsigned int)(opcode == MLX4_RECV_OPCODE_RDMA_WRITE_IMM ||
-                                            opcode == MLX4_RECV_OPCODE_SEND_IMM ...))
+>
+>> +static inline void set_resource_limit(struct rdmacg_resource_pool *rpool,
+>> +                                   int index, int new_max)
+>
+> Is inline necessary?  Compiler can figure out these.
+Yes. Removed.
 
-I bet that is a lot less work going on, even including the indirect
-jump overhead.
+>
+>> +static struct rdmacg_resource_pool*
+>                                      ^
+>                                      space
+>
+>> +find_cg_rpool_locked(struct rdma_cgroup *cg,
+>> +                  struct rdmacg_device *device)
+> ...
+>> +static void uncharge_cg_resource(struct rdma_cgroup *cg,
+>> +                              struct rdmacg_device *device,
+>> +                              int index, int num)
+>> +{
+> ...
+>> +     rpool->refcnt--;
+>> +     if (rpool->refcnt == 0 && rpool->num_max_cnt == pool_info->table_len) {
+>
+> If the caller charges 2 and then uncharges 1 two times, the refcnt
+> underflows?  Why not just track how many usages are zero?
+>
+This is certainly must fix bug. Changed refcnt to usage_sum and changed to do
+usage_sum -= num during uncharging
+and
+usage_sum += num during charing.
 
-> This is going to cause lots of problems for procesing at high
-> speed where we have to use the processor caches as carefully as possible
-> to squeeze out all we can get.
+> ...
+>> +void rdmacg_uncharge(struct rdma_cgroup *cg,
+>> +                  struct rdmacg_device *device,
+>> +                  int index, int num)
+>> +{
+>> +     struct rdma_cgroup *p;
+>> +
+>> +     for (p = cg; p; p = parent_rdmacg(p))
+>> +             uncharge_cg_resource(p, device, index, num);
+>> +
+>> +     css_put(&cg->css);
+>> +}
+>> +EXPORT_SYMBOL(rdmacg_uncharge);
+>
+> So, I suppose the code is trying to save lock contention with
+> fine-grained locking;
+Yes.
+> however, as the code is currently structured,
+> it's just increasing the number of lock ops and it'd be highly likely
+> to cheaper to simply use a single lock.
 
-The driver should be built so the branch targets are all in close
-cache lines, with function prologues deliberately elided so the branch
-targets are small. There may even be further techniques to micro
-optimize the jump, if one wanted to spend the effort.
+Single lock per subsystem? I understood that you were ok to have per
+cgroup fine grain lock.
 
-Further, since we are only running the code the caller actually needs
-we are not wasting icache lines trundling through the driver CQE parse
-that has to handle all cases, even ones the caller doesn't care about.
+> If you're working up the tree
+> grabbing lock at each level, per-node locking doesn't save you
+> anything.  Also, it introduces conditions where charges are spuriously
+> denied when there are racing requestors.  If scalability becomes an
+> issue, the right way to address is adding percpu front cache.
+>
+>> +void rdmacg_query_limit(struct rdmacg_device *device,
+>> +                     int *limits)
+>> +{
+>> +     struct rdma_cgroup *cg, *p;
+>> +     struct rdmacg_resource_pool *rpool;
+>> +     struct rdmacg_pool_info *pool_info;
+>> +     int i;
+>> +
+>> +     cg = task_rdmacg(current);
+>> +     pool_info = &device->pool_info;
+>
+> Nothing seems to prevent @cg from going away if this races with
+> @current being migrated to a different cgroup.  Have you run this with
+> lockdep and rcu debugging enabled?  This should have triggered a
+> warning.
+No. debugging was disabled. I will enable and run.
+Help me little to understand,
+Even if above function races with migration, do you mean cg can be
+freed before css_get is executed?
+If yes, than I guess I need subsystem level lock under which I need to
+perform css_get()?
+If not, whatever cg was returned, that should be ok as long as cg
+reference is hold.
+May be I am missing something here.
 
-It is possible this uses fewer icache lines than what we have today,
-it depends how big the calls end up..
+>
+> ...
+>> +     for (p = cg; p; p = parent_rdmacg(p)) {
+>> +             spin_lock(&cg->rpool_list_lock);
+>> +             rpool = find_cg_rpool_locked(cg, device);
+>> +             if (rpool) {
+>> +                     for (i = 0; i < pool_info->table_len; i++)
+>> +                             limits[i] = min_t(int, limits[i],
+>> +                                     rpool->resources[i].max);
+>
+> So, the O complexity wise, things like the above are pretty bad and
+> the above pattern is used in hot paths.
+No. Its hot path. Typically applications do query configuration once
+is their life cycle and allocate resources more often.
 
-> > 4) A basic analysis says this trades cache line dirtying of the wc
-> >    array for unconditional branches.
-> >    It  eliminates at least 1 conditional branch per CQE iteration by
-> >    using only 1 loop.
-> 
-> This done none of that stuff at all if the device directly follows the
-> programmed format. There will be no need to do any driver formatting at
-> all.
+> I suppose there can only be a handful of devices per system?
+Right. I have described that in the document as well. Typically there
+are 1 to 4 devices in system and since the lock is per cgroup, though
+this loop appears to be heavy on O complexity wise, its not that bad.
+Hierarchical limit honoring is anyway default behavior we are adhering to.
 
-Maybe, but no such device exists? I'm not sure I want to see a
-miserable API on the faint hope of hardware support..
-
-Even if hardware appears, this basic API pattern can still support
-that optimally by using the #5 technique - and still avoids the memcpy
-from the DMA buffer to the user memory.
-
-> >    Compared to the poll_ex proposal this eliminates a huge
-> >    number of conditional branches as 'wc_flags' and related no longer
-> >    exist at all.
-> 
-> wc_flags may be something bothersome. You do not want to check inside the
-> loop.
-
-Did you look at the mlx4 driver patch? It checks wc_flags constantly
-when memcpying the HW CQE to the user memory - in the per CQE loop:
-
-+			if (wc_flags & IBV_WC_EX_WITH_IMM) {
-+				*wc_buffer.b32++ = cqe->immed_rss_invalid;
-
-Every single user CQE write (or even not write) is guarded by a
-conditional branch on the flags, and use of post-increment like that
-creates critical path data dependencies and kills ILP. All this extra
-code eats icache lines.
-
-Sure, the scheme saves dritying cache lines, but at the cost of a huge
-number of these conditional branches and more code. I'm deeply
-skeptical that is an overall win compared to dirtying more cache
-lines - mispredicted branches are expensive.
-
-What I've suggested avoids all the cache line dirtying and avoids all
-the above conditional branching and data dependencies at the cost of
-a few indirect unconditional jumps. (and if #5 is possible they aren't
-even jumps)
-
-I say there is no way to tell which scheme performs better without
-careful benchmarking - it is not obvious any of these trade offs are
-winners.
-
-> All cqe's should come with the fields requested and the
-> layout of the data must be fixed when in the receive loop. No additional
-> branches in the loop.
-
-Sure, for the caller, I'm looking at this from the whole system
-perspective. The driver is doing a wack more crap to produce this
-formatting and it certainly isn't free.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Thanks.
+>
+> --
+> tejun
