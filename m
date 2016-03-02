@@ -1,61 +1,69 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v5 00/14] NFS/RDMA server patches for v4.6
-Date: Wed, 2 Mar 2016 14:01:34 -0500
-Message-ID: <20160302190134.GB3512@fieldses.org>
-References: <20160301180337.2492.4255.stgit@klimt.1015granger.net>
- <20160301220052.GF23792@fieldses.org>
- <A6015E74-BB21-47EE-B100-0C5DC0C67591@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <A6015E74-BB21-47EE-B100-0C5DC0C67591-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
+Date: Wed, 2 Mar 2016 13:08:30 -0600 (CST)
+Message-ID: <alpine.DEB.2.20.1603021300491.15609@east.gentwo.org>
+References: <1456306924-31298-1-git-send-email-yishaih@mellanox.com> <1456306924-31298-2-git-send-email-yishaih@mellanox.com> <20160224190230.GA10588@obsidianresearch.com> <56CEB4C7.60607@dev.mellanox.co.il> <20160225170541.GA22513@obsidianresearch.com>
+ <56D31A58.20205@mellanox.com> <20160229191734.GA15042@obsidianresearch.com> <56D55851.60206@mellanox.com> <20160301172448.GA24031@obsidianresearch.com> <56D6979F.6000400@mellanox.com> <20160302182836.GA7084@obsidianresearch.com>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160302182836.GA7084-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 02, 2016 at 10:36:42AM -0800, Chuck Lever wrote:
-> 
-> > On Mar 1, 2016, at 2:00 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> > 
-> >> On Tue, Mar 01, 2016 at 01:05:14PM -0500, Chuck Lever wrote:
-> >> Hi Bruce-
-> >> 
-> >> I think these are ready for linux-next.
-> > 
-> > OK, applying for 4.6, thanks.
-> 
-> Thanks!
-> 
-> > I still wonder whether the code makes incorrect assumptions about how
-> > the server xdr encoder uses the reply xdr_buf.
-> 
-> Assumptions, probably. I believe these assumptions are the same as are
-> made on the client side. It would be awesome to build an API contract
-> for struct xdr_buf and have it written down somewhere, then we would
-> know for sure.
-> 
-> 
-> > That might only affect
-> > clients which constructed rather strange compounds.  And shouldn't be
-> > made any worse by these patches.
-> 
-> You're thinking of clients that might send more than one READ or WRITE
-> in and NFSv4 COMPOUND? The thought for the current implementation
-> is that the first READ or WRITE operation would be allowed to use the
-> xdr_buf page list, and arguments/results for the remaining READ/WRITE
-> operations would go inline (ie: a Long Call or Reply with data copy on
-> both ends).
+On Wed, 2 Mar 2016, Jason Gunthorpe wrote:
 
-Actually once the server realizes a compound is "too complicated" (e.g.,
-more than one READ), it just reverts to encoding into the head till it's
-full, then the first page, then the second, etc., with no special
-treatment for read data.  (Grep for RQ_SPLICE_OK, especially in
-fs/nfsd/nfs4xdr.c).
+> So all this ugly API to minimize cache line usage has no measured
+> performance gain?
 
---b.
+We have seen an increased cacheline footprint adding ~100-200ns to receive
+latencies during loops. This does not show up in synthetic loads that do
+not do much processing since their cache footprint is minimal.
+
+> > Does the opaque pointer guarantees an aligned access? Who allocates the
+> > space for the vendor's CQE? Any concrete example?
+> > One of the problems here are that CQEs could be formatted as -
+> > "if QP type is y, then copy the field z from o". Doing that this way may
+> > result doing the same "if" multiple times. The current approach could still
+> > avoid memcpy and write straight to the user's buffer.
+>
+> No, none of that...
+>
+> struct ibv_cq
+> {
+>     int (*read_next_cq)(ibv_cq *cq,struct common_wr *res);
+>     int (*read_address)(ibv_cq *cq,struct wr_address *res);
+>     uint64_t (*read_timestamp(ibv_cq *cq);
+>     uint32_t (*read_immediate_data(ibv_cq *cq);
+>     void (*read_something_else)(ibv_cq *cq,struct something_else *res);
+> };
+
+Argh. You are requiring multiple indirect function calls
+top retrieve the same imformation and therefore significantly increase
+latency. This is going to cause lots of problems for procesing at high
+speed where we have to use the processor caches as carefully as possible
+to squeeze out all we can get.
+
+> 4) A basic analysis says this trades cache line dirtying of the wc
+>    array for unconditional branches.
+>    It  eliminates at least 1 conditional branch per CQE iteration by
+>    using only 1 loop.
+
+This done none of that stuff at all if the device directly follows the
+programmed format. There will be no need to do any driver formatting at
+all.
+
+>    Compared to the poll_ex proposal this eliminates a huge
+>    number of conditional branches as 'wc_flags' and related no longer
+>    exist at all.
+
+wc_flags may be something bothersome. You do not want to check inside the
+loop. All cqe's should come with the fields requested and the
+layout of the data must be fixed when in the receive loop. No additional
+branches in the loop.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
