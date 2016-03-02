@@ -1,28 +1,49 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 5/9] IB/core: add a simple MR pool
-Date: Wed, 2 Mar 2016 10:14:10 +0100
-Message-ID: <20160302091410.GA1308@lst.de>
-References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-6-git-send-email-hch@lst.de> <56D5E989.9010006@sandisk.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 9/9] IB/srpt: convert to the generic RDMA READ/WRITE API
+Date: Wed, 2 Mar 2016 10:14:59 +0100
+Message-ID: <20160302091459.GB1308@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-10-git-send-email-hch@lst.de> <56D60BE2.6010601@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56D5E989.9010006-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56D60BE2.6010601@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 01, 2016 at 11:12:09AM -0800, Bart Van Assche wrote:
-> A second question about this patch: why do we need locking in 
-> ib_mr_pool_init() and ib_mr_pool_destroy()? Calling ib_mr_pool_get() or 
-> ib_mr_pool_put() while one of these two functions is in progress is a bug 
-> (race condition). Can the locking be left out from these two functions?
+On Tue, Mar 01, 2016 at 01:38:42PM -0800, Bart Van Assche wrote:
+> On 02/29/2016 02:20 PM, Christoph Hellwig wrote:
+> > Replace the homegrown RDMA READ/WRITE code in srpt with the generic API.
+> > The only real twist here is that we need to allocate on Linux scatterlist
+>                                                        ^^
+> This probably should have been "one" instead of "on"?
 
-Maybe.  But then we'd need to use barrier to ensure no reordering ever
-happens.  Just using the lock in the this slow path as well makes that
-a lot easier.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes.
+
+>> +		ret = target_alloc_sgl(&ctx->sg, &ctx->nents, size, false,
+>> +				i == nbufs - 1 ? false : true);
+>
+> Please change "i == nbufs - 1 ? false : true" into "i < nbufs - 1".
+
+Ok.
+
+>> @@ -1832,8 +1626,11 @@ retry:
+>>   	qp_init->srq = sdev->srq;
+>>   	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
+>>   	qp_init->qp_type = IB_QPT_RC;
+>> -	qp_init->cap.max_send_wr = srp_sq_size;
+>> -	qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
+>> +	qp_init->cap.max_send_wr = srp_sq_size / 2;
+>> +	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
+>> +	qp_init->cap.max_send_sge = max(sdev->device->attrs.max_sge_rd,
+>> +					sdev->device->attrs.max_sge);
+>> +	qp_init->port_num = ch->sport->port;
+>>
+>>   	ch->qp = ib_create_qp(sdev->pd, qp_init);
+>>   	if (IS_ERR(ch->qp)) {
+>
+> These changes have not been described in the patch description.
+
+Ok, I will update it.
