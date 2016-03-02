@@ -1,62 +1,38 @@
-From: Laison Computech Inc <7sales-mT95+eBjLkWwyptSkfDYNlaTQe2KTcn/@public.gmane.org>
-Subject: CISCO AND AVAYA IP Phones
-Date: Wed, 02 Mar 2016 03:10:35 +0700
-Message-ID: <20160301210942.70B54574BBB__24430.462884675$1456883518$gmane$org@srv-mta.gcmillenium.com.br>
-Reply-To: sales-mT95+eBjLkWwyptSkfDYNlaTQe2KTcn/@public.gmane.org
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCH 05/13] IB/core: add a simple MR pool
+Date: Wed, 2 Mar 2016 08:18:14 +0530
+Message-ID: <CAG53R5W2Xi--LdMwwcB68d+2VYS100zEM+zW4Qi79SwoUiQE=w@mail.gmail.com>
+References: <1456596631-19418-1-git-send-email-hch@lst.de>
+	<1456596631-19418-6-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <7sales-mT95+eBjLkWwyptSkfDYNlaTQe2KTcn/@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1456596631-19418-6-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-rdma@vger.kernel.org, swise@opengridcomputing.com, Sagi Grimberg <sagig@mellanox.com>, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hi Christoph,
 
-Clean tested working pulls CPUs and QTYs in stock.
+On Sat, Feb 27, 2016 at 11:40 PM, Christoph Hellwig <hch@lst.de> wrote:
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 267f11e..1e68dae 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1408,6 +1408,10 @@ struct ib_qp {
+>         struct ib_srq          *srq;
+>         struct ib_xrcd         *xrcd; /* XRC TGT QPs only */
+>         struct list_head        xrcd_list;
+> +
+> +       spinlock_t              mr_lock;
+> +       int                     mrs_used;
+> +
 
-115 X X5650
-65 X E5410
-75 X X5660
-145 X E5530
-100 X E5645
-40 X X5680
-75 X X5690
+Can you please add the comment for mr_lock as requested by the
+checkpatch script?
 
-Brand new sealed IP phones and QTYs in stock.
-
-55 x CP-7937G
-77 x CP-7942G
-54 x CP-7945G
-75 x CP-7962G
-=2E.....
-45 x Avaya 9630
-65 x Avaya 9641
-55 x Avaya 9640=20
-
-USED IT HARDWARE FROM:
-
-=46UJITSU       IBM         SUN        HP
-QUANTUM   DELL       HDS        STK
-NETAPP      SGI         Oracle      EMC=B2
-
-3Com, ADVA, Alcatel, Brocade, Cisco,
-Cabletron, Enterasys, Extreme Networks,
-Huawei, Marconi, Nortel, Qlogic, Avaya
-
-Let me know if you're interested. We are very open to offers and willin=
-g to work with you to make sure that we have a deal.
-
-Sincerely
-Barbara Johnson
-Laison Computech Inc
-Tel: +1-657-205-7860
-=46ax: +1-347-214-0478
-Email: sales-mT95+eBjLkWwyptSkfDYNlaTQe2KTcn/@public.gmane.org
-Web: www.laisoncomputech.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also you might want to consider adding this field after recv_cq so
+that we find mr_lock and used count in single cache line along with
+other data for the qp?
