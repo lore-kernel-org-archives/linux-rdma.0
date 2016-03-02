@@ -1,161 +1,136 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
-Date: Wed, 2 Mar 2016 11:28:36 -0700
-Message-ID: <20160302182836.GA7084@obsidianresearch.com>
-References: <1456306924-31298-1-git-send-email-yishaih@mellanox.com>
- <1456306924-31298-2-git-send-email-yishaih@mellanox.com>
- <20160224190230.GA10588@obsidianresearch.com>
- <56CEB4C7.60607@dev.mellanox.co.il>
- <20160225170541.GA22513@obsidianresearch.com>
- <56D31A58.20205@mellanox.com>
- <20160229191734.GA15042@obsidianresearch.com>
- <56D55851.60206@mellanox.com>
- <20160301172448.GA24031@obsidianresearch.com>
- <56D6979F.6000400@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v5 00/14] NFS/RDMA server patches for v4.6
+Date: Wed, 2 Mar 2016 10:36:42 -0800
+Message-ID: <A6015E74-BB21-47EE-B100-0C5DC0C67591@oracle.com>
+References: <20160301180337.2492.4255.stgit@klimt.1015granger.net> <20160301220052.GF23792@fieldses.org>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56D6979F.6000400-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160301220052.GF23792-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 02, 2016 at 09:34:55AM +0200, Matan Barak (External) wrote:
-> >I didn't say it was worse, I questioned that this should be the
-> >overarching goal when no data to support this has been posted and it
-> >doesn't even make inutitive sense that worrying about the size of
-> >*dirty cache lines* is even very important, (well, within limits).
-> >
+
+> On Mar 1, 2016, at 2:00 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
 > 
-> We ran ib_send_bw (perftest package) when developing this - one time using
-> the regular ibv_poll_cq and another time with ibv_poll_cq_ex and got
-> identical results (the difference was tiny and not conclusive), but I don't
-> have the actual results right now. This was one of the common cases the
-> user-space driver optimized. We could re-run them and post results if you
-> want.
-
-So all this ugly API to minimize cache line usage has no measured
-performance gain?
-
-You see why I'm concerned ..
-
-> >Try a non-memcpy API design. Provide an opaque 'cursor' and functions
-> >to return certain data. This has more unconditional branches, but may
-> >avoid branching within the driver and certainly avoid memcpy's and
-> >pretty much all cache line dirtying. Sean had some results that
-> >were positive on this sort of direction.
-> >
+>> On Tue, Mar 01, 2016 at 01:05:14PM -0500, Chuck Lever wrote:
+>> Hi Bruce-
+>> 
+>> I think these are ready for linux-next.
 > 
-> Does the opaque pointer guarantees an aligned access? Who allocates the
-> space for the vendor's CQE? Any concrete example?
-> One of the problems here are that CQEs could be formatted as -
-> "if QP type is y, then copy the field z from o". Doing that this way may
-> result doing the same "if" multiple times. The current approach could still
-> avoid memcpy and write straight to the user's buffer.
+> OK, applying for 4.6, thanks.
 
-No, none of that...
+Thanks!
 
-struct ibv_cq
-{
-    int (*read_next_cq)(ibv_cq *cq,struct common_wr *res);
-    int (*read_address)(ibv_cq *cq,struct wr_address *res);
-    uint64_t (*read_timestamp(ibv_cq *cq);
-    uint32_t (*read_immediate_data(ibv_cq *cq);
-    void (*read_something_else)(ibv_cq *cq,struct something_else *res);
-};
+> I still wonder whether the code makes incorrect assumptions about how
+> the server xdr encoder uses the reply xdr_buf.
 
-while (cq->read_next_cq(cq,&wc)) // Advance the cursor
-{
-    // Read the cursor
-    uint64_t ts = cq->read_timestamp(cq);
-    if (wc->opcode ==  ..)
-        uint32_t imm = cq->read_immediate_data(cq);
-}
+Assumptions, probably. I believe these assumptions are the same as are
+made on the client side. It would be awesome to build an API contract
+for struct xdr_buf and have it written down somewhere, then we would
+know for sure.
 
-Lots of variety for syntax, I've choosen the above for clarity.
 
-1) The function pointers provided by the driver read directly from the
-   CQ memory written by the adaptor. No memcpy. The pointers vary
-   on a CQ by CQ basis so they can be optimal.
-   Alignment is a driver/hardware problem and is exactly the same as
-   any other scheme
-2) The driver fills in the pointers in a way that is optimal for the
-   specific CQ - if there are multiple formats then the driver
-   provides multiple function implementations and chooses the
-   combiantion that matches the CQ when it is created.
-   The intent is to avoid all conditional branching in the driver on
-   these callbacks. The functions should be small enough to avoid
-   a frame setup (eg build them with -fomit-frame-pointer and other
-   function call related optimizations to achieve this)
-2a) If the CQ does not support an extension like read_something_else
-    then the driver fills the pointer with something that calls
-    abort(), no conditional branching.
-    The application is responsible for only calling allowed accessors
-    based on how the CQ is created. No branching is needed.
-3) read_next_cq goes entry by entry. If signaling the hardware
-   that a CQe is now available is expensive then the driver will need
-   some kind of batching scheme for that. Ie signal on empty, signal
-   ever N, etc. An additional entry point may be required to manage
-   this.
-3a) This could also follow the new kAPI pattern and use a callback
-    scheme which makes the batching and budgeting alot simpler for
-    the application.
-4) A basic analysis says this trades cache line dirtying of the wc
-   array for unconditional branches.
-   It  eliminates at least 1 conditional branch per CQE iteration by
-   using only 1 loop.
-   For some things it may entirely eliminate memory traffic in favor of
-   register returns (eg my read_immediate_data example)
-   For some things this may entirely eliminate work, eg the
-   address and immediate data rarely need to be parsed for some apps
+> That might only affect
+> clients which constructed rather strange compounds.  And shouldn't be
+> made any worse by these patches.
 
-   Compared to the poll_ex proposal this eliminates a huge
-   number of conditional branches as 'wc_flags' and related no longer
-   exist at all.
+You're thinking of clients that might send more than one READ or WRITE
+in and NFSv4 COMPOUND? The thought for the current implementation
+is that the first READ or WRITE operation would be allowed to use the
+xdr_buf page list, and arguments/results for the remaining READ/WRITE
+operations would go inline (ie: a Long Call or Reply with data copy on
+both ends).
 
-   Only careful benchmarking will tell if the unconditional branch
-   overhead is greater than the savings from dropping conditional
-   branches and cache line dirtying.
 
-5) If the vendors could get together, it might be possible to replace
-   some function pointers with inlined pointer math eg:
-
-   struct ibv_cq
-   {
-        const void *cur_cqe;
-	size_t immdata_offset;
-   }
-
-   inline uint32_t ibv_cqe_read_immedate_data(ibv_cq *cq)
-   {
-      return *(uint32_t *)(cq->cur_cqe + cq->immdata_offset);
-   }
-
-   Obvious this requires most vendors to use a HW CQE format that
-   can support the above expression.
-   
-   Further, touching on an idea Cristoph brought up a long time
-   ago - it would be easy to use this API to build a Vendor Optimized
-   libibverbs this would support a single driver's card and would
-   inline the CQE parse using something like the above, tuned for the
-   single driver. It would be interesting to see if that is a win or
-   not.
-
-I hope you see how this sort of API is alot saner than what is
-proposed, it is type safe, misuses not caught by the compiler blow up
-100% of the time at runtime, the usage is intuitive and matches
-typical C conventions.
-
-The question that must be answered is the peformance for the various
-options, and that is what I mean by benchmarking. I would probably
-approach this with the perf tool and look at the various CPU counters
-for each option and then get someone like Christoph to chime in with
-his specalized benchmark environment when I think the best option has
-been found and has already been carefully micro optimized.
-
-Jason
+> --b.
+> 
+>> 
+>> Two major changes: Finish server-side support for RDMA_ERROR type
+>> messages, and convert the server's completion handlers to the new
+>> core CQ API.
+>> 
+>> Also available in the "nfsd-rdma-for-4.6" topic branch of this git
+>> repo:
+>> 
+>> git://git.linux-nfs.org/projects/cel/cel-2.6.git
+>> 
+>> Or for browsing:
+>> 
+>> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.6
+>> 
+>> 
+>> Changes since v4:
+>> - Rebased on v4.5-rc6
+>> - Replace confusing comments about NFSv4.1 over RDMA support
+>> 
+>> 
+>> Changes since v3:
+>> - Rebased on v4.5-rc5
+>> - Completed fix for Write chunk XDR padding
+>> - On error, svc_rdma_sendto() should close connection
+>> 
+>> 
+>> Changes since v2:
+>> - Rebased on v4.5-rc4
+>> - checkpatch.pl passes
+>> - Fix iWARP RDMA Read path regression
+>> - Reduce NFSv4.1 CB message size maximum in CREATE_SESSION
+>> - Another pass at fixing Write chunk XDR padding
+>> - Various clean ups
+>> 
+>> 
+>> Changes since v1:
+>> - Rebased on v4.5-rc3
+>> - Patch 02/10 (pre-allocate frmrs) dropped
+>> - Patch 04/10 replaced with more surgical patch
+>> - Refined reporting of flushed completions
+>> - Function names of completion methods changed to match client's
+>> new completion function naming convention
+>> 
+>> ---
+>> 
+>> Chuck Lever (14):
+>>      nfsd: Update NFS server comments related to RDMA support
+>>      svcrdma: Find client-provided write and reply chunks once per reply
+>>      svcrdma: Do not write xdr_buf::tail in a Write chunk
+>>      svcrdma: Do not send Write chunk XDR pad with inline content
+>>      nfsd: Lower NFSv4.1 callback message size limit
+>>      svcrdma: Close connection when a send error occurs
+>>      svcrdma: svc_rdma_post_recv() should close connection on error
+>>      rpcrdma: Add RPCRDMA_HDRLEN_ERR
+>>      svcrdma: Make RDMA_ERROR messages work
+>>      svcrdma: Use correct XID in error replies
+>>      svcrdma: Hook up the logic to return ERR_CHUNK
+>>      svcrdma: Remove close_out exit path
+>>      svcrdma: Use new CQ API for RPC-over-RDMA server receive CQs
+>>      svcrdma: Use new CQ API for RPC-over-RDMA server send CQs
+>> 
+>> 
+>> fs/nfsd/nfs4state.c                        |   26 +-
+>> fs/nfsd/nfs4xdr.c                          |    2 
+>> include/linux/sunrpc/auth.h                |    7 
+>> include/linux/sunrpc/rpc_rdma.h            |    1 
+>> include/linux/sunrpc/svc_rdma.h            |   20 +
+>> net/sunrpc/auth_null.c                     |    4 
+>> net/sunrpc/auth_unix.c                     |    6 
+>> net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   17 -
+>> net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   64 +++-
+>> net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   60 ++--
+>> net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  196 ++++++++----
+>> net/sunrpc/xprtrdma/svc_rdma_transport.c   |  445 +++++++++-------------------
+>> 12 files changed, 393 insertions(+), 455 deletions(-)
+>> 
+>> --
+>> Chuck Lever
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
