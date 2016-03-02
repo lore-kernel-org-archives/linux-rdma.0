@@ -1,111 +1,27 @@
-From: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 1/8] Add ibv_poll_cq_ex verb
-Date: Wed, 2 Mar 2016 09:34:55 +0200
-Message-ID: <56D6979F.6000400@mellanox.com>
-References: <1456306924-31298-1-git-send-email-yishaih@mellanox.com>
- <1456306924-31298-2-git-send-email-yishaih@mellanox.com>
- <20160224190230.GA10588@obsidianresearch.com>
- <56CEB4C7.60607@dev.mellanox.co.il>
- <20160225170541.GA22513@obsidianresearch.com> <56D31A58.20205@mellanox.com>
- <20160229191734.GA15042@obsidianresearch.com> <56D55851.60206@mellanox.com>
- <20160301172448.GA24031@obsidianresearch.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 5/9] IB/core: add a simple MR pool
+Date: Wed, 2 Mar 2016 10:14:10 +0100
+Message-ID: <20160302091410.GA1308@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-6-git-send-email-hch@lst.de> <56D5E989.9010006@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160301172448.GA24031-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56D5E989.9010006-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/03/2016 19:24, Jason Gunthorpe wrote:
-> On Tue, Mar 01, 2016 at 10:52:33AM +0200, Matan Barak (External) wrote:
->>> By my count it scores about a 2 on the Rusty API scale, which is
->>> pretty bad.
->>
->> This is like writing something that means nothing....
->
-> If you don't agree with the points on the Rusty scale as what
-> constitutes good API design then we really have no common ground on
-> this point at all.
->
+On Tue, Mar 01, 2016 at 11:12:09AM -0800, Bart Van Assche wrote:
+> A second question about this patch: why do we need locking in 
+> ib_mr_pool_init() and ib_mr_pool_destroy()? Calling ib_mr_pool_get() or 
+> ib_mr_pool_put() while one of these two functions is in progress is a bug 
+> (race condition). Can the locking be left out from these two functions?
 
-We can discuss actual points. That's how things can really progress.
-
->>> This series trade cache line efficiency for computation efficiency,
->>> and it isn't at all clear to me that is going to be a win. Better
->>> include some good benchmarks.
->>>
->>
->> WRONG. Which computational overhead are you talking about?
->
-> I don't see the driver side posted, but obviously there must be
-> indexing maths and possibly branching, depending on the design, that
-> is overhead.
->
-
-libmlx4 patches were posted on the mailing list awhile ago [1].
-One of the patches there optimized ibv_poll_cq_ex for common cases with 
-almost zero overhead. Anyway, as I wrote before - this could be 
-delegated to a future hardware so I'm not sure it's relevant here.
-
->> The user-space driver writes one completion at a time, which (depending on
->> the user configuration) is probably less than a cache line. Why do you think
->> it's worse than how ibv_poll_cq behaves? The way the user-space driver
->> optimizes/dirties the cache line is unrelated to the API.
->
-> I didn't say it was worse, I questioned that this should be the
-> overarching goal when no data to support this has been posted and it
-> doesn't even make inutitive sense that worrying about the size of
-> *dirty cache lines* is even very important, (well, within limits).
->
-
-We ran ib_send_bw (perftest package) when developing this - one time 
-using the regular ibv_poll_cq and another time with ibv_poll_cq_ex and 
-got identical results (the difference was tiny and not conclusive), but 
-I don't have the actual results right now. This was one of the common 
-cases the user-space driver optimized. We could re-run them and post 
-results if you want.
-
-> Christoph may have some data, but I do wonder if his results are
-> polluted by the current ibv_poll_cq driver implementations which do
-> trigger RMW overheads.
->
->> Function per every completion fields permutation is uglier for sure (there
->> are currently 9 optional completion fields in this proposal, you could
->> easily do the math to calculate how many permutations we have).
->
-> Why would you do every permutation?
->
-
-Because user-space applications might want to get completion 
-time-stamping and size, but not the rest of the fields. They could 
-pretty much decide which data matters to them and get only that.
-
-> Try a non-memcpy API design. Provide an opaque 'cursor' and functions
-> to return certain data. This has more unconditional branches, but may
-> avoid branching within the driver and certainly avoid memcpy's and
-> pretty much all cache line dirtying. Sean had some results that
-> were positive on this sort of direction.
->
-
-Does the opaque pointer guarantees an aligned access? Who allocates the 
-space for the vendor's CQE? Any concrete example?
-One of the problems here are that CQEs could be formatted as -
-"if QP type is y, then copy the field z from o". Doing that this way may 
-result doing the same "if" multiple times. The current approach could 
-still avoid memcpy and write straight to the user's buffer.
-
-> Justify this horrible API is *necessary* with something concrete, just
-> not random hand waving and mumbling about cache lines. That means
-> benchmark several options.
->
-> Jason
->
-
-Matan
-[1] https://www.spinics.net/lists/linux-rdma/msg29837.html
+Maybe.  But then we'd need to use barrier to ensure no reordering ever
+happens.  Just using the lock in the this slow path as well makes that
+a lot easier.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
