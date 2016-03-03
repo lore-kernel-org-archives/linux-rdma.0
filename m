@@ -1,52 +1,31 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Thu, 3 Mar 2016 09:29:47 -0600
-Message-ID: <00b401d17561$854cb790$8fe626b0$@opengridcomputing.com>
-References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D81790.8090305@dev.mellanox.co.il> <20160303120209.GC20543@lst.de> <56D8293C.1050306@dev.mellanox.co.il>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH 3/9] IB/core: add a helper to check for READ WITH	INVALIDATE support
+Date: Thu, 3 Mar 2016 09:31:51 -0600
+Message-ID: <00b601d17561$cef73500$6ce59f00$@opengridcomputing.com>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-4-git-send-email-hch@lst.de> <56D55ABA.6070007@dev.mellanox.co.il> <005f01d173d1$68309af0$3891d0d0$@opengridcomputing.com> <20160303131050.GA22022@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D8293C.1050306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20160303131050.GA22022@lst.de>
 Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: target-devel-owner@vger.kernel.org
+To: 'Christoph Hellwig' <hch@lst.de>
+Cc: 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-> >> Christoph,
-> >>
-> >> This is a problem for mlx5 which exposes:
-> >>
-> >>          props->max_fast_reg_page_list_len = (unsigned int)-1;
-> >>
-> >> Which is obviously wrong and needs to be corrected, but this is sort of
-> >> an overkill to allocate max supported unconditionally.
-> >>
-> >> How about choosing a sane default of 256/512 pages for now? I don't
-> >> think we'll see a lot of larger transfers in iser/nvmf (which actually
-> >> need MRs for iWARP).
-> >>
-> >> Alternatively we can allow the caller to limit the MR size?
+> 
+> On Tue, Mar 01, 2016 at 09:45:40AM -0600, Steve Wise wrote:
+> > > > +static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
+> > >
+> > > Is rdma_device_sup_read_inv() a better name?
 > >
-> > I'm fine with a limit in the core rdma r/w code.  But why is this
-> > a problem for mlx5?  If it offers unlimited MR sizes it should support
-> > that, or report a useful value.  I don't see why fixing mlx5 should
-> > be a problem, and would rather see this driver bug fixed ASAP.
+> > or rdma_dev_supports_read_inv()
 > 
-> Already sent out a fix for mlx5. But even then, if a driver offers huge
-> amount of translation entries per MR doesn't mean we need to allocate
-> gigantic MRs for imaginary transfer sizes...
-> 
-> I'd be happier if this is controlled by the caller.
+> I looked at the naming and I think a rdma_device_* or rdma_dev_* is
+> simplify wrong - per the official decree we can support different
+> protocols on different ports, and that's why we also pass the port_num
+> to this function.  How about rdma_cap_read_inv?
 
-Are there hard limits for iSER and NVMEF/RDMA?  If so, then perhaps the caller should pass that in and the RDMA-RW will choose the
-min(passed_in_max, device_max)?
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Given rdma_cap_ is used a lot already, I say that sounds good.
