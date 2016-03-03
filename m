@@ -1,42 +1,60 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
-Date: Thu, 3 Mar 2016 08:19:07 +0530
-Message-ID: <CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
-References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
-	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
-	<20160302173949.GG29826@mtj.duckdns.org>
-	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/4] RDMA/ocrdma: Add RoCE-v2 support
+Date: Thu, 3 Mar 2016 08:34:38 +0530
+Message-ID: <CANjDDBhixkF7Fm6y1Uoat-FFm772m=hJWAreCfomqHCa7CxPaQ@mail.gmail.com>
+References: <1453989599-21307-1-git-send-email-devesh.sharma@avagotech.com> <CANjDDBgVeADqgDTtC1L7QMOLmuH6UE5L3+wXTTetWzKA6+nMnw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CANjDDBgVeADqgDTtC1L7QMOLmuH6UE5L3+wXTTetWzKA6+nMnw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun, Haggai,
+Hi Doug,
 
-On Thu, Mar 3, 2016 at 1:28 AM, Parav Pandit <pandit.parav@gmail.com> wrote:
->>> +     rpool->refcnt--;
->>> +     if (rpool->refcnt == 0 && rpool->num_max_cnt == pool_info->table_len) {
->>
->> If the caller charges 2 and then uncharges 1 two times, the refcnt
->> underflows?  Why not just track how many usages are zero?
->>
-> This is certainly must fix bug. Changed refcnt to usage_sum and changed to do
-> usage_sum -= num during uncharging
-> and
-> usage_sum += num during charing.
+Ping, any update about the timeline of this patch series?
 
-This is not sufficient as css_get() and put are done only once per
-call, which leads to similar problem as of refcnt.
-As I think more, I realised that this particular test is missing that
-resulted in this related bug, I realize that we don't have use case to
-have "num" field from the IB stack side.
-For bulk free IB stack will have to keep track of different or same
-rdmacg returned values to call uncharge() with right number of
-resources, all of that complexity just doesn't make sense and not
-required.
-So as first step to further simplify this, I am removing "num" input
-field from charge and uncharge API.
+-Regards
+Devesh
+
+On Mon, Feb 8, 2016 at 4:18 PM, Devesh Sharma
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> Hi Dough,
+>
+> This is a gentle reminder to pull this patch series into upstream.
+> Please let me know if you are targeting a specific kernel version.
+>
+> -Regards
+> Devesh
+>
+> On Thu, Jan 28, 2016 at 7:29 PM, Devesh Sharma
+> <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org> wrote:
+>> This patch series adds support for RoCE-v2 protocol
+>> on Avago's RoCE enabled adapters.
+>>
+>> Devesh Sharma (3):
+>>   RDMA/ocrdma: Support RoCE-v2 in the UD path
+>>   RDMA/ocrdma: Support RoCE-v2 in the RC path
+>>   RDMA/ocrdma: Support user AH creation for RoCE-v2
+>>
+>> Somnath Kotur (1):
+>>   RDMA/ocrdma: Export udp encapsulation capability
+>>
+>>  drivers/infiniband/hw/ocrdma/ocrdma.h       |  8 +++
+>>  drivers/infiniband/hw/ocrdma/ocrdma_ah.c    | 75 ++++++++++++++++++++++++-----
+>>  drivers/infiniband/hw/ocrdma/ocrdma_ah.h    |  5 +-
+>>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 26 +++++++++-
+>>  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  4 ++
+>>  drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 16 ++++--
+>>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 22 +++++++--
+>>  7 files changed, 134 insertions(+), 22 deletions(-)
+>>
+>> --
+>> 1.8.3.1
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
