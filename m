@@ -1,46 +1,43 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 10/10] IB/core: Use GRH when the path hop-limit >
- 0
-Date: Thu, 3 Mar 2016 10:55:13 -0500
-Message-ID: <56D85E61.90506@redhat.com>
-References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
- <1456851143-138332-11-git-send-email-eli@mellanox.com>
- <20160301173846.GB25176@obsidianresearch.com>
+Subject: Re: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
+Date: Thu, 3 Mar 2016 11:26:23 -0500
+Message-ID: <56D865AF.5000507@redhat.com>
+References: <1456565984-28998-1-git-send-email-hch@lst.de>
+ <1456565984-28998-2-git-send-email-hch@lst.de>
+ <56D2D731.5060904@dev.mellanox.co.il> <56D3F1EA.9090800@mellanox.com>
+ <20160303083822.GB13828@lst.de> <56D7FE93.9020503@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="A8Fpr6tvxmANRR4iJcpBHO97o8UKN3hLd"
+ boundary="xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160301173846.GB25176-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <56D7FE93.9020503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---A8Fpr6tvxmANRR4iJcpBHO97o8UKN3hLd
+--xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 03/01/2016 12:38 PM, Jason Gunthorpe wrote:
-> On Tue, Mar 01, 2016 at 06:52:23PM +0200, Eli Cohen wrote:
->> From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 03/03/2016 04:06 AM, Sagi Grimberg wrote:
+>=20
+>> Thanks for the review Haggai.  I noticed I left a stray
+>> ib_req_notify_cq in the code, which is harmless but not needed with
+>> the new API.  Patch with that one line updated below.
 >>
->> According to IBTA spec v1.3 section 12.7.19, QPs should use GRH when
->> the path returned by the SA has hop-limit > 0. Currently, we do that
->> only for the > 1 case, fix that.
->>
->> Fixes: 6d969a471ba1 ('IB/sa: Add ib_init_ah_from_path()')
->> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Doug, can you picks this up for the mlx5 branch?
 >=20
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> The patch looks fine to me too,
 >=20
-> Jason
->=20
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I've pulled patch 10/10 out of this series and applied it to my 4.5-rc
-branch as it's a valid fix for code already in the kernel and need not
-be part of this other patch series.
+I took the later version of the patch, but I had to fix it up due to
+conflicts with both the rereg_me patchset and the mmkey cleanup
+patchset.  Please double check this in the mlx5 branch of my github repo
+to make sure it's all good.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -48,7 +45,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---A8Fpr6tvxmANRR4iJcpBHO97o8UKN3hLd
+--xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -57,22 +54,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJW2F5hAAoJELgmozMOVy/dKekQAKIaAF0EVDserXfMLPg5D/ur
-E8QwcHWxrOtL0Ttp40nIaj1Ov45XD+HLKhRspTI7/orlyh7FLFSHPqFQZ5iv0ow4
-fpG6GPFG4bPs/w4KI87vC0zLYJ6qv2dTgCxSq7Ly9V66oGYRFv7noLr/xYBdRDQL
-b6yt1MVJL5MuIEFDA69fB6KM22iGRXFJD9L/pjl5er5TL8pq4jJD42ii37PylDzA
-y+kmdiv7mAsI4NR5PaT5S3crBwREJkDEtActUPsndSDRcs/FTmBNACu3W4ZJSb2M
-KMR1scF0kePcQg1WqZwmJoSbv63wzFpkOJ0e2E5hapGezDFGRqF/rCZJiyUEoPj6
-eUGKRlWIE4ny2XJkR5Rdpvfc9tLTpPYMPle3fiSGHKLxkkYVcG8EsYDOEKrJSZfq
-x1ozaBBZkhflliMRjb/x9yCM2ZJ1rkmd+xJRucGAGBJ1r6rHn0jpNHuzUJ9nQO32
-y5BIw/XVQumT/gXI6cQGDd8iNgzg24Oc1vWPalx5AySQaEGZIkKA097/SNExoWO2
-Rau7VwGGlAAfKdyqdZ2FUTY6dsVTUuEj9Ptrfg2N/OEHtcQH4nU5curzs/Tt1QQc
-2OeclyMHD5LTC/twNo9yN2QBCBcuolAANWWtSY2c/evMwGQyG3y2Rs9Oq5EMpDFC
-Z4p4QaO8c3AhwYrm9Tmg
-=XPG6
+iQIcBAEBCAAGBQJW2GWvAAoJELgmozMOVy/dv8YQAK+S+Myrp/rhofYSBzCBDR9q
+vCZ/rWPRyis2swLmx37R+EcOd6zxGkARMxbYRyGdm3r+Oxg2e2UCDF2Y8S0hMiiJ
+Fq4eb2H9eiapAKb2Sgf7tLsD4fAfA5R9CnOA7zMw7PkYz+8ftincOjxqDYZ2Aw8T
+xRF+DjT1F/iFBG97uKESRGrkZEXi22UvBnnlEi0GZ2xLo55BfA5XIPZ3oyYHcxdO
+KVVp4AAgJfCCEsurlVSv+PmnbZ8Li18rLZGIqF7wKKFs3PLNuYlHolx86vR+9MdQ
+hr2PewD5gWevEo69lGSNnKfgPSAuHLQQliKnLbOLKOGQdLFsNn5pu7bNKa/0P11h
+KwUgXajir52vjKuAoDNdbxYtszgbdq22LWdI/ZifOq/Lc1noK+EDvZtr+tXRU647
+zozvL59fNaG/hexh0KiObu5GarxRfHWKKbKMHbI/V7FzbIfeUkX8MNu2KCipTWMQ
+ftOOScvHlucAIzdOmmn2lD4McQzNXxPvooGn2UikGsvPY3jCgMv2PKCePWN92f8R
+ZbitactbBRSLrHLtSL465MgvSbRR6XYOg38eXyrBQn0hGrrU6gv0tLFXKlCtfN/7
+csiHUEQ9RC4TLjiMYhxtVF8eTkojXvS67eKLvimgerqjI2I+28jybE8vk7e451Uc
+krcpOe/ZRwsgQT7ji27A
+=uShg
 -----END PGP SIGNATURE-----
 
---A8Fpr6tvxmANRR4iJcpBHO97o8UKN3hLd--
+--xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
