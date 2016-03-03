@@ -1,43 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
-Date: Thu, 3 Mar 2016 11:26:23 -0500
-Message-ID: <56D865AF.5000507@redhat.com>
-References: <1456565984-28998-1-git-send-email-hch@lst.de>
- <1456565984-28998-2-git-send-email-hch@lst.de>
- <56D2D731.5060904@dev.mellanox.co.il> <56D3F1EA.9090800@mellanox.com>
- <20160303083822.GB13828@lst.de> <56D7FE93.9020503@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/mlx5: Expose correct max_fast_reg_page_list_len
+Date: Thu, 3 Mar 2016 11:27:38 -0500
+Message-ID: <56D865FA.7060208@redhat.com>
+References: <1457005071-4900-1-git-send-email-sagig@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm"
+ boundary="JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D7FE93.9020503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1457005071-4900-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm
+--JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 03/03/2016 04:06 AM, Sagi Grimberg wrote:
+On 03/03/2016 06:37 AM, Sagi Grimberg wrote:
+> While documentation indicates that the number of translation
+> entries per memory key is unlimited, in practice, we can
+> only fit a finite amount of translation entries in a single
+> registration wqe (which is log_max_klm_list_size).
 >=20
->> Thanks for the review Haggai.  I noticed I left a stray
->> ib_req_notify_cq in the code, which is harmless but not needed with
->> the new API.  Patch with that one line updated below.
->>
->> Doug, can you picks this up for the mlx5 branch?
+> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 >=20
-> The patch looks fine to me too,
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/=
+mlx5/main.c
+> index 90c5e24..136ed67 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -536,7 +536,8 @@ static int mlx5_ib_query_device(struct ib_device *i=
+bdev,
+>  	props->local_ca_ack_delay  =3D MLX5_CAP_GEN(mdev, local_ca_ack_delay)=
+;
+>  	props->max_res_rd_atom	   =3D props->max_qp_rd_atom * props->max_qp;
+>  	props->max_srq_sge	   =3D max_rq_sg - 1;
+> -	props->max_fast_reg_page_list_len =3D (unsigned int)-1;
+> +	props->max_fast_reg_page_list_len =3D
+> +		1 << MLX5_CAP_GEN(mdev, log_max_klm_list_size);
+>  	get_atomic_caps(dev, props);
+>  	props->masked_atomic_cap   =3D IB_ATOMIC_NONE;
+>  	props->max_mcast_grp	   =3D 1 << MLX5_CAP_GEN(mdev, log_max_mcg);
 >=20
-> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I took the later version of the patch, but I had to fix it up due to
-conflicts with both the rereg_me patchset and the mmkey cleanup
-patchset.  Please double check this in the mlx5 branch of my github repo
-to make sure it's all good.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -45,7 +57,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm
+--JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -54,22 +66,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJW2GWvAAoJELgmozMOVy/dv8YQAK+S+Myrp/rhofYSBzCBDR9q
-vCZ/rWPRyis2swLmx37R+EcOd6zxGkARMxbYRyGdm3r+Oxg2e2UCDF2Y8S0hMiiJ
-Fq4eb2H9eiapAKb2Sgf7tLsD4fAfA5R9CnOA7zMw7PkYz+8ftincOjxqDYZ2Aw8T
-xRF+DjT1F/iFBG97uKESRGrkZEXi22UvBnnlEi0GZ2xLo55BfA5XIPZ3oyYHcxdO
-KVVp4AAgJfCCEsurlVSv+PmnbZ8Li18rLZGIqF7wKKFs3PLNuYlHolx86vR+9MdQ
-hr2PewD5gWevEo69lGSNnKfgPSAuHLQQliKnLbOLKOGQdLFsNn5pu7bNKa/0P11h
-KwUgXajir52vjKuAoDNdbxYtszgbdq22LWdI/ZifOq/Lc1noK+EDvZtr+tXRU647
-zozvL59fNaG/hexh0KiObu5GarxRfHWKKbKMHbI/V7FzbIfeUkX8MNu2KCipTWMQ
-ftOOScvHlucAIzdOmmn2lD4McQzNXxPvooGn2UikGsvPY3jCgMv2PKCePWN92f8R
-ZbitactbBRSLrHLtSL465MgvSbRR6XYOg38eXyrBQn0hGrrU6gv0tLFXKlCtfN/7
-csiHUEQ9RC4TLjiMYhxtVF8eTkojXvS67eKLvimgerqjI2I+28jybE8vk7e451Uc
-krcpOe/ZRwsgQT7ji27A
-=uShg
+iQIcBAEBCAAGBQJW2GX7AAoJELgmozMOVy/dxHkP/Rtgue/2rlm6MXtFjRL+n4Rm
+x8MaN1rzbBd+FD9jM2wWQiglqSzKkwHLhAR+XL+ns6KS2/yC1y+dC0vR0A/KQAse
+E+60oPcnNNUH7FBZTBezK+ch9SEjZ2krLbx3QUtvBcXVmqE2Vhk89zTIpfQF9Ytx
+WYj8+QeioycIfmLyO6qd9SWmAg/CSNDx05SNx+AwhTPNBAZISPeFGGxgz34aTl7n
+KO1FEYQcnCz9nH+OcPypVDBb7xGMds03hV0nqpqUK97abN9VZrXhkcJlLsI7mu2t
+q22k0Fp/NW4iXmaDUqldChNEOBhmIPU0NI7R0xb9DoMIzsxKEFbACc+xpvi4FNDc
+OZFAMkjzzflYfG+mFuthqx4FSZiSuynj6C04TCvlRXDUql77cqX4WNnZ57TrmZd2
+sS1yd8rCdcMMCdpitonr62HKUJxczmlQCeehOLfFWv/MiLRh508vZSimv4uZlVDx
+2B2/ME2S8PWb5enUJUc2KcnHdlvK+KHNTc/F370q/tBh5aBy9lZyx1VqE5V8kLk5
++23Uap/4Z4Rv8iMOFo2R6oK/W993wxmZrTIXyVm+VEcAh2mbZlsUCpVMVAKvS75a
+ghaJ7Pxs4zuBtO0GurRX/X01/ji1gJMskJz+LGOOJ1L7bkirG55fvsitYsfX/cpi
+C35YIxUwag72LDGV1xVc
+=SJgY
 -----END PGP SIGNATURE-----
 
---xjq6VugNBGNeLGNsq26QsXp2wMTUu1Cqm--
+--JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
