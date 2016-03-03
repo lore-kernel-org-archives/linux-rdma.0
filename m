@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 1/8] IB/core: allow passing mapping an offset into the SG in ib_map_mr_sg
-Date: Thu,  3 Mar 2016 19:03:05 +0100
-Message-ID: <1457028192-24965-2-git-send-email-hch@lst.de>
+Subject: [PATCH 6/8] IB/core: generic RDMA READ/WRITE API
+Date: Thu,  3 Mar 2016 19:03:10 +0100
+Message-ID: <1457028192-24965-7-git-send-email-hch@lst.de>
 References: <1457028192-24965-1-git-send-email-hch@lst.de>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1457028192-24965-1-git-send-email-hch@lst.de>
@@ -10,502 +10,657 @@ To: linux-rdma@vger.kernel.org
 Cc: swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This supports both manual mapping of lots of SGEs, as well as using MRs
+from the QP's MR pool, for iWarp or other cases where it's more optimal.
+For now, MRs are only used for iWARP transports.  The user of the RDMA-RW
+API must allocate the QP MR pool as well as size the SQ accordingly.
+
+Thanks to Steve Wise for testing, fixing and rewriting the iWarp support,
+and to Sagi Grimberg for ideas, reviews and fixes.
+
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/infiniband/core/verbs.c             | 24 ++++++++++++------------
- drivers/infiniband/hw/cxgb3/iwch_provider.c |  7 +++----
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  5 ++---
- drivers/infiniband/hw/cxgb4/mem.c           |  7 +++----
- drivers/infiniband/hw/mlx4/mlx4_ib.h        |  5 ++---
- drivers/infiniband/hw/mlx4/mr.c             |  7 +++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h        |  5 ++---
- drivers/infiniband/hw/mlx5/mr.c             |  7 +++----
- drivers/infiniband/hw/nes/nes_verbs.c       |  7 +++----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  7 +++----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |  5 ++---
- drivers/infiniband/hw/qib/qib_mr.c          |  7 +++----
- drivers/infiniband/hw/qib/qib_verbs.h       |  5 ++---
- drivers/infiniband/ulp/iser/iser_memory.c   |  4 ++--
- drivers/infiniband/ulp/isert/ib_isert.c     |  2 +-
- drivers/infiniband/ulp/srp/ib_srp.c         |  2 +-
- include/rdma/ib_verbs.h                     | 23 +++++++++--------------
- net/rds/iw_rdma.c                           |  2 +-
- net/rds/iw_send.c                           |  2 +-
- net/sunrpc/xprtrdma/frwr_ops.c              |  2 +-
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c     |  2 +-
- 21 files changed, 60 insertions(+), 77 deletions(-)
+ drivers/infiniband/core/Makefile  |   2 +-
+ drivers/infiniband/core/mr_pool.c |   4 +-
+ drivers/infiniband/core/rw.c      | 419 ++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/verbs.c   |  25 +++
+ include/rdma/ib_verbs.h           |  14 +-
+ include/rdma/rw.h                 |  69 +++++++
+ 6 files changed, 530 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/infiniband/core/rw.c
+ create mode 100644 include/rdma/rw.h
 
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 48bd9d8..26987d9 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -8,7 +8,7 @@ obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
+ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
+ 					$(user_access-y)
+ 
+-ib_core-y :=			packer.o ud_header.o verbs.o cq.o sysfs.o \
++ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+diff --git a/drivers/infiniband/core/mr_pool.c b/drivers/infiniband/core/mr_pool.c
+index b1eb27a..9751bb1 100644
+--- a/drivers/infiniband/core/mr_pool.c
++++ b/drivers/infiniband/core/mr_pool.c
+@@ -20,8 +20,10 @@ struct ib_mr *ib_mr_pool_get(struct ib_qp *qp, struct list_head *list)
+ 
+ 	spin_lock_irqsave(&qp->mr_lock, flags);
+ 	mr = list_first_entry_or_null(list, struct ib_mr, qp_entry);
+-	if (mr)
++	if (mr) {
++		list_del(&mr->qp_entry);
+ 		qp->mrs_used++;
++	}
+ 	spin_unlock_irqrestore(&qp->mr_lock, flags);
+ 
+ 	return mr;
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+new file mode 100644
+index 0000000..7311b95
+--- /dev/null
++++ b/drivers/infiniband/core/rw.c
+@@ -0,0 +1,419 @@
++/*
++ * Copyright (c) 2016 HGST, a Western Digital Company.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/slab.h>
++#include <rdma/mr_pool.h>
++#include <rdma/rw.h>
++
++/*
++ * Check if the device needs a memory registration.  We currently always use
++ * memory registrations for iWarp, and never for IB and RoCE.  In the future
++ * we can hopefully fine tune this based on HCA driver input.
++ */
++static inline bool rdma_rw_use_mr(struct ib_device *dev, u8 port_num)
++{
++	return rdma_protocol_iwarp(dev, port_num);
++}
++
++static inline u32 rdma_rw_max_sge(struct ib_device *dev,
++		enum dma_data_direction dir)
++{
++	return dir == DMA_TO_DEVICE ?
++		dev->attrs.max_sge : dev->attrs.max_sge_rd;
++}
++
++static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
++{
++	/* arbitrary limit to avoid allocating gigantic resources */
++	return min_t(u32, dev->attrs.max_fast_reg_page_list_len, 256);
++}
++
++static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u8 port_num, struct scatterlist *sg, u32 offset,
++		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
++{
++	int pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
++	int pages_left = ctx->dma_nents;
++	u32 va_offset = 0;
++	int i, ret = 0, count = 0;
++
++	ctx->nr_ops = (ctx->dma_nents + pages_per_mr - 1) / pages_per_mr;
++	ctx->reg = kcalloc(ctx->nr_ops, sizeof(*ctx->reg), GFP_KERNEL);
++	if (!ctx->reg) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	for (i = 0; i < ctx->nr_ops; i++) {
++		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
++		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
++		int nents = min(pages_left, pages_per_mr);
++
++		reg->mr = ib_mr_pool_get(qp, &qp->rdma_mrs);
++		if (!reg->mr) {
++			pr_info("failed to allocate MR from pool\n");
++			ret = -EAGAIN;
++			goto out_free;
++		}
++
++		if (reg->mr->need_inval) {
++			reg->inv_wr.opcode = IB_WR_LOCAL_INV;
++			reg->inv_wr.ex.invalidate_rkey = reg->mr->lkey;
++			reg->inv_wr.next = &reg->reg_wr.wr;
++			if (prev)
++				prev->wr.wr.next = &reg->inv_wr;
++
++			count++;
++		} else if (prev) {
++			prev->wr.wr.next = &reg->reg_wr.wr;
++		}
++
++		ib_update_fast_reg_key(reg->mr, ib_inc_rkey(reg->mr->lkey));
++
++		ret = ib_map_mr_sg(reg->mr, sg, nents, offset,
++				PAGE_SIZE);
++		if (ret < nents) {
++			pr_info("failed to map MR\n");
++			ib_mr_pool_put(qp, &qp->rdma_mrs, reg->mr);
++			ret = -EINVAL;
++			goto out_free;
++		}
++
++		reg->reg_wr.wr.opcode = IB_WR_REG_MR;
++		reg->reg_wr.mr = reg->mr;
++		reg->reg_wr.key = reg->mr->lkey;
++		reg->reg_wr.wr.next = &reg->wr.wr;
++		count++;
++
++		reg->reg_wr.access = IB_ACCESS_LOCAL_WRITE;
++		if (rdma_protocol_iwarp(qp->device, port_num))
++			reg->reg_wr.access |= IB_ACCESS_REMOTE_WRITE;
++
++		reg->sge.lkey = reg->mr->lkey;
++		reg->sge.addr = reg->mr->iova;
++		reg->sge.length = reg->mr->length;
++
++		reg->wr.wr.sg_list = &reg->sge;
++		reg->wr.wr.num_sge = 1;
++		reg->wr.remote_addr = remote_addr + va_offset;
++		reg->wr.rkey = rkey;
++		count++;
++
++		if (dir == DMA_FROM_DEVICE) {
++			if (rdma_cap_read_inv(qp->device, port_num)) {
++				reg->wr.wr.opcode = IB_WR_RDMA_READ_WITH_INV;
++				reg->wr.wr.ex.invalidate_rkey = reg->mr->lkey;
++				reg->mr->need_inval = false;
++			}  else {
++				reg->wr.wr.opcode = IB_WR_RDMA_READ;
++				reg->mr->need_inval = true;
++			}
++		} else {
++			reg->wr.wr.opcode = IB_WR_RDMA_WRITE;
++			reg->mr->need_inval = true;
++		}
++
++		va_offset += reg->sge.length;
++		pages_left -= nents;
++		sg = sg_next(sg);
++		offset = 0;
++	}
++
++	return count;
++
++out_free:
++	while (--i >= 0)
++		ib_mr_pool_put(qp, &qp->rdma_mrs, ctx->reg[i].mr);
++	kfree(ctx->reg);
++out:
++	return ret;
++}
++
++static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		struct scatterlist *sg, u32 offset, u64 remote_addr, u32 rkey,
++		enum dma_data_direction dir)
++{
++	struct ib_device *dev = qp->pd->device;
++	u32 max_sge = rdma_rw_max_sge(dev, dir);
++	u32 sge_left = ctx->dma_nents;
++	struct ib_sge *sge;
++	u32 total_len = 0, i, j;
++
++	ctx->nr_ops = DIV_ROUND_UP(ctx->dma_nents, max_sge);
++
++	ctx->map.sges = sge = kcalloc(ctx->dma_nents, sizeof(*sge), GFP_KERNEL);
++	if (!ctx->map.sges)
++		goto out;
++
++	ctx->map.wrs = kcalloc(ctx->nr_ops, sizeof(*ctx->map.wrs), GFP_KERNEL);
++	if (!ctx->map.wrs)
++		goto out_free_sges;
++
++	for (i = 0; i < ctx->nr_ops; i++) {
++		struct ib_rdma_wr *rdma_wr = &ctx->map.wrs[i];
++		u32 nr_sge = min(sge_left, max_sge);
++
++		if (dir == DMA_TO_DEVICE)
++			rdma_wr->wr.opcode = IB_WR_RDMA_WRITE;
++		else
++			rdma_wr->wr.opcode = IB_WR_RDMA_READ;
++		rdma_wr->remote_addr = remote_addr + total_len;
++		rdma_wr->rkey = rkey;
++		rdma_wr->wr.sg_list = sge;
++
++		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
++			rdma_wr->wr.num_sge++;
++
++			sge->addr = ib_sg_dma_address(dev, sg) + offset;
++			sge->length = ib_sg_dma_len(dev, sg) - offset;
++			sge->lkey = qp->pd->local_dma_lkey;
++
++			total_len += sge->length;
++			sge++;
++			sge_left--;
++			offset = 0;
++		}
++
++		if (i + 1 != ctx->nr_ops)
++			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
++	}
++
++	return ctx->nr_ops;
++
++out_free_sges:
++	kfree(ctx->map.sges);
++out:
++	return -ENOMEM;
++}
++
++static int rdma_rw_init_single_wr(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		struct scatterlist *sg, u32 offset, u64 remote_addr, u32 rkey,
++		enum dma_data_direction dir)
++{
++	struct ib_device *dev = qp->pd->device;
++	struct ib_rdma_wr *rdma_wr = &ctx->single.wr;
++
++	ctx->nr_ops = 1;
++
++	ctx->single.sge.lkey = qp->pd->local_dma_lkey;
++	ctx->single.sge.addr = ib_sg_dma_address(dev, sg) + offset;
++	ctx->single.sge.length = ib_sg_dma_len(dev, sg) - offset;
++
++	memset(rdma_wr, 0, sizeof(*rdma_wr));
++	if (dir == DMA_TO_DEVICE)
++		rdma_wr->wr.opcode = IB_WR_RDMA_WRITE;
++	else
++		rdma_wr->wr.opcode = IB_WR_RDMA_READ;
++	rdma_wr->wr.sg_list = &ctx->single.sge;
++	rdma_wr->wr.num_sge = 1;
++	rdma_wr->remote_addr = remote_addr;
++	rdma_wr->rkey = rkey;
++
++	return 1;
++}
++
++/**
++ * rdma_rw_ctx_init - initialize a RDMA READ/WRITE context
++ * @ctx:	context to initialize
++ * @qp:		queue pair to operate on
++ * @port_num:	port num to which the connection is bound
++ * @sg:		scatterlist to READ/WRITE from/to
++ * @sg_cnt:	number of entries in @sg
++ * @sg_offset:	current byte offset into @sg
++ * @length:	total length of @sg in bytes
++ * @remote_addr:remote address to read/write (relative to @rkey)
++ * @rkey:	remote key to operate on
++ * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
++ *
++ * If we're going to use a FR to map this context @max_nents should be smaller
++ * or equal to the MR size.
++ *
++ * Returns the number of WQEs that will be needed on the workqueue if
++ * successful, or a negative error code.
++ */
++int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 sg_cnt, u32 sg_offset,
++		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
++{
++	struct ib_device *dev = qp->pd->device;
++	int ret;
++
++	ctx->dma_nents = ib_dma_map_sg(dev, sg, sg_cnt, dir);
++	if (!ctx->dma_nents)
++		return -ENOMEM;
++
++	/*
++	 * Skip to the S/G entry that sg_offset falls into:
++	 */
++	for (; sg; sg = sg_next(sg)) {
++		u32 len = ib_sg_dma_len(dev, sg);
++
++		if (sg_offset < len)
++			break;
++
++		sg_offset -= len;
++		ctx->dma_nents--;
++	}
++
++	if (rdma_rw_use_mr(qp->device, port_num)) {
++		ret = rdma_rw_init_mr_wrs(ctx, qp, port_num, sg, sg_offset,
++				remote_addr, rkey, dir);
++	} else if (ctx->dma_nents > 1) {
++		ret = rdma_rw_init_map_wrs(ctx, qp, sg, sg_offset,
++				remote_addr, rkey, dir);
++	} else {
++		ret = rdma_rw_init_single_wr(ctx, qp, sg, sg_offset,
++				remote_addr, rkey, dir);
++	}
++
++	if (ret < 0)
++		goto out_unmap_sg;
++	return ret;
++
++out_unmap_sg:
++	ib_dma_unmap_sg(dev, sg, sg_cnt, dir);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_rw_ctx_init);
++
++/**
++ * rdma_rw_ctx_destroy - release all resources allocated by rdma_rw_ctx_init
++ * @ctx:	context to release
++ * @qp:		queue pair to operate on
++ * @port_num:	port num to which the connection is bound
++ * @sg:		scatterlist that was used for the READ/WRITE
++ * @sg_cnt:	number of entries in @sg
++ * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
++ */
++void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 sg_cnt, enum dma_data_direction dir)
++{
++	if (rdma_rw_use_mr(qp->device, port_num)) {
++		int i;
++
++		for (i = 0; i < ctx->nr_ops; i++)
++			ib_mr_pool_put(qp, &qp->rdma_mrs, ctx->reg[i].mr);
++		kfree(ctx->reg);
++	} else if (ctx->dma_nents > 1) {
++		kfree(ctx->map.wrs);
++		kfree(ctx->map.sges);
++	}
++
++	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
++}
++EXPORT_SYMBOL(rdma_rw_ctx_destroy);
++
++/**
++ * rdma_rw_ctx_wrs - return chain of WRs for a RDMA READ or WRITE operation
++ * @ctx:	context to operate on
++ * @qp:		queue pair to operate on
++ * @port_num:	port num to which the connection is bound
++ * @cqe:	completion queue entry for the last WR
++ * @chain_wr:	WR to append to the posted chain
++ *
++ * Return the WR chain for the set of RDMA READ/WRITE operations described by
++ * @ctx, as well as any memory registration operations needed.  If @chain_wr
++ * is non-NULL the WR it points to will be appended to the chain of WRs posted.
++ * If @chain_wr is not set @cqe must be set so that the caller gets a
++ * completion notification.
++ */
++struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u8 port_num, struct ib_cqe *cqe, struct ib_send_wr *chain_wr)
++{
++	struct ib_send_wr *first_wr, *last_wr;
++
++	if (rdma_rw_use_mr(qp->device, port_num)) {
++		if (ctx->reg[0].inv_wr.next)
++			first_wr = &ctx->reg[0].inv_wr;
++		else
++			first_wr = &ctx->reg[0].reg_wr.wr;
++		last_wr = &ctx->reg[ctx->nr_ops - 1].wr.wr;
++	} else if (ctx->dma_nents > 1) {
++		first_wr = &ctx->map.wrs[0].wr;
++		last_wr = &ctx->map.wrs[ctx->nr_ops - 1].wr;
++	} else {
++		first_wr = &ctx->single.wr.wr;
++		last_wr = &ctx->single.wr.wr;
++	}
++
++	if (chain_wr) {
++		last_wr->next = chain_wr;
++	} else {
++		last_wr->wr_cqe = cqe;
++		last_wr->send_flags |= IB_SEND_SIGNALED;
++	}
++
++	return first_wr;
++}
++EXPORT_SYMBOL(rdma_rw_ctx_wrs);
++
++/**
++ * rdma_rw_ctx_post - post a RDMA READ or RDMA WRITE operation
++ * @ctx:	context to operate on
++ * @qp:		queue pair to operate on
++ * @port_num:	port num to which the connection is bound
++ * @cqe:	completion queue entry for the last WR
++ * @chain_wr:	WR to append to the posted chain
++ *
++ * Post the set of RDMA READ/WRITE operations described by @ctx, as well as
++ * any memory registration operations needed.  If @chain_wr is non-NULL the
++ * WR it points to will be appended to the chain of WRs posted.  If @chain_wr
++ * is not set @cqe must be set so that the caller gets a completion
++ * notification.
++ */
++int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct ib_cqe *cqe, struct ib_send_wr *chain_wr)
++{
++	struct ib_send_wr *first_wr, *bad_wr;
++
++	first_wr = rdma_rw_ctx_wrs(ctx, qp, port_num, cqe, chain_wr);
++	return ib_post_send(qp, first_wr, &bad_wr);
++}
++EXPORT_SYMBOL(rdma_rw_ctx_post);
++
++void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr)
++{
++	/*
++	 * Each context needs at least one RDMA READ or WRITE WR.
++	 *
++	 * For some hardware we might need more, eventually we should ask the
++	 * HCA driver for a multiplier here.
++	 */
++	attr->cap.max_send_wr += attr->cap.max_rdma_ctxs;
++
++	/*
++	 * If the devices needs MRs to perform RDMA READ or WRITE operations,
++	 * we'll need two additional MRs for the registrations and the
++	 * invalidation.
++	 */
++	if (rdma_rw_use_mr(dev, attr->port_num))
++		attr->cap.max_send_wr += 2 * attr->cap.max_rdma_ctxs;
++}
++
++int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr)
++{
++	struct ib_device *dev = qp->pd->device;
++	int ret = 0;
++
++	if (rdma_rw_use_mr(dev, attr->port_num)) {
++		ret = ib_mr_pool_init(qp, &qp->rdma_mrs,
++				attr->cap.max_rdma_ctxs, IB_MR_TYPE_MEM_REG,
++				rdma_rw_fr_page_list_len(dev));
++	}
++
++	return ret;
++}
++
++void rdma_rw_cleanup_mrs(struct ib_qp *qp)
++{
++	ib_mr_pool_destroy(qp, &qp->rdma_mrs);
++}
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 48dc43c..eaed99b 100644
+index 69689866..72f4fbd 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1557,6 +1557,7 @@ EXPORT_SYMBOL(ib_check_mr_status);
-  * @mr:            memory region
-  * @sg:            dma mapped scatterlist
-  * @sg_nents:      number of entries in sg
-+ * @sg_offset:     offset in bytes into sg
-  * @page_size:     page vector desired page size
-  *
-  * Constraints:
-@@ -1573,17 +1574,15 @@ EXPORT_SYMBOL(ib_check_mr_status);
-  * After this completes successfully, the  memory region
-  * is ready for registration.
-  */
--int ib_map_mr_sg(struct ib_mr *mr,
--		 struct scatterlist *sg,
--		 int sg_nents,
--		 unsigned int page_size)
-+int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset, unsigned int page_size)
+@@ -48,6 +48,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
++#include <rdma/rw.h>
+ 
+ #include "core_priv.h"
+ 
+@@ -751,6 +752,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
  {
- 	if (unlikely(!mr->device->map_mr_sg))
- 		return -ENOSYS;
- 
- 	mr->page_size = page_size;
- 
--	return mr->device->map_mr_sg(mr, sg, sg_nents);
-+	return mr->device->map_mr_sg(mr, sg, sg_nents, sg_offset);
- }
- EXPORT_SYMBOL(ib_map_mr_sg);
- 
-@@ -1593,6 +1592,7 @@ EXPORT_SYMBOL(ib_map_mr_sg);
-  * @mr:            memory region
-  * @sgl:           dma mapped scatterlist
-  * @sg_nents:      number of entries in sg
-+ * @sg_offset:     offset in bytes into sg
-  * @set_page:      driver page assignment function pointer
-  *
-  * Core service helper for drivers to convert the largest
-@@ -1603,10 +1603,8 @@ EXPORT_SYMBOL(ib_map_mr_sg);
-  * Returns the number of sg elements that were assigned to
-  * a page vector.
-  */
--int ib_sg_to_pages(struct ib_mr *mr,
--		   struct scatterlist *sgl,
--		   int sg_nents,
--		   int (*set_page)(struct ib_mr *, u64))
-+int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
-+		unsigned int sg_offset, int (*set_page)(struct ib_mr *, u64))
- {
- 	struct scatterlist *sg;
- 	u64 last_end_dma_addr = 0;
-@@ -1614,12 +1612,12 @@ int ib_sg_to_pages(struct ib_mr *mr,
- 	u64 page_mask = ~((u64)mr->page_size - 1);
- 	int i, ret;
- 
--	mr->iova = sg_dma_address(&sgl[0]);
-+	mr->iova = sg_dma_address(&sgl[0]) + sg_offset;
- 	mr->length = 0;
- 
- 	for_each_sg(sgl, sg, sg_nents, i) {
--		u64 dma_addr = sg_dma_address(sg);
--		unsigned int dma_len = sg_dma_len(sg);
-+		u64 dma_addr = sg_dma_address(sg) + sg_offset;
-+		unsigned int dma_len = sg_dma_len(sg) - sg_offset;
- 		u64 end_dma_addr = dma_addr + dma_len;
- 		u64 page_addr = dma_addr & page_mask;
- 
-@@ -1652,6 +1650,8 @@ next_page:
- 		mr->length += dma_len;
- 		last_end_dma_addr = end_dma_addr;
- 		last_page_off = end_dma_addr & ~page_mask;
+ 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	struct ib_qp *qp;
++	int ret;
 +
-+		sg_offset = 0;
- 	}
++	/*
++	 * If the callers is using the RDMA API calculate the resources
++	 * needed for the RDMA READ/WRITE operations.
++	 *
++	 * Note that these callers need to pass in a port number.
++	 */
++	if (qp_init_attr->cap.max_rdma_ctxs)
++		rdma_rw_init_qp(device, qp_init_attr);
  
- 	return i;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 2734820..a9b8ed5 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -782,15 +782,14 @@ static int iwch_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
+ 	qp = device->create_qp(pd, qp_init_attr, NULL);
+ 	if (IS_ERR(qp))
+@@ -764,6 +775,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	atomic_set(&qp->usecnt, 0);
+ 	qp->mrs_used = 0;
+ 	spin_lock_init(&qp->mr_lock);
++	INIT_LIST_HEAD(&qp->rdma_mrs);
+ 
+ 	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
+ 		return ib_create_xrc_qp(qp, qp_init_attr);
+@@ -787,6 +799,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 
+ 	atomic_inc(&pd->usecnt);
+ 	atomic_inc(&qp_init_attr->send_cq->usecnt);
++
++	if (qp_init_attr->cap.max_rdma_ctxs) {
++		ret = rdma_rw_init_mrs(qp, qp_init_attr);
++		if (ret) {
++			pr_err("failed to init MR pool ret= %d\n", ret);
++			ib_destroy_qp(qp);
++			qp = ERR_PTR(ret);
++		}
++	}
++
+ 	return qp;
  }
+ EXPORT_SYMBOL(ib_create_qp);
+@@ -1271,6 +1293,9 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	rcq  = qp->recv_cq;
+ 	srq  = qp->srq;
  
--static int iwch_map_mr_sg(struct ib_mr *ibmr,
--			  struct scatterlist *sg,
--			  int sg_nents)
-+static int iwch_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
-+		int sg_nents, unsigned sg_offset)
- {
- 	struct iwch_mr *mhp = to_iwch_mr(ibmr);
- 
- 	mhp->npages = 0;
- 
--	return ib_sg_to_pages(ibmr, sg, sg_nents, iwch_set_page);
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, iwch_set_page);
- }
- 
- static int iwch_destroy_qp(struct ib_qp *ib_qp)
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 7c6a6e1..5db3c30 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -959,9 +959,8 @@ void c4iw_qp_rem_ref(struct ib_qp *qp);
- struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
- 			    enum ib_mr_type mr_type,
- 			    u32 max_num_sg);
--int c4iw_map_mr_sg(struct ib_mr *ibmr,
--		   struct scatterlist *sg,
--		   int sg_nents);
-+int c4iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset);
- int c4iw_dealloc_mw(struct ib_mw *mw);
- struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type);
- struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 9274c90..97b8aae 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -688,15 +688,14 @@ static int c4iw_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--int c4iw_map_mr_sg(struct ib_mr *ibmr,
--		   struct scatterlist *sg,
--		   int sg_nents)
-+int c4iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset)
- {
- 	struct c4iw_mr *mhp = to_c4iw_mr(ibmr);
- 
- 	mhp->mpl_len = 0;
- 
--	return ib_sg_to_pages(ibmr, sg, sg_nents, c4iw_set_page);
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, c4iw_set_page);
- }
- 
- int c4iw_dereg_mr(struct ib_mr *ib_mr)
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 52ce7b0..e38cc44 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -716,9 +716,8 @@ int mlx4_ib_dealloc_mw(struct ib_mw *mw);
- struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
- 			       enum ib_mr_type mr_type,
- 			       u32 max_num_sg);
--int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
--		      struct scatterlist *sg,
--		      int sg_nents);
-+int mlx4_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset);
- int mlx4_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
- int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata);
- struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
-diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
-index 242b94e..32c387d 100644
---- a/drivers/infiniband/hw/mlx4/mr.c
-+++ b/drivers/infiniband/hw/mlx4/mr.c
-@@ -526,9 +526,8 @@ static int mlx4_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
--		      struct scatterlist *sg,
--		      int sg_nents)
-+int mlx4_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset)
- {
- 	struct mlx4_ib_mr *mr = to_mmr(ibmr);
- 	int rc;
-@@ -539,7 +538,7 @@ int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
- 				   sizeof(u64) * mr->max_pages,
- 				   DMA_TO_DEVICE);
- 
--	rc = ib_sg_to_pages(ibmr, sg, sg_nents, mlx4_set_page);
-+	rc = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mlx4_set_page);
- 
- 	ib_dma_sync_single_for_device(ibmr->device, mr->page_map,
- 				      sizeof(u64) * mr->max_pages,
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d2b9737..2d05bb5 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -654,9 +654,8 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
- struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- 			       enum ib_mr_type mr_type,
- 			       u32 max_num_sg);
--int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
--		      struct scatterlist *sg,
--		      int sg_nents);
-+int mlx5_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset);
- int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
- 			const struct ib_mad_hdr *in, size_t in_mad_size,
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 6000f7a..2afcb61 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1450,9 +1450,8 @@ static int mlx5_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
--		      struct scatterlist *sg,
--		      int sg_nents)
-+int mlx5_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset)
- {
- 	struct mlx5_ib_mr *mr = to_mmr(ibmr);
- 	int n;
-@@ -1463,7 +1462,7 @@ int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
- 				   mr->desc_size * mr->max_descs,
- 				   DMA_TO_DEVICE);
- 
--	n = ib_sg_to_pages(ibmr, sg, sg_nents, mlx5_set_page);
-+	n = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mlx5_set_page);
- 
- 	ib_dma_sync_single_for_device(ibmr->device, mr->desc_map,
- 				      mr->desc_size * mr->max_descs,
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 8c4daf7..8c85b84 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -401,15 +401,14 @@ static int nes_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--static int nes_map_mr_sg(struct ib_mr *ibmr,
--			 struct scatterlist *sg,
--			 int sg_nents)
-+static int nes_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
-+		int sg_nents, unsigned int sg_offset)
- {
- 	struct nes_mr *nesmr = to_nesmr(ibmr);
- 
- 	nesmr->npages = 0;
- 
--	return ib_sg_to_pages(ibmr, sg, sg_nents, nes_set_page);
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, nes_set_page);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 4df3f13..5bf06b9 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -3083,13 +3083,12 @@ static int ocrdma_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--int ocrdma_map_mr_sg(struct ib_mr *ibmr,
--		     struct scatterlist *sg,
--		     int sg_nents)
-+int ocrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset)
- {
- 	struct ocrdma_mr *mr = get_ocrdma_mr(ibmr);
- 
- 	mr->npages = 0;
- 
--	return ib_sg_to_pages(ibmr, sg, sg_nents, ocrdma_set_page);
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, ocrdma_set_page);
- }
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-index 8b517fd..b290e5d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
-@@ -122,8 +122,7 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *, u64 start, u64 length,
- struct ib_mr *ocrdma_alloc_mr(struct ib_pd *pd,
- 			      enum ib_mr_type mr_type,
- 			      u32 max_num_sg);
--int ocrdma_map_mr_sg(struct ib_mr *ibmr,
--		     struct scatterlist *sg,
--		     int sg_nents);
-+int ocrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned sg_offset);
- 
- #endif				/* __OCRDMA_VERBS_H__ */
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
-index 5f53304..c5fb4dd 100644
---- a/drivers/infiniband/hw/qib/qib_mr.c
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -315,15 +315,14 @@ static int qib_set_page(struct ib_mr *ibmr, u64 addr)
- 	return 0;
- }
- 
--int qib_map_mr_sg(struct ib_mr *ibmr,
--		  struct scatterlist *sg,
--		  int sg_nents)
-+int qib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset)
- {
- 	struct qib_mr *mr = to_imr(ibmr);
- 
- 	mr->npages = 0;
- 
--	return ib_sg_to_pages(ibmr, sg, sg_nents, qib_set_page);
-+	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, qib_set_page);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 6c5e777..5067cac 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1042,9 +1042,8 @@ struct ib_mr *qib_alloc_mr(struct ib_pd *pd,
- 			   enum ib_mr_type mr_type,
- 			   u32 max_entries);
- 
--int qib_map_mr_sg(struct ib_mr *ibmr,
--		  struct scatterlist *sg,
--		  int sg_nents);
-+int qib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset);
- 
- int qib_reg_mr(struct qib_qp *qp, struct ib_reg_wr *wr);
- 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 9a391cc..44cc85f 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -236,7 +236,7 @@ int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
- 	page_vec->npages = 0;
- 	page_vec->fake_mr.page_size = SIZE_4K;
- 	plen = ib_sg_to_pages(&page_vec->fake_mr, mem->sg,
--			      mem->size, iser_set_page);
-+			      mem->size, 0, iser_set_page);
- 	if (unlikely(plen < mem->size)) {
- 		iser_err("page vec too short to hold this SG\n");
- 		iser_data_buf_dump(mem, device->ib_device);
-@@ -446,7 +446,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
- 
- 	ib_update_fast_reg_key(mr, ib_inc_rkey(mr->rkey));
- 
--	n = ib_map_mr_sg(mr, mem->sg, mem->size, SIZE_4K);
-+	n = ib_map_mr_sg(mr, mem->sg, mem->size, 0, SIZE_4K);
- 	if (unlikely(n != mem->size)) {
- 		iser_err("failed to map sg (%d/%d)\n",
- 			 n, mem->size);
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index f121e61..7c7ad3a 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -2561,7 +2561,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
- 		wr = &inv_wr;
- 	}
- 
--	n = ib_map_mr_sg(mr, mem->sg, mem->nents, PAGE_SIZE);
-+	n = ib_map_mr_sg(mr, mem->sg, mem->nents, 0, PAGE_SIZE);
- 	if (unlikely(n != mem->nents)) {
- 		isert_err("failed to map mr sg (%d/%d)\n",
- 			 n, mem->nents);
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index b6bf204..ca425f2 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1333,7 +1333,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
- 	rkey = ib_inc_rkey(desc->mr->rkey);
- 	ib_update_fast_reg_key(desc->mr, rkey);
- 
--	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, dev->mr_page_size);
-+	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, 0, dev->mr_page_size);
- 	if (unlikely(n < 0))
- 		return n;
- 
++	if (!qp->uobject)
++		rdma_rw_cleanup_mrs(qp);
++
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+ 		if (pd)
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 082a67a..1e21fb8 100644
+index 068d540..074854d 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1811,7 +1811,8 @@ struct ib_device {
- 					       u32 max_num_sg);
- 	int                        (*map_mr_sg)(struct ib_mr *mr,
- 						struct scatterlist *sg,
--						int sg_nents);
-+						int sg_nents,
-+						unsigned sg_offset);
- 	struct ib_mw *             (*alloc_mw)(struct ib_pd *pd,
- 					       enum ib_mw_type type);
- 	int                        (*dealloc_mw)(struct ib_mw *mw);
-@@ -3077,29 +3078,23 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
- 					    u16 pkey, const union ib_gid *gid,
- 					    const struct sockaddr *addr);
+@@ -915,6 +915,13 @@ struct ib_qp_cap {
+ 	u32	max_send_sge;
+ 	u32	max_recv_sge;
+ 	u32	max_inline_data;
++
++	/*
++	 * Maximum number of rdma_rw_ctx structures in flight at a time.
++	 * ib_create_qp() will calculate the right amount of neededed WRs
++	 * and MRs based on this.
++	 */
++	u32	max_rdma_ctxs;
+ };
  
--int ib_map_mr_sg(struct ib_mr *mr,
--		 struct scatterlist *sg,
--		 int sg_nents,
--		 unsigned int page_size);
-+int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset, unsigned int page_size);
+ enum ib_sig_type {
+@@ -986,7 +993,11 @@ struct ib_qp_init_attr {
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+ 	enum ib_qp_create_flags	create_flags;
+-	u8			port_num; /* special QP types only */
++
++	/*
++	 * Only needed for special QP types, or when using the RW API.
++	 */
++	u8			port_num;
+ };
  
- static inline int
--ib_map_mr_sg_zbva(struct ib_mr *mr,
--		  struct scatterlist *sg,
--		  int sg_nents,
--		  unsigned int page_size)
-+ib_map_mr_sg_zbva(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
-+		unsigned int sg_offset, unsigned int page_size)
- {
- 	int n;
- 
--	n = ib_map_mr_sg(mr, sg, sg_nents, page_size);
-+	n = ib_map_mr_sg(mr, sg, sg_nents, sg_offset, page_size);
- 	mr->iova = 0;
- 
- 	return n;
- }
- 
--int ib_sg_to_pages(struct ib_mr *mr,
--		   struct scatterlist *sgl,
--		   int sg_nents,
--		   int (*set_page)(struct ib_mr *, u64));
-+int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
-+		unsigned int sg_offset, int (*set_page)(struct ib_mr *, u64));
- 
- void ib_drain_rq(struct ib_qp *qp);
- void ib_drain_sq(struct ib_qp *qp);
-diff --git a/net/rds/iw_rdma.c b/net/rds/iw_rdma.c
-index b09a40c..7ce9a92 100644
---- a/net/rds/iw_rdma.c
-+++ b/net/rds/iw_rdma.c
-@@ -666,7 +666,7 @@ static int rds_iw_rdma_reg_mr(struct rds_iw_mapping *mapping)
- 	struct ib_send_wr *failed_wr;
- 	int ret, n;
- 
--	n = ib_map_mr_sg_zbva(ibmr->mr, m_sg->list, m_sg->len, PAGE_SIZE);
-+	n = ib_map_mr_sg_zbva(ibmr->mr, m_sg->list, m_sg->len, 0, PAGE_SIZE);
- 	if (unlikely(n != m_sg->len))
- 		return n < 0 ? n : -EINVAL;
- 
-diff --git a/net/rds/iw_send.c b/net/rds/iw_send.c
-index e20bd50..1ba3c57 100644
---- a/net/rds/iw_send.c
-+++ b/net/rds/iw_send.c
-@@ -767,7 +767,7 @@ static int rds_iw_build_send_reg(struct rds_iw_send_work *send,
- {
- 	int n;
- 
--	n = ib_map_mr_sg(send->s_mr, sg, sg_nents, PAGE_SIZE);
-+	n = ib_map_mr_sg(send->s_mr, sg, sg_nents, 0, PAGE_SIZE);
- 	if (unlikely(n != sg_nents))
- 		return n < 0 ? n : -EINVAL;
- 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index e165673..4ffdcb2 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -384,7 +384,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 		return -ENOMEM;
- 	}
- 
--	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
-+	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, 0, PAGE_SIZE);
- 	if (unlikely(n != frmr->sg_nents)) {
- 		pr_err("RPC:       %s: failed to map mr %p (%u/%u)\n",
- 		       __func__, frmr->fr_mr, n, frmr->sg_nents);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index c8b8a8b..1244a62 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -281,7 +281,7 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
- 	}
- 	atomic_inc(&xprt->sc_dma_used);
- 
--	n = ib_map_mr_sg(frmr->mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
-+	n = ib_map_mr_sg(frmr->mr, frmr->sg, frmr->sg_nents, 0, PAGE_SIZE);
- 	if (unlikely(n != frmr->sg_nents)) {
- 		pr_err("svcrdma: failed to map mr %p (%d/%d elements)\n",
- 		       frmr->mr, n, frmr->sg_nents);
+ struct ib_qp_open_attr {
+@@ -1407,6 +1418,7 @@ struct ib_qp {
+ 	struct ib_cq	       *recv_cq;
+ 	spinlock_t		mr_lock;
+ 	int			mrs_used;
++	struct list_head	rdma_mrs;
+ 	struct ib_srq	       *srq;
+ 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
+ 	struct list_head	xrcd_list;
+diff --git a/include/rdma/rw.h b/include/rdma/rw.h
+new file mode 100644
+index 0000000..57ea304
+--- /dev/null
++++ b/include/rdma/rw.h
+@@ -0,0 +1,69 @@
++/*
++ * Copyright (c) 2016 HGST, a Western Digital Company.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#ifndef _RDMA_RW_H
++#define _RDMA_RW_H
++
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
++#include <rdma/ib_verbs.h>
++#include <rdma/rdma_cm.h>
++#include <rdma/mr_pool.h>
++
++struct rdma_rw_ctx {
++	/* number of SGL entries returned by dma_map_sg */
++	u32			dma_nents;
++
++	/* number of RDMA READ/WRITE WRs (not counting MR WRs) */
++	u32			nr_ops;
++
++	union {
++		/* for mapping a single SGE: */
++		struct {
++			struct ib_sge		sge;
++			struct ib_rdma_wr	wr;
++		} single;
++
++		/* for mapping of multiple SGEs: */
++		struct {
++			struct ib_sge		*sges;
++			struct ib_rdma_wr	*wrs;
++		} map;
++
++		/* for registering multiple WRs: */
++		struct rdma_rw_reg_ctx {
++			struct ib_sge		sge;
++			struct ib_rdma_wr	wr;
++			struct ib_reg_wr	reg_wr;
++			struct ib_send_wr	inv_wr;
++			struct ib_mr		*mr;
++		} *reg;
++	};
++};
++
++int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 sg_cnt, u32 sg_offset,
++		u64 remote_addr, u32 rkey, enum dma_data_direction dir);
++void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct scatterlist *sg, u32 sg_cnt,
++		enum dma_data_direction dir);
++
++struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
++		u8 port_num, struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
++int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
++		struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
++
++void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
++int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
++void rdma_rw_cleanup_mrs(struct ib_qp *qp);
++
++#endif /* _RDMA_RW_H */
 -- 
 2.1.4
