@@ -1,54 +1,143 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: generic RDMA READ/WRITE API V3
-Date: Thu,  3 Mar 2016 19:03:04 +0100
-Message-ID: <1457028192-24965-1-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 3/8] IB/core: refactor ib_create_qp
+Date: Thu,  3 Mar 2016 19:03:07 +0100
+Message-ID: <1457028192-24965-4-git-send-email-hch@lst.de>
+References: <1457028192-24965-1-git-send-email-hch@lst.de>
 Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1457028192-24965-1-git-send-email-hch@lst.de>
 Sender: target-devel-owner@vger.kernel.org
 To: linux-rdma@vger.kernel.org
 Cc: swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series contains patches that implement a first version of a generi=
-c
-API to handle RDMA READ/WRITE operations as commonly used on the target
-(or server) side for storage protocols.
+Split the XRC magic into a separate function, and return early on failure
+to make the initialization code readable.
 
-This has been developed for the upcoming NVMe over Fabrics target, and
-extensively te=D1=95ted as part of that, although this upstream version=
- has
-additional updates over the one we're currently using.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/infiniband/core/verbs.c | 103 +++++++++++++++++++++-------------------
+ 1 file changed, 54 insertions(+), 49 deletions(-)
 
-It hides details such as the use of MRs for iWarp devices, and will all=
-ow
-looking at other HCA specifics easily in the future.
-
-This series contains a conversion of the SRP target, and the git tree
-below also has a RFC conversion of the iSER target (a little hacky
-due to the signature MR support which I can't test)
-
-I also have a git tree available at:
-
-	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
-
-Gitweb:
-
-	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
-w-api
-
-These two also include the RFC iSER target conversion.
-
-Chances since V2:
- - fold the list_del in mr_pool_get into the right patch
- - clamp the max FR page size length
- - minor srpt style fix
- - spelling fixes
- - renamed rdma_has_read_invalidate to rdma_cap_read_inv
-
-Changes since V1:
- - fixed offset handling in ib_sg_to_pages
- - uses proper SG iterators to handle larger than PAGE_SIZE segments
- - adjusted parameters for some functions to reduce size of the context
- - SRP target support
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index eaed99b..7ea0c9c 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -723,62 +723,67 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
+ }
+ EXPORT_SYMBOL(ib_open_qp);
+ 
++static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
++		struct ib_qp_init_attr *qp_init_attr)
++{
++	struct ib_qp *real_qp = qp;
++
++	qp->event_handler = __ib_shared_qp_event_handler;
++	qp->qp_context = qp;
++	qp->pd = NULL;
++	qp->send_cq = qp->recv_cq = NULL;
++	qp->srq = NULL;
++	qp->xrcd = qp_init_attr->xrcd;
++	atomic_inc(&qp_init_attr->xrcd->usecnt);
++	INIT_LIST_HEAD(&qp->open_list);
++
++	qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
++			  qp_init_attr->qp_context);
++	if (IS_ERR(qp))
++		real_qp->device->destroy_qp(real_qp);
++	else
++		__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
++	return qp;
++}
++
+ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			   struct ib_qp_init_attr *qp_init_attr)
+ {
+-	struct ib_qp *qp, *real_qp;
+-	struct ib_device *device;
++	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
++	struct ib_qp *qp;
+ 
+-	device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	qp = device->create_qp(pd, qp_init_attr, NULL);
+-
+-	if (!IS_ERR(qp)) {
+-		qp->device     = device;
+-		qp->real_qp    = qp;
+-		qp->uobject    = NULL;
+-		qp->qp_type    = qp_init_attr->qp_type;
+-
+-		atomic_set(&qp->usecnt, 0);
+-		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+-			qp->event_handler = __ib_shared_qp_event_handler;
+-			qp->qp_context = qp;
+-			qp->pd = NULL;
+-			qp->send_cq = qp->recv_cq = NULL;
+-			qp->srq = NULL;
+-			qp->xrcd = qp_init_attr->xrcd;
+-			atomic_inc(&qp_init_attr->xrcd->usecnt);
+-			INIT_LIST_HEAD(&qp->open_list);
+-
+-			real_qp = qp;
+-			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
+-					  qp_init_attr->qp_context);
+-			if (!IS_ERR(qp))
+-				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
+-			else
+-				real_qp->device->destroy_qp(real_qp);
+-		} else {
+-			qp->event_handler = qp_init_attr->event_handler;
+-			qp->qp_context = qp_init_attr->qp_context;
+-			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
+-				qp->recv_cq = NULL;
+-				qp->srq = NULL;
+-			} else {
+-				qp->recv_cq = qp_init_attr->recv_cq;
+-				atomic_inc(&qp_init_attr->recv_cq->usecnt);
+-				qp->srq = qp_init_attr->srq;
+-				if (qp->srq)
+-					atomic_inc(&qp_init_attr->srq->usecnt);
+-			}
+-
+-			qp->pd	    = pd;
+-			qp->send_cq = qp_init_attr->send_cq;
+-			qp->xrcd    = NULL;
+-
+-			atomic_inc(&pd->usecnt);
+-			atomic_inc(&qp_init_attr->send_cq->usecnt);
+-		}
++	if (IS_ERR(qp))
++		return qp;
++
++	qp->device     = device;
++	qp->real_qp    = qp;
++	qp->uobject    = NULL;
++	qp->qp_type    = qp_init_attr->qp_type;
++
++	atomic_set(&qp->usecnt, 0);
++	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
++		return ib_create_xrc_qp(qp, qp_init_attr);
++
++	qp->event_handler = qp_init_attr->event_handler;
++	qp->qp_context = qp_init_attr->qp_context;
++	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
++		qp->recv_cq = NULL;
++		qp->srq = NULL;
++	} else {
++		qp->recv_cq = qp_init_attr->recv_cq;
++		atomic_inc(&qp_init_attr->recv_cq->usecnt);
++		qp->srq = qp_init_attr->srq;
++		if (qp->srq)
++			atomic_inc(&qp_init_attr->srq->usecnt);
+ 	}
+ 
++	qp->pd	    = pd;
++	qp->send_cq = qp_init_attr->send_cq;
++	qp->xrcd    = NULL;
++
++	atomic_inc(&pd->usecnt);
++	atomic_inc(&qp_init_attr->send_cq->usecnt);
+ 	return qp;
+ }
+ EXPORT_SYMBOL(ib_create_qp);
+-- 
+2.1.4
