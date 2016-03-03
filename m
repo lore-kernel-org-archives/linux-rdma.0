@@ -1,41 +1,46 @@
-From: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/mlx5: Expose correct max_fast_reg_page_list_len
-Date: Thu,  3 Mar 2016 13:37:51 +0200
-Message-ID: <1457005071-4900-1-git-send-email-sagig@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Thu, 3 Mar 2016 13:02:09 +0100
+Message-ID: <20160303120209.GC20543@lst.de>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D81790.8090305@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56D81790.8090305@dev.mellanox.co.il>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagig@dev.mellanox.co.il>
+Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-While documentation indicates that the number of translation
-entries per memory key is unlimited, in practice, we can
-only fit a finite amount of translation entries in a single
-registration wqe (which is log_max_klm_list_size).
+On Thu, Mar 03, 2016 at 12:53:04PM +0200, Sagi Grimberg wrote:
+>
+>> +int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr)
+>> +{
+>> +	struct ib_device *dev = qp->pd->device;
+>> +	int ret = 0;
+>> +
+>> +	if (rdma_rw_use_mr(dev, attr->port_num)) {
+>> +		ret = ib_mr_pool_init(qp, &qp->rdma_mrs,
+>> +				attr->cap.max_rdma_ctxs, IB_MR_TYPE_MEM_REG,
+>> +				dev->attrs.max_fast_reg_page_list_len);
+>
+> Christoph,
+>
+> This is a problem for mlx5 which exposes:
+>
+>         props->max_fast_reg_page_list_len = (unsigned int)-1;
+>
+> Which is obviously wrong and needs to be corrected, but this is sort of
+> an overkill to allocate max supported unconditionally.
+>
+> How about choosing a sane default of 256/512 pages for now? I don't
+> think we'll see a lot of larger transfers in iser/nvmf (which actually
+> need MRs for iWARP).
+>
+> Alternatively we can allow the caller to limit the MR size?
 
-Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 90c5e24..136ed67 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -536,7 +536,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	props->local_ca_ack_delay  = MLX5_CAP_GEN(mdev, local_ca_ack_delay);
- 	props->max_res_rd_atom	   = props->max_qp_rd_atom * props->max_qp;
- 	props->max_srq_sge	   = max_rq_sg - 1;
--	props->max_fast_reg_page_list_len = (unsigned int)-1;
-+	props->max_fast_reg_page_list_len =
-+		1 << MLX5_CAP_GEN(mdev, log_max_klm_list_size);
- 	get_atomic_caps(dev, props);
- 	props->masked_atomic_cap   = IB_ATOMIC_NONE;
- 	props->max_mcast_grp	   = 1 << MLX5_CAP_GEN(mdev, log_max_mcg);
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm fine with a limit in the core rdma r/w code.  But why is this
+a problem for mlx5?  If it offers unlimited MR sizes it should support
+that, or report a useful value.  I don't see why fixing mlx5 should
+be a problem, and would rather see this driver bug fixed ASAP.
