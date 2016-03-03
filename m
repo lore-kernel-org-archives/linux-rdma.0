@@ -1,61 +1,43 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] Adding memory re-registration for mlx5
-Date: Thu, 3 Mar 2016 10:48:27 -0500
-Message-ID: <56D85CCB.5050704@redhat.com>
-References: <1456757211-8112-1-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH 0/6] move port mapper code to iwcm
+Date: Thu, 3 Mar 2016 10:49:17 -0500
+Message-ID: <56D85CFD.2040109@redhat.com>
+References: <1456499885-8044-1-git-send-email-faisal.latif@intel.com>
+ <CAJ3xEMjdLCNfUY9r7KfH4iMi=CRHjqAQcmpyLxbCQLSCeQxOXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="btnEe2seeOxtNE8hlfq5exSQMmANhmdkk"
+ boundary="IEGd02OdGMT9BkNlIt24Dawjo8eecg05H"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456757211-8112-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAJ3xEMjdLCNfUY9r7KfH4iMi=CRHjqAQcmpyLxbCQLSCeQxOXQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---btnEe2seeOxtNE8hlfq5exSQMmANhmdkk
-Content-Type: text/plain; charset=windows-1252
+--IEGd02OdGMT9BkNlIt24Dawjo8eecg05H
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 02/29/2016 09:46 AM, Matan Barak wrote:
-> From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 02/28/2016 04:41 AM, Or Gerlitz wrote:
+> On Fri, Feb 26, 2016 at 5:17 PM, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> =
+wrote:
 >=20
-> Hi Doug,
+>>  18 files changed, 414 insertions(+), 1019 deletions(-)
 >=20
-> This series adds memory re-registration support for the mlx5 driver.
-> Re-registration of memory region uses UMR if the current MKey is large
-> enough to encompass the requested length. When this is not possible,
-> a new MKey is created using the firmware command interface. In this
-> case, new LKey and RKey are created and must be communicated to
-> remote peers by the user.
+> Didn't look on the patches, but LOC wise, nice cleanup!
 >=20
-> The MR's umem is kept only through a PD-only change. Otherwise, it is
-> replaced as well.
+> The i40 iwarp driver is not upstream yet.
 >=20
-> The series contains 2 patches:
-> The first patch refactors the register and deregister MR flow so that
-> some code parts could be shared later on with the re-registration
-> flow.
-> The second patch introduces the actual re-registration flow.
+> Hence, it's wrong to add duplicated code there and  then come up with
+> a patch that fixes that.
 >=20
-> Thanks,
-> Noa and Matan
->=20
-> Noa Osherovich (2):
->   IB/mlx5: Refactoring register MR code
->   IB/mlx5: Added support for re-registration of MRs
->=20
->  drivers/infiniband/hw/mlx5/main.c    |   2 +
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |   9 +
->  drivers/infiniband/hw/mlx5/mr.c      | 375 +++++++++++++++++++++++++++=
-+-------
->  drivers/infiniband/hw/mlx5/qp.c      |  51 ++++-
->  4 files changed, 359 insertions(+), 78 deletions(-)
+> You need to rebase the i40w series on this one and not the other way ar=
+ound.
 >=20
 
-Thanks, applied.
+I've already pulled in both series, so I'm fine with it just like it is.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -63,7 +45,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---btnEe2seeOxtNE8hlfq5exSQMmANhmdkk
+--IEGd02OdGMT9BkNlIt24Dawjo8eecg05H
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -72,22 +54,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJW2FzMAAoJELgmozMOVy/dr0sP/jdlztW7hNQVNFGWueJG+/wm
-5pO4ZQdA4aewsEMfj4Vjb9krrGWhby2gGLVBKqHtPxYGN4tLNqDt96oK3ZNuFXW7
-txJrzcMpKUt8htufDn5eBrheXRU7/TK9Li5kjkj1O7hWpmnGQiA1oYdfC6tfbE5L
-pT/YyUxcohGeztDcPxIpi72XtZ7wWhKMD+VtoPgvvOmKiZxh3/WNo4cnW4Yz6lqi
-TuYusby85uYWaLsEsnd+4pzP/XvctEUXGy+/aD91VolFy5O4T1+viCwil8IasdJP
-FIj/z3kGz9zef+0mZWZkTAdVubuaN5t/r3Uh5/162RfBUTP67ZHwBW5eFBY2CdEg
-WZIcrEQB4h6zjuwU8uYvGQAFBn5MVdJVIklZjzi3KbjN196QH9o253za/NyMmkYY
-i5MghQd3SZucYQtZdrIp+5zGISU/fERBWWW9ICB21WsFiDM6ktuSjSvQWPkDx9jD
-KosgvrmmW2vXcx69w90vaP0XKLltMQj+b4PwfsTiwjn73Uijle9GtnUGDHunSxT2
-rpEoQfGO40FSoNkmkDgaf6wQynVy1KuIPRoOqVubLlJktdD8lPtZW0mdtnq+jKI0
-KTyfwaB1n/9G1z2nSdPjXzplifctyXA8eVChavXbQEZVq5pEOtwV0DT6F9Z1ltK2
-L3CRKRAkjaYU8nEcRzz9
-=ujiR
+iQIcBAEBCAAGBQJW2Fz9AAoJELgmozMOVy/dtw4P/iEdzjMuxRZkkSu4Hoh5Ng0A
+Ws3ER2KdSHtXmncetszTq+zZqfnZjQ6pCc5qWQ5+UGF43k4tH7E7SWFIRNM7Afg3
+4DZK+DIBTQvnQkT2z0Nk6Bk7eoctrB8HMC9/L4nFQB+djdFuUcQjZutV1bNkNNao
++//fHO1A9tW9viR0kBmzRL2skscasdPIrj2UYW7fC2TIIiA7y+8GHuIDFeoiqbD9
+5Sc4pbl/WiNgmVaxUmct75iFpEGaO5VIeUuS2CWgl1QrAHEvy6mTwKfl06wBc2kq
+opbC8d75XaHpDC+5zO0xSh7ii06iXak780alcxBLurYQL/UYMBfyQ0GjWZ7AJAZt
+gSQTRKj3jU6kJxAFT3RhCoVgyAYorO0fud3YGNVTU/ZDVAtDxGf57d7/izRtW+L7
+t2IbKmlB6Cv3ldRuHlUwovCSdJvvGDHWF/BJMdjaXHa73BVg81ztMuqJJt2KDzri
+QH/ZhwgV4WfSnWwA5iOEXC3pQpdgRkjIq5/d3vqhyzop1JfU5hfk3vzzKboGhoI+
+g80C0WikNKPU4dN0l9H7YdC7+2If3D+IlvgZplCxjmFwO32uMHx6mvhklqA7PxNA
+WpUgIbJavZJ3Mt3V3qgdZS02KF6ZicINnlAhKwgDtWn3Mz3B1+KvK2DKNnRFLX3Y
+7hdn1FtNVemNeSKqa4EZ
+=uJrF
 -----END PGP SIGNATURE-----
 
---btnEe2seeOxtNE8hlfq5exSQMmANhmdkk--
+--IEGd02OdGMT9BkNlIt24Dawjo8eecg05H--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
