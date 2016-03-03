@@ -1,113 +1,52 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: SRPt oops with 4.5-rc3-ish
-Date: Thu, 3 Mar 2016 10:24:50 -0500
-Message-ID: <56D85742.20401@redhat.com>
-References: <56C0A6C3.3010903@redhat.com>
- <1456630639.19657.47.camel@haakon3.risingtidesystems.com>
- <56D274F8.9070804@sandisk.com>
- <1456634828.19657.84.camel@haakon3.risingtidesystems.com>
- <56D27C5E.6090405@sandisk.com>
- <1456635624.19657.92.camel@haakon3.risingtidesystems.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Thu, 3 Mar 2016 09:29:47 -0600
+Message-ID: <00b401d17561$854cb790$8fe626b0$@opengridcomputing.com>
+References: <1456784410-20166-1-git-send-email-hch@lst.de> <1456784410-20166-8-git-send-email-hch@lst.de> <56D81790.8090305@dev.mellanox.co.il> <20160303120209.GC20543@lst.de> <56D8293C.1050306@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="THsVnAcSojdMCwSPGIQEwh2KmkUEdBudV"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1456635624.19657.92.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56D8293C.1050306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---THsVnAcSojdMCwSPGIQEwh2KmkUEdBudV
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-On 02/28/2016 12:00 AM, Nicholas A. Bellinger wrote:
-> On Sat, 2016-02-27 at 20:49 -0800, Bart Van Assche wrote:
->> On 02/27/16 20:47, Nicholas A. Bellinger wrote:
->>> On Sat, 2016-02-27 at 20:18 -0800, Bart Van Assche wrote:
->>>> On 02/27/16 19:37, Nicholas A. Bellinger wrote:
->>>>> This is a fairly recent srpt shutdown regression, right..?
->>>>
->>>> Hi Nic,
->>>>
->>>> My patch series to make TMR handling synchronous fixes what Doug
->>>> reported. If you want I can rebase and repost that patch series.
->>>>
->>>
->>> There aren't even any TMRs being processed, so I don't see how that h=
-as
->>> anything to do with it.
->>>
->>> >From the logs, this OOPsen is related to some manner of recent srpt
->>> configfs se_node_acl + se_session active I/O shutdown regression.
->>>
->>> So short of sitting down and reproducing myself on v4.5-rc code,
->>> commit 59fae4de's removal of ib_create_cq() + ib_comp_handler callbac=
-k
->>> usage look like a good place to start the investigation.
->>>
->>> It would be useful to first find out what changes introduced this
->>> regression, and how far back Doug is able to reproduce.
->>
->> As I wrote before, this patch series works 100% stable on top of my mo=
-st=20
->> recent LIO core patch series, a patch series I have also made availabl=
-e=20
->> on github. So what Doug ran into is a LIO core bug and not an ib_srpt =
-bug.
->>
->=20
-> Active I/O shutdown with srpt has not always triggered this OOPs.
->=20
-> There is a reason why this is happening now, and it needs to be
-> identified.
->=20
-> Either you can help out doing that, or not.  Either way, I'm certainly
-> not going to let you hack up LIO TMR code, when there even aren't signs=
+> >> Christoph,
+> >>
+> >> This is a problem for mlx5 which exposes:
+> >>
+> >>          props->max_fast_reg_page_list_len = (unsigned int)-1;
+> >>
+> >> Which is obviously wrong and needs to be corrected, but this is sort of
+> >> an overkill to allocate max supported unconditionally.
+> >>
+> >> How about choosing a sane default of 256/512 pages for now? I don't
+> >> think we'll see a lot of larger transfers in iser/nvmf (which actually
+> >> need MRs for iWARP).
+> >>
+> >> Alternatively we can allow the caller to limit the MR size?
+> >
+> > I'm fine with a limit in the core rdma r/w code.  But why is this
+> > a problem for mlx5?  If it offers unlimited MR sizes it should support
+> > that, or report a useful value.  I don't see why fixing mlx5 should
+> > be a problem, and would rather see this driver bug fixed ASAP.
+> 
+> Already sent out a fix for mlx5. But even then, if a driver offers huge
+> amount of translation entries per MR doesn't mean we need to allocate
+> gigantic MRs for imaginary transfer sizes...
+> 
+> I'd be happier if this is controlled by the caller.
 
-> ABORT_TASK and friends are occuring in Doug's particular shutdown case.=
-
->=20
-
-Sorry I didn't notice this thread had picked back up, I was off on other
-stuff.
-
-I can't say if this is new or not.  We added some new testing, that had
-considerably more luns in use and more transfers taking place, and while
-I was rebooting some actively used servers, I saw this issue.  It might
-exist on earlier kernels, I would have to try them to know for sure.
-
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
+Are there hard limits for iSER and NVMEF/RDMA?  If so, then perhaps the caller should pass that in and the RDMA-RW will choose the
+min(passed_in_max, device_max)?
 
 
-
---THsVnAcSojdMCwSPGIQEwh2KmkUEdBudV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJW2FdCAAoJELgmozMOVy/dkuoQAJ/u+t3O5HuwDi2tkYn2GLzM
-DOA1nFbwK0W+lvn9PZo2FNOXTRAZOve0ylNJUqPVWYPOVVPUm4Y8rhHgA/qN6dZo
-eJYp/DAtqMpIcKOAJl3KVmDnW5Law3t1S1HTm8uBe+WQb+YEdTz9khSGqmvhukil
-qgl8N3OMWNQYeo3H9bGqxbUol3suaTouI9XdcQg8khNP/5PqMtxZb+ZBWKE71Dgt
-F/nzSnmaB1zs6/trnERJRW/uJPWpj7+E+pHSxfO7pJkzLB2bq8vrrMWWhROQrmPl
-KwTIC0W5ldS/sXhIuSy3wZs6RxfQOH6mIPkwXfIK5g1gowDDaHFEYwglv+t60pnm
-V+vnc85Vm4d/9Xo9x6rfm1+nfy9fB2rU3RWdCTTk2o+QjLTRhfvj47Jam2FG2HKi
-kbob+fDKAgHfuTpHgE1j9I//mACVK6ACVITrZxaAt5JVy/1oRxrGkX54M2KuW09H
-oTXl+DJxOxNhCkdH4MY++hu2IkZyresnyv+2oGWgy+nyreCEtLIGuEoPG7Dq9Lx7
-WYpzYJ1VOhb22VTjfZaYiCStj1KTC2MdwPRxzhX0pfvY93xciz8gS0tBDZom6Stm
-Ug/6tX5wq7Pt+xHcUIz/1l1RaNDYUv3Yxh56vRqMvohKW2zWJ/hsEt5RTFd++J+Z
-/DyALJvdgZXtFpbGQukx
-=+t9B
------END PGP SIGNATURE-----
-
---THsVnAcSojdMCwSPGIQEwh2KmkUEdBudV--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
