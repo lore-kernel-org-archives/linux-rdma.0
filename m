@@ -1,52 +1,63 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net: mellanox: add DEVLINK dependencies
-Date: Thu, 03 Mar 2016 16:48:34 -0500 (EST)
-Message-ID: <20160303.164834.470402143180960189.davem@davemloft.net>
-References: <1456911665-1424389-1-git-send-email-arnd@arndb.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix missed clean call in registration path
+Date: Thu, 3 Mar 2016 17:03:54 -0500
+Message-ID: <56D8B4CA.9090606@redhat.com>
+References: <1456071146-28101-1-git-send-email-leonro@mellanox.com>
+ <56CAC744.9090809@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="mtnenafELRUeB2RFTf1JDQK8CkFD6tUdI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1456911665-1424389-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <56CAC744.9090809-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arnd-r2nGTMty4D4@public.gmane.org
-Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Date: Wed,  2 Mar 2016 10:40:54 +0100
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--mtnenafELRUeB2RFTf1JDQK8CkFD6tUdI
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> The new NET_DEVLINK infrastructure can be a loadable module, but the drivers
-> using it might be built-in, which causes link errors like:
-> 
-> drivers/net/built-in.o: In function `mlx4_load_one':
-> :(.text+0x2fbfda): undefined reference to `devlink_port_register'
-> :(.text+0x2fc084): undefined reference to `devlink_port_unregister'
-> drivers/net/built-in.o: In function `mlxsw_sx_port_remove':
-> :(.text+0x33a03a): undefined reference to `devlink_port_type_clear'
-> :(.text+0x33a04e): undefined reference to `devlink_port_unregister'
-> 
-> There are multiple ways to avoid this:
-> 
-> a) add 'depends on NET_DEVLINK || !NET_DEVLINK' dependencies
->    for each user
-> b) use 'select NET_DEVLINK' from each driver that uses it
->    and hide the symbol in Kconfig.
-> c) make NET_DEVLINK a 'bool' option so we don't have to
->    list it as a dependency, and rely on the APIs to be
->    stubbed out when it is disabled
-> d) use IS_REACHABLE() rather than IS_ENABLED() to check for
->    NET_DEVLINK in include/net/devlink.h
-> 
-> This implements a variation of approach a) by adding an
-> intermediate symbol that drivers can depend on, and changes
-> the three drivers using it.
-> 
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Fixes: 09d4d087cd48 ("mlx4: Implement devlink interface")
-> Fixes: c4745500e988 ("mlxsw: Implement devlink interface")
+On 02/22/2016 03:31 AM, Sagi Grimberg wrote:
+> Looks fine,
+>=20
+> Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Applied, thanks Arnd.
+This was picked up for late 4.5-rc
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--mtnenafELRUeB2RFTf1JDQK8CkFD6tUdI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJW2LTKAAoJELgmozMOVy/dItYP/3d59vIXVjfpbyC9EpmyTcg4
+UIjdaJ+QREnoXN7j5e6DL62F9+udEQ0eHLGOhntVc7Z2WONlAA0VCjJBPyZSaW9F
+rlh62tePlbQcCJzgI2GO49E9GS8xeEhkyMNhN+njSJ+jdd+6WPC2TtGIp1qkW/pY
+/RNJQSIf3V6EXFJhvvxSSI9JGmccUCEo+AJrurffqBS2JYmTdsvbw1okvN66672a
+9C08HlnRFiN9h4EsTXR/gYpsNHopz+SGzcDsRcGehdXn3O0Dz174sfzFWJvr/oJX
+VzjJq8PsAn/ebzKnJeNlCZLJmZk0jXO3IguIyJde2oSHTjMN4xuChSUFg4QNVpYj
+Yq9dB10fU46xPHpS55iv+Lkpc52UfPf3Y/cb3SRBvYgyKc0CPUBwzXK/S7iWV7sp
+15KdUd+S85aWUYD+alVUkUCAkNRfZIRA8GtMskv7INYuCVxFTZfTfK6XI6cQGtBC
+zth81Fv9RzSmErnaUn1nfqYE44hPzjp26ON/gQsYxC/4mNSNopGN9e4pCaQPM5+A
+AC8D+RRXi4PQf+hkcRr94TobAC3GANqH/HgGjsSCApJVyqcJNhds8WV2t8i/D5M7
+SsoVOdFOAQ6lrj5lXfDfR+apsq6HhZzI+me9MuJNSjS+SbkWDOCLfU7F5g1Lw40e
+awRtqYq+i3BcsI3utA+D
+=2vbm
+-----END PGP SIGNATURE-----
+
+--mtnenafELRUeB2RFTf1JDQK8CkFD6tUdI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
