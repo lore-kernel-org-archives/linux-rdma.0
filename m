@@ -1,32 +1,37 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 05/13] IB/core: add a simple MR pool
-Date: Thu, 3 Mar 2016 09:30:40 +0100
-Message-ID: <20160303083040.GA13700@lst.de>
-References: <1456596631-19418-1-git-send-email-hch@lst.de> <1456596631-19418-6-git-send-email-hch@lst.de> <CAG53R5W2Xi--LdMwwcB68d+2VYS100zEM+zW4Qi79SwoUiQE=w@mail.gmail.com> <20160302091554.GC1308@lst.de> <56D70543.1000506@sandisk.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
+Date: Thu, 3 Mar 2016 14:01:43 +0530
+Message-ID: <CAG53R5WVdahjdJRy=AJ3T2uw45ZZA2sYWGnHxLANzX6g7JWtiA@mail.gmail.com>
+References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
+	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
+	<20160302173949.GG29826@mtj.duckdns.org>
+	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
+	<CAG53R5WcbE8Hesb2sh6xg1fRLBOBt+VFo0L3U6WLPr3irtko8w@mail.gmail.com>
+	<56D7F27D.1040702@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56D70543.1000506-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56D7F27D.1040702-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 02, 2016 at 07:22:43AM -0800, Bart Van Assche wrote:
-> Hello Christoph,
+On Thu, Mar 3, 2016 at 1:44 PM, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 03/03/2016 05:18, Parav Pandit wrote:
+>> On Thu, Mar 3, 2016 at 1:28 AM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> On Wed, Mar 2, 2016 at 11:09 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>>> Nothing seems to prevent @cg from going away if this races with
+>>>> @current being migrated to a different cgroup.  Have you run this with
+>>>> lockdep and rcu debugging enabled?  This should have triggered a
+>>>> warning.
+>> I am able to reproduce this race. Looking into how to address it.
 >
-> With the approach of V2 of this patch series mr_lock and the MR pool list 
-> head exist in different structures which is unfortunate. How about 
-> introducing a new structure for the MR pool list head and mr_lock? An 
-> additional advantage of this approach is that it would allow to move the 
-> initialization of both structure members into ib_mr_pool_init().
+> If I understand correctly, task_css() requires rcu read lock being held.
+> Is task_get_css() suitable here?
 
-Hi Bart,
-
-I don't really understand what you mean.  Both the lock and the list_head
-are in struct ib_qp, right next to each other.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes. Its suitable if we continue with newer API to drop "num" entries.
+Or I will have make minor modification to support that in cgroup.h.
+There is no variation as task_get_css_many, but its minor change anyway.
+I saw slept off yesterday night, saw today morning.
+Will test over weekend and wait for Tejun's opinion if there is any.
