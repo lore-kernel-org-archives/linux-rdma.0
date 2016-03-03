@@ -1,88 +1,39 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Expose correct max_fast_reg_page_list_len
-Date: Thu, 3 Mar 2016 11:27:38 -0500
-Message-ID: <56D865FA.7060208@redhat.com>
-References: <1457005071-4900-1-git-send-email-sagig@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 3/9] IB/core: add a helper to check for READ WITH
+ INVALIDATE support
+Date: Thu, 3 Mar 2016 10:53:01 -0700
+Message-ID: <20160303175301.GD15387@obsidianresearch.com>
+References: <1456784410-20166-1-git-send-email-hch@lst.de>
+ <1456784410-20166-4-git-send-email-hch@lst.de>
+ <56D55ABA.6070007@dev.mellanox.co.il>
+ <005f01d173d1$68309af0$3891d0d0$@opengridcomputing.com>
+ <20160303131050.GA22022@lst.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457005071-4900-1-git-send-email-sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160303131050.GA22022@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: 'Christoph Hellwig' <hch@lst.de>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagig@dev.mellanox.co.il>, linux-rdma@vger.kernel.org, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Mar 03, 2016 at 02:10:50PM +0100, 'Christoph Hellwig' wrote:
+> On Tue, Mar 01, 2016 at 09:45:40AM -0600, Steve Wise wrote:
+> > > > +static inline bool rdma_has_read_invalidate(struct ib_device *dev, u32 port_num)
+> > > 
+> > > Is rdma_device_sup_read_inv() a better name?
+> > 
+> > or rdma_dev_supports_read_inv()
+> 
+> I looked at the naming and I think a rdma_device_* or rdma_dev_* is
+> simplify wrong - per the official decree we can support different
+> protocols on different ports, and that's why we also pass the port_num
+> to this function.  How about rdma_cap_read_inv?
 
-On 03/03/2016 06:37 AM, Sagi Grimberg wrote:
-> While documentation indicates that the number of translation
-> entries per memory key is unlimited, in practice, we can
-> only fit a finite amount of translation entries in a single
-> registration wqe (which is log_max_klm_list_size).
->=20
-> Signed-off-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/=
-mlx5/main.c
-> index 90c5e24..136ed67 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -536,7 +536,8 @@ static int mlx5_ib_query_device(struct ib_device *i=
-bdev,
->  	props->local_ca_ack_delay  =3D MLX5_CAP_GEN(mdev, local_ca_ack_delay)=
-;
->  	props->max_res_rd_atom	   =3D props->max_qp_rd_atom * props->max_qp;
->  	props->max_srq_sge	   =3D max_rq_sg - 1;
-> -	props->max_fast_reg_page_list_len =3D (unsigned int)-1;
-> +	props->max_fast_reg_page_list_len =3D
-> +		1 << MLX5_CAP_GEN(mdev, log_max_klm_list_size);
->  	get_atomic_caps(dev, props);
->  	props->masked_atomic_cap   =3D IB_ATOMIC_NONE;
->  	props->max_mcast_grp	   =3D 1 << MLX5_CAP_GEN(mdev, log_max_mcg);
->=20
+We can't support different protocols on different ports. The ports
+hung off a struct device must be similar. The rules might be bent a
+bit for rocee/ib sharing (not a great idea, IMHO) but certainly iwap
+and !iwarp cannot share a struct device.
 
-Thanks, applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJW2GX7AAoJELgmozMOVy/dxHkP/Rtgue/2rlm6MXtFjRL+n4Rm
-x8MaN1rzbBd+FD9jM2wWQiglqSzKkwHLhAR+XL+ns6KS2/yC1y+dC0vR0A/KQAse
-E+60oPcnNNUH7FBZTBezK+ch9SEjZ2krLbx3QUtvBcXVmqE2Vhk89zTIpfQF9Ytx
-WYj8+QeioycIfmLyO6qd9SWmAg/CSNDx05SNx+AwhTPNBAZISPeFGGxgz34aTl7n
-KO1FEYQcnCz9nH+OcPypVDBb7xGMds03hV0nqpqUK97abN9VZrXhkcJlLsI7mu2t
-q22k0Fp/NW4iXmaDUqldChNEOBhmIPU0NI7R0xb9DoMIzsxKEFbACc+xpvi4FNDc
-OZFAMkjzzflYfG+mFuthqx4FSZiSuynj6C04TCvlRXDUql77cqX4WNnZ57TrmZd2
-sS1yd8rCdcMMCdpitonr62HKUJxczmlQCeehOLfFWv/MiLRh508vZSimv4uZlVDx
-2B2/ME2S8PWb5enUJUc2KcnHdlvK+KHNTc/F370q/tBh5aBy9lZyx1VqE5V8kLk5
-+23Uap/4Z4Rv8iMOFo2R6oK/W993wxmZrTIXyVm+VEcAh2mbZlsUCpVMVAKvS75a
-ghaJ7Pxs4zuBtO0GurRX/X01/ji1gJMskJz+LGOOJ1L7bkirG55fvsitYsfX/cpi
-C35YIxUwag72LDGV1xVc
-=SJgY
------END PGP SIGNATURE-----
-
---JEPEGU1NkiSEsJUQRe4aF0ptovQwhWtUN--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
