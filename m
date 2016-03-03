@@ -1,47 +1,57 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 2/8] IB/core: add a helper to check for READ WITH INVALIDATE support
-Date: Thu,  3 Mar 2016 19:03:06 +0100
-Message-ID: <1457028192-24965-3-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 5/8] IB/core: add a need_inval flag to struct ib_mr
+Date: Thu,  3 Mar 2016 19:03:09 +0100
+Message-ID: <1457028192-24965-6-git-send-email-hch@lst.de>
 References: <1457028192-24965-1-git-send-email-hch@lst.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457028192-24965-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1457028192-24965-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: swise@opengridcomputing.com, sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org, Steve Wise <swise@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- include/rdma/ib_verbs.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+From: Steve Wise <swise@chelsio.com>
 
+This is the first step toward moving MR invalidation decisions
+to the core.  It will be needed by the upcoming RW API.
+
+Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+---
+ drivers/infiniband/core/verbs.c | 2 ++
+ include/rdma/ib_verbs.h         | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b099760..69689866 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1353,6 +1353,7 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
++		mr->need_inval = false;
+ 	}
+ 
+ 	return mr;
+@@ -1399,6 +1400,7 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
++		mr->need_inval = false;
+ 	}
+ 
+ 	return mr;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1e21fb8..cdb9159 100644
+index 355f5b2..068d540 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2293,6 +2293,18 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
- 		device->add_gid && device->del_gid;
- }
- 
-+/*
-+ * Check if the device supports READ W/ INVALIDATE.
-+ */
-+static inline bool rdma_cap_read_inv(struct ib_device *dev, u32 port_num)
-+{
-+	/*
-+	 * iWarp drivers must support READ W/ INVALIDATE.  No other protocol
-+	 * has support for it yet.
-+	 */
-+	return rdma_protocol_iwarp(dev, port_num);
-+}
-+
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid,
- 		 struct ib_gid_attr *attr);
+@@ -1430,6 +1430,7 @@ struct ib_mr {
+ 	u64		   iova;
+ 	u32		   length;
+ 	unsigned int	   page_size;
++	bool		   need_inval;
+ 	union {
+ 		struct ib_uobject	*uobject;	/* user */
+ 		struct list_head	qp_entry;	/* FR */
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
