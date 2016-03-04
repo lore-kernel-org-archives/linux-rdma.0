@@ -1,40 +1,42 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 02/11] xprtrdma: Clean up physical_op_map()
-Date: Fri, 04 Mar 2016 11:27:35 -0500
-Message-ID: <20160304162735.13590.96884.stgit@oracle120-ib.cthon.org>
-References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
+Date: Fri, 4 Mar 2016 17:54:26 +0100
+Message-ID: <20160304165426.GA29122@lst.de>
+References: <1456565984-28998-1-git-send-email-hch@lst.de> <1456565984-28998-2-git-send-email-hch@lst.de> <56D2D731.5060904@dev.mellanox.co.il> <56D3F1EA.9090800@mellanox.com> <20160303083822.GB13828@lst.de> <56D7FE93.9020503@dev.mellanox.co.il> <56D865AF.5000507@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160304162447.13590.9524.stgit-HOT7RYQ5zl57mBIHr/i2/HG1qET/BF4J@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56D865AF.5000507-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-physical_op_unmap{_sync} don't use mr_nsegs, so don't bother to set
-it in physical_op_map.
+On Thu, Mar 03, 2016 at 11:26:23AM -0500, Doug Ledford wrote:
+> I took the later version of the patch, but I had to fix it up due to
+> conflicts with both the rereg_me patchset and the mmkey cleanup
+> patchset.  Please double check this in the mlx5 branch of my github repo
+> to make sure it's all good.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/physical_ops.c |    1 -
- 1 file changed, 1 deletion(-)
+Looks like we'll need the one liner below to get the manually applied patch
+to compile, but otherwise it looks fine to me.
 
-diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
-index dbb302e..481b9b6 100644
---- a/net/sunrpc/xprtrdma/physical_ops.c
-+++ b/net/sunrpc/xprtrdma/physical_ops.c
-@@ -68,7 +68,6 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	rpcrdma_map_one(ia->ri_device, seg, rpcrdma_data_dir(writing));
- 	seg->mr_rkey = ia->ri_dma_mr->rkey;
- 	seg->mr_base = seg->mr_dma;
--	seg->mr_nsegs = 1;
- 	return 1;
- }
+
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index f1464b8..4d5bff1 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1201,7 +1201,7 @@ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
  
-
+ 	mlx5_ib_init_umr_context(&umr_context);
+ 
+-	umrwr.wr.wr_cqe = &umr_context.cqe
++	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
+ 
+ 	down(&umrc->sem);
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
