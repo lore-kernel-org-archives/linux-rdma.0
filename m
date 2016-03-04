@@ -1,72 +1,134 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 2/4] infiniband: hns: add Hisilicon RoCE support(binding)
-Date: Fri, 4 Mar 2016 16:51:30 +0300
-Message-ID: <56D992E2.3060504@cogentembedded.com>
-References: <1457080877-13456-1-git-send-email-xavier.huwei@huawei.com>
- <1457080877-13456-3-git-send-email-xavier.huwei@huawei.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 01/10] net/core: Add support for configuring VF
+ GUIDs
+Date: Fri, 4 Mar 2016 09:35:41 -0500
+Message-ID: <56D99D3D.4000606@redhat.com>
+References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
+ <1456851143-138332-2-git-send-email-eli@mellanox.com>
+ <20160301173751.GA25176@obsidianresearch.com>
+ <20160301174951.GA19366@x-vnc01.mtx.labs.mlnx>
+ <20160301182516.GA12495@obsidianresearch.com>
+ <CAJ3xEMgrAUCj7PS6fegmuSUsjMruH3gzSHZmuzAX+ZbHZOpL9w@mail.gmail.com>
+ <56D719E3.2000206@redhat.com>
+ <CAJ3xEMh5vJAZVO03=rRVCvqqXzXvah3idrMtMQfFP-wBxR7R_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="LGm3xcXRHMHrJStIWFcQiNo14CM4LFoeS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457080877-13456-3-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAJ3xEMh5vJAZVO03=rRVCvqqXzXvah3idrMtMQfFP-wBxR7R_Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--LGm3xcXRHMHrJStIWFcQiNo14CM4LFoeS
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 3/4/2016 11:41 AM, Wei Hu(Xavier) wrote:
+On 03/02/2016 01:40 PM, Or Gerlitz wrote:
+> On Wed, Mar 2, 2016 at 6:50 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
+e:
+>=20
+>> Exactly *what* provisioning system tries to set the VF_MAC on an IPoIB=
 
-> This submit add binding file and dts file.
->
-> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->   .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
->   1 file changed, 68 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
->
-> diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-> new file mode 100644
-> index 0000000..8004641
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-> @@ -0,0 +1,68 @@
-> +HiSilicon RoCE DT description
-> +
-> +HiSilicon RoCE engine is a part of network subsystem.
-> +It works depending on other part of network wubsytem, such as, gmac and
-> +dsa fabric.
-> +
-> +Additional properties are described here:
-> +
-> +Required properties:
-> +- compatible: Should contain "hisilicon,hns-roce-v1".
-> +- reg: Physical base address of the roce driver and
-> +length of memory mapped region.
-> +- eth-handle: phandle, specifies a reference to a node
-> +representing a ethernet device.
-> +- dsaf-handle: phandle, specifies a reference to a node
-> +representing a dsaf device.
-> +- #address-cells: must be 2
-> +- #size-cells: must be 2
-> +Optional properties:
-> +- dma-coherent: Present if DMA operations are coherent.
-> +- interrupt-parent: the interrupt parent of this device.
-> +- interrupts: should contain 32 completion event irq,1 async event irq
-> +and 1 event overflow irq.
+>> interface and expects it to set the GUID of an underlying IB device?
+>=20
+> The provisioning system need not be fully aware in all their
+> components this is IB here, there's PCI linkage that tells these are
+> VFs of this PF and they have to be used for these VMs.
 
-    The "interrupt-names" prop is very desirable for so many interrupts.
+If I understand you correctly, then I don't think I agree.
 
-> +Example:
-> +	rocee@0xc4000000 {
+=46rom what I read, I gather you mean:
 
-    The node names should be generic and "0x" should be omitted, i.e. 
-"infiniband@c4000000".
+libvirt can be used to control guests today, and you can list a PCI
+device as "managed" and specify a MAC address (which has libvirt
+assuming the device is an ethernet device).  In that case, libvirt
+automatically detaches the device from the host (if attached), figures
+out if it's a PF or VF, sets the MAC address using either PF or VF MAC
+setting methods in ethtool, attaches the device to the guest, then
+starts the guest.  And you're saying we should put the MAC->GUID
+transformation into this code for IB so that libvirt can be blissfully
+ignorant and people can tell libvirt it's an ethernet device with a MAC
+and libvirt will treat it as such and life will be grand.
 
-MBR, Sergei
+Except it won't.  Along with setting the GUID, we also need to set the
+P_Keys allowed list (at least using the alias GUIDs method of mlx4 you
+do, so unless you add a patch to this series to switch mlx4 to this new
+method, that's a valid concern).  And nothing in libvirt can do that as
+long libvirt thinks this is ethernet because libvirt doesn't control the
+vlans on a guest's ethernet device, the guest does.  In that sense, IB
+and ethernet vary greatly.
 
+So, at *best*, the solution you are suggesting for existing setups is a
+partial solution that leaves things only half done.
+
+I don't see the justification to clutter up upstream code with a
+solution that isn't at least completely functional in its
+implementation.  If the solution is only partial, then I would rather
+leave it out and tell people to upgrade their libvirt to know about IB
+devices.
+
+This is actually further backed up, in my mind, by the fact that you can
+have RoCE/iWARP Ethernet devices and regular Ethernet devices, and
+libvirt needs to be taught the concept of an RDMA capable device,
+whether Ethernet or IB, so that when trying to select a host for
+migration it can make sure that the migration target has the same
+capabilities as the hardware you are migrating from.  So, to me, doing
+this right *requires* a libvirt upgrade, and there is no sense in this
+middle ground GUID from MAC hack that you are suggesting.
+
+>>> along with the fully IB aware solution where the
+>>> upper level does provision IB GUIDs.
+>=20
+>> There has never been upstream support for this MAC->GUID stuff you ref=
+er
+>> to.  I'm not convinced we should add it now versus just doing things
+>> right, period.
+>=20
+> We **are** doing things right with the new ndo.
+>=20
+> Using the small MAC->GUID addition, people could be using non-modified
+> (or almost non-modified) provisioning systems that assign SRIOV VMs
+> with a MACs --- just use these patches on their hosts and get DHCP
+> server supplying IP addresses based on the derived GUIDs (this is
+> supported today).
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--LGm3xcXRHMHrJStIWFcQiNo14CM4LFoeS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJW2Z0+AAoJELgmozMOVy/dHEEP/34tlwk6k4Hj5nf0HdzRZYso
+y4lV+qcTqZP7+qF8uloLpI03FOs2Ezwgk7UG+qbUcMd5fmPes7BmlTyyEnmwCyWd
+wd6E2jVyXp2x37Iujo/Hwt/Xh7ii3TRQ/nFsZBOiwPFAG3lkcNmLJY4DPgM+DNBv
+MPj0qEShdxmRBx6TfoZtNXYmXSjUUV+HXnCNWa9xfVRa3XiHV+sB/3OwR1eXuqVm
+MVciC5LVp+3/4Oit38+eZ25nn9pSlCxOkWIljZ5HXKTgqsv4JKUpknmooDAtU3/3
+4kvCMS49EcchFy8UoxXm8RLdq8fE0HTSnkCAYQ7W0sNUPUw/nXc1hNc5ga4wo5Jr
+Dm+xm6wZYl6Qi7j0265bTAPrTaJgBlI4bA/qSGKTDgRRCsUJLUijkJEtaoOyCjzE
+7QN2P9gHgP48sZj0JNn5ABuU870smaD7nQlGPBqNbuxsOw7Zzvc6N34wfOOaJrwv
+lY8utefCbxvKwDrmkuVuU7J0DAIX2YvG5nnrPLOlofXHFs8bJ48ZMThJTOK6Lbo3
+oSoU8mW5xPALtehtV92SyU6WjMygYddXUtxxGnaxQOVnTHsYj+eQgc7Do4megmCm
+4I1nzpAR7KFfl2gC472PO7wZsGjiGFb9abS6teshQy16gl+lMM4kg8UuK9yQBCNi
+uVQsGvkeDc5MOF76r9Q9
+=0TJE
+-----END PGP SIGNATURE-----
+
+--LGm3xcXRHMHrJStIWFcQiNo14CM4LFoeS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
