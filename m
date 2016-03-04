@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 03/11] xprtrdma: Clean up dprintk format string
- containing a newline
-Date: Fri, 04 Mar 2016 11:27:43 -0500
-Message-ID: <20160304162743.13590.23268.stgit@oracle120-ib.cthon.org>
+Subject: [PATCH v3 02/11] xprtrdma: Clean up physical_op_map()
+Date: Fri, 04 Mar 2016 11:27:35 -0500
+Message-ID: <20160304162735.13590.96884.stgit@oracle120-ib.cthon.org>
 References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,28 +13,26 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+physical_op_unmap{_sync} don't use mr_nsegs, so don't bother to set
+it in physical_op_map.
+
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/physical_ops.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 0f28f2d..e9dfd6a 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -809,10 +809,8 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 	 */
- 	list_del_init(&rqst->rq_list);
- 	spin_unlock_bh(&xprt->transport_lock);
--	dprintk("RPC:       %s: reply 0x%p completes request 0x%p\n"
--		"                   RPC request 0x%p xid 0x%08x\n",
--			__func__, rep, req, rqst,
--			be32_to_cpu(headerp->rm_xid));
-+	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
-+		__func__, rep, req, be32_to_cpu(headerp->rm_xid));
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index dbb302e..481b9b6 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -68,7 +68,6 @@ physical_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	rpcrdma_map_one(ia->ri_device, seg, rpcrdma_data_dir(writing));
+ 	seg->mr_rkey = ia->ri_dma_mr->rkey;
+ 	seg->mr_base = seg->mr_dma;
+-	seg->mr_nsegs = 1;
+ 	return 1;
+ }
  
- 	/* from here on, the reply is no longer an orphan */
- 	req->rl_reply = rep;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
