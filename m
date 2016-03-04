@@ -1,60 +1,66 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Convert UMR CQ to new CQ API
-Date: Fri, 4 Mar 2016 11:56:58 -0500
-Message-ID: <56D9BE5A.8040305@redhat.com>
-References: <1456565984-28998-1-git-send-email-hch@lst.de>
- <1456565984-28998-2-git-send-email-hch@lst.de>
- <56D2D731.5060904@dev.mellanox.co.il> <56D3F1EA.9090800@mellanox.com>
- <20160303083822.GB13828@lst.de> <56D7FE93.9020503@dev.mellanox.co.il>
- <56D865AF.5000507@redhat.com> <20160304165426.GA29122@lst.de>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 4 Mar 2016 12:04:46 -0500
+Message-ID: <56D9C02E.8060206@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="rasobBVksxEwBqH67E7WSpFoBuL9PgDnx"
+ boundary="xoU5W944E23cio0EmiGfLvfvPIC0qI9dI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160304165426.GA29122-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---rasobBVksxEwBqH67E7WSpFoBuL9PgDnx
-Content-Type: text/plain; charset=windows-1252
+--xoU5W944E23cio0EmiGfLvfvPIC0qI9dI
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 03/04/2016 11:54 AM, Christoph Hellwig wrote:
-> On Thu, Mar 03, 2016 at 11:26:23AM -0500, Doug Ledford wrote:
->> I took the later version of the patch, but I had to fix it up due to
->> conflicts with both the rereg_me patchset and the mmkey cleanup
->> patchset.  Please double check this in the mlx5 branch of my github re=
-po
->> to make sure it's all good.
->=20
-> Looks like we'll need the one liner below to get the manually applied p=
-atch
-> to compile, but otherwise it looks fine to me.
->=20
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/ml=
-x5/mr.c
-> index f1464b8..4d5bff1 100644
-> --- a/drivers/infiniband/hw/mlx5/mr.c
-> +++ b/drivers/infiniband/hw/mlx5/mr.c
-> @@ -1201,7 +1201,7 @@ static int unreg_umr(struct mlx5_ib_dev *dev, str=
-uct mlx5_ib_mr *mr)
-> =20
->  	mlx5_ib_init_umr_context(&umr_context);
-> =20
-> -	umrwr.wr.wr_cqe =3D &umr_context.cqe
-> +	umrwr.wr.wr_cqe =3D &umr_context.cqe;
->  	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
-> =20
->  	down(&umrc->sem);
->=20
+Hi Linus,
 
-Missing a ;, fun times! ;-)
+I have four patches today.  I had previously thought I had submitted two
+of them last week, but they were accidentally skipped :-(.
 
+The following changes since commit c2bab619813a525d3f58b5ffbfcdc4edee27e4=
+97:
+
+  IB/mlx4: Add support for the port info class for RoCE ports
+(2016-02-17 10:07:20 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
+
+for you to fetch changes up to 11d8d645343efba0c975aefe7c2cf3b33c836c75:
+
+  IB/core: Use GRH when the path hop-limit > 0 (2016-03-03 10:52:58 -0500=
+)
+
+----------------------------------------------------------------
+Additional 4.5-rc6 fixes
+
+- One fix to an error path in the core
+- One fix for RoCE in the core
+- Two related fixes for the core/mlx5
+
+----------------------------------------------------------------
+Leon Romanovsky (1):
+      IB/core: Fix missed clean call in registration path
+
+Majd Dibbiny (2):
+      IB/mlx5: Avoid using user-index for SRQs
+      IB/{core, mlx5}: Fix input len in vendor part of create_qp/srq
+
+Or Gerlitz (1):
+      IB/core: Use GRH when the path hop-limit > 0
+
+ drivers/infiniband/core/device.c     |  1 +
+ drivers/infiniband/core/sa_query.c   |  2 +-
+ drivers/infiniband/core/uverbs_cmd.c |  9 +++++---
+ drivers/infiniband/hw/mlx5/srq.c     | 41
++++++++++++++++++++-----------------
+ 4 files changed, 30 insertions(+), 23 deletions(-)
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -62,7 +68,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---rasobBVksxEwBqH67E7WSpFoBuL9PgDnx
+--xoU5W944E23cio0EmiGfLvfvPIC0qI9dI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -71,22 +77,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJW2b5aAAoJELgmozMOVy/dPnEP/jrN32OcFL4C5uK32oK0z8+j
-FLBcy7sa4R8aZYvzEjAbbmgCKWDLG7lumR7RyTTf63k+0gDJC78AMqbAVNeeJc/9
-YRf8n2XnOZg7FfwoHbOZHR2u6+DO6QpxIwGsa0gOfoJ+TeKHue0XYAS2WvkHL9O+
-Evndna4wY6Mf2hiKa772AgCMtyJ9cjug+NusXNzDkkIPVgYfmTibw/XQvygNjqks
-ZAGXbaVJkO9L85zi2e3crgVHq9fhSRDISrQhNlWJTh3MIsQ3E96oMgp1m4wGboaI
-u4EcLV0AWDsns10000SNrMNEFI3madOXSNkXK/4No2StJhupxc/sfi4nD7AWC9ze
-tjf1jdZe+Fd1pKlhqXsY49YzsKE8YMaNq4zqCmj4agkn3tgCo2wS8PGWtC7R4jBt
-cX1B5asZD21wFeIpRim1RCvuGKNIrKa72q6VthvBvqVWEo9QN89irDGxK/0OS/gl
-yrg995jnE1uWdPoJH2IymnR+EONXNaMRyTgVb9bTJx6HTcFFT+A/DuFaZ6MQCi+3
-mG1PNu2vsy6WTUJvYwQfuFmDWkDJzc6TPqGYfmDjo14bvuqY+57ANJaYnPla99D9
-ebYO8kms0RrVWqaiXuzAreT0661aNgZgYptIgCA8Oio7Kqi+V4UhxTunlP0YyNFG
-TzMDPvGxb6pwgdFTqKJt
-=kAfd
+iQIcBAEBCAAGBQJW2cAuAAoJELgmozMOVy/dx7UP/1WOQN9slK496gTdXYzzN7hZ
+Nsd+qqknqBt2HpZHMMcRCJPQsjfKourbL5Hb3byDM9g0jijjxeCF5bvGR4QbJijX
+ljdPSswM3WTYnofZjL+r4DkXegfivxJuoHsfBw5Iqojx2cxgQMivide612rTNDOZ
+W9TSTB24E3IAujl12dy4ZWWo/qwd+sqxU/qa9BFDBw572QHYdzxpDuF9jdulOe01
+YiqdfnbnD0Gt5+rN2OMxT4tmbW4g4MfIKGikqAlKSiDOOlycSBfVnlWg1PJjaNhF
+T8GMjTUX3zMdPGuoKQU9cOi7ROLS0+NpOWg9FzwjooD/7nrqAuS/7cdu0mtwuorm
+v+kSEN7eZNXYLFVTIT6pdEeKKHfAQgLvx4aJo9x1CTydfqkegYfBDbQTPUIzsAL6
+Hn5ZvtJZqOxx2Qc8WwcWNKTZpdJdX1Olm2hK/drFWoEEl+AeTflC6Q3mMmXXHQ1/
+4XBdz04U8EV0uOj9ed8/1ItFXsqf7lz0or3NGV67XZYmHgR9Tn9HAKOI3F2B12hW
+7nwH99J5AEHc46n8+YPbjH36B/17xz1r83axqR8zamdgiS3bnglcrDMH7EjAlDxd
+CCMGfUTKkcrc1JBYYVvWnOmwcTKMNuULU9jJuyM5t2thFwikL8yCqhUw6f0ji266
+X9ss3lqYj0rIqDhZicmQ
+=TkNe
 -----END PGP SIGNATURE-----
 
---rasobBVksxEwBqH67E7WSpFoBuL9PgDnx--
+--xoU5W944E23cio0EmiGfLvfvPIC0qI9dI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
