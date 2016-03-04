@@ -1,44 +1,161 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 06/11] rpcrdma: Add RPCRDMA_HDRLEN_ERR
-Date: Fri, 04 Mar 2016 11:28:09 -0500
-Message-ID: <20160304162809.13590.25065.stgit@oracle120-ib.cthon.org>
+Subject: [PATCH v3 07/11] xprtrdma: Properly handle RDMA_ERROR replies
+Date: Fri, 04 Mar 2016 11:28:18 -0500
+Message-ID: <20160304162818.13590.94039.stgit@oracle120-ib.cthon.org>
 References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160304162447.13590.9524.stgit-HOT7RYQ5zl57mBIHr/i2/HG1qET/BF4J@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Error headers are shorter than either RDMA_MSG or RDMA_NOMSG.
-
-Since HDRLEN_MIN is already used in several other places that would
-be annoying to change, add RPCRDMA_HDRLEN_ERR for the one or two
-spots where the shorter length is needed.
+These are shorter than RPCRDMA_HDRLEN_MIN, and they need to
+complete the waiting RPC.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sunrpc/rpc_rdma.h |   11 +++++---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   51 +++++++++++++++++++++++++++++++++------
+ 2 files changed, 49 insertions(+), 13 deletions(-)
 
 diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index f33c5a4..8c6d23c 100644
+index 8c6d23c..3b1ff38 100644
 --- a/include/linux/sunrpc/rpc_rdma.h
 +++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -102,6 +102,7 @@ struct rpcrdma_msg {
-  * Smallest RPC/RDMA header: rm_xid through rm_type, then rm_nochunks
-  */
- #define RPCRDMA_HDRLEN_MIN	(sizeof(__be32) * 7)
-+#define RPCRDMA_HDRLEN_ERR	(sizeof(__be32) * 5)
+@@ -93,6 +93,12 @@ struct rpcrdma_msg {
+ 			__be32 rm_pempty[3];	/* 3 empty chunk lists */
+ 		} rm_padded;
  
- enum rpcrdma_errcode {
- 	ERR_VERS = 1,
++		struct {
++			__be32 rm_err;
++			__be32 rm_vers_low;
++			__be32 rm_vers_high;
++		} rm_error;
++
+ 		__be32 rm_chunks[0];	/* read, write and reply chunks */
+ 
+ 	} rm_body;
+@@ -109,11 +115,6 @@ enum rpcrdma_errcode {
+ 	ERR_CHUNK = 2
+ };
+ 
+-struct rpcrdma_err_vers {
+-	uint32_t rdma_vers_low;	/* Version range supported by peer */
+-	uint32_t rdma_vers_high;
+-};
+-
+ enum rpcrdma_proc {
+ 	RDMA_MSG = 0,		/* An RPC call or reply msg */
+ 	RDMA_NOMSG = 1,		/* An RPC call or reply msg - separate body */
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 0607391..35f8108 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -795,7 +795,7 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	struct rpcrdma_xprt *r_xprt = rep->rr_rxprt;
+ 	struct rpc_xprt *xprt = &r_xprt->rx_xprt;
+ 	__be32 *iptr;
+-	int rdmalen, status;
++	int rdmalen, status, rmerr;
+ 	unsigned long cwnd;
+ 	u32 credits;
+ 
+@@ -803,12 +803,10 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 
+ 	if (rep->rr_len == RPCRDMA_BAD_LEN)
+ 		goto out_badstatus;
+-	if (rep->rr_len < RPCRDMA_HDRLEN_MIN)
++	if (rep->rr_len < RPCRDMA_HDRLEN_ERR)
+ 		goto out_shortreply;
+ 
+ 	headerp = rdmab_to_msg(rep->rr_rdmabuf);
+-	if (headerp->rm_vers != rpcrdma_version)
+-		goto out_badversion;
+ #if defined(CONFIG_SUNRPC_BACKCHANNEL)
+ 	if (rpcrdma_is_bcall(headerp))
+ 		goto out_bcall;
+@@ -838,6 +836,9 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 	req->rl_reply = rep;
+ 	xprt->reestablish_timeout = 0;
+ 
++	if (headerp->rm_vers != rpcrdma_version)
++		goto out_badversion;
++
+ 	/* check for expected message types */
+ 	/* The order of some of these tests is important. */
+ 	switch (headerp->rm_type) {
+@@ -898,6 +899,9 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 		status = rdmalen;
+ 		break;
+ 
++	case rdma_error:
++		goto out_rdmaerr;
++
+ badheader:
+ 	default:
+ 		dprintk("%s: invalid rpcrdma reply header (type %d):"
+@@ -913,6 +917,7 @@ badheader:
+ 		break;
+ 	}
+ 
++out:
+ 	/* Invalidate and flush the data payloads before waking the
+ 	 * waiting application. This guarantees the memory region is
+ 	 * properly fenced from the server before the application
+@@ -955,13 +960,43 @@ out_bcall:
+ 	return;
+ #endif
+ 
+-out_shortreply:
+-	dprintk("RPC:       %s: short/invalid reply\n", __func__);
+-	goto repost;
+-
++/* If the incoming reply terminated a pending RPC, the next
++ * RPC call will post a replacement receive buffer as it is
++ * being marshaled.
++ */
+ out_badversion:
+ 	dprintk("RPC:       %s: invalid version %d\n",
+ 		__func__, be32_to_cpu(headerp->rm_vers));
++	status = -EIO;
++	r_xprt->rx_stats.bad_reply_count++;
++	goto out;
++
++out_rdmaerr:
++	rmerr = be32_to_cpu(headerp->rm_body.rm_error.rm_err);
++	switch (rmerr) {
++	case ERR_VERS:
++		pr_err("%s: server reports header version error (%u-%u)\n",
++		       __func__,
++		       be32_to_cpu(headerp->rm_body.rm_error.rm_vers_low),
++		       be32_to_cpu(headerp->rm_body.rm_error.rm_vers_high));
++		break;
++	case ERR_CHUNK:
++		pr_err("%s: server reports header decoding error\n",
++		       __func__);
++		break;
++	default:
++		pr_err("%s: server reports unknown error %d\n",
++		       __func__, rmerr);
++	}
++	status = -EREMOTEIO;
++	r_xprt->rx_stats.bad_reply_count++;
++	goto out;
++
++/* If no pending RPC transaction was matched, post a replacement
++ * receive buffer before returning.
++ */
++out_shortreply:
++	dprintk("RPC:       %s: short/invalid reply\n", __func__);
+ 	goto repost;
+ 
+ out_nomatch:
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
