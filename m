@@ -1,69 +1,102 @@
-From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH RESEND v3 5/6] staging/rdma/hfi1: adding per SDMA engine stats to hfistats
-Date: Thu, 3 Mar 2016 21:02:47 -0500
-Message-ID: <20160304020246.GA27588@phlsvsds.ph.intel.com>
-References: <1452555057-5155-1-git-send-email-jubin.john@intel.com> <1452555057-5155-6-git-send-email-jubin.john@intel.com> <56D5B567.4040706@redhat.com> <20160301202736.GA8501@phlsvsds.ph.intel.com> <56D85D51.40800@redhat.com>
+From: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 2/4] infiniband: hns: add Hisilicon RoCE support(binding)
+Date: Fri, 4 Mar 2016 16:41:15 +0800
+Message-ID: <1457080877-13456-3-git-send-email-xavier.huwei@huawei.com>
+References: <1457080877-13456-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56D85D51.40800-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1457080877-13456-1-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 03, 2016 at 10:50:41AM -0500, Doug Ledford wrote:
-> On 03/01/2016 03:27 PM, Jubin John wrote:
-> >>> diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-> >>> index 1d38be5..cb66bd0 100644
-> >>> --- a/drivers/staging/rdma/hfi1/sdma.c
-> >>> +++ b/drivers/staging/rdma/hfi1/sdma.c
-> >>> @@ -1061,7 +1061,6 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
-> >>>  		sde->desc_avail = sdma_descq_freecnt(sde);
-> >>>  		sde->sdma_shift = ilog2(descq_cnt);
-> >>>  		sde->sdma_mask = (1 << sde->sdma_shift) - 1;
-> >>> -		sde->descq_full_count = 0;
-> >>>  
-> >>>  		/* Create a mask for all 3 chip interrupt sources */
-> >>>  		sde->imask = (u64)1 << (0*TXE_NUM_SDMA_ENGINES + this_idx)
-> >>> @@ -1073,6 +1072,8 @@ int sdma_init(struct hfi1_devdata *dd, u8 port)
-> >>>  		/* Create a mask specifically for sdma_progress */
-> >>>  		sde->progress_mask =
-> >>>  			(u64)1 << (TXE_NUM_SDMA_ENGINES + this_idx);
-> >>> +		sde->int_mask =
-> >>> +			(u64)1 << (0 * TXE_NUM_SDMA_ENGINES + this_idx);
-> >>                                    ^^^^^^^^^^^^^^^^^^^^^^^^
-> >> Why is that there?
-> >>
-> > 
-> > Hi Doug,
-> > 
-> > The zero was intentionally added in an attempt to highlight that this
-> > was for the first interrupt source, like we do in other places above this
-> > where we have 1 * TXE_NUM_SDMA_ENGINES, 2 * TXE_NUM_SDMA_ENGINES etc.
-> > The interrupt sources are separated by the number of SDMA engines
-> > i.e TXE_NUM_SDMA_ENGINES. However, we agree that the code is not
-> > consistent throughout. Would you like us to do a cleanup of this code
-> > in a follow-on patch or rework this patch and resend the series?
-> > 
-> > Jubin
-> > 
-> 
-> Thanks, the code is confusing to read, so a cleanup would be nice.  Just
-> send me something I can squash into this patch is good enough.
+This submit add binding file and dts file.
 
-I have sent a cleanup patch to be squashed into this patch.
-https://patchwork.kernel.org/patch/8497581/
+Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
 
-Jubin
-> 
-> -- 
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
-> 
-> 
-
+diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+new file mode 100644
+index 0000000..8004641
+--- /dev/null
++++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+@@ -0,0 +1,68 @@
++HiSilicon RoCE DT description
++
++HiSilicon RoCE engine is a part of network subsystem.
++It works depending on other part of network wubsytem, such as, gmac and
++dsa fabric.
++
++Additional properties are described here:
++
++Required properties:
++- compatible: Should contain "hisilicon,hns-roce-v1".
++- reg: Physical base address of the roce driver and
++length of memory mapped region.
++- eth-handle: phandle, specifies a reference to a node
++representing a ethernet device.
++- dsaf-handle: phandle, specifies a reference to a node
++representing a dsaf device.
++- #address-cells: must be 2
++- #size-cells: must be 2
++Optional properties:
++- dma-coherent: Present if DMA operations are coherent.
++- interrupt-parent: the interrupt parent of this device.
++- interrupts: should contain 32 completion event irq,1 async event irq
++and 1 event overflow irq.
++Example:
++	rocee@0xc4000000 {
++			compatible = "hisilicon,hns-roce-v1";
++			reg = <0x0 0xc4000000 0x0 0x100000>;
++			dma-coherent;
++			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
++			dsaf-handle = <&soc0_dsa>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			interrupt-parent = <&mbigen_dsa>;
++			interrupts = <722 1>,
++					<723 1>,
++					<724 1>,
++					<725 1>,
++					<726 1>,
++					<727 1>,
++					<728 1>,
++					<729 1>,
++					<730 1>,
++					<731 1>,
++					<732 1>,
++					<733 1>,
++					<734 1>,
++					<735 1>,
++					<736 1>,
++					<737 1>,
++					<738 1>,
++					<739 1>,
++					<740 1>,
++					<741 1>,
++					<742 1>,
++					<743 1>,
++					<744 1>,
++					<745 1>,
++					<746 1>,
++					<747 1>,
++					<748 1>,
++					<749 1>,
++					<750 1>,
++					<751 1>,
++					<752 1>,
++					<753 1>,
++					<785 1>,
++					<754 4>;
++		};
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
