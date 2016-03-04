@@ -1,56 +1,43 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCH 3/4] infiniband: hns: add Hisilicon RoCE support(driver code)
-Date: Fri, 4 Mar 2016 15:07:19 +0530
-Message-ID: <CAG53R5WfQR1jJUOi1fjY=oEgsK_EAxkA9SiDPV_KHLHsmqg0BQ@mail.gmail.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband: hns: fix boolreturn.cocci warnings
+Date: Fri, 4 Mar 2016 20:10:57 +0800
+Message-ID: <20160304121056.GA3205@lkp-nhm1.intel.com>
+References: <201603042059.A0IVxKAt%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu(Xavier)" <xavier.huwei@huawei.com>
-Cc: Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, Or Gerlitz <ogerlitz@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1457080877-13456-5-git-send-email-xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 4, 2016 at 2:11 PM, Wei Hu(Xavier) <xavier.huwei@huawei.com> wrote:
-> +
-> +int hns_roce_register_device(struct hns_roce_dev *hr_dev)
-> +{
-> +       int ret;
-> +       struct hns_roce_ib_iboe *iboe = NULL;
-> +       struct ib_device *ib_dev = NULL;
-> +       struct device *dev = &hr_dev->pdev->dev;
-> +
-> +       iboe = &hr_dev->iboe;
-> +
-> +       ib_dev = &hr_dev->ib_dev;
-> +       strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
-> +
-> +       ib_dev->owner                   = THIS_MODULE;
-> +       ib_dev->node_type               = RDMA_NODE_IB_CA;
-> +       ib_dev->dma_device              = dev;
-> +
-> +       ib_dev->phys_port_cnt           = hr_dev->caps.num_ports;
-> +       ib_dev->local_dma_lkey          = hr_dev->caps.reserved_lkey;
-> +       ib_dev->num_comp_vectors        = hr_dev->caps.num_comp_vectors;
-> +       ib_dev->uverbs_abi_ver          = 1;
-> +       ib_dev->uverbs_cmd_mask         =
-> +               (1ULL << IB_USER_VERBS_CMD_GET_CONTEXT) |
-> +               (1ULL << IB_USER_VERBS_CMD_QUERY_DEVICE) |
-> +               (1ULL << IB_USER_VERBS_CMD_QUERY_PORT) |
-> +               (1ULL << IB_USER_VERBS_CMD_ALLOC_PD) |
-> +               (1ULL << IB_USER_VERBS_CMD_DEALLOC_PD) |
-> +               (1ULL << IB_USER_VERBS_CMD_REG_MR) |
-> +               (1ULL << IB_USER_VERBS_CMD_DEREG_MR) |
-> +               (1ULL << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
-> +               (1ULL << IB_USER_VERBS_CMD_CREATE_CQ) |
-> +               (1ULL << IB_USER_VERBS_CMD_DESTROY_CQ) |
-> +               (1ULL << IB_USER_VERBS_CMD_CREATE_QP) |
-> +               (1ULL << IB_USER_VERBS_CMD_MODIFY_QP) |
-> +               (1ULL << IB_USER_VERBS_CMD_QUERY_QP) |
-> +               (1ULL << IB_USER_VERBS_CMD_DESTROY_QP);
-> +
+drivers/infiniband/hw/hisilicon/hns/hns_roce_qp.c:906:9-10: WARNING: return of 0/1 in function 'hns_roce_wq_overflow' with return type bool
 
-Since SRQ is not supported in this driver version, can you keep
-remaining code base also to not bother about SRQ specifically
-poll_cq_one, modify_qp, destroy_qp etc?
-SRQ support can come as complete additional patch along with cmd_mask,
-callbacks and rest of the code.
+ Return statements in functions returning bool should use
+ true/false instead of 1/0.
+Generated by: scripts/coccinelle/misc/boolreturn.cocci
+
+CC: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+
+ hns_roce_qp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/infiniband/hw/hisilicon/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hisilicon/hns/hns_roce_qp.c
+@@ -903,7 +903,7 @@ bool hns_roce_wq_overflow(struct hns_roc
+ 
+ 	cur = hr_wq->head - hr_wq->tail;
+ 	if (likely(cur + nreq < hr_wq->max_post))
+-		return 0;
++		return false;
+ 
+ 	hr_cq = to_hr_cq(ib_cq);
+ 	spin_lock(&hr_cq->lock);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
