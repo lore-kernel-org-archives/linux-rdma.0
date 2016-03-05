@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/17] IB/hfi1: Remove ASIC block clear
-Date: Sat, 05 Mar 2016 08:49:39 -0800
-Message-ID: <20160305164939.32025.13636.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 05/17] IB/hfi1: Add shared ASIC structure
+Date: Sat, 05 Mar 2016 08:49:45 -0800
+Message-ID: <20160305164944.32025.80048.stgit@scvm10.sc.intel.com>
 References: <20160305164725.32025.99686.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,145 +15,146 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The ASIC block is shared between two HFIs. Individual devices
-should not initialize registers there. Retain the power-on values.
-Individual users set registers as needed with one exception.
-Clear sbus fast mode on "slow" calls.
+Create a shared structure to exist between devices that share the
+same ASIC.
 
 Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c     |   88 ---------------------------------
- drivers/infiniband/hw/hfi1/firmware.c |    3 +
- 2 files changed, 3 insertions(+), 88 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   28 +++++++++++++++++++++++++---
+ drivers/infiniband/hw/hfi1/hfi.h  |    9 +++++++++
+ drivers/infiniband/hw/hfi1/init.c |   20 ++++++++++++++++++++
+ 3 files changed, 54 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 263c882..0874287 100644
+index 0874287..686cadf 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -12934,91 +12934,6 @@ static void reset_cce_csrs(struct hfi1_devdata *dd)
- 		write_csr(dd, CCE_INT_COUNTER_ARRAY32 + (8 * i), 0);
+@@ -13800,15 +13800,20 @@ void hfi1_start_cleanup(struct hfi1_devdata *dd)
+ 	((dev)->base_guid & ~(1ULL << GUID_HFI_INDEX_SHIFT))
+ 
+ /*
++ * Information can be shared between the two HFIs on the same ASIC
++ * in the same OS.  This function finds the peer device and sets
++ * up a shared structure.
++ *
+  * Certain chip functions need to be initialized only once per asic
+  * instead of per-device. This function finds the peer device and
+  * checks whether that chip initialization needs to be done by this
+  * device.
+  */
+-static void asic_should_init(struct hfi1_devdata *dd)
++static int init_asic_data(struct hfi1_devdata *dd)
+ {
+ 	unsigned long flags;
+ 	struct hfi1_devdata *tmp, *peer = NULL;
++	int ret = 0;
+ 
+ 	spin_lock_irqsave(&hfi1_devs_lock, flags);
+ 	/* Find our peer device */
+@@ -13826,7 +13831,22 @@ static void asic_should_init(struct hfi1_devdata *dd)
+ 	 */
+ 	if (!peer || !(peer->flags & HFI1_DO_INIT_ASIC))
+ 		dd->flags |= HFI1_DO_INIT_ASIC;
++
++	if (peer) {
++		dd->asic_data = peer->asic_data;
++	} else {
++		dd->asic_data = kzalloc(sizeof(*dd->asic_data), GFP_KERNEL);
++		if (!dd->asic_data) {
++			ret = -ENOMEM;
++			goto done;
++		}
++		mutex_init(&dd->asic_data->asic_resource_mutex);
++	}
++	dd->asic_data->dds[dd->hfi1_id] = dd; /* self back-pointer */
++
++done:
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
++	return ret;
  }
  
--/* set ASIC CSRs to chip reset defaults */
--static void reset_asic_csrs(struct hfi1_devdata *dd)
--{
--	int i;
--
--	/*
--	 * If the HFIs are shared between separate nodes or VMs,
--	 * then more will need to be done here.  One idea is a module
--	 * parameter that returns early, letting the first power-on or
--	 * a known first load do the reset and blocking all others.
--	 */
--
--	if (!(dd->flags & HFI1_DO_INIT_ASIC))
--		return;
--
--	if (dd->icode != ICODE_FPGA_EMULATION) {
--		/* emulation does not have an SBus - leave these alone */
--		/*
--		 * All writes to ASIC_CFG_SBUS_REQUEST do something.
--		 * Notes:
--		 * o The reset is not zero if aimed at the core.  See the
--		 *   SBus documentation for details.
--		 * o If the SBus firmware has been updated (e.g. by the BIOS),
--		 *   will the reset revert that?
--		 */
--		/* ASIC_CFG_SBUS_REQUEST leave alone */
--		write_csr(dd, ASIC_CFG_SBUS_EXECUTE, 0);
--	}
--	/* ASIC_SBUS_RESULT read-only */
--	write_csr(dd, ASIC_STS_SBUS_COUNTERS, 0);
--	for (i = 0; i < ASIC_NUM_SCRATCH; i++)
--		write_csr(dd, ASIC_CFG_SCRATCH + (8 * i), 0);
--	write_csr(dd, ASIC_CFG_MUTEX, 0);	/* this will clear it */
--
--	/* We might want to retain this state across FLR if we ever use it */
--	write_csr(dd, ASIC_CFG_DRV_STR, 0);
--
--	/* ASIC_CFG_THERM_POLL_EN leave alone */
--	/* ASIC_STS_THERM read-only */
--	/* ASIC_CFG_RESET leave alone */
--
--	write_csr(dd, ASIC_PCIE_SD_HOST_CMD, 0);
--	/* ASIC_PCIE_SD_HOST_STATUS read-only */
--	write_csr(dd, ASIC_PCIE_SD_INTRPT_DATA_CODE, 0);
--	write_csr(dd, ASIC_PCIE_SD_INTRPT_ENABLE, 0);
--	/* ASIC_PCIE_SD_INTRPT_PROGRESS read-only */
--	write_csr(dd, ASIC_PCIE_SD_INTRPT_STATUS, ~0ull); /* clear */
--	/* ASIC_HFI0_PCIE_SD_INTRPT_RSPD_DATA read-only */
--	/* ASIC_HFI1_PCIE_SD_INTRPT_RSPD_DATA read-only */
--	for (i = 0; i < 16; i++)
--		write_csr(dd, ASIC_PCIE_SD_INTRPT_LIST + (8 * i), 0);
--
--	/* ASIC_GPIO_IN read-only */
--	write_csr(dd, ASIC_GPIO_OE, 0);
--	write_csr(dd, ASIC_GPIO_INVERT, 0);
--	write_csr(dd, ASIC_GPIO_OUT, 0);
--	write_csr(dd, ASIC_GPIO_MASK, 0);
--	/* ASIC_GPIO_STATUS read-only */
--	write_csr(dd, ASIC_GPIO_CLEAR, ~0ull);
--	/* ASIC_GPIO_FORCE leave alone */
--
--	/* ASIC_QSFP1_IN read-only */
--	write_csr(dd, ASIC_QSFP1_OE, 0);
--	write_csr(dd, ASIC_QSFP1_INVERT, 0);
--	write_csr(dd, ASIC_QSFP1_OUT, 0);
--	write_csr(dd, ASIC_QSFP1_MASK, 0);
--	/* ASIC_QSFP1_STATUS read-only */
--	write_csr(dd, ASIC_QSFP1_CLEAR, ~0ull);
--	/* ASIC_QSFP1_FORCE leave alone */
--
--	/* ASIC_QSFP2_IN read-only */
--	write_csr(dd, ASIC_QSFP2_OE, 0);
--	write_csr(dd, ASIC_QSFP2_INVERT, 0);
--	write_csr(dd, ASIC_QSFP2_OUT, 0);
--	write_csr(dd, ASIC_QSFP2_MASK, 0);
--	/* ASIC_QSFP2_STATUS read-only */
--	write_csr(dd, ASIC_QSFP2_CLEAR, ~0ull);
--	/* ASIC_QSFP2_FORCE leave alone */
--
--	write_csr(dd, ASIC_EEP_CTL_STAT, ASIC_EEP_CTL_STAT_RESETCSR);
--	/* this also writes a NOP command, clearing paging mode */
--	write_csr(dd, ASIC_EEP_ADDR_CMD, 0);
--	write_csr(dd, ASIC_EEP_DATA, 0);
--}
--
- /* set MISC CSRs to chip reset defaults */
- static void reset_misc_csrs(struct hfi1_devdata *dd)
- {
-@@ -13428,14 +13343,11 @@ static void init_chip(struct hfi1_devdata *dd)
- 			hfi1_pcie_flr(dd);
- 			restore_pci_variables(dd);
- 		}
--
--		reset_asic_csrs(dd);
- 	} else {
- 		dd_dev_info(dd, "Resetting CSRs with writes\n");
- 		reset_cce_csrs(dd);
- 		reset_txe_csrs(dd);
- 		reset_rxe_csrs(dd);
--		reset_asic_csrs(dd);
- 		reset_misc_csrs(dd);
- 	}
- 	/* clear the DC reset */
-diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
-index d5befd1..ca4e489 100644
---- a/drivers/infiniband/hw/hfi1/firmware.c
-+++ b/drivers/infiniband/hw/hfi1/firmware.c
-@@ -1170,6 +1170,9 @@ int sbus_request_slow(struct hfi1_devdata *dd,
- {
- 	u64 reg, count = 0;
+ /*
+@@ -14076,8 +14096,10 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
+ 	/* needs to be done before we look for the peer device */
+ 	read_guid(dd);
  
-+	/* make sure fast mode is clear */
-+	clear_sbus_fast_mode(dd);
+-	/* should this device init the ASIC block? */
+-	asic_should_init(dd);
++	/* set up shared ASIC data with peer device */
++	ret = init_asic_data(dd);
++	if (ret)
++		goto bail_cleanup;
+ 
+ 	/* obtain chip sizes, reset chip CSRs */
+ 	init_chip(dd);
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 9215482..e71a1c2 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -805,6 +805,12 @@ struct hfi1_temp {
+ 	u8 triggers;      /* temperature triggers */
+ };
+ 
++/* common data between shared ASIC HFIs */
++struct hfi1_asic_data {
++	struct hfi1_devdata *dds[2];	/* back pointers */
++	struct mutex asic_resource_mutex;
++};
 +
- 	sbus_request(dd, receiver_addr, data_addr, command, data_in);
- 	write_csr(dd, ASIC_CFG_SBUS_EXECUTE,
- 		  ASIC_CFG_SBUS_EXECUTE_EXECUTE_SMASK);
+ /* device data struct now contains only "general per-device" info.
+  * fields related to a physical IB port are in a hfi1_pportdata struct.
+  */
+@@ -880,6 +886,9 @@ struct hfi1_devdata {
+ 	wait_queue_head_t		  sdma_unfreeze_wq;
+ 	atomic_t			  sdma_unfreeze_count;
+ 
++	/* common data between shared ASIC HFIs in this OS */
++	struct hfi1_asic_data *asic_data;
++
+ 	/* hfi1_pportdata, points to array of (physical) port-specific
+ 	 * data structs, indexed by pidx (0..n-1)
+ 	 */
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 37b3ce8..260a8e1 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -974,6 +974,25 @@ void hfi1_free_ctxtdata(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 	kfree(rcd);
+ }
+ 
++/*
++ * Release our hold on the shared asic data.  If we are the last one,
++ * free the structure.  Must be holding hfi1_devs_lock.
++ */
++static void release_asic_data(struct hfi1_devdata *dd)
++{
++	int other;
++
++	if (!dd->asic_data)
++		return;
++	dd->asic_data->dds[dd->hfi1_id] = NULL;
++	other = dd->hfi1_id ? 0 : 1;
++	if (!dd->asic_data->dds[other]) {
++		/* we are the last holder, free it */
++		kfree(dd->asic_data);
++	}
++	dd->asic_data = NULL;
++}
++
+ void hfi1_free_devdata(struct hfi1_devdata *dd)
+ {
+ 	unsigned long flags;
+@@ -981,6 +1000,7 @@ void hfi1_free_devdata(struct hfi1_devdata *dd)
+ 	spin_lock_irqsave(&hfi1_devs_lock, flags);
+ 	idr_remove(&hfi1_unit_table, dd->unit);
+ 	list_del(&dd->list);
++	release_asic_data(dd);
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
+ 	free_platform_config(dd);
+ 	rcu_barrier(); /* wait for rcu callbacks to complete */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
