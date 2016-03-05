@@ -1,76 +1,42 @@
-From: Parav Pandit <pandit.parav@gmail.com>
+From: Tejun Heo <tj@kernel.org>
 Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
-Date: Sat, 5 Mar 2016 16:45:09 +0530
-Message-ID: <CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
+Date: Sat, 5 Mar 2016 07:52:15 -0500
+Message-ID: <20160305125215.GC3567@htj.duckdns.org>
 References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
-	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
-	<20160302173949.GG29826@mtj.duckdns.org>
-	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
-	<CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
+ <1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
+ <20160302173949.GG29826@mtj.duckdns.org>
+ <CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
+ <CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
+ <CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
 Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
+To: Parav Pandit <pandit.parav@gmail.com>
 Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, raindel@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+Hello, Parav.
 
-I would like to submit patch v10.
-Can you please confirm that you are ok (or not) with the current
-design and below changes should be good enough?
-I am ok if you directly want to jump to review v10 too.
+On Sat, Mar 05, 2016 at 04:45:09PM +0530, Parav Pandit wrote:
+> Design that remains same from v6 to v10.
+>   * spin lock is still fine grained at cgroup level instead of one
+> global shared lock among all cgroups.
+>      In future it can be optimized further to do per cpu or using
+> single lock if required.
+>   * file type enums are still present for max and current, as
+> read/write call to those files is already taken care by common
+> functions with required if/else.
+>   * Resource limit setting is as it is, because number of devices are
+> in range of 1 to 4 count in most use cases (as explained in
+> documentation), and its not hot path.
 
-Changes from v9:
-  * Included documentation of resources in v2.txt and v1.txt
-  * Fixed issue of race condition of process migration during charging stage.
-  * Fixed comments and code to adhere to CodingStyle.
-  * Simplified and removed support to charge/uncharge multiple resource.
-  * Fixed removed refcnt with usage_num that tracks how many
-    resources are unused to trigger freeing the object.
-  * Removed inline for query_limit and other function as its not necessary.
+1 and 2 are not okay.  3 is fine but resource [un]charging is not hot
+path?
 
-Design that remains same from v6 to v10.
-  * spin lock is still fine grained at cgroup level instead of one
-global shared lock among all cgroups.
-     In future it can be optimized further to do per cpu or using
-single lock if required.
-  * file type enums are still present for max and current, as
-read/write call to those files is already taken care by common
-functions with required if/else.
-  * Resource limit setting is as it is, because number of devices are
-in range of 1 to 4 count in most use cases (as explained in
-documentation), and its not hot path.
+Thanks.
 
-Parav
-
-
-
-On Thu, Mar 3, 2016 at 8:19 AM, Parav Pandit <pandit.parav@gmail.com> wrote:
-> Hi Tejun, Haggai,
->
-> On Thu, Mar 3, 2016 at 1:28 AM, Parav Pandit <pandit.parav@gmail.com> wrote:
->>>> +     rpool->refcnt--;
->>>> +     if (rpool->refcnt == 0 && rpool->num_max_cnt == pool_info->table_len) {
->>>
->>> If the caller charges 2 and then uncharges 1 two times, the refcnt
->>> underflows?  Why not just track how many usages are zero?
->>>
->> This is certainly must fix bug. Changed refcnt to usage_sum and changed to do
->> usage_sum -= num during uncharging
->> and
->> usage_sum += num during charing.
->
-> This is not sufficient as css_get() and put are done only once per
-> call, which leads to similar problem as of refcnt.
-> As I think more, I realised that this particular test is missing that
-> resulted in this related bug, I realize that we don't have use case to
-> have "num" field from the IB stack side.
-> For bulk free IB stack will have to keep track of different or same
-> rdmacg returned values to call uncharge() with right number of
-> resources, all of that complexity just doesn't make sense and not
-> required.
-> So as first step to further simplify this, I am removing "num" input
-> field from charge and uncharge API.
+-- 
+tejun
