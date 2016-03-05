@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/17] IB/hfi1: Move constant to the right in bitwise
- operations
-Date: Sat, 05 Mar 2016 08:49:29 -0800
-Message-ID: <20160305164929.32025.47918.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 04/17] IB/hfi1: Remove ASIC block clear
+Date: Sat, 05 Mar 2016 08:49:39 -0800
+Message-ID: <20160305164939.32025.13636.stgit@scvm10.sc.intel.com>
 References: <20160305164725.32025.99686.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,82 +10,150 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160305164725.32025.99686.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Implement changes recommended by the Coccinelle tool to move constant to
-the right in bitwise operations
+The ASIC block is shared between two HFIs. Individual devices
+should not initialize registers there. Retain the power-on values.
+Individual users set registers as needed with one exception.
+Clear sbus fast mode on "slow" calls.
 
--bash-4.2$ make coccicheck MODE=report M=drivers/infiniband/hw/hfi1/
-
-drivers/infiniband/hw/hfi1/pio.c:765:4-16: Move constant to right.
-drivers/infiniband/hw/hfi1/rc.c:2503:19-29: Move constant to right.
-drivers/infiniband/hw/hfi1/chip.c:9813:11-22: Move constant to right.
-drivers/infiniband/hw/hfi1/chip.c:14468:29-40: Move constant to right.
-
-Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    6 +++---
- drivers/infiniband/hw/hfi1/pio.c  |    4 ++--
- drivers/infiniband/hw/hfi1/rc.c   |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c     |   88 ---------------------------------
+ drivers/infiniband/hw/hfi1/firmware.c |    3 +
+ 2 files changed, 3 insertions(+), 88 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 7799652..263c882 100644
+index 263c882..0874287 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9810,7 +9810,7 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+@@ -12934,91 +12934,6 @@ static void reset_cce_csrs(struct hfi1_devdata *dd)
+ 		write_csr(dd, CCE_INT_COUNTER_ARRAY32 + (8 * i), 0);
+ }
  
- 	if (do_transition) {
- 		ret = set_physical_link_state(dd,
--					      PLS_OFFLINE | (rem_reason << 8));
-+					      (rem_reason << 8) | PLS_OFFLINE);
+-/* set ASIC CSRs to chip reset defaults */
+-static void reset_asic_csrs(struct hfi1_devdata *dd)
+-{
+-	int i;
+-
+-	/*
+-	 * If the HFIs are shared between separate nodes or VMs,
+-	 * then more will need to be done here.  One idea is a module
+-	 * parameter that returns early, letting the first power-on or
+-	 * a known first load do the reset and blocking all others.
+-	 */
+-
+-	if (!(dd->flags & HFI1_DO_INIT_ASIC))
+-		return;
+-
+-	if (dd->icode != ICODE_FPGA_EMULATION) {
+-		/* emulation does not have an SBus - leave these alone */
+-		/*
+-		 * All writes to ASIC_CFG_SBUS_REQUEST do something.
+-		 * Notes:
+-		 * o The reset is not zero if aimed at the core.  See the
+-		 *   SBus documentation for details.
+-		 * o If the SBus firmware has been updated (e.g. by the BIOS),
+-		 *   will the reset revert that?
+-		 */
+-		/* ASIC_CFG_SBUS_REQUEST leave alone */
+-		write_csr(dd, ASIC_CFG_SBUS_EXECUTE, 0);
+-	}
+-	/* ASIC_SBUS_RESULT read-only */
+-	write_csr(dd, ASIC_STS_SBUS_COUNTERS, 0);
+-	for (i = 0; i < ASIC_NUM_SCRATCH; i++)
+-		write_csr(dd, ASIC_CFG_SCRATCH + (8 * i), 0);
+-	write_csr(dd, ASIC_CFG_MUTEX, 0);	/* this will clear it */
+-
+-	/* We might want to retain this state across FLR if we ever use it */
+-	write_csr(dd, ASIC_CFG_DRV_STR, 0);
+-
+-	/* ASIC_CFG_THERM_POLL_EN leave alone */
+-	/* ASIC_STS_THERM read-only */
+-	/* ASIC_CFG_RESET leave alone */
+-
+-	write_csr(dd, ASIC_PCIE_SD_HOST_CMD, 0);
+-	/* ASIC_PCIE_SD_HOST_STATUS read-only */
+-	write_csr(dd, ASIC_PCIE_SD_INTRPT_DATA_CODE, 0);
+-	write_csr(dd, ASIC_PCIE_SD_INTRPT_ENABLE, 0);
+-	/* ASIC_PCIE_SD_INTRPT_PROGRESS read-only */
+-	write_csr(dd, ASIC_PCIE_SD_INTRPT_STATUS, ~0ull); /* clear */
+-	/* ASIC_HFI0_PCIE_SD_INTRPT_RSPD_DATA read-only */
+-	/* ASIC_HFI1_PCIE_SD_INTRPT_RSPD_DATA read-only */
+-	for (i = 0; i < 16; i++)
+-		write_csr(dd, ASIC_PCIE_SD_INTRPT_LIST + (8 * i), 0);
+-
+-	/* ASIC_GPIO_IN read-only */
+-	write_csr(dd, ASIC_GPIO_OE, 0);
+-	write_csr(dd, ASIC_GPIO_INVERT, 0);
+-	write_csr(dd, ASIC_GPIO_OUT, 0);
+-	write_csr(dd, ASIC_GPIO_MASK, 0);
+-	/* ASIC_GPIO_STATUS read-only */
+-	write_csr(dd, ASIC_GPIO_CLEAR, ~0ull);
+-	/* ASIC_GPIO_FORCE leave alone */
+-
+-	/* ASIC_QSFP1_IN read-only */
+-	write_csr(dd, ASIC_QSFP1_OE, 0);
+-	write_csr(dd, ASIC_QSFP1_INVERT, 0);
+-	write_csr(dd, ASIC_QSFP1_OUT, 0);
+-	write_csr(dd, ASIC_QSFP1_MASK, 0);
+-	/* ASIC_QSFP1_STATUS read-only */
+-	write_csr(dd, ASIC_QSFP1_CLEAR, ~0ull);
+-	/* ASIC_QSFP1_FORCE leave alone */
+-
+-	/* ASIC_QSFP2_IN read-only */
+-	write_csr(dd, ASIC_QSFP2_OE, 0);
+-	write_csr(dd, ASIC_QSFP2_INVERT, 0);
+-	write_csr(dd, ASIC_QSFP2_OUT, 0);
+-	write_csr(dd, ASIC_QSFP2_MASK, 0);
+-	/* ASIC_QSFP2_STATUS read-only */
+-	write_csr(dd, ASIC_QSFP2_CLEAR, ~0ull);
+-	/* ASIC_QSFP2_FORCE leave alone */
+-
+-	write_csr(dd, ASIC_EEP_CTL_STAT, ASIC_EEP_CTL_STAT_RESETCSR);
+-	/* this also writes a NOP command, clearing paging mode */
+-	write_csr(dd, ASIC_EEP_ADDR_CMD, 0);
+-	write_csr(dd, ASIC_EEP_DATA, 0);
+-}
+-
+ /* set MISC CSRs to chip reset defaults */
+ static void reset_misc_csrs(struct hfi1_devdata *dd)
+ {
+@@ -13428,14 +13343,11 @@ static void init_chip(struct hfi1_devdata *dd)
+ 			hfi1_pcie_flr(dd);
+ 			restore_pci_variables(dd);
+ 		}
+-
+-		reset_asic_csrs(dd);
+ 	} else {
+ 		dd_dev_info(dd, "Resetting CSRs with writes\n");
+ 		reset_cce_csrs(dd);
+ 		reset_txe_csrs(dd);
+ 		reset_rxe_csrs(dd);
+-		reset_asic_csrs(dd);
+ 		reset_misc_csrs(dd);
+ 	}
+ 	/* clear the DC reset */
+diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+index d5befd1..ca4e489 100644
+--- a/drivers/infiniband/hw/hfi1/firmware.c
++++ b/drivers/infiniband/hw/hfi1/firmware.c
+@@ -1170,6 +1170,9 @@ int sbus_request_slow(struct hfi1_devdata *dd,
+ {
+ 	u64 reg, count = 0;
  
- 		if (ret != HCMD_SUCCESS) {
- 			dd_dev_err(dd,
-@@ -14465,8 +14465,8 @@ static void handle_temp_err(struct hfi1_devdata *dd)
- 	 */
- 	ppd->driver_link_ready = 0;
- 	ppd->link_enabled = 0;
--	set_physical_link_state(dd, PLS_OFFLINE |
--				(OPA_LINKDOWN_REASON_SMA_DISABLED << 8));
-+	set_physical_link_state(dd, (OPA_LINKDOWN_REASON_SMA_DISABLED << 8) |
-+				PLS_OFFLINE);
- 	/*
- 	 * Step 2: Shutdown LCB and 8051
- 	 *         After shutdown, do not restore DC_CFG_RESET value.
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index 361b43d..e888e21 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -762,8 +762,8 @@ struct send_context *sc_alloc(struct hfi1_devdata *dd, int type,
- 
- 	/* set the default partition key */
- 	write_kctxt_csr(dd, hw_context, SC(CHECK_PARTITION_KEY),
--			(DEFAULT_PKEY &
--			 SC(CHECK_PARTITION_KEY_VALUE_MASK)) <<
-+			(SC(CHECK_PARTITION_KEY_VALUE_MASK) &
-+			 DEFAULT_PKEY) <<
- 			SC(CHECK_PARTITION_KEY_VALUE_SHIFT));
- 
- 	/* per context type checks */
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 1ce0e08..351f136 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -2500,7 +2500,7 @@ send_last:
- 	return;
- 
- rnr_nak:
--	qp->r_nak_state = IB_RNR_NAK | qp->r_min_rnr_timer;
-+	qp->r_nak_state = qp->r_min_rnr_timer | IB_RNR_NAK;
- 	qp->r_ack_psn = qp->r_psn;
- 	/* Queue RNR NAK for later */
- 	rc_defered_ack(rcd, qp);
++	/* make sure fast mode is clear */
++	clear_sbus_fast_mode(dd);
++
+ 	sbus_request(dd, receiver_addr, data_addr, command, data_in);
+ 	write_csr(dd, ASIC_CFG_SBUS_EXECUTE,
+ 		  ASIC_CFG_SBUS_EXECUTE_EXECUTE_SMASK);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
