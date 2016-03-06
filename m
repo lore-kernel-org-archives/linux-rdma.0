@@ -1,43 +1,96 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/8] Introduce vector CALC support
-Date: Sun, 6 Mar 2016 12:45:08 +0200
-Message-ID: <20160306104508.GB13396@leon.nu>
-References: <1456215928-9305-1-git-send-email-leon@leon.nu>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 09/10] IB/ipoib: Allow mcast packets from other
+ VFs
+Date: Sun, 6 Mar 2016 13:50:06 +0200
+Message-ID: <20160306115006.GA23975@yuval-lap.uk.oracle.com>
+References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
+ <1456851143-138332-10-git-send-email-eli@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1456215928-9305-1-git-send-email-leon-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1456851143-138332-10-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 23, 2016 at 10:25:20AM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, Mar 01, 2016 at 06:52:22PM +0200, Eli Cohen wrote:
+> With SRIOV enabled, two VFs on the same HCA which have the same port LID
+> and may have the same QP number. To enable receiving multicasts from
+> such VFs, further qualify the check: ignore the receive only if, in
+> addition, the packet source gid equals the receiving VF's source gid.
 > 
-> NET part (patches #1-3)
-> * Patch #1 fixes ATOMIC capability mode. This change has  no impact on
-> * the system, since MAX property is not in use for ATOMIC.
-> * Patch #2 merges two device capability calls in one.
-> * Patch #3 adds infrastructure to support vector CALC querying.
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c | 29 ++++++++++++++++++++++-------
+>  1 file changed, 22 insertions(+), 7 deletions(-)
 > 
-> IB part (patches #4-8)
-> * Patch #4 refactors device query code by eliminating the unnecessary zeroing
->   of variables
-> * Patch #5 converts device capability mask from u32 to be u64 and support more
->   than 32 device capabilities.
-
-Hi Doug,
-Is it possible to accept the patches #1-5 which fix and refactor
-code only?
-
-> * Patch #6 adds vector CALC device capability flag.
-> * Patch #7 exports all possible supported operations.
-> * Patch #8 advertises the mlx5 driver support of vector CALC.
-
-Thanks
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index fa9c42ff1fb0..e0b953cdab50 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -180,6 +180,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>  	struct sk_buff *skb;
+>  	u64 mapping[IPOIB_UD_RX_SG];
+>  	union ib_gid *dgid;
+> +	union ib_gid *sgid;
+>  
+>  	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
+>  		       wr_id, wc->status);
+> @@ -203,13 +204,6 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>  		return;
+>  	}
+>  
+> -	/*
+> -	 * Drop packets that this interface sent, ie multicast packets
+> -	 * that the HCA has replicated.
+> -	 */
+> -	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
+> -		goto repost;
+> -
+>  	memcpy(mapping, priv->rx_ring[wr_id].mapping,
+>  	       IPOIB_UD_RX_SG * sizeof *mapping);
+>  
+> @@ -239,6 +233,27 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>  	else
+>  		skb->pkt_type = PACKET_MULTICAST;
+>  
+> +	sgid = &((struct ib_grh *)skb->data)->sgid;
+> +
+> +	/*
+> +	 * Drop packets that this interface sent, ie multicast packets
+> +	 * that the HCA has replicated.
+> +	 */
+> +	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num) {
+> +		int need_repost = 1;
+> +
+> +		if ((wc->wc_flags & IB_WC_GRH) &&
+> +		    memcmp(&sgid->global.interface_id,
+> +			   &priv->local_gid.global.interface_id,
+> +			   sizeof(sgid->global.interface_id)))
+1. Why can't we do sgid->global.interface_id !=
+priv->local_gid.global.interface_id
+2. Don't we need also to check subnet_prefix? i.e. is it possible to have
+same interface_id on different networks?
+> +			need_repost = 0;
+> +
+> +		if (need_repost) {
+> +			dev_kfree_skb_any(skb);
+> +			goto repost;
+> +		}
+> +	}
+> +
+>  	skb_pull(skb, IB_GRH_BYTES);
+>  
+>  	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
