@@ -1,52 +1,135 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 03/10] IB/core: Support accessing SA in
- virtualized environment
-Date: Mon, 7 Mar 2016 09:52:23 +0200
-Message-ID: <CAJ3xEMiRCt1FLHVt3i7V=c=w1EP50WfhA9ithA-8f8dafOjRfQ@mail.gmail.com>
-References: <1456851143-138332-1-git-send-email-eli@mellanox.com>
-	<1456851143-138332-4-git-send-email-eli@mellanox.com>
-	<20160301174401.GC25176@obsidianresearch.com>
-	<20160301181742.GB19366@x-vnc01.mtx.labs.mlnx>
-	<20160301183256.GB12495@obsidianresearch.com>
-	<20160301190742.GC19366@x-vnc01.mtx.labs.mlnx>
-	<20160301193153.GA25755@obsidianresearch.com>
-	<20160301194608.GF19366@x-vnc01.mtx.labs.mlnx>
-	<56D99D8E.5020900@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2] IB/uverbs: Fix race between uverbs_close and remove_one
+Date: Mon,  7 Mar 2016 04:44:33 -0500
+Message-ID: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D99D8E.5020900-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 4, 2016 at 4:37 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On 03/01/2016 02:46 PM, Eli Cohen wrote:
->> On Tue, Mar 01, 2016 at 12:31:53PM -0700, Jason Gunthorpe wrote:
->>>
->>> I mean opensm supports the GUID Alias scheme for virtualization, this
->>> new virtualization scheme is not compatible, and we shouldn't have the
->>> kernel drop support for existing working SMs, by, eg, replacing the
->>> mlx4 guid alias scheme with this new scheme.
->>>
->>> I'm guessing a user controlled switch is going to be necessary here to
->>> pick GUID alias or port port virtualization.
+Fixes: 35d4a0b63dc0 ("IB/uverbs: Fix race between ib_uverbs_open and remove_one")
 
->> The alias GUID mechanism remains and can be used with mlx4 devices.
->> With this scheme the admin configures the port and node GUIDs using
->> iprout2 which ends up in the hardware driver configuring the deivce. A
->> virtualization aware SM can read this configuration through MADs.
+While testing ocrdma for disassociate_ucontext support following
+kernel panic was seen:
 
-> If the alias GUID mechanism is to be retained, then we need another NDO
-> entry point for setting P_Keys on alias GUID VFs.  If we are going to
-> switch over to using iproute2, then the solution needs to be complete.
+BUG: unable to handle kernel paging request at ffffffffa07ccd7a
+[67139.981020] IP: [<ffffffffa07ccd7a>] 0xffffffffa07ccd7a
+[67139.987185] PGD 19c5067 PUD 19c6063 PMD 469d08067 PTE 0
+[67139.993370] Oops: 0010 [#1] SMP
+[67140.257286] Call Trace:
+[67140.260665]  [<ffffffff810c16a0>] ? prepare_to_wait_event+0xf0/0xf0
+[67140.268337]  [<ffffffffa04cabc3>] ? ib_dereg_mr+0x23/0x30 [ib_core]
+[67140.276009]  [<ffffffffa03ee5f0>] ? ib_uverbs_cleanup_ucontext+0x320/0x440 [ib_uverbs]
+[67140.285550]  [<ffffffffa03ee9e9>] ? ib_uverbs_close+0x59/0xb0 [ib_uverbs]
+[67140.293807]  [<ffffffff811ff744>] ? __fput+0xe4/0x210
+[67140.300132]  [<ffffffff811ff8ae>] ? ____fput+0xe/0x10
+[67140.306457]  [<ffffffff8109b697>] ? task_work_run+0x77/0x90
+[67140.313388]  [<ffffffff81081af2>] ? do_exit+0x2d2/0xab0
+[67140.319910]  [<ffffffff8108234f>] ? do_group_exit+0x3f/0xa0
+[67140.326821]  [<ffffffff8108d54c>] ? get_signal+0x1cc/0x5e0
+[67140.333635]  [<ffffffff81017387>] ? do_signal+0x37/0x660
+[67140.340257]  [<ffffffffa021669a>] ? ucma_write+0x7a/0xc0 [rdma_ucm]
+[67140.347949]  [<ffffffff81079c37>] ? exit_to_usermode_loop+0x59/0xa2
+[67140.355651]  [<ffffffff81003bad>] ? syscall_return_slowpath+0x8d/0xa0
+[67140.363554]  [<ffffffff81680dcc>] ? int_ret_from_sys_call+0x25/0x8f
+[67140.371259] Code:  Bad RIP value.
+[67140.375678] RIP  [<ffffffffa07ccd7a>] 0xffffffffa07ccd7a
+[67140.382314]  RSP <ffff880867727ad8>
+[67140.386894] CR2: ffffffffa07ccd7a
+[67140.393737] ---[ end trace 807b4472c30412d0 ]---
+[67141.682413] Kernel panic - not syncing: Fatal exception
+[67141.682431] Kernel Offset: disabled
+[67141.733934] ---[ end Kernel panic - not syncing: Fatal exception
 
-Doug, as you commented on the net/core patch, iproute2 et al can't be
-really used today to build mlx4 based SRIOV cloud systems. This series
-doesn't introduce regressions for the way mlx4 setups are made.
+Root Cause:
 
-Or.
+During rmmod <vendor-driver> "ib_uverbs_close()" context is
+still running, while "ib_uverbs_remove_one()" context completes and
+ends up freeing ib_dev pointer, thus causing a Kernel Panic.
+
+This patch fixes the race. ib_uverbs_close validates dev->ib_dev against NULL
+inside an srcu lock. If it is NULL, it waits for a completion and drops the srcu
+else continues with the normal flow.
+
+CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs.h      |  1 +
+ drivers/infiniband/core/uverbs_main.c | 18 ++++++++++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 612ccfd..94a7339 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -121,6 +121,7 @@ struct ib_uverbs_file {
+ 	struct ib_event_handler			event_handler;
+ 	struct ib_uverbs_event_file	       *async_file;
+ 	struct list_head			list;
++	struct completion			fcomp;
+ 	int					is_closed;
+ };
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 39680ae..9531168 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -928,6 +928,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ 	file->async_file = NULL;
+ 	kref_init(&file->ref);
+ 	mutex_init(&file->mutex);
++	init_completion(&file->fcomp);
+ 
+ 	filp->private_data = file;
+ 	kobject_get(&dev->kobj);
+@@ -954,21 +955,33 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ 	struct ib_uverbs_file *file = filp->private_data;
+ 	struct ib_uverbs_device *dev = file->device;
+ 	struct ib_ucontext *ucontext = NULL;
++	struct ib_device *ib_dev;
++	int srcu_key;
+ 
+-	mutex_lock(&file->device->lists_mutex);
++	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
++	ib_dev = srcu_dereference(dev->ib_dev,
++				  &dev->disassociate_srcu);
++	if (!ib_dev)
++		goto out;
++
++	mutex_lock(&dev->lists_mutex);
+ 	ucontext = file->ucontext;
+ 	file->ucontext = NULL;
+ 	if (!file->is_closed) {
+ 		list_del(&file->list);
+ 		file->is_closed = 1;
+ 	}
+-	mutex_unlock(&file->device->lists_mutex);
++	mutex_unlock(&dev->lists_mutex);
+ 	if (ucontext)
+ 		ib_uverbs_cleanup_ucontext(file, ucontext);
+ 
+ 	if (file->async_file)
+ 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+ 
++	complete(&file->fcomp);
++out:
++	wait_for_completion(&file->fcomp);
++	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
+ 	kref_put(&file->ref, ib_uverbs_release_file);
+ 	kobject_put(&dev->kobj);
+ 
+@@ -1199,6 +1212,7 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 		}
+ 
+ 		mutex_lock(&uverbs_dev->lists_mutex);
++		complete(&file->fcomp);
+ 		kref_put(&file->ref, ib_uverbs_release_file);
+ 	}
+ 
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
