@@ -1,83 +1,38 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/10] IB/rdmavt: Post receive for QP in ERR state
-Date: Mon, 07 Mar 2016 11:35:51 -0800
-Message-ID: <20160307193551.4913.27232.stgit@scvm10.sc.intel.com>
-References: <20160307193146.4913.42900.stgit@scvm10.sc.intel.com>
+From: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: Move of upstream librdmacm and ibacm git trees
+Date: Mon, 7 Mar 2016 22:35:39 +0200
+Message-ID: <20160307203539.GH13396@leon.nu>
+References: <1828884A29C6694DAF28B7E6B8A82373AB010AC9@ORSMSX109.amr.corp.intel.com>
+ <20160306143832.GG13396@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB01FFCC@ORSMSX109.amr.corp.intel.com>
+ <CAJ3xEMgr2jMkKDVSHt1GM0O0E-MgWXANTuMQ3NgZOdBEZtMYsA@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0200F1@ORSMSX109.amr.corp.intel.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160307193146.4913.42900.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0200F1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Mar 07, 2016 at 06:10:56PM +0000, Hefty, Sean wrote:
+> > any reason for that? this is open-source, right? what's wrong with the
+> > linux-rdma list as a discussion/review place for these changes?
+> 
+> Github is open source, and anyone can subscribe for notifications.  As far as I can tell, very few non-kernel developers monitor this list.  Github associates change requests with open issues and discussion, and allowing people to manage their spam before it hits their inbox is more likely to increase review.
 
-Accordingly IB Spec post WR to receive queue must
-complete with error if QP is in Error state.
-Please refer to C10-42, C10-97.2.1
+It is your project and your decision, however my feeling that such move
+will decrease the number of participants and disconnect the majority of
+relevant developers from these projects.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/sw/rdmavt/qp.c |   33 ++++++++++++++++++++++++---------
- 1 files changed, 24 insertions(+), 9 deletions(-)
+There is nothing against hosting project on Github and my ask is to
+cross-post PRs on this mailing list too, which is possible to do in fully
+automatic way.
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index de34474..bd82a69 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -1364,6 +1364,8 @@ int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	struct rvt_qp *qp = ibqp_to_rvtqp(ibqp);
- 	struct rvt_rwq *wq = qp->r_rq.wq;
- 	unsigned long flags;
-+	int qp_err_flush = (ib_rvt_state_ops[qp->state] & RVT_FLUSH_RECV) &&
-+				!qp->ibqp.srq;
- 
- 	/* Check that state is OK to post receive. */
- 	if (!(ib_rvt_state_ops[qp->state] & RVT_POST_RECV_OK) || !wq) {
-@@ -1390,15 +1392,28 @@ int rvt_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 			*bad_wr = wr;
- 			return -ENOMEM;
- 		}
--
--		wqe = rvt_get_rwqe_ptr(&qp->r_rq, wq->head);
--		wqe->wr_id = wr->wr_id;
--		wqe->num_sge = wr->num_sge;
--		for (i = 0; i < wr->num_sge; i++)
--			wqe->sg_list[i] = wr->sg_list[i];
--		/* Make sure queue entry is written before the head index. */
--		smp_wmb();
--		wq->head = next;
-+		if (unlikely(qp_err_flush)) {
-+			struct ib_wc wc;
-+
-+			memset(&wc, 0, sizeof(wc));
-+			wc.qp = &qp->ibqp;
-+			wc.opcode = IB_WC_RECV;
-+			wc.wr_id = wr->wr_id;
-+			wc.status = IB_WC_WR_FLUSH_ERR;
-+			rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc, 1);
-+		} else {
-+			wqe = rvt_get_rwqe_ptr(&qp->r_rq, wq->head);
-+			wqe->wr_id = wr->wr_id;
-+			wqe->num_sge = wr->num_sge;
-+			for (i = 0; i < wr->num_sge; i++)
-+				wqe->sg_list[i] = wr->sg_list[i];
-+			/*
-+			 * Make sure queue entry is written
-+			 * before the head index.
-+			 */
-+			smp_wmb();
-+			wq->head = next;
-+		}
- 		spin_unlock_irqrestore(&qp->r_rq.lock, flags);
- 	}
- 	return 0;
-
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
