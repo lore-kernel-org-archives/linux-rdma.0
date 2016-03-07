@@ -1,137 +1,88 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 01/10] net/core: Add support for configuring VF GUIDs
-Date: Mon,  7 Mar 2016 23:08:51 +0200
-Message-ID: <1457384940-11951-2-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V1 04/10] IB/core: Support accessing SA in virtualized environment
+Date: Mon,  7 Mar 2016 23:08:54 +0200
+Message-ID: <1457384940-11951-5-git-send-email-eli@mellanox.com>
 References: <1457384940-11951-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457384940-11951-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add two new NLAs to support configuration of Infiniband node or port
-GUIDs. New applications can choose to use this interface to configure
-GUIDs with iproute2 with commands such as:
+Per the ongoing standardisation process, when virtual HCAs are present
+in a network, traffic is routed based on a destination GID. In order to
+access the SA we use the well known SA GID.
 
-ip link set dev ib0 vf 0 node_guid 00:02:c9:03:00:21:6e:70
-ip link set dev ib0 vf 0 port_guid 00:02:c9:03:00:21:6e:78
-
-A new ndo, ndo_sef_vf_guid is introduced to notify the net device of the
-request to change the GUID.
+We also add a GRH required boolean field to the port attributes which is
+used to report to the verbs consumer whether this port is connected to a
+virtual network. We use this field to realize whether we need to create
+an address vector with GRH to access the subnet administrator. We clear
+the port attributes struct before calling the hardware driver to make
+sure the default remains that GRH is not required.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
 Changes from V0:
-Removed the option to configure GUIDs through MAC configuration
+Use queried subnet prefix when creating AH to access the SM
 
- include/linux/netdevice.h    |  3 +++
- include/uapi/linux/if_link.h |  7 +++++++
- net/core/rtnetlink.c         | 36 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 46 insertions(+)
+ drivers/infiniband/core/device.c   | 1 +
+ drivers/infiniband/core/sa_query.c | 5 +++++
+ include/rdma/ib_verbs.h            | 5 +++++
+ 3 files changed, 11 insertions(+)
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index 5440b7b705eb..7b4ae218b90b 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -1147,6 +1147,9 @@ struct net_device_ops {
- 						   struct nlattr *port[]);
- 	int			(*ndo_get_vf_port)(struct net_device *dev,
- 						   int vf, struct sk_buff *skb);
-+	int			(*ndo_set_vf_guid)(struct net_device *dev,
-+						   int vf, u64 guid,
-+						   int guid_type);
- 	int			(*ndo_set_vf_rss_query_en)(
- 						   struct net_device *dev,
- 						   int vf, bool setting);
-diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
-index a30b78090594..1d01e8a4e5dd 100644
---- a/include/uapi/linux/if_link.h
-+++ b/include/uapi/linux/if_link.h
-@@ -556,6 +556,8 @@ enum {
- 				 */
- 	IFLA_VF_STATS,		/* network device statistics */
- 	IFLA_VF_TRUST,		/* Trust VF */
-+	IFLA_VF_IB_NODE_GUID,	/* VF Infiniband node GUID */
-+	IFLA_VF_IB_PORT_GUID,	/* VF Infiniband port GUID */
- 	__IFLA_VF_MAX,
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 00da80e02154..24926acd4bcd 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -652,6 +652,7 @@ int ib_query_port(struct ib_device *device,
+ 	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+ 		return -EINVAL;
+ 
++	memset(port_attr, 0, sizeof(*port_attr));
+ 	return device->query_port(device, port_num, port_attr);
+ }
+ EXPORT_SYMBOL(ib_query_port);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index f334090bb612..4fb97df2caa5 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -886,6 +886,11 @@ static void update_sm_ah(struct work_struct *work)
+ 	ah_attr.dlid     = port_attr.sm_lid;
+ 	ah_attr.sl       = port_attr.sm_sl;
+ 	ah_attr.port_num = port->port_num;
++	if (port_attr.grh_required) {
++		ah_attr.ah_flags = IB_AH_GRH;
++		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(port_attr.subnet_prefix);
++		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
++	}
+ 
+ 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(new_ah->ah)) {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index b3646e30e25d..8add3db9a244 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -97,6 +97,10 @@ enum rdma_node_type {
+ 	RDMA_NODE_USNIC_UDP,
  };
  
-@@ -588,6 +590,11 @@ struct ifla_vf_spoofchk {
- 	__u32 setting;
- };
- 
-+struct ifla_vf_guid {
-+	__u32 vf;
-+	__u64 guid;
++enum {
++	IB_SA_WELL_KNOWN_GUID	= 2,
 +};
 +
- enum {
- 	IFLA_VF_LINK_STATE_AUTO,	/* link state of the uplink */
- 	IFLA_VF_LINK_STATE_ENABLE,	/* link always up */
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index d735e854f916..4b6f3db9f8af 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -1387,6 +1387,8 @@ static const struct nla_policy ifla_vf_policy[IFLA_VF_MAX+1] = {
- 	[IFLA_VF_RSS_QUERY_EN]	= { .len = sizeof(struct ifla_vf_rss_query_en) },
- 	[IFLA_VF_STATS]		= { .type = NLA_NESTED },
- 	[IFLA_VF_TRUST]		= { .len = sizeof(struct ifla_vf_trust) },
-+	[IFLA_VF_IB_NODE_GUID]	= { .len = sizeof(struct ifla_vf_guid) },
-+	[IFLA_VF_IB_PORT_GUID]	= { .len = sizeof(struct ifla_vf_guid) },
+ enum rdma_transport_type {
+ 	RDMA_TRANSPORT_IB,
+ 	RDMA_TRANSPORT_IWARP,
+@@ -510,6 +514,7 @@ struct ib_port_attr {
+ 	u8			active_speed;
+ 	u8                      phys_state;
+ 	u64			subnet_prefix;
++	bool			grh_required;
  };
  
- static const struct nla_policy ifla_vf_stats_policy[IFLA_VF_STATS_MAX + 1] = {
-@@ -1534,6 +1536,22 @@ static int validate_linkmsg(struct net_device *dev, struct nlattr *tb[])
- 	return 0;
- }
- 
-+static int handle_infiniband_guid(struct net_device *dev, struct ifla_vf_guid *ivt,
-+				  int guid_type)
-+{
-+	const struct net_device_ops *ops = dev->netdev_ops;
-+
-+	return ops->ndo_set_vf_guid(dev, ivt->vf, ivt->guid, guid_type);
-+}
-+
-+static int handle_vf_guid(struct net_device *dev, struct ifla_vf_guid *ivt, int guid_type)
-+{
-+	if (dev->type != ARPHRD_INFINIBAND)
-+		return -EOPNOTSUPP;
-+
-+	return handle_infiniband_guid(dev, ivt, guid_type);
-+}
-+
- static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
- {
- 	const struct net_device_ops *ops = dev->netdev_ops;
-@@ -1636,6 +1654,24 @@ static int do_setvfinfo(struct net_device *dev, struct nlattr **tb)
- 			return err;
- 	}
- 
-+	if (tb[IFLA_VF_IB_NODE_GUID]) {
-+		struct ifla_vf_guid *ivt = nla_data(tb[IFLA_VF_IB_NODE_GUID]);
-+
-+		if (!ops->ndo_set_vf_guid)
-+			return -EOPNOTSUPP;
-+
-+		return handle_vf_guid(dev, ivt, IFLA_VF_IB_NODE_GUID);
-+	}
-+
-+	if (tb[IFLA_VF_IB_PORT_GUID]) {
-+		struct ifla_vf_guid *ivt = nla_data(tb[IFLA_VF_IB_PORT_GUID]);
-+
-+		if (!ops->ndo_set_vf_guid)
-+			return -EOPNOTSUPP;
-+
-+		return handle_vf_guid(dev, ivt, IFLA_VF_IB_PORT_GUID);
-+	}
-+
- 	return err;
- }
- 
+ enum ib_device_modify_flags {
 -- 
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 1.8.3.1
 
 --
