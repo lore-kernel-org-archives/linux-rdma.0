@@ -1,38 +1,63 @@
-From: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: Move of upstream librdmacm and ibacm git trees
-Date: Mon, 7 Mar 2016 22:35:39 +0200
-Message-ID: <20160307203539.GH13396@leon.nu>
-References: <1828884A29C6694DAF28B7E6B8A82373AB010AC9@ORSMSX109.amr.corp.intel.com>
- <20160306143832.GG13396@leon.nu>
- <1828884A29C6694DAF28B7E6B8A82373AB01FFCC@ORSMSX109.amr.corp.intel.com>
- <CAJ3xEMgr2jMkKDVSHt1GM0O0E-MgWXANTuMQ3NgZOdBEZtMYsA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0200F1@ORSMSX109.amr.corp.intel.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH RESEND] qib:Fix concurrent access in the function,
+ qib_init_iba6120_funcs
+Date: Mon, 7 Mar 2016 22:49:48 +0200
+Message-ID: <20160307204948.GI13396@leon.nu>
+References: <1457323126-19686-1-git-send-email-xerofoify@gmail.com>
+ <32E1700B9017364D9B60AED9960492BC25A7C169@fmsmsx120.amr.corp.intel.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0200F1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC25A7C169-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Wan, Kaike" <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Nicholas Krause <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 07, 2016 at 06:10:56PM +0000, Hefty, Sean wrote:
-> > any reason for that? this is open-source, right? what's wrong with the
-> > linux-rdma list as a discussion/review place for these changes?
+On Mon, Mar 07, 2016 at 04:34:04PM +0000, Marciniszyn, Mike wrote:
+> > This fixes concurrent access in the function, qib_init_iba6120_funcs by locking
+> > around the calls to when setting up f_sendctrl and f_set_armlauch function
+> > pointers to the functions, sendctrl_6120_mod qib_set_6120_armlaunch due to
+> > these functions needing to have their caller to hold the spinlock that is part of
+> > the qib_ibport pointer they are using and due to the lock not being held by
+> > higher up functions in the caller stack we need to hold it in qib_init_iba6210 to
+> > avoid conncurrent access when setting up these function pointers.
+> > 
 > 
-> Github is open source, and anyone can subscribe for notifications.  As far as I can tell, very few non-kernel developers monitor this list.  Github associates change requests with open issues and discussion, and allowing people to manage their spam before it hits their inbox is more likely to increase review.
+> I'm not sure I agree.
+> 
+> static struct pci_driver qib_driver = {
+>         .name = QIB_DRV_NAME,
+>         .probe = qib_init_one,
+>         .remove = qib_remove_one,
+>         .id_table = qib_pci_tbl,
+>         .err_handler = &qib_pci_err_handler,
+> };
+> 
+> The only caller is the probe function, which naturally protects since the device cannot be used until the probe returns.
+> 
+> Are you actually having an issue with this older version of a qib card?
 
-It is your project and your decision, however my feeling that such move
-will decrease the number of participants and disconnect the majority of
-relevant developers from these projects.
+IMHO no,
+The author is famous developer - Nick Krause [1].
 
-There is nothing against hosting project on Github and my ask is to
-cross-post PRs on this mailing list too, which is possible to do in fully
-automatic way.
+[1]
+http://news.softpedia.com/news/Malevolent-Developer-Trolls-Linux-Kernel-Development-with-Lots-of-Broken-Patches-453709.shtml
 
-Thanks.
+> 
+> The other board specific routines if this indeed is an issue, would need to be fixed as well since that have the same chip specific routine.
+> 
+> Mike
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
