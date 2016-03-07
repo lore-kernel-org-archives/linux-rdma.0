@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/3] net/mlx5_core: Introduce forward to next priority action
-Date: Mon,  7 Mar 2016 18:51:46 +0200
-Message-ID: <1457369507-30999-3-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 3/3] IB/mlx5: Add support for don't trap rules
+Date: Mon,  7 Mar 2016 18:51:47 +0200
+Message-ID: <1457369507-30999-4-git-send-email-matanb@mellanox.com>
 References: <1457369507-30999-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457369507-30999-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,363 +12,169 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add support to create flow rule that forward packets
-to the first flow table in the next priority (next priority
-could be the first priority in the next namespace or the
-next priority in the same namespace).
-This feature could be used for DONT_TRAP rules or rules
-that only want to mark the packet with flow tag.
+Each bypass flow steering priority will be split into two priorities:
+1. Priority for don't trap rules.
+2. Priority for normal rules.
 
-In order to do it optimally, each flow table has list
-of all rules that point to this flow table,
-when a flow table is destroyed/created, we update the list
-head correspondingly.
-
-This kind of rule is created when destination is NULL and
-action is MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO.
+When user creates a flow using IB_FLOW_ATTR_FLAGS_DONT_TRAP flag, the
+driver creates two flow rules, one used for receiving the traffic and
+the other one for forwarding the packet to continue matching in lower
+or equal priorities.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 185 ++++++++++++++++++++--
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.h |   9 ++
- include/linux/mlx5/fs.h                           |   4 +
- include/linux/mlx5/mlx5_ifc.h                     |   3 +-
- 4 files changed, 188 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c    | 54 ++++++++++++++++++++++++++++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ include/linux/mlx5/device.h          |  7 ++++-
+ 3 files changed, 55 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index a2781ee..bf34467 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -201,8 +201,10 @@ static void tree_put_node(struct fs_node *node)
- 
- static int tree_remove_node(struct fs_node *node)
- {
--	if (atomic_read(&node->refcount) > 1)
--		return -EPERM;
-+	if (atomic_read(&node->refcount) > 1) {
-+		atomic_dec(&node->refcount);
-+		return -EEXIST;
-+	}
- 	tree_put_node(node);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 7e89a54..5afbb69 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1382,11 +1382,20 @@ static int mlx5_ib_destroy_flow(struct ib_flow *flow_id)
  	return 0;
  }
-@@ -365,6 +367,11 @@ static void del_rule(struct fs_node *node)
- 	memcpy(match_value, fte->val, sizeof(fte->val));
- 	fs_get_obj(ft, fg->node.parent);
- 	list_del(&rule->node.list);
-+	if (rule->sw_action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
-+		mutex_lock(&rule->dest_attr.ft->lock);
-+		list_del(&rule->next_ft);
-+		mutex_unlock(&rule->dest_attr.ft->lock);
-+	}
- 	fte->dests_size--;
- 	if (fte->dests_size) {
- 		err = mlx5_cmd_update_fte(dev, ft,
-@@ -470,6 +477,8 @@ static struct mlx5_flow_table *alloc_flow_table(int level, int max_fte,
- 	ft->node.type = FS_TYPE_FLOW_TABLE;
- 	ft->type = table_type;
- 	ft->max_fte = max_fte;
-+	INIT_LIST_HEAD(&ft->fwd_rules);
-+	mutex_init(&ft->lock);
  
- 	return ft;
- }
-@@ -606,9 +615,63 @@ static int update_root_ft_create(struct mlx5_flow_table *ft, struct fs_prio
- 	return err;
- }
- 
-+static int mlx5_modify_rule_destination(struct mlx5_flow_rule *rule,
-+					struct mlx5_flow_destination *dest)
++static int ib_prio_to_core_prio(unsigned int priority, bool dont_trap)
 +{
-+	struct mlx5_flow_table *ft;
-+	struct mlx5_flow_group *fg;
-+	struct fs_fte *fte;
-+	int err = 0;
-+
-+	fs_get_obj(fte, rule->node.parent);
-+	if (!(fte->action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST))
-+		return -EINVAL;
-+	lock_ref_node(&fte->node);
-+	fs_get_obj(fg, fte->node.parent);
-+	fs_get_obj(ft, fg->node.parent);
-+
-+	memcpy(&rule->dest_attr, dest, sizeof(*dest));
-+	err = mlx5_cmd_update_fte(get_dev(&ft->node),
-+				  ft, fg->id, fte);
-+	unlock_ref_node(&fte->node);
-+
-+	return err;
++	priority *= 2;
++	if (!dont_trap)
++		priority++;
++	return priority;
 +}
 +
-+/* Modify/set FWD rules that point on old_next_ft to point on new_next_ft  */
-+static int connect_fwd_rules(struct mlx5_core_dev *dev,
-+			     struct mlx5_flow_table *new_next_ft,
-+			     struct mlx5_flow_table *old_next_ft)
-+{
-+	struct mlx5_flow_destination dest;
-+	struct mlx5_flow_rule *iter;
-+	int err = 0;
-+
-+	/* new_next_ft and old_next_ft could be NULL only
-+	 * when we create/destroy the anchor flow table.
-+	 */
-+	if (!new_next_ft || !old_next_ft)
-+		return 0;
-+
-+	dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-+	dest.ft = new_next_ft;
-+
-+	mutex_lock(&old_next_ft->lock);
-+	list_splice_init(&old_next_ft->fwd_rules, &new_next_ft->fwd_rules);
-+	mutex_unlock(&old_next_ft->lock);
-+	list_for_each_entry(iter, &new_next_ft->fwd_rules, next_ft) {
-+		err = mlx5_modify_rule_destination(iter, &dest);
-+		if (err)
-+			pr_err("mlx5_core: failed to modify rule to point on flow table %d\n",
-+			       new_next_ft->id);
-+	}
-+	return 0;
-+}
-+
- static int connect_flow_table(struct mlx5_core_dev *dev, struct mlx5_flow_table *ft,
- 			      struct fs_prio *prio)
+ #define MLX5_FS_MAX_TYPES	 10
+ #define MLX5_FS_MAX_ENTRIES	 32000UL
+ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 						struct ib_flow_attr *flow_attr)
  {
-+	struct mlx5_flow_table *next_ft;
++	bool dont_trap = flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP;
+ 	struct mlx5_flow_namespace *ns = NULL;
+ 	struct mlx5_ib_flow_prio *prio;
+ 	struct mlx5_flow_table *ft;
+@@ -1396,10 +1405,12 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
  	int err = 0;
  
- 	/* Connect_prev_fts and update_root_ft_create are mutually exclusive */
-@@ -617,6 +680,11 @@ static int connect_flow_table(struct mlx5_core_dev *dev, struct mlx5_flow_table
- 		err = connect_prev_fts(dev, ft, prio);
- 		if (err)
- 			return err;
-+
-+		next_ft = find_next_chained_ft(prio);
-+		err = connect_fwd_rules(dev, ft, next_ft);
-+		if (err)
-+			return err;
- 	}
+ 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
+-		if (flow_is_multicast_only(flow_attr))
++		if (flow_is_multicast_only(flow_attr) &&
++		    !dont_trap)
+ 			priority = MLX5_IB_FLOW_MCAST_PRIO;
+ 		else
+-			priority = flow_attr->priority;
++			priority = ib_prio_to_core_prio(flow_attr->priority,
++							dont_trap);
+ 		ns = mlx5_get_flow_namespace(dev->mdev,
+ 					     MLX5_FLOW_NAMESPACE_BYPASS);
+ 		num_entries = MLX5_FS_MAX_ENTRIES;
+@@ -1447,6 +1458,7 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
+ 	unsigned int spec_index;
+ 	u32 *match_c;
+ 	u32 *match_v;
++	u32 action;
+ 	int err = 0;
  
- 	if (MLX5_CAP_FLOWTABLE(dev,
-@@ -767,6 +835,7 @@ static struct mlx5_flow_rule *alloc_rule(struct mlx5_flow_destination *dest)
- 	if (!rule)
- 		return NULL;
+ 	if (!is_valid_attr(flow_attr))
+@@ -1472,9 +1484,11 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
  
-+	INIT_LIST_HEAD(&rule->next_ft);
- 	rule->node.type = FS_TYPE_FLOW_DEST;
- 	memcpy(&rule->dest_attr, dest, sizeof(*dest));
+ 	/* Outer header support only */
+ 	match_criteria_enable = (!outer_header_zero(match_c)) << 0;
++	action = dst ? MLX5_FLOW_CONTEXT_ACTION_FWD_DEST :
++		MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
+ 	handler->rule = mlx5_add_flow_rule(ft, match_criteria_enable,
+ 					   match_c, match_v,
+-					   MLX5_FLOW_CONTEXT_ACTION_FWD_DEST,
++					   action,
+ 					   MLX5_FS_DEFAULT_FLOW_TAG,
+ 					   dst);
  
-@@ -787,9 +856,14 @@ static struct mlx5_flow_rule *add_rule_fte(struct fs_fte *fte,
- 		return ERR_PTR(-ENOMEM);
- 
- 	fs_get_obj(ft, fg->node.parent);
--	/* Add dest to dests list- added as first element after the head */
-+	/* Add dest to dests list- we need flow tables to be in the
-+	 * end of the list for forward to next prio rules.
-+	 */
- 	tree_init_node(&rule->node, 1, del_rule);
--	list_add_tail(&rule->node.list, &fte->node.children);
-+	if (dest && dest->type != MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE)
-+		list_add(&rule->node.list, &fte->node.children);
-+	else
-+		list_add_tail(&rule->node.list, &fte->node.children);
- 	fte->dests_size++;
- 	if (fte->dests_size == 1)
- 		err = mlx5_cmd_create_fte(get_dev(&ft->node),
-@@ -908,6 +982,25 @@ out:
- 	return fg;
+@@ -1494,6 +1508,29 @@ free:
+ 	return err ? ERR_PTR(err) : handler;
  }
  
-+static struct mlx5_flow_rule *find_flow_rule(struct fs_fte *fte,
-+					     struct mlx5_flow_destination *dest)
++static struct mlx5_ib_flow_handler *create_dont_trap_rule(struct mlx5_ib_dev *dev,
++							  struct mlx5_ib_flow_prio *ft_prio,
++							  struct ib_flow_attr *flow_attr,
++							  struct mlx5_flow_destination *dst)
 +{
-+	struct mlx5_flow_rule *rule;
++	struct mlx5_ib_flow_handler *handler_dst = NULL;
++	struct mlx5_ib_flow_handler *handler = NULL;
 +
-+	list_for_each_entry(rule, &fte->node.children, node.list) {
-+		if (rule->dest_attr.type == dest->type) {
-+			if ((dest->type == MLX5_FLOW_DESTINATION_TYPE_VPORT &&
-+			     dest->vport_num == rule->dest_attr.vport_num) ||
-+			    (dest->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
-+			     dest->ft == rule->dest_attr.ft) ||
-+			    (dest->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
-+			     dest->tir_num == rule->dest_attr.tir_num))
-+				return rule;
-+		}
-+	}
-+	return NULL;
-+}
-+
- static struct mlx5_flow_rule *add_rule_fg(struct mlx5_flow_group *fg,
- 					  u32 *match_value,
- 					  u8 action,
-@@ -924,6 +1017,13 @@ static struct mlx5_flow_rule *add_rule_fg(struct mlx5_flow_group *fg,
- 		nested_lock_ref_node(&fte->node, FS_MUTEX_CHILD);
- 		if (compare_match_value(&fg->mask, match_value, &fte->val) &&
- 		    action == fte->action && flow_tag == fte->flow_tag) {
-+			rule = find_flow_rule(fte, dest);
-+			if (rule) {
-+				atomic_inc(&rule->node.refcount);
-+				unlock_ref_node(&fte->node);
-+				unlock_ref_node(&fg->node);
-+				return rule;
-+			}
- 			rule = add_rule_fte(fte, fg, dest);
- 			unlock_ref_node(&fte->node);
- 			if (IS_ERR(rule))
-@@ -989,14 +1089,14 @@ static struct mlx5_flow_rule *add_rule_to_auto_fg(struct mlx5_flow_table *ft,
- 	return rule;
- }
- 
--struct mlx5_flow_rule *
--mlx5_add_flow_rule(struct mlx5_flow_table *ft,
--		   u8 match_criteria_enable,
--		   u32 *match_criteria,
--		   u32 *match_value,
--		   u32 action,
--		   u32 flow_tag,
--		   struct mlx5_flow_destination *dest)
-+static struct mlx5_flow_rule *
-+_mlx5_add_flow_rule(struct mlx5_flow_table *ft,
-+		    u8 match_criteria_enable,
-+		    u32 *match_criteria,
-+		    u32 *match_value,
-+		    u32 action,
-+		    u32 flow_tag,
-+		    struct mlx5_flow_destination *dest)
- {
- 	struct mlx5_flow_group *g;
- 	struct mlx5_flow_rule *rule;
-@@ -1019,6 +1119,63 @@ unlock:
- 	unlock_ref_node(&ft->node);
- 	return rule;
- }
-+
-+static bool fwd_next_prio_supported(struct mlx5_flow_table *ft)
-+{
-+	return ((ft->type == FS_FT_NIC_RX) &&
-+		(MLX5_CAP_FLOWTABLE(get_dev(&ft->node), nic_rx_multi_path_tirs)));
-+}
-+
-+struct mlx5_flow_rule *
-+mlx5_add_flow_rule(struct mlx5_flow_table *ft,
-+		   u8 match_criteria_enable,
-+		   u32 *match_criteria,
-+		   u32 *match_value,
-+		   u32 action,
-+		   u32 flow_tag,
-+		   struct mlx5_flow_destination *dest)
-+{
-+	struct mlx5_flow_root_namespace *root = find_root(&ft->node);
-+	struct mlx5_flow_destination gen_dest;
-+	struct mlx5_flow_table *next_ft = NULL;
-+	struct mlx5_flow_rule *rule = NULL;
-+	u32 sw_action = action;
-+	struct fs_prio *prio;
-+
-+	fs_get_obj(prio, ft->node.parent);
-+	if (action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
-+		if (!fwd_next_prio_supported(ft))
-+			return ERR_PTR(-EOPNOTSUPP);
-+		if (dest)
-+			return ERR_PTR(-EINVAL);
-+		mutex_lock(&root->chain_lock);
-+		next_ft = find_next_chained_ft(prio);
-+		if (next_ft) {
-+			gen_dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-+			gen_dest.ft = next_ft;
-+			dest = &gen_dest;
-+			action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++	handler = create_flow_rule(dev, ft_prio, flow_attr, NULL);
++	if (!IS_ERR(handler)) {
++		handler_dst = create_flow_rule(dev, ft_prio,
++					       flow_attr, dst);
++		if (IS_ERR(handler_dst)) {
++			mlx5_del_flow_rule(handler->rule);
++			kfree(handler);
++			handler = handler_dst;
 +		} else {
-+			mutex_unlock(&root->chain_lock);
-+			return ERR_PTR(-EOPNOTSUPP);
++			list_add(&handler_dst->list, &handler->list);
 +		}
 +	}
 +
-+	rule =	_mlx5_add_flow_rule(ft, match_criteria_enable, match_criteria,
-+				    match_value, action, flow_tag, dest);
-+
-+	if (sw_action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
-+		if (!IS_ERR_OR_NULL(rule) &&
-+		    (list_empty(&rule->next_ft))) {
-+			mutex_lock(&next_ft->lock);
-+			list_add(&rule->next_ft, &next_ft->fwd_rules);
-+			mutex_unlock(&next_ft->lock);
-+			rule->sw_action = MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
-+		}
-+		mutex_unlock(&root->chain_lock);
-+	}
-+	return rule;
++	return handler;
 +}
- EXPORT_SYMBOL(mlx5_add_flow_rule);
+ enum {
+ 	LEFTOVERS_MC,
+ 	LEFTOVERS_UC,
+@@ -1571,7 +1608,7 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
  
- void mlx5_del_flow_rule(struct mlx5_flow_rule *rule)
-@@ -1082,6 +1239,10 @@ static int disconnect_flow_table(struct mlx5_flow_table *ft)
- 		return 0;
+ 	if (domain != IB_FLOW_DOMAIN_USER ||
+ 	    flow_attr->port > MLX5_CAP_GEN(dev->mdev, num_ports) ||
+-	    flow_attr->flags)
++	    (flow_attr->flags & ~IB_FLOW_ATTR_FLAGS_DONT_TRAP))
+ 		return ERR_PTR(-EINVAL);
  
- 	next_ft = find_next_chained_ft(prio);
-+	err = connect_fwd_rules(dev, next_ft, ft);
-+	if (err)
-+		return err;
-+
- 	err = connect_prev_fts(dev, next_ft, prio);
- 	if (err)
- 		mlx5_core_warn(dev, "Failed to disconnect flow table %d\n",
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-index 574a903..f37a624 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-@@ -68,6 +68,11 @@ struct fs_node {
- struct mlx5_flow_rule {
- 	struct fs_node				node;
- 	struct mlx5_flow_destination		dest_attr;
-+	/* next_ft should be accessed under chain_lock and only of
-+	 * destination type is FWD_NEXT_fT.
-+	 */
-+	struct list_head			next_ft;
-+	u32					sw_action;
+ 	dst = kzalloc(sizeof(*dst), GFP_KERNEL);
+@@ -1590,8 +1627,13 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ 	dst->tir_num = to_mqp(qp)->raw_packet_qp.rq.tirn;
+ 
+ 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
+-		handler = create_flow_rule(dev, ft_prio, flow_attr,
+-					   dst);
++		if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)  {
++			handler = create_dont_trap_rule(dev, ft_prio,
++							flow_attr, dst);
++		} else {
++			handler = create_flow_rule(dev, ft_prio, flow_attr,
++						   dst);
++		}
+ 	} else if (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
+ 		   flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT) {
+ 		handler = create_leftovers_rule(dev, ft_prio, flow_attr,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 60b8962..76b2b42 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -127,7 +127,7 @@ struct mlx5_ib_pd {
  };
  
- /* Type of children is mlx5_flow_group */
-@@ -82,6 +87,10 @@ struct mlx5_flow_table {
- 		unsigned int		required_groups;
- 		unsigned int		num_groups;
- 	} autogroup;
-+	/* Protect fwd_rules */
-+	struct mutex			lock;
-+	/* FWD rules that point on this flow table */
-+	struct list_head		fwd_rules;
- };
+ #define MLX5_IB_FLOW_MCAST_PRIO		(MLX5_BY_PASS_NUM_PRIOS - 1)
+-#define MLX5_IB_FLOW_LAST_PRIO		(MLX5_IB_FLOW_MCAST_PRIO - 1)
++#define MLX5_IB_FLOW_LAST_PRIO		(MLX5_BY_PASS_NUM_REGULAR_PRIOS - 1)
+ #if (MLX5_IB_FLOW_LAST_PRIO <= 0)
+ #error "Invalid number of bypass priorities"
+ #endif
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 12079fd..9566b3b 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -1318,6 +1318,11 @@ static inline u16 mlx5_to_sw_pkey_sz(int pkey_sz)
+ 	return MLX5_MIN_PKEY_TABLE_SIZE << pkey_sz;
+ }
  
- /* Type of children is mlx5_flow_rule */
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 72adf53..8dec550 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -38,6 +38,10 @@
+-#define MLX5_BY_PASS_NUM_PRIOS 9
++#define MLX5_BY_PASS_NUM_REGULAR_PRIOS 8
++#define MLX5_BY_PASS_NUM_DONT_TRAP_PRIOS 8
++#define MLX5_BY_PASS_NUM_MULTICAST_PRIOS 1
++#define MLX5_BY_PASS_NUM_PRIOS (MLX5_BY_PASS_NUM_REGULAR_PRIOS +\
++				MLX5_BY_PASS_NUM_DONT_TRAP_PRIOS +\
++				MLX5_BY_PASS_NUM_MULTICAST_PRIOS)
  
- #define MLX5_FS_DEFAULT_FLOW_TAG 0x0
- 
-+enum {
-+	MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO	= 1 << 16,
-+};
-+
- #define LEFTOVERS_RULE_NUM	 2
- static inline void build_leftovers_ft_param(int *priority,
- 					    int *n_ent,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 3044cfa..a3cacab 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -458,7 +458,8 @@ struct mlx5_ifc_ads_bits {
- };
- 
- struct mlx5_ifc_flow_table_nic_cap_bits {
--	u8         reserved_at_0[0x200];
-+	u8         nic_rx_multi_path_tirs[0x1];
-+	u8         reserved_at_1[0x1ff];
- 
- 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_receive;
- 
+ #endif /* MLX5_DEVICE_H */
 -- 
 1.8.3.1
 
