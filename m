@@ -1,55 +1,49 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH RESEND] qib:Fix concurrent access in the function,
- qib_init_iba6120_funcs
-Date: Mon, 7 Mar 2016 21:17:20 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC25A7F6FA@fmsmsx120.amr.corp.intel.com>
-References: <1457323126-19686-1-git-send-email-xerofoify@gmail.com>
- <32E1700B9017364D9B60AED9960492BC25A7C169@fmsmsx120.amr.corp.intel.com>
- <56DDD4B9.5070802@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 03/10] IB/core: Add subnet prefix to port
+ info
+Date: Mon, 7 Mar 2016 14:43:13 -0700
+Message-ID: <20160307214313.GA6706@obsidianresearch.com>
+References: <1457384940-11951-1-git-send-email-eli@mellanox.com>
+ <1457384940-11951-4-git-send-email-eli@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56DDD4B9.5070802-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1457384940-11951-4-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nick <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBuaWNrIFttYWlsdG86eGVyb2ZvaWZ5QGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5
-LCBNYXJjaCA3LCAyMDE2IDI6MjEgUE0NCj4gVG86IE1hcmNpbmlzenluLCBNaWtlIDxtaWtlLm1h
-cmNpbmlzenluQGludGVsLmNvbT4NCj4gQ2M6IGRsZWRmb3JkQHJlZGhhdC5jb207IEhlZnR5LCBT
-ZWFuIDxzZWFuLmhlZnR5QGludGVsLmNvbT47DQo+IGhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbTsg
-bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwu
-b3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggUkVTRU5EXSBxaWI6Rml4IGNvbmN1cnJlbnQgYWNj
-ZXNzIGluIHRoZSBmdW5jdGlvbiwNCj4gcWliX2luaXRfaWJhNjEyMF9mdW5jcw0KPiANCj4gDQo+
-IA0KPiBPbiAyMDE2LTAzLTA3IDExOjM0IEFNLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90ZToNCj4g
-Pj4gVGhpcyBmaXhlcyBjb25jdXJyZW50IGFjY2VzcyBpbiB0aGUgZnVuY3Rpb24sIHFpYl9pbml0
-X2liYTYxMjBfZnVuY3MNCj4gPj4gYnkgbG9ja2luZyBhcm91bmQgdGhlIGNhbGxzIHRvIHdoZW4g
-c2V0dGluZyB1cCBmX3NlbmRjdHJsIGFuZA0KPiA+PiBmX3NldF9hcm1sYXVjaCBmdW5jdGlvbiBw
-b2ludGVycyB0byB0aGUgZnVuY3Rpb25zLCBzZW5kY3RybF82MTIwX21vZA0KPiA+PiBxaWJfc2V0
-XzYxMjBfYXJtbGF1bmNoIGR1ZSB0byB0aGVzZSBmdW5jdGlvbnMgbmVlZGluZyB0byBoYXZlIHRo
-ZWlyDQo+ID4+IGNhbGxlciB0byBob2xkIHRoZSBzcGlubG9jayB0aGF0IGlzIHBhcnQgb2YgdGhl
-IHFpYl9pYnBvcnQgcG9pbnRlcg0KPiA+PiB0aGV5IGFyZSB1c2luZyBhbmQgZHVlIHRvIHRoZSBs
-b2NrIG5vdCBiZWluZyBoZWxkIGJ5IGhpZ2hlciB1cA0KPiA+PiBmdW5jdGlvbnMgaW4gdGhlIGNh
-bGxlciBzdGFjayB3ZSBuZWVkIHRvIGhvbGQgaXQgaW4gcWliX2luaXRfaWJhNjIxMCB0byBhdm9p
-ZA0KPiBjb25uY3VycmVudCBhY2Nlc3Mgd2hlbiBzZXR0aW5nIHVwIHRoZXNlIGZ1bmN0aW9uIHBv
-aW50ZXJzLg0KPiA+Pg0KPiA+DQo+ID4gSSdtIG5vdCBzdXJlIEkgYWdyZWUuDQo+ID4NCj4gPiBz
-dGF0aWMgc3RydWN0IHBjaV9kcml2ZXIgcWliX2RyaXZlciA9IHsNCj4gPiAgICAgICAgIC5uYW1l
-ID0gUUlCX0RSVl9OQU1FLA0KPiA+ICAgICAgICAgLnByb2JlID0gcWliX2luaXRfb25lLA0KPiA+
-ICAgICAgICAgLnJlbW92ZSA9IHFpYl9yZW1vdmVfb25lLA0KPiA+ICAgICAgICAgLmlkX3RhYmxl
-ID0gcWliX3BjaV90YmwsDQo+ID4gICAgICAgICAuZXJyX2hhbmRsZXIgPSAmcWliX3BjaV9lcnJf
-aGFuZGxlciwgfTsNCj4gPg0KPiA+IFRoZSBvbmx5IGNhbGxlciBpcyB0aGUgcHJvYmUgZnVuY3Rp
-b24sIHdoaWNoIG5hdHVyYWxseSBwcm90ZWN0cyBzaW5jZSB0aGUgZGV2aWNlDQo+IGNhbm5vdCBi
-ZSB1c2VkIHVudGlsIHRoZSBwcm9iZSByZXR1cm5zLg0KPiA+DQo+IFRoYXQncyBjb3JyZWN0IG15
-IGNvbmNlcm4gd2FzIGFib3V0IHRocmVhZHMgZnJvbSBvdGhlciBrZXJuZWwgY29udGV4dHMgYnV0
-DQo+IHRoZW4gYWdhaW4gdGhhdCdzIHByb2JhYmx5IG1lIGJlaW5nIHRvbyBjb25zZXJ2YXRpdmUg
-YWJvdXQgY3JpdGljYWwgcmVnaW9uDQo+IHByb3RlY3Rpb24uDQo+IENoZWVycywNCj4gTmljaw0K
-DQpEb3VnLCBJJ20gTkFLaW5nIHRoaXMgcGF0Y2ggYmFzZWQgb24gdGhpcyByZXBseSBmcm9tIE5p
-Y2suDQoNCkdpdmVuIHRoYXQgZnVuY3Rpb24gdmVjdG9ycyBjYW5ub3QgYmUgdXNlZCB1bnRpbCB0
-aGUgcWliX2luaXRfaWJhNjEyMF9mdW5jcygpIGZ1bmN0aW9ucyByZXR1cm4sIHRoaXMgcGF0Y2gg
-anVzdCBub3QgbmVlZGVkLg0KDQpNaWtlDQoNCg0K
+On Mon, Mar 07, 2016 at 11:08:53PM +0200, Eli Cohen wrote:
+> +	err = ib_query_gid(ibdev, port, 0, &gid, NULL);
+> +	if (err)
+> +		return err;
+> +
+> +	props->subnet_prefix = be64_to_cpu(gid.global.subnet_prefix);
+
+Why not put this common pattern in ibv_query_port?
+
+device->query_port(ibdev, port, ..);
+if (props->subnet_prefix == 0) {
+   err = ib_query_gid(ibdev, port, 0, &gid, NULL);
+   if (err)
+   		return err;
+
+   props->subnet_prefix = be64_to_cpu(gid.global.subnet_prefix);
+}
+
+> +++ b/include/rdma/ib_verbs.h
+> @@ -509,6 +509,7 @@ struct ib_port_attr {
+>  	u8			active_width;
+>  	u8			active_speed;
+>  	u8                      phys_state;
+> +	u64			subnet_prefix;
+>  };
+
+Can we put that at the start for better alignment?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
