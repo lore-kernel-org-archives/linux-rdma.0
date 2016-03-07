@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/10] IB/hfi1: Fix PIO wakeup timing hole
-Date: Mon, 07 Mar 2016 11:35:30 -0800
-Message-ID: <20160307193529.4913.89600.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 08/10] IB/hfi1: Fix adaptive pio packet corruption
+Date: Mon, 07 Mar 2016 11:35:41 -0800
+Message-ID: <20160307193540.4913.80363.stgit@scvm10.sc.intel.com>
 References: <20160307193146.4913.42900.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,51 +15,101 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-There is a timing hole if there had been greater than
-PIO_WAIT_BATCH_SIZE waiters.  This code will dispatch the first
-batch but leave the others in the queue.   If the restarted waiters
-don't in turn wait on a buffer, there is a hang.
+The adaptive pio heuristic missed a case that causes a corrupted
+packet on the wire.
 
-Fix by forcing a return when the QP queue is non-empty.
+The case is if SDMA egress had been chosen for a pio-able packet and
+then encountered a ring space wait, the packet is queued.   The sge
+cursor had been incremented as part of the packet build out for SDMA.
+
+After the send engine restart, the heuristic might now chose pio based
+on the sdma count being zero and start the mmio copy using the already
+incremented sge cursor.
+
+Fix this by forcing SDMA egress when the SDMA descriptor has already
+been built.
+
+Additionally, the code to wait for a QPs pio count to zero when
+switching to SDMA was missing.  Add it.
+
+There is also an issue with UD QPs, in that the different SLs can pick
+a different egress send context.  For now, just insure the UD/GSI
+always go through SDMA.
 
 Reviewed-by: Vennila Megavannan <vennila.megavannan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/pio.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hfi1/verbs.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index e888e21..c6849ce 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -1545,7 +1545,7 @@ static void sc_piobufavail(struct send_context *sc)
- 		struct iowait *wait;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 7acaa25..62755af 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1179,10 +1179,11 @@ bad:
+  * and size
+  */
+ static inline send_routine get_send_routine(struct rvt_qp *qp,
+-					    struct hfi1_ib_header *h)
++					    struct verbs_txreq *tx)
+ {
+ 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
+ 	struct hfi1_qp_priv *priv = qp->priv;
++	struct hfi1_ib_header *h = &tx->phdr.hdr;
  
- 		if (n == ARRAY_SIZE(qps))
--			goto full;
-+			break;
- 		wait = list_first_entry(list, struct iowait, list);
- 		qp = iowait_to_qp(wait);
- 		priv = qp->priv;
-@@ -1554,12 +1554,14 @@ static void sc_piobufavail(struct send_context *sc)
- 		qps[n++] = qp;
+ 	if (unlikely(!(dd->flags & HFI1_HAS_SEND_DMA)))
+ 		return dd->process_pio_send;
+@@ -1191,21 +1192,21 @@ static inline send_routine get_send_routine(struct rvt_qp *qp,
+ 		return dd->process_pio_send;
+ 	case IB_QPT_GSI:
+ 	case IB_QPT_UD:
+-		if (piothreshold && qp->s_cur_size <= piothreshold)
+-			return dd->process_pio_send;
+ 		break;
+ 	case IB_QPT_RC:
+ 		if (piothreshold &&
+ 		    qp->s_cur_size <= min(piothreshold, qp->pmtu) &&
+ 		    (BIT(get_opcode(h) & 0x1f) & rc_only_opcode) &&
+-		    iowait_sdma_pending(&priv->s_iowait) == 0)
++		    iowait_sdma_pending(&priv->s_iowait) == 0 &&
++		    !sdma_txreq_built(&tx->txreq))
+ 			return dd->process_pio_send;
+ 		break;
+ 	case IB_QPT_UC:
+ 		if (piothreshold &&
+ 		    qp->s_cur_size <= min(piothreshold, qp->pmtu) &&
+ 		    (BIT(get_opcode(h) & 0x1f) & uc_only_opcode) &&
+-		    iowait_sdma_pending(&priv->s_iowait) == 0)
++		    iowait_sdma_pending(&priv->s_iowait) == 0 &&
++		    !sdma_txreq_built(&tx->txreq))
+ 			return dd->process_pio_send;
+ 		break;
+ 	default:
+@@ -1225,10 +1226,11 @@ static inline send_routine get_send_routine(struct rvt_qp *qp,
+ int hfi1_verbs_send(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ {
+ 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
++	struct hfi1_qp_priv *priv = qp->priv;
+ 	send_routine sr;
+ 	int ret;
+ 
+-	sr = get_send_routine(qp, &ps->s_txreq->phdr.hdr);
++	sr = get_send_routine(qp, ps->s_txreq);
+ 	ret = egress_pkey_check(dd->pport, &ps->s_txreq->phdr.hdr, qp);
+ 	if (unlikely(ret)) {
+ 		/*
+@@ -1250,6 +1252,11 @@ int hfi1_verbs_send(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		}
+ 		return -EINVAL;
  	}
- 	/*
--	 * Counting: only call wantpiobuf_intr() if there were waiters and they
--	 * are now all gone.
-+	 * If there had been waiters and there are more
-+	 * insure that we redo the force to avoid a potential hang.
- 	 */
--	if (n)
-+	if (n) {
- 		hfi1_sc_wantpiobuf_intr(sc, 0);
--full:
-+		if (!list_empty(list))
-+			hfi1_sc_wantpiobuf_intr(sc, 1);
-+	}
- 	write_sequnlock_irqrestore(&dev->iowait_lock, flags);
++	if (sr == dd->process_dma_send && iowait_pio_pending(&priv->s_iowait))
++		return pio_wait(qp,
++				ps->s_txreq->psc,
++				ps,
++				RVT_S_WAIT_PIO_DRAIN);
+ 	return sr(qp, ps, 0);
+ }
  
- 	for (i = 0; i < n; i++)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
