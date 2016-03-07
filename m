@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 10/10] IB/ipoib: Allow mcast packets from other VFs
-Date: Mon,  7 Mar 2016 23:09:00 +0200
-Message-ID: <1457384940-11951-11-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V1 06/10] IB/ipoib: Add ndo operations for configuring VFs
+Date: Mon,  7 Mar 2016 23:08:56 +0200
+Message-ID: <1457384940-11951-7-git-send-email-eli@mellanox.com>
 References: <1457384940-11951-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457384940-11951-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,71 +10,113 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With SRIOV enabled, two VFs on the same HCA which have the same port LID
-and may have the same QP number. To enable receiving multicasts from
-such VFs, further qualify the check: ignore the receive only if, in
-addition, the packet source gid equals the receiving VF's source gid.
+Add ndo operations to the network driver that enables configuring the
+following operations:
+
+ipoib_set_vf_link_state - configure the VF link policy
+ipoib_get_vf_config - get link state configuration
+ipoib_set_vf_guid - set a VF port or node GUID
+ipoib_get_vf_stats - get statistics of a VF
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Changes from V0:
-Modify conditional on interface_id to be more effective
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 65 ++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 2 deletions(-)
 
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index fa9c42ff1fb0..e205265bb2a4 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -180,6 +180,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	struct sk_buff *skb;
- 	u64 mapping[IPOIB_UD_RX_SG];
- 	union ib_gid *dgid;
-+	union ib_gid *sgid;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 25509bbd4a05..80807d6e5c4c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -51,6 +51,7 @@
+ #include <net/addrconf.h>
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
++#include <linux/pci.h>
  
- 	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
- 		       wr_id, wc->status);
-@@ -203,13 +204,6 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 		return;
- 	}
+ #define DRV_VERSION "1.0.0"
  
--	/*
--	 * Drop packets that this interface sent, ie multicast packets
--	 * that the HCA has replicated.
--	 */
--	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
--		goto repost;
--
- 	memcpy(mapping, priv->rx_ring[wr_id].mapping,
- 	       IPOIB_UD_RX_SG * sizeof *mapping);
+@@ -1590,11 +1591,67 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 	priv->tx_ring = NULL;
+ }
  
-@@ -239,6 +233,25 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	else
- 		skb->pkt_type = PACKET_MULTICAST;
- 
-+	sgid = &((struct ib_grh *)skb->data)->sgid;
++static int ipoib_set_vf_link_state(struct net_device *dev, int vf, int link_state)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
 +
-+	/*
-+	 * Drop packets that this interface sent, ie multicast packets
-+	 * that the HCA has replicated.
-+	 */
-+	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num) {
-+		int need_repost = 1;
++	return ib_set_vf_link_state(priv->ca, vf, priv->port, link_state);
++}
 +
-+		if ((wc->wc_flags & IB_WC_GRH) &&
-+		    sgid->global.interface_id != priv->local_gid.global.interface_id)
-+			need_repost = 0;
++static int ipoib_get_vf_config(struct net_device *dev, int vf,
++			       struct ifla_vf_info *ivf)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int err;
 +
-+		if (need_repost) {
-+			dev_kfree_skb_any(skb);
-+			goto repost;
-+		}
-+	}
++	err = ib_get_vf_config(priv->ca, vf, priv->port, ivf);
++	if (err)
++		return err;
 +
- 	skb_pull(skb, IB_GRH_BYTES);
++	ivf->vf = vf;
++
++	return 0;
++}
++
++static int ipoib_set_vf_guid(struct net_device *dev, int vf, u64 guid, int type)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	if (type != IFLA_VF_IB_NODE_GUID && type != IFLA_VF_IB_PORT_GUID)
++		return -EINVAL;
++
++	return ib_set_vf_guid(priv->ca, vf, priv->port, guid, type);
++}
++
++static int ipoib_get_vf_stats(struct net_device *dev, int vf,
++			      struct ifla_vf_stats *vf_stats)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	return ib_get_vf_stats(priv->ca, vf, priv->port, vf_stats);
++}
++
+ static const struct header_ops ipoib_header_ops = {
+ 	.create	= ipoib_hard_header,
+ };
  
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
+-static const struct net_device_ops ipoib_netdev_ops = {
++static const struct net_device_ops ipoib_netdev_ops_pf = {
++	.ndo_uninit		 = ipoib_uninit,
++	.ndo_open		 = ipoib_open,
++	.ndo_stop		 = ipoib_stop,
++	.ndo_change_mtu		 = ipoib_change_mtu,
++	.ndo_fix_features	 = ipoib_fix_features,
++	.ndo_start_xmit		 = ipoib_start_xmit,
++	.ndo_tx_timeout		 = ipoib_timeout,
++	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
++	.ndo_get_iflink		 = ipoib_get_iflink,
++	.ndo_set_vf_link_state	 = ipoib_set_vf_link_state,
++	.ndo_get_vf_config	 = ipoib_get_vf_config,
++	.ndo_get_vf_stats	 = ipoib_get_vf_stats,
++	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
++};
++
++static const struct net_device_ops ipoib_netdev_ops_vf = {
+ 	.ndo_uninit		 = ipoib_uninit,
+ 	.ndo_open		 = ipoib_open,
+ 	.ndo_stop		 = ipoib_stop,
+@@ -1610,7 +1667,11 @@ void ipoib_setup(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+-	dev->netdev_ops		 = &ipoib_netdev_ops;
++	if (priv->hca_caps & IB_DEVICE_VIRTUAL_FUNCTION)
++		dev->netdev_ops	= &ipoib_netdev_ops_vf;
++	else
++		dev->netdev_ops	= &ipoib_netdev_ops_pf;
++
+ 	dev->header_ops		 = &ipoib_header_ops;
+ 
+ 	ipoib_set_ethtool_ops(dev);
 -- 
 1.8.3.1
 
