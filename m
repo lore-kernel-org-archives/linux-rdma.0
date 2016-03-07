@@ -1,31 +1,30 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCH 4/8] IB/core: add a simple MR pool
-Date: Mon, 7 Mar 2016 21:37:42 +0530
-Message-ID: <CAG53R5XgQ5Z7P5pqTmxNmbrLU7dm71rBkjpuuOgyOhZ4LEF-Gw@mail.gmail.com>
-References: <1457028192-24965-1-git-send-email-hch@lst.de>
-	<1457028192-24965-5-git-send-email-hch@lst.de>
-	<007d01d1788b$27bead90$773c08b0$@opengridcomputing.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH 6/8] IB/core: generic RDMA READ/WRITE API
+Date: Mon, 7 Mar 2016 10:08:48 -0600
+Message-ID: <008501d1788b$a1e93ea0$e5bbbbe0$@opengridcomputing.com>
+References: <1457028192-24965-1-git-send-email-hch@lst.de> <1457028192-24965-7-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <007d01d1788b$27bead90$773c08b0$@opengridcomputing.com>
+In-Reply-To: <1457028192-24965-7-git-send-email-hch@lst.de>
+Content-Language: en-us
 Sender: target-devel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, Sagi Grimberg <sagig@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>, target-devel@vger.kernel.org
+To: 'Christoph Hellwig' <hch@lst.de>, linux-rdma@vger.kernel.org
+Cc: sagig@mellanox.com, bart.vanassche@sandisk.com, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 7, 2016 at 9:35 PM, Steve Wise <swise@opengridcomputing.com> wrote:
->
-> > Subject: [PATCH 4/8] IB/core: add a simple MR pool
-> >
-> > Signed-off-by: Christoph Hellwig <hch@lst.de>
->
-> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
->
+> Subject: [PATCH 6/8] IB/core: generic RDMA READ/WRITE API
+> 
+> This supports both manual mapping of lots of SGEs, as well as using MRs
+> from the QP's MR pool, for iWarp or other cases where it's more optimal.
+> For now, MRs are only used for iWARP transports.  The user of the RDMA-RW
+> API must allocate the QP MR pool as well as size the SQ accordingly.
+> 
+> Thanks to Steve Wise for testing, fixing and rewriting the iWarp support,
+> and to Sagi Grimberg for ideas, reviews and fixes.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Reviewed-by: Parav Pandit <pandit.parav@gmail.com>
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
