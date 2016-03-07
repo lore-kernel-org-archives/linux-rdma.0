@@ -1,134 +1,55 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V1 08/10] net/mlx5_core: Implement modify HCA vport command
-Date: Mon,  7 Mar 2016 23:08:58 +0200
-Message-ID: <1457384940-11951-9-git-send-email-eli@mellanox.com>
-References: <1457384940-11951-1-git-send-email-eli@mellanox.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH RESEND] qib:Fix concurrent access in the function,
+ qib_init_iba6120_funcs
+Date: Mon, 7 Mar 2016 21:17:20 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC25A7F6FA@fmsmsx120.amr.corp.intel.com>
+References: <1457323126-19686-1-git-send-email-xerofoify@gmail.com>
+ <32E1700B9017364D9B60AED9960492BC25A7C169@fmsmsx120.amr.corp.intel.com>
+ <56DDD4B9.5070802@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457384940-11951-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <56DDD4B9.5070802-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: nick <xerofoify-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Implement the modify HCA vport commands used to modify the parameters of
-virtual HCA's ports.
-
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |  6 +++
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 67 +++++++++++++++++++++++++
- include/linux/mlx5/vport.h                      |  4 ++
- 3 files changed, 77 insertions(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 037fc4cdf5af..ebb4036b98e5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -407,6 +407,12 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
- const char *mlx5_command_str(int command)
- {
- 	switch (command) {
-+	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
-+		return "QUERY_HCA_VPORT_CONTEXT";
-+
-+	case MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT:
-+		return "MODIFY_HCA_VPORT_CONTEXT";
-+
- 	case MLX5_CMD_OP_QUERY_HCA_CAP:
- 		return "QUERY_HCA_CAP";
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 2b836d0b4738..bd518405859e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -891,3 +891,70 @@ free:
- 	return err;
- }
- EXPORT_SYMBOL_GPL(mlx5_core_query_vport_counter);
-+
-+int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
-+				       u8 other_vport, u8 port_num,
-+				       int vf,
-+				       struct mlx5_hca_vport_context *req)
-+{
-+	int in_sz = MLX5_ST_SZ_BYTES(modify_hca_vport_context_in);
-+	u8 out[MLX5_ST_SZ_BYTES(modify_hca_vport_context_out)];
-+	int is_group_manager;
-+	void *in;
-+	int err;
-+	void *ctx;
-+
-+	mlx5_core_dbg(dev, "vf %d\n", vf);
-+	is_group_manager = MLX5_CAP_GEN(dev, vport_group_manager);
-+	in = kzalloc(in_sz, GFP_KERNEL);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	memset(out, 0, sizeof(out));
-+	MLX5_SET(modify_hca_vport_context_in, in, opcode, MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT);
-+	if (other_vport) {
-+		if (is_group_manager) {
-+			MLX5_SET(modify_hca_vport_context_in, in, other_vport, 1);
-+			MLX5_SET(modify_hca_vport_context_in, in, vport_number, vf);
-+		} else {
-+			err = -EPERM;
-+			goto ex;
-+		}
-+	}
-+
-+	if (MLX5_CAP_GEN(dev, num_ports) > 1)
-+		MLX5_SET(modify_hca_vport_context_in, in, port_num, port_num);
-+
-+	ctx = MLX5_ADDR_OF(modify_hca_vport_context_in, in, hca_vport_context);
-+	MLX5_SET(hca_vport_context, ctx, field_select, req->field_select);
-+	MLX5_SET(hca_vport_context, ctx, sm_virt_aware, req->sm_virt_aware);
-+	MLX5_SET(hca_vport_context, ctx, has_smi, req->has_smi);
-+	MLX5_SET(hca_vport_context, ctx, has_raw, req->has_raw);
-+	MLX5_SET(hca_vport_context, ctx, vport_state_policy, req->policy);
-+	MLX5_SET(hca_vport_context, ctx, port_physical_state, req->phys_state);
-+	MLX5_SET(hca_vport_context, ctx, vport_state, req->vport_state);
-+	MLX5_SET64(hca_vport_context, ctx, port_guid, req->port_guid);
-+	MLX5_SET64(hca_vport_context, ctx, node_guid, req->node_guid);
-+	MLX5_SET(hca_vport_context, ctx, cap_mask1, req->cap_mask1);
-+	MLX5_SET(hca_vport_context, ctx, cap_mask1_field_select, req->cap_mask1_perm);
-+	MLX5_SET(hca_vport_context, ctx, cap_mask2, req->cap_mask2);
-+	MLX5_SET(hca_vport_context, ctx, cap_mask2_field_select, req->cap_mask2_perm);
-+	MLX5_SET(hca_vport_context, ctx, lid, req->lid);
-+	MLX5_SET(hca_vport_context, ctx, init_type_reply, req->init_type_reply);
-+	MLX5_SET(hca_vport_context, ctx, lmc, req->lmc);
-+	MLX5_SET(hca_vport_context, ctx, subnet_timeout, req->subnet_timeout);
-+	MLX5_SET(hca_vport_context, ctx, sm_lid, req->sm_lid);
-+	MLX5_SET(hca_vport_context, ctx, sm_sl, req->sm_sl);
-+	MLX5_SET(hca_vport_context, ctx, qkey_violation_counter, req->qkey_violation_counter);
-+	MLX5_SET(hca_vport_context, ctx, pkey_violation_counter, req->pkey_violation_counter);
-+	err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
-+	if (err)
-+		goto ex;
-+
-+	err = mlx5_cmd_status_to_err_v2(out);
-+
-+ex:
-+	kfree(in);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_core_modify_hca_vport_context);
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index aafb3e48b5f8..bd93e6323603 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -95,5 +95,9 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
- int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
- 				  int vf, u8 port_num, void *out,
- 				  size_t out_sz);
-+int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
-+				       u8 other_vport, u8 port_num,
-+				       int vf,
-+				       struct mlx5_hca_vport_context *req);
- 
- #endif /* __MLX5_VPORT_H__ */
--- 
-1.8.3.1
-
+PiBGcm9tOiBuaWNrIFttYWlsdG86eGVyb2ZvaWZ5QGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5
+LCBNYXJjaCA3LCAyMDE2IDI6MjEgUE0NCj4gVG86IE1hcmNpbmlzenluLCBNaWtlIDxtaWtlLm1h
+cmNpbmlzenluQGludGVsLmNvbT4NCj4gQ2M6IGRsZWRmb3JkQHJlZGhhdC5jb207IEhlZnR5LCBT
+ZWFuIDxzZWFuLmhlZnR5QGludGVsLmNvbT47DQo+IGhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbTsg
+bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwu
+b3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggUkVTRU5EXSBxaWI6Rml4IGNvbmN1cnJlbnQgYWNj
+ZXNzIGluIHRoZSBmdW5jdGlvbiwNCj4gcWliX2luaXRfaWJhNjEyMF9mdW5jcw0KPiANCj4gDQo+
+IA0KPiBPbiAyMDE2LTAzLTA3IDExOjM0IEFNLCBNYXJjaW5pc3p5biwgTWlrZSB3cm90ZToNCj4g
+Pj4gVGhpcyBmaXhlcyBjb25jdXJyZW50IGFjY2VzcyBpbiB0aGUgZnVuY3Rpb24sIHFpYl9pbml0
+X2liYTYxMjBfZnVuY3MNCj4gPj4gYnkgbG9ja2luZyBhcm91bmQgdGhlIGNhbGxzIHRvIHdoZW4g
+c2V0dGluZyB1cCBmX3NlbmRjdHJsIGFuZA0KPiA+PiBmX3NldF9hcm1sYXVjaCBmdW5jdGlvbiBw
+b2ludGVycyB0byB0aGUgZnVuY3Rpb25zLCBzZW5kY3RybF82MTIwX21vZA0KPiA+PiBxaWJfc2V0
+XzYxMjBfYXJtbGF1bmNoIGR1ZSB0byB0aGVzZSBmdW5jdGlvbnMgbmVlZGluZyB0byBoYXZlIHRo
+ZWlyDQo+ID4+IGNhbGxlciB0byBob2xkIHRoZSBzcGlubG9jayB0aGF0IGlzIHBhcnQgb2YgdGhl
+IHFpYl9pYnBvcnQgcG9pbnRlcg0KPiA+PiB0aGV5IGFyZSB1c2luZyBhbmQgZHVlIHRvIHRoZSBs
+b2NrIG5vdCBiZWluZyBoZWxkIGJ5IGhpZ2hlciB1cA0KPiA+PiBmdW5jdGlvbnMgaW4gdGhlIGNh
+bGxlciBzdGFjayB3ZSBuZWVkIHRvIGhvbGQgaXQgaW4gcWliX2luaXRfaWJhNjIxMCB0byBhdm9p
+ZA0KPiBjb25uY3VycmVudCBhY2Nlc3Mgd2hlbiBzZXR0aW5nIHVwIHRoZXNlIGZ1bmN0aW9uIHBv
+aW50ZXJzLg0KPiA+Pg0KPiA+DQo+ID4gSSdtIG5vdCBzdXJlIEkgYWdyZWUuDQo+ID4NCj4gPiBz
+dGF0aWMgc3RydWN0IHBjaV9kcml2ZXIgcWliX2RyaXZlciA9IHsNCj4gPiAgICAgICAgIC5uYW1l
+ID0gUUlCX0RSVl9OQU1FLA0KPiA+ICAgICAgICAgLnByb2JlID0gcWliX2luaXRfb25lLA0KPiA+
+ICAgICAgICAgLnJlbW92ZSA9IHFpYl9yZW1vdmVfb25lLA0KPiA+ICAgICAgICAgLmlkX3RhYmxl
+ID0gcWliX3BjaV90YmwsDQo+ID4gICAgICAgICAuZXJyX2hhbmRsZXIgPSAmcWliX3BjaV9lcnJf
+aGFuZGxlciwgfTsNCj4gPg0KPiA+IFRoZSBvbmx5IGNhbGxlciBpcyB0aGUgcHJvYmUgZnVuY3Rp
+b24sIHdoaWNoIG5hdHVyYWxseSBwcm90ZWN0cyBzaW5jZSB0aGUgZGV2aWNlDQo+IGNhbm5vdCBi
+ZSB1c2VkIHVudGlsIHRoZSBwcm9iZSByZXR1cm5zLg0KPiA+DQo+IFRoYXQncyBjb3JyZWN0IG15
+IGNvbmNlcm4gd2FzIGFib3V0IHRocmVhZHMgZnJvbSBvdGhlciBrZXJuZWwgY29udGV4dHMgYnV0
+DQo+IHRoZW4gYWdhaW4gdGhhdCdzIHByb2JhYmx5IG1lIGJlaW5nIHRvbyBjb25zZXJ2YXRpdmUg
+YWJvdXQgY3JpdGljYWwgcmVnaW9uDQo+IHByb3RlY3Rpb24uDQo+IENoZWVycywNCj4gTmljaw0K
+DQpEb3VnLCBJJ20gTkFLaW5nIHRoaXMgcGF0Y2ggYmFzZWQgb24gdGhpcyByZXBseSBmcm9tIE5p
+Y2suDQoNCkdpdmVuIHRoYXQgZnVuY3Rpb24gdmVjdG9ycyBjYW5ub3QgYmUgdXNlZCB1bnRpbCB0
+aGUgcWliX2luaXRfaWJhNjEyMF9mdW5jcygpIGZ1bmN0aW9ucyByZXR1cm4sIHRoaXMgcGF0Y2gg
+anVzdCBub3QgbmVlZGVkLg0KDQpNaWtlDQoNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
