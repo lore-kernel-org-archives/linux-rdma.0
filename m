@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 07/10] net/mlx5_core: Add VF param when querying vport counter
-Date: Tue,  8 Mar 2016 18:36:55 +0200
-Message-ID: <1457455018-17638-8-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V2 06/10] IB/ipoib: Add ndo operations for configuring VFs
+Date: Tue,  8 Mar 2016 18:36:54 +0200
+Message-ID: <1457455018-17638-7-git-send-email-eli@mellanox.com>
 References: <1457455018-17638-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457455018-17638-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,73 +10,114 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a vf parameter to mlx5_core_query_vport_counter so we can call it to
-query counters of virtual functions. Also update current users of the
-API.
+Add ndo operations to the network driver that enables configuring the
+following operations:
 
-PFs may call mlx5_core_query_vport_counter with other_vport set to
-indicate that they are querying a virtual function. The virtual
-function to be queried is given by the vf parameter. Virtual function
-numbering is zero based so the first VF is 0 and so on. When a PF
-queries its own function, the other_vport parameter is cleared.
+ipoib_set_vf_link_state - configure the VF link policy
+ipoib_get_vf_config - get link state configuration
+ipoib_set_vf_guid - set a VF port or node GUID
+ipoib_get_vf_stats - get statistics of a VF
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mad.c                | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 5 +++--
- include/linux/mlx5/vport.h                      | 3 ++-
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 65 ++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 41d8a0036465..1534af113058 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -208,7 +208,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
- 		if (!out_cnt)
- 			return IB_MAD_RESULT_FAILURE;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 25509bbd4a05..80807d6e5c4c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -51,6 +51,7 @@
+ #include <net/addrconf.h>
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
++#include <linux/pci.h>
  
--		err = mlx5_core_query_vport_counter(dev->mdev, 0,
-+		err = mlx5_core_query_vport_counter(dev->mdev, 0, 0,
- 						    port_num, out_cnt, sz);
- 		if (!err)
- 			pma_cnt_ext_assign(pma_cnt_ext, out_cnt);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 90ab09e375b8..2b836d0b4738 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -852,7 +852,8 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev)
- EXPORT_SYMBOL_GPL(mlx5_nic_vport_disable_roce);
+ #define DRV_VERSION "1.0.0"
  
- int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
--				  u8 port_num, void *out, size_t out_sz)
-+				  int vf, u8 port_num, void *out,
-+				  size_t out_sz)
+@@ -1590,11 +1591,67 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 	priv->tx_ring = NULL;
+ }
+ 
++static int ipoib_set_vf_link_state(struct net_device *dev, int vf, int link_state)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	return ib_set_vf_link_state(priv->ca, vf, priv->port, link_state);
++}
++
++static int ipoib_get_vf_config(struct net_device *dev, int vf,
++			       struct ifla_vf_info *ivf)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++	int err;
++
++	err = ib_get_vf_config(priv->ca, vf, priv->port, ivf);
++	if (err)
++		return err;
++
++	ivf->vf = vf;
++
++	return 0;
++}
++
++static int ipoib_set_vf_guid(struct net_device *dev, int vf, u64 guid, int type)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	if (type != IFLA_VF_IB_NODE_GUID && type != IFLA_VF_IB_PORT_GUID)
++		return -EINVAL;
++
++	return ib_set_vf_guid(priv->ca, vf, priv->port, guid, type);
++}
++
++static int ipoib_get_vf_stats(struct net_device *dev, int vf,
++			      struct ifla_vf_stats *vf_stats)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	return ib_get_vf_stats(priv->ca, vf, priv->port, vf_stats);
++}
++
+ static const struct header_ops ipoib_header_ops = {
+ 	.create	= ipoib_hard_header,
+ };
+ 
+-static const struct net_device_ops ipoib_netdev_ops = {
++static const struct net_device_ops ipoib_netdev_ops_pf = {
++	.ndo_uninit		 = ipoib_uninit,
++	.ndo_open		 = ipoib_open,
++	.ndo_stop		 = ipoib_stop,
++	.ndo_change_mtu		 = ipoib_change_mtu,
++	.ndo_fix_features	 = ipoib_fix_features,
++	.ndo_start_xmit		 = ipoib_start_xmit,
++	.ndo_tx_timeout		 = ipoib_timeout,
++	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
++	.ndo_get_iflink		 = ipoib_get_iflink,
++	.ndo_set_vf_link_state	 = ipoib_set_vf_link_state,
++	.ndo_get_vf_config	 = ipoib_get_vf_config,
++	.ndo_get_vf_stats	 = ipoib_get_vf_stats,
++	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
++};
++
++static const struct net_device_ops ipoib_netdev_ops_vf = {
+ 	.ndo_uninit		 = ipoib_uninit,
+ 	.ndo_open		 = ipoib_open,
+ 	.ndo_stop		 = ipoib_stop,
+@@ -1610,7 +1667,11 @@ void ipoib_setup(struct net_device *dev)
  {
- 	int	in_sz = MLX5_ST_SZ_BYTES(query_vport_counter_in);
- 	int	is_group_manager;
-@@ -871,7 +872,7 @@ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
- 	if (other_vport) {
- 		if (is_group_manager) {
- 			MLX5_SET(query_vport_counter_in, in, other_vport, 1);
--			MLX5_SET(query_vport_counter_in, in, vport_number, 0);
-+			MLX5_SET(query_vport_counter_in, in, vport_number, vf + 1);
- 		} else {
- 			err = -EPERM;
- 			goto free;
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index a9f2bcc98cab..aafb3e48b5f8 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -93,6 +93,7 @@ int mlx5_modify_nic_vport_vlans(struct mlx5_core_dev *dev,
- int mlx5_nic_vport_enable_roce(struct mlx5_core_dev *mdev);
- int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
- int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
--				  u8 port_num, void *out, size_t out_sz);
-+				  int vf, u8 port_num, void *out,
-+				  size_t out_sz);
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
  
- #endif /* __MLX5_VPORT_H__ */
+-	dev->netdev_ops		 = &ipoib_netdev_ops;
++	if (priv->hca_caps & IB_DEVICE_VIRTUAL_FUNCTION)
++		dev->netdev_ops	= &ipoib_netdev_ops_vf;
++	else
++		dev->netdev_ops	= &ipoib_netdev_ops_pf;
++
+ 	dev->header_ops		 = &ipoib_header_ops;
+ 
+ 	ipoib_set_ethtool_ops(dev);
 -- 
 1.8.3.1
 
