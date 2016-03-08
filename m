@@ -1,74 +1,38 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 00/10] IB SR-IOV support
-Date: Tue,  8 Mar 2016 18:36:48 +0200
-Message-ID: <1457455018-17638-1-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V2 02/10] IB/mlx5: Fix decision on using MAD_IFC
+Date: Tue,  8 Mar 2016 18:36:50 +0200
+Message-ID: <1457455018-17638-3-git-send-email-eli@mellanox.com>
+References: <1457455018-17638-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457455018-17638-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug, Dave
+Fix the condition that dictates when MAD_IFC should be used. According
+to firmware specifications, MAD_IFC commands must be used only if the
+ib_virt capability is off.
 
-The following series adds support for managing SRIOV IB VFs in a standard
-way (rtnetlink, iproute2) through IPoIB ndo entries which translate to
-corresponding verbs calls.
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In IB networks, 64 bit GUIDs are used as the primary means of identification.
-To support that for VFs, we added a set_vf_guid ndo which is used to program
-the VF node and port GUID from the PF.
-
-Those verbs are implemented by the mlx5 driver along with some more changes
-needed in the driver, IPoIB and the IB core to support IB virtualization.
-
-We've copied netdev only on the 1st patch of the series, as the rest of it just
-uses the patch along with the existing ndos in IPoIB plus add things which
-are internal to the IB stack.
-
-The series is rebased against Doug's mlx5 branch and Leon's patch that extends
-the kernel ib device attr caps field to u64:
-https://patchwork.kernel.org/patch/8388931/
-
-Eli
-
-Changes from V1:
-1. Modify the patch handlign subnet prefix so it is implemented in the IB/core
-   layer dropping the implementation in hardware driver layer.
-
-Eli Cohen (10):
-  net/core: Add support for configuring VF GUIDs
-  IB/mlx5: Fix decision on using MAD_IFC
-  IB/core: Add subnet prefix to port info
-  IB/core: Support accessing SA in virtualized environment
-  IB/core: Add interfaces to control VF attributes
-  IB/ipoib: Add ndo operations for configuring VFs
-  net/mlx5_core: Add VF param when querying vport counter
-  net/mlx5_core: Implement modify HCA vport command
-  IB/mlx5: Implement callbacks for manipulating VFs
-  IB/ipoib: Allow mcast packets from other VFs
-
- drivers/infiniband/core/device.c                |  15 +-
- drivers/infiniband/core/sa_query.c              |   5 +
- drivers/infiniband/core/verbs.c                 |  40 +++++
- drivers/infiniband/hw/mlx5/Makefile             |   2 +-
- drivers/infiniband/hw/mlx5/ib_virt.c            | 194 ++++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mad.c                |   2 +-
- drivers/infiniband/hw/mlx5/main.c               |  12 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h            |   8 +
- drivers/infiniband/ulp/ipoib/ipoib_ib.c         |  27 +++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c       |  65 +++++++-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |   6 +
- drivers/net/ethernet/mellanox/mlx5/core/vport.c |  72 ++++++++-
- include/linux/mlx5/driver.h                     |   5 +-
- include/linux/mlx5/mlx5_ifc.h                   |   6 +
- include/linux/mlx5/vport.h                      |   7 +-
- include/linux/netdevice.h                       |   3 +
- include/rdma/ib_verbs.h                         |  25 +++
- include/uapi/linux/if_link.h                    |   7 +
- net/core/rtnetlink.c                            |  36 +++++
- 19 files changed, 520 insertions(+), 17 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/ib_virt.c
-
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 7e89a547bf34..79ee6997daa2 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -283,7 +283,7 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
+ 
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ {
+-	return !dev->mdev->issi;
++	return !MLX5_CAP_GEN(dev->mdev, ib_virt);
+ }
+ 
+ enum {
 -- 
 1.8.3.1
 
