@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/16] IB/hfi1: Remove the use of add/remove RB function
- pointers
-Date: Tue, 08 Mar 2016 11:14:42 -0800
-Message-ID: <20160308191441.30542.14853.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 04/16] IB/hfi1: Allow remove MMU callbacks to free nodes
+Date: Tue, 08 Mar 2016 11:14:36 -0800
+Message-ID: <20160308191436.30542.12110.stgit@scvm10.sc.intel.com>
 References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,94 +15,79 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The usage of function pointers for RB node insertion
-and removal in the expected receive code path was
-meant to be a small performance optimization. However,
-maintaining it, especially with the new MMU API, would
-become more troublesome as the API is extended.
+In order to allow the remove MMU callbacks to free the
+RB nodes, it is necessary to prevent any references to
+the nodes after the remove callback has been called.
 
-Since the performance optimization is minor, remove the
-function pointers and replace with direct calls.
+Therefore, remove the node from the tree prior to calling
+the callback. In other words, the MMU/RB API now guarantees
+that all RB node operations it performs will be done prior
+to calling the remove callback and that the RB node will
+not be touched afterwards.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h          |    2 --
- drivers/infiniband/hw/hfi1/user_exp_rcv.c |   25 ++++++++++++++-----------
- 2 files changed, 14 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 78c8e24..2107cdc 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1199,8 +1199,6 @@ struct hfi1_filedata {
- 	u32 invalid_tid_idx;
- 	/* protect invalid_tids array and invalid_tid_idx */
- 	spinlock_t invalid_lock;
--	int (*mmu_rb_insert)(struct rb_root *, struct mmu_rb_node *);
--	void (*mmu_rb_remove)(struct rb_root *, struct mmu_rb_node *);
- };
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
+index f42a33b..a3515d7 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.c
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
+@@ -120,10 +120,9 @@ void hfi1_mmu_rb_unregister(struct rb_root *root)
  
- extern struct list_head hfi1_dev_list;
-diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-index c9e05dd..b0b193f 100644
---- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-+++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-@@ -223,14 +223,6 @@ int hfi1_user_exp_rcv_init(struct file *fp)
+ 		while ((node = rb_first(root))) {
+ 			rbnode = rb_entry(node, struct mmu_rb_node, node);
++			rb_erase(node, root);
+ 			if (handler->ops->remove)
+ 				handler->ops->remove(root, rbnode);
+-			rb_erase(node, root);
+-			kfree(rbnode);
  		}
  	}
  
--	if (HFI1_CAP_IS_USET(TID_UNMAP)) {
--		fd->mmu_rb_insert = mmu_rb_insert;
--		fd->mmu_rb_remove = mmu_rb_remove;
--	} else {
--		fd->mmu_rb_insert = hfi1_mmu_rb_insert;
--		fd->mmu_rb_remove = hfi1_mmu_rb_remove;
--	}
--
- 	/*
- 	 * PSM does not have a good way to separate, count, and
- 	 * effectively enforce a limit on RcvArray entries used by
-@@ -861,7 +853,10 @@ static int set_rcvarray_entry(struct file *fp, unsigned long vaddr,
- 	node->freed = false;
- 	memcpy(node->pages, pages, sizeof(struct page *) * npages);
+@@ -200,9 +199,9 @@ static void __mmu_rb_remove(struct mmu_rb_handler *handler,
+ 			    struct mmu_rb_node *node)
+ {
+ 	/* Validity of handler and node pointers has been checked by caller. */
++	rb_erase(&node->node, handler->root);
+ 	if (handler->ops->remove)
+ 		handler->ops->remove(handler->root, node);
+-	rb_erase(&node->node, handler->root);
+ }
  
--	ret = fd->mmu_rb_insert(root, &node->mmu);
-+	if (HFI1_CAP_IS_USET(TID_UNMAP))
-+		ret = mmu_rb_insert(root, &node->mmu);
-+	else
-+		ret = hfi1_mmu_rb_insert(root, &node->mmu);
+ struct mmu_rb_node *hfi1_mmu_rb_search(struct rb_root *root, unsigned long addr,
+@@ -272,7 +271,7 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 		container_of(mn, struct mmu_rb_handler, mn);
+ 	struct rb_root *root = handler->root;
+ 	struct mmu_rb_node *node;
+-	unsigned long addr = start, flags;
++	unsigned long addr = start, naddr, nlen, flags;
  
- 	if (ret) {
- 		hfi1_cdbg(TID, "Failed to insert RB node %u 0x%lx, 0x%lx %d",
-@@ -901,7 +896,10 @@ static int unprogram_rcvarray(struct file *fp, u32 tidinfo,
- 	node = fd->entry_to_rb[rcventry];
- 	if (!node || node->rcventry != (uctxt->expected_base + rcventry))
- 		return -EBADF;
--	fd->mmu_rb_remove(&fd->tid_rb_root, &node->mmu);
-+	if (HFI1_CAP_IS_USET(TID_UNMAP))
-+		mmu_rb_remove(&fd->tid_rb_root, &node->mmu);
-+	else
-+		hfi1_mmu_rb_remove(&fd->tid_rb_root, &node->mmu);
- 
- 	if (grp)
- 		*grp = node->grp;
-@@ -962,7 +960,12 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
- 							  uctxt->expected_base];
- 				if (!node || node->rcventry != rcventry)
- 					continue;
--				fd->mmu_rb_remove(root, &node->mmu);
-+				if (HFI1_CAP_IS_USET(TID_UNMAP))
-+					mmu_rb_remove(&fd->tid_rb_root,
-+						      &node->mmu);
-+				else
-+					hfi1_mmu_rb_remove(&fd->tid_rb_root,
-+							   &node->mmu);
- 				clear_tid_node(fd, -1, node);
- 			}
+ 	spin_lock_irqsave(&handler->lock, flags);
+ 	while (addr < end) {
+@@ -296,6 +295,9 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 			addr += PAGE_SIZE;
+ 			continue;
  		}
++
++		naddr = node->addr;
++		nlen = node->len;
+ 		if (handler->ops->invalidate(root, node))
+ 			__mmu_rb_remove(handler, node);
+ 
+@@ -307,7 +309,7 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 		 * the address by the node's size would result is a
+ 		 * bad address.
+ 		 */
+-		addr = node->addr + node->len;
++		addr = naddr + nlen;
+ 	}
+ 	spin_unlock_irqrestore(&handler->lock, flags);
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
