@@ -1,70 +1,49 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/11] xprtrdma: Do not wait if ib_post_send() fails
-Date: Tue, 8 Mar 2016 13:03:23 -0500
-Message-ID: <8696EFBA-B7DB-42AC-AB57-C656070F4ED3@oracle.com>
-References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org> <20160304162801.13590.89343.stgit@oracle120-ib.cthon.org> <56DF1186.3030303@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 03/10] IB/core: Add subnet prefix to port
+ info
+Date: Tue, 8 Mar 2016 20:04:28 +0200
+Message-ID: <20160308180428.GD33629@x-vnc01.mtx.labs.mlnx>
+References: <1457455018-17638-1-git-send-email-eli@mellanox.com>
+ <1457455018-17638-4-git-send-email-eli@mellanox.com>
+ <20160308175752.GD10805@obsidianresearch.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56DF1186.3030303-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160308175752.GD10805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Mar 8, 2016, at 12:53 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+On Tue, Mar 08, 2016 at 10:57:52AM -0700, Jason Gunthorpe wrote:
 > 
+> Looks reasonable
 > 
+> Are you going to still send the mlx4/5 changes to avoid the other
+> callback?
+
+I don't think it is necessary since the hardware driver will do the
+same thing to obtain the subnet prefix so I don't think it has any
+siginficant benefit.
 > 
-> On 04/03/2016 18:28, Chuck Lever wrote:
->> If ib_post_send() in ro_unmap_sync() fails, the WRs have not been
->> posted, no completions will fire, and wait_for_completion() will
->> wait forever. Skip the wait in that case.
->> 
->> To ensure the MRs are invalid, disconnect.
+> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > 
-> How does that help to ensure that?
 
-I should have said "To ensure the MRs are fenced,"
+Thanks
 
-> The first wr that failed and on will leave the
-> corresponding MRs invalid, and the others will be valid
-> upon completion.
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -509,6 +509,7 @@ struct ib_port_attr {
+> >  	u8			active_width;
+> >  	u8			active_speed;
+> >  	u8                      phys_state;
+> > +	u64			subnet_prefix;
+> >  };
+> 
+> This turned out to be aligned then?
+> 
 
-? This is in the invalidation code, not in the fastreg
-code.
-
-When this ib_post_send() fails, I've built a set of
-chained LOCAL_INV WRs, but they never get posted. So
-there is no WR failure here, the WRs are simply
-never posted, and they won't complete or flush.
-
-If the connection is no longer there, the MRs are
-fenced from the target. Is there a better recovery in
-this case?
-
-I suppose I could reset these MRs instead (that is,
-pass them to ib_dereg_mr).
-
-
-> Disconnecting will move the QP to error state,
-> but it's not guaranteed that the wrs that _were_ posted will not
-> be executed.
-
-Right, disconnecting is not attempting to knock
-down running WRs.
-
-> I'd say this is the opposite of ensuring...
-
-
-
---
-Chuck Lever
-
-
-
+Actually I missed this comment of yours. I will fix that as well.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
