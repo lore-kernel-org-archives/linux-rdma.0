@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v4 3/9] IB/core: add a helper to check for READ WITH INVALIDATE support
-Date: Tue,  8 Mar 2016 19:16:34 +0100
-Message-ID: <1457461000-24088-4-git-send-email-hch@lst.de>
+Subject: [PATCH v4 4/9] IB/core: refactor ib_create_qp
+Date: Tue,  8 Mar 2016 19:16:35 +0100
+Message-ID: <1457461000-24088-5-git-send-email-hch@lst.de>
 References: <1457461000-24088-1-git-send-email-hch@lst.de>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1457461000-24088-1-git-send-email-hch@lst.de>
@@ -10,35 +10,136 @@ To: dledford@redhat.com, bart.vanassche@sandisk.com
 Cc: sagig@mellanox.com, swise@opengridcomputing.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Split the XRC magic into a separate function, and return early on failure
+to make the initialization code readable.
+
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Tested-by: Steve Wise <swise@opengridcomputing.com>
 Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 ---
- include/rdma/ib_verbs.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/infiniband/core/verbs.c | 103 +++++++++++++++++++++-------------------
+ 1 file changed, 54 insertions(+), 49 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1e21fb8..cdb9159 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2293,6 +2293,18 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
- 		device->add_gid && device->del_gid;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index eaed99b..7ea0c9c 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -723,62 +723,67 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
  }
+ EXPORT_SYMBOL(ib_open_qp);
  
-+/*
-+ * Check if the device supports READ W/ INVALIDATE.
-+ */
-+static inline bool rdma_cap_read_inv(struct ib_device *dev, u32 port_num)
++static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
++		struct ib_qp_init_attr *qp_init_attr)
 +{
-+	/*
-+	 * iWarp drivers must support READ W/ INVALIDATE.  No other protocol
-+	 * has support for it yet.
-+	 */
-+	return rdma_protocol_iwarp(dev, port_num);
++	struct ib_qp *real_qp = qp;
++
++	qp->event_handler = __ib_shared_qp_event_handler;
++	qp->qp_context = qp;
++	qp->pd = NULL;
++	qp->send_cq = qp->recv_cq = NULL;
++	qp->srq = NULL;
++	qp->xrcd = qp_init_attr->xrcd;
++	atomic_inc(&qp_init_attr->xrcd->usecnt);
++	INIT_LIST_HEAD(&qp->open_list);
++
++	qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
++			  qp_init_attr->qp_context);
++	if (IS_ERR(qp))
++		real_qp->device->destroy_qp(real_qp);
++	else
++		__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
++	return qp;
 +}
 +
- int ib_query_gid(struct ib_device *device,
- 		 u8 port_num, int index, union ib_gid *gid,
- 		 struct ib_gid_attr *attr);
+ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			   struct ib_qp_init_attr *qp_init_attr)
+ {
+-	struct ib_qp *qp, *real_qp;
+-	struct ib_device *device;
++	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
++	struct ib_qp *qp;
+ 
+-	device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	qp = device->create_qp(pd, qp_init_attr, NULL);
+-
+-	if (!IS_ERR(qp)) {
+-		qp->device     = device;
+-		qp->real_qp    = qp;
+-		qp->uobject    = NULL;
+-		qp->qp_type    = qp_init_attr->qp_type;
+-
+-		atomic_set(&qp->usecnt, 0);
+-		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+-			qp->event_handler = __ib_shared_qp_event_handler;
+-			qp->qp_context = qp;
+-			qp->pd = NULL;
+-			qp->send_cq = qp->recv_cq = NULL;
+-			qp->srq = NULL;
+-			qp->xrcd = qp_init_attr->xrcd;
+-			atomic_inc(&qp_init_attr->xrcd->usecnt);
+-			INIT_LIST_HEAD(&qp->open_list);
+-
+-			real_qp = qp;
+-			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
+-					  qp_init_attr->qp_context);
+-			if (!IS_ERR(qp))
+-				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
+-			else
+-				real_qp->device->destroy_qp(real_qp);
+-		} else {
+-			qp->event_handler = qp_init_attr->event_handler;
+-			qp->qp_context = qp_init_attr->qp_context;
+-			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
+-				qp->recv_cq = NULL;
+-				qp->srq = NULL;
+-			} else {
+-				qp->recv_cq = qp_init_attr->recv_cq;
+-				atomic_inc(&qp_init_attr->recv_cq->usecnt);
+-				qp->srq = qp_init_attr->srq;
+-				if (qp->srq)
+-					atomic_inc(&qp_init_attr->srq->usecnt);
+-			}
+-
+-			qp->pd	    = pd;
+-			qp->send_cq = qp_init_attr->send_cq;
+-			qp->xrcd    = NULL;
+-
+-			atomic_inc(&pd->usecnt);
+-			atomic_inc(&qp_init_attr->send_cq->usecnt);
+-		}
++	if (IS_ERR(qp))
++		return qp;
++
++	qp->device     = device;
++	qp->real_qp    = qp;
++	qp->uobject    = NULL;
++	qp->qp_type    = qp_init_attr->qp_type;
++
++	atomic_set(&qp->usecnt, 0);
++	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
++		return ib_create_xrc_qp(qp, qp_init_attr);
++
++	qp->event_handler = qp_init_attr->event_handler;
++	qp->qp_context = qp_init_attr->qp_context;
++	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
++		qp->recv_cq = NULL;
++		qp->srq = NULL;
++	} else {
++		qp->recv_cq = qp_init_attr->recv_cq;
++		atomic_inc(&qp_init_attr->recv_cq->usecnt);
++		qp->srq = qp_init_attr->srq;
++		if (qp->srq)
++			atomic_inc(&qp_init_attr->srq->usecnt);
+ 	}
+ 
++	qp->pd	    = pd;
++	qp->send_cq = qp_init_attr->send_cq;
++	qp->xrcd    = NULL;
++
++	atomic_inc(&pd->usecnt);
++	atomic_inc(&qp_init_attr->send_cq->usecnt);
+ 	return qp;
+ }
+ EXPORT_SYMBOL(ib_create_qp);
 -- 
 2.1.4
