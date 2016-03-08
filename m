@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 08/16] IB/hfi1: Add MMU tracing
-Date: Tue, 08 Mar 2016 11:14:59 -0800
-Message-ID: <20160308191458.30542.7214.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 09/16] IB/hfi1: Remove compare callback
+Date: Tue, 08 Mar 2016 11:15:04 -0800
+Message-ID: <20160308191504.30542.45937.stgit@scvm10.sc.intel.com>
 References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,83 +15,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add a new tracepoint type for the MMU functions and calls
-to that tracepoint to allow tracing of MMU functionality.
+Interval RB trees provide their own searching function,
+which also takes care of determining the path through
+the tree that should be taken.
+
+This make the compare callback unnecessary.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mmu_rb.c |   10 ++++++++++
- drivers/infiniband/hw/hfi1/trace.c  |    1 +
- drivers/infiniband/hw/hfi1/trace.h  |    1 +
- 3 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c       |    2 +-
+ drivers/infiniband/hw/hfi1/mmu_rb.h       |    2 --
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |   14 --------------
+ 3 files changed, 1 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
-index 540e267..c30373d 100644
+index c30373d..5d27fee 100644
 --- a/drivers/infiniband/hw/hfi1/mmu_rb.c
 +++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
-@@ -157,6 +157,8 @@ int hfi1_mmu_rb_insert(struct rb_root *root, struct mmu_rb_node *mnode)
+@@ -98,7 +98,7 @@ int hfi1_mmu_rb_register(struct rb_root *root, struct mmu_rb_ops *ops)
+ 	struct mmu_rb_handler *handlr;
+ 	unsigned long flags;
+ 
+-	if (!ops->compare || !ops->invalidate)
++	if (!ops->invalidate)
  		return -EINVAL;
  
- 	spin_lock_irqsave(&handler->lock, flags);
-+	hfi1_cdbg(MMU, "Inserting node addr 0x%llx, len %u", mnode->addr,
-+		  mnode->len);
- 	node = __mmu_rb_search(handler, mnode->addr, mnode->len);
- 	if (node) {
- 		ret = -EINVAL;
-@@ -181,7 +183,11 @@ static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *handler,
- {
- 	struct mmu_rb_node *node;
+ 	handlr = kmalloc(sizeof(*handlr), GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.h b/drivers/infiniband/hw/hfi1/mmu_rb.h
+index abed3a6..9c26009 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.h
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.h
+@@ -57,8 +57,6 @@ struct mmu_rb_node {
+ };
  
-+	hfi1_cdbg(MMU, "Searching for addr 0x%llx, len %u", addr, len);
- 	node = __mmu_int_rb_iter_first(handler->root, addr, len);
-+	if (node)
-+		hfi1_cdbg(MMU, "Found node addr 0x%llx, len %u", node->addr,
-+			  node->len);
- 	return node;
+ struct mmu_rb_ops {
+-	int (*compare)(struct mmu_rb_node *, unsigned long,
+-		       unsigned long);
+ 	int (*insert)(struct rb_root *, struct mmu_rb_node *);
+ 	void (*remove)(struct rb_root *, struct mmu_rb_node *, bool);
+ 	int (*invalidate)(struct rb_root *, struct mmu_rb_node *);
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+index 1d971c0..bf670cb 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+@@ -86,8 +86,6 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *, struct exp_tid_set *,
+ static u32 find_phys_blocks(struct page **, unsigned, struct tid_pageset *);
+ static int set_rcvarray_entry(struct file *, unsigned long, u32,
+ 			      struct tid_group *, struct page **, unsigned);
+-static inline int mmu_addr_cmp(struct mmu_rb_node *, unsigned long,
+-			       unsigned long);
+ static int mmu_rb_insert(struct rb_root *, struct mmu_rb_node *);
+ static void mmu_rb_remove(struct rb_root *, struct mmu_rb_node *, bool);
+ static int mmu_rb_invalidate(struct rb_root *, struct mmu_rb_node *);
+@@ -98,7 +96,6 @@ static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
+ static void clear_tid_node(struct hfi1_filedata *, u16, struct tid_rb_node *);
+ 
+ static struct mmu_rb_ops tid_rb_ops = {
+-	.compare = mmu_addr_cmp,
+ 	.insert = mmu_rb_insert,
+ 	.remove = mmu_rb_remove,
+ 	.invalidate = mmu_rb_invalidate
+@@ -1016,17 +1013,6 @@ static int mmu_rb_invalidate(struct rb_root *root, struct mmu_rb_node *mnode)
+ 	return 0;
  }
  
-@@ -189,6 +195,8 @@ static void __mmu_rb_remove(struct mmu_rb_handler *handler,
- 			    struct mmu_rb_node *node, bool arg)
+-static int mmu_addr_cmp(struct mmu_rb_node *node, unsigned long addr,
+-			unsigned long len)
+-{
+-	if ((addr + len) <= node->addr)
+-		return -1;
+-	else if (addr >= node->addr && addr < (node->addr + node->len))
+-		return 0;
+-	else
+-		return 1;
+-}
+-
+ static int mmu_rb_insert(struct rb_root *root, struct mmu_rb_node *node)
  {
- 	/* Validity of handler and node pointers has been checked by caller. */
-+	hfi1_cdbg(MMU, "Removing node addr 0x%llx, len %u", node->addr,
-+		  node->len);
- 	__mmu_int_rb_remove(node, handler->root);
- 	if (handler->ops->remove)
- 		handler->ops->remove(handler->root, node, arg);
-@@ -266,6 +274,8 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
- 	spin_lock_irqsave(&handler->lock, flags);
- 	for (node = __mmu_int_rb_iter_first(root, start, end); node;
- 	     node = __mmu_int_rb_iter_next(node, start, end)) {
-+		hfi1_cdbg(MMU, "Invalidating node addr 0x%llx, len %u",
-+			  node->addr, node->len);
- 		if (handler->ops->invalidate(root, node))
- 			__mmu_rb_remove(handler, node, true);
- 	}
-diff --git a/drivers/infiniband/hw/hfi1/trace.c b/drivers/infiniband/hw/hfi1/trace.c
-index 6821d7c..8b62fef 100644
---- a/drivers/infiniband/hw/hfi1/trace.c
-+++ b/drivers/infiniband/hw/hfi1/trace.c
-@@ -232,3 +232,4 @@ __hfi1_trace_fn(DC8051);
- __hfi1_trace_fn(FIRMWARE);
- __hfi1_trace_fn(RCVCTRL);
- __hfi1_trace_fn(TID);
-+__hfi1_trace_fn(MMU);
-diff --git a/drivers/infiniband/hw/hfi1/trace.h b/drivers/infiniband/hw/hfi1/trace.h
-index 4d91c18..963dc94 100644
---- a/drivers/infiniband/hw/hfi1/trace.h
-+++ b/drivers/infiniband/hw/hfi1/trace.h
-@@ -1340,6 +1340,7 @@ __hfi1_trace_def(DC8051);
- __hfi1_trace_def(FIRMWARE);
- __hfi1_trace_def(RCVCTRL);
- __hfi1_trace_def(TID);
-+__hfi1_trace_def(MMU);
- 
- #define hfi1_cdbg(which, fmt, ...) \
- 	__hfi1_trace_##which(__func__, fmt, ##__VA_ARGS__)
+ 	struct hfi1_filedata *fdata =
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
