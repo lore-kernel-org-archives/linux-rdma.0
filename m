@@ -1,50 +1,60 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 03/10] IB/core: Add subnet prefix to port
- info
-Date: Tue, 8 Mar 2016 20:04:28 +0200
-Message-ID: <20160308180428.GD33629@x-vnc01.mtx.labs.mlnx>
-References: <1457455018-17638-1-git-send-email-eli@mellanox.com>
- <1457455018-17638-4-git-send-email-eli@mellanox.com>
- <20160308175752.GD10805@obsidianresearch.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: generic RDMA READ/WRITE API V4
+Date: Tue,  8 Mar 2016 19:16:31 +0100
+Message-ID: <1457461000-24088-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160308175752.GD10805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com, bart.vanassche@sandisk.com
+Cc: sagig@mellanox.com, swise@opengridcomputing.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 08, 2016 at 10:57:52AM -0700, Jason Gunthorpe wrote:
-> 
-> Looks reasonable
-> 
-> Are you going to still send the mlx4/5 changes to avoid the other
-> callback?
+This series contains patches that implement a first version of a generi=
+c
+API to handle RDMA READ/WRITE operations as commonly used on the target
+(or server) side for storage protocols.
 
-I don't think it is necessary since the hardware driver will do the
-same thing to obtain the subnet prefix so I don't think it has any
-siginficant benefit.
-> 
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> 
+I think it's basically ready to merge now, but I'd really like to have
+a positive review from Bart for the SRP target conversion.
 
-Thanks
+This has been developed for the upcoming NVMe over Fabrics target, and
+extensively te=D1=95ted as part of that, although this upstream version=
+ has
+additional updates over the one we're currently using.
 
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -509,6 +509,7 @@ struct ib_port_attr {
-> >  	u8			active_width;
-> >  	u8			active_speed;
-> >  	u8                      phys_state;
-> > +	u64			subnet_prefix;
-> >  };
-> 
-> This turned out to be aligned then?
-> 
+It hides details such as the use of MRs for iWarp devices, and will all=
+ow
+looking at other HCA specifics easily in the future.
 
-Actually I missed this comment of yours. I will fix that as well.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This series contains a conversion of the SRP target, and the git tree
+below also has a RFC conversion of the iSER target (a little hacky
+due to the signature MR support which I can't test)
+
+I also have a git tree available at:
+
+	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
+
+Gitweb:
+
+	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
+w-api
+
+These two also include the RFC iSER target conversion.
+
+Changes since V3:
+ - really fold the list_del in mr_pool_get into the right patch
+
+Changes since V2:
+ - fold the list_del in mr_pool_get into the right patch
+ - clamp the max FR page size length
+ - minor srpt style fix
+ - spelling fixes
+ - renamed rdma_has_read_invalidate to rdma_cap_read_inv
+
+Changes since V1:
+ - fixed offset handling in ib_sg_to_pages
+ - uses proper SG iterators to handle larger than PAGE_SIZE segments
+ - adjusted parameters for some functions to reduce size of the context
+ - SRP target support
