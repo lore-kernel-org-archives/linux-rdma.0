@@ -1,40 +1,47 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 5/9] IB/core: add a simple MR pool
-Date: Tue, 8 Mar 2016 11:37:15 -0800
-Message-ID: <56DF29EB.7040703@sandisk.com>
-References: <1457461000-24088-1-git-send-email-hch@lst.de>
- <1457461000-24088-6-git-send-email-hch@lst.de>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v4 1/9] IB/cma: pass the port number to ib_create_qp
+Date: Tue, 8 Mar 2016 13:38:20 -0600
+Message-ID: <017b01d17972$11e5a3b0$35b0eb10$@opengridcomputing.com>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-2-git-send-email-hch@lst.de> <20160308192709.GJ13396@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457461000-24088-6-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160308192709.GJ13396-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: leon-2ukJVAZIZ/Y@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/08/2016 10:16 AM, Christoph Hellwig wrote:
-> +struct ib_mr *ib_mr_pool_get(struct ib_qp *qp, struct list_head *list)
-> +{
-> +	struct ib_mr *mr = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&qp->mr_lock, flags);
-> +	mr = list_first_entry_or_null(list, struct ib_mr, qp_entry);
-> +	if (mr) {
-> +		list_del(&mr->qp_entry);
-> +		qp->mrs_used++;
-> +	}
-> +	spin_unlock_irqrestore(&qp->mr_lock, flags);
-> +
-> +	return mr;
-> +}
+> On Tue, Mar 08, 2016 at 07:16:32PM +0100, Christoph Hellwig wrote:
+> > The new RW API will need this.
+> >
+> > Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> > Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > ---
+> >  drivers/infiniband/core/cma.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> >
+> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> > index 9729639..a791522 100644
+> > --- a/drivers/infiniband/core/cma.c
+> > +++ b/drivers/infiniband/core/cma.c
+> > @@ -800,6 +800,7 @@ int rdma_create_qp(struct rdma_cm_id *id, struct ib_pd *pd,
+> >  	if (id->device != pd->device)
+> >  		return -EINVAL;
+> >
+> > +	qp_init_attr->port_num = id->port_num;
+> 
+> I doubt whether this is the right place to update qp_init_attr structure.
+> Maybe the better solution will be to update the callers of rdma_create_qp?
+> It will place all qp_init_attr assignments in one place.
 
-Hmm ... why has 'mr' been initialized to NULL in this function? I think 
-that initialization can be left out. Anyway:
+At the expense of replicating this code and forcing all users to remember to set this.
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
