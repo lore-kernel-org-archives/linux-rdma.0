@@ -1,106 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2] IB/uverbs: Fix race between uverbs_close and
- remove_one
-Date: Wed, 9 Mar 2016 12:03:54 -0700
-Message-ID: <20160309190354.GD21139@obsidianresearch.com>
-References: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
- <20160307190833.GA1886@obsidianresearch.com>
- <CANjDDBiYagKm79n5sWNsCnxruSzqDqZYREmw1mGBR_upapF4hQ@mail.gmail.com>
- <20160308175334.GB10805@obsidianresearch.com>
- <56E053C8.8050008@dev.mellanox.co.il>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Wed, 9 Mar 2016 14:21:10 -0500
+Message-ID: <20160309192109.GB15031@phlsvsds.ph.intel.com>
+References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com> <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com> <20160309002157.GA20105@phlsvsds.ph.intel.com> <20160309050731.GM13396@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56E053C8.8050008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160309050731.GM13396-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 09, 2016 at 06:48:08PM +0200, Yishai Hadas wrote:
- 
-> The srcu with NULL checking by itself can prevent the race, no need for the
-> "completion" mechanism. ib_uverbs_free_hw_resources uses synchronize_srcu
-> just after that ib_dev was set to NULL as part of ib_uverbs_remove_one.
+On Wed, Mar 09, 2016 at 07:07:31AM +0200, Leon Romanovsky wrote:
+>On Tue, Mar 08, 2016 at 07:21:58PM -0500, Dennis Dalessandro wrote:
+>> On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
+>> >On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
+>> ><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> >
+>> >>This patch series adds a performance improvement to user SDMA transfers from
+>> >>PSM applications by caching user buffer pages after pinning them. Subsequent
+>> >>uses of the same user buffer will not incur the cost of pinning the same pages
+>> >>again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
+>> >>pages are unpinned when the context is torn down or when the driver determines
+>> >>that the buffer should be evicted from the cache. Cache evictions happen when
+>> >>there is a request for a new, uncached buffer and the current size of the cache
+>> >>has reached a pre-defined limit.
+>> >
+>> >If indeed there's a need for such a pin down cache, it should have
+>> >been implemented in the IB core, b/c both the problem and the solution
+>> >are generic and have nothing to do with certain device driver.
+>> 
+>> Since this is for psm it has nothing to do with the IB core. I fail to see
+>> what that would achieve.
+>
+>I tend to agree with Or, your proposal goes far beyond the driver code.
+>Do you expect that all drivers which will be needed to support PSM will
+>implement (copy/paste) the same generic logic?
 
-No, I don't think that is true, the completion looks like it is
-actually needed because the goto out in ib_uverbs_close needs to wait
-for ib_uverbs_free_hw_resources to do the cleanups ib_uverbs_close
-skipped over before it can go ahead and kref_put things.
+We should not be putting something which is specific to PSM in the IB core.  
+We feel the driver is the most appropriate place for this.
 
-So, this is too ugly, do not create a mutex out of srcu and completion.
-
-Your performance reason not to use the existing lists_mutex seems
-reasonable, so add a new cleanup mutex for this purpose.
-
-Something like this. I would also get rid of file->is_closed and use
-list_del_init & list_empty instead.
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 39680aed99dd..8d192234fdd6 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- {
- 	struct ib_uverbs_file *file = filp->private_data;
- 	struct ib_uverbs_device *dev = file->device;
--	struct ib_ucontext *ucontext = NULL;
- 
- 	mutex_lock(&file->device->lists_mutex);
--	ucontext = file->ucontext;
--	file->ucontext = NULL;
- 	if (!file->is_closed) {
- 		list_del(&file->list);
- 		file->is_closed = 1;
- 	}
- 	mutex_unlock(&file->device->lists_mutex);
--	if (ucontext)
--		ib_uverbs_cleanup_ucontext(file, ucontext);
-+
-+	mutex_lock(&file->cleanup_mutex);
-+	if (file->ucontext) {
-+		ib_uverbs_cleanup_ucontext(file, file->ucontext);
-+		file->ucontext = NULL;
-+	}
-+	mutex_unlock(&file->cleanup_mutex);
- 
- 	if (file->async_file)
- 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
-@@ -1177,26 +1179,26 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
- 
- 	mutex_lock(&uverbs_dev->lists_mutex);
- 	while (!list_empty(&uverbs_dev->uverbs_file_list)) {
--		struct ib_ucontext *ucontext;
--
- 		file = list_first_entry(&uverbs_dev->uverbs_file_list,
- 					struct ib_uverbs_file, list);
- 		file->is_closed = 1;
--		ucontext = file->ucontext;
- 		list_del(&file->list);
--		file->ucontext = NULL;
- 		kref_get(&file->ref);
- 		mutex_unlock(&uverbs_dev->lists_mutex);
-+
- 		/* We must release the mutex before going ahead and calling
- 		 * disassociate_ucontext. disassociate_ucontext might end up
- 		 * indirectly calling uverbs_close, for example due to freeing
- 		 * the resources (e.g mmput).
- 		 */
- 		ib_uverbs_event_handler(&file->event_handler, &event);
--		if (ucontext) {
--			ib_dev->disassociate_ucontext(ucontext);
--			ib_uverbs_cleanup_ucontext(file, ucontext);
-+		mutex_lock(&file->cleanup_mutex);
-+		if (file->ucontext) {
-+			ib_dev->disassociate_ucontext(file->ucontext);
-+			ib_uverbs_cleanup_ucontext(file, file->ucontext);
-+			file->ucontext = NULL;
- 		}
-+		mutex_unlock(&file->cleanup_mutex);
- 
- 		mutex_lock(&uverbs_dev->lists_mutex);
- 		kref_put(&file->ref, ib_uverbs_release_file);
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
