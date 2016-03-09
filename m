@@ -1,62 +1,48 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 114061] New: xorg session flickers after resume from suspend
-Date: Tue, 08 Mar 2016 23:44:22 +0000
-Message-ID: <bug-114061-11804@https.bugzilla.kernel.org/>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Tue, 8 Mar 2016 19:21:58 -0500
+Message-ID: <20160309002157.GA20105@phlsvsds.ph.intel.com>
+References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com> <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=114061
+On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
+>On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
+><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> This patch series adds a performance improvement to user SDMA transfers from
+>> PSM applications by caching user buffer pages after pinning them. Subsequent
+>> uses of the same user buffer will not incur the cost of pinning the same pages
+>> again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
+>> pages are unpinned when the context is torn down or when the driver determines
+>> that the buffer should be evicted from the cache. Cache evictions happen when
+>> there is a request for a new, uncached buffer and the current size of the cache
+>> has reached a pre-defined limit.
+>
+>If indeed there's a need for such a pin down cache, it should have
+>been implemented in the IB core, b/c both the problem and the solution
+>are generic and have nothing to do with certain device driver.
 
-            Bug ID: 114061
-           Summary: xorg session flickers after resume from suspend
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 4.1.18
-          Hardware: x86-64
-                OS: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: high
-          Priority: P1
-         Component: Infiniband/RDMA
-          Assignee: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-          Reporter: e.sovetkin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-        Regression: No
+Since this is for psm it has nothing to do with the IB core. I fail to see 
+what that would achieve.
 
-Created attachment 208321
-  --> https://bugzilla.kernel.org/attachment.cgi?id=208321&action=edit
-git bisect log
+>The problem is that you are bypassing the IB core altogether with a
+>proprietary character device in the hfi1 driver which managed to snick
+>in even in the presence of reviewer comments during the submission.
 
-Xorg session flickers after resume from suspend. Restarting Xorg solves the
-issue.
+Yes there were reviewer comments, and the maintainer made a decision.
+I would also not call this proprietary. It is open source after all:
 
-The problem occurs in linux-lts 4.1.18-1 and linux-lts 4.1.19-1.
-Downgrading to linux-lts 4.1.17-1 solves the issue.
+See:  https://github.com/01org/opa-psm2
 
-Journal doesn't have any relevant messages (compared logs with 4.1.17-1 and
-4.1.19-1 running kernel).
-
-Additional info:
-* Laptop: Medion Akoya
-* CPU: Intel(R) Core(TM) M-5Y71 CPU @ 1.20GHz
-* core/linux-lts 4.1.18-1, 4.1.19-1 affected. 4.1.17 is not affected
-
-Steps to reproduce: put machine to suspend, resume.
-
-git bisect leads to the following commit:
-# first bad commit: [40ced0bb2cd8bd17c4f1061176c2ca1db71ec667] dmaengine:
-at_xdmac: fix resume for cyclic transfers
-
-git bisect log is attached
-
--- 
-You are receiving this mail because:
-You are watching the assignee of the bug.
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
