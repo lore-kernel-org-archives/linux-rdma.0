@@ -1,45 +1,85 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Wed, 9 Mar 2016 07:07:31 +0200
-Message-ID: <20160309050731.GM13396@leon.nu>
-References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
- <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
- <20160309002157.GA20105@phlsvsds.ph.intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/4] infiniband: hns: add Hisilicon RoCE support(binding)
+Date: Wed, 9 Mar 2016 18:56:48 +0800
+Message-ID: <56E00170.2050405@huawei.com>
+References: <1457080877-13456-1-git-send-email-xavier.huwei@huawei.com>
+ <1457080877-13456-3-git-send-email-xavier.huwei@huawei.com>
+ <56D992E2.3060504@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160309002157.GA20105-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <56D992E2.3060504-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 08, 2016 at 07:21:58PM -0500, Dennis Dalessandro wrote:
-> On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
-> >On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
-> ><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> >
-> >>This patch series adds a performance improvement to user SDMA transfers from
-> >>PSM applications by caching user buffer pages after pinning them. Subsequent
-> >>uses of the same user buffer will not incur the cost of pinning the same pages
-> >>again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
-> >>pages are unpinned when the context is torn down or when the driver determines
-> >>that the buffer should be evicted from the cache. Cache evictions happen when
-> >>there is a request for a new, uncached buffer and the current size of the cache
-> >>has reached a pre-defined limit.
-> >
-> >If indeed there's a need for such a pin down cache, it should have
-> >been implemented in the IB core, b/c both the problem and the solution
-> >are generic and have nothing to do with certain device driver.
-> 
-> Since this is for psm it has nothing to do with the IB core. I fail to see
-> what that would achieve.
+Hi Sergei Shtylyov, thanks for reviewing
+I have modified the binding referred to your advice and the bindings of other module.
+I will send a new patch in future.
 
-I tend to agree with Or, your proposal goes far beyond the driver code.
-Do you expect that all drivers which will be needed to support PSM will
-implement (copy/paste) the same generic logic?
+Thanks
+Lijun Ou
+
+On 2016/3/4 21:51, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 3/4/2016 11:41 AM, Wei Hu(Xavier) wrote:
+> 
+>> This submit add binding file and dts file.
+>>
+>> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> ---
+>>   .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
+>>   1 file changed, 68 insertions(+)
+>>   create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+>> new file mode 100644
+>> index 0000000..8004641
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+>> @@ -0,0 +1,68 @@
+>> +HiSilicon RoCE DT description
+>> +
+>> +HiSilicon RoCE engine is a part of network subsystem.
+>> +It works depending on other part of network wubsytem, such as, gmac and
+>> +dsa fabric.
+>> +
+>> +Additional properties are described here:
+>> +
+>> +Required properties:
+>> +- compatible: Should contain "hisilicon,hns-roce-v1".
+>> +- reg: Physical base address of the roce driver and
+>> +length of memory mapped region.
+>> +- eth-handle: phandle, specifies a reference to a node
+>> +representing a ethernet device.
+>> +- dsaf-handle: phandle, specifies a reference to a node
+>> +representing a dsaf device.
+>> +- #address-cells: must be 2
+>> +- #size-cells: must be 2
+>> +Optional properties:
+>> +- dma-coherent: Present if DMA operations are coherent.
+>> +- interrupt-parent: the interrupt parent of this device.
+>> +- interrupts: should contain 32 completion event irq,1 async event irq
+>> +and 1 event overflow irq.
+> 
+>    The "interrupt-names" prop is very desirable for so many interrupts.
+> 
+>> +Example:
+>> +    rocee@0xc4000000 {
+> 
+>    The node names should be generic and "0x" should be omitted, i.e. "infiniband@c4000000".
+> 
+> MBR, Sergei
+> 
+> 
+> .
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
