@@ -1,60 +1,27 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Wed, 9 Mar 2016 14:07:23 +0100
-Message-ID: <20160309130723.GD31210@lst.de>
-References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
+From: 'Christoph Hellwig' <hch@lst.de>
+Subject: Re: [PATCH v4 1/9] IB/cma: pass the port number to ib_create_qp
+Date: Wed, 9 Mar 2016 14:58:04 +0100
+Message-ID: <20160309135804.GA32315@lst.de>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-2-git-send-email-hch@lst.de> <20160308192709.GJ13396@leon.nu> <017b01d17972$11e5a3b0$35b0eb10$@opengridcomputing.com> <20160308195514.GK13396@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56DF44FC.8070103@sandisk.com>
+In-Reply-To: <20160308195514.GK13396@leon.nu>
 Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+To: Steve Wise <swise@opengridcomputing.com>, 'Christoph Hellwig' <hch@lst.de>, dledford@redhat.com, bart.vanassche@sandisk.com, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 08, 2016 at 01:32:44PM -0800, Bart Van Assche wrote:
-> The above pr_info() message does not provide enough context information to 
-> allow a user to figure out why that message was reported. Please leave that 
-> message out and make the callers of this function report MR allocation 
-> failure wherever useful.
+On Tue, Mar 08, 2016 at 09:55:14PM +0200, Leon Romanovsky wrote:
+> > At the expense of replicating this code and forcing all users to remember to set this.
+> 
+> There are no much such users to update, these users need to set
+> qp_init_attr structure anyway.
 
-Ok, I'll remove it.
-
->> +		ret = ib_map_mr_sg(reg->mr, sg, nents, offset,
->> +				PAGE_SIZE);
-> [ ... ]
->> +		sg = sg_next(sg);
->
-> ib_map_mr_sg() processed 'ret' elements of scatterlist 'sg'. So why is 'sg' 
-> only advanced by one element at the end of the loop?
-
-I think the multiple MR case here is simply broken, as we never hit
-for the iSER or NVMe over Fabrics I/O sizes.  I think the safest
-is to simply not allow for it.  I'll update the patch to disable the
-loop, and add a helper for the driver to query the max I/O size
-supported by the device.
-
->> +		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
->> +			rdma_wr->wr.num_sge++;
->> +
->> +			sge->addr = ib_sg_dma_address(dev, sg) + offset;
->> +			sge->length = ib_sg_dma_len(dev, sg) - offset;
->> +			sge->lkey = qp->pd->local_dma_lkey;
->> +
->> +			total_len += sge->length;
->> +			sge++;
->> +			sge_left--;
->> +			offset = 0;
->> +		}
->
-> Shouldn't there be a break statement in the above loop that stops this loop 
-> if the end of the sg list has been reached? Less than nr_sge iterations 
-> will be needed to reach the end of the sg list if the length of the sg list 
-> is not a multiple of nr_sge.
-
-nr_sge is calculated as:
-
-	u32 nr_sge = min(sge_left, max_sge);
-
-so it will never contain more iteration than we can possibly do.
+But they need to extract the port_num first, while we already get
+the cm_id that has the right port_id passed to this function.  Not
+setting it in the qp_init_attr changes the interface from one that
+just works to one that is arcane, and prone to generate hard to
+detect errors (passing a 0 port_num will just work for all current
+drivers, but if someone at some point actually introduces different
+capabilities for differnet ports it will break for just that case!)
