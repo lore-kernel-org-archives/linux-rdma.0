@@ -1,85 +1,44 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2] IB/uverbs: Fix race between uverbs_close and
- remove_one
-Date: Wed, 9 Mar 2016 18:48:08 +0200
-Message-ID: <56E053C8.8050008@dev.mellanox.co.il>
-References: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
- <20160307190833.GA1886@obsidianresearch.com>
- <CANjDDBiYagKm79n5sWNsCnxruSzqDqZYREmw1mGBR_upapF4hQ@mail.gmail.com>
- <20160308175334.GB10805@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Wed, 9 Mar 2016 10:55:50 -0800
+Message-ID: <56E071B6.8060809@sandisk.com>
+References: <1457461000-24088-1-git-send-email-hch@lst.de>
+ <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
+ <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160308175334.GB10805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20160309155457.GA1898@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/8/2016 7:53 PM, Jason Gunthorpe wrote:
-> On Tue, Mar 08, 2016 at 04:24:51PM +0530, Devesh Sharma wrote:
+On 03/09/2016 07:55 AM, Christoph Hellwig wrote:
+> On Wed, Mar 09, 2016 at 02:07:23PM +0100, Christoph Hellwig wrote:
+>> I think the multiple MR case here is simply broken, as we never hit
+>> for the iSER or NVMe over Fabrics I/O sizes.  I think the safest
+>> is to simply not allow for it.  I'll update the patch to disable the
+>> loop, and add a helper for the driver to query the max I/O size
+>> supported by the device.
 >
->>> +++ b/drivers/infiniband/core/uverbs_main.c
->>> @@ -962,9 +962,9 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
->>>                  list_del(&file->list);
->>>                  file->is_closed = 1;
->>>          }
->>> -       mutex_unlock(&file->device->lists_mutex);
->>>          if (ucontext)
->>>                  ib_uverbs_cleanup_ucontext(file, ucontext);
->>> +       mutex_unlock(&file->device->lists_mutex);
->>>
->>>
->>> ??
->>
->> There is following comment about list_mutex in uverbs_main.c around
->> line number 1200:
->> /* We must release the mutex before going ahead and calling
->>   * disassociate_ucontext. disassociate_ucontext might end up
->>   * indirectly calling uverbs_close, for example due to freeing
->>   * the resources (e.g mmput).
->>   */
->
-> Okay, now I remember this discussion, and being unhappy about this
-> during review.
->
-> However, this comment is talking about disassociate_ucontext, the bug
-> is with ib_uverbs_cleanup_ucontext. We can't re-entre uverbs_close
-> while we are already in uverbs_close, so that doesn't explain why it
-> cannot be in the mutex.
->
-> So, Yishai, what is the problem with the above lock placement?
->
-> The only issue you raised was with multi-file close concurrency, and
-> that is trivially solved with another mutex.
->
-> I'd rather see another mutex added then this ugly add-hoc
-> srcu/completion thing.
+> Turns out if was easily fixable by doing a loop of sg_next() calls
+> until we reach the number of segments.  Verified by hacking the
+> code to enable MRs for IB, and only accepting 4 pages per MR as arbitrarily
+> low limit.
 
-The srcu with NULL checking by itself can prevent the race, no need for 
-the "completion" mechanism. ib_uverbs_free_hw_resources uses 
-synchronize_srcu just after that ib_dev was set to NULL as part of 
-ib_uverbs_remove_one.
+Hello Christoph,
 
-The reason for the extra "completion" that I suggested comes to make 
-sure that when an application returns from its close API the underlying 
-resources were really freed, this is open in current code even if the 
-race *wasn't* hit.
+Regarding the iSERt patches that are present in your rdma-rw-api branch: 
+what is the impact of these patches on memory registration for the iSERt 
+driver in combination with an IB HCA? Is memory registration still 
+enabled for this combination? If not: how about changing this patch 
+series such that memory registration is performed either if the 
+transport protocol is iWARP or the ULP driver requests memory 
+registration explicitly, e.g. by setting a flag in struct rdma_rw_ctx 
+and/or struct ib_qp_init_attr?
 
-As we need to enable parallel closing it seems to be the preferred way 
-to go.
+Thanks,
 
-Devesh, can you send V3 with above suggestion to help people reviewing 
-it ? if you have some other solution with mutex that addressed above 
-points please come it to the list for a review.
-
-
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
