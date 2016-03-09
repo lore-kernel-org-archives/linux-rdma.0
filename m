@@ -1,35 +1,31 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH v4 2/4] iw_cxgb4: add queue drain functions
-Date: Wed, 9 Mar 2016 14:53:49 +0200
-Message-ID: <20160309125349.GA1977@leon.nu>
-References: <cover.1455741336.git.swise@chelsio.com>
- <162a5429342dfd5e16881f4360c0ef858fd39cbd.1455741336.git.swise@chelsio.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v4 4/9] IB/core: refactor ib_create_qp
+Date: Wed, 9 Mar 2016 13:55:24 +0100
+Message-ID: <20160309125524.GA31210@lst.de>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-5-git-send-email-hch@lst.de> <56DF2917.309@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <162a5429342dfd5e16881f4360c0ef858fd39cbd.1455741336.git.swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <56DF2917.309-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 17, 2016 at 08:15:42AM -0800, Steve Wise wrote:
-> Add completion objects, named sq_drained and rq_drained, to the c4iw_qp
-> struct.  The queue-specific completion object is signaled when the last
-> CQE is drained from the CQ for that queue.
+On Tue, Mar 08, 2016 at 11:33:43AM -0800, Bart Van Assche wrote:
+> My preference is to handle the "success" case first as in the original code:
 > 
-> Add c4iw_drain_sq() to block until qp->rq_drained is completed.
+> -			if (!IS_ERR(qp))
+> -				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
+> -			else
+> -				real_qp->device->destroy_qp(real_qp);
 > 
-> Add c4iw_drain_rq() to block until qp->sq_drained is completed.
+> Even if this does not get addressed:
+> 
+> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
-Hi Steve,
-My knowledge is limited in this driver and I have no illusion that
-question sounds naive, but why did you add these functions to this
-specific driver? Do the other drivers need such update too?
-
-Thanks
+I don't really care either way, so I've changed this.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
