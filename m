@@ -1,40 +1,44 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Wed, 9 Mar 2016 10:19:51 -0500
-Message-ID: <20160309151951.GA15031@phlsvsds.ph.intel.com>
-References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com> <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com> <20160309002157.GA20105@phlsvsds.ph.intel.com> <CAJ3xEMhcs-6vDzsNk9nJKoNxTWnfaUtDmNHhLp1EPyerjnw2Xg@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v4 2/4] iw_cxgb4: add queue drain functions
+Date: Wed, 9 Mar 2016 09:23:55 -0600
+Message-ID: <008c01d17a17$b1c02090$154061b0$@opengridcomputing.com>
+References: <cover.1455741336.git.swise@chelsio.com> <162a5429342dfd5e16881f4360c0ef858fd39cbd.1455741336.git.swise@chelsio.com> <20160309125349.GA1977@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMhcs-6vDzsNk9nJKoNxTWnfaUtDmNHhLp1EPyerjnw2Xg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20160309125349.GA1977-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: leon-2ukJVAZIZ/Y@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 09, 2016 at 04:47:04PM +0200, Or Gerlitz wrote:
->4. so from now on, we can patch hfi with 300 patches per release that
->deal with extensions
->to functionality exposed by the char device  and we don't care to
->solve generic problems
->that has nothing to do with the HW used for the device.
->
->Really?
+> On Wed, Feb 17, 2016 at 08:15:42AM -0800, Steve Wise wrote:
+> > Add completion objects, named sq_drained and rq_drained, to the c4iw_qp
+> > struct.  The queue-specific completion object is signaled when the last
+> > CQE is drained from the CQ for that queue.
+> >
+> > Add c4iw_drain_sq() to block until qp->rq_drained is completed.
+> >
+> > Add c4iw_drain_rq() to block until qp->sq_drained is completed.
+> 
+> Hi Steve,
+> My knowledge is limited in this driver and I have no illusion that
+> question sounds naive, but why did you add these functions to this
+> specific driver? Do the other drivers need such update too?
+> 
+> Thanks
 
-There is certainly a large number of patches pending for 4.6 I'll give you 
-that, and yes it is greater than 300. However, these cover 3 drivers, qib, 
-hfi1, and rdmavt.  The bulk of that work is the refactoring of the verbs 
-code from qib and hfi1 to rdmavt which was done in a very incremental 
-process. 
+Hey Leon,
 
-The vast majority of these pending patches are not related to "extensions to 
-functionality exposed by the char device".
+I added these so iSER and other storage protocols that are or will be using the drain logic will work on cxgb4.  IB devices should
+not need device-specific drain logic since the common core drain works for IB (and I assume RoCE).  iWARP devices, however, require
+device-specific logic.  Other iwarp drivers are iw_cxgb3 and iw_nes. 
 
-In fact, I'd say that the verbs refactoring is precisely solving a generic 
-problem.  So I can't agree with you here.
+Steve.
 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
