@@ -1,86 +1,69 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/4] infiniband: hns: add Hisilicon RoCE support(binding)
-Date: Wed, 9 Mar 2016 18:56:48 +0800
-Message-ID: <56E00170.2050405@huawei.com>
-References: <1457080877-13456-1-git-send-email-xavier.huwei@huawei.com>
- <1457080877-13456-3-git-send-email-xavier.huwei@huawei.com>
- <56D992E2.3060504@cogentembedded.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3 05/11] xprtrdma: Do not wait if ib_post_send() fails
+Date: Wed, 9 Mar 2016 13:09:55 +0200
+Message-ID: <56E00483.2060304@dev.mellanox.co.il>
+References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
+ <20160304162801.13590.89343.stgit@oracle120-ib.cthon.org>
+ <56DF1186.3030303@dev.mellanox.co.il>
+ <8696EFBA-B7DB-42AC-AB57-C656070F4ED3@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56D992E2.3060504-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8696EFBA-B7DB-42AC-AB57-C656070F4ED3-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sergei Shtylyov, thanks for reviewing
-I have modified the binding referred to your advice and the bindings of other module.
-I will send a new patch in future.
 
-Thanks
-Lijun Ou
 
-On 2016/3/4 21:51, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 3/4/2016 11:41 AM, Wei Hu(Xavier) wrote:
-> 
->> This submit add binding file and dts file.
+On 08/03/2016 20:03, Chuck Lever wrote:
+>
+>> On Mar 8, 2016, at 12:53 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 >>
->> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->>   .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
->>   1 file changed, 68 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
 >>
->> diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
->> new file mode 100644
->> index 0000000..8004641
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
->> @@ -0,0 +1,68 @@
->> +HiSilicon RoCE DT description
->> +
->> +HiSilicon RoCE engine is a part of network subsystem.
->> +It works depending on other part of network wubsytem, such as, gmac and
->> +dsa fabric.
->> +
->> +Additional properties are described here:
->> +
->> +Required properties:
->> +- compatible: Should contain "hisilicon,hns-roce-v1".
->> +- reg: Physical base address of the roce driver and
->> +length of memory mapped region.
->> +- eth-handle: phandle, specifies a reference to a node
->> +representing a ethernet device.
->> +- dsaf-handle: phandle, specifies a reference to a node
->> +representing a dsaf device.
->> +- #address-cells: must be 2
->> +- #size-cells: must be 2
->> +Optional properties:
->> +- dma-coherent: Present if DMA operations are coherent.
->> +- interrupt-parent: the interrupt parent of this device.
->> +- interrupts: should contain 32 completion event irq,1 async event irq
->> +and 1 event overflow irq.
-> 
->    The "interrupt-names" prop is very desirable for so many interrupts.
-> 
->> +Example:
->> +    rocee@0xc4000000 {
-> 
->    The node names should be generic and "0x" should be omitted, i.e. "infiniband@c4000000".
-> 
-> MBR, Sergei
-> 
-> 
-> .
-> 
+>>
+>> On 04/03/2016 18:28, Chuck Lever wrote:
+>>> If ib_post_send() in ro_unmap_sync() fails, the WRs have not been
+>>> posted, no completions will fire, and wait_for_completion() will
+>>> wait forever. Skip the wait in that case.
+>>>
+>>> To ensure the MRs are invalid, disconnect.
+>>
+>> How does that help to ensure that?
+>
+> I should have said "To ensure the MRs are fenced,"
+>
+>> The first wr that failed and on will leave the
+>> corresponding MRs invalid, and the others will be valid
+>> upon completion.
+>
+> ? This is in the invalidation code, not in the fastreg
+> code.
 
+Yes, I meant linv...
 
+> When this ib_post_send() fails, I've built a set of
+> chained LOCAL_INV WRs, but they never get posted. So
+> there is no WR failure here, the WRs are simply
+> never posted, and they won't complete or flush.
+
+That's the thing, some of them may have succeeded.
+if ib_post_send() fails on a chain of posts, it reports
+which wr failed (in the third wr pointer).
+
+Moving the QP into error state right after with rdma_disconnect
+you are not sure that none of the subset of the invalidations
+that _were_ posted completed and you get the corresponding MRs
+in a bogus state...
+
+> I suppose I could reset these MRs instead (that is,
+> pass them to ib_dereg_mr).
+
+Or, just wait for a completion for those that were posted
+and then all the MRs are in a consistent state.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
