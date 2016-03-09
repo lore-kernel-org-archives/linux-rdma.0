@@ -1,44 +1,107 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Wed, 9 Mar 2016 10:55:50 -0800
-Message-ID: <56E071B6.8060809@sandisk.com>
-References: <1457461000-24088-1-git-send-email-hch@lst.de>
- <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
- <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V2] IB/uverbs: Fix race between uverbs_close and
+ remove_one
+Date: Wed, 9 Mar 2016 12:03:54 -0700
+Message-ID: <20160309190354.GD21139@obsidianresearch.com>
+References: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
+ <20160307190833.GA1886@obsidianresearch.com>
+ <CANjDDBiYagKm79n5sWNsCnxruSzqDqZYREmw1mGBR_upapF4hQ@mail.gmail.com>
+ <20160308175334.GB10805@obsidianresearch.com>
+ <56E053C8.8050008@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160309155457.GA1898@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56E053C8.8050008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/09/2016 07:55 AM, Christoph Hellwig wrote:
-> On Wed, Mar 09, 2016 at 02:07:23PM +0100, Christoph Hellwig wrote:
->> I think the multiple MR case here is simply broken, as we never hit
->> for the iSER or NVMe over Fabrics I/O sizes.  I think the safest
->> is to simply not allow for it.  I'll update the patch to disable the
->> loop, and add a helper for the driver to query the max I/O size
->> supported by the device.
->
-> Turns out if was easily fixable by doing a loop of sg_next() calls
-> until we reach the number of segments.  Verified by hacking the
-> code to enable MRs for IB, and only accepting 4 pages per MR as arbitrarily
-> low limit.
+On Wed, Mar 09, 2016 at 06:48:08PM +0200, Yishai Hadas wrote:
+ 
+> The srcu with NULL checking by itself can prevent the race, no need for the
+> "completion" mechanism. ib_uverbs_free_hw_resources uses synchronize_srcu
+> just after that ib_dev was set to NULL as part of ib_uverbs_remove_one.
 
-Hello Christoph,
+No, I don't think that is true, the completion looks like it is
+actually needed because the goto out in ib_uverbs_close needs to wait
+for ib_uverbs_free_hw_resources to do the cleanups ib_uverbs_close
+skipped over before it can go ahead and kref_put things.
 
-Regarding the iSERt patches that are present in your rdma-rw-api branch: 
-what is the impact of these patches on memory registration for the iSERt 
-driver in combination with an IB HCA? Is memory registration still 
-enabled for this combination? If not: how about changing this patch 
-series such that memory registration is performed either if the 
-transport protocol is iWARP or the ULP driver requests memory 
-registration explicitly, e.g. by setting a flag in struct rdma_rw_ctx 
-and/or struct ib_qp_init_attr?
+So, this is too ugly, do not create a mutex out of srcu and completion.
 
-Thanks,
+Your performance reason not to use the existing lists_mutex seems
+reasonable, so add a new cleanup mutex for this purpose.
 
-Bart.
+Something like this. I would also get rid of file->is_closed and use
+list_del_init & list_empty instead.
+
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 39680aed99dd..8d192234fdd6 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ {
+ 	struct ib_uverbs_file *file = filp->private_data;
+ 	struct ib_uverbs_device *dev = file->device;
+-	struct ib_ucontext *ucontext = NULL;
+ 
+ 	mutex_lock(&file->device->lists_mutex);
+-	ucontext = file->ucontext;
+-	file->ucontext = NULL;
+ 	if (!file->is_closed) {
+ 		list_del(&file->list);
+ 		file->is_closed = 1;
+ 	}
+ 	mutex_unlock(&file->device->lists_mutex);
+-	if (ucontext)
+-		ib_uverbs_cleanup_ucontext(file, ucontext);
++
++	mutex_lock(&file->cleanup_mutex);
++	if (file->ucontext) {
++		ib_uverbs_cleanup_ucontext(file, file->ucontext);
++		file->ucontext = NULL;
++	}
++	mutex_unlock(&file->cleanup_mutex);
+ 
+ 	if (file->async_file)
+ 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+@@ -1177,26 +1179,26 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 
+ 	mutex_lock(&uverbs_dev->lists_mutex);
+ 	while (!list_empty(&uverbs_dev->uverbs_file_list)) {
+-		struct ib_ucontext *ucontext;
+-
+ 		file = list_first_entry(&uverbs_dev->uverbs_file_list,
+ 					struct ib_uverbs_file, list);
+ 		file->is_closed = 1;
+-		ucontext = file->ucontext;
+ 		list_del(&file->list);
+-		file->ucontext = NULL;
+ 		kref_get(&file->ref);
+ 		mutex_unlock(&uverbs_dev->lists_mutex);
++
+ 		/* We must release the mutex before going ahead and calling
+ 		 * disassociate_ucontext. disassociate_ucontext might end up
+ 		 * indirectly calling uverbs_close, for example due to freeing
+ 		 * the resources (e.g mmput).
+ 		 */
+ 		ib_uverbs_event_handler(&file->event_handler, &event);
+-		if (ucontext) {
+-			ib_dev->disassociate_ucontext(ucontext);
+-			ib_uverbs_cleanup_ucontext(file, ucontext);
++		mutex_lock(&file->cleanup_mutex);
++		if (file->ucontext) {
++			ib_dev->disassociate_ucontext(file->ucontext);
++			ib_uverbs_cleanup_ucontext(file, file->ucontext);
++			file->ucontext = NULL;
+ 		}
++		mutex_unlock(&file->cleanup_mutex);
+ 
+ 		mutex_lock(&uverbs_dev->lists_mutex);
+ 		kref_put(&file->ref, ib_uverbs_release_file);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
