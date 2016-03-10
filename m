@@ -1,129 +1,62 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/11] xprtrdma: Do not wait if ib_post_send() fails
-Date: Wed, 9 Mar 2016 16:40:11 -0500
-Message-ID: <56E0983B.2000102@Netapp.com>
-References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
- <20160304162801.13590.89343.stgit@oracle120-ib.cthon.org>
- <56DF1186.3030303@dev.mellanox.co.il>
- <8696EFBA-B7DB-42AC-AB57-C656070F4ED3@oracle.com>
- <56E00483.2060304@dev.mellanox.co.il>
- <6B59B087-9CFA-458B-8848-B08B8E14E2C7@oracle.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Thu, 10 Mar 2016 06:56:09 +0200
+Message-ID: <20160310045609.GC1977@leon.nu>
+References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
+ <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
+ <20160309002157.GA20105@phlsvsds.ph.intel.com>
+ <20160309050731.GM13396@leon.nu>
+ <20160309192109.GB15031@phlsvsds.ph.intel.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6B59B087-9CFA-458B-8848-B08B8E14E2C7-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160309192109.GB15031-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/09/2016 03:47 PM, Chuck Lever wrote:
+On Wed, Mar 09, 2016 at 02:21:10PM -0500, Dennis Dalessandro wrote:
+> On Wed, Mar 09, 2016 at 07:07:31AM +0200, Leon Romanovsky wrote:
+> >On Tue, Mar 08, 2016 at 07:21:58PM -0500, Dennis Dalessandro wrote:
+> >>On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
+> >>>On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
+> >>><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> >>>
+> >>>>This patch series adds a performance improvement to user SDMA transfers from
+> >>>>PSM applications by caching user buffer pages after pinning them. Subsequent
+> >>>>uses of the same user buffer will not incur the cost of pinning the same pages
+> >>>>again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
+> >>>>pages are unpinned when the context is torn down or when the driver determines
+> >>>>that the buffer should be evicted from the cache. Cache evictions happen when
+> >>>>there is a request for a new, uncached buffer and the current size of the cache
+> >>>>has reached a pre-defined limit.
+> >>>
+> >>>If indeed there's a need for such a pin down cache, it should have
+> >>>been implemented in the IB core, b/c both the problem and the solution
+> >>>are generic and have nothing to do with certain device driver.
+> >>
+> >>Since this is for psm it has nothing to do with the IB core. I fail to see
+> >>what that would achieve.
+> >
+> >I tend to agree with Or, your proposal goes far beyond the driver code.
+> >Do you expect that all drivers which will be needed to support PSM will
+> >implement (copy/paste) the same generic logic?
 > 
->> On Mar 9, 2016, at 6:09 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>
->>
->>
->> On 08/03/2016 20:03, Chuck Lever wrote:
->>>
->>>> On Mar 8, 2016, at 12:53 PM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>>
->>>>
->>>>
->>>> On 04/03/2016 18:28, Chuck Lever wrote:
->>>>> If ib_post_send() in ro_unmap_sync() fails, the WRs have not been
->>>>> posted, no completions will fire, and wait_for_completion() will
->>>>> wait forever. Skip the wait in that case.
->>>>>
->>>>> To ensure the MRs are invalid, disconnect.
->>>>
->>>> How does that help to ensure that?
->>>
->>> I should have said "To ensure the MRs are fenced,"
->>>
->>>> The first wr that failed and on will leave the
->>>> corresponding MRs invalid, and the others will be valid
->>>> upon completion.
->>>
->>> ? This is in the invalidation code, not in the fastreg
->>> code.
->>
->> Yes, I meant linv...
->>
->>> When this ib_post_send() fails, I've built a set of
->>> chained LOCAL_INV WRs, but they never get posted. So
->>> there is no WR failure here, the WRs are simply
->>> never posted, and they won't complete or flush.
->>
->> That's the thing, some of them may have succeeded.
->> if ib_post_send() fails on a chain of posts, it reports
->> which wr failed (in the third wr pointer).
-> 
-> I see.
-> 
-> 
->> Moving the QP into error state right after with rdma_disconnect
->> you are not sure that none of the subset of the invalidations
->> that _were_ posted completed and you get the corresponding MRs
->> in a bogus state...
-> 
-> Moving the QP to error state and then draining the CQs means
-> that all LOCAL_INV WRs that managed to get posted will get
-> completed or flushed. That's already handled today.
-> 
-> It's the WRs that didn't get posted that I'm worried about
-> in this patch.
-> 
-> Are there RDMA consumers in the kernel that use that third
-> argument to recover when LOCAL_INV WRs cannot be posted?
-> 
-> 
->>> I suppose I could reset these MRs instead (that is,
->>> pass them to ib_dereg_mr).
->>
->> Or, just wait for a completion for those that were posted
->> and then all the MRs are in a consistent state.
-> 
-> When a LOCAL_INV completes with IB_WC_SUCCESS, the associated
-> MR is in a known state (ie, invalid).
-> 
-> The WRs that flush mean the associated MRs are not in a known
-> state. Sometimes the MR state is different than the hardware
-> state, for example. Trying to do anything with one of these
-> inconsistent MRs results in IB_WC_BIND_MW_ERR until the thing
-> is deregistered.
-> 
-> The xprtrdma completion handlers mark the MR associated with
-> a flushed LOCAL_INV WR "stale". They all have to be reset with
-> ib_dereg_mr to guarantee they are usable again. Have a look at
-> __frwr_recovery_worker().
-> 
-> And, xprtrdma waits for only the last LOCAL_INV in the chain to
-> complete. If that one isn't posted, then fr_done is never woken
-> up. In that case, frwr_op_unmap_sync() would wait forever.
-> 
-> If I understand you I think the correct solution is for
-> frwr_op_unmap_sync() to regroup and reset the MRs associated
-> with the LOCAL_INV WRs that were never posted, using the same
-> mechanism as __frwr_recovery_worker() .
-> 
-> It's already 4.5-rc7, a little late for a significant rework
-> of this patch, so maybe I should drop it?
+> We should not be putting something which is specific to PSM in the IB core.
+> We feel the driver is the most appropriate place for this.
 
-Git doesn't have any conflicts if I drop the patch from my tree, and I was still able to compile.  Let me know if you want me to drop the patch from my tree, so you don't have to resend an entire series!
+To use cache logic - yes
+To implement cache logic - no
 
-Thanks,
-Anna
+Can you share with us the technical justification of implementing general
+memory management cache mechanism in driver and not in appropriate layer
+(IB/core and/or MM)?
 
-> 
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
-
+Thanks.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
