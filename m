@@ -1,27 +1,119 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Thu, 10 Mar 2016 18:01:00 +0100
-Message-ID: <20160310170100.GA10210@lst.de>
-References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de> <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de> <56E1A810.1080001@sandisk.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 05/11] xprtrdma: Do not wait if ib_post_send() fails
+Date: Thu, 10 Mar 2016 12:01:36 -0500
+Message-ID: <56E1A870.5030308@Netapp.com>
+References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org>
+ <20160304162801.13590.89343.stgit@oracle120-ib.cthon.org>
+ <56DF1186.3030303@dev.mellanox.co.il>
+ <8696EFBA-B7DB-42AC-AB57-C656070F4ED3@oracle.com>
+ <56E00483.2060304@dev.mellanox.co.il>
+ <6B59B087-9CFA-458B-8848-B08B8E14E2C7@oracle.com>
+ <56E14BA2.2050504@dev.mellanox.co.il>
+ <54ECE0AF-A930-45E0-A03A-FB7CD789B538@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56E1A810.1080001-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54ECE0AF-A930-45E0-A03A-FB7CD789B538-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 09:00:00AM -0800, Bart Van Assche wrote:
-> Hello Christoph,
->
-> Had you already noticed the ib_srp register_always kernel module parameter?
+On 03/10/2016 11:40 AM, Chuck Lever wrote:
+> 
+>> On Mar 10, 2016, at 5:25 AM, Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>
+>>
+>>>> Moving the QP into error state right after with rdma_disconnect
+>>>> you are not sure that none of the subset of the invalidations
+>>>> that _were_ posted completed and you get the corresponding MRs
+>>>> in a bogus state...
+>>>
+>>> Moving the QP to error state and then draining the CQs means
+>>> that all LOCAL_INV WRs that managed to get posted will get
+>>> completed or flushed. That's already handled today.
+>>>
+>>> It's the WRs that didn't get posted that I'm worried about
+>>> in this patch.
+>>>
+>>> Are there RDMA consumers in the kernel that use that third
+>>> argument to recover when LOCAL_INV WRs cannot be posted?
+>>
+>> None :)
+>>
+>>>>> I suppose I could reset these MRs instead (that is,
+>>>>> pass them to ib_dereg_mr).
+>>>>
+>>>> Or, just wait for a completion for those that were posted
+>>>> and then all the MRs are in a consistent state.
+>>>
+>>> When a LOCAL_INV completes with IB_WC_SUCCESS, the associated
+>>> MR is in a known state (ie, invalid).
+>>>
+>>> The WRs that flush mean the associated MRs are not in a known
+>>> state. Sometimes the MR state is different than the hardware
+>>> state, for example. Trying to do anything with one of these
+>>> inconsistent MRs results in IB_WC_BIND_MW_ERR until the thing
+>>> is deregistered.
+>>
+>> Correct.
+>>
+>>> The xprtrdma completion handlers mark the MR associated with
+>>> a flushed LOCAL_INV WR "stale". They all have to be reset with
+>>> ib_dereg_mr to guarantee they are usable again. Have a look at
+>>> __frwr_recovery_worker().
+>>
+>> Yes, I'm aware of that.
+>>
+>>> And, xprtrdma waits for only the last LOCAL_INV in the chain to
+>>> complete. If that one isn't posted, then fr_done is never woken
+>>> up. In that case, frwr_op_unmap_sync() would wait forever.
+>>
+>> Ah.. so the (missing) completions is the problem, now I get
+>> it.
+>>
+>>> If I understand you I think the correct solution is for
+>>> frwr_op_unmap_sync() to regroup and reset the MRs associated
+>>> with the LOCAL_INV WRs that were never posted, using the same
+>>> mechanism as __frwr_recovery_worker() .
+>>
+>> Yea, I'd recycle all the MRs instead of having non-trivial logic
+>> to try and figure out MR states...
+> 
+> We have to keep that logic, since a spurious disconnect
+> will result in flushed LOCAL_INV requests too. In fact
+> that's the by far more likely source of inconsistent MRs.
+> 
+> 
+>>> It's already 4.5-rc7, a little late for a significant rework
+>>> of this patch, so maybe I should drop it?
+>>
+>> Perhaps... Although you can make it incremental because the current
+>> patch doesn't seem to break anything, just not solving the complete
+>> problem...
+> 
+> I'm preparing to extend the frwr_queue_recovery mechanism
+> in v4.7 to deal with other cases, and that new code could
+> be used here to fence MRs, rather than forcing a disconnect.
+> 
+> I'd like to leave 05/11 in place for v4.6.
+> 
+> Anna, can you add Sagi's Reviewed-by tags to the other
+> patches in this series, as he posted earlier this week?
 
-Yes.  But this whole patch series is about the target drivers, there
-are no changes to the initiator side at all.  The various register_always
-and similar parameter are untouched by it.
+Yeah, I can do that.  I'll leave in the patch, and send everything to Trond later this afternoon or tomorrow!
+
+Anna
+> 
+> 
+> --
+> Chuck Lever
+> 
+> 
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
