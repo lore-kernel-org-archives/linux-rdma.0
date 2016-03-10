@@ -1,40 +1,38 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Thu, 10 Mar 2016 09:11:29 +0200
-Message-ID: <CAJ3xEMgoRW22SW287Zs-Sc2svZvcro2iN4F-ja1G9D5Vq9LFNQ@mail.gmail.com>
-References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
-	<CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
-	<20160309002157.GA20105@phlsvsds.ph.intel.com>
-	<20160309050731.GM13396@leon.nu>
-	<20160309192109.GB15031@phlsvsds.ph.intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Thu, 10 Mar 2016 08:57:22 +0100
+Message-ID: <20160310075722.GA551@lst.de>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E071B6.8060809@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160309192109.GB15031-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56E071B6.8060809@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 9, 2016 at 9:21 PM, Dennis Dalessandro
-<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Wed, Mar 09, 2016 at 10:55:50AM -0800, Bart Van Assche wrote:
+> Regarding the iSERt patches that are present in your rdma-rw-api branch: 
 
-> We should not be putting something which is specific to PSM in the IB core.
-> We feel the driver is the most appropriate place for this.
+I haven't submitted those yet, as the signature MR support hasn't been
+tested and is most likely broken.  (and even if it's not broken it's too
+ugly to live :))
 
+> what is the impact of these patches on memory registration for the iSERt 
+> driver in combination with an IB HCA? Is memory registration still enabled 
+> for this combination? If not: how about changing this patch series such 
+> that memory registration is performed either if the transport protocol is 
+> iWARP or the ULP driver requests memory registration explicitly, e.g. by 
+> setting a flag in struct rdma_rw_ctx and/or struct ib_qp_init_attr?
 
-Actually, the cache itself belongs to user space.
+I don't want the ULP to ask for memory registrations, and it's not really
+the ULPs business.  It should be done either if needed (iWarp, signature
+MRs), or if the HCA driver prefers it for a larger enough transfers.
 
-What is needed in the kernel is code that uses MMU notifications to
-invalidate the cache when munmap and friends
-were done on a cache entry. This is too generic functionality that you
-can add to the IB core which does have a char device
-or (better) to a generic char device you will write and PSM to use.
-There have been some works on that in the 2000s, look
-for code from Roland Dreier and/or Pete Wyckoff
+Once the basic API is in I'd like to add an interface for the HCA driver,
+as Mellannox has indicated they'd like to register for larger transfers.
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Anby chance to get a review of the remaining patches so we can get it
+in for this merge window?
