@@ -1,108 +1,125 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/11] xprtrdma: Do not wait if ib_post_send() fails
-Date: Thu, 10 Mar 2016 10:05:54 -0500
-Message-ID: <AC62FAB3-5569-4FA3-93AF-35CD2A1869EF@oracle.com>
-References: <20160304162447.13590.9524.stgit@oracle120-ib.cthon.org> <20160304162801.13590.89343.stgit@oracle120-ib.cthon.org> <56DF1186.3030303@dev.mellanox.co.il> <8696EFBA-B7DB-42AC-AB57-C656070F4ED3@oracle.com> <56E00483.2060304@dev.mellanox.co.il> <6B59B087-9CFA-458B-8848-B08B8E14E2C7@oracle.com> <56E14BA2.2050504@dev.mellanox.co.il> <7abb01d17ade$1faf0ff0$5f0d2fd0$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2] IB/uverbs: Fix race between uverbs_close and remove_one
+Date: Thu, 10 Mar 2016 20:55:39 +0530
+Message-ID: <CANjDDBhnJgic4QP-mL7_7cTAh-CH7xaTO147MNqat=aZ45B1nw@mail.gmail.com>
+References: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
+ <20160307190833.GA1886@obsidianresearch.com> <CANjDDBiYagKm79n5sWNsCnxruSzqDqZYREmw1mGBR_upapF4hQ@mail.gmail.com>
+ <20160308175334.GB10805@obsidianresearch.com> <56E053C8.8050008@dev.mellanox.co.il>
+ <20160309190354.GD21139@obsidianresearch.com> <CANjDDBj=F-LTSDMesD97CvvJQWOW6fecuDLY2a9sBZ220jMYMg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7abb01d17ade$1faf0ff0$5f0d2fd0$@opengridcomputing.com>
+In-Reply-To: <CANjDDBj=F-LTSDMesD97CvvJQWOW6fecuDLY2a9sBZ220jMYMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Jason.
 
-> On Mar 10, 2016, at 10:04 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
->>>> Moving the QP into error state right after with rdma_disconnect
->>>> you are not sure that none of the subset of the invalidations
->>>> that _were_ posted completed and you get the corresponding MRs
->>>> in a bogus state...
->>> 
->>> Moving the QP to error state and then draining the CQs means
->>> that all LOCAL_INV WRs that managed to get posted will get
->>> completed or flushed. That's already handled today.
->>> 
->>> It's the WRs that didn't get posted that I'm worried about
->>> in this patch.
->>> 
->>> Are there RDMA consumers in the kernel that use that third
->>> argument to recover when LOCAL_INV WRs cannot be posted?
->> 
->> None :)
->> 
->>>>> I suppose I could reset these MRs instead (that is,
->>>>> pass them to ib_dereg_mr).
->>>> 
->>>> Or, just wait for a completion for those that were posted
->>>> and then all the MRs are in a consistent state.
->>> 
->>> When a LOCAL_INV completes with IB_WC_SUCCESS, the associated
->>> MR is in a known state (ie, invalid).
->>> 
->>> The WRs that flush mean the associated MRs are not in a known
->>> state. Sometimes the MR state is different than the hardware
->>> state, for example. Trying to do anything with one of these
->>> inconsistent MRs results in IB_WC_BIND_MW_ERR until the thing
->>> is deregistered.
->> 
->> Correct.
->> 
-> 
-> It is legal to invalidate an MR that is not in the valid state.  So you don't
-> have to deregister it, you can assume it is valid and post another LINV WR.
+On Thu, Mar 10, 2016 at 2:34 PM, Devesh Sharma
+<devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+> On Thu, Mar 10, 2016 at 12:33 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> On Wed, Mar 09, 2016 at 06:48:08PM +0200, Yishai Hadas wrote:
+>>
+>>> The srcu with NULL checking by itself can prevent the race, no need for the
+>>> "completion" mechanism. ib_uverbs_free_hw_resources uses synchronize_srcu
+>>> just after that ib_dev was set to NULL as part of ib_uverbs_remove_one.
+>>
+>> No, I don't think that is true, the completion looks like it is
+>> actually needed because the goto out in ib_uverbs_close needs to wait
+>> for ib_uverbs_free_hw_resources to do the cleanups ib_uverbs_close
+>> skipped over before it can go ahead and kref_put things.
+>
+> Yes, I agree with the above explanation. Even my testing showed evidence.
+>
+>>
+>> So, this is too ugly, do not create a mutex out of srcu and completion.
+>>
+>> Your performance reason not to use the existing lists_mutex seems
+>> reasonable, so add a new cleanup mutex for this purpose.
+>>
+>> Something like this. I would also get rid of file->is_closed and use
+>> list_del_init & list_empty instead.
+>
+> Below patch seems to be working in the code analysis. I will test though.
+> I would test this approach as well before posting V3.
 
-I've tried that. Once the MR is inconsistent, even LOCAL_INV
-does not work.
+I tested this approach and again hit the same panic. Thus, looks like
+there is no escape other than using
+srcu and complete().
 
-There's no way to tell whether the MR is consistent or not
-after a connection loss, so the only recourse is to
-deregister (and reregister) the MR when LOCAL_INV is
-flushed.
-
-
-
-> 
->>> The xprtrdma completion handlers mark the MR associated with
->>> a flushed LOCAL_INV WR "stale". They all have to be reset with
->>> ib_dereg_mr to guarantee they are usable again. Have a look at
->>> __frwr_recovery_worker().
->> 
->> Yes, I'm aware of that.
->> 
->>> And, xprtrdma waits for only the last LOCAL_INV in the chain to
->>> complete. If that one isn't posted, then fr_done is never woken
->>> up. In that case, frwr_op_unmap_sync() would wait forever.
->> 
->> Ah.. so the (missing) completions is the problem, now I get
->> it.
->> 
->>> If I understand you I think the correct solution is for
->>> frwr_op_unmap_sync() to regroup and reset the MRs associated
->>> with the LOCAL_INV WRs that were never posted, using the same
->>> mechanism as __frwr_recovery_worker() .
->> 
->> Yea, I'd recycle all the MRs instead of having non-trivial logic
->> to try and figure out MR states...
->> 
->>> It's already 4.5-rc7, a little late for a significant rework
->>> of this patch, so maybe I should drop it?
->> 
->> Perhaps... Although you can make it incremental because the current
->> patch doesn't seem to break anything, just not solving the complete
->> problem...
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
+>
+>>
+>> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+>> index 39680aed99dd..8d192234fdd6 100644
+>> --- a/drivers/infiniband/core/uverbs_main.c
+>> +++ b/drivers/infiniband/core/uverbs_main.c
+>> @@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+>>  {
+>>         struct ib_uverbs_file *file = filp->private_data;
+>>         struct ib_uverbs_device *dev = file->device;
+>> -       struct ib_ucontext *ucontext = NULL;
+>>
+>
+> ib_dev pointer will not be NULL if cleanup_mutex is taken, thus no
+> need to check here.
+>
+>>         mutex_lock(&file->device->lists_mutex);
+>> -       ucontext = file->ucontext;
+>> -       file->ucontext = NULL;
+>>         if (!file->is_closed) {
+>>                 list_del(&file->list);
+>>                 file->is_closed = 1;
+>>         }
+>>         mutex_unlock(&file->device->lists_mutex);
+>> -       if (ucontext)
+>> -               ib_uverbs_cleanup_ucontext(file, ucontext);
+>> +
+>> +       mutex_lock(&file->cleanup_mutex);
+>> +       if (file->ucontext) {
+>> +               ib_uverbs_cleanup_ucontext(file, file->ucontext);
+>> +               file->ucontext = NULL;
+>> +       }
+>> +       mutex_unlock(&file->cleanup_mutex);
+>>
+>>         if (file->async_file)
+>>                 kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+>> @@ -1177,26 +1179,26 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+>>
+>>         mutex_lock(&uverbs_dev->lists_mutex);
+>>         while (!list_empty(&uverbs_dev->uverbs_file_list)) {
+>> -               struct ib_ucontext *ucontext;
+>> -
+>>                 file = list_first_entry(&uverbs_dev->uverbs_file_list,
+>>                                         struct ib_uverbs_file, list);
+>>                 file->is_closed = 1;
+>> -               ucontext = file->ucontext;
+>>                 list_del(&file->list);
+>> -               file->ucontext = NULL;
+>>                 kref_get(&file->ref);
+>>                 mutex_unlock(&uverbs_dev->lists_mutex);
+>> +
+>>                 /* We must release the mutex before going ahead and calling
+>>                  * disassociate_ucontext. disassociate_ucontext might end up
+>>                  * indirectly calling uverbs_close, for example due to freeing
+>>                  * the resources (e.g mmput).
+>>                  */
+>>                 ib_uverbs_event_handler(&file->event_handler, &event);
+>> -               if (ucontext) {
+>> -                       ib_dev->disassociate_ucontext(ucontext);
+>> -                       ib_uverbs_cleanup_ucontext(file, ucontext);
+>> +               mutex_lock(&file->cleanup_mutex);
+>> +               if (file->ucontext) {
+>> +                       ib_dev->disassociate_ucontext(file->ucontext);
+>> +                       ib_uverbs_cleanup_ucontext(file, file->ucontext);
+>> +                       file->ucontext = NULL;
+>>                 }
+>> +               mutex_unlock(&file->cleanup_mutex);
+>>
+>>                 mutex_lock(&uverbs_dev->lists_mutex);
+>>                 kref_put(&file->ref, ib_uverbs_release_file);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
