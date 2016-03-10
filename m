@@ -1,90 +1,116 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH V2] IB/uverbs: Fix race between uverbs_close and remove_one
-Date: Thu, 10 Mar 2016 13:46:45 +0530
-Message-ID: <CANjDDBgZpH3p3G1ja3n6DOR_GcU9JCxw1doHu=ikauy+8Yw0Fw@mail.gmail.com>
+Date: Thu, 10 Mar 2016 14:34:07 +0530
+Message-ID: <CANjDDBj=F-LTSDMesD97CvvJQWOW6fecuDLY2a9sBZ220jMYMg@mail.gmail.com>
 References: <1457343873-14869-1-git-send-email-devesh.sharma@broadcom.com>
  <20160307190833.GA1886@obsidianresearch.com> <CANjDDBiYagKm79n5sWNsCnxruSzqDqZYREmw1mGBR_upapF4hQ@mail.gmail.com>
  <20160308175334.GB10805@obsidianresearch.com> <56E053C8.8050008@dev.mellanox.co.il>
+ <20160309190354.GD21139@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56E053C8.8050008-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160309190354.GD21139-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 9, 2016 at 10:18 PM, Yishai Hadas
-<yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 3/8/2016 7:53 PM, Jason Gunthorpe wrote:
->>
->> On Tue, Mar 08, 2016 at 04:24:51PM +0530, Devesh Sharma wrote:
->>
->>>> +++ b/drivers/infiniband/core/uverbs_main.c
->>>> @@ -962,9 +962,9 @@ static int ib_uverbs_close(struct inode *inode,
->>>> struct file *filp)
->>>>                  list_del(&file->list);
->>>>                  file->is_closed = 1;
->>>>          }
->>>> -       mutex_unlock(&file->device->lists_mutex);
->>>>          if (ucontext)
->>>>                  ib_uverbs_cleanup_ucontext(file, ucontext);
->>>> +       mutex_unlock(&file->device->lists_mutex);
->>>>
->>>>
->>>> ??
->>>
->>>
->>> There is following comment about list_mutex in uverbs_main.c around
->>> line number 1200:
->>> /* We must release the mutex before going ahead and calling
->>>   * disassociate_ucontext. disassociate_ucontext might end up
->>>   * indirectly calling uverbs_close, for example due to freeing
->>>   * the resources (e.g mmput).
->>>   */
->>
->>
->> Okay, now I remember this discussion, and being unhappy about this
->> during review.
->>
->> However, this comment is talking about disassociate_ucontext, the bug
->> is with ib_uverbs_cleanup_ucontext. We can't re-entre uverbs_close
->> while we are already in uverbs_close, so that doesn't explain why it
->> cannot be in the mutex.
->>
->> So, Yishai, what is the problem with the above lock placement?
->>
->> The only issue you raised was with multi-file close concurrency, and
->> that is trivially solved with another mutex.
->>
->> I'd rather see another mutex added then this ugly add-hoc
->> srcu/completion thing.
+On Thu, Mar 10, 2016 at 12:33 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Mar 09, 2016 at 06:48:08PM +0200, Yishai Hadas wrote:
 >
+>> The srcu with NULL checking by itself can prevent the race, no need for the
+>> "completion" mechanism. ib_uverbs_free_hw_resources uses synchronize_srcu
+>> just after that ib_dev was set to NULL as part of ib_uverbs_remove_one.
 >
-> The srcu with NULL checking by itself can prevent the race, no need for the
-> "completion" mechanism. ib_uverbs_free_hw_resources uses synchronize_srcu
-> just after that ib_dev was set to NULL as part of ib_uverbs_remove_one.
->
-> The reason for the extra "completion" that I suggested comes to make sure
-> that when an application returns from its close API the underlying resources
-> were really freed, this is open in current code even if the race *wasn't*
-> hit.
->
-> As we need to enable parallel closing it seems to be the preferred way to
-> go.
->
-> Devesh, can you send V3 with above suggestion to help people reviewing it ?
-> if you have some other solution with mutex that addressed above points
-> please come it to the list for a review.
+> No, I don't think that is true, the completion looks like it is
+> actually needed because the goto out in ib_uverbs_close needs to wait
+> for ib_uverbs_free_hw_resources to do the cleanups ib_uverbs_close
+> skipped over before it can go ahead and kref_put things.
 
-Sure, I should be able to post it toady.
+Yes, I agree with the above explanation. Even my testing showed evidence.
 
 >
+> So, this is too ugly, do not create a mutex out of srcu and completion.
 >
+> Your performance reason not to use the existing lists_mutex seems
+> reasonable, so add a new cleanup mutex for this purpose.
 >
+> Something like this. I would also get rid of file->is_closed and use
+> list_del_init & list_empty instead.
+
+Below patch seems to be working in the code analysis. I will test though.
+I would test this approach as well before posting V3.
+
 >
+> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+> index 39680aed99dd..8d192234fdd6 100644
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+>  {
+>         struct ib_uverbs_file *file = filp->private_data;
+>         struct ib_uverbs_device *dev = file->device;
+> -       struct ib_ucontext *ucontext = NULL;
 >
+
+ib_dev pointer will not be NULL if cleanup_mutex is taken, thus no
+need to check here.
+
+>         mutex_lock(&file->device->lists_mutex);
+> -       ucontext = file->ucontext;
+> -       file->ucontext = NULL;
+>         if (!file->is_closed) {
+>                 list_del(&file->list);
+>                 file->is_closed = 1;
+>         }
+>         mutex_unlock(&file->device->lists_mutex);
+> -       if (ucontext)
+> -               ib_uverbs_cleanup_ucontext(file, ucontext);
+> +
+> +       mutex_lock(&file->cleanup_mutex);
+> +       if (file->ucontext) {
+> +               ib_uverbs_cleanup_ucontext(file, file->ucontext);
+> +               file->ucontext = NULL;
+> +       }
+> +       mutex_unlock(&file->cleanup_mutex);
 >
+>         if (file->async_file)
+>                 kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+> @@ -1177,26 +1179,26 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+>
+>         mutex_lock(&uverbs_dev->lists_mutex);
+>         while (!list_empty(&uverbs_dev->uverbs_file_list)) {
+> -               struct ib_ucontext *ucontext;
+> -
+>                 file = list_first_entry(&uverbs_dev->uverbs_file_list,
+>                                         struct ib_uverbs_file, list);
+>                 file->is_closed = 1;
+> -               ucontext = file->ucontext;
+>                 list_del(&file->list);
+> -               file->ucontext = NULL;
+>                 kref_get(&file->ref);
+>                 mutex_unlock(&uverbs_dev->lists_mutex);
+> +
+>                 /* We must release the mutex before going ahead and calling
+>                  * disassociate_ucontext. disassociate_ucontext might end up
+>                  * indirectly calling uverbs_close, for example due to freeing
+>                  * the resources (e.g mmput).
+>                  */
+>                 ib_uverbs_event_handler(&file->event_handler, &event);
+> -               if (ucontext) {
+> -                       ib_dev->disassociate_ucontext(ucontext);
+> -                       ib_uverbs_cleanup_ucontext(file, ucontext);
+> +               mutex_lock(&file->cleanup_mutex);
+> +               if (file->ucontext) {
+> +                       ib_dev->disassociate_ucontext(file->ucontext);
+> +                       ib_uverbs_cleanup_ucontext(file, file->ucontext);
+> +                       file->ucontext = NULL;
+>                 }
+> +               mutex_unlock(&file->cleanup_mutex);
+>
+>                 mutex_lock(&uverbs_dev->lists_mutex);
+>                 kref_put(&file->ref, ib_uverbs_release_file);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
