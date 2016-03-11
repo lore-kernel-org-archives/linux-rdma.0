@@ -1,47 +1,104 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Fri, 11 Mar 2016 10:22:58 +0100
-Message-ID: <20160311092258.GD28498@lst.de>
-References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E21EBB.6060205@sandisk.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 3/3] infiniband: IB/hns: add Hisilicon RoCE support with bindings
+Date: Fri, 11 Mar 2016 18:37:11 +0800
+Message-ID: <1457692631-9290-4-git-send-email-oulijun@huawei.com>
+References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56E21EBB.6060205@sandisk.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457692631-9290-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 05:26:19PM -0800, Bart Van Assche wrote:
-> On 03/09/2016 07:54 AM, Christoph Hellwig wrote:
->> +		if (i + 1 != ctx->nr_ops)
->> +			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
->
-> Not that this really matters, but my own preference is to write such a 
-> comparison as i + 1 < ctx->nr_ops.
+This submit add binding file and dts file.
 
-Sure, not problem.
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
 
->> @@ -787,6 +799,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
->>
->>   	atomic_inc(&pd->usecnt);
->>   	atomic_inc(&qp_init_attr->send_cq->usecnt);
->> +
->> +	if (qp_init_attr->cap.max_rdma_ctxs) {
->> +		ret = rdma_rw_init_mrs(qp, qp_init_attr);
->> +		if (ret) {
->> +			pr_err("failed to init MR pool ret= %d\n", ret);
->> +			ib_destroy_qp(qp);
->> +			qp = ERR_PTR(ret);
->> +		}
->> +	}
->
-> ib_destroy_qp() can fail and if it fails it does not decrement pd->usecnt. 
-> Does this have to be handled or reported in some way?
+diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+new file mode 100644
+index 0000000..8004641
+--- /dev/null
++++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+@@ -0,0 +1,68 @@
++HiSilicon RoCE DT description
++
++HiSilicon RoCE engine is a part of network subsystem.
++It works depending on other part of network wubsytem, such as, gmac and
++dsa fabric.
++
++Additional properties are described here:
++
++Required properties:
++- compatible: Should contain "hisilicon,hns-roce-v1".
++- reg: Physical base address of the roce driver and
++length of memory mapped region.
++- eth-handle: phandle, specifies a reference to a node
++representing a ethernet device.
++- dsaf-handle: phandle, specifies a reference to a node
++representing a dsaf device.
++- #address-cells: must be 2
++- #size-cells: must be 2
++Optional properties:
++- dma-coherent: Present if DMA operations are coherent.
++- interrupt-parent: the interrupt parent of this device.
++- interrupts: should contain 32 completion event irq,1 async event irq
++and 1 event overflow irq.
++Example:
++	rocee@0xc4000000 {
++			compatible = "hisilicon,hns-roce-v1";
++			reg = <0x0 0xc4000000 0x0 0x100000>;
++			dma-coherent;
++			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
++			dsaf-handle = <&soc0_dsa>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			interrupt-parent = <&mbigen_dsa>;
++			interrupts = <722 1>,
++					<723 1>,
++					<724 1>,
++					<725 1>,
++					<726 1>,
++					<727 1>,
++					<728 1>,
++					<729 1>,
++					<730 1>,
++					<731 1>,
++					<732 1>,
++					<733 1>,
++					<734 1>,
++					<735 1>,
++					<736 1>,
++					<737 1>,
++					<738 1>,
++					<739 1>,
++					<740 1>,
++					<741 1>,
++					<742 1>,
++					<743 1>,
++					<744 1>,
++					<745 1>,
++					<746 1>,
++					<747 1>,
++					<748 1>,
++					<749 1>,
++					<750 1>,
++					<751 1>,
++					<752 1>,
++					<753 1>,
++					<785 1>,
++					<754 4>;
++		};
+-- 
+1.9.1
 
-There is no way to handle this properly, and we really should remove
-the return value better sooner than later in the destroy_qp API [1].
-
-[1] and various other verbs APIs that return errors on the destroy APIs,
-    whoever created these was on crack apparently.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
