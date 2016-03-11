@@ -1,81 +1,62 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V3 10/10] IB/ipoib: Allow mcast packets from other VFs
-Date: Fri, 11 Mar 2016 22:58:43 +0200
-Message-ID: <1457729923-4526-11-git-send-email-eli@mellanox.com>
-References: <1457729923-4526-1-git-send-email-eli@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Fri, 11 Mar 2016 14:39:16 -0800
+Message-ID: <56E34914.2020108@sandisk.com>
+References: <1457461000-24088-1-git-send-email-hch@lst.de>
+ <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
+ <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
+ <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de>
+ <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457729923-4526-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160310162150.GA9544-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With SRIOV enabled, two VFs on the same HCA which have the same port LID
-and may have the same QP number. To enable receiving multicasts from
-such VFs, further qualify the check: ignore the receive only if, in
-addition, the packet source gid equals the receiving VF's source gid.
+On 03/10/2016 08:21 AM, Christoph Hellwig wrote:
+> I see the use case for enabling MRs for debugging, but I still don't
+> think the ULP is the right place.  I also don't see where you
+> cna do this currently: for srpt, the only driver converted in this
+> series there is no support for registrations at all currently,
+> and with the the series you can force it to register with a one
+> line code change in rdma_rw_use_mr.  For iSERt, which I plan to
+> convert for 4.7 (and which has some WIP code in git) MR support
+> exists, but is only enabled if the device supports the vendor
+> specific signature handover extension (aka if running on mlx5 hardware).
+> With the future conversion you'll still have a simply compile time
+> switch to always enabled it, and I'd be fine with adding a module
+> parameter to force it as well.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+Hello Christoph,
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index fa9c42ff1fb0..e205265bb2a4 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -180,6 +180,7 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	struct sk_buff *skb;
- 	u64 mapping[IPOIB_UD_RX_SG];
- 	union ib_gid *dgid;
-+	union ib_gid *sgid;
- 
- 	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
- 		       wr_id, wc->status);
-@@ -203,13 +204,6 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 		return;
- 	}
- 
--	/*
--	 * Drop packets that this interface sent, ie multicast packets
--	 * that the HCA has replicated.
--	 */
--	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num)
--		goto repost;
--
- 	memcpy(mapping, priv->rx_ring[wr_id].mapping,
- 	       IPOIB_UD_RX_SG * sizeof *mapping);
- 
-@@ -239,6 +233,25 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
- 	else
- 		skb->pkt_type = PACKET_MULTICAST;
- 
-+	sgid = &((struct ib_grh *)skb->data)->sgid;
-+
-+	/*
-+	 * Drop packets that this interface sent, ie multicast packets
-+	 * that the HCA has replicated.
-+	 */
-+	if (wc->slid == priv->local_lid && wc->src_qp == priv->qp->qp_num) {
-+		int need_repost = 1;
-+
-+		if ((wc->wc_flags & IB_WC_GRH) &&
-+		    sgid->global.interface_id != priv->local_gid.global.interface_id)
-+			need_repost = 0;
-+
-+		if (need_repost) {
-+			dev_kfree_skb_any(skb);
-+			goto repost;
-+		}
-+	}
-+
- 	skb_pull(skb, IB_GRH_BYTES);
- 
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
--- 
-1.8.3.1
+The above is fine with me. But when I ran a test with rdma_rw_use_mr() 
+changed into "return true" the following error messages appeared in the 
+kernel log:
 
+[  364.460709] ib_srpt 0x1: parsing SRP descriptor table failed.
+[  383.604809] ib_srpt 0x0: parsing SRP descriptor table failed.
+[  383.605627] ib_srpt 0x2: parsing SRP descriptor table failed.
+[  386.702905] ib_srpt 0x3: parsing SRP descriptor table failed.
+[  386.703092] ib_srpt 0x4: parsing SRP descriptor table failed.
+[  386.703242] ib_srpt 0x5: parsing SRP descriptor table failed.
+[  386.703411] ib_srpt 0x6: parsing SRP descriptor table failed.
+
+Is this expected? I ran this test on a server equipped with two mlx4 
+HCAs with latest firmware (2.36.5000). I installed git commit 
+c4c65482b56a433a82bc5b63db8ba125727e9f80 of the rdma-rw-api merged with 
+v4.5-rc7. Initiator and target drivers were running on the same server 
+and were communicating with each other via loopback. Before I modified 
+rdma_rw_use_mr() the same test passed on the same setup.
+
+Do you perhaps want me to look further into this?
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
