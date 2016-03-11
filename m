@@ -1,57 +1,47 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 9/9] IB/srpt: convert to the generic RDMA READ/WRITE
-	API
-Date: Fri, 11 Mar 2016 10:14:42 +0100
-Message-ID: <20160311091442.GC28498@lst.de>
-References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-10-git-send-email-hch@lst.de> <56E1F7C8.9000101@sandisk.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Fri, 11 Mar 2016 10:22:58 +0100
+Message-ID: <20160311092258.GD28498@lst.de>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E21EBB.6060205@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56E1F7C8.9000101-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <56E21EBB.6060205@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "sagig@mellanox.com" <sagig@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
->>   	WARN_ON(ioctx->n_rdma <= 0);
->>   	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
->> +	ioctx->n_rdma = 0;
->>
->>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
->>   		pr_info("RDMA_READ for ioctx 0x%p failed with status %d\n",
+On Thu, Mar 10, 2016 at 05:26:19PM -0800, Bart Van Assche wrote:
+> On 03/09/2016 07:54 AM, Christoph Hellwig wrote:
+>> +		if (i + 1 != ctx->nr_ops)
+>> +			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
 >
-> ioctx->n_rdma is reset by srpt_get_send_ioctx(). Do we really need to reset 
-> that member variable in srpt_rdma_read_done()?
+> Not that this really matters, but my own preference is to write such a 
+> comparison as i + 1 < ctx->nr_ops.
 
-Yes, otherwise the atomic_add in srpt_send_done will do the wrong thing.
-Alernatively we could return WQE reservation in srpt_send_done always,
-but given that we'd done with the RDMA READ commands it seems useful
-to not hang onto them longer than necessary.
+Sure, not problem.
 
->> @@ -1832,8 +1626,11 @@ retry:
->>   	qp_init->srq = sdev->srq;
->>   	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
->>   	qp_init->qp_type = IB_QPT_RC;
->> -	qp_init->cap.max_send_wr = srp_sq_size;
->> -	qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
->> +	qp_init->cap.max_send_wr = srp_sq_size / 2;
->> +	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
->> +	qp_init->cap.max_send_sge = max(sdev->device->attrs.max_sge_rd,
->> +					sdev->device->attrs.max_sge);
->> +	qp_init->port_num = ch->sport->port;
+>> @@ -787,6 +799,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
 >>
->>   	ch->qp = ib_create_qp(sdev->pd, qp_init);
->>   	if (IS_ERR(ch->qp)) {
+>>   	atomic_inc(&pd->usecnt);
+>>   	atomic_inc(&qp_init_attr->send_cq->usecnt);
+>> +
+>> +	if (qp_init_attr->cap.max_rdma_ctxs) {
+>> +		ret = rdma_rw_init_mrs(qp, qp_init_attr);
+>> +		if (ret) {
+>> +			pr_err("failed to init MR pool ret= %d\n", ret);
+>> +			ib_destroy_qp(qp);
+>> +			qp = ERR_PTR(ret);
+>> +		}
+>> +	}
 >
-> The QP max_send_wr parameter has been changed but not the ib_alloc_cq() 
-> argument. Is that perhaps an oversight?
+> ib_destroy_qp() can fail and if it fails it does not decrement pd->usecnt. 
+> Does this have to be handled or reported in some way?
 
-The rdma_ctx add at least one to the send_wr count.  In case they
-are all RDMA READs we will actually need one CQE per rdma_ctxs, although
-we'll usually need less.  So I think the actualy count here is correct,
-but I'll add a comment explaining things.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is no way to handle this properly, and we really should remove
+the return value better sooner than later in the destroy_qp API [1].
+
+[1] and various other verbs APIs that return errors on the destroy APIs,
+    whoever created these was on crack apparently.
