@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V3 06/10] IB/ipoib: Add ndo operations for configuring VFs
-Date: Fri, 11 Mar 2016 22:58:39 +0200
-Message-ID: <1457729923-4526-7-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V3 08/10] net/mlx5_core: Implement modify HCA vport command
+Date: Fri, 11 Mar 2016 22:58:41 +0200
+Message-ID: <1457729923-4526-9-git-send-email-eli@mellanox.com>
 References: <1457729923-4526-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457729923-4526-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,114 +10,123 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add ndo operations to the network driver that enables configuring the
-following operations:
-
-ipoib_set_vf_link_state - configure the VF link policy
-ipoib_get_vf_config - get link state configuration
-ipoib_set_vf_guid - set a VF port or node GUID
-ipoib_get_vf_stats - get statistics of a VF
+Implement the modify HCA vport commands used to modify the parameters of
+virtual HCA's ports.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 65 ++++++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |  6 +++
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c | 67 +++++++++++++++++++++++++
+ include/linux/mlx5/vport.h                      |  4 ++
+ 3 files changed, 77 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 25509bbd4a05..80807d6e5c4c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -51,6 +51,7 @@
- #include <net/addrconf.h>
- #include <linux/inetdevice.h>
- #include <rdma/ib_cache.h>
-+#include <linux/pci.h>
- 
- #define DRV_VERSION "1.0.0"
- 
-@@ -1590,11 +1591,67 @@ void ipoib_dev_cleanup(struct net_device *dev)
- 	priv->tx_ring = NULL;
- }
- 
-+static int ipoib_set_vf_link_state(struct net_device *dev, int vf, int link_state)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+
-+	return ib_set_vf_link_state(priv->ca, vf, priv->port, link_state);
-+}
-+
-+static int ipoib_get_vf_config(struct net_device *dev, int vf,
-+			       struct ifla_vf_info *ivf)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	int err;
-+
-+	err = ib_get_vf_config(priv->ca, vf, priv->port, ivf);
-+	if (err)
-+		return err;
-+
-+	ivf->vf = vf;
-+
-+	return 0;
-+}
-+
-+static int ipoib_set_vf_guid(struct net_device *dev, int vf, u64 guid, int type)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+
-+	if (type != IFLA_VF_IB_NODE_GUID && type != IFLA_VF_IB_PORT_GUID)
-+		return -EINVAL;
-+
-+	return ib_set_vf_guid(priv->ca, vf, priv->port, guid, type);
-+}
-+
-+static int ipoib_get_vf_stats(struct net_device *dev, int vf,
-+			      struct ifla_vf_stats *vf_stats)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+
-+	return ib_get_vf_stats(priv->ca, vf, priv->port, vf_stats);
-+}
-+
- static const struct header_ops ipoib_header_ops = {
- 	.create	= ipoib_hard_header,
- };
- 
--static const struct net_device_ops ipoib_netdev_ops = {
-+static const struct net_device_ops ipoib_netdev_ops_pf = {
-+	.ndo_uninit		 = ipoib_uninit,
-+	.ndo_open		 = ipoib_open,
-+	.ndo_stop		 = ipoib_stop,
-+	.ndo_change_mtu		 = ipoib_change_mtu,
-+	.ndo_fix_features	 = ipoib_fix_features,
-+	.ndo_start_xmit		 = ipoib_start_xmit,
-+	.ndo_tx_timeout		 = ipoib_timeout,
-+	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
-+	.ndo_get_iflink		 = ipoib_get_iflink,
-+	.ndo_set_vf_link_state	 = ipoib_set_vf_link_state,
-+	.ndo_get_vf_config	 = ipoib_get_vf_config,
-+	.ndo_get_vf_stats	 = ipoib_get_vf_stats,
-+	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
-+};
-+
-+static const struct net_device_ops ipoib_netdev_ops_vf = {
- 	.ndo_uninit		 = ipoib_uninit,
- 	.ndo_open		 = ipoib_open,
- 	.ndo_stop		 = ipoib_stop,
-@@ -1610,7 +1667,11 @@ void ipoib_setup(struct net_device *dev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 037fc4cdf5af..ebb4036b98e5 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -407,6 +407,12 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ const char *mlx5_command_str(int command)
  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
--	dev->netdev_ops		 = &ipoib_netdev_ops;
-+	if (priv->hca_caps & IB_DEVICE_VIRTUAL_FUNCTION)
-+		dev->netdev_ops	= &ipoib_netdev_ops_vf;
-+	else
-+		dev->netdev_ops	= &ipoib_netdev_ops_pf;
+ 	switch (command) {
++	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
++		return "QUERY_HCA_VPORT_CONTEXT";
 +
- 	dev->header_ops		 = &ipoib_header_ops;
++	case MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT:
++		return "MODIFY_HCA_VPORT_CONTEXT";
++
+ 	case MLX5_CMD_OP_QUERY_HCA_CAP:
+ 		return "QUERY_HCA_CAP";
  
- 	ipoib_set_ethtool_ops(dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+index 2b836d0b4738..bd518405859e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
+@@ -891,3 +891,70 @@ free:
+ 	return err;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_core_query_vport_counter);
++
++int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
++				       u8 other_vport, u8 port_num,
++				       int vf,
++				       struct mlx5_hca_vport_context *req)
++{
++	int in_sz = MLX5_ST_SZ_BYTES(modify_hca_vport_context_in);
++	u8 out[MLX5_ST_SZ_BYTES(modify_hca_vport_context_out)];
++	int is_group_manager;
++	void *in;
++	int err;
++	void *ctx;
++
++	mlx5_core_dbg(dev, "vf %d\n", vf);
++	is_group_manager = MLX5_CAP_GEN(dev, vport_group_manager);
++	in = kzalloc(in_sz, GFP_KERNEL);
++	if (!in)
++		return -ENOMEM;
++
++	memset(out, 0, sizeof(out));
++	MLX5_SET(modify_hca_vport_context_in, in, opcode, MLX5_CMD_OP_MODIFY_HCA_VPORT_CONTEXT);
++	if (other_vport) {
++		if (is_group_manager) {
++			MLX5_SET(modify_hca_vport_context_in, in, other_vport, 1);
++			MLX5_SET(modify_hca_vport_context_in, in, vport_number, vf);
++		} else {
++			err = -EPERM;
++			goto ex;
++		}
++	}
++
++	if (MLX5_CAP_GEN(dev, num_ports) > 1)
++		MLX5_SET(modify_hca_vport_context_in, in, port_num, port_num);
++
++	ctx = MLX5_ADDR_OF(modify_hca_vport_context_in, in, hca_vport_context);
++	MLX5_SET(hca_vport_context, ctx, field_select, req->field_select);
++	MLX5_SET(hca_vport_context, ctx, sm_virt_aware, req->sm_virt_aware);
++	MLX5_SET(hca_vport_context, ctx, has_smi, req->has_smi);
++	MLX5_SET(hca_vport_context, ctx, has_raw, req->has_raw);
++	MLX5_SET(hca_vport_context, ctx, vport_state_policy, req->policy);
++	MLX5_SET(hca_vport_context, ctx, port_physical_state, req->phys_state);
++	MLX5_SET(hca_vport_context, ctx, vport_state, req->vport_state);
++	MLX5_SET64(hca_vport_context, ctx, port_guid, req->port_guid);
++	MLX5_SET64(hca_vport_context, ctx, node_guid, req->node_guid);
++	MLX5_SET(hca_vport_context, ctx, cap_mask1, req->cap_mask1);
++	MLX5_SET(hca_vport_context, ctx, cap_mask1_field_select, req->cap_mask1_perm);
++	MLX5_SET(hca_vport_context, ctx, cap_mask2, req->cap_mask2);
++	MLX5_SET(hca_vport_context, ctx, cap_mask2_field_select, req->cap_mask2_perm);
++	MLX5_SET(hca_vport_context, ctx, lid, req->lid);
++	MLX5_SET(hca_vport_context, ctx, init_type_reply, req->init_type_reply);
++	MLX5_SET(hca_vport_context, ctx, lmc, req->lmc);
++	MLX5_SET(hca_vport_context, ctx, subnet_timeout, req->subnet_timeout);
++	MLX5_SET(hca_vport_context, ctx, sm_lid, req->sm_lid);
++	MLX5_SET(hca_vport_context, ctx, sm_sl, req->sm_sl);
++	MLX5_SET(hca_vport_context, ctx, qkey_violation_counter, req->qkey_violation_counter);
++	MLX5_SET(hca_vport_context, ctx, pkey_violation_counter, req->pkey_violation_counter);
++	err = mlx5_cmd_exec(dev, in, in_sz, out, sizeof(out));
++	if (err)
++		goto ex;
++
++	err = mlx5_cmd_status_to_err_v2(out);
++
++ex:
++	kfree(in);
++	return err;
++}
++EXPORT_SYMBOL_GPL(mlx5_core_modify_hca_vport_context);
+diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
+index aafb3e48b5f8..bd93e6323603 100644
+--- a/include/linux/mlx5/vport.h
++++ b/include/linux/mlx5/vport.h
+@@ -95,5 +95,9 @@ int mlx5_nic_vport_disable_roce(struct mlx5_core_dev *mdev);
+ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
+ 				  int vf, u8 port_num, void *out,
+ 				  size_t out_sz);
++int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
++				       u8 other_vport, u8 port_num,
++				       int vf,
++				       struct mlx5_hca_vport_context *req);
+ 
+ #endif /* __MLX5_VPORT_H__ */
 -- 
 1.8.3.1
 
