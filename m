@@ -1,146 +1,197 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v5 4/9] IB/core: refactor ib_create_qp
-Date: Fri, 11 Mar 2016 19:53:14 +0100
-Message-ID: <1457722399-25811-5-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH v5 8/9] target: enhance and export target_alloc_sgl/target_free_sgl
+Date: Fri, 11 Mar 2016 19:53:18 +0100
+Message-ID: <1457722399-25811-9-git-send-email-hch@lst.de>
 References: <1457722399-25811-1-git-send-email-hch@lst.de>
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1457722399-25811-1-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: dledford@redhat.com, bart.vanassche@sandisk.com
-Cc: swise@opengridcomputing.com, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1457722399-25811-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Split the XRC magic into a separate function, and return early on failure
-to make the initialization code readable.
+The SRP target driver will need to allocate and chain it's own SGLs soon.
+For this export target_alloc_sgl, and add a new argument to it so that it
+can allocate an additional chain entry that doesn't point to a page.  Also
+export transport_free_sgl after renaming it to target_free_sgl to free
+these SGLs again.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Steve Wise <swise@opengridcomputing.com>
-Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 103 +++++++++++++++++++++-------------------
- 1 file changed, 54 insertions(+), 49 deletions(-)
+ drivers/target/target_core_transport.c | 32 ++++++++++++++++++--------------
+ drivers/target/target_core_xcopy.c     |  2 +-
+ include/target/target_core_backend.h   |  1 -
+ include/target/target_core_fabric.h    |  4 ++++
+ 4 files changed, 23 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index eaed99b..ebfb43c 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -723,62 +723,67 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
+diff --git a/drivers/target/target_core_transport.c b/drivers/target/target_core_transport.c
+index 867bc6d..bb32da7c 100644
+--- a/drivers/target/target_core_transport.c
++++ b/drivers/target/target_core_transport.c
+@@ -2131,7 +2131,7 @@ queue_full:
+ 	transport_handle_queue_full(cmd, cmd->se_dev);
  }
- EXPORT_SYMBOL(ib_open_qp);
  
-+static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
-+		struct ib_qp_init_attr *qp_init_attr)
-+{
-+	struct ib_qp *real_qp = qp;
-+
-+	qp->event_handler = __ib_shared_qp_event_handler;
-+	qp->qp_context = qp;
-+	qp->pd = NULL;
-+	qp->send_cq = qp->recv_cq = NULL;
-+	qp->srq = NULL;
-+	qp->xrcd = qp_init_attr->xrcd;
-+	atomic_inc(&qp_init_attr->xrcd->usecnt);
-+	INIT_LIST_HEAD(&qp->open_list);
-+
-+	qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
-+			  qp_init_attr->qp_context);
-+	if (!IS_ERR(qp))
-+		__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
-+	else
-+		real_qp->device->destroy_qp(real_qp);
-+	return qp;
-+}
-+
- struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			   struct ib_qp_init_attr *qp_init_attr)
+-static inline void transport_free_sgl(struct scatterlist *sgl, int nents)
++void target_free_sgl(struct scatterlist *sgl, int nents)
  {
--	struct ib_qp *qp, *real_qp;
--	struct ib_device *device;
-+	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
-+	struct ib_qp *qp;
+ 	struct scatterlist *sg;
+ 	int count;
+@@ -2141,6 +2141,7 @@ static inline void transport_free_sgl(struct scatterlist *sgl, int nents)
  
--	device = pd ? pd->device : qp_init_attr->xrcd->device;
- 	qp = device->create_qp(pd, qp_init_attr, NULL);
--
--	if (!IS_ERR(qp)) {
--		qp->device     = device;
--		qp->real_qp    = qp;
--		qp->uobject    = NULL;
--		qp->qp_type    = qp_init_attr->qp_type;
--
--		atomic_set(&qp->usecnt, 0);
--		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
--			qp->event_handler = __ib_shared_qp_event_handler;
--			qp->qp_context = qp;
--			qp->pd = NULL;
--			qp->send_cq = qp->recv_cq = NULL;
--			qp->srq = NULL;
--			qp->xrcd = qp_init_attr->xrcd;
--			atomic_inc(&qp_init_attr->xrcd->usecnt);
--			INIT_LIST_HEAD(&qp->open_list);
--
--			real_qp = qp;
--			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
--					  qp_init_attr->qp_context);
--			if (!IS_ERR(qp))
--				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
--			else
--				real_qp->device->destroy_qp(real_qp);
--		} else {
--			qp->event_handler = qp_init_attr->event_handler;
--			qp->qp_context = qp_init_attr->qp_context;
--			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
--				qp->recv_cq = NULL;
--				qp->srq = NULL;
--			} else {
--				qp->recv_cq = qp_init_attr->recv_cq;
--				atomic_inc(&qp_init_attr->recv_cq->usecnt);
--				qp->srq = qp_init_attr->srq;
--				if (qp->srq)
--					atomic_inc(&qp_init_attr->srq->usecnt);
--			}
--
--			qp->pd	    = pd;
--			qp->send_cq = qp_init_attr->send_cq;
--			qp->xrcd    = NULL;
--
--			atomic_inc(&pd->usecnt);
--			atomic_inc(&qp_init_attr->send_cq->usecnt);
--		}
-+	if (IS_ERR(qp))
-+		return qp;
-+
-+	qp->device     = device;
-+	qp->real_qp    = qp;
-+	qp->uobject    = NULL;
-+	qp->qp_type    = qp_init_attr->qp_type;
-+
-+	atomic_set(&qp->usecnt, 0);
-+	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
-+		return ib_create_xrc_qp(qp, qp_init_attr);
-+
-+	qp->event_handler = qp_init_attr->event_handler;
-+	qp->qp_context = qp_init_attr->qp_context;
-+	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
-+		qp->recv_cq = NULL;
-+		qp->srq = NULL;
-+	} else {
-+		qp->recv_cq = qp_init_attr->recv_cq;
-+		atomic_inc(&qp_init_attr->recv_cq->usecnt);
-+		qp->srq = qp_init_attr->srq;
-+		if (qp->srq)
-+			atomic_inc(&qp_init_attr->srq->usecnt);
- 	}
- 
-+	qp->pd	    = pd;
-+	qp->send_cq = qp_init_attr->send_cq;
-+	qp->xrcd    = NULL;
-+
-+	atomic_inc(&pd->usecnt);
-+	atomic_inc(&qp_init_attr->send_cq->usecnt);
- 	return qp;
+ 	kfree(sgl);
  }
- EXPORT_SYMBOL(ib_create_qp);
++EXPORT_SYMBOL(target_free_sgl);
+ 
+ static inline void transport_reset_sgl_orig(struct se_cmd *cmd)
+ {
+@@ -2161,7 +2162,7 @@ static inline void transport_reset_sgl_orig(struct se_cmd *cmd)
+ static inline void transport_free_pages(struct se_cmd *cmd)
+ {
+ 	if (!(cmd->se_cmd_flags & SCF_PASSTHROUGH_PROT_SG_TO_MEM_NOALLOC)) {
+-		transport_free_sgl(cmd->t_prot_sg, cmd->t_prot_nents);
++		target_free_sgl(cmd->t_prot_sg, cmd->t_prot_nents);
+ 		cmd->t_prot_sg = NULL;
+ 		cmd->t_prot_nents = 0;
+ 	}
+@@ -2172,7 +2173,7 @@ static inline void transport_free_pages(struct se_cmd *cmd)
+ 		 * SG_TO_MEM_NOALLOC to function with COMPARE_AND_WRITE
+ 		 */
+ 		if (cmd->se_cmd_flags & SCF_COMPARE_AND_WRITE) {
+-			transport_free_sgl(cmd->t_bidi_data_sg,
++			target_free_sgl(cmd->t_bidi_data_sg,
+ 					   cmd->t_bidi_data_nents);
+ 			cmd->t_bidi_data_sg = NULL;
+ 			cmd->t_bidi_data_nents = 0;
+@@ -2182,11 +2183,11 @@ static inline void transport_free_pages(struct se_cmd *cmd)
+ 	}
+ 	transport_reset_sgl_orig(cmd);
+ 
+-	transport_free_sgl(cmd->t_data_sg, cmd->t_data_nents);
++	target_free_sgl(cmd->t_data_sg, cmd->t_data_nents);
+ 	cmd->t_data_sg = NULL;
+ 	cmd->t_data_nents = 0;
+ 
+-	transport_free_sgl(cmd->t_bidi_data_sg, cmd->t_bidi_data_nents);
++	target_free_sgl(cmd->t_bidi_data_sg, cmd->t_bidi_data_nents);
+ 	cmd->t_bidi_data_sg = NULL;
+ 	cmd->t_bidi_data_nents = 0;
+ }
+@@ -2260,20 +2261,22 @@ EXPORT_SYMBOL(transport_kunmap_data_sg);
+ 
+ int
+ target_alloc_sgl(struct scatterlist **sgl, unsigned int *nents, u32 length,
+-		 bool zero_page)
++		 bool zero_page, bool chainable)
+ {
+ 	struct scatterlist *sg;
+ 	struct page *page;
+ 	gfp_t zero_flag = (zero_page) ? __GFP_ZERO : 0;
+-	unsigned int nent;
++	unsigned int nalloc, nent;
+ 	int i = 0;
+ 
+-	nent = DIV_ROUND_UP(length, PAGE_SIZE);
+-	sg = kmalloc(sizeof(struct scatterlist) * nent, GFP_KERNEL);
++	nalloc = nent = DIV_ROUND_UP(length, PAGE_SIZE);
++	if (chainable)
++		nalloc++;
++	sg = kmalloc_array(nalloc, sizeof(struct scatterlist), GFP_KERNEL);
+ 	if (!sg)
+ 		return -ENOMEM;
+ 
+-	sg_init_table(sg, nent);
++	sg_init_table(sg, nalloc);
+ 
+ 	while (length) {
+ 		u32 page_len = min_t(u32, length, PAGE_SIZE);
+@@ -2297,6 +2300,7 @@ out:
+ 	kfree(sg);
+ 	return -ENOMEM;
+ }
++EXPORT_SYMBOL(target_alloc_sgl);
+ 
+ /*
+  * Allocate any required resources to execute the command.  For writes we
+@@ -2312,7 +2316,7 @@ transport_generic_new_cmd(struct se_cmd *cmd)
+ 	if (cmd->prot_op != TARGET_PROT_NORMAL &&
+ 	    !(cmd->se_cmd_flags & SCF_PASSTHROUGH_PROT_SG_TO_MEM_NOALLOC)) {
+ 		ret = target_alloc_sgl(&cmd->t_prot_sg, &cmd->t_prot_nents,
+-				       cmd->prot_length, true);
++				       cmd->prot_length, true, false);
+ 		if (ret < 0)
+ 			return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 	}
+@@ -2337,13 +2341,13 @@ transport_generic_new_cmd(struct se_cmd *cmd)
+ 
+ 			ret = target_alloc_sgl(&cmd->t_bidi_data_sg,
+ 					       &cmd->t_bidi_data_nents,
+-					       bidi_length, zero_flag);
++					       bidi_length, zero_flag, false);
+ 			if (ret < 0)
+ 				return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 		}
+ 
+ 		ret = target_alloc_sgl(&cmd->t_data_sg, &cmd->t_data_nents,
+-				       cmd->data_length, zero_flag);
++				       cmd->data_length, zero_flag, false);
+ 		if (ret < 0)
+ 			return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 	} else if ((cmd->se_cmd_flags & SCF_COMPARE_AND_WRITE) &&
+@@ -2357,7 +2361,7 @@ transport_generic_new_cmd(struct se_cmd *cmd)
+ 
+ 		ret = target_alloc_sgl(&cmd->t_bidi_data_sg,
+ 				       &cmd->t_bidi_data_nents,
+-				       caw_length, zero_flag);
++				       caw_length, zero_flag, false);
+ 		if (ret < 0)
+ 			return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
+ 	}
+diff --git a/drivers/target/target_core_xcopy.c b/drivers/target/target_core_xcopy.c
+index 47fe94e..75cd854 100644
+--- a/drivers/target/target_core_xcopy.c
++++ b/drivers/target/target_core_xcopy.c
+@@ -563,7 +563,7 @@ static int target_xcopy_setup_pt_cmd(
+ 
+ 	if (alloc_mem) {
+ 		rc = target_alloc_sgl(&cmd->t_data_sg, &cmd->t_data_nents,
+-				      cmd->data_length, false);
++				      cmd->data_length, false, false);
+ 		if (rc < 0) {
+ 			ret = rc;
+ 			goto out;
+diff --git a/include/target/target_core_backend.h b/include/target/target_core_backend.h
+index 28ee5c2..d8ab510 100644
+--- a/include/target/target_core_backend.h
++++ b/include/target/target_core_backend.h
+@@ -85,7 +85,6 @@ extern struct configfs_attribute *passthrough_attrib_attrs[];
+ void	*transport_kmap_data_sg(struct se_cmd *);
+ void	transport_kunmap_data_sg(struct se_cmd *);
+ /* core helpers also used by xcopy during internal command setup */
+-int	target_alloc_sgl(struct scatterlist **, unsigned int *, u32, bool);
+ sense_reason_t	transport_generic_map_mem_to_cmd(struct se_cmd *,
+ 		struct scatterlist *, u32, struct scatterlist *, u32);
+ 
+diff --git a/include/target/target_core_fabric.h b/include/target/target_core_fabric.h
+index 5665340..fd6bbd2 100644
+--- a/include/target/target_core_fabric.h
++++ b/include/target/target_core_fabric.h
+@@ -179,6 +179,10 @@ int	core_tpg_set_initiator_node_tag(struct se_portal_group *,
+ int	core_tpg_register(struct se_wwn *, struct se_portal_group *, int);
+ int	core_tpg_deregister(struct se_portal_group *);
+ 
++int	target_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
++		u32 length, bool zero_page, bool chainable);
++void	target_free_sgl(struct scatterlist *sgl, int nents);
++
+ /*
+  * The LIO target core uses DMA_TO_DEVICE to mean that data is going
+  * to the target (eg handling a WRITE) and DMA_FROM_DEVICE to mean
 -- 
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
