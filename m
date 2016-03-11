@@ -1,63 +1,59 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: generic RDMA READ/WRITE API V5
-Date: Fri, 11 Mar 2016 19:53:10 +0100
-Message-ID: <1457722399-25811-1-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v5 6/9] IB/core: add a need_inval flag to struct ib_mr
+Date: Fri, 11 Mar 2016 19:53:16 +0100
+Message-ID: <1457722399-25811-7-git-send-email-hch@lst.de>
+References: <1457722399-25811-1-git-send-email-hch@lst.de>
 Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1457722399-25811-1-git-send-email-hch@lst.de>
 Sender: target-devel-owner@vger.kernel.org
 To: dledford@redhat.com, bart.vanassche@sandisk.com
-Cc: swise@opengridcomputing.com, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Cc: swise@opengridcomputing.com, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, Steve Wise <swise@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This series contains patches that implement a first version of a generi=
-c
-API to handle RDMA READ/WRITE operations as commonly used on the target
-(or server) side for storage protocols.
+From: Steve Wise <swise@chelsio.com>
 
-This has been developed for the upcoming NVMe over Fabrics target, and
-extensively te=D1=95ted as part of that, although this upstream version=
- has
-additional updates over the one we're currently using.
+This is the first step toward moving MR invalidation decisions
+to the core.  It will be needed by the upcoming RW API.
 
-It hides details such as the use of MRs for iWarp devices, and will all=
-ow
-looking at other HCA specifics easily in the future.
+Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/infiniband/core/verbs.c | 2 ++
+ include/rdma/ib_verbs.h         | 1 +
+ 2 files changed, 3 insertions(+)
 
-This series contains a conversion of the SRP target, and the git tree
-below also has a RFC conversion of the iSER target (a little hacky
-due to the signature MR support which I can't test)
-
-I think it's basically ready to merge now.
-
-I also have a git tree available at:
-
-	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
-
-Gitweb:
-
-	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
-w-api
-
-These two also include the RFC iSER target conversion.
-
-Changes since V4:
- - fix SG iteration in rdma_rw_init_mr_wrs
- - address various misc review feedback items from Bart and Leon
-
-Changes since V3:
- - really fold the list_del in mr_pool_get into the right patch
-
-Changes since V2:
- - fold the list_del in mr_pool_get into the right patch
- - clamp the max FR page size length
- - minor srpt style fix
- - spelling fixes
- - renamed rdma_has_read_invalidate to rdma_cap_read_inv
-
-Changes since V1:
- - fixed offset handling in ib_sg_to_pages
- - uses proper SG iterators to handle larger than PAGE_SIZE segments
- - adjusted parameters for some functions to reduce size of the context
- - SRP target support
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 5e017c1..5955d14 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1353,6 +1353,7 @@ struct ib_mr *ib_get_dma_mr(struct ib_pd *pd, int mr_access_flags)
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
++		mr->need_inval = false;
+ 	}
+ 
+ 	return mr;
+@@ -1399,6 +1400,7 @@ struct ib_mr *ib_alloc_mr(struct ib_pd *pd,
+ 		mr->pd      = pd;
+ 		mr->uobject = NULL;
+ 		atomic_inc(&pd->usecnt);
++		mr->need_inval = false;
+ 	}
+ 
+ 	return mr;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 355f5b2..068d540 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1430,6 +1430,7 @@ struct ib_mr {
+ 	u64		   iova;
+ 	u32		   length;
+ 	unsigned int	   page_size;
++	bool		   need_inval;
+ 	union {
+ 		struct ib_uobject	*uobject;	/* user */
+ 		struct list_head	qp_entry;	/* FR */
+-- 
+2.1.4
