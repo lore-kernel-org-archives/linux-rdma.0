@@ -1,48 +1,68 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Thu, 10 Mar 2016 17:26:19 -0800
-Message-ID: <56E21EBB.6060205@sandisk.com>
-References: <1457461000-24088-1-git-send-email-hch@lst.de>
- <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
- <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Asgeir Eiriksson <asgeir.eiriksson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA power failure write atomicity
+Date: Thu, 10 Mar 2016 17:33:39 -0800
+Message-ID: <0E25BAE6-9091-4B28-A2A9-2F41BD97145A@gmail.com>
+References: <56E20734.4030208@vlnb.net>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160309155457.GA1898-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <56E20734.4030208-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/09/2016 07:54 AM, Christoph Hellwig wrote:
-> +		if (i + 1 != ctx->nr_ops)
-> +			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
+Vladislav,
 
-Not that this really matters, but my own preference is to write such a 
-comparison as i + 1 < ctx->nr_ops.
+This is an area of active R&D
 
-> @@ -787,6 +799,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
->
->   	atomic_inc(&pd->usecnt);
->   	atomic_inc(&qp_init_attr->send_cq->usecnt);
-> +
-> +	if (qp_init_attr->cap.max_rdma_ctxs) {
-> +		ret = rdma_rw_init_mrs(qp, qp_init_attr);
-> +		if (ret) {
-> +			pr_err("failed to init MR pool ret= %d\n", ret);
-> +			ib_destroy_qp(qp);
-> +			qp = ERR_PTR(ret);
-> +		}
-> +	}
+You might be interested in the following (at ietf.org):
 
-ib_destroy_qp() can fail and if it fails it does not decrement 
-pd->usecnt. Does this have to be handled or reported in some way?
+Title           : RDMA Durable Write Commit
+        Authors         : Tom Talpey
+                               Jim Pinkerton
+                          <>
+	Filename      : draft-talpey-rdma-commit-00.txt
+	Pages          : 24
+	Date            : 2016-02-19
 
-Otherwise this patch looks fine to me.
+Regards,
 
-Bart.
+=91Asgeir
+
+
+> On Mar 10, 2016, at 3:45 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wro=
+te:
+>=20
+> Hello,
+>=20
+> I'm currently considering to use NVDIMM behind RDMA and wonder what i=
+s RDMA power
+> failure write atomicity? I mean, what is minimal size and alignment g=
+uaranteed to be
+> written atomically in face of power failure (or some other similar fa=
+ilure), i.e.
+> either written in full, or not written at all?
+>=20
+> For memory writes on Intel it is 8 bytes with 8 bytes alignment. Is t=
+here anything like
+> this for RDMA? Or different vendors/implementation have so different =
+expectations and
+> promises, so you can not assume anything >1 byte?
+>=20
+> I can't find such info anywhere.
+>=20
+> Thanks,
+> Vlad
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
