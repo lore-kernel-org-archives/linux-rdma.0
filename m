@@ -1,39 +1,81 @@
-From: "Mr. emmanuel" <59-xJSQgfcwbMhzjH9vaptp/g@public.gmane.org>
-Subject: Good Day Sir/Madam
-Date: Fri, 11 Mar 2016 06:55:07 -0800
-Message-ID: <CO2PR14MB0009CFD99C8ADDD44736D145FCB50__47865.1539575823$1457698236$gmane$org@CO2PR14MB0009.namprd14.prod.outlook.com>
-Reply-To: <dr_doerr-9Onoh4P/yGk@public.gmane.org>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 3/3] infiniband: IB/hns: add Hisilicon RoCE support with
+ bindings
+Date: Fri, 11 Mar 2016 16:39:28 +0300
+Message-ID: <56E2CA90.9020401@cogentembedded.com>
+References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
+ <1457692631-9290-4-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <1457692631-9290-4-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <59-xJSQgfcwbMhzjH9vaptp/g@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Friend,
+Hello.
 
-I am Mr. Wong Shiu Ki, an Account Officer with the International Bank o=
-f Taipei and I have a very sensitive and confidential brief for you fro=
-m international bank of Taipei, Taiwan. I am requesting for your partne=
-rship in re-profiling funds I will give the details, but in summary, th=
-e funds are coming via Bank of Taipei Taiwan.
-This is a legitimate transaction You will be paid 30% for your Manageme=
-nt Fees "If you are interested, please write back and provide me with y=
-our confidential telephone and fax numbers, Country and I will provide =
-further details and instructions Please keep this. confidential, as we =
-can=E2=80=99t afford More Political Problems Finally, Please Note that =
-this MUST be Concluded Within TWO weeks Please write back promptly to m=
-y Private Email dr_doerr-9Onoh4P/yGk@public.gmane.org Please do not reply if you are not int=
-erested. Please if you are not interested delete from your mailbox. I l=
-ook forward to it.
-Regards,
-Mr Wong Shiu Ki
-=2E
-dr_doerr-9Onoh4P/yGk@public.gmane.org
+On 3/11/2016 1:37 PM, Lijun Ou wrote:
+
+> This submit add binding file and dts file.
+
+    I see no .dts file.
+
+>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> ---
+>   .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
+>   1 file changed, 68 insertions(+)
+>   create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+>
+> diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+> new file mode 100644
+> index 0000000..8004641
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+> @@ -0,0 +1,68 @@
+> +HiSilicon RoCE DT description
+> +
+> +HiSilicon RoCE engine is a part of network subsystem.
+> +It works depending on other part of network wubsytem, such as, gmac and
+
+    Subsystem.
+
+> +dsa fabric.
+> +
+> +Additional properties are described here:
+> +
+> +Required properties:
+> +- compatible: Should contain "hisilicon,hns-roce-v1".
+> +- reg: Physical base address of the roce driver and
+> +length of memory mapped region.
+> +- eth-handle: phandle, specifies a reference to a node
+> +representing a ethernet device.
+> +- dsaf-handle: phandle, specifies a reference to a node
+> +representing a dsaf device.
+> +- #address-cells: must be 2
+> +- #size-cells: must be 2
+> +Optional properties:
+> +- dma-coherent: Present if DMA operations are coherent.
+> +- interrupt-parent: the interrupt parent of this device.
+> +- interrupts: should contain 32 completion event irq,1 async event irq
+> +and 1 event overflow irq.
+
+    The "interrupt-names" prop is strongly desired with some many IRQs.
+
+> +Example:
+> +	rocee@0xc4000000 {
+
+    The node names should be generic, not implementation specific.
+
+[...]
+
+MBR, Sergei
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
