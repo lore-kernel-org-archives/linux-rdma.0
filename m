@@ -1,62 +1,186 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Fri, 11 Mar 2016 14:39:16 -0800
-Message-ID: <56E34914.2020108@sandisk.com>
-References: <1457461000-24088-1-git-send-email-hch@lst.de>
- <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
- <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
- <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de>
- <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] nfs/rdma: add IPv6 rdma6 support
+Date: Fri, 11 Mar 2016 15:43:28 -0800
+Message-ID: <56E35820.7070609@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030807070902060608090408"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160310162150.GA9544-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bruce Fields <bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chuck Lever <Chuck.Lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/10/2016 08:21 AM, Christoph Hellwig wrote:
-> I see the use case for enabling MRs for debugging, but I still don't
-> think the ULP is the right place.  I also don't see where you
-> cna do this currently: for srpt, the only driver converted in this
-> series there is no support for registrations at all currently,
-> and with the the series you can force it to register with a one
-> line code change in rdma_rw_use_mr.  For iSERt, which I plan to
-> convert for 4.7 (and which has some WIP code in git) MR support
-> exists, but is only enabled if the device supports the vendor
-> specific signature handover extension (aka if running on mlx5 hardware).
-> With the future conversion you'll still have a simply compile time
-> switch to always enabled it, and I'd be fine with adding a module
-> parameter to force it as well.
+This is a multi-part message in MIME format.
+--------------030807070902060608090408
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-Hello Christoph,
+Add rdma6 option to support NFS/RDMA IPv6.
+Allow both IPv4 and IPv6 to bind same port at the same time,
+and restricts use of the IPv6 socket to IPv6 communication.
 
-The above is fine with me. But when I ran a test with rdma_rw_use_mr() 
-changed into "return true" the following error messages appeared in the 
-kernel log:
+Signed-off-by: shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+---
 
-[  364.460709] ib_srpt 0x1: parsing SRP descriptor table failed.
-[  383.604809] ib_srpt 0x0: parsing SRP descriptor table failed.
-[  383.605627] ib_srpt 0x2: parsing SRP descriptor table failed.
-[  386.702905] ib_srpt 0x3: parsing SRP descriptor table failed.
-[  386.703092] ib_srpt 0x4: parsing SRP descriptor table failed.
-[  386.703242] ib_srpt 0x5: parsing SRP descriptor table failed.
-[  386.703411] ib_srpt 0x6: parsing SRP descriptor table failed.
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index f126828..62a55d0 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -191,6 +191,7 @@ static const match_table_t nfs_mount_option_tokens = {
+ 
+ enum {
+ 	Opt_xprt_udp, Opt_xprt_udp6, Opt_xprt_tcp, Opt_xprt_tcp6, Opt_xprt_rdma,
++	Opt_xprt_rdma6,
+ 
+ 	Opt_xprt_err
+ };
+@@ -201,6 +202,7 @@ static const match_table_t nfs_xprt_protocol_tokens = {
+ 	{ Opt_xprt_tcp, "tcp" },
+ 	{ Opt_xprt_tcp6, "tcp6" },
+ 	{ Opt_xprt_rdma, "rdma" },
++	{ Opt_xprt_rdma6, "rdma6" },
+ 
+ 	{ Opt_xprt_err, NULL }
+ };
+@@ -1456,6 +1458,8 @@ static int nfs_parse_mount_options(char *raw,
+ 				mnt->flags |= NFS_MOUNT_TCP;
+ 				mnt->nfs_server.protocol = XPRT_TRANSPORT_TCP;
+ 				break;
++			case Opt_xprt_rdma6:
++				protofamily = AF_INET6;
+ 			case Opt_xprt_rdma:
+ 				/* vector side protocols to TCP */
+ 				mnt->flags |= NFS_MOUNT_TCP;
+@@ -1490,6 +1494,8 @@ static int nfs_parse_mount_options(char *raw,
+ 			case Opt_xprt_tcp:
+ 				mnt->mount_server.protocol = XPRT_TRANSPORT_TCP;
+ 				break;
++			case Opt_xprt_rdma6:
++				mountfamily = AF_INET6;
+ 			case Opt_xprt_rdma: /* not used for side protocols */
+ 			default:
+ 				dfprintk(MOUNT, "NFS:   unrecognized "
+diff --git a/include/linux/sunrpc/msg_prot.h b/include/linux/sunrpc/msg_prot.h
+index 8073713..49b8433 100644
+--- a/include/linux/sunrpc/msg_prot.h
++++ b/include/linux/sunrpc/msg_prot.h
+@@ -149,6 +149,7 @@ typedef __be32	rpc_fraghdr;
+ #define RPCBIND_NETID_UDP	"udp"
+ #define RPCBIND_NETID_TCP	"tcp"
+ #define RPCBIND_NETID_RDMA	"rdma"
++#define RPCBIND_NETID_RDMA6	"rdma6"
+ #define RPCBIND_NETID_SCTP	"sctp"
+ #define RPCBIND_NETID_UDP6	"udp6"
+ #define RPCBIND_NETID_TCP6	"tcp6"
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 5763825..56731eb 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -869,7 +869,7 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 	int ret;
+ 
+ 	dprintk("svcrdma: Creating RDMA socket\n");
+-	if (sa->sa_family != AF_INET) {
++	if ((sa->sa_family != AF_INET) && (sa->sa_family != AF_INET6)) {
+ 		dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
+ 		return ERR_PTR(-EAFNOSUPPORT);
+ 	}
+@@ -885,6 +885,10 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 		goto err0;
+ 	}
+ 
++	/* Allow both IPv4 and IPv6 sockets to bind a single port at the same time. */
++#if IS_ENABLED(CONFIG_IPV6)
++	rdma_set_afonly(listen_id, 1);
++#endif
+ 	ret = rdma_bind_addr(listen_id, sa);
+ 	if (ret) {
+ 		dprintk("svcrdma: rdma_bind_addr failed = %d\n", ret);
 
-Is this expected? I ran this test on a server equipped with two mlx4 
-HCAs with latest firmware (2.36.5000). I installed git commit 
-c4c65482b56a433a82bc5b63db8ba125727e9f80 of the rdma-rw-api merged with 
-v4.5-rc7. Initiator and target drivers were running on the same server 
-and were communicating with each other via loopback. Before I modified 
-rdma_rw_use_mr() the same test passed on the same setup.
+--------------030807070902060608090408
+Content-Type: text/x-patch;
+ name="rdma6.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="rdma6.patch"
 
-Do you perhaps want me to look further into this?
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index f126828..62a55d0 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -191,6 +191,7 @@ static const match_table_t nfs_mount_option_tokens = {
+ 
+ enum {
+ 	Opt_xprt_udp, Opt_xprt_udp6, Opt_xprt_tcp, Opt_xprt_tcp6, Opt_xprt_rdma,
++	Opt_xprt_rdma6,
+ 
+ 	Opt_xprt_err
+ };
+@@ -201,6 +202,7 @@ static const match_table_t nfs_xprt_protocol_tokens = {
+ 	{ Opt_xprt_tcp, "tcp" },
+ 	{ Opt_xprt_tcp6, "tcp6" },
+ 	{ Opt_xprt_rdma, "rdma" },
++	{ Opt_xprt_rdma6, "rdma6" },
+ 
+ 	{ Opt_xprt_err, NULL }
+ };
+@@ -1456,6 +1458,8 @@ static int nfs_parse_mount_options(char *raw,
+ 				mnt->flags |= NFS_MOUNT_TCP;
+ 				mnt->nfs_server.protocol = XPRT_TRANSPORT_TCP;
+ 				break;
++			case Opt_xprt_rdma6:
++				protofamily = AF_INET6;
+ 			case Opt_xprt_rdma:
+ 				/* vector side protocols to TCP */
+ 				mnt->flags |= NFS_MOUNT_TCP;
+@@ -1490,6 +1494,8 @@ static int nfs_parse_mount_options(char *raw,
+ 			case Opt_xprt_tcp:
+ 				mnt->mount_server.protocol = XPRT_TRANSPORT_TCP;
+ 				break;
++			case Opt_xprt_rdma6:
++				mountfamily = AF_INET6;
+ 			case Opt_xprt_rdma: /* not used for side protocols */
+ 			default:
+ 				dfprintk(MOUNT, "NFS:   unrecognized "
+diff --git a/include/linux/sunrpc/msg_prot.h b/include/linux/sunrpc/msg_prot.h
+index 8073713..49b8433 100644
+--- a/include/linux/sunrpc/msg_prot.h
++++ b/include/linux/sunrpc/msg_prot.h
+@@ -149,6 +149,7 @@ typedef __be32	rpc_fraghdr;
+ #define RPCBIND_NETID_UDP	"udp"
+ #define RPCBIND_NETID_TCP	"tcp"
+ #define RPCBIND_NETID_RDMA	"rdma"
++#define RPCBIND_NETID_RDMA6	"rdma6"
+ #define RPCBIND_NETID_SCTP	"sctp"
+ #define RPCBIND_NETID_UDP6	"udp6"
+ #define RPCBIND_NETID_TCP6	"tcp6"
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 5763825..56731eb 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -869,7 +869,7 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 	int ret;
+ 
+ 	dprintk("svcrdma: Creating RDMA socket\n");
+-	if (sa->sa_family != AF_INET) {
++	if ((sa->sa_family != AF_INET) && (sa->sa_family != AF_INET6)) {
+ 		dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
+ 		return ERR_PTR(-EAFNOSUPPORT);
+ 	}
+@@ -885,6 +885,10 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 		goto err0;
+ 	}
+ 
++	/* Allow both IPv4 and IPv6 sockets to bind a single port at the same time. */
++#if IS_ENABLED(CONFIG_IPV6)
++	rdma_set_afonly(listen_id, 1);
++#endif
+ 	ret = rdma_bind_addr(listen_id, sa);
+ 	if (ret) {
+ 		dprintk("svcrdma: rdma_bind_addr failed = %d\n", ret);
 
-Thanks,
-
-Bart.
+--------------030807070902060608090408--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
