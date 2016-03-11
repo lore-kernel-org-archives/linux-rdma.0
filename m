@@ -1,79 +1,127 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 3/3] infiniband: IB/hns: add Hisilicon RoCE support with
- bindings
-Date: Fri, 11 Mar 2016 16:39:28 +0300
-Message-ID: <56E2CA90.9020401@cogentembedded.com>
-References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
- <1457692631-9290-4-git-send-email-oulijun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V3] IB/uverbs: Fix race between uverbs_close and remove_one
+Date: Fri, 11 Mar 2016 10:24:11 -0500
+Message-ID: <1457709851-22924-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457692631-9290-4-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello.
+Fixes: 35d4a0b63dc0 ("IB/uverbs: Fix race between ib_uverbs_open and remove_one")
 
-On 3/11/2016 1:37 PM, Lijun Ou wrote:
+If "rmmod <vendor-driver>" is done while having rdma applications still running
+on a host, the system crashes in the page-fault handler trying to fetch
+physical address of an daggling device pointer.
 
-> This submit add binding file and dts file.
+During rmmod every vendor driver must call ib_unregister_device. As part of
+this call, IB-stack tries to free-up all the resource associated with the
+leaving driver. During the call to ib_uverbs_remove_one, a fatal-event is given
+to all the alive rdma applications. The fatal-event causes applications to call
+ib_uverbs_close(). Thus, causes two different cleanup context to run in parallel.
+In the above scenario, it is possible that ib_uverbs_remove_one() completes and
+unblock ib_unregister_device() while ib_uverbs_close() is still waiting for
+some of the hardware specific firmware commands to finish. The unblocked
+ib_unregister_device() context can actually proceed and free the ib_device
+structure. At the same time, in ib_uverbs_close() context the firmware command
+may complete and may try to dereference ib_device pointer. But ib_device
+pointer is a daggling pointer. Dereference to this pointer causes kernel to
+invoke the page_fault handler. It fails to fetch the physical address and
+causes kernel panic.
 
-    I see no .dts file.
+This patch adds two solutions as a remedy:
 
->
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
->   .../bindings/infiniband/hisilicon-hns-roce.txt     | 68 ++++++++++++++++++++++
->   1 file changed, 68 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
->
-> diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-> new file mode 100644
-> index 0000000..8004641
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
-> @@ -0,0 +1,68 @@
-> +HiSilicon RoCE DT description
-> +
-> +HiSilicon RoCE engine is a part of network subsystem.
-> +It works depending on other part of network wubsytem, such as, gmac and
+A) In ib_uverbs_close() context a NULL pointer check on dev->ib_dev pointer is
+   added. The check is under a srcu_read_lock. If dev->ib_dev is NULL, the
+   check prevents ib_uverbs_close() to enter into ib_uverbs_cleanup_ucontext()
+   if ib_uverbs_remove_one has already started. If dev->ib_dev is not NULL,
+   ib_uverbs_close() will continue as it is today.
 
-    Subsystem.
+With solution 'A' in place, it is still possible that after reading dev->ib_dev
+NULL ib_uverbs_close() context go ahaed and put reference to
+ib_uverbs_release_file, even before ib_uverbs_remove_one() reaches to this file
+pointer traversing the entire file list one by one. Thus, again to synchronize
+these two independent contexts we add solution 'B'
 
-> +dsa fabric.
-> +
-> +Additional properties are described here:
-> +
-> +Required properties:
-> +- compatible: Should contain "hisilicon,hns-roce-v1".
-> +- reg: Physical base address of the roce driver and
-> +length of memory mapped region.
-> +- eth-handle: phandle, specifies a reference to a node
-> +representing a ethernet device.
-> +- dsaf-handle: phandle, specifies a reference to a node
-> +representing a dsaf device.
-> +- #address-cells: must be 2
-> +- #size-cells: must be 2
-> +Optional properties:
-> +- dma-coherent: Present if DMA operations are coherent.
-> +- interrupt-parent: the interrupt parent of this device.
-> +- interrupts: should contain 32 completion event irq,1 async event irq
-> +and 1 event overflow irq.
+B) If ib_uverbs_close() context reads dev->ib_dev as NULL then, drop the
+   srcu_read_lock() and wait for ib_uverbs_remove_one() context to reach
+   to the stage where all the resources attached to this file pointer are
+   freed. Now, allow ib_uverbs_close() context to put the reference of
+   ib_uverbs_release_file. This behaviour is achived with the help of a
+   completion signaling.
 
-    The "interrupt-names" prop is strongly desired with some many IRQs.
+CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> +Example:
-> +	rocee@0xc4000000 {
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs.h      |  1 +
+ drivers/infiniband/core/uverbs_main.c | 15 ++++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-    The node names should be generic, not implementation specific.
-
-[...]
-
-MBR, Sergei
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 612ccfd..94a7339 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -121,6 +121,7 @@ struct ib_uverbs_file {
+ 	struct ib_event_handler			event_handler;
+ 	struct ib_uverbs_event_file	       *async_file;
+ 	struct list_head			list;
++	struct completion			fcomp;
+ 	int					is_closed;
+ };
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 39680ae..7f372e6 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -928,6 +928,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ 	file->async_file = NULL;
+ 	kref_init(&file->ref);
+ 	mutex_init(&file->mutex);
++	init_completion(&file->fcomp);
+ 
+ 	filp->private_data = file;
+ 	kobject_get(&dev->kobj);
+@@ -954,6 +955,16 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ 	struct ib_uverbs_file *file = filp->private_data;
+ 	struct ib_uverbs_device *dev = file->device;
+ 	struct ib_ucontext *ucontext = NULL;
++	struct ib_device *ib_dev;
++	int srcu_key;
++
++	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
++	ib_dev = srcu_dereference(dev->ib_dev,
++				  &dev->disassociate_srcu);
++	if (!ib_dev)
++		srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
++		wait_for_completion(&file->fcomp);
++		goto out;
+ 
+ 	mutex_lock(&file->device->lists_mutex);
+ 	ucontext = file->ucontext;
+@@ -965,10 +976,11 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ 	mutex_unlock(&file->device->lists_mutex);
+ 	if (ucontext)
+ 		ib_uverbs_cleanup_ucontext(file, ucontext);
++	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
+ 
+ 	if (file->async_file)
+ 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+-
++out:
+ 	kref_put(&file->ref, ib_uverbs_release_file);
+ 	kobject_put(&dev->kobj);
+ 
+@@ -1199,6 +1211,7 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 		}
+ 
+ 		mutex_lock(&uverbs_dev->lists_mutex);
++		complete(&file->fcomp);
+ 		kref_put(&file->ref, ib_uverbs_release_file);
+ 	}
+ 
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
