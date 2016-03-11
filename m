@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V3 04/10] IB/core: Support accessing SA in virtualized environment
-Date: Fri, 11 Mar 2016 22:58:37 +0200
-Message-ID: <1457729923-4526-5-git-send-email-eli@mellanox.com>
+Subject: [PATCH rdma-next V3 02/10] IB/mlx5: Fix decision on using MAD_IFC
+Date: Fri, 11 Mar 2016 22:58:35 +0200
+Message-ID: <1457729923-4526-3-git-send-email-eli@mellanox.com>
 References: <1457729923-4526-1-git-send-email-eli@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1457729923-4526-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,67 +10,29 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Per the ongoing standardisation process, when virtual HCAs are present
-in a network, traffic is routed based on a destination GID. In order to
-access the SA we use the well known SA GID.
-
-We also add a GRH required boolean field to the port attributes which is
-used to report to the verbs consumer whether this port is connected to a
-virtual network. We use this field to realize whether we need to create
-an address vector with GRH to access the subnet administrator. We clear
-the port attributes struct before calling the hardware driver to make
-sure the default remains that GRH is not required.
+Fix the condition that dictates when MAD_IFC should be used. According
+to firmware specifications, MAD_IFC commands must be used only if the
+ib_virt capability is off.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Changes from V2:
-Modify the definition of IB_SA_WELL_KNOWN_GUID to be locally adminitered GUID
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/core/sa_query.c | 5 +++++
- include/rdma/ib_verbs.h            | 6 ++++++
- 2 files changed, 11 insertions(+)
-
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index f334090bb612..4fb97df2caa5 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -886,6 +886,11 @@ static void update_sm_ah(struct work_struct *work)
- 	ah_attr.dlid     = port_attr.sm_lid;
- 	ah_attr.sl       = port_attr.sm_sl;
- 	ah_attr.port_num = port->port_num;
-+	if (port_attr.grh_required) {
-+		ah_attr.ah_flags = IB_AH_GRH;
-+		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(port_attr.subnet_prefix);
-+		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
-+	}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 7e89a547bf34..79ee6997daa2 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -283,7 +283,7 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
  
- 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
- 	if (IS_ERR(new_ah->ah)) {
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index da4af77f6add..c6f241ec5e91 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -97,6 +97,11 @@ enum rdma_node_type {
- 	RDMA_NODE_USNIC_UDP,
- };
+ static int mlx5_use_mad_ifc(struct mlx5_ib_dev *dev)
+ {
+-	return !dev->mdev->issi;
++	return !MLX5_CAP_GEN(dev->mdev, ib_virt);
+ }
  
-+enum {
-+	/* set the local administered indication */
-+	IB_SA_WELL_KNOWN_GUID	= BIT_ULL(57) | 2,
-+};
-+
- enum rdma_transport_type {
- 	RDMA_TRANSPORT_IB,
- 	RDMA_TRANSPORT_IWARP,
-@@ -510,6 +515,7 @@ struct ib_port_attr {
- 	u8			active_width;
- 	u8			active_speed;
- 	u8                      phys_state;
-+	bool			grh_required;
- };
- 
- enum ib_device_modify_flags {
+ enum {
 -- 
 1.8.3.1
 
