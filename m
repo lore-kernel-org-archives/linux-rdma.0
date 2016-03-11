@@ -1,129 +1,146 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3] IB/uverbs: Fix race between uverbs_close and remove_one
-Date: Fri, 11 Mar 2016 10:24:11 -0500
-Message-ID: <1457709851-22924-1-git-send-email-devesh.sharma@broadcom.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH v5 4/9] IB/core: refactor ib_create_qp
+Date: Fri, 11 Mar 2016 19:53:14 +0100
+Message-ID: <1457722399-25811-5-git-send-email-hch@lst.de>
+References: <1457722399-25811-1-git-send-email-hch@lst.de>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1457722399-25811-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com, bart.vanassche@sandisk.com
+Cc: swise@opengridcomputing.com, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 35d4a0b63dc0 ("IB/uverbs: Fix race between ib_uverbs_open and remove_one")
+Split the XRC magic into a separate function, and return early on failure
+to make the initialization code readable.
 
-If "rmmod <vendor-driver>" is done while having rdma applications still running
-on a host, the system crashes in the page-fault handler trying to fetch
-physical address of an daggling device pointer.
-
-During rmmod every vendor driver must call ib_unregister_device. As part of
-this call, IB-stack tries to free-up all the resource associated with the
-leaving driver. During the call to ib_uverbs_remove_one, a fatal-event is given
-to all the alive rdma applications. The fatal-event causes applications to call
-ib_uverbs_close(). Thus, causes two different cleanup context to run in parallel.
-In the above scenario, it is possible that ib_uverbs_remove_one() completes and
-unblock ib_unregister_device() while ib_uverbs_close() is still waiting for
-some of the hardware specific firmware commands to finish. The unblocked
-ib_unregister_device() context can actually proceed and free the ib_device
-structure. At the same time, in ib_uverbs_close() context the firmware command
-may complete and may try to dereference ib_device pointer. But ib_device
-pointer is a daggling pointer. Dereference to this pointer causes kernel to
-invoke the page_fault handler. It fails to fetch the physical address and
-causes kernel panic.
-
-This patch adds two solutions as a remedy:
-
-A) In ib_uverbs_close() context a NULL pointer check on dev->ib_dev pointer is
-   added. The check is under a srcu_read_lock. If dev->ib_dev is NULL, the
-   check prevents ib_uverbs_close() to enter into ib_uverbs_cleanup_ucontext()
-   if ib_uverbs_remove_one has already started. If dev->ib_dev is not NULL,
-   ib_uverbs_close() will continue as it is today.
-
-With solution 'A' in place, it is still possible that after reading dev->ib_dev
-NULL ib_uverbs_close() context go ahaed and put reference to
-ib_uverbs_release_file, even before ib_uverbs_remove_one() reaches to this file
-pointer traversing the entire file list one by one. Thus, again to synchronize
-these two independent contexts we add solution 'B'
-
-B) If ib_uverbs_close() context reads dev->ib_dev as NULL then, drop the
-   srcu_read_lock() and wait for ib_uverbs_remove_one() context to reach
-   to the stage where all the resources attached to this file pointer are
-   freed. Now, allow ib_uverbs_close() context to put the reference of
-   ib_uverbs_release_file. This behaviour is achived with the help of a
-   completion signaling.
-
-CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 ---
- drivers/infiniband/core/uverbs.h      |  1 +
- drivers/infiniband/core/uverbs_main.c | 15 ++++++++++++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/verbs.c | 103 +++++++++++++++++++++-------------------
+ 1 file changed, 54 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 612ccfd..94a7339 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -121,6 +121,7 @@ struct ib_uverbs_file {
- 	struct ib_event_handler			event_handler;
- 	struct ib_uverbs_event_file	       *async_file;
- 	struct list_head			list;
-+	struct completion			fcomp;
- 	int					is_closed;
- };
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index eaed99b..ebfb43c 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -723,62 +723,67 @@ struct ib_qp *ib_open_qp(struct ib_xrcd *xrcd,
+ }
+ EXPORT_SYMBOL(ib_open_qp);
  
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 39680ae..7f372e6 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -928,6 +928,7 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	file->async_file = NULL;
- 	kref_init(&file->ref);
- 	mutex_init(&file->mutex);
-+	init_completion(&file->fcomp);
- 
- 	filp->private_data = file;
- 	kobject_get(&dev->kobj);
-@@ -954,6 +955,16 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 	struct ib_uverbs_file *file = filp->private_data;
- 	struct ib_uverbs_device *dev = file->device;
- 	struct ib_ucontext *ucontext = NULL;
-+	struct ib_device *ib_dev;
-+	int srcu_key;
++static struct ib_qp *ib_create_xrc_qp(struct ib_qp *qp,
++		struct ib_qp_init_attr *qp_init_attr)
++{
++	struct ib_qp *real_qp = qp;
 +
-+	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
-+	ib_dev = srcu_dereference(dev->ib_dev,
-+				  &dev->disassociate_srcu);
-+	if (!ib_dev)
-+		srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
-+		wait_for_completion(&file->fcomp);
-+		goto out;
++	qp->event_handler = __ib_shared_qp_event_handler;
++	qp->qp_context = qp;
++	qp->pd = NULL;
++	qp->send_cq = qp->recv_cq = NULL;
++	qp->srq = NULL;
++	qp->xrcd = qp_init_attr->xrcd;
++	atomic_inc(&qp_init_attr->xrcd->usecnt);
++	INIT_LIST_HEAD(&qp->open_list);
++
++	qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
++			  qp_init_attr->qp_context);
++	if (!IS_ERR(qp))
++		__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
++	else
++		real_qp->device->destroy_qp(real_qp);
++	return qp;
++}
++
+ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			   struct ib_qp_init_attr *qp_init_attr)
+ {
+-	struct ib_qp *qp, *real_qp;
+-	struct ib_device *device;
++	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
++	struct ib_qp *qp;
  
- 	mutex_lock(&file->device->lists_mutex);
- 	ucontext = file->ucontext;
-@@ -965,10 +976,11 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 	mutex_unlock(&file->device->lists_mutex);
- 	if (ucontext)
- 		ib_uverbs_cleanup_ucontext(file, ucontext);
-+	srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
- 
- 	if (file->async_file)
- 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+-	device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	qp = device->create_qp(pd, qp_init_attr, NULL);
 -
-+out:
- 	kref_put(&file->ref, ib_uverbs_release_file);
- 	kobject_put(&dev->kobj);
- 
-@@ -1199,6 +1211,7 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
- 		}
- 
- 		mutex_lock(&uverbs_dev->lists_mutex);
-+		complete(&file->fcomp);
- 		kref_put(&file->ref, ib_uverbs_release_file);
+-	if (!IS_ERR(qp)) {
+-		qp->device     = device;
+-		qp->real_qp    = qp;
+-		qp->uobject    = NULL;
+-		qp->qp_type    = qp_init_attr->qp_type;
+-
+-		atomic_set(&qp->usecnt, 0);
+-		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+-			qp->event_handler = __ib_shared_qp_event_handler;
+-			qp->qp_context = qp;
+-			qp->pd = NULL;
+-			qp->send_cq = qp->recv_cq = NULL;
+-			qp->srq = NULL;
+-			qp->xrcd = qp_init_attr->xrcd;
+-			atomic_inc(&qp_init_attr->xrcd->usecnt);
+-			INIT_LIST_HEAD(&qp->open_list);
+-
+-			real_qp = qp;
+-			qp = __ib_open_qp(real_qp, qp_init_attr->event_handler,
+-					  qp_init_attr->qp_context);
+-			if (!IS_ERR(qp))
+-				__ib_insert_xrcd_qp(qp_init_attr->xrcd, real_qp);
+-			else
+-				real_qp->device->destroy_qp(real_qp);
+-		} else {
+-			qp->event_handler = qp_init_attr->event_handler;
+-			qp->qp_context = qp_init_attr->qp_context;
+-			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
+-				qp->recv_cq = NULL;
+-				qp->srq = NULL;
+-			} else {
+-				qp->recv_cq = qp_init_attr->recv_cq;
+-				atomic_inc(&qp_init_attr->recv_cq->usecnt);
+-				qp->srq = qp_init_attr->srq;
+-				if (qp->srq)
+-					atomic_inc(&qp_init_attr->srq->usecnt);
+-			}
+-
+-			qp->pd	    = pd;
+-			qp->send_cq = qp_init_attr->send_cq;
+-			qp->xrcd    = NULL;
+-
+-			atomic_inc(&pd->usecnt);
+-			atomic_inc(&qp_init_attr->send_cq->usecnt);
+-		}
++	if (IS_ERR(qp))
++		return qp;
++
++	qp->device     = device;
++	qp->real_qp    = qp;
++	qp->uobject    = NULL;
++	qp->qp_type    = qp_init_attr->qp_type;
++
++	atomic_set(&qp->usecnt, 0);
++	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
++		return ib_create_xrc_qp(qp, qp_init_attr);
++
++	qp->event_handler = qp_init_attr->event_handler;
++	qp->qp_context = qp_init_attr->qp_context;
++	if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
++		qp->recv_cq = NULL;
++		qp->srq = NULL;
++	} else {
++		qp->recv_cq = qp_init_attr->recv_cq;
++		atomic_inc(&qp_init_attr->recv_cq->usecnt);
++		qp->srq = qp_init_attr->srq;
++		if (qp->srq)
++			atomic_inc(&qp_init_attr->srq->usecnt);
  	}
  
++	qp->pd	    = pd;
++	qp->send_cq = qp_init_attr->send_cq;
++	qp->xrcd    = NULL;
++
++	atomic_inc(&pd->usecnt);
++	atomic_inc(&qp_init_attr->send_cq->usecnt);
+ 	return qp;
+ }
+ EXPORT_SYMBOL(ib_create_qp);
 -- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.1.4
