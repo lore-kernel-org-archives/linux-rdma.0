@@ -1,158 +1,44 @@
-From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Subject: Re: RDMA power failure write atomicity
-Date: Fri, 11 Mar 2016 17:54:02 -0800
-Message-ID: <56E376BA.6090603@vlnb.net>
-References: <56E20734.4030208@vlnb.net>	<0E25BAE6-9091-4B28-A2A9-2F41BD97145A@gmail.com>	<56E36247.7060605@vlnb.net> <CADPSxAh-Fn8cHekiXeBa6+1rNDM=N0y5wQHDFtM4BxxH0wjzBg@mail.gmail.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
+Date: Sat, 12 Mar 2016 07:12:32 +0100
+Message-ID: <20160312061232.GA15236@lst.de>
+References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de> <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de> <56E34914.2020108@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CADPSxAh-Fn8cHekiXeBa6+1rNDM=N0y5wQHDFtM4BxxH0wjzBg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56E34914.2020108-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Asgeir Eiriksson <asgeir.eiriksson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Mar 11, 2016 at 02:39:16PM -0800, Bart Van Assche wrote:
+> The above is fine with me. But when I ran a test with rdma_rw_use_mr() 
+> changed into "return true" the following error messages appeared in the 
+> kernel log:
+>
+> [  364.460709] ib_srpt 0x1: parsing SRP descriptor table failed.
+> [  383.604809] ib_srpt 0x0: parsing SRP descriptor table failed.
+> [  383.605627] ib_srpt 0x2: parsing SRP descriptor table failed.
+> [  386.702905] ib_srpt 0x3: parsing SRP descriptor table failed.
+> [  386.703092] ib_srpt 0x4: parsing SRP descriptor table failed.
+> [  386.703242] ib_srpt 0x5: parsing SRP descriptor table failed.
+> [  386.703411] ib_srpt 0x6: parsing SRP descriptor table failed.
+>
+> Is this expected? I ran this test on a server equipped with two mlx4 HCAs 
+> with latest firmware (2.36.5000). I installed git commit 
+> c4c65482b56a433a82bc5b63db8ba125727e9f80 of the rdma-rw-api merged with 
+> v4.5-rc7. Initiator and target drivers were running on the same server and 
+> were communicating with each other via loopback. Before I modified 
+> rdma_rw_use_mr() the same test passed on the same setup.
 
-Anuj Kalia wrote on 03/11/2016 05:14 PM:
-> There are several factors that make this problem hard. For many moder=
-n
-> servers, DMA data is written to last level cache via DDIO, i.e., it
-> will not go to the NVDIMM unless the remote CPU flushes the cache /
-> cache lines. On servers where data is written to DRAM (or to an NVDIM=
-M
-> attached to memory bus), the data can (probably) still be buffered by
-> the CPU's memory controller.
-
-It sounds to me that then it should have the regular CPU write atomicit=
-y properties,
-i.e. on 64-bit Intel: 8 bytes with 8 bytes alignment.
-
-> I am not sure how much control RDMA NICs have over these factors.
-> AFAIK, there is no PCIe command to flush either cache lines or memory
-> controller buffers, so flushing to DRAM this is beyond what RDMA NICs
-> can currently accomplish.
-
-Yes, but flushing data is beyond my question, which is only about what =
-type of pattern
-of eventual data you can see on power failure, with or without flushing=
-=2E
-
-If there are no any minimal power failure atomicity guarantees, it woul=
-d mean
-effectively disable any write-in place into NVRAM/PMEM, because you can=
- end up with
-mixed old and new, hence, corrupted data. You would not be able to ever=
- atomically
-switch a pointer, so ever classical "write in new location, flush, than=
- switch pointer
-to the new data" approach would not work anymore. As result, value of w=
-hat is proposed
-in draft-Talpey-rdma-commit-00.txt (which is very good proposal) would =
-be significantly
-lower, because, unless I'm missing something, the only available use ca=
-se for RDMA
-writes bypassing remote CPU that would withstand is logs replication wi=
-th each entry
-protected by a checksum, so on recovery after power failure you can fig=
-ure out the last
-corrupted record. However, records compaction would still be done via r=
-emote CPU (no
-bypassing), because only CPU can power failure atomically switch pointe=
-rs in NVRAM/PMEM.
-
-So, it seems to me that something minimal, like 8 bytes, must be define=
-d. I wonder,
-maybe it has already been defined. Looks like, not.
-
-Thanks,
-Vlad
-
-> --Anuj (rdma_guy)
->=20
-> On Fri, Mar 11, 2016 at 7:26 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>=
- wrote:
->> I'm aware of this proposal. Unfortunately, it is quite orthogonal to=
- my question,
->> because it is about how to ensure persistence of RDMA writes. Atomic=
-ity it is
->> mentioning as well as general RDMA atomicity is atomicity with regar=
-d of parallel
->> commands acting on the same locations. However, I'm asking about pow=
-er failure
->> atomicity, which is something different.
->>
->> For instance, you are doing RDMA WRITE of 10 bytes of data. If a pow=
-er failure happen
->> while this operation is in progress, what data will end up on the ta=
-rget location? All
->> 10 bytes new? All 10 bytes old? Or mix of 5 bytes new and five bytes=
- old? Power failure
->> atomicity I mean is guarantee that the data either old, or new, neve=
-r mix of old and
->> new data.
->>
->> Thanks,
->> Vlad
->>
->> Asgeir Eiriksson wrote on 03/10/2016 05:33 PM:
->>> Vladislav,
->>>
->>> This is an area of active R&D
->>>
->>> You might be interested in the following (at ietf.org):
->>>
->>> Title           : RDMA Durable Write Commit
->>>         Authors         : Tom Talpey
->>>                                Jim Pinkerton
->>>                           <>
->>>       Filename      : draft-talpey-rdma-commit-00.txt
->>>       Pages          : 24
->>>       Date            : 2016-02-19
->>>
->>> Regards,
->>>
->>> =E2=80=98Asgeir
->>>
->>>
->>>> On Mar 10, 2016, at 3:45 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> =
-wrote:
->>>>
->>>> Hello,
->>>>
->>>> I'm currently considering to use NVDIMM behind RDMA and wonder wha=
-t is RDMA power
->>>> failure write atomicity? I mean, what is minimal size and alignmen=
-t guaranteed to be
->>>> written atomically in face of power failure (or some other similar=
- failure), i.e.
->>>> either written in full, or not written at all?
->>>>
->>>> For memory writes on Intel it is 8 bytes with 8 bytes alignment. I=
-s there anything like
->>>> this for RDMA? Or different vendors/implementation have so differe=
-nt expectations and
->>>> promises, so you can not assume anything >1 byte?
->>>>
->>>> I can't find such info anywhere.
->>>>
->>>> Thanks,
->>>> Vlad
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-
+I think this might be the case when SRP gets multiple SGL entries.
+In this case the number of MRs allocated is limited and srpt should
+handle rdma_rw_ctx_init failures due to the lack of MRs.  If you add
+the ib_mr_pool_get failure printk back that you asked me to remove
+I bet it's going to trigger.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
