@@ -1,44 +1,81 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Sat, 12 Mar 2016 07:12:32 +0100
-Message-ID: <20160312061232.GA15236@lst.de>
-References: <1457461000-24088-1-git-send-email-hch@lst.de> <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com> <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de> <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de> <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de> <56E34914.2020108@sandisk.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
+Date: Sat, 12 Mar 2016 11:49:03 +0530
+Message-ID: <CAG53R5XPFJn-gKvr-WtJy-+zv=APK0DWTBY96fo47XUD9h1FcQ@mail.gmail.com>
+References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
+	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
+	<20160302173949.GG29826@mtj.duckdns.org>
+	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
+	<CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
+	<CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
+	<20160305125215.GC3567@htj.duckdns.org>
+	<CAG53R5V-fhbVqZWroAkvDpgjNWchnO87G47-iXqSGg41sY1A5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56E34914.2020108-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG53R5V-fhbVqZWroAkvDpgjNWchnO87G47-iXqSGg41sY1A5Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 11, 2016 at 02:39:16PM -0800, Bart Van Assche wrote:
-> The above is fine with me. But when I ran a test with rdma_rw_use_mr() 
-> changed into "return true" the following error messages appeared in the 
-> kernel log:
->
-> [  364.460709] ib_srpt 0x1: parsing SRP descriptor table failed.
-> [  383.604809] ib_srpt 0x0: parsing SRP descriptor table failed.
-> [  383.605627] ib_srpt 0x2: parsing SRP descriptor table failed.
-> [  386.702905] ib_srpt 0x3: parsing SRP descriptor table failed.
-> [  386.703092] ib_srpt 0x4: parsing SRP descriptor table failed.
-> [  386.703242] ib_srpt 0x5: parsing SRP descriptor table failed.
-> [  386.703411] ib_srpt 0x6: parsing SRP descriptor table failed.
->
-> Is this expected? I ran this test on a server equipped with two mlx4 HCAs 
-> with latest firmware (2.36.5000). I installed git commit 
-> c4c65482b56a433a82bc5b63db8ba125727e9f80 of the rdma-rw-api merged with 
-> v4.5-rc7. Initiator and target drivers were running on the same server and 
-> were communicating with each other via loopback. Before I modified 
-> rdma_rw_use_mr() the same test passed on the same setup.
+Hi Tejun,
 
-I think this might be the case when SRP gets multiple SGL entries.
-In this case the number of MRs allocated is limited and srpt should
-handle rdma_rw_ctx_init failures due to the lack of MRs.  If you add
-the ib_mr_pool_get failure printk back that you asked me to remove
-I bet it's going to trigger.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sat, Mar 5, 2016 at 10:50 PM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Hi Tejun,
+>
+> On Sat, Mar 5, 2016 at 6:22 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> Hello, Parav.
+>>
+>> On Sat, Mar 05, 2016 at 04:45:09PM +0530, Parav Pandit wrote:
+>>> Design that remains same from v6 to v10.
+>>>   * spin lock is still fine grained at cgroup level instead of one
+>>> global shared lock among all cgroups.
+>>>      In future it can be optimized further to do per cpu or using
+>>> single lock if required.
+>>>   * file type enums are still present for max and current, as
+>>> read/write call to those files is already taken care by common
+>>> functions with required if/else.
+>>>   * Resource limit setting is as it is, because number of devices are
+>>> in range of 1 to 4 count in most use cases (as explained in
+>>> documentation), and its not hot path.
+>>
+>> 1 and 2 are not okay.
+> For (1) shall I have one spin lock that is uses across multiple
+> hierarchy and multiple cgroup.
+> Essentially one global lock among all cgroup. During hierarchical
+> charging, continue to use same lock it at each level.
+> Would that work in this first release?
+>
+
+I am waiting for your reply.
+Shall one lock for all cgroup is ok with you?
+
+> Can you please review the code for (2), I cannot think of any further
+> helper functions that I can write.
+> For both the file types, all the code is already common.
+> file types are used only to find out whether to reference max variable
+> or usage variable in structure.
+> Which can also be made as array, but I do not want to lose the code
+> readability for that little gain.
+> What exactly is the issue in current implementation? You just
+> mentioned that "its not good sign".
+> Its readable, simple and serves the purpose, what am I missing?
+>
+If this is ok. I will keep the code as it is, because it uses common
+helper functions for max and current files.
+
+
+>> 3 is fine but resource [un]charging is not hot path?
+> charge/uncharge is hot path from cgroup perspective.
+> Considering 1 to 4 devices in system rpool list would grow upto 4
+> entry deep at each cgroup level.
+> I believe this is good enough to start with. O complexity wise its
+> O(N). where N is number of devices in system.
+>
+>
+>>
+>> Thanks.
+>>
+>> --
+>> tejun
