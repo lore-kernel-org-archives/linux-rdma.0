@@ -1,81 +1,57 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
-Date: Sat, 12 Mar 2016 11:49:03 +0530
-Message-ID: <CAG53R5XPFJn-gKvr-WtJy-+zv=APK0DWTBY96fo47XUD9h1FcQ@mail.gmail.com>
-References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
-	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
-	<20160302173949.GG29826@mtj.duckdns.org>
-	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
-	<CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
-	<CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
-	<20160305125215.GC3567@htj.duckdns.org>
-	<CAG53R5V-fhbVqZWroAkvDpgjNWchnO87G47-iXqSGg41sY1A5Q@mail.gmail.com>
+From: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: Re: [PATCH V3] IB/uverbs: Fix race between uverbs_close and
+ remove_on
+Date: Sat, 12 Mar 2016 10:28:13 +0100 (CET)
+Message-ID: <alpine.DEB.2.02.1603121025410.2055@localhost6.localdomain6>
+References: <201603120023.slIBt5nA%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG53R5V-fhbVqZWroAkvDpgjNWchnO87G47-iXqSGg41sY1A5Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201603120023.slIBt5nA%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+It looks like braces are missing on lines 964 and 968.
 
-On Sat, Mar 5, 2016 at 10:50 PM, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi Tejun,
->
-> On Sat, Mar 5, 2016 at 6:22 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> Hello, Parav.
->>
->> On Sat, Mar 05, 2016 at 04:45:09PM +0530, Parav Pandit wrote:
->>> Design that remains same from v6 to v10.
->>>   * spin lock is still fine grained at cgroup level instead of one
->>> global shared lock among all cgroups.
->>>      In future it can be optimized further to do per cpu or using
->>> single lock if required.
->>>   * file type enums are still present for max and current, as
->>> read/write call to those files is already taken care by common
->>> functions with required if/else.
->>>   * Resource limit setting is as it is, because number of devices are
->>> in range of 1 to 4 count in most use cases (as explained in
->>> documentation), and its not hot path.
->>
->> 1 and 2 are not okay.
-> For (1) shall I have one spin lock that is uses across multiple
-> hierarchy and multiple cgroup.
-> Essentially one global lock among all cgroup. During hierarchical
-> charging, continue to use same lock it at each level.
-> Would that work in this first release?
->
-
-I am waiting for your reply.
-Shall one lock for all cgroup is ok with you?
-
-> Can you please review the code for (2), I cannot think of any further
-> helper functions that I can write.
-> For both the file types, all the code is already common.
-> file types are used only to find out whether to reference max variable
-> or usage variable in structure.
-> Which can also be made as array, but I do not want to lose the code
-> readability for that little gain.
-> What exactly is the issue in current implementation? You just
-> mentioned that "its not good sign".
-> Its readable, simple and serves the purpose, what am I missing?
->
-If this is ok. I will keep the code as it is, because it uses common
-helper functions for max and current files.
+julia
 
 
->> 3 is fine but resource [un]charging is not hot path?
-> charge/uncharge is hot path from cgroup perspective.
-> Considering 1 to 4 devices in system rpool list would grow upto 4
-> entry deep at each cgroup level.
-> I believe this is good enough to start with. O complexity wise its
-> O(N). where N is number of devices in system.
->
->
->>
->> Thanks.
->>
->> --
->> tejun
+> Hi Devesh,
+> 
+> [auto build test WARNING on rdma/master]
+> [also build test WARNING on v4.5-rc7 next-20160311]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Devesh-Sharma/IB-uverbs-Fix-race-between-uverbs_close-and-remove_one/20160311-232536
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma master
+> :::::: branch date: 71 minutes ago
+> :::::: commit date: 71 minutes ago
+> 
+> >> drivers/infiniband/core/uverbs_main.c:965:2-54: code aligned with following code on line 966
+> 
+> git remote add linux-review https://github.com/0day-ci/linux
+> git remote update linux-review
+> git checkout 850ad4029f22757665c94675f929a6cfa2ba4f60
+> vim +965 drivers/infiniband/core/uverbs_main.c
+> 
+> 850ad4029 Devesh Sharma 2016-03-11  959  	int srcu_key;
+> 850ad4029 Devesh Sharma 2016-03-11  960  
+> 850ad4029 Devesh Sharma 2016-03-11  961  	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
+> 850ad4029 Devesh Sharma 2016-03-11  962  	ib_dev = srcu_dereference(dev->ib_dev,
+> 850ad4029 Devesh Sharma 2016-03-11  963  				  &dev->disassociate_srcu);
+> 850ad4029 Devesh Sharma 2016-03-11  964  	if (!ib_dev)
+> 850ad4029 Devesh Sharma 2016-03-11 @965  		srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
+> 850ad4029 Devesh Sharma 2016-03-11 @966  		wait_for_completion(&file->fcomp);
+> 850ad4029 Devesh Sharma 2016-03-11  967  		goto out;
+> bc38a6abd Roland Dreier 2005-07-07  968  
+> 036b10635 Yishai Hadas  2015-08-13  969  	mutex_lock(&file->device->lists_mutex);
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
