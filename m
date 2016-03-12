@@ -1,56 +1,50 @@
-From: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-Subject: Re: [PATCH V3] IB/uverbs: Fix race between uverbs_close and
- remove_on
-Date: Sat, 12 Mar 2016 10:28:13 +0100 (CET)
-Message-ID: <alpine.DEB.2.02.1603121025410.2055@localhost6.localdomain6>
-References: <201603120023.slIBt5nA%fengguang.wu@intel.com>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 0/8] Introduce vector CALC support
+Date: Sat, 12 Mar 2016 12:17:24 +0200
+Message-ID: <20160312101724.GB11383@leon.nu>
+References: <1456215928-9305-1-git-send-email-leon@leon.nu>
+ <20160306104508.GB13396@leon.nu>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201603120023.slIBt5nA%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160306104508.GB13396-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It looks like braces are missing on lines 964 and 968.
+On Sun, Mar 06, 2016 at 12:45:08PM +0200, Leon Romanovsky wrote:
+> On Tue, Feb 23, 2016 at 10:25:20AM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > 
+> > NET part (patches #1-3)
+> > * Patch #1 fixes ATOMIC capability mode. This change has  no impact on
+> > * the system, since MAX property is not in use for ATOMIC.
+> > * Patch #2 merges two device capability calls in one.
+> > * Patch #3 adds infrastructure to support vector CALC querying.
+> > 
+> > IB part (patches #4-8)
+> > * Patch #4 refactors device query code by eliminating the unnecessary zeroing
+> >   of variables
+> > * Patch #5 converts device capability mask from u32 to be u64 and support more
+> >   than 32 device capabilities.
+> 
+> Hi Doug,
+> Is it possible to accept the patches #1-5 which fix and refactor
+> code only?
 
-julia
+Hi Doug,
+Your response will be greatly appreciated.
 
+Thanks.
 
-> Hi Devesh,
 > 
-> [auto build test WARNING on rdma/master]
-> [also build test WARNING on v4.5-rc7 next-20160311]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+> > * Patch #6 adds vector CALC device capability flag.
+> > * Patch #7 exports all possible supported operations.
+> > * Patch #8 advertises the mlx5 driver support of vector CALC.
 > 
-> url:    https://github.com/0day-ci/linux/commits/Devesh-Sharma/IB-uverbs-Fix-race-between-uverbs_close-and-remove_one/20160311-232536
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma master
-> :::::: branch date: 71 minutes ago
-> :::::: commit date: 71 minutes ago
-> 
-> >> drivers/infiniband/core/uverbs_main.c:965:2-54: code aligned with following code on line 966
-> 
-> git remote add linux-review https://github.com/0day-ci/linux
-> git remote update linux-review
-> git checkout 850ad4029f22757665c94675f929a6cfa2ba4f60
-> vim +965 drivers/infiniband/core/uverbs_main.c
-> 
-> 850ad4029 Devesh Sharma 2016-03-11  959  	int srcu_key;
-> 850ad4029 Devesh Sharma 2016-03-11  960  
-> 850ad4029 Devesh Sharma 2016-03-11  961  	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
-> 850ad4029 Devesh Sharma 2016-03-11  962  	ib_dev = srcu_dereference(dev->ib_dev,
-> 850ad4029 Devesh Sharma 2016-03-11  963  				  &dev->disassociate_srcu);
-> 850ad4029 Devesh Sharma 2016-03-11  964  	if (!ib_dev)
-> 850ad4029 Devesh Sharma 2016-03-11 @965  		srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
-> 850ad4029 Devesh Sharma 2016-03-11 @966  		wait_for_completion(&file->fcomp);
-> 850ad4029 Devesh Sharma 2016-03-11  967  		goto out;
-> bc38a6abd Roland Dreier 2005-07-07  968  
-> 036b10635 Yishai Hadas  2015-08-13  969  	mutex_lock(&file->device->lists_mutex);
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
+> Thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
