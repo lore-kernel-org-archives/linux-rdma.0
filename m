@@ -1,18 +1,38 @@
 From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: sg_map failures when tuning SRP via ib_srp module parameters
  for maximum SG entries
-Date: Sat, 12 Mar 2016 17:21:35 -0500 (EST)
-Message-ID: <1578713476.21612303.1457821295989.JavaMail.zimbra@redhat.com>
-References: <1195068688.21605141.1457794577569.JavaMail.zimbra@redhat.com> <56E492F0.1070609@dev.mellanox.co.il>
+Date: Sat, 12 Mar 2016 17:24:48 -0500 (EST)
+Message-ID: <492617913.21612307.1457821488125.JavaMail.zimbra@redhat.com>
+References: <1195068688.21605141.1457794577569.JavaMail.zimbra@redhat.com> <56E492F0.1070609@dev.mellanox.co.il> <1578713476.21612303.1457821295989.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56E492F0.1070609-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1578713476.21612303.1457821295989.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, James Hartsock <hartsjc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+I meant to add:
+
+By keeping these settings at sane values like
+options ib_srp cmd_sg_entries=128 indirect_sg_entries=512
+
+We are rock solid stable. I ran 4 days like that doing reads and writes to 35 NVME served targets.
+
+Thanks
+
+Laurence Oberman
+Principal Software Maintenance Engineer
+Red Hat Global Support Services
+
+----- Original Message -----
+From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Sagi Grimberg" <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "James Hartsock" <hartsjc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sent: Saturday, March 12, 2016 5:21:35 PM
+Subject: Re: sg_map failures when tuning SRP via ib_srp module parameters for maximum SG entries
 
 Hello Sagi
 Thanks, hope all is well with you.
@@ -139,6 +159,10 @@ or a huge transfer size (huge).
 Is this upstream srpt? And if all the srp commands contain ~255
 (or even ~50) descriptors then I'm not at all surprised you get queue
 overrun. Each command includes num_sg_entries worth of rdma posts...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
