@@ -1,51 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
- remove_one
-Date: Sat, 12 Mar 2016 13:45:02 -0700
-Message-ID: <20160312204502.GA8346@obsidianresearch.com>
-References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com>
+From: Sagi Grimberg <sagig-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: sg_map failures when tuning SRP via ib_srp module parameters for
+ maximum SG entries
+Date: Sun, 13 Mar 2016 00:06:40 +0200
+Message-ID: <56E492F0.1070609@dev.mellanox.co.il>
+References: <1195068688.21605141.1457794577569.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1457795927-16634-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1195068688.21605141.1457794577569.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: James Hartsock <hartsjc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Mar 12, 2016 at 10:18:47AM -0500, Devesh Sharma wrote:
-> CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I'm still pretty convinced this is wrong... But even still:
+> Hello
+>
+> I am seeing and issue with 100Gbit EDR Infiniband (mlx5_ib and ConnectX-4) and connecting to high speed arrays when we tune the ib_srp parameters to maximum allowed values.
+>
+> The tuning is being done to maximize performance using:
+>
+> options ib_srp cmd_sg_entries=255 indirect_sg_entries=2048
+>
+> We get into a situation where in srp_queuecommand we fail the srp_map_data().
+>
+> [  353.811594] scsi host4: ib_srp: Failed to map data (-5)
+> [  353.811619] scsi host4: Could not fit S/G list into SRP_CMD
 
-> @@ -954,6 +955,17 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
->  	struct ib_uverbs_file *file = filp->private_data;
->  	struct ib_uverbs_device *dev = file->device;
->  	struct ib_ucontext *ucontext = NULL;
-> +	struct ib_device *ib_dev;
-> +	int srcu_key;
-> +
-> +	srcu_key = srcu_read_lock(&dev->disassociate_srcu);
-> +	ib_dev = srcu_dereference(dev->ib_dev,
-> +				  &dev->disassociate_srcu);
-> +	if (!ib_dev) {
-> +		srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
-> +		wait_for_completion(&file->fcomp);
-> +		goto out;
+I'd say that's an unusual limit to hit? What is your workload?
+with CX4 (fr by default) you'd need a *very* unaligned SG layout
+or a huge transfer size (huge).
 
-This jumps over this:
+> On the array
+>
+> [ 6097.205716] ib_srpt IB send queue full (needed 68)
+> [ 6097.233325] ib_srpt srpt_xfer_data[2731] queue full -- ret=-12
 
->  	if (file->async_file)
->  		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
-
-Which doesn't seem right.
-
-As I've said, I'm not sure how this is any different from using
-lists_mutex. The wait_for_completion will still block and deadlock if
-ib_uverbs_close is entered during the disassociate flow.
-
-Jason
+Is this upstream srpt? And if all the srp commands contain ~255
+(or even ~50) descriptors then I'm not at all surprised you get queue
+overrun. Each command includes num_sg_entries worth of rdma posts...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
