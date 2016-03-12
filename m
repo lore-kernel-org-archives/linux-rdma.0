@@ -1,51 +1,47 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/8] Introduce vector CALC support
-Date: Sat, 12 Mar 2016 12:17:24 +0200
-Message-ID: <20160312101724.GB11383@leon.nu>
-References: <1456215928-9305-1-git-send-email-leon@leon.nu>
- <20160306104508.GB13396@leon.nu>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Leon Romanovsky <leon@leon.nu>
+Subject: Re: [PATCH 0/3] infiniband: IB/hns: Hisilicon RoCE support
+Date: Sat, 12 Mar 2016 12:20:51 +0200
+Message-ID: <20160312102051.GC11383@leon.nu>
+References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
+Reply-To: leon@leon.nu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160306104508.GB13396-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 06, 2016 at 12:45:08PM +0200, Leon Romanovsky wrote:
-> On Tue, Feb 23, 2016 at 10:25:20AM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > NET part (patches #1-3)
-> > * Patch #1 fixes ATOMIC capability mode. This change has  no impact on
-> > * the system, since MAX property is not in use for ATOMIC.
-> > * Patch #2 merges two device capability calls in one.
-> > * Patch #3 adds infrastructure to support vector CALC querying.
-> > 
-> > IB part (patches #4-8)
-> > * Patch #4 refactors device query code by eliminating the unnecessary zeroing
-> >   of variables
-> > * Patch #5 converts device capability mask from u32 to be u64 and support more
-> >   than 32 device capabilities.
-> 
-> Hi Doug,
-> Is it possible to accept the patches #1-5 which fix and refactor
-> code only?
+On Fri, Mar 11, 2016 at 06:37:08PM +0800, Lijun Ou wrote:
 
-Hi Doug,
-Your response will be greatly appreciated.
+1) It is redundant to write "infiniband" and "IB" in one title to mention
+relevant subsystem, since it is the same.
 
-Thanks.
+Please take a look on the other submissions here on the list and use
+similar construction.
 
+2) Please use version number in the titles [PATCH vXXX]
+
+> The Hisilicon Network Substem(hns) is a long term evolution IP which is
+> supposed to be used in Hisilicon ICT SoC. RoCE is a feature of hns.
+> The driver for Hisilicon RoCE engine is a platform driver.
+> The driver will support mulitple versions of hns. Currently only "v1"
+> for hip06 SOC is supported.
 > 
-> > * Patch #6 adds vector CALC device capability flag.
-> > * Patch #7 exports all possible supported operations.
-> > * Patch #8 advertises the mlx5 driver support of vector CALC.
 > 
-> Thanks
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Changes v1 -> v2:
+> 1. adjust the formats of roce driver code by the experts reviewing
+> 2. modify the bindings file with roce dts. add the attribute named 
+> interrput-names.
+> 3. modify the way of defining port mode in hns_dsaf_main.c
+> 4. move the Kconfig file into the hns directory and send it with roce
+> driver code file together.
+> 
+> 
+> Lijun Ou (3):
+>   infiniband: IB/hns: add Hisilicon RoCE support
+>   net: hns: add Hisilicon RoCE support
+>   infiniband: IB/hns: add Hisilicon RoCE support with bindings
+> 
