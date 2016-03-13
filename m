@@ -1,41 +1,44 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: sg_map failures when tuning SRP via ib_srp module parameters for
- maximum SG entries
-Date: Sat, 12 Mar 2016 17:29:02 -0800
-Message-ID: <56E4C25E.7050000@sandisk.com>
-References: <1195068688.21605141.1457794577569.JavaMail.zimbra@redhat.com>
- <56E4B677.6020809@sandisk.com>
- <2043305499.21615736.1457830705865.JavaMail.zimbra@redhat.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V3 01/10] net/core: Add support for configuring
+ VF GUIDs
+Date: Sun, 13 Mar 2016 15:44:13 +0200
+Message-ID: <CAJ3xEMi2obQO3GRDJm2tNmAWkJ=b_L00pgT4a6v5MOx+kj9Vqg@mail.gmail.com>
+References: <1457729923-4526-1-git-send-email-eli@mellanox.com>
+	<1457729923-4526-2-git-send-email-eli@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2043305499.21615736.1457830705865.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1457729923-4526-2-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, James Hartsock <hartsjc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/12/16 16:58, Laurence Oberman wrote:
-> Within srpt on the array I have options ib_srpt srp_max_req_size=4148
-> On the client I also only have options ib_srpt srp_max_req_size=4148
+On Fri, Mar 11, 2016 at 10:58 PM, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> Add two new NLAs to support configuration of Infiniband node or port
+> GUIDs. New applications can choose to use this interface to configure
+> GUIDs with iproute2 with commands such as:
 >
-> I have not tuned srp_sq_size as I was only aware of
+> ip link set dev ib0 vf 0 node_guid 00:02:c9:03:00:21:6e:70
+> ip link set dev ib0 vf 0 port_guid 00:02:c9:03:00:21:6e:78
 >
-> parm:           srp_max_req_size:Maximum size of SRP request messages in bytes. (int)
-> parm:           srpt_srq_size:Shared receive queue (SRQ) size. (int)
-> parm:           srpt_service_guid:Using this value for ioc_guid, id_ext, and cm_listen_id instead of using the node_guid of the first HCA.
->
-> Please explain what that does.
+> A new ndo, ndo_sef_vf_guid is introduced to notify the net device of the
+> request to change the GUID.
 
-Hello Laurence,
+Hi Dave,
 
-The srp_sq_size parameter controls the send queue size per RDMA channel. 
-The default value of this parameter is 4096. I think this is the 
-parameter that has to be increased to avoid hitting "IB send queue full" 
-errors.
+I understand from your patchworks [1], that this is under your review.
+Wanted to ask
+if you are OK with the patch going upstream through Doug / the rdma
+tree along with
+the rest of the series and if you want us to see explicit ack from
+netdev/you... on this one.
 
-Bart.
+thanks,
+
+Or.
+
+[1] https://patchwork.ozlabs.org/patch/596492/
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
