@@ -1,74 +1,56 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Mon, 14 Mar 2016 09:09:51 +0200
-Message-ID: <20160314070951.GB26456@leon.nu>
-References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
- <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
- <20160309002157.GA20105@phlsvsds.ph.intel.com>
- <20160309050731.GM13396@leon.nu>
- <20160309192109.GB15031@phlsvsds.ph.intel.com>
- <20160310045609.GC1977@leon.nu>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V3 libibverbs 1/2] Change rereg_mr API between libibverbs and the provider's library
+Date: Mon, 14 Mar 2016 12:59:06 +0200
+Message-ID: <1457953147-4280-2-git-send-email-yishaih@mellanox.com>
+References: <1457953147-4280-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160310045609.GC1977-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1457953147-4280-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 10, 2016 at 06:56:09AM +0200, Leon Romanovsky wrote:
-> On Wed, Mar 09, 2016 at 02:21:10PM -0500, Dennis Dalessandro wrote:
-> > On Wed, Mar 09, 2016 at 07:07:31AM +0200, Leon Romanovsky wrote:
-> > >On Tue, Mar 08, 2016 at 07:21:58PM -0500, Dennis Dalessandro wrote:
-> > >>On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
-> > >>>On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
-> > >>><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > >>>
-> > >>>>This patch series adds a performance improvement to user SDMA transfers from
-> > >>>>PSM applications by caching user buffer pages after pinning them. Subsequent
-> > >>>>uses of the same user buffer will not incur the cost of pinning the same pages
-> > >>>>again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
-> > >>>>pages are unpinned when the context is torn down or when the driver determines
-> > >>>>that the buffer should be evicted from the cache. Cache evictions happen when
-> > >>>>there is a request for a new, uncached buffer and the current size of the cache
-> > >>>>has reached a pre-defined limit.
-> > >>>
-> > >>>If indeed there's a need for such a pin down cache, it should have
-> > >>>been implemented in the IB core, b/c both the problem and the solution
-> > >>>are generic and have nothing to do with certain device driver.
-> > >>
-> > >>Since this is for psm it has nothing to do with the IB core. I fail to see
-> > >>what that would achieve.
-> > >
-> > >I tend to agree with Or, your proposal goes far beyond the driver code.
-> > >Do you expect that all drivers which will be needed to support PSM will
-> > >implement (copy/paste) the same generic logic?
-> > 
-> > We should not be putting something which is specific to PSM in the IB core.
-> > We feel the driver is the most appropriate place for this.
-> 
-> To use cache logic - yes
-> To implement cache logic - no
-> 
-> Can you share with us the technical justification of implementing general
-> memory management cache mechanism in driver and not in appropriate layer
-> (IB/core and/or MM)?
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi Doug,
-I saw that you picked these patches and it is now in your github
-repository. Since the original author probably missed my and Or's questions, It
-will be great if you can share with us your technical view on the topic.
+Currently, MR re-registration isn't implemented in libibverbs.
+The only part which does exist is an API call between libibverbs
+and the provider's library. Since there's no way for a user application
+to invoke this API call, it's safe to assume it's unused.
 
-In addition to my question regarding appropriate layer - IB/core. MM, I see that
-it can be natively implemented in user-space layer too.
+Similarly to other verbs (for example, ibv_modify_qp), a modification
+to the MR shouldn't change the user's handle. The current existing API is:
+struct ibv_mr *         (*rereg_mr)(struct ibv_mr *mr,
+                                    int flags,
+                                    struct ibv_pd *pd, void *addr,
+                                    size_t length,
+                                    int access);
 
-Thanks.
+As a result, this API call returns the exact same pointer it gets.
+Instead, we propose retuning a status int, which is far more useful
+than the current return value.
 
-> 
-> Thanks.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/infiniband/verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index d0c2969..709926d 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -983,7 +983,7 @@ struct ibv_context_ops {
+ 	int			(*dealloc_pd)(struct ibv_pd *pd);
+ 	struct ibv_mr *		(*reg_mr)(struct ibv_pd *pd, void *addr, size_t length,
+ 					  int access);
+-	struct ibv_mr *		(*rereg_mr)(struct ibv_mr *mr,
++	int			(*rereg_mr)(struct ibv_mr *mr,
+ 					    int flags,
+ 					    struct ibv_pd *pd, void *addr,
+ 					    size_t length,
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
