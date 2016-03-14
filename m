@@ -1,62 +1,60 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Mon, 14 Mar 2016 14:27:52 +0200
-Message-ID: <20160314122752.GC26456@leon.nu>
-References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
- <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
- <20160309002157.GA20105@phlsvsds.ph.intel.com>
- <20160309050731.GM13396@leon.nu>
- <20160309192109.GB15031@phlsvsds.ph.intel.com>
- <20160310045609.GC1977@leon.nu>
- <20160314070951.GB26456@leon.nu>
- <20160314120152.GA30838@phlsvsds.ph.intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH 1/5] mlx4: add missing braces in verify_qp_parameters
+Date: Mon, 14 Mar 2016 15:18:34 +0100
+Message-ID: <1457965120-3155420-2-git-send-email-arnd@arndb.de>
+References: <1457965120-3155420-1-git-send-email-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160314120152.GA30838-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1457965120-3155420-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 14, 2016 at 08:01:53AM -0400, Dennis Dalessandro wrote:
-> On Mon, Mar 14, 2016 at 09:09:51AM +0200, Leon Romanovsky wrote:
-> >Hi Doug,
-> >I saw that you picked these patches and it is now in your github
-> >repository. Since the original author probably missed my and Or's questions, It
-> >will be great if you can share with us your technical view on the topic.
-> >
-> >In addition to my question regarding appropriate layer - IB/core. MM, I see that
-> >it can be natively implemented in user-space layer too.
-> 
-> Leon,
-> 
-> The original author did not miss your questions. When I say "we" or "our"
-> you can be assured that includes the original author.
-> 
-> Our position continues to be that this is best located in the hfi1 driver.
-> If something else comes along that can make use of the same/similar
-> functionality we can then move it to the core or elsewhere, once we have a
-> better understanding of the use cases and how best to generalize the code.
+The implementation of QP paravirtualization back in linux-3.7 included
+some code that looks very dubious, and gcc-6 has grown smart enough
+to warn about it:
 
-Denny,
+drivers/net/ethernet/mellanox/mlx4/resource_tracker.c: In function 'verify_qp_parameters':
+drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:3154:5: error: statement is indented as if it were guarded by... [-Werror=misleading-indentation]
+     if (optpar & MLX4_QP_OPTPAR_ALT_ADDR_PATH) {
+     ^~
+drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:3144:4: note: ...this 'if' clause, but it is not
+    if (slave != mlx4_master_func_num(dev))
 
-There are no doubts that your understanding of this part of the code is
-superior to mine. It causes me to ask you and/or Doug to share
-your knowledge and give to the community the TECHNICAL reasons
-why you placed the cache mechanism logic into the driver and not in
-other more appropriate places.
+>From looking at the context, I'm reasonably sure that the indentation
+is correct but that it should have contained curly braces from the
+start, as the update_gid() function in the same patch correctly does.
 
-Thanks
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Fixes: 54679e148287 ("mlx4: Implement QP paravirtualization and maintain phys_pkey_cache for smp_snoop")
+---
+ drivers/net/ethernet/mellanox/mlx4/resource_tracker.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> 
-> -Denny
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 25ce1b030a00..cd9b2b28df88 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -3141,7 +3141,7 @@ static int verify_qp_parameters(struct mlx4_dev *dev,
+ 		case QP_TRANS_RTS2RTS:
+ 		case QP_TRANS_SQD2SQD:
+ 		case QP_TRANS_SQD2RTS:
+-			if (slave != mlx4_master_func_num(dev))
++			if (slave != mlx4_master_func_num(dev)) {
+ 				if (optpar & MLX4_QP_OPTPAR_PRIMARY_ADDR_PATH) {
+ 					port = (qp_ctx->pri_path.sched_queue >> 6 & 1) + 1;
+ 					if (dev->caps.port_mask[port] != MLX4_PORT_TYPE_IB)
+@@ -3160,6 +3160,7 @@ static int verify_qp_parameters(struct mlx4_dev *dev,
+ 					if (qp_ctx->alt_path.mgid_index >= num_gids)
+ 						return -EINVAL;
+ 				}
++			}
+ 			break;
+ 		default:
+ 			break;
+-- 
+2.7.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
