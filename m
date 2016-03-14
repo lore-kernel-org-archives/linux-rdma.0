@@ -1,140 +1,74 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 2/3] net: hns: add Hisilicon RoCE support
-Date: Mon, 14 Mar 2016 08:49:21 +0200
-Message-ID: <20160314064921.GA26456@leon.nu>
-References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
- <1457692631-9290-3-git-send-email-oulijun@huawei.com>
- <20160312104301.GB15703@leon.nu>
- <56E60FFC.3000007@huawei.com>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Mon, 14 Mar 2016 09:09:51 +0200
+Message-ID: <20160314070951.GB26456@leon.nu>
+References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com>
+ <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
+ <20160309002157.GA20105@phlsvsds.ph.intel.com>
+ <20160309050731.GM13396@leon.nu>
+ <20160309192109.GB15031@phlsvsds.ph.intel.com>
+ <20160310045609.GC1977@leon.nu>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56E60FFC.3000007-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160310045609.GC1977-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Yankejian (Hackim Yim)" <yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 14, 2016 at 09:12:28AM +0800, Yankejian (Hackim Yim) wrote:
+On Thu, Mar 10, 2016 at 06:56:09AM +0200, Leon Romanovsky wrote:
+> On Wed, Mar 09, 2016 at 02:21:10PM -0500, Dennis Dalessandro wrote:
+> > On Wed, Mar 09, 2016 at 07:07:31AM +0200, Leon Romanovsky wrote:
+> > >On Tue, Mar 08, 2016 at 07:21:58PM -0500, Dennis Dalessandro wrote:
+> > >>On Tue, Mar 08, 2016 at 10:56:48PM +0200, Or Gerlitz wrote:
+> > >>>On Tue, Mar 8, 2016 at 9:14 PM, Dennis Dalessandro
+> > >>><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > >>>
+> > >>>>This patch series adds a performance improvement to user SDMA transfers from
+> > >>>>PSM applications by caching user buffer pages after pinning them. Subsequent
+> > >>>>uses of the same user buffer will not incur the cost of pinning the same pages
+> > >>>>again. Additionally, the cost of unpinning the same pages is avoided.  Buffer
+> > >>>>pages are unpinned when the context is torn down or when the driver determines
+> > >>>>that the buffer should be evicted from the cache. Cache evictions happen when
+> > >>>>there is a request for a new, uncached buffer and the current size of the cache
+> > >>>>has reached a pre-defined limit.
+> > >>>
+> > >>>If indeed there's a need for such a pin down cache, it should have
+> > >>>been implemented in the IB core, b/c both the problem and the solution
+> > >>>are generic and have nothing to do with certain device driver.
+> > >>
+> > >>Since this is for psm it has nothing to do with the IB core. I fail to see
+> > >>what that would achieve.
+> > >
+> > >I tend to agree with Or, your proposal goes far beyond the driver code.
+> > >Do you expect that all drivers which will be needed to support PSM will
+> > >implement (copy/paste) the same generic logic?
+> > 
+> > We should not be putting something which is specific to PSM in the IB core.
+> > We feel the driver is the most appropriate place for this.
 > 
+> To use cache logic - yes
+> To implement cache logic - no
 > 
-> On 2016/3/12 18:43, Leon Romanovsky wrote:
-> > On Fri, Mar 11, 2016 at 06:37:10PM +0800, Lijun Ou wrote:
-> >> It added hns_dsaf_roce_reset routine for roce driver.
-> >> RoCE is a feature of hns.
-> >> In hip06 SOC, in roce reset process, it's needed to configure
-> >> dsaf channel reset,port and sl map info.
-> >>
-> >> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >> Signed-off-by: Lisheng <lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >> ---
-> >>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 84 ++++++++++++++++++++++
-> >>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h | 14 ++++
-> >>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 62 +++++++++++++---
-> >>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  | 13 ++++
-> >>  4 files changed, 163 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-> >> index 38fc5be..a0f0d4f 100644
-> >> --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-> >> +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-> >> @@ -12,6 +12,7 @@
-> >>  #include <linux/init.h>
-> >>  #include <linux/interrupt.h>
-> >>  #include <linux/netdevice.h>
-> >> +#include <linux/of_platform.h>
-> >>  #include <linux/platform_device.h>
-> >>  #include <linux/of.h>
-> >>  #include <linux/of_address.h>
-> >> @@ -2593,6 +2594,89 @@ static struct platform_driver g_dsaf_driver = {
-> >>  
-> >>  module_platform_driver(g_dsaf_driver);
-> >>  
-> >> +/**
-> >> + * hns_dsaf_roce_reset - reset dsaf and roce
-> >> + * @dsaf_fwnode: Pointer to framework node for the dasf
-> >> + * @val: 0 - request reset , 1 - drop reset
-> >> + * retuen 0 - success , negative --fail
-> >> + */
-> >> +int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, u32 val)
-> >> +{
-> >> +	struct dsaf_device *dsaf_dev;
-> >> +	struct platform_device *pdev;
-> >> +	unsigned int mp;
-> >> +	unsigned int sl;
-> >> +	unsigned int credit;
-> >> +	int i;
-> >> +	const u32 port_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
-> >> +		{0, 0, 0},
-> >> +		{1, 0, 0},
-> >> +		{2, 1, 0},
-> >> +		{3, 1, 0},
-> >> +		{4, 2, 1},
-> >> +		{4, 2, 1},
-> >> +		{5, 3, 1},
-> >> +		{5, 3, 1},
-> >> +	};
-> >> +	const u32 sl_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
-> >> +		{0, 0, 0},
-> >> +		{0, 1, 1},
-> >> +		{0, 0, 2},
-> >> +		{0, 1, 3},
-> >> +		{0, 0, 0},
-> >> +		{1, 1, 1},
-> >> +		{0, 0, 2},
-> >> +		{1, 1, 3},
-> >> +	};
-> > Do you have a plan to send a version with enums/defines for this
-> > numbers? Especially for _CHAN_MODE.
-> >
-> > .
-> 
-> Hi leon,
-> 
->     it seems the enums is added in hns_dsaf_main.h, as belows:
-> 
-> diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-> index 5fea226..c917b9a 100644
-> --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-> +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-> @@ -40,6 +40,16 @@ struct hns_mac_cb;
->  #define DSAF_DUMP_REGS_NUM 504
->  #define DSAF_STATIC_NUM 28
->  
-> +#define DSAF_ROCE_CREDIT_CHN 8
-> +#define DSAF_ROCE_CHAN_MODE 3
-> +
-> +enum dsaf_roce_port_port_mode {
-> +	DSAF_ROCE_6PORT_MODE,
-> +	DSAF_ROCE_4PORT_MODE,
-> +	DSAF_ROCE_2PORT_MODE,
-> +	DSAF_ROCE_CHAN_MODE_NUM
-> +};
-> +
+> Can you share with us the technical justification of implementing general
+> memory management cache mechanism in driver and not in appropriate layer
+> (IB/core and/or MM)?
 
-These defines are used as an index entry into si_map and port_map arrays
-and seems as not related to the actual data.
+Hi Doug,
+I saw that you picked these patches and it is now in your github
+repository. Since the original author probably missed my and Or's questions, It
+will be great if you can share with us your technical view on the topic.
 
-I suggest you to take this code back to drawing table, redesign it,
-clean unused functions and defines and resubmit it.
+In addition to my question regarding appropriate layer - IB/core. MM, I see that
+it can be natively implemented in user-space layer too.
 
 Thanks.
 
 > 
-> MBR, Kejian
-> 
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
