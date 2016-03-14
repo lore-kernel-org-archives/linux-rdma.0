@@ -1,92 +1,123 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v4 7/9] IB/core: generic RDMA READ/WRITE API
-Date: Sun, 13 Mar 2016 18:04:15 -0700
-Message-ID: <56E60E0F.7060900@sandisk.com>
-References: <1457461000-24088-1-git-send-email-hch@lst.de>
- <1457461000-24088-8-git-send-email-hch@lst.de> <56DF44FC.8070103@sandisk.com>
- <20160309130723.GD31210@lst.de> <20160309155457.GA1898@lst.de>
- <56E071B6.8060809@sandisk.com> <20160310075722.GA551@lst.de>
- <56E1931C.1040206@sandisk.com> <20160310162150.GA9544@lst.de>
- <56E34914.2020108@sandisk.com> <20160312061232.GA15236@lst.de>
+From: "Yankejian (Hackim Yim)" <yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/3] net: hns: add Hisilicon RoCE support
+Date: Mon, 14 Mar 2016 09:12:28 +0800
+Message-ID: <56E60FFC.3000007@huawei.com>
+References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
+ <1457692631-9290-3-git-send-email-oulijun@huawei.com>
+ <20160312104301.GB15703@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160312061232.GA15236-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160312104301.GB15703-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/11/16 22:12, Christoph Hellwig wrote:
-> On Fri, Mar 11, 2016 at 02:39:16PM -0800, Bart Van Assche wrote:
->> The above is fine with me. But when I ran a test with rdma_rw_use_mr()
->> changed into "return true" the following error messages appeared in the
->> kernel log:
+
+
+On 2016/3/12 18:43, Leon Romanovsky wrote:
+> On Fri, Mar 11, 2016 at 06:37:10PM +0800, Lijun Ou wrote:
+>> It added hns_dsaf_roce_reset routine for roce driver.
+>> RoCE is a feature of hns.
+>> In hip06 SOC, in roce reset process, it's needed to configure
+>> dsaf channel reset,port and sl map info.
 >>
->> [  364.460709] ib_srpt 0x1: parsing SRP descriptor table failed.
->> [  383.604809] ib_srpt 0x0: parsing SRP descriptor table failed.
->> [  383.605627] ib_srpt 0x2: parsing SRP descriptor table failed.
->> [  386.702905] ib_srpt 0x3: parsing SRP descriptor table failed.
->> [  386.703092] ib_srpt 0x4: parsing SRP descriptor table failed.
->> [  386.703242] ib_srpt 0x5: parsing SRP descriptor table failed.
->> [  386.703411] ib_srpt 0x6: parsing SRP descriptor table failed.
+>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Lisheng <lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 84 ++++++++++++++++++++++
+>>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h | 14 ++++
+>>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 62 +++++++++++++---
+>>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  | 13 ++++
+>>  4 files changed, 163 insertions(+), 10 deletions(-)
 >>
->> Is this expected? I ran this test on a server equipped with two mlx4 HCAs
->> with latest firmware (2.36.5000). I installed git commit
->> c4c65482b56a433a82bc5b63db8ba125727e9f80 of the rdma-rw-api merged with
->> v4.5-rc7. Initiator and target drivers were running on the same server and
->> were communicating with each other via loopback. Before I modified
->> rdma_rw_use_mr() the same test passed on the same setup.
-> 
-> I think this might be the case when SRP gets multiple SGL entries.
-> In this case the number of MRs allocated is limited and srpt should
-> handle rdma_rw_ctx_init failures due to the lack of MRs.  If you add
-> the ib_mr_pool_get failure printk back that you asked me to remove
-> I bet it's going to trigger.
+>> diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+>> index 38fc5be..a0f0d4f 100644
+>> --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+>> +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+>> @@ -12,6 +12,7 @@
+>>  #include <linux/init.h>
+>>  #include <linux/interrupt.h>
+>>  #include <linux/netdevice.h>
+>> +#include <linux/of_platform.h>
+>>  #include <linux/platform_device.h>
+>>  #include <linux/of.h>
+>>  #include <linux/of_address.h>
+>> @@ -2593,6 +2594,89 @@ static struct platform_driver g_dsaf_driver = {
+>>  
+>>  module_platform_driver(g_dsaf_driver);
+>>  
+>> +/**
+>> + * hns_dsaf_roce_reset - reset dsaf and roce
+>> + * @dsaf_fwnode: Pointer to framework node for the dasf
+>> + * @val: 0 - request reset , 1 - drop reset
+>> + * retuen 0 - success , negative --fail
+>> + */
+>> +int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, u32 val)
+>> +{
+>> +	struct dsaf_device *dsaf_dev;
+>> +	struct platform_device *pdev;
+>> +	unsigned int mp;
+>> +	unsigned int sl;
+>> +	unsigned int credit;
+>> +	int i;
+>> +	const u32 port_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
+>> +		{0, 0, 0},
+>> +		{1, 0, 0},
+>> +		{2, 1, 0},
+>> +		{3, 1, 0},
+>> +		{4, 2, 1},
+>> +		{4, 2, 1},
+>> +		{5, 3, 1},
+>> +		{5, 3, 1},
+>> +	};
+>> +	const u32 sl_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
+>> +		{0, 0, 0},
+>> +		{0, 1, 1},
+>> +		{0, 0, 2},
+>> +		{0, 1, 3},
+>> +		{0, 0, 0},
+>> +		{1, 1, 1},
+>> +		{0, 0, 2},
+>> +		{1, 1, 3},
+>> +	};
+> Do you have a plan to send a version with enums/defines for this
+> numbers? Especially for _CHAN_MODE.
+>
+> .
 
-Hello Christoph,
+Hi leon,
 
-After having applied the following patch:
+    it seems the enums is added in hns_dsaf_main.h, as belows:
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index c6e8483..940dee8 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -64,6 +64,8 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
+index 5fea226..c917b9a 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
+@@ -40,6 +40,16 @@ struct hns_mac_cb;
+ #define DSAF_DUMP_REGS_NUM 504
+ #define DSAF_STATIC_NUM 28
  
- 		reg->mr = ib_mr_pool_get(qp, &qp->rdma_mrs);
- 		if (!reg->mr) {
-+			pr_debug("failed to allocate MR %d/%d from pool (in use: %d)\n",
-+				 i, ctx->nr_ops, qp->mrs_used);
- 			ret = -EAGAIN;
- 			goto out_free;
- 		}
++#define DSAF_ROCE_CREDIT_CHN 8
++#define DSAF_ROCE_CHAN_MODE 3
++
++enum dsaf_roce_port_port_mode {
++	DSAF_ROCE_6PORT_MODE,
++	DSAF_ROCE_4PORT_MODE,
++	DSAF_ROCE_2PORT_MODE,
++	DSAF_ROCE_CHAN_MODE_NUM
++};
++
 
-and after having run:
+MBR, Kejian
 
-echo 'module ib_core +pmf' > /sys/kernel/debug/dynamic_debug/control
 
-the following output appeared:
 
-[ 1104.391493] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.391621] ib_srpt 0x0: parsing SRP descriptor table failed.
-[ 1104.391762] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.391864] ib_srpt 0x1: parsing SRP descriptor table failed.
-[ 1104.391987] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.392085] ib_srpt 0x2: parsing SRP descriptor table failed.
-[ 1104.392208] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.392306] ib_srpt 0x3: parsing SRP descriptor table failed.
-[ 1104.392427] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.392525] ib_srpt 0x4: parsing SRP descriptor table failed.
-[ 1104.392647] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.392745] ib_srpt 0x5: parsing SRP descriptor table failed.
-[ 1104.392867] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.392965] ib_srpt 0x6: parsing SRP descriptor table failed.
-[ 1104.393089] ib_core:rdma_rw_init_mr_wrs: failed to allocate MR 0/1 from pool (in use: 2048)
-[ 1104.393189] ib_srpt 0x7: parsing SRP descriptor table failed.
 
-Bart.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
