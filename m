@@ -1,123 +1,72 @@
-From: "Yankejian (Hackim Yim)" <yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/3] net: hns: add Hisilicon RoCE support
-Date: Mon, 14 Mar 2016 09:12:28 +0800
-Message-ID: <56E60FFC.3000007@huawei.com>
-References: <1457692631-9290-1-git-send-email-oulijun@huawei.com>
- <1457692631-9290-3-git-send-email-oulijun@huawei.com>
- <20160312104301.GB15703@leon.nu>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and remove_one
+Date: Mon, 14 Mar 2016 11:10:33 +0530
+Message-ID: <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
+References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com> <20160312204502.GA8346@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160312104301.GB15703-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160312204502.GA8346-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2016/3/12 18:43, Leon Romanovsky wrote:
-> On Fri, Mar 11, 2016 at 06:37:10PM +0800, Lijun Ou wrote:
->> It added hns_dsaf_roce_reset routine for roce driver.
->> RoCE is a feature of hns.
->> In hip06 SOC, in roce reset process, it's needed to configure
->> dsaf channel reset,port and sl map info.
->>
->> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> Signed-off-by: Lisheng <lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->> ---
->>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 84 ++++++++++++++++++++++
->>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h | 14 ++++
->>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c | 62 +++++++++++++---
->>  drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  | 13 ++++
->>  4 files changed, 163 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
->> index 38fc5be..a0f0d4f 100644
->> --- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
->> +++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
->> @@ -12,6 +12,7 @@
->>  #include <linux/init.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/netdevice.h>
->> +#include <linux/of_platform.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/of.h>
->>  #include <linux/of_address.h>
->> @@ -2593,6 +2594,89 @@ static struct platform_driver g_dsaf_driver = {
->>  
->>  module_platform_driver(g_dsaf_driver);
->>  
->> +/**
->> + * hns_dsaf_roce_reset - reset dsaf and roce
->> + * @dsaf_fwnode: Pointer to framework node for the dasf
->> + * @val: 0 - request reset , 1 - drop reset
->> + * retuen 0 - success , negative --fail
->> + */
->> +int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, u32 val)
->> +{
->> +	struct dsaf_device *dsaf_dev;
->> +	struct platform_device *pdev;
->> +	unsigned int mp;
->> +	unsigned int sl;
->> +	unsigned int credit;
->> +	int i;
->> +	const u32 port_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
->> +		{0, 0, 0},
->> +		{1, 0, 0},
->> +		{2, 1, 0},
->> +		{3, 1, 0},
->> +		{4, 2, 1},
->> +		{4, 2, 1},
->> +		{5, 3, 1},
->> +		{5, 3, 1},
->> +	};
->> +	const u32 sl_map[DSAF_ROCE_CREDIT_CHN][DSAF_ROCE_CHAN_MODE] = {
->> +		{0, 0, 0},
->> +		{0, 1, 1},
->> +		{0, 0, 2},
->> +		{0, 1, 3},
->> +		{0, 0, 0},
->> +		{1, 1, 1},
->> +		{0, 0, 2},
->> +		{1, 1, 3},
->> +	};
-> Do you have a plan to send a version with enums/defines for this
-> numbers? Especially for _CHAN_MODE.
+On Sun, Mar 13, 2016 at 2:15 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 >
-> .
+> On Sat, Mar 12, 2016 at 10:18:47AM -0500, Devesh Sharma wrote:
+> > CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> I'm still pretty convinced this is wrong... But even still:
+>
+> > @@ -954,6 +955,17 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+> >       struct ib_uverbs_file *file = filp->private_data;
+> >       struct ib_uverbs_device *dev = file->device;
+> >       struct ib_ucontext *ucontext = NULL;
+> > +     struct ib_device *ib_dev;
+> > +     int srcu_key;
+> > +
+> > +     srcu_key = srcu_read_lock(&dev->disassociate_srcu);
+> > +     ib_dev = srcu_dereference(dev->ib_dev,
+> > +                               &dev->disassociate_srcu);
+> > +     if (!ib_dev) {
+> > +             srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
+> > +             wait_for_completion(&file->fcomp);
+> > +             goto out;
+>
+> This jumps over this:
 
-Hi leon,
+I am not sure, to my mind kref_put(...,ib_uverbs_release_file) should
+also be skipped. Because,
+by putting an wait_for_completion(), this context is effectively
+waiting for ib_uverbs_cleanup_ucontext
+to finish cleaning up this file pointer. if the other thread is
+cleaning up, why do I need to put the kerf again?
 
-    it seems the enums is added in hns_dsaf_main.h, as belows:
+>
+> >       if (file->async_file)
+> >               kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+>
+> Which doesn't seem right.
+>
+> As I've said, I'm not sure how this is any different from using
+> lists_mutex. The wait_for_completion will still block and deadlock if
+> ib_uverbs_close is entered during the disassociate flow.
 
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-index 5fea226..c917b9a 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h
-@@ -40,6 +40,16 @@ struct hns_mac_cb;
- #define DSAF_DUMP_REGS_NUM 504
- #define DSAF_STATIC_NUM 28
- 
-+#define DSAF_ROCE_CREDIT_CHN 8
-+#define DSAF_ROCE_CHAN_MODE 3
-+
-+enum dsaf_roce_port_port_mode {
-+	DSAF_ROCE_6PORT_MODE,
-+	DSAF_ROCE_4PORT_MODE,
-+	DSAF_ROCE_2PORT_MODE,
-+	DSAF_ROCE_CHAN_MODE_NUM
-+};
-+
+Taking list-mutex is not stopping ib_dev pointer to become NULL, while
+if we split the mutex
+and wait_for_completion(), then effectively we are trying to sync
+ib_uverb_close() and
+remove_one() in such a way that no ib_uverb_close context hit ib_dev = NULL
 
-MBR, Kejian
+I hope I was able to put the situation in simpler words?
 
-
-
-
+Can you please explain how it can lead to a deadlock?
 
 
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
