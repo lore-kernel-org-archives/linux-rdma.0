@@ -1,73 +1,73 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and remove_one
-Date: Mon, 14 Mar 2016 11:10:33 +0530
-Message-ID: <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
-References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com> <20160312204502.GA8346@obsidianresearch.com>
+From: oulijun <oulijun@huawei.com>
+Subject: Re: [PATCH 3/4] infiniband: hns: add Hisilicon RoCE support(driver
+ code)
+Date: Mon, 14 Mar 2016 14:49:32 +0800
+Message-ID: <56E65EFC.3030109@huawei.com>
+References: <CAG53R5WfQR1jJUOi1fjY=oEgsK_EAxkA9SiDPV_KHLHsmqg0BQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160312204502.GA8346-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAG53R5WfQR1jJUOi1fjY=oEgsK_EAxkA9SiDPV_KHLHsmqg0BQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Parav Pandit <pandit.parav@gmail.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>
+Cc: Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, Or Gerlitz <ogerlitz@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 13, 2016 at 2:15 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->
-> On Sat, Mar 12, 2016 at 10:18:47AM -0500, Devesh Sharma wrote:
-> > CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> I'm still pretty convinced this is wrong... But even still:
->
-> > @@ -954,6 +955,17 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
-> >       struct ib_uverbs_file *file = filp->private_data;
-> >       struct ib_uverbs_device *dev = file->device;
-> >       struct ib_ucontext *ucontext = NULL;
-> > +     struct ib_device *ib_dev;
-> > +     int srcu_key;
-> > +
-> > +     srcu_key = srcu_read_lock(&dev->disassociate_srcu);
-> > +     ib_dev = srcu_dereference(dev->ib_dev,
-> > +                               &dev->disassociate_srcu);
-> > +     if (!ib_dev) {
-> > +             srcu_read_unlock(&dev->disassociate_srcu, srcu_key);
-> > +             wait_for_completion(&file->fcomp);
-> > +             goto out;
->
-> This jumps over this:
+Hi Parav Pandit, thanks your reviewing.
+On 2016/3/4 17:37, Parav Pandit wrote:
+> On Fri, Mar 4, 2016 at 2:11 PM, Wei Hu(Xavier) <xavier.huwei@huawei.com> wrote:
+>> +
+>> +int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+>> +{
+>> +       int ret;
+>> +       struct hns_roce_ib_iboe *iboe = NULL;
+>> +       struct ib_device *ib_dev = NULL;
+>> +       struct device *dev = &hr_dev->pdev->dev;
+>> +
+>> +       iboe = &hr_dev->iboe;
+>> +
+>> +       ib_dev = &hr_dev->ib_dev;
+>> +       strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
+>> +
+>> +       ib_dev->owner                   = THIS_MODULE;
+>> +       ib_dev->node_type               = RDMA_NODE_IB_CA;
+>> +       ib_dev->dma_device              = dev;
+>> +
+>> +       ib_dev->phys_port_cnt           = hr_dev->caps.num_ports;
+>> +       ib_dev->local_dma_lkey          = hr_dev->caps.reserved_lkey;
+>> +       ib_dev->num_comp_vectors        = hr_dev->caps.num_comp_vectors;
+>> +       ib_dev->uverbs_abi_ver          = 1;
+>> +       ib_dev->uverbs_cmd_mask         =
+>> +               (1ULL << IB_USER_VERBS_CMD_GET_CONTEXT) |
+>> +               (1ULL << IB_USER_VERBS_CMD_QUERY_DEVICE) |
+>> +               (1ULL << IB_USER_VERBS_CMD_QUERY_PORT) |
+>> +               (1ULL << IB_USER_VERBS_CMD_ALLOC_PD) |
+>> +               (1ULL << IB_USER_VERBS_CMD_DEALLOC_PD) |
+>> +               (1ULL << IB_USER_VERBS_CMD_REG_MR) |
+>> +               (1ULL << IB_USER_VERBS_CMD_DEREG_MR) |
+>> +               (1ULL << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
+>> +               (1ULL << IB_USER_VERBS_CMD_CREATE_CQ) |
+>> +               (1ULL << IB_USER_VERBS_CMD_DESTROY_CQ) |
+>> +               (1ULL << IB_USER_VERBS_CMD_CREATE_QP) |
+>> +               (1ULL << IB_USER_VERBS_CMD_MODIFY_QP) |
+>> +               (1ULL << IB_USER_VERBS_CMD_QUERY_QP) |
+>> +               (1ULL << IB_USER_VERBS_CMD_DESTROY_QP);
+>> +
+> 
+> Since SRQ is not supported in this driver version, can you keep
+> remaining code base also to not bother about SRQ specifically
+> poll_cq_one, modify_qp, destroy_qp etc?
+> SRQ support can come as complete additional patch along with cmd_mask,
+> callbacks and rest of the code.
+> 
+> .
+Sorry, I see your review in time.
+Sure, SRQ is not supported in current roce driver. I have verified the function
+for RDMA. It is not influence. For your question, we need to analyse it scientific.
+after that, i will reply your doubt, is that ok?
 
-I am not sure, to my mind kref_put(...,ib_uverbs_release_file) should
-also be skipped. Because,
-by putting an wait_for_completion(), this context is effectively
-waiting for ib_uverbs_cleanup_ucontext
-to finish cleaning up this file pointer. if the other thread is
-cleaning up, why do I need to put the kerf again?
+thanks
+Lijun Ou
 
->
-> >       if (file->async_file)
-> >               kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
->
-> Which doesn't seem right.
->
-> As I've said, I'm not sure how this is any different from using
-> lists_mutex. The wait_for_completion will still block and deadlock if
-> ib_uverbs_close is entered during the disassociate flow.
-
-Taking list-mutex is not stopping ib_dev pointer to become NULL, while
-if we split the mutex
-and wait_for_completion(), then effectively we are trying to sync
-ib_uverb_close() and
-remove_one() in such a way that no ib_uverb_close context hit ib_dev = NULL
-
-I hope I was able to put the situation in simpler words?
-
-Can you please explain how it can lead to a deadlock?
-
-
->
-> Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
