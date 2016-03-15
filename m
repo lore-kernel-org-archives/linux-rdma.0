@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 01/11] IB/hfi1: Fix sysfs file offset usage
-Date: Tue, 15 Mar 2016 10:54:07 -0700
-Message-ID: <20160315175405.613.49640.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 03/11] IB/rdmavt: Fix adaptive pio hang
+Date: Tue, 15 Mar 2016 10:54:18 -0700
+Message-ID: <20160315175417.613.45909.stgit@scvm10.sc.intel.com>
 References: <20160315174916.613.12254.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,43 +10,40 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160315174916.613.12254.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Two sysfs files do not pay attention to the file offset when
-reading data. Fix that.
+The RVT_S_WAIT_PIO_DRAIN flag was missing from
+the set of flags indicating a qp is waiting
+on a resource.
+
+This caused the sleep/wakeup for adaptive pio
+drain to lose a wakeup "hanging" a QP.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/sysfs.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/rdma/rdmavt_qp.h |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
-index c7f1271..8cd6df8 100644
---- a/drivers/infiniband/hw/hfi1/sysfs.c
-+++ b/drivers/infiniband/hw/hfi1/sysfs.c
-@@ -84,7 +84,7 @@ static ssize_t read_cc_table_bin(struct file *filp, struct kobject *kobj,
- 		rcu_read_unlock();
- 		return -EINVAL;
- 	}
--	memcpy(buf, &cc_state->cct, count);
-+	memcpy(buf, (void *)&cc_state->cct + pos, count);
- 	rcu_read_unlock();
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 497e590..0e1ff2a 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -117,8 +117,9 @@
+ /*
+  * Wait flags that would prevent any packet type from being sent.
+  */
+-#define RVT_S_ANY_WAIT_IO (RVT_S_WAIT_PIO | RVT_S_WAIT_TX | \
+-	RVT_S_WAIT_DMA_DESC | RVT_S_WAIT_KMEM)
++#define RVT_S_ANY_WAIT_IO \
++	(RVT_S_WAIT_PIO | RVT_S_WAIT_PIO_DRAIN | RVT_S_WAIT_TX | \
++	 RVT_S_WAIT_DMA_DESC | RVT_S_WAIT_KMEM)
  
- 	return count;
-@@ -131,7 +131,7 @@ static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
- 		rcu_read_unlock();
- 		return -EINVAL;
- 	}
--	memcpy(buf, &cc_state->cong_setting, count);
-+	memcpy(buf, (void *)&cc_state->cong_setting + pos, count);
- 	rcu_read_unlock();
- 
- 	return count;
+ /*
+  * Wait flags that would prevent send work requests from making progress.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
