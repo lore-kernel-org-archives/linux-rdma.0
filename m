@@ -1,71 +1,69 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Tue, 15 Mar 2016 15:37:31 -0400
-Message-ID: <20160315193731.GA20662@phlsvsds.ph.intel.com>
-References: <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com> <20160309002157.GA20105@phlsvsds.ph.intel.com> <20160309050731.GM13396@leon.nu> <20160309192109.GB15031@phlsvsds.ph.intel.com> <20160310045609.GC1977@leon.nu> <20160314070951.GB26456@leon.nu> <20160314120152.GA30838@phlsvsds.ph.intel.com> <CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com> <20160315012049.GA30055@phlsvsds.ph.intel.com> <CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
+ remove_one
+Date: Tue, 15 Mar 2016 14:31:12 -0600
+Message-ID: <20160315203112.GA2786@obsidianresearch.com>
+References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com>
+ <20160312204502.GA8346@obsidianresearch.com>
+ <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
+ <20160314174814.GB5240@obsidianresearch.com>
+ <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 15, 2016 at 09:03:49AM +0200, Or Gerlitz wrote:
->>> Doug, As Dennis noted, you already picked ~300 patches for 4.6 / hfi1
->>> driver from him. I don't see why picking this patch series there too
->>> and not letting us to further discuss it out, thoughts?
+On Tue, Mar 15, 2016 at 02:30:43PM +0530, Devesh Sharma wrote:
+> >> I am not sure, to my mind kref_put(...,ib_uverbs_release_file) should
+> >> also be skipped.
+> >
+> > I am talking about ib_uverbs_release_event_file
+> 
+> And I am adding ib_uverbs_release_file() as well. the other thread is already
+> cleaning it up and if ib_uverbs_close() reads it NULL then why to put krefs?
 
-Forgot in my last reply but I did want to mention this again, we have not 
-submitted 300 patches for hfi1.  We have submitted 300+ patches across 3 
-different drivers.  Doug's GitHub branch says hfi1, but it is changes for 
-hfi1, rdmavt, and qib.
+> > The other context doesn't do a balancing kref_put(..,ib_uverbs_release_event_file).
+> 
+> Actually it does, in the very next while loop on event_file list.
 
->> I believe in taking an iterative approach to kernel development, if the code
->> doesn't cause problems I don't see any harm adding the series. If Doug
->> agrees with you and doesn't like this approach but is willing to let it
->> stand for now,  I think the changes can be done in a subsequent release.
->
->Iterative approach doesn't say we should pick code into the kernel and throw
->it away later. There are rare times it happens, when people were not able
->to agree on something for years and the maintainer say enough is enough,
->we'll take it and see later.
+I really don't understand your comments.
 
-Never said anything about throwing it all away. My point is, we are talking 
-about a single driver and exactly one user of it.  It's not like we are 
-adding core kernel functionality here that impacts multiple drivers, or have 
-to worry about changing ABIs across a bunch of different users. We have the 
-freedom to fix and change things as needed.
+Maybe you can find some code snippits to explain this.
 
-Regardless that stuff aside, I wanted to talk to some folks who are
-more familiar with the inner workings of psm than I. So I appreciate the 
-patience while I gathered the feedback from interested parties. 
+The krefs in ib_uverbs_event_close are unconditional. If that isn't
+right, then there is another bug that needs to be explained. It sure
+looks right to me as is.
 
-So basically what happens in this series is that psm calls into the kernel 
-to do an sdma transfer, the caching is a side effect that happens under the 
-covers.  We can see this from the code in this series. What may not be so 
-apparent is that the user library does not have to do anything to take 
-advantage of the cache. Further it doesn't even have to know about the 
-cache.  Which is one of the appeals of this patch series. The other, and 
-what trumps all, is performance.
+The patch makes them conditional without any matching change
+elsewhere, so it just simply must be wrong.
 
-Taking a performance standpoint we don't want this in user space. If the 
-cache were at the user level there would end up being a system call to pin 
-the buffer, another to do the SDMA transfer from said buffer, and another to 
-unpin the buffer when the kernel notifier has invalidated that buffer.  This 
-gets even more complex when you consider cache evictions due to reaching the 
-limit on pinned pages. 
+> > I prefer a mutex, but perhaps there are other ways to build the
+> > fence (eg uverbs_dev->refcount springs to mind)
+> 
+> uverbs_dev->refcount is already there, we can choose to wait for
+> ref_count to become zero
 
-These extra system calls add overhead, which may be acceptable for a normal 
-server or desktop environment, but are not acceptable when dealing with a 
-high performance interconnect where we want the absolute best performance.
+> wait for zero here instead of dec_and_test, I think things will
+> automatically fall in place after that
 
-I should also point out that these extra calls would be done on a per-buffer 
-basis, not per-context, or per-application.
+More than that would be needed, the refcount is currently always being
+held for the full life time of the ib_uverbs_device and the wait is
+conditional. You'd have to restructure things so the wait becomes
+unconditional and the refcount is conditionally held across the proper
+times - eg only during close for the disassociate_ucontext mode.
 
--Denny
+Note sure this is prettier than a new mutex...
+
+The fundamental thing is that the ib_uverbs_free_hw_resources thread
+must wait for ib_uverbs_close's ib_uverbs_cleanup_ucontext to finish,
+if necessary, not the other way around.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
