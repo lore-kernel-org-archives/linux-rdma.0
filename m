@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/11] IB/rdmavt: Fix adaptive pio hang
-Date: Tue, 15 Mar 2016 10:54:18 -0700
-Message-ID: <20160315175417.613.45909.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 02/11] IB/hfi1: Fix i2c resource reservation checks
+Date: Tue, 15 Mar 2016 10:54:12 -0700
+Message-ID: <20160315175412.613.73619.stgit@scvm10.sc.intel.com>
 References: <20160315174916.613.12254.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,40 +10,62 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160315174916.613.12254.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The RVT_S_WAIT_PIO_DRAIN flag was missing from
-the set of flags indicating a qp is waiting
-on a resource.
+The i2c and qsfp read/write routines should check for the resource
+reservation of the incoming argument target rather than the implicit
+target of the hardware HFI.
 
-This caused the sleep/wakeup for adaptive pio
-drain to lose a wakeup "hanging" a QP.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/rdmavt_qp.h |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/qsfp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 497e590..0e1ff2a 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -117,8 +117,9 @@
- /*
-  * Wait flags that would prevent any packet type from being sent.
-  */
--#define RVT_S_ANY_WAIT_IO (RVT_S_WAIT_PIO | RVT_S_WAIT_TX | \
--	RVT_S_WAIT_DMA_DESC | RVT_S_WAIT_KMEM)
-+#define RVT_S_ANY_WAIT_IO \
-+	(RVT_S_WAIT_PIO | RVT_S_WAIT_PIO_DRAIN | RVT_S_WAIT_TX | \
-+	 RVT_S_WAIT_DMA_DESC | RVT_S_WAIT_KMEM)
+diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
+index 9ed1963..ac03d80 100644
+--- a/drivers/infiniband/hw/hfi1/qsfp.c
++++ b/drivers/infiniband/hw/hfi1/qsfp.c
+@@ -96,7 +96,7 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ {
+ 	int ret;
  
- /*
-  * Wait flags that would prevent send work requests from making progress.
+-	if (!check_chip_resource(ppd->dd, qsfp_resource(ppd->dd), __func__))
++	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+ 	/* make sure the TWSI bus is in a sane state */
+@@ -162,7 +162,7 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ {
+ 	int ret;
+ 
+-	if (!check_chip_resource(ppd->dd, qsfp_resource(ppd->dd), __func__))
++	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+ 	/* make sure the TWSI bus is in a sane state */
+@@ -192,7 +192,7 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	int ret;
+ 	u8 page;
+ 
+-	if (!check_chip_resource(ppd->dd, qsfp_resource(ppd->dd), __func__))
++	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+ 	/* make sure the TWSI bus is in a sane state */
+@@ -276,7 +276,7 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	int ret;
+ 	u8 page;
+ 
+-	if (!check_chip_resource(ppd->dd, qsfp_resource(ppd->dd), __func__))
++	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+ 	/* make sure the TWSI bus is in a sane state */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
