@@ -1,65 +1,70 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 1/1] Add support for ZONE_DEVICE IO memory with
- struct pages.
-Date: Mon, 14 Mar 2016 15:57:08 -0600
-Message-ID: <20160314215708.GA7282@obsidianresearch.com>
-References: <1457979277-26791-1-git-send-email-stephen.bates@pmcs.com>
- <20160314212344.GC23727@linux.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Mon, 14 Mar 2016 21:20:50 -0400
+Message-ID: <20160315012049.GA30055@phlsvsds.ph.intel.com>
+References: <20160308191210.30542.91885.stgit@scvm10.sc.intel.com> <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com> <20160309002157.GA20105@phlsvsds.ph.intel.com> <20160309050731.GM13396@leon.nu> <20160309192109.GB15031@phlsvsds.ph.intel.com> <20160310045609.GC1977@leon.nu> <20160314070951.GB26456@leon.nu> <20160314120152.GA30838@phlsvsds.ph.intel.com> <CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160314212344.GC23727-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+In-Reply-To: <CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Stephen Bates <stephen.bates-PwyqCcigF0Q@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, javier-rmLALz0KWFtWk0Htik3J/w@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 14, 2016 at 05:23:44PM -0400, Matthew Wilcox wrote:
-> On Mon, Mar 14, 2016 at 12:14:37PM -0600, Stephen Bates wrote:
-> > 3. Coherency Issues. When IOMEM is written from both the CPU and a PCIe
-> > peer there is potential for coherency issues and for writes to occur out
-> > of order. This is something that users of this feature need to be
-> > cognizant of and may necessitate the use of CONFIG_EXPERT. Though really,
-> > this isn't much different than the existing situation with RDMA: if
-> > userspace sets up an MR for remote use, they need to be careful about
-> > using that memory region themselves.
-> 
-> There's more to the coherency problem than this.  As I understand it, on
-> x86, memory in a PCI BAR does not participate in the coherency protocol.
-> So you can get a situation where CPU A stores 4 bytes to offset 8 in a
-> cacheline, then CPU B stores 4 bytes to offset 16 in the same cacheline,
-> and CPU A's write mysteriously goes missing.
+On Mon, Mar 14, 2016 at 11:19:53PM +0200, Or Gerlitz wrote:
+>On Mon, Mar 14, 2016 at 2:01 PM, Dennis Dalessandro
+><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> On Mon, Mar 14, 2016 at 09:09:51AM +0200, Leon Romanovsky wrote:
+>>>
+>>> Hi Doug,
+>>> I saw that you picked these patches and it is now in your github
+>>> repository. Since the original author probably missed my and Or's
+>>> questions, It
+>>> will be great if you can share with us your technical view on the topic.
+>>>
+>>> In addition to my question regarding appropriate layer - IB/core. MM, I
+>>> see that
+>>> it can be natively implemented in user-space layer too.
+>
+>> The original author did not miss your questions. When I say "we" or "our"
+>> you can be assured that includes the original author.
+>
+>Just to make sure we're on the same page(...) submitting code to the
+>upstream kernel is not send-and-forget, authors should respond to
+>questions posed on their patches and this is very much not the case
+>how you act here.
+>
+>> Our position continues to be that this is best located in the hfi1 driver.
+>> If something else comes along that can make use of the same/similar
+>> functionality we can then move it to the core or elsewhere, once we have a
+>> better understanding of the use cases and how best to generalize the code.
+>
+>As I wrote your on this thread, you have all you need in user-space,
+>expect for mmu notifications for cache entries which were invalidated
+>by memunmaps, which indeed should originate from the kernel -- as such
+>the cache doesn't belong to the kernel at all. You didn't respond on
+>that, just ignored, and now again talking on the cache being in the
+>core, why?
 
-No, this cannot happen with writing combining. You need full caching turned
-on to get that kind of problem.
+I said "core or elsewhere". Elsewhere may well include user space. That is 
+just a different solution than what we have proposed. I agree that it is 
+certainly one alternative. I'd like to see what Doug's opinion on the matter 
+is.
 
-write combining can only combine writes, it cannot make up writes that
-never existed.
+>Doug, As Dennis noted, you already picked ~300 patches for 4.6 / hfi1
+>driver from him. I don't see why picking this patch series there too
+>and not letting us to further discuss it out, thoughts?
+>
+>Or.
 
-That said, I question I don't know the answer to, is how does write
-locking/memory barries interact with the write combining CPU buffers,
-and are all the fencing semantics guarenteed.. There is some
-interaction there (some drivers use write combining a lot).. but that
-sure is a rarely used corner area...
+I believe in taking an iterative approach to kernel development, if the code 
+doesn't cause problems I don't see any harm adding the series. If Doug 
+agrees with you and doesn't like this approach but is willing to let it 
+stand for now,  I think the changes can be done in a subsequent release.
 
-The other issue is that the fencing mechanism RDMA uses to create
-ordering with system memory is not good enough to fence peer-peer
-transactions in the general case. It is only possibly good enough if
-all the transactions run through the root complex.
-
-> I may have misunderstood the exact details when this was explained to me a
-> few years ago, but the details were horrible enough to run away screaming.
-> Pretending PCI BARs are real memory?  Just Say No.
-
-Someone should probably explain in more detail what this is even good
-for, DAX on PCI-E bar memory seems goofy in the general case. I was
-under the impression the main use case involved the CPU never touching
-these memories and just using them to route-through to another IO
-device (eg network). So all these discussions about CPU coherency seem
-a bit strange.
-
-Jason
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
