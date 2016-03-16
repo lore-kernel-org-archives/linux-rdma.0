@@ -1,42 +1,31 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Wed, 16 Mar 2016 13:45:35 -0400
-Message-ID: <20160316174535.GC26530@phlsvsds.ph.intel.com>
-References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com> <20160316154738.GA26530@phlsvsds.ph.intel.com> <alpine.DEB.2.20.1603161213560.15010@east.gentwo.org>
+From: "Estela, Henry R" <henry.r.estela-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] infinipath-psm_3.3-19_g67c0807_open is available
+Date: Wed, 16 Mar 2016 18:09:05 +0000
+Message-ID: <152F98E1C68AAF499EABB07558C80F3B0277C6F0@ORSMSX106.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1603161213560.15010-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 16, 2016 at 12:17:23PM -0500, Christoph Lameter wrote:
->On Wed, 16 Mar 2016, Dennis Dalessandro wrote:
->
->> > +	return sprintf(buf, "%llu\n", stats.value[index]);
->> > +}
->>
->> This works fine when there are few counters, but if there are lots? What about
->> changing things to include the index in the get_protocol_stats() call so that
->> we just grab the single item we are looking for?
->
->Right now there is a limiting in the source to a max of 128 counters. In
->practice all users use less than 30 counters at this point. So we have
->some space to go until we may need a better solution. We could also save
->the stats we have retrieved so it can be used for multiple counters.
->
->But I think this something for the future.
+New release for infinipath-psm (3.3-19_g67c0807_open) is available at http://downloads.openfabrics.org/downloads/infinipath-psm/
 
-Fair enough. The only thing I would add is it would be easier now since you 
-already change the only 2 drivers which use it, and are adding it to the Mlx 
-drivers for the first time. 
+Vlad, it is ready for the next build.
 
-Just throwing the idea out. I'm not totally against the current patch.
+Summary of changes:
+Reduce virtual memory usage for the host on non-SCIF builds
+libpsm_infinipath version bumped to 1.16 
+Allow for signal handler to be properly disabled to allow for Open MPI Java bindings to work
+Fix hang with specific PSM_MULTIRAIL configurations
+Fix hang with Intel MPI on larger jobs
 
--Denny
+--
+Henry
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
