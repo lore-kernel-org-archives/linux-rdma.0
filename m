@@ -1,39 +1,50 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [WTF] utterly tasteless ABI in hfi1 (around ->write()/->write_iter())
-Date: Tue, 15 Mar 2016 21:34:03 -0700
-Message-ID: <CA+55aFyQ5=OTcsw8i6WKrVT9r0gDWsGh=Bii-YyC7B3UVLO0sw@mail.gmail.com>
-References: <20160316041717.GJ17997@ZenIV.linux.org.uk>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH kernel] Revert "net/mlx4_core: Set UAR page size to
+ 4KB regardless of system page size"
+Date: Wed, 16 Mar 2016 07:10:21 +0200
+Message-ID: <20160316051021.GC66645@x-vnc01.mtx.labs.mlnx>
+References: <1458037148-4475-1-git-send-email-aik@ozlabs.ru>
+ <CAJ3xEMhxUuQj+E00fa-tEKz+dVzDqFspC80Z=k7UPZpOP30H3g@mail.gmail.com>
+ <56E8BFFE.9000803@ozlabs.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20160316041717.GJ17997@ZenIV.linux.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mike Marciniszyn <infinipath@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56E8BFFE.9000803-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Carol L Soto <clsoto-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Brian J King <bjking1-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 15, 2016 at 9:17 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
->
->         Take a look at drivers/staging/rdma/hfi1/file_ops.c in -next and
-> compare hfi1_write_iter() with hfi1_file_write().  Folks, this ABI is too
-> ugly to live, let alone to be allowed breeding.
->
->         It's also brittle as hell - trivial massage around fs/read_write.c
-> and fs/aio.c is quite capable of breaking that shit.  Arguably, IOCB_CMD_PWRITE
-> and IOCB_CMD_PWRITEV both triggering your writev() semantics is an example of
-> just such breakage.  Sigh...
+On Wed, Mar 16, 2016 at 01:07:58PM +1100, Alexey Kardashevskiy wrote:
+> 
+> So with v4.5 as a host, there is no actual distro available today to
+> use as a guest in the next 6 months (or whatever it takes to
+> backport this partucular patch back there).
+> 
+> You could have added a module parameter to enforce the old behavoir,
+> at least...
+> 
+> And sorry but from the original commit log I could not understand
+> why exactly all existing guests need to be broken. Could you please
+> point me to a piece of documentation describing all this UAR
+> bisuness (what is UAR, why 128 UARs are required and for what, etc).
+> Thanks.
+> 
 
-We could just decide that if a file descriptor has both ->write and
-->write_iter entities, we always pick ->write_iter in the vfs layer.
+We are going to send a patch that fixes this using a module parameter.
+The patch will be on top of Huy's patch.
 
-That way it's always consistent.
+Some background to the problem: mlx4 supported devices require 128 UAR
+pages from PCI memory space defined by BAR2-3. Each UAR page can be
+any power of 2 value from 4K up to 64K. Before Huy's patch the driver
+chose UAR page size to be equal to system page size. Since PowerPC's
+page size is 64K this means minimum requirement of UAR pages is not
+met (default UAR BAR is 8MB and only half of it is really reserved for
+UARs).
 
-Simple ordering change in __vfs_write()..
-
-We can switch is back later, but make sure it hits a release or two.
-Or at least a few rc's, to flush out any problems.
-
-Anybody who thinks that they can have different semantics for write()
-and writev() is just completely broken.
-
-              Linus
+More details can be found in the programmer's manual.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
