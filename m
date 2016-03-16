@@ -1,66 +1,86 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Wed, 16 Mar 2016 11:47:39 -0400
-Message-ID: <20160316154738.GA26530@phlsvsds.ph.intel.com>
-References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Wed, 16 Mar 2016 17:53:37 +0200
+Message-ID: <CAJ3xEMjWxdwM0wQR85_-wHpPhYSWz1W0T8H_nDjnp2JS7G29Qw@mail.gmail.com>
+References: <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
+	<20160309002157.GA20105@phlsvsds.ph.intel.com>
+	<20160309050731.GM13396@leon.nu>
+	<20160309192109.GB15031@phlsvsds.ph.intel.com>
+	<20160310045609.GC1977@leon.nu>
+	<20160314070951.GB26456@leon.nu>
+	<20160314120152.GA30838@phlsvsds.ph.intel.com>
+	<CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com>
+	<20160315012049.GA30055@phlsvsds.ph.intel.com>
+	<CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w@mail.gmail.com>
+	<20160315193731.GA20662@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160315155455.173645653-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160315193731.GA20662-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 15, 2016 at 10:54:42AM -0500, Christoph Lameter wrote:
- 
->+static ssize_t show_protocol_stats(struct ib_device *dev, int index,
->+				   u8 port, char *buf)
->+{
->+	struct rdma_protocol_stats stats = {0};
->+	ssize_t ret;
->+
->+	ret = dev->get_protocol_stats(dev, &stats, port);
->+	if (ret)
->+		return ret;
->+
->+	return sprintf(buf, "%llu\n", stats.value[index]);
->+}
+On Tue, Mar 15, 2016 at 9:37 PM, Dennis Dalessandro
+<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Tue, Mar 15, 2016 at 09:03:49AM +0200, Or Gerlitz wrote:
 
-This works fine when there are few counters, but if there are lots? What 
-about changing things to include the index in the get_protocol_stats() call 
-so that we just grab the single item we are looking for?
+>> Iterative approach doesn't say we should pick code into the kernel and throw
+>> it away later. There are rare times it happens, when people were not able
+>> to agree on something for years and the maintainer say enough is enough,
+>> we'll take it and see later.
 
->+static struct attribute_group *create_protocol_stats(struct ib_device 
->*device,
->+						     struct kobject *kobj,
->+						     u8 port) {
->+	struct attribute_group *ag;
->+	struct rdma_protocol_stats stats = {0};
->+	u32 counters;
->+	u32 i;
->+	int ret;
->+
->+	ret = device->get_protocol_stats(device, &stats, port);
->+
->+	if (ret || !stats.name)
->+		return NULL;
->+
->+	ag = kzalloc(sizeof(*ag), GFP_KERNEL);
->+	if (!ag)
->+		return NULL;
->+
->+	ag->name = stats.dirname;
->+
->+	for (counters = 0; stats.name[counters]; counters++)
->+		;
->+
->+	BUG_ON(counters > MAX_NR_PROTOCOL_STATS);
+> Never said anything about throwing it all away. My point is, we are talking
+> about a single driver and exactly one user of it.  It's not like we are
+> adding core kernel functionality here that impacts multiple drivers, or have
+> to worry about changing ABIs across a bunch of different users. We have the
+> freedom to fix and change things as needed.
 
-Should we really be bringing the machine crashing down here?
+The fact there is one user of driver X doesn't justify functionality Y
+to reside in the
+kernel and not in user-space.
 
--Denny
+
+> Regardless that stuff aside, I wanted to talk to some folks who are
+> more familiar with the inner workings of psm than I. So I appreciate the
+> patience while I gathered the feedback from interested parties.
+> So basically what happens in this series is that psm calls into the kernel
+> to do an sdma transfer, the caching is a side effect that happens under the
+> covers.  We can see this from the code in this series. What may not be so
+> apparent is that the user library does not have to do anything to take
+> advantage of the cache. Further it doesn't even have to know about the
+> cache.  Which is one of the appeals of this patch series. The other, and
+> what trumps all, is performance.
+
+The fact that under your current design the user-space library is not involved
+with the caching doesn't mean the correct place for the cache is the kernel.
+
+> Taking a performance standpoint we don't want this in user space. If the
+> cache were at the user level there would end up being a system call to pin
+> the buffer, another to do the SDMA transfer from said buffer, and another to
+> unpin the buffer when the kernel notifier has invalidated that buffer.  This
+> gets even more complex when you consider cache evictions due to reaching the
+> limit on pinned pages.
+> These extra system calls add overhead, which may be acceptable for a normal
+> server or desktop environment, but are not acceptable when dealing with a
+> high performance interconnect where we want the absolute best performance.
+
+> I should also point out that these extra calls would be done on a per-buffer
+> basis, not per-context, or per-application.
+
+The cache comes to amortize the cost of pin/unpin and such, correct? this means
+that over longs runs, if there's nice locality of the same process
+using the same pages,
+you pay the register/pin cost once, later use lazy
+de-registration/pinning, and only do that
+when MMU notifier tells you this is a must, or under some eviction policy.
+
+Since the cost is amortized, the system calls over-head should be negligible
+(also, the same system call can be used to evict X and register Y), do you
+have performance data that shows otherwise?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
