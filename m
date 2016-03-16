@@ -1,44 +1,46 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure
- dynamic
-Date: Wed, 16 Mar 2016 12:17:23 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1603161213560.15010@east.gentwo.org>
-References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com> <20160316154738.GA26530@phlsvsds.ph.intel.com>
-Content-Type: text/plain; charset=US-ASCII
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
+Date: Wed, 16 Mar 2016 13:23:09 -0400
+Message-ID: <20160316172309.GB26530@phlsvsds.ph.intel.com>
+References: <20160309050731.GM13396@leon.nu> <20160309192109.GB15031@phlsvsds.ph.intel.com> <20160310045609.GC1977@leon.nu> <20160314070951.GB26456@leon.nu> <20160314120152.GA30838@phlsvsds.ph.intel.com> <CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com> <20160315012049.GA30055@phlsvsds.ph.intel.com> <CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w@mail.gmail.com> <20160315193731.GA20662@phlsvsds.ph.intel.com> <CAJ3xEMjWxdwM0wQR85_-wHpPhYSWz1W0T8H_nDjnp2JS7G29Qw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160316154738.GA26530-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMjWxdwM0wQR85_-wHpPhYSWz1W0T8H_nDjnp2JS7G29Qw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 16 Mar 2016, Dennis Dalessandro wrote:
-
-> > +	return sprintf(buf, "%llu\n", stats.value[index]);
-> > +}
+On Wed, Mar 16, 2016 at 05:53:37PM +0200, Or Gerlitz wrote:
+>> Taking a performance standpoint we don't want this in user space. If the
+>> cache were at the user level there would end up being a system call to pin
+>> the buffer, another to do the SDMA transfer from said buffer, and another to
+>> unpin the buffer when the kernel notifier has invalidated that buffer.  This
+>> gets even more complex when you consider cache evictions due to reaching the
+>> limit on pinned pages.
+>> These extra system calls add overhead, which may be acceptable for a normal
+>> server or desktop environment, but are not acceptable when dealing with a
+>> high performance interconnect where we want the absolute best performance.
 >
-> This works fine when there are few counters, but if there are lots? What about
-> changing things to include the index in the get_protocol_stats() call so that
-> we just grab the single item we are looking for?
-
-Right now there is a limiting in the source to a max of 128 counters. In
-practice all users use less than 30 counters at this point. So we have
-some space to go until we may need a better solution. We could also save
-the stats we have retrieved so it can be used for multiple counters.
-
-But I think this something for the future.
-
-> > +	for (counters = 0; stats.name[counters]; counters++)
-> > +		;
-> > +
-> > +	BUG_ON(counters > MAX_NR_PROTOCOL_STATS);
+>> I should also point out that these extra calls would be done on a per-buffer
+>> basis, not per-context, or per-application.
 >
-> Should we really be bringing the machine crashing down here?
+>The cache comes to amortize the cost of pin/unpin and such, correct? this means
+>that over longs runs, if there's nice locality of the same process
+>using the same pages,
+>you pay the register/pin cost once, later use lazy
+>de-registration/pinning, and only do that
+>when MMU notifier tells you this is a must, or under some eviction policy.
+>
+>Since the cost is amortized, the system calls over-head should be negligible
+>(also, the same system call can be used to evict X and register Y), do you
+>have performance data that shows otherwise?
 
-The counter tables are defined at compile time. The BUG_ON ensures that
-the driver will bug immediately when testing if we hit that limit.
+I don't personally have the data but will check with some folks here.
 
-
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
