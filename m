@@ -1,64 +1,44 @@
-From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
-Subject: Re: [WTF] utterly tasteless ABI in hfi1 (around
- ->write()/->write_iter())
-Date: Wed, 16 Mar 2016 17:06:59 +0000
-Message-ID: <20160316170659.GM17997@ZenIV.linux.org.uk>
-References: <20160316041717.GJ17997@ZenIV.linux.org.uk>
- <56E97FD7.9020007@redhat.com>
- <CA+55aFxzJcBFG758ZD5E=c8m8G5WUhyPXRr1fTH+PgBJeqsMcQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure
+ dynamic
+Date: Wed, 16 Mar 2016 12:17:23 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1603161213560.15010@east.gentwo.org>
+References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com> <20160316154738.GA26530@phlsvsds.ph.intel.com>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+55aFxzJcBFG758ZD5E=c8m8G5WUhyPXRr1fTH+PgBJeqsMcQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20160316154738.GA26530-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ira weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 16, 2016 at 09:36:46AM -0700, Linus Torvalds wrote:
-> On Wed, Mar 16, 2016 at 8:46 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > If we want to maintain back compatibility, then the qib driver has to
-> > maintain this interface. We could possibly do a new one as well, but we
-> > can't remove this one.
-> 
-> We've broken more important driver ABI's before - all the nasty X stuff.
-> 
-> Now, the X people did learn their lesson, and it hasn't happened
-> lately (thank Gods!), but quite frankly, some shit-for-brains
-> hardware-specific config interface for a rdma device that basically
-> nobody uses is a _lot_ less important than X ever was.
-> 
-> So I don't care one whit if we break it, and it's not the kind of
-> backwards compatibility the kernel should worry about. There are
-> exactly zero regular users of this interface. I assume that people who
-> use this thing are *so* deeply technical that they can take care of
-> themselves. And it really is a completely broken interface.
-> 
-> I might be proven wrong, and somebody's dear old grandma ends up
-> complaining about a new kernel breaking her configuration, and in that
-> case we'd have to revert anything that causes that breakage. But I
-> suspect I'm not wrong.
+On Wed, 16 Mar 2016, Dennis Dalessandro wrote:
 
-Let's start with "do saner interface for hfi1 if you want it in", then
-duplicate it for ipathfs (using the saner userland side already tested on
-fixed hfi1), then we make sure nobody is even tempted to repeat that
-ugliness more or less along the lines of what you'd proposed in
-fs/read_write.c, but might as well add a sanity check in do_dentry_open(),
-where we already have
-        if ((f->f_mode & FMODE_WRITE) &&
-             likely(f->f_op->write || f->f_op->write_iter))
-                f->f_mode |= FMODE_CAN_WRITE;
-- the check for both methods being present could go there conveniently enough;
-"use new_sync_write() as ->write" is spelled as "have NULL ->write and non-NULL
-->write_iter" these days, so having both is very rare; it's only
-/dev/zero, /dev/null and these two perversions.  And while writes to /dev/null
-are very important (for email handling, if nothing else), I suspect that we
-won't be seriously hurt by having it do the extra work new_sync_write() would
-involve...  Or we could special-case that in the check (move write_null(),
-aka return the third argument into fs/libfs.c and in unlikely case of having
-both ->write and ->write_iter check if ->write is that one).
+> > +	return sprintf(buf, "%llu\n", stats.value[index]);
+> > +}
+>
+> This works fine when there are few counters, but if there are lots? What about
+> changing things to include the index in the get_protocol_stats() call so that
+> we just grab the single item we are looking for?
+
+Right now there is a limiting in the source to a max of 128 counters. In
+practice all users use less than 30 counters at this point. So we have
+some space to go until we may need a better solution. We could also save
+the stats we have retrieved so it can be used for multiple counters.
+
+But I think this something for the future.
+
+> > +	for (counters = 0; stats.name[counters]; counters++)
+> > +		;
+> > +
+> > +	BUG_ON(counters > MAX_NR_PROTOCOL_STATS);
+>
+> Should we really be bringing the machine crashing down here?
+
+The counter tables are defined at compile time. The BUG_ON ensures that
+the driver will bug immediately when testing if we hit that limit.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
