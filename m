@@ -1,31 +1,55 @@
-From: "Estela, Henry R" <henry.r.estela-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] infinipath-psm_3.3-19_g67c0807_open is available
-Date: Wed, 16 Mar 2016 18:09:05 +0000
-Message-ID: <152F98E1C68AAF499EABB07558C80F3B0277C6F0@ORSMSX106.amr.corp.intel.com>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] svcrdma: add IPv6 support
+Date: Wed, 16 Mar 2016 11:41:33 -0700
+Message-ID: <56E9A8DD.8030308@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org" <rsdance-rzwDkyJvnYokmLvzuZlaBw@public.gmane.org>
+To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Chuck Lever <Chuck.Lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, leon-2ukJVAZIZ/Y@public.gmane.org
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for infinipath-psm (3.3-19_g67c0807_open) is available at http://downloads.openfabrics.org/downloads/infinipath-psm/
+Add rdma6 option to support NFS/RDMA IPv6.
+Allow both IPv4 and IPv6 to bind same port at the same time,
+restricts use of the IPv6 socket to IPv6 communication.
 
-Vlad, it is ready for the next build.
+Changes from v1:
+- Check rdma_set_afonly return value (suggested by Leon Romanovsky)
 
-Summary of changes:
-Reduce virtual memory usage for the host on non-SCIF builds
-libpsm_infinipath version bumped to 1.16 
-Allow for signal handler to be properly disabled to allow for Open MPI Java bindings to work
-Fix hang with specific PSM_MULTIRAIL configurations
-Fix hang with Intel MPI on larger jobs
+Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
 
---
-Henry
-
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -869,7 +869,7 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 	int ret;
+ 
+ 	dprintk("svcrdma: Creating RDMA socket\n");
+-	if (sa->sa_family != AF_INET) {
++	if ((sa->sa_family != AF_INET) && (sa->sa_family != AF_INET6)) {
+ 		dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
+ 		return ERR_PTR(-EAFNOSUPPORT);
+ 	}
+@@ -885,6 +885,16 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+ 		goto err0;
+ 	}
+ 
++	/* Allow both IPv4 and IPv6 sockets to bind a single port
++	 * at the same time.
++	 */
++#if IS_ENABLED(CONFIG_IPV6)
++	ret = rdma_set_afonly(listen_id, 1);
++	if (ret) {
++		dprintk("svcrdma: rdma_set_afonly failed = %d\n", ret);
++		goto err1;
++	}
++#endif
+ 	ret = rdma_bind_addr(listen_id, sa);
+ 	if (ret) {
+ 		dprintk("svcrdma: rdma_bind_addr failed = %d\n", ret);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
