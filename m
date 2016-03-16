@@ -1,54 +1,91 @@
-From: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
-Subject: Re: [WTF] utterly tasteless ABI in hfi1 (around
- ->write()/->write_iter())
-Date: Wed, 16 Mar 2016 12:02:48 -0400
-Message-ID: <20160316160248.GE23593@thunk.org>
-References: <20160316041717.GJ17997@ZenIV.linux.org.uk>
- <56E97FD7.9020007@redhat.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V3 00/10] IB SR-IOV support
+Date: Wed, 16 Mar 2016 18:33:56 +0200
+Message-ID: <20160316163355.GF66645@x-vnc01.mtx.labs.mlnx>
+References: <1457729923-4526-1-git-send-email-eli@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <56E97FD7.9020007-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1457729923-4526-1-git-send-email-eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ira weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 16, 2016 at 11:46:31AM -0400, Doug Ledford wrote:
-> I can't speak for Mike, but I never said "It's Special".  I said it's a
-> driver internal thing with only one consumer and the kernel driver and
-> the user space consumer are a matched pair.  If this were a general API
-> for use by any old program I would agree with you, but since it isn't, I
-> wasn't that concerned about whether it got fixed.  If it broke, Intel
-> had both pieces and could fix it.  And with that in mind I said "ince
-> this is an internal driver interface that only Intel uses, I'm not
-> inclined to force them to rewrite their driver and their library just
-> because their particular usage took you off guard."
+Hi Doug,
 
-The thing which is really scary about the "we own both pieces, so we
-can be sloppy with the interface design" is there is the question of
-whether there are any security issues with such an interface.  Maybe
-the assumption is that only root will get to access the interface, but
-as we're seeing with user namespaces, very often these assumptions are
-getting upended.
+Now that there are no pending issues, are you going to merge this series?
 
-So certainly if I were a bad guy working at the NSA^H^H^H^H KGB trying
-to find a zero-day that I would keep in my agency's back pocket,
-interfaces designed with this kind of attitude would be the first
-place I would look.
-
-> For the hfi1 driver (and OPA in general), we do have the ability to do a
-> new API.  But, going back to what I said before, I just don't care that
-> much.  It's Intel internal stuff as far as I'm concerned.  If they do
-> something fragile and it breaks, then that's all on their hands.
-
-Except if there's a security vulernability, then it's on our
-collective heads as kernel developers.  Unless we want to tell people,
-"don't use intel hardware, it's written by device driver authors who
-are sloppy"....
-
-							- Ted
+On Fri, Mar 11, 2016 at 10:58:33PM +0200, Eli Cohen wrote:
+> Hi Doug, Dave
+> 
+> The following series adds support for managing SRIOV IB VFs in a standard
+> way (rtnetlink, iproute2) through IPoIB ndo entries which translate to
+> corresponding verbs calls.
+> 
+> In IB networks, 64 bit GUIDs are used as the primary means of identification.
+> To support that for VFs, we added a set_vf_guid ndo which is used to program
+> the VF node and port GUID from the PF.
+> 
+> Those verbs are implemented by the mlx5 driver along with some more changes
+> needed in the driver, IPoIB and the IB core to support IB virtualization.
+> 
+> We've copied netdev only on the 1st patch of the series, as the rest of it just
+> uses the patch along with the existing ndos in IPoIB plus add things which
+> are internal to the IB stack.
+> 
+> The series is rebased against Doug's mlx5 branch and Leon's patch that extends
+> the kernel ib device attr caps field to u64:
+> https://patchwork.kernel.org/patch/8388931/
+> 
+> Eli
+> 
+> Changes from V2:
+> 1. Change the well known SA GUID to locally administered
+> 2. Fix alignment issue with subnet_prefix
+> 
+> Eli Cohen (10):
+>   net/core: Add support for configuring VF GUIDs
+>   IB/mlx5: Fix decision on using MAD_IFC
+>   IB/core: Add subnet prefix to port info
+>   IB/core: Support accessing SA in virtualized environment
+>   IB/core: Add interfaces to control VF attributes
+>   IB/ipoib: Add ndo operations for configuring VFs
+>   net/mlx5_core: Add VF param when querying vport counter
+>   net/mlx5_core: Implement modify HCA vport command
+>   IB/mlx5: Implement callbacks for manipulating VFs
+>   IB/ipoib: Allow mcast packets from other VFs
+> 
+>  drivers/infiniband/core/device.c                |  15 +-
+>  drivers/infiniband/core/sa_query.c              |   5 +
+>  drivers/infiniband/core/verbs.c                 |  40 +++++
+>  drivers/infiniband/hw/mlx5/Makefile             |   2 +-
+>  drivers/infiniband/hw/mlx5/ib_virt.c            | 194 ++++++++++++++++++++++++
+>  drivers/infiniband/hw/mlx5/mad.c                |   2 +-
+>  drivers/infiniband/hw/mlx5/main.c               |  12 +-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h            |   8 +
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c         |  27 +++-
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c       |  65 +++++++-
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c   |   6 +
+>  drivers/net/ethernet/mellanox/mlx5/core/vport.c |  72 ++++++++-
+>  include/linux/mlx5/driver.h                     |   5 +-
+>  include/linux/mlx5/mlx5_ifc.h                   |   6 +
+>  include/linux/mlx5/vport.h                      |   7 +-
+>  include/linux/netdevice.h                       |   3 +
+>  include/rdma/ib_verbs.h                         |  26 ++++
+>  include/uapi/linux/if_link.h                    |   7 +
+>  net/core/rtnetlink.c                            |  36 +++++
+>  19 files changed, 521 insertions(+), 17 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/mlx5/ib_virt.c
+> 
+> -- 
+> 1.8.3.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
