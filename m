@@ -1,32 +1,58 @@
 From: Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
 Subject: Re: [RFC PATCH kernel] Revert "net/mlx4_core: Set UAR page size to
  4KB regardless of system page size"
-Date: Wed, 16 Mar 2016 12:52:31 +1100
-Message-ID: <56E8BC5F.5050306@ozlabs.ru>
+Date: Wed, 16 Mar 2016 13:07:58 +1100
+Message-ID: <56E8BFFE.9000803@ozlabs.ru>
 References: <1458037148-4475-1-git-send-email-aik@ozlabs.ru>
  <CAJ3xEMhxUuQj+E00fa-tEKz+dVzDqFspC80Z=k7UPZpOP30H3g@mail.gmail.com>
- <20160315121832.GA4741@infradead.org>
- <CAJ3xEMg5fq3Z2VH_qDjsFmTzhCibAGiXT9oEddEKbwktvSYSQQ@mail.gmail.com>
- <20160315152911.GA21139@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=koi8-r; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160315152911.GA21139-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <CAJ3xEMhxUuQj+E00fa-tEKz+dVzDqFspC80Z=k7UPZpOP30H3g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Carol L Soto <clsoto-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Carol L Soto <clsoto-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Brian J King <bjking1-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/16/2016 02:29 AM, Christoph Hellwig wrote:
-> On Tue, Mar 15, 2016 at 04:23:33PM +0200, Or Gerlitz wrote:
->> Let us check. I was under (the maybe wrong) impression, that before this
->> patch both PF/VF drivers were not operative on some systems, so on those
->> systems it's fair to require the VF driver to be patched too.
+On 03/15/2016 09:40 PM, Or Gerlitz wrote:
+> On Tue, Mar 15, 2016 at 12:19 PM, Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org> wrote:
+>> This reverts commit 85743f1eb34548ba4b056d2f184a3d107a3b8917.
+>>
+>> Without this revert, POWER "pseries" KVM guests with a VF passed to a guest
+>> using VFIO fail to bring the driver up:
+>>
+>> mlx4_core: Mellanox ConnectX core driver v2.2-1 (Feb, 2014)
+>> mlx4_core: Initializing 0000:00:00.0
+>> mlx4_core 0000:00:00.0: enabling device (0000 -> 0002)
+>> mlx4_core 0000:00:00.0: Detected virtual function - running in slave mode
+>> mlx4_core 0000:00:00.0: Sending reset
+>> mlx4_core 0000:00:00.0: Sending vhcr0
+>> mlx4_core 0000:00:00.0: HCA minimum page size:512
+>> mlx4_core 0000:00:00.0: UAR size:4096 != kernel PAGE_SIZE of 65536
+>> mlx4_core 0000:00:00.0: Failed to obtain slave caps
 >
-> To me it sounds like the system worked before. Alexey, can you confirm?
+>> Both host and guest use 64K system pages.
+>>
+>> How to fix this properly? Thanks.
+>
+> The commit message says:
+>
+> "[..] Regarding backward compatibility in SR-IOV, if hypervisor has
+> this new code, the virtual OS must be updated. [...]"
 
-It worked just fine for year(s), this is definitely regression.
+
+So with v4.5 as a host, there is no actual distro available today to use as 
+a guest in the next 6 months (or whatever it takes to backport this 
+partucular patch back there).
+
+You could have added a module parameter to enforce the old behavoir, at 
+least...
+
+And sorry but from the original commit log I could not understand why 
+exactly all existing guests need to be broken. Could you please point me to 
+a piece of documentation describing all this UAR bisuness (what is UAR, why 
+128 UARs are required and for what, etc). Thanks.
 
 
 -- 
