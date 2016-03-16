@@ -1,62 +1,46 @@
-From: Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
-Subject: Re: [RFC PATCH kernel] Revert "net/mlx4_core: Set UAR page size to
- 4KB regardless of system page size"
-Date: Wed, 16 Mar 2016 13:07:58 +1100
-Message-ID: <56E8BFFE.9000803@ozlabs.ru>
-References: <1458037148-4475-1-git-send-email-aik@ozlabs.ru>
- <CAJ3xEMhxUuQj+E00fa-tEKz+dVzDqFspC80Z=k7UPZpOP30H3g@mail.gmail.com>
+From: Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Subject: [WTF] utterly tasteless ABI in hfi1 (around ->write()/->write_iter())
+Date: Wed, 16 Mar 2016 04:17:18 +0000
+Message-ID: <20160316041717.GJ17997@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMhxUuQj+E00fa-tEKz+dVzDqFspC80Z=k7UPZpOP30H3g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eugenia Emantayev <eugenia-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Carol L Soto <clsoto-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Brian J King <bjking1-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/15/2016 09:40 PM, Or Gerlitz wrote:
-> On Tue, Mar 15, 2016 at 12:19 PM, Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org> wrote:
->> This reverts commit 85743f1eb34548ba4b056d2f184a3d107a3b8917.
->>
->> Without this revert, POWER "pseries" KVM guests with a VF passed to a guest
->> using VFIO fail to bring the driver up:
->>
->> mlx4_core: Mellanox ConnectX core driver v2.2-1 (Feb, 2014)
->> mlx4_core: Initializing 0000:00:00.0
->> mlx4_core 0000:00:00.0: enabling device (0000 -> 0002)
->> mlx4_core 0000:00:00.0: Detected virtual function - running in slave mode
->> mlx4_core 0000:00:00.0: Sending reset
->> mlx4_core 0000:00:00.0: Sending vhcr0
->> mlx4_core 0000:00:00.0: HCA minimum page size:512
->> mlx4_core 0000:00:00.0: UAR size:4096 != kernel PAGE_SIZE of 65536
->> mlx4_core 0000:00:00.0: Failed to obtain slave caps
->
->> Both host and guest use 64K system pages.
->>
->> How to fix this properly? Thanks.
->
-> The commit message says:
->
-> "[..] Regarding backward compatibility in SR-IOV, if hypervisor has
-> this new code, the virtual OS must be updated. [...]"
+	Folks, we'd discussed that kind of crap already; why, in name of
+everything unholy, is that kind of garbage brought back in a new driver?
 
+	Having both ->write() and ->write_iter() *AND* having entirely
+unrelated interpretation of user input on those two on the same device
+is bogus, with the capital Stop That Shit Right Now.
 
-So with v4.5 as a host, there is no actual distro available today to use as 
-a guest in the next 6 months (or whatever it takes to backport this 
-partucular patch back there).
+	As it is, write(fd, p, len) and writev(fd, &(struct iovec){p,len}, 1)
+are interpreted in absolutely unrelated ways.  As in, entirely different
+set of commands.  Moreover, aio IOCB_CMD_PWRITE matches writev(), not write().
 
-You could have added a module parameter to enforce the old behavoir, at 
-least...
+	What's going on?  Sure, ipathfs is a precious snowflake with the same
+kind of braindamage.  Back when it had been brought to your attention
+(along with the fact that this piece of idiocy happens to be a file on
+filesystem of your own, under your full control and no need whatsofuckingever
+to multiplex completely unrelated sets of commands on the same file with
+"was it write(2) or writev(2)?" used as a selector) the answer had been
+basically "it doesn't have to make sense, it's Special".  Now it turns out
+that it has grown an equally special sibling.  With the idiocy directly
+exposed as userland ABI.  Could we please fix that thing before it's cast in
+stone?
 
-And sorry but from the original commit log I could not understand why 
-exactly all existing guests need to be broken. Could you please point me to 
-a piece of documentation describing all this UAR bisuness (what is UAR, why 
-128 UARs are required and for what, etc). Thanks.
+	Take a look at drivers/staging/rdma/hfi1/file_ops.c in -next and
+compare hfi1_write_iter() with hfi1_file_write().  Folks, this ABI is too
+ugly to live, let alone to be allowed breeding.
 
-
--- 
-Alexey
+	It's also brittle as hell - trivial massage around fs/read_write.c
+and fs/aio.c is quite capable of breaking that shit.  Arguably, IOCB_CMD_PWRITE
+and IOCB_CMD_PWRITEV both triggering your writev() semantics is an example of
+just such breakage.  Sigh...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
