@@ -1,86 +1,54 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Wed, 16 Mar 2016 17:53:37 +0200
-Message-ID: <CAJ3xEMjWxdwM0wQR85_-wHpPhYSWz1W0T8H_nDjnp2JS7G29Qw@mail.gmail.com>
-References: <CAJ3xEMj8gz6Xw1bqA677fC8=U2ktLQ6b4W20SeNrztN7u6UKZg@mail.gmail.com>
-	<20160309002157.GA20105@phlsvsds.ph.intel.com>
-	<20160309050731.GM13396@leon.nu>
-	<20160309192109.GB15031@phlsvsds.ph.intel.com>
-	<20160310045609.GC1977@leon.nu>
-	<20160314070951.GB26456@leon.nu>
-	<20160314120152.GA30838@phlsvsds.ph.intel.com>
-	<CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com>
-	<20160315012049.GA30055@phlsvsds.ph.intel.com>
-	<CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w@mail.gmail.com>
-	<20160315193731.GA20662@phlsvsds.ph.intel.com>
+From: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
+Subject: Re: [WTF] utterly tasteless ABI in hfi1 (around
+ ->write()/->write_iter())
+Date: Wed, 16 Mar 2016 12:02:48 -0400
+Message-ID: <20160316160248.GE23593@thunk.org>
+References: <20160316041717.GJ17997@ZenIV.linux.org.uk>
+ <56E97FD7.9020007@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160315193731.GA20662-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56E97FD7.9020007-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ira weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 15, 2016 at 9:37 PM, Dennis Dalessandro
-<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Mar 15, 2016 at 09:03:49AM +0200, Or Gerlitz wrote:
+On Wed, Mar 16, 2016 at 11:46:31AM -0400, Doug Ledford wrote:
+> I can't speak for Mike, but I never said "It's Special".  I said it's a
+> driver internal thing with only one consumer and the kernel driver and
+> the user space consumer are a matched pair.  If this were a general API
+> for use by any old program I would agree with you, but since it isn't, I
+> wasn't that concerned about whether it got fixed.  If it broke, Intel
+> had both pieces and could fix it.  And with that in mind I said "ince
+> this is an internal driver interface that only Intel uses, I'm not
+> inclined to force them to rewrite their driver and their library just
+> because their particular usage took you off guard."
 
->> Iterative approach doesn't say we should pick code into the kernel and throw
->> it away later. There are rare times it happens, when people were not able
->> to agree on something for years and the maintainer say enough is enough,
->> we'll take it and see later.
+The thing which is really scary about the "we own both pieces, so we
+can be sloppy with the interface design" is there is the question of
+whether there are any security issues with such an interface.  Maybe
+the assumption is that only root will get to access the interface, but
+as we're seeing with user namespaces, very often these assumptions are
+getting upended.
 
-> Never said anything about throwing it all away. My point is, we are talking
-> about a single driver and exactly one user of it.  It's not like we are
-> adding core kernel functionality here that impacts multiple drivers, or have
-> to worry about changing ABIs across a bunch of different users. We have the
-> freedom to fix and change things as needed.
+So certainly if I were a bad guy working at the NSA^H^H^H^H KGB trying
+to find a zero-day that I would keep in my agency's back pocket,
+interfaces designed with this kind of attitude would be the first
+place I would look.
 
-The fact there is one user of driver X doesn't justify functionality Y
-to reside in the
-kernel and not in user-space.
+> For the hfi1 driver (and OPA in general), we do have the ability to do a
+> new API.  But, going back to what I said before, I just don't care that
+> much.  It's Intel internal stuff as far as I'm concerned.  If they do
+> something fragile and it breaks, then that's all on their hands.
 
+Except if there's a security vulernability, then it's on our
+collective heads as kernel developers.  Unless we want to tell people,
+"don't use intel hardware, it's written by device driver authors who
+are sloppy"....
 
-> Regardless that stuff aside, I wanted to talk to some folks who are
-> more familiar with the inner workings of psm than I. So I appreciate the
-> patience while I gathered the feedback from interested parties.
-> So basically what happens in this series is that psm calls into the kernel
-> to do an sdma transfer, the caching is a side effect that happens under the
-> covers.  We can see this from the code in this series. What may not be so
-> apparent is that the user library does not have to do anything to take
-> advantage of the cache. Further it doesn't even have to know about the
-> cache.  Which is one of the appeals of this patch series. The other, and
-> what trumps all, is performance.
-
-The fact that under your current design the user-space library is not involved
-with the caching doesn't mean the correct place for the cache is the kernel.
-
-> Taking a performance standpoint we don't want this in user space. If the
-> cache were at the user level there would end up being a system call to pin
-> the buffer, another to do the SDMA transfer from said buffer, and another to
-> unpin the buffer when the kernel notifier has invalidated that buffer.  This
-> gets even more complex when you consider cache evictions due to reaching the
-> limit on pinned pages.
-> These extra system calls add overhead, which may be acceptable for a normal
-> server or desktop environment, but are not acceptable when dealing with a
-> high performance interconnect where we want the absolute best performance.
-
-> I should also point out that these extra calls would be done on a per-buffer
-> basis, not per-context, or per-application.
-
-The cache comes to amortize the cost of pin/unpin and such, correct? this means
-that over longs runs, if there's nice locality of the same process
-using the same pages,
-you pay the register/pin cost once, later use lazy
-de-registration/pinning, and only do that
-when MMU notifier tells you this is a must, or under some eviction policy.
-
-Since the cost is amortized, the system calls over-head should be negligible
-(also, the same system call can be used to evict X and register Y), do you
-have performance data that shows otherwise?
-
-Or.
+							- Ted
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
