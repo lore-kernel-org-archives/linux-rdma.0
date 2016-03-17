@@ -1,79 +1,63 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] svcrdma: add IPv6 support
-Date: Thu, 17 Mar 2016 10:01:50 -0400
-Message-ID: <9D93B217-3044-4404-8EB4-6CD0DD759642@oracle.com>
-References: <56E9A8DD.8030308@oracle.com> <20160317084210.GE25216@leon.nu>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 0/8] Introduce vector CALC support
+Date: Thu, 17 Mar 2016 16:48:47 +0200
+Message-ID: <20160317144847.GF25216@leon.nu>
+References: <1456215928-9305-1-git-send-email-leon@leon.nu>
+ <20160306104508.GB13396@leon.nu>
+ <20160312101724.GB11383@leon.nu>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160317084210.GE25216-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160312101724.GB11383-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Cc: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Server-side patch; cc-ing Bruce.
-
-> On Mar 17, 2016, at 4:42 AM, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org> wrote:
+On Sat, Mar 12, 2016 at 12:17:24PM +0200, Leon Romanovsky wrote:
+> On Sun, Mar 06, 2016 at 12:45:08PM +0200, Leon Romanovsky wrote:
+> > On Tue, Feb 23, 2016 at 10:25:20AM +0200, Leon Romanovsky wrote:
+> > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > 
+> > > NET part (patches #1-3)
+> > > * Patch #1 fixes ATOMIC capability mode. This change has  no impact on
+> > > * the system, since MAX property is not in use for ATOMIC.
+> > > * Patch #2 merges two device capability calls in one.
+> > > * Patch #3 adds infrastructure to support vector CALC querying.
+> > > 
+> > > IB part (patches #4-8)
+> > > * Patch #4 refactors device query code by eliminating the unnecessary zeroing
+> > >   of variables
+> > > * Patch #5 converts device capability mask from u32 to be u64 and support more
+> > >   than 32 device capabilities.
+> > 
+> > Hi Doug,
+> > Is it possible to accept the patches #1-5 which fix and refactor
+> > code only?
 > 
-> On Wed, Mar 16, 2016 at 11:41:33AM -0700, Shirley Ma wrote:
->> Add rdma6 option to support NFS/RDMA IPv6.
->> Allow both IPv4 and IPv6 to bind same port at the same time,
->> restricts use of the IPv6 socket to IPv6 communication.
->> 
->> Changes from v1:
->> - Check rdma_set_afonly return value (suggested by Leon Romanovsky)
-> 
-> Looks good to me.
-> Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Thanks.
-> 
->> 
->> Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> 
->> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
->> @@ -869,7 +869,7 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
->> 	int ret;
->> 
->> 	dprintk("svcrdma: Creating RDMA socket\n");
->> -	if (sa->sa_family != AF_INET) {
->> +	if ((sa->sa_family != AF_INET) && (sa->sa_family != AF_INET6)) {
-> 
->> 		dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
->> 		return ERR_PTR(-EAFNOSUPPORT);
->> 	}
->> @@ -885,6 +885,16 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
->> 		goto err0;
->> 	}
->> 
->> +	/* Allow both IPv4 and IPv6 sockets to bind a single port
->> +	 * at the same time.
->> +	 */
->> +#if IS_ENABLED(CONFIG_IPV6)
->> +	ret = rdma_set_afonly(listen_id, 1);
->> +	if (ret) {
->> +		dprintk("svcrdma: rdma_set_afonly failed = %d\n", ret);
->> +		goto err1;
->> +	}
->> +#endif
->> 	ret = rdma_bind_addr(listen_id, sa);
->> 	if (ret) {
->> 		dprintk("svcrdma: rdma_bind_addr failed = %d\n", ret);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hi Doug,
+> Your response will be greatly appreciated.
 
---
-Chuck Lever
+Hi Doug,
+As a follow up to our phone conversation, the patches #1-5 has nothing
+related to Vector CALC which is introduced in patch #6 only.
 
+These patches perform simple refactoring and value extension which is
+enough for Eli's SRIOV series.
 
+The patches #6-8 will be respinned later with improved version of
+Vector CALC.
 
+Thanks.
+
+> 
+> > 
+> > > * Patch #6 adds vector CALC device capability flag.
+> > > * Patch #7 exports all possible supported operations.
+> > > * Patch #8 advertises the mlx5 driver support of vector CALC.
+> > 
+> > Thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
