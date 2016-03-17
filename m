@@ -1,49 +1,66 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Thu, 17 Mar 2016 10:17:16 +0200
-Message-ID: <20160317081716.GD25216@leon.nu>
-References: <20160315155441.222586021@linux.com>
- <20160315155455.173645653@linux.com>
- <20160317072354.GB25216@leon.nu>
+Subject: Re: [PATCH v2] svcrdma: add IPv6 support
+Date: Thu, 17 Mar 2016 10:42:10 +0200
+Message-ID: <20160317084210.GE25216@leon.nu>
+References: <56E9A8DD.8030308@oracle.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160317072354.GB25216-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <56E9A8DD.8030308-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Chuck Lever <Chuck.Lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 17, 2016 at 09:23:54AM +0200, Leon Romanovsky wrote:
-> On Tue, Mar 15, 2016 at 10:54:42AM -0500, Christoph Lameter wrote:
-> > +static struct attribute_group *create_protocol_stats(struct ib_device *device,
-> > +						     struct kobject *kobj,
-> > +						     u8 port) {
-> > +	struct attribute_group *ag;
-> > +	struct rdma_protocol_stats stats = {0};
-> > +	u32 counters;
-> > +	u32 i;
-> > +	int ret;
-> > +
-> > +	ret = device->get_protocol_stats(device, &stats, port);
-> > +
-> > +	if (ret || !stats.name)
+On Wed, Mar 16, 2016 at 11:41:33AM -0700, Shirley Ma wrote:
+> Add rdma6 option to support NFS/RDMA IPv6.
+> Allow both IPv4 and IPv6 to bind same port at the same time,
+> restricts use of the IPv6 socket to IPv6 communication.
 > 
-> This check puzzles me, "stats" variable was declares on stack a couple
-> of lines before. All values in it were assigned to zero, so my
-> expectation that stats.name == 0 (null). Am I right?
-> So what do you check here?
+> Changes from v1:
+> - Check rdma_set_afonly return value (suggested by Leon Romanovsky)
 
-Reply to myself, after internal conversation.
-The stats.name is filled by get_protocol_stats function in case of
-counter was found.
+Looks good to me.
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I didn't check for other proposals except mlx5 but I assume that in case nothing was filled
-there, this function should return NOSUPPORT.
+Thanks.
 
 > 
-> > +		return NULL;
+> Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> 
+> diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+> @@ -869,7 +869,7 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+>  	int ret;
+>  
+>  	dprintk("svcrdma: Creating RDMA socket\n");
+> -	if (sa->sa_family != AF_INET) {
+> +	if ((sa->sa_family != AF_INET) && (sa->sa_family != AF_INET6)) {
+
+>  		dprintk("svcrdma: Address family %d is not supported.\n", sa->sa_family);
+>  		return ERR_PTR(-EAFNOSUPPORT);
+>  	}
+> @@ -885,6 +885,16 @@ static struct svc_xprt *svc_rdma_create(struct svc_serv *serv,
+>  		goto err0;
+>  	}
+>  
+> +	/* Allow both IPv4 and IPv6 sockets to bind a single port
+> +	 * at the same time.
+> +	 */
+> +#if IS_ENABLED(CONFIG_IPV6)
+> +	ret = rdma_set_afonly(listen_id, 1);
+> +	if (ret) {
+> +		dprintk("svcrdma: rdma_set_afonly failed = %d\n", ret);
+> +		goto err1;
+> +	}
+> +#endif
+>  	ret = rdma_bind_addr(listen_id, sa);
+>  	if (ret) {
+>  		dprintk("svcrdma: rdma_bind_addr failed = %d\n", ret);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
