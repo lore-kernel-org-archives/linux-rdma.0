@@ -1,108 +1,77 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
- remove_one
-Date: Thu, 17 Mar 2016 10:48:31 -0600
-Message-ID: <20160317164831.GI19501@obsidianresearch.com>
-References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com>
- <20160312204502.GA8346@obsidianresearch.com>
- <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
- <20160314174814.GB5240@obsidianresearch.com>
- <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ@mail.gmail.com>
- <20160315203112.GA2786@obsidianresearch.com>
- <CANjDDBj8aZTeAfwxFuyk9r=kdihfxpxDA69-c4uVxkvcAfXViw@mail.gmail.com>
- <20160317161237.GB19501@obsidianresearch.com>
- <CANjDDBhYH7HsUyP8-Ko7G0tnWxYDGYCGgaC4HK0Eod_isvoWAA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CANjDDBhYH7HsUyP8-Ko7G0tnWxYDGYCGgaC4HK0Eod_isvoWAA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Eli Cohen <eli@mellanox.com>
+Subject: [PATCH net-next] net/mlx4_core: Fix backward compatibility on VFs
+Date: Thu, 17 Mar 2016 18:49:42 +0200
+Message-ID: <1458233382-12871-1-git-send-email-eli@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, aik@ozlabs.ru, Eli Cohen <eli@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 17, 2016 at 10:01:55PM +0530, Devesh Sharma wrote:
-> On Thu, Mar 17, 2016 at 9:42 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Thu, Mar 17, 2016 at 09:38:30PM +0530, Devesh Sharma wrote:
-> >
-> >> To my mind mutex is *not* solving the problem completely unless we
-> >> make it a coarser grained lock. The possible deadlock problem still
-> >> lingers around it.
-> >
-> > Review the last version I sent, with this statement in mind:
-> 
-> I am sorry I lost the track of it, which one you are point..we have
-> been discussion for a quite some time now!
+Commit 85743f1eb345 ("net/mlx4_core: Set UAR page size to 4KB regardless
+of system page size") introduced dependency where old VF drivers without
+this fix fail to load if the PF driver runs with this commit.
 
-Not saying it is perfect, but it should be close:
+To resolve this add a module parameter which disables that functionality
+by default.  If both the PF and VFs are running with a driver with that
+commit the administrator may set the module param to true.
 
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- {
- 	struct ib_uverbs_file *file = filp->private_data;
- 	struct ib_uverbs_device *dev = file->device;
--	struct ib_ucontext *ucontext = NULL;
+The module parameter is called enable_4k_uar.
+
+Fixes: 85743f1eb345 ('net/mlx4_core: Set UAR page size to 4KB ...')
+Signed-off-by: Eli Cohen <eli@mellanox.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 503ec23e84cc..358f7230da58 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -105,6 +105,11 @@ module_param(enable_64b_cqe_eqe, bool, 0444);
+ MODULE_PARM_DESC(enable_64b_cqe_eqe,
+ 		 "Enable 64 byte CQEs/EQEs when the FW supports this (default: True)");
+ 
++static bool enable_4k_uar;
++module_param(enable_4k_uar, bool, 0444);
++MODULE_PARM_DESC(enable_4k_uar,
++		 "Enable using 4K UAR. Should not be enabled if have VFs which do not support 4K UARs (default: false)");
 +
-+	mutex_lock(&file->cleanup_mutex);
-+	if (file->ucontext) {
-+		ib_uverbs_cleanup_ucontext(file, file->ucontext);
-+		file->ucontext = NULL;
-+	}
-+	mutex_unlock(&file->cleanup_mutex);
- 
- 	mutex_lock(&file->device->lists_mutex);
--	ucontext = file->ucontext;
--	file->ucontext = NULL;
- 	if (!file->is_closed) {
- 		list_del(&file->list);
- 		file->is_closed = 1;
- 	}
- 	mutex_unlock(&file->device->lists_mutex);
--	if (ucontext)
--		ib_uverbs_cleanup_ucontext(file, ucontext);
- 
- 	if (file->async_file)
- 		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
-@@ -1177,26 +1179,28 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
- 
- 	mutex_lock(&uverbs_dev->lists_mutex);
- 	while (!list_empty(&uverbs_dev->uverbs_file_list)) {
--		struct ib_ucontext *ucontext;
--
- 		file = list_first_entry(&uverbs_dev->uverbs_file_list,
- 					struct ib_uverbs_file, list);
- 		file->is_closed = 1;
--		ucontext = file->ucontext;
- 		list_del(&file->list);
--		file->ucontext = NULL;
- 		kref_get(&file->ref);
- 		mutex_unlock(&uverbs_dev->lists_mutex);
-+
- 		/* We must release the mutex before going ahead and calling
- 		 * disassociate_ucontext. disassociate_ucontext might end up
- 		 * indirectly calling uverbs_close, for example due to freeing
- 		 * the resources (e.g mmput).
+ #define PF_CONTEXT_BEHAVIOUR_MASK	(MLX4_FUNC_CAP_64B_EQE_CQE | \
+ 					 MLX4_FUNC_CAP_EQE_CQE_STRIDE | \
+ 					 MLX4_FUNC_CAP_DMFS_A0_STATIC)
+@@ -423,7 +428,11 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 		/* Virtual PCI function needs to determine UAR page size from
+ 		 * firmware. Only master PCI function can set the uar page size
  		 */
- 		ib_uverbs_event_handler(&file->event_handler, &event);
--		if (ucontext) {
--			ib_dev->disassociate_ucontext(ucontext);
--			ib_uverbs_cleanup_ucontext(file, ucontext);
-+		mutex_lock(&file->cleanup_mutex);
-+		if (file->ucontext) {
-+			file->ucontext = NULL;
-+			mutex_unlock(&file->cleanup_mutex);
-+			ib_dev->disassociate_ucontext(file->ucontext);
-+			ib_uverbs_cleanup_ucontext(file, file->ucontext);
- 		}
+-		dev->uar_page_shift = DEFAULT_UAR_PAGE_SHIFT;
++		if (enable_4k_uar)
++			dev->uar_page_shift = DEFAULT_UAR_PAGE_SHIFT;
 +		else
-+			mutex_unlock(&file->cleanup_mutex);
++			dev->uar_page_shift = PAGE_SHIFT;
++
+ 		mlx4_set_num_reserved_uars(dev, dev_cap);
+ 	}
  
- 		mutex_lock(&uverbs_dev->lists_mutex);
- 		kref_put(&file->ref, ib_uverbs_release_file);
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@@ -2233,11 +2242,14 @@ static int mlx4_init_hca(struct mlx4_dev *dev)
+ 
+ 		dev->caps.max_fmr_maps = (1 << (32 - ilog2(dev->caps.num_mpts))) - 1;
+ 
+-		/* Always set UAR page size 4KB, set log_uar_sz accordingly */
+-		init_hca.log_uar_sz = ilog2(dev->caps.num_uars) +
+-				      PAGE_SHIFT -
+-				      DEFAULT_UAR_PAGE_SHIFT;
+-		init_hca.uar_page_sz = DEFAULT_UAR_PAGE_SHIFT - 12;
++		if (enable_4k_uar) {
++			init_hca.log_uar_sz = ilog2(dev->caps.num_uars) +
++						    PAGE_SHIFT - DEFAULT_UAR_PAGE_SHIFT;
++			init_hca.uar_page_sz = DEFAULT_UAR_PAGE_SHIFT - 12;
++		} else {
++			init_hca.log_uar_sz = ilog2(dev->caps.num_uars);
++			init_hca.uar_page_sz = PAGE_SHIFT - 12;
++		}
+ 
+ 		init_hca.mw_enabled = 0;
+ 		if (dev->caps.flags & MLX4_DEV_CAP_FLAG_MEM_WINDOW ||
+-- 
+1.8.3.1
