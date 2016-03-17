@@ -1,53 +1,206 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv9 1/3] rdmacg: Added rdma cgroup controller
-Date: Fri, 18 Mar 2016 01:34:01 +0530
-Message-ID: <CAG53R5U5f1YBLGuh7Gf7TfbFnrMs+77=8UXKUpKp86oDuGLj7w@mail.gmail.com>
-References: <1456859137-13646-1-git-send-email-pandit.parav@gmail.com>
-	<1456859137-13646-2-git-send-email-pandit.parav@gmail.com>
-	<20160302173949.GG29826@mtj.duckdns.org>
-	<CAG53R5UAmTP9-m77-j2tPGZ+z8AicuVvUB_++cRUbQY-EwaBYw@mail.gmail.com>
-	<CAG53R5VYnTMzG4DchY2DKgveeeXbKcjUWQpOOjCNQuY-f7g9bg@mail.gmail.com>
-	<CAG53R5Wwr41Ma4AbTG==4VcOGvdO=t=be8z0Lkfq0YukuBtCzg@mail.gmail.com>
-	<20160305125215.GC3567@htj.duckdns.org>
-	<CAG53R5V-fhbVqZWroAkvDpgjNWchnO87G47-iXqSGg41sY1A5Q@mail.gmail.com>
-	<CAG53R5XPFJn-gKvr-WtJy-+zv=APK0DWTBY96fo47XUD9h1FcQ@mail.gmail.com>
-	<20160316204002.GG21104@mtj.duckdns.org>
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i40iw: Replace the obsolete crypto hash interface with shash
+Date: Thu, 17 Mar 2016 16:22:20 -0500
+Message-ID: <20160317212220.GA7292@TENIKOLO-MOBL2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20160316204002.GG21104@mtj.duckdns.org>
-Sender: linux-doc-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tejun,
+This patch replaces the obsolete crypto hash interface with shash
+and resolves a build failure after merge of the rdma tree
+which is caused by the removal of crypto hash interface
 
-On Thu, Mar 17, 2016 at 2:10 AM, Tejun Heo <tj@kernel.org> wrote:
->
->> If this is ok. I will keep the code as it is, because it uses common
->> helper functions for max and current files.
->
-> Hmmm... can you please try to refactor the common part to helpers?
-> It's not a big thing but there were both styles across different
-> controllers and helper based ones tend to be easier to follow.
->
-in this v9 patch, To read max and current value, entry point is common
-function rdmacg_resource_read().
-This is due to the fact that reading max and current needs to do same
-thing. Exceptions are taken care
-in below helper functions.
-It uses two small helper functions
-1. get_cg_rpool_values
-2. print_rpool_values
-Can I continue with this approach?
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw.h       |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h |  7 +++---
+ drivers/infiniband/hw/i40iw/i40iw_puda.c  |  6 +++---
+ drivers/infiniband/hw/i40iw/i40iw_puda.h  |  8 +++----
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 36 +++++++++++++++++++++----------
+ 5 files changed, 37 insertions(+), 21 deletions(-)
 
-> I see, but if that's the case, please drop the fine locking.  The fine
-> locking doesn't make much sense - as implemented it's slower and the
-> whole thing is not hot.
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index 19f6651..8197676 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -52,6 +52,7 @@
+ #include <rdma/iw_cm.h>
+ #include <rdma/iw_portmap.h>
+ #include <rdma/rdma_netlink.h>
++#include <crypto/hash.h>
+ 
+ #include "i40iw_status.h"
+ #include "i40iw_osdep.h"
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_osdep.h b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+index 4d840a9..7e20493 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_osdep.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+@@ -39,6 +39,7 @@
+ #include <linux/string.h>
+ #include <linux/bitops.h>
+ #include <net/tcp.h>
++#include <crypto/hash.h>
+ /* get readq/writeq support for 32 bit kernels, use the low-first version */
+ #include <linux/io-64-nonatomic-lo-hi.h>
+ 
+@@ -171,12 +172,12 @@ struct i40iw_hw;
+ u8 __iomem *i40iw_get_hw_addr(void *dev);
+ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
+ enum i40iw_status_code i40iw_vf_wait_vchnl_resp(struct i40iw_sc_dev *dev);
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc, void *addr,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc, void *addr,
+ 					      u32 length, u32 value);
+ struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev, struct i40iw_puda_buf *buf);
+ void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length, u32 seqnum);
+-void i40iw_free_hash_desc(struct hash_desc *);
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *);
++void i40iw_free_hash_desc(struct shash_desc *);
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **);
+ enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
+ 						 struct i40iw_puda_buf *buf);
+ enum i40iw_status_code i40iw_cqp_sds_cmd(struct i40iw_sc_dev *dev,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index ae9971f..8eb400d8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -729,7 +729,7 @@ void i40iw_puda_dele_resources(struct i40iw_sc_dev *dev,
+ 
+ 	switch (rsrc->completion) {
+ 	case PUDA_HASH_CRC_COMPLETE:
+-		i40iw_free_hash_desc(&rsrc->hash_desc);
++		i40iw_free_hash_desc(rsrc->hash_desc);
+ 	case PUDA_QP_CREATED:
+ 		do {
+ 			if (reset)
+@@ -1142,7 +1142,7 @@ static enum i40iw_status_code i40iw_ieq_handle_partial(struct i40iw_puda_rsrc *i
+ 	crcptr = txbuf->data + fpdu_len - 4;
+ 	mpacrc = *(u32 *)crcptr;
+ 	if (ieq->check_crc) {
+-		status = i40iw_ieq_check_mpacrc(&ieq->hash_desc, txbuf->data,
++		status = i40iw_ieq_check_mpacrc(ieq->hash_desc, txbuf->data,
+ 						(fpdu_len - 4), mpacrc);
+ 		if (status) {
+ 			i40iw_debug(ieq->dev, I40IW_DEBUG_IEQ,
+@@ -1210,7 +1210,7 @@ static enum i40iw_status_code i40iw_ieq_process_buf(struct i40iw_puda_rsrc *ieq,
+ 		crcptr = datap + fpdu_len - 4;
+ 		mpacrc = *(u32 *)crcptr;
+ 		if (ieq->check_crc)
+-			ret = i40iw_ieq_check_mpacrc(&ieq->hash_desc,
++			ret = i40iw_ieq_check_mpacrc(ieq->hash_desc,
+ 						     datap, fpdu_len - 4, mpacrc);
+ 		if (ret) {
+ 			status = I40IW_ERR_MPA_CRC;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.h b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+index b689aa4..52bf782 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+@@ -135,7 +135,7 @@ struct i40iw_puda_rsrc {
+ 	u32 rxq_invalid_cnt;
+ 	u32 tx_wqe_avail_cnt;
+ 	bool check_crc;
+-	struct hash_desc hash_desc;
++	struct shash_desc *hash_desc;
+ 	struct list_head txpend;
+ 	struct list_head bufpool;	/* free buffers pool list for recv and xmit */
+ 	u32 alloc_buf_count;
+@@ -173,11 +173,11 @@ struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev,
+ 				     struct i40iw_puda_buf *buf);
+ enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
+ 						 struct i40iw_puda_buf *buf);
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc,
+ 					      void *addr, u32 length, u32 value);
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc);
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **desc);
+ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
+-void i40iw_free_hash_desc(struct hash_desc *desc);
++void i40iw_free_hash_desc(struct shash_desc *desc);
+ void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length,
+ 				 u32 seqnum);
+ #endif
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 71ee01f..9ca2d34 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -1024,11 +1024,24 @@ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp)
+  * i40iw_init_hash_desc - initialize hash for crc calculation
+  * @desc: cryption type
+  */
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc)
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **desc)
+ {
+-	desc->tfm = crypto_alloc_hash("crc32c", 0, CRYPTO_ALG_ASYNC);
+-	if (IS_ERR(desc->tfm))
++	struct crypto_shash *tfm;
++	struct shash_desc *tdesc;
++
++	tfm = crypto_alloc_shash("crc32c", 0, CRYPTO_ALG_ASYNC);
++	if (IS_ERR(tfm))
++		return I40IW_ERR_MPA_CRC;
++
++	tdesc = kzalloc(sizeof(*tdesc) + crypto_shash_descsize(tfm),
++			GFP_KERNEL);
++	if (!tdesc) {
++		crypto_free_shash(tfm);
+ 		return I40IW_ERR_MPA_CRC;
++	}
++	tdesc->tfm = tfm;
++	*desc = tdesc;
++
+ 	return 0;
+ }
+ 
+@@ -1036,9 +1049,12 @@ enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc)
+  * i40iw_free_hash_desc - free hash desc
+  * @desc: to be freed
+  */
+-void i40iw_free_hash_desc(struct hash_desc *desc)
++void i40iw_free_hash_desc(struct shash_desc *desc)
+ {
+-	crypto_free_hash(desc->tfm);
++	if (desc) {
++		crypto_free_shash(desc->tfm);
++		kfree(desc);
++	}
+ }
+ 
+ /**
+@@ -1065,21 +1081,19 @@ enum i40iw_status_code i40iw_alloc_query_fpm_buf(struct i40iw_sc_dev *dev,
+  * @length: length of buffer
+  * @value: value to be compared
+  */
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc,
+ 					      void *addr,
+ 					      u32 length,
+ 					      u32 value)
+ {
+-	struct scatterlist sg;
+ 	u32 crc = 0;
+ 	int ret;
+ 	enum i40iw_status_code ret_code = 0;
+ 
+-	crypto_hash_init(desc);
+-	sg_init_one(&sg, addr, length);
+-	ret = crypto_hash_update(desc, &sg, length);
++	crypto_shash_init(desc);
++	ret = crypto_shash_update(desc, addr, length);
+ 	if (!ret)
+-		crypto_hash_final(desc, (u8 *)&crc);
++		crypto_shash_final(desc, (u8 *)&crc);
+ 	if (crc != value) {
+ 		i40iw_pr_err("mpa crc check fail\n");
+ 		ret_code = I40IW_ERR_MPA_CRC;
+-- 
+1.8.3.1
 
-o.k.
-
-Also can you please confirm that once patch looks good to you,
-you are ok to merge this patch from Doug's linux-rdma tree as merge is
-clean from that tree?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
