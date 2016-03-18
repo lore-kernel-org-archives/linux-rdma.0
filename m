@@ -1,38 +1,50 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Fri, 18 Mar 2016 17:51:39 +0200
-Message-ID: <20160318155139.GK25216@leon.nu>
-References: <20160315155441.222586021@linux.com>
- <20160315155455.173645653@linux.com>
- <20160317072354.GB25216@leon.nu>
- <20160317081716.GD25216@leon.nu>
- <alpine.DEB.2.20.1603172057030.18714@east.gentwo.org>
- <20160318062009.GI25216@leon.nu>
- <alpine.DEB.2.20.1603180932310.25235@east.gentwo.org>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 18 Mar 2016 09:52:16 -0700
+Message-ID: <CA+55aFxxoO=i7neGBRGW_afHsSZ7K-x6fMO8v-8po3Ls_Ew0Rg@mail.gmail.com>
+References: <56EAE9D6.2030908@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1603180932310.25235-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <56EAE9D6.2030908-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 18, 2016 at 09:33:28AM -0500, Christoph Lameter wrote:
-> On Fri, 18 Mar 2016, Leon Romanovsky wrote:
-> 
-> > It makes the stat.name check redundant. Do you have scenario in mind
-> > where ret == 0 and stat.name == NULL as a result of call to the
-> > function?
-> 
-> This is a function provided by those writing the device drivers. Better
-> check that the function filled out at least one required value.
-> 
+On Thu, Mar 17, 2016 at 10:31 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> There is the one merge issue between the net tree and this tree that was
+> simple and obvious to fix up.  I've had a phone call with Mellanox about
+> how to avoid this in the future (the result of that conversation was
+> that when they have a pre-req patch that is going through Dave's tree,
+> but the dependent patches are going through my tree, then they should
+> submit the pre-req patch to me as well, we can carry identical patches
+> in both trees, and when you merge the duplicate patches will just drop
+> one and then there will be no merge issue).
 
-I don't have any objections with this code either, just worried about
-patch bots like we saw a couple of months before.
+That will end up causing just more problems if there are then other
+patches on top in either tree.
+
+It would be much better to have the shared pre-requisite not as a
+_patch_, but as a separate branch. So that you actually share the
+commits, not just the diff.
+
+Other subsystems have been able to do that.
+
+>  drivers/infiniband/hw/mlx5/srq.c                  |  41 +-
+..
+>  91 files changed, 3647 insertions(+), 1995 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/mlx5/gsi.c
+
+My diffstat doesn't match yours, and it's that "srq.c" file in
+particular that I have no changes to, and see no changes in your pull
+request.
+
+Other than that it looks normal, but it makes me wonder how that diff
+was generated.
+
+                  Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
