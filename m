@@ -1,35 +1,38 @@
-From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Subject: Re: [PATCH V2] i40iw: Replace the obsolete crypto hash interface
- with shash
-Date: Fri, 18 Mar 2016 23:51:56 +0800
-Message-ID: <20160318155156.GB21677@gondor.apana.org.au>
-References: <20160318153833.GA13316@TENIKOLO-MOBL2>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
+Date: Fri, 18 Mar 2016 17:51:39 +0200
+Message-ID: <20160318155139.GK25216@leon.nu>
+References: <20160315155441.222586021@linux.com>
+ <20160315155455.173645653@linux.com>
+ <20160317072354.GB25216@leon.nu>
+ <20160317081716.GD25216@leon.nu>
+ <alpine.DEB.2.20.1603172057030.18714@east.gentwo.org>
+ <20160318062009.GI25216@leon.nu>
+ <alpine.DEB.2.20.1603180932310.25235@east.gentwo.org>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160318153833.GA13316@TENIKOLO-MOBL2>
+In-Reply-To: <alpine.DEB.2.20.1603180932310.25235-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 18, 2016 at 10:38:33AM -0500, Tatyana Nikolova wrote:
-> This patch replaces the obsolete crypto hash interface with shash
-> and resolves a build failure after merge of the rdma tree
-> which is caused by the removal of crypto hash interface
+On Fri, Mar 18, 2016 at 09:33:28AM -0500, Christoph Lameter wrote:
+> On Fri, 18 Mar 2016, Leon Romanovsky wrote:
 > 
-> Removing CRYPTO_ALG_ASYNC from crypto_alloc_shash(),
-> because it is by definition sync only  
+> > It makes the stat.name check redundant. Do you have scenario in mind
+> > where ret == 0 and stat.name == NULL as a result of call to the
+> > function?
 > 
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> This is a function provided by those writing the device drivers. Better
+> check that the function filled out at least one required value.
+> 
 
-Acked-by: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
--- 
-Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I don't have any objections with this code either, just worried about
+patch bots like we saw a couple of months before.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
