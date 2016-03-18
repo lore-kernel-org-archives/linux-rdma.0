@@ -1,31 +1,31 @@
-From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Replace the obsolete crypto hash interface with
- shash
-Date: Fri, 18 Mar 2016 10:39:10 +0800
-Message-ID: <20160318023910.GB17000@gondor.apana.org.au>
-References: <20160317212220.GA7292@TENIKOLO-MOBL2>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] ib_srpt: fix a WARN_ON() message
+Date: Fri, 18 Mar 2016 08:41:59 +0300
+Message-ID: <20160318054159.GE2111@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160317212220.GA7292@TENIKOLO-MOBL2>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Nicholas Bellinger <nab@linux-iscsi.org>, Sagi Grimberg <sagig@mellanox.com>, Alex Estrin <alex.estrin@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 17, 2016 at 04:22:20PM -0500, Tatyana Nikolova wrote:
->
-> +	tfm = crypto_alloc_shash("crc32c", 0, CRYPTO_ALG_ASYNC);
+The first argument of WARN_ON() is a condition, so it means the warning
+message here will just be the name without the ->qp_num information.
 
-No need for CRYPTO_ALG_ASYNC as shash is by definition sync only.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thanks,
--- 
-Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 1d13090..0bd3cb2 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -839,7 +839,7 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		if (srpt_set_ch_state(ch, CH_DISCONNECTED))
+ 			schedule_work(&ch->release_work);
+ 		else
+-			WARN_ONCE("%s-%d\n", ch->sess_name, ch->qp->qp_num);
++			WARN_ONCE(1, "%s-%d\n", ch->sess_name, ch->qp->qp_num);
+ 	}
+ }
+ 
