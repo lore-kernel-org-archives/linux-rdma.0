@@ -1,24 +1,208 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure
- dynamic
-Date: Fri, 18 Mar 2016 09:34:04 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1603180933320.25235@east.gentwo.org>
-References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com> <20160317072354.GB25216@leon.nu> <alpine.DEB.2.20.1603172054540.18714@east.gentwo.org> <20160318061659.GH25216@leon.nu>
-Content-Type: text/plain; charset=US-ASCII
+From: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH V2] i40iw: Replace the obsolete crypto hash interface with
+ shash
+Date: Fri, 18 Mar 2016 10:38:33 -0500
+Message-ID: <20160318153833.GA13316@TENIKOLO-MOBL2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160318061659.GH25216-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 18 Mar 2016, Leon Romanovsky wrote:
+This patch replaces the obsolete crypto hash interface with shash
+and resolves a build failure after merge of the rdma tree
+which is caused by the removal of crypto hash interface
 
-> Sure, and the question was "do you need to carry this semantic on and
-> return NULL instead of ERR_PTR for alloc_stats_port call?"
+Removing CRYPTO_ALG_ASYNC from crypto_alloc_shash(),
+because it is by definition sync only  
 
-Yes I think that is most convenient and its customary to do it like that
-unless there are special reasons why one wants to propagate an error code.
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw.h       |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h |  7 +++---
+ drivers/infiniband/hw/i40iw/i40iw_puda.c  |  6 +++---
+ drivers/infiniband/hw/i40iw/i40iw_puda.h  |  8 +++----
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 36 +++++++++++++++++++++----------
+ 5 files changed, 37 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index 19f6651..8197676 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -52,6 +52,7 @@
+ #include <rdma/iw_cm.h>
+ #include <rdma/iw_portmap.h>
+ #include <rdma/rdma_netlink.h>
++#include <crypto/hash.h>
+ 
+ #include "i40iw_status.h"
+ #include "i40iw_osdep.h"
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_osdep.h b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+index 4d840a9..7e20493 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_osdep.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+@@ -39,6 +39,7 @@
+ #include <linux/string.h>
+ #include <linux/bitops.h>
+ #include <net/tcp.h>
++#include <crypto/hash.h>
+ /* get readq/writeq support for 32 bit kernels, use the low-first version */
+ #include <linux/io-64-nonatomic-lo-hi.h>
+ 
+@@ -171,12 +172,12 @@ struct i40iw_hw;
+ u8 __iomem *i40iw_get_hw_addr(void *dev);
+ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
+ enum i40iw_status_code i40iw_vf_wait_vchnl_resp(struct i40iw_sc_dev *dev);
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc, void *addr,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc, void *addr,
+ 					      u32 length, u32 value);
+ struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev, struct i40iw_puda_buf *buf);
+ void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length, u32 seqnum);
+-void i40iw_free_hash_desc(struct hash_desc *);
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *);
++void i40iw_free_hash_desc(struct shash_desc *);
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **);
+ enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
+ 						 struct i40iw_puda_buf *buf);
+ enum i40iw_status_code i40iw_cqp_sds_cmd(struct i40iw_sc_dev *dev,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+index ae9971f..8eb400d8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
+@@ -729,7 +729,7 @@ void i40iw_puda_dele_resources(struct i40iw_sc_dev *dev,
+ 
+ 	switch (rsrc->completion) {
+ 	case PUDA_HASH_CRC_COMPLETE:
+-		i40iw_free_hash_desc(&rsrc->hash_desc);
++		i40iw_free_hash_desc(rsrc->hash_desc);
+ 	case PUDA_QP_CREATED:
+ 		do {
+ 			if (reset)
+@@ -1142,7 +1142,7 @@ static enum i40iw_status_code i40iw_ieq_handle_partial(struct i40iw_puda_rsrc *i
+ 	crcptr = txbuf->data + fpdu_len - 4;
+ 	mpacrc = *(u32 *)crcptr;
+ 	if (ieq->check_crc) {
+-		status = i40iw_ieq_check_mpacrc(&ieq->hash_desc, txbuf->data,
++		status = i40iw_ieq_check_mpacrc(ieq->hash_desc, txbuf->data,
+ 						(fpdu_len - 4), mpacrc);
+ 		if (status) {
+ 			i40iw_debug(ieq->dev, I40IW_DEBUG_IEQ,
+@@ -1210,7 +1210,7 @@ static enum i40iw_status_code i40iw_ieq_process_buf(struct i40iw_puda_rsrc *ieq,
+ 		crcptr = datap + fpdu_len - 4;
+ 		mpacrc = *(u32 *)crcptr;
+ 		if (ieq->check_crc)
+-			ret = i40iw_ieq_check_mpacrc(&ieq->hash_desc,
++			ret = i40iw_ieq_check_mpacrc(ieq->hash_desc,
+ 						     datap, fpdu_len - 4, mpacrc);
+ 		if (ret) {
+ 			status = I40IW_ERR_MPA_CRC;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.h b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+index b689aa4..52bf782 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_puda.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_puda.h
+@@ -135,7 +135,7 @@ struct i40iw_puda_rsrc {
+ 	u32 rxq_invalid_cnt;
+ 	u32 tx_wqe_avail_cnt;
+ 	bool check_crc;
+-	struct hash_desc hash_desc;
++	struct shash_desc *hash_desc;
+ 	struct list_head txpend;
+ 	struct list_head bufpool;	/* free buffers pool list for recv and xmit */
+ 	u32 alloc_buf_count;
+@@ -173,11 +173,11 @@ struct i40iw_sc_qp *i40iw_ieq_get_qp(struct i40iw_sc_dev *dev,
+ 				     struct i40iw_puda_buf *buf);
+ enum i40iw_status_code i40iw_puda_get_tcpip_info(struct i40iw_puda_completion_info *info,
+ 						 struct i40iw_puda_buf *buf);
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc,
+ 					      void *addr, u32 length, u32 value);
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc);
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **desc);
+ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
+-void i40iw_free_hash_desc(struct hash_desc *desc);
++void i40iw_free_hash_desc(struct shash_desc *desc);
+ void i40iw_ieq_update_tcpip_info(struct i40iw_puda_buf *buf, u16 length,
+ 				 u32 seqnum);
+ #endif
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 71ee01f..9ca2d34 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -1024,11 +1024,24 @@ void i40iw_ieq_mpa_crc_ae(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp)
+  * i40iw_init_hash_desc - initialize hash for crc calculation
+  * @desc: cryption type
+  */
+-enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc)
++enum i40iw_status_code i40iw_init_hash_desc(struct shash_desc **desc)
+ {
+-	desc->tfm = crypto_alloc_hash("crc32c", 0, CRYPTO_ALG_ASYNC);
+-	if (IS_ERR(desc->tfm))
++	struct crypto_shash *tfm;
++	struct shash_desc *tdesc;
++
++	tfm = crypto_alloc_shash("crc32c", 0, 0);
++	if (IS_ERR(tfm))
++		return I40IW_ERR_MPA_CRC;
++
++	tdesc = kzalloc(sizeof(*tdesc) + crypto_shash_descsize(tfm),
++			GFP_KERNEL);
++	if (!tdesc) {
++		crypto_free_shash(tfm);
+ 		return I40IW_ERR_MPA_CRC;
++	}
++	tdesc->tfm = tfm;
++	*desc = tdesc;
++
+ 	return 0;
+ }
+ 
+@@ -1036,9 +1049,12 @@ enum i40iw_status_code i40iw_init_hash_desc(struct hash_desc *desc)
+  * i40iw_free_hash_desc - free hash desc
+  * @desc: to be freed
+  */
+-void i40iw_free_hash_desc(struct hash_desc *desc)
++void i40iw_free_hash_desc(struct shash_desc *desc)
+ {
+-	crypto_free_hash(desc->tfm);
++	if (desc) {
++		crypto_free_shash(desc->tfm);
++		kfree(desc);
++	}
+ }
+ 
+ /**
+@@ -1065,21 +1081,19 @@ enum i40iw_status_code i40iw_alloc_query_fpm_buf(struct i40iw_sc_dev *dev,
+  * @length: length of buffer
+  * @value: value to be compared
+  */
+-enum i40iw_status_code i40iw_ieq_check_mpacrc(struct hash_desc *desc,
++enum i40iw_status_code i40iw_ieq_check_mpacrc(struct shash_desc *desc,
+ 					      void *addr,
+ 					      u32 length,
+ 					      u32 value)
+ {
+-	struct scatterlist sg;
+ 	u32 crc = 0;
+ 	int ret;
+ 	enum i40iw_status_code ret_code = 0;
+ 
+-	crypto_hash_init(desc);
+-	sg_init_one(&sg, addr, length);
+-	ret = crypto_hash_update(desc, &sg, length);
++	crypto_shash_init(desc);
++	ret = crypto_shash_update(desc, addr, length);
+ 	if (!ret)
+-		crypto_hash_final(desc, (u8 *)&crc);
++		crypto_shash_final(desc, (u8 *)&crc);
+ 	if (crc != value) {
+ 		i40iw_pr_err("mpa crc check fail\n");
+ 		ret_code = I40IW_ERR_MPA_CRC;
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
