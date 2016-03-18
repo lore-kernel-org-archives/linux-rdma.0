@@ -1,24 +1,30 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure
- dynamic
-Date: Thu, 17 Mar 2016 20:57:23 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1603172057030.18714@east.gentwo.org>
-References: <20160315155441.222586021@linux.com> <20160315155455.173645653@linux.com> <20160317072354.GB25216@leon.nu> <20160317081716.GD25216@leon.nu>
-Content-Type: text/plain; charset=US-ASCII
+From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Replace the obsolete crypto hash interface with
+ shash
+Date: Fri, 18 Mar 2016 10:39:10 +0800
+Message-ID: <20160318023910.GB17000@gondor.apana.org.au>
+References: <20160317212220.GA7292@TENIKOLO-MOBL2>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160317081716.GD25216-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160317212220.GA7292@TENIKOLO-MOBL2>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 17 Mar 2016, Leon Romanovsky wrote:
+On Thu, Mar 17, 2016 at 04:22:20PM -0500, Tatyana Nikolova wrote:
+>
+> +	tfm = crypto_alloc_shash("crc32c", 0, CRYPTO_ALG_ASYNC);
 
-> I didn't check for other proposals except mlx5 but I assume that in case nothing was filled
-> there, this function should return NOSUPPORT.
+No need for CRYPTO_ALG_ASYNC as shash is by definition sync only.
 
-The function simply does not create the directory. So we are fine.
-
+Thanks,
+-- 
+Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
