@@ -1,44 +1,39 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH net-next] net/mlx4_core: Fix backward compatibility on VFs
-Date: Sun, 20 Mar 2016 09:21:51 +0200
-Message-ID: <CAJ3xEMiKKULxXOrp6QmSCoD1SdXXYk6KLcnn2HdrcucmogpDGg@mail.gmail.com>
-References: <1458233382-12871-1-git-send-email-eli@mellanox.com>
-	<20160318.231106.2099055485546956238.davem@davemloft.net>
-	<20160320070759.GA2935@yuval-lap.uk.oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160320070759.GA2935@yuval-lap.uk.oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: Eli Cohen <eli@mellanox.com>, David Miller <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Alexey Kardashevskiy <aik@ozlabs.ru>
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: [PATCH] net/mlx4: remove unused array zero_gid[]
+Date: Sun, 20 Mar 2016 17:44:56 +0000
+Message-ID: <1458495896-18074-1-git-send-email-colin.king@canonical.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 20, 2016 at 9:07 AM, Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> On Fri, Mar 18, 2016 at 11:11:06PM -0400, David Miller wrote:
->> From: Eli Cohen <eli@mellanox.com>
->> Date: Thu, 17 Mar 2016 18:49:42 +0200
+From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
->> > Commit 85743f1eb345 ("net/mlx4_core: Set UAR page size to 4KB regardless
->> > of system page size") introduced dependency where old VF drivers without
->> > this fix fail to load if the PF driver runs with this commit.
->> > To resolve this add a module parameter which disables that functionality
->> > by default.  If both the PF and VFs are running with a driver with that
->> > commit the administrator may set the module param to true.
->> > The module parameter is called enable_4k_uar.
+zero_gid is not used, so remove this redundant array.
 
-> Can you consider passing this via comm-channel and save us all from new
-> module parameter?
-> Suggesting this from sys-admin perspective where (1) making this consist in
-> VF and **all** guests would me a nightmare and also (2) take into account
-> in public cloud that hypervisor sys-admin is not necessary the same person
-> as guest sys-admin.
+Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/mcg.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-AFAIK both modified (e.g containing the offending commit) and
-non-modified VF drivers
-need not be aware to the fix. It should be  a PF only param, where all types of
-VF driver keeps working with their source of info being the comm-channel only.
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+index 42d8de8..6aa7397 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+@@ -39,8 +39,6 @@
+ 
+ #include "mlx4.h"
+ 
+-static const u8 zero_gid[16];	/* automatically initialized to 0 */
+-
+ int mlx4_get_mgm_entry_size(struct mlx4_dev *dev)
+ {
+ 	return 1 << dev->oper_log_mgm_entry_size;
+-- 
+2.7.3
 
-Eli, Yishai, can you confirm this is the case?
-
-Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
