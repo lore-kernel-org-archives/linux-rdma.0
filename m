@@ -1,38 +1,67 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
- remove_one
-Date: Mon, 21 Mar 2016 10:59:26 +0200
-Message-ID: <56EFB7EE.9010006@mellanox.com>
-References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com>
- <20160312204502.GA8346@obsidianresearch.com>
- <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
- <20160314174814.GB5240@obsidianresearch.com>
- <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ@mail.gmail.com>
- <20160315203112.GA2786@obsidianresearch.com>
- <CANjDDBj8aZTeAfwxFuyk9r=kdihfxpxDA69-c4uVxkvcAfXViw@mail.gmail.com>
- <20160317161237.GB19501@obsidianresearch.com>
- <CANjDDBhYH7HsUyP8-Ko7G0tnWxYDGYCGgaC4HK0Eod_isvoWAA@mail.gmail.com>
- <20160317164831.GI19501@obsidianresearch.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH net-next] net/mlx4_core: Fix backward compatibility on VFs
+Date: Mon, 21 Mar 2016 15:56:30 +0200
+Message-ID: <20160321135630.GA95906@x-vnc01.mtx.labs.mlnx>
+References: <1458233382-12871-1-git-send-email-eli@mellanox.com>
+ <56EBCE2F.40902@ozlabs.ru>
+ <56EF8058.2060203@ozlabs.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160317164831.GI19501-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56EF8058.2060203-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Alexey Kardashevskiy <aik-sLpHqDYs0B2HXe+LvDLADg@public.gmane.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/17/2016 6:48 PM, Jason Gunthorpe wrote:
-> +		if (file->ucontext) {
-> +			file->ucontext = NULL;
-> +			mutex_unlock(&file->cleanup_mutex);
-> +			ib_dev->disassociate_ucontext(file->ucontext);
-> +			ib_uverbs_cleanup_ucontext(file, file->ucontext);
->  		}
+On Mon, Mar 21, 2016 at 04:02:16PM +1100, Alexey Kardashevskiy wrote:
+> 
+> After more tries, I found that if for whatever reason mlx4_core
+> fails to stop while shutting the guest down (last message is
+> "mlx4_core 0000:00:00.0: mlx4_shutdown was called"), then next time
+> VF in guest won't start.
+> 
+> Example #1:
+> 
+> mlx4_core: Mellanox ConnectX core driver v2.2-1 (Feb, 2014)
+> mlx4_core: Initializing 0000:00:00.0
+> mlx4_core 0000:00:00.0: enabling device (0000 -> 0002)
+> mlx4_core 0000:00:00.0: Detected virtual function - running in slave mode
+> mlx4_core 0000:00:00.0: Sending reset
+> mlx4_core 0000:00:00.0: Sending vhcr0
+> mlx4_core 0000:00:00.0: HCA minimum page size:1
+> mlx4_core 0000:00:00.0: UAR size:4096 != kernel PAGE_SIZE of 65536
+> mlx4_core 0000:00:00.0: Failed to obtain slave caps
 
-The general locking scheme sounds good to me, but obviously you need to keep
-the original value of file->ucontext before clearing it.
+Alexey, can you verify that the value of the enable_4k_uar parameter
+is false?
+
+> 
+> Example #2:
+> 
+> root@le-dbg:~# dhclient eth0
+> NETDEV WATCHDOG: eth0 (mlx4_core): transmit queue 11 timed out
+> ------------[ cut here ]------------
+> WARNING: at /home/aik/p/guest-kernel/net/sched/sch_generic.c:303
+> 
+> and no IP assigned, timed out.
+> 
+> 
+> This is fixed by the guest restart, first restart might not help,
+> then the second restart will.
+> 
+> The host is running the latest upstream plus the patch I am replying
+> to. The guest is using initramdisk from debian bootstrap and vanilla
+> v4.2 kernel, ppc64le arch, POWER8 chip, QEMU is running with 1 CPU
+> and 2GB of RAM.
+> 
+> Does this look any familiar?
+>
+
+This is completely unrelated to the compatibility problem you reported
+and which this patch addresses. We will reproduce in house and post a
+fix.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
