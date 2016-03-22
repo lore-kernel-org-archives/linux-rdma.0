@@ -1,53 +1,59 @@
 From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/rdmavt: Add create queue pair functionality
-Date: Tue, 22 Mar 2016 23:01:32 +0300
-Message-ID: <20160322200132.GA27901@mwanda>
+Subject: re: IB/qib, staging/rdma/hfi1: add s_hlock for use in post send
+Date: Tue, 22 Mar 2016 23:03:23 +0300
+Message-ID: <20160322200322.GA27995@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Dennis Dalessandro,
+Hello Mike Marciniszyn,
 
-The patch 515667f8f8b4: "IB/rdmavt: Add create queue pair
-functionality" from Jan 22, 2016, leads to the following static
+The patch 46a80d62e6e0: "IB/qib, staging/rdma/hfi1: add s_hlock for
+use in post send" from Feb 14, 2016, leads to the following static
 checker warning:
 
-	drivers/infiniband/sw/rdmavt/qp.c:835 rvt_create_qp()
-	warn: odd binop '0x4 & 0xe0'
+	drivers/infiniband/hw/qib/qib_ud.c:395 qib_make_ud_req()
+	warn: 'irqsave:flags' is sometimes locked here and sometimes unlocked.
 
-drivers/infiniband/sw/rdmavt/qp.c
-   823          /*
-   824           * We have our QP and its good, now keep track of what types of opcodes
-   825           * can be processed on this QP. We do this by keeping track of what the
-   826           * 3 high order bits of the opcode are.
-   827           */
-   828          switch (init_attr->qp_type) {
-   829          case IB_QPT_SMI:
-   830          case IB_QPT_GSI:
-   831          case IB_QPT_UD:
-   832                  qp->allowed_ops = IB_OPCODE_UD_SEND_ONLY & RVT_OPCODE_QP_MASK;
-   833                  break;
-   834          case IB_QPT_RC:
-   835                  qp->allowed_ops = IB_OPCODE_RC_SEND_ONLY & RVT_OPCODE_QP_MASK;
-                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                          0x4                    & 0xE0
-is zero.  I couldn't figure out where IB_OPCODE_RC_SEND_ONLY is
-defined but presumably Smatch is correct that it's 4.
+drivers/infiniband/hw/qib/qib_ud.c
+   293          } else {
+   294                  this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+   295                  lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
+   296                  if (unlikely(lid == ppd->lid)) {
+   297                          unsigned long flags;
+                                              ^^^^^
+   298                          /*
+   299                           * If DMAs are in progress, we can't generate
+   300                           * a completion for the loopback packet since
+   301                           * it would be out of order.
+   302                           * XXX Instead of waiting, we could queue a
+   303                           * zero length descriptor so we get a callback.
+   304                           */
+   305                          if (atomic_read(&priv->s_dma_busy)) {
+   306                                  qp->s_flags |= RVT_S_WAIT_DMA;
+   307                                  goto bail;
+   308                          }
+   309                          qp->s_cur = next_cur;
+   310                          local_irq_save(flags);
+                                ^^^^^^^^^^^^^^^^^^^^^
+   311                          spin_unlock_irqrestore(&qp->s_lock, flags);
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Complicated no-op with the IRQ flags.
 
-   836                  break;
-   837          case IB_QPT_UC:
-   838                  qp->allowed_ops = IB_OPCODE_UC_SEND_ONLY & RVT_OPCODE_QP_MASK;
-   839                  break;
-   840          default:
-   841                  ret = ERR_PTR(-EINVAL);
-   842                  goto bail_ip;
-   843          }
+   312                          qib_ud_loopback(qp, wqe);
+   313                          spin_lock_irqsave(&qp->s_lock, flags);
+                                                               ^^^^^
+We save the flags but then we leave the scope without using them.
 
+   314                          qib_send_complete(qp, wqe, IB_WC_SUCCESS);
+   315                          goto done;
+   316                  }
+   317          }
 
 regards,
 dan carpenter
