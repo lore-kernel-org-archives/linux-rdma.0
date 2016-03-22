@@ -1,75 +1,99 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/16] IB/hfi1: Add a page pinning cache for PSM sdma
-Date: Tue, 22 Mar 2016 07:46:44 -0400
-Message-ID: <20160322114644.GA20139@phlsvsds.ph.intel.com>
-References: <20160310045609.GC1977@leon.nu> <20160314070951.GB26456@leon.nu> <20160314120152.GA30838@phlsvsds.ph.intel.com> <CAJ3xEMiSgXFT46r0Y7DZGr3mpJFSLrtYrMdz+DbCXDozbMYZRA@mail.gmail.com> <20160315012049.GA30055@phlsvsds.ph.intel.com> <CAJ3xEMhToYOBMo_nNi2fFpTexUmUqb3zBX7zWWYjCDfPWpWn-w@mail.gmail.com> <20160315193731.GA20662@phlsvsds.ph.intel.com> <CAJ3xEMjWxdwM0wQR85_-wHpPhYSWz1W0T8H_nDjnp2JS7G29Qw@mail.gmail.com> <20160316172309.GB26530@phlsvsds.ph.intel.com> <CAJ3xEMg5OPBT63=VV4EKnZUWSHGatDRL0n7O4iBVrN9bMUw5dg@mail.gmail.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 0/3] IB/hns: Add HiSilicon RoCE driver
+Date: Tue, 22 Mar 2016 22:06:58 +0800
+Message-ID: <1458655621-3618-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMg5OPBT63=VV4EKnZUWSHGatDRL0n7O4iBVrN9bMUw5dg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 22, 2016 at 09:33:55AM +0200, Or Gerlitz wrote:
->On Wed, Mar 16, 2016 at 7:23 PM, Dennis Dalessandro
-><dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> On Wed, Mar 16, 2016 at 05:53:37PM +0200, Or Gerlitz wrote:
->
->>> The cache comes to amortize the cost of pin/unpin and such, correct? this means
->>> that over longs runs, if there's nice locality of the same process
->>> using the same pages, you pay the register/pin cost once, later use lazy
->>> de-registration/pinning, and only do that
->>> when MMU notifier tells you this is a must, or under some eviction policy.
->
->>> Since the cost is amortized, the system calls over-head should be negligible
->>> (also, the same system call can be used to evict X and register Y), do you
->>> have performance data that shows otherwise?
->
->> I don't personally have the data but will check with some folks here.
->
->Dennis, didn't see a reply from you here...
+The HiSilicon Network Substem is a long term evolution IP which is
+supposed to be used in HiSilicon ICT SoC. RoCE is a feature of hns.
+The driver for HiSilicon RoCE engine is a platform driver.
+The driver will support mulitple versions of hns. Currently only "v1"
+for hip06 SoC is supported.
 
-I have been on out of the office for a few days. I did check into the 
-performance aspect here and have been assured there is a performance problem 
-with the increased number of system calls. Though I do not have any 
-published data to point you to. 
+Changes v3 -> v4:
+1. modify roce.o into hns-roce.o in Makefile and Kconfig file.
 
-We are particularly worried about the eviction case which is where the 
-amortization argument doesn't hold up. If the eviction policy is set to 
-evict buffers which have not been used recently in favor of a new buffer 
-(which is a very common policy), this happens more often than you realize.  
-We do not want any additional cost in this case.
+Changes v2 -> v3:
+1. modify the formats of RoCE driver code base v2 by the experts 
+reviewing. also, it used kmalloc_array instead of kmalloc, used kcalloc
+instead of kzalloc, when refer to memory allocation for array
+2. remove some functions without use and unconnected macros
+3. modify the binding document with RoCE DT base v2 which added interrupt-names
+4. redesign the port_map and si_map in hns_dsaf_roce_reset
+5. add HiSilicon RoCE driver maintainers introduction in MAINTAINERS document
 
-Another reason we do not want this in user space is that it changes the 
-semantic of the SDMA transfer call. Normally user space applications don't 
-care what needs to be done under the covers to transfer a buffer. The user 
-application/library calls into the kernel which takes care of the details, 
-including pinning the pages while the underlying hardware pulls the data 
-from the buffer. The user application does not (and should not) care about 
-that. This is how SDMA transfers work as well.
+Changes v1 -> v2:
+1. modify the formats of roce driver code by the experts reviewing
+2. modify the bindings file with roce dts. add the attribute named 
+interrput-names.
+3. modify the way of defining port mode in hns_dsaf_main.c
+4. move the Kconfig file into the hns directory and send it with roce
 
-However, if we move the cache into user space all of that changes. Now user 
-space has to start caring about the state of the buffer. The normal SDMA 
-transfer request cannot be used as it will, or might, pin/unpin pages it 
-shouldn't. The kernel will have to provide effectively two semantically 
-different versions of the calls - one which pins/unpins and one which does 
-not. This is yet another complication that is being unnecessarily pushed 
-into user space.
+Lijun Ou (3):
+  net: hns: Add reset function support for RoCE driver
+  IB/hns: Add HiSilicon RoCE driver support
+  IB/hns: Add binding document for HiSilicon RoCE driver
 
-> Doug, as this is still review discussion in progress, I guess you'll wait 
-> with
-> finalizing the talks before adding this into your 2nd 4.6 pull request?
+ .../bindings/infiniband/hisilicon-hns-roce.txt     |  107 +
+ MAINTAINERS                                        |    8 +
+ drivers/infiniband/Kconfig                         |    1 +
+ drivers/infiniband/hw/Makefile                     |    1 +
+ drivers/infiniband/hw/hisilicon/hns/Kconfig        |   10 +
+ drivers/infiniband/hw/hisilicon/hns/Makefile       |    9 +
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_ah.c  |  110 +
+ .../infiniband/hw/hisilicon/hns/hns_roce_alloc.c   |  239 ++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_cmd.c |  338 +++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_cmd.h |   80 +
+ .../infiniband/hw/hisilicon/hns/hns_roce_common.h  |  308 +++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_cq.c  |  436 +++
+ .../infiniband/hw/hisilicon/hns/hns_roce_device.h  |  794 ++++++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_eq.c  |  758 ++++++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_eq.h  |  132 +
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_icm.c |  578 ++++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_icm.h |  112 +
+ .../infiniband/hw/hisilicon/hns/hns_roce_main.c    | 1097 ++++++++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_mr.c  |  605 +++++
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_pd.c  |  124 +
+ drivers/infiniband/hw/hisilicon/hns/hns_roce_qp.c  |  841 ++++++
+ .../infiniband/hw/hisilicon/hns/hns_roce_user.h    |   31 +
+ .../infiniband/hw/hisilicon/hns/hns_roce_v1_hw.c   | 2832 ++++++++++++++++++++
+ .../infiniband/hw/hisilicon/hns/hns_roce_v1_hw.h   |  985 +++++++
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c |   84 +
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |   30 +
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c |   62 +-
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  |   13 +
+ 28 files changed, 10715 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/Kconfig
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/Makefile
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_ah.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_alloc.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_cmd.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_cmd.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_common.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_cq.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_device.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_eq.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_eq.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_icm.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_icm.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_main.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_mr.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_pd.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_qp.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_user.h
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_v1_hw.c
+ create mode 100644 drivers/infiniband/hw/hisilicon/hns/hns_roce_v1_hw.h
 
-I think our position is clear why we do not want to put this in user space.  
-Can we? Yes. But just because we could doesn't mean we should. So what is 
-your technical reason that makes you feel so strongly this doesn't belong in 
-our particular driver? Is there some way this impacts any other RDMA 
-drivers, the IB core, or anything else?
+-- 
+1.9.1
 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
