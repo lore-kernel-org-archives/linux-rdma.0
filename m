@@ -1,65 +1,70 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IB/qib, staging/rdma/hfi1: add s_hlock for use in post send
-Date: Wed, 23 Mar 2016 20:51:29 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC25A8BA74@fmsmsx120.amr.corp.intel.com>
-References: <20160322200322.GA27995@mwanda>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: i40iw: use shared code for port mapper
+Date: Wed, 23 Mar 2016 23:54:47 +0300
+Message-ID: <20160323205447.GA5714@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160322200322.GA27995@mwanda>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hello Mike Marciniszyn,
-> 
-> The patch 46a80d62e6e0: "IB/qib, staging/rdma/hfi1: add s_hlock for use in
-> post send" from Feb 14, 2016, leads to the following static checker warning:
-> 
-> 	drivers/infiniband/hw/qib/qib_ud.c:395 qib_make_ud_req()
-> 	warn: 'irqsave:flags' is sometimes locked here and sometimes
-> unlocked.
-> 
-> drivers/infiniband/hw/qib/qib_ud.c
->    293          } else {
->    294                  this_cpu_inc(ibp->pmastats->n_unicast_xmit);
->    295                  lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
->    296                  if (unlikely(lid == ppd->lid)) {
->    297                          unsigned long flags;
->                                               ^^^^^
->    298                          /*
->    299                           * If DMAs are in progress, we can't generate
->    300                           * a completion for the loopback packet since
->    301                           * it would be out of order.
->    302                           * XXX Instead of waiting, we could queue a
->    303                           * zero length descriptor so we get a callback.
->    304                           */
->    305                          if (atomic_read(&priv->s_dma_busy)) {
->    306                                  qp->s_flags |= RVT_S_WAIT_DMA;
->    307                                  goto bail;
->    308                          }
->    309                          qp->s_cur = next_cur;
->    310                          local_irq_save(flags);
->                                 ^^^^^^^^^^^^^^^^^^^^^
->    311                          spin_unlock_irqrestore(&qp->s_lock, flags);
->                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> Complicated no-op with the IRQ flags.
-> 
->    312                          qib_ud_loopback(qp, wqe);
->    313                          spin_lock_irqsave(&qp->s_lock, flags);
->                                                                ^^^^^ We save the flags but then we leave
-> the scope without using them.
-> 
+Hello Faisal Latif,
 
-Dan,
+The patch 8d8cd0bf6798: "i40iw: use shared code for port mapper" from
+Feb 26, 2016, leads to the following static checker warnings:
 
-I'm currently working on a fix for this.
+drivers/infiniband/hw/i40iw/i40iw_hw.c:484 i40iw_manage_arp_cache()
+error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
+left= 'info->arp_index' info->arp_index = ((arp_index))
 
-Thanks for the report!
-Mike
+drivers/infiniband/hw/i40iw/i40iw_hw.c:556 i40iw_manage_qhash()
+error: wrong number of bits for 'cpu_to_le16' (32 vs 16)
+left= 'info->dest_port' info->dest_port = ((cminfo->loc_port))
+
+drivers/infiniband/hw/i40iw/i40iw_hw.c:562 i40iw_manage_qhash()
+error: wrong number of bits for 'cpu_to_le16' (32 vs 16)
+left= 'info->src_port' info->src_port = ((cminfo->rem_port))
+
+drivers/infiniband/hw/i40iw/i40iw_cm.c:3273 i40iw_init_tcp_ctx()
+error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
+left= 'tcp_info->arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info->dest_ip_addr3, 1, (0), 3)))
+
+drivers/infiniband/hw/i40iw/i40iw_cm.c:3289 i40iw_init_tcp_ctx()
+error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
+left= 'tcp_info->arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info->dest_ip_addr0, 0, (0), 3)))
+
+drivers/infiniband/hw/i40iw/i40iw_verbs.c:1772 i40iw_dereg_mr()
+error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
+left= 'info->pd_id' info->pd_id = ((iwpd->sc_pd.pd_id & 32767))
+
+
+drivers/infiniband/hw/i40iw/i40iw_hw.c
+   553          info->ipv4_valid = cminfo->ipv4;
+   554          ether_addr_copy(info->mac_addr, iwdev->netdev->dev_addr);
+   555          info->qp_num = cpu_to_le32(dev->ilq->qp_id);
+   556          info->dest_port = cpu_to_le16(cminfo->loc_port);
+                ^^^^^^^^^^^^^^^
+This is a u32 but we're storing a le16 in it which is problematic.
+The Sparse version of this check is more strict but has more false
+positives.  Anyway, give it a whirl:  https://lwn.net/Articles/205624/
+
+   557          info->dest_ip[0] = cpu_to_le32(cminfo->loc_addr[0]);
+   558          info->dest_ip[1] = cpu_to_le32(cminfo->loc_addr[1]);
+   559          info->dest_ip[2] = cpu_to_le32(cminfo->loc_addr[2]);
+   560          info->dest_ip[3] = cpu_to_le32(cminfo->loc_addr[3]);
+   561          if (etype == I40IW_QHASH_TYPE_TCP_ESTABLISHED) {
+   562                  info->src_port = cpu_to_le16(cminfo->rem_port);
+   563                  info->src_ip[0] = cpu_to_le32(cminfo->rem_addr[0]);
+   564                  info->src_ip[1] = cpu_to_le32(cminfo->rem_addr[1]);
+   565                  info->src_ip[2] = cpu_to_le32(cminfo->rem_addr[2]);
+   566                  info->src_ip[3] = cpu_to_le32(cminfo->rem_addr[3]);
+   567          }
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
