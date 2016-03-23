@@ -1,52 +1,48 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IB/rdmavt: Add create queue pair functionality
-Date: Wed, 23 Mar 2016 15:33:15 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC25A8A48A@fmsmsx120.amr.corp.intel.com>
-References: <20160322200132.GA27901@mwanda>
+From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: linux-next: Tree for Mar 23 (infiniband: mlx5)
+Date: Wed, 23 Mar 2016 10:26:35 -0700
+Message-ID: <56F2D1CB.8080600@infradead.org>
+References: <20160323132208.54ba0c1a@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160322200132.GA27901@mwanda>
-Content-Language: en-US
+In-Reply-To: <20160323132208.54ba0c1a-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The patch 515667f8f8b4: "IB/rdmavt: Add create queue pair functionality"
-> from Jan 22, 2016, leads to the following static checker warning:
+On 03/22/16 19:22, Stephen Rothwell wrote:
+> Hi all,
 > 
-> 	drivers/infiniband/sw/rdmavt/qp.c:835 rvt_create_qp()
-> 	warn: odd binop '0x4 & 0xe0'
+> Please do not add any v4.7 related material to your linux-next included
+> trees until after v4.6-rc1 is released.
 > 
-> drivers/infiniband/sw/rdmavt/qp.c
->    834          case IB_QPT_RC:
->    835                  qp->allowed_ops = IB_OPCODE_RC_SEND_ONLY &
-> RVT_OPCODE_QP_MASK;
-> 
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->                                           0x4                    & 0xE0
-> is zero.  I couldn't figure out where IB_OPCODE_RC_SEND_ONLY is defined
-> but presumably Smatch is correct that it's 4.
+> Changes since 20160322:
 > 
 
-IB_OPCODE_RC_SEND_ONLY is prepared by:
+on i386 or x86_64:
 
-#define IB_OPCODE(transport, op) \
-        IB_OPCODE_ ## transport ## _ ## op = \
-                IB_OPCODE_ ## transport + IB_OPCODE_ ## op
+../drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_add':
+../drivers/infiniband/hw/mlx5/main.c:2358:31: error: 'mlx5_ib_get_vf_config' undeclared (first use in this function)
+   dev->ib_dev.get_vf_config = mlx5_ib_get_vf_config;
+                               ^
+../drivers/infiniband/hw/mlx5/main.c:2358:31: note: each undeclared identifier is reported only once for each function it appears in
+../drivers/infiniband/hw/mlx5/main.c:2359:35: error: 'mlx5_ib_set_vf_link_state' undeclared (first use in this function)
+   dev->ib_dev.set_vf_link_state = mlx5_ib_set_vf_link_state;
+                                   ^
+../drivers/infiniband/hw/mlx5/main.c:2360:30: error: 'mlx5_ib_get_vf_stats' undeclared (first use in this function)
+   dev->ib_dev.get_vf_stats = mlx5_ib_get_vf_stats;
+                              ^
+../drivers/infiniband/hw/mlx5/main.c:2361:30: error: 'mlx5_ib_set_vf_guid' undeclared (first use in this function)
+   dev->ib_dev.set_vf_guid  = mlx5_ib_set_vf_guid;
+                              ^
 
-in include/rdma/ib_pack.h.
 
-The intent of allowed_ops is to allow for quick validation of an opcode for a QP by a masked compare.
 
-Perhaps a better coding would use these defines from the same file?:
-        IB_OPCODE_RC                                = 0x00,
-        IB_OPCODE_UC                                = 0x20,
-        IB_OPCODE_UD                                = 0x60,
-
-Mike
+-- 
+~Randy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
