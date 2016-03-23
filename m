@@ -1,85 +1,87 @@
-From: Laison-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org, Computech-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org,
-	"Inc <support"@ensuretech.com
-Subject: CISCO IP PHONES AND CPU's
-Date: Thu, 24 Mar 2016 02:12:05 +0700
-Message-ID: <20160323203604.5CDB3A7B4E__39026.8741910861$1458768369$gmane$org@seymour.toledo.br>
-Reply-To: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
+From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: i40iw: use shared code for port mapper
+Date: Wed, 23 Mar 2016 21:26:48 +0000
+Message-ID: <1EEBC91386407A4A8D1EBE1DD5AA52125EA2B89F@FMSMSX114.amr.corp.intel.com>
+References: <20160323205447.GA5714@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <20160323205447.GA5714@mwanda>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <support-lhT63EwJ3xcqDJ6do+/SaQ@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Thanks Dan for pointing it out. Will be sending out patch to fix it and also will run
+sparse with the CHECK_ENDIAN parameter in future patches.
 
-Our Stock list.
+Faisal
 
-Brand NEW
-96 x Cisco 7900 IP Phone
-87 x Unified IP Phone 6900
-12 x Unified IP Phone 8900
-76 x Unified IP Phone 9900
-55 x Unified IP Phone 8800
-67 x Cisco 1921
-67 x Cisco 1941
-56 x Cisco CP-7961G 7961G
-34 x Cisco CP-7971G-GE 7971G
-19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
-20 x Cisco CP-7975G 7975G
-
-Brand New Sealed :
-
-23 x  CISCO1921-SEC/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Security Bundle w/SEC license PAK
-
-45 x CISCO1921/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
-
-(1)  WS-C4500X-16SFP+
-Serial number:  JAE183501L3
-US&#36;2600
-
-(1)  WS-C3850-48PW-S
-Serial number:  FCW1823C0EW
-US&#36;2650
-
-(1)  WS-X6908-10G-2T
-Serial number:  SAL1620CKUB
-US&#36;3650
-
-(1)  ASR1000-ESP10
-Serial number:  JAE181306C3
-US&#36;3800
-
-(1)  AIR-CT5508-250-K9   (this is new but box is open!)
-Serial number:  FCW1521L038
-US&#36;4000
-
-CPUs part number below
-
-89 x  X5650
-
-975 x  X5660
-
-150 x  X5680
-
-265 x  X5690
-
-Kindly make your price offers.
-
-Sincerely
-Barbara Johnson
-Laison Computech
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-0478
-Email: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
+>-----Original Message-----
+>From: Dan Carpenter [mailto:dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+>Sent: Wednesday, March 23, 2016 3:55 PM
+>To: Latif, Faisal <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>Subject: re: i40iw: use shared code for port mapper
+>
+>Hello Faisal Latif,
+>
+>The patch 8d8cd0bf6798: "i40iw: use shared code for port mapper" from Feb
+>26, 2016, leads to the following static checker warnings:
+>
+>drivers/infiniband/hw/i40iw/i40iw_hw.c:484 i40iw_manage_arp_cache()
+>error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'info->arp_index'
+>info->arp_index = ((arp_index))
+>
+>drivers/infiniband/hw/i40iw/i40iw_hw.c:556 i40iw_manage_qhash()
+>error: wrong number of bits for 'cpu_to_le16' (32 vs 16) left= 'info->dest_port'
+>info->dest_port = ((cminfo->loc_port))
+>
+>drivers/infiniband/hw/i40iw/i40iw_hw.c:562 i40iw_manage_qhash()
+>error: wrong number of bits for 'cpu_to_le16' (32 vs 16) left= 'info->src_port'
+>info->src_port = ((cminfo->rem_port))
+>
+>drivers/infiniband/hw/i40iw/i40iw_cm.c:3273 i40iw_init_tcp_ctx()
+>error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'tcp_info-
+>>arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info-
+>>dest_ip_addr3, 1, (0), 3)))
+>
+>drivers/infiniband/hw/i40iw/i40iw_cm.c:3289 i40iw_init_tcp_ctx()
+>error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'tcp_info-
+>>arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info-
+>>dest_ip_addr0, 0, (0), 3)))
+>
+>drivers/infiniband/hw/i40iw/i40iw_verbs.c:1772 i40iw_dereg_mr()
+>error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'info->pd_id' info-
+>>pd_id = ((iwpd->sc_pd.pd_id & 32767))
+>
+>
+>drivers/infiniband/hw/i40iw/i40iw_hw.c
+>   553          info->ipv4_valid = cminfo->ipv4;
+>   554          ether_addr_copy(info->mac_addr, iwdev->netdev->dev_addr);
+>   555          info->qp_num = cpu_to_le32(dev->ilq->qp_id);
+>   556          info->dest_port = cpu_to_le16(cminfo->loc_port);
+>                ^^^^^^^^^^^^^^^
+>This is a u32 but we're storing a le16 in it which is problematic.
+>The Sparse version of this check is more strict but has more false positives.
+>Anyway, give it a whirl:  https://lwn.net/Articles/205624/
+>
+>   557          info->dest_ip[0] = cpu_to_le32(cminfo->loc_addr[0]);
+>   558          info->dest_ip[1] = cpu_to_le32(cminfo->loc_addr[1]);
+>   559          info->dest_ip[2] = cpu_to_le32(cminfo->loc_addr[2]);
+>   560          info->dest_ip[3] = cpu_to_le32(cminfo->loc_addr[3]);
+>   561          if (etype == I40IW_QHASH_TYPE_TCP_ESTABLISHED) {
+>   562                  info->src_port = cpu_to_le16(cminfo->rem_port);
+>   563                  info->src_ip[0] = cpu_to_le32(cminfo->rem_addr[0]);
+>   564                  info->src_ip[1] = cpu_to_le32(cminfo->rem_addr[1]);
+>   565                  info->src_ip[2] = cpu_to_le32(cminfo->rem_addr[2]);
+>   566                  info->src_ip[3] = cpu_to_le32(cminfo->rem_addr[3]);
+>   567          }
+>
+>regards,
+>dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
