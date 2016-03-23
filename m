@@ -1,70 +1,32 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: i40iw: use shared code for port mapper
-Date: Wed, 23 Mar 2016 23:54:47 +0300
-Message-ID: <20160323205447.GA5714@mwanda>
+From: "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] i40iw: avoid potential uninitialized variable use
+Date: Wed, 23 Mar 2016 20:56:28 +0000
+Message-ID: <5C5647B5F4794941BAAC07CF28785CBC0D616BF1@fmsmsx101.amr.corp.intel.com>
+References: <1458729361-3089439-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1458729361-3089439-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Nelson, Shannon" <shannon.nelson-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Singhai, Anjali" <anjali.singhai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Faisal Latif,
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd-r2nGTMty4D4@public.gmane.org]
+> Sent: Wednesday, March 23, 2016 5:35 AM
+> Subject: [PATCH] i40iw: avoid potential uninitialized variable use
+> 
+> gcc finds that the i40iw_make_cm_node() function in the recently added i40iw
+> driver uses an uninitilized variable as an index into an array if CONFIG_IPV6 is
+> disabled and the driver uses IPv6 mode:
+> 
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-The patch 8d8cd0bf6798: "i40iw: use shared code for port mapper" from
-Feb 26, 2016, leads to the following static checker warnings:
+Acked-by: Mustafa Ismail <Mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-drivers/infiniband/hw/i40iw/i40iw_hw.c:484 i40iw_manage_arp_cache()
-error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
-left= 'info->arp_index' info->arp_index = ((arp_index))
-
-drivers/infiniband/hw/i40iw/i40iw_hw.c:556 i40iw_manage_qhash()
-error: wrong number of bits for 'cpu_to_le16' (32 vs 16)
-left= 'info->dest_port' info->dest_port = ((cminfo->loc_port))
-
-drivers/infiniband/hw/i40iw/i40iw_hw.c:562 i40iw_manage_qhash()
-error: wrong number of bits for 'cpu_to_le16' (32 vs 16)
-left= 'info->src_port' info->src_port = ((cminfo->rem_port))
-
-drivers/infiniband/hw/i40iw/i40iw_cm.c:3273 i40iw_init_tcp_ctx()
-error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
-left= 'tcp_info->arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info->dest_ip_addr3, 1, (0), 3)))
-
-drivers/infiniband/hw/i40iw/i40iw_cm.c:3289 i40iw_init_tcp_ctx()
-error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
-left= 'tcp_info->arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info->dest_ip_addr0, 0, (0), 3)))
-
-drivers/infiniband/hw/i40iw/i40iw_verbs.c:1772 i40iw_dereg_mr()
-error: wrong number of bits for 'cpu_to_le32' (16 vs 32)
-left= 'info->pd_id' info->pd_id = ((iwpd->sc_pd.pd_id & 32767))
-
-
-drivers/infiniband/hw/i40iw/i40iw_hw.c
-   553          info->ipv4_valid = cminfo->ipv4;
-   554          ether_addr_copy(info->mac_addr, iwdev->netdev->dev_addr);
-   555          info->qp_num = cpu_to_le32(dev->ilq->qp_id);
-   556          info->dest_port = cpu_to_le16(cminfo->loc_port);
-                ^^^^^^^^^^^^^^^
-This is a u32 but we're storing a le16 in it which is problematic.
-The Sparse version of this check is more strict but has more false
-positives.  Anyway, give it a whirl:  https://lwn.net/Articles/205624/
-
-   557          info->dest_ip[0] = cpu_to_le32(cminfo->loc_addr[0]);
-   558          info->dest_ip[1] = cpu_to_le32(cminfo->loc_addr[1]);
-   559          info->dest_ip[2] = cpu_to_le32(cminfo->loc_addr[2]);
-   560          info->dest_ip[3] = cpu_to_le32(cminfo->loc_addr[3]);
-   561          if (etype == I40IW_QHASH_TYPE_TCP_ESTABLISHED) {
-   562                  info->src_port = cpu_to_le16(cminfo->rem_port);
-   563                  info->src_ip[0] = cpu_to_le32(cminfo->rem_addr[0]);
-   564                  info->src_ip[1] = cpu_to_le32(cminfo->rem_addr[1]);
-   565                  info->src_ip[2] = cpu_to_le32(cminfo->rem_addr[2]);
-   566                  info->src_ip[3] = cpu_to_le32(cminfo->rem_addr[3]);
-   567          }
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
