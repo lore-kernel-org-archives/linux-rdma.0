@@ -1,58 +1,86 @@
-From: Leon Romanovsky <leon@leon.nu>
-Subject: Re: linux-next: Tree for Mar 23 (infiniband: mlx5)
-Date: Wed, 23 Mar 2016 20:13:50 +0200
-Message-ID: <20160323181350.GA11949@leon.nu>
-References: <20160323132208.54ba0c1a@canb.auug.org.au>
- <56F2D1CB.8080600@infradead.org>
-Reply-To: leon@leon.nu
+From: Laison-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org, Computech-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org,
+	"Inc <support"@ensuretech.com
+Subject: CISCO IP PHONES AND CPU's
+Date: Thu, 24 Mar 2016 01:45:21 +0700
+Message-ID: <20160323200920.39724A6859__65.3524454266474$1458765577$gmane$org@seymour.toledo.br>
+Reply-To: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56F2D1CB.8080600@infradead.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Description: Mail message body
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <support-lhT63EwJ3xcqDJ6do+/SaQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 23, 2016 at 10:26:35AM -0700, Randy Dunlap wrote:
-> On 03/22/16 19:22, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > Please do not add any v4.7 related material to your linux-next included
-> > trees until after v4.6-rc1 is released.
-> > 
-> > Changes since 20160322:
-> > 
-> 
-> on i386 or x86_64:
-> 
-> ../drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_add':
-> ../drivers/infiniband/hw/mlx5/main.c:2358:31: error: 'mlx5_ib_get_vf_config' undeclared (first use in this function)
->    dev->ib_dev.get_vf_config = mlx5_ib_get_vf_config;
->                                ^
-> ../drivers/infiniband/hw/mlx5/main.c:2358:31: note: each undeclared identifier is reported only once for each function it appears in
-> ../drivers/infiniband/hw/mlx5/main.c:2359:35: error: 'mlx5_ib_set_vf_link_state' undeclared (first use in this function)
->    dev->ib_dev.set_vf_link_state = mlx5_ib_set_vf_link_state;
->                                    ^
-> ../drivers/infiniband/hw/mlx5/main.c:2360:30: error: 'mlx5_ib_get_vf_stats' undeclared (first use in this function)
->    dev->ib_dev.get_vf_stats = mlx5_ib_get_vf_stats;
->                               ^
-> ../drivers/infiniband/hw/mlx5/main.c:2361:30: error: 'mlx5_ib_set_vf_guid' undeclared (first use in this function)
->    dev->ib_dev.set_vf_guid  = mlx5_ib_set_vf_guid;
+Hi,
 
-This commit [1] fixes the issue.
-for any reasons the functions were declared under #ifdef
-CONFIG_INFINIBAND_ON_DEMAND_PAGING protection.
+Our Stock list.
 
-[1] https://lkml.org/lkml/2016/3/23/132
->                               ^
-> 
-> 
-> 
-> -- 
-> ~Randy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Brand NEW
+96 x Cisco 7900 IP Phone
+87 x Unified IP Phone 6900
+12 x Unified IP Phone 8900
+76 x Unified IP Phone 9900
+55 x Unified IP Phone 8800
+67 x Cisco 1921
+67 x Cisco 1941
+56 x Cisco CP-7961G 7961G
+34 x Cisco CP-7971G-GE 7971G
+19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
+20 x Cisco CP-7975G 7975G
+
+Brand New Sealed :
+
+23 x  CISCO1921-SEC/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Security Bundle w/SEC license PAK
+
+45 x CISCO1921/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
+
+(1)  WS-C4500X-16SFP+
+Serial number:  JAE183501L3
+US&#36;2600
+
+(1)  WS-C3850-48PW-S
+Serial number:  FCW1823C0EW
+US&#36;2650
+
+(1)  WS-X6908-10G-2T
+Serial number:  SAL1620CKUB
+US&#36;3650
+
+(1)  ASR1000-ESP10
+Serial number:  JAE181306C3
+US&#36;3800
+
+(1)  AIR-CT5508-250-K9   (this is new but box is open!)
+Serial number:  FCW1521L038
+US&#36;4000
+
+CPUs part number below
+
+89 x  X5650
+
+975 x  X5660
+
+150 x  X5680
+
+265 x  X5690
+
+Kindly make your price offers.
+
+Sincerely
+Barbara Johnson
+Laison Computech
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-0478
+Email: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
