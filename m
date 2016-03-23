@@ -1,85 +1,51 @@
-From: Laison-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org, Computech-2WGxrPcL6/av+0K4mfL3GVAUjnlXr6A1@public.gmane.org,
-	"Inc <support"@ensuretech.com
-Subject: CISCO IP PHONES AND CPU's
-Date: Thu, 24 Mar 2016 01:45:21 +0700
-Message-ID: <20160323200920.39724A6859__65.3524454266474$1458765577$gmane$org@seymour.toledo.br>
-Reply-To: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: staging/rdma/hfi1: use mod_timer when appropriate
+Date: Wed, 23 Mar 2016 23:48:17 +0300
+Message-ID: <20160323204817.GA14975@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <support-lhT63EwJ3xcqDJ6do+/SaQ@public.gmane.org>
+To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hello Mike Marciniszyn,
 
-Our Stock list.
+The patch 633d27399514: "staging/rdma/hfi1: use mod_timer when
+appropriate" from Feb 4, 2016, leads to the following static checker
+warning:
 
-Brand NEW
-96 x Cisco 7900 IP Phone
-87 x Unified IP Phone 6900
-12 x Unified IP Phone 8900
-76 x Unified IP Phone 9900
-55 x Unified IP Phone 8800
-67 x Cisco 1921
-67 x Cisco 1941
-56 x Cisco CP-7961G 7961G
-34 x Cisco CP-7971G-GE 7971G
-19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
-20 x Cisco CP-7975G 7975G
+	drivers/staging/rdma/hfi1/rc.c:1500 do_rc_ack()
+	info: ignoring unreachable code.
 
-Brand New Sealed :
+drivers/staging/rdma/hfi1/rc.c
+  1487                  default:
+  1488                          /* Ignore other reserved NAK error codes */
+  1489                          goto reserved;
+  1490                  }
+  1491                  qp->s_retry = qp->s_retry_cnt;
+  1492                  qp->s_rnr_retry = qp->s_rnr_retry_cnt;
+  1493                  goto bail_stop;
+  1494  
+  1495          default:                /* 2: reserved */
+  1496  reserved:
+  1497                  /* Ignore reserved NAK codes. */
+  1498                  goto bail_stop;
+  1499          }
+  1500          return ret;
+                ^^^^^^^^^^
+Not reachable.
 
-23 x  CISCO1921-SEC/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Security Bundle w/SEC license PAK
+  1501  bail_stop:
+  1502          hfi1_stop_rc_timers(qp);
+  1503          return ret;
+  1504  }
 
-45 x CISCO1921/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
 
-(1)  WS-C4500X-16SFP+
-Serial number:  JAE183501L3
-US&#36;2600
-
-(1)  WS-C3850-48PW-S
-Serial number:  FCW1823C0EW
-US&#36;2650
-
-(1)  WS-X6908-10G-2T
-Serial number:  SAL1620CKUB
-US&#36;3650
-
-(1)  ASR1000-ESP10
-Serial number:  JAE181306C3
-US&#36;3800
-
-(1)  AIR-CT5508-250-K9   (this is new but box is open!)
-Serial number:  FCW1521L038
-US&#36;4000
-
-CPUs part number below
-
-89 x  X5650
-
-975 x  X5660
-
-150 x  X5680
-
-265 x  X5690
-
-Kindly make your price offers.
-
-Sincerely
-Barbara Johnson
-Laison Computech
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-0478
-Email: sales-69Ibs8hIYaLnzTGioTClidREWwmQVq3b@public.gmane.org
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
