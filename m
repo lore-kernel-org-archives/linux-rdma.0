@@ -1,35 +1,44 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: fix VFs callback function prototypes
-Date: Wed, 23 Mar 2016 12:59:11 +0200
-Message-ID: <20160323105911.GQ25216@leon.nu>
-References: <1458729502-3155671-1-git-send-email-arnd@arndb.de>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 2/3] IB/hns: Add HiSilicon RoCE driver support
+Date: Wed, 23 Mar 2016 20:20:52 +0800
+Message-ID: <56F28A24.5010107@huawei.com>
+References: <1458655621-3618-1-git-send-email-oulijun@huawei.com>
+ <1458655621-3618-3-git-send-email-oulijun@huawei.com>
+ <20160322185412.GA6262@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1458729502-3155671-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <20160322185412.GA6262-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 23, 2016 at 11:37:45AM +0100, Arnd Bergmann wrote:
-> The previous patch that added a couple of callback functions put
-> the declarations inside of an #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING,
-> which causes the build to fail if that option is disabled:
+On 2016/3/23 2:54, Christoph Hellwig wrote:
+>>  drivers/infiniband/Kconfig                         |    1 +
+>>  drivers/infiniband/hw/Makefile                     |    1 +
+>>  drivers/infiniband/hw/hisilicon/hns/Kconfig        |   10 +
 > 
-> drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_add':
-> drivers/infiniband/hw/mlx5/main.c:2358:31: error: 'mlx5_ib_get_vf_config' undeclared (first use in this function)
+> To fit in with the other drivers drop the hisilicon level
+> of the directory hierarchy.
 > 
-> This moves the four declarations below the #ifdef section so they
-> are always available.
+> Haven't had time to look at the actual driver yet so far, though.
 > 
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Fixes: eff901d30e6c ("IB/mlx5: Implement callbacks for manipulating VFs")
+> .
+> 
+Hi Christoph Hellwig,
+   surely, I considered that other drivers will be put into the hisilicon
+level of the directory hierarchy. These drivers will support RDMA function which
+will be developed for a series of hisilicon chip. Because of the consideration, I drop the
+level.
+   In additon that, i thought that the patch of RoCE driver which supported the base function of RDMA is huge. However,
+It is not splitted into patches in form of patchset. I don't put a better strategy that it neither make mistakes
+of building and running nor huge.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+thanks
+Lijun Ou
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
