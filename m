@@ -1,87 +1,136 @@
-From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: i40iw: use shared code for port mapper
-Date: Wed, 23 Mar 2016 21:26:48 +0000
-Message-ID: <1EEBC91386407A4A8D1EBE1DD5AA52125EA2B89F@FMSMSX114.amr.corp.intel.com>
-References: <20160323205447.GA5714@mwanda>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 24 Mar 2016 00:37:55 +0200
+Message-ID: <CAJ3xEMhu7pKONneEAMDhJUtiz2nqnibynHMWe8vmgPCy+7DH5A@mail.gmail.com>
+References: <56F1B00F.7010406@redhat.com>
+	<CAJ3xEMhG0x_+DAAY+Cv0OAnW=2VmMuHZUv8DOP_YCkNHfSjX9A@mail.gmail.com>
+	<56F1F579.3080403@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160323205447.GA5714@mwanda>
-Content-Language: en-US
+In-Reply-To: <56F1F579.3080403-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Dan for pointing it out. Will be sending out patch to fix it and also will run
-sparse with the CHECK_ENDIAN parameter in future patches.
+On Wed, Mar 23, 2016 at 3:46 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 3/22/2016 6:23 PM, Or Gerlitz wrote:
+>> On Tue, Mar 22, 2016 at 10:50 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-Faisal
+>>> Mitko Haralanov (41):
+>> [...]
+>>>       IB/hfi1: Re-factor MMU notification code
+>>>       IB/hfi1: Allow MMU function execution in IRQ context
+>>>       IB/hfi1: Prevent NULL pointer dereference
+>>>       IB/hfi1: Allow remove MMU callbacks to free nodes
+>>>       IB/hfi1: Remove the use of add/remove RB function pointers
+>>>       IB/hfi1: Notify remove MMU/RB callback of calling context
+>>>       IB/hfi1: Use interval RB trees
+>>>       IB/hfi1: Add MMU tracing
+>>>       IB/hfi1: Remove compare callback
+>>>       IB/hfi1: Add filter callback
+>>>       IB/hfi1: Adjust last address values for intervals
+>>>       IB/hfi1: Implement SDMA-side buffer caching
+>>>       IB/hfi1: Add pin query function
+>>>       IB/hfi1: Specify mm when releasing pages
+>>>       IB/hfi1: Switch to using the pin query function
+>>>       IB/hfi1: Add SDMA cache eviction algorithm
 
->-----Original Message-----
->From: Dan Carpenter [mailto:dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
->Sent: Wednesday, March 23, 2016 3:55 PM
->To: Latif, Faisal <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: re: i40iw: use shared code for port mapper
->
->Hello Faisal Latif,
->
->The patch 8d8cd0bf6798: "i40iw: use shared code for port mapper" from Feb
->26, 2016, leads to the following static checker warnings:
->
->drivers/infiniband/hw/i40iw/i40iw_hw.c:484 i40iw_manage_arp_cache()
->error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'info->arp_index'
->info->arp_index = ((arp_index))
->
->drivers/infiniband/hw/i40iw/i40iw_hw.c:556 i40iw_manage_qhash()
->error: wrong number of bits for 'cpu_to_le16' (32 vs 16) left= 'info->dest_port'
->info->dest_port = ((cminfo->loc_port))
->
->drivers/infiniband/hw/i40iw/i40iw_hw.c:562 i40iw_manage_qhash()
->error: wrong number of bits for 'cpu_to_le16' (32 vs 16) left= 'info->src_port'
->info->src_port = ((cminfo->rem_port))
->
->drivers/infiniband/hw/i40iw/i40iw_cm.c:3273 i40iw_init_tcp_ctx()
->error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'tcp_info-
->>arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info-
->>dest_ip_addr3, 1, (0), 3)))
->
->drivers/infiniband/hw/i40iw/i40iw_cm.c:3289 i40iw_init_tcp_ctx()
->error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'tcp_info-
->>arp_idx' tcp_info->arp_idx = ((i40iw_arp_table(iwqp->iwdev, &tcp_info-
->>dest_ip_addr0, 0, (0), 3)))
->
->drivers/infiniband/hw/i40iw/i40iw_verbs.c:1772 i40iw_dereg_mr()
->error: wrong number of bits for 'cpu_to_le32' (16 vs 32) left= 'info->pd_id' info-
->>pd_id = ((iwpd->sc_pd.pd_id & 32767))
->
->
->drivers/infiniband/hw/i40iw/i40iw_hw.c
->   553          info->ipv4_valid = cminfo->ipv4;
->   554          ether_addr_copy(info->mac_addr, iwdev->netdev->dev_addr);
->   555          info->qp_num = cpu_to_le32(dev->ilq->qp_id);
->   556          info->dest_port = cpu_to_le16(cminfo->loc_port);
->                ^^^^^^^^^^^^^^^
->This is a u32 but we're storing a le16 in it which is problematic.
->The Sparse version of this check is more strict but has more false positives.
->Anyway, give it a whirl:  https://lwn.net/Articles/205624/
->
->   557          info->dest_ip[0] = cpu_to_le32(cminfo->loc_addr[0]);
->   558          info->dest_ip[1] = cpu_to_le32(cminfo->loc_addr[1]);
->   559          info->dest_ip[2] = cpu_to_le32(cminfo->loc_addr[2]);
->   560          info->dest_ip[3] = cpu_to_le32(cminfo->loc_addr[3]);
->   561          if (etype == I40IW_QHASH_TYPE_TCP_ESTABLISHED) {
->   562                  info->src_port = cpu_to_le16(cminfo->rem_port);
->   563                  info->src_ip[0] = cpu_to_le32(cminfo->rem_addr[0]);
->   564                  info->src_ip[1] = cpu_to_le32(cminfo->rem_addr[1]);
->   565                  info->src_ip[2] = cpu_to_le32(cminfo->rem_addr[2]);
->   566                  info->src_ip[3] = cpu_to_le32(cminfo->rem_addr[3]);
->   567          }
->
->regards,
->dan carpenter
+>> Doug, this series is under review and a reviewer (me...) have posted
+>> comments claiming that such pin down cache doesn't belong to kernel
+>> but rather to be part of a user-space library [1]
+
+>> This comment still hold even though the cache is serving a proprietary
+>> (non verbs) user-space code b/c it claims that code X doesn't belong
+>> to the kernel and we need not load into the kernel what doesn't belong
+>> there.
+
+>> Could you please comment why not let the discussion converge and/or
+>> hear your maintainer opinion on the matter before this is pushed up to Linus?
+
+>> [1] http://marc.info/?t=145746462200001&r=1&w=2
+
+> You made your arguments, which I thought were nebulous in the first
+> place ("does not belong in the kernel" is not a well defined objection,
+> it's like saying "I don't like that", you would need a more concise
+> objection to carry stronger weight).
+
+Doug, by all means my review was not in a "you should do X, period" or
+"Y doesn't belong to the kernel, bump", take 5m and see:
+
+OG:"Actually, the cache itself belongs to user space. What is needed
+in the kernel is code that uses MMU notifications to invalidate the
+cache when munmap and friends were done on a cache entry. This is too
+generic functionality that you
+can add to the IB core which does have a char device or (better) to a
+generic char device you will write and PSM to use. There have been
+some works on that in the 2000s, look for code from Roland Dreier
+and/or Pete Wyckoff"
+
+DD:"Our position continues to be that this is best located in the hfi1 driver."
+
+DD: few more email w.o technical justifications for the cache to be in
+the kernel
+
+DD: "Taking a performance standpoint we don't want this in user space.
+If the cache were at the user level there would end up being a system
+call to pin the buffer, another to do the SDMA transfer from said
+buffer, and another to unpin the buffer when the kernel notifier has
+invalidated that buffer.  This gets even more complex when you
+consider cache evictions due to reaching the limit on pinned pages.
+These extra system calls add overhead, which may be acceptable for a
+normal server or desktop environment, but are not acceptable when
+dealing with a high performance interconnect where we want the
+absolute best performance."
+
+OG: "The cache comes to amortize the cost of pin/unpin and such,
+correct? this means that over longs runs, if there's nice locality of
+the same process using the same pages,  you pay the register/pin cost
+once, later use lazy de-registration/pinning, and only do that when
+MMU notifier tells you this is a must, or under some eviction policy.
+Since the cost is amortized, the system calls over-head should be
+negligible (also, the same system call can be used to evict X and
+register Y), do you have performance data that shows otherwise?"
+
+DD: "I did check into the performance aspect here and have been
+assured there is a performance problem with the increased number of
+system calls. Though I do not have any published data to point you to.
+We are particularly worried about the eviction case which is where the
+amortization argument doesn't hold up. If the eviction policy is set
+to evict buffers which have not been used recently in favor of a new
+buffer (which is a very common policy), this happens more often than
+you realize.  We do not want any additional cost in this case."
+
+> Their response to your argument
+> was that putting it in the kernel saves multiple context switches per
+> memory region in the cache.  This was a sufficient answer IMO (context
+> switches are expensive and on 100GBit hardware, multiple context
+> switches that aren't needed is positively huge).
+
+So it tool quiet a lot of time and effort to have Denny make these
+statements which are still not backed up by any published performance
+data. This review is incomplete by far, we never heard the author of
+the patches speaking and the driver maintainer made the comments deep
+into the 4.6 merge window.
+
+> This was a sufficient answer IMO
+
+Any reason we can't hear you speaking in real time over a reviewing
+thread, and have a fair chance to convince you that things are
+actually the other way around vs. your position, but rather get your
+opinion in the form of blank pulling of patches? Should someone be Al
+V and/or Linus T to make comments over this list which will get you to
+speak up and have a conversation/discussion?
+
+In bunch of other cases w. reviews done over this list, e.g by you,
+Jason, Ira, Sean and others to code posted e.g by Matan, Leon and
+others the submitter had to work really hard and make lots of changes
+in their code for the patches to go in and respond to reviewers in
+proper time and with proper content. This is very far what what
+happened here.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
