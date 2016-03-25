@@ -1,36 +1,38 @@
-From: Nikolay Borisov <n.borisov-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
-Subject: Re: [PATCH] IB/cm: Fix a recently introduced locking bug
-Date: Fri, 25 Mar 2016 17:51:51 +0200
-Message-ID: <CAJFSNy7KszhSUtHef9o_s0X0GmNKA2ZvFrAgRAHUE=1NzSHAqA@mail.gmail.com>
-References: <56F55A3C.2080608@sandisk.com>
-	<CAJFSNy5g9OLwNYwOfbXHUyX-sJQUvbJ=r_rmozKnefCKYADttA@mail.gmail.com>
-	<56F55E06.2050009@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Weongyo Jeong <weongyo.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v1 0/2] genirq: support multiple IRQ notifier.
+Date: Fri, 25 Mar 2016 08:51:51 -0700
+Message-ID: <cover.1458920770.git.weongyo.linux@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56F55E06.2050009-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Weongyo Jeong <weongyo.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The reason for asking was due to me being CCed and I thought it was
-relevant, Sorry for the noise :)
+Each irq_desc only supports one IRQ affinity notifier at current
+implementation so when we try to register another notifier, it silently
+unregister previous entry and register new one.
 
-On Fri, Mar 25, 2016 at 5:49 PM, Bart Van Assche
-<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On 03/25/2016 08:41 AM, Nikolay Borisov wrote:
->>
->> Is this supposed to fix the issue I reported earlier on the list?
->> http://marc.info/?l=linux-rdma&m=145890571132495&w=2
->
->
-> Hello Nikolay,
->
-> Although I have not yet analyzed your report in depth, I doubt this will fix
-> what you reported earlier today.
->
-> Bart.
+However the problem is that if CONFIG_RFS_ACCEL is set, at current
+implementation no way to set additional IRQ affinity notifier for
+some NIC cards RFS enabled because it already used for RFS.
+With this patch we can register multiple IRQ affinity notifiers.
+
+Weongyo Jeong (2):
+  genirq: clean up for irq_set_affinity_notifier().
+  genirq: support multiple IRQ notifier.
+
+ drivers/infiniband/hw/qib/qib_iba7322.c | 10 ++--
+ drivers/scsi/qla2xxx/qla_isr.c          |  4 +-
+ include/linux/interrupt.h               | 13 +++++-
+ include/linux/irqdesc.h                 |  2 +-
+ kernel/irq/irqdesc.c                    |  1 +
+ kernel/irq/manage.c                     | 82 ++++++++++++++++++++++-----------
+ lib/cpu_rmap.c                          |  4 +-
+ 7 files changed, 78 insertions(+), 38 deletions(-)
+
+-- 
+2.1.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
