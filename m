@@ -1,54 +1,87 @@
-From: santosh shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDS: sync congestion map updating
-Date: Wed, 30 Mar 2016 10:16:06 -0700
-Message-ID: <56FC09D6.7090602@oracle.com>
-References: <1459328902-31968-1-git-send-email-wen.gang.wang@oracle.com>
- <20160330161952.GA2670@leon.nu>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx5: fix VFs callback function prototypes
+Date: Wed, 30 Mar 2016 21:26:12 +0300
+Message-ID: <20160330182611.GC95906@x-vnc01.mtx.labs.mlnx>
+References: <1458729502-3155671-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160330161952.GA2670-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1458729502-3155671-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: leon-2ukJVAZIZ/Y@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Abramovsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Wengang,
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On 3/30/2016 9:19 AM, Leon Romanovsky wrote:
-> On Wed, Mar 30, 2016 at 05:08:22PM +0800, Wengang Wang wrote:
->> Problem is found that some among a lot of parallel RDS communications hang.
->> In my test ten or so among 33 communications hang. The send requests got
->> -ENOBUF error meaning the peer socket (port) is congested. But meanwhile,
->> peer socket (port) is not congested.
->>
->> The congestion map updating can happen in two paths: one is in rds_recvmsg path
->> and the other is when it receives packets from the hardware. There is no
->> synchronization when updating the congestion map. So a bit operation (clearing)
->> in the rds_recvmsg path can be skipped by another bit operation (setting) in
->> hardware packet receving path.
->>
->> Fix is to add a spin lock per congestion map to sync the update on it.
->> No performance drop found during the test for the fix.
->
-> I assume that this change fixed your issue, however it looks suspicious
-> that performance wasn't change.
->
-First of all thanks for finding the issue and posting patch
-for it. I do agree with Leon on performance comment.
-We shouldn't need locks for map updates.
+Hi Doug,
 
-Moreover the parallel receive path on which this patch
-is based of doesn't exist in upstream code. I have kept
-that out so far because of similar issue like one you
-encountered.
+are you going to take this fix.
 
-Anyways lets discuss offline about the fix even for the
-downstream kernel. I suspect we can address it without locks.
+Thanks,
+Eli
 
-Reagrds,
-Santosh
+On Wed, Mar 23, 2016 at 11:37:45AM +0100, Arnd Bergmann wrote:
+> The previous patch that added a couple of callback functions put
+> the declarations inside of an #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING,
+> which causes the build to fail if that option is disabled:
+> 
+> drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_add':
+> drivers/infiniband/hw/mlx5/main.c:2358:31: error: 'mlx5_ib_get_vf_config' undeclared (first use in this function)
+> 
+> This moves the four declarations below the #ifdef section so they
+> are always available.
+> 
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> Fixes: eff901d30e6c ("IB/mlx5: Implement callbacks for manipulating VFs")
+> ---
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> index f16c818ad2e6..b46c25542a7c 100644
+> --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> @@ -776,15 +776,6 @@ void mlx5_ib_qp_disable_pagefaults(struct mlx5_ib_qp *qp);
+>  void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp);
+>  void mlx5_ib_invalidate_range(struct ib_umem *umem, unsigned long start,
+>  			      unsigned long end);
+> -int mlx5_ib_get_vf_config(struct ib_device *device, int vf,
+> -			  u8 port, struct ifla_vf_info *info);
+> -int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
+> -			      u8 port, int state);
+> -int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
+> -			 u8 port, struct ifla_vf_stats *stats);
+> -int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
+> -			u64 guid, int type);
+> -
+>  #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+>  static inline void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+>  {
+> @@ -801,6 +792,15 @@ static inline void mlx5_ib_qp_enable_pagefaults(struct mlx5_ib_qp *qp)  {}
+>  
+>  #endif /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+>  
+> +int mlx5_ib_get_vf_config(struct ib_device *device, int vf,
+> +			  u8 port, struct ifla_vf_info *info);
+> +int mlx5_ib_set_vf_link_state(struct ib_device *device, int vf,
+> +			      u8 port, int state);
+> +int mlx5_ib_get_vf_stats(struct ib_device *device, int vf,
+> +			 u8 port, struct ifla_vf_stats *stats);
+> +int mlx5_ib_set_vf_guid(struct ib_device *device, int vf, u8 port,
+> +			u64 guid, int type);
+> +
+>  __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
+>  			       int index);
+>  
+> -- 
+> 2.7.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
