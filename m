@@ -1,45 +1,36 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 2/3] Fix exchange message size in ibv_xsrq_pinpong example
-Date: Wed, 30 Mar 2016 18:39:19 +0300
-Message-ID: <1459352360-32663-3-git-send-email-yishaih@mellanox.com>
-References: <1459352360-32663-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH libibverbs 0/3] Misc fixes
+Date: Wed, 30 Mar 2016 18:39:17 +0300
+Message-ID: <1459352360-32663-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459352360-32663-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-SRQ number is 24 bits and not 16, fix to have sufficient
-size for it.
+This series handles few issues:
+- Add an example to ibv_create_flow man page.
+- Handle few issues in ibv_xsrq_pingpong example.
 
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- examples/xsrq_pingpong.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks,
+Yishai
 
-diff --git a/examples/xsrq_pingpong.c b/examples/xsrq_pingpong.c
-index 74205ec..aadf201 100644
---- a/examples/xsrq_pingpong.c
-+++ b/examples/xsrq_pingpong.c
-@@ -52,11 +52,11 @@
- 
- #include "pingpong.h"
- 
--#define MSG_FORMAT "%04x:%06x:%06x:%06x:%04x"
--#define MSG_SIZE   31
-+#define MSG_FORMAT "%04x:%06x:%06x:%06x:%06x"
-+#define MSG_SIZE   33
- #define MSG_SSCAN  "%x:%x:%x:%x:%x"
- #define ADDR_FORMAT \
--	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %04x\n"
-+	"%8s: LID %04x, QPN RECV %06x SEND %06x, PSN %06x, SRQN %06x\n"
- #define TERMINATION_FORMAT "%s"
- #define TERMINATION_MSG_SIZE 4
- #define TERMINATION_MSG "END"
+
+Noa Osherovich (2):
+  Fix exchange message size in ibv_xsrq_pinpong example
+  Add GID support to ibv_xsrq_pingpong example
+
+Yishai Hadas (1):
+  Add an example to ibv_create_flow man page
+
+ examples/pingpong.c      | 10 -------
+ examples/pingpong.h      |  1 -
+ examples/xsrq_pingpong.c | 72 ++++++++++++++++++++++++++++++++++++++++--------
+ man/ibv_create_flow.3    | 62 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 122 insertions(+), 23 deletions(-)
+
 -- 
 1.8.3.1
 
