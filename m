@@ -1,63 +1,95 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Remove unnecessary synchronize_irq() before
- free_irq()
-Date: Wed, 30 Mar 2016 10:15:03 +0300
-Message-ID: <20160330071503.GB8511@leon.nu>
-References: <1459157486-23257-1-git-send-email-lars@metafoo.de>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] RDS: sync congestion map updating
+Date: Wed, 30 Mar 2016 17:08:22 +0800
+Message-ID: <1459328902-31968-1-git-send-email-wen.gang.wang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1459157486-23257-1-git-send-email-lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 28, 2016 at 11:31:26AM +0200, Lars-Peter Clausen wrote:
-> Calling synchronize_irq() right before free_irq() is quite useless. On one
-> hand the IRQ can easily fire again before free_irq() is entered, on the
-> other hand free_irq() itself calls synchronize_irq() internally (in a race
-> condition free way), before any state associated with the IRQ is freed.
-> 
-> Patch was generated using the following semantic patch:
-> // <smpl>
-> @@
-> expression irq;
-> @@
-> -synchronize_irq(irq);
->  free_irq(irq, ...);
-> // </smpl>
-> 
-> Signed-off-by: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
+Problem is found that some among a lot of parallel RDS communications hang.
+In my test ten or so among 33 communications hang. The send requests got
+-ENOBUF error meaning the peer socket (port) is congested. But meanwhile,
+peer socket (port) is not congested.
 
-Thanks
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The congestion map updating can happen in two paths: one is in rds_recvmsg path
+and the other is when it receives packets from the hardware. There is no
+synchronization when updating the congestion map. So a bit operation (clearing)
+in the rds_recvmsg path can be skipped by another bit operation (setting) in
+hardware packet receving path.
 
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_main.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-> index 90e5af2..006c44f 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-> @@ -270,7 +270,6 @@ static void i40iw_disable_irq(struct i40iw_sc_dev *dev,
->  		i40iw_wr32(dev->hw, I40E_PFINT_DYN_CTLN(msix_vec->idx - 1), 0);
->  	else
->  		i40iw_wr32(dev->hw, I40E_VFINT_DYN_CTLN1(msix_vec->idx - 1), 0);
-> -	synchronize_irq(msix_vec->irq);
->  	free_irq(msix_vec->irq, dev_id);
->  }
->  
-> -- 
-> 2.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix is to add a spin lock per congestion map to sync the update on it.
+No performance drop found during the test for the fix.
+
+Signed-off-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/rds/cong.c | 7 +++++++
+ net/rds/rds.h  | 1 +
+ 2 files changed, 8 insertions(+)
+
+diff --git a/net/rds/cong.c b/net/rds/cong.c
+index e6144b8..7afc1bf 100644
+--- a/net/rds/cong.c
++++ b/net/rds/cong.c
+@@ -144,6 +144,7 @@ static struct rds_cong_map *rds_cong_from_addr(__be32 addr)
+ 	if (!map)
+ 		return NULL;
+ 
++	spin_lock_init(&map->m_lock);
+ 	map->m_addr = addr;
+ 	init_waitqueue_head(&map->m_waitq);
+ 	INIT_LIST_HEAD(&map->m_conn_list);
+@@ -292,6 +293,7 @@ void rds_cong_set_bit(struct rds_cong_map *map, __be16 port)
+ {
+ 	unsigned long i;
+ 	unsigned long off;
++	unsigned long flags;
+ 
+ 	rdsdebug("setting congestion for %pI4:%u in map %p\n",
+ 	  &map->m_addr, ntohs(port), map);
+@@ -299,13 +301,16 @@ void rds_cong_set_bit(struct rds_cong_map *map, __be16 port)
+ 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
+ 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ 
++	spin_lock_irqsave(&map->m_lock, flags);
+ 	__set_bit_le(off, (void *)map->m_page_addrs[i]);
++	spin_unlock_irqrestore(&map->m_lock, flags);
+ }
+ 
+ void rds_cong_clear_bit(struct rds_cong_map *map, __be16 port)
+ {
+ 	unsigned long i;
+ 	unsigned long off;
++	unsigned long flags;
+ 
+ 	rdsdebug("clearing congestion for %pI4:%u in map %p\n",
+ 	  &map->m_addr, ntohs(port), map);
+@@ -313,7 +318,9 @@ void rds_cong_clear_bit(struct rds_cong_map *map, __be16 port)
+ 	i = be16_to_cpu(port) / RDS_CONG_MAP_PAGE_BITS;
+ 	off = be16_to_cpu(port) % RDS_CONG_MAP_PAGE_BITS;
+ 
++	spin_lock_irqsave(&map->m_lock, flags);
+ 	__clear_bit_le(off, (void *)map->m_page_addrs[i]);
++	spin_unlock_irqrestore(&map->m_lock, flags);
+ }
+ 
+ static int rds_cong_test_bit(struct rds_cong_map *map, __be16 port)
+diff --git a/net/rds/rds.h b/net/rds/rds.h
+index 80256b0..f359cf8 100644
+--- a/net/rds/rds.h
++++ b/net/rds/rds.h
+@@ -59,6 +59,7 @@ struct rds_cong_map {
+ 	__be32			m_addr;
+ 	wait_queue_head_t	m_waitq;
+ 	struct list_head	m_conn_list;
++	spinlock_t		m_lock;
+ 	unsigned long		m_page_addrs[RDS_CONG_MAP_PAGES];
+ };
+ 
+-- 
+2.1.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
