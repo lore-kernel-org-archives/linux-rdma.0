@@ -1,25 +1,25 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 12/12] iser-target: Use ib_drain_qp
-Date: Wed, 30 Mar 2016 21:24:19 -0700
-Message-ID: <1459398259.31390.3.camel@haakon3.risingtidesystems.com>
-References: <1456334649-21437-1-git-send-email-sagig@mellanox.com>
-	 <1456334649-21437-13-git-send-email-sagig@mellanox.com>
-	 <20160323074826.GA30916@infradead.org>
+From: Nethaji road <nethajiroad-wFTg+7BAn+geN6c4XOgimgC/G2K4zDHf@public.gmane.org>
+Subject: Fwd: Urgent- Quotations Needed
+Date: Thu, 31 Mar 2016 13:29:35 +0530 (IST)
+Message-ID: <798259170.442958.1459411175652.JavaMail.root__26148.2090493248$1459411367$gmane$org@muthoottumini.com>
+References: <243313206.418853.1459409843137.JavaMail.root@muthoottumini.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160323074826.GA30916@infradead.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Sagi Grimberg <sagig@mellanox.com>, target-devel@vger.kernel.org, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <243313206.418853.1459409843137.JavaMail.root-wFTg+7BAn+geN6c4XOgimgC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2016-03-23 at 00:48 -0700, Christoph Hellwig wrote:
-> Now that ib_drain_qp and the iser patches in mainline it would be good
-> to get this one in as well through an update to either tree.
-> --
 
-Applied to target-pending/master for -rc2.
 
-Thanks folks.
+
+
+Dear Sir,
+FYI kindly send us proforma ASAP for the attached purchase order.
+Thanks
+Carmen Rodriguez
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
