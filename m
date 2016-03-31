@@ -1,45 +1,72 @@
-From: =?UTF-8?q?Markus=20B=C3=B6hme?= <markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>
-Subject: [PATCH] staging/rdma/hfi1: select CRC32
-Date: Fri,  1 Apr 2016 01:04:05 +0200
-Message-ID: <1459465467-31367-1-git-send-email-markus.boehme@mailbox.org>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 1 Apr 2016 02:38:28 +0300
+Message-ID: <20160331233828.GE2670@leon.nu>
+References: <56EAE9D6.2030908@redhat.com>
+ <CA+55aFxxoO=i7neGBRGW_afHsSZ7K-x6fMO8v-8po3Ls_Ew0Rg@mail.gmail.com>
+ <20160318173748.GL25216@leon.nu>
+ <CA+55aFwNcyywn3gYQ=H_+6WMt=s+xZ5bgpX3O9z8b2o5EhDMGQ@mail.gmail.com>
+ <20160323105708.GP25216@leon.nu>
+ <56F29C32.305@redhat.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56F29C32.305-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
-Cc: =?UTF-8?q?Markus=20B=C3=B6hme?= <markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The function parse_platform_config in firmware.c calls crc32_le.
-Building without CRC32 selected causes a link error:
+On Wed, Mar 23, 2016 at 09:37:54AM -0400, Doug Ledford wrote:
+> On 03/23/2016 06:57 AM, Leon Romanovsky wrote:
+> > On Sat, Mar 19, 2016 at 02:37:08PM -0700, Linus Torvalds wrote:
+> >> So the *best* situation would be:
+> >>
+> >>  - your two groups talk it over, and figure out what the common commits are
+> >>
+> >>  - you put those common commits as a "base" branch in git
+> >>
+> >>  - you ask the two upper-level maintainers to both pull that base branch
+> >>
+> >>  - you then make sure that you send the later patches (whether as
+> >> emailed patches or as pull requests) based on top of that base branch.
+> > 
+> > Hi David and Doug,
+> > 
+> > Are you OK with the approach suggested by Linus?
+> > We are eager to know it, so we will adopt it as soon
+> > as possible in our development flow.
+> > 
+> > The original thread [1].
+> > 
+> > [1] http://thread.gmane.org/gmane.linux.drivers.rdma/34907
+> > 
+> > Thanks.
+> > 
+> 
+> I'm fine with it.  Since I happen to use topic branches to build my
+> for-next from anyway, I might need to be the one that Dave pulls from
+> versus the other way around.
 
-drivers/built-in.o: In function `parse_platform_config':
-(.text+0x92ffa): undefined reference to `crc32_le'
+Resending to linux-netdev.
 
-Signed-off-by: Markus B=C3=B6hme <markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>
----
- drivers/staging/rdma/hfi1/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+David,
+Can you please express your opinion about Linus's suggestion to
+eliminate merge conflicts in Mellanox related products?
 
-diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma/h=
-fi1/Kconfig
-index 3e668d8..a925fb0 100644
---- a/drivers/staging/rdma/hfi1/Kconfig
-+++ b/drivers/staging/rdma/hfi1/Kconfig
-@@ -2,6 +2,7 @@ config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
- 	depends on X86_64 && INFINIBAND_RDMAVT
- 	select MMU_NOTIFIER
-+	select CRC32
- 	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
---=20
-1.7.10.4
+Thanks
+
+> 
+> -- 
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+> 
+> 
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
