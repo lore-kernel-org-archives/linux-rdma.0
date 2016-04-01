@@ -1,65 +1,138 @@
-From: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH for kernel v4.6] IB/srpt: Revert "Convert to percpu_ida
- tag allocation"
-Date: Fri, 1 Apr 2016 06:45:09 +0300
-Message-ID: <20160401034509.GB8565@leon.nu>
-References: <56FDBA63.7010804@sandisk.com>
- <20160401030322.GH2670@leon.nu>
- <56FDE739.9090801@sandisk.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Lijun Ou <oulijun@huawei.com>
+Subject: [RESEND PATCH V4 3/3] IB/hns: Add binding document for HiSilicon RoCE driver
+Date: Fri, 1 Apr 2016 17:21:32 +0800
+Message-ID: <1459502492-19891-4-git-send-email-oulijun@huawei.com>
+References: <1459502492-19891-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56FDE739.9090801-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1459502492-19891-1-git-send-email-oulijun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 31, 2016 at 08:12:57PM -0700, Bart Van Assche wrote:
-> On 03/31/16 20:05, Leon Romanovsky wrote:
-> >On Thu, Mar 31, 2016 at 05:01:39PM -0700, Bart Van Assche wrote:
-> >>That patch is wrong because it makes the ib_srpt driver use I/O
-> >>contexts allocated by transport_alloc_session_tags() but it does
-> >>not initialize these I/O contexts properly.
-> >
-> >Did you have a chance to see which initializations are missing in this
-> >case? What is needed to do if we decide to fix original patch?
-> >
-> >Except these questions, the revert is fine :)
-> >Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Hello Leon,
-> 
-> Thanks for the review. The initializations that are missing from that patch
-> are the 'buf' pointer in the srpt_ioctx structure and mapping that buffer
-> for DMA.
+This patch adds related DTS binding document for HiSilicon RoCE driver.
 
-Generally speaking you can call to srpt_alloc_ioctx or something
-similar to perform mapping, right after that line
-+       ioctx = &((struct srpt_send_ioctx *)se_sess->sess_cmd_map)[tag];
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Signed-off-by: Wei Hu(Xavier) <xavier.huwei@huawei.com>
+---
+ .../bindings/infiniband/hisilicon-hns-roce.txt     | 107 +++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
 
-> Another bug introduced by that patch is that it doubles the amount
-> of memory that is allocated for I/O contexts. New I/O context allocations
-> were added by that patch but the existing I/O context allocation code was
-> not removed.
-
-It should be easy to fix, just delete it.
-
-> 
-> Regarding reconsidering the original patch: before we do that it has to be
-> shown with numbers that the percpu_ida conversion does not decrease
-> performance. This is something I had already asked two months ago. See also
-> http://thread.gmane.org/gmane.linux.scsi.target.devel/11253/focus=110559.
-
-I don't think that performance was the main goal of that patch set. In
-addition, percpu_ida is supposed allocate tags on the percpu list which
-will give the same performance as initial code.
-
-> 
-> Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+new file mode 100644
+index 0000000..5180fef
+--- /dev/null
++++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+@@ -0,0 +1,107 @@
++HiSilicon RoCE DT description
++
++HiSilicon RoCE engine is a part of network subsystem.
++It works depending on other part of network wubsytem, such as, gmac and
++dsa fabric.
++
++Additional properties are described here:
++
++Required properties:
++- compatible: Should contain "hisilicon,hns-roce-v1".
++- reg: Physical base address of the roce driver and
++length of memory mapped region.
++- eth-handle: phandle, specifies a reference to a node
++representing a ethernet device.
++- dsaf-handle: phandle, specifies a reference to a node
++representing a dsaf device.
++- #address-cells: must be 2
++- #size-cells: must be 2
++Optional properties:
++- dma-coherent: Present if DMA operations are coherent.
++- interrupt-parent: the interrupt parent of this device.
++- interrupts: should contain 32 completion event irq,1 async event irq
++and 1 event overflow irq.
++- interrupt-names:should be one of 34 irqs for roce device
++  - roce_ce0_irq ~ roce_ce31_irq: 32 complete event irq
++  - roce_ae_irq: 1 async event irq
++  - roce_common_irq: named common exception warning irq
++Example:
++	infiniband@c4000000 {
++			compatible = "hisilicon,hns-roce-v1";
++			reg = <0x0 0xc4000000 0x0 0x100000>;
++			dma-coherent;
++			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
++			dsaf-handle = <&soc0_dsa>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			interrupt-parent = <&mbigen_dsa>;
++			interrupts = <722 1>,
++					<723 1>,
++					<724 1>,
++					<725 1>,
++					<726 1>,
++					<727 1>,
++					<728 1>,
++					<729 1>,
++					<730 1>,
++					<731 1>,
++					<732 1>,
++					<733 1>,
++					<734 1>,
++					<735 1>,
++					<736 1>,
++					<737 1>,
++					<738 1>,
++					<739 1>,
++					<740 1>,
++					<741 1>,
++					<742 1>,
++					<743 1>,
++					<744 1>,
++					<745 1>,
++					<746 1>,
++					<747 1>,
++					<748 1>,
++					<749 1>,
++					<750 1>,
++					<751 1>,
++					<752 1>,
++					<753 1>,
++					<785 1>,
++					<754 4>;
++
++			interrupt-names = "roce_ce0_irq",
++					"roce_ce1_irq",
++					"roce_ce2_irq",
++					"roce_ce3_irq",
++					"roce_ce4_irq",
++					"roce_ce5_irq",
++					"roce_ce6_irq",
++					"roce_ce7_irq",
++					"roce_ce8_irq",
++					"roce_ce9_irq",
++					"roce_ce10_irq",
++					"roce_ce11_irq",
++					"roce_ce12_irq",
++					"roce_ce13_irq",
++					"roce_ce14_irq",
++					"roce_ce15_irq",
++					"roce_ce16_irq",
++					"roce_ce17_irq",
++					"roce_ce18_irq",
++					"roce_ce19_irq",
++					"roce_ce20_irq",
++					"roce_ce21_irq",
++					"roce_ce22_irq",
++					"roce_ce23_irq",
++					"roce_ce24_irq",
++					"roce_ce25_irq",
++					"roce_ce26_irq",
++					"roce_ce27_irq",
++					"roce_ce28_irq",
++					"roce_ce29_irq",
++					"roce_ce30_irq",
++					"roce_ce31_irq",
++					"roce_ae_irq",
++					"roce_common_irq";
++		};
+-- 
+1.9.1
