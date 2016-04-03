@@ -1,59 +1,44 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH for kernel v4.6] IB/srpt: Revert "Convert to percpu_ida
- tag allocation"
-Date: Sat, 02 Apr 2016 20:56:03 -0700
-Message-ID: <1459655763.13184.45.camel@haakon3.risingtidesystems.com>
-References: <56FDBA63.7010804@sandisk.com> <20160401030322.GH2670@leon.nu>
-	 <56FDE739.9090801@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <56FDE739.9090801@sandisk.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: "leon@leon.nu" <leon@leon.nu>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH] MAINTAINERS: Update iser/isert maintainer contact info
+Date: Sun,  3 Apr 2016 15:03:12 +0300
+Message-ID: <1459684992-6885-1-git-send-email-sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-(Adding missing target-devel CC')
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ MAINTAINERS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Thu, 2016-03-31 at 20:12 -0700, Bart Van Assche wrote:
-> On 03/31/16 20:05, Leon Romanovsky wrote:
-> > On Thu, Mar 31, 2016 at 05:01:39PM -0700, Bart Van Assche wrote:
-> >> That patch is wrong because it makes the ib_srpt driver use I/O
-> >> contexts allocated by transport_alloc_session_tags() but it does
-> >> not initialize these I/O contexts properly.
-> >
-> > Did you have a chance to see which initializations are missing in this
-> > case? What is needed to do if we decide to fix original patch?
-> >
-> > Except these questions, the revert is fine :)
-> > Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Hello Leon,
-> 
-> Thanks for the review. The initializations that are missing from that 
-> patch are the 'buf' pointer in the srpt_ioctx structure and mapping that 
-> buffer for DMA. Another bug introduced by that patch is that it doubles 
-> the amount of memory that is allocated for I/O contexts. New I/O context 
-> allocations were added by that patch but the existing I/O context 
-> allocation code was not removed.
-> 
-> Regarding reconsidering the original patch: before we do that it has to 
-> be shown with numbers that the percpu_ida conversion does not decrease 
-> performance. This is something I had already asked two months ago. See 
-> also 
-> http://thread.gmane.org/gmane.linux.scsi.target.devel/11253/focus=110559.
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6ee06ea47be4..1214e8781d17 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5944,7 +5944,7 @@ F:	include/scsi/*iscsi*
+ 
+ ISCSI EXTENSIONS FOR RDMA (ISER) INITIATOR
+ M:	Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+-M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+ M:	Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ S:	Supported
+@@ -5954,7 +5954,7 @@ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+ F:	drivers/infiniband/ulp/iser/
+ 
+ ISCSI EXTENSIONS FOR RDMA (ISER) TARGET
+-M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git master
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ L:	target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+-- 
+1.9.1
 
-Like I said two months ago, there is no reason why ib_srpt needs special
-pre-allocation for descriptors containing se_cmd, when every other
-single driver in the tree already uses common percpu_ida code for it.
-
-Also, I don't know why none of your ib_srpt patches ever make it to
-target-devel, but can you please stop trying to push target driver
-changes upstream without first notifying target-devel..?
-
-Beyond that, are you going to send an bug-fix to address this regression
-in v4.6 code..?  If not, I'll add this to the queue and just do it
-myself.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
