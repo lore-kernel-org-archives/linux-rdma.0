@@ -1,60 +1,91 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: Adding queue drain functions
-Date: Mon, 4 Apr 2016 20:21:57 +0300
-Message-ID: <20160404172157.GF5264@leon.nu>
-References: <20160329175837.GA9868@TENIKOLO-MOBL2>
- <046801d189fc$7697f890$63c7e9b0$@opengridcomputing.com>
- <20160331011902.GC2670@leon.nu>
- <01b501d18e79$92ddee20$b899ca60$@opengridcomputing.com>
- <20160404145254.GE5264@leon.nu>
- <03e901d18e82$ea2067e0$be6137a0$@opengridcomputing.com>
+Subject: Re: [PATCH for-4.6] iw_cxgb4: Fix bar2 virtual address calculation
+ for T4 adapters
+Date: Mon, 4 Apr 2016 20:32:48 +0300
+Message-ID: <20160404173248.GG5264@leon.nu>
+References: <1459747840-9583-1-git-send-email-hariprasad@chelsio.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <03e901d18e82$ea2067e0$be6137a0$@opengridcomputing.com>
+In-Reply-To: <1459747840-9583-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 04, 2016 at 10:01:49AM -0500, Steve Wise wrote:
-> > The suggested refactoring can be as follows:
-> > 
-> > post_marker_func(..)
-> > {
-> >     post_send ....
-> > }
-> > 
-> > ib_drain_qp(..)
-> > {
-> >     move_to_error
-> >     call_post_marker_func
-> > }
-> > 
-> > iw_drain_qp(..)
-> > {
-> >     call_to_post_marker_func
-> >     move_to_drain
-> > }
-> >
+On Mon, Apr 04, 2016 at 11:00:40AM +0530, Hariprasad Shenai wrote:
+> For T4, kernel mode qps don't use the user doorbell. User mode qps during
+> flow control db ringing are forced into kernel, where user doorbell is
+> treated as kernel doorbell and proper bar2 offset in bar2 virtual space is
+> calculated, which incase of T4 is a bogus address, causing a kernel panic
+> due to illegal write during doorbell ringing.
+> In case of T4, kernel mode qp bar2 virtual address should be 0. Added T4
+> check during bar2 virtual address calculation to return 0. Fixed Bar2
+> range checks based on bar2 physical address.
 > 
-> This won't work if the QP is already in out of RTS which happens as part of
-> rdma_disconnect().  And currently the ULP usage is to disconnect and then drain.
-
-Ok, just to summarize it.
-
-It is not enough do not transfer QP to error state, but also we
-can't send work requests. The RDMA disconnect serves as a gate keeper
-which protects from new work requests to entry into drained QP.
-
-Thank you for the explanation.
-
+> Based on original work by Bharat Potnuri <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 > 
-> Steve.
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+
+A very minor nitpicks:
+1. Please add IB or RDMA into the subject, so we will be able to see it
+clearly in git log (iw_cxgb4 -> IB/iw_cxgb4).
+2. Please add kernel panic observed, so it will be documented for other
+users who can potentially experience this failure without your fix.
+3. Please add Fixes annotation there the issue was introduced.
+
+> ---
+>  drivers/infiniband/hw/cxgb4/cq.c | 2 +-
+>  drivers/infiniband/hw/cxgb4/qp.c | 6 +++++-
+>  2 files changed, 6 insertions(+), 2 deletions(-)
 > 
+> diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+> index b4eeb783573c..b0b955724458 100644
+> --- a/drivers/infiniband/hw/cxgb4/cq.c
+> +++ b/drivers/infiniband/hw/cxgb4/cq.c
+> @@ -162,7 +162,7 @@ static int create_cq(struct c4iw_rdev *rdev, struct t4_cq *cq,
+>  	cq->bar2_va = c4iw_bar2_addrs(rdev, cq->cqid, T4_BAR2_QTYPE_INGRESS,
+>  				      &cq->bar2_qid,
+>  				      user ? &cq->bar2_pa : NULL);
+> -	if (user && !cq->bar2_va) {
+> +	if (user && !cq->bar2_pa) {
+>  		pr_warn(MOD "%s: cqid %u not in BAR2 range.\n",
+>  			pci_name(rdev->lldi.pdev), cq->cqid);
+>  		ret = -EINVAL;
+> diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+> index e17fb5d5e033..48ca455d057b 100644
+> --- a/drivers/infiniband/hw/cxgb4/qp.c
+> +++ b/drivers/infiniband/hw/cxgb4/qp.c
+> @@ -185,6 +185,10 @@ void __iomem *c4iw_bar2_addrs(struct c4iw_rdev *rdev, unsigned int qid,
+>  
+>  	if (pbar2_pa)
+>  		*pbar2_pa = (rdev->bar2_pa + bar2_qoffset) & PAGE_MASK;
+> +
+> +	if (is_t4(rdev->lldi.adapter_type))
+> +		return NULL;
+> +
+>  	return rdev->bar2_kva + bar2_qoffset;
+>  }
+>  
+> @@ -270,7 +274,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+>  	/*
+>  	 * User mode must have bar2 access.
+>  	 */
+> -	if (user && (!wq->sq.bar2_va || !wq->rq.bar2_va)) {
+> +	if (user && (!wq->sq.bar2_pa || !wq->rq.bar2_pa)) {
+>  		pr_warn(MOD "%s: sqid %u or rqid %u not in BAR2 range.\n",
+>  			pci_name(rdev->lldi.pdev), wq->sq.qid, wq->rq.qid);
+>  		goto free_dma;
+> -- 
+> 2.3.4
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
