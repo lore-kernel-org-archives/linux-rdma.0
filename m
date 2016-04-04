@@ -1,73 +1,74 @@
-From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] Documentation nfs-rdma.txt: Update nfs-rdma kernel module
- name and add IPv6 addressing option rdma6
-Date: Mon, 04 Apr 2016 15:08:02 -0700
-Message-ID: <5702E5C2.8090007@oracle.com>
-References: <56E9A650.7060409@oracle.com> <56F19F28.9020504@Netapp.com> <5702AF3F.90500@oracle.com> <20160404195020.GH5264@leon.nu> <5702CD3B.4030207@oracle.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Add missing ioctx->buf + ->dma
+ alloc_session_cb init
+Date: Mon, 04 Apr 2016 15:41:12 -0700
+Message-ID: <1459809672.10124.18.camel@haakon3.risingtidesystems.com>
+References: <1459794233-19187-1-git-send-email-nab@linux-iscsi.org>
+	 <5702B503.1060006@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5702CD3B.4030207-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bruce Fields <bfields-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: leon-2ukJVAZIZ/Y@public.gmane.org, Chuck Lever <Chuck.Lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5702B503.1060006-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Update NFS/RDMA transport module name from client xprtrdma,
-server svcrdma to rpcrdma which supports both server and client.
-Add mount proto option rdma6 to use IPv6 addressing for NFS/RDMA.
+On Mon, 2016-04-04 at 11:40 -0700, Bart Van Assche wrote:
+> On 04/04/2016 11:28 AM, Nicholas A. Bellinger wrote:
+> > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > index 0bd3cb2..c4e0a0a 100644
+> > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > @@ -1266,7 +1266,9 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+> >   {
+> >   	struct se_session *se_sess;
+> >   	struct srpt_send_ioctx *ioctx;
+> > -	int tag;
+> > +	void *buf;
+> > +	dma_addr_t dma;
+> > +	int tag, index;
+> >
+> >   	BUG_ON(!ch);
+> >   	se_sess = ch->sess;
+> > @@ -1277,12 +1279,19 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+> >   		return NULL;
+> >   	}
+> >   	ioctx = &((struct srpt_send_ioctx *)se_sess->sess_cmd_map)[tag];
+> > +	buf = ioctx->ioctx.buf;
+> > +	dma = ioctx->ioctx.dma;
+> > +	index = ioctx->ioctx.index;
+> > +
+> >   	memset(ioctx, 0, sizeof(struct srpt_send_ioctx));
+> >   	ioctx->ch = ch;
+> >   	spin_lock_init(&ioctx->spinlock);
+> >   	ioctx->state = SRPT_STATE_NEW;
+> >   	init_completion(&ioctx->tx_done);
+> >
+> > +	ioctx->ioctx.buf = buf;
+> > +	ioctx->ioctx.dma = dma;
+> > +	ioctx->ioctx.index = index;
+> >   	ioctx->cmd.map_tag = tag;
+> >
+> >   	return ioctx;
+> > @@ -1961,6 +1970,24 @@ static void srpt_free_ch(struct kref *kref)
+> >   	kfree(ch);
+> >   }
+> 
+> These assignments should happen once, namely just after I/O context 
+> allocation, instead of performing these assignments during every 
+> srpt_get_send_ioctx() call.
+> 
 
-Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
+No, the entire structure is being cleared each time, just like what
+every other driver is doing here.
 
- Documentation/filesystems/nfs/nfs-rdma.txt | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Don't try to micro-optimize to avoid doing memset.
 
-diff --git a/Documentation/filesystems/nfs/nfs-rdma.txt b/Documentation/filesystems/nfs/nfs-rdma.txt
-index 1e65645..6101b57 100644
---- a/Documentation/filesystems/nfs/nfs-rdma.txt
-+++ b/Documentation/filesystems/nfs/nfs-rdma.txt
-@@ -238,12 +238,13 @@ NFS/RDMA Setup
- 
-   - Start the NFS server
- 
--    If the NFS/RDMA server was built as a module (CONFIG_SUNRPC_XPRT_RDMA=m in
--    kernel config), load the RDMA transport module:
-+    If the NFS/RDMA was built as a module (CONFIG_SUNRPC_XPRT_RDMA=m in
-+    kernel config), load the RDMA transport module which supports both client
-+    and server:
- 
--    $ modprobe svcrdma
-+    $ modprobe rpcrdma
- 
--    Regardless of how the server was built (module or built-in), start the
-+    Regardless of how the rpcrdma was built (module or built-in), start the
-     server:
- 
-     $ /etc/init.d/nfs start
-@@ -258,15 +259,14 @@ NFS/RDMA Setup
- 
-   - On the client system
- 
--    If the NFS/RDMA client was built as a module (CONFIG_SUNRPC_XPRT_RDMA=m in
--    kernel config), load the RDMA client module:
-+    Regardless of how rpcrdma was built (module or built-in), use this command
-+    to mount the NFS/RDMA server through IPv4 addressing:
- 
--    $ modprobe xprtrdma.ko
-+    $ mount -o rdma,port=20049 <IPoIB-server-name-or-IPv4-address>:/<export> /mnt
- 
--    Regardless of how the client was built (module or built-in), use this
--    command to mount the NFS/RDMA server:
-+    or through IPv6 addressing
- 
--    $ mount -o rdma,port=20049 <IPoIB-server-name-or-address>:/<export> /mnt
-+    $ mount -o rdma6,port=20049 [<IPoIB-server-name-or-IPv6-address>]:/<export> /mnt
- 
-     To verify that the mount is using RDMA, run "cat /proc/mounts" and check
-     the "proto" field for the given mount.
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
