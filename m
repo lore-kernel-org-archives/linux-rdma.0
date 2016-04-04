@@ -1,43 +1,38 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: RE: [PATCH] RDMA/nes: Adding queue drain functions
-Date: Mon, 4 Apr 2016 08:54:57 -0500
-Message-ID: <01b501d18e79$92ddee20$b899ca60$@opengridcomputing.com>
-References: <20160329175837.GA9868@TENIKOLO-MOBL2> <046801d189fc$7697f890$63c7e9b0$@opengridcomputing.com> <20160331011902.GC2670@leon.nu>
+Date: Mon, 4 Apr 2016 09:42:35 -0500
+Message-ID: <03d101d18e80$3a838170$af8a8450$@opengridcomputing.com>
+References: <20160329175837.GA9868@TENIKOLO-MOBL2> <570141FE.4090400@grimberg.me> <20160404013152.GD5264@leon.nu> <57020C15.3000601@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160331011902.GC2670-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <57020C15.3000601-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org
+To: 'sagig' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, leon-2ukJVAZIZ/Y@public.gmane.org
 Cc: 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Tue, Mar 29, 2016 at 03:49:18PM -0500, Steve Wise wrote:
-> > >
-> > > Adding sq and rq drain functions, which block until all
-> > > previously posted wr-s in the specified queue have completed.
-> > > A completion object is signaled to unblock the thread,
-> > > when the last cqe for the corresponding queue is processed.
-> > >
-> > > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > Looks good to me.  No locking needed though?
-> >
-> > Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Sagi,
+> > Can you please explain why iWARP devices need explicit drain QP logic?
 > 
-> Steve,
-> I see that this implementation follows your reference implementation of
-> iw_cxgb4 which was iWARP specific. Can you point me to the relevant
-> information which explain why this specific case exists?
+> Steve can explain it much better than I can (so I'd wait for him to
+> confirm).
+> 
+> My understanding is that in iWARP, after moving the QP to error state,
+> all the posts should fail instead of completing with a flush error (I
+> think that SQ_DRAIN is the state that triggers flush errors).
+> 
+> This is why iWARP devices need a special handling for draining a
+> queue-pair.
 
-The iWARP Verbs spec mandates that when the QP is in ERROR, post_send() and
-post_recv() must, at some point, fail synchronously.  See:
+Sorry for the delayed reply Leon, I replied to your original email today (I was
+on vacation).
 
-http://tools.ietf.org/html/draft-hilland-rddp-verbs-00#section-6.2.4
+Sagi is correct, iWARP QPs need to fail post_send/recv requests synchronously
+and I didn't want to divert from the iWARP Verbs specification.
 
 Steve.
 
