@@ -1,109 +1,196 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 4/7] selinux: Allocate and free infiniband security hooks
-Date: Tue,  5 Apr 2016 00:48:21 +0300
-Message-ID: <1459806504-16135-5-git-send-email-danielj@mellanox.com>
+From: Dan Jurgens <danielj@mellanox.com>
+Subject: [RFC PATCH 5/7] selinux: Implement Infiniband PKey "Access" access vector
+Date: Tue,  5 Apr 2016 00:48:22 +0300
+Message-ID: <1459806504-16135-6-git-send-email-danielj@mellanox.com>
 References: <1459806504-16135-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459806504-16135-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1459806504-16135-1-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Daniel Jurgens <danielj@mellanox.com>
 
-Implement and attach hooks to allocate and free infiniband security
-structures.
+Add a type and access vector for PKeys. Implement the pkey_access hook
+to check that the caller has permission to access the PKey on the given
+subnet prefix.  Add an interface to get the PKey SID. Walk the PKey
+ocontexts to find an entry for the given subnet prefix and pkey.
 
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+Reviewed-by: Eli Cohen <eli@mellanox.com>
 ---
- security/selinux/hooks.c          |   29 +++++++++++++++++++++++++++++
- security/selinux/include/objsec.h |    6 ++++++
- 2 files changed, 35 insertions(+), 0 deletions(-)
+ include/linux/lsm_audit.h                        |    7 ++++
+ security/selinux/hooks.c                         |   25 +++++++++++++
+ security/selinux/include/classmap.h              |    2 +
+ security/selinux/include/initial_sid_to_string.h |    1 +
+ security/selinux/include/security.h              |    2 +
+ security/selinux/ss/services.c                   |   41 ++++++++++++++++++++++
+ 6 files changed, 78 insertions(+), 0 deletions(-)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 156e232..cd0c6f4 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -17,6 +17,8 @@
-  *	Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-  *  Copyright (C) 2007 Hitachi Software Engineering Co., Ltd.
-  *		       Yuichi Nakamura <ynakam-FkO1umbPgv4fag7Bw7Dlfw@public.gmane.org>
-+ *  Copyright (C) 2016 Mellanox Technologies,
-+ *					Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License version 2,
-@@ -5934,6 +5936,26 @@ static int selinux_key_getsecurity(struct key *key, char **_buffer)
- 
- #endif
- 
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+static int selinux_infiniband_alloc_security(void **security)
-+{
-+	struct infiniband_security_struct *sec;
-+
-+	sec = kzalloc(sizeof(*sec), GFP_ATOMIC);
-+	if (!sec)
-+		return -ENOMEM;
-+	sec->sid = current_sid();
-+
-+	*security = sec;
-+	return 0;
-+}
-+
-+static void selinux_infiniband_free_security(void *security)
-+{
-+	kfree(security);
-+}
-+#endif
-+
- static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(binder_set_context_mgr, selinux_binder_set_context_mgr),
- 	LSM_HOOK_INIT(binder_transaction, selinux_binder_transaction),
-@@ -6115,6 +6137,13 @@ static struct security_hook_list selinux_hooks[] = {
- 	LSM_HOOK_INIT(tun_dev_attach, selinux_tun_dev_attach),
- 	LSM_HOOK_INIT(tun_dev_open, selinux_tun_dev_open),
- 
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+	LSM_HOOK_INIT(infiniband_alloc_security,
-+		      selinux_infiniband_alloc_security),
-+	LSM_HOOK_INIT(infiniband_free_security,
-+		      selinux_infiniband_free_security),
-+#endif
-+
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 	LSM_HOOK_INIT(xfrm_policy_alloc_security, selinux_xfrm_policy_alloc),
- 	LSM_HOOK_INIT(xfrm_policy_clone_security, selinux_xfrm_policy_clone),
-diff --git a/security/selinux/include/objsec.h b/security/selinux/include/objsec.h
-index a2ae054..4e36976 100644
---- a/security/selinux/include/objsec.h
-+++ b/security/selinux/include/objsec.h
-@@ -10,6 +10,8 @@
-  *
-  *  Copyright (C) 2001,2002 Networks Associates Technology, Inc.
-  *  Copyright (C) 2003 Red Hat, Inc., James Morris <jmorris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-+ *  Copyright (C) 2016 Mellanox Technologies,
-+ *					Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License version 2,
-@@ -129,6 +131,10 @@ struct key_security_struct {
- 	u32 sid;	/* SID of key */
+diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
+index ffb9c9d..8ff7eae 100644
+--- a/include/linux/lsm_audit.h
++++ b/include/linux/lsm_audit.h
+@@ -45,6 +45,11 @@ struct lsm_ioctlop_audit {
+ 	u16 cmd;
  };
  
-+struct infiniband_security_struct {
-+	u32 sid;        /* SID of the queue pair or MAD agent */
++struct lsm_pkey_audit {
++	u64	subnet_prefix;
++	u16	pkey;
 +};
 +
- extern unsigned int selinux_checkreqprot;
+ /* Auxiliary data to use in generating the audit record. */
+ struct common_audit_data {
+ 	char type;
+@@ -59,6 +64,7 @@ struct common_audit_data {
+ #define LSM_AUDIT_DATA_INODE	9
+ #define LSM_AUDIT_DATA_DENTRY	10
+ #define LSM_AUDIT_DATA_IOCTL_OP	11
++#define LSM_AUDIT_DATA_PKEY	12
+ 	union 	{
+ 		struct path path;
+ 		struct dentry *dentry;
+@@ -75,6 +81,7 @@ struct common_audit_data {
+ #endif
+ 		char *kmod_name;
+ 		struct lsm_ioctlop_audit *op;
++		struct lsm_pkey_audit *pkey;
+ 	} u;
+ 	/* this union contains LSM specific data */
+ 	union {
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index cd0c6f4..829746b 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -5937,6 +5937,30 @@ static int selinux_key_getsecurity(struct key *key, char **_buffer)
+ #endif
  
- #endif /* _SELINUX_OBJSEC_H_ */
+ #ifdef CONFIG_SECURITY_INFINIBAND
++static int selinux_pkey_access(u64 subnet_prefix, u16 pkey_val, void *security)
++{
++	struct common_audit_data ad;
++	int err;
++	u32 sid = 0;
++	struct infiniband_security_struct *sec = security;
++	struct lsm_pkey_audit pkey;
++
++	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
++
++	if (err)
++		goto out;
++
++	ad.type = LSM_AUDIT_DATA_PKEY;
++	pkey.subnet_prefix = subnet_prefix;
++	pkey.pkey = pkey_val;
++	ad.u.pkey = &pkey;
++	err = avc_has_perm(sec->sid, sid,
++			   SECCLASS_INFINIBAND_PKEY,
++			   INFINIBAND_PKEY__ACCESS, &ad);
++out:
++	return err;
++}
++
+ static int selinux_infiniband_alloc_security(void **security)
+ {
+ 	struct infiniband_security_struct *sec;
+@@ -6138,6 +6162,7 @@ static struct security_hook_list selinux_hooks[] = {
+ 	LSM_HOOK_INIT(tun_dev_open, selinux_tun_dev_open),
+ 
+ #ifdef CONFIG_SECURITY_INFINIBAND
++	LSM_HOOK_INIT(pkey_access, selinux_pkey_access),
+ 	LSM_HOOK_INIT(infiniband_alloc_security,
+ 		      selinux_infiniband_alloc_security),
+ 	LSM_HOOK_INIT(infiniband_free_security,
+diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
+index ef83c4b..46eb7a1 100644
+--- a/security/selinux/include/classmap.h
++++ b/security/selinux/include/classmap.h
+@@ -157,5 +157,7 @@ struct security_class_mapping secclass_map[] = {
+ 	  { COMMON_SOCK_PERMS, "attach_queue", NULL } },
+ 	{ "binder", { "impersonate", "call", "set_context_mgr", "transfer",
+ 		      NULL } },
++	{ "infiniband_pkey",
++	  { "access", NULL } },
+ 	{ NULL }
+   };
+diff --git a/security/selinux/include/initial_sid_to_string.h b/security/selinux/include/initial_sid_to_string.h
+index a59b64e..8f2eefc 100644
+--- a/security/selinux/include/initial_sid_to_string.h
++++ b/security/selinux/include/initial_sid_to_string.h
+@@ -29,5 +29,6 @@ static const char *initial_sid_to_string[] =
+     "policy",
+     "scmp_packet",
+     "devnull",
++    "pkey",
+ };
+ 
+diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
+index a7e6ed2..8f1a66e 100644
+--- a/security/selinux/include/security.h
++++ b/security/selinux/include/security.h
+@@ -180,6 +180,8 @@ int security_get_user_sids(u32 callsid, char *username,
+ 
+ int security_port_sid(u8 protocol, u16 port, u32 *out_sid);
+ 
++int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid);
++
+ int security_netif_sid(char *name, u32 *if_sid);
+ 
+ int security_node_sid(u16 domain, void *addr, u32 addrlen,
+diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
+index ebda973..2fc48c5 100644
+--- a/security/selinux/ss/services.c
++++ b/security/selinux/ss/services.c
+@@ -2229,6 +2229,47 @@ out:
+ }
+ 
+ /**
++ * security_pkey_sid - Obtain the SID for a pkey.
++ * @subnet_prefix: Subnet Prefix
++ * @pkey_num: pkey number
++ * @out_sid: security identifier
++ */
++int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid)
++{
++	struct ocontext *c;
++	int rc = 0;
++
++	read_lock(&policy_rwlock);
++
++	c = policydb.ocontexts[OCON_PKEY];
++	while (c) {
++		if (c->u.pkey.low_pkey <= pkey_num &&
++		    c->u.pkey.high_pkey >= pkey_num &&
++		    c->u.pkey.subnet_prefix == subnet_prefix)
++			break;
++
++		c = c->next;
++	}
++
++	if (c) {
++		if (!c->sid[0]) {
++			rc = sidtab_context_to_sid(&sidtab,
++						   &c->context[0],
++						   &c->sid[0]);
++			if (rc)
++				goto out;
++		}
++		*out_sid = c->sid[0];
++	} else {
++		*out_sid = SECINITSID_PKEY;
++	}
++
++out:
++	read_unlock(&policy_rwlock);
++	return rc;
++}
++
++/**
+  * security_netif_sid - Obtain the SID for a network interface.
+  * @name: interface name
+  * @if_sid: interface SID
 -- 
 1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
