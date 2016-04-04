@@ -1,53 +1,66 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Update iser/isert maintainer contact info
-Date: Mon, 04 Apr 2016 11:14:10 -0700
-Message-ID: <1459793650.10124.0.camel@haakon3.risingtidesystems.com>
-References: <1459684992-6885-1-git-send-email-sagi@grimberg.me>
+From: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH V2] nfs: add mount proto=rdma6 option for NFS/RDMA IPv6 addressing
+Date: Mon, 04 Apr 2016 11:15:27 -0700
+Message-ID: <5702AF3F.90500@oracle.com>
+References: <56E9A650.7060409@oracle.com> <56F19F28.9020504@Netapp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459684992-6885-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56F19F28.9020504-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Chuck Lever <Chuck.Lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2016-04-03 at 15:03 +0300, Sagi Grimberg wrote:
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  MAINTAINERS | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 6ee06ea47be4..1214e8781d17 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -5944,7 +5944,7 @@ F:	include/scsi/*iscsi*
->  
->  ISCSI EXTENSIONS FOR RDMA (ISER) INITIATOR
->  M:	Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> -M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> +M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->  M:	Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->  L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->  S:	Supported
-> @@ -5954,7 +5954,7 @@ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
->  F:	drivers/infiniband/ulp/iser/
->  
->  ISCSI EXTENSIONS FOR RDMA (ISER) TARGET
-> -M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> +M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git master
->  L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->  L:	target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+RFC 5666: The "rdma" netid is to be used when IPv4 addressing
+is employed by the underlying transport, and "rdma6" for IPv6
+addressing.
+Add mount -o proto=rdma6 option to support NFS/RDMA IPv6 addressing.
 
-For the target bit:
+Changes from v1:
+ - Integrated comments from Chuck Level, Anna Schumaker, Trodt Myklebust
+ - Add a little more to the patch description to describe NFS/RDMA
+   IPv6 usage
+ - Removed duplicated rdma6 define
+ - Removed Opt_xprt_rdma mountfamily since this doesn't support 
 
-Acked-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Signed-off-by: Shirley Ma <shirley.ma-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
 
+ fs/nfs/super.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index f126828..c884155 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -191,6 +191,7 @@ static const match_table_t nfs_mount_option_tokens = {
+ 
+ enum {
+ 	Opt_xprt_udp, Opt_xprt_udp6, Opt_xprt_tcp, Opt_xprt_tcp6, Opt_xprt_rdma,
++	Opt_xprt_rdma6,
+ 
+ 	Opt_xprt_err
+ };
+@@ -201,6 +202,7 @@ static const match_table_t nfs_xprt_protocol_tokens = {
+ 	{ Opt_xprt_tcp, "tcp" },
+ 	{ Opt_xprt_tcp6, "tcp6" },
+ 	{ Opt_xprt_rdma, "rdma" },
++	{ Opt_xprt_rdma6, "rdma6" },
+ 
+ 	{ Opt_xprt_err, NULL }
+ };
+@@ -1456,6 +1458,8 @@ static int nfs_parse_mount_options(char *raw,
+ 				mnt->flags |= NFS_MOUNT_TCP;
+ 				mnt->nfs_server.protocol = XPRT_TRANSPORT_TCP;
+ 				break;
++			case Opt_xprt_rdma6:
++				protofamily = AF_INET6;
+ 			case Opt_xprt_rdma:
+ 				/* vector side protocols to TCP */
+ 				mnt->flags |= NFS_MOUNT_TCP;
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
