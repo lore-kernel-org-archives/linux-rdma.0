@@ -1,24 +1,46 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: iSER initiator in 4.5 is unhappy..
-Date: Mon, 4 Apr 2016 06:46:56 -0700
-Message-ID: <20160404134656.GA30269@infradead.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH] RDMA/nes: Adding queue drain functions
+Date: Mon, 4 Apr 2016 08:54:57 -0500
+Message-ID: <01b501d18e79$92ddee20$b899ca60$@opengridcomputing.com>
+References: <20160329175837.GA9868@TENIKOLO-MOBL2> <046801d189fc$7697f890$63c7e9b0$@opengridcomputing.com> <20160331011902.GC2670@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20160331011902.GC2670-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-2ukJVAZIZ/Y@public.gmane.org
+Cc: 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When trying to use iSER with a 4.5 initiator it's rather unhappy and
-I get a spew of messages like:
+> On Tue, Mar 29, 2016 at 03:49:18PM -0500, Steve Wise wrote:
+> > >
+> > > Adding sq and rq drain functions, which block until all
+> > > previously posted wr-s in the specified queue have completed.
+> > > A completion object is signaled to unblock the thread,
+> > > when the last cqe for the corresponding queue is processed.
+> > >
+> > > Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > Looks good to me.  No locking needed though?
+> >
+> > Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> 
+> Steve,
+> I see that this implementation follows your reference implementation of
+> iw_cxgb4 which was iWARP specific. Can you point me to the relevant
+> information which explain why this specific case exists?
 
-[  236.814107] iser: iser_fast_reg_fmr: ib_fmr_pool_map_phys failed: -22
-[  236.823100] iser: iser_prepare_read_cmd: Failed to set up Data-IN RDMA
-[  236.832101] iser: iser_send_command: conn ffff88002b16e328 failed task->itt 75 err -22
+The iWARP Verbs spec mandates that when the QP is in ERROR, post_send() and
+post_recv() must, at some point, fail synchronously.  See:
 
-If I manually comment out the FMR selection in iser_memory.c and force
-it to use FRs things seem to work fine.
+http://tools.ietf.org/html/draft-hilland-rddp-verbs-00#section-6.2.4
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
