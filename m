@@ -1,45 +1,24 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags] saquery.c: Fix changing qos_class flag value
- to network order twice
-Date: Mon, 4 Apr 2016 04:00:03 -0400
-Message-ID: <57021F03.5030805@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: iSER initiator in 4.5 is unhappy..
+Date: Mon, 4 Apr 2016 06:46:56 -0700
+Message-ID: <20160404134656.GA30269@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuE@public.gmane.org>
-Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+When trying to use iSER with a 4.5 initiator it's rather unhappy and
+I get a spew of messages like:
 
-Fix the qos_class flag value from being converted to network order twice.
-The first time is in "CHECK_AND_SET_VAL" and the second is inside
-"ib_path_rec_set_qos_class".
+[  236.814107] iser: iser_fast_reg_fmr: ib_fmr_pool_map_phys failed: -22
+[  236.823100] iser: iser_prepare_read_cmd: Failed to set up Data-IN RDMA
+[  236.832101] iser: iser_send_command: conn ffff88002b16e328 failed task->itt 75 err -22
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/saquery.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/src/saquery.c b/src/saquery.c
-index c0f42e8..ea946a1 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -1065,8 +1065,9 @@ static int query_path_records(const struct query_cmd *q, struct sa_handle * h,
- 	pr.num_path |= reversible << 7;
- 	CHECK_AND_SET_VAL(p->pkey, 16, 0, pr.pkey, PR, PKEY);
- 	CHECK_AND_SET_VAL(p->sl, 16, -1, pr.qos_class_sl, PR, SL);
--	CHECK_AND_SET_VAL(p->qos_class, 16, -1, qos_class, PR, QOS_CLASS);
--	ib_path_rec_set_qos_class(&pr, qos_class);
-+	CHECK_AND_SET_VAL((p->qos_class << 4), 16, -1, qos_class, PR, QOS_CLASS);
-+	pr.qos_class_sl = (pr.qos_class_sl & CL_HTON16(IB_PATH_REC_SL_MASK)) |
-+			  qos_class;
- 	CHECK_AND_SET_VAL_AND_SEL(p->mtu, pr.mtu, PR, MTU, SELEC);
- 	CHECK_AND_SET_VAL_AND_SEL(p->rate, pr.rate, PR, RATE, SELEC);
- 	CHECK_AND_SET_VAL_AND_SEL(p->pkt_life, pr.pkt_life, PR, PKTLIFETIME,
+If I manually comment out the FMR selection in iser_memory.c and force
+it to use FRs things seem to work fine.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
