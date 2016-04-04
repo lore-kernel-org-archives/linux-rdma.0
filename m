@@ -1,41 +1,36 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] RDMA/nes: Adding queue drain functions
-Date: Mon, 4 Apr 2016 09:42:35 -0500
-Message-ID: <03d101d18e80$3a838170$af8a8450$@opengridcomputing.com>
-References: <20160329175837.GA9868@TENIKOLO-MOBL2> <570141FE.4090400@grimberg.me> <20160404013152.GD5264@leon.nu> <57020C15.3000601@grimberg.me>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: iSER initiator in 4.5 is unhappy..
+Date: Mon, 4 Apr 2016 17:42:16 +0300
+Message-ID: <57027D48.4000500@mellanox.com>
+References: <20160404134656.GA30269@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57020C15.3000601-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20160404134656.GA30269-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'sagig' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, leon-2ukJVAZIZ/Y@public.gmane.org
-Cc: 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Sagi,
-> > Can you please explain why iWARP devices need explicit drain QP logic?
-> 
-> Steve can explain it much better than I can (so I'd wait for him to
-> confirm).
-> 
-> My understanding is that in iWARP, after moving the QP to error state,
-> all the posts should fail instead of completing with a flush error (I
-> think that SQ_DRAIN is the state that triggers flush errors).
-> 
-> This is why iWARP devices need a special handling for draining a
-> queue-pair.
+Thanks, I'll try to reprodue it.
+Can you give me a scenario/setup details ?
 
-Sorry for the delayed reply Leon, I replied to your original email today (I was
-on vacation).
 
-Sagi is correct, iWARP QPs need to fail post_send/recv requests synchronously
-and I didn't want to divert from the iWARP Verbs specification.
-
-Steve.
-
+On 4/4/2016 4:46 PM, Christoph Hellwig wrote:
+> When trying to use iSER with a 4.5 initiator it's rather unhappy and
+> I get a spew of messages like:
+>
+> [  236.814107] iser: iser_fast_reg_fmr: ib_fmr_pool_map_phys failed: -22
+> [  236.823100] iser: iser_prepare_read_cmd: Failed to set up Data-IN RDMA
+> [  236.832101] iser: iser_send_command: conn ffff88002b16e328 failed task->itt 75 err -22
+>
+> If I manually comment out the FMR selection in iser_memory.c and force
+> it to use FRs things seem to work fine.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
