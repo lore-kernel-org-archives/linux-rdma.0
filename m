@@ -1,32 +1,29 @@
-From: sagig <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: Adding queue drain functions
-Date: Mon, 4 Apr 2016 09:39:17 +0300
-Message-ID: <57020C15.3000601@grimberg.me>
-References: <20160329175837.GA9868@TENIKOLO-MOBL2>
- <570141FE.4090400@grimberg.me> <20160404013152.GD5264@leon.nu>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v3 00/16] add Intel X722 iWARP driver
+Date: Mon, 4 Apr 2016 00:39:29 -0700
+Message-ID: <20160404073929.GA23218@infradead.org>
+References: <1453318816-21672-1-git-send-email-faisal.latif@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160404013152.GD5264-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1453318816-21672-1-git-send-email-faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jan 20, 2016 at 01:40:00PM -0600, Faisal Latif wrote:
+> This driver provides iWARP RDMA functionality for the Intel(R) X722 Ethernet
+> controller for PCI Physical Functions. It is in early product cycle
+> and having the driver in the kernel will allow users to have hardware support
+> when available for purchase.
 
-> Sagi,
-> Can you please explain why iWARP devices need explicit drain QP logic?
+Just curious: how is this driver supposed to work?  It doesn't seem to
+support FRWRs despite the iWarp spec requiring support for it.  It also
+sets IB_DEVICE_MEM_MGT_EXTENSIONS despite the lack of this methods,
+which will lead to instant crashes when using any of the usual drivers.
 
-Steve can explain it much better than I can (so I'd wait for him to
-confirm).
-
-My understanding is that in iWARP, after moving the QP to error state,
-all the posts should fail instead of completing with a flush error (I
-think that SQ_DRAIN is the state that triggers flush errors).
-
-This is why iWARP devices need a special handling for draining a
-queue-pair.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
