@@ -1,35 +1,50 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 1/7] security: Add LSM hooks for Infiniband security
-Date: Tue, 5 Apr 2016 01:52:58 +0300
-Message-ID: <CAJ3xEMjFfcju=wCsSqsw=RDeXz=TfTg9XLaA95vMYxGJv5mP7w@mail.gmail.com>
-References: <1459806504-16135-1-git-send-email-danielj@mellanox.com>
-	<1459806504-16135-2-git-send-email-danielj@mellanox.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: iSER initiator in 4.5 is unhappy..
+Date: Mon, 4 Apr 2016 15:58:31 -0700
+Message-ID: <20160404225831.GA6725@infradead.org>
+References: <20160404134656.GA30269@infradead.org>
+ <5702A46F.5070109@grimberg.me>
+ <5702A6AC.9020008@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1459806504-16135-2-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5702A6AC.9020008-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: sagig <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 5, 2016 at 12:48 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+On Mon, Apr 04, 2016 at 08:38:52PM +0300, sagig wrote:
+> Odd, I see that Ming's patches made it to 4.5...
+> 
+> Can you verify that this patches exist in your tree:
+> e827091cb1bc block: merge: get the 1st and last bvec via helpers
+> 25e71a99f10e block: get the 1st and last bvec via helpers
+> e0af29171aa8 block: check virt boundary in bio_will_gap()
+> 7bcd79ac50d9 block: bio: introduce helpers to get the 1st and last bvec
 
-> --- a/include/linux/lsm_hooks.h
-> +++ b/include/linux/lsm_hooks.h
-> @@ -8,6 +8,7 @@
->   * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
->   * Copyright (C) 2015 Intel Corporation.
->   * Copyright (C) 2015 Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>
-> + * Copyright (C) 2016 Mellanox Techonologies. <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I've done a clean rebuild because I didn't trust the previous one
+lingering around, and the syptoms are slightly different now, in that I
+still get the same spew of messages, but it seems like xfstests is
+very slowly progressing regardless.
 
-Hi Dan,
+Also when testing srp I see similar messages with the same setup:
 
-I don't see the point to use personal copyright credits in our
-upstream development. AFAIK, we don't do that for the NIC side
-patches, if you don't mind, lets avoid that.
+[  130.896116] scsi host7: ib_srp: Failed to map data (-12)
+[  130.896225] scsi host7: ib_srp: Failed to map data (-12)
+[  130.896232] scsi host7: ib_srp: Failed to map data (-12)
+[  130.896235] scsi host7: ib_srp: Failed to map data (-12)
+[  130.896835] scsi host7: ib_srp: Failed to map data (-12)
+[  130.993339] scsi host7: ib_srp: Failed to map data (-12)
+[  130.993345] scsi host7: ib_srp: Failed to map data (-12)
+[  130.993349] scsi host7: ib_srp: Failed to map data (-12)
+[  130.993841] scsi host7: ib_srp: Failed to map data (-12)
+[  130.993844] scsi host7: ib_srp: Failed to map data (-12)
+[  131.035723] scsi host7: ib_srp: Failed to map data (-12)
+[  131.058006] scsi host7: ib_srp: Failed to map data (-12)
+[  131.058059] scsi host7: ib_srp: Failed to map data (-12)
 
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
