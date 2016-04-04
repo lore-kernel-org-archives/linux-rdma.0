@@ -1,73 +1,26 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH] ib_srpt: Add missing ioctx->buf + ->dma alloc_session_cb
- init
-Date: Mon, 4 Apr 2016 15:44:38 -0700
-Message-ID: <5702EE56.10503@sandisk.com>
-References: <1459794233-19187-1-git-send-email-nab@linux-iscsi.org>
- <5702B503.1060006@sandisk.com>
- <1459809672.10124.18.camel@haakon3.risingtidesystems.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: iSER initiator in 4.5 is unhappy..
+Date: Mon, 4 Apr 2016 15:46:06 -0700
+Message-ID: <20160404224605.GA25805@infradead.org>
+References: <20160404134656.GA30269@infradead.org>
+ <5702A46F.5070109@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1459809672.10124.18.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5702A46F.5070109-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sagig <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/04/2016 03:41 PM, Nicholas A. Bellinger wrote:
-> On Mon, 2016-04-04 at 11:40 -0700, Bart Van Assche wrote:
->> On 04/04/2016 11:28 AM, Nicholas A. Bellinger wrote:
->>> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> index 0bd3cb2..c4e0a0a 100644
->>> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> @@ -1266,7 +1266,9 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
->>>    {
->>>    	struct se_session *se_sess;
->>>    	struct srpt_send_ioctx *ioctx;
->>> -	int tag;
->>> +	void *buf;
->>> +	dma_addr_t dma;
->>> +	int tag, index;
->>>
->>>    	BUG_ON(!ch);
->>>    	se_sess = ch->sess;
->>> @@ -1277,12 +1279,19 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
->>>    		return NULL;
->>>    	}
->>>    	ioctx = &((struct srpt_send_ioctx *)se_sess->sess_cmd_map)[tag];
->>> +	buf = ioctx->ioctx.buf;
->>> +	dma = ioctx->ioctx.dma;
->>> +	index = ioctx->ioctx.index;
->>> +
->>>    	memset(ioctx, 0, sizeof(struct srpt_send_ioctx));
->>>    	ioctx->ch = ch;
->>>    	spin_lock_init(&ioctx->spinlock);
->>>    	ioctx->state = SRPT_STATE_NEW;
->>>    	init_completion(&ioctx->tx_done);
->>>
->>> +	ioctx->ioctx.buf = buf;
->>> +	ioctx->ioctx.dma = dma;
->>> +	ioctx->ioctx.index = index;
->>>    	ioctx->cmd.map_tag = tag;
->>>
->>>    	return ioctx;
->>> @@ -1961,6 +1970,24 @@ static void srpt_free_ch(struct kref *kref)
->>>    	kfree(ch);
->>>    }
->>
->> These assignments should happen once, namely just after I/O context
->> allocation, instead of performing these assignments during every
->> srpt_get_send_ioctx() call.
->
-> No, the entire structure is being cleared each time, just like what
-> every other driver is doing here.
->
-> Don't try to micro-optimize to avoid doing memset.
+On Mon, Apr 04, 2016 at 08:29:19PM +0300, sagig wrote:
+> Christoph, any chance you can run the sg_gaps I/O generator
+> I sent a while back (Don't yet have access to rdma devices)?
 
-But why to keep that memset(ioctx, ...) call? That memset() call is new. 
-It was added during the 4.6-rc1 merge window.
-
-Bart.
+A run as ./sg-gaps -d /dev/sdb -s 16 -n 8 -v doesn't show any errors,
+anything else I should try?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
