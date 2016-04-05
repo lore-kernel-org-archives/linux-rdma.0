@@ -1,49 +1,53 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH RESEND infiniband-diags] saquery.c: Fix changing qos_class
- flag value to network order twice
-Date: Tue, 5 Apr 2016 08:53:05 -0400
-Message-ID: <5703B531.3000505@dev.mellanox.co.il>
-References: <57021F03.5030805@dev.mellanox.co.il>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv10 1/3] rdmacg: Added rdma cgroup controller
+Date: Tue, 5 Apr 2016 05:55:26 -0700
+Message-ID: <CAG53R5UOogG1itd8AzMOWnpnyGqKSRLY4CNrX5HWGfdF3q-F3w@mail.gmail.com>
+References: <1458850962-16057-1-git-send-email-pandit.parav@gmail.com>
+	<1458850962-16057-2-git-send-email-pandit.parav@gmail.com>
+	<20160404193640.GA7822@mtj.duckdns.org>
+	<CAG53R5UgDeFxqvOOJb=r1DH2yFmboQZPM=-_atGrOCvK=XYU=A@mail.gmail.com>
+	<20160405012504.GG24661@htj.duckdns.org>
+	<20160405090627.GA26425@infradead.org>
+	<CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
+	<20160405124252.GA4348@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57021F03.5030805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160405124252.GA4348-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Christoph,
 
-Fix the qos_class flag value from being converted to network order twice.
-The first time is in "CHECK_AND_SET_VAL" and the second is inside
-"ib_path_rec_set_qos_class".
+On Tue, Apr 5, 2016 at 5:42 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> On Tue, Apr 05, 2016 at 05:39:21AM -0700, Parav Pandit wrote:
+>> I am not really trying to address OFED issues here. I am sure you
+>> understand that if ib_core.ko kernel module is in-kernel module than,
+>> for all the fixes/enhancements that goes to it would require people to
+>> upgrade to newer kernel, instead of just modules upgrade. Such heavy
+>> weight upgrade slows down the adoption which i am trying to avoid here
+>> by placing knobs in right kernel module's hand.
+>
+> What a load of rubbish.  The Linux kernel is one program and should be
+> upgraded together.
 
-Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/saquery.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Just because we add one more rdma resource, we need to ask someone to
+upgrade kernel?
 
-diff --git a/src/saquery.c b/src/saquery.c
-index c0f42e8..ea946a1 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -1065,8 +1065,9 @@ static int query_path_records(const struct query_cmd *q, struct sa_handle * h,
- 	pr.num_path |= reversible << 7;
- 	CHECK_AND_SET_VAL(p->pkey, 16, 0, pr.pkey, PR, PKEY);
- 	CHECK_AND_SET_VAL(p->sl, 16, -1, pr.qos_class_sl, PR, SL);
--	CHECK_AND_SET_VAL(p->qos_class, 16, -1, qos_class, PR, QOS_CLASS);
--	ib_path_rec_set_qos_class(&pr, qos_class);
-+	CHECK_AND_SET_VAL((p->qos_class << 4), 16, -1, qos_class, PR, QOS_CLASS);
-+	pr.qos_class_sl = (pr.qos_class_sl & CL_HTON16(IB_PATH_REC_SL_MASK)) |
-+			  qos_class;
- 	CHECK_AND_SET_VAL_AND_SEL(p->mtu, pr.mtu, PR, MTU, SELEC);
- 	CHECK_AND_SET_VAL_AND_SEL(p->rate, pr.rate, PR, RATE, SELEC);
- 	CHECK_AND_SET_VAL_AND_SEL(p->pkt_life, pr.pkt_life, PR, PKTLIFETIME,
+Flexibility is coming at very minimal cost, so what exactly is the
+issue in having that instead of forcing architecture to give away
+that? Whole code is hardly 700 odd lines.
 
-
+>
+>> Its like making ib_core.ko from module to in kernel component, if I
+>> understand correctly nobody wants to do that.
+>
+> We allow splitting subsystems out where it's easily doable to avoid the
+> resources consumption if they're all built in.  For cgroups it's not
+> really practical, but that doesn't mean you can upgrade invidual parts
+> of a complex program without a lot of precaution.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
