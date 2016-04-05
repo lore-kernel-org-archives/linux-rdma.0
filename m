@@ -1,39 +1,50 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCHv10 1/3] rdmacg: Added rdma cgroup controller
-Date: Tue, 5 Apr 2016 05:42:52 -0700
-Message-ID: <20160405124252.GA4348@infradead.org>
-References: <1458850962-16057-1-git-send-email-pandit.parav@gmail.com>
- <1458850962-16057-2-git-send-email-pandit.parav@gmail.com>
- <20160404193640.GA7822@mtj.duckdns.org>
- <CAG53R5UgDeFxqvOOJb=r1DH2yFmboQZPM=-_atGrOCvK=XYU=A@mail.gmail.com>
- <20160405012504.GG24661@htj.duckdns.org>
- <20160405090627.GA26425@infradead.org>
- <CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH RESEND infiniband-diags] saquery.c: Fix changing qos_class
+ flag value to network order twice
+Date: Tue, 5 Apr 2016 08:53:05 -0400
+Message-ID: <5703B531.3000505@dev.mellanox.co.il>
+References: <57021F03.5030805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57021F03.5030805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 05:39:21AM -0700, Parav Pandit wrote:
-> I am not really trying to address OFED issues here. I am sure you
-> understand that if ib_core.ko kernel module is in-kernel module than,
-> for all the fixes/enhancements that goes to it would require people to
-> upgrade to newer kernel, instead of just modules upgrade. Such heavy
-> weight upgrade slows down the adoption which i am trying to avoid here
-> by placing knobs in right kernel module's hand.
+From: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-What a load of rubbish.  The Linux kernel is one program and should be
-upgraded together.
+Fix the qos_class flag value from being converted to network order twice.
+The first time is in "CHECK_AND_SET_VAL" and the second is inside
+"ib_path_rec_set_qos_class".
 
-> Its like making ib_core.ko from module to in kernel component, if I
-> understand correctly nobody wants to do that.
+Signed-off-by: Dan Ben Yosef <danby-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/saquery.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-We allow splitting subsystems out where it's easily doable to avoid the
-resources consumption if they're all built in.  For cgroups it's not
-really practical, but that doesn't mean you can upgrade invidual parts
-of a complex program without a lot of precaution.
+diff --git a/src/saquery.c b/src/saquery.c
+index c0f42e8..ea946a1 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -1065,8 +1065,9 @@ static int query_path_records(const struct query_cmd *q, struct sa_handle * h,
+ 	pr.num_path |= reversible << 7;
+ 	CHECK_AND_SET_VAL(p->pkey, 16, 0, pr.pkey, PR, PKEY);
+ 	CHECK_AND_SET_VAL(p->sl, 16, -1, pr.qos_class_sl, PR, SL);
+-	CHECK_AND_SET_VAL(p->qos_class, 16, -1, qos_class, PR, QOS_CLASS);
+-	ib_path_rec_set_qos_class(&pr, qos_class);
++	CHECK_AND_SET_VAL((p->qos_class << 4), 16, -1, qos_class, PR, QOS_CLASS);
++	pr.qos_class_sl = (pr.qos_class_sl & CL_HTON16(IB_PATH_REC_SL_MASK)) |
++			  qos_class;
+ 	CHECK_AND_SET_VAL_AND_SEL(p->mtu, pr.mtu, PR, MTU, SELEC);
+ 	CHECK_AND_SET_VAL_AND_SEL(p->rate, pr.rate, PR, RATE, SELEC);
+ 	CHECK_AND_SET_VAL_AND_SEL(p->pkt_life, pr.pkt_life, PR, PKTLIFETIME,
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
