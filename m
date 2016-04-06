@@ -1,45 +1,31 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v4 08/10] IB/qib: Remove qp and mr functionality from qib
-Date: Wed, 6 Apr 2016 14:29:29 -0400
-Message-ID: <20160406182928.GA24948@phlsvsds.ph.intel.com>
-References: <20160122204145.2022.26449.stgit@scvm10.sc.intel.com> <20160122204525.2022.20568.stgit@scvm10.sc.intel.com> <20160404074703.GA28637@infradead.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/4] IB/srpt and the percpu_ida conversion
+Date: Wed, 6 Apr 2016 11:56:06 -0700
+Message-ID: <57055BC6.7070402@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160404074703.GA28637-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 04, 2016 at 12:47:03AM -0700, Christoph Hellwig wrote:
->On Fri, Jan 22, 2016 at 12:45:59PM -0800, Dennis Dalessandro wrote:
->> Remove qp and mr support from qib and use rdmavt. These two changes
->> cannot be reasonably be split apart into separate patches because they
->> depend on each other in mulitple places. This paves the way to remove
->> even more functions in subsequent patches.
->
->This seems to have removed support for mapping MRs in the QIB drivers,
->as there doesn't seem to be any map_mr_sg method in either rdmavt
->or qib in the current tree.
+Hi Doug,
 
-I think this is the stuff that didn't actually even work in qib and when I 
-moved stuff to rdmavt I just left it out. Actually I ported it then dropped 
-that patch:
-https://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg30636.html
+This patch series addresses the recently reported issue with regard to 
+the percpu_ida conversion of the ib_srpt driver. My proposal is to 
+submit patch 1/4 for inclusion in kernel v4.6 and to submit patches 2..4 
+for inclusion in kernel v4.7. The actual patches in this series are:
 
->Whilke we're at it: the mess in check_driver_override and check_support
->will break the first time someone changes any method calls.  Type safety
->exists for a dricking reason - fix this mess to write a little more
->code but be type savfe and don't rely on the ordering of fields or you
->can keep the pieces as soon as this junk breaks.  And it will break
->soon!
+0001-IB-srpt-Revert-Convert-to-percpu_ida-tag-allocation.patch
+0002-IB-srpt-Report-login-failures-only-once.patch
+0003-IB-srpt-Introduce-two-helper-functions.patch
+0004-IB-srpt-Convert-to-percpu_ida-tag-allocation.patch
 
-We'll look into this. I'm certainly not opposed to adding more code and if 
-you have any ideas to improve it, feel free to throw them out.
+Thanks,
 
--Denny
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
