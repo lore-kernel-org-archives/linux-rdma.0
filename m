@@ -1,28 +1,30 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCHv10 1/3] rdmacg: Added rdma cgroup controller
-Date: Tue, 5 Apr 2016 10:27:20 -0700
-Message-ID: <20160405172720.GA31055@infradead.org>
-References: <1458850962-16057-1-git-send-email-pandit.parav@gmail.com>
- <1458850962-16057-2-git-send-email-pandit.parav@gmail.com>
- <20160404193640.GA7822@mtj.duckdns.org>
- <CAG53R5UgDeFxqvOOJb=r1DH2yFmboQZPM=-_atGrOCvK=XYU=A@mail.gmail.com>
- <20160405012504.GG24661@htj.duckdns.org>
- <20160405090627.GA26425@infradead.org>
- <CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
- <20160405124252.GA4348@infradead.org>
- <CAG53R5UOogG1itd8AzMOWnpnyGqKSRLY4CNrX5HWGfdF3q-F3w@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: [PATCH] ib_srpt: Add missing ioctx->buf + ->dma alloc_session_cb
+ init
+Date: Wed, 6 Apr 2016 08:31:23 -0700
+Message-ID: <57052BCB.6070405@sandisk.com>
+References: <1459794233-19187-1-git-send-email-nab@linux-iscsi.org>
+ <5702B503.1060006@sandisk.com>
+ <1459809672.10124.18.camel@haakon3.risingtidesystems.com>
+ <5702EE56.10503@sandisk.com>
+ <1459810708.10124.25.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAG53R5UOogG1itd8AzMOWnpnyGqKSRLY4CNrX5HWGfdF3q-F3w@mail.gmail.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1459810708.10124.25.camel@haakon3.risingtidesystems.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 05, 2016 at 05:55:26AM -0700, Parav Pandit wrote:
-> Just because we add one more rdma resource, we need to ask someone to
-> upgrade kernel?
+On 04/04/2016 03:58 PM, Nicholas A. Bellinger wrote:
+> Are you going to verify this patch..?
 
-Yes.  Just like when you need any other core kernel resource.
+Hello Nic,
+
+After that the ib_srpt driver has processed a few commands this patch 
+also triggers a kernel crash (list corruption). I have a look myself 
+into the percpu_ida conversion.
+
+Bart.
