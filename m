@@ -1,34 +1,364 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: iSER initiator in 4.5 is unhappy..
-Date: Wed, 6 Apr 2016 16:16:58 -0700
-Message-ID: <20160406231658.GB11588@infradead.org>
-References: <20160404134656.GA30269@infradead.org>
- <5702A46F.5070109@grimberg.me>
- <5702A6AC.9020008@grimberg.me>
- <20160404225831.GA6725@infradead.org>
- <57037D8E.4030506@grimberg.me>
- <20160405094339.GA1622@infradead.org>
- <570548AB.4090802@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC PATCH v2 01/13] security: Add LSM hooks for Infiniband security
+Date: Thu,  7 Apr 2016 02:33:46 +0300
+Message-ID: <1459985638-37233-2-git-send-email-danielj@mellanox.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <570548AB.4090802-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1459985638-37233-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagig <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 06, 2016 at 08:34:35PM +0300, sagig wrote:
-> So this scatterlist seems perfectly fine (no gaps). The only thing I
-> can think of is that we don't have enough space reserved, but I counted
-> 127 pages in the scatterlist when iser reserves 128 (by default).
-> 
-> Just in case I mis-counted, can you (or Max) try with the below
-> patch:
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This works fine for me, but I wonder if the miscounting is in the
-block layer?
+Add nine new hooks
+ 1. Allocate security contexts for Infiniband QPs.
+ 2. Free security contexts for Infiniband QPs.
+ 3. Allocate security contexts for Infiniband MAD agents.
+ 4. Free security contexts for Infiniband MAD agents.
+ 5. Enforce QP access to Pkeys
+ 6. Enforce MAD agent access to Pkeys
+ 7. Enforce MAD agent access to Infiniband devices subnet management
+    interfaces
+ 8. A hook to register a callback to receive notifications of
+    security policy or enforcement changes.  Restricting a QPs access to
+    a pkey will be done during setup and not on a per packet basis
+    access must be enforced again.
+ 9. A hook to unregister the callback.
+
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/linux/lsm_hooks.h |   71 +++++++++++++++++++++++++++++++++++++++
+ include/linux/security.h  |   65 +++++++++++++++++++++++++++++++++++
+ security/Kconfig          |    9 +++++
+ security/security.c       |   82 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 227 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+index cdee11c..ebbc15c 100644
+--- a/include/linux/lsm_hooks.h
++++ b/include/linux/lsm_hooks.h
+@@ -8,6 +8,7 @@
+  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
+  * Copyright (C) 2015 Intel Corporation.
+  * Copyright (C) 2015 Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>
++ * Copyright (C) 2016 Mellanox Techonologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -876,6 +877,50 @@
+  *	associated with the TUN device's security structure.
+  *	@security pointer to the TUN devices's security structure.
+  *
++ * Security hooks for Infiniband
++ *
++ * @qp_pkey_access:
++ *	Check permission to access a pkey when modifing a QP.
++ *	@subnet_prefix the subnet prefix of the port being used.
++ *	@pkey the pkey to be accessed.
++ *	@qp_sec pointer to the ib_qp_security structure.
++ * @mad_agent_pkey_access:
++ *	Check permission to access a pkey when transmiting and receiving MADS.
++ *	@subnet_prefix the subnet prefix of the port being used.
++ *	@pkey the pkey to be accessed.
++ *	@mad_agent pointer to the ib_mad_agent structure.
++ * @ibdev_smi:
++ *	Check permissions to access the devices subnet management interface.
++ *	@dev_name the IB device name.
++ *	@port_num the port number the agent is being created for.
++ *	@mad_agent pointer to the ib_mad_agent structure.
++ * @ib_qp_alloc_security:
++ *	Allocate and attach a security structure to the qp_sec->q_security
++ *	field. The q_security field is initialized to NULL when the structure
++ *	is allocated.  A separate QP security structure is used instead of the
++ *	QP structure because when a QP is destroyed the memory is freed by the
++ *	hardware driver.  That operation can fail so the security info must be
++ *	maintained until the destroy completes successfully.
++ *	@qp_sec contains the ib_qp_security structure to be modified.
++ *	Return 0 if operation was successful.
++ * @ib_mad_agent_alloc_security:
++ *	Allocate and attach a security structure to the mad_agent->m_security
++ *	field. The m_security field is initialized to NULL when the structure
++ *	is allocated.
++ *	@mad_agent contains the ib_mad_agent structure to be modified.
++ *	Return 0 if operation was successful.
++ * @ib_qp_free_security:
++ *	Deallocate and clear the qp_sec->q_security field.
++ *	@qp_sec contains the ib_qp_security structure to be modified.
++ * @ib_mad_agent_free_security:
++ *	Deallocate and clear the mad_agent->m_security field.
++ *	@mad_agent contains the ib_mad_agent structure to be modified.
++ * @register_ib_flush_callback:
++ *	Provide a way for security modules to notify ib_core of policy changes.
++ *	@callback function pointer to call when policy changes.
++ * @unregister_ib_flush_callback:
++ *	Unregister the callback function.
++ *
+  * Security hooks for XFRM operations.
+  *
+  * @xfrm_policy_alloc_security:
+@@ -1578,6 +1623,21 @@ union security_list_options {
+ 	int (*tun_dev_open)(void *security);
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++	int (*qp_pkey_access)(u64 subnet_prefix, u16 pkey,
++			      struct ib_qp_security *qp_sec);
++	int (*mad_agent_pkey_access)(u64 subnet_prefix, u16 pkey,
++				     struct ib_mad_agent *mad_agent);
++	int (*ibdev_smi)(const char *dev_name, u8 port,
++			 struct ib_mad_agent *mad_agent);
++	int (*ib_qp_alloc_security)(struct ib_qp_security *qp_sec);
++	int (*ib_mad_agent_alloc_security)(struct ib_mad_agent *mad_agent);
++	void (*ib_qp_free_security)(struct ib_qp_security *qp_sec);
++	void (*ib_mad_agent_free_security)(struct ib_mad_agent *mad_agent);
++	void (*register_ib_flush_callback)(void (*callback)(void));
++	void (*unregister_ib_flush_callback)(void);
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	int (*xfrm_policy_alloc_security)(struct xfrm_sec_ctx **ctxp,
+ 					  struct xfrm_user_sec_ctx *sec_ctx,
+@@ -1806,6 +1866,17 @@ struct security_hook_heads {
+ 	struct list_head tun_dev_open;
+ 	struct list_head skb_owned_by;
+ #endif	/* CONFIG_SECURITY_NETWORK */
++#ifdef CONFIG_SECURITY_INFINIBAND
++	struct list_head qp_pkey_access;
++	struct list_head mad_agent_pkey_access;
++	struct list_head ibdev_smi;
++	struct list_head ib_qp_alloc_security;
++	struct list_head ib_qp_free_security;
++	struct list_head ib_mad_agent_alloc_security;
++	struct list_head ib_mad_agent_free_security;
++	struct list_head register_ib_flush_callback;
++	struct list_head unregister_ib_flush_callback;
++#endif	/* CONFIG_SECURITY_INFINIBAND */
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	struct list_head xfrm_policy_alloc_security;
+ 	struct list_head xfrm_policy_clone_security;
+diff --git a/include/linux/security.h b/include/linux/security.h
+index 157f0cb..1b5b48a 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -6,6 +6,7 @@
+  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley-M06CiZnz2FM@public.gmane.org>
+  * Copyright (C) 2001 James Morris <jmorris-G2x6lROWQUcJY7gZg3T8ig@public.gmane.org>
+  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
++ * Copyright (C) 2016 Mellanox Techonologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -55,6 +56,8 @@ struct msg_queue;
+ struct xattr;
+ struct xfrm_sec_ctx;
+ struct mm_struct;
++struct ib_qp_security;
++struct ib_mad_agent;
+ 
+ /* If capable should audit the security request */
+ #define SECURITY_CAP_NOAUDIT 0
+@@ -1356,6 +1359,68 @@ static inline int security_tun_dev_open(void *security)
+ }
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++int security_qp_pkey_access(u64 subnet_prefix, u16 pkey,
++			    struct ib_qp_security *qp_sec);
++int security_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
++				   struct ib_mad_agent *mad_agent);
++int security_ibdev_smi(const char *dev_name, u8 port,
++		       struct ib_mad_agent *mad_agent);
++int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec);
++void security_ib_qp_free_security(struct ib_qp_security *qp_sec);
++int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent);
++void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent);
++void security_register_ib_flush_callback(void (*callback)(void));
++void security_unregister_ib_flush_callback(void);
++#else	/* CONFIG_SECURITY_INFINIBAND */
++static inline int security_qp_pkey_access(u64 subnet_prefix,
++					  u16 pkey,
++					  struct ib_qp_security *qp_sec)
++{
++	return 0;
++}
++
++static inline int security_mad_agent_pkey_access(u64 subnet_prefix,
++						 u16 pkey,
++						 struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline int security_ibdev_smi(const char *dev_name,
++				     u8 port,
++				     struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
++{
++	return 0;
++}
++
++static inline void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
++{
++}
++
++static inline int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
++{
++}
++
++static inline void security_register_ib_flush_callback(void (*callback)(void))
++{
++}
++
++static inline void security_unregister_ib_flush_callback(void)
++{
++}
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 
+ int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
+diff --git a/security/Kconfig b/security/Kconfig
+index e452378..bac790a 100644
+--- a/security/Kconfig
++++ b/security/Kconfig
+@@ -49,6 +49,15 @@ config SECURITY_NETWORK
+ 	  implement socket and networking access controls.
+ 	  If you are unsure how to answer this question, answer N.
+ 
++config SECURITY_INFINIBAND
++	bool "Infiniband Security Hooks"
++	depends on SECURITY && INFINIBAND
++	help
++	  This enables the Infiniband security hooks.
++	  If enabled, a security module can use these hooks to
++	  implement Infiniband access controls.
++	  If you are unsure how to answer this question, answer N.
++
+ config SECURITY_NETWORK_XFRM
+ 	bool "XFRM (IPSec) Networking Security Hooks"
+ 	depends on XFRM && SECURITY_NETWORK
+diff --git a/security/security.c b/security/security.c
+index 3644b03..9549fc8 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2001 WireX Communications, Inc <chris-ZMHXrckZAt0AvxtiuMwx3w@public.gmane.org>
+  * Copyright (C) 2001-2002 Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley-M06CiZnz2FM@public.gmane.org>
++ * Copyright (C) 2016 Mellanox Technologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -1398,6 +1399,67 @@ EXPORT_SYMBOL(security_tun_dev_open);
+ 
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++
++int security_qp_pkey_access(u64 subnet_prefix, u16 pkey,
++			    struct ib_qp_security *qp_sec)
++{
++	return call_int_hook(qp_pkey_access, 0, subnet_prefix, pkey, qp_sec);
++}
++EXPORT_SYMBOL(security_qp_pkey_access);
++
++int security_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
++				   struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(mad_agent_pkey_access, 0, subnet_prefix, pkey, mad_agent);
++}
++EXPORT_SYMBOL(security_mad_agent_pkey_access);
++
++int security_ibdev_smi(const char *dev_name, u8 port,
++		       struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(ibdev_smi, 0, dev_name, port, mad_agent);
++}
++EXPORT_SYMBOL(security_ibdev_smi);
++
++int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
++{
++	return call_int_hook(ib_qp_alloc_security, 0, qp_sec);
++}
++EXPORT_SYMBOL(security_ib_qp_alloc_security);
++
++void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
++{
++	call_void_hook(ib_qp_free_security, qp_sec);
++}
++EXPORT_SYMBOL(security_ib_qp_free_security);
++
++int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(ib_mad_agent_alloc_security, 0, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_mad_agent_alloc_security);
++
++void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
++{
++	call_void_hook(ib_mad_agent_free_security, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_mad_agent_free_security);
++
++void security_register_ib_flush_callback(void (*callback)(void))
++{
++	call_void_hook(register_ib_flush_callback, callback);
++}
++EXPORT_SYMBOL(security_register_ib_flush_callback);
++
++void security_unregister_ib_flush_callback(void)
++{
++	call_void_hook(unregister_ib_flush_callback);
++}
++EXPORT_SYMBOL(security_unregister_ib_flush_callback);
++
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 
+ int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
+@@ -1850,6 +1912,26 @@ struct security_hook_heads security_hook_heads = {
+ 	.tun_dev_open =	LIST_HEAD_INIT(security_hook_heads.tun_dev_open),
+ 	.skb_owned_by =	LIST_HEAD_INIT(security_hook_heads.skb_owned_by),
+ #endif	/* CONFIG_SECURITY_NETWORK */
++
++#ifdef CONFIG_SECURITY_INFINIBAND
++	.qp_pkey_access = LIST_HEAD_INIT(security_hook_heads.qp_pkey_access),
++	.mad_agent_pkey_access =
++		LIST_HEAD_INIT(security_hook_heads.mad_agent_pkey_access),
++	.ibdev_smi = LIST_HEAD_INIT(security_hook_heads.ibdev_smi),
++	.ib_qp_alloc_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_qp_alloc_security),
++	.ib_qp_free_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_qp_free_security),
++	.ib_mad_agent_alloc_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_alloc_security),
++	.ib_mad_agent_free_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_free_security),
++	.register_ib_flush_callback =
++		LIST_HEAD_INIT(security_hook_heads.register_ib_flush_callback),
++	.unregister_ib_flush_callback =
++		LIST_HEAD_INIT(security_hook_heads.unregister_ib_flush_callback),
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	.xfrm_policy_alloc_security =
+ 		LIST_HEAD_INIT(security_hook_heads.xfrm_policy_alloc_security),
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
