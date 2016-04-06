@@ -1,7 +1,7 @@
 From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH v2 05/13] selinux: Implement Infiniband PKey "Access" access vector
-Date: Thu,  7 Apr 2016 02:33:50 +0300
-Message-ID: <1459985638-37233-6-git-send-email-danielj@mellanox.com>
+Subject: [RFC PATCH v2 10/13] ib/core: Enforce PKey security on management datagrams
+Date: Thu,  7 Apr 2016 02:33:55 +0300
+Message-ID: <1459985638-37233-11-git-send-email-danielj@mellanox.com>
 References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1459985638-37233-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,201 +12,269 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add a type and access vector for PKeys. Implement the qp_pkey_access
-and mad_agent_pkey_access hooks to check that the caller has
-permission to access the PKey on the given subnet prefix.  Add an
-interface to get the PKey SID. Walk the PKey ocontexts to find an entry
-for the given subnet prefix and pkey.
+Allocate and free a security context when creating and destroying a MAD
+agent.  This context is used for controlling access to PKeys.
+
+When sending or receiving a MAD check that the agent has permission to
+access the PKey for the Subnet Prefix of the port.
 
 Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/linux/lsm_audit.h                        |    7 ++++
- security/selinux/hooks.c                         |   40 +++++++++++++++++++++
- security/selinux/include/classmap.h              |    2 +
- security/selinux/include/initial_sid_to_string.h |    1 +
- security/selinux/include/security.h              |    2 +
- security/selinux/ss/services.c                   |   41 ++++++++++++++++++++++
- 6 files changed, 93 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/core_priv.h     |   14 +++++++
+ drivers/infiniband/core/core_security.c |   17 ++++++++
+ drivers/infiniband/core/mad.c           |   65 +++++++++++++++++++++++++++---
+ 3 files changed, 89 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
-index ffb9c9d..8ff7eae 100644
---- a/include/linux/lsm_audit.h
-+++ b/include/linux/lsm_audit.h
-@@ -45,6 +45,11 @@ struct lsm_ioctlop_audit {
- 	u16 cmd;
- };
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 27f2fa8..2759a18 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -142,6 +142,11 @@ int ib_get_cached_subnet_prefix(struct ib_device *device,
+ 				u64              *sn_pfx);
  
-+struct lsm_pkey_audit {
-+	u64	subnet_prefix;
-+	u16	pkey;
-+};
+ #ifdef CONFIG_SECURITY_INFINIBAND
++int ib_security_enforce_mad_agent_pkey_access(struct ib_device *dev,
++					      u8 port_num,
++					      u16 pkey_index,
++					      struct ib_mad_agent *mad_agent);
 +
- /* Auxiliary data to use in generating the audit record. */
- struct common_audit_data {
- 	char type;
-@@ -59,6 +64,7 @@ struct common_audit_data {
- #define LSM_AUDIT_DATA_INODE	9
- #define LSM_AUDIT_DATA_DENTRY	10
- #define LSM_AUDIT_DATA_IOCTL_OP	11
-+#define LSM_AUDIT_DATA_PKEY	12
- 	union 	{
- 		struct path path;
- 		struct dentry *dentry;
-@@ -75,6 +81,7 @@ struct common_audit_data {
- #endif
- 		char *kmod_name;
- 		struct lsm_ioctlop_audit *op;
-+		struct lsm_pkey_audit *pkey;
- 	} u;
- 	/* this union contains LSM specific data */
- 	union {
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 3ac29bd..aa62f72 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -6002,6 +6002,44 @@ static void selinux_unregister_ib_flush_callback(void)
- 	mutex_unlock(&ib_flush_mutex);
- }
- 
-+static int selinux_pkey_access(u64 subnet_prefix, u16 pkey_val, void *security)
+ int ib_security_modify_qp(struct ib_qp *qp,
+ 			  struct ib_qp_attr *qp_attr,
+ 			  int qp_attr_mask,
+@@ -152,6 +157,15 @@ void ib_security_destroy_qp(struct ib_qp_security *sec);
+ int ib_security_open_shared_qp(struct ib_qp *qp);
+ void ib_security_close_shared_qp(struct ib_qp_security *sec);
+ #else
++static inline int ib_security_enforce_mad_agent_pkey_access(
++					      struct ib_device *dev,
++					      u8 port_num,
++					      u16 pkey_index,
++					      struct ib_mad_agent *mad_agent)
 +{
-+	struct common_audit_data ad;
++	return 0;
++}
++
+ static inline int ib_security_modify_qp(struct ib_qp *qp,
+ 					struct ib_qp_attr *qp_attr,
+ 					int qp_attr_mask,
+diff --git a/drivers/infiniband/core/core_security.c b/drivers/infiniband/core/core_security.c
+index 768edea..dda680b 100644
+--- a/drivers/infiniband/core/core_security.c
++++ b/drivers/infiniband/core/core_security.c
+@@ -328,4 +328,21 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ }
+ EXPORT_SYMBOL(ib_security_modify_qp);
+ 
++int ib_security_enforce_mad_agent_pkey_access(struct ib_device *dev,
++					      u8 port_num,
++					      u16 pkey_index,
++					      struct ib_mad_agent *mad_agent)
++{
++	u64 subnet_prefix;
++	u16 pkey;
 +	int err;
-+	u32 sid = 0;
-+	struct ib_security_struct *sec = security;
-+	struct lsm_pkey_audit pkey;
 +
-+	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
-+
++	err = get_pkey_info(dev, port_num, pkey_index, &subnet_prefix, &pkey);
 +	if (err)
-+		goto out;
++		return err;
 +
-+	ad.type = LSM_AUDIT_DATA_PKEY;
-+	pkey.subnet_prefix = subnet_prefix;
-+	pkey.pkey = pkey_val;
-+	ad.u.pkey = &pkey;
-+	err = avc_has_perm(sec->sid, sid,
-+			   SECCLASS_INFINIBAND_PKEY,
-+			   INFINIBAND_PKEY__ACCESS, &ad);
-+out:
-+	return err;
++	return security_mad_agent_pkey_access(subnet_prefix, pkey, mad_agent);
 +}
++EXPORT_SYMBOL(ib_security_enforce_mad_agent_pkey_access);
 +
-+static int selinux_qp_pkey_access(u64 subnet_prefix, u16 pkey_val,
-+				  struct ib_qp_security *qp_sec)
-+{
-+	return selinux_pkey_access(subnet_prefix, pkey_val,
-+				   qp_sec->q_security);
-+}
+ #endif /* CONFIG_SECURITY_INFINIBAND */
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 9fa5bf3..907f8ee 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -40,9 +40,11 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/security.h>
+ #include <rdma/ib_cache.h>
+ 
+ #include "mad_priv.h"
++#include "core_priv.h"
+ #include "mad_rmpp.h"
+ #include "smi.h"
+ #include "opa_smi.h"
+@@ -341,11 +343,17 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 		goto error1;
+ 	}
+ 
++	ret2 = security_ib_mad_agent_alloc_security(&mad_agent_priv->agent);
++	if (ret2) {
++		ret = ERR_PTR(ret2);
++		goto error3;
++	}
 +
-+static int selinux_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey_val,
-+					 struct ib_mad_agent *mad_agent)
-+{
-+	return selinux_pkey_access(subnet_prefix, pkey_val,
-+					mad_agent->m_security);
-+}
+ 	if (mad_reg_req) {
+ 		reg_req = kmemdup(mad_reg_req, sizeof *reg_req, GFP_KERNEL);
+ 		if (!reg_req) {
+ 			ret = ERR_PTR(-ENOMEM);
+-			goto error3;
++			goto error4;
+ 		}
+ 	}
+ 
+@@ -388,7 +396,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 				if (method) {
+ 					if (method_in_use(&method,
+ 							   mad_reg_req))
+-						goto error4;
++						goto error5;
+ 				}
+ 			}
+ 			ret2 = add_nonoui_reg_req(mad_reg_req, mad_agent_priv,
+@@ -404,14 +412,14 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 					if (is_vendor_method_in_use(
+ 							vendor_class,
+ 							mad_reg_req))
+-						goto error4;
++						goto error5;
+ 				}
+ 			}
+ 			ret2 = add_oui_reg_req(mad_reg_req, mad_agent_priv);
+ 		}
+ 		if (ret2) {
+ 			ret = ERR_PTR(ret2);
+-			goto error4;
++			goto error5;
+ 		}
+ 	}
+ 
+@@ -421,9 +429,11 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 
+ 	return &mad_agent_priv->agent;
+ 
+-error4:
++error5:
+ 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+ 	kfree(reg_req);
++error4:
++	security_ib_mad_agent_free_security(&mad_agent_priv->agent);
+ error3:
+ 	kfree(mad_agent_priv);
+ error1:
+@@ -493,6 +503,7 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 	struct ib_mad_agent *ret;
+ 	struct ib_mad_snoop_private *mad_snoop_priv;
+ 	int qpn;
++	int err;
+ 
+ 	/* Validate parameters */
+ 	if ((is_snooping_sends(mad_snoop_flags) && !snoop_handler) ||
+@@ -517,6 +528,13 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 		goto error1;
+ 	}
+ 
++	err = security_ib_mad_agent_alloc_security(&mad_snoop_priv->agent);
 +
- static int selinux_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
- {
- 	struct ib_security_struct *sec;
-@@ -6232,6 +6270,8 @@ static struct security_hook_list selinux_hooks[] = {
- 		      selinux_register_ib_flush_callback),
- 	LSM_HOOK_INIT(unregister_ib_flush_callback,
- 		      selinux_unregister_ib_flush_callback),
-+	LSM_HOOK_INIT(qp_pkey_access, selinux_qp_pkey_access),
-+	LSM_HOOK_INIT(mad_agent_pkey_access, selinux_mad_agent_pkey_access),
- 	LSM_HOOK_INIT(ib_qp_alloc_security,
- 		      selinux_ib_qp_alloc_security),
- 	LSM_HOOK_INIT(ib_qp_free_security,
-diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
-index 8fbd138..322b56c 100644
---- a/security/selinux/include/classmap.h
-+++ b/security/selinux/include/classmap.h
-@@ -157,5 +157,7 @@ struct security_class_mapping secclass_map[] = {
- 	  { COMMON_SOCK_PERMS, "attach_queue", NULL } },
- 	{ "binder", { "impersonate", "call", "set_context_mgr", "transfer",
- 		      NULL } },
-+	{ "infiniband_pkey",
-+	  { "access", NULL } },
- 	{ NULL }
-   };
-diff --git a/security/selinux/include/initial_sid_to_string.h b/security/selinux/include/initial_sid_to_string.h
-index a59b64e..8f2eefc 100644
---- a/security/selinux/include/initial_sid_to_string.h
-+++ b/security/selinux/include/initial_sid_to_string.h
-@@ -29,5 +29,6 @@ static const char *initial_sid_to_string[] =
-     "policy",
-     "scmp_packet",
-     "devnull",
-+    "pkey",
- };
- 
-diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-index a7e6ed2..8f1a66e 100644
---- a/security/selinux/include/security.h
-+++ b/security/selinux/include/security.h
-@@ -180,6 +180,8 @@ int security_get_user_sids(u32 callsid, char *username,
- 
- int security_port_sid(u8 protocol, u16 port, u32 *out_sid);
- 
-+int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid);
++	if (err) {
++		ret = ERR_PTR(err);
++		goto error2;
++	}
 +
- int security_netif_sid(char *name, u32 *if_sid);
+ 	/* Now, fill in the various structures */
+ 	mad_snoop_priv->qp_info = &port_priv->qp_info[qpn];
+ 	mad_snoop_priv->agent.device = device;
+@@ -527,17 +545,19 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 	mad_snoop_priv->agent.port_num = port_num;
+ 	mad_snoop_priv->mad_snoop_flags = mad_snoop_flags;
+ 	init_completion(&mad_snoop_priv->comp);
++
+ 	mad_snoop_priv->snoop_index = register_snoop_agent(
+ 						&port_priv->qp_info[qpn],
+ 						mad_snoop_priv);
+ 	if (mad_snoop_priv->snoop_index < 0) {
+ 		ret = ERR_PTR(mad_snoop_priv->snoop_index);
+-		goto error2;
++		goto error3;
+ 	}
  
- int security_node_sid(u16 domain, void *addr, u32 addrlen,
-diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
-index ebda973..2fc48c5 100644
---- a/security/selinux/ss/services.c
-+++ b/security/selinux/ss/services.c
-@@ -2229,6 +2229,47 @@ out:
+ 	atomic_set(&mad_snoop_priv->refcount, 1);
+ 	return &mad_snoop_priv->agent;
+-
++error3:
++	security_ib_mad_agent_free_security(&mad_snoop_priv->agent);
+ error2:
+ 	kfree(mad_snoop_priv);
+ error1:
+@@ -583,6 +603,8 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
+ 	deref_mad_agent(mad_agent_priv);
+ 	wait_for_completion(&mad_agent_priv->comp);
+ 
++	security_ib_mad_agent_free_security(&mad_agent_priv->agent);
++
+ 	kfree(mad_agent_priv->reg_req);
+ 	kfree(mad_agent_priv);
+ }
+@@ -601,6 +623,8 @@ static void unregister_mad_snoop(struct ib_mad_snoop_private *mad_snoop_priv)
+ 	deref_snoop_agent(mad_snoop_priv);
+ 	wait_for_completion(&mad_snoop_priv->comp);
+ 
++	security_ib_mad_agent_free_security(&mad_snoop_priv->agent);
++
+ 	kfree(mad_snoop_priv);
  }
  
- /**
-+ * security_pkey_sid - Obtain the SID for a pkey.
-+ * @subnet_prefix: Subnet Prefix
-+ * @pkey_num: pkey number
-+ * @out_sid: security identifier
-+ */
-+int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid)
-+{
-+	struct ocontext *c;
-+	int rc = 0;
+@@ -1220,6 +1244,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+ 	unsigned long flags;
+ 	int ret = -EINVAL;
++	u16 pkey_index;
+ 
+ 	/* Walk list of send WRs and post each on send list */
+ 	for (; send_buf; send_buf = next_send_buf) {
+@@ -1228,6 +1253,16 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+ 					   struct ib_mad_send_wr_private,
+ 					   send_buf);
+ 		mad_agent_priv = mad_send_wr->mad_agent_priv;
++		pkey_index = mad_send_wr->send_wr.pkey_index;
 +
-+	read_lock(&policy_rwlock);
++		ret = ib_security_enforce_mad_agent_pkey_access(
++					mad_agent_priv->agent.device,
++					mad_agent_priv->agent.port_num,
++					pkey_index,
++					&mad_agent_priv->agent);
 +
-+	c = policydb.ocontexts[OCON_PKEY];
-+	while (c) {
-+		if (c->u.pkey.low_pkey <= pkey_num &&
-+		    c->u.pkey.high_pkey >= pkey_num &&
-+		    c->u.pkey.subnet_prefix == subnet_prefix)
-+			break;
++		if (ret)
++			goto error;
+ 
+ 		if (!send_buf->mad_agent->send_handler ||
+ 		    (send_buf->timeout_ms &&
+@@ -1962,6 +1997,16 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+ 	struct ib_mad_send_wc mad_send_wc;
+ 	unsigned long flags;
++	int ret;
 +
-+		c = c->next;
-+	}
++	ret = ib_security_enforce_mad_agent_pkey_access(
++					      mad_agent_priv->agent.device,
++					      mad_agent_priv->agent.port_num,
++					      mad_recv_wc->wc->pkey_index,
++					      &mad_agent_priv->agent);
 +
-+	if (c) {
-+		if (!c->sid[0]) {
-+			rc = sidtab_context_to_sid(&sidtab,
-+						   &c->context[0],
-+						   &c->sid[0]);
-+			if (rc)
-+				goto out;
-+		}
-+		*out_sid = c->sid[0];
-+	} else {
-+		*out_sid = SECINITSID_PKEY;
-+	}
++	if (ret)
++		goto security_error;
+ 
+ 	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
+ 	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
+@@ -2019,6 +2064,12 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 						   mad_recv_wc);
+ 		deref_mad_agent(mad_agent_priv);
+ 	}
 +
-+out:
-+	read_unlock(&policy_rwlock);
-+	return rc;
-+}
++	return;
 +
-+/**
-  * security_netif_sid - Obtain the SID for a network interface.
-  * @name: interface name
-  * @if_sid: interface SID
++security_error:
++	ib_free_recv_mad(mad_recv_wc);
++	deref_mad_agent(mad_agent_priv);
+ }
+ 
+ static enum smi_action handle_ib_smi(const struct ib_mad_port_private *port_priv,
 -- 
 1.7.1
 
