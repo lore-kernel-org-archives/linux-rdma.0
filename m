@@ -1,79 +1,46 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: iSER initiator in 4.5 is unhappy..
-Date: Thu, 7 Apr 2016 15:13:59 -0700
-Message-ID: <20160407221359.GA16686@infradead.org>
-References: <5702A46F.5070109@grimberg.me>
- <5702A6AC.9020008@grimberg.me>
- <20160404225831.GA6725@infradead.org>
- <57037D8E.4030506@grimberg.me>
- <20160405094339.GA1622@infradead.org>
- <570548AB.4090802@grimberg.me>
- <20160406231658.GB11588@infradead.org>
- <570608C9.1070805@grimberg.me>
- <570623B9.8040108@mellanox.com>
- <570679B6.10409@grimberg.me>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH 0/4] IB/srpt and the percpu_ida conversion
+Date: Thu, 07 Apr 2016 15:29:41 -0700
+Message-ID: <1460068181.18732.23.camel@haakon3.risingtidesystems.com>
+References: <57055BC6.7070402@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <570679B6.10409-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <57055BC6.7070402@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The patch below fixes the issue for me.  But for SRP I'm still seeing
-lots of these failures even with the equivalent patch applied:
+On Wed, 2016-04-06 at 11:56 -0700, Bart Van Assche wrote:
+> Hi Doug,
+> 
+> This patch series addresses the recently reported issue with regard to 
+> the percpu_ida conversion of the ib_srpt driver. My proposal is to 
+> submit patch 1/4 for inclusion in kernel v4.6 and to submit patches 2..4 
+> for inclusion in kernel v4.7. The actual patches in this series are:
+> 
+> 0001-IB-srpt-Revert-Convert-to-percpu_ida-tag-allocation.patch
+> 0002-IB-srpt-Report-login-failures-only-once.patch
+> 0003-IB-srpt-Introduce-two-helper-functions.patch
+> 0004-IB-srpt-Convert-to-percpu_ida-tag-allocation.patch
+> 
 
-[ 426.027905] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053203] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053265] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053270] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053273] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053276] scsi host8: ib_srp: Failed to map data (-12)
-[  426.053279] scsi host8: ib_srp: Failed to map data (-12)
+I asked to not revert the percpu_ida conversion and again you simply
+ignored subsystem maintainer feedback, and included a different
+percpu_ida conversion without using alloc_session callback that still
+does pre-allocation of buffers before session login even completes.
 
-It seems the actual reproducer is xfs_repair as run by xfstests.
+The whole point of the alloc_session callback is so that extra
+pre-allocation doesn't happen until after se_node_acl lookup has
+finished, and is what ib_srpt needs to be using given SRP's completely
+existent spec level security model.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 60b169a..3ac4755 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3205,6 +3205,7 @@ static ssize_t srp_create_target(struct device *dev,
- 	target_host->max_id      = 1;
- 	target_host->max_lun     = -1LL;
- 	target_host->max_cmd_len = sizeof ((struct srp_cmd *) (void *) 0L)->cdb;
-+	target_host->max_segment_size = PAGE_SIZE;
- 
- 	target = host_to_target(target_host);
- 
-diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-index 8c6e318..ae331e0 100644
---- a/drivers/scsi/scsi_lib.c
-+++ b/drivers/scsi/scsi_lib.c
-@@ -2120,7 +2120,8 @@ static void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
- 	blk_queue_segment_boundary(q, shost->dma_boundary);
- 	dma_set_seg_boundary(dev, shost->dma_boundary);
- 
--	blk_queue_max_segment_size(q, dma_get_max_seg_size(dev));
-+	blk_queue_max_segment_size(q,
-+		min(shost->max_segment_size, dma_get_max_seg_size(dev)));
- 
- 	if (!shost->use_clustering)
- 		q->limits.cluster = 0;
-diff --git a/include/scsi/scsi_host.h b/include/scsi/scsi_host.h
-index fcfa3d7..f11d3fe 100644
---- a/include/scsi/scsi_host.h
-+++ b/include/scsi/scsi_host.h
-@@ -621,6 +621,7 @@ struct Scsi_Host {
- 	short unsigned int sg_tablesize;
- 	short unsigned int sg_prot_tablesize;
- 	unsigned int max_sectors;
-+	unsigned int max_segment_size;
- 	unsigned long dma_boundary;
- 	/*
- 	 * In scsi-mq mode, the number of hardware queues supported by the LLD.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In any event, I'm fixing the regression ahead of the next v4.6-rc PULL
+in:
+
+http://www.spinics.net/lists/target-devel/msg12535.html
+
+Any issues you find with this patch should be sent out as an incremental
+patch, and not rolling your own concoction.
