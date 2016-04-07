@@ -1,89 +1,84 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
 Subject: Re: [RFC PATCH v2 09/13] ib/core: Enforce PKey security when
  modifying QPs
-Date: Thu, 7 Apr 2016 17:03:50 +0000
-Message-ID: <DB5PR05MB111169883324ADC42E52C4D6C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
+Date: Thu, 7 Apr 2016 20:39:53 +0300
+Message-ID: <20160407173953.GB5808@leon.nu>
 References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
  <1459985638-37233-10-git-send-email-danielj@mellanox.com>
  <20160407163100.GA5808@leon.nu>
+ <DB5PR05MB111169883324ADC42E52C4D6C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <DB5PR05MB111169883324ADC42E52C4D6C4900-8IvNv+8VlcBJTpKhoUy7I9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/7/2016 11:31 AM, Leon Romanovsky wrote:
-> On Thu, Apr 07, 2016 at 02:33:54AM +0300, Dan Jurgens wrote:
->> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>  drivers/infiniband/core/core_priv.h     |   41 ++++
->>  drivers/infiniband/core/core_security.c |  331 +++++++++++++++++++++++++++++++
-> 
-> We are already in core, there is no need to call files core_XXX.
 
-I can change core_security.c to security.c.  core_priv.h already existed
-so I won't change that in this patch.
+--jho1yZJdad60DJr+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->> +int ib_security_create_qp_security(struct ib_qp *qp);
-> 
-> Why do we need xx_SECURITY_xxxxx_SECURITY in name?
+On Thu, Apr 07, 2016 at 05:03:50PM +0000, Daniel Jurgens wrote:
+> On 4/7/2016 11:31 AM, Leon Romanovsky wrote:
+> > On Thu, Apr 07, 2016 at 02:33:54AM +0300, Dan Jurgens wrote:
+> >> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >> +		kfree(qp->qp_sec);
+> >> +
+> >> +	return err;
+> >> +}
+> >> +EXPORT_SYMBOL(ib_security_create_qp_security);
+> >> +
+> >> +void ib_security_destroy_qp(struct ib_qp_security *sec)
+> >> +{
+> >> +	security_ib_qp_free_security(sec);
+> >> +	kfree(sec);
+> >> +}
+> >=20
+> > Did you want to EXPORT_SYMBOL here too?
+> >=20
+>=20
+> It's not called from outside ib_core, I only exported the functions that
+> are. ib_security_modify_qp and ib_security_create_qp security are called
+> from ib_core and ib_uverbs.  ib_security_enforce_mad_agent_pkey_access
+> is called from ib_mad.
 
-I had called it ib_security_create_qp. Eli thought that implied more
-work that it actually does.  All the none static functions are named
-ib_security_xxx, which I kind of liked as a convention, but I can
-abandon that and go with ib_create_qp_security.
+So, how are you releasing the memory which is taken by
+ib_security_create_qp_security ?
 
->> +	return check_pkey && (qp->qp_num != IB_QPT_SMI &&
->> +			      qp->qp_num != IB_QPT_GSI);
-> 
-> IB_QPT_SMI and IB_QPT_GSI are declared as struct ib_qp_type and setted
-> in qp->qp_type and not in qp->qp_num.
->> +}
->> +
->> +static int check_alt_pkey(const struct ib_qp *qp,
->> +			  const struct ib_qp_attr *qp_attr,
->> +			  int qp_attr_mask)
->> +{
->> +	bool check_alt_pkey = !!(qp_attr_mask & IB_QP_ALT_PATH);
->> +
->> +	return check_alt_pkey && (qp->qp_num != IB_QPT_SMI &&
->> +				  qp->qp_num != IB_QPT_GSI);
->> +}
-> 
-> The same as above.
+>=20
+>=20
 
-I'll fix this.
+--jho1yZJdad60DJr+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->> +		kfree(qp->qp_sec);
->> +
->> +	return err;
->> +}
->> +EXPORT_SYMBOL(ib_security_create_qp_security);
->> +
->> +void ib_security_destroy_qp(struct ib_qp_security *sec)
->> +{
->> +	security_ib_qp_free_security(sec);
->> +	kfree(sec);
->> +}
-> 
-> Did you want to EXPORT_SYMBOL here too?
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-It's not called from outside ib_core, I only exported the functions that
-are. ib_security_modify_qp and ib_security_create_qp security are called
-from ib_core and ib_uverbs.  ib_security_enforce_mad_agent_pkey_access
-is called from ib_mad.
+iQIcBAEBAgAGBQJXBptpAAoJEORje4g2clinAz8P/0pPeudrXU+i2q3JsG4X6dPV
+VCzDjvOvagT5yLcM1vLgsu8DJNmUVcwdopBkbbVlipVN6mxOXUJspTbECmD64HOo
+PbEqJvAuustVAY1OrTUhm/JL6loONNDE6kXDI5zx/xQr+arMqZfWjRu0v1Alff+7
+NMwfPUzNj182t6sscnhtjPsRsjfDivUSPB1q8+MjlYEM7nKy3PovSqARtBP75RvO
+KqcgWOoog1IbMyCK9QO9sYdxe1tTosB+iFJr9UV7MLylYEMPVk5/jwKr77Llfdp7
+uEIWY/hK/ckRB4t6mdV4bvBJ1LD7zpyTniVzCI9XAC3TI6zOe6pN2O/L7MvP66Dk
+BbO2PlLOykg4b/oZY1rVF9paKkVdiX7ZUkEMk3qriHrsIWpv8b99YlM3HCEzLsDN
+XHF8MGNNkcbaTW4EenCCyDkOJeULBEVZy6x2kdtONSwF/He1PgfDNXd247i+mzsA
+lRN1+KDKo0/+fFSKQ7aPA01PoCy8X8aP5ILluEl3nsjkVCMjK1KtyuvR62FMEqUZ
+MIO5m483II28b6p5xts9TXwVRA5S0eknvD+gEaZMFYBmxE+wrosbGD/DW4xZoxbO
+iPUi9ex/kTIkuJRXqDWSeK5rg6vxnSztvmKEp6z5vGQ42EV4qJSsqGpSX+YOW391
+y2j0Ud8j6UTDs/ge2sJS
+=g5/8
+-----END PGP SIGNATURE-----
 
-
-
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+--jho1yZJdad60DJr+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
