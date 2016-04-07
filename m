@@ -1,52 +1,60 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Query max_inline_data
-Date: Thu, 7 Apr 2016 15:37:42 +0000
-Message-ID: <DB5PR05MB1848A27DC9B348ECB307C5CDC5900@DB5PR05MB1848.eurprd05.prod.outlook.com>
-References: <CAEnvTt0=WGs1Ha0+n-1f-sGzEhdVQZ+Kqk9dB90NSX32G5F_hg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RDMA PATCH 00/16] Intel X722 iWARP driver update
+Date: Thu,  7 Apr 2016 11:30:48 -0500
+Message-ID: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAEnvTt0=WGs1Ha0+n-1f-sGzEhdVQZ+Kqk9dB90NSX32G5F_hg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wenda Ni <wonda.ni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgV2VuZGEsDQoNClVuZm9ydHVuYXRlbHkgeW91IGNhbm5vdCBxdWVyeSBmb3IgdGhlIG1heCBp
-bmxpbmUgc2l6ZS4gQSByb3VnaCBlc3RpbWF0aW9uIGZvciBNZWxsYW5veCBIQ0FzIHdvdWxkIGJl
-IGFyb3VuZCA5MDAgYnl0ZXMgbWF4aW11bSAoaXQgZGVwZW5kcyBvbiB0aGUgdHJhbnNwb3J0IHNl
-cnZpY2UgYW5kIG90aGVyIHBhcmFtZXRlcnMpIGJ1dCB5b3Ugc2hvdWxkIGJlIHByZXBhcmVkIHRo
-YXQgY3JlYXRlIFFQIHdpbGwgZmFpbCBpZiB5b3UgcmVxdWVzdCBhbiBpbmxpbmUgdmFsdWUgdGhh
-dCB0aGUgaGFyZHdhcmUgY2Fubm90IHN1cHBvcnQuDQoNCkFzIGZvciBLTE1zLCBpdCdzIGEgbmV3
-IHNvcGhpc3RpY2F0ZWQgd2F5IG9mIGNyZWF0aW5nIG1lbW9yeSByZWdpb25zLiBZb3Ugc2hvdWxk
-IGhhdmUgc29tZSBpbmZvcm1hdGlvbiBpbiB0aGUgcmVsZWFzZSBub3RlcyBvZiBNTE5YIE9GRUQg
-b3IgaWYgeW91IGNhbiBvYnRhaW4gdGhlIFByb2dyYW1tZXJzIFJlZmVyZW5jZSBNYW51YWwgeW91
-IHdpbGwgZmluZCBtb3JlIGluZm9ybWF0aW9uIG9uIHRoZSB1bmRlcmx5aW5nIGhhcmR3YXJlIGNh
-cGFiaWxpdGllcy4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGxpbnV4LXJk
-bWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS1vd25lckB2Z2VyLmtl
-cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBXZW5kYSBOaQ0KU2VudDogVGh1cnNkYXksIEFwcmlsIDA3
-LCAyMDE2IDEwOjI3IEFNDQpUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6
-IFF1ZXJ5IG1heF9pbmxpbmVfZGF0YQ0KDQpIaSBleHBlcnRzLA0KDQpJcyB0aGVyZSBhIHdheSB0
-byBxdWVyeSB0aGUgc2l6ZSBvZiBhIG1heF9pbmxpbmVfZGF0YT8NCkRvdGFuJ3MgYmxvZyBzYXlz
-DQpIb3cgY2FuIEkga25vdyB3aGF0IGlzIHRoZSBtYXhpbXVtIG1lc3NhZ2Ugc2l6ZSB0aGF0IGNh
-biBiZSBzZW50IGlubGluZSBpbiBhIFFQPw0KWW91IGNhbid0IGtub3cgdGhpcyBpbmZvcm1hdGlv
-bi4gVGhpcyBpbmZvcm1hdGlvbiBpcyB1bmF2YWlsYWJsZS4gWW91IGZpbmQgdGhpcyBpbmZvcm1h
-dGlvbiBieSB0cmlhbCBhbmQgZXJyb3IuDQpodHRwOi8vd3d3LnJkbWFtb2pvLmNvbS8yMDEyLzEy
-LzIxL2lidl9jcmVhdGVfcXAvI0hvd19jYW5fSV9rbm93X3doYXRfaXNfdGhlX21heGltdW1fbWVz
-c2FnZV9zaXplX3RoYXRfY2FuX2JlX3NlbnRfaW5saW5lX2luX2FfUVANCg0KSSBhbSBjdXJpb3Vz
-IHdoZXRoZXIgdGhpcyBzdGF0ZW1lbnQgaXMgc3RpbGwgdmFsaWQgbm93YWRheXMgd2l0aCB0aGUg
-bGF0ZXN0IGRldmVsb3BtZW50IGFuZCBwcm9wcmlldGFyeSBPRkVELg0KDQpXaGVuIGRvaW5nIGli
-dl9kZXZpbmZvIC12dnYgb24gQ29ubmVjdFgtNCB3aXRoIE1MTlhfT0ZFRF9MSU5VWC0zLjItMi4w
-LjAuMCwgd2Ugb2JzZXJ2ZQ0KDQptYXhfc2VuZF93cWVfaW5saW5lX2tsbXM6ICAgIDIwDQoNClRo
-YXQgc2VlbXMgcmVsZXZhbnQgdG8gaW5saW5lX2RhdGEsIGJ1dCBkb2VzIG5vdCBzZWVtIHRvIGJl
-IGV4YWN0bHkgd2UgYXJlIGxvb2tpbmcgZm9yLiBBbHNvLCB3aGF0IGRvZXMga2xtcyBtZWFuPyBJ
-dCBzZWVtcyB0byBiZSBhIGluc3RhbmNlIG9mIHN0cnVjdCBtbHg1X2tsbSwgd2hlbiBzZWFyY2hl
-ZCBvbmxpbmUuDQoNCg0KVGhhbmsgeW91IGZvciBzaGFyaW5nIHlvdXIga25vd2xlZGdlLg0KDQoN
-CkNoZWVycywNCg0KV2VuZGEgTmksIFBoLkQuDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
-IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5
-IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21v
-IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+This patch series covers changes to i40iw since the initial driver
+submission including base memory management extensions, virtual
+channel messages queue, corrections for endian warnings and bug fixes.
+
+This patch series is based on Doug Ledford's
+https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+
+Mustafa Ismail (16):
+  i40iw: Fix overflow of region length
+  i40iw: Correct QP size calculation
+  i40iw: Fix refused connections
+  i40iw: Correct max message size in query port
+  i40iw: Do not set self-referencing pointer to NULL after free
+  i40iw: Add qp table lock around AE processing
+  i40iw: Set vendor_err only if there is an actual error
+  i40iw: Populate vendor_id and vendor_part_id fields
+  i40iw: Remove unused code and fix warning
+  i40iw: Add virtual channel message queue
+  i40iw: Correct return code check in add_pble_pool
+  i40iw: Initialize max enabled vfs variable
+  i40iw: Add base memory management extensions
+  i40iw: Fix endian issues and warnings
+  i40iw: Fix SD calculation for initial HMC creation
+  i40iw: Adding queue drain functions
+
+ drivers/infiniband/hw/i40iw/i40iw.h          |   7 +-
+ drivers/infiniband/hw/i40iw/i40iw_cm.c       | 144 +++++++-------
+ drivers/infiniband/hw/i40iw/i40iw_cm.h       |  10 +-
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 163 ++++++++++++----
+ drivers/infiniband/hw/i40iw/i40iw_d.h        |   2 +-
+ drivers/infiniband/hw/i40iw/i40iw_hw.c       |  11 +-
+ drivers/infiniband/hw/i40iw/i40iw_main.c     |  55 ++++--
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h    |   1 +
+ drivers/infiniband/hw/i40iw/i40iw_pble.c     |   9 +-
+ drivers/infiniband/hw/i40iw/i40iw_puda.c     |   2 +-
+ drivers/infiniband/hw/i40iw/i40iw_type.h     |  12 +-
+ drivers/infiniband/hw/i40iw/i40iw_uk.c       |  80 +++-----
+ drivers/infiniband/hw/i40iw/i40iw_user.h     |  34 ++--
+ drivers/infiniband/hw/i40iw/i40iw_utils.c    |  47 +++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 277 ++++++++++++++++++++++++---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   3 +
+ drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  96 +++++-----
+ 17 files changed, 654 insertions(+), 299 deletions(-)
+
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
