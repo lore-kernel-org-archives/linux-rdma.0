@@ -1,53 +1,53 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH v2 08/13] ib/core: IB cache enhancements to support
- Infiniband security
-Date: Thu, 7 Apr 2016 15:43:52 +0000
-Message-ID: <DB5PR05MB1111B265CD502DE355348EF2C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <1459985638-37233-9-git-send-email-danielj@mellanox.com>
- <20160407025314.GA20789@leon.nu>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: Query max_inline_data
+Date: Thu, 7 Apr 2016 15:37:42 +0000
+Message-ID: <DB5PR05MB1848A27DC9B348ECB307C5CDC5900@DB5PR05MB1848.eurprd05.prod.outlook.com>
+References: <CAEnvTt0=WGs1Ha0+n-1f-sGzEhdVQZ+Kqk9dB90NSX32G5F_hg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAEnvTt0=WGs1Ha0+n-1f-sGzEhdVQZ+Kqk9dB90NSX32G5F_hg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wenda Ni <wonda.ni-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/6/2016 9:53 PM, Leon Romanovsky wrote:
-> On Thu, Apr 07, 2016 at 02:33:53AM +0300, Dan Jurgens wrote:
->> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> +	int ret = 0;
-> 
-> It is not needed, just return 0 directly.
-
-Okay
-
-On 4/7/2016 10:24 AM, Leon Romanovsky wrote:
-> On Thu, Apr 07, 2016 at 02:33:53AM +0300, Dan Jurgens wrote:
->> pr_warn("Couldn't allocate cache for %s\n", device->name);
->
-> Please remove this print. You won't miss failure in memory allocation.
-
-Sure, I can do that.
-
-
-
-
-
-
-
-
-
-
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+SGkgV2VuZGEsDQoNClVuZm9ydHVuYXRlbHkgeW91IGNhbm5vdCBxdWVyeSBmb3IgdGhlIG1heCBp
+bmxpbmUgc2l6ZS4gQSByb3VnaCBlc3RpbWF0aW9uIGZvciBNZWxsYW5veCBIQ0FzIHdvdWxkIGJl
+IGFyb3VuZCA5MDAgYnl0ZXMgbWF4aW11bSAoaXQgZGVwZW5kcyBvbiB0aGUgdHJhbnNwb3J0IHNl
+cnZpY2UgYW5kIG90aGVyIHBhcmFtZXRlcnMpIGJ1dCB5b3Ugc2hvdWxkIGJlIHByZXBhcmVkIHRo
+YXQgY3JlYXRlIFFQIHdpbGwgZmFpbCBpZiB5b3UgcmVxdWVzdCBhbiBpbmxpbmUgdmFsdWUgdGhh
+dCB0aGUgaGFyZHdhcmUgY2Fubm90IHN1cHBvcnQuDQoNCkFzIGZvciBLTE1zLCBpdCdzIGEgbmV3
+IHNvcGhpc3RpY2F0ZWQgd2F5IG9mIGNyZWF0aW5nIG1lbW9yeSByZWdpb25zLiBZb3Ugc2hvdWxk
+IGhhdmUgc29tZSBpbmZvcm1hdGlvbiBpbiB0aGUgcmVsZWFzZSBub3RlcyBvZiBNTE5YIE9GRUQg
+b3IgaWYgeW91IGNhbiBvYnRhaW4gdGhlIFByb2dyYW1tZXJzIFJlZmVyZW5jZSBNYW51YWwgeW91
+IHdpbGwgZmluZCBtb3JlIGluZm9ybWF0aW9uIG9uIHRoZSB1bmRlcmx5aW5nIGhhcmR3YXJlIGNh
+cGFiaWxpdGllcy4NCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGxpbnV4LXJk
+bWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtcmRtYS1vd25lckB2Z2VyLmtl
+cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBXZW5kYSBOaQ0KU2VudDogVGh1cnNkYXksIEFwcmlsIDA3
+LCAyMDE2IDEwOjI3IEFNDQpUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6
+IFF1ZXJ5IG1heF9pbmxpbmVfZGF0YQ0KDQpIaSBleHBlcnRzLA0KDQpJcyB0aGVyZSBhIHdheSB0
+byBxdWVyeSB0aGUgc2l6ZSBvZiBhIG1heF9pbmxpbmVfZGF0YT8NCkRvdGFuJ3MgYmxvZyBzYXlz
+DQpIb3cgY2FuIEkga25vdyB3aGF0IGlzIHRoZSBtYXhpbXVtIG1lc3NhZ2Ugc2l6ZSB0aGF0IGNh
+biBiZSBzZW50IGlubGluZSBpbiBhIFFQPw0KWW91IGNhbid0IGtub3cgdGhpcyBpbmZvcm1hdGlv
+bi4gVGhpcyBpbmZvcm1hdGlvbiBpcyB1bmF2YWlsYWJsZS4gWW91IGZpbmQgdGhpcyBpbmZvcm1h
+dGlvbiBieSB0cmlhbCBhbmQgZXJyb3IuDQpodHRwOi8vd3d3LnJkbWFtb2pvLmNvbS8yMDEyLzEy
+LzIxL2lidl9jcmVhdGVfcXAvI0hvd19jYW5fSV9rbm93X3doYXRfaXNfdGhlX21heGltdW1fbWVz
+c2FnZV9zaXplX3RoYXRfY2FuX2JlX3NlbnRfaW5saW5lX2luX2FfUVANCg0KSSBhbSBjdXJpb3Vz
+IHdoZXRoZXIgdGhpcyBzdGF0ZW1lbnQgaXMgc3RpbGwgdmFsaWQgbm93YWRheXMgd2l0aCB0aGUg
+bGF0ZXN0IGRldmVsb3BtZW50IGFuZCBwcm9wcmlldGFyeSBPRkVELg0KDQpXaGVuIGRvaW5nIGli
+dl9kZXZpbmZvIC12dnYgb24gQ29ubmVjdFgtNCB3aXRoIE1MTlhfT0ZFRF9MSU5VWC0zLjItMi4w
+LjAuMCwgd2Ugb2JzZXJ2ZQ0KDQptYXhfc2VuZF93cWVfaW5saW5lX2tsbXM6ICAgIDIwDQoNClRo
+YXQgc2VlbXMgcmVsZXZhbnQgdG8gaW5saW5lX2RhdGEsIGJ1dCBkb2VzIG5vdCBzZWVtIHRvIGJl
+IGV4YWN0bHkgd2UgYXJlIGxvb2tpbmcgZm9yLiBBbHNvLCB3aGF0IGRvZXMga2xtcyBtZWFuPyBJ
+dCBzZWVtcyB0byBiZSBhIGluc3RhbmNlIG9mIHN0cnVjdCBtbHg1X2tsbSwgd2hlbiBzZWFyY2hl
+ZCBvbmxpbmUuDQoNCg0KVGhhbmsgeW91IGZvciBzaGFyaW5nIHlvdXIga25vd2xlZGdlLg0KDQoN
+CkNoZWVycywNCg0KV2VuZGEgTmksIFBoLkQuDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
+IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluIHRoZSBib2R5
+IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21v
+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
