@@ -1,41 +1,53 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: iSER initiator in 4.5 is unhappy..
-Date: Thu, 7 Apr 2016 18:16:06 +0300
-Message-ID: <570679B6.10409@grimberg.me>
-References: <20160404134656.GA30269@infradead.org>
- <5702A46F.5070109@grimberg.me> <5702A6AC.9020008@grimberg.me>
- <20160404225831.GA6725@infradead.org> <57037D8E.4030506@grimberg.me>
- <20160405094339.GA1622@infradead.org> <570548AB.4090802@grimberg.me>
- <20160406231658.GB11588@infradead.org> <570608C9.1070805@grimberg.me>
- <570623B9.8040108@mellanox.com>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 08/13] ib/core: IB cache enhancements to support
+ Infiniband security
+Date: Thu, 7 Apr 2016 15:43:52 +0000
+Message-ID: <DB5PR05MB1111B265CD502DE355348EF2C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
+ <1459985638-37233-9-git-send-email-danielj@mellanox.com>
+ <20160407025314.GA20789@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570623B9.8040108-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Language: en-US
+List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
+Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/6/2016 9:53 PM, Leon Romanovsky wrote:
+> On Thu, Apr 07, 2016 at 02:33:53AM +0300, Dan Jurgens wrote:
+>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> +	int ret = 0;
+> 
+> It is not needed, just return 0 directly.
 
->>
->> We communicate the "max_pages" via sg_tablesize and max_hw_sectors.
->>
->> iSER communicates (or at least supposed to) sg_tablesize=128 and
->> max_sectors=1024 to scsi (which sets the block queues attributes), that
->> should be sufficient for handling all the incoming IO. Unless we didn't
->> account for the first-page offset and the reminder coming at the last
->> segment (which results in an extra page). The patch should fix the
->> problem, however in this particular sg list I don't see the violation
->> (counted 127 pages)...
+Okay
+
+On 4/7/2016 10:24 AM, Leon Romanovsky wrote:
+> On Thu, Apr 07, 2016 at 02:33:53AM +0300, Dan Jurgens wrote:
+>> pr_warn("Couldn't allocate cache for %s\n", device->name);
 >
-> I counted 129 pages.
-> I will run some tests in our labs too.
+> Please remove this print. You won't miss failure in memory allocation.
 
-If you did then that indicates the block layer violates
-its obligation to respect max_segments/max_hw_sectors?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sure, I can do that.
+
+
+
+
+
+
+
+
+
+
+_______________________________________________
+Selinux mailing list
+Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
