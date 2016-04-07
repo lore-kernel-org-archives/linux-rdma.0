@@ -1,55 +1,67 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH v2 09/13] ib/core: Enforce PKey security when
- modifying QPs
-Date: Thu, 7 Apr 2016 17:44:33 +0000
-Message-ID: <DB5PR05MB11110D54B1903809091D5FBEC4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <1459985638-37233-10-git-send-email-danielj@mellanox.com>
- <20160407163100.GA5808@leon.nu>
- <DB5PR05MB111169883324ADC42E52C4D6C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160407173953.GB5808@leon.nu>
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Remove unnecessary synchronize_irq() before
+ free_irq()
+Date: Thu, 7 Apr 2016 13:27:43 -0500
+Message-ID: <20160407182742.GA12796@flatif-MOBL1>
+References: <1459157486-23257-1-git-send-email-lars@metafoo.de>
+ <20160330071503.GB8511@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160330071503.GB8511-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/7/2016 12:40 PM, leon-2ukJVAZIZ/Y@public.gmane.org wrote:
-> On Thu, Apr 07, 2016 at 05:03:50PM +0000, Daniel Jurgens wrote:
->> On 4/7/2016 11:31 AM, Leon Romanovsky wrote:
->>> On Thu, Apr 07, 2016 at 02:33:54AM +0300, Dan Jurgens wrote:
->>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>> +		kfree(qp->qp_sec);
->>>> +
->>>> +	return err;
->>>> +}
->>>> +EXPORT_SYMBOL(ib_security_create_qp_security);
->>>> +
->>>> +void ib_security_destroy_qp(struct ib_qp_security *sec)
->>>> +{
->>>> +	security_ib_qp_free_security(sec);
->>>> +	kfree(sec);
->>>> +}
->>>
->>> Did you want to EXPORT_SYMBOL here too?
->>>
->>
->> It's not called from outside ib_core, I only exported the functions that
->> are. ib_security_modify_qp and ib_security_create_qp security are called
->> from ib_core and ib_uverbs.  ib_security_enforce_mad_agent_pkey_access
->> is called from ib_mad.
+On Wed, Mar 30, 2016 at 10:15:03AM +0300, Leon Romanovsky wrote:
+> On Mon, Mar 28, 2016 at 11:31:26AM +0200, Lars-Peter Clausen wrote:
+> > Calling synchronize_irq() right before free_irq() is quite useless. On one
+> > hand the IRQ can easily fire again before free_irq() is entered, on the
+> > other hand free_irq() itself calls synchronize_irq() internally (in a race
+> > condition free way), before any state associated with the IRQ is freed.
+> > 
+> > Patch was generated using the following semantic patch:
+> > // <smpl>
+> > @@
+> > expression irq;
+> > @@
+> > -synchronize_irq(irq);
+> >  free_irq(irq, ...);
+> > // </smpl>
+> > 
+> > Signed-off-by: Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>
 > 
-> So, how are you releasing the memory which is taken by
-> ib_security_create_qp_security ?
+> Thanks
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
 
-It is freed in ib_security_destroy_qp, which is called by ib_destroy_qp
-after the QP is destroyed successfully.
+Thanks
+Acked-by: Faisal Latif <faisal.latif#intel.com>
 
-
+> > ---
+> >  drivers/infiniband/hw/i40iw/i40iw_main.c | 1 -
+> >  1 file changed, 1 deletion(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
+> > index 90e5af2..006c44f 100644
+> > --- a/drivers/infiniband/hw/i40iw/i40iw_main.c
+> > +++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
+> > @@ -270,7 +270,6 @@ static void i40iw_disable_irq(struct i40iw_sc_dev *dev,
+> >  		i40iw_wr32(dev->hw, I40E_PFINT_DYN_CTLN(msix_vec->idx - 1), 0);
+> >  	else
+> >  		i40iw_wr32(dev->hw, I40E_VFINT_DYN_CTLN1(msix_vec->idx - 1), 0);
+> > -	synchronize_irq(msix_vec->irq);
+> >  	free_irq(msix_vec->irq, dev_id);
+> >  }
+> >  
+> > -- 
+> > 2.1.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
