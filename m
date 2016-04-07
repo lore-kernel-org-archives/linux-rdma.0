@@ -1,97 +1,158 @@
-From: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RFC PATCH v2 09/13] ib/core: Enforce PKey security when
- modifying QPs
-Date: Fri, 8 Apr 2016 00:10:56 +0300
-Message-ID: <20160407211056.GD12844@leon.nu>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <1459985638-37233-10-git-send-email-danielj@mellanox.com>
- <20160407163100.GA5808@leon.nu>
- <DB5PR05MB11113874870EBBE896E0D601C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Cant write to max_sectors_kb on 4.5.0  SRP target
+Date: Thu, 7 Apr 2016 17:15:13 -0400 (EDT)
+Message-ID: <302427900.27942894.1460063713447.JavaMail.zimbra@redhat.com>
+References: <480311118.27942868.1460063633409.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7DO5AaGCk89r4vaK"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <DB5PR05MB11113874870EBBE896E0D601C4900-8IvNv+8VlcBJTpKhoUy7I9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <480311118.27942868.1460063633409.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello
 
---7DO5AaGCk89r4vaK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have been testing the SRP initiator code to an LIO array here and part of the testing requires me to set the max_sectors_kb size to get 4k I/O's.
+This has been due to me having to debug various sg_map issues.
 
-On Thu, Apr 07, 2016 at 09:02:43PM +0000, Daniel Jurgens wrote:
-> On 4/7/2016 11:31 AM, Leon Romanovsky wrote:
-> > On Thu, Apr 07, 2016 at 02:33:54AM +0300, Dan Jurgens wrote:
-> >=20
-> >> +	if (sec->qp =3D=3D sec->qp->real_qp) {
-> >> +		/* The caller of this function holds the QP security
-> >> +		 * mutex so this list traversal is safe
-> >> +		*/
-> >=20
-> > Did the comment below pass checkpatch.pl?
->=20
-> It did.
->=20
-> >> +		list_for_each_entry(shared_qp_sec,
-> >> +				    &sec->shared_qp_list,
-> >> +				    shared_qp_list) {
-> >=20
-> > Is this list always needed to be protected by lock?
-> > In general, I prefer to see lock/unlock operations near protected code.
-> > Otherwise, it is hard to follow all lock/unlock paths.
->=20
-> The mutex is required, and I'm not sure how to push it lower safely.
-> Consider the situation where a QP is being modified concurrently with an
-> open_shared_qp. Unless the lock is held the entire time for each
-> operation open_shared_qp could check permission using a ib_qp_security
-> struct in a partially modified state, i.e. there could be a mix of new
-> and old settings for the port/pkey index/alternate path.  Shared QPs use
-> the port and pkey setting for the underlying real QP with the shared qp
-> q_security.
+Linux srptest 4.5.0 #2 SMP Thu Apr 7 16:14:38 EDT 2016 x86_64 x86_64 x86_64 GNU/Linux
+This kernel has the scan patch from Hannes, as well as the "[PATCH] IB/mlx5: Expose correct max_sge_rd limit" patch. 
+However, I also tested with vanilla 4.5.0 as well and its the same issue.
 
-Common flow is to do everything in one place:
-1. lock
-2. check permissions
-3. change
-4. release lock
+For some reason I cannot change the max_sectors_kb size on 4.5.0 here.
 
-Your flow is much broader.
-1. lock
-2. check permission
-3. do work
-4. change
-5. do work
-6. release lock.
+I chatted with Ewan about it as well and he reminded me about Martins changes so wondering if that's playing into this.
 
---7DO5AaGCk89r4vaK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Take /dev/sdb as an example
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+[root@srptest queue]# sg_inq --p 0xb0 /dev/sdb
+VPD INQUIRY: Block limits page (SBC)
+  Maximum compare and write length: 1 blocks
+  Optimal transfer length granularity: 256 blocks
+  Maximum transfer length: 256 blocks
+  Optimal transfer length: 768 blocks
+  Maximum prefetch, xdread, xdwrite transfer length: 0 blocks
 
-iQIcBAEBAgAGBQJXBszgAAoJEORje4g2clinNKgP/0qMQlhd4RS6mCRkAXk+g0OO
-2CkMZ6MqzsbtWAHI08dsXpOl/iX/ZH9yKLllwpLPGcRpBQFh2QX+nxg3Pj5gBw/P
-QKrSyc9EEZUh1/cPWLMP0KWs03fbe3mqwTXWFYcEJNZwJRyIsd8qLYZgqUOuUnV6
-Ty0g4MvSF6Wlf4uqflPHga5PSGgHSJl7yWk5kS208k1TJeEGph3CFxRmtMyZ+dXW
-SKSJBanxvgT4yDWG3us45779GSvNyQ+n9wWtUFk7MQkRRj8wCRWsh50IIskpZ3pH
-+/Y+T7l+cvqMBmrwKePgDOfhskEpH8cx3utdfdopNlNyFgdkPScw+F07Epmbb7si
-d/THPslrUF/aOmTkoHluiVSTfZlrVuQ/Rul5XFIy1qTipg1zWnuXPE4u7x1uyFdH
-sBVKO9z+yyg9YqVnMgyKcUPAB1tl++7lETT3I49HwoK0SnRfd/8s+OSpZ5em/hzo
-fL/JfSy4/sPSuSEpMGPCxVTqkYflQs+dPj55hJQsvzb9PmPyDSWAMbJ4pbcuMNyD
-gfufLMuGQljEe9LMdx50DdqXJdpv7wfygrbsNbFTLLqafTgUExxW6mrnC0121kjL
-3eD4MrdJQEE8es+Be0LHSDBSRig0mRjScqmToFkhohRZYxWBEx7WJ7OY1j5cR2mH
-613pczeUjTPpXAxePbFI
-=mrD4
------END PGP SIGNATURE-----
+[root@srptest queue]# sg_inq --p 0x83 /dev/sdb
+VPD INQUIRY: Device Identification page
+  Designation descriptor number 1, descriptor length: 20
+    designator_type: NAA,  code_set: Binary
+    associated with the addressed logical unit
+      NAA 6, IEEE Company_id: 0x1405
+      Vendor Specific Identifier: 0x3ec95b43d
+      Vendor Specific Identifier Extension: 0xaf74871a5f1a0117
+      [0x60014053ec95b43daf74871a5f1a0117]
+  Designation descriptor number 2, descriptor length: 57
+    designator_type: T10 vendor identification,  code_set: ASCII
+    associated with the addressed logical unit
+      vendor id: LIO-ORG
+      vendor specific: block-1:3ec95b43-daf7-4871-a5f1-a0117ecc9c87
+  Designation descriptor number 3, descriptor length: 8
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: Relative target port,  code_set: Binary
+    associated with the target port
+      Relative target port: 0x2
+  Designation descriptor number 4, descriptor length: 8
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: Target port group,  code_set: Binary
+    associated with the target port
+      Target port group: 0x0
+  Designation descriptor number 5, descriptor length: 8
+    designator_type: Logical unit group,  code_set: Binary
+    associated with the addressed logical unit
+      Logical unit group: 0x0
+  Designation descriptor number 6, descriptor length: 48
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: SCSI name string,  code_set: UTF-8
+    associated with the target port
+      SCSI name string:
+      0xfe800000000000007cfe900300726e4f,t,0x0001
+  Designation descriptor number 7, descriptor length: 40
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: SCSI name string,  code_set: UTF-8
+    associated with the target device that contains addressed lu
+      SCSI name string:
+      0xfe800000000000007cfe900300726e4f
 
---7DO5AaGCk89r4vaK--
+[root@srptest queue]# cat max_hw_sectors_kb max_sectors_kb
+4096
+1280
+[root@srptest queue]# echo 4096 > max_sectors_kb
+-bash: echo: write error: Invalid argument
+
+The exact same targets served by the same array work fine when I test with the RHEL 7.2 kernel
+
+Linux srptest 3.10.0-327.10.1.el7.bz1313814.x86_64 #1 SMP Fri Mar 11 14:10:52 EST 2016 x86_64 x86_64 x86_64 GNU/Linux
+[root@srptest ~]# cd /sys/block/sdb/queue
+
+cat max_hw_sectors_kb max_sectors_kb 
+4096
+512
+echo 4096 > max_sectors_kb
+
+cat max_hw_sectors_kb max_sectors_kb
+4096
+4096
+
+[root@srptest ~]# sg_inq --p 0xb0 /dev/sdb
+VPD INQUIRY: Block limits page (SBC)
+  Maximum compare and write length: 1 blocks
+  Optimal transfer length granularity: 256 blocks
+  Maximum transfer length: 256 blocks
+  Optimal transfer length: 768 blocks
+  Maximum prefetch, xdread, xdwrite transfer length: 0 blocks
+
+This is an SRP device served by LVM via target LIO on my SRp target server
+
+[root@srptest ~]# sg_inq --p 0x83 /dev/sdb
+VPD INQUIRY: Device Identification page
+  Designation descriptor number 1, descriptor length: 20
+    designator_type: NAA,  code_set: Binary
+    associated with the addressed logical unit
+      NAA 6, IEEE Company_id: 0x1405
+      Vendor Specific Identifier: 0x3ec95b43d
+      Vendor Specific Identifier Extension: 0xaf74871a5f1a0117
+      [0x60014053ec95b43daf74871a5f1a0117]
+  Designation descriptor number 2, descriptor length: 57
+    designator_type: T10 vendor identification,  code_set: ASCII
+    associated with the addressed logical unit
+      vendor id: LIO-ORG
+      vendor specific: block-1:3ec95b43-daf7-4871-a5f1-a0117ecc9c87
+  Designation descriptor number 3, descriptor length: 8
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: Relative target port,  code_set: Binary
+    associated with the target port
+      Relative target port: 0x1
+  Designation descriptor number 4, descriptor length: 8
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: Target port group,  code_set: Binary
+    associated with the target port
+      Target port group: 0x0
+  Designation descriptor number 5, descriptor length: 8
+    designator_type: Logical unit group,  code_set: Binary
+    associated with the addressed logical unit
+      Logical unit group: 0x0
+  Designation descriptor number 6, descriptor length: 48
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: SCSI name string,  code_set: UTF-8
+    associated with the target port
+      SCSI name string:
+      0xfe800000000000007cfe900300726e4e,t,0x0001
+  Designation descriptor number 7, descriptor length: 40
+    transport: SCSI RDMA Protocol (SRP)
+    designator_type: SCSI name string,  code_set: UTF-8
+    associated with the target device that contains addressed lu
+      SCSI name string:
+      0xfe800000000000007cfe900300726e4e
+
+
+
+Laurence Oberman
+Principal Software Maintenance Engineer
+Red Hat Global Support Services
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
