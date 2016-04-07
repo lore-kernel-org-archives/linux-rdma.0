@@ -1,71 +1,49 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RFC PATCH v2 12/13] ib/core: Track which QPs are using which
- port and PKey index
-Date: Thu, 7 Apr 2016 23:53:06 +0300
-Message-ID: <20160407205306.GC12844@leon.nu>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 09/13] ib/core: Enforce PKey security when
+ modifying QPs
+Date: Thu, 7 Apr 2016 21:02:43 +0000
+Message-ID: <DB5PR05MB11113874870EBBE896E0D601C4900@DB5PR05MB1111.eurprd05.prod.outlook.com>
 References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <1459985638-37233-13-git-send-email-danielj@mellanox.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+ <1459985638-37233-10-git-send-email-danielj@mellanox.com>
+ <20160407163100.GA5808@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bAmEntskrkuBymla"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1459985638-37233-13-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/7/2016 11:31 AM, Leon Romanovsky wrote:
+> On Thu, Apr 07, 2016 at 02:33:54AM +0300, Dan Jurgens wrote:
+> 
+>> +	if (sec->qp == sec->qp->real_qp) {
+>> +		/* The caller of this function holds the QP security
+>> +		 * mutex so this list traversal is safe
+>> +		*/
+> 
+> Did the comment below pass checkpatch.pl?
 
---bAmEntskrkuBymla
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It did.
 
-On Thu, Apr 07, 2016 at 02:33:57AM +0300, Dan Jurgens wrote:
-> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> --- a/drivers/infiniband/core/core_security.c
-> +++ b/drivers/infiniband/core/core_security.c
-> @@ -1,4 +1,5 @@
-> -/*
-> +/* NEW COMMIT TO INSERT INTO REBASE
+>> +		list_for_each_entry(shared_qp_sec,
+>> +				    &sec->shared_qp_list,
+>> +				    shared_qp_list) {
+> 
+> Is this list always needed to be protected by lock?
+> In general, I prefer to see lock/unlock operations near protected code.
+> Otherwise, it is hard to follow all lock/unlock paths.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Irrelevant
-
-> + *
->   * Copyright (c) 2016 Mellanox Technologies Ltd.  All rights reserved.
->   *
->   * This software is available to you under a choice of one of two
-> @@ -33,11 +34,27 @@
->  #ifdef CONFIG_SECURITY_INFINIBAND
-> =20
-
---bAmEntskrkuBymla
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXBsixAAoJEORje4g2clinWNYP/iwtsNFvzAju4ertHHuFxBRN
-Ca4bdKtB/G/UZdZLISlWn5rtwpFLyQaUep/vjb+Kd1ooRq8qLfA4eBPwjJp47CL7
-9rD3KnKKi5P1WtTO4Tvto8obnU0k2Uanv/uPUpc30gA+GShVfHtf85PGOOcBlzqU
-iOA03O2vfRIr7l0zvlGV7nmaMwmLLJmkepA3uKuRL/YlzWSHVMLKGn+ohXniQpja
-bHwVL1Bb2Lqusnra3g6HjoP2lLtXR1eLlhg2BdnmTdo/J+kCXehba4ttlkGlvIo4
-A4Yb4SSvf8GcFauKP9vKQ7rnyV0xj7vBJF7guiDqs3mpSfWZKkmQAXQzJYjY+wCE
-QWk6JXaDi16aYwcQbcNhR/F3YD2g+53N7GvDBWyHWo3On83Pt4yE9Fvfry5YKh2Q
-1PsH4vTm4/LPGeIaZUxGJw+pOAM+/81GeE1NEizBdmVujxHMJtcLtPgi5XwUa3+X
-EoiawKx8jW8LmRK2tj7uktHPl+FQ4P957aVqVZv24eRROgKkWZ/S/x9Sj7fpKJHA
-vNq4qiI1gE5F/EguvbjGVYDitMRU6V3OLg5cbYLOMBxl1RtD9c9cL4I/gKSmhkzA
-CoVxZCpOlwFGy74Tk8W+BrIfmljqupqa02vYeoxHxSO8uLJjBXp2JTkv7KrkcCe+
-aX4Xp4hiZPbeioe3CEpz
-=b9wn
------END PGP SIGNATURE-----
-
---bAmEntskrkuBymla--
+The mutex is required, and I'm not sure how to push it lower safely.
+Consider the situation where a QP is being modified concurrently with an
+open_shared_qp. Unless the lock is held the entire time for each
+operation open_shared_qp could check permission using a ib_qp_security
+struct in a partially modified state, i.e. there could be a mix of new
+and old settings for the port/pkey index/alternate path.  Shared QPs use
+the port and pkey setting for the underlying real QP with the shared qp
+q_security.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
