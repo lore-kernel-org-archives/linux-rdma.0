@@ -1,40 +1,31 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Add missing ioctx->buf + ->dma
- alloc_session_cb init
-Date: Thu, 07 Apr 2016 15:31:40 -0700
-Message-ID: <1460068300.18732.25.camel@haakon3.risingtidesystems.com>
-References: <1459794233-19187-1-git-send-email-nab@linux-iscsi.org>
-	 <5702B503.1060006@sandisk.com>
-	 <1459809672.10124.18.camel@haakon3.risingtidesystems.com>
-	 <5702EE56.10503@sandisk.com>
-	 <1459810708.10124.25.camel@haakon3.risingtidesystems.com>
-	 <57052BCB.6070405@sandisk.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] IB/srpt and the percpu_ida conversion
+Date: Thu, 7 Apr 2016 15:38:25 -0700
+Message-ID: <5706E161.9000006@sandisk.com>
+References: <57055BC6.7070402@sandisk.com>
+ <1460068181.18732.23.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57052BCB.6070405-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1460068181.18732.23.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2016-04-06 at 08:31 -0700, Bart Van Assche wrote:
-> On 04/04/2016 03:58 PM, Nicholas A. Bellinger wrote:
-> > Are you going to verify this patch..?
-> 
-> Hello Nic,
-> 
-> After that the ib_srpt driver has processed a few commands this patch 
-> also triggers a kernel crash (list corruption).
+On 04/07/2016 03:29 PM, Nicholas A. Bellinger wrote:
+> The whole point of the alloc_session callback is so that extra
+> pre-allocation doesn't happen until after se_node_acl lookup has
+> finished, and is what ib_srpt needs to be using given SRP's completely
+> existent spec level security model.
 
-What, no backtrace..?
+Sorry but I consider this as hair splitting. Who cares about whether or 
+not command buffer allocation + freeing happens for login attempts that 
+will fail because no ACL has been set up yet? That scenario is not 
+performance critical.
 
->  I have a look myself into the percpu_ida conversion.
-> 
-
-I found a pair of old ConnectX2 in IB mode and I'll be fixing this up
-for v4.6-rc, so don't even bother.
+Bart.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
