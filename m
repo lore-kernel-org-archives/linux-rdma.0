@@ -1,27 +1,28 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 0/4] IB/srpt and the percpu_ida conversion
-Date: Thu, 7 Apr 2016 16:49:23 -0700
-Message-ID: <5706F203.9070909@sandisk.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] IB/srpt: Revert "Convert to percpu_ida tag allocation"
+Date: Thu, 7 Apr 2016 16:49:46 -0700
+Message-ID: <CA+55aFwOnCeKzg4SuceZm98DgN-tV7aCdtrenAS93LP7GqrZtw@mail.gmail.com>
 References: <57055BC6.7070402@sandisk.com>
- <1460068181.18732.23.camel@haakon3.risingtidesystems.com>
- <20160407230110.GA9842@lst.de>
- <1460071464.18732.57.camel@haakon3.risingtidesystems.com>
- <5706EE71.8010202@sandisk.com>
- <1460072864.18732.76.camel@haakon3.risingtidesystems.com>
+	<5706E548.3080002@sandisk.com>
+	<1460072224.18732.67.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1460072864.18732.76.camel@haakon3.risingtidesystems.com>
+In-Reply-To: <1460072224.18732.67.camel@haakon3.risingtidesystems.com>
 Sender: target-devel-owner@vger.kernel.org
 To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Christoph Hellwig <hch@lst.de>, Doug Ledford <dledford@redhat.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>
+Cc: target-devel <target-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@sandisk.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/07/2016 04:47 PM, Nicholas A. Bellinger wrote:
-> Also, none of your ib_srpt patches ever seem make it to target-devel.
+On Apr 7, 2016 16:37, "Nicholas A. Bellinger" <nab@linux-iscsi.org> wrote:
+>
+> Please stop trying to bypass target-pending for your target related
+> patches.
 
-That's not correct. For the two most recent patch submissions I CC-ed 
-target-devel.
+Nicholas, if you send me totally broken and untested crap, you have
+lost *all* rights to then complain about "bypass you".
 
-Bart.
+So get off your high horse. Bart did the right thing, and *you* fucked
+up. Don't try to shift him be the bad guy.
+
+                Linus
