@@ -1,58 +1,36 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
-Date: Fri, 8 Apr 2016 17:15:17 -0500
-Message-ID: <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
-References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com> <1460046664-552-17-git-send-email-mustafa.ismail@intel.com> <20160408004638.GD20252@leon.nu> <20160408184448.GA12292@mustafai-MOBL>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
+Date: Fri, 8 Apr 2016 15:15:53 -0700
+Message-ID: <20160408221553.GA3716@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160408184448.GA12292@mustafai-MOBL>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: target-devel-owner@vger.kernel.org
+To: sagig@mellanox.com
+Cc: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Thu, Apr 07, 2016 at 05:46:38PM -0700, Leon Romanovsky wrote:
-> > On Thu, Apr 07, 2016 at 11:31:04AM -0500, Mustafa Ismail wrote:
-> > > Adding sq and rq drain functions, which block until all
-> > > previously posted wr-s in the specified queue have completed.
-> > > A completion object is signaled to unblock the thread,
-> > > when the last cqe for the corresponding queue is processed.
-> > >
-> > > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > I want to bring back last conversation about need special function to
-> > drain QPs for iWARP devices.
-> > Come on guys, it is already third place there is the same implementation
-> > is introduced in last 2 months.
-> 
-> In order to move this into core, the core would need to determine if the
-> sq and rq are empty. To do this it will need the driver's internal sq and
-> rq information such as head and tail. Then if not empty it will need
-> more information about the qp's cq processing. All this is device specific.
-> 
-> It is just a few lines of code in each driver to check if its hw sq and rq
-> are empty and if not, handle it from its cq processing.
-> 
-> For this reason, it seems best left to each iWARP driver to handle.
-> 
-> Thanks,
+Hi all,
 
-I agree.  My cxgb4 drain functions need to check if the sq/rq are empty as well.
-And for cxgb4, that will require holding the qp spinlock.  (I need to post this
-patch soon).
+I've recently started looking into adding support for signature MRs
+in the RDMA R/W API, but it seems like it's already broken upstream.
 
-So while they are all very similar, the guts for looking at the sq/rq are
-device-specific.
+I suspect it's the target that's at fault, but I'm not sure.  I've
+tested 4.5 and todays 4.6-rc tree on both the target and the client
+side.
 
-Steve.
- 
+The setup is pretty simple: on the target I've loaded scsi_debug
+with dif=1 and dix=1, and set I've set fabric_prot_type=1, t10_pi=1
+and ImmediateData to No on the tpg, and then did a simple mkfs.ext4.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just doing the login I get the following error on the target:
+
+[  369.890182] Bad block size given: 0
+[  369.894131] mlx5_0:mlx5_ib_post_send:3296:(pid 331): 
+[  369.894228] isert: isert_reg_sig_mr: fast registration failed, ret:-22
+[  369.901580] isert: isert_handle_prot_cmd: conn ffff880904d54000 failed to fast reg mr
+[  369.906348] iSCSI/iqn.1993-08.org.debian:01:197dad5d1f17: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[  369.910395] isert: isert_put_datain: Cmd: ffff880902b26b00 failed to prepare RDMA res
+
+If I then do an actual I/O think go downhill quickly.
