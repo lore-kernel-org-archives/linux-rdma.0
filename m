@@ -1,64 +1,44 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
-Date: Fri, 8 Apr 2016 03:46:38 +0300
-Message-ID: <20160408004638.GD20252@leon.nu>
-References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
- <1460046664-552-17-git-send-email-mustafa.ismail@intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: iSER initiator in 4.5 is unhappy..
+Date: Thu, 7 Apr 2016 18:42:19 -0700
+Message-ID: <57070C7B.7060106@sandisk.com>
+References: <5702A46F.5070109@grimberg.me> <5702A6AC.9020008@grimberg.me>
+ <20160404225831.GA6725@infradead.org> <57037D8E.4030506@grimberg.me>
+ <20160405094339.GA1622@infradead.org> <570548AB.4090802@grimberg.me>
+ <20160406231658.GB11588@infradead.org> <570608C9.1070805@grimberg.me>
+ <570623B9.8040108@mellanox.com> <570679B6.10409@grimberg.me>
+ <20160407221359.GA16686@infradead.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u65IjBhB3TIa72Vp"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1460046664-552-17-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160407221359.GA16686-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 04/07/16 15:14, Christoph Hellwig wrote:
+> The patch below fixes the issue for me.  But for SRP I'm still seeing
+> lots of these failures even with the equivalent patch applied:
+>
+> [ 426.027905] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053203] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053265] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053270] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053273] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053276] scsi host8: ib_srp: Failed to map data (-12)
+> [  426.053279] scsi host8: ib_srp: Failed to map data (-12)
+>
+> It seems the actual reproducer is xfs_repair as run by xfstests.
 
---u65IjBhB3TIa72Vp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Christoph,
 
-On Thu, Apr 07, 2016 at 11:31:04AM -0500, Mustafa Ismail wrote:
-> Adding sq and rq drain functions, which block until all
-> previously posted wr-s in the specified queue have completed.
-> A completion object is signaled to unblock the thread,
-> when the last cqe for the corresponding queue is processed.
->=20
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Thanks for the report. I will try to reproduce this behavior and will 
+see whether I can find the root cause.
 
-I want to bring back last conversation about need special function to
-drain QPs for iWARP devices.
-Come on guys, it is already third place there is the same implementation
-is introduced in last 2 months.
+Bart.
 
---u65IjBhB3TIa72Vp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIbBAEBAgAGBQJXBv9uAAoJEORje4g2clin6f8P+MHIm4sYSU8AGjI+6SnO3aFk
-4tnCEUZBcpRKQ/+jlK51pUjAfTCVB4G3jyXYNPqehBc0UDmZxlHl786lD9RPt7UA
-GqVzlv7dDE9obfrzGBJ6n+obBVMt2vvD5FiMkCVyXiKiTqeVpMbe7zU80vFHYGvc
-+hqeKbwSO1AwQPQQUC4GSW6q3zrxtVLAMoF7AIHkklQlI9QDpFxXstX74CctJqFF
-/lZvr0YS1xx9F1HhdWmD9l2ENCYTKuG4cFNBvB0FH3rTw1gECzFiuYSx6AfhlJjy
-zzPDRwSAg4M07t2uEBe/Ldue/pVbIpaeo3O1WwXZSjLQlDI9rTL43For8l2DDucd
-bID+FC1ZGwyPMbyQviuKyvI94ORqkmYDnxVF8PRlK564FVG0p22dFFPRRYAsA9F8
-Ds+9/TGe1g8D9U3YWaHETdAGDi9e39e8bqfDpEsZ4lFFll4+TvTa+3chgfz7pPGq
-KiJ4tzWp6RWDIdqBp2//X8YP6emtyr+lTT9sOOQr4DspXazgPvPgjinPBaAng7LE
-ECbRT630G/TS2Hu758CiKjOECfr9VkoxjR06fmDZSrmzEac6sw6XEmipK+DNTet3
-yzkGjfpBqOQJQeu1fBLnfblGqJW2upOjauXnEEofXhBoxy3L96lOuS5o6wkhRwPR
-P7d8U+keUuPEM75x97s=
-=Sr/h
------END PGP SIGNATURE-----
-
---u65IjBhB3TIa72Vp--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
