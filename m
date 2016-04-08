@@ -1,44 +1,31 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: iSER initiator in 4.5 is unhappy..
-Date: Thu, 7 Apr 2016 18:42:19 -0700
-Message-ID: <57070C7B.7060106@sandisk.com>
-References: <5702A46F.5070109@grimberg.me> <5702A6AC.9020008@grimberg.me>
- <20160404225831.GA6725@infradead.org> <57037D8E.4030506@grimberg.me>
- <20160405094339.GA1622@infradead.org> <570548AB.4090802@grimberg.me>
- <20160406231658.GB11588@infradead.org> <570608C9.1070805@grimberg.me>
- <570623B9.8040108@mellanox.com> <570679B6.10409@grimberg.me>
- <20160407221359.GA16686@infradead.org>
+Subject: Re: Cant write to max_sectors_kb on 4.5.0 SRP target
+Date: Thu, 7 Apr 2016 19:49:58 -0700
+Message-ID: <57071C56.7070500@sandisk.com>
+References: <302427900.27942894.1460063713447.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160407221359.GA16686-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <302427900.27942894.1460063713447.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/07/16 15:14, Christoph Hellwig wrote:
-> The patch below fixes the issue for me.  But for SRP I'm still seeing
-> lots of these failures even with the equivalent patch applied:
->
-> [ 426.027905] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053203] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053265] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053270] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053273] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053276] scsi host8: ib_srp: Failed to map data (-12)
-> [  426.053279] scsi host8: ib_srp: Failed to map data (-12)
->
-> It seems the actual reproducer is xfs_repair as run by xfstests.
+On 04/07/16 14:16, Laurence Oberman wrote:
+> I have been testing the SRP initiator code to an LIO array here and
+ > part of the testing requires me to set the max_sectors_kb size to
+ > get 4k I/O's.
+                                                                        .
+Hello Laurence,
 
-Hello Christoph,
-
-Thanks for the report. I will try to reproduce this behavior and will 
-see whether I can find the root cause.
+Have you already tried to set the max_sect parameter in 
+/etc/srp_daemon.conf (assuming you are using srptools >= 1.0.3 for SRP 
+login) ? Additionally, writing something like "options ib_srp 
+cmd_sg_entries=255" into /etc/modprobe.d/ib_srp.conf will increase the 
+maximum SRP transfer size.
 
 Bart.
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
