@@ -1,30 +1,57 @@
-From: AKINWUMI <urr-/Yhyw5NYHaO8M6O89LB0+IOsJ71xGSVV@public.gmane.org>
-Subject: FROM: MR. OLIVER SENO!!
-Date: Fri, 8 Apr 2016 11:53:16 -0700
-Message-ID: <SN1PR17MB049369F7B7F77805C93EFB28D0910@SN1PR17MB0493.namprd17.prod.outlook.com>
-Reply-To: <officeosenol-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
+Date: Fri, 8 Apr 2016 17:15:17 -0500
+Message-ID: <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
+References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com> <1460046664-552-17-git-send-email-mustafa.ismail@intel.com> <20160408004638.GD20252@leon.nu> <20160408184448.GA12292@mustafai-MOBL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <20160408184448.GA12292@mustafai-MOBL>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <urr-/Yhyw5NYHaO8M6O89LB0+IOsJ71xGSVV@public.gmane.org>
+To: 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear Sir.
+> On Thu, Apr 07, 2016 at 05:46:38PM -0700, Leon Romanovsky wrote:
+> > On Thu, Apr 07, 2016 at 11:31:04AM -0500, Mustafa Ismail wrote:
+> > > Adding sq and rq drain functions, which block until all
+> > > previously posted wr-s in the specified queue have completed.
+> > > A completion object is signaled to unblock the thread,
+> > > when the last cqe for the corresponding queue is processed.
+> > >
+> > > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > I want to bring back last conversation about need special function to
+> > drain QPs for iWARP devices.
+> > Come on guys, it is already third place there is the same implementation
+> > is introduced in last 2 months.
+> 
+> In order to move this into core, the core would need to determine if the
+> sq and rq are empty. To do this it will need the driver's internal sq and
+> rq information such as head and tail. Then if not empty it will need
+> more information about the qp's cq processing. All this is device specific.
+> 
+> It is just a few lines of code in each driver to check if its hw sq and rq
+> are empty and if not, handle it from its cq processing.
+> 
+> For this reason, it seems best left to each iWARP driver to handle.
+> 
+> Thanks,
 
-I bring you greetings. My name is Mr.Oliver Seno Lim, I am a staff of Abbey National Plc. London and heading our regional office in West Africa. Our late customer named Engr.Ben W.westland, made a fixed deposit amount of US$7Million.He did not declare any next of kin in any of his paper work, I want you as a foreigner to stand as the beneficiary to transfer this funds out of my bank into your account, after the successful transfer, we shall share in the ratio of 30% for you, 70%for me. Should you be interested please send me your information:
+I agree.  My cxgb4 drain functions need to check if the sq/rq are empty as well.
+And for cxgb4, that will require holding the qp spinlock.  (I need to post this
+patch soon).
 
-1,Full names.
-2,current residential address.
-3,Tele/Fax numbers./your work.
+So while they are all very similar, the guts for looking at the sq/rq are
+device-specific.
+
+Steve.
  
-   
-All I need from you is your readiness, trustworthiness and edication. Please email me directly on my private email address: officeosenol-/E1597aS9LQAvxtiuMwx3w@public.gmane.org) so we can begin arrangements and I would give you more information on how we would handle this venture and once i hear from you i will give you information of the bank for the transferring funds on your name.
 
-Regards,
-Mr.Oliver Seno Lim 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
