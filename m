@@ -1,26 +1,19 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: protection domain question
-Date: Sat, 9 Apr 2016 12:03:31 -0700
-Message-ID: <20160409190331.GA23186@infradead.org>
+From: darlehen-eshH1AjLspA@public.gmane.org
+Subject: LOAN
+Date: Sat, 09 Apr 2016 03:32:40 +0530
+Message-ID: <20160408220041.E7CED3B6CAE@bescomm.terengganu.my>
+Reply-To: legacyassetgrougp-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=unknown-8bit
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <darlehen-eshH1AjLspA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As far as I can tell from reading the Verbs spec the raison d'=C3=AAtre=
-for
-protection domains is to allow associating MRs with different address
-spaces in userspace programs.
-
-Is there any good reason to have each kernel driver create it's own PDs
-instead of simply creating one per device and sticking it into the
-ib_device structure?
+Brauchen Sie einen Kredit? Wir bieten Darlehen in 2% gelten heute Kontakt mit uns auf: legacyassetgrougp-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
