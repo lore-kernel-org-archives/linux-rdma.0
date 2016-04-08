@@ -1,41 +1,30 @@
-From: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] drivers/infiniband/hw/nes/nes_verbs.c: Deinline nes_free_qp_mem, save 1072 bytes
-Date: Fri,  8 Apr 2016 20:58:42 +0200
-Message-ID: <1460141926-13069-1-git-send-email-dvlasenk@redhat.com>
+From: AKINWUMI <urr-/Yhyw5NYHaO8M6O89LB0+IOsJ71xGSVV@public.gmane.org>
+Subject: FROM: MR. OLIVER SENO!!
+Date: Fri, 8 Apr 2016 11:53:16 -0700
+Message-ID: <SN1PR17MB049369F7B7F77805C93EFB28D0910@SN1PR17MB0493.namprd17.prod.outlook.com>
+Reply-To: <officeosenol-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Recipients <urr-/Yhyw5NYHaO8M6O89LB0+IOsJ71xGSVV@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This function compiles to 550 bytes of machine code.
-Three callsites, all in nes_create_qp.
+Dear Sir.
 
-Signed-off-by: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-CC: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-CC: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-CC: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-CC: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- drivers/infiniband/hw/nes/nes_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I bring you greetings. My name is Mr.Oliver Seno Lim, I am a staff of Abbey National Plc. London and heading our regional office in West Africa. Our late customer named Engr.Ben W.westland, made a fixed deposit amount of US$7Million.He did not declare any next of kin in any of his paper work, I want you as a foreigner to stand as the beneficiary to transfer this funds out of my bank into your account, after the successful transfer, we shall share in the ratio of 30% for you, 70%for me. Should you be interested please send me your information:
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index fba69a3..5f48d08 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -981,7 +981,7 @@ static int nes_setup_mmap_qp(struct nes_qp *nesqp, struct nes_vnic *nesvnic,
- /**
-  * nes_free_qp_mem() is to free up the qp's pci_alloc_consistent() memory.
-  */
--static inline void nes_free_qp_mem(struct nes_device *nesdev,
-+static void nes_free_qp_mem(struct nes_device *nesdev,
- 		struct nes_qp *nesqp, int virt_wqs)
- {
- 	unsigned long flags;
--- 
-2.1.0
+1,Full names.
+2,current residential address.
+3,Tele/Fax numbers./your work.
+ 
+   
+All I need from you is your readiness, trustworthiness and edication. Please email me directly on my private email address: officeosenol-/E1597aS9LQAvxtiuMwx3w@public.gmane.org) so we can begin arrangements and I would give you more information on how we would handle this venture and once i hear from you i will give you information of the bank for the transferring funds on your name.
 
+Regards,
+Mr.Oliver Seno Lim 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
