@@ -1,44 +1,33 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
-Date: Fri, 08 Apr 2016 16:48:10 -0700
-Message-ID: <1460159290.901.5.camel@haakon3.risingtidesystems.com>
+Date: Fri, 8 Apr 2016 17:14:56 -0700
+Message-ID: <20160409001456.GA1752@infradead.org>
 References: <20160408221553.GA3716@infradead.org>
+ <1460159290.901.5.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160408221553.GA3716@infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1460159290.901.5.camel@haakon3.risingtidesystems.com>
 Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Christoph Hellwig <hch@infradead.org>, sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-04-08 at 15:15 -0700, Christoph Hellwig wrote:
-> Hi all,
-> 
-> I've recently started looking into adding support for signature MRs
-> in the RDMA R/W API, but it seems like it's already broken upstream.
-> 
-> I suspect it's the target that's at fault, but I'm not sure.  I've
-> tested 4.5 and todays 4.6-rc tree on both the target and the client
-> side.
-> 
-> The setup is pretty simple: on the target I've loaded scsi_debug
-> with dif=1 and dix=1, and set I've set fabric_prot_type=1, t10_pi=1
-> and ImmediateData to No on the tpg, and then did a simple mkfs.ext4.
-> 
-> Just doing the login I get the following error on the target:
-> 
-> [  369.890182] Bad block size given: 0
-> [  369.894131] mlx5_0:mlx5_ib_post_send:3296:(pid 331): 
-> [  369.894228] isert: isert_reg_sig_mr: fast registration failed, ret:-22
-> [  369.901580] isert: isert_handle_prot_cmd: conn ffff880904d54000 failed to fast reg mr
-> [  369.906348] iSCSI/iqn.1993-08.org.debian:01:197dad5d1f17: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
-> [  369.910395] isert: isert_put_datain: Cmd: ffff880902b26b00 failed to prepare RDMA res
-> 
-> If I then do an actual I/O think go downhill quickly.
+On Fri, Apr 08, 2016 at 04:48:10PM -0700, Nicholas A. Bellinger wrote:
+> It looks like the isert_set_dif_domain() assignments of
+> ib_sig_domain->sig.dif.* from dev->dev_attrib.block_size + friends is
+> being zeroed before making it into mlx5_ib_post_send() ->
+> IB_WR_REG_SIG_MR -> set_sig_umr_wr() -> set_sig_data_segment().
 
-It looks like the isert_set_dif_domain() assignments of
-ib_sig_domain->sig.dif.* from dev->dev_attrib.block_size + friends is
-being zeroed before making it into mlx5_ib_post_send() ->
-IB_WR_REG_SIG_MR -> set_sig_umr_wr() -> set_sig_data_segment().
+>From my limited understanding that's not the case, even if the weird
+printk about the bad block size might suggest it.
+
+I think what we have is the TARGET_PROT_DIN_INSERT /
+TARGET_PROT_DOUT_STRIP case (probably the first), and thus
+sig_attrs->mem.sig_type is set to IB_SIG_TYPE_NONE, but for some
+reason the prot pointer is set, which will lead to this misleading
+printk.
+
+Does anyone know a recent working version of T10 PI in isert?  There
+aren't any recent-ish changes that look related.
