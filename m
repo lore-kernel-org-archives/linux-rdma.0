@@ -1,52 +1,43 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
-Date: Fri, 08 Apr 2016 19:36:14 -0700
-Message-ID: <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
+Date: Fri, 8 Apr 2016 21:58:46 -0700
+Message-ID: <20160409045846.GA9269@infradead.org>
 References: <20160408221553.GA3716@infradead.org>
-	 <1460159290.901.5.camel@haakon3.risingtidesystems.com>
-	 <20160409001456.GA1752@infradead.org>
+ <1460159290.901.5.camel@haakon3.risingtidesystems.com>
+ <20160409001456.GA1752@infradead.org>
+ <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160409001456.GA1752@infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
 Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 Cc: sagig@mellanox.com, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-04-08 at 17:14 -0700, Christoph Hellwig wrote:
-> On Fri, Apr 08, 2016 at 04:48:10PM -0700, Nicholas A. Bellinger wrote:
-> > It looks like the isert_set_dif_domain() assignments of
-> > ib_sig_domain->sig.dif.* from dev->dev_attrib.block_size + friends is
-> > being zeroed before making it into mlx5_ib_post_send() ->
-> > IB_WR_REG_SIG_MR -> set_sig_umr_wr() -> set_sig_data_segment().
+On Fri, Apr 08, 2016 at 07:36:14PM -0700, Nicholas A. Bellinger wrote:
+> Ah, yes.  However, TARGET_PROT_DIN_INSERT / TARGET_PROT_DOUT_STRIP
+> will only be happening in sbc_set_prot_op_checks() if fabric_prot = true
+> for a backend that does not support PI.
 > 
-> From my limited understanding that's not the case, even if the weird
-> printk about the bad block size might suggest it.
+> Eg: fabric_prot is for the special case where the fabric supports PI,
+> but the backend does not, and the normal feature bits a device would
+> expose for PI are emulated based upon the fabric protection features.
 > 
-> I think what we have is the TARGET_PROT_DIN_INSERT /
-> TARGET_PROT_DOUT_STRIP case (probably the first), and thus
-> sig_attrs->mem.sig_type is set to IB_SIG_TYPE_NONE, but for some
-> reason the prot pointer is set, which will lead to this misleading
-> printk.
-
-Ah, yes.  However, TARGET_PROT_DIN_INSERT / TARGET_PROT_DOUT_STRIP
-will only be happening in sbc_set_prot_op_checks() if fabric_prot = true
-for a backend that does not support PI.
-
-Eg: fabric_prot is for the special case where the fabric supports PI,
-but the backend does not, and the normal feature bits a device would
-expose for PI are emulated based upon the fabric protection features.
-
-Since your backend does support PI, cmd->prot_op should always be
-TARGET_PROT_*_PASS regardless.
-
-The other thing to check is that isert_get_sup_prot_ops() is returning
-TARGET_PROT_ALL when tpg->tpg_attrib.t10_pi = true.
-
+> Since your backend does support PI, cmd->prot_op should always be
+> TARGET_PROT_*_PASS regardless.
 > 
-> Does anyone know a recent working version of T10 PI in isert?  There
-> aren't any recent-ish changes that look related.
+> The other thing to check is that isert_get_sup_prot_ops() is returning
+> TARGET_PROT_ALL when tpg->tpg_attrib.t10_pi = true.
 
-Sagi..?
+Ok, it turns out this problem was a second LUN that doesn't support
+PI.  So the reported bug is for a this fabrics_prot case, the scsi_debug
+LUN was actually doing fine.
+
+The root cause seems to be that transport_generic_new_cmd allocates
+a prot_sg for all protection cases, which causes isert_reg_sig_mr
+to assign a value to sig_wr.prot even for the strip/insert case,
+which will then cause mlx5 to blow up.  But even when fixing that
+I run into data compare errors, so there's defintively something deeper
+hiding here.
