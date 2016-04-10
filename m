@@ -1,38 +1,57 @@
-From: "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: protection domain question
-Date: Sun, 10 Apr 2016 12:10:07 -0700
-Message-ID: <570AA50F.606@oracle.com>
-References: <20160409190331.GA23186@infradead.org>
- <570A62B7.9020200@grimberg.me> <20160410145511.GB2409@infradead.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
+Date: Sun, 10 Apr 2016 22:26:08 +0300
+Message-ID: <570AA8D0.2060404@grimberg.me>
+References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
+ <1460046664-552-17-git-send-email-mustafa.ismail@intel.com>
+ <20160408004638.GD20252@leon.nu> <20160408184448.GA12292@mustafai-MOBL>
+ <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160410145511.GB2409-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/10/16 7:55 AM, Christoph Hellwig wrote:
-> On Sun, Apr 10, 2016 at 05:27:03PM +0300, Sagi Grimberg wrote:
->>> Is there any good reason to have each kernel driver create it's own PDs
->>> instead of simply creating one per device and sticking it into the
->>> ib_device structure?
+
+>>> I want to bring back last conversation about need special function to
+>>> drain QPs for iWARP devices.
+>>> Come on guys, it is already third place there is the same implementation
+>>> is introduced in last 2 months.
 >>
->> There is a theoretical breach here. Say you're connected with a srp
->> channel to a target, and you send out rkey X to your peer. In case
->> there is a man-in-the-middle who sniffs it, he can theoretically
->> read/write to your rkey by connecting to IPoIB in RC mode (which
->> will connect to anyone).
+>> In order to move this into core, the core would need to determine if the
+>> sq and rq are empty. To do this it will need the driver's internal sq and
+>> rq information such as head and tail. Then if not empty it will need
+>> more information about the qp's cq processing. All this is device specific.
+>>
+>> It is just a few lines of code in each driver to check if its hw sq and rq
+>> are empty and if not, handle it from its cq processing.
+>>
+>> For this reason, it seems best left to each iWARP driver to handle.
+>>
+>> Thanks,
 >
-> Already, makes sense.
+> I agree.  My cxgb4 drain functions need to check if the sq/rq are empty as well.
+> And for cxgb4, that will require holding the qp spinlock.  (I need to post this
+> patch soon).
+>
+> So while they are all very similar, the guts for looking at the sq/rq are
+> device-specific.
 
-Exactly I was also responding with similar response since many ULPs
-share the HCA resources and they needs to be isolated which PD does.
+I actually agree here too.
 
-Regards,
-Santosh
+The iWARP folks needs some driver specific logic to get the QP drained
+correctly so I'm all for them having the freedom to do whats best
+for them.
+
+I do understand Leon when he sees 3 copies of this code, but all these
+copies are looking into the raw queue so I'm fine with it.
+
+Cheers,
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
