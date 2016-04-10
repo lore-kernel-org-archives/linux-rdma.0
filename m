@@ -1,43 +1,35 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: protection domain question
-Date: Sun, 10 Apr 2016 17:27:03 +0300
-Message-ID: <570A62B7.9020200@grimberg.me>
-References: <20160409190331.GA23186@infradead.org>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
+Date: Sun, 10 Apr 2016 07:37:38 -0700
+Message-ID: <20160410143738.GA14101@infradead.org>
+References: <20160408221553.GA3716@infradead.org>
+ <1460159290.901.5.camel@haakon3.risingtidesystems.com>
+ <20160409001456.GA1752@infradead.org>
+ <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
+ <20160409045846.GA9269@infradead.org>
+ <570A147A.1020601@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160409190331.GA23186-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <570A147A.1020601@grimberg.me>
+Sender: target-devel-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: Christoph Hellwig <hch@infradead.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Apr 10, 2016 at 11:53:14AM +0300, Sagi Grimberg wrote:
+> OK, good to know.
+> 
+> Since the fabric_prot was added later, I don't think it was properly
+> tested (and from what I've seen, not a very interesting use-case).
 
-> As far as I can tell from reading the Verbs spec the raison d'=C3=AAt=
-refor
-> protection domains is to allow associating MRs with different address
-> spaces in userspace programs.
+It's been there for more a year, and once your have non-T10 capable
+LUNs in a TPG it gets turned on automatically it seems..
 
-The PD number is enforced when accessing the associated MRs (via the
-associated QPs). So if someone is accessing a MR that is associated
-with a PD via a queue-pair that is not it will fail (its a security
-thing).
+> P.S.
+> I'm no longer available in @mellanox.com
 
-> Is there any good reason to have each kernel driver create it's own P=
-Ds
-> instead of simply creating one per device and sticking it into the
-> ib_device structure?
-
-There is a theoretical breach here. Say you're connected with a srp
-channel to a target, and you send out rkey X to your peer. In case
-there is a man-in-the-middle who sniffs it, he can theoretically
-read/write to your rkey by connecting to IPoIB in RC mode (which
-will connect to anyone).
-
-The fact that srp has it's own PD prevents this from happening.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I keep messing that all the time by grabbing an address from the list
+archives, sorry.  That's why people should only use personal addresses
+on mailing lists :)
