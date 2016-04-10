@@ -1,35 +1,34 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
-Date: Sun, 10 Apr 2016 07:37:38 -0700
-Message-ID: <20160410143738.GA14101@infradead.org>
-References: <20160408221553.GA3716@infradead.org>
- <1460159290.901.5.camel@haakon3.risingtidesystems.com>
- <20160409001456.GA1752@infradead.org>
- <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
- <20160409045846.GA9269@infradead.org>
- <570A147A.1020601@grimberg.me>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: iSER initiator in 4.5 is unhappy..
+Date: Sun, 10 Apr 2016 07:52:04 -0700
+Message-ID: <20160410145204.GA2409@infradead.org>
+References: <20160404225831.GA6725@infradead.org>
+ <57037D8E.4030506@grimberg.me>
+ <20160405094339.GA1622@infradead.org>
+ <570548AB.4090802@grimberg.me>
+ <20160406231658.GB11588@infradead.org>
+ <570608C9.1070805@grimberg.me>
+ <570623B9.8040108@mellanox.com>
+ <570679B6.10409@grimberg.me>
+ <20160407221359.GA16686@infradead.org>
+ <570A5563.5060104@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <570A147A.1020601@grimberg.me>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: Christoph Hellwig <hch@infradead.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+In-Reply-To: <570A5563.5060104-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 10, 2016 at 11:53:14AM +0300, Sagi Grimberg wrote:
-> OK, good to know.
-> 
-> Since the fabric_prot was added later, I don't think it was properly
-> tested (and from what I've seen, not a very interesting use-case).
+On Sun, Apr 10, 2016 at 04:30:11PM +0300, Max Gurtovoy wrote:
+> Hi Christoph,
+> did you add similar assignment in iser code or only used the scsi patches ?
 
-It's been there for more a year, and once your have non-T10 capable
-LUNs in a TPG it gets turned on automatically it seems..
-
-> P.S.
-> I'm no longer available in @mellanox.com
-
-I keep messing that all the time by grabbing an address from the list
-archives, sorry.  That's why people should only use personal addresses
-on mailing lists :)
+Yes, to fix it I had to do the assignment in iser.  Not sure why
+I didn't manage to send it out.  Let me prepare a proper patch series.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
