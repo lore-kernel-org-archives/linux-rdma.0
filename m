@@ -1,30 +1,29 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: T10 PI offloading seems to be broken in iser/isert in 4.5/4.6-rc
-Date: Sun, 10 Apr 2016 18:30:20 +0300
-Message-ID: <570A718C.4070107@grimberg.me>
-References: <20160408221553.GA3716@infradead.org>
- <1460159290.901.5.camel@haakon3.risingtidesystems.com>
- <20160409001456.GA1752@infradead.org>
- <1460169374.5010.4.camel@haakon3.risingtidesystems.com>
- <20160409045846.GA9269@infradead.org> <570A147A.1020601@grimberg.me>
- <20160410143738.GA14101@infradead.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 00/11] IB/hfi1: Additional fixes for 4.6
+Date: Sun, 10 Apr 2016 20:25:28 +0300
+Message-ID: <570A8C88.1040409@grimberg.me>
+References: <20160315174916.613.12254.stgit@scvm10.sc.intel.com>
+ <20160407202403.GA7211@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160410143738.GA14101@infradead.org>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160407202403.GA7211-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hey Dennis,
 
->> Since the fabric_prot was added later, I don't think it was properly
->> tested (and from what I've seen, not a very interesting use-case).
->
-> It's been there for more a year, and once your have non-T10 capable
-> LUNs in a TPG it gets turned on automatically it seems..
+> I have some additional patches as well. Perhaps it is more than we want
+> in an RC. I'm going to reorder things and submit two patch sets. One
+> that fixes critical bugs, and should most likely go in RC.
 
-Yea, but I'm not aware of anyone running non-PI together with PI.
-Usually people use either/or (although it can make sense to mix
-if you have different classes of data sets).
+I was just about to point out that the last two patches really don't
+look like RC material. I'd suggest deferring these two for the next
+merge window...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
