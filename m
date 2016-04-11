@@ -1,24 +1,34 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 1/2] scsi: add a max_segment_size limitation to struct
-	Scsi_Host
-Date: Tue, 12 Apr 2016 01:35:31 +0200
-Message-ID: <20160411233531.GA18851@lst.de>
-References: <1460414846-29540-1-git-send-email-hch@lst.de> <1460414846-29540-2-git-send-email-hch@lst.de> <570C3400.9080503@sandisk.com>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Mon, 11 Apr 2016 23:35:57 +0000
+Message-ID: <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
+ <20160411201155.GC371@obsidianresearch.com>
+ <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411221210.GA5861@obsidianresearch.com>
+ <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411231250.GB5861@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <570C3400.9080503-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 11, 2016 at 04:32:16PM -0700, Bart Van Assche wrote:
-> Since Scsi_Host.max_segment_size is initialized to zero, shouldn't min() be 
-> changed into min_not_zero()?
+On 4/11/2016 6:12 PM, Jason Gunthorpe wrote:
+> On Mon, Apr 11, 2016 at 10:30:54PM +0000, Daniel Jurgens wrote:
+> 
+> Like I said, the user facing name should be QP0 in that case.
+> 
+> Jason
+> 
 
-It probably should.  Thanks for catching this.
+OK, I'll change idbev to ibendport and smi to qp0, or qpzero if the
+SELinux user space code doesn't allow numbers in access vector identifiers.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
