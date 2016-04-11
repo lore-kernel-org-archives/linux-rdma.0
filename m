@@ -1,49 +1,63 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 05/18] xprtrdma: Avoid using Write list for small NFS READ requests
-Date: Mon, 11 Apr 2016 16:38:44 -0400
-Message-ID: <65CBC59F-3005-44FE-8C70-9DDBC8507C9E@oracle.com>
-References: <20160411200323.20531.8893.stgit@manet.1015granger.net> <20160411201050.20531.53651.stgit@manet.1015granger.net> <033901d19431$b3725d20$1a571760$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <033901d19431$b3725d20$1a571760$@opengridcomputing.com>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Mon, 11 Apr 2016 20:38:50 +0000
+Message-ID: <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
+ <20160411201155.GC371@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Language: en-US
+List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
+Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Apr 11, 2016, at 4:35 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+On 4/11/2016 3:12 PM, Jason Gunthorpe wrote:
+> On Thu, Apr 07, 2016 at 02:33:45AM +0300, Dan Jurgens wrote:
 > 
->> Avoid the latency and interrupt overhead of registering a Write
->> chunk when handling NFS READ requests of a few hundred bytes or
->> less.
->> 
->> This change does not interoperate with Linux NFS/RDMA servers
->> that do not have commit 9d11b51ce7c1 ('svcrdma: Fix send_reply()
->> scatter/gather set-up').
->> 
->> $ git describe 9d11b51ce7c1
->> v4.2-rc3-10-g9d11b51
->> 
+>> Currently there is no way to provide granular access control to an Infiniband
+>> fabric.  By providing an ability to restrict user access to specific virtual
+>> subfabrics administrators can limit access to bandwidth and isolate users on
+>> the fabric.
 > 
-> Hey Chuck,
+> Do you actually have a concrete use case for this?
+
+We know the national labs are interested in this.
+
+> This seems superficially similar to netlabel, which I guess targets a
+> certain niche, but I'm really wondering with all the other container
+> patches if this was supposed to be done with namespaces...
+
+I can't speak to the goals of the other container patches.
+
+Netlabel can't label kernel bypassed packets.  It can be used for IPoIB
+though.
+
+>> An Infiniband device (ibdev) is labeled by name and port number.  There is a
+>> single access vector for ibdevs as well, called "smi".
 > 
-> Is there any way to avoid breaking interoperability with older servers?
+> This is called an End Port (SMI is something else in the IB
+> spec). Please use the standard terminology.
+I see your point on the end port, I'll address this is the next series
+by updating the commit messages and replacing ibdev with ibendport.
 
-No, pre-4.2 Linux servers have a bug that can be fixed by
-applying the above commit, which shouldn't be difficult to
-backport.
+I don't understand where you think I've gone wrong on SMI.
 
-Clients have always been allowed to send NFS READ this way.
+>From section 3.4.5.2: "Each node provides a Subnet Management Agent
+(SMA) that the SM access through a well known interface called the
+Subnet Management Interface (SMI)."
 
---
-Chuck Lever
+Thanks,
+Dan
 
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+_______________________________________________
+Selinux mailing list
+Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
