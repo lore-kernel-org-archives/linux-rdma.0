@@ -1,64 +1,57 @@
-From: 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
-Date: Mon, 11 Apr 2016 07:50:37 +0300
-Message-ID: <20160411045037.GF20252@leon.nu>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [RDMA PATCH 01/16] i40iw: Fix overflow of region length
+Date: Mon, 11 Apr 2016 12:23:24 +0300
+Message-ID: <20160411092324.GG20252@leon.nu>
 References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
- <1460046664-552-17-git-send-email-mustafa.ismail@intel.com>
- <20160408004638.GD20252@leon.nu>
- <20160408184448.GA12292@mustafai-MOBL>
- <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
- <570AA8D0.2060404@grimberg.me>
+ <1460046664-552-2-git-send-email-mustafa.ismail@intel.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gdTfX7fkYsEEjebm"
+	protocol="application/pgp-signature"; boundary="gm5TwAJMO0F2iVRz"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <570AA8D0.2060404-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1460046664-552-2-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---gdTfX7fkYsEEjebm
+--gm5TwAJMO0F2iVRz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sun, Apr 10, 2016 at 10:26:08PM +0300, Sagi Grimberg wrote:
-> I do understand Leon when he sees 3 copies of this code, but all these
-> copies are looking into the raw queue so I'm fine with it.
+On Thu, Apr 07, 2016 at 11:30:49AM -0500, Mustafa Ismail wrote:
+> Change region_length to u64 as a region can be > 4GB.
 
-Despite the fact that I understand the reasoning behind this specific
-implementation, it makes me wonder when will we see common implementation
-for this type of queues?
+I suppose that you will have a casting warning while setting u64 variable to u32 variable.
+$grep -r pbl_depth drivers/infiniband/hw/i40iw/*
+drivers/infiniband/hw/i40iw/i40iw_verbs.c:      u32 pbl_depth = 0;
+drivers/infiniband/hw/i40iw/i40iw_verbs.c:      pbl_depth = region_length >> 12;
 
-We saw 3 similar implementations, in near future, we will get another
-one and I believe that it won't stop there.
-
---gdTfX7fkYsEEjebm
+--gm5TwAJMO0F2iVRz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXCy0dAAoJEORje4g2clinB3oQAIclXzyu0BdeazalHv3VPz23
-JjOIBtcggHpDL4nnOUiHTKgg0AY2yzmcKrNB800c1Red3LwmMuTltmvsanoE7L4z
-ve9Ghq3UMQaOY4iIRMCwiO3uA7XWkV2XtSdY1VcIhaunb8S1dGJhwp9nkHHZ+0r+
-7nXootvsg3TEtTMcRnQNHb8yQi8yXRVXB0B2k0Yvw6JNrRYMpikoHDP20/+P3HA7
-ab9FkvbCzciWW+hRkKLB1iHCN4P6RhQ+q/rWnfxj5HcwFKpqT5+ZMUDsTx+gNdkm
-QOE/2LDMAsPm909pGVJikPCo6siYRoTEskLUjRJH+Fxl0+M52D4+SR/BuIE8tXmI
-ZxPQOUuu3AcrHUGuMe4B5SB2oOUnMgIj4ZQL/tbT6NCCFGphhrjroInA7gm5gmd2
-iT3DeUnN2nHHxPntnGNAPAeFFhXW5wmUe6Emv1HnAd2avD0A2WZam/UOARDEeAME
-l9SpMOKhVn4RIMXTDA8v6Z+re44JR+rvvwyarDWw3fC7v/dCCQe0EzsfdWfzXzHz
-9jkMg/rglClrVMCPaTIwxnpnZ+SVPKhX/y5tetJ8fWJxM24RWroBDybiX/gL5JE7
-CDURwSOTLsitrYKzm5Xtcl3LIlpzk5PB8eA1WlkD5SrOyL8NjPpOvL3T/nvx3rB8
-QBcKZvodKDO3IhrfPhCU
-=gFrA
+iQIcBAEBAgAGBQJXC20MAAoJEORje4g2clin3XQP/REMxME47AVyk8yS/JUzRxfj
+qA7cSch6QFAr36WnnhL72Dsv59eS0/N46QLESjr0RBUWQKNaHwHUqsjpoNrrTv9Q
+9AjyMabwLEuMffCb35aXl9HO5/ci4FH+f+qm/3z/ek+0TXF+iwlZnmKaSe1IFUIb
+UhncqWfc30Brkqa6fgn+urJOVDxjUXn2tRZgv1MsRDQx+FwnKcj7kzd2ruRYkr6V
+q7Mtci/ZsQ3g4h5d7kmHgu9jabahHJzIC65JIR+CHt0yGRc2lLpKZdyuHQvhfq1Z
+u8akwMpWyiTlIwZzfwie8wOK9osC0BA17sYx7amYgGSCsKf9KFWEWoDtQtS9Jh+l
+9lATi6D71BmIAI78ImRQ9lm5c0hlhrmqEKV8J7KZUdBQtvyuJP9IhPJTyQqXrw9n
+/C9+f+H6nOFb+1jbRjynZEHPhNkaxGKd2LvF9CgyrBoBWZspkZ4UC8gs1OaVZkKC
+C4mYxtVcBB86Hekf7QrxK3oyrMArbZPIVA0n3YKeiTpTvGeu5W7RIghzBRxb4PmH
+iKprq92UE6v31be7nztBLVf2oo+3RG78NRk/3X50BR8IPF+VURIu26krbqG+MvAo
++XlwqjY9qS8fnYgDRVAOiQmI4bj8Zl4E79RzRBRZntpA68b6s/ttAKpBvNheYYhV
++lquaeoNIB+q+3GN0gyT
+=8DKu
 -----END PGP SIGNATURE-----
 
---gdTfX7fkYsEEjebm--
+--gm5TwAJMO0F2iVRz--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
