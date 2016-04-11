@@ -1,89 +1,38 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 14/18] xprtrdma: Move fr_xprt and fr_worker to struct
- rpcrdma_mw
-Date: Mon, 11 Apr 2016 16:12:05 -0400
-Message-ID: <20160411201205.20531.75475.stgit@manet.1015granger.net>
-References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Mon, 11 Apr 2016 14:11:55 -0600
+Message-ID: <20160411201155.GC371@obsidianresearch.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160411200323.20531.8893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1459985638-37233-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In a subsequent patch, the fr_xprt and fr_worker fields will be
-needed by another memory registration mode. Move them into the
-generic rpcrdma_mw structure that wraps struct rpcrdma_frmr.
+On Thu, Apr 07, 2016 at 02:33:45AM +0300, Dan Jurgens wrote:
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/frwr_ops.c  |   10 +++++-----
- net/sunrpc/xprtrdma/xprt_rdma.h |    4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+> Currently there is no way to provide granular access control to an Infiniband
+> fabric.  By providing an ability to restrict user access to specific virtual
+> subfabrics administrators can limit access to bandwidth and isolate users on
+> the fabric.
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 4e0a5c1..1251a1d 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -150,9 +150,9 @@ static void
- __frwr_recovery_worker(struct work_struct *work)
- {
- 	struct rpcrdma_mw *r = container_of(work, struct rpcrdma_mw,
--					    frmr.fr_work);
-+					    mw_work);
- 
--	__frwr_reset_and_unmap(r->frmr.fr_xprt, r);
-+	__frwr_reset_and_unmap(r->mw_xprt, r);
- 	return;
- }
- 
-@@ -162,8 +162,8 @@ __frwr_recovery_worker(struct work_struct *work)
- static void
- __frwr_queue_recovery(struct rpcrdma_mw *r)
- {
--	INIT_WORK(&r->frmr.fr_work, __frwr_recovery_worker);
--	queue_work(frwr_recovery_wq, &r->frmr.fr_work);
-+	INIT_WORK(&r->mw_work, __frwr_recovery_worker);
-+	queue_work(frwr_recovery_wq, &r->mw_work);
- }
- 
- static int
-@@ -378,9 +378,9 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
- 			return rc;
- 		}
- 
-+		r->mw_xprt = r_xprt;
- 		list_add(&r->mw_list, &buf->rb_mws);
- 		list_add(&r->mw_all, &buf->rb_all);
--		r->frmr.fr_xprt = r_xprt;
- 	}
- 
- 	return 0;
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 0b3aa54..61d5cce 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -227,8 +227,6 @@ struct rpcrdma_frmr {
- 	struct ib_cqe			fr_cqe;
- 	enum rpcrdma_frmr_state		fr_state;
- 	struct completion		fr_linv_done;
--	struct work_struct		fr_work;
--	struct rpcrdma_xprt		*fr_xprt;
- 	union {
- 		struct ib_reg_wr	fr_regwr;
- 		struct ib_send_wr	fr_invwr;
-@@ -245,6 +243,8 @@ struct rpcrdma_mw {
- 		struct rpcrdma_fmr	fmr;
- 		struct rpcrdma_frmr	frmr;
- 	};
-+	struct work_struct	mw_work;
-+	struct rpcrdma_xprt	*mw_xprt;
- 	struct list_head	mw_list;
- 	struct list_head	mw_all;
- };
+Do you actually have a concrete use case for this?
 
+This seems superficially similar to netlabel, which I guess targets a
+certain niche, but I'm really wondering with all the other container
+patches if this was supposed to be done with namespaces...
+
+> An Infiniband device (ibdev) is labeled by name and port number.  There is a
+> single access vector for ibdevs as well, called "smi".
+
+This is called an End Port (SMI is something else in the IB
+spec). Please use the standard terminology.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
