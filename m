@@ -1,479 +1,349 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 07/18] xprtrdma: Allow Read list and Reply chunk
- simultaneously
-Date: Mon, 11 Apr 2016 16:11:07 -0400
-Message-ID: <20160411201107.20531.23898.stgit@manet.1015granger.net>
-References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 2/2] net/mlx5: Update mlx5_ifc hardware features
+Date: Mon, 11 Apr 2016 23:10:22 +0300
+Message-ID: <1460405422-8654-3-git-send-email-saeedm@mellanox.com>
+References: <1460405422-8654-1-git-send-email-saeedm@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160411200323.20531.8893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1460405422-8654-1-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rpcrdma_marshal_req() makes a simplifying assumption: that NFS
-operations with large Call messages have small Reply messages, and
-vice versa. Therefore with RPC-over-RDMA, only one chunk type is
-ever needed for each Call/Reply pair, because one direction needs
-chunks, the other direction will always fit inline.
+Adding the needed mlx5_ifc hardware bits and structs
+for the following feature:
 
-In fact, this assumption is asserted in the code:
+* Add vport to steering commands for SRIOV ACL support
+* Add mlcr, pcmr and mcia registers for dump module EEPROM
+* Add support for FCS, baeacon led and disable_link bits to
+  hca caps
+* Add CQE period mode bit in  CQ context for CQE based CQ
+  moderation support
+* Add umr SQ bit for fragmented memory registration
+* Add needed bits and caps for Striding RQ support
 
-  if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
-  	dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
-		__func__);
-	return -EIO;
-  }
-
-But RPCGSS_SEC breaks this assumption. Because krb5i and krb5p
-perform data transformation on RPC messages before they are
-transmitted, direct data placement techniques cannot be used, thus
-RPC messages must be sent via a Long call in both directions.
-All such calls are sent with a Position Zero Read chunk, and all
-such replies are handled with a Reply chunk. Thus the client must
-provide every Call/Reply pair with both a Read list and a Reply
-chunk.
-
-Without any special security in effect, NFSv4 WRITEs may now also
-use the Read list and provide a Reply chunk. The marshal_req
-logic was preventing that, meaning an NFSv4 WRITE with a large
-payload that included a GETATTR result larger than the inline
-threshold would fail.
-
-The code that encodes each chunk list is now completely contained in
-its own function. There is some code duplication, but the trade-off
-is that the overall logic should be more clear.
-
-Note that all three chunk lists now share the rl_segments array.
-Some additional per-req accounting is necessary to track this
-usage. For the same reasons that the above simplifying assumption
-has held true for so long, I don't expect more array elements are
-needed at this time.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |  327 ++++++++++++++++++++++++++++++++-------
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 
- 2 files changed, 269 insertions(+), 59 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h |  146 ++++++++++++++++++++++++++++++++++------
+ 1 files changed, 124 insertions(+), 22 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index c7c9bbb..e80f43d 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -62,17 +62,17 @@ enum rpcrdma_chunktype {
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index c300e74..4ce4ea4 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -513,7 +513,9 @@ struct mlx5_ifc_per_protocol_networking_offload_caps_bits {
+ 	u8         max_lso_cap[0x5];
+ 	u8         reserved_at_10[0x4];
+ 	u8         rss_ind_tbl_cap[0x4];
+-	u8         reserved_at_18[0x3];
++	u8         reg_umr_sq[0x1];
++	u8         scatter_fcs[0x1];
++	u8         reserved_at_1a[0x1];
+ 	u8         tunnel_lso_const_out_ip_id[0x1];
+ 	u8         reserved_at_1c[0x2];
+ 	u8         tunnel_statless_gre[0x1];
+@@ -648,7 +650,7 @@ struct mlx5_ifc_vector_calc_cap_bits {
+ enum {
+ 	MLX5_WQ_TYPE_LINKED_LIST  = 0x0,
+ 	MLX5_WQ_TYPE_CYCLIC       = 0x1,
+-	MLX5_WQ_TYPE_STRQ         = 0x2,
++	MLX5_WQ_TYPE_LINKED_LIST_STRIDING_RQ = 0x2,
  };
  
- static const char transfertypes[][12] = {
--	"pure inline",	/* no chunks */
--	" read chunk",	/* some argument via rdma read */
--	"*read chunk",	/* entire request via rdma read */
--	"write chunk",	/* some result via rdma write */
-+	"inline",	/* no chunks */
-+	"read list",	/* some argument via rdma read */
-+	"*read list",	/* entire request via rdma read */
-+	"write list",	/* some result via rdma write */
- 	"reply chunk"	/* entire reply via rdma write */
+ enum {
+@@ -753,7 +755,11 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8	   early_vf_enable[0x1];
+ 	u8         reserved_at_1a9[0x2];
+ 	u8         local_ca_ack_delay[0x5];
+-	u8         reserved_at_1af[0x6];
++	u8         reserved_at_1af[0x2];
++	u8         ports_check[0x1];
++	u8         reserved_at_1b2[0x1];
++	u8         disable_link_up[0x1];
++	u8         beacon_led[0x1];
+ 	u8         port_type[0x2];
+ 	u8         num_ports[0x8];
+ 
+@@ -778,7 +784,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         cqe_version[0x4];
+ 
+ 	u8         compact_address_vector[0x1];
+-	u8         reserved_at_200[0x3];
++	u8         striding_rq[0x1];
++	u8         reserved_at_201[0x2];
+ 	u8         ipoib_basic_offloads[0x1];
+ 	u8         reserved_at_205[0xa];
+ 	u8         drain_sigerr[0x1];
+@@ -807,12 +814,12 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         block_lb_mc[0x1];
+ 	u8         reserved_at_229[0x1];
+ 	u8         scqe_break_moderation[0x1];
+-	u8         reserved_at_22a[0x1];
++	u8         cq_period_start_from_cqe[0x1];
+ 	u8         cd[0x1];
+ 	u8         reserved_at_22d[0x1];
+ 	u8         apm[0x1];
+ 	u8         vector_calc[0x1];
+-	u8         reserved_at_22f[0x1];
++	u8         umr_ptr_rlky[0x1];
+ 	u8	   imaicl[0x1];
+ 	u8         reserved_at_232[0x4];
+ 	u8         qkv[0x1];
+@@ -913,10 +920,10 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         reserved_at_500[0x80];
+ 
+ 	u8         reserved_at_580[0x3f];
+-	u8         cqe_zip[0x1];
++	u8         cqe_compression[0x1];
+ 
+-	u8         cqe_zip_timeout[0x10];
+-	u8         cqe_zip_max_num[0x10];
++	u8         cqe_compression_timeout[0x10];
++	u8         cqe_compression_max_num[0x10];
+ 
+ 	u8         reserved_at_5e0[0x220];
+ };
+@@ -1000,7 +1007,13 @@ struct mlx5_ifc_wq_bits {
+ 	u8         reserved_at_118[0x3];
+ 	u8         log_wq_sz[0x5];
+ 
+-	u8         reserved_at_120[0x4e0];
++	u8         reserved_at_120[0x15];
++	u8         log_wqe_num_of_strides[0x3];
++	u8         two_byte_shift_en[0x1];
++	u8         reserved_at_139[0x4];
++	u8         log_wqe_stride_size[0x3];
++
++	u8         reserved_at_140[0x4c0];
+ 
+ 	struct mlx5_ifc_cmd_pas_bits pas[0];
+ };
+@@ -2199,7 +2212,8 @@ struct mlx5_ifc_sqc_bits {
+ 	u8         flush_in_error_en[0x1];
+ 	u8         reserved_at_4[0x4];
+ 	u8         state[0x4];
+-	u8         reserved_at_c[0x14];
++	u8         reg_umr[0x1];
++	u8         reserved_at_d[0x13];
+ 
+ 	u8         reserved_at_20[0x8];
+ 	u8         user_index[0x18];
+@@ -2247,7 +2261,8 @@ enum {
+ 
+ struct mlx5_ifc_rqc_bits {
+ 	u8         rlky[0x1];
+-	u8         reserved_at_1[0x2];
++	u8         reserved_at_1[0x1];
++	u8         scatter_fcs[0x1];
+ 	u8         vsd[0x1];
+ 	u8         mem_rq_type[0x4];
+ 	u8         state[0x4];
+@@ -2604,6 +2619,11 @@ enum {
+ 	MLX5_CQC_ST_FIRED                                 = 0xa,
  };
  
- /* Returns size of largest RPC-over-RDMA header in a Call message
-  *
-- * The client marshals only one chunk list per Call message.
-- * The largest list is the Read list.
-+ * The largest Call header contains a full-size Read list and a
-+ * minimal Reply chunk.
-  */
- static unsigned int rpcrdma_max_call_header_size(unsigned int maxsegs)
- {
-@@ -85,6 +85,11 @@ static unsigned int rpcrdma_max_call_header_size(unsigned int maxsegs)
- 	maxsegs += 2;	/* segment for head and tail buffers */
- 	size = maxsegs * sizeof(struct rpcrdma_read_chunk);
++enum {
++	MLX5_CQ_PERIOD_MODE_START_FROM_EQE = 0x0,
++	MLX5_CQ_PERIOD_MODE_START_FROM_CQE = 0x1,
++};
++
+ struct mlx5_ifc_cqc_bits {
+ 	u8         status[0x4];
+ 	u8         reserved_at_4[0x4];
+@@ -2612,8 +2632,8 @@ struct mlx5_ifc_cqc_bits {
+ 	u8         reserved_at_c[0x1];
+ 	u8         scqe_break_moderation_en[0x1];
+ 	u8         oi[0x1];
+-	u8         reserved_at_f[0x2];
+-	u8         cqe_zip_en[0x1];
++	u8         cq_period_mode[0x2];
++	u8         cqe_comp_en[0x1];
+ 	u8         mini_cqe_res_format[0x2];
+ 	u8         st[0x4];
+ 	u8         reserved_at_18[0x8];
+@@ -2987,7 +3007,11 @@ struct mlx5_ifc_set_fte_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
  
-+	/* Minimal Read chunk size */
-+	size += sizeof(__be32);	/* segment count */
-+	size += sizeof(struct rpcrdma_segment);
-+	size += sizeof(__be32);	/* list discriminator */
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
 +
- 	dprintk("RPC:       %s: max call header size = %u\n",
- 		__func__, size);
- 	return size;
-@@ -431,6 +436,209 @@ out:
- 	return n;
- }
++	u8         reserved_at_60[0x20];
  
-+static inline __be32 *
-+xdr_encode_rdma_segment(__be32 *iptr, struct rpcrdma_mr_seg *seg)
-+{
-+	*iptr++ = cpu_to_be32(seg->mr_rkey);
-+	*iptr++ = cpu_to_be32(seg->mr_len);
-+	return xdr_encode_hyper(iptr, seg->mr_base);
-+}
-+
-+/* XDR-encode the Read list. Supports encoding a list of read
-+ * segments that belong to a single read chunk.
-+ *
-+ * Encoding key for single-list chunks (HLOO = Handle32 Length32 Offset64):
-+ *
-+ *  Read chunklist (a linked list):
-+ *   N elements, position P (same P for all chunks of same arg!):
-+ *    1 - PHLOO - 1 - PHLOO - ... - 1 - PHLOO - 0
-+ *
-+ * Returns a pointer to the XDR word in the RDMA header following
-+ * the end of the Read list, or an error pointer.
-+ */
-+static __be32 *
-+rpcrdma_encode_read_list(struct rpcrdma_xprt *r_xprt,
-+			 struct rpcrdma_req *req, struct rpc_rqst *rqst,
-+			 __be32 *iptr, enum rpcrdma_chunktype rtype)
-+{
-+	struct rpcrdma_mr_seg *seg = req->rl_nextseg;
-+	unsigned int pos;
-+	int n, nsegs;
-+
-+	if (rtype == rpcrdma_noch) {
-+		*iptr++ = xdr_zero;	/* item not present */
-+		return iptr;
-+	}
-+
-+	pos = rqst->rq_snd_buf.head[0].iov_len;
-+	if (rtype == rpcrdma_areadch)
-+		pos = 0;
-+	nsegs = rpcrdma_convert_iovs(&rqst->rq_snd_buf, pos, rtype, seg,
-+				     RPCRDMA_MAX_SEGS - req->rl_nchunks);
-+	if (nsegs < 0)
-+		return ERR_PTR(nsegs);
-+
-+	do {
-+		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, false);
-+		if (n <= 0)
-+			return ERR_PTR(n);
-+
-+		*iptr++ = xdr_one;	/* item present */
-+
-+		/* All read segments in this chunk
-+		 * have the same "position".
-+		 */
-+		*iptr++ = cpu_to_be32(pos);
-+		iptr = xdr_encode_rdma_segment(iptr, seg);
-+
-+		dprintk("RPC: %5u %s: read segment pos %u "
-+			"%d@0x%016llx:0x%08x (%s)\n",
-+			rqst->rq_task->tk_pid, __func__, pos,
-+			seg->mr_len, (unsigned long long)seg->mr_base,
-+			seg->mr_rkey, n < nsegs ? "more" : "last");
-+
-+		r_xprt->rx_stats.read_chunk_count++;
-+		req->rl_nchunks++;
-+		seg += n;
-+		nsegs -= n;
-+	} while (nsegs);
-+	req->rl_nextseg = seg;
-+
-+	/* Finish Read list */
-+	*iptr++ = xdr_zero;	/* Next item not present */
-+	return iptr;
-+}
-+
-+/* XDR-encode the Write list. Supports encoding a list containing
-+ * one array of plain segments that belong to a single write chunk.
-+ *
-+ * Encoding key for single-list chunks (HLOO = Handle32 Length32 Offset64):
-+ *
-+ *  Write chunklist (a list of (one) counted array):
-+ *   N elements:
-+ *    1 - N - HLOO - HLOO - ... - HLOO - 0
-+ *
-+ * Returns a pointer to the XDR word in the RDMA header following
-+ * the end of the Write list, or an error pointer.
-+ */
-+static __be32 *
-+rpcrdma_encode_write_list(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
-+			  struct rpc_rqst *rqst, __be32 *iptr,
-+			  enum rpcrdma_chunktype wtype)
-+{
-+	struct rpcrdma_mr_seg *seg = req->rl_nextseg;
-+	int n, nsegs, nchunks;
-+	__be32 *segcount;
-+
-+	if (wtype != rpcrdma_writech) {
-+		*iptr++ = xdr_zero;	/* no Write list present */
-+		return iptr;
-+	}
-+
-+	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf,
-+				     rqst->rq_rcv_buf.head[0].iov_len,
-+				     wtype, seg,
-+				     RPCRDMA_MAX_SEGS - req->rl_nchunks);
-+	if (nsegs < 0)
-+		return ERR_PTR(nsegs);
-+
-+	*iptr++ = xdr_one;	/* Write list present */
-+	segcount = iptr++;	/* save location of segment count */
-+
-+	nchunks = 0;
-+	do {
-+		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
-+		if (n <= 0)
-+			return ERR_PTR(n);
-+
-+		iptr = xdr_encode_rdma_segment(iptr, seg);
-+
-+		dprintk("RPC: %5u %s: write segment "
-+			"%d@0x016%llx:0x%08x (%s)\n",
-+			rqst->rq_task->tk_pid, __func__,
-+			seg->mr_len, (unsigned long long)seg->mr_base,
-+			seg->mr_rkey, n < nsegs ? "more" : "last");
-+
-+		r_xprt->rx_stats.write_chunk_count++;
-+		r_xprt->rx_stats.total_rdma_request += seg->mr_len;
-+		req->rl_nchunks++;
-+		nchunks++;
-+		seg   += n;
-+		nsegs -= n;
-+	} while (nsegs);
-+	req->rl_nextseg = seg;
-+
-+	/* Update count of segments in this Write chunk */
-+	*segcount = cpu_to_be32(nchunks);
-+
-+	/* Finish Write list */
-+	*iptr++ = xdr_zero;	/* Next item not present */
-+	return iptr;
-+}
-+
-+/* XDR-encode the Reply chunk. Supports encoding an array of plain
-+ * segments that belong to a single write (reply) chunk.
-+ *
-+ * Encoding key for single-list chunks (HLOO = Handle32 Length32 Offset64):
-+ *
-+ *  Reply chunk (a counted array):
-+ *   N elements:
-+ *    1 - N - HLOO - HLOO - ... - HLOO
-+ *
-+ * Returns a pointer to the XDR word in the RDMA header following
-+ * the end of the Reply chunk, or an error pointer.
-+ */
-+static __be32 *
-+rpcrdma_encode_reply_chunk(struct rpcrdma_xprt *r_xprt,
-+			   struct rpcrdma_req *req, struct rpc_rqst *rqst,
-+			   __be32 *iptr, enum rpcrdma_chunktype wtype)
-+{
-+	struct rpcrdma_mr_seg *seg = req->rl_nextseg;
-+	int n, nsegs, nchunks;
-+	__be32 *segcount;
-+
-+	if (wtype != rpcrdma_replych) {
-+		*iptr++ = xdr_zero;	/* no Reply chunk present */
-+		return iptr;
-+	}
-+
-+	nsegs = rpcrdma_convert_iovs(&rqst->rq_rcv_buf, 0, wtype, seg,
-+				     RPCRDMA_MAX_SEGS - req->rl_nchunks);
-+	if (nsegs < 0)
-+		return ERR_PTR(nsegs);
-+
-+	*iptr++ = xdr_one;	/* Reply chunk present */
-+	segcount = iptr++;	/* save location of segment count */
-+
-+	nchunks = 0;
-+	do {
-+		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
-+		if (n <= 0)
-+			return ERR_PTR(n);
-+
-+		iptr = xdr_encode_rdma_segment(iptr, seg);
-+
-+		dprintk("RPC: %5u %s: reply segment "
-+			"%d@0x%016llx:0x%08x (%s)\n",
-+			rqst->rq_task->tk_pid, __func__,
-+			seg->mr_len, (unsigned long long)seg->mr_base,
-+			seg->mr_rkey, n < nsegs ? "more" : "last");
-+
-+		r_xprt->rx_stats.reply_chunk_count++;
-+		r_xprt->rx_stats.total_rdma_request += seg->mr_len;
-+		req->rl_nchunks++;
-+		nchunks++;
-+		seg   += n;
-+		nsegs -= n;
-+	} while (nsegs);
-+	req->rl_nextseg = seg;
-+
-+	/* Update count of segments in the Reply chunk */
-+	*segcount = cpu_to_be32(nchunks);
-+
-+	return iptr;
-+}
-+
- /*
-  * Copy write data inline.
-  * This function is used for "small" requests. Data which is passed
-@@ -508,24 +716,18 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	struct rpc_xprt *xprt = rqst->rq_xprt;
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
- 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
--	char *base;
--	size_t rpclen;
--	ssize_t hdrlen;
- 	enum rpcrdma_chunktype rtype, wtype;
- 	struct rpcrdma_msg *headerp;
-+	unsigned int pos;
-+	ssize_t hdrlen;
-+	size_t rpclen;
-+	__be32 *iptr;
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -5181,7 +5205,11 @@ struct mlx5_ifc_destroy_flow_table_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
  
- #if defined(CONFIG_SUNRPC_BACKCHANNEL)
- 	if (test_bit(RPC_BC_PA_IN_USE, &rqst->rq_bc_pa_state))
- 		return rpcrdma_bc_marshal_reply(rqst);
- #endif
- 
--	/*
--	 * rpclen gets amount of data in first buffer, which is the
--	 * pre-registered buffer.
--	 */
--	base = rqst->rq_svec[0].iov_base;
--	rpclen = rqst->rq_svec[0].iov_len;
--
- 	headerp = rdmab_to_msg(req->rl_rdmabuf);
- 	/* don't byte-swap XID, it's already done in request */
- 	headerp->rm_xid = rqst->rq_xid;
-@@ -565,8 +767,12 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	 */
- 	if (rpcrdma_args_inline(r_xprt, rqst)) {
- 		rtype = rpcrdma_noch;
-+		rpcrdma_inline_pullup(rqst);
-+		rpclen = rqst->rq_svec[0].iov_len;
- 	} else if (rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
- 		rtype = rpcrdma_readch;
-+		rpclen = rqst->rq_svec[0].iov_len;
-+		rpclen += rpcrdma_tail_pullup(&rqst->rq_snd_buf);
- 	} else {
- 		r_xprt->rx_stats.nomsg_call_count++;
- 		headerp->rm_type = htonl(RDMA_NOMSG);
-@@ -574,52 +780,49 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 		rpclen = 0;
- 	}
- 
--	/* The following simplification is not true forever */
--	if (rtype != rpcrdma_noch && wtype == rpcrdma_replych)
--		wtype = rpcrdma_noch;
--	if (rtype != rpcrdma_noch && wtype != rpcrdma_noch) {
--		dprintk("RPC:       %s: cannot marshal multiple chunk lists\n",
--			__func__);
--		return -EIO;
--	}
--
--	hdrlen = RPCRDMA_HDRLEN_MIN;
--
--	/*
--	 * Pull up any extra send data into the preregistered buffer.
--	 * When padding is in use and applies to the transfer, insert
--	 * it and change the message type.
-+	/* This implementation supports the following combinations
-+	 * of chunk lists in one RPC-over-RDMA Call message:
-+	 *
-+	 *   - Read list
-+	 *   - Write list
-+	 *   - Reply chunk
-+	 *   - Read list + Reply chunk
-+	 *
-+	 * It might not yet support the following combinations:
-+	 *
-+	 *   - Read list + Write list
-+	 *
-+	 * It does not support the following combinations:
-+	 *
-+	 *   - Write list + Reply chunk
-+	 *   - Read list + Write list + Reply chunk
-+	 *
-+	 * This implementation supports only a single chunk in each
-+	 * Read or Write list. Thus for example the client cannot
-+	 * send a Call message with a Position Zero Read chunk and a
-+	 * regular Read chunk at the same time.
- 	 */
--	if (rtype == rpcrdma_noch) {
--
--		rpcrdma_inline_pullup(rqst);
--
--		headerp->rm_body.rm_nochunks.rm_empty[0] = xdr_zero;
--		headerp->rm_body.rm_nochunks.rm_empty[1] = xdr_zero;
--		headerp->rm_body.rm_nochunks.rm_empty[2] = xdr_zero;
--		/* new length after pullup */
--		rpclen = rqst->rq_svec[0].iov_len;
--	} else if (rtype == rpcrdma_readch)
--		rpclen += rpcrdma_tail_pullup(&rqst->rq_snd_buf);
--	if (rtype != rpcrdma_noch) {
--		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_snd_buf,
--					       headerp, rtype);
--		wtype = rtype;	/* simplify dprintk */
--
--	} else if (wtype != rpcrdma_noch) {
--		hdrlen = rpcrdma_create_chunks(rqst, &rqst->rq_rcv_buf,
--					       headerp, wtype);
--	}
--	if (hdrlen < 0)
--		return hdrlen;
-+	req->rl_nchunks = 0;
-+	req->rl_nextseg = req->rl_segments;
-+	iptr = headerp->rm_body.rm_chunks;
-+	iptr = rpcrdma_encode_read_list(r_xprt, req, rqst, iptr, rtype);
-+	if (IS_ERR(iptr))
-+		goto out_unmap;
-+	iptr = rpcrdma_encode_write_list(r_xprt, req, rqst, iptr, wtype);
-+	if (IS_ERR(iptr))
-+		goto out_unmap;
-+	iptr = rpcrdma_encode_reply_chunk(r_xprt, req, rqst, iptr, wtype);
-+	if (IS_ERR(iptr))
-+		goto out_unmap;
-+	hdrlen = (unsigned char *)iptr - (unsigned char *)headerp;
- 
- 	if (hdrlen + rpclen > RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
- 		goto out_overflow;
- 
--	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd"
--		" headerp 0x%p base 0x%p lkey 0x%x\n",
--		__func__, transfertypes[wtype], hdrlen, rpclen,
--		headerp, base, rdmab_lkey(req->rl_rdmabuf));
-+	dprintk("RPC: %5u %s: %s/%s: hdrlen %zd rpclen %zd\n",
-+		rqst->rq_task->tk_pid, __func__,
-+		transfertypes[rtype], transfertypes[wtype],
-+		hdrlen, rpclen);
- 
- 	req->rl_send_iov[0].addr = rdmab_addr(req->rl_rdmabuf);
- 	req->rl_send_iov[0].length = hdrlen;
-@@ -637,12 +840,18 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
- 	return 0;
- 
- out_overflow:
--	pr_err("rpcrdma: send overflow: hdrlen %zd rpclen %zu %s\n",
--		hdrlen, rpclen, transfertypes[wtype]);
-+	pr_err("rpcrdma: send overflow: hdrlen %zd rpclen %zu %s/%s\n",
-+		hdrlen, rpclen, transfertypes[rtype], transfertypes[wtype]);
- 	/* Terminate this RPC. Chunks registered above will be
- 	 * released by xprt_release -> xprt_rmda_free .
- 	 */
- 	return -EIO;
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
 +
-+out_unmap:
-+	for (pos = 0; req->rl_nchunks--;)
-+		pos += r_xprt->rx_ia.ri_ops->ro_unmap(r_xprt,
-+						      &req->rl_segments[pos]);
-+	return PTR_ERR(iptr);
- }
++	u8         reserved_at_60[0x20];
  
- /*
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 4349e03..d44e6e3 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -298,6 +298,7 @@ struct rpcrdma_req {
- 	struct rpcrdma_regbuf	*rl_rdmabuf;
- 	struct rpcrdma_regbuf	*rl_sendbuf;
- 	struct rpcrdma_mr_seg	rl_segments[RPCRDMA_MAX_SEGS];
-+	struct rpcrdma_mr_seg	*rl_nextseg;
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -5208,7 +5236,11 @@ struct mlx5_ifc_destroy_flow_group_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
  
- 	struct ib_cqe		rl_cqe;
- 	struct list_head	rl_all;
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
++
++	u8         reserved_at_60[0x20];
+ 
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -5349,7 +5381,11 @@ struct mlx5_ifc_delete_fte_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
++
++	u8         reserved_at_60[0x20];
+ 
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -5795,7 +5831,11 @@ struct mlx5_ifc_create_flow_table_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
++
++	u8         reserved_at_60[0x20];
+ 
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -5839,7 +5879,11 @@ struct mlx5_ifc_create_flow_group_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
++
++	u8         reserved_at_60[0x20];
+ 
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -6372,6 +6416,17 @@ struct mlx5_ifc_ptys_reg_bits {
+ 	u8         reserved_at_1a0[0x60];
+ };
+ 
++struct mlx5_ifc_mlcr_reg_bits {
++	u8         reserved_at_0[0x8];
++	u8         local_port[0x8];
++	u8         reserved_at_10[0x20];
++
++	u8         beacon_duration[0x10];
++	u8         reserved_at_40[0x10];
++
++	u8         beacon_remain[0x10];
++};
++
+ struct mlx5_ifc_ptas_reg_bits {
+ 	u8         reserved_at_0[0x20];
+ 
+@@ -6781,6 +6836,16 @@ struct mlx5_ifc_pamp_reg_bits {
+ 	u8         index_data[18][0x10];
+ };
+ 
++struct mlx5_ifc_pcmr_reg_bits {
++	u8         reserved_at_0[0x8];
++	u8         local_port[0x8];
++	u8         reserved_at_10[0x2e];
++	u8         fcs_cap[0x1];
++	u8         reserved_at_3f[0x1f];
++	u8         fcs_chk[0x1];
++	u8         reserved_at_5f[0x1];
++};
++
+ struct mlx5_ifc_lane_2_module_mapping_bits {
+ 	u8         reserved_at_0[0x6];
+ 	u8         rx_lane[0x2];
+@@ -7117,6 +7182,7 @@ union mlx5_ifc_ports_control_registers_document_bits {
+ 	struct mlx5_ifc_pspa_reg_bits pspa_reg;
+ 	struct mlx5_ifc_ptas_reg_bits ptas_reg;
+ 	struct mlx5_ifc_ptys_reg_bits ptys_reg;
++	struct mlx5_ifc_mlcr_reg_bits mlcr_reg;
+ 	struct mlx5_ifc_pude_reg_bits pude_reg;
+ 	struct mlx5_ifc_pvlc_reg_bits pvlc_reg;
+ 	struct mlx5_ifc_slrg_reg_bits slrg_reg;
+@@ -7150,7 +7216,11 @@ struct mlx5_ifc_set_flow_table_root_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x40];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
++
++	u8         reserved_at_60[0x20];
+ 
+ 	u8         table_type[0x8];
+ 	u8         reserved_at_88[0x18];
+@@ -7181,7 +7251,9 @@ struct mlx5_ifc_modify_flow_table_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x20];
++	u8         other_vport[0x1];
++	u8         reserved_at_41[0xf];
++	u8         vport_number[0x10];
+ 
+ 	u8         reserved_at_60[0x10];
+ 	u8         modify_field_select[0x10];
+@@ -7247,4 +7319,34 @@ struct mlx5_ifc_qtct_reg_bits {
+ 	u8         tclass[0x3];
+ };
+ 
++struct mlx5_ifc_mcia_reg_bits {
++	u8         l[0x1];
++	u8         reserved_at_1[0x7];
++	u8         module[0x8];
++	u8         reserved_at_10[0x8];
++	u8         status[0x8];
++
++	u8         i2c_device_address[0x8];
++	u8         page_number[0x8];
++	u8         device_address[0x10];
++
++	u8         reserved_at_40[0x10];
++	u8         size[0x10];
++
++	u8         reserved_at_60[0x20];
++
++	u8         dword_0[0x20];
++	u8         dword_1[0x20];
++	u8         dword_2[0x20];
++	u8         dword_3[0x20];
++	u8         dword_4[0x20];
++	u8         dword_5[0x20];
++	u8         dword_6[0x20];
++	u8         dword_7[0x20];
++	u8         dword_8[0x20];
++	u8         dword_9[0x20];
++	u8         dword_10[0x20];
++	u8         dword_11[0x20];
++};
++
+ #endif /* MLX5_IFC_H */
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
