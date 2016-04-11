@@ -1,73 +1,77 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 01/12] IB/mlx5: Expose correct max_sge_rd limit
-Date: Mon, 11 Apr 2016 14:32:29 -0700
-Message-ID: <1460410360-13104-2-git-send-email-hch@lst.de>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
+Subject: generic RDMA READ/WRITE API V6
+Date: Mon, 11 Apr 2016 14:32:28 -0700
+Message-ID: <1460410360-13104-1-git-send-email-hch@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460410360-13104-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+This series contains patches that implement a first version of a generi=
+c
+API to handle RDMA READ/WRITE operations as commonly used on the target
+(or server) side for storage protocols.
 
-mlx5 devices (Connect-IB, ConnectX-4, ConnectX-4-LX) has a limitation
-where rdma read work queue entries cannot exceed 512 bytes.
-A rdma_read wqe needs to fit in 512 bytes:
-- wqe control segment (16 bytes)
-- rdma segment (16 bytes)
-- scatter elements (16 bytes each)
+This has been developed for the upcoming NVMe over Fabrics target, and
+extensively te=D1=95ted as part of that, although this upstream version=
+ has
+additional updates over the one we're currently using.
 
-So max_sge_rd should be: (512 - 16 - 16) / 16 = 30.
+It hides details such as the use of MRs for iWarp devices, and will all=
+ow
+looking at other HCA specifics easily in the future.
 
-Reported-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Tested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c |  2 +-
- include/linux/mlx5/device.h       | 11 +++++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+This series contains also conversion the SRP and iSER targets to the ne=
+w
+API.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5acf346..049754f 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -530,7 +530,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 		     sizeof(struct mlx5_wqe_ctrl_seg)) /
- 		     sizeof(struct mlx5_wqe_data_seg);
- 	props->max_sge = min(max_rq_sg, max_sq_sg);
--	props->max_sge_rd = props->max_sge;
-+	props->max_sge_rd	   = MLX5_MAX_SGE_RD;
- 	props->max_cq		   = 1 << MLX5_CAP_GEN(mdev, log_max_cq);
- 	props->max_cqe = (1 << MLX5_CAP_GEN(mdev, log_max_cq_sz)) - 1;
- 	props->max_mr		   = 1 << MLX5_CAP_GEN(mdev, log_max_mkey);
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 8156e3c..b3575f3 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -392,6 +392,17 @@ enum {
- 	MLX5_CAP_OFF_CMDIF_CSUM		= 46,
- };
- 
-+enum {
-+	/*
-+	 * Max wqe size for rdma read is 512 bytes, so this
-+	 * limits our max_sge_rd as the wqe needs to fit:
-+	 * - ctrl segment (16 bytes)
-+	 * - rdma segment (16 bytes)
-+	 * - scatter elements (16 bytes each)
-+	 */
-+	MLX5_MAX_SGE_RD	= (512 - 16 - 16) / 16
-+};
-+
- struct mlx5_inbox_hdr {
- 	__be16		opcode;
- 	u8		rsvd[4];
--- 
-2.1.4
+I think it's basically ready to merge now.
+
+I also have a git tree available at:
+
+	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
+
+gitweb:
+
+	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
+w-api
+
+Changes since V5:
+ - rebase to 4.6-rc3
+ - now includes signature MR support
+ - now contains the iSER target conversion
+ - new module option for force MR usage for debugging purposes
+ - fixes a bug with the non-merged SG count passes to the MR map
+   routine, causing lockups when using SRP with MRs.
+ - includes the mlx5 max_sg_rd fix (should probably go into 4.6-rc
+   and -stable)
+
+Changes since V4:
+ - fix SG iteration in rdma_rw_init_mr_wrs
+ - address various misc review feedback items from Bart and Leon
+
+Changes since V3:
+ - really fold the list_del in mr_pool_get into the right patch
+
+Changes since V2:
+ - fold the list_del in mr_pool_get into the right patch
+ - clamp the max FR page size length
+ - minor srpt style fix
+ - spelling fixes
+ - renamed rdma_has_read_invalidate to rdma_cap_read_inv
+
+Changes since V1:
+ - fixed offset handling in ib_sg_to_pages
+ - uses proper SG iterators to handle larger than PAGE_SIZE segments
+ - adjusted parameters for some functions to reduce size of the context
+ - SRP target support
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
