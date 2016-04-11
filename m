@@ -1,259 +1,188 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH for-next 1/2] net/mlx5: Fix mlx5 ifc cmd_hca_cap bad offsets
-Date: Mon, 11 Apr 2016 23:10:21 +0300
-Message-ID: <1460405422-8654-2-git-send-email-saeedm@mellanox.com>
-References: <1460405422-8654-1-git-send-email-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1460405422-8654-1-git-send-email-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 08/18] xprtrdma: Remove rpcrdma_create_chunks()
+Date: Mon, 11 Apr 2016 16:11:15 -0400
+Message-ID: <20160411201115.20531.99208.stgit@manet.1015granger.net>
+References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160411200323.20531.8893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@mellanox.com>
+rpcrdma_create_chunks() has been replaced, and can be removed.
 
-All reserved fields after early_vf_enable are off by 1, since
-early_vf_enable was not explicitly declared as array of size 1.
-
-Reserved field before cqe_zip had a wrong size, it should
-be 0x80 + 0x3f.
-
-Fixes: b0844444590e ("net/mlx5_core: Introduce access function to read internal timer ")
-Fixes: b4ff3a36d3e4 ("net/mlx5: Use offset based reserved field names in the IFC header file")
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Matan Barak <matanb@mellanox.com>
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/mlx5/mlx5_ifc.h |  107 +++++++++++++++++++++--------------------
- 1 files changed, 55 insertions(+), 52 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |  151 ----------------------------------------
+ 1 file changed, 151 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index c15b8a8..c300e74 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -750,21 +750,21 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         ets[0x1];
- 	u8         nic_flow_table[0x1];
- 	u8         eswitch_flow_table[0x1];
--	u8	   early_vf_enable;
--	u8         reserved_at_1a8[0x2];
-+	u8	   early_vf_enable[0x1];
-+	u8         reserved_at_1a9[0x2];
- 	u8         local_ca_ack_delay[0x5];
- 	u8         reserved_at_1af[0x6];
- 	u8         port_type[0x2];
- 	u8         num_ports[0x8];
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index e80f43d..9ebaf79 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -285,157 +285,6 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
+ 	return n;
+ }
  
--	u8         reserved_at_1bf[0x3];
-+	u8         reserved_at_1c0[0x3];
- 	u8         log_max_msg[0x5];
--	u8         reserved_at_1c7[0x4];
-+	u8         reserved_at_1c8[0x4];
- 	u8         max_tc[0x4];
--	u8         reserved_at_1cf[0x6];
-+	u8         reserved_at_1d0[0x6];
- 	u8         rol_s[0x1];
- 	u8         rol_g[0x1];
--	u8         reserved_at_1d7[0x1];
-+	u8         reserved_at_1d8[0x1];
- 	u8         wol_s[0x1];
- 	u8         wol_g[0x1];
- 	u8         wol_a[0x1];
-@@ -774,47 +774,47 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         wol_p[0x1];
- 
- 	u8         stat_rate_support[0x10];
--	u8         reserved_at_1ef[0xc];
-+	u8         reserved_at_1f0[0xc];
- 	u8         cqe_version[0x4];
- 
- 	u8         compact_address_vector[0x1];
- 	u8         reserved_at_200[0x3];
- 	u8         ipoib_basic_offloads[0x1];
--	u8         reserved_at_204[0xa];
-+	u8         reserved_at_205[0xa];
- 	u8         drain_sigerr[0x1];
- 	u8         cmdif_checksum[0x2];
- 	u8         sigerr_cqe[0x1];
--	u8         reserved_at_212[0x1];
-+	u8         reserved_at_213[0x1];
- 	u8         wq_signature[0x1];
- 	u8         sctr_data_cqe[0x1];
--	u8         reserved_at_215[0x1];
-+	u8         reserved_at_216[0x1];
- 	u8         sho[0x1];
- 	u8         tph[0x1];
- 	u8         rf[0x1];
- 	u8         dct[0x1];
--	u8         reserved_at_21a[0x1];
-+	u8         reserved_at_21b[0x1];
- 	u8         eth_net_offloads[0x1];
- 	u8         roce[0x1];
- 	u8         atomic[0x1];
--	u8         reserved_at_21e[0x1];
-+	u8         reserved_at_21f[0x1];
- 
- 	u8         cq_oi[0x1];
- 	u8         cq_resize[0x1];
- 	u8         cq_moderation[0x1];
--	u8         reserved_at_222[0x3];
-+	u8         reserved_at_223[0x3];
- 	u8         cq_eq_remap[0x1];
- 	u8         pg[0x1];
- 	u8         block_lb_mc[0x1];
--	u8         reserved_at_228[0x1];
-+	u8         reserved_at_229[0x1];
- 	u8         scqe_break_moderation[0x1];
- 	u8         reserved_at_22a[0x1];
- 	u8         cd[0x1];
--	u8         reserved_at_22c[0x1];
-+	u8         reserved_at_22d[0x1];
- 	u8         apm[0x1];
- 	u8         vector_calc[0x1];
- 	u8         reserved_at_22f[0x1];
- 	u8	   imaicl[0x1];
--	u8         reserved_at_231[0x4];
-+	u8         reserved_at_232[0x4];
- 	u8         qkv[0x1];
- 	u8         pkv[0x1];
- 	u8         set_deth_sqpn[0x1];
-@@ -824,98 +824,101 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         uc[0x1];
- 	u8         rc[0x1];
- 
--	u8         reserved_at_23f[0xa];
-+	u8         reserved_at_240[0xa];
- 	u8         uar_sz[0x6];
--	u8         reserved_at_24f[0x8];
-+	u8         reserved_at_250[0x8];
- 	u8         log_pg_sz[0x8];
- 
- 	u8         bf[0x1];
--	u8         reserved_at_260[0x1];
-+	u8         reserved_at_261[0x1];
- 	u8         pad_tx_eth_packet[0x1];
--	u8         reserved_at_262[0x8];
-+	u8         reserved_at_263[0x8];
- 	u8         log_bf_reg_size[0x5];
--	u8         reserved_at_26f[0x10];
-+	u8         reserved_at_270[0x10];
- 
--	u8         reserved_at_27f[0x10];
-+	u8         reserved_at_280[0x10];
- 	u8         max_wqe_sz_sq[0x10];
- 
--	u8         reserved_at_29f[0x10];
-+	u8         reserved_at_2a0[0x10];
- 	u8         max_wqe_sz_rq[0x10];
- 
--	u8         reserved_at_2bf[0x10];
-+	u8         reserved_at_2c0[0x10];
- 	u8         max_wqe_sz_sq_dc[0x10];
- 
--	u8         reserved_at_2df[0x7];
-+	u8         reserved_at_2e0[0x7];
- 	u8         max_qp_mcg[0x19];
- 
--	u8         reserved_at_2ff[0x18];
-+	u8         reserved_at_300[0x18];
- 	u8         log_max_mcg[0x8];
- 
--	u8         reserved_at_31f[0x3];
-+	u8         reserved_at_320[0x3];
- 	u8         log_max_transport_domain[0x5];
--	u8         reserved_at_327[0x3];
-+	u8         reserved_at_328[0x3];
- 	u8         log_max_pd[0x5];
--	u8         reserved_at_32f[0xb];
-+	u8         reserved_at_330[0xb];
- 	u8         log_max_xrcd[0x5];
- 
--	u8         reserved_at_33f[0x20];
-+	u8         reserved_at_340[0x20];
- 
--	u8         reserved_at_35f[0x3];
-+	u8         reserved_at_360[0x3];
- 	u8         log_max_rq[0x5];
--	u8         reserved_at_367[0x3];
-+	u8         reserved_at_368[0x3];
- 	u8         log_max_sq[0x5];
--	u8         reserved_at_36f[0x3];
-+	u8         reserved_at_370[0x3];
- 	u8         log_max_tir[0x5];
--	u8         reserved_at_377[0x3];
-+	u8         reserved_at_378[0x3];
- 	u8         log_max_tis[0x5];
- 
- 	u8         basic_cyclic_rcv_wqe[0x1];
--	u8         reserved_at_380[0x2];
-+	u8         reserved_at_381[0x2];
- 	u8         log_max_rmp[0x5];
--	u8         reserved_at_387[0x3];
-+	u8         reserved_at_388[0x3];
- 	u8         log_max_rqt[0x5];
--	u8         reserved_at_38f[0x3];
-+	u8         reserved_at_390[0x3];
- 	u8         log_max_rqt_size[0x5];
--	u8         reserved_at_397[0x3];
-+	u8         reserved_at_398[0x3];
- 	u8         log_max_tis_per_sq[0x5];
- 
--	u8         reserved_at_39f[0x3];
-+	u8         reserved_at_3a0[0x3];
- 	u8         log_max_stride_sz_rq[0x5];
--	u8         reserved_at_3a7[0x3];
-+	u8         reserved_at_3a8[0x3];
- 	u8         log_min_stride_sz_rq[0x5];
--	u8         reserved_at_3af[0x3];
-+	u8         reserved_at_3b0[0x3];
- 	u8         log_max_stride_sz_sq[0x5];
--	u8         reserved_at_3b7[0x3];
-+	u8         reserved_at_3b8[0x3];
- 	u8         log_min_stride_sz_sq[0x5];
- 
--	u8         reserved_at_3bf[0x1b];
-+	u8         reserved_at_3c0[0x1b];
- 	u8         log_max_wq_sz[0x5];
- 
- 	u8         nic_vport_change_event[0x1];
--	u8         reserved_at_3e0[0xa];
-+	u8         reserved_at_3e1[0xa];
- 	u8         log_max_vlan_list[0x5];
--	u8         reserved_at_3ef[0x3];
-+	u8         reserved_at_3f0[0x3];
- 	u8         log_max_current_mc_list[0x5];
--	u8         reserved_at_3f7[0x3];
-+	u8         reserved_at_3f8[0x3];
- 	u8         log_max_current_uc_list[0x5];
- 
--	u8         reserved_at_3ff[0x80];
-+	u8         reserved_at_400[0x80];
- 
--	u8         reserved_at_47f[0x3];
-+	u8         reserved_at_480[0x3];
- 	u8         log_max_l2_table[0x5];
--	u8         reserved_at_487[0x8];
-+	u8         reserved_at_488[0x8];
- 	u8         log_uar_page_sz[0x10];
- 
--	u8         reserved_at_49f[0x20];
-+	u8         reserved_at_4a0[0x20];
- 	u8         device_frequency_mhz[0x20];
- 	u8         device_frequency_khz[0x20];
--	u8         reserved_at_4ff[0x5f];
-+
-+	u8         reserved_at_500[0x80];
-+
-+	u8         reserved_at_580[0x3f];
- 	u8         cqe_zip[0x1];
- 
- 	u8         cqe_zip_timeout[0x10];
- 	u8         cqe_zip_max_num[0x10];
- 
--	u8         reserved_at_57f[0x220];
-+	u8         reserved_at_5e0[0x220];
- };
- 
- enum mlx5_flow_destination_type {
--- 
-1.7.1
+-/*
+- * Create read/write chunk lists, and reply chunks, for RDMA
+- *
+- *   Assume check against THRESHOLD has been done, and chunks are required.
+- *   Assume only encoding one list entry for read|write chunks. The NFSv3
+- *     protocol is simple enough to allow this as it only has a single "bulk
+- *     result" in each procedure - complicated NFSv4 COMPOUNDs are not. (The
+- *     RDMA/Sessions NFSv4 proposal addresses this for future v4 revs.)
+- *
+- * When used for a single reply chunk (which is a special write
+- * chunk used for the entire reply, rather than just the data), it
+- * is used primarily for READDIR and READLINK which would otherwise
+- * be severely size-limited by a small rdma inline read max. The server
+- * response will come back as an RDMA Write, followed by a message
+- * of type RDMA_NOMSG carrying the xid and length. As a result, reply
+- * chunks do not provide data alignment, however they do not require
+- * "fixup" (moving the response to the upper layer buffer) either.
+- *
+- * Encoding key for single-list chunks (HLOO = Handle32 Length32 Offset64):
+- *
+- *  Read chunklist (a linked list):
+- *   N elements, position P (same P for all chunks of same arg!):
+- *    1 - PHLOO - 1 - PHLOO - ... - 1 - PHLOO - 0
+- *
+- *  Write chunklist (a list of (one) counted array):
+- *   N elements:
+- *    1 - N - HLOO - HLOO - ... - HLOO - 0
+- *
+- *  Reply chunk (a counted array):
+- *   N elements:
+- *    1 - N - HLOO - HLOO - ... - HLOO
+- *
+- * Returns positive RPC/RDMA header size, or negative errno.
+- */
+-
+-static ssize_t
+-rpcrdma_create_chunks(struct rpc_rqst *rqst, struct xdr_buf *target,
+-		struct rpcrdma_msg *headerp, enum rpcrdma_chunktype type)
+-{
+-	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
+-	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(rqst->rq_xprt);
+-	int n, nsegs, nchunks = 0;
+-	unsigned int pos;
+-	struct rpcrdma_mr_seg *seg = req->rl_segments;
+-	struct rpcrdma_read_chunk *cur_rchunk = NULL;
+-	struct rpcrdma_write_array *warray = NULL;
+-	struct rpcrdma_write_chunk *cur_wchunk = NULL;
+-	__be32 *iptr = headerp->rm_body.rm_chunks;
+-	int (*map)(struct rpcrdma_xprt *, struct rpcrdma_mr_seg *, int, bool);
+-
+-	if (type == rpcrdma_readch || type == rpcrdma_areadch) {
+-		/* a read chunk - server will RDMA Read our memory */
+-		cur_rchunk = (struct rpcrdma_read_chunk *) iptr;
+-	} else {
+-		/* a write or reply chunk - server will RDMA Write our memory */
+-		*iptr++ = xdr_zero;	/* encode a NULL read chunk list */
+-		if (type == rpcrdma_replych)
+-			*iptr++ = xdr_zero;	/* a NULL write chunk list */
+-		warray = (struct rpcrdma_write_array *) iptr;
+-		cur_wchunk = (struct rpcrdma_write_chunk *) (warray + 1);
+-	}
+-
+-	if (type == rpcrdma_replych || type == rpcrdma_areadch)
+-		pos = 0;
+-	else
+-		pos = target->head[0].iov_len;
+-
+-	nsegs = rpcrdma_convert_iovs(target, pos, type, seg, RPCRDMA_MAX_SEGS);
+-	if (nsegs < 0)
+-		return nsegs;
+-
+-	map = r_xprt->rx_ia.ri_ops->ro_map;
+-	do {
+-		n = map(r_xprt, seg, nsegs, cur_wchunk != NULL);
+-		if (n <= 0)
+-			goto out;
+-		if (cur_rchunk) {	/* read */
+-			cur_rchunk->rc_discrim = xdr_one;
+-			/* all read chunks have the same "position" */
+-			cur_rchunk->rc_position = cpu_to_be32(pos);
+-			cur_rchunk->rc_target.rs_handle =
+-						cpu_to_be32(seg->mr_rkey);
+-			cur_rchunk->rc_target.rs_length =
+-						cpu_to_be32(seg->mr_len);
+-			xdr_encode_hyper(
+-					(__be32 *)&cur_rchunk->rc_target.rs_offset,
+-					seg->mr_base);
+-			dprintk("RPC:       %s: read chunk "
+-				"elem %d@0x%llx:0x%x pos %u (%s)\n", __func__,
+-				seg->mr_len, (unsigned long long)seg->mr_base,
+-				seg->mr_rkey, pos, n < nsegs ? "more" : "last");
+-			cur_rchunk++;
+-			r_xprt->rx_stats.read_chunk_count++;
+-		} else {		/* write/reply */
+-			cur_wchunk->wc_target.rs_handle =
+-						cpu_to_be32(seg->mr_rkey);
+-			cur_wchunk->wc_target.rs_length =
+-						cpu_to_be32(seg->mr_len);
+-			xdr_encode_hyper(
+-					(__be32 *)&cur_wchunk->wc_target.rs_offset,
+-					seg->mr_base);
+-			dprintk("RPC:       %s: %s chunk "
+-				"elem %d@0x%llx:0x%x (%s)\n", __func__,
+-				(type == rpcrdma_replych) ? "reply" : "write",
+-				seg->mr_len, (unsigned long long)seg->mr_base,
+-				seg->mr_rkey, n < nsegs ? "more" : "last");
+-			cur_wchunk++;
+-			if (type == rpcrdma_replych)
+-				r_xprt->rx_stats.reply_chunk_count++;
+-			else
+-				r_xprt->rx_stats.write_chunk_count++;
+-			r_xprt->rx_stats.total_rdma_request += seg->mr_len;
+-		}
+-		nchunks++;
+-		seg   += n;
+-		nsegs -= n;
+-	} while (nsegs);
+-
+-	/* success. all failures return above */
+-	req->rl_nchunks = nchunks;
+-
+-	/*
+-	 * finish off header. If write, marshal discrim and nchunks.
+-	 */
+-	if (cur_rchunk) {
+-		iptr = (__be32 *) cur_rchunk;
+-		*iptr++ = xdr_zero;	/* finish the read chunk list */
+-		*iptr++ = xdr_zero;	/* encode a NULL write chunk list */
+-		*iptr++ = xdr_zero;	/* encode a NULL reply chunk */
+-	} else {
+-		warray->wc_discrim = xdr_one;
+-		warray->wc_nchunks = cpu_to_be32(nchunks);
+-		iptr = (__be32 *) cur_wchunk;
+-		if (type == rpcrdma_writech) {
+-			*iptr++ = xdr_zero; /* finish the write chunk list */
+-			*iptr++ = xdr_zero; /* encode a NULL reply chunk */
+-		}
+-	}
+-
+-	/*
+-	 * Return header size.
+-	 */
+-	return (unsigned char *)iptr - (unsigned char *)headerp;
+-
+-out:
+-	for (pos = 0; nchunks--;)
+-		pos += r_xprt->rx_ia.ri_ops->ro_unmap(r_xprt,
+-						      &req->rl_segments[pos]);
+-	return n;
+-}
+-
+ static inline __be32 *
+ xdr_encode_rdma_segment(__be32 *iptr, struct rpcrdma_mr_seg *seg)
+ {
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
