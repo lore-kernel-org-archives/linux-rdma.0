@@ -1,58 +1,56 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
-Date: Mon, 11 Apr 2016 22:30:54 +0000
-Message-ID: <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <20160411201155.GC371@obsidianresearch.com>
- <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160411221210.GA5861@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 1/2] scsi: add a max_segment_size limitation to struct Scsi_Host
+Date: Mon, 11 Apr 2016 15:47:25 -0700
+Message-ID: <1460414846-29540-2-git-send-email-hch@lst.de>
+References: <1460414846-29540-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1460414846-29540-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/11/2016 5:12 PM, Jason Gunthorpe wrote:
-> On Mon, Apr 11, 2016 at 08:38:50PM +0000, Daniel Jurgens wrote:
->>>> An Infiniband device (ibdev) is labeled by name and port number.  There is a
->>>> single access vector for ibdevs as well, called "smi".
->>>
->>> This is called an End Port (SMI is something else in the IB
->>> spec). Please use the standard terminology.
->> I see your point on the end port, I'll address this is the next series
->> by updating the commit messages and replacing ibdev with ibendport.
->>
->> I don't understand where you think I've gone wrong on SMI.
-> 
-> Well, this makes no sense:
->  There is a single access vector for ibdevs as well, called "smi".
+RDMA drivers need segments that aren't larger than a single HCA page
+for memory registrations to work properly, so wire up this limitation
+in the host.
 
-Access vector is an SELinux term.  Object have access vectors.  For
-example a file object has has many access vectors like "read", "write",
-"unlink", etc.  Policy rules allow access to a type of object on a
-subset of its access vectors.
+While we could just call blk_queue_max_segment_size from ->slave_configure,
+that would override the global limit based on the DMA device, so let's do
+it the traditional way by adding a field to the Scsi_Host structure.
 
-Controlling the "smi" is to prevent someone from starting a subnet manager.
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+---
+ drivers/scsi/scsi_lib.c  | 3 ++-
+ include/scsi/scsi_host.h | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-> SMI is not umad. SMI should only refer to the SMA access channel on a
-> specific node, and I have no idea why someone would want to restrict
-> local SMA access independently of generic umad qp0 access. Just call
-> it QP0 or QP1 or umad.
-> 
-> SMI is an obscure internal term that should not be user facing.
-> 
-
-The point of control here is MAD agent registration and MAD transmit and
-receive.  When a MAD agent is created it inherits the security ID of
-it's parent task.  For MAD agents that have a QP of type IB_QPT_SMI,
-when an attempt is made to send a MAD the security ID of the MAD agent
-is checked for access to the SMI vector of the IB device (to become End
-Port).  This is only for MAD agents that have a qp with of type
-IB_QPT_SMI.  So having umad as the access vector is too broad.
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index 8106515..04c660d 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -2120,7 +2120,8 @@ static void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
+ 	blk_queue_segment_boundary(q, shost->dma_boundary);
+ 	dma_set_seg_boundary(dev, shost->dma_boundary);
+ 
+-	blk_queue_max_segment_size(q, dma_get_max_seg_size(dev));
++	blk_queue_max_segment_size(q,
++		min(shost->max_segment_size, dma_get_max_seg_size(dev)));
+ 
+ 	if (!shost->use_clustering)
+ 		q->limits.cluster = 0;
+diff --git a/include/scsi/scsi_host.h b/include/scsi/scsi_host.h
+index fcfa3d7..f11d3fe 100644
+--- a/include/scsi/scsi_host.h
++++ b/include/scsi/scsi_host.h
+@@ -621,6 +621,7 @@ struct Scsi_Host {
+ 	short unsigned int sg_tablesize;
+ 	short unsigned int sg_prot_tablesize;
+ 	unsigned int max_sectors;
++	unsigned int max_segment_size;
+ 	unsigned long dma_boundary;
+ 	/*
+ 	 * In scsi-mq mode, the number of hardware queues supported by the LLD.
+-- 
+2.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
