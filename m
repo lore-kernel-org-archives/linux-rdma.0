@@ -1,57 +1,54 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RDMA PATCH 01/16] i40iw: Fix overflow of region length
-Date: Mon, 11 Apr 2016 12:23:24 +0300
-Message-ID: <20160411092324.GG20252@leon.nu>
-References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
- <1460046664-552-2-git-send-email-mustafa.ismail@intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: re: [PATCH] IB uverbs: add mthca user doorbell record support
+Date: Mon, 11 Apr 2016 16:28:16 +0300
+Message-ID: <20160411132816.GA27298@mwanda>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gm5TwAJMO0F2iVRz"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460046664-552-2-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Roland Dreier,
 
---gm5TwAJMO0F2iVRz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The patch 56483ec1b702: "[PATCH] IB uverbs: add mthca user doorbell
+record support" from Jul 7, 2005, leads to the following static
+checker warning:
 
-On Thu, Apr 07, 2016 at 11:30:49AM -0500, Mustafa Ismail wrote:
-> Change region_length to u64 as a region can be > 4GB.
+	drivers/infiniband/hw/mthca/mthca_memfree.c:483 mthca_map_user_db()
+	warn: bool is not less than zero.
 
-I suppose that you will have a casting warning while setting u64 variable to u32 variable.
-$grep -r pbl_depth drivers/infiniband/hw/i40iw/*
-drivers/infiniband/hw/i40iw/i40iw_verbs.c:      u32 pbl_depth = 0;
-drivers/infiniband/hw/i40iw/i40iw_verbs.c:      pbl_depth = region_length >> 12;
+drivers/infiniband/hw/mthca/mthca_memfree.c
+   481  
+   482          ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+   483          if (ret < 0) {
 
---gm5TwAJMO0F2iVRz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+pci_map_sg() returns zero on failure and greater than zero on success.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+   484                  put_page(pages[0]);
+   485                  goto out;
+   486          }
+   487  
+   488          ret = mthca_MAP_ICM_page(dev, sg_dma_address(&db_tab->page[i].mem),
+   489                                   mthca_uarc_virt(dev, uar, i));
+   490          if (ret) {
+   491                  pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+   492                  put_page(sg_page(&db_tab->page[i].mem));
+   493                  goto out;
+   494          }
+   495  
+   496          db_tab->page[i].uvirt    = uaddr;
+   497          db_tab->page[i].refcount = 1;
+   498  
+   499  out:
+   500          mutex_unlock(&db_tab->mutex);
+   501          return ret;
+   502  }
 
-iQIcBAEBAgAGBQJXC20MAAoJEORje4g2clin3XQP/REMxME47AVyk8yS/JUzRxfj
-qA7cSch6QFAr36WnnhL72Dsv59eS0/N46QLESjr0RBUWQKNaHwHUqsjpoNrrTv9Q
-9AjyMabwLEuMffCb35aXl9HO5/ci4FH+f+qm/3z/ek+0TXF+iwlZnmKaSe1IFUIb
-UhncqWfc30Brkqa6fgn+urJOVDxjUXn2tRZgv1MsRDQx+FwnKcj7kzd2ruRYkr6V
-q7Mtci/ZsQ3g4h5d7kmHgu9jabahHJzIC65JIR+CHt0yGRc2lLpKZdyuHQvhfq1Z
-u8akwMpWyiTlIwZzfwie8wOK9osC0BA17sYx7amYgGSCsKf9KFWEWoDtQtS9Jh+l
-9lATi6D71BmIAI78ImRQ9lm5c0hlhrmqEKV8J7KZUdBQtvyuJP9IhPJTyQqXrw9n
-/C9+f+H6nOFb+1jbRjynZEHPhNkaxGKd2LvF9CgyrBoBWZspkZ4UC8gs1OaVZkKC
-C4mYxtVcBB86Hekf7QrxK3oyrMArbZPIVA0n3YKeiTpTvGeu5W7RIghzBRxb4PmH
-iKprq92UE6v31be7nztBLVf2oo+3RG78NRk/3X50BR8IPF+VURIu26krbqG+MvAo
-+XlwqjY9qS8fnYgDRVAOiQmI4bj8Zl4E79RzRBRZntpA68b6s/ttAKpBvNheYYhV
-+lquaeoNIB+q+3GN0gyT
-=8DKu
------END PGP SIGNATURE-----
-
---gm5TwAJMO0F2iVRz--
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
