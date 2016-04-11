@@ -1,104 +1,39 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 18/18] xprtrdma: Faster server reboot recovery
-Date: Mon, 11 Apr 2016 16:12:39 -0400
-Message-ID: <20160411201239.20531.91129.stgit@manet.1015granger.net>
-References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v1 05/18] xprtrdma: Avoid using Write list for small NFS READ requests
+Date: Mon, 11 Apr 2016 15:35:35 -0500
+Message-ID: <033901d19431$b3725d20$1a571760$@opengridcomputing.com>
+References: <20160411200323.20531.8893.stgit@manet.1015granger.net> <20160411201050.20531.53651.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+	charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160411200323.20531.8893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160411201050.20531.53651.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In a cluster failover scenario, it is desirable for the client to
-attempt to reconnect quickly, as an alternate NFS server is already
-waiting to take over for the down server. The client can't see that
-a server IP address has moved to a new server until the existing
-connection is gone.
+> Avoid the latency and interrupt overhead of registering a Write
+> chunk when handling NFS READ requests of a few hundred bytes or
+> less.
+> 
+> This change does not interoperate with Linux NFS/RDMA servers
+> that do not have commit 9d11b51ce7c1 ('svcrdma: Fix send_reply()
+> scatter/gather set-up').
+> 
+> $ git describe 9d11b51ce7c1
+> v4.2-rc3-10-g9d11b51
+>
 
-For fabrics and devices where it is meaningful, set an upper bound
-on the amount of time before it is determined that a connection is
-no longer valid. This allows the RPC client to detect connection
-loss in a timely matter, then perform a fresh resolution of the
-server GUID in case it has changed (cluster failover).
+Hey Chuck,
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+Is there any way to avoid breaking interoperability with older servers?
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index b7a5bc1..5cc57fb 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -211,9 +211,10 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- 	struct rpcrdma_ep *ep = &xprt->rx_ep;
- #if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
- 	struct sockaddr *sap = (struct sockaddr *)&ep->rep_remote_addr;
--#endif
-+	u64 timeout;
- 	struct ib_qp_attr *attr = &ia->ri_qp_attr;
- 	struct ib_qp_init_attr *iattr = &ia->ri_qp_init_attr;
-+#endif
- 	int connstate = 0;
- 
- 	switch (event->event) {
-@@ -235,14 +236,23 @@ rpcrdma_conn_upcall(struct rdma_cm_id *id, struct rdma_cm_event *event)
- 		complete(&ia->ri_done);
- 		break;
- 	case RDMA_CM_EVENT_ESTABLISHED:
--		connstate = 1;
-+#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
-+		memset(attr, 0, sizeof(*attr));
- 		ib_query_qp(ia->ri_id->qp, attr,
--			    IB_QP_MAX_QP_RD_ATOMIC | IB_QP_MAX_DEST_RD_ATOMIC,
-+			    IB_QP_MAX_QP_RD_ATOMIC |
-+			    IB_QP_MAX_DEST_RD_ATOMIC |
-+			    IB_QP_TIMEOUT,
- 			    iattr);
- 		dprintk("RPC:       %s: %d responder resources"
- 			" (%d initiator)\n",
- 			__func__, attr->max_dest_rd_atomic,
- 			attr->max_rd_atomic);
-+		timeout = 4096 * (1ULL << attr->timeout);
-+		do_div(timeout, NSEC_PER_SEC);
-+		dprintk("RPC:       %s: retry timeout: %llu seconds\n",
-+			__func__, timeout);
-+#endif
-+		connstate = 1;
- 		goto connected;
- 	case RDMA_CM_EVENT_CONNECT_ERROR:
- 		connstate = -ENOTCONN;
-@@ -554,6 +564,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 	ep->rep_attr.recv_cq = recvcq;
- 
- 	/* Initialize cma parameters */
-+	memset(&ep->rep_remote_cma, 0, sizeof(ep->rep_remote_cma));
- 
- 	/* RPC/RDMA does not use private data */
- 	ep->rep_remote_cma.private_data = NULL;
-@@ -567,7 +578,16 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 		ep->rep_remote_cma.responder_resources =
- 						ia->ri_device->attrs.max_qp_rd_atom;
- 
--	ep->rep_remote_cma.retry_count = 7;
-+	/* Limit transport retries so client can detect server
-+	 * GID changes quickly. RPC layer handles re-establishing
-+	 * transport connection and retransmission.
-+	 */
-+	ep->rep_remote_cma.retry_count = 6;
-+
-+	/* RPC-over-RDMA handles its own flow control. In addition,
-+	 * make all RNR NAKs visible so we know that RPC-over-RDMA
-+	 * flow control is working correctly (no NAKs should be seen).
-+	 */
- 	ep->rep_remote_cma.flow_control = 0;
- 	ep->rep_remote_cma.rnr_retry_count = 0;
- 
+Steve 
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
