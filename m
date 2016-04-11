@@ -1,70 +1,64 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] drivers/infiniband/hw/nes/nes_verbs.c: Deinline
- nes_free_qp_mem, save 1072 bytes
-Date: Mon, 11 Apr 2016 07:41:48 +0300
-Message-ID: <20160411044148.GE20252@leon.nu>
-References: <1460141926-13069-1-git-send-email-dvlasenk@redhat.com>
+From: 'Leon Romanovsky' <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [RDMA PATCH 16/16] i40iw: Adding queue drain functions
+Date: Mon, 11 Apr 2016 07:50:37 +0300
+Message-ID: <20160411045037.GF20252@leon.nu>
+References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
+ <1460046664-552-17-git-send-email-mustafa.ismail@intel.com>
+ <20160408004638.GD20252@leon.nu>
+ <20160408184448.GA12292@mustafai-MOBL>
+ <018b01d191e4$21771b80$64655280$@opengridcomputing.com>
+ <570AA8D0.2060404@grimberg.me>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dFWYt1i2NyOo1oI9"
+	protocol="application/pgp-signature"; boundary="gdTfX7fkYsEEjebm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460141926-13069-1-git-send-email-dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <570AA8D0.2060404-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Denys Vlasenko <dvlasenk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---dFWYt1i2NyOo1oI9
+--gdTfX7fkYsEEjebm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Apr 08, 2016 at 08:58:42PM +0200, Denys Vlasenko wrote:
-> This function compiles to 550 bytes of machine code.
-> Three callsites, all in nes_create_qp.
+On Sun, Apr 10, 2016 at 10:26:08PM +0300, Sagi Grimberg wrote:
+> I do understand Leon when he sees 3 copies of this code, but all these
+> copies are looking into the raw queue so I'm fine with it.
 
-I agree with you, the functions which calls below and after this
-function are not optimized for speed and there is no need to inline
-this function.
+Despite the fact that I understand the reasoning behind this specific
+implementation, it makes me wonder when will we see common implementation
+for this type of queues?
 
-I have two requests from you.
-1)
-Can you please change title to be more convenient?
-[PATCH] drivers/infiniband/hw/nes/nes_verbs.c: Deinline nes_free_qp_mem, save 1072 bytes
---->
-[PATCH] IB/nes: Deinline nes_free_qp_mem
+We saw 3 similar implementations, in near future, we will get another
+one and I believe that it won't stop there.
 
-2) Add bloat-o-meter output to the commit message.
-
-And after that feel free to add my RB tag.
-
-Reviewed-By: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---dFWYt1i2NyOo1oI9
+--gdTfX7fkYsEEjebm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXCysMAAoJEORje4g2clinOPUP+wcPBBVRVy3qDhpIEiM/Hrwc
-Q5tOOMkDwkthb0hfp+POcDX6v8bnjJWhCKSvAbaHWt9zwQxknm4hKxnpgqVqV08z
-bOun2au+QmAAute9pd2VeK8Qj+EXQkIPvOURnASj5Ag0q6rnjazbSZwDWNOgg/L5
-Rh/3djhBuYPS3uYFDHbiyO0/RmAHAaABtrOj9QB6h2E6XGZEDcn6Vjf0FbLPjWAE
-cGBaXUYOdq3qbXdgoQUkk35vyF0eLxouhYief1XZoqP4MHmU36ITxaEELaWNgx6y
-zwNBSC9/8QYPjV8hiNxomthzRrHdzmR3H0hUPaNQAJvbhti3xccewY7Rz21+Fumu
-LyDOdUFEH0O5c5C7GPzysz7EVxsmZDOm7h9UdDkvjgQTp6dYkJhlsD6Y6l/v0/16
-7pLM51G9ynMYQTP9CVmVdRcKyCdo3XPDDnDv8hFYW6l2EtfW33TcYOSpcIihOtwf
-kgJrPqMppbUM17p/A5Yeu/n0tZGskctnvKg3EnLe7fKMtcVLbODngdlHl+s1M025
-xwdgUHgvtgV16woZEa9bc7XcRYlRYXTl51kkkHXibYibZOPbf7L/66zrRo0zcUev
-xXneJpH8uHwFt5vnZvOTbJUmhLnLla9u7psALKQTzh8yIkzG1F5w489FSnZJ8kgm
-rGJIlrkju3XLX5zZRwmc
-=ZhDh
+iQIcBAEBAgAGBQJXCy0dAAoJEORje4g2clinB3oQAIclXzyu0BdeazalHv3VPz23
+JjOIBtcggHpDL4nnOUiHTKgg0AY2yzmcKrNB800c1Red3LwmMuTltmvsanoE7L4z
+ve9Ghq3UMQaOY4iIRMCwiO3uA7XWkV2XtSdY1VcIhaunb8S1dGJhwp9nkHHZ+0r+
+7nXootvsg3TEtTMcRnQNHb8yQi8yXRVXB0B2k0Yvw6JNrRYMpikoHDP20/+P3HA7
+ab9FkvbCzciWW+hRkKLB1iHCN4P6RhQ+q/rWnfxj5HcwFKpqT5+ZMUDsTx+gNdkm
+QOE/2LDMAsPm909pGVJikPCo6siYRoTEskLUjRJH+Fxl0+M52D4+SR/BuIE8tXmI
+ZxPQOUuu3AcrHUGuMe4B5SB2oOUnMgIj4ZQL/tbT6NCCFGphhrjroInA7gm5gmd2
+iT3DeUnN2nHHxPntnGNAPAeFFhXW5wmUe6Emv1HnAd2avD0A2WZam/UOARDEeAME
+l9SpMOKhVn4RIMXTDA8v6Z+re44JR+rvvwyarDWw3fC7v/dCCQe0EzsfdWfzXzHz
+9jkMg/rglClrVMCPaTIwxnpnZ+SVPKhX/y5tetJ8fWJxM24RWroBDybiX/gL5JE7
+CDURwSOTLsitrYKzm5Xtcl3LIlpzk5PB8eA1WlkD5SrOyL8NjPpOvL3T/nvx3rB8
+QBcKZvodKDO3IhrfPhCU
+=gFrA
 -----END PGP SIGNATURE-----
 
---dFWYt1i2NyOo1oI9--
+--gdTfX7fkYsEEjebm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
