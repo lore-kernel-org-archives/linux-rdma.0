@@ -1,96 +1,90 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 00/18] NFS/RDMA client patches for 4.7
-Date: Mon, 11 Apr 2016 16:11:48 -0400
-Message-ID: <0CBC734B-4EBC-40E2-943C-DA8A92A9C70A@oracle.com>
+Subject: [PATCH v1 14/18] xprtrdma: Move fr_xprt and fr_worker to struct
+ rpcrdma_mw
+Date: Mon, 11 Apr 2016 16:12:05 -0400
+Message-ID: <20160411201205.20531.75475.stgit@manet.1015granger.net>
 References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160411200323.20531.8893.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+In a subsequent patch, the fr_xprt and fr_worker fields will be
+needed by another memory registration mode. Move them into the
+generic rpcrdma_mw structure that wraps struct rpcrdma_frmr.
 
-> On Apr 11, 2016, at 4:10 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> One larger change: Attempt to fence memory regions after a signal
-> interrupts a synchronous RPC. This should prevent a server from
-> writing a reply into a client's memory after the memory has been
-> released.
-> 
-> In addition, the following changes and fixes:
-> 
-> - Use new ib_drain_qp() API
-> - Advertise max size of NFSv4.1 callbacks on RPC/RDMA
-> - Prevent overflowing the server's receive buffers
-> - Read list + Reply chunk (to support krb5i and krbp on RPC/RDMA)
-> - Detect connection loss sooner
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/frwr_ops.c  |   10 +++++-----
+ net/sunrpc/xprtrdma/xprt_rdma.h |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-Forgot to add:
-
-Available in the "nfs-rdma-for-4.7" topic branch of this git repo:
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.7
-
-
-> ---
-> 
-> Chuck Lever (18):
->      sunrpc: Advertise maximum backchannel payload size
->      xprtrdma: Bound the inline threshold values
->      xprtrdma: Limit number of RDMA segments in RPC-over-RDMA headers
->      xprtrdma: Prevent inline overflow
->      xprtrdma: Avoid using Write list for small NFS READ requests
->      xprtrdma: Update comments in rpcrdma_marshal_req()
->      xprtrdma: Allow Read list and Reply chunk simultaneously
->      xprtrdma: Remove rpcrdma_create_chunks()
->      xprtrdma: Use core ib_drain_qp() API
->      xprtrdma: Rename rpcrdma_frwr::sg and sg_nents
->      xprtrdma: Save I/O direction in struct rpcrdma_frwr
->      xprtrdma: Reset MRs in frwr_op_unmap_sync()
->      xprtrdma: Refactor the FRWR recovery worker
->      xprtrdma: Move fr_xprt and fr_worker to struct rpcrdma_mw
->      xprtrdma: Refactor __fmr_dma_unmap()
->      xprtrdma: Add ro_unmap_safe memreg method
->      xprtrdma: Remove ro_unmap() from all registration modes
->      xprtrdma: Faster server reboot recovery
-> 
-> 
-> fs/nfs/nfs4proc.c                  |   10 -
-> include/linux/sunrpc/clnt.h        |    1 
-> include/linux/sunrpc/xprt.h        |    1 
-> include/linux/sunrpc/xprtrdma.h    |    4 
-> net/sunrpc/clnt.c                  |   17 +
-> net/sunrpc/xprtrdma/backchannel.c  |   16 +
-> net/sunrpc/xprtrdma/fmr_ops.c      |  134 +++++++--
-> net/sunrpc/xprtrdma/frwr_ops.c     |  214 ++++++++-------
-> net/sunrpc/xprtrdma/physical_ops.c |   39 ++-
-> net/sunrpc/xprtrdma/rpc_rdma.c     |  517 ++++++++++++++++++++++--------------
-> net/sunrpc/xprtrdma/transport.c    |   16 +
-> net/sunrpc/xprtrdma/verbs.c        |   91 ++----
-> net/sunrpc/xprtrdma/xprt_rdma.h    |   42 ++-
-> net/sunrpc/xprtsock.c              |    6 
-> 14 files changed, 674 insertions(+), 434 deletions(-)
-> 
-> --
-> Chuck Lever
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 4e0a5c1..1251a1d 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -150,9 +150,9 @@ static void
+ __frwr_recovery_worker(struct work_struct *work)
+ {
+ 	struct rpcrdma_mw *r = container_of(work, struct rpcrdma_mw,
+-					    frmr.fr_work);
++					    mw_work);
+ 
+-	__frwr_reset_and_unmap(r->frmr.fr_xprt, r);
++	__frwr_reset_and_unmap(r->mw_xprt, r);
+ 	return;
+ }
+ 
+@@ -162,8 +162,8 @@ __frwr_recovery_worker(struct work_struct *work)
+ static void
+ __frwr_queue_recovery(struct rpcrdma_mw *r)
+ {
+-	INIT_WORK(&r->frmr.fr_work, __frwr_recovery_worker);
+-	queue_work(frwr_recovery_wq, &r->frmr.fr_work);
++	INIT_WORK(&r->mw_work, __frwr_recovery_worker);
++	queue_work(frwr_recovery_wq, &r->mw_work);
+ }
+ 
+ static int
+@@ -378,9 +378,9 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
+ 			return rc;
+ 		}
+ 
++		r->mw_xprt = r_xprt;
+ 		list_add(&r->mw_list, &buf->rb_mws);
+ 		list_add(&r->mw_all, &buf->rb_all);
+-		r->frmr.fr_xprt = r_xprt;
+ 	}
+ 
+ 	return 0;
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 0b3aa54..61d5cce 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -227,8 +227,6 @@ struct rpcrdma_frmr {
+ 	struct ib_cqe			fr_cqe;
+ 	enum rpcrdma_frmr_state		fr_state;
+ 	struct completion		fr_linv_done;
+-	struct work_struct		fr_work;
+-	struct rpcrdma_xprt		*fr_xprt;
+ 	union {
+ 		struct ib_reg_wr	fr_regwr;
+ 		struct ib_send_wr	fr_invwr;
+@@ -245,6 +243,8 @@ struct rpcrdma_mw {
+ 		struct rpcrdma_fmr	fmr;
+ 		struct rpcrdma_frmr	frmr;
+ 	};
++	struct work_struct	mw_work;
++	struct rpcrdma_xprt	*mw_xprt;
+ 	struct list_head	mw_list;
+ 	struct list_head	mw_all;
+ };
 
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
