@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 12/21] IB/hfi1: Guard against concurrent I2C access across
- all chains
-Date: Tue, 12 Apr 2016 11:26:21 -0700
-Message-ID: <20160412182611.25640.90032.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 11/21] IB/hfi1: Remove module presence check outside pre-LNI
+ checks
+Date: Tue, 12 Apr 2016 11:25:57 -0700
+Message-ID: <20160412182546.25419.51352.stgit@scvm10.sc.intel.com>
 References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,41 +14,103 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The discrete ASIC board design makes the two I2C chains not
-independent of each other.  That is, only one chain can safely
-be accessed at a time.  For discrete ASIC devices, adjust the
-resource locking so that access to one I2C chain will lock both
-of the chains.
+The pre-LNI SerDes and channel tuning algorithm already checks for
+module presence assertion for the relevant port types. The extraneous
+check removed in this patch blocks link up for port types for which
+the module presence assertion is not relevant.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/firmware.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c     |   20 ++++++--------------
+ drivers/staging/rdma/hfi1/platform.c |    8 ++++++--
+ 2 files changed, 12 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/firmware.c b/drivers/staging/rdma/hfi1/firmware.c
-index 3040162..ed680fd 100644
---- a/drivers/staging/rdma/hfi1/firmware.c
-+++ b/drivers/staging/rdma/hfi1/firmware.c
-@@ -1413,8 +1413,15 @@ static int __acquire_chip_resource(struct hfi1_devdata *dd, u32 resource)
- 
- 	if (resource & CR_DYN_MASK) {
- 		/* a dynamic resource is in use if either HFI has set the bit */
--		all_bits = resource_mask(0, resource) |
-+		if (dd->pcidev->device == PCI_DEVICE_ID_INTEL0 &&
-+		    (resource & (CR_I2C1 | CR_I2C2))) {
-+			/* discrete devices must serialize across both chains */
-+			all_bits = resource_mask(0, CR_I2C1 | CR_I2C2) |
-+					resource_mask(1, CR_I2C1 | CR_I2C2);
-+		} else {
-+			all_bits = resource_mask(0, resource) |
- 						resource_mask(1, resource);
-+		}
- 		my_bit = resource_mask(dd->hfi1_id, resource);
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 962cca0..38c0e97 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -6849,7 +6849,7 @@ void handle_link_down(struct work_struct *work)
+ 	 * If there is no cable attached, turn the DC off. Otherwise,
+ 	 * start the link bring up.
+ 	 */
+-	if (!qsfp_mod_present(ppd)) {
++	if (ppd->port_type == PORT_TYPE_QSFP && !qsfp_mod_present(ppd)) {
+ 		dc_shutdown(ppd->dd);
  	} else {
- 		/* non-dynamic resources are not split between HFIs */
+ 		tune_serdes(ppd);
+@@ -9008,9 +9008,9 @@ set_local_link_attributes_fail:
+ }
+ 
+ /*
+- * Call this to start the link.  Schedule a retry if the cable is not
+- * present or if unable to start polling.  Do not do anything if the
+- * link is disabled.  Returns 0 if link is disabled or moved to polling
++ * Call this to start the link.
++ * Do not do anything if the link is disabled.
++ * Returns 0 if link is disabled, moved to polling, or the driver is not ready.
+  */
+ int start_link(struct hfi1_pportdata *ppd)
+ {
+@@ -9027,15 +9027,7 @@ int start_link(struct hfi1_pportdata *ppd)
+ 		return 0;
+ 	}
+ 
+-	if (qsfp_mod_present(ppd) || loopback == LOOPBACK_SERDES ||
+-	    loopback == LOOPBACK_LCB ||
+-	    ppd->dd->icode == ICODE_FUNCTIONAL_SIMULATOR)
+-		return set_link_state(ppd, HLS_DN_POLL);
+-
+-	dd_dev_info(ppd->dd,
+-		    "%s: stopping link start because no cable is present\n",
+-		    __func__);
+-	return -EAGAIN;
++	return set_link_state(ppd, HLS_DN_POLL);
+ }
+ 
+ static void wait_for_qsfp_init(struct hfi1_pportdata *ppd)
+@@ -9206,7 +9198,7 @@ static int handle_qsfp_error_conditions(struct hfi1_pportdata *ppd,
+ 	return 0;
+ }
+ 
+-/* This routine will only be scheduled if the QSFP module is present */
++/* This routine will only be scheduled if the QSFP module present is asserted */
+ void qsfp_event(struct work_struct *work)
+ {
+ 	struct qsfp_data *qd;
+diff --git a/drivers/staging/rdma/hfi1/platform.c b/drivers/staging/rdma/hfi1/platform.c
+index 19d0223..b97027d 100644
+--- a/drivers/staging/rdma/hfi1/platform.c
++++ b/drivers/staging/rdma/hfi1/platform.c
+@@ -838,9 +838,11 @@ void tune_serdes(struct hfi1_pportdata *ppd)
+ 			total_atten = platform_atten + remote_atten;
+ 
+ 			tuning_method = OPA_PASSIVE_TUNING;
+-		} else
++		} else {
+ 			ppd->offline_disabled_reason =
+ 			     HFI1_ODR_MASK(OPA_LINKDOWN_REASON_CHASSIS_CONFIG);
++			goto bail;
++		}
+ 		break;
+ 	case PORT_TYPE_QSFP:
+ 		if (qsfp_mod_present(ppd)) {
+@@ -869,10 +871,12 @@ void tune_serdes(struct hfi1_pportdata *ppd)
+ 					   __func__);
+ 				goto bail;
+ 			}
+-		} else
++		} else {
+ 			ppd->offline_disabled_reason =
+ 			   HFI1_ODR_MASK(
+ 				OPA_LINKDOWN_REASON_LOCAL_MEDIA_NOT_INSTALLED);
++			goto bail;
++		}
+ 		break;
+ 	default:
+ 		dd_dev_info(ppd->dd, "%s: Unknown port type\n", __func__);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
