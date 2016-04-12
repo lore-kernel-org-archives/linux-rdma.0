@@ -1,56 +1,86 @@
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RDMA PATCH 13/16] i40iw: Add base memory management extensions
-Date: Tue, 12 Apr 2016 13:13:57 -0500
-Message-ID: <20160412181357.GA16748@mustafai-MOBL>
-References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
- <1460046664-552-14-git-send-email-mustafa.ismail@intel.com>
- <20160412140739.GA23302@infradead.org>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] [PATCH 08/21] IB/hfi1: Adjust default MTU to be 10KB
+Date: Tue, 12 Apr 2016 11:17:09 -0700
+Message-ID: <20160412181708.21853.23423.stgit@scvm10.sc.intel.com>
+References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160412140739.GA23302-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160412174746.24485.92280.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 12, 2016 at 07:07:39AM -0700, Christoph Hellwig wrote:
-> > @@ -4570,6 +4629,7 @@ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {
-> >  	i40iw_sc_send_lsmm_nostag,
-> >  	i40iw_sc_send_rtt,
-> >  	i40iw_sc_post_wqe0,
-> > +	i40iw_sc_mr_fast_register,
-> 
-> Just noticed this while looking for an implementation of your
-> iw_mr_fast_register method:
-> 
-> please always use named initializers for structs that have meaning
-> outside a single file, it makes grepping so much easier.
-> 
-> >  static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
-> > diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
-> > index 5b6a491..c926198 100644
-> > --- a/drivers/infiniband/hw/i40iw/i40iw_type.h
-> > +++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
-> > @@ -1041,6 +1041,9 @@ struct i40iw_priv_qp_ops {
-> >  	void (*qp_send_lsmm_nostag)(struct i40iw_sc_qp *, void *, u32);
-> >  	void (*qp_send_rtt)(struct i40iw_sc_qp *, bool);
-> >  	enum i40iw_status_code (*qp_post_wqe0)(struct i40iw_sc_qp *, u8);
-> > +	enum i40iw_status_code (*iw_mr_fast_register)(struct i40iw_sc_qp *,
-> > +						      struct i40iw_fast_reg_stag_info *,
-> > +						      bool);
-> >  };
-> 
-> And while we're at it: what's the point of the indirection to start
-> with?
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks. We will correct in V2 of patch series.
+Increasing the default MTU size to 10KB improves performance
+for PSM. Change the default MTU to 10KB but constrain
+Verbs MTU to 8KB. Also update default MTU module parameter
+description to be HFI1_DEFAULT_MAX_MTU.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/staging/rdma/hfi1/driver.c |    3 ++-
+ drivers/staging/rdma/hfi1/hfi.h    |    4 ++--
+ drivers/staging/rdma/hfi1/qp.c     |    6 +++++-
+ 3 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hfi1/driver.c
+index 34511e5..700c6fa 100644
+--- a/drivers/staging/rdma/hfi1/driver.c
++++ b/drivers/staging/rdma/hfi1/driver.c
+@@ -75,7 +75,8 @@ DEFINE_MUTEX(hfi1_mutex);	/* general driver use */
+ 
+ unsigned int hfi1_max_mtu = HFI1_DEFAULT_MAX_MTU;
+ module_param_named(max_mtu, hfi1_max_mtu, uint, S_IRUGO);
+-MODULE_PARM_DESC(max_mtu, "Set max MTU bytes, default is 8192");
++MODULE_PARM_DESC(max_mtu, "Set max MTU bytes, default is " __stringify(
++		 HFI1_DEFAULT_MAX_MTU));
+ 
+ unsigned int hfi1_cu = 1;
+ module_param_named(cu, hfi1_cu, uint, S_IRUGO);
+diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/hfi.h
+index ac553f1..ff04593 100644
+--- a/drivers/staging/rdma/hfi1/hfi.h
++++ b/drivers/staging/rdma/hfi1/hfi.h
+@@ -455,9 +455,9 @@ struct rvt_sge_state;
+ #define HLS_UP (HLS_UP_INIT | HLS_UP_ARMED | HLS_UP_ACTIVE)
+ 
+ /* use this MTU size if none other is given */
+-#define HFI1_DEFAULT_ACTIVE_MTU 8192
++#define HFI1_DEFAULT_ACTIVE_MTU 10240
+ /* use this MTU size as the default maximum */
+-#define HFI1_DEFAULT_MAX_MTU 8192
++#define HFI1_DEFAULT_MAX_MTU 10240
+ /* default partition key */
+ #define DEFAULT_PKEY 0xffff
+ 
+diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
+index 29a5ad2..e68d08a 100644
+--- a/drivers/staging/rdma/hfi1/qp.c
++++ b/drivers/staging/rdma/hfi1/qp.c
+@@ -167,8 +167,12 @@ static inline int opa_mtu_enum_to_int(int mtu)
+  */
+ static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_mtu mtu)
+ {
+-	int val = opa_mtu_enum_to_int((int)mtu);
++	int val;
+ 
++	/* Constraining 10KB packets to 8KB packets */
++	if (mtu == (enum ib_mtu)OPA_MTU_10240)
++		mtu = OPA_MTU_8192;
++	val = opa_mtu_enum_to_int((int)mtu);
+ 	if (val > 0)
+ 		return val;
+ 	return ib_mtu_enum_to_int(mtu);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
