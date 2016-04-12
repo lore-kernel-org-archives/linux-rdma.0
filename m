@@ -1,42 +1,73 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH for-next 2/2] net/mlx5: Update mlx5_ifc hardware features
-Date: Tue, 12 Apr 2016 12:13:12 +0300
-Message-ID: <CAJ3xEMiu3o=yMABh1N7w8mDV4yddE1zk5FYoHHHB02tDhOqzHw@mail.gmail.com>
-References: <1460405422-8654-1-git-send-email-saeedm@mellanox.com>
-	<1460405422-8654-3-git-send-email-saeedm@mellanox.com>
-	<CAJ3xEMghu7ZB0YM8j_YJihpuNnDzOY2LU9-cTHwoWiBeYY7VPA@mail.gmail.com>
-	<CALzJLG-PxUz9ov+cv4uiNSGpuxy0s9KamTvamV_g72SctqdhFA@mail.gmail.com>
-	<CAJ3xEMhorMRsxtawjim9zoBn-zzoDXcMAJfHUqCZBNUbOKrMJA@mail.gmail.com>
-	<20160412051537.GD25242@leon.nu>
-	<CAJ3xEMijYrLvSmbNZp0B6AXqKGozz1rdZ58SCUP_09zOB6-2gQ@mail.gmail.com>
-	<20160412060117.GA24649@leon.nu>
-	<CALzJLG8fXPLQ7tj2Nc7NbGpu4EuNoXTE+w8tDkwQ2F_AqgDtLA@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RDMA PATCH 00/16] Intel X722 iWARP driver update
+Date: Tue, 12 Apr 2016 13:27:39 +0300
+Message-ID: <CAJ3xEMgZvXf=iKkoxPOyswhMYzxadNs4anib0XX2ivnDOERjdQ@mail.gmail.com>
+References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALzJLG8fXPLQ7tj2Nc7NbGpu4EuNoXTE+w8tDkwQ2F_AqgDtLA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Leon Romanovsky <leon@leon.nu>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Or Gerlitz <ogerlitz@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460046664-552-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 12, 2016 at 10:40 AM, Saeed Mahameed
-<saeedm@dev.mellanox.co.il> wrote:
+On Thu, Apr 7, 2016 at 7:30 PM, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> This patch series covers changes to i40iw since the initial driver
+> submission including base memory management extensions, virtual
+> channel messages queue, corrections for endian warnings and bug fixes.
+>
+> This patch series is based on Doug Ledford's
+> https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+>
+> Mustafa Ismail (16):
+>   i40iw: Fix overflow of region length
+>   i40iw: Correct QP size calculation
+>   i40iw: Fix refused connections
+>   i40iw: Correct max message size in query port
+>   i40iw: Do not set self-referencing pointer to NULL after free
+>   i40iw: Add qp table lock around AE processing
+>   i40iw: Set vendor_err only if there is an actual error
+>   i40iw: Populate vendor_id and vendor_part_id fields
+>   i40iw: Remove unused code and fix warning
+>   i40iw: Add virtual channel message queue
+>   i40iw: Correct return code check in add_pble_pool
+>   i40iw: Initialize max enabled vfs variable
+>   i40iw: Add base memory management extensions
 
-> Why would you break down this patch to many when no matter what you
-> do, at the end it would look the same ?
-> As Leon mentioned we MLNX maintainers prefer to update this file at
-> once when possible.
+adding BMME support isn't RC fix,
 
-See my response to Leon. It happened to me many times in code review
-that people gave
-me patches that open X fields in the IFC file and their code used Y <<
-X fields. I don't
-want the IFC file to have even one unused field, and I think the
-correct way to do that
-is have both the IFC file and the driver changes in the same series. I
-understand the trend
-to have zero-conflicts, lets try that. Did you make sure all exposed
-IFC fields are used?
-
-Or.
+>   i40iw: Fix endian issues and warnings
+>   i40iw: Fix SD calculation for initial HMC creation
+>   i40iw: Adding queue drain functions
+>
+>  drivers/infiniband/hw/i40iw/i40iw.h          |   7 +-
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c       | 144 +++++++-------
+>  drivers/infiniband/hw/i40iw/i40iw_cm.h       |  10 +-
+>  drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 163 ++++++++++++----
+>  drivers/infiniband/hw/i40iw/i40iw_d.h        |   2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_hw.c       |  11 +-
+>  drivers/infiniband/hw/i40iw/i40iw_main.c     |  55 ++++--
+>  drivers/infiniband/hw/i40iw/i40iw_osdep.h    |   1 +
+>  drivers/infiniband/hw/i40iw/i40iw_pble.c     |   9 +-
+>  drivers/infiniband/hw/i40iw/i40iw_puda.c     |   2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_type.h     |  12 +-
+>  drivers/infiniband/hw/i40iw/i40iw_uk.c       |  80 +++-----
+>  drivers/infiniband/hw/i40iw/i40iw_user.h     |  34 ++--
+>  drivers/infiniband/hw/i40iw/i40iw_utils.c    |  47 +++--
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 277 ++++++++++++++++++++++++---
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   3 +
+>  drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  96 +++++-----
+>  17 files changed, 654 insertions(+), 299 deletions(-)
+>
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
