@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 20/21] IB/hfi1: Create a routine to set a receive side
- mapping rule
-Date: Tue, 12 Apr 2016 11:31:33 -0700
-Message-ID: <20160412183124.27994.62413.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 21/21] IB/hfi1: Add RSM rule for user FECN handling
+Date: Tue, 12 Apr 2016 11:32:06 -0700
+Message-ID: <20160412183153.28152.53298.stgit@scvm10.sc.intel.com>
 References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,122 +15,140 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Move the rule setting code into its own routine for improved
-searchability and reuse.
+Add a receive side mapping rule to extract expected user packets with
+the FECN bit set and place them in an eager buffer.  This will allow
+user libraries to recognize that a FECN was sent when using header
+suppression and respond appropriately.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |   75 +++++++++++++++++++++++++++++---------
- 1 files changed, 57 insertions(+), 18 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |   84 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 84 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index b2c037c..b5edc3a 100644
+index b5edc3a..386309c 100644
 --- a/drivers/staging/rdma/hfi1/chip.c
 +++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -13429,6 +13429,21 @@ struct rsm_map_table {
- 	unsigned int used;
- };
+@@ -1034,6 +1034,8 @@ static void read_planned_down_reason_code(struct hfi1_devdata *dd, u8 *pdrrc);
+ static void handle_temp_err(struct hfi1_devdata *);
+ static void dc_shutdown(struct hfi1_devdata *);
+ static void dc_start(struct hfi1_devdata *);
++static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
++			   unsigned int *np);
  
-+struct rsm_rule_data {
-+	u8 offset;
-+	u8 pkt_type;
-+	u32 field1_off;
-+	u32 field2_off;
-+	u32 index1_off;
-+	u32 index1_width;
-+	u32 index2_off;
-+	u32 index2_width;
-+	u32 mask1;
-+	u32 value1;
-+	u32 mask2;
-+	u32 value2;
-+};
-+
  /*
-  * Return an initialized RMT map table for users to fill in.  OK if it
-  * returns NULL, indicating no table.
-@@ -13466,6 +13481,30 @@ static void complete_rsm_map_table(struct hfi1_devdata *dd,
+  * Error interrupt table entry.  This is used as input to the interrupt
+@@ -12628,6 +12630,8 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 	int total_contexts;
+ 	int ret;
+ 	unsigned ngroups;
++	int qos_rmt_count;
++	int user_rmt_reduced;
+ 
+ 	/*
+ 	 * Kernel receive contexts:
+@@ -12683,6 +12687,19 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 		total_contexts = num_kernel_contexts + num_user_contexts;
  	}
+ 
++	/* each user context requires an entry in the RMT */
++	qos_rmt_count = qos_rmt_entries(dd, NULL, NULL);
++	if (qos_rmt_count + num_user_contexts > NUM_MAP_ENTRIES) {
++		user_rmt_reduced = NUM_MAP_ENTRIES - qos_rmt_count;
++		dd_dev_err(dd,
++			   "RMT size is reducing the number of user receive contexts from %d to %d\n",
++			   (int)num_user_contexts,
++			   user_rmt_reduced);
++		/* recalculate */
++		num_user_contexts = user_rmt_reduced;
++		total_contexts = num_kernel_contexts + num_user_contexts;
++	}
++
+ 	/* the first N are kernel contexts, the rest are user contexts */
+ 	dd->num_rcv_contexts = total_contexts;
+ 	dd->n_krcv_queues = num_kernel_contexts;
+@@ -13633,6 +13650,72 @@ bail:
+ 	init_qpmap_table(dd, FIRST_KERNEL_KCTXT, dd->n_krcv_queues - 1);
  }
  
-+/*
-+ * Add a receive side mapping rule.
-+ */
-+static void add_rsm_rule(struct hfi1_devdata *dd, u8 rule_index,
-+			 struct rsm_rule_data *rrd)
++static void init_user_fecn_handling(struct hfi1_devdata *dd,
++				    struct rsm_map_table *rmt)
 +{
-+	write_csr(dd, RCV_RSM_CFG + (8 * rule_index),
-+		  (u64)rrd->offset << RCV_RSM_CFG_OFFSET_SHIFT |
-+		  1ull << rule_index | /* enable bit */
-+		  (u64)rrd->pkt_type << RCV_RSM_CFG_PACKET_TYPE_SHIFT);
-+	write_csr(dd, RCV_RSM_SELECT + (8 * rule_index),
-+		  (u64)rrd->field1_off << RCV_RSM_SELECT_FIELD1_OFFSET_SHIFT |
-+		  (u64)rrd->field2_off << RCV_RSM_SELECT_FIELD2_OFFSET_SHIFT |
-+		  (u64)rrd->index1_off << RCV_RSM_SELECT_INDEX1_OFFSET_SHIFT |
-+		  (u64)rrd->index1_width << RCV_RSM_SELECT_INDEX1_WIDTH_SHIFT |
-+		  (u64)rrd->index2_off << RCV_RSM_SELECT_INDEX2_OFFSET_SHIFT |
-+		  (u64)rrd->index2_width << RCV_RSM_SELECT_INDEX2_WIDTH_SHIFT);
-+	write_csr(dd, RCV_RSM_MATCH + (8 * rule_index),
-+		  (u64)rrd->mask1 << RCV_RSM_MATCH_MASK1_SHIFT |
-+		  (u64)rrd->value1 << RCV_RSM_MATCH_VALUE1_SHIFT |
-+		  (u64)rrd->mask2 << RCV_RSM_MATCH_MASK2_SHIFT |
-+		  (u64)rrd->value2 << RCV_RSM_MATCH_VALUE2_SHIFT);
++	struct rsm_rule_data rrd;
++	u64 reg;
++	int i, idx, regoff, regidx;
++	u8 offset;
++
++	/* there needs to be enough room in the map table */
++	if (rmt->used + dd->num_user_contexts >= NUM_MAP_ENTRIES) {
++		dd_dev_err(dd, "User FECN handling disabled - too many user contexts allocated\n");
++		return;
++	}
++
++	/*
++	 * RSM will extract the destination context as an index into the
++	 * map table.  The destination contexts are a sequential block
++	 * in the range first_user_ctxt...num_rcv_contexts-1 (inclusive).
++	 * Map entries are accessed as offset + extracted value.  Adjust
++	 * the added offset so this sequence can be placed anywhere in
++	 * the table - as long as the entries themselves do not wrap.
++	 * There are only enough bits in offset for the table size, so
++	 * start with that to allow for a "negative" offset.
++	 */
++	offset = (u8)(NUM_MAP_ENTRIES + (int)rmt->used -
++						(int)dd->first_user_ctxt);
++
++	for (i = dd->first_user_ctxt, idx = rmt->used;
++				i < dd->num_rcv_contexts; i++, idx++) {
++		/* replace with identity mapping */
++		regoff = (idx % 8) * 8;
++		regidx = idx / 8;
++		reg = rmt->map[regidx];
++		reg &= ~(RCV_RSM_MAP_TABLE_RCV_CONTEXT_A_MASK << regoff);
++		reg |= (u64)i << regoff;
++		rmt->map[regidx] = reg;
++	}
++
++	/*
++	 * For RSM intercept of Expected FECN packets:
++	 * o packet type 0 - expected
++	 * o match on F (bit 95), using select/match 1, and
++	 * o match on SH (bit 133), using select/match 2.
++	 *
++	 * Use index 1 to extract the 8-bit receive context from DestQP
++	 * (start at bit 64).  Use that as the RSM map table index.
++	 */
++	rrd.offset = offset;
++	rrd.pkt_type = 0;
++	rrd.field1_off = 95;
++	rrd.field2_off = 133;
++	rrd.index1_off = 64;
++	rrd.index1_width = 8;
++	rrd.index2_off = 0;
++	rrd.index2_width = 0;
++	rrd.mask1 = 1;
++	rrd.value1 = 1;
++	rrd.mask2 = 1;
++	rrd.value2 = 1;
++
++	/* add rule 1 */
++	add_rsm_rule(dd, 1, &rrd);
++
++	rmt->used += dd->num_user_contexts;
 +}
 +
- /* return the number of RSM map table entries that will be used for QOS */
- static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
- 			   unsigned int *np)
-@@ -13526,6 +13565,7 @@ no_qos:
-  */
- static void init_qos(struct hfi1_devdata *dd, struct rsm_map_table *rmt)
+ static void init_rxe(struct hfi1_devdata *dd)
  {
-+	struct rsm_rule_data rrd;
- 	unsigned qpns_per_vl, ctxt, i, qpn, n = 1, m;
- 	unsigned int rmt_entries;
- 	u64 reg;
-@@ -13565,24 +13605,23 @@ static void init_qos(struct hfi1_devdata *dd, struct rsm_map_table *rmt)
- 		}
- 		ctxt += krcvqs[i];
- 	}
--	/* add rule0 */
--	write_csr(dd, RCV_RSM_CFG /* + (8 * 0) */,
--		  (u64)rmt->used << RCV_RSM_CFG_OFFSET_SHIFT |
--		  RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_MASK <<
--			RCV_RSM_CFG_ENABLE_OR_CHAIN_RSM0_SHIFT |
--		  2ull << RCV_RSM_CFG_PACKET_TYPE_SHIFT);
--	write_csr(dd, RCV_RSM_SELECT /* + (8 * 0) */,
--		  LRH_BTH_MATCH_OFFSET << RCV_RSM_SELECT_FIELD1_OFFSET_SHIFT |
--		  LRH_SC_MATCH_OFFSET << RCV_RSM_SELECT_FIELD2_OFFSET_SHIFT |
--		  LRH_SC_SELECT_OFFSET << RCV_RSM_SELECT_INDEX1_OFFSET_SHIFT |
--		  ((u64)n) << RCV_RSM_SELECT_INDEX1_WIDTH_SHIFT |
--		  QPN_SELECT_OFFSET << RCV_RSM_SELECT_INDEX2_OFFSET_SHIFT |
--		  ((u64)m + (u64)n) << RCV_RSM_SELECT_INDEX2_WIDTH_SHIFT);
--	write_csr(dd, RCV_RSM_MATCH /* + (8 * 0) */,
--		  LRH_BTH_MASK << RCV_RSM_MATCH_MASK1_SHIFT |
--		  LRH_BTH_VALUE << RCV_RSM_MATCH_VALUE1_SHIFT |
--		  LRH_SC_MASK << RCV_RSM_MATCH_MASK2_SHIFT |
--		  LRH_SC_VALUE << RCV_RSM_MATCH_VALUE2_SHIFT);
-+
-+	rrd.offset = rmt->used;
-+	rrd.pkt_type = 2;
-+	rrd.field1_off = LRH_BTH_MATCH_OFFSET;
-+	rrd.field2_off = LRH_SC_MATCH_OFFSET;
-+	rrd.index1_off = LRH_SC_SELECT_OFFSET;
-+	rrd.index1_width = n;
-+	rrd.index2_off = QPN_SELECT_OFFSET;
-+	rrd.index2_width = m + n;
-+	rrd.mask1 = LRH_BTH_MASK;
-+	rrd.value1 = LRH_BTH_VALUE;
-+	rrd.mask2 = LRH_SC_MASK;
-+	rrd.value2 = LRH_SC_VALUE;
-+
-+	/* add rule 0 */
-+	add_rsm_rule(dd, 0, &rrd);
-+
- 	/* mark RSM map entries as used */
- 	rmt->used += rmt_entries;
- 	/* map everything else to the mcast/err/vl15 context */
+ 	struct rsm_map_table *rmt;
+@@ -13643,6 +13726,7 @@ static void init_rxe(struct hfi1_devdata *dd)
+ 	rmt = alloc_rsm_map_table(dd);
+ 	/* set up QOS, including the QPN map table */
+ 	init_qos(dd, rmt);
++	init_user_fecn_handling(dd, rmt);
+ 	complete_rsm_map_table(dd, rmt);
+ 	kfree(rmt);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
