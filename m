@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/12] IB/qib, IB/hfi1: Fix up UD loopback use of irq flags
-Date: Tue, 12 Apr 2016 10:46:10 -0700
-Message-ID: <20160412174609.19295.88803.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 11/12] IB/hfi1: Fix buffer cache races which may cause
+ corruption
+Date: Tue, 12 Apr 2016 10:46:53 -0700
+Message-ID: <20160412174652.19295.28697.stgit@scvm10.sc.intel.com>
 References: <20160412173504.19295.7241.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,242 +11,207 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160412173504.19295.7241.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The dual lock patch moved locking around and missed an issue
-with handling irq flags when processing UD loopback
-packets.  This issue was revealed by smatch.
+There are two possible causes for node/memory corruption both
+of which are related to the cache eviction algorithm. One way
+to cause corruption is due to the asynchronous nature of the
+MMU invalidation and the locking used when invalidating node.
 
-Fix for both qib and hfi1 to pass the saved flags to the UD request
-builder and handle the changes correctly.
+The MMU invalidation routine would temporarily release the
+RB tree lock to avoid a deadlock. However, this would allow
+the eviction function to take the lock resulting in the removal
+of cache nodes.
 
-Fixes: 46a80d62e6e0 ("IB/qib, staging/rdma/hfi1: add s_hlock for use in post send")
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+If the node being removed by the eviction code is the same as
+the node being invalidated, the result is use after free.
+
+The same is true in the other direction due to the temporary
+release of the eviction list lock in the eviction loop.
+
+Another corner case exists when dealing with the SDMA buffer
+cache that could cause memory corruption of kernel memory.
+The most common way, in which this corruption exhibits itself
+is a linked list node corruption. In that case, the kernel will
+complain that a node with poisoned pointers is being removed.
+The fact that the pointers are already poisoned means that the
+node has already been removed from the list.
+
+To root cause of this corruption was a mishandling of the
+eviction list maintained by the driver. In order for this
+to happen four conditions need to be satisfied:
+
+   1. A node describing a user buffer already exists in the
+      interval RB tree,
+   2. The beginning of the current user buffer matches that
+      node but is bigger. This will cause the node to be
+      extended.
+   3. The amount of cached buffers is close or at the limit
+      of the buffer cache size.
+   4. The node has dropped close to the end of the eviction
+      list. This will cause the node to be considered for
+      eviction.
+
+If all of the above conditions have been satisfied, it is
+possible for the eviction algorithm to evict the current node,
+which will free the node without the driver knowing.
+
+To solve both issues described above:
+   - the locking around the MMU invalidation loop and cache
+     eviction loop has been improved so locks are not released in
+     the loop body,
+   - a new RB function is introduced which will "atomically" find
+     and remove the matching node from the RB tree, preventing the
+     MMU invalidation loop from touching it, and
+   - the node being extended by the pin_vector_pages() function is
+     removed from the eviction list prior to calling the eviction
+     function.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_rc.c    |    2 +-
- drivers/infiniband/hw/qib/qib_ruc.c   |    4 ++--
- drivers/infiniband/hw/qib/qib_uc.c    |    2 +-
- drivers/infiniband/hw/qib/qib_ud.c    |   10 +++++-----
- drivers/infiniband/hw/qib/qib_verbs.h |    6 +++---
- drivers/staging/rdma/hfi1/ruc.c       |   20 +++++++++++---------
- drivers/staging/rdma/hfi1/ud.c        |    8 ++++----
- drivers/staging/rdma/hfi1/verbs.h     |    1 +
- 8 files changed, 28 insertions(+), 25 deletions(-)
+ drivers/staging/rdma/hfi1/mmu_rb.c    |    6 ++--
+ drivers/staging/rdma/hfi1/user_sdma.c |   56 +++++++++++++++++++++++++--------
+ 2 files changed, 45 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index 9088e26..444028a 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -230,7 +230,7 @@ bail:
-  *
-  * Return 1 if constructed; otherwise, return 0.
-  */
--int qib_make_rc_req(struct rvt_qp *qp)
-+int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_ibdev *dev = to_idev(qp->ibqp.device);
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index a5f07a6..b677792 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -739,7 +739,7 @@ void qib_do_send(struct rvt_qp *qp)
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
--	int (*make_req)(struct rvt_qp *qp);
-+	int (*make_req)(struct rvt_qp *qp, unsigned long *flags);
- 	unsigned long flags;
- 
- 	if ((qp->ibqp.qp_type == IB_QPT_RC ||
-@@ -781,7 +781,7 @@ void qib_do_send(struct rvt_qp *qp)
- 			qp->s_hdrwords = 0;
- 			spin_lock_irqsave(&qp->s_lock, flags);
+diff --git a/drivers/staging/rdma/hfi1/mmu_rb.c b/drivers/staging/rdma/hfi1/mmu_rb.c
+index 03f360a..2b0e91d 100644
+--- a/drivers/staging/rdma/hfi1/mmu_rb.c
++++ b/drivers/staging/rdma/hfi1/mmu_rb.c
+@@ -316,9 +316,9 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 		hfi1_cdbg(MMU, "Invalidating node addr 0x%llx, len %u",
+ 			  node->addr, node->len);
+ 		if (handler->ops->invalidate(root, node)) {
+-			spin_unlock_irqrestore(&handler->lock, flags);
+-			__mmu_rb_remove(handler, node, mm);
+-			spin_lock_irqsave(&handler->lock, flags);
++			__mmu_int_rb_remove(node, root);
++			if (handler->ops->remove)
++				handler->ops->remove(root, node, mm);
  		}
--	} while (make_req(qp));
-+	} while (make_req(qp, &flags));
- 
- 	spin_unlock_irqrestore(&qp->s_lock, flags);
- }
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index 7bdbc79..1d61bd0 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -45,7 +45,7 @@
-  *
-  * Return 1 if constructed; otherwise, return 0.
-  */
--int qib_make_uc_req(struct rvt_qp *qp)
-+int qib_make_uc_req(struct rvt_qp *qp, unsigned long *flags)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_other_headers *ohdr;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index d950213..846e6c7 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -238,7 +238,7 @@ drop:
-  *
-  * Return 1 if constructed; otherwise, return 0.
-  */
--int qib_make_ud_req(struct rvt_qp *qp)
-+int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
- {
- 	struct qib_qp_priv *priv = qp->priv;
- 	struct qib_other_headers *ohdr;
-@@ -294,7 +294,7 @@ int qib_make_ud_req(struct rvt_qp *qp)
- 		this_cpu_inc(ibp->pmastats->n_unicast_xmit);
- 		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
- 		if (unlikely(lid == ppd->lid)) {
--			unsigned long flags;
-+			unsigned long tflags = *flags;
- 			/*
- 			 * If DMAs are in progress, we can't generate
- 			 * a completion for the loopback packet since
-@@ -307,10 +307,10 @@ int qib_make_ud_req(struct rvt_qp *qp)
- 				goto bail;
- 			}
- 			qp->s_cur = next_cur;
--			local_irq_save(flags);
--			spin_unlock_irqrestore(&qp->s_lock, flags);
-+			spin_unlock_irqrestore(&qp->s_lock, tflags);
- 			qib_ud_loopback(qp, wqe);
--			spin_lock_irqsave(&qp->s_lock, flags);
-+			spin_lock_irqsave(&qp->s_lock, tflags);
-+			*flags = tflags;
- 			qib_send_complete(qp, wqe, IB_WC_SUCCESS);
- 			goto done;
- 		}
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 4b76a8d..6888f03 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -430,11 +430,11 @@ void qib_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
- 
- void qib_send_rc_ack(struct rvt_qp *qp);
- 
--int qib_make_rc_req(struct rvt_qp *qp);
-+int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags);
- 
--int qib_make_uc_req(struct rvt_qp *qp);
-+int qib_make_uc_req(struct rvt_qp *qp, unsigned long *flags);
- 
--int qib_make_ud_req(struct rvt_qp *qp);
-+int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags);
- 
- int qib_register_ib_device(struct qib_devdata *);
- 
-diff --git a/drivers/staging/rdma/hfi1/ruc.c b/drivers/staging/rdma/hfi1/ruc.c
-index 08813cd..a659aec 100644
---- a/drivers/staging/rdma/hfi1/ruc.c
-+++ b/drivers/staging/rdma/hfi1/ruc.c
-@@ -831,7 +831,6 @@ void hfi1_do_send(struct rvt_qp *qp)
- 	struct hfi1_pkt_state ps;
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	int (*make_req)(struct rvt_qp *qp, struct hfi1_pkt_state *ps);
--	unsigned long flags;
- 	unsigned long timeout;
- 	unsigned long timeout_int;
- 	int cpu;
-@@ -866,11 +865,11 @@ void hfi1_do_send(struct rvt_qp *qp)
- 		timeout_int = SEND_RESCHED_TIMEOUT;
  	}
+ 	spin_unlock_irqrestore(&handler->lock, flags);
+diff --git a/drivers/staging/rdma/hfi1/user_sdma.c b/drivers/staging/rdma/hfi1/user_sdma.c
+index f7e2fe7..635ddf8 100644
+--- a/drivers/staging/rdma/hfi1/user_sdma.c
++++ b/drivers/staging/rdma/hfi1/user_sdma.c
+@@ -180,6 +180,8 @@ struct user_sdma_iovec {
+ 	u64 offset;
+ };
  
--	spin_lock_irqsave(&qp->s_lock, flags);
-+	spin_lock_irqsave(&qp->s_lock, ps.flags);
- 
- 	/* Return if we are already busy processing a work request. */
- 	if (!hfi1_send_ok(qp)) {
--		spin_unlock_irqrestore(&qp->s_lock, flags);
-+		spin_unlock_irqrestore(&qp->s_lock, ps.flags);
- 		return;
- 	}
- 
-@@ -884,7 +883,7 @@ void hfi1_do_send(struct rvt_qp *qp)
- 	do {
- 		/* Check for a constructed packet to be sent. */
- 		if (qp->s_hdrwords != 0) {
--			spin_unlock_irqrestore(&qp->s_lock, flags);
-+			spin_unlock_irqrestore(&qp->s_lock, ps.flags);
- 			/*
- 			 * If the packet cannot be sent now, return and
- 			 * the send tasklet will be woken up later.
-@@ -897,11 +896,14 @@ void hfi1_do_send(struct rvt_qp *qp)
- 			if (unlikely(time_after(jiffies, timeout))) {
- 				if (workqueue_congested(cpu,
- 							ps.ppd->hfi1_wq)) {
--					spin_lock_irqsave(&qp->s_lock, flags);
-+					spin_lock_irqsave(
-+						&qp->s_lock,
-+						ps.flags);
- 					qp->s_flags &= ~RVT_S_BUSY;
- 					hfi1_schedule_send(qp);
--					spin_unlock_irqrestore(&qp->s_lock,
--							       flags);
-+					spin_unlock_irqrestore(
-+						&qp->s_lock,
-+						ps.flags);
- 					this_cpu_inc(
- 						*ps.ppd->dd->send_schedule);
- 					return;
-@@ -913,11 +915,11 @@ void hfi1_do_send(struct rvt_qp *qp)
- 				}
- 				timeout = jiffies + (timeout_int) / 8;
- 			}
--			spin_lock_irqsave(&qp->s_lock, flags);
-+			spin_lock_irqsave(&qp->s_lock, ps.flags);
- 		}
- 	} while (make_req(qp, &ps));
- 
--	spin_unlock_irqrestore(&qp->s_lock, flags);
-+	spin_unlock_irqrestore(&qp->s_lock, ps.flags);
- }
- 
- /*
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index ae8a70f..1e503ad 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -322,7 +322,7 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 			     (lid == ppd->lid ||
- 			      (lid == be16_to_cpu(IB_LID_PERMISSIVE) &&
- 			      qp->ibqp.qp_type == IB_QPT_GSI)))) {
--			unsigned long flags;
-+			unsigned long tflags = ps->flags;
- 			/*
- 			 * If DMAs are in progress, we can't generate
- 			 * a completion for the loopback packet since
-@@ -335,10 +335,10 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 				goto bail;
- 			}
- 			qp->s_cur = next_cur;
--			local_irq_save(flags);
--			spin_unlock_irqrestore(&qp->s_lock, flags);
-+			spin_unlock_irqrestore(&qp->s_lock, tflags);
- 			ud_loopback(qp, wqe);
--			spin_lock_irqsave(&qp->s_lock, flags);
-+			spin_lock_irqsave(&qp->s_lock, tflags);
-+			ps->flags = tflags;
- 			hfi1_send_complete(qp, wqe, IB_WC_SUCCESS);
- 			goto done_free_tx;
- 		}
-diff --git a/drivers/staging/rdma/hfi1/verbs.h b/drivers/staging/rdma/hfi1/verbs.h
-index 6c4670f..2ba1373 100644
---- a/drivers/staging/rdma/hfi1/verbs.h
-+++ b/drivers/staging/rdma/hfi1/verbs.h
-@@ -215,6 +215,7 @@ struct hfi1_pkt_state {
- 	struct hfi1_ibport *ibp;
- 	struct hfi1_pportdata *ppd;
- 	struct verbs_txreq *s_txreq;
++#define SDMA_CACHE_NODE_EVICT BIT(0)
++
+ struct sdma_mmu_node {
+ 	struct mmu_rb_node rb;
+ 	struct list_head list;
+@@ -187,6 +189,7 @@ struct sdma_mmu_node {
+ 	atomic_t refcount;
+ 	struct page **pages;
+ 	unsigned npages;
 +	unsigned long flags;
  };
  
- #define HFI1_PSN_CREDIT  16
+ struct user_sdma_request {
+@@ -1030,27 +1033,29 @@ static inline int num_user_pages(const struct iovec *iov)
+ 	return 1 + ((epage - spage) >> PAGE_SHIFT);
+ }
+ 
+-/* Caller must hold pq->evict_lock */
+ static u32 sdma_cache_evict(struct hfi1_user_sdma_pkt_q *pq, u32 npages)
+ {
+ 	u32 cleared = 0;
+ 	struct sdma_mmu_node *node, *ptr;
++	struct list_head to_evict = LIST_HEAD_INIT(to_evict);
+ 
++	spin_lock(&pq->evict_lock);
+ 	list_for_each_entry_safe_reverse(node, ptr, &pq->evict, list) {
+ 		/* Make sure that no one is still using the node. */
+ 		if (!atomic_read(&node->refcount)) {
+-			/*
+-			 * Need to use the page count now as the remove callback
+-			 * will free the node.
+-			 */
++			set_bit(SDMA_CACHE_NODE_EVICT, &node->flags);
++			list_del_init(&node->list);
++			list_add(&node->list, &to_evict);
+ 			cleared += node->npages;
+-			spin_unlock(&pq->evict_lock);
+-			hfi1_mmu_rb_remove(&pq->sdma_rb_root, &node->rb);
+-			spin_lock(&pq->evict_lock);
+ 			if (cleared >= npages)
+ 				break;
+ 		}
+ 	}
++	spin_unlock(&pq->evict_lock);
++
++	list_for_each_entry_safe(node, ptr, &to_evict, list)
++		hfi1_mmu_rb_remove(&pq->sdma_rb_root, &node->rb);
++
+ 	return cleared;
+ }
+ 
+@@ -1092,11 +1097,25 @@ static int pin_vector_pages(struct user_sdma_request *req,
+ 		memcpy(pages, node->pages, node->npages * sizeof(*pages));
+ 
+ 		npages -= node->npages;
++
++		/*
++		 * If rb_node is NULL, it means that this is brand new node
++		 * and, therefore not on the eviction list.
++		 * If, however, the rb_node is non-NULL, it means that the
++		 * node is already in RB tree and, therefore on the eviction
++		 * list (nodes are unconditionally inserted in the eviction
++		 * list). In that case, we have to remove the node prior to
++		 * calling the eviction function in order to prevent it from
++		 * freeing this node.
++		 */
++		if (rb_node) {
++			spin_lock(&pq->evict_lock);
++			list_del_init(&node->list);
++			spin_unlock(&pq->evict_lock);
++		}
+ retry:
+ 		if (!hfi1_can_pin_pages(pq->dd, pq->n_locked, npages)) {
+-			spin_lock(&pq->evict_lock);
+ 			cleared = sdma_cache_evict(pq, npages);
+-			spin_unlock(&pq->evict_lock);
+ 			if (cleared >= npages)
+ 				goto retry;
+ 		}
+@@ -1121,10 +1140,7 @@ retry:
+ 		node->npages += pinned;
+ 		npages = node->npages;
+ 		spin_lock(&pq->evict_lock);
+-		if (!rb_node)
+-			list_add(&node->list, &pq->evict);
+-		else
+-			list_move(&node->list, &pq->evict);
++		list_add(&node->list, &pq->evict);
+ 		pq->n_locked += pinned;
+ 		spin_unlock(&pq->evict_lock);
+ 	}
+@@ -1555,6 +1571,18 @@ static void sdma_rb_remove(struct rb_root *root, struct mmu_rb_node *mnode,
+ 		container_of(mnode, struct sdma_mmu_node, rb);
+ 
+ 	spin_lock(&node->pq->evict_lock);
++	/*
++	 * We've been called by the MMU notifier but this node has been
++	 * scheduled for eviction. The eviction function will take care
++	 * of freeing this node.
++	 * We have to take the above lock first because we are racing
++	 * against the setting of the bit in the eviction function.
++	 */
++	if (mm && test_bit(SDMA_CACHE_NODE_EVICT, &node->flags)) {
++		spin_unlock(&node->pq->evict_lock);
++		return;
++	}
++
+ 	if (!list_empty(&node->list))
+ 		list_del(&node->list);
+ 	node->pq->n_locked -= node->npages;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
