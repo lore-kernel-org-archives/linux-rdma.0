@@ -1,46 +1,28 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v1 05/18] xprtrdma: Avoid using Write list for small NFS
- READ requests
-Date: Tue, 12 Apr 2016 10:01:21 -0700
-Message-ID: <20160412170121.GA2052@infradead.org>
-References: <20160411200323.20531.8893.stgit@manet.1015granger.net>
- <20160411201050.20531.53651.stgit@manet.1015granger.net>
- <033901d19431$b3725d20$1a571760$@opengridcomputing.com>
- <65CBC59F-3005-44FE-8C70-9DDBC8507C9E@oracle.com>
- <20160412141533.GA16218@infradead.org>
- <06326E24-7170-4D09-A841-08ED31D143FF@oracle.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Tue, 12 Apr 2016 17:06:45 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
+ <20160411201155.GC371@obsidianresearch.com>
+ <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411221210.GA5861@obsidianresearch.com>
+ <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411231250.GB5861@obsidianresearch.com>
+ <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160412000621.GD5861@obsidianresearch.com>
+ <570C85F7.5010101@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <06326E24-7170-4D09-A841-08ED31D143FF-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <570C85F7.5010101@dev.mellanox.co.il>
+Content-Language: en-US
+Sender: owner-linux-security-module@vger.kernel.org
+To: Hal Rosenstock <hal@dev.mellanox.co.il>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Daniel Jurgens <danielj@mellanox.com>
+Cc: "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 12, 2016 at 10:49:24AM -0400, Chuck Lever wrote:
-> >> No, pre-4.2 Linux servers have a bug that can be fixed by
-> >> applying the above commit, which shouldn't be difficult to
-> >> backport.
-> >> 
-> >> Clients have always been allowed to send NFS READ this way.
-> > 
-> > But the clients might be out in a the wild.  I think we'll need at
-> > least a mount option to work around them.
-> 
-> Huh?
-> 
-> I'm talking about non-Linux clients. RFC 5666 allows
-> this behavior, it always has. The Linux server before
-> 9d11b51ce7c1 is broken, full stop.
+> Wouldn't QP1 require different access control than QP0 due to SA clients
+> on every end node ?
 
-You are deliverately breaking exsisting and fairly recent clients.
-I see why we want to do this, but there needs to be an options
-that things keep working.  The idea of upgrading your client from
-4.6 to 4.7 and NFS simply not working anymore with the developer
-knowing it and not providing a workaround is simply not an option.
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+QP1 still allows modification of the fabric (e.g. multicast join) or an DoS attack against the SA.  Though the latter probably requires restricting how a UD QP may be used.
