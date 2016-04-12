@@ -1,78 +1,48 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] scsi: add a max_segment_size limitation to struct
- Scsi_Host
-Date: Tue, 12 Apr 2016 08:23:56 -0400 (EDT)
-Message-ID: <1401884753.28447864.1460463836967.JavaMail.zimbra@redhat.com>
-References: <1460414846-29540-1-git-send-email-hch@lst.de> <1460414846-29540-2-git-send-email-hch@lst.de> <570C3400.9080503@sandisk.com> <1317640777.28365032.1460418264272.JavaMail.zimbra@redhat.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [RDMA PATCH 13/16] i40iw: Add base memory management extensions
+Date: Tue, 12 Apr 2016 07:07:39 -0700
+Message-ID: <20160412140739.GA23302@infradead.org>
+References: <1460046664-552-1-git-send-email-mustafa.ismail@intel.com>
+ <1460046664-552-14-git-send-email-mustafa.ismail@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1317640777.28365032.1460418264272.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1460046664-552-14-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Modified patch to use min_not_zero()
-Ran a number of tests overnight on F/C, SCSI/SAS and SRP (RDMA) and no issues found.
+> @@ -4570,6 +4629,7 @@ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {
+>  	i40iw_sc_send_lsmm_nostag,
+>  	i40iw_sc_send_rtt,
+>  	i40iw_sc_post_wqe0,
+> +	i40iw_sc_mr_fast_register,
 
-Tested-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Just noticed this while looking for an implementation of your
+iw_mr_fast_register method:
 
-Laurence Oberman
-Principal Software Maintenance Engineer
-Red Hat Global Support Services
+please always use named initializers for structs that have meaning
+outside a single file, it makes grepping so much easier.
 
------ Original Message -----
-From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Sent: Monday, April 11, 2016 7:44:24 PM
-Subject: Re: [PATCH 1/2] scsi: add a max_segment_size limitation to struct Scsi_Host
+>  static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+> index 5b6a491..c926198 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_type.h
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+> @@ -1041,6 +1041,9 @@ struct i40iw_priv_qp_ops {
+>  	void (*qp_send_lsmm_nostag)(struct i40iw_sc_qp *, void *, u32);
+>  	void (*qp_send_rtt)(struct i40iw_sc_qp *, bool);
+>  	enum i40iw_status_code (*qp_post_wqe0)(struct i40iw_sc_qp *, u8);
+> +	enum i40iw_status_code (*iw_mr_fast_register)(struct i40iw_sc_qp *,
+> +						      struct i40iw_fast_reg_stag_info *,
+> +						      bool);
+>  };
 
-Thanks Bart
-Good catch, I completely missed it.
+And while we're at it: what's the point of the indirection to start
+with?
 
-Laurence Oberman
-Principal Software Maintenance Engineer
-Red Hat Global Support Services
-
------ Original Message -----
-From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-To: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Sent: Monday, April 11, 2016 7:32:16 PM
-Subject: Re: [PATCH 1/2] scsi: add a max_segment_size limitation to struct Scsi_Host
-
-On 04/11/2016 03:47 PM, Christoph Hellwig wrote:
-> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-> index 8106515..04c660d 100644
-> --- a/drivers/scsi/scsi_lib.c
-> +++ b/drivers/scsi/scsi_lib.c
-> @@ -2120,7 +2120,8 @@ static void __scsi_init_queue(struct Scsi_Host *shost, struct request_queue *q)
->   	blk_queue_segment_boundary(q, shost->dma_boundary);
->   	dma_set_seg_boundary(dev, shost->dma_boundary);
->
-> -	blk_queue_max_segment_size(q, dma_get_max_seg_size(dev));
-> +	blk_queue_max_segment_size(q,
-> +		min(shost->max_segment_size, dma_get_max_seg_size(dev)));
->
->   	if (!shost->use_clustering)
->   		q->limits.cluster = 0;
-
-Hello Christoph,
-
-Since Scsi_Host.max_segment_size is initialized to zero, shouldn't min() 
-be changed into min_not_zero()?
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
