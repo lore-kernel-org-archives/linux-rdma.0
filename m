@@ -1,105 +1,33 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 08/12] IB/core: generic RDMA READ/WRITE API
-Date: Tue, 12 Apr 2016 16:52:34 -0700
-Message-ID: <570D8A42.9040107@sandisk.com>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-9-git-send-email-hch@lst.de>
+From: Hal Rosenstock <hal@dev.mellanox.co.il>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Wed, 13 Apr 2016 01:07:01 -0400
+Message-ID: <570DD3F5.2060302@dev.mellanox.co.il>
+References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
+ <20160411201155.GC371@obsidianresearch.com>
+ <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411221210.GA5861@obsidianresearch.com>
+ <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411231250.GB5861@obsidianresearch.com>
+ <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160412000621.GD5861@obsidianresearch.com>
+ <570C85F7.5010101@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460410360-13104-9-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Daniel Jurgens <danielj@mellanox.com>
+Cc: "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
-> +/*
-> + * Check if the device will use memory registration for this RW operation.
-> + * We currently always use memory registrations for iWarp reads, and iWarp
-> + * writes, but never for IB and RoCE.
-> + *
-> + * XXX: In the future we can hopefully fine tune this based on HCA driver
-> + * input.
-> + */
-> +static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
-> +		enum dma_data_direction dir, int dma_nents)
-> +{
-> +	if (rdma_protocol_iwarp(dev, port_num) && dir == DMA_FROM_DEVICE)
-> +		return true;
-> +	if (unlikely(rdma_rw_force_mr))
-> +		return true;
-> +	return false;
-> +}
+On 4/12/2016 1:06 PM, Hefty, Sean wrote:
+>> Wouldn't QP1 require different access control than QP0 due to SA clients
+>> on every end node ?
+> 
+> QP1 still allows modification of the fabric (e.g. multicast join) or an DoS attack against the SA.  does
+> Though the latter probably requires restricting how a UD QP may be used.
 
-Please clarify the comment above this function. The way that comment is 
-written seems to contradict the code for iWARP writes.
-
-> +static int rdma_rw_init_one_mr(struct ib_qp *qp, u8 port_num,
-> +		struct rdma_rw_reg_ctx *reg, struct scatterlist *sg,
-> +		u32 sg_cnt, u32 offset)
-> +{
-> +	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
-> +	u32 nents = min(sg_cnt, pages_per_mr);
-> +	int count = 0, ret;
-> +
-> +	reg->mr = ib_mr_pool_get(qp, &qp->rdma_mrs);
-> +	if (!reg->mr)
-> +		return -EAGAIN;
-> +
-> +	if (reg->mr->need_inval) {
-> +		reg->inv_wr.opcode = IB_WR_LOCAL_INV;
-> +		reg->inv_wr.ex.invalidate_rkey = reg->mr->lkey;
-> +		reg->inv_wr.next = &reg->reg_wr.wr;
-> +		count++;
-> +	} else {
-> +		reg->inv_wr.next = NULL;
-> +	}
-> +
-> +	ret = ib_map_mr_sg(reg->mr, sg, nents, offset, PAGE_SIZE);
-> +	if (ret < nents) {
-> +		ib_mr_pool_put(qp, &qp->rdma_mrs, reg->mr);
-> +		return -EINVAL;
-> +	}
-
-The above code assumes that the length of each sg list element is lower 
-than or equal to mr->page_size. I think this is something that should be 
-documented since the block layer has to be configured explicitly to 
-ensure this.
-
-> +static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-> +		u8 port_num, struct scatterlist *sg, u32 sg_cnt, u32 offset,
-> +		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
-> +{
-> +	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
-> +	int i, j, ret = 0, count = 0;
-> +
-> +	ctx->nr_ops = (sg_cnt + pages_per_mr - 1) / pages_per_mr;
-> +	ctx->reg = kcalloc(ctx->nr_ops, sizeof(*ctx->reg), GFP_KERNEL);
-> +	if (!ctx->reg) {
-> +		ret = -ENOMEM;
-> +		goto out;
-> +	}
-> +
-> +	for (i = 0; i < ctx->nr_ops; i++) {
-> +		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
-> +		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
-> +		u32 nents = min(sg_cnt, pages_per_mr);
-
-The same min(sg_cnt, pages_per_mr) computation occurs here and in 
-rdma_rw_init_one_mr(). Is there a way to avoid that duplication?
-
-> +#define RDMA_RW_SINGLE_WR	0
-> +#define RDMA_RW_MULTI_WR	1
-> +#define RDMA_RW_MR		2
-
-The above constants are only used in the rw.c source file. Do we need 
-these constants in the header file or can these be moved into source 
-file rw.c?
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Former (multicast modifications of fabric) also requires restricting
+arbitrary UD QPs as well as QP1 as SA access is QPn (n > 0) <-> QP1.
