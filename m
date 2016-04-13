@@ -1,42 +1,38 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix a debug kernel crash
-Date: Wed, 13 Apr 2016 10:47:43 +0300
-Message-ID: <570DF99F.6080805@mellanox.com>
-References: <570D6B06.8080204@sandisk.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/iser: set max_segment_size
+Date: Wed, 13 Apr 2016 11:01:57 +0300
+Message-ID: <570DFCF5.1090501@grimberg.me>
+References: <1460414846-29540-1-git-send-email-hch@lst.de>
+ <1460414846-29540-3-git-send-email-hch@lst.de> <570CD26E.70502@grimberg.me>
+ <1460471256.2338.5.camel@HansenPartnership.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570D6B06.8080204-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1460471256.2338.5.camel-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On 4/13/2016 12:39 AM, Bart Van Assche wrote:
-> Avoid that the following BUG() is triggered against a debug
-> kernel:
+>> In iser we sorta rely on 4k pages so we avoid
+>> PAGE_SIZE but rather set SIZE_4K for these sort
+>> of things (like we did in the virt_boundary).
 >
+> So you still want only 4k segments even on PPC where the PAGE_SIZE is
+> 16k?
 
-Looks good.
-Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Yes, iSER has the "no-gaps" constraint (like nvme) and some
+applications in the past were known to issue vectored IO that doesn't
+necessarily align with the system PAGE_SIZE. These sort of workloads
+resulted in suboptimal performance on ppc, ia64 etc (almost every I/O
+had gaps).
 
->
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 7672b19..30c3dfc 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1503,7 +1503,7 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
->
->   	if (dev->use_fast_reg) {
->   		state.sg = idb_sg;
-> -		sg_set_buf(idb_sg, req->indirect_desc, idb_len);
-> +		sg_init_one(idb_sg, req->indirect_desc, idb_len);
->   		idb_sg->dma_address = req->indirect_dma_addr; /* hack! */
->   #ifdef CONFIG_NEED_SG_DMA_LENGTH
->   		idb_sg->dma_length = idb_sg->length;	      /* hack^2 */
->
+Before the block layer was able to enforce scatterlists without gaps,
+iSER used bounce buffering in order to service "gappy" I/O which was
+probably a lot worse than bio splitting like the block layer is doing
+today, but still we felt that having 4k segments even on larger
+PAGE_SIZE systems was a decent compromise.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
