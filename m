@@ -1,67 +1,85 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
-Date: Wed, 13 Apr 2016 13:17:36 +0000
-Message-ID: <AM2PR05MB11059CC7E8FE09FE07D20E47C4960@AM2PR05MB1105.eurprd05.prod.outlook.com>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <20160411201155.GC371@obsidianresearch.com>
- <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160411221210.GA5861@obsidianresearch.com>
- <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160411231250.GB5861@obsidianresearch.com>
- <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160412000621.GD5861@obsidianresearch.com>
- <570C85F7.5010101@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
- <20160412175837.GA15027@obsidianresearch.com>
- <570E3716.8020708@dev.mellanox.co.il>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 08/12] IB/core: generic RDMA READ/WRITE API
+Date: Wed, 13 Apr 2016 15:50:42 +0200
+Message-ID: <20160413135042.GA14648@lst.de>
+References: <1460410360-13104-1-git-send-email-hch@lst.de> <1460410360-13104-9-git-send-email-hch@lst.de> <570D8A42.9040107@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <570D8A42.9040107-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/13/2016 7:10 AM, Hal Rosenstock wrote:
-> On 4/12/2016 1:58 PM, Jason Gunthorpe wrote:
->> On Tue, Apr 12, 2016 at 05:06:45PM +0000, Hefty, Sean wrote:
->>>> Wouldn't QP1 require different access control than QP0 due to SA clients
->>>> on every end node ?
->>>
->>> QP1 still allows modification of the fabric (e.g. multicast join) or
->>> an DoS attack against the SA.  Though the latter probably requires
->>> restricting how a UD QP may be used.
->>
->> Right, I don't disagree we should have smp and gmp 'just in case'
->> (fine names as well) labels, I just don't really understand why you'd
->> trust something enough to grant gmp but not enough for smp...
->>
->> Particularly encouraging people to grant gmp as though that was 'safe'
->> is really bad advice.
-> 
-> I'm not sure what the motivation is either. The nature of the QP1 threat
-> is somewhat different from the QP0 threat. Only thing I can think of is
-> that it's hard to protect GMPs/QP1 since any UD QP can send to QP1.
-> 
-> -- Hal
-> 
->> Which in turn makes me wonder why the umad dev node label is not
->> sufficient.
->>
->> Jason
->>
-> 
+On Tue, Apr 12, 2016 at 04:52:34PM -0700, Bart Van Assche wrote:
+> Please clarify the comment above this function. The way that comment is 
+> written seems to contradict the code for iWARP writes.
 
-I've asked Liran to look over this thread, I'd like him to weigh in.  He
-said he will have time tomorrow.
+Thanks, fixed.
 
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+>> +		count++;
+>> +	} else {
+>> +		reg->inv_wr.next = NULL;
+>> +	}
+>> +
+>> +	ret = ib_map_mr_sg(reg->mr, sg, nents, offset, PAGE_SIZE);
+>> +	if (ret < nents) {
+>> +		ib_mr_pool_put(qp, &qp->rdma_mrs, reg->mr);
+>> +		return -EINVAL;
+>> +	}
+>
+> The above code assumes that the length of each sg list element is lower 
+> than or equal to mr->page_size. I think this is something that should be 
+> documented since the block layer has to be configured explicitly to ensure 
+> this.
+
+It shouldn't assume that - ib_map_mr_sg just uses PAGE_SIZE as
+the MR granularuty.  Note that the block layer isn't involved for any of
+the users of this function - it's used on the target sides of iSER, SRP,
+and (out of tree for a few more weeks) NVMe over fabrics.  All of them
+only provide 4k segments so while I think this code should handle larger
+segments, there is no way to verify that until we have consumers that
+provide larger segments.  I think SCST had some allocator that could
+use larger pages, and Pure Storage mention they had LIO changes to
+use large pages as well, so if this comes up I think we should be
+able to support it without too much effort.
+>
+>> +	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
+>> +	int i, j, ret = 0, count = 0;
+>> +
+>> +	ctx->nr_ops = (sg_cnt + pages_per_mr - 1) / pages_per_mr;
+>> +	ctx->reg = kcalloc(ctx->nr_ops, sizeof(*ctx->reg), GFP_KERNEL);
+>> +	if (!ctx->reg) {
+>> +		ret = -ENOMEM;
+>> +		goto out;
+>> +	}
+>> +
+>> +	for (i = 0; i < ctx->nr_ops; i++) {
+>> +		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
+>> +		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
+>> +		u32 nents = min(sg_cnt, pages_per_mr);
+>
+> The same min(sg_cnt, pages_per_mr) computation occurs here and in 
+> rdma_rw_init_one_mr(). Is there a way to avoid that duplication?
+
+It's just a single min statement, so coming up with an inline function
+to wrap seems a little too much overhead to me.  If you have a better
+suggestion I'd be happy to look into it.
+
+>> +#define RDMA_RW_SINGLE_WR	0
+>> +#define RDMA_RW_MULTI_WR	1
+>> +#define RDMA_RW_MR		2
+>
+> The above constants are only used in the rw.c source file. Do we need these 
+> constants in the header file or can these be moved into source file rw.c?
+
+I have moved them, and converted the constants to an enum while I was at
+it.
+
+Thanks for the review!
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
