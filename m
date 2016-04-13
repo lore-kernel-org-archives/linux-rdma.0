@@ -1,7 +1,7 @@
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RDMA PATCH 07/16] RDMA/i40iw: Set vendor_err only if there is an actual error
-Date: Wed, 13 Apr 2016 09:30:43 -0500
-Message-ID: <1460557852-10824-8-git-send-email-mustafa.ismail@intel.com>
+Subject: [RDMA PATCH 08/16] RDMA/i40iw: Populate vendor_id and vendor_part_id fields
+Date: Wed, 13 Apr 2016 09:30:44 -0500
+Message-ID: <1460557852-10824-9-git-send-email-mustafa.ismail@intel.com>
 References: <1460557852-10824-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460557852-10824-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,44 +10,29 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add a check for cq_poll_info.error before setting vendor_err
-instead of always setting it.
+Populate PCI info fields from PCI device structure.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index aa29736..d3b4b58 100644
+index d3b4b58..40444c0 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2049,10 +2049,12 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
- 		}
- 		entry->wc_flags = 0;
- 		entry->wr_id = cq_poll_info.wr_id;
--		if (!cq_poll_info.error)
--			entry->status = IB_WC_SUCCESS;
--		else
-+		if (cq_poll_info.error) {
- 			entry->status = IB_WC_WR_FLUSH_ERR;
-+			entry->vendor_err = cq_poll_info.major_err << 16 | cq_poll_info.minor_err;
-+		} else {
-+			entry->status = IB_WC_SUCCESS;
-+		}
- 
- 		switch (cq_poll_info.op_type) {
- 		case I40IW_OP_TYPE_RDMA_WRITE:
-@@ -2076,8 +2078,6 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
- 			break;
- 		}
- 
--		entry->vendor_err =
--		    cq_poll_info.major_err << 16 | cq_poll_info.minor_err;
- 		entry->ex.imm_data = 0;
- 		qp = (struct i40iw_sc_qp *)cq_poll_info.qp_handle;
- 		entry->qp = (struct ib_qp *)qp->back_qp;
+@@ -63,8 +63,8 @@ static int i40iw_query_device(struct ib_device *ibdev,
+ 	ether_addr_copy((u8 *)&props->sys_image_guid, iwdev->netdev->dev_addr);
+ 	props->fw_ver = I40IW_FW_VERSION;
+ 	props->device_cap_flags = iwdev->device_cap_flags;
+-	props->vendor_id = iwdev->vendor_id;
+-	props->vendor_part_id = iwdev->vendor_part_id;
++	props->vendor_id = iwdev->ldev->pcidev->vendor;
++	props->vendor_part_id = iwdev->ldev->pcidev->device;
+ 	props->hw_ver = (u32)iwdev->sc_dev.hw_rev;
+ 	props->max_mr_size = I40IW_MAX_OUTBOUND_MESSAGE_SIZE;
+ 	props->max_qp = iwdev->max_qp;
 -- 
 2.7.4
 
