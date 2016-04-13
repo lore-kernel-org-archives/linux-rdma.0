@@ -1,30 +1,46 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
-Date: Wed, 13 Apr 2016 16:47:48 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB041285@ORSMSX109.amr.corp.intel.com>
-References: <1459985638-37233-1-git-send-email-danielj@mellanox.com>
- <20160411201155.GC371@obsidianresearch.com>
- <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160411221210.GA5861@obsidianresearch.com>
- <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160411231250.GB5861@obsidianresearch.com>
- <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
- <20160412000621.GD5861@obsidianresearch.com>
- <570C85F7.5010101@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
- <570DD3F5.2060302@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next V1 1/2] net/mlx5: Fix mlx5 ifc cmd_hca_cap bad
+ offsets
+Date: Wed, 13 Apr 2016 11:48:20 -0600
+Message-ID: <20160413174820.GC28411@obsidianresearch.com>
+References: <1460563864-22931-1-git-send-email-saeedm@mellanox.com>
+ <1460563864-22931-2-git-send-email-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <570DD3F5.2060302@dev.mellanox.co.il>
-Content-Language: en-US
-Sender: owner-linux-security-module@vger.kernel.org
-To: Hal Rosenstock <hal@dev.mellanox.co.il>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Daniel Jurgens <danielj@mellanox.com>
-Cc: "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1460563864-22931-2-git-send-email-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Former (multicast modifications of fabric) also requires restricting
-> arbitrary UD QPs as well as QP1 as SA access is QPn (n > 0) <-> QP1.
+On Wed, Apr 13, 2016 at 07:11:03PM +0300, Saeed Mahameed wrote:
 
-The SA could have an option to ignore all requests that do not originate QP1, then protect access to QP1 on the client nodes.
+> Fixes: b0844444590e ("net/mlx5_core: Introduce access function to read internal timer ")
+> Fixes: b4ff3a36d3e4 ("net/mlx5: Use offset based reserved field names in the IFC header file")
+
+Are you sure those are right? b0844444590e doesn't have the
+reserved_at names.
+
+>  	u8         ets[0x1];
+>  	u8         nic_flow_table[0x1];
+>  	u8         eswitch_flow_table[0x1];
+> -	u8	   early_vf_enable;
+> -	u8         reserved_at_1a8[0x2];
+> +	u8	   early_vf_enable[0x1];
+> +	u8         reserved_at_1a9[0x2];
+
+You know, the reserved_XXX just need to have unique unchanging
+numbers, it doesn't matter what the numbers are - but you have to stop
+changing them :( That is the key to avoiding conflicts when
+backporting/merging/etc.
+
+I guess the big rename has already landed, but simply stopping the
+practice of renumbing the reserved fields would have been enough.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
