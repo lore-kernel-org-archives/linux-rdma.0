@@ -1,65 +1,49 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [PATCH 10/12] IB/srpt: convert to the generic RDMA READ/WRITE API
-Date: Wed, 13 Apr 2016 11:57:57 -0700
-Message-ID: <570E96B5.5030002@sandisk.com>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-11-git-send-email-hch@lst.de>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH for-next V1 1/2] net/mlx5: Fix mlx5 ifc cmd_hca_cap bad offsets
+Date: Thu, 14 Apr 2016 00:54:02 +0300
+Message-ID: <CALzJLG96VWEk_9NC9UTtYG7OMW8zHboGxJyrMEfQCT34rFFT5g@mail.gmail.com>
+References: <1460563864-22931-1-git-send-email-saeedm@mellanox.com>
+ <1460563864-22931-2-git-send-email-saeedm@mellanox.com> <20160413174820.GC28411@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1460410360-13104-11-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, dledford@redhat.com
-Cc: bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160413174820.GC28411@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
->   static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
-> -			     struct srp_cmd *srp_cmd,
-> -			     enum dma_data_direction *dir, u64 *data_len)
-> +		struct srp_cmd *srp_cmd, enum dma_data_direction *dir,
-> +		struct scatterlist **sg, unsigned *sg_cnt, u64 *data_len)
->   {
-[ ... ]
+On Wed, Apr 13, 2016 at 8:48 PM, Jason Gunthorpe
+<jgunthorpe@obsidianresearch.com> wrote:
+> On Wed, Apr 13, 2016 at 07:11:03PM +0300, Saeed Mahameed wrote:
 >
-> -		db = idb->desc_list;
-> -		memcpy(ioctx->rbufs, db, ioctx->n_rbuf * sizeof(*db));
->   		*data_len = be32_to_cpu(idb->len);
-> +		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
-> +				sg, sg_cnt);
-> +	} else {
-> +		*data_len = 0;
-> +		return 0;
->   	}
-> -out:
-> -	return ret;
->   }
+>> Fixes: b0844444590e ("net/mlx5_core: Introduce access function to read internal timer ")
+>> Fixes: b4ff3a36d3e4 ("net/mlx5: Use offset based reserved field names in the IFC header file")
+>
+> Are you sure those are right? b doesn't have the
+> reserved_at names.
+>
 
-srpt_get_desc_tbl() only has one caller. Have you considered to move 
-srpt_alloc_rw_ctxs() from this function to the caller of 
-srpt_get_desc_tbl()?
+Yes, as stated in the commit message, change b0844444590e replaced two
+reserved fields with 3 fields with a different size than the original
+two, which broke all the offsets of the fields that came after.
 
-> -	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
-> -		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
-> -		       srp_cmd->tag);
-> +	rc = srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &sg, &sg_cnt,
-> +			&data_len);
-> +	if (rc) {
-> +		if (rc != -EAGAIN) {
-> +			pr_err("0x%llx: parsing SRP descriptor table failed.\n",
-> +			       srp_cmd->tag);
-> +		} else {
-> +			printk_ratelimited("out of MRs for 0x%llx\n", srp_cmd->tag);
-> +		}
->   		goto release_ioctx;
->   	}
+>
+> You know, the reserved_XXX just need to have unique unchanging
+> numbers, it doesn't matter what the numbers are - but you have to stop
+> changing them :( That is the key to avoiding conflicts when
+> backporting/merging/etc.
+>
+> I guess the big rename has already landed, but simply stopping the
+> practice of renumbing the reserved fields would have been enough.
+>
 
-Sorry but releasing an I/O context if srpt_alloc_rw_ctxs() returns 
--EAGAIN looks wrong to me. If this happens the I/O context should be 
-added to the wait list without releasing it. Additionally, 
-srpt_recv_done() will have to be modified such that newly received 
-commands are added to the wait list if this list is not empty to prevent 
-that starvation of a postponed request occurs due to new incoming requests.
+This was a mistake which had to be fixed, the offset numbering was
+wrong from day one of introducing those offsets, I prefer to do it
+now, once and forever.
 
-Bart.
+But i totally agree, we will do our best to keep this file clean as
+much as possible.
+Thanks for your concern.
+
+Saeed.
