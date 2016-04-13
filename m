@@ -1,47 +1,71 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/iser: set max_segment_size
-Date: Wed, 13 Apr 2016 07:07:27 -0700
-Message-ID: <20160413140727.GA5590@infradead.org>
-References: <1460470405-11673-1-git-send-email-hch@lst.de>
- <1460470405-11673-3-git-send-email-hch@lst.de>
- <570D156B.7010206@sandisk.com>
- <20160412165130.GB9568@lst.de>
- <570D3AE0.4040104@sandisk.com>
- <20160412184309.GA3333@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RDMA PATCH 01/16] RDMA/i40iw: Fix overflow of region length
+Date: Wed, 13 Apr 2016 09:30:37 -0500
+Message-ID: <1460557852-10824-2-git-send-email-mustafa.ismail@intel.com>
+References: <1460557852-10824-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160412184309.GA3333-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <1460557852-10824-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 12, 2016 at 11:43:09AM -0700, Christoph Hellwig wrote:
-> > I think this means that there is a mismatch between the current block layer
-> > limits and what NVMe / RDMA drivers need ...
-> 
-> If we tell the block layer that we can only handle page sized comments
-> using max_segent_size it should do the right thing.
-> 
-> Now one thing that might be useful is to force the max_segent_size
-> when setting the virt boundary, as they seem to be closely related.
+Change region_length to u64 as a region can be > 4GB.
 
-I looked into this, and found something that also means the the patches
-in this series unfortunately won't work as expected:
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_user.h  | 2 ++
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 8 +++++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-blk_queue_max_segment_size checks that we at least set the maximum
-segment size to the systen page size.  This means we can't actually
-set the segment size to the virt boundary for the case where it's fixed
-4k (iSER, NVMe).  So I think we'll have to stick to setting max_sectors
-to
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
+index 5cd971b..eac9524 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_user.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
+@@ -102,6 +102,8 @@ enum i40iw_device_capabilities_const {
+ 
+ #define I40IW_STAG_INDEX_FROM_STAG(stag)    (((stag) && 0xFFFFFF00) >> 8)
+ 
++#define	I40IW_MAX_MR_SIZE	0x10000000000L
++
+ struct i40iw_qp_uk;
+ struct i40iw_cq_uk;
+ struct i40iw_srq_uk;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 1fe3b84..d7c4dd1 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -1526,14 +1526,16 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 	struct i40iw_mr *iwmr;
+ 	struct ib_umem *region;
+ 	struct i40iw_mem_reg_req req;
+-	u32 pbl_depth = 0;
++	u64 pbl_depth = 0;
+ 	u32 stag = 0;
+ 	u16 access;
+-	u32 region_length;
++	u64 region_length;
+ 	bool use_pbles = false;
+ 	unsigned long flags;
+ 	int err = -ENOSYS;
+ 
++	if (length > I40IW_MAX_MR_SIZE)
++		return ERR_PTR(-EINVAL);
+ 	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
+ 	if (IS_ERR(region))
+ 		return (struct ib_mr *)region;
+@@ -1564,7 +1566,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 	palloc = &iwpbl->pble_alloc;
+ 
+ 	iwmr->type = req.reg_type;
+-	iwmr->page_cnt = pbl_depth;
++	iwmr->page_cnt = (u32)pbl_depth;
+ 
+ 	switch (req.reg_type) {
+ 	case IW_MEMREG_TYPE_QP:
+-- 
+2.7.4
 
-	((max_segments - 1) * page_size) >> 9
-
-for all these drivers.  I'll retract this patch and will send a new
-one implementing this in iSER, and also research if a common helper
-for it makes sense.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
