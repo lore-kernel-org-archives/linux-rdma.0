@@ -1,48 +1,64 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 10/12] IB/srpt: convert to the generic RDMA READ/WRITE
-	API
-Date: Thu, 14 Apr 2016 15:32:55 +0200
-Message-ID: <20160414133255.GA22523@lst.de>
-References: <1460410360-13104-1-git-send-email-hch@lst.de> <1460410360-13104-11-git-send-email-hch@lst.de> <570E96B5.5030002@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <570E96B5.5030002@sandisk.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Christoph Hellwig <hch@lst.de>, dledford@redhat.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-rdma] IB/mlx5: Allow mapping the free running counter on PROT_EXEC
+Date: Thu, 14 Apr 2016 16:52:10 +0300
+Message-ID: <1460641930-5118-1-git-send-email-matanb@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 13, 2016 at 11:57:57AM -0700, Bart Van Assche wrote:
-> On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
->>   static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
->> -			     struct srp_cmd *srp_cmd,
->> -			     enum dma_data_direction *dir, u64 *data_len)
->> +		struct srp_cmd *srp_cmd, enum dma_data_direction *dir,
->> +		struct scatterlist **sg, unsigned *sg_cnt, u64 *data_len)
->>   {
-> [ ... ]
->>
->> -		db = idb->desc_list;
->> -		memcpy(ioctx->rbufs, db, ioctx->n_rbuf * sizeof(*db));
->>   		*data_len = be32_to_cpu(idb->len);
->> +		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
->> +				sg, sg_cnt);
->> +	} else {
->> +		*data_len = 0;
->> +		return 0;
->>   	}
->> -out:
->> -	return ret;
->>   }
->
-> srpt_get_desc_tbl() only has one caller. Have you considered to move 
-> srpt_alloc_rw_ctxs() from this function to the caller of 
-> srpt_get_desc_tbl()?
+The current mlx5 code disallows mapping the free running counter of
+mlx5 based hardwares when PROT_EXEC is set.
+Although this behaviour is correct, Linux does add an implicit VM_EXEC
+to the vm_flags if the READ_IMPLIES_EXEC bit is set in the process
+personality. This happens for example if the process stack is
+executable.
 
-I looked into a couple options.  srpt_alloc_rw_ctxs needs the
-pointer to the srp_direct_buf array, and the number of buffers, so we'd
-need two more output arguments to srpt_get_desc_tbl, so it didn't
-seem worthwhile to me.  If you want me to make the change anyway, I can
-update the patch.
+This causes libmlx5 to output a warning and prevents the user from
+reading the free running clock.
+Executing the init segment of the hardware isn't a security risk
+(at least no more than executing a process own stack), so we just
+prevent writes to there.
+
+Fixes: d69e3bcf7976 ('IB/mlx5: Mmap the HCA's core clock register to
+		      user-space')
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+
+Hi Doug,
+
+This patch fixes a small issue that occurs when using libmlx5 with
+READ_IMPLIES_EXEC. When libmlx5 initializes, it mmaps the free running
+counter clock with PROT_READ permissions. Using READ_IMPLIES_EXEC,
+PROT_EXEC permission is automatically added and causes mmap to fail.
+We allow PROT_EXEC mapping, as we don't see it imposes any security
+risk.
+
+Regards,
+Matan
+
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5acf346..d7b114b 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1108,7 +1108,7 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 		if (vma->vm_end - vma->vm_start != PAGE_SIZE)
+ 			return -EINVAL;
+ 
+-		if (vma->vm_flags & (VM_WRITE | VM_EXEC))
++		if (vma->vm_flags & VM_WRITE)
+ 			return -EPERM;
+ 
+ 		/* Don't expose to user-space information it shouldn't have */
+-- 
+2.5.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
