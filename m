@@ -1,63 +1,51 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: Software IB switch/router
-Date: Thu, 14 Apr 2016 08:10:38 +0300
-Message-ID: <20160414051038.GA10689@leon.nu>
-References: <CAANLjFqg7mCp+-4efWjZyUNULfiR0+gJ12-V9UZiLCKD+kLPZw@mail.gmail.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Thu, 14 Apr 2016 13:06:49 +0000
+Message-ID: <AM2PR05MB110572367C5FEDDC4C77A38FC4970@AM2PR05MB1105.eurprd05.prod.outlook.com>
+References: <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411221210.GA5861@obsidianresearch.com>
+ <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411231250.GB5861@obsidianresearch.com>
+ <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160412000621.GD5861@obsidianresearch.com>
+ <570C85F7.5010101@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
+ <570DD3F5.2060302@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB041285@ORSMSX109.amr.corp.intel.com>
+ <20160414002718.GA6660@rhel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAANLjFqg7mCp+-4efWjZyUNULfiR0+gJ12-V9UZiLCKD+kLPZw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: "users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/13/2016 7:27 PM, Ira Weiny wrote:
+> On Wed, Apr 13, 2016 at 04:47:48PM +0000, Sean Hefty wrote:
+>>> Former (multicast modifications of fabric) also requires restricting
+>>> arbitrary UD QPs as well as QP1 as SA access is QPn (n > 0) <-> QP1.
+>>
+>> The SA could have an option to ignore all requests that do not originate QP1,
+>> then protect access to QP1 on the client nodes.
+> 
+> I'm not really sure what we are protecting against here.  Is it simply DoS
+> against the SA?
+> 
+> Ira
+> 
+>> --
+>>
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Apr 13, 2016 at 05:09:36PM -0600, Robert LeBlanc wrote:
-> If I wanted to do something stupid and create a white-box Infiniband
-> switch/router, is there some software that does that? Is it even
-> possible?
-
-As Kevin pointed below, Mellanox presented IB router [1] at the OFA16.
-The product is totally open-source and the code will be posted on
-linux-rdma list in the near future.
-
-[1]
-https://www.openfabrics.org/images/eventpresos/2016presentations/314IBRouterPrem.pdf
-
-Thanks.
-
-
---gKMricLos+KVdGMg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXDyZOAAoJEORje4g2clincJkP/3oVlSowvdL347X0jJxGoKyV
-GidQZAgsUPrGgbao/mbSil8s75afW9fj5lH74ypHS2Ppaqaf3HHAMU0g2yRw5yuT
-7oUkqNs4+AV7ADm4519TdbZLMzF2nMTbqlhLpunauj8wLFSR4cIfqsn1E3rH94P/
-u0O4Gg1zntsiENplOn0S8Ls+0ensv+nJV0XQGa4I0oVRwS7T9wDeG6uKGGPSNSJk
-B32JBa47jP8lLkIq6kWtWk9XAvLOw4mE8DLwZQYHfNyJBGV8IoN5zrw/ZlpN9wI2
-0PbJwnvy2FzdtK51sBqZFUH8NiX+ExP+PqXoMmbk/yf5rWffQq9HYOYQUicuo/KJ
-TThGYGQLrjNM8xDFwGfbMg7kz68AeChcCx2HKvlwy5HJ9vWT+i/0QByd2mMbuQRL
-d3+2wrjrPOaiGO/FQWeV8b/MBMpTHC4RJMGBxpTj4Hz8PJbGXssvEeD5v2MZsJq2
-nu1AguD+isRw95afGCuX/zZ0sYImTwCaY1cnkOdTC71Nz8+WhhN/FiKnn5zbM+Qc
-OgKTjwMogKWqQQ9Kx2LpJ+CsM89llGvU8ySGoZ9hwPWOQtQSKSXRYtle+3PWGqZk
-W9Sv2bUauv1wA0I4U3KV2onzcDDfrhkcnYknQyqV05Fe1Mw6BtHYKtKD2o+UAQUK
-IHyyL3nQhwL7Mpawactx
-=6wge
------END PGP SIGNATURE-----
-
---gKMricLos+KVdGMg--
+A DoS attack against the SA is out of scope for this proposed change.
+SELinux provides access control.  Preventing a user from maliciously
+doing something you've given them permission to do is a different problem.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
