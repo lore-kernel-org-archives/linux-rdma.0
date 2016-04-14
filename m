@@ -1,59 +1,51 @@
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] staging/rdma/hfi1: select CRC32
-Date: Thu, 14 Apr 2016 13:59:22 -0400
-Message-ID: <20160414175922.GB11641@rhel.sc.intel.com>
-References: <1459465467-31367-1-git-send-email-markus.boehme@mailbox.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Thu, 14 Apr 2016 12:05:40 -0600
+Message-ID: <20160414180540.GA12554@obsidianresearch.com>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414164550.GC6247@obsidianresearch.com>
+ <20160414174830.GA11641@rhel.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1459465467-31367-1-git-send-email-markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>
+In-Reply-To: <20160414174830.GA11641-no5AT4YuGWKtqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Markus =?iso-8859-1?Q?B=F6hme?= <markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>
-Cc: devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 01, 2016 at 01:04:05AM +0200, Markus B=F6hme wrote:
-> The function parse_platform_config in firmware.c calls crc32_le.
-> Building without CRC32 selected causes a link error:
->=20
-> drivers/built-in.o: In function `parse_platform_config':
-> (.text+0x92ffa): undefined reference to `crc32_le'
->=20
-> Signed-off-by: Markus B=F6hme <markus.boehme-cl+VPiYnx/1AfugRpC6u6w@public.gmane.org>
+On Thu, Apr 14, 2016 at 01:48:31PM -0400, Ira Weiny wrote:
+> On Thu, Apr 14, 2016 at 10:45:50AM -0600, Jason Gunthorpe wrote:
+> > On Thu, Apr 14, 2016 at 08:41:35AM -0700, Dennis Dalessandro wrote:
+> > > This patch series removes the write() interface for user access in favor of an
+> > > ioctl() based approach. This is in response to the complaint that we had
+> > > different handlers for write() and writev() doing different things and expecting
+> > > different types of data. See:
+> > 
+> > I think we should wait on applying these patches until we globally sort out
+> > what to do with the rdma uapi.
+> > 
+> > It just doesn't make alot of sense for drivers to have their own personal
+> > char devices. :(
+> 
+> I'm afraid I have to disagree at this time.  Someday we may have "1 char device
+> to rule them all" but right now we don't have any line of sight to that
+> solution.  It may be _years_ before we can agree to the semantics which will
+> work for all high speed, kernel bypass, rdma, low latency, network devices.
 
-Doug did you pick this up?
+There are some pretty obvious paths to make this saner that could only
+be a few weeks away, we haven't even had the first conversations
+yet. I think you are completely wrong there is no 'line of sight'
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+It certainly can't be years.
 
-> ---
->  drivers/staging/rdma/hfi1/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/staging/rdma/hfi1/Kconfig b/drivers/staging/rdma=
-/hfi1/Kconfig
-> index 3e668d8..a925fb0 100644
-> --- a/drivers/staging/rdma/hfi1/Kconfig
-> +++ b/drivers/staging/rdma/hfi1/Kconfig
-> @@ -2,6 +2,7 @@ config INFINIBAND_HFI1
->  	tristate "Intel OPA Gen1 support"
->  	depends on X86_64 && INFINIBAND_RDMAVT
->  	select MMU_NOTIFIER
-> +	select CRC32
->  	default m
->  	---help---
->  	This is a low-level driver for Intel OPA Gen1 adapter.
-> --=20
-> 1.7.10.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is some rational for a very driver specific thing, but EEPROM
+and snoop? Seriously?
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
