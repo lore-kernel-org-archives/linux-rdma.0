@@ -1,70 +1,59 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user access
-Date: Thu, 14 Apr 2016 08:41:35 -0700
-Message-ID: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 4/5] IB/hfi1: Fix MAD port poll for active cables
+Date: Thu, 14 Apr 2016 08:31:48 -0700
+Message-ID: <20160414153147.3322.87968.stgit@scvm10.sc.intel.com>
+References: <20160414152929.3322.38247.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160414152929.3322.38247.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series removes the write() interface for user access in favor of an
-ioctl() based approach. This is in response to the complaint that we had
-different handlers for write() and writev() doing different things and expecting
-different types of data. See:
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-http://www.spinics.net/lists/linux-rdma/msg34451.html
+A MAD directive to start polling must go through the normal
+link tuning and start steps in order to correctly handle
+active cables.
 
-In a response to that thread we mentioned some other possible approaches such
-as using multiple files, or converting everything to writev(). However after
-looking at things more it seemed a cleaner approach to use ioctl(). 
-
-So each command that was being done through write() has been converted to
-ioctl() and the write() interface is removed. We still use writev() for the data
-path but control is done totally through ioctl().
-
-The plan is to make the same sort of change in qib as well but we want to get
-the opinion of the community on the approach first.
-
-As part of this work I also decided to move the eprom functionality to its own
-device (last patch) since it really is its own thing. It uses ioctl() as well,
-again because it seems to be a more natural interface for this operation.
-
-There is also a driver software version being exported via a sysfs file. This is
-needed so that user space applications (psm) can  determine if it needs to do
-ioctl() or write().
-
-This patch applies on the latest hfi1 patch set "Fix link and other issues".
-
-Patches can also be viewed on GitHub at:
-https://github.com/ddalessa/kernel/tree/for-4.7
-
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/staging/rdma/hfi1/mad.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
-Dennis Dalessandro (7):
-      IB/hfi1: Export drivers user sw version via sysfs
-      IB/hfi1: Remove unused user command
-      IB/hfi1: Add ioctl() interface for user commands
-      IB/hfi1: Remove write(), use ioctl() for user cmds
-      IB/hfi1: Add trace message in user IOCTL handling
-      IB/hfi1: Consolidate IOCTL defines
-      IB/hfi1: Move eprom to its own device
+diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
+index d1e7f4d..ed58cf2 100644
+--- a/drivers/staging/rdma/hfi1/mad.c
++++ b/drivers/staging/rdma/hfi1/mad.c
+@@ -999,7 +999,21 @@ static int set_port_states(struct hfi1_pportdata *ppd, struct opa_smp *smp,
+ 			break;
+ 		}
+ 
+-		set_link_state(ppd, link_state);
++		if ((link_state == HLS_DN_POLL ||
++		     link_state == HLS_DN_DOWNDEF)) {
++			/*
++			 * Going to poll.  No matter what the current state,
++			 * always move offline first, then tune and start the
++			 * link.  This correctly handles a FM link bounce and
++			 * a link enable.  Going offline is a no-op if already
++			 * offline.
++			 */
++			set_link_state(ppd, HLS_DN_OFFLINE);
++			tune_serdes(ppd);
++			start_link(ppd);
++		} else {
++			set_link_state(ppd, link_state);
++		}
+ 		if (link_state == HLS_DN_DISABLE &&
+ 		    (ppd->offline_disabled_reason >
+ 		     HFI1_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED) ||
 
-
- drivers/staging/rdma/hfi1/common.h   |    3 
- drivers/staging/rdma/hfi1/diag.c     |  170 ++++++++++++++++++---------
- drivers/staging/rdma/hfi1/eprom.c    |  121 +------------------
- drivers/staging/rdma/hfi1/eprom.h    |   16 ++-
- drivers/staging/rdma/hfi1/file_ops.c |  213 ++++++++++++++--------------------
- drivers/staging/rdma/hfi1/hfi.h      |   22 +++-
- drivers/staging/rdma/hfi1/sysfs.c    |    8 +
- drivers/staging/rdma/hfi1/trace.c    |    1 
- drivers/staging/rdma/hfi1/trace.h    |    1 
- include/uapi/rdma/hfi/hfi1_user.h    |  106 ++++++++++++++++-
- 10 files changed, 350 insertions(+), 311 deletions(-)
-
--- 
--Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
