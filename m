@@ -1,168 +1,67 @@
-From: Petr Mladek <pmladek@suse.com>
-Subject: [PATCH v6 16/20] IB/fmr_pool: Convert the cleanup thread into kthread worker API
-Date: Thu, 14 Apr 2016 17:14:35 +0200
-Message-ID: <1460646879-617-17-git-send-email-pmladek@suse.com>
-References: <1460646879-617-1-git-send-email-pmladek@suse.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1460646879-617-1-git-send-email-pmladek@suse.com>
-Sender: owner-linux-mm@kvack.org
-To: Andrew Morton <akpm@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, Michal Hocko <mhocko@suse.cz>, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/7] IB/hfi1: Export drivers user sw version via sysfs
+Date: Thu, 14 Apr 2016 08:41:41 -0700
+Message-ID: <20160414154140.6387.47005.stgit@scvm10.sc.intel.com>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160414153727.6387.96381.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Kthreads are currently implemented as an infinite loop. Each
-has its own variant of checks for terminating, freezing,
-awakening. In many cases it is unclear to say in which state
-it is and sometimes it is done a wrong way.
+User space consumers of hfi1 will need to know what version of the
+driver they are dealing with. This becomes particularly important when
+the write() interface is removed. User's will need to be able to query
+the driver information but without asking the driver directly.
 
-The plan is to convert kthreads into kthread_worker or workqueues
-API. It allows to split the functionality into separate operations.
-It helps to make a better structure. Also it defines a clean state
-where no locks are taken, IRQs blocked, the kthread might sleep
-or even be safely migrated.
+Add the driver's software version to sysfs for this exact purpose.
 
-The kthread worker API is useful when we want to have a dedicated
-single thread for the work. It helps to make sure that it is
-available when needed. Also it allows a better control, e.g.
-define a scheduling priority.
-
-This patch converts the frm_pool kthread into the kthread worker
-API because I am not sure how busy the thread is. It is well
-possible that it does not need a dedicated kthread and workqueues
-would be perfectly fine. Well, the conversion between kthread
-worker API and workqueues is pretty trivial.
-
-The patch moves one iteration from the kthread into the work function.
-It preserves the check for a spurious queuing (wake up). Then it
-processes one request. Finally, it re-queues itself if more requests
-are pending.
-
-Otherwise, wake_up_process() is replaced by queuing the work.
-
-Important: The change is only compile tested. I did not find an easy
-way how to check it in a real life.
-
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-CC: Doug Ledford <dledford@redhat.com>
-CC: Sean Hefty <sean.hefty@intel.com>
-CC: Hal Rosenstock <hal.rosenstock@gmail.com>
-CC: linux-rdma@vger.kernel.org
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/fmr_pool.c | 54 ++++++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 29 deletions(-)
+ drivers/staging/rdma/hfi1/sysfs.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/fmr_pool.c b/drivers/infiniband/core/fmr_pool.c
-index cdbb1f1a6d97..571089ba3a72 100644
---- a/drivers/infiniband/core/fmr_pool.c
-+++ b/drivers/infiniband/core/fmr_pool.c
-@@ -96,7 +96,8 @@ struct ib_fmr_pool {
- 						   void *              arg);
- 	void                     *flush_arg;
- 
--	struct task_struct       *thread;
-+	struct kthread_worker	  *worker;
-+	struct kthread_work	  work;
- 
- 	atomic_t                  req_ser;
- 	atomic_t                  flush_ser;
-@@ -174,29 +175,26 @@ static void ib_fmr_batch_release(struct ib_fmr_pool *pool)
- 	spin_unlock_irq(&pool->pool_lock);
+diff --git a/drivers/staging/rdma/hfi1/sysfs.c b/drivers/staging/rdma/hfi1/sysfs.c
+index 8cd6df8..2ff5a14 100644
+--- a/drivers/staging/rdma/hfi1/sysfs.c
++++ b/drivers/staging/rdma/hfi1/sysfs.c
+@@ -622,6 +622,12 @@ static ssize_t show_tempsense(struct device *device,
+ 	return ret;
  }
  
--static int ib_fmr_cleanup_thread(void *pool_ptr)
-+static void ib_fmr_cleanup_func(struct kthread_work *work)
- {
--	struct ib_fmr_pool *pool = pool_ptr;
-+	struct ib_fmr_pool *pool = container_of(work, struct ib_fmr_pool, work);
++static ssize_t show_user_sw_version(struct device *device,
++				    struct device_attribute *attr, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "0x%x\n", HFI1_USER_SWVERSION);
++}
++
+ /*
+  * end of per-unit (or driver, in some cases, but replicated
+  * per unit) functions
+@@ -636,6 +642,7 @@ static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
+ static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
+ static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
+ static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
++static DEVICE_ATTR(user_sw_version, S_IRUGO, show_user_sw_version, NULL);
  
--	do {
--		if (atomic_read(&pool->flush_ser) - atomic_read(&pool->req_ser) < 0) {
--			ib_fmr_batch_release(pool);
--
--			atomic_inc(&pool->flush_ser);
--			wake_up_interruptible(&pool->force_wait);
-+	/*
-+	 * The same request might be queued twice when it appears and
-+	 * by re-queuing from this work.
-+	 */
-+	if (atomic_read(&pool->flush_ser) - atomic_read(&pool->req_ser) >= 0)
-+		return;
+ static struct device_attribute *hfi1_attributes[] = {
+ 	&dev_attr_hw_rev,
+@@ -646,6 +653,7 @@ static struct device_attribute *hfi1_attributes[] = {
+ 	&dev_attr_boardversion,
+ 	&dev_attr_tempsense,
+ 	&dev_attr_chip_reset,
++	&dev_attr_user_sw_version,
+ };
  
--			if (pool->flush_function)
--				pool->flush_function(pool, pool->flush_arg);
--		}
-+	ib_fmr_batch_release(pool);
-+	atomic_inc(&pool->flush_ser);
-+	wake_up_interruptible(&pool->force_wait);
- 
--		set_current_state(TASK_INTERRUPTIBLE);
--		if (atomic_read(&pool->flush_ser) - atomic_read(&pool->req_ser) >= 0 &&
--		    !kthread_should_stop())
--			schedule();
--		__set_current_state(TASK_RUNNING);
--	} while (!kthread_should_stop());
-+	if (pool->flush_function)
-+		pool->flush_function(pool, pool->flush_arg);
- 
--	return 0;
-+	if (atomic_read(&pool->flush_ser) - atomic_read(&pool->req_ser) < 0)
-+		queue_kthread_work(pool->worker, &pool->work);
- }
- 
- /**
-@@ -266,15 +264,13 @@ struct ib_fmr_pool *ib_create_fmr_pool(struct ib_pd             *pd,
- 	atomic_set(&pool->flush_ser, 0);
- 	init_waitqueue_head(&pool->force_wait);
- 
--	pool->thread = kthread_run(ib_fmr_cleanup_thread,
--				   pool,
--				   "ib_fmr(%s)",
--				   device->name);
--	if (IS_ERR(pool->thread)) {
--		pr_warn(PFX "couldn't start cleanup thread\n");
--		ret = PTR_ERR(pool->thread);
-+	pool->worker = create_kthread_worker(0, "ib_fmr(%s)", device->name);
-+	if (IS_ERR(pool->worker)) {
-+		pr_warn(PFX "couldn't start cleanup kthread worker\n");
-+		ret = PTR_ERR(pool->worker);
- 		goto out_free_pool;
- 	}
-+	init_kthread_work(&pool->work, ib_fmr_cleanup_func);
- 
- 	{
- 		struct ib_pool_fmr *fmr;
-@@ -339,7 +335,7 @@ void ib_destroy_fmr_pool(struct ib_fmr_pool *pool)
- 	LIST_HEAD(fmr_list);
- 	int                 i;
- 
--	kthread_stop(pool->thread);
-+	destroy_kthread_worker(pool->worker);
- 	ib_fmr_batch_release(pool);
- 
- 	i = 0;
-@@ -389,7 +385,7 @@ int ib_flush_fmr_pool(struct ib_fmr_pool *pool)
- 	spin_unlock_irq(&pool->pool_lock);
- 
- 	serial = atomic_inc_return(&pool->req_ser);
--	wake_up_process(pool->thread);
-+	queue_kthread_work(pool->worker, &pool->work);
- 
- 	if (wait_event_interruptible(pool->force_wait,
- 				     atomic_read(&pool->flush_ser) - serial >= 0))
-@@ -503,7 +499,7 @@ int ib_fmr_pool_unmap(struct ib_pool_fmr *fmr)
- 			list_add_tail(&fmr->list, &pool->dirty_list);
- 			if (++pool->dirty_len >= pool->dirty_watermark) {
- 				atomic_inc(&pool->req_ser);
--				wake_up_process(pool->thread);
-+				queue_kthread_work(pool->worker, &pool->work);
- 			}
- 		}
- 	}
--- 
-1.8.5.6
+ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
