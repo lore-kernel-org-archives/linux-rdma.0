@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/5] IB/hfi1: Fix MAD port poll for active cables
-Date: Thu, 14 Apr 2016 08:31:48 -0700
-Message-ID: <20160414153147.3322.87968.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 3/5] IB/hfi1: Correctly report neighbor link down reason
+Date: Thu, 14 Apr 2016 08:31:42 -0700
+Message-ID: <20160414153141.3322.62687.stgit@scvm10.sc.intel.com>
 References: <20160414152929.3322.38247.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,43 +15,71 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-A MAD directive to start polling must go through the normal
-link tuning and start steps in order to correctly handle
-active cables.
+The code to save the link down reason for reporting to the SMA
+was in a location before the actual reason was read.  Move the
+SMA link down reason assignment to a better location.
 
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/mad.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
+ drivers/staging/rdma/hfi1/chip.c |   23 +++++++++--------------
+ 1 files changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/mad.c b/drivers/staging/rdma/hfi1/mad.c
-index d1e7f4d..ed58cf2 100644
---- a/drivers/staging/rdma/hfi1/mad.c
-+++ b/drivers/staging/rdma/hfi1/mad.c
-@@ -999,7 +999,21 @@ static int set_port_states(struct hfi1_pportdata *ppd, struct opa_smp *smp,
- 			break;
- 		}
+diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
+index 45ff8ae..dcae8e7 100644
+--- a/drivers/staging/rdma/hfi1/chip.c
++++ b/drivers/staging/rdma/hfi1/chip.c
+@@ -6951,6 +6951,15 @@ void handle_link_down(struct work_struct *work)
  
--		set_link_state(ppd, link_state);
-+		if ((link_state == HLS_DN_POLL ||
-+		     link_state == HLS_DN_DOWNDEF)) {
-+			/*
-+			 * Going to poll.  No matter what the current state,
-+			 * always move offline first, then tune and start the
-+			 * link.  This correctly handles a FM link bounce and
-+			 * a link enable.  Going offline is a no-op if already
-+			 * offline.
-+			 */
-+			set_link_state(ppd, HLS_DN_OFFLINE);
-+			tune_serdes(ppd);
-+			start_link(ppd);
-+		} else {
-+			set_link_state(ppd, link_state);
-+		}
- 		if (link_state == HLS_DN_DISABLE &&
- 		    (ppd->offline_disabled_reason >
- 		     HFI1_ODR_MASK(OPA_LINKDOWN_REASON_SMA_DISABLED) ||
+ 	set_link_down_reason(ppd, lcl_reason, neigh_reason, 0);
+ 
++	/* inform the SMA when the link transitions from up to down */
++	if (was_up && ppd->local_link_down_reason.sma == 0 &&
++	    ppd->neigh_link_down_reason.sma == 0) {
++		ppd->local_link_down_reason.sma =
++					ppd->local_link_down_reason.latest;
++		ppd->neigh_link_down_reason.sma =
++					ppd->neigh_link_down_reason.latest;
++	}
++
+ 	reset_neighbor_info(ppd);
+ 
+ 	/* disable the port */
+@@ -10106,7 +10115,6 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 	struct hfi1_devdata *dd = ppd->dd;
+ 	struct ib_event event = {.device = NULL};
+ 	int ret1, ret = 0;
+-	int was_up, is_down;
+ 	int orig_new_state, poll_bounce;
+ 
+ 	mutex_lock(&ppd->hls_lock);
+@@ -10125,8 +10133,6 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 		    poll_bounce ? "(bounce) " : "",
+ 		    link_state_reason_name(ppd, state));
+ 
+-	was_up = !!(ppd->host_link_state & HLS_UP);
+-
+ 	/*
+ 	 * If we're going to a (HLS_*) link state that implies the logical
+ 	 * link state is neither of (IB_PORT_ARMED, IB_PORT_ACTIVE), then
+@@ -10337,17 +10343,6 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 		break;
+ 	}
+ 
+-	is_down = !!(ppd->host_link_state & (HLS_DN_POLL |
+-			HLS_DN_DISABLE | HLS_DN_OFFLINE));
+-
+-	if (was_up && is_down && ppd->local_link_down_reason.sma == 0 &&
+-	    ppd->neigh_link_down_reason.sma == 0) {
+-		ppd->local_link_down_reason.sma =
+-		  ppd->local_link_down_reason.latest;
+-		ppd->neigh_link_down_reason.sma =
+-		  ppd->neigh_link_down_reason.latest;
+-	}
+-
+ 	goto done;
+ 
+ unexpected:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
