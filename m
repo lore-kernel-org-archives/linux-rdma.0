@@ -1,45 +1,44 @@
-From: Kevin J Moran <kmoran-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: Re: [Users] Software IB switch/router
-Date: Wed, 13 Apr 2016 19:17:30 -0500
-Message-ID: <570EE19A.4040301@systemfabricworks.com>
-References: <CAANLjFqg7mCp+-4efWjZyUNULfiR0+gJ12-V9UZiLCKD+kLPZw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0416C3@ORSMSX109.amr.corp.intel.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH v2 00/13] SELinux support for Infiniband RDMA
+Date: Wed, 13 Apr 2016 20:27:19 -0400
+Message-ID: <20160414002718.GA6660@rhel>
+References: <DB5PR05MB111168B6670B36F12979705BC4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411221210.GA5861@obsidianresearch.com>
+ <DB5PR05MB1111E6A72480FF78AAB12747C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160411231250.GB5861@obsidianresearch.com>
+ <DB5PR05MB1111F04641E58609E51A9630C4940@DB5PR05MB1111.eurprd05.prod.outlook.com>
+ <20160412000621.GD5861@obsidianresearch.com>
+ <570C85F7.5010101@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB040ABA@ORSMSX109.amr.corp.intel.com>
+ <570DD3F5.2060302@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB041285@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0416C3-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB041285-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There were some presentations that discussed IB Routing and the 
-challenges/availability at the recent Open Fabrics Workshop in 
-Monterey.  Here is a link to a site that has both the slides and the 
-videos (some chose not to allow video) from the workshop 
-http://insidehpc.com/2016-open-fabrics-workshop-video-gallery/
+On Wed, Apr 13, 2016 at 04:47:48PM +0000, Sean Hefty wrote:
+> > Former (multicast modifications of fabric) also requires restricting
+> > arbitrary UD QPs as well as QP1 as SA access is QPn (n > 0) <-> QP1.
+> 
+> The SA could have an option to ignore all requests that do not originate QP1,
+> then protect access to QP1 on the client nodes.
 
-Regards,
+I'm not really sure what we are protecting against here.  Is it simply DoS
+against the SA?
 
-Kevin
+Ira
 
-
-On 4/13/16 6:18 PM, Hefty, Sean wrote:
->> If I wanted to do something stupid and create a white-box Infiniband
->> switch/router, is there some software that does that? Is it even
->> possible?
-> I'm not aware of any open source software to do this.
+> --
 >
-> IB routers are not defined by the IB specification.  You may be able to cobble something together, but you would need to define much of the behavior yourself.
->
-> You might be able to create a switch, but you would need an HCA that can disable offloaded transport processing (e.g. Truescale HCAs handle transport processing on the host).
->
-> - Sean
-> _______________________________________________
-> Users mailing list
-> Users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-> http://lists.openfabrics.org/mailman/listinfo/users
-
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
