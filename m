@@ -1,87 +1,116 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
- access
-Date: Thu, 14 Apr 2016 22:41:24 -0600
-Message-ID: <20160415044124.GA16805@obsidianresearch.com>
-References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
- <20160414164550.GC6247@obsidianresearch.com>
- <20160414174830.GA11641@rhel.sc.intel.com>
- <20160414180540.GA12554@obsidianresearch.com>
- <20160414184200.GA10416@phlsvsds.ph.intel.com>
- <20160414185659.GB12997@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB041C34@ORSMSX109.amr.corp.intel.com>
- <20160414212702.GA14137@obsidianresearch.com>
- <20160415000242.GA18400@rhel.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160415000242.GA18400-no5AT4YuGWKtqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Subject: [PATCH] IB/ipoib: Add readout of statistics using ethtool
+Date: Fri, 15 Apr 2016 12:17:48 +0200
+Message-ID: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 14, 2016 at 08:02:43PM -0400, Ira Weiny wrote:
-> > A driver using this interface can retain a handle to the kernel side
-> > of the uverbs (eg, it can access the idrs). This means the driver
-> > interface can re-use objects created on the uverbs interface, eg a PD,
-> > CQ, QP, etc, so it covers a far broader application space with code
-> > re-use than an isolated cdev possibly can.
-> 
-> CQs and QPs will never, ever, be used by psm.  They are just not part of the
-> hardware...
+IPoIB collects statistics of traffic including number of packets
+sent/received, number of bytes transferred, and certain errors. This
+patch makes these statistics available to be queried by ethtool.
 
-A common API needs to support more than only psm..
+Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Tested-by: Yuval Shaia <yuval.shaia@oracle.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 70 ++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-> I think if we are going to merge into a single device it should be a more
-> fabric agnostic device.  Perhaps /dev/hsi (for high speed interconnect).
-
-I'm not excited about changing the rdma_cm and uverbs char names, we
-have a big investment in training and userspace around that. I'd
-rather have something that does more than what its name implies,
-so imagine uverbs as hfi if that helps...
-
-> int uverbs_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "verbs");
-> int psm2_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "psm2.intel.com");
-
-Again the *DRIVER* word is key, it really is only for driver specific
-stuff.
-
-Interfaces promoted to core may as well just be ioctls on the master
-fd. The drivers benefit from another fd because it allows conflicting
-ioctl/mmap/readv, but the core code would not have such needs. Is
-there a strong reason to have another fd?
-
-I see no big problem with somewhat orthogonal interfaces as groups of
-ioctls on the same fd. libfabric shows that is basically a workable
-model. Sharing security/discovery/etc is a reasonable enough commonality.
-
-> int uverbs2_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "verbs2.0");
-
-We don't really need to do that since we can just add the new ioctls
-directly to the fd.
-
-> > Maybe 'psm.intel.com' was a bad choice, but I wanted to be clear this
-> > wasn't a dumping ground for any and all driver crap (like eeprom,
-> > etc). Just the high speed focused API. Perhaps 'sdma.intel.com' or
-> > something?
-
-> I think psm.intel.com is appropriate.  sdma is different.
-
-Well, except, it doesn't seem to do psm. The 12 ioctls don't seem to
-look anything like psm from what I can tell. They are used to build
-psm in user space, but somehow I suspect they could build lots of
-different things???
-
-> This proposal also gives us time to get the verbs2.0 interface baked while the
-> existing /dev/infiniband/* interfaces are still present.
-
-I don't see a problem upgrading in place. 
-
-Jason
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+index a53fa5f..52a1f30 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -36,6 +36,31 @@
+ 
+ #include "ipoib.h"
+ 
++struct ipoib_stats {
++	char stat_string[ETH_GSTRING_LEN];
++	int stat_offset;
++};
++
++
++#define IPOIB_NETDEV_STAT(str, m) { \
++		.stat_string = str, \
++		.stat_offset = offsetof(struct rtnl_link_stats64, m) }
++
++
++
++static const struct ipoib_stats ipoib_gstrings_stats[] = {
++	IPOIB_NETDEV_STAT("rx_packets", rx_packets),
++	IPOIB_NETDEV_STAT("tx_packets", tx_packets),
++	IPOIB_NETDEV_STAT("rx_bytes",   rx_bytes),
++	IPOIB_NETDEV_STAT("tx_bytes",   tx_bytes),
++	IPOIB_NETDEV_STAT("tx_errors",  tx_errors),
++	IPOIB_NETDEV_STAT("rx_dropped", rx_dropped),
++	IPOIB_NETDEV_STAT("tx_dropped", tx_dropped)
++};
++
++#define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
++
++
+ static void ipoib_get_drvinfo(struct net_device *netdev,
+ 			      struct ethtool_drvinfo *drvinfo)
+ {
+@@ -92,11 +117,56 @@ static int ipoib_set_coalesce(struct net_device *dev,
+ 
+ 	return 0;
+ }
++static void ipoib_get_ethtool_stats(struct net_device *dev,
++				    struct ethtool_stats __always_unused *stats,
++				    u64 *data)
++{
++	int i;
++	struct net_device_stats *net_stats = &dev->stats;
++	u8 *p = (u8 *)net_stats;
++
++	for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
++		data[i] = *(u64 *)(p + ipoib_gstrings_stats[i].stat_offset);
++
++}
++static void ipoib_get_strings(struct net_device __always_unused *dev,
++			      u32 stringset, u8 *data)
++{
++	u8 *p = data;
++	int i;
++
++	switch (stringset) {
++	case ETH_SS_TEST:
++		break;
++	case ETH_SS_STATS:
++		for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++) {
++			memcpy(p, ipoib_gstrings_stats[i].stat_string,
++				ETH_GSTRING_LEN);
++			p += ETH_GSTRING_LEN;
++		}
++		break;
++	}
++}
++static int ipoib_get_sset_count(struct net_device __always_unused *dev,
++				 int sset)
++{
++	switch (sset) {
++	case ETH_SS_TEST:
++		return -EOPNOTSUPP;
++	case ETH_SS_STATS:
++		return IPOIB_GLOBAL_STATS_LEN;
++	default:
++		return -EOPNOTSUPP;
++	}
++}
+ 
+ static const struct ethtool_ops ipoib_ethtool_ops = {
+ 	.get_drvinfo		= ipoib_get_drvinfo,
+ 	.get_coalesce		= ipoib_get_coalesce,
+ 	.set_coalesce		= ipoib_set_coalesce,
++	.get_strings		= ipoib_get_strings,
++	.get_ethtool_stats	= ipoib_get_ethtool_stats,
++	.get_sset_count		= ipoib_get_sset_count,
+ };
+ 
+ void ipoib_set_ethtool_ops(struct net_device *dev)
+-- 
+2.4.3
