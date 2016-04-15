@@ -1,103 +1,87 @@
-From: Leon Romanovsky <leon@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
  access
-Date: Fri, 15 Apr 2016 07:01:26 +0300
-Message-ID: <20160415040126.GB10689@leon.nu>
+Date: Thu, 14 Apr 2016 22:41:24 -0600
+Message-ID: <20160415044124.GA16805@obsidianresearch.com>
 References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
  <20160414164550.GC6247@obsidianresearch.com>
  <20160414174830.GA11641@rhel.sc.intel.com>
-Reply-To: leon@leon.nu
+ <20160414180540.GA12554@obsidianresearch.com>
+ <20160414184200.GA10416@phlsvsds.ph.intel.com>
+ <20160414185659.GB12997@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB041C34@ORSMSX109.amr.corp.intel.com>
+ <20160414212702.GA14137@obsidianresearch.com>
+ <20160415000242.GA18400@rhel.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1LKvkjL3sHcu1TtY"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160414174830.GA11641@rhel.sc.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
+In-Reply-To: <20160415000242.GA18400-no5AT4YuGWKtqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Apr 14, 2016 at 08:02:43PM -0400, Ira Weiny wrote:
+> > A driver using this interface can retain a handle to the kernel side
+> > of the uverbs (eg, it can access the idrs). This means the driver
+> > interface can re-use objects created on the uverbs interface, eg a PD,
+> > CQ, QP, etc, so it covers a far broader application space with code
+> > re-use than an isolated cdev possibly can.
+> 
+> CQs and QPs will never, ever, be used by psm.  They are just not part of the
+> hardware...
 
---1LKvkjL3sHcu1TtY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+A common API needs to support more than only psm..
 
-On Thu, Apr 14, 2016 at 01:48:31PM -0400, Ira Weiny wrote:
-> On Thu, Apr 14, 2016 at 10:45:50AM -0600, Jason Gunthorpe wrote:
-> > On Thu, Apr 14, 2016 at 08:41:35AM -0700, Dennis Dalessandro wrote:
-> > > This patch series removes the write() interface for user access in fa=
-vor of an
-> > > ioctl() based approach. This is in response to the complaint that we =
-had
-> > > different handlers for write() and writev() doing different things an=
-d expecting
-> > > different types of data. See:
-> >=20
-> > I think we should wait on applying these patches until we globally sort=
- out
-> > what to do with the rdma uapi.
-> >=20
-> > It just doesn't make alot of sense for drivers to have their own person=
-al
-> > char devices. :(
->=20
-> I'm afraid I have to disagree at this time.  Someday we may have "1 char =
-device
-> to rule them all" but right now we don't have any line of sight to that
-> solution.  It may be _years_ before we can agree to the semantics which w=
-ill
-> work for all high speed, kernel bypass, rdma, low latency, network device=
-s.
+> I think if we are going to merge into a single device it should be a more
+> fabric agnostic device.  Perhaps /dev/hsi (for high speed interconnect).
 
-You didn't ever try to come and work on the solution. We talked about
-finite time frame (_months_) which is doable based on knowledge that user
-space parts are developed by the same companies and all our future changes
-will be in one subsystem.
+I'm not excited about changing the rdma_cm and uverbs char names, we
+have a big investment in training and userspace around that. I'd
+rather have something that does more than what its name implies,
+so imagine uverbs as hfi if that helps...
 
-You were supposed to prepare "wish list" from this new API as an initial
-phase. If you do it, you will find that it is very short and in the
-initial meeting you will see that it similar to other participants in
-linux-rdma community.
+> int uverbs_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "verbs");
+> int psm2_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "psm2.intel.com");
 
->=20
-> We need to fix the write/writev problem now.[1]
+Again the *DRIVER* word is key, it really is only for driver specific
+stuff.
 
-No, this driver in staging and the proper way to move it out will be to
-converge on common API and one clear path instead of duplicating the
-interfaces and "inventing the wheel".
+Interfaces promoted to core may as well just be ioctls on the master
+fd. The drivers benefit from another fd because it allows conflicting
+ioctl/mmap/readv, but the core code would not have such needs. Is
+there a strong reason to have another fd?
 
->=20
-> Ira
->=20
-> [1] https://www.spinics.net/lists/linux-rdma/msg34451.html
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I see no big problem with somewhat orthogonal interfaces as groups of
+ioctls on the same fd. libfabric shows that is basically a workable
+model. Sharing security/discovery/etc is a reasonable enough commonality.
 
---1LKvkjL3sHcu1TtY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> int uverbs2_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "verbs2.0");
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+We don't really need to do that since we can just add the new ioctls
+directly to the fd.
 
-iQIcBAEBAgAGBQJXEGeWAAoJEORje4g2clinc44QAMnH5AKiZKI8oCeiU0UBsBWT
-maq1BtHWF4C4KxWAS/bcZcJqu7sldBVDKslxXTFV8DXEuXhNl3mevxQf2BYaRZ+R
-mF2jCdWmxcie3anSXrC48h+U/5raZ8jD1pxgQMKSDOOabGcgKkUfjS50elJ+mXkM
-JpxyfZhFrGajBxxgjxcPQ/49nuW0acH+3YcJ/Ed6+wTpQuxhv1/n46+lVda+RKH9
-uTfnG3tkYpgmSXdX792NNxgNhkV+Yt0F0Jz3wIjgvDT+mCqp5Wzhos3wtwoxxQLL
-dhsMmO/snklfgVMO0WF25pbJL5DqAZPZsKLY3d5Wn8pMwtnkMFdsTStPx+197fGq
-/CRd6DpQK+5OdSbkZ9DeVyliPIqQdYn1LnzDgtE4e7Q8Cw+g7uEtA78sSEv98blU
-/3PBNFHa6CidTkGbYkfYyItt7+STl3GRf1L/agf3sdPnryWYFhkOl3D3iPjKtagc
-hiF9hyb2F/jRLFt486ZcJCI5a0jbY3bqh7nCnR02bdAPzNE9pRRJTd9VOmciMpkz
-nx0yGsOt+MEU5umGeI7pFt8E7nR05yFXztdWs+rfMqJJiejdQFjNiyp0jTbQXKco
-QllBGUVY675+eYbrniTrBl7aRnNs6KhPquP7WShuyA7fyy9vJ4j6o6SgtjMG0HRV
-HZnwd1nYZPz57MgVB5TE
-=g9LV
------END PGP SIGNATURE-----
+> > Maybe 'psm.intel.com' was a bad choice, but I wanted to be clear this
+> > wasn't a dumping ground for any and all driver crap (like eeprom,
+> > etc). Just the high speed focused API. Perhaps 'sdma.intel.com' or
+> > something?
 
---1LKvkjL3sHcu1TtY--
+> I think psm.intel.com is appropriate.  sdma is different.
+
+Well, except, it doesn't seem to do psm. The 12 ioctls don't seem to
+look anything like psm from what I can tell. They are used to build
+psm in user space, but somehow I suspect they could build lots of
+different things???
+
+> This proposal also gives us time to get the verbs2.0 interface baked while the
+> existing /dev/infiniband/* interfaces are still present.
+
+I don't see a problem upgrading in place. 
+
+Jason
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
