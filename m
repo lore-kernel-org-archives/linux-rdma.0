@@ -1,116 +1,77 @@
-From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Subject: [PATCH] IB/ipoib: Add readout of statistics using ethtool
-Date: Fri, 15 Apr 2016 12:17:48 +0200
-Message-ID: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Fri, 15 Apr 2016 12:17:55 -0400
+Message-ID: <20160415161754.GA21549@rhel>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414164550.GC6247@obsidianresearch.com>
+ <20160414174830.GA11641@rhel.sc.intel.com>
+ <20160415040126.GB10689@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160415040126.GB10689@leon.nu>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Leon Romanovsky <leon@leon.nu>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB collects statistics of traffic including number of packets
-sent/received, number of bytes transferred, and certain errors. This
-patch makes these statistics available to be queried by ethtool.
+On Fri, Apr 15, 2016 at 07:01:26AM +0300, Leon Romanovsky wrote:
+> On Thu, Apr 14, 2016 at 01:48:31PM -0400, Ira Weiny wrote:
+> > On Thu, Apr 14, 2016 at 10:45:50AM -0600, Jason Gunthorpe wrote:
+> > > On Thu, Apr 14, 2016 at 08:41:35AM -0700, Dennis Dalessandro wrote:
+> > > > This patch series removes the write() interface for user access in favor of an
+> > > > ioctl() based approach. This is in response to the complaint that we had
+> > > > different handlers for write() and writev() doing different things and expecting
+> > > > different types of data. See:
+> > > 
+> > > I think we should wait on applying these patches until we globally sort out
+> > > what to do with the rdma uapi.
+> > > 
+> > > It just doesn't make alot of sense for drivers to have their own personal
+> > > char devices. :(
+> > 
+> > I'm afraid I have to disagree at this time.  Someday we may have "1 char device
+> > to rule them all" but right now we don't have any line of sight to that
+> > solution.  It may be _years_ before we can agree to the semantics which will
+> > work for all high speed, kernel bypass, rdma, low latency, network devices.
+> 
+> You didn't ever try to come and work on the solution. We talked about
+> finite time frame (_months_) which is doable based on knowledge that user
+> space parts are developed by the same companies and all our future changes
+> will be in one subsystem.
 
-Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Tested-by: Yuval Shaia <yuval.shaia@oracle.com>
----
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 70 ++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+How can you say that I am not working on a solution?
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index a53fa5f..52a1f30 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -36,6 +36,31 @@
- 
- #include "ipoib.h"
- 
-+struct ipoib_stats {
-+	char stat_string[ETH_GSTRING_LEN];
-+	int stat_offset;
-+};
-+
-+
-+#define IPOIB_NETDEV_STAT(str, m) { \
-+		.stat_string = str, \
-+		.stat_offset = offsetof(struct rtnl_link_stats64, m) }
-+
-+
-+
-+static const struct ipoib_stats ipoib_gstrings_stats[] = {
-+	IPOIB_NETDEV_STAT("rx_packets", rx_packets),
-+	IPOIB_NETDEV_STAT("tx_packets", tx_packets),
-+	IPOIB_NETDEV_STAT("rx_bytes",   rx_bytes),
-+	IPOIB_NETDEV_STAT("tx_bytes",   tx_bytes),
-+	IPOIB_NETDEV_STAT("tx_errors",  tx_errors),
-+	IPOIB_NETDEV_STAT("rx_dropped", rx_dropped),
-+	IPOIB_NETDEV_STAT("tx_dropped", tx_dropped)
-+};
-+
-+#define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
-+
-+
- static void ipoib_get_drvinfo(struct net_device *netdev,
- 			      struct ethtool_drvinfo *drvinfo)
- {
-@@ -92,11 +117,56 @@ static int ipoib_set_coalesce(struct net_device *dev,
- 
- 	return 0;
- }
-+static void ipoib_get_ethtool_stats(struct net_device *dev,
-+				    struct ethtool_stats __always_unused *stats,
-+				    u64 *data)
-+{
-+	int i;
-+	struct net_device_stats *net_stats = &dev->stats;
-+	u8 *p = (u8 *)net_stats;
-+
-+	for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
-+		data[i] = *(u64 *)(p + ipoib_gstrings_stats[i].stat_offset);
-+
-+}
-+static void ipoib_get_strings(struct net_device __always_unused *dev,
-+			      u32 stringset, u8 *data)
-+{
-+	u8 *p = data;
-+	int i;
-+
-+	switch (stringset) {
-+	case ETH_SS_TEST:
-+		break;
-+	case ETH_SS_STATS:
-+		for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++) {
-+			memcpy(p, ipoib_gstrings_stats[i].stat_string,
-+				ETH_GSTRING_LEN);
-+			p += ETH_GSTRING_LEN;
-+		}
-+		break;
-+	}
-+}
-+static int ipoib_get_sset_count(struct net_device __always_unused *dev,
-+				 int sset)
-+{
-+	switch (sset) {
-+	case ETH_SS_TEST:
-+		return -EOPNOTSUPP;
-+	case ETH_SS_STATS:
-+		return IPOIB_GLOBAL_STATS_LEN;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
- 
- static const struct ethtool_ops ipoib_ethtool_ops = {
- 	.get_drvinfo		= ipoib_get_drvinfo,
- 	.get_coalesce		= ipoib_get_coalesce,
- 	.set_coalesce		= ipoib_set_coalesce,
-+	.get_strings		= ipoib_get_strings,
-+	.get_ethtool_stats	= ipoib_get_ethtool_stats,
-+	.get_sset_count		= ipoib_get_sset_count,
- };
- 
- void ipoib_set_ethtool_ops(struct net_device *dev)
--- 
-2.4.3
+We spent most of last week discussing possible solutions and I am in support of
+a more common core.  But ask yourself this.
+
+
+If hfi1 did not support verbs at all would this even be an issue?
+
+
+> 
+> You were supposed to prepare "wish list" from this new API as an initial
+> phase. If you do it, you will find that it is very short and in the
+> initial meeting you will see that it similar to other participants in
+> linux-rdma community.
+
+The list of operations may be short.  But the way in which you do those in a
+performant way for each hardware device is _very_ different.  This is a problem
+which has been debated for years and no one has come up with an elegant
+solution.  Every solution ends up being, to quote a presenter at last weeks
+conference, "shoving a square peg into a round hole".
+
+Until we all admit 2 things.
+
+	1) That there are devices which don't operate on QPs
+	2) That the High Speed interconnect core should present something more
+	   abstract than a QP interface
+
+we are not really creating a common layer.
+
+I do admit Jasons idea has some merit but I'm just not sure it provides so much
+benefit that it is worth the effort at this time.
+
+Ira
