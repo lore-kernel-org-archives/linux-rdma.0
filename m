@@ -1,63 +1,45 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Software IB switch/router
-Date: Fri, 15 Apr 2016 12:36:02 -0600
-Message-ID: <CAANLjFpRitUVH=-dUdY4hav7jTXS2ih-bvQ7pK+7mYz78i3Y2A@mail.gmail.com>
-References: <CAANLjFqg7mCp+-4efWjZyUNULfiR0+gJ12-V9UZiLCKD+kLPZw@mail.gmail.com>
-	<20160414051038.GA10689@leon.nu>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Fri, 15 Apr 2016 21:04:26 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB042530@ORSMSX109.amr.corp.intel.com>
+References: <20160414164550.GC6247@obsidianresearch.com>
+ <20160414174830.GA11641@rhel.sc.intel.com>
+ <20160414180540.GA12554@obsidianresearch.com>
+ <20160414184200.GA10416@phlsvsds.ph.intel.com>
+ <20160414185659.GB12997@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB041C34@ORSMSX109.amr.corp.intel.com>
+ <20160414212702.GA14137@obsidianresearch.com>
+ <20160415000242.GA18400@rhel.sc.intel.com>
+ <20160415044124.GA16805@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0422AE@ORSMSX109.amr.corp.intel.com>
+ <20160415181811.GA22322@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160414051038.GA10689-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160415181811.GA22322-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Cc: "users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <users-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+> > If we consider a completely non-verbs device, what unrelated code
+> > and modules must be loaded for that device to export its interfaces
+> > to user space?  Force loading the infiniband stack for a non-IB
+> > device seems like the wrong approach.
+> 
+> I'm not even slightly concerned about that. This is HPC, if you care
+> about a 100k kernel module you are doing something wrong.
 
-Thanks for the link. It looks like the routing is done by a Mellanox
-device and not by a white-box device. I'm guessing the code would be
-the enhancements to OpenSM to support IB routing.
------BEGIN PGP SIGNATURE-----
-Version: Mailvelope v1.3.6
-Comment: https://www.mailvelope.com
+I wasn't referring to a software interface, but interface to the HW.  A device like usNIC should not have to depend on ib_core and ib_mad because it wants to expose its interfaces up to user space.  That makes no sense.  I'm pretty sure that we're going to continue to disagree on this.
 
-wsFcBAEBCAAQBQJXETSMCRDmVDuy+mK58QAAZ7MQAMuLy6q4cYZLUKYQWHK1
-UvTFUQJHsFCRZh+UN0lh05Z25OZihVAFj1dPOXS2kqyITjDntA5EvndSmGwT
-Ey0xHVpnFan8s4qMEvLPtJ7fEsvamW0gh8wMAvgk42kW7c06M7bsMCESt57p
-lf9t+hDD/WudOR1A+HUFmQXlqdC2GnPXCl9fKJAUmUBxZ1AzUvJNioe+QRWf
-nnEyVY8Axqu9u8yJ42oxxy9bpMlFDCjRmgb9ZDiDo/aJmlcIcC+hAhA41x69
-YqZQPxHsj0U8JKJ/U+KDoB/KWPSDXsouOcXe0aock3lgR4iyfUHGspgzby3F
-n498AV2KTMUe2K2k8Clh+Bh6w3AsEgIqW/o3VXVaOLYxOOsNkHZXZXoEQLKX
-1neJD54fVX3a62PSTjcU4UJlGtQSuW1QFt89qM/4Ko1yiaYCnRPL7qik/0Oa
-sSigArOTusNe7XA8wd6cEaaUFxR0V7swIcwQC7LlcPaGhKWhUKWbR3oZsFV2
-YEAOvGKFfTmFWjssj0R3dPmh/3zAOdGEq5SgFqLwul+DLoXnTKI9gvOWQADZ
-1knUYPXPhBx/NMYQ5f9R4x61lrynLCbnBDie1lmASWnWpTNfVsNLCh1IoyTy
-mo87poDyw4xLLfqkhM2XYskaPBRMG3a6pGpsbiltPjbv26VMchpAu0zK4Eco
-Jue6
-=WBYj
------END PGP SIGNATURE-----
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+The RDMA stack currently allows drivers to export their own interfaces directly to user space.  At this point, I see no reason why we should block a driver for following what has been an acceptable practice for years.  Dennis fixed the write/writev issue, which would make the hfi1 driver the only device in the RDMA tree with an acceptable interface.
 
+If the RDMA "community" defines the ultimate ioctl interface ever created, great.  Every driver added after that interface has been defined and merged can be forced to use it.
 
-On Wed, Apr 13, 2016 at 11:10 PM, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org> wrote:
-> On Wed, Apr 13, 2016 at 05:09:36PM -0600, Robert LeBlanc wrote:
->> If I wanted to do something stupid and create a white-box Infiniband
->> switch/router, is there some software that does that? Is it even
->> possible?
->
-> As Kevin pointed below, Mellanox presented IB router [1] at the OFA16.
-> The product is totally open-source and the code will be posted on
-> linux-rdma list in the near future.
->
-> [1]
-> https://www.openfabrics.org/images/eventpresos/2016presentations/314IBRouterPrem.pdf
->
-> Thanks.
->
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
