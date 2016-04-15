@@ -1,26 +1,34 @@
-From: "Woodruff, Robert J" <robert.j.woodruff@intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
  access
-Date: Fri, 15 Apr 2016 17:44:48 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7DDAAE43@ORSMSX115.amr.corp.intel.com>
+Date: Fri, 15 Apr 2016 17:46:45 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04235E@ORSMSX109.amr.corp.intel.com>
 References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
  <20160414164550.GC6247@obsidianresearch.com>
  <20160414174830.GA11641@rhel.sc.intel.com> <20160415040126.GB10689@leon.nu>
  <20160415161754.GA21549@rhel> <20160415173035.GC10689@leon.nu>
  <20160415173401.GA10868@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160415173401.GA10868@infradead.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160415173401.GA10868-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>, Leon Romanovsky <leon@leon.nu>
-Cc: "Weiny, Ira" <ira.weiny@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org" <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I fear it's kfabrics, which is an entirely crackpot idea and a total non-starter, but for some reason Intel and their buddies keep wasting time on it.
+> > Great, did you show it to other RDMA stakeholders except Intel?
+> > I saw nothing posted on ML or proposed for initial discussion, which
+> > will be held in the next week or two.
+> 
+> I fear it's kfabrics, which is an entirely crackpot idea and a total
+> non-starter, but for some reason Intel and their buddies keep wasting
+> time on it.
 
-What is being discussed her is not kfabrics. That is a totally different out of kernel pathfinding project at this point.
-What is being discussed here is how to best solve the write/writev issue with the PSM interface. The code submitted was to move
-to IOCTL instead, but people like Jason have suggested routing the IOCTLs through the verbs layer instead.
+There were discussions between several developers from multiple companies around moving away from using writev.  That's it.  Making random accusations and throwing crap over the wall does nothing to improve the community or instill trust.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
