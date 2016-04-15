@@ -1,49 +1,59 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
- access
-Date: Fri, 15 Apr 2016 00:30:45 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB041E4E@ORSMSX109.amr.corp.intel.com>
-References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
- <20160414164550.GC6247@obsidianresearch.com>
- <20160414174830.GA11641@rhel.sc.intel.com>
- <20160414180540.GA12554@obsidianresearch.com>
- <20160414184200.GA10416@phlsvsds.ph.intel.com>
- <20160414185659.GB12997@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB041C34@ORSMSX109.amr.corp.intel.com>
- <20160414212702.GA14137@obsidianresearch.com>
- <20160415000242.GA18400@rhel.sc.intel.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] dapl-2.1.9 release
+Date: Fri, 15 Apr 2016 02:26:44 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F980D8FA39@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160415000242.GA18400-no5AT4YuGWKtqXYlAKuG4QC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Vladimir Sokolovsky (vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I think if we are going to merge into a single device it should be a more
-> fabric agnostic device.  Perhaps /dev/hsi (for high speed interconnect).
-> 
-> From there we could use what you are proposing for a truly device agnostic
-> interface.  Those devices which export both verbs and psm would result in
-> both
-> of these calls working.
-> 
-> int uverbs_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "verbs");
-> int psm2_fd = ioctl(hsi_fd, RDMA_GET_DRIVER_OPS_FD, "psm2.intel.com");
-> 
-> If/when we define commonalities we can define a common interface and
-> export
-> that or better yet just promote those to the hsi_fd directly.
-> 
-> Features, once vetted, can be promoted.
+New release for uDAPL is available at http://downloads.openfabrics.org/=
+dapl/dapl-2.1.9.tar.gz
 
-I like this approach in general.  As a community, we need to handle devices (e.g. usNIC) that are not be verbs based devices.  I also like the idea of separating the uABI framework from the kernel verbs interfaces.  That more naturally allows us to add the "rdma_cm" to this, depending on the selected scope for this uABI.
+Vlad, please pull into OFED 3.18-2=20
 
-- Sean
+=A0=A0=A0=A0 md5sum: 7dc10c55fa54a4d41824908e8a0f9624 dapl-2.1.9.tar.gz=
+=20
+
+=46or v2.1 package install RPM packages as follow:
+
+=A0=A0=A0=A0 dapl-2.1.9-1
+=A0=A0=A0=A0 dapl-utils-2.1.9-1
+=A0=A0=A0=A0=A0dapl-devel-2.1.9-1
+=A0=A0=A0=A0 dapl-debuginfo-2.1.9-1
+
+Release notes: http://downloads.openfabrics.org/dapl/documentation/uDAP=
+L_release_notes.txt
+
+Summary of changes:
+
+Release 2.1.9
+dtestcm: exchange provider IA address info via sockets
+ucm: increase default REQ/RTU timers on scaling threshold
+mpxyd: m_req_event assert during large io streams, HST to MIC
+mcm: HST->MXS IO streams can overrun MPXYD proxy-in WR queue
+mpxyd: cleanup warnings in MIC proxy code
+openib: cleanup warnings in openib providers
+common: cleanup warnings in common code base
+dapltest: cleanup warnings, unused variables, etc
+scm: backward compatibility issue with MTU negotiation
+mcm: fix mtu interop issues when MIC and HOST differ
+dtest: clean up warnings, keep variables and functions local
+
+Release commit: http://git.openfabrics.org/?p=3D~ardavis/dapl.git;a=3Dc=
+ommit;h=3D92d1bc4bf3089595012c11fa42d3da124490b4a0
+
+Regards,=20
+
+Arlin
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
