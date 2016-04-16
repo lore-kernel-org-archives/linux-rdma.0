@@ -1,8 +1,8 @@
 From: Leon Romanovsky <leon@leon.nu>
 Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
  access
-Date: Sat, 16 Apr 2016 09:00:42 +0300
-Message-ID: <20160416060042.GA6349@leon.nu>
+Date: Sat, 16 Apr 2016 09:09:40 +0300
+Message-ID: <20160416060940.GB6349@leon.nu>
 References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
  <20160414164550.GC6247@obsidianresearch.com>
  <20160414174830.GA11641@rhel.sc.intel.com>
@@ -11,60 +11,63 @@ References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
  <20160415173035.GC10689@leon.nu>
  <20160415173401.GA10868@infradead.org>
  <20160415212328.GF10689@leon.nu>
- <20160415233732.GB25662@obsidianresearch.com>
+ <20160415232800.GA32513@rhel>
 Reply-To: leon@leon.nu
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+	protocol="application/pgp-signature"; boundary="/NkBOFFp2J2Af1nK"
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160415233732.GB25662@obsidianresearch.com>
+In-Reply-To: <20160415232800.GA32513@rhel>
 Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Ira Weiny <ira.weiny@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---qMm9M+Fa2AknHoGS
+--/NkBOFFp2J2Af1nK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 15, 2016 at 05:37:32PM -0600, Jason Gunthorpe wrote:
+On Fri, Apr 15, 2016 at 07:28:01PM -0400, Ira Weiny wrote:
 > On Sat, Apr 16, 2016 at 12:23:28AM +0300, Leon Romanovsky wrote:
->=20
-> > Intel as usual decided to do it in their way and the result is presented
-> > on this mailing list.
->=20
-> Dennis was pretty clear he was going to send the patches to address
-> Al's concern, which he has done.
->=20
-> I was also pretty clear I was looking to get rid of the char dev :)
+> Do you have a technical reason that this patch series does not fix the
+> write/writev issue brought up by Al?
 
-Yes, and I was pretty clear that we need to converge on one common API
-prior to converting old code (including drivers in staging) in order to
-do it once only.
+Sure, I truly believe that we can do common API in a months time-frame
+and I want to be focused on one transition path only (write/read -> new
+API) and not on two parallel paths (ioctl -> new API and write/read ->
+new API) plus support of all these intermediate steps.
 
---qMm9M+Fa2AknHoGS
+The original request came after this driver was moved from staging to
+RDMA stack, since the driver is still in staging, there is no need to
+hurry up now.
+
+>=20
+> Ira
+>=20
+
+--/NkBOFFp2J2Af1nK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXEdUKAAoJEORje4g2clinc3YP+gOwsufeehiZEPr6jjGkmWNo
-Q69255Rxu6AvUZOTmugm/4b8MNbS5t6ibSXgkRF6SyOOd0eWrvi1ady1zNbsq7QD
-V39x5ibx4wqs4lkdY3iKc+MhjHKzcA9lV8YNLvzSbfOA4qR/SG8SdBaJEzwsdhdo
-DEsTicEDvWon3LB/PCrZyJdvHOioo7bHXU0cpXHy0xU/Sa4jHWYgvfzTpxO2zhKr
-0X9xVYAEEPqvT5/laGHLVI8Kue8CPaoQOUZa/R25XmO2v8/WjvPGig7rlewKlS3s
-H3bYfzAXavK1brkLqIyUMrRRa0etTL0AGJEdGYCvKn7rX4I3y3C2321LfNaRj9id
-iJVP1JWILTybiIzGTaqPCIv2nSDE2qyERYLimimJDywQMtX1rDW2rvDyYDPZOZGo
-dQCpJvzfjwnnp0YZ844l3PP2/hI6lcV6pHnZA1BdhI9T4GNptJ5ySGG0xoXenBPu
-UIWnkiHobBbf0AwBeboL1NXRmQKU2BM7YCa3V542ZGQqSDCZQ0qpXhEyeyStUtu3
-Ow9DkDPebYqsHVVuj2B7XYcQjX3HXRJwNxb6CTDnPCuBbfv7nYt0O4D26yu9MQqm
-hrHYGd0vdflBqVC3rHemg87/zIUjlAGisiIiDeinJK8/in2mYQ90PjlHP2LSzuXp
-w/PWY6exGxh1O7b8QHuk
-=Mk5l
+iQIcBAEBAgAGBQJXEdckAAoJEORje4g2clinee0QAI8YSENewv7TI+sMDd1C6XOw
+1OfKjCvjudcovoMljof8gVjAxI7rI9oQqfPTkyj3w+gYMIqWTtT0ACD9DPYYQvf6
+pxAxWsEv0eHfYTiLn/xa5DlDB+klf+/VQ4EMEIcVY9C0np5RX2PIOK23L0THTVd5
+E4XCBg4kOZaclFznEi8lLCXYCi7wj+e1q1jWrsCsupC8H5L3/HtZe4NN+ExTke+q
+0xqhHpO1yVyYSIj0tyjj3yFmjzc1CsVzRlZmEdiVHPXj+ySW3GfjnqBbPXYrbeOE
+cm/Xj0xkZOC2k7H27JmQgnd0bJ6ckMBSpRJs7slDUdJO/dwAokvoTowj78u0IflU
+pJvUDyKO5mVpDjE03S/jYboP+HPHhDdByf8ylJIqoi2QyJ2UFZfMPvkkjfeUILqa
+RxpDRK8HVq6fxmHUXr+AtJkczPcGPr181plpO6L62eVnlXI5aASyLCY1W6PRwzPF
+xu7W9H7BZEbjzLiG3KZLaIhDUsnJJniAQBJvbCN3QWI2XqEgmv12677Pshiw/G2V
+N4vJgpbMpFUEoUgagRdzr44Kt4cy9Pw990k/Pv9P1ZENk5PpB/Z+utmhgxA0Mhwf
+lGFPK/Z3T0mv+6zb7g1ZIsddn5OQo/YNGxxV+U/Rcad105//+A/WKUnTAQaF/68C
++8mVExyYfrDdZq02SvHM
+=1iM8
 -----END PGP SIGNATURE-----
 
---qMm9M+Fa2AknHoGS--
+--/NkBOFFp2J2Af1nK--
