@@ -1,56 +1,45 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 01/12] IB/mlx5: Expose correct max_sge_rd limit
-Date: Sun, 17 Apr 2016 16:53:41 +0300
-Message-ID: <20160417135341.GC6349@leon.nu>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-2-git-send-email-hch@lst.de>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 2/2] IB/mlx5: Fire the CQ completion handler from tasklet
+Date: Sun, 17 Apr 2016 17:08:41 +0300
+Message-ID: <1460902121-5567-3-git-send-email-matanb@mellanox.com>
+References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1460410360-13104-2-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1460902121-5567-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Previously, mlx5_ib_cq_comp was executed from interrupt context.
+Under heavy load, this could cause the CPU core to be in an interrupt
+context too long.
+Instead of executing the handler from the interrupt context we
+execute it from a much friendly tasklet context.
 
---3siQDZowHQqNOShm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/cq.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-On Mon, Apr 11, 2016 at 02:32:29PM -0700, Christoph Hellwig wrote:
-> From: Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index a00ba44..dabcc65 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -879,7 +879,10 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
+ 
+ 	mlx5_ib_dbg(dev, "cqn 0x%x\n", cq->mcq.cqn);
+ 	cq->mcq.irqn = irqn;
+-	cq->mcq.comp  = mlx5_ib_cq_comp;
++	if (context)
++		cq->mcq.tasklet_ctx.comp = mlx5_ib_cq_comp;
++	else
++		cq->mcq.comp  = mlx5_ib_cq_comp;
+ 	cq->mcq.event = mlx5_ib_cq_event;
+ 
+ 	INIT_LIST_HEAD(&cq->wc_list);
+-- 
+2.5.0
 
-Sagi sent it to ML approximately two weeks ago [1]
-
-[1] http://www.spinics.net/lists/linux-rdma/msg34619.html
-
---3siQDZowHQqNOShm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXE5VlAAoJEORje4g2clinn6oQAKLCFp4sfklemj2WEDPJZgUg
-o1f+aVNn3bKHC1pUG97cI8zYKWkNkGOe2c14+ECdFx1BZAYEsQigV9HN6dzAvht4
-qSIK79uYF6WzPbubTDU+z19KRUaIfISam96Me2Lh5VgH9UHMbTuUJgBmEh+4F9St
-o6jJNvVZGqxiY507OtTdJ3Q0k7eeDaAF9Ap/M+JnlEMnmg/zzlfsOeHEpcxCod9i
-Uy0dAIxXx8hH4GS2+Jfk/oyS8I4gfzBCKecSbmTAtaN55IW2G95Ul0URKApwECO0
-75ITykIV0bXkcnQifKek1VQe+jOl749uV++t0b7jWhPFgla23+wScxBITu7nwqrT
-rBWJuKDqaOYUkj4Gu8FZknr1wqFYs0OolN8LTPap1r/lEP54r5CR9DEekez5UUIb
-ahpEZ2De2p1jce1SP5HLcLtSC2a4xStP6axwysWDuInUIj5Sea9law5jvvoeN4nM
-yPhh5cyPhF9ht8GJH3d+PrA9WzxU5yzrVzYwJ9wwHncl+EgF1Mmq15uHx03A6jbi
-dZ1/a9PkiqkdE6CrRZk3LOBGk3NYD2OmLz2sXyk0qnmJhuxUtW2MTQK5QQ3DJy8Y
-tw4Bw5Rylpz0XKG/op8CrpQr4dNazo197Xmmguqfq4srUuOZnqSgAecf+jFStx1L
-Pc9v3zrWTDL4Lv2ECrQ0
-=Kyk3
------END PGP SIGNATURE-----
-
---3siQDZowHQqNOShm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
