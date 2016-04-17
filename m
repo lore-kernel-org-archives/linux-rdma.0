@@ -1,79 +1,68 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Sat, 16 Apr 2016 18:23:32 -0400
-Message-ID: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org
-Cc: Sinan Kaya <okaya@codeaurora.org>, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [RDMA PATCH 00/16] RDMA/Intel X722 iWARP driver update
+Date: Sun, 17 Apr 2016 17:07:14 +0300
+Message-ID: <20160417140714.GE6349@leon.nu>
+References: <1460557852-10824-1-git-send-email-mustafa.ismail@intel.com>
+Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G6nVm6DDWH/FONJq"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1460557852-10824-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Current code is assuming that the address returned by dma_alloc_coherent
-is a logical address. This is not true on ARM/ARM64 systems. This patch
-replaces dma_alloc_coherent with dma_map_page API. The address returned
-can later by virtually mapped from the CPU side with vmap API.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/net/ethernet/mellanox/mlx4/alloc.c | 37 ++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 10 deletions(-)
+--G6nVm6DDWH/FONJq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-index 0c51c69..22a7ae7 100644
---- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-@@ -618,13 +618,26 @@ int mlx4_buf_alloc(struct mlx4_dev *dev, int size, int max_direct,
- 			return -ENOMEM;
- 
- 		for (i = 0; i < buf->nbufs; ++i) {
--			buf->page_list[i].buf =
--				dma_alloc_coherent(&dev->persist->pdev->dev,
--						   PAGE_SIZE,
--						   &t, gfp);
--			if (!buf->page_list[i].buf)
-+			struct page *page;
-+
-+			page = alloc_page(GFP_KERNEL);
-+			if (!page)
- 				goto err_free;
- 
-+			t = dma_map_page(&dev->persist->pdev->dev, page, 0,
-+					 PAGE_SIZE, DMA_BIDIRECTIONAL);
-+
-+			if (dma_mapping_error(&dev->persist->pdev->dev, t)) {
-+				__free_page(page);
-+				goto err_free;
-+			}
-+
-+			buf->page_list[i].buf = page_address(page);
-+			if (!buf->page_list[i].buf) {
-+				__free_page(page);
-+				goto err_free;
-+			}
-+
- 			buf->page_list[i].map = t;
- 
- 			memset(buf->page_list[i].buf, 0, PAGE_SIZE);
-@@ -666,11 +679,15 @@ void mlx4_buf_free(struct mlx4_dev *dev, int size, struct mlx4_buf *buf)
- 			vunmap(buf->direct.buf);
- 
- 		for (i = 0; i < buf->nbufs; ++i)
--			if (buf->page_list[i].buf)
--				dma_free_coherent(&dev->persist->pdev->dev,
--						  PAGE_SIZE,
--						  buf->page_list[i].buf,
--						  buf->page_list[i].map);
-+			if (buf->page_list[i].buf) {
-+				struct page *page;
-+
-+				page = virt_to_page(buf->page_list[i].buf);
-+				dma_unmap_page(&dev->persist->pdev->dev,
-+					       buf->page_list[i].map,
-+					       PAGE_SIZE, DMA_BIDIRECTIONAL);
-+				__free_page(page);
-+			}
- 		kfree(buf->page_list);
- 	}
- }
--- 
-1.8.2.1
+On Wed, Apr 13, 2016 at 09:30:36AM -0500, Mustafa Ismail wrote:
+> This (V2) series incorporates feedback received for the initial series.
+>=20
+> This patch series covers changes to i40iw since the initial driver
+> submission including base memory management extensions, virtual channel
+> messages queue, corrections for endian warnings and bug fixes.
+>=20
+> This patch series is based on Doug Ledford's
+> https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+>=20
+> Changes from original version to V2 incorporates feedback received:
+> 1. Move RDMA in subject line.
+
+It will be great if for your next submission remove RDMA word from [RDMA
+PATCH xx/xx] title and add versioning to it.
+
+Thanks
+
+--G6nVm6DDWH/FONJq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXE5iSAAoJEORje4g2clinQDAQAKS6aQuEzLqKuRaD5lHnk666
+aWsiLq6sAgC1NDKg27Qn2U/0s4UpgglF29/f+pnc7eZF9zT5vzT4ekBRg9F9P3Ph
+FZiwS2R8siImeRhFnm7OKhynsz0Tk0X6RAnGin7EzrLgAoDEpvQyNLzgkQfKuZJ3
+dAilLtJkdysPrtEcLyFBJ9Y+VKCocFPjo4TO8PMZ6YjRSM+gB6yrlAQv4hv1Xb8p
+CR6q6nbQPb2/K72Smx0F79zDQE7fvBR/An2bO8xttiTiahtLHLg3DpfCC8195UEv
+F95sq4o7yq1GQ7l0/zYGHtBoHOklcs3FvbPWaTOm+OyGOXcw+jyOP63kLoQwCx3o
++KGsAXoEf8Odd5pYfbyHexjPxaVJdZmFJ5gVqM1/3qmn55bG7iTVPua53tSxg+/b
+qLzDJhy71V1A/quoH03i8/DYuELU1Bhek+2aLJnCjHJaQ9v/ED6L1ufNfs6GnMGz
+FeOyv95pkhJwxN4JdElQpJytUCWIKnbZhV6O2mZ6dxb79StKYlYklWeJbPka7ZMm
+KiYpxJDfoIjei05IXjrWf48Yl/mwzQYilh6A+TvVp/aTnK9PuBxM2+RbKLhRV+tT
+jFFQZ6zaXT7G7Vr//+Xu9VA6o62SldKCS+SP0A0HH4cebO2MNM/Sej0gofOt3bVh
+wWgtXK02ULe9DJp6RFe+
+=PXzf
+-----END PGP SIGNATURE-----
+
+--G6nVm6DDWH/FONJq--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
