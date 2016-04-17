@@ -1,20 +1,20 @@
 From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 4/5] IB/mlx5: Add Scatter FCS support for Raw
- Packet QP
-Date: Sun, 17 Apr 2016 23:10:00 +0800
-Message-ID: <201604172311.EdAnAaHR%fengguang.wu@intel.com>
-References: <1460902778-5977-5-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH for-next 5/5] IB/mlx5: Report Scatter FCS device
+ capability when supported
+Date: Sun, 17 Apr 2016 23:15:06 +0800
+Message-ID: <201604172312.q5PrsJ8B%fengguang.wu@intel.com>
+References: <1460902778-5977-6-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
+Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460902778-5977-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1460902778-5977-6-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---CE+1k2dSO48ffgeK
+--nFreZHaLTZJo0R7j
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -35,51 +35,40 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   drivers/infiniband/hw/mlx5/qp.c: In function 'create_raw_packet_qp_rq':
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
+   drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_query_device':
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
+>> drivers/infiniband/hw/mlx5/main.c:521:6: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
 
-vim +1056 drivers/infiniband/hw/mlx5/qp.c
+vim +521 drivers/infiniband/hw/mlx5/main.c
 
-  1050		MLX5_SET(rqc, rqc, state, MLX5_RQC_STATE_RST);
-  1051		MLX5_SET(rqc, rqc, flush_in_error_en, 1);
-  1052		MLX5_SET(rqc, rqc, user_index, MLX5_GET(qpc, qpc, user_index));
-  1053		MLX5_SET(rqc, rqc, cqn, MLX5_GET(qpc, qpc, cqn_rcv));
-  1054	
-  1055		if (mqp->flags & MLX5_IB_QP_CAP_SCATTER_FCS)
-> 1056			MLX5_SET(rqc, rqc, scatter_fcs, 1);
-  1057	
-  1058		wq = MLX5_ADDR_OF(rqc, rqc, wq);
-  1059		MLX5_SET(wq, wq, wq_type, MLX5_WQ_TYPE_CYCLIC);
+   515		if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+   516			props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+   517			props->device_cap_flags |= IB_DEVICE_UD_TSO;
+   518		}
+   519	
+   520		if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+ > 521		    MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+   522			props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
+   523	
+   524		props->vendor_part_id	   = mdev->pdev->device;
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---CE+1k2dSO48ffgeK
+--nFreZHaLTZJo0R7j
 Content-Type: application/octet-stream
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICJWmE1cAAy5jb25maWcAlFxbc9u4kn6fX6HK7MPuw0wSx9HJ7pYfQBAUMeLNBCjLfmE5
+H4sICL+mE1cAAy5jb25maWcAlFxbc9u4kn6fX6HK7MPuw0wSx9HJ7pYfQBAUMeLNBCjLfmE5
 jpK4xrFdljxn8u+3G7w1LpRmp2oq5vc1QFwaje4GqF9/+XXBXg9PP24P93e3Dw8/F992j7uX
 28Puy+Lr/cPufxdxuShKvRCx1L+DcHb/+Pr32wNQi/Pfl7+/++3l7myx3r087h4W/Onx6/23
 Vyh9//T4y6+/8LJI5KrVMhMXP4enPG+mh5UoRC15y1WTT2jKNqJlNU9blmUlb2uRs8qhldBN
@@ -892,7 +881,7 @@ xWg5ONfpCi8I0TLwfzFzP4n8B5vNlWJzJW4nxMy+8YM6o+mqi7LjoUhG92WODbfA8gEreHAH
 vpyG4w4EfkIjJkNhWiFhcPCqUI5PzMcuSE0SplQGHY5Oo1EHHl6cht56loGdZuSvRO0aUnd4
 BmNQqIRZO26UzgsRqft6l/cf6zxuqROsAgA=
 
---CE+1k2dSO48ffgeK--
+--nFreZHaLTZJo0R7j--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
