@@ -1,127 +1,231 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 00/10] Verbs RSS
-Date: Sun, 17 Apr 2016 17:27:07 +0300
-Message-ID: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V3 for-next 02/10] IB/core: Introduce Work Queue object and its verbs
+Date: Sun, 17 Apr 2016 17:27:09 +0300
+Message-ID: <1460903237-16870-3-git-send-email-yishaih@mellanox.com>
+References: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460903237-16870-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RSS (Receive Side Scaling) technology allows to spread incoming traffic
-between different receive descriptor queues.
-Assigning each queue to different CPU cores allows to better load
-balance the incoming traffic and improve performance.
+Introduce Work Queue object and its create/destroy/modify verbs.
 
-This patch-set introduces some new objects and verbs in order to allow
-verbs based solutions to utilize the RSS offload capability which is
-widely supported today by many modern NICs. It extends the IB and uverbs
-layers to support the above functionality and supplies a specific
-implementation for the mlx5_ib driver.
+QP can be created without internal WQs "packaged" inside it,
+this QP can be configured to use "external" WQ object as its
+receive/send queue.
+WQ is a necessary component for RSS technology since RSS mechanism
+is supposed to distribute the traffic between multiple
+Receive Work Queues.
 
-The implementation is based on an RFC that was sent to the list some
-months ago and describes the expected verbs and objects.
-RFC: http://www.spinics.net/lists/linux-rdma/msg25012.html
+WQ associated (many to one) with Completion Queue and it owns WQ
+properties (PD, WQ size, etc.).
+WQ has a type, this patch introduces the IB_WQT_RQ (i.e.receive queue),
+it may be extend to others such as IB_WQT_SQ. (send queue).
+WQ from type IB_WQT_RQ contains receive work requests.
 
-In addition, below URL can be used as a reference to the motivation and
-the justification to add the new objects that are described below.
-http://lxr.free-electrons.com/source/Documentation/networking/scaling.txt
+PD is an attribute of a work queue (i.e. send/receive queue), it's used
+by the hardware for security validation before scattering to a memory
+region which is pointed by the WQ. For that, an external WQ object
+needs a PD, letting the hardware makes that validation.
 
-Overview of the changes:
-- Add new objects: Work Queue and Receive Work Queues Indirection Table.
-- Add new verbs that are required to handle the new objects:
-  ib_create_wq(), ib_modify_wq(), ib_destory_wq(),
-  ib_create_rwq_ind_table(), ib_destroy_rwq_ind_table().
-- Extend ib_create_qp() to get RSS hashing configuration.
+When accessing a memory region that is pointed by the WQ its PD
+is used and not the QP's PD, this behavior is similar
+to a SRQ and a QP.
 
-Work Queue: (ib_wq)
-- Work Queue is associated (many to one) with  Completion Queue.
-- It owns Work Queue properties (PD, WQ size etc.).
-- Currently Work Queue type can be IB_WQT_RQ (receive queue), other ones
-  may be added in the future. (e.g. IB_WQT_SQ, send queue)
-- Work Queue from type IB_WQT_RQ contains receive work requests.
-- Work Queue context is subject to a well-defined state transitions done
-  by the modify_wq verb.
-- Work Queue is a necessary component for RSS technology since RSS
-  mechanism is supposed to distribute the traffic between multiple
-  Receive Work Queues.
+WQ context is subject to a well-defined state transitions done by
+the modify_wq verb.
+When WQ is created its initial state becomes IB_WQS_RESET.
+>From IB_WQS_RESET it can be modified to itself or to IB_WQS_RDY.
+>From IB_WQS_RDY it can be modified to itself, to IB_WQS_RESET
+or to IB_WQS_ERR.
+>From IB_WQS_ERR it can be modified to IB_WQS_RESET.
 
-Receive Work Queue Indirection Table: (ib_rwq_ind_tbl)
-- Serves to spread traffic between Work Queues from type RQ.
-- Can be modified dynamically to give different queues different relative
-  weights.
-- The receive queue for a packet is determined by computed hash for the
-  incoming packet.
-- Receive Work Queue Indirection Table is associated (one to many) with QPs.
+Note: transition to IB_WQS_ERR might occur implicitly in case there
+was some HW error.
 
-RSS hashing configuration:
-- Should be used to compute the required RQ entry for the incoming packet.
-- It includes:
-    * Receive Work Queue (WQ) indirection table.
-    * The hashing function used to choose the WQ from this table.
-    * The packet's properties that the hashing function should use.
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 82 +++++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         | 56 +++++++++++++++++++++++++++-
+ 2 files changed, 137 insertions(+), 1 deletion(-)
 
-Future extensions to this patch-set:
-- Add ib_modify_rwq_ind_table() verb to enable a dynamic RQ mapping change.
-- Reflect RSS capabilities by the query device verb.
-- User space support (i.e. libibverbs/vendor drivers) to expose the new verbs
-  and objects.
-
-Patches:
-#1:  Exposes the required APIs from mlx5_core to be used in coming patches
-     by mlx5_ib driver.
-#2:  Introduces the Work Queue object and its verbs in the IB layer.
-#3:  Adds uverbs support for the Work Queue verbs.
-#4:  Implements the Work Queue verbs in mlx5_ib driver.
-#5:  Introduces Receive Work Queue indirection table and its verbs in
-     the IB layer.
-#6:  Adds uverbs support for the Receive Work Queue indirection table verbs.
-#7:  Implements the Receive Work Queue indirection table verbs in mlx5_ib driver.
-#8:  Extends create QP to get RX HASH configuration in the IB layer.
-#9:  Extends create QP to get RX HASH configuration in the uverbs layer.
-#10: Adds RSS QP support in mlx5_ib driver.
-
-Changes from V2:
-- Improve the new verbs to enable clean future extensions in both uverbs
-  and mlx5_ib layers.
-- Add the last three patches to enable RSS QP creation.
-
-Changes from V1:
-#patch #2: Change ib_modify_wq to use u32 instead of enum for bit wise values.
-#patch #3: Improve usage of attr_mask/comp_mask.
-#patch #4: Fix driver issue in mlx5_ib in PPC.
-#patch #6: Limit un-expected memory allocation.
-
-Changes from V0:
-patch #2: Move the new verbs documentation to be in the C file,
-          improve the commit message.
-patch #5: Move the new verbs documentation to be in the C file.
-
-Yishai Hadas (10):
-  net/mlx5: Export required core functions to support RSS
-  IB/core: Introduce Work Queue object and its verbs
-  IB/uverbs: Add WQ support
-  IB/mlx5: Add receive Work Queue verbs
-  IB/core: Introduce Receive Work Queue indirection table
-  IB/uverbs: Introduce RWQ Indirection table
-  IB/mlx5: Add Receive Work Queue Indirection table operations
-  IB/core: Extend create QP to get RX HASH configuration
-  IB/uverbs: Extend create QP to get RX HASH configuration
-  IB/mlx5: Add RSS QP support
-
- drivers/infiniband/core/uverbs.h                   |  12 +
- drivers/infiniband/core/uverbs_cmd.c               | 505 +++++++++++++++++-
- drivers/infiniband/core/uverbs_main.c              |  38 ++
- drivers/infiniband/core/verbs.c                    | 168 +++++-
- drivers/infiniband/hw/mlx5/main.c                  |  12 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |  54 ++
- drivers/infiniband/hw/mlx5/qp.c                    | 567 +++++++++++++++++++++
- drivers/infiniband/hw/mlx5/user.h                  |  30 ++
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c |   4 +
- include/rdma/ib_verbs.h                            | 118 ++++-
- include/uapi/rdma/ib_user_verbs.h                  |  77 +++
- 11 files changed, 1577 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 15b8adb..c6c5792 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1516,6 +1516,88 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ }
+ EXPORT_SYMBOL(ib_dealloc_xrcd);
+ 
++/**
++ * ib_create_wq - Creates a WQ associated with the specified protection
++ * domain.
++ * @pd: The protection domain associated with the WQ.
++ * @wq_init_attr: A list of initial attributes required to create the
++ * WQ. If WQ creation succeeds, then the attributes are updated to
++ * the actual capabilities of the created WQ.
++ *
++ * wq_init_attr->max_wr and wq_init_attr->max_sge determine
++ * the requested size of the WQ, and set to the actual values allocated
++ * on return.
++ * If ib_create_wq() succeeds, then max_wr and max_sge will always be
++ * at least as large as the requested values.
++ */
++struct ib_wq *ib_create_wq(struct ib_pd *pd,
++			   struct ib_wq_init_attr *wq_attr)
++{
++	struct ib_wq *wq;
++
++	if (!pd->device->create_wq)
++		return ERR_PTR(-ENOSYS);
++
++	wq = pd->device->create_wq(pd, wq_attr, NULL);
++	if (!IS_ERR(wq)) {
++		wq->event_handler = wq_attr->event_handler;
++		wq->wq_context = wq_attr->wq_context;
++		wq->wq_type = wq_attr->wq_type;
++		wq->cq = wq_attr->cq;
++		wq->device = pd->device;
++		wq->pd = pd;
++		wq->uobject = NULL;
++		atomic_inc(&pd->usecnt);
++		atomic_inc(&wq_attr->cq->usecnt);
++		atomic_set(&wq->usecnt, 0);
++	}
++	return wq;
++}
++EXPORT_SYMBOL(ib_create_wq);
++
++/**
++ * ib_destroy_wq - Destroys the specified WQ.
++ * @wq: The WQ to destroy.
++ */
++int ib_destroy_wq(struct ib_wq *wq)
++{
++	int err;
++	struct ib_cq *cq = wq->cq;
++	struct ib_pd *pd = wq->pd;
++
++	if (atomic_read(&wq->usecnt))
++		return -EBUSY;
++
++	err = wq->device->destroy_wq(wq);
++	if (!err) {
++		atomic_dec(&pd->usecnt);
++		atomic_dec(&cq->usecnt);
++	}
++	return err;
++}
++EXPORT_SYMBOL(ib_destroy_wq);
++
++/**
++ * ib_modify_wq - Modifies the specified WQ.
++ * @wq: The WQ to modify.
++ * @wq_attr: On input, specifies the WQ attributes to modify.
++ * @wq_attr_mask: A bit-mask used to specify which attributes of the WQ
++ *   are being modified.
++ * On output, the current values of selected WQ attributes are returned.
++ */
++int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
++		 u32 wq_attr_mask)
++{
++	int err;
++
++	if (!wq->device->modify_wq)
++		return -ENOSYS;
++
++	err = wq->device->modify_wq(wq, wq_attr, wq_attr_mask, NULL);
++	return err;
++}
++EXPORT_SYMBOL(ib_modify_wq);
++
+ struct ib_flow *ib_create_flow(struct ib_qp *qp,
+ 			       struct ib_flow_attr *flow_attr,
+ 			       int domain)
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fb2cef4..5934f2d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1416,6 +1416,48 @@ struct ib_srq {
+ 	} ext;
+ };
+ 
++enum ib_wq_type {
++	IB_WQT_RQ
++};
++
++enum ib_wq_state {
++	IB_WQS_RESET,
++	IB_WQS_RDY,
++	IB_WQS_ERR
++};
++
++struct ib_wq {
++	struct ib_device       *device;
++	struct ib_uobject      *uobject;
++	void		    *wq_context;
++	void		    (*event_handler)(struct ib_event *, void *);
++	struct ib_pd	       *pd;
++	struct ib_cq	       *cq;
++	u32		wq_num;
++	enum ib_wq_state       state;
++	enum ib_wq_type	wq_type;
++	atomic_t		usecnt;
++};
++
++struct ib_wq_init_attr {
++	void		       *wq_context;
++	enum ib_wq_type	wq_type;
++	u32		max_wr;
++	u32		max_sge;
++	struct	ib_cq	       *cq;
++	void		    (*event_handler)(struct ib_event *, void *);
++};
++
++enum ib_wq_attr_mask {
++	IB_WQ_STATE	= 1 << 0,
++	IB_WQ_CUR_STATE	= 1 << 1,
++};
++
++struct ib_wq_attr {
++	enum	ib_wq_state	wq_state;
++	enum	ib_wq_state	curr_wq_state;
++};
++
+ struct ib_qp {
+ 	struct ib_device       *device;
+ 	struct ib_pd	       *pd;
+@@ -1878,7 +1920,14 @@ struct ib_device {
+ 						   struct ifla_vf_stats *stats);
+ 	int			   (*set_vf_guid)(struct ib_device *device, int vf, u8 port, u64 guid,
+ 						  int type);
+-
++	struct ib_wq *		   (*create_wq)(struct ib_pd *pd,
++						struct ib_wq_init_attr *init_attr,
++						struct ib_udata *udata);
++	int			   (*destroy_wq)(struct ib_wq *wq);
++	int			   (*modify_wq)(struct ib_wq *wq,
++						struct ib_wq_attr *attr,
++						u32 wq_attr_mask,
++						struct ib_udata *udata);
+ 	struct ib_dma_mapping_ops   *dma_ops;
+ 
+ 	struct module               *owner;
+@@ -3110,6 +3159,11 @@ int ib_check_mr_status(struct ib_mr *mr, u32 check_mask,
+ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
+ 					    u16 pkey, const union ib_gid *gid,
+ 					    const struct sockaddr *addr);
++struct ib_wq *ib_create_wq(struct ib_pd *pd,
++			   struct ib_wq_init_attr *init_attr);
++int ib_destroy_wq(struct ib_wq *wq);
++int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
++		 u32 wq_attr_mask);
+ 
+ int ib_map_mr_sg(struct ib_mr *mr,
+ 		 struct scatterlist *sg,
 -- 
 1.8.3.1
 
