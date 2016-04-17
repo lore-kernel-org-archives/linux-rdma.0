@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 09/10] IB/uverbs: Extend create QP to get RX HASH configuration
-Date: Sun, 17 Apr 2016 17:27:16 +0300
-Message-ID: <1460903237-16870-10-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V3 for-next 10/10] IB/mlx5: Add RSS QP support
+Date: Sun, 17 Apr 2016 17:27:17 +0300
+Message-ID: <1460903237-16870-11-git-send-email-yishaih@mellanox.com>
 References: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460903237-16870-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,175 +10,264 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-User applications that spread QP traffic between several WQs should
-create a QP which contains an indirection table and hashing
-parameters.
-
-Extend create QP to get RX HASH configuration (that includes the
-receive Work Queue indirection table and the hashing parameters).
+Add support for Raw Ethernet RX HASH QP. Currently, creation and
+destruction of such a QP are supported. This QP is implemented as
+a simple TIR object which points to the receive RQ indirection table.
+The given hashing configuration is used to configure the TIR and by
+that it chooses the right RQ from the RQ indirection table.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 56 +++++++++++++++++++++++++++++++++---
- include/uapi/rdma/ib_user_verbs.h    | 10 +++++++
- 2 files changed, 62 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   5 +
+ drivers/infiniband/hw/mlx5/qp.c      | 183 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 188 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 1b31195..ce8b1dc 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -255,6 +255,17 @@ static void put_wq_read(struct ib_wq *wq)
- 	put_uobj_read(wq->uobject);
- }
- 
-+static struct ib_rwq_ind_table *idr_read_rwq_indirection_table(int ind_table_handle,
-+							       struct ib_ucontext *context)
-+{
-+	return idr_read_obj(&ib_uverbs_rwq_ind_tbl_idr, ind_table_handle, context, 0);
-+}
-+
-+static void put_rwq_indirection_table_read(struct ib_rwq_ind_table *ind_table)
-+{
-+	put_uobj_read(ind_table->uobject);
-+}
-+
- static struct ib_qp *idr_write_qp(int qp_handle, struct ib_ucontext *context)
- {
- 	struct ib_uobject *uobj;
-@@ -1764,6 +1775,9 @@ static int create_qp(struct ib_uverbs_file *file,
- 	struct ib_qp_init_attr		attr;
- 	struct ib_uverbs_ex_create_qp_resp resp;
- 	int				ret;
-+	struct ib_rx_hash_conf  rx_hash_conf;
-+	struct ib_rwq_ind_table *ind_tbl = NULL;
-+	bool rx_hash_qp = 0;
- 
- 	if (cmd->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
- 		return -EPERM;
-@@ -1775,6 +1789,9 @@ static int create_qp(struct ib_uverbs_file *file,
- 	init_uobj(&obj->uevent.uobject, cmd->user_handle, file->ucontext,
- 		  &qp_lock_class);
- 	down_write(&obj->uevent.uobject.mutex);
-+	rx_hash_qp = (cmd_sz >= (offsetof(typeof(*cmd), rx_hash_conf) +
-+				sizeof(cmd->rx_hash_conf)) &&
-+			cmd->rx_hash_conf.rx_hash_function);
- 
- 	if (cmd->qp_type == IB_QPT_XRC_TGT) {
- 		xrcd = idr_read_xrcd(cmd->pd_handle, file->ucontext,
-@@ -1807,11 +1824,11 @@ static int create_qp(struct ib_uverbs_file *file,
- 				}
- 			}
- 		}
--
--		scq = idr_read_cq(cmd->send_cq_handle, file->ucontext, !!rcq);
-+		if (!rx_hash_qp)
-+			scq = idr_read_cq(cmd->send_cq_handle, file->ucontext, !!rcq);
- 		rcq = rcq ?: scq;
- 		pd  = idr_read_pd(cmd->pd_handle, file->ucontext);
--		if (!pd || !scq) {
-+		if (!pd || (!scq && !rx_hash_qp)) {
- 			ret = -EINVAL;
- 			goto err_put;
- 		}
-@@ -1844,6 +1861,29 @@ static int create_qp(struct ib_uverbs_file *file,
- 		      sizeof(cmd->create_flags))
- 		attr.create_flags = cmd->create_flags;
- 
-+	attr.rx_hash_conf = NULL;
-+	if (rx_hash_qp) {
-+		if (memchr_inv(cmd->rx_hash_conf.reserved, 0,
-+			       sizeof(cmd->rx_hash_conf.reserved))) {
-+			ret = -EOPNOTSUPP;
-+			goto err_put;
-+		}
-+
-+		ind_tbl = idr_read_rwq_indirection_table(cmd->rx_hash_conf.rwq_ind_tbl_handle,
-+							 file->ucontext);
-+		if (!ind_tbl) {
-+			ret = -EINVAL;
-+			goto err_put;
-+		}
-+
-+		rx_hash_conf.rwq_ind_tbl = ind_tbl;
-+		rx_hash_conf.rx_hash_fields_mask = cmd->rx_hash_conf.rx_hash_fields_mask;
-+		rx_hash_conf.rx_hash_function = cmd->rx_hash_conf.rx_hash_function;
-+		rx_hash_conf.rx_hash_key = cmd->rx_hash_conf.rx_hash_key;
-+		rx_hash_conf.rx_key_len = cmd->rx_hash_conf.rx_key_len;
-+		attr.rx_hash_conf = &rx_hash_conf;
-+	}
-+
- 	if (attr.create_flags & ~(IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK |
- 				IB_QP_CREATE_CROSS_CHANNEL |
- 				IB_QP_CREATE_MANAGED_SEND |
-@@ -1877,16 +1917,20 @@ static int create_qp(struct ib_uverbs_file *file,
- 		qp->send_cq	  = attr.send_cq;
- 		qp->recv_cq	  = attr.recv_cq;
- 		qp->srq		  = attr.srq;
-+		qp->rwq_ind_tbl	  = ind_tbl;
- 		qp->event_handler = attr.event_handler;
- 		qp->qp_context	  = attr.qp_context;
- 		qp->qp_type	  = attr.qp_type;
- 		atomic_set(&qp->usecnt, 0);
- 		atomic_inc(&pd->usecnt);
--		atomic_inc(&attr.send_cq->usecnt);
-+		if (!rx_hash_qp)
-+			atomic_inc(&attr.send_cq->usecnt);
- 		if (attr.recv_cq)
- 			atomic_inc(&attr.recv_cq->usecnt);
- 		if (attr.srq)
- 			atomic_inc(&attr.srq->usecnt);
-+		if (ind_tbl)
-+			atomic_inc(&ind_tbl->usecnt);
- 	}
- 	qp->uobject = &obj->uevent.uobject;
- 
-@@ -1926,6 +1970,8 @@ static int create_qp(struct ib_uverbs_file *file,
- 		put_cq_read(rcq);
- 	if (srq)
- 		put_srq_read(srq);
-+	if (ind_tbl)
-+		put_rwq_indirection_table_read(ind_tbl);
- 
- 	mutex_lock(&file->mutex);
- 	list_add_tail(&obj->uevent.uobject.list, &file->ucontext->qp_list);
-@@ -1953,6 +1999,8 @@ err_put:
- 		put_cq_read(rcq);
- 	if (srq)
- 		put_srq_read(srq);
-+	if (ind_tbl)
-+		put_rwq_indirection_table_read(ind_tbl);
- 
- 	put_uobj_write(&obj->uevent.uobject);
- 	return ret;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index ea12a98..5ed680e 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -522,6 +522,15 @@ struct ib_uverbs_create_qp {
- 	__u64 driver_data[0];
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7c4769a..072db4a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -293,6 +293,10 @@ struct mlx5_ib_qp_trans {
+ 	u8			resp_depth;
  };
  
-+struct ib_uverbs_hash_conf {
-+	__u64 rx_hash_fields_mask; /* enum ib_rx_hash_fields */
-+	__u32 rwq_ind_tbl_handle;
-+	__u8 rx_hash_function; /* enum ib_rx_hash_function_flags */
-+	__u8 rx_key_len; /* valid only for Toeplitz */
-+	__u8 rx_hash_key[128]; /* valid only for Toeplitz */
-+	__u8 reserved[18];
++struct mlx5_ib_rss_qp {
++	u32	tirn;
 +};
 +
- struct ib_uverbs_ex_create_qp {
- 	__u64 user_handle;
- 	__u32 pd_handle;
-@@ -539,6 +548,7 @@ struct ib_uverbs_ex_create_qp {
- 	__u8 reserved;
- 	__u32 comp_mask;
- 	__u32 create_flags;
-+	struct ib_uverbs_hash_conf rx_hash_conf;
- };
+ struct mlx5_ib_rq {
+ 	struct mlx5_ib_qp_base base;
+ 	struct mlx5_ib_wq	*rq;
+@@ -321,6 +325,7 @@ struct mlx5_ib_qp {
+ 	union {
+ 		struct mlx5_ib_qp_trans trans_qp;
+ 		struct mlx5_ib_raw_packet_qp raw_packet_qp;
++		struct mlx5_ib_rss_qp rss_qp;
+ 	};
+ 	struct mlx5_buf		buf;
  
- struct ib_uverbs_open_qp {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 67c7ad3..6b8fbc6 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1259,6 +1259,170 @@ static void raw_packet_qp_copy_info(struct mlx5_ib_qp *qp,
+ 	rq->doorbell = &qp->db;
+ }
+ 
++static void destroy_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
++{
++	mlx5_core_destroy_tir(dev->mdev, qp->rss_qp.tirn);
++}
++
++static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
++				 struct ib_pd *pd,
++				 struct ib_qp_init_attr *init_attr,
++				 struct ib_udata *udata)
++{
++	struct ib_uobject *uobj = pd->uobject;
++	struct ib_ucontext *ucontext = uobj->context;
++	struct mlx5_ib_ucontext *mucontext = to_mucontext(ucontext);
++	struct mlx5_ib_create_qp_resp resp = {};
++	int inlen;
++	int err;
++	u32 *in;
++	void *tirc;
++	void *hfso;
++	u32 selected_fields = 0;
++	size_t min_resp_len;
++	u32 tdn = mucontext->tdn;
++
++	if (init_attr->qp_type != IB_QPT_RAW_PACKET)
++		return -EOPNOTSUPP;
++
++	if (init_attr->create_flags || init_attr->recv_cq || init_attr->send_cq ||
++	    init_attr->srq || init_attr->xrcd ||
++	    memchr_inv(&init_attr->cap, 0, sizeof(init_attr->cap)))
++		return -EINVAL;
++
++	min_resp_len = offsetof(typeof(resp), uuar_index) + sizeof(resp.uuar_index);
++	if (udata->outlen < min_resp_len)
++		return -EINVAL;
++
++	if (udata->inlen > 0 &&
++	    !ib_is_udata_cleared(udata, 0,
++				 udata->inlen)) {
++		mlx5_ib_dbg(dev, "no udata is expected for rss qp\n");
++		return -EINVAL;
++	}
++
++	err = ib_copy_to_udata(udata, &resp, min_resp_len);
++	if (err) {
++		mlx5_ib_dbg(dev, "copy failed\n");
++		return -EINVAL;
++	}
++
++	inlen = MLX5_ST_SZ_BYTES(create_tir_in);
++	in = mlx5_vzalloc(inlen);
++	if (!in)
++		return -ENOMEM;
++
++	tirc = MLX5_ADDR_OF(create_tir_in, in, ctx);
++	MLX5_SET(tirc, tirc, disp_type,
++		 MLX5_TIRC_DISP_TYPE_INDIRECT);
++	MLX5_SET(tirc, tirc, indirect_table,
++		 init_attr->rx_hash_conf->rwq_ind_tbl->ind_tbl_num);
++	MLX5_SET(tirc, tirc, transport_domain, tdn);
++
++	hfso = MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_outer);
++	switch (init_attr->rx_hash_conf->rx_hash_function) {
++	case IB_RX_HASH_FUNC_XOR:
++		err = -ENOSYS;
++		goto err;
++
++	case IB_RX_HASH_FUNC_TOEPLITZ:
++	{
++		void *rss_key = MLX5_ADDR_OF(tirc, tirc, rx_hash_toeplitz_key);
++		size_t len = MLX5_FLD_SZ_BYTES(tirc, rx_hash_toeplitz_key);
++
++		if (len != init_attr->rx_hash_conf->rx_key_len) {
++			err = -EINVAL;
++			goto err;
++		}
++
++		MLX5_SET(tirc, tirc, rx_hash_fn, MLX5_RX_HASH_FN_TOEPLITZ);
++		MLX5_SET(tirc, tirc, rx_hash_symmetric, 1);
++		memcpy(rss_key, init_attr->rx_hash_conf->rx_hash_key, len);
++		break;
++	}
++	default:
++		err = -EINVAL;
++		goto err;
++	}
++
++	if (!init_attr->rx_hash_conf->rx_hash_fields_mask) {
++		/* special case when this TIR serves as steering entry without hashing */
++		if (!init_attr->rx_hash_conf->rwq_ind_tbl->log_ind_tbl_size)
++			goto create_tir;
++		err = -EINVAL;
++		goto err;
++	}
++
++	if (((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV4) ||
++	     (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV4)) &&
++	     ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV6) ||
++	     (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV6))) {
++		err = -EINVAL;
++		goto err;
++	}
++
++	/* If none of IPV4 & IPV6 SRC/DST was set - this bit field is ignored */
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV4) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV4))
++		MLX5_SET(rx_hash_field_select, hfso, l3_prot_type,
++			 MLX5_L3_PROT_TYPE_IPV4);
++	else if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV6) ||
++		 (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV6))
++		MLX5_SET(rx_hash_field_select, hfso, l3_prot_type,
++			 MLX5_L3_PROT_TYPE_IPV6);
++
++	if (((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_TCP) ||
++	     (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_TCP)) &&
++	     ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_UDP) ||
++	     (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_UDP))) {
++		err = -EINVAL;
++		goto err;
++	}
++
++	/* If none of TCP & UDP SRC/DST was set - this bit field is ignored */
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_TCP) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_TCP))
++		MLX5_SET(rx_hash_field_select, hfso, l4_prot_type,
++			 MLX5_L4_PROT_TYPE_TCP);
++	else if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_UDP) ||
++		 (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_UDP))
++		MLX5_SET(rx_hash_field_select, hfso, l4_prot_type,
++			 MLX5_L4_PROT_TYPE_UDP);
++
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV4) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_IPV6))
++		selected_fields |= MLX5_HASH_FIELD_SEL_SRC_IP;
++
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV4) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_IPV6))
++		selected_fields |= MLX5_HASH_FIELD_SEL_DST_IP;
++
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_TCP) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_SRC_PORT_UDP))
++		selected_fields |= MLX5_HASH_FIELD_SEL_L4_SPORT;
++
++	if ((init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_TCP) ||
++	    (init_attr->rx_hash_conf->rx_hash_fields_mask & IB_RX_HASH_DST_PORT_UDP))
++		selected_fields |= MLX5_HASH_FIELD_SEL_L4_DPORT;
++
++	MLX5_SET(rx_hash_field_select, hfso, selected_fields, selected_fields);
++
++create_tir:
++	err = mlx5_core_create_tir(dev->mdev, in, inlen, &qp->rss_qp.tirn);
++
++	if (err)
++		goto err;
++
++	kvfree(in);
++	/* qpn is reserved for that QP */
++	qp->trans_qp.base.mqp.qpn = 0;
++	return 0;
++
++err:
++	kvfree(in);
++	return err;
++}
++
+ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata, struct mlx5_ib_qp *qp)
+@@ -1285,6 +1449,14 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	spin_lock_init(&qp->sq.lock);
+ 	spin_lock_init(&qp->rq.lock);
+ 
++	if (init_attr->rx_hash_conf) {
++		if (!udata)
++			return -ENOSYS;
++
++		err = create_rss_raw_qp_tir(dev, qp, pd, init_attr, udata);
++		return err;
++	}
++
+ 	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+ 		if (!MLX5_CAP_GEN(mdev, block_lb_mc)) {
+ 			mlx5_ib_dbg(dev, "block multicast loopback isn't supported\n");
+@@ -1624,6 +1796,11 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	struct mlx5_modify_qp_mbox_in *in;
+ 	int err;
+ 
++	if (qp->ibqp.rwq_ind_tbl) {
++		destroy_rss_raw_qp_tir(dev, qp);
++		return;
++	}
++
+ 	base = qp->ibqp.qp_type == IB_QPT_RAW_PACKET ?
+ 	       &qp->raw_packet_qp.rq.base :
+ 	       &qp->trans_qp.base;
+@@ -2480,6 +2657,9 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	int port;
+ 	enum rdma_link_layer ll = IB_LINK_LAYER_UNSPECIFIED;
+ 
++	if (ibqp->rwq_ind_tbl)
++		return -ENOSYS;
++
+ 	if (unlikely(ibqp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_modify_qp(ibqp, attr, attr_mask);
+ 
+@@ -4094,6 +4274,9 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	int err = 0;
+ 	u8 raw_packet_qp_state;
+ 
++	if (ibqp->rwq_ind_tbl)
++		return -ENOSYS;
++
+ 	if (unlikely(ibqp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_query_qp(ibqp, qp_attr, qp_attr_mask,
+ 					    qp_init_attr);
 -- 
 1.8.3.1
 
