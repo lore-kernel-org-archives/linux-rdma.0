@@ -1,64 +1,95 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 0/5] Add scatter FCS support
-Date: Sun, 17 Apr 2016 17:19:33 +0300
-Message-ID: <1460902778-5977-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 4/5] IB/mlx5: Add Scatter FCS support for Raw Packet QP
+Date: Sun, 17 Apr 2016 17:19:37 +0300
+Message-ID: <1460902778-5977-5-git-send-email-matanb@mellanox.com>
+References: <1460902778-5977-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460902778-5977-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Frame Check Sequence (FCS) is an error detecting code that terminates
-an Ethernet frame. When using Raw Ethernet, users sometimes want
-to validate the FCS themselves, and therefore it should be scattered
-to the receive buffers.
+Enable Scatter FCS in the RQ context when the user passes
+Scatter FCS create flag.
 
-This series adds the above support.
-
-The user can control scattering the FCS using Queue-Pair(QP) creation
-flag called IB_QP_CREATE_SCATTER_FCS.
-
-Also, to report this new device capability, we had to add a new
-device capability flags in the uverbs response called
-device_cap_flags_ex, since all the current device_cap_flags are
-occupied.
-
-device_cap_flags_ex 0-31 bits are identical to the legacy
-device_cap_flags, and the upper 32 bits (32-63 bits) report new
-extended device capabilities.
-
-Devices that support scattering the FCS should report it in
-device_cap_flags_ex using IB_DEVICE_RAW_SCATTER_FCS.
-
-This patch depends on the mlx5 core shared code that was sent to both
-IB and net trees and was already accepted by Dave Miller:
-net/mlx5: Update mlx5_ifc hardware features
-net/mlx5: Fix mlx5 ifc cmd_hca_cap bad offsets
-
-Moreover, this patch conflicts with the LSO series (that will be
-sent soon). The resolution of this conflict is available in
-Mellanox's tree.
-
-Thanks,
-Majd and Matan
-
-Majd Dibbiny (5):
-  IB/core: Add extended device capability flags
-  IB/core: Add Raw Scatter FCS device capability
-  IB/core: Add Scatter FCS create flag
-  IB/mlx5: Add Scatter FCS support for Raw Packet QP
-  IB/mlx5: Report Scatter FCS device capability when supported
-
- drivers/infiniband/core/uverbs_cmd.c |  8 +++++++-
- drivers/infiniband/hw/mlx5/main.c    |  4 ++++
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
  drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
  drivers/infiniband/hw/mlx5/qp.c      | 20 +++++++++++++++++++-
- include/rdma/ib_verbs.h              |  2 ++
- include/uapi/rdma/ib_user_verbs.h    |  1 +
- 6 files changed, 34 insertions(+), 2 deletions(-)
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index f16c818..ac23780 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -356,6 +356,7 @@ enum mlx5_ib_qp_flags {
+ 	MLX5_IB_QP_SIGNATURE_HANDLING           = 1 << 5,
+ 	/* QP uses 1 as its source QP number */
+ 	MLX5_IB_QP_SQPN_QP1			= 1 << 6,
++	MLX5_IB_QP_CAP_SCATTER_FCS		= 1 << 7,
+ };
+ 
+ struct mlx5_umr_wr {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 8dee8bc..5041176 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1028,6 +1028,7 @@ static int get_rq_pas_size(void *qpc)
+ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
+ 				   struct mlx5_ib_rq *rq, void *qpin)
+ {
++	struct mlx5_ib_qp *mqp = rq->base.container_mibqp;
+ 	__be64 *pas;
+ 	__be64 *qp_pas;
+ 	void *in;
+@@ -1051,6 +1052,9 @@ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(rqc, rqc, user_index, MLX5_GET(qpc, qpc, user_index));
+ 	MLX5_SET(rqc, rqc, cqn, MLX5_GET(qpc, qpc, cqn_rcv));
+ 
++	if (mqp->flags & MLX5_IB_QP_CAP_SCATTER_FCS)
++		MLX5_SET(rqc, rqc, scatter_fcs, 1);
++
+ 	wq = MLX5_ADDR_OF(rqc, rqc, wq);
+ 	MLX5_SET(wq, wq, wq_type, MLX5_WQ_TYPE_CYCLIC);
+ 	MLX5_SET(wq, wq, end_padding_mode,
+@@ -1136,11 +1140,12 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	}
+ 
+ 	if (qp->rq.wqe_cnt) {
++		rq->base.container_mibqp = qp;
++
+ 		err = create_raw_packet_qp_rq(dev, rq, in);
+ 		if (err)
+ 			goto err_destroy_sq;
+ 
+-		rq->base.container_mibqp = qp;
+ 
+ 		err = create_raw_packet_qp_tir(dev, rq, tdn);
+ 		if (err)
+@@ -1252,6 +1257,19 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			return -EOPNOTSUPP;
+ 		}
+ 
++	if (init_attr->create_flags & IB_QP_CREATE_SCATTER_FCS) {
++		if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
++			mlx5_ib_dbg(dev, "Scatter FCS is supported only for Raw Packet QPs");
++			return -EOPNOTSUPP;
++		}
++		if (!MLX5_CAP_GEN(dev->mdev, eth_net_offloads) ||
++		    !MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
++			mlx5_ib_dbg(dev, "Scatter FCS isn't supported\n");
++			return -EOPNOTSUPP;
++		}
++		qp->flags |= MLX5_IB_QP_CAP_SCATTER_FCS;
++	}
++
+ 	if (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR)
+ 		qp->sq_signal_bits = MLX5_WQE_CTRL_CQ_UPDATE;
+ 
 -- 
 2.5.0
 
