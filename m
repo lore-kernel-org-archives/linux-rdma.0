@@ -1,27 +1,27 @@
 From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 4/5] IB/mlx5: Add Scatter FCS support for Raw
- Packet QP
-Date: Sun, 17 Apr 2016 23:32:10 +0800
-Message-ID: <201604172352.Da2B83Vh%fengguang.wu@intel.com>
-References: <1460902778-5977-5-git-send-email-matanb@mellanox.com>
+Subject: Re: [PATCH for-next 5/5] IB/mlx5: Report Scatter FCS device
+ capability when supported
+Date: Sun, 17 Apr 2016 23:44:43 +0800
+Message-ID: <201604172352.60qppaot%fengguang.wu@intel.com>
+References: <1460902778-5977-6-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nFreZHaLTZJo0R7j"
+Content-Type: multipart/mixed; boundary="1yeeQ81UyVL57Vl7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460902778-5977-5-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1460902778-5977-6-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---nFreZHaLTZJo0R7j
+--1yeeQ81UyVL57Vl7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Majd,
 
-[auto build test ERROR on rdma/master]
-[also build test ERROR on v4.6-rc3 next-20160415]
+[auto build test WARNING on rdma/master]
+[also build test WARNING on v4.6-rc3 next-20160415]
 [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
 
 url:    https://github.com/0day-ci/linux/commits/Matan-Barak/Add-scatter-FCS-support/20160417-222225
@@ -33,169 +33,124 @@ reproduce:
         # save the attached .config to linux build tree
         make.cross ARCH=xtensa 
 
-All error/warnings (new ones prefixed by >>):
+All warnings (new ones prefixed by >>):
 
-   In file included from include/linux/mlx5/driver.h:45:0,
-                    from drivers/infiniband/hw/mlx5/mlx5_ib.h:40,
-                    from drivers/infiniband/hw/mlx5/qp.c:37:
-   drivers/infiniband/hw/mlx5/qp.c: In function 'create_raw_packet_qp_rq':
->> include/linux/mlx5/device.h:51:80: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
-    #define __mlx5_bit_off(typ, fld) ((unsigned)(unsigned long)(&(__mlx5_nullp(typ)->fld)))
-                                                                                   ^
->> include/linux/mlx5/device.h:52:34: note: in expansion of macro '__mlx5_bit_off'
-    #define __mlx5_dw_off(typ, fld) (__mlx5_bit_off(typ, fld) / 32)
-                                     ^
->> include/linux/mlx5/device.h:70:20: note: in expansion of macro '__mlx5_dw_off'
-     *((__be32 *)(p) + __mlx5_dw_off(typ, fld)) = \
-                       ^
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: note: in expansion of macro 'MLX5_SET'
-      MLX5_SET(rqc, rqc, scatter_fcs, 1);
-      ^
    In file included from include/linux/byteorder/big_endian.h:4:0,
                     from arch/xtensa/include/uapi/asm/byteorder.h:7,
                     from arch/xtensa/include/asm/bitops.h:23,
                     from include/linux/bitops.h:36,
                     from include/linux/kernel.h:10,
                     from include/linux/list.h:8,
-                    from include/linux/module.h:9,
-                    from drivers/infiniband/hw/mlx5/qp.c:33:
->> include/linux/mlx5/device.h:51:80: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
+                    from include/linux/wait.h:6,
+                    from include/linux/fs.h:5,
+                    from include/linux/highmem.h:4,
+                    from drivers/infiniband/hw/mlx5/main.c:33:
+   drivers/infiniband/hw/mlx5/main.c: In function 'mlx5_ib_query_device':
+   include/linux/mlx5/device.h:51:80: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
     #define __mlx5_bit_off(typ, fld) ((unsigned)(unsigned long)(&(__mlx5_nullp(typ)->fld)))
                                                                                    ^
-   include/uapi/linux/byteorder/big_endian.h:38:51: note: in definition of macro '__cpu_to_be32'
-    #define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
+   include/uapi/linux/byteorder/big_endian.h:39:51: note: in definition of macro '__be32_to_cpu'
+    #define __be32_to_cpu(x) ((__force __u32)(__be32)(x))
                                                       ^
->> include/linux/byteorder/generic.h:94:21: note: in expansion of macro '__be32_to_cpu'
-    #define be32_to_cpu __be32_to_cpu
-                        ^
->> include/linux/mlx5/device.h:52:34: note: in expansion of macro '__mlx5_bit_off'
+   include/linux/mlx5/device.h:52:34: note: in expansion of macro '__mlx5_bit_off'
     #define __mlx5_dw_off(typ, fld) (__mlx5_bit_off(typ, fld) / 32)
                                      ^
-   include/linux/mlx5/device.h:71:45: note: in expansion of macro '__mlx5_dw_off'
-     cpu_to_be32((be32_to_cpu(*((__be32 *)(p) + __mlx5_dw_off(typ, fld))) & \
-                                                ^
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: note: in expansion of macro 'MLX5_SET'
-      MLX5_SET(rqc, rqc, scatter_fcs, 1);
-      ^
-   include/linux/mlx5/device.h:50:57: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
+   include/linux/mlx5/device.h:85:1: note: in expansion of macro '__mlx5_dw_off'
+    __mlx5_dw_off(typ, fld))) >> __mlx5_dw_bit_off(typ, fld)) & \
+    ^
+   include/linux/mlx5/device.h:1253:2: note: in expansion of macro 'MLX5_GET'
+     MLX5_GET(per_protocol_networking_offload_caps,\
+     ^
+>> drivers/infiniband/hw/mlx5/main.c:521:6: note: in expansion of macro 'MLX5_CAP_ETH'
+         MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+         ^
+   In file included from include/linux/mlx5/driver.h:45:0,
+                    from include/linux/mlx5/port.h:36,
+                    from drivers/infiniband/hw/mlx5/main.c:45:
+   include/linux/mlx5/device.h:50:57: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
     #define __mlx5_bit_sz(typ, fld) sizeof(__mlx5_nullp(typ)->fld)
                                                             ^
-   include/uapi/linux/byteorder/big_endian.h:38:51: note: in definition of macro '__cpu_to_be32'
-    #define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
-                                                      ^
->> include/linux/mlx5/device.h:55:47: note: in expansion of macro '__mlx5_bit_sz'
-    #define __mlx5_mask(typ, fld) ((u32)((1ull << __mlx5_bit_sz(typ, fld)) - 1))
-                                                  ^
->> include/linux/mlx5/device.h:56:35: note: in expansion of macro '__mlx5_mask'
-    #define __mlx5_dw_mask(typ, fld) (__mlx5_mask(typ, fld) << __mlx5_dw_bit_off(typ, fld))
-                                      ^
->> include/linux/mlx5/device.h:72:10: note: in expansion of macro '__mlx5_dw_mask'
-           (~__mlx5_dw_mask(typ, fld))) | (((v) & __mlx5_mask(typ, fld)) \
-             ^
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: note: in expansion of macro 'MLX5_SET'
-      MLX5_SET(rqc, rqc, scatter_fcs, 1);
-      ^
-   include/linux/mlx5/device.h:50:57: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
-    #define __mlx5_bit_sz(typ, fld) sizeof(__mlx5_nullp(typ)->fld)
-                                                            ^
-   include/uapi/linux/byteorder/big_endian.h:38:51: note: in definition of macro '__cpu_to_be32'
-    #define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
-                                                      ^
    include/linux/mlx5/device.h:54:43: note: in expansion of macro '__mlx5_bit_sz'
     #define __mlx5_dw_bit_off(typ, fld) (32 - __mlx5_bit_sz(typ, fld) - (__mlx5_bit_off(typ, fld) & 0x1f))
                                               ^
->> include/linux/mlx5/device.h:56:60: note: in expansion of macro '__mlx5_dw_bit_off'
-    #define __mlx5_dw_mask(typ, fld) (__mlx5_mask(typ, fld) << __mlx5_dw_bit_off(typ, fld))
-                                                               ^
->> include/linux/mlx5/device.h:72:10: note: in expansion of macro '__mlx5_dw_mask'
-           (~__mlx5_dw_mask(typ, fld))) | (((v) & __mlx5_mask(typ, fld)) \
-             ^
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: note: in expansion of macro 'MLX5_SET'
-      MLX5_SET(rqc, rqc, scatter_fcs, 1);
-      ^
->> include/linux/mlx5/device.h:51:80: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
+   include/linux/mlx5/device.h:85:30: note: in expansion of macro '__mlx5_dw_bit_off'
+    __mlx5_dw_off(typ, fld))) >> __mlx5_dw_bit_off(typ, fld)) & \
+                                 ^
+   include/linux/mlx5/device.h:1253:2: note: in expansion of macro 'MLX5_GET'
+     MLX5_GET(per_protocol_networking_offload_caps,\
+     ^
+>> drivers/infiniband/hw/mlx5/main.c:521:6: note: in expansion of macro 'MLX5_CAP_ETH'
+         MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+         ^
+   include/linux/mlx5/device.h:51:80: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
     #define __mlx5_bit_off(typ, fld) ((unsigned)(unsigned long)(&(__mlx5_nullp(typ)->fld)))
                                                                                    ^
-   include/uapi/linux/byteorder/big_endian.h:38:51: note: in definition of macro '__cpu_to_be32'
-    #define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
-                                                      ^
    include/linux/mlx5/device.h:54:70: note: in expansion of macro '__mlx5_bit_off'
     #define __mlx5_dw_bit_off(typ, fld) (32 - __mlx5_bit_sz(typ, fld) - (__mlx5_bit_off(typ, fld) & 0x1f))
                                                                          ^
->> include/linux/mlx5/device.h:56:60: note: in expansion of macro '__mlx5_dw_bit_off'
-    #define __mlx5_dw_mask(typ, fld) (__mlx5_mask(typ, fld) << __mlx5_dw_bit_off(typ, fld))
-                                                               ^
->> include/linux/mlx5/device.h:72:10: note: in expansion of macro '__mlx5_dw_mask'
-           (~__mlx5_dw_mask(typ, fld))) | (((v) & __mlx5_mask(typ, fld)) \
-             ^
->> drivers/infiniband/hw/mlx5/qp.c:1056:3: note: in expansion of macro 'MLX5_SET'
-      MLX5_SET(rqc, rqc, scatter_fcs, 1);
-      ^
-   include/linux/mlx5/device.h:50:57: error: 'struct mlx5_ifc_rqc_bits' has no member named 'scatter_fcs'
+   include/linux/mlx5/device.h:85:30: note: in expansion of macro '__mlx5_dw_bit_off'
+    __mlx5_dw_off(typ, fld))) >> __mlx5_dw_bit_off(typ, fld)) & \
+                                 ^
+   include/linux/mlx5/device.h:1253:2: note: in expansion of macro 'MLX5_GET'
+     MLX5_GET(per_protocol_networking_offload_caps,\
+     ^
+>> drivers/infiniband/hw/mlx5/main.c:521:6: note: in expansion of macro 'MLX5_CAP_ETH'
+         MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+         ^
+   include/linux/mlx5/device.h:50:57: error: 'struct mlx5_ifc_per_protocol_networking_offload_caps_bits' has no member named 'scatter_fcs'
     #define __mlx5_bit_sz(typ, fld) sizeof(__mlx5_nullp(typ)->fld)
                                                             ^
-   include/uapi/linux/byteorder/big_endian.h:38:51: note: in definition of macro '__cpu_to_be32'
-    #define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
-                                                      ^
->> include/linux/mlx5/device.h:55:47: note: in expansion of macro '__mlx5_bit_sz'
+   include/linux/mlx5/device.h:55:47: note: in expansion of macro '__mlx5_bit_sz'
     #define __mlx5_mask(typ, fld) ((u32)((1ull << __mlx5_bit_sz(typ, fld)) - 1))
                                                   ^
-   include/linux/mlx5/device.h:72:47: note: in expansion of macro '__mlx5_mask'
-           (~__mlx5_dw_mask(typ, fld))) | (((v) & __mlx5_mask(typ, fld)) \
-                                                  ^
+   include/linux/mlx5/device.h:86:1: note: in expansion of macro '__mlx5_mask'
+    __mlx5_mask(typ, fld))
+    ^
+   include/linux/mlx5/device.h:1253:2: note: in expansion of macro 'MLX5_GET'
+     MLX5_GET(per_protocol_networking_offload_caps,\
+     ^
+>> drivers/infiniband/hw/mlx5/main.c:521:6: note: in expansion of macro 'MLX5_CAP_ETH'
+         MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+         ^
 
-vim +51 include/linux/mlx5/device.h
+vim +/MLX5_CAP_ETH +521 drivers/infiniband/hw/mlx5/main.c
 
-e126ba97 Eli Cohen      2013-07-07  44  #else
-e126ba97 Eli Cohen      2013-07-07  45  #error Host endianness not defined
-e126ba97 Eli Cohen      2013-07-07  46  #endif
-e126ba97 Eli Cohen      2013-07-07  47  
-d29b796a Eli Cohen      2014-10-02  48  /* helper macros */
-d29b796a Eli Cohen      2014-10-02  49  #define __mlx5_nullp(typ) ((struct mlx5_ifc_##typ##_bits *)0)
-d29b796a Eli Cohen      2014-10-02 @50  #define __mlx5_bit_sz(typ, fld) sizeof(__mlx5_nullp(typ)->fld)
-d29b796a Eli Cohen      2014-10-02 @51  #define __mlx5_bit_off(typ, fld) ((unsigned)(unsigned long)(&(__mlx5_nullp(typ)->fld)))
-d29b796a Eli Cohen      2014-10-02 @52  #define __mlx5_dw_off(typ, fld) (__mlx5_bit_off(typ, fld) / 32)
-d29b796a Eli Cohen      2014-10-02  53  #define __mlx5_64_off(typ, fld) (__mlx5_bit_off(typ, fld) / 64)
-d29b796a Eli Cohen      2014-10-02  54  #define __mlx5_dw_bit_off(typ, fld) (32 - __mlx5_bit_sz(typ, fld) - (__mlx5_bit_off(typ, fld) & 0x1f))
-d29b796a Eli Cohen      2014-10-02 @55  #define __mlx5_mask(typ, fld) ((u32)((1ull << __mlx5_bit_sz(typ, fld)) - 1))
-d29b796a Eli Cohen      2014-10-02 @56  #define __mlx5_dw_mask(typ, fld) (__mlx5_mask(typ, fld) << __mlx5_dw_bit_off(typ, fld))
-d29b796a Eli Cohen      2014-10-02  57  #define __mlx5_st_sz_bits(typ) sizeof(struct mlx5_ifc_##typ##_bits)
-d29b796a Eli Cohen      2014-10-02  58  
-d29b796a Eli Cohen      2014-10-02  59  #define MLX5_FLD_SZ_BYTES(typ, fld) (__mlx5_bit_sz(typ, fld) / 8)
-d29b796a Eli Cohen      2014-10-02  60  #define MLX5_ST_SZ_BYTES(typ) (sizeof(struct mlx5_ifc_##typ##_bits) / 8)
-d29b796a Eli Cohen      2014-10-02  61  #define MLX5_ST_SZ_DW(typ) (sizeof(struct mlx5_ifc_##typ##_bits) / 32)
-938fe83c Saeed Mahameed 2015-05-28  62  #define MLX5_UN_SZ_BYTES(typ) (sizeof(union mlx5_ifc_##typ##_bits) / 8)
-938fe83c Saeed Mahameed 2015-05-28  63  #define MLX5_UN_SZ_DW(typ) (sizeof(union mlx5_ifc_##typ##_bits) / 32)
-d29b796a Eli Cohen      2014-10-02  64  #define MLX5_BYTE_OFF(typ, fld) (__mlx5_bit_off(typ, fld) / 8)
-d29b796a Eli Cohen      2014-10-02  65  #define MLX5_ADDR_OF(typ, p, fld) ((char *)(p) + MLX5_BYTE_OFF(typ, fld))
-d29b796a Eli Cohen      2014-10-02  66  
-d29b796a Eli Cohen      2014-10-02  67  /* insert a value to a struct */
-d29b796a Eli Cohen      2014-10-02  68  #define MLX5_SET(typ, p, fld, v) do { \
-d29b796a Eli Cohen      2014-10-02  69  	BUILD_BUG_ON(__mlx5_st_sz_bits(typ) % 32);             \
-d29b796a Eli Cohen      2014-10-02 @70  	*((__be32 *)(p) + __mlx5_dw_off(typ, fld)) = \
-d29b796a Eli Cohen      2014-10-02  71  	cpu_to_be32((be32_to_cpu(*((__be32 *)(p) + __mlx5_dw_off(typ, fld))) & \
-d29b796a Eli Cohen      2014-10-02 @72  		     (~__mlx5_dw_mask(typ, fld))) | (((v) & __mlx5_mask(typ, fld)) \
-d29b796a Eli Cohen      2014-10-02 @73  		     << __mlx5_dw_bit_off(typ, fld))); \
-d29b796a Eli Cohen      2014-10-02  74  } while (0)
-d29b796a Eli Cohen      2014-10-02  75  
-e281682b Saeed Mahameed 2015-05-28  76  #define MLX5_SET_TO_ONES(typ, p, fld) do { \
-
-:::::: The code at line 51 was first introduced by commit
-:::::: d29b796adada8780db3512c4a34b339f9aeef1ae net/mlx5_core: Use hardware registers description header file
-
-:::::: TO: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-:::::: CC: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+   505			props->sig_guard_cap = IB_GUARD_T10DIF_CRC |
+   506					       IB_GUARD_T10DIF_CSUM;
+   507		}
+   508		if (MLX5_CAP_GEN(mdev, block_lb_mc))
+   509			props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+   510	
+   511		if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+   512		    (MLX5_CAP_ETH(dev->mdev, csum_cap)))
+   513				props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+   514	
+   515		if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+   516			props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+   517			props->device_cap_flags |= IB_DEVICE_UD_TSO;
+   518		}
+   519	
+   520		if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+ > 521		    MLX5_CAP_ETH(dev->mdev, scatter_fcs))
+   522			props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
+   523	
+   524		props->vendor_part_id	   = mdev->pdev->device;
+   525		props->hw_ver		   = mdev->pdev->revision;
+   526	
+   527		props->max_mr_size	   = ~0ull;
+   528		props->page_size_cap	   = ~(min_page_size - 1);
+   529		props->max_qp		   = 1 << MLX5_CAP_GEN(mdev, log_max_qp);
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---nFreZHaLTZJo0R7j
+--1yeeQ81UyVL57Vl7
 Content-Type: application/octet-stream
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICJSoE1cAAy5jb25maWcAlFxbc9y2kn7Pr5hy9mG3ahPLsj1xdksPIAgOcYYkKAIcXV5Y
+H4sICKqrE1cAAy5jb25maWcAlFxbc9y2kn7Pr5hy9mG3ahPLsj1xdksPIAgOcYYkKAIcXV5Y
 Y3nsqCJpXJpRTvzvtxu8NUBwlH1ILH5fA8Sl0ehugPPzTz8v2Mtx/7g93t9tHx5+LL7tnnbP
 2+Puy+Lr/cPufxexWhTKLEQsza8gnN0/vfz99u/j7umwXXz4dfnr2S/Pd+eL9e75afew4Pun
 r/ffXqD8/f7pp59/4qpI5Kq5VYVo4pxd/OiRayMKTZ6rKy3y5pqnKxbHDctWqpImzUeBlShE
@@ -1026,7 +981,7 @@ WBT/BZ4Ggi8kg7NsWi/HSZjctDWNYAnzMqKrNdi5GpuzvIJFIfmYtIjdU9f84w19EZFPg4Rz
 pb6Iq5omK1jkWc2PCQJaeUxn72cMoUKI0Ok7PW6G0Pf32bEHQY7ARChQmVbIBBxOY7fH78LL
 DtmXZEKtDDqbv8/nHjw7fJ85s1cFIW2JO++MM0bf4RVInIozyvV/UF4hmC69AgA=
 
---nFreZHaLTZJo0R7j--
+--1yeeQ81UyVL57Vl7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
