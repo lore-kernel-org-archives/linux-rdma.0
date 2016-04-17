@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 05/10] IB/core: Introduce Receive Work Queue indirection table
-Date: Sun, 17 Apr 2016 17:27:12 +0300
-Message-ID: <1460903237-16870-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V3 for-next 08/10] IB/core: Extend create QP to get RX HASH configuration
+Date: Sun, 17 Apr 2016 17:27:15 +0300
+Message-ID: <1460903237-16870-9-git-send-email-yishaih@mellanox.com>
 References: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460903237-16870-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,141 +10,152 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Introduce Receive Work Queue (WQ) indirection table.
-This object can be used to spread incoming traffic to different
-receive Work Queues.
+Extend create QP to get RX HASH configuration. This configuration
+includes:
+ * Receive Work Queue (WQ) indirection table.
+ * The hashing function used to choose the WQ from this table.
+ * The packet's properties the hashing function should use.
 
-A Receive WQ indirection table points to variable size of WQs.
-This table is given to a QP in downstream patches.
+If a QP contains external WQs (without any internal queues), it is
+created stateless and ready to receive immediately.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 62 +++++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         | 23 +++++++++++++++
- 2 files changed, 85 insertions(+)
+ drivers/infiniband/core/verbs.c | 24 ++++++++++++++++++++++--
+ include/rdma/ib_verbs.h         | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 57 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index c6c5792..f06b6ca 100644
+index f06b6ca..ad0a26e 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -1598,6 +1598,68 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- }
- EXPORT_SYMBOL(ib_modify_wq);
+@@ -729,6 +729,15 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 	struct ib_qp *qp, *real_qp;
+ 	struct ib_device *device;
  
-+/*
-+ * ib_create_rwq_ind_table - Creates a RQ Indirection Table.
-+ * @device: The device on which to create the rwq indirection table.
-+ * @ib_rwq_ind_table_init_attr: A list of initial attributes required to
-+ * create the Indirection Table.
-+ *
-+ * Note: The life time of ib_rwq_ind_table_init_attr->ind_tbl is not less
-+ *	than the created ib_rwq_ind_table object and the caller is responsible
-+ *	for its memory allocation/free.
-+ */
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr *init_attr)
-+{
-+	struct ib_rwq_ind_table *rwq_ind_table;
-+	int i;
-+	u32 table_size;
-+
-+	if (!device->create_rwq_ind_table)
-+		return ERR_PTR(-ENOSYS);
-+
-+	table_size = (1 << init_attr->log_ind_tbl_size);
-+	rwq_ind_table = device->create_rwq_ind_table(device,
-+				init_attr, NULL);
-+	if (IS_ERR(rwq_ind_table))
-+		return rwq_ind_table;
-+
-+	rwq_ind_table->ind_tbl = init_attr->ind_tbl;
-+	rwq_ind_table->log_ind_tbl_size = init_attr->log_ind_tbl_size;
-+	rwq_ind_table->device = device;
-+	rwq_ind_table->uobject = NULL;
-+	atomic_set(&rwq_ind_table->usecnt, 0);
-+
-+	for (i = 0; i < table_size; i++)
-+		atomic_inc(&rwq_ind_table->ind_tbl[i]->usecnt);
-+
-+	return rwq_ind_table;
-+}
-+EXPORT_SYMBOL(ib_create_rwq_ind_table);
-+
-+/*
-+ * ib_destroy_rwq_ind_table - Destroys the specified Indirection Table.
-+ * @wq_ind_table: The Indirection Table to destroy.
-+*/
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *rwq_ind_table)
-+{
-+	int err, i;
-+	u32 table_size = (1 << rwq_ind_table->log_ind_tbl_size);
-+	struct ib_wq **ind_tbl = rwq_ind_table->ind_tbl;
-+
-+	if (atomic_read(&rwq_ind_table->usecnt))
-+		return -EBUSY;
-+
-+	err = rwq_ind_table->device->destroy_rwq_ind_table(rwq_ind_table);
-+	if (!err) {
-+		for (i = 0; i < table_size; i++)
-+			atomic_dec(&ind_tbl[i]->usecnt);
++	if (qp_init_attr->rx_hash_conf) {
++		if (qp_init_attr->send_cq || qp_init_attr->recv_cq)
++			return ERR_PTR(-EINVAL);
++		if ((qp_init_attr->qp_type != IB_QPT_UD) ||
++		    (qp_init_attr->qp_type != IB_QPT_RAW_ETHERTYPE) ||
++		    (qp_init_attr->qp_type != IB_QPT_RAW_PACKET))
++			return ERR_PTR(-EINVAL);
 +	}
 +
-+	return err;
-+}
-+EXPORT_SYMBOL(ib_destroy_rwq_ind_table);
-+
- struct ib_flow *ib_create_flow(struct ib_qp *qp,
- 			       struct ib_flow_attr *flow_attr,
- 			       int domain)
+ 	device = pd ? pd->device : qp_init_attr->xrcd->device;
+ 	qp = device->create_qp(pd, qp_init_attr, NULL);
+ 
+@@ -737,6 +746,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 		qp->real_qp    = qp;
+ 		qp->uobject    = NULL;
+ 		qp->qp_type    = qp_init_attr->qp_type;
++		qp->rwq_ind_tbl = NULL;
+ 
+ 		atomic_set(&qp->usecnt, 0);
+ 		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
+@@ -764,7 +774,8 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 				qp->srq = NULL;
+ 			} else {
+ 				qp->recv_cq = qp_init_attr->recv_cq;
+-				atomic_inc(&qp_init_attr->recv_cq->usecnt);
++				if (!qp_init_attr->rx_hash_conf)
++					atomic_inc(&qp_init_attr->recv_cq->usecnt);
+ 				qp->srq = qp_init_attr->srq;
+ 				if (qp->srq)
+ 					atomic_inc(&qp_init_attr->srq->usecnt);
+@@ -775,7 +786,12 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			qp->xrcd    = NULL;
+ 
+ 			atomic_inc(&pd->usecnt);
+-			atomic_inc(&qp_init_attr->send_cq->usecnt);
++			if (qp_init_attr->rx_hash_conf) {
++				qp->rwq_ind_tbl = qp_init_attr->rx_hash_conf->rwq_ind_tbl;
++				atomic_inc(&qp->rwq_ind_tbl->usecnt);
++			} else {
++				atomic_inc(&qp_init_attr->send_cq->usecnt);
++			}
+ 		}
+ 	}
+ 
+@@ -1248,6 +1264,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	struct ib_pd *pd;
+ 	struct ib_cq *scq, *rcq;
+ 	struct ib_srq *srq;
++	struct ib_rwq_ind_table *ind_tbl;
+ 	int ret;
+ 
+ 	if (atomic_read(&qp->usecnt))
+@@ -1260,6 +1277,7 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	scq  = qp->send_cq;
+ 	rcq  = qp->recv_cq;
+ 	srq  = qp->srq;
++	ind_tbl = qp->rwq_ind_tbl;
+ 
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+@@ -1271,6 +1289,8 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 			atomic_dec(&rcq->usecnt);
+ 		if (srq)
+ 			atomic_dec(&srq->usecnt);
++		if (ind_tbl)
++			atomic_dec(&ind_tbl->usecnt);
+ 	}
+ 
+ 	return ret;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 32640cb..84d037b 100644
+index ee3952c..31018e6 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1461,6 +1461,21 @@ struct ib_wq_attr {
- 	enum	ib_wq_state	curr_wq_state;
+@@ -1005,6 +1005,7 @@ struct ib_qp_init_attr {
+ 	enum ib_qp_type		qp_type;
+ 	enum ib_qp_create_flags	create_flags;
+ 	u8			port_num; /* special QP types only */
++	struct ib_rx_hash_conf	*rx_hash_conf;
  };
  
-+struct ib_rwq_ind_table {
-+	struct ib_device	*device;
-+	struct ib_uobject      *uobject;
-+	atomic_t		usecnt;
-+	u32		ind_tbl_num;
-+	u32		log_ind_tbl_size;
-+	struct ib_wq	**ind_tbl;
+ struct ib_qp_open_attr {
+@@ -1494,6 +1495,40 @@ struct ib_qp {
+ 	void		       *qp_context;
+ 	u32			qp_num;
+ 	enum ib_qp_type		qp_type;
++	struct ib_rwq_ind_table *rwq_ind_tbl;
 +};
 +
-+struct ib_rwq_ind_table_init_attr {
-+	u32		log_ind_tbl_size;
-+	/* Each entry is a pointer to Receive Work Queue */
-+	struct ib_wq	**ind_tbl;
++/* RX Hash function flags */
++enum ib_rx_hash_function_flags {
++	IB_RX_HASH_FUNC_TOEPLITZ	= 1 << 0,
++	IB_RX_HASH_FUNC_XOR		= 1 << 1
 +};
 +
- struct ib_qp {
- 	struct ib_device       *device;
- 	struct ib_pd	       *pd;
-@@ -1931,6 +1946,10 @@ struct ib_device {
- 						struct ib_wq_attr *attr,
- 						u32 wq_attr_mask,
- 						struct ib_udata *udata);
-+	struct ib_rwq_ind_table *  (*create_rwq_ind_table)(struct ib_device *device,
-+							   struct ib_rwq_ind_table_init_attr *init_attr,
-+							   struct ib_udata *udata);
-+	int                        (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
- 	struct ib_dma_mapping_ops   *dma_ops;
++/*
++ * RX Hash flags, these flags allows to set which incoming packet's field should
++ * participates in RX Hash. Each flag represent certain packet's field,
++ * when the flag is set the field that is represented by the flag will
++ * participate in RX Hash calculation.
++ * Note: *IPV4 and *IPV6 flags can't be enabled together on the same QP
++ * and *TCP and *UDP flags can't be enabled together on the same QP.
++*/
++enum ib_rx_hash_fields {
++	IB_RX_HASH_SRC_IPV4	= 1 << 0,
++	IB_RX_HASH_DST_IPV4	= 1 << 1,
++	IB_RX_HASH_SRC_IPV6	= 1 << 2,
++	IB_RX_HASH_DST_IPV6	= 1 << 3,
++	IB_RX_HASH_SRC_PORT_TCP	= 1 << 4,
++	IB_RX_HASH_DST_PORT_TCP	= 1 << 5,
++	IB_RX_HASH_SRC_PORT_UDP	= 1 << 6,
++	IB_RX_HASH_DST_PORT_UDP	= 1 << 7
++};
++
++struct ib_rx_hash_conf {
++	enum ib_rx_hash_function_flags rx_hash_function;
++	u8			rx_key_len; /* valid only for Toeplitz */
++	u8			*rx_hash_key;
++	u64			rx_hash_fields_mask; /* enum ib_rx_hash_fields */
++	struct ib_rwq_ind_table *rwq_ind_tbl;
+ };
  
- 	struct module               *owner;
-@@ -3167,6 +3186,10 @@ struct ib_wq *ib_create_wq(struct ib_pd *pd,
- int ib_destroy_wq(struct ib_wq *wq);
- int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *attr,
- 		 u32 wq_attr_mask);
-+struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-+						 struct ib_rwq_ind_table_init_attr*
-+						 wq_ind_table_init_attr);
-+int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
- 
- int ib_map_mr_sg(struct ib_mr *mr,
- 		 struct scatterlist *sg,
+ struct ib_mr {
 -- 
 1.8.3.1
 
