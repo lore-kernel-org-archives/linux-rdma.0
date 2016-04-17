@@ -1,58 +1,127 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 01/10] net/mlx5: Export required core functions to support RSS
-Date: Sun, 17 Apr 2016 17:27:08 +0300
-Message-ID: <1460903237-16870-2-git-send-email-yishaih@mellanox.com>
-References: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V3 for-next 00/10] Verbs RSS
+Date: Sun, 17 Apr 2016 17:27:07 +0300
+Message-ID: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460903237-16870-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In order to support RSS QPs, we need to create Ethernet based objects.
-This is done by create_rq, destroy_rq, create_rqt and destroy_rqt
-mlx5_core functions. We export these functions.
+RSS (Receive Side Scaling) technology allows to spread incoming traffic
+between different receive descriptor queues.
+Assigning each queue to different CPU cores allows to better load
+balance the incoming traffic and improve performance.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c | 4 ++++
- 1 file changed, 4 insertions(+)
+This patch-set introduces some new objects and verbs in order to allow
+verbs based solutions to utilize the RSS offload capability which is
+widely supported today by many modern NICs. It extends the IB and uverbs
+layers to support the above functionality and supplies a specific
+implementation for the mlx5_ib driver.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-index 03a5093..28274a6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-@@ -85,6 +85,7 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *rqn)
- 
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_core_create_rq);
- 
- int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen)
- {
-@@ -110,6 +111,7 @@ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
- 
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_core_destroy_rq);
- 
- int mlx5_core_query_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *out)
- {
-@@ -430,6 +432,7 @@ int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_core_create_rqt);
- 
- int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
- 			 int inlen)
-@@ -455,3 +458,4 @@ void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn)
- 
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_core_destroy_rqt);
+The implementation is based on an RFC that was sent to the list some
+months ago and describes the expected verbs and objects.
+RFC: http://www.spinics.net/lists/linux-rdma/msg25012.html
+
+In addition, below URL can be used as a reference to the motivation and
+the justification to add the new objects that are described below.
+http://lxr.free-electrons.com/source/Documentation/networking/scaling.txt
+
+Overview of the changes:
+- Add new objects: Work Queue and Receive Work Queues Indirection Table.
+- Add new verbs that are required to handle the new objects:
+  ib_create_wq(), ib_modify_wq(), ib_destory_wq(),
+  ib_create_rwq_ind_table(), ib_destroy_rwq_ind_table().
+- Extend ib_create_qp() to get RSS hashing configuration.
+
+Work Queue: (ib_wq)
+- Work Queue is associated (many to one) with  Completion Queue.
+- It owns Work Queue properties (PD, WQ size etc.).
+- Currently Work Queue type can be IB_WQT_RQ (receive queue), other ones
+  may be added in the future. (e.g. IB_WQT_SQ, send queue)
+- Work Queue from type IB_WQT_RQ contains receive work requests.
+- Work Queue context is subject to a well-defined state transitions done
+  by the modify_wq verb.
+- Work Queue is a necessary component for RSS technology since RSS
+  mechanism is supposed to distribute the traffic between multiple
+  Receive Work Queues.
+
+Receive Work Queue Indirection Table: (ib_rwq_ind_tbl)
+- Serves to spread traffic between Work Queues from type RQ.
+- Can be modified dynamically to give different queues different relative
+  weights.
+- The receive queue for a packet is determined by computed hash for the
+  incoming packet.
+- Receive Work Queue Indirection Table is associated (one to many) with QPs.
+
+RSS hashing configuration:
+- Should be used to compute the required RQ entry for the incoming packet.
+- It includes:
+    * Receive Work Queue (WQ) indirection table.
+    * The hashing function used to choose the WQ from this table.
+    * The packet's properties that the hashing function should use.
+
+Future extensions to this patch-set:
+- Add ib_modify_rwq_ind_table() verb to enable a dynamic RQ mapping change.
+- Reflect RSS capabilities by the query device verb.
+- User space support (i.e. libibverbs/vendor drivers) to expose the new verbs
+  and objects.
+
+Patches:
+#1:  Exposes the required APIs from mlx5_core to be used in coming patches
+     by mlx5_ib driver.
+#2:  Introduces the Work Queue object and its verbs in the IB layer.
+#3:  Adds uverbs support for the Work Queue verbs.
+#4:  Implements the Work Queue verbs in mlx5_ib driver.
+#5:  Introduces Receive Work Queue indirection table and its verbs in
+     the IB layer.
+#6:  Adds uverbs support for the Receive Work Queue indirection table verbs.
+#7:  Implements the Receive Work Queue indirection table verbs in mlx5_ib driver.
+#8:  Extends create QP to get RX HASH configuration in the IB layer.
+#9:  Extends create QP to get RX HASH configuration in the uverbs layer.
+#10: Adds RSS QP support in mlx5_ib driver.
+
+Changes from V2:
+- Improve the new verbs to enable clean future extensions in both uverbs
+  and mlx5_ib layers.
+- Add the last three patches to enable RSS QP creation.
+
+Changes from V1:
+#patch #2: Change ib_modify_wq to use u32 instead of enum for bit wise values.
+#patch #3: Improve usage of attr_mask/comp_mask.
+#patch #4: Fix driver issue in mlx5_ib in PPC.
+#patch #6: Limit un-expected memory allocation.
+
+Changes from V0:
+patch #2: Move the new verbs documentation to be in the C file,
+          improve the commit message.
+patch #5: Move the new verbs documentation to be in the C file.
+
+Yishai Hadas (10):
+  net/mlx5: Export required core functions to support RSS
+  IB/core: Introduce Work Queue object and its verbs
+  IB/uverbs: Add WQ support
+  IB/mlx5: Add receive Work Queue verbs
+  IB/core: Introduce Receive Work Queue indirection table
+  IB/uverbs: Introduce RWQ Indirection table
+  IB/mlx5: Add Receive Work Queue Indirection table operations
+  IB/core: Extend create QP to get RX HASH configuration
+  IB/uverbs: Extend create QP to get RX HASH configuration
+  IB/mlx5: Add RSS QP support
+
+ drivers/infiniband/core/uverbs.h                   |  12 +
+ drivers/infiniband/core/uverbs_cmd.c               | 505 +++++++++++++++++-
+ drivers/infiniband/core/uverbs_main.c              |  38 ++
+ drivers/infiniband/core/verbs.c                    | 168 +++++-
+ drivers/infiniband/hw/mlx5/main.c                  |  12 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  54 ++
+ drivers/infiniband/hw/mlx5/qp.c                    | 567 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/user.h                  |  30 ++
+ drivers/net/ethernet/mellanox/mlx5/core/transobj.c |   4 +
+ include/rdma/ib_verbs.h                            | 118 ++++-
+ include/uapi/rdma/ib_user_verbs.h                  |  77 +++
+ 11 files changed, 1577 insertions(+), 8 deletions(-)
+
 -- 
 1.8.3.1
 
