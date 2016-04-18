@@ -1,48 +1,52 @@
-From: Eli Cohen <eli@mellanox.com>
-Subject: RE: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Mon, 18 Apr 2016 14:39:36 +0000
-Message-ID: <DB5PR05MB1848424EC9DC8D4150EADB03C56B0@DB5PR05MB1848.eurprd05.prod.outlook.com>
+From: Timur Tabi <timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Mon, 18 Apr 2016 10:15:56 -0500
+Message-ID: <5714FA2C.4030209@codeaurora.org>
 References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
- <20160418065447.GA11539@x-vnc01.mtx.labs.mlnx>
- <20160418143255.GA15203@infradead.org>
+ <20160418121247.GA25387@infradead.org>
+ <0c6a430c5f0ec64f51d7c594ef9751dd@codeaurora.org>
+ <20160418131058.GA25421@infradead.org> <5714E5D6.7050600@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160418143255.GA15203@infradead.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "cov@codeaurora.org" <cov@codeaurora.org>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5714E5D6.7050600-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Right, I did not suggest this as a patch but just wanted to pinpoint the problematic issue which is that virt_to_page does not give you the correct pointer to the page.
+Sinan Kaya wrote:
+>
+> VMAP allows you to make several pages look contiguous to the CPU.
+> It can only be used against logical addresses returned from kmalloc
+> or alloc_page.
+>
+> You cannot take several virtually mapped addresses returned by dma_alloc_coherent
+> and try to make them virtually contiguous again.
+>
+> The code happens to work on other architectures by pure luck. AFAIK, dma_alloc_coherent
+> returns logical addresses on Intel systems until it runs out of DMA memory. After
+> that intel arch will also start returning virtually mapped addresses and this code
+> will also fail. ARM64 on the other hand always returns a virtually mapped address.
+>
+> The goal of this code is to allocate a bunch of page sized memory and make it look
+> contiguous. It is just using the wrong API. The correct API is either kmalloc or
+> alloc_page map it with dma_map_page not dma_alloc_coherent.
+>
+> The proper usage of dma_map_page requires code to call dma_sync API in correct
+> places to be compatible with noncoherent systems. This code is already assuming
+> coherency. It would be a nice to have dma_sync APIs in right places. There is no
+> harm in calling dma_sync API for coherent systems as they are no-ops in DMA mapping
+> layer whereas it is a cache flush for non-coherent systems.
 
------Original Message-----
-From: Christoph Hellwig [mailto:hch@infradead.org] 
-Sent: Monday, April 18, 2016 9:33 AM
-To: Eli Cohen <eli@mellanox.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>; linux-rdma@vger.kernel.org; timur@codeaurora.org; cov@codeaurora.org; Yishai Hadas <yishaih@mellanox.com>; netdev@vger.kernel.org; linux-kernel@vger.kernel.org
-Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+The text would be a great addition to the patch description.
 
-On Mon, Apr 18, 2016 at 09:54:47AM +0300, Eli Cohen wrote:
-> Sinan,
-> 
-> if we get rid of the part this code:
-> 
->                 if (BITS_PER_LONG == 64) {
->                         struct page **pages;
->                         pages = kmalloc(sizeof *pages * buf->nbufs, gfp);
->                         if (!pages)
->                                 goto err_free;
->                         ...
->                         ...
->                         if (!buf->direct.buf)
->                                 goto err_free;
->                 }
-> 
-> Does that solve the arm issue?
-
-Not quite.  You still have code in mlx4_en_map_buffer that performs this mapping later if it it wasn't mapped in mlx4_buf_alloc.
-
-You'll need to get rid of that by ensuring max_direct for all the cases currently using mlx4_en_map_buffer as well.
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora
+Forum, a Linux Foundation collaborative project.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
