@@ -1,35 +1,43 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+From: okaya@codeaurora.org
 Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Mon, 18 Apr 2016 00:00:39 -0400 (EDT)
-Message-ID: <20160418.000039.1946438541182822213.davem@davemloft.net>
+Date: Mon, 18 Apr 2016 01:06:27 -0400
+Message-ID: <87c17d3f979cf0167cd37077f39d0534@codeaurora.org>
 References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
+ <20160418.000039.1946438541182822213.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460845412-13120-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160418.000039.1946438541182822213.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, yishaih@mellanox.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Date: Sat, 16 Apr 2016 18:23:32 -0400
-
-> Current code is assuming that the address returned by dma_alloc_coherent
-> is a logical address. This is not true on ARM/ARM64 systems. This patch
-> replaces dma_alloc_coherent with dma_map_page API. The address returned
-> can later by virtually mapped from the CPU side with vmap API.
+On 2016-04-18 00:00, David Miller wrote:
+> From: Sinan Kaya <okaya@codeaurora.org>
+> Date: Sat, 16 Apr 2016 18:23:32 -0400
 > 
-> Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+>> Current code is assuming that the address returned by 
+>> dma_alloc_coherent
+>> is a logical address. This is not true on ARM/ARM64 systems. This 
+>> patch
+>> replaces dma_alloc_coherent with dma_map_page API. The address 
+>> returned
+>> can later by virtually mapped from the CPU side with vmap API.
+>> 
+>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> 
+> You can't do this.
+> 
+> The DMA map page API gives non-coherent mappings, and thus requires
+> proper flushing.
+> 
+> So a straight conversion like this is never legitimate.
 
-You can't do this.
+I would agree on proper dma api usage. However, the code is already 
+assuming coherent architecture by mapping the cpu pages as page_kernel.
 
-The DMA map page API gives non-coherent mappings, and thus requires
-proper flushing.
-
-So a straight conversion like this is never legitimate.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dma_map_page returns cached buffers and you don't need cache flushes on 
+coherent architecture to make the data visible.
