@@ -1,67 +1,68 @@
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3 00/16] RDMA/Intel X722 iWARP driver update
-Date: Mon, 18 Apr 2016 10:32:53 -0500
-Message-ID: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
+Subject: [PATCH V3 01/16] RDMA/i40iw: Fix overflow of region length
+Date: Mon, 18 Apr 2016 10:32:54 -0500
+Message-ID: <1460993589-9428-2-git-send-email-mustafa.ismail@intel.com>
+References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460993589-9428-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This (V3) series corrects the subject line of the email.
+Change region_length to u64 as a region can be > 4GB.
 
-This patch series covers changes to i40iw since the initial driver submission
-including base memory management extensions, virtual channel messages queue,
-corrections for endian warnings and bug fixes.
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_user.h  | 2 ++
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 8 +++++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-This patch series is based on Doug Ledford's
-https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
-
-Changes from V2 to V3:
-1. Adds version in subject line of email series.
-
-Changes from original version to V2 incorporates feedback received:
-1. Move RDMA in subject line.
-2. Fix for cast warning due to u64 to u32 assignment.
-3. Use named initializers for structures that have meaning outside the file.
-
-Mustafa Ismail (16):
-  RDMA/i40iw: Fix overflow of region length
-  RDMA/i40iw: Correct QP size calculation
-  RDMA/i40iw: Fix refused connections
-  RDMA/i40iw: Correct max message size in query port
-  RDMA/i40iw: Do not set self-referencing pointer to NULL after free
-  RDMA/i40iw: Add qp table lock around AE processing
-  RDMA/i40iw: Set vendor_err only if there is an actual error
-  RDMA/i40iw: Populate vendor_id and vendor_part_id fields
-  RDMA/i40iw: Remove unused code and fix warning
-  RDMA/i40iw: Add virtual channel message queue
-  RDMA/i40iw: Correct return code check in add_pble_pool
-  RDMA/i40iw: Initialize max enabled vfs variable
-  RDMA/i40iw: Add base memory management extensions
-  RDMA/i40iw: Fix endian issues and warnings
-  RDMA/i40iw: Fix SD calculation for initial HMC creation
-  RDMA/i40iw: Adding queue drain functions
-
- drivers/infiniband/hw/i40iw/i40iw.h          |   7 +-
- drivers/infiniband/hw/i40iw/i40iw_cm.c       | 144 +++++++-------
- drivers/infiniband/hw/i40iw/i40iw_cm.h       |  10 +-
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 185 ++++++++++++-----
- drivers/infiniband/hw/i40iw/i40iw_d.h        |   2 +-
- drivers/infiniband/hw/i40iw/i40iw_hw.c       |  11 +-
- drivers/infiniband/hw/i40iw/i40iw_main.c     |  55 ++++--
- drivers/infiniband/hw/i40iw/i40iw_osdep.h    |   1 +
- drivers/infiniband/hw/i40iw/i40iw_pble.c     |   9 +-
- drivers/infiniband/hw/i40iw/i40iw_puda.c     |   2 +-
- drivers/infiniband/hw/i40iw/i40iw_type.h     |  12 +-
- drivers/infiniband/hw/i40iw/i40iw_uk.c       |  80 +++-----
- drivers/infiniband/hw/i40iw/i40iw_user.h     |  36 ++--
- drivers/infiniband/hw/i40iw/i40iw_utils.c    |  47 +++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 283 ++++++++++++++++++++++++---
- drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   3 +
- drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  96 ++++-----
- 17 files changed, 671 insertions(+), 312 deletions(-)
-
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniband/hw/i40iw/i40iw_user.h
+index 5cd971b..eac9524 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_user.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
+@@ -102,6 +102,8 @@ enum i40iw_device_capabilities_const {
+ 
+ #define I40IW_STAG_INDEX_FROM_STAG(stag)    (((stag) && 0xFFFFFF00) >> 8)
+ 
++#define	I40IW_MAX_MR_SIZE	0x10000000000L
++
+ struct i40iw_qp_uk;
+ struct i40iw_cq_uk;
+ struct i40iw_srq_uk;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 1fe3b84..d7c4dd1 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -1526,14 +1526,16 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 	struct i40iw_mr *iwmr;
+ 	struct ib_umem *region;
+ 	struct i40iw_mem_reg_req req;
+-	u32 pbl_depth = 0;
++	u64 pbl_depth = 0;
+ 	u32 stag = 0;
+ 	u16 access;
+-	u32 region_length;
++	u64 region_length;
+ 	bool use_pbles = false;
+ 	unsigned long flags;
+ 	int err = -ENOSYS;
+ 
++	if (length > I40IW_MAX_MR_SIZE)
++		return ERR_PTR(-EINVAL);
+ 	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
+ 	if (IS_ERR(region))
+ 		return (struct ib_mr *)region;
+@@ -1564,7 +1566,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 	palloc = &iwpbl->pble_alloc;
+ 
+ 	iwmr->type = req.reg_type;
+-	iwmr->page_cnt = pbl_depth;
++	iwmr->page_cnt = (u32)pbl_depth;
+ 
+ 	switch (req.reg_type) {
+ 	case IW_MEMREG_TYPE_QP:
 -- 
 2.7.4
 
