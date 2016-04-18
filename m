@@ -1,65 +1,82 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH 00/21] IB/hfi1: First round of fixes for 4.7
-Date: Mon, 18 Apr 2016 10:09:36 +0300
-Message-ID: <20160418070936.GK6349@leon.nu>
-References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: [PATCH v2 2/4] io-mapping: Specify mapping size for
+ io_mapping_map_wc()
+Date: Mon, 18 Apr 2016 12:14:00 +0100
+Message-ID: <1460978042-9953-2-git-send-email-chris@chris-wilson.co.uk>
+References: <1460978042-9953-1-git-send-email-chris@chris-wilson.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ah40dssYA/cDqAW1"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160412174746.24485.92280.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1460978042-9953-1-git-send-email-chris@chris-wilson.co.uk>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: intel-gfx@lists.freedesktop.org
+Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>, netdev@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, linux-kernel@vger.kernel.org, "Peter Zijlstra (Intel)" <peterz@infradead.org>, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@kernel.org>, David Hildenbrand <dahi@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---Ah40dssYA/cDqAW1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Apr 12, 2016 at 10:49:52AM -0700, Dennis Dalessandro wrote:
-> These patches do some clean ups and fix issues which may not be appropria=
-te for
-> an RC so we are targeting these for 4.7. The current patch series applies=
- on top
-> of the "Important bug fixes for 4.6 RC" patch set submitted just prior to=
- this.
->=20
-> Patches can be viewed in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.7.
-
-Please follow SubmittingPatches guide - submitting fixes section.
-
-Thanks.
-
---Ah40dssYA/cDqAW1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXFIgwAAoJEORje4g2clinnvwP/j9pP8mLPeZlXjWChqyHrRTs
-n2WkDx386K+xjJ/MRyMGTXJqXD+uMcGbQ1g+Waib59+wuKLKb8wWExby+SewjY0d
-qEcrZT97V+LmKVASMjYEqgChYczuT65NBHvuL1vaFH+FeO7owOeb4erC815pYNiC
-ae7R52qGNN+6zJU+McNGSXpEiQbfpsUztckg/bsgvU+/Wt1n+dH8eWTSOfK7Ljyw
-65Y1gnItApSmF6fhrRvVjh74FlSlhN+/pion7Wy5H4/I2F+yOUUelWih8OjN3Wyq
-i2RREIqYMAMWfozTRw+GNFAo9J/ZWNTNYt9qz/G5DyGy25ExQFOB+NPvL2KFSr10
-xg06eV7iGf71aLXOknO4aKVdNxs6xuDFzouaCj5QnjIF1PIWV3dZo3nQn9ot5BZM
-1kfTGsoI4MPmq8rLjT73tPXWBzpwL4OvJwqAft2vvbptu8mWvxbHAMYuj6F8F9Vf
-zeLbsoLssF+4D5N1WtebWikVqubMVkK27OZPmWCrA93rdpSkMC+rzjEemi4Dxo+l
-37J6ieFt4HB7UYZxE20CcW60pJspnt2TXZ16KyPkG73O7OJoeag44ZAzsH9/v5EB
-OmyqHBMvs7tS5V/Se5aoHEhDtzIG/UDUtvfJ8JWZ/mqccovdbxpqDRq5EBIZ1DdR
-I0i1yKdZTEkD9pf3DZss
-=9nu6
------END PGP SIGNATURE-----
-
---Ah40dssYA/cDqAW1--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VGhlIGlvcmVtYXAoKSBoaWRkZW4gYmVoaW5kIHRoZSBpb19tYXBwaW5nX21hcF93YygpIGNvbnZl
+bmllbmNlIGhlbHBlcgpjYW4gYmUgdXNlZCBmb3IgcmVtYXBwaW5nIG11bHRpcGxlIHBhZ2VzLiBF
+eHRlbmQgdGhlIGhlbHBlciBzbyB0aGF0CmZ1dHVyZSBjYWxsZXJzIGNhbiB1c2UgaXQgZm9yIGxh
+cmdlciByYW5nZXMuCgpTaWduZWQtb2ZmLWJ5OiBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLXdp
+bHNvbi5jby51az4KQ2M6IFR2cnRrbyBVcnN1bGluIDx0dnJ0a28udXJzdWxpbkBpbnRlbC5jb20+
+CkNjOiBEYW5pZWwgVmV0dGVyIDxkYW5pZWwudmV0dGVyQGludGVsLmNvbT4KQ2M6IEphbmkgTmlr
+dWxhIDxqYW5pLm5pa3VsYUBsaW51eC5pbnRlbC5jb20+CkNjOiBEYXZpZCBBaXJsaWUgPGFpcmxp
+ZWRAbGludXguaWU+CkNjOiBZaXNoYWkgSGFkYXMgPHlpc2hhaWhAbWVsbGFub3guY29tPgpDYzog
+RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBJbmdvIE1vbG5hciA8
+bWluZ29Aa2VybmVsLm9yZz4KQ2M6ICJQZXRlciBaaWpsc3RyYSAoSW50ZWwpIiA8cGV0ZXJ6QGlu
+ZnJhZGVhZC5vcmc+CkNjOiBEYXZpZCBIaWxkZW5icmFuZCA8ZGFoaUBsaW51eC52bmV0LmlibS5j
+b20+CkNjOiBpbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCkNjOiBkcmktZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCkNjOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1y
+ZG1hQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwotLS0K
+IGRyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX292ZXJsYXkuYyAgICB8ICAzICsrLQogZHJpdmVy
+cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9wZC5jIHwgIDQgKysrLQogaW5jbHVkZS9saW51
+eC9pby1tYXBwaW5nLmggICAgICAgICAgICAgIHwgMTAgKysrKysrKy0tLQogMyBmaWxlcyBjaGFu
+Z2VkLCAxMiBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvZ3B1L2RybS9pOTE1L2ludGVsX292ZXJsYXkuYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2lu
+dGVsX292ZXJsYXkuYwppbmRleCA5NzQ2Yjk4NDFjMTMuLjBkNWEzNzY4NzhkMyAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfb3ZlcmxheS5jCisrKyBiL2RyaXZlcnMvZ3B1
+L2RybS9pOTE1L2ludGVsX292ZXJsYXkuYwpAQCAtMTk4LDcgKzE5OCw4IEBAIGludGVsX292ZXJs
+YXlfbWFwX3JlZ3Moc3RydWN0IGludGVsX292ZXJsYXkgKm92ZXJsYXkpCiAJCXJlZ3MgPSAoc3Ry
+dWN0IG92ZXJsYXlfcmVnaXN0ZXJzIF9faW9tZW0gKilvdmVybGF5LT5yZWdfYm8tPnBoeXNfaGFu
+ZGxlLT52YWRkcjsKIAllbHNlCiAJCXJlZ3MgPSBpb19tYXBwaW5nX21hcF93YyhnZ3R0LT5tYXBw
+YWJsZSwKLQkJCQkJIG92ZXJsYXktPmZsaXBfYWRkcik7CisJCQkJCSBvdmVybGF5LT5mbGlwX2Fk
+ZHIsCisJCQkJCSBQQUdFX1NJWkUpOwogCiAJcmV0dXJuIHJlZ3M7CiB9CmRpZmYgLS1naXQgYS9k
+cml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L3BkLmMgYi9kcml2ZXJzL25ldC9ldGhl
+cm5ldC9tZWxsYW5veC9tbHg0L3BkLmMKaW5kZXggYjNjYzNhYjYzNzk5Li42ZmMxNTZhMzkxOGQg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvcGQuYworKysg
+Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L3BkLmMKQEAgLTIwNSw3ICsyMDUs
+OSBAQCBpbnQgbWx4NF9iZl9hbGxvYyhzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgc3RydWN0IG1seDRf
+YmYgKmJmLCBpbnQgbm9kZSkKIAkJCWdvdG8gZnJlZV91YXI7CiAJCX0KIAotCQl1YXItPmJmX21h
+cCA9IGlvX21hcHBpbmdfbWFwX3djKHByaXYtPmJmX21hcHBpbmcsIHVhci0+aW5kZXggPDwgUEFH
+RV9TSElGVCk7CisJCXVhci0+YmZfbWFwID0gaW9fbWFwcGluZ19tYXBfd2MocHJpdi0+YmZfbWFw
+cGluZywKKwkJCQkJCXVhci0+aW5kZXggPDwgUEFHRV9TSElGVCwKKwkJCQkJCVBBR0VfU0laRSk7
+CiAJCWlmICghdWFyLT5iZl9tYXApIHsKIAkJCWVyciA9IC1FTk9NRU07CiAJCQlnb3RvIHVuYW1w
+X3VhcjsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvaW8tbWFwcGluZy5oIGIvaW5jbHVkZS9s
+aW51eC9pby1tYXBwaW5nLmgKaW5kZXggZTM5OTAyOWI2OGM1Li42NDVhZDA2YjVkNTIgMTAwNjQ0
+Ci0tLSBhL2luY2x1ZGUvbGludXgvaW8tbWFwcGluZy5oCisrKyBiL2luY2x1ZGUvbGludXgvaW8t
+bWFwcGluZy5oCkBAIC0xMDAsMTQgKzEwMCwxNiBAQCBpb19tYXBwaW5nX3VubWFwX2F0b21pYyh2
+b2lkIF9faW9tZW0gKnZhZGRyKQogfQogCiBzdGF0aWMgaW5saW5lIHZvaWQgX19pb21lbSAqCi1p
+b19tYXBwaW5nX21hcF93YyhzdHJ1Y3QgaW9fbWFwcGluZyAqbWFwcGluZywgdW5zaWduZWQgbG9u
+ZyBvZmZzZXQpCitpb19tYXBwaW5nX21hcF93YyhzdHJ1Y3QgaW9fbWFwcGluZyAqbWFwcGluZywK
+KwkJICB1bnNpZ25lZCBsb25nIG9mZnNldCwKKwkJICB1bnNpZ25lZCBsb25nIHNpemUpCiB7CiAJ
+cmVzb3VyY2Vfc2l6ZV90IHBoeXNfYWRkcjsKIAogCUJVR19PTihvZmZzZXQgPj0gbWFwcGluZy0+
+c2l6ZSk7CiAJcGh5c19hZGRyID0gbWFwcGluZy0+YmFzZSArIG9mZnNldDsKIAotCXJldHVybiBp
+b3JlbWFwX3djKHBoeXNfYWRkciwgUEFHRV9TSVpFKTsKKwlyZXR1cm4gaW9yZW1hcF93YyhwaHlz
+X2FkZHIsIHNpemUpOwogfQogCiBzdGF0aWMgaW5saW5lIHZvaWQKQEAgLTE1NSw3ICsxNTcsOSBA
+QCBpb19tYXBwaW5nX3VubWFwX2F0b21pYyh2b2lkIF9faW9tZW0gKnZhZGRyKQogCiAvKiBOb24t
+YXRvbWljIG1hcC91bm1hcCAqLwogc3RhdGljIGlubGluZSB2b2lkIF9faW9tZW0gKgotaW9fbWFw
+cGluZ19tYXBfd2Moc3RydWN0IGlvX21hcHBpbmcgKm1hcHBpbmcsIHVuc2lnbmVkIGxvbmcgb2Zm
+c2V0KQoraW9fbWFwcGluZ19tYXBfd2Moc3RydWN0IGlvX21hcHBpbmcgKm1hcHBpbmcsCisJCSAg
+dW5zaWduZWQgbG9uZyBvZmZzZXQsCisJCSAgdW5zaWduZWQgbG9uZyBzaXplKQogewogCXJldHVy
+biAoKGNoYXIgX19mb3JjZSBfX2lvbWVtICopIG1hcHBpbmcpICsgb2Zmc2V0OwogfQotLSAKMi44
+LjAucmMzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
