@@ -1,44 +1,39 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
- access
-Date: Mon, 18 Apr 2016 06:09:09 -0700
-Message-ID: <20160418130909.GD11508@infradead.org>
-References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
- <20160414164550.GC6247@obsidianresearch.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Mon, 18 Apr 2016 06:10:58 -0700
+Message-ID: <20160418131058.GA25421@infradead.org>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
+ <20160418121247.GA25387@infradead.org>
+ <0c6a430c5f0ec64f51d7c594ef9751dd@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160414164550.GC6247-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <0c6a430c5f0ec64f51d7c594ef9751dd@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: okaya@codeaurora.org
+Cc: Christoph Hellwig <hch@infradead.org>, linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 14, 2016 at 10:45:50AM -0600, Jason Gunthorpe wrote:
-> On Thu, Apr 14, 2016 at 08:41:35AM -0700, Dennis Dalessandro wrote:
-> > This patch series removes the write() interface for user access in favor of an
-> > ioctl() based approach. This is in response to the complaint that we had
-> > different handlers for write() and writev() doing different things and expecting
-> > different types of data. See:
+On Mon, Apr 18, 2016 at 09:06:18AM -0400, okaya@codeaurora.org wrote:
+> On 2016-04-18 08:12, Christoph Hellwig wrote:
+> >On Sat, Apr 16, 2016 at 06:23:32PM -0400, Sinan Kaya wrote:
+> >>Current code is assuming that the address returned by dma_alloc_coherent
+> >>is a logical address. This is not true on ARM/ARM64 systems.
+> >
+> >Can you explain what you mean with a 'logical address' and what actual
+> >issue you're trying to solve?
 > 
-> I think we should wait on applying these patches until we globally sort out
-> what to do with the rdma uapi.
+> Vmap call is failing on arm64 systems because dma alloc api already returns
+> an address mapped with vmap.
+
+Please state your problem clearly.  What I'm reverse engineering from
+your posts is:  because dma_alloc_coherent uses vmap-like mappings on
+arm64 (all, some systems?) a driver using a lot of them might run into
+limits of the vmap pool size.
+
+Is this correct?
+
 > 
-> It just doesn't make alot of sense for drivers to have their own personal
-> char devices. :(
-
-I looked through the patches I tend to disagree - while we should wait
-for a global UAPI for anything that's actually RDMA/verbs related these
-seem to be misc little bits specific to the driver that have no business
-in any sort of generic RDMA API.
-
-> A second char dev for the eeprom? How is that OK? Why aren't you using
-> the I2C layer for this?
-
-... but this is a really good question, although the right layer to
-plug this in would be the eeprom code in drivers/nvmem/
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please see arch/arm64/mm directory.
+---end quoted text---
