@@ -1,7 +1,7 @@
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3 14/16] RDMA/i40iw: Fix endian issues and warnings
-Date: Mon, 18 Apr 2016 10:33:07 -0500
-Message-ID: <1460993589-9428-15-git-send-email-mustafa.ismail@intel.com>
+Subject: [PATCH V3 13/16] RDMA/i40iw: Add base memory management extensions
+Date: Mon, 18 Apr 2016 10:33:06 -0500
+Message-ID: <1460993589-9428-14-git-send-email-mustafa.ismail@intel.com>
 References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460993589-9428-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,371 +10,418 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fix endian warnings and errors due to u32 stored to u16.
+Implement fast register mr, Local invalidate, send with
+invalidate and RDMA read with invalidate.
 
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw.h       |  4 +--
- drivers/infiniband/hw/i40iw/i40iw_cm.c    | 57 ++++++++++++++++---------------
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 10 +++---
- drivers/infiniband/hw/i40iw/i40iw_hw.c    |  4 +--
- drivers/infiniband/hw/i40iw/i40iw_main.c  |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_puda.c  |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_type.h  |  4 +--
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 27 +++++++--------
- 8 files changed, 54 insertions(+), 56 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c  |  82 ++++++++++--
+ drivers/infiniband/hw/i40iw/i40iw_type.h  |   3 +
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 204 ++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h |   1 +
+ 4 files changed, 271 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index f299001..8b95320 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -391,7 +391,7 @@ void i40iw_flush_wqes(struct i40iw_device *iwdev,
- 
- void i40iw_manage_arp_cache(struct i40iw_device *iwdev,
- 			    unsigned char *mac_addr,
--			    __be32 *ip_addr,
-+			    u32 *ip_addr,
- 			    bool ipv4,
- 			    u32 action);
- 
-@@ -549,7 +549,7 @@ enum i40iw_status_code i40iw_hw_flush_wqes(struct i40iw_device *iwdev,
- 					   struct i40iw_qp_flush_info *info,
- 					   bool wait);
- 
--void i40iw_copy_ip_ntohl(u32 *dst, u32 *src);
-+void i40iw_copy_ip_ntohl(u32 *dst, __be32 *src);
- struct ib_mr *i40iw_reg_phys_mr(struct ib_pd *ib_pd,
- 				u64 addr,
- 				u64 size,
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index ab6eb0b..8cb4b87 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -771,6 +771,7 @@ static void i40iw_build_mpa_v2(struct i40iw_cm_node *cm_node,
- {
- 	struct ietf_mpa_v2 *mpa_frame = (struct ietf_mpa_v2 *)start_addr;
- 	struct ietf_rtr_msg *rtr_msg = &mpa_frame->rtr_msg;
-+	u16 ctrl_ird, ctrl_ord;
- 
- 	/* initialize the upper 5 bytes of the frame */
- 	i40iw_build_mpa_v1(cm_node, start_addr, mpa_key);
-@@ -779,38 +780,38 @@ static void i40iw_build_mpa_v2(struct i40iw_cm_node *cm_node,
- 
- 	/* initialize RTR msg */
- 	if (cm_node->mpav2_ird_ord == IETF_NO_IRD_ORD) {
--		rtr_msg->ctrl_ird = IETF_NO_IRD_ORD;
--		rtr_msg->ctrl_ord = IETF_NO_IRD_ORD;
-+		ctrl_ird = IETF_NO_IRD_ORD;
-+		ctrl_ord = IETF_NO_IRD_ORD;
- 	} else {
--		rtr_msg->ctrl_ird = (cm_node->ird_size > IETF_NO_IRD_ORD) ?
-+		ctrl_ird = (cm_node->ird_size > IETF_NO_IRD_ORD) ?
- 			IETF_NO_IRD_ORD : cm_node->ird_size;
--		rtr_msg->ctrl_ord = (cm_node->ord_size > IETF_NO_IRD_ORD) ?
-+		ctrl_ord = (cm_node->ord_size > IETF_NO_IRD_ORD) ?
- 			IETF_NO_IRD_ORD : cm_node->ord_size;
- 	}
- 
--	rtr_msg->ctrl_ird |= IETF_PEER_TO_PEER;
--	rtr_msg->ctrl_ird |= IETF_FLPDU_ZERO_LEN;
-+	ctrl_ird |= IETF_PEER_TO_PEER;
-+	ctrl_ird |= IETF_FLPDU_ZERO_LEN;
- 
- 	switch (mpa_key) {
- 	case MPA_KEY_REQUEST:
--		rtr_msg->ctrl_ord |= IETF_RDMA0_WRITE;
--		rtr_msg->ctrl_ord |= IETF_RDMA0_READ;
-+		ctrl_ord |= IETF_RDMA0_WRITE;
-+		ctrl_ord |= IETF_RDMA0_READ;
- 		break;
- 	case MPA_KEY_REPLY:
- 		switch (cm_node->send_rdma0_op) {
- 		case SEND_RDMA_WRITE_ZERO:
--			rtr_msg->ctrl_ord |= IETF_RDMA0_WRITE;
-+			ctrl_ord |= IETF_RDMA0_WRITE;
- 			break;
- 		case SEND_RDMA_READ_ZERO:
--			rtr_msg->ctrl_ord |= IETF_RDMA0_READ;
-+			ctrl_ord |= IETF_RDMA0_READ;
- 			break;
- 		}
- 		break;
- 	default:
- 		break;
- 	}
--	rtr_msg->ctrl_ird = htons(rtr_msg->ctrl_ird);
--	rtr_msg->ctrl_ord = htons(rtr_msg->ctrl_ord);
-+	rtr_msg->ctrl_ird = htons(ctrl_ird);
-+	rtr_msg->ctrl_ord = htons(ctrl_ord);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index f05802b..437cb86 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -2909,6 +2909,65 @@ static enum i40iw_status_code i40iw_sc_mw_alloc(
  }
  
  /**
-@@ -2160,7 +2161,7 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
- 	cm_node->tcp_cntxt.rcv_wnd =
- 			I40IW_CM_DEFAULT_RCV_WND_SCALED >> I40IW_CM_DEFAULT_RCV_WND_SCALE;
- 	ts = current_kernel_time();
--	cm_node->tcp_cntxt.loc_seq_num = htonl(ts.tv_nsec);
-+	cm_node->tcp_cntxt.loc_seq_num = ts.tv_nsec;
- 	cm_node->tcp_cntxt.mss = iwdev->mss;
- 
- 	cm_node->iwdev = iwdev;
-@@ -2234,7 +2235,7 @@ static void i40iw_rem_ref_cm_node(struct i40iw_cm_node *cm_node)
- 	if (cm_node->listener) {
- 		i40iw_dec_refcnt_listen(cm_core, cm_node->listener, 0, true);
- 	} else {
--		if (!i40iw_listen_port_in_use(cm_core, htons(cm_node->loc_port)) &&
-+		if (!i40iw_listen_port_in_use(cm_core, cm_node->loc_port) &&
- 		    cm_node->apbvt_set && cm_node->iwdev) {
- 			i40iw_manage_apbvt(cm_node->iwdev,
- 					   cm_node->loc_port,
-@@ -2921,7 +2922,6 @@ static struct i40iw_cm_node *i40iw_create_cm_node(
- 	memcpy(cm_node->pdata_buf, private_data, private_data_len);
- 
- 	cm_node->state = I40IW_CM_STATE_SYN_SENT;
--
- 	return cm_node;
- }
- 
-@@ -3242,11 +3242,13 @@ static void i40iw_init_tcp_ctx(struct i40iw_cm_node *cm_node,
- 
- 		tcp_info->dest_ip_addr3 = cpu_to_le32(cm_node->rem_addr[0]);
- 		tcp_info->local_ipaddr3 = cpu_to_le32(cm_node->loc_addr[0]);
--		tcp_info->arp_idx = cpu_to_le32(i40iw_arp_table(iwqp->iwdev,
--								&tcp_info->dest_ip_addr3,
--								true,
--								NULL,
--								I40IW_ARP_RESOLVE));
-+		tcp_info->arp_idx =
-+			cpu_to_le16((u16)i40iw_arp_table(
-+							 iwqp->iwdev,
-+							 &tcp_info->dest_ip_addr3,
-+							 true,
-+							 NULL,
-+							 I40IW_ARP_RESOLVE));
- 	} else {
- 		tcp_info->src_port = cpu_to_le16(cm_node->loc_port);
- 		tcp_info->dst_port = cpu_to_le16(cm_node->rem_port);
-@@ -3258,12 +3260,13 @@ static void i40iw_init_tcp_ctx(struct i40iw_cm_node *cm_node,
- 		tcp_info->local_ipaddr1 = cpu_to_le32(cm_node->loc_addr[1]);
- 		tcp_info->local_ipaddr2 = cpu_to_le32(cm_node->loc_addr[2]);
- 		tcp_info->local_ipaddr3 = cpu_to_le32(cm_node->loc_addr[3]);
--		tcp_info->arp_idx = cpu_to_le32(i40iw_arp_table(
--							iwqp->iwdev,
--							&tcp_info->dest_ip_addr0,
--							false,
--							NULL,
--							I40IW_ARP_RESOLVE));
-+		tcp_info->arp_idx =
-+			cpu_to_le16((u16)i40iw_arp_table(
-+							 iwqp->iwdev,
-+							 &tcp_info->dest_ip_addr0,
-+							 false,
-+							 NULL,
-+							 I40IW_ARP_RESOLVE));
- 	}
- }
- 
-@@ -3540,7 +3543,6 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	struct i40iw_cm_node *cm_node;
- 	struct ib_qp_attr attr;
- 	int passive_state;
--	struct i40iw_ib_device *iwibdev;
- 	struct ib_mr *ibmr;
- 	struct i40iw_pd *iwpd;
- 	u16 buf_len = 0;
-@@ -3603,7 +3605,6 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	     !i40iw_ipv4_is_loopback(cm_node->loc_addr[0], cm_node->rem_addr[0])) ||
- 	    (!cm_node->ipv4 &&
- 	     !i40iw_ipv6_is_loopback(cm_node->loc_addr, cm_node->rem_addr))) {
--		iwibdev = iwdev->iwibdev;
- 		iwpd = iwqp->iwpd;
- 		tagged_offset = (uintptr_t)iwqp->ietf_mem.va;
- 		ibmr = i40iw_reg_phys_mr(&iwpd->ibpd,
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 437cb86..023a7ae 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -3970,11 +3970,11 @@ enum i40iw_status_code i40iw_process_bh(struct i40iw_sc_dev *dev)
-  */
- static u32 i40iw_iwarp_opcode(struct i40iw_aeqe_info *info, u8 *pkt)
- {
--	u16 *mpa;
-+	__be16 *mpa;
- 	u32 opcode = 0xffffffff;
- 
- 	if (info->q2_data_written) {
--		mpa = (u16 *)pkt;
-+		mpa = (__be16 *)pkt;
- 		opcode = ntohs(mpa[1]) & 0xf;
- 	}
- 	return opcode;
-@@ -4036,7 +4036,7 @@ static int i40iw_bld_terminate_hdr(struct i40iw_sc_qp *qp,
- 	if (info->q2_data_written) {
- 		/* Use data from offending packet to fill in ddp & rdma hdrs */
- 		pkt = i40iw_locate_mpa(pkt);
--		ddp_seg_len = ntohs(*(u16 *)pkt);
-+		ddp_seg_len = ntohs(*(__be16 *)pkt);
- 		if (ddp_seg_len) {
- 			copy_len = 2;
- 			termhdr->hdrct = DDP_LEN_FLAG;
-@@ -4247,13 +4247,13 @@ void i40iw_terminate_connection(struct i40iw_sc_qp *qp, struct i40iw_aeqe_info *
- void i40iw_terminate_received(struct i40iw_sc_qp *qp, struct i40iw_aeqe_info *info)
- {
- 	u8 *pkt = qp->q2_buf + Q2_BAD_FRAME_OFFSET;
--	u32 *mpa;
-+	__be32 *mpa;
- 	u8 ddp_ctl;
- 	u8 rdma_ctl;
- 	u16 aeq_id = 0;
- 	struct i40iw_terminate_hdr *termhdr;
- 
--	mpa = (u32 *)i40iw_locate_mpa(pkt);
-+	mpa = (__be32 *)i40iw_locate_mpa(pkt);
- 	if (info->q2_data_written) {
- 		/* did not validate the frame - do it now */
- 		ddp_ctl = (ntohl(mpa[0]) >> 8) & 0xff;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-index 27cfdd8..615e115 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_hw.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-@@ -467,7 +467,7 @@ int i40iw_manage_apbvt(struct i40iw_device *iwdev, u16 accel_local_port, bool ad
-  */
- void i40iw_manage_arp_cache(struct i40iw_device *iwdev,
- 			    unsigned char *mac_addr,
--			    __be32 *ip_addr,
-+			    u32 *ip_addr,
- 			    bool ipv4,
- 			    u32 action)
- {
-@@ -488,7 +488,7 @@ void i40iw_manage_arp_cache(struct i40iw_device *iwdev,
- 		cqp_info->cqp_cmd = OP_ADD_ARP_CACHE_ENTRY;
- 		info = &cqp_info->in.u.add_arp_cache_entry.info;
- 		memset(info, 0, sizeof(*info));
--		info->arp_index = cpu_to_le32(arp_index);
-+		info->arp_index = cpu_to_le16((u16)arp_index);
- 		info->permanent = true;
- 		ether_addr_copy(info->mac_addr, mac_addr);
- 		cqp_info->in.u.add_arp_cache_entry.scratch = (uintptr_t)cqp_request;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index e7b7724..72a10a1 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1162,7 +1162,7 @@ static void i40iw_add_ipv6_addr(struct i40iw_device *iwdev)
- 	struct net_device *ip_dev;
- 	struct inet6_dev *idev;
- 	struct inet6_ifaddr *ifp;
--	__be32 local_ipaddr6[4];
-+	u32 local_ipaddr6[4];
- 
- 	rcu_read_lock();
- 	for_each_netdev_rcu(&init_net, ip_dev) {
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_puda.c b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-index 8eb400d8..e9c6e82 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_puda.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_puda.c
-@@ -1194,7 +1194,7 @@ static enum i40iw_status_code i40iw_ieq_process_buf(struct i40iw_puda_rsrc *ieq,
- 
- 	ioffset = (u16)(buf->data - (u8 *)buf->mem.va);
- 	while (datalen) {
--		fpdu_len = i40iw_ieq_get_fpdu_length(ntohs(*(u16 *)datap));
-+		fpdu_len = i40iw_ieq_get_fpdu_length(ntohs(*(__be16 *)datap));
- 		if (fpdu_len > pfpdu->max_fpdu_data) {
- 			i40iw_debug(ieq->dev, I40IW_DEBUG_IEQ,
- 				    "%s: error bad fpdu_len\n", __func__);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
-index c926198..e8c9491 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_type.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
-@@ -890,8 +890,8 @@ struct i40iw_qhash_table_info {
- 	u32 qp_num;
- 	u32 dest_ip[4];
- 	u32 src_ip[4];
--	u32 dest_port;
--	u32 src_port;
-+	u16 dest_port;
-+	u16 src_port;
++ * i40iw_sc_mr_fast_register - Posts RDMA fast register mr WR to iwarp qp
++ * @qp: sc qp struct
++ * @info: fast mr info
++ * @post_sq: flag for cqp db to ring
++ */
++enum i40iw_status_code i40iw_sc_mr_fast_register(
++				struct i40iw_sc_qp *qp,
++				struct i40iw_fast_reg_stag_info *info,
++				bool post_sq)
++{
++	u64 temp, header;
++	u64 *wqe;
++	u32 wqe_idx;
++
++	wqe = i40iw_qp_get_next_send_wqe(&qp->qp_uk, &wqe_idx, I40IW_QP_WQE_MIN_SIZE,
++					 0, info->wr_id);
++	if (!wqe)
++		return I40IW_ERR_QP_TOOMANY_WRS_POSTED;
++
++	i40iw_debug(qp->dev, I40IW_DEBUG_MR, "%s: wr_id[%llxh] wqe_idx[%04d] location[%p]\n",
++		    __func__, info->wr_id, wqe_idx,
++		    &qp->qp_uk.sq_wrtrk_array[wqe_idx].wrid);
++	temp = (info->addr_type == I40IW_ADDR_TYPE_VA_BASED) ? (uintptr_t)info->va : info->fbo;
++	set_64bit_val(wqe, 0, temp);
++
++	temp = RS_64(info->first_pm_pbl_index >> 16, I40IWQPSQ_FIRSTPMPBLIDXHI);
++	set_64bit_val(wqe,
++		      8,
++		      LS_64(temp, I40IWQPSQ_FIRSTPMPBLIDXHI) |
++		      LS_64(info->reg_addr_pa >> I40IWQPSQ_PBLADDR_SHIFT, I40IWQPSQ_PBLADDR));
++
++	set_64bit_val(wqe,
++		      16,
++		      info->total_len |
++		      LS_64(info->first_pm_pbl_index, I40IWQPSQ_FIRSTPMPBLIDXLO));
++
++	header = LS_64(info->stag_key, I40IWQPSQ_STAGKEY) |
++		 LS_64(info->stag_idx, I40IWQPSQ_STAGINDEX) |
++		 LS_64(I40IWQP_OP_FAST_REGISTER, I40IWQPSQ_OPCODE) |
++		 LS_64(info->chunk_size, I40IWQPSQ_LPBLSIZE) |
++		 LS_64(info->page_size, I40IWQPSQ_HPAGESIZE) |
++		 LS_64(info->access_rights, I40IWQPSQ_STAGRIGHTS) |
++		 LS_64(info->addr_type, I40IWQPSQ_VABASEDTO) |
++		 LS_64(info->read_fence, I40IWQPSQ_READFENCE) |
++		 LS_64(info->local_fence, I40IWQPSQ_LOCALFENCE) |
++		 LS_64(info->signaled, I40IWQPSQ_SIGCOMPL) |
++		 LS_64(qp->qp_uk.swqe_polarity, I40IWQPSQ_VALID);
++
++	i40iw_insert_wqe_hdr(wqe, header);
++
++	i40iw_debug_buf(qp->dev, I40IW_DEBUG_WQE, "FAST_REG WQE",
++			wqe, I40IW_QP_WQE_MIN_SIZE);
++
++	if (post_sq)
++		i40iw_qp_post_wr(&qp->qp_uk);
++	return 0;
++}
++
++/**
+  * i40iw_sc_send_lsmm - send last streaming mode message
+  * @qp: sc qp struct
+  * @lsmm_buf: buffer with lsmm message
+@@ -4559,17 +4618,18 @@ static struct i40iw_pd_ops iw_pd_ops = {
  };
  
- struct i40iw_local_mac_ipaddr_entry_info {
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index cddd639..0e8db0a 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -59,7 +59,7 @@
-  * @action: modify, delete or add
-  */
- int i40iw_arp_table(struct i40iw_device *iwdev,
--		    __be32 *ip_addr,
-+		    u32 *ip_addr,
- 		    bool ipv4,
- 		    u8 *mac_addr,
- 		    u32 action)
-@@ -152,7 +152,7 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 	struct net_device *upper_dev;
- 	struct i40iw_device *iwdev;
- 	struct i40iw_handler *hdl;
--	__be32 local_ipaddr;
-+	u32 local_ipaddr;
+ static struct i40iw_priv_qp_ops iw_priv_qp_ops = {
+-	i40iw_sc_qp_init,
+-	i40iw_sc_qp_create,
+-	i40iw_sc_qp_modify,
+-	i40iw_sc_qp_destroy,
+-	i40iw_sc_qp_flush_wqes,
+-	i40iw_sc_qp_upload_context,
+-	i40iw_sc_qp_setctx,
+-	i40iw_sc_send_lsmm,
+-	i40iw_sc_send_lsmm_nostag,
+-	i40iw_sc_send_rtt,
+-	i40iw_sc_post_wqe0,
++	.qp_init = i40iw_sc_qp_init,
++	.qp_create = i40iw_sc_qp_create,
++	.qp_modify = i40iw_sc_qp_modify,
++	.qp_destroy = i40iw_sc_qp_destroy,
++	.qp_flush_wqes = i40iw_sc_qp_flush_wqes,
++	.qp_upload_context = i40iw_sc_qp_upload_context,
++	.qp_setctx = i40iw_sc_qp_setctx,
++	.qp_send_lsmm = i40iw_sc_send_lsmm,
++	.qp_send_lsmm_nostag = i40iw_sc_send_lsmm_nostag,
++	.qp_send_rtt = i40iw_sc_send_rtt,
++	.qp_post_wqe0 = i40iw_sc_post_wqe0,
++	.iw_mr_fast_register = i40iw_sc_mr_fast_register
+ };
  
- 	hdl = i40iw_find_netdev(event_netdev);
- 	if (!hdl)
-@@ -167,11 +167,10 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 	switch (event) {
- 	case NETDEV_DOWN:
- 		if (upper_dev)
--			local_ipaddr =
--				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address;
-+			local_ipaddr = ntohl(
-+				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address);
- 		else
--			local_ipaddr = ifa->ifa_address;
--		local_ipaddr = ntohl(local_ipaddr);
-+			local_ipaddr = ntohl(ifa->ifa_address);
- 		i40iw_manage_arp_cache(iwdev,
- 				       netdev->dev_addr,
- 				       &local_ipaddr,
-@@ -180,11 +179,10 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 		return NOTIFY_OK;
- 	case NETDEV_UP:
- 		if (upper_dev)
--			local_ipaddr =
--				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address;
-+			local_ipaddr = ntohl(
-+				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address);
- 		else
--			local_ipaddr = ifa->ifa_address;
--		local_ipaddr = ntohl(local_ipaddr);
-+			local_ipaddr = ntohl(ifa->ifa_address);
- 		i40iw_manage_arp_cache(iwdev,
- 				       netdev->dev_addr,
- 				       &local_ipaddr,
-@@ -194,12 +192,11 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 	case NETDEV_CHANGEADDR:
- 		/* Add the address to the IP table */
- 		if (upper_dev)
--			local_ipaddr =
--				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address;
-+			local_ipaddr = ntohl(
-+				((struct in_device *)upper_dev->ip_ptr)->ifa_list->ifa_address);
- 		else
--			local_ipaddr = ifa->ifa_address;
-+			local_ipaddr = ntohl(ifa->ifa_address);
+ static struct i40iw_priv_cq_ops iw_priv_cq_ops = {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 5b6a491..c926198 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -1041,6 +1041,9 @@ struct i40iw_priv_qp_ops {
+ 	void (*qp_send_lsmm_nostag)(struct i40iw_sc_qp *, void *, u32);
+ 	void (*qp_send_rtt)(struct i40iw_sc_qp *, bool);
+ 	enum i40iw_status_code (*qp_post_wqe0)(struct i40iw_sc_qp *, u8);
++	enum i40iw_status_code (*iw_mr_fast_register)(struct i40iw_sc_qp *,
++						      struct i40iw_fast_reg_stag_info *,
++						      bool);
+ };
  
--		local_ipaddr = ntohl(local_ipaddr);
- 		i40iw_manage_arp_cache(iwdev,
- 				       netdev->dev_addr,
- 				       &local_ipaddr,
-@@ -227,7 +224,7 @@ int i40iw_inet6addr_event(struct notifier_block *notifier,
- 	struct net_device *netdev;
- 	struct i40iw_device *iwdev;
- 	struct i40iw_handler *hdl;
--	__be32 local_ipaddr6[4];
-+	u32 local_ipaddr6[4];
+ struct i40iw_priv_cq_ops {
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 6359a3e..196d6f0 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -725,8 +725,10 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 	iwarp_info = &iwqp->iwarp_info;
+ 	iwarp_info->rd_enable = true;
+ 	iwarp_info->wr_rdresp_en = true;
+-	if (!iwqp->user_mode)
++	if (!iwqp->user_mode) {
++		iwarp_info->fast_reg_en = true;
+ 		iwarp_info->priv_mode_en = true;
++	}
+ 	iwarp_info->ddp_ver = 1;
+ 	iwarp_info->rdmap_ver = 1;
  
- 	hdl = i40iw_find_netdev(event_netdev);
- 	if (!hdl)
+@@ -1447,6 +1449,139 @@ static int i40iw_handle_q_mem(struct i40iw_device *iwdev,
+ }
+ 
+ /**
++ * i40iw_hw_alloc_stag - cqp command to allocate stag
++ * @iwdev: iwarp device
++ * @iwmr: iwarp mr pointer
++ */
++static int i40iw_hw_alloc_stag(struct i40iw_device *iwdev, struct i40iw_mr *iwmr)
++{
++	struct i40iw_allocate_stag_info *info;
++	struct i40iw_pd *iwpd = to_iwpd(iwmr->ibmr.pd);
++	enum i40iw_status_code status;
++	int err = 0;
++	struct i40iw_cqp_request *cqp_request;
++	struct cqp_commands_info *cqp_info;
++
++	cqp_request = i40iw_get_cqp_request(&iwdev->cqp, true);
++	if (!cqp_request)
++		return -ENOMEM;
++
++	cqp_info = &cqp_request->info;
++	info = &cqp_info->in.u.alloc_stag.info;
++	memset(info, 0, sizeof(*info));
++	info->page_size = PAGE_SIZE;
++	info->stag_idx = iwmr->stag >> I40IW_CQPSQ_STAG_IDX_SHIFT;
++	info->pd_id = iwpd->sc_pd.pd_id;
++	info->total_len = iwmr->length;
++	cqp_info->cqp_cmd = OP_ALLOC_STAG;
++	cqp_info->post_sq = 1;
++	cqp_info->in.u.alloc_stag.dev = &iwdev->sc_dev;
++	cqp_info->in.u.alloc_stag.scratch = (uintptr_t)cqp_request;
++
++	status = i40iw_handle_cqp_op(iwdev, cqp_request);
++	if (status) {
++		err = -ENOMEM;
++		i40iw_pr_err("CQP-OP MR Reg fail");
++	}
++	return err;
++}
++
++/**
++ * i40iw_alloc_mr - register stag for fast memory registration
++ * @pd: ibpd pointer
++ * @mr_type: memory for stag registrion
++ * @max_num_sg: man number of pages
++ */
++static struct ib_mr *i40iw_alloc_mr(struct ib_pd *pd,
++				    enum ib_mr_type mr_type,
++				    u32 max_num_sg)
++{
++	struct i40iw_pd *iwpd = to_iwpd(pd);
++	struct i40iw_device *iwdev = to_iwdev(pd->device);
++	struct i40iw_pble_alloc *palloc;
++	struct i40iw_pbl *iwpbl;
++	struct i40iw_mr *iwmr;
++	enum i40iw_status_code status;
++	u32 stag;
++	int err_code = -ENOMEM;
++
++	iwmr = kzalloc(sizeof(*iwmr), GFP_KERNEL);
++	if (!iwmr)
++		return ERR_PTR(-ENOMEM);
++
++	stag = i40iw_create_stag(iwdev);
++	if (!stag) {
++		err_code = -EOVERFLOW;
++		goto err;
++	}
++	iwmr->stag = stag;
++	iwmr->ibmr.rkey = stag;
++	iwmr->ibmr.lkey = stag;
++	iwmr->ibmr.pd = pd;
++	iwmr->ibmr.device = pd->device;
++	iwpbl = &iwmr->iwpbl;
++	iwpbl->iwmr = iwmr;
++	iwmr->type = IW_MEMREG_TYPE_MEM;
++	palloc = &iwpbl->pble_alloc;
++	iwmr->page_cnt = max_num_sg;
++	mutex_lock(&iwdev->pbl_mutex);
++	status = i40iw_get_pble(&iwdev->sc_dev, iwdev->pble_rsrc, palloc, iwmr->page_cnt);
++	mutex_unlock(&iwdev->pbl_mutex);
++	if (!status)
++		goto err1;
++
++	if (palloc->level != I40IW_LEVEL_1)
++		goto err2;
++	err_code = i40iw_hw_alloc_stag(iwdev, iwmr);
++	if (err_code)
++		goto err2;
++	iwpbl->pbl_allocated = true;
++	i40iw_add_pdusecount(iwpd);
++	return &iwmr->ibmr;
++err2:
++	i40iw_free_pble(iwdev->pble_rsrc, palloc);
++err1:
++	i40iw_free_stag(iwdev, stag);
++err:
++	kfree(iwmr);
++	return ERR_PTR(err_code);
++}
++
++/**
++ * i40iw_set_page - populate pbl list for fmr
++ * @ibmr: ib mem to access iwarp mr pointer
++ * @addr: page dma address fro pbl list
++ */
++static int i40iw_set_page(struct ib_mr *ibmr, u64 addr)
++{
++	struct i40iw_mr *iwmr = to_iwmr(ibmr);
++	struct i40iw_pbl *iwpbl = &iwmr->iwpbl;
++	struct i40iw_pble_alloc *palloc = &iwpbl->pble_alloc;
++	u64 *pbl;
++
++	if (unlikely(iwmr->npages == iwmr->page_cnt))
++		return -ENOMEM;
++
++	pbl = (u64 *)palloc->level1.addr;
++	pbl[iwmr->npages++] = cpu_to_le64(addr);
++	return 0;
++}
++
++/**
++ * i40iw_map_mr_sg - map of sg list for fmr
++ * @ibmr: ib mem to access iwarp mr pointer
++ * @sg: scatter gather list for fmr
++ * @sg_nents: number of sg pages
++ */
++static int i40iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents)
++{
++	struct i40iw_mr *iwmr = to_iwmr(ibmr);
++
++	iwmr->npages = 0;
++	return ib_sg_to_pages(ibmr, sg, sg_nents, i40iw_set_page);
++}
++
++/**
+  * i40iw_hwreg_mr - send cqp command for memory registration
+  * @iwdev: iwarp device
+  * @iwmr: iwarp mr pointer
+@@ -1886,12 +2021,14 @@ static int i40iw_post_send(struct ib_qp *ibqp,
+ 	enum i40iw_status_code ret;
+ 	int err = 0;
+ 	unsigned long flags;
++	bool inv_stag;
+ 
+ 	iwqp = (struct i40iw_qp *)ibqp;
+ 	ukqp = &iwqp->sc_qp.qp_uk;
+ 
+ 	spin_lock_irqsave(&iwqp->lock, flags);
+ 	while (ib_wr) {
++		inv_stag = false;
+ 		memset(&info, 0, sizeof(info));
+ 		info.wr_id = (u64)(ib_wr->wr_id);
+ 		if ((ib_wr->send_flags & IB_SEND_SIGNALED) || iwqp->sig_all)
+@@ -1901,19 +2038,28 @@ static int i40iw_post_send(struct ib_qp *ibqp,
+ 
+ 		switch (ib_wr->opcode) {
+ 		case IB_WR_SEND:
+-			if (ib_wr->send_flags & IB_SEND_SOLICITED)
+-				info.op_type = I40IW_OP_TYPE_SEND_SOL;
+-			else
+-				info.op_type = I40IW_OP_TYPE_SEND;
++			/* fall-through */
++		case IB_WR_SEND_WITH_INV:
++			if (ib_wr->opcode == IB_WR_SEND) {
++				if (ib_wr->send_flags & IB_SEND_SOLICITED)
++					info.op_type = I40IW_OP_TYPE_SEND_SOL;
++				else
++					info.op_type = I40IW_OP_TYPE_SEND;
++			} else {
++				if (ib_wr->send_flags & IB_SEND_SOLICITED)
++					info.op_type = I40IW_OP_TYPE_SEND_SOL_INV;
++				else
++					info.op_type = I40IW_OP_TYPE_SEND_INV;
++			}
+ 
+ 			if (ib_wr->send_flags & IB_SEND_INLINE) {
+ 				info.op.inline_send.data = (void *)(unsigned long)ib_wr->sg_list[0].addr;
+ 				info.op.inline_send.len = ib_wr->sg_list[0].length;
+-				ret = ukqp->ops.iw_inline_send(ukqp, &info, rdma_wr(ib_wr)->rkey, false);
++				ret = ukqp->ops.iw_inline_send(ukqp, &info, ib_wr->ex.invalidate_rkey, false);
+ 			} else {
+ 				info.op.send.num_sges = ib_wr->num_sge;
+ 				info.op.send.sg_list = (struct i40iw_sge *)ib_wr->sg_list;
+-				ret = ukqp->ops.iw_send(ukqp, &info, rdma_wr(ib_wr)->rkey, false);
++				ret = ukqp->ops.iw_send(ukqp, &info, ib_wr->ex.invalidate_rkey, false);
+ 			}
+ 
+ 			if (ret)
+@@ -1941,6 +2087,9 @@ static int i40iw_post_send(struct ib_qp *ibqp,
+ 			if (ret)
+ 				err = -EIO;
+ 			break;
++		case IB_WR_RDMA_READ_WITH_INV:
++			inv_stag = true;
++			/* fall-through*/
+ 		case IB_WR_RDMA_READ:
+ 			info.op_type = I40IW_OP_TYPE_RDMA_READ;
+ 			info.op.rdma_read.rem_addr.tag_off = rdma_wr(ib_wr)->remote_addr;
+@@ -1949,10 +2098,47 @@ static int i40iw_post_send(struct ib_qp *ibqp,
+ 			info.op.rdma_read.lo_addr.tag_off = ib_wr->sg_list->addr;
+ 			info.op.rdma_read.lo_addr.stag = ib_wr->sg_list->lkey;
+ 			info.op.rdma_read.lo_addr.len = ib_wr->sg_list->length;
+-			ret = ukqp->ops.iw_rdma_read(ukqp, &info, false, false);
++			ret = ukqp->ops.iw_rdma_read(ukqp, &info, inv_stag, false);
+ 			if (ret)
+ 				err = -EIO;
+ 			break;
++		case IB_WR_LOCAL_INV:
++			info.op_type = I40IW_OP_TYPE_INV_STAG;
++			info.op.inv_local_stag.target_stag = ib_wr->ex.invalidate_rkey;
++			ret = ukqp->ops.iw_stag_local_invalidate(ukqp, &info, true);
++			if (ret)
++				err = -EIO;
++			break;
++		case IB_WR_REG_MR:
++		{
++			struct i40iw_mr *iwmr = to_iwmr(reg_wr(ib_wr)->mr);
++			int page_shift = ilog2(reg_wr(ib_wr)->mr->page_size);
++			int flags = reg_wr(ib_wr)->access;
++			struct i40iw_pble_alloc *palloc = &iwmr->iwpbl.pble_alloc;
++			struct i40iw_sc_dev *dev = &iwqp->iwdev->sc_dev;
++			struct i40iw_fast_reg_stag_info info;
++
++			info.access_rights = I40IW_ACCESS_FLAGS_LOCALREAD;
++			info.access_rights |= i40iw_get_user_access(flags);
++			info.stag_key = reg_wr(ib_wr)->key & 0xff;
++			info.stag_idx = reg_wr(ib_wr)->key >> 8;
++			info.wr_id = ib_wr->wr_id;
++
++			info.addr_type = I40IW_ADDR_TYPE_VA_BASED;
++			info.va = (void *)(uintptr_t)iwmr->ibmr.iova;
++			info.total_len = iwmr->ibmr.length;
++			info.first_pm_pbl_index = palloc->level1.idx;
++			info.local_fence = ib_wr->send_flags & IB_SEND_FENCE;
++			info.signaled = ib_wr->send_flags & IB_SEND_SIGNALED;
++
++			if (page_shift == 21)
++				info.page_size = 1; /* 2M page */
++
++			ret = dev->iw_priv_qp_ops->iw_mr_fast_register(&iwqp->sc_qp, &info, true);
++			if (ret)
++				err = -EIO;
++			break;
++		}
+ 		default:
+ 			err = -EINVAL;
+ 			i40iw_pr_err(" upost_send bad opcode = 0x%x\n",
+@@ -2328,6 +2514,8 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
+ 	iwibdev->ibdev.query_device = i40iw_query_device;
+ 	iwibdev->ibdev.create_ah = i40iw_create_ah;
+ 	iwibdev->ibdev.destroy_ah = i40iw_destroy_ah;
++	iwibdev->ibdev.alloc_mr = i40iw_alloc_mr;
++	iwibdev->ibdev.map_mr_sg = i40iw_map_mr_sg;
+ 	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
+ 	if (!iwibdev->ibdev.iwcm) {
+ 		ib_dealloc_device(&iwibdev->ibdev);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+index 1101f77..0acb6c8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+@@ -92,6 +92,7 @@ struct i40iw_mr {
+ 	struct ib_umem *region;
+ 	u16 type;
+ 	u32 page_cnt;
++	u32 npages;
+ 	u32 stag;
+ 	u64 length;
+ 	u64 pgaddrmem[MAX_SAVE_PAGE_ADDRS];
 -- 
 2.7.4
 
