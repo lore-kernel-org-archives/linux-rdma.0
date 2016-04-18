@@ -1,38 +1,19 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/mlx5: Use tasklet to decrease
- completions processing time in interrupts
-Date: Mon, 18 Apr 2016 06:04:56 -0700
-Message-ID: <20160418130456.GA11508@infradead.org>
-References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 2/7] IB/hfi1: Remove unused user command
+Date: Mon, 18 Apr 2016 06:05:35 -0700
+Message-ID: <20160418130535.GC11508@infradead.org>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414154147.6387.65502.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460902121-5567-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160414154147.6387.65502.stgit@scvm10.sc.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Mitko Haralanov <mitko.haralanov@intel.com>, linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, torvalds@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 17, 2016 at 05:08:39PM +0300, Matan Barak wrote:
-> Hi Doug,
-> 
-> The mlx5 driver handles completion callbacks inside interrupts.
-> These callbacks could be lengthy and thus cause hard lockups.
-> In order to avoid these lockups, we introduce a tasklet mechanism.
-> The mlx5_ib driver uses this mechanism in order to defer its
-> completion callbacks processing to the tasklet.
-> 
-> This follows the same mechanism we implemented for mlx4 that
-> successfully decreased the processing time in interrupts.
+Looks fine,
 
-Just curious:  how much of this time is spent inside the mlx5 driver,
-and how much is spent in the callbacks from the consumers?  We've now
-more than half done with switch the kernel ULPs to the new CQ API
-which will always offload the callbacks to softirq or workqueue context,
-so if we can avoid a previous offload the completions would be a lot
-more efficient.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Christoph Hellwig <hch@lst.de>
