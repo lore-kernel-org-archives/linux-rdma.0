@@ -1,83 +1,45 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: generic RDMA READ/WRITE API V7
-Date: Mon, 18 Apr 2016 16:14:11 -0400
-Message-ID: <1461010463-6603-1-git-send-email-hch@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH 04/12] IB/core: add a helper to check for READ WITH INVALIDATE support
+Date: Mon, 18 Apr 2016 16:14:15 -0400
+Message-ID: <1461010463-6603-5-git-send-email-hch@lst.de>
+References: <1461010463-6603-1-git-send-email-hch@lst.de>
 Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1461010463-6603-1-git-send-email-hch@lst.de>
 Sender: target-devel-owner@vger.kernel.org
 To: dledford@redhat.com
 Cc: bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series contains patches that implement a first version of a generi=
-c
-API to handle RDMA READ/WRITE operations as commonly used on the target
-(or server) side for storage protocols.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+---
+ include/rdma/ib_verbs.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-This has been developed for the upcoming NVMe over Fabrics target, and
-extensively te=D1=95ted as part of that, although this upstream version=
- has
-additional updates over the one we're currently using.
-
-It hides details such as the use of MRs for iWarp devices, and will all=
-ow
-looking at other HCA specifics easily in the future.
-
-This series contains also conversion the SRP and iSER targets to the ne=
-w
-API.
-
-I think it's basically ready to merge now.
-
-I also have a git tree available at:
-
-	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
-
-gitweb:
-
-	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
-w-api
-
-Changes since V6:
- - rebase to 4.6-rc4
- - addressed review comments from Bart on core comments and the srpt
-   wait_list handling
- - added Reviewed-by: tags from Sagi
-
-Changes since V5:
- - rebase to 4.6-rc3
- - now includes signature MR support
- - now contains the iSER target conversion
- - new module option for force MR usage for debugging purposes
- - fixes a bug with the non-merged SG count passes to the MR map
-   routine, causing lockups when using SRP with MRs.
- - includes the mlx5 max_sg_rd fix (should probably go into 4.6-rc
-   and -stable)
-
-Changes since V4:
- - fix SG iteration in rdma_rw_init_mr_wrs
- - address various misc review feedback items from Bart and Leon
-
-Changes since V3:
- - really fold the list_del in mr_pool_get into the right patch
-
-Changes since V2:
- - fold the list_del in mr_pool_get into the right patch
- - clamp the max FR page size length
- - minor srpt style fix
- - spelling fixes
- - renamed rdma_has_read_invalidate to rdma_cap_read_inv
-
-Changes since V1:
- - fixed offset handling in ib_sg_to_pages
- - uses proper SG iterators to handle larger than PAGE_SIZE segments
- - adjusted parameters for some functions to reduce size of the context
- - SRP target support
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 24d0d82..9e8616a 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2318,6 +2318,18 @@ static inline bool rdma_cap_roce_gid_table(const struct ib_device *device,
+ 		device->add_gid && device->del_gid;
+ }
+ 
++/*
++ * Check if the device supports READ W/ INVALIDATE.
++ */
++static inline bool rdma_cap_read_inv(struct ib_device *dev, u32 port_num)
++{
++	/*
++	 * iWarp drivers must support READ W/ INVALIDATE.  No other protocol
++	 * has support for it yet.
++	 */
++	return rdma_protocol_iwarp(dev, port_num);
++}
++
+ int ib_query_gid(struct ib_device *device,
+ 		 u8 port_num, int index, union ib_gid *gid,
+ 		 struct ib_gid_attr *attr);
+-- 
+2.1.4
