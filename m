@@ -1,107 +1,84 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] IB/core: Report LSO capabilities when
- querying device
-Date: Mon, 18 Apr 2016 23:43:37 +0300
-Message-ID: <CAJ3xEMi_W4c+sNgv8f_hPimtkMjs=2Yhm75B9iUCRfY=e7pSpQ@mail.gmail.com>
-References: <1460996717-18778-1-git-send-email-majd@mellanox.com>
-	<1460996717-18778-2-git-send-email-majd@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH] IB/iser: fix max_sectors calculation
+Date: Mon, 18 Apr 2016 17:06:28 -0400
+Message-ID: <1461013588-8825-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460996717-18778-2-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 18, 2016 at 7:25 PM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> LSO capabilities include the max LSO packet size in byte, and what QP
-> types the hardware supports.
+iSER currently has a couple places that set max_sectors in either the host
+template or SCSI host, and all of them get it wrong.
 
-size in bytes
+This patch instead uses a single assignment that (hopefully) gets it right:
+the max_sectors value must be derived from the number of segments in the
+FR or FRM structure, but actually be one lower than the page size multiplied
+by the number of sectors, as it has to handle the case of non-aligned I/O.
 
->
-> Relevant verbs to report LSO caps from kernel to user space is updated
-> accordingly.
+Without this I get trivivial to reproduce hangs when running xfstests
+(on XFS) over iSER to Linux targets.
 
-verbs ... is --> verbs ... are
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+---
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
->
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
->  include/rdma/ib_verbs.h              | 6 ++++++
->  include/uapi/rdma/ib_user_verbs.h    | 6 ++++++
->  3 files changed, 19 insertions(+)
->
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index 6fdc7ec..b0fb94b 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -3655,6 +3655,13 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
->         resp.hca_core_clock = attr.hca_core_clock;
->         resp.response_length += sizeof(resp.hca_core_clock);
->
-> +       if (ucore->outlen < resp.response_length + sizeof(resp.lso_caps))
-> +               goto end;
-> +
-> +       resp.lso_caps.max_lso = attr.lso_caps.max_lso;
-> +       resp.lso_caps.supported_qpts = attr.lso_caps.supported_qpts;
-> +       resp.response_length += sizeof(resp.lso_caps);
-> +
->  end:
->         err = ib_copy_to_udata(ucore, &resp, resp.response_length);
->         return err;
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index fb2cef4..d5a466f 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -271,6 +271,11 @@ struct ib_cq_init_attr {
->         u32             flags;
->  };
->
-> +struct ib_lso_caps {
-> +       u32 max_lso;
-> +       u32 supported_qpts; /* Use enum ib_qp_type */
-> +};
-> +
->  struct ib_device_attr {
->         u64                     fw_ver;
->         __be64                  sys_image_guid;
-> @@ -317,6 +322,7 @@ struct ib_device_attr {
->         struct ib_odp_caps      odp_caps;
->         uint64_t                timestamp_mask;
->         uint64_t                hca_core_clock; /* in KHZ */
-> +       struct ib_lso_caps      lso_caps;
->  };
->
->  enum ib_mtu {
-> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-> index 8126c14..fa039f5 100644
-> --- a/include/uapi/rdma/ib_user_verbs.h
-> +++ b/include/uapi/rdma/ib_user_verbs.h
-> @@ -219,6 +219,11 @@ struct ib_uverbs_odp_caps {
->         __u32 reserved;
->  };
->
-> +struct ib_uverbs_lso_caps {
-> +       __u32 max_lso;
-> +       __u32 supported_qpts; /* Use enum ib_qp_type */
-> +};
-> +
->  struct ib_uverbs_ex_query_device_resp {
->         struct ib_uverbs_query_device_resp base;
->         __u32 comp_mask;
-> @@ -226,6 +231,7 @@ struct ib_uverbs_ex_query_device_resp {
->         struct ib_uverbs_odp_caps odp_caps;
->         __u64 timestamp_mask;
->         __u64 hca_core_clock; /* in KHZ */
-> +       struct ib_uverbs_lso_caps lso_caps;
->  };
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 80b6bed..64b3d11 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -612,6 +612,7 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 	struct Scsi_Host *shost;
+ 	struct iser_conn *iser_conn = NULL;
+ 	struct ib_conn *ib_conn;
++	u32 max_fr_sectors;
+ 	u16 max_cmds;
+ 
+ 	shost = iscsi_host_alloc(&iscsi_iser_sht, 0, 0);
+@@ -632,7 +633,6 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 		iser_conn = ep->dd_data;
+ 		max_cmds = iser_conn->max_cmds;
+ 		shost->sg_tablesize = iser_conn->scsi_sg_tablesize;
+-		shost->max_sectors = iser_conn->scsi_max_sectors;
+ 
+ 		mutex_lock(&iser_conn->state_mutex);
+ 		if (iser_conn->state != ISER_CONN_UP) {
+@@ -657,8 +657,6 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 		 */
+ 		shost->sg_tablesize = min_t(unsigned short, shost->sg_tablesize,
+ 			ib_conn->device->ib_device->attrs.max_fast_reg_page_list_len);
+-		shost->max_sectors = min_t(unsigned int,
+-			1024, (shost->sg_tablesize * PAGE_SIZE) >> 9);
+ 
+ 		if (iscsi_host_add(shost,
+ 				   ib_conn->device->ib_device->dma_device)) {
+@@ -672,6 +670,15 @@ iscsi_iser_session_create(struct iscsi_endpoint *ep,
+ 			goto free_host;
+ 	}
+ 
++	/*
++	 * FRs or FMRs can only map up to a (device) page per entry, but if the
++	 * first entry is misaligned we'll end up using using two entries
++	 * (head and tail) for a single page worth data, so we have to drop
++	 * one segment from the calculation.
++	 */
++	max_fr_sectors = ((shost->sg_tablesize - 1) * PAGE_SIZE) >> 9;
++	shost->max_sectors = min(iser_max_sectors, max_fr_sectors);
++
+ 	if (cmds_max > max_cmds) {
+ 		iser_info("cmds_max changed from %u to %u\n",
+ 			  cmds_max, max_cmds);
+@@ -989,7 +996,6 @@ static struct scsi_host_template iscsi_iser_sht = {
+ 	.queuecommand           = iscsi_queuecommand,
+ 	.change_queue_depth	= scsi_change_queue_depth,
+ 	.sg_tablesize           = ISCSI_ISER_DEF_SG_TABLESIZE,
+-	.max_sectors            = ISER_DEF_MAX_SECTORS,
+ 	.cmd_per_lun            = ISER_DEF_CMD_PER_LUN,
+ 	.eh_abort_handler       = iscsi_eh_abort,
+ 	.eh_device_reset_handler= iscsi_eh_device_reset,
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
