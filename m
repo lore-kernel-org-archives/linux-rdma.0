@@ -1,124 +1,132 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RDMA PATCH 00/16] RDMA/Intel X722 iWARP driver update
-Date: Mon, 18 Apr 2016 09:56:42 +0300
-Message-ID: <20160418065642.GI6349@leon.nu>
-References: <1460557852-10824-1-git-send-email-mustafa.ismail@intel.com>
+Subject: Re: [PATCH] [PATCH 08/21] IB/hfi1: Adjust default MTU to be 10KB
+Date: Mon, 18 Apr 2016 10:07:08 +0300
+Message-ID: <20160418070708.GJ6349@leon.nu>
+References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com>
+ <20160412181708.21853.23423.stgit@scvm10.sc.intel.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2xeD/fx0+7k8I/QN"
+	protocol="application/pgp-signature"; boundary="QnBU6tTI9sljzm9u"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460557852-10824-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160412181708.21853.23423.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---2xeD/fx0+7k8I/QN
+--QnBU6tTI9sljzm9u
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 13, 2016 at 09:30:36AM -0500, Mustafa Ismail wrote:
-> This (V2) series incorporates feedback received for the initial series.
+On Tue, Apr 12, 2016 at 11:17:09AM -0700, Dennis Dalessandro wrote:
+> From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> This patch series covers changes to i40iw since the initial driver
-> submission including base memory management extensions, virtual channel
-> messages queue, corrections for endian warnings and bug fixes.
+> Increasing the default MTU size to 10KB improves performance
+> for PSM. Change the default MTU to 10KB but constrain
+> Verbs MTU to 8KB. Also update default MTU module parameter
+> description to be HFI1_DEFAULT_MAX_MTU.
 >=20
-> This patch series is based on Doug Ledford's
-> https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+> Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/staging/rdma/hfi1/driver.c |    3 ++-
+>  drivers/staging/rdma/hfi1/hfi.h    |    4 ++--
+>  drivers/staging/rdma/hfi1/qp.c     |    6 +++++-
+>  3 files changed, 9 insertions(+), 4 deletions(-)
 >=20
-> Changes from original version to V2 incorporates feedback received:
-> 1. Move RDMA in subject line.
-> 2. Fix for cast warning due to u64 to u32 assignment.
-> 3. Use named initializers for structures that have meaning outside
-> the file.
+> diff --git a/drivers/staging/rdma/hfi1/driver.c b/drivers/staging/rdma/hf=
+i1/driver.c
+> index 34511e5..700c6fa 100644
+> --- a/drivers/staging/rdma/hfi1/driver.c
+> +++ b/drivers/staging/rdma/hfi1/driver.c
+> @@ -75,7 +75,8 @@ DEFINE_MUTEX(hfi1_mutex);	/* general driver use */
+> =20
+>  unsigned int hfi1_max_mtu =3D HFI1_DEFAULT_MAX_MTU;
+>  module_param_named(max_mtu, hfi1_max_mtu, uint, S_IRUGO);
+> -MODULE_PARM_DESC(max_mtu, "Set max MTU bytes, default is 8192");
+> +MODULE_PARM_DESC(max_mtu, "Set max MTU bytes, default is " __stringify(
+> +		 HFI1_DEFAULT_MAX_MTU));
+> =20
+>  unsigned int hfi1_cu =3D 1;
+>  module_param_named(cu, hfi1_cu, uint, S_IRUGO);
+> diff --git a/drivers/staging/rdma/hfi1/hfi.h b/drivers/staging/rdma/hfi1/=
+hfi.h
+> index ac553f1..ff04593 100644
+> --- a/drivers/staging/rdma/hfi1/hfi.h
+> +++ b/drivers/staging/rdma/hfi1/hfi.h
+> @@ -455,9 +455,9 @@ struct rvt_sge_state;
+>  #define HLS_UP (HLS_UP_INIT | HLS_UP_ARMED | HLS_UP_ACTIVE)
+> =20
+>  /* use this MTU size if none other is given */
+> -#define HFI1_DEFAULT_ACTIVE_MTU 8192
+> +#define HFI1_DEFAULT_ACTIVE_MTU 10240
+>  /* use this MTU size as the default maximum */
+> -#define HFI1_DEFAULT_MAX_MTU 8192
+> +#define HFI1_DEFAULT_MAX_MTU 10240
+>  /* default partition key */
+>  #define DEFAULT_PKEY 0xffff
+> =20
+> diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/q=
+p.c
+> index 29a5ad2..e68d08a 100644
+> --- a/drivers/staging/rdma/hfi1/qp.c
+> +++ b/drivers/staging/rdma/hfi1/qp.c
+> @@ -167,8 +167,12 @@ static inline int opa_mtu_enum_to_int(int mtu)
+>   */
+>  static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_m=
+tu mtu)
+>  {
+> -	int val =3D opa_mtu_enum_to_int((int)mtu);
+> +	int val;
+> =20
+> +	/* Constraining 10KB packets to 8KB packets */
+> +	if (mtu =3D=3D (enum ib_mtu)OPA_MTU_10240)
+> +		mtu =3D OPA_MTU_8192;
+> +	val =3D opa_mtu_enum_to_int((int)mtu);
 
-Please follow SubmittingPatches guide [1].
+Just spotted my attention,
+Curious names, castings and type conversions.
 
-If your patch fixes a bug in a specific commit, e.g. you found an issue usi=
-ng
-git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
-SHA-1 ID, and the one line summary.  For example:
-
-	Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
-
-[1] https://www.kernel.org/doc/Documentation/SubmittingPatches
-
->=20
->=20
-> Mustafa Ismail (16):
->   RDMA/i40iw: Fix overflow of region length
->   RDMA/i40iw: Correct QP size calculation
->   RDMA/i40iw: Fix refused connections
->   RDMA/i40iw: Correct max message size in query port
->   RDMA/i40iw: Do not set self-referencing pointer to NULL after free
->   RDMA/i40iw: Add qp table lock around AE processing
->   RDMA/i40iw: Set vendor_err only if there is an actual error
->   RDMA/i40iw: Populate vendor_id and vendor_part_id fields
->   RDMA/i40iw: Remove unused code and fix warning
->   RDMA/i40iw: Add virtual channel message queue
->   RDMA/i40iw: Correct return code check in add_pble_pool
->   RDMA/i40iw: Initialize max enabled vfs variable
->   RDMA/i40iw: Add base memory management extensions
->   RDMA/i40iw: Fix endian issues and warnings
->   RDMA/i40iw: Fix SD calculation for initial HMC creation
->   RDMA/i40iw: Adding queue drain functions
->=20
->  drivers/infiniband/hw/i40iw/i40iw.h          |   7 +-
->  drivers/infiniband/hw/i40iw/i40iw_cm.c       | 144 +++++++-------
->  drivers/infiniband/hw/i40iw/i40iw_cm.h       |  10 +-
->  drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 185 ++++++++++++-----
->  drivers/infiniband/hw/i40iw/i40iw_d.h        |   2 +-
->  drivers/infiniband/hw/i40iw/i40iw_hw.c       |  11 +-
->  drivers/infiniband/hw/i40iw/i40iw_main.c     |  55 ++++--
->  drivers/infiniband/hw/i40iw/i40iw_osdep.h    |   1 +
->  drivers/infiniband/hw/i40iw/i40iw_pble.c     |   9 +-
->  drivers/infiniband/hw/i40iw/i40iw_puda.c     |   2 +-
->  drivers/infiniband/hw/i40iw/i40iw_type.h     |  12 +-
->  drivers/infiniband/hw/i40iw/i40iw_uk.c       |  80 +++-----
->  drivers/infiniband/hw/i40iw/i40iw_user.h     |  36 ++--
->  drivers/infiniband/hw/i40iw/i40iw_utils.c    |  47 +++--
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 283 +++++++++++++++++++++=
-+++---
->  drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   3 +
->  drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  96 ++++-----
->  17 files changed, 671 insertions(+), 312 deletions(-)
->=20
-> --=20
-> 2.7.4
+>  	if (val > 0)
+>  		return val;
+>  	return ib_mtu_enum_to_int(mtu);
 >=20
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---2xeD/fx0+7k8I/QN
+--QnBU6tTI9sljzm9u
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXFIUqAAoJEORje4g2clin+jsP/0gtgp6dwVvLuXR5GIeWl5tG
-KjXwVXaqt6ljrhJSOTIF8O45Y7CzPoaSCKEF6iXluv+6wwa3cprA741rfS3ibm7W
-yYW6hQWdyTmYag4qYsucaXVEpQ5yMqFzPLoCAdvPQSnok7u64pDRUOmvyW8Vsk+m
-01FM3T118nOwRGFa885IbESkcv4BKiBH4eNHdosn8wJAN2CVedQdXtEh3qUeYJv+
-vgEpRtEEFP9k6XqLOPvMZp7SvU7QtQCZ++FE0/y/dDYeYbgXs89lkNN968yvle3O
-rwoYxNwRMZiBODsg00800kwnjuCfnW3NdolhhHXzjxxJ+OnGKRtxn7uUwxqs19X+
-H8+6WFMuT/fkQQh4uyEYs8DOvGwv/GqlGhvYVvNYrTWToeYIHmiQGdPn9TjwYWGG
-LTRwKE80gg+VMom+2jfGzC95mQkMsj9xa8mqu+pdgQZrFt0/Qb/0IVnVqsqQQEr+
-U2yLwNcxeRcJN2WVRRyXf9Sc0YDYYgUBB0FH7L+aE3TaUkCkKp41KzNSZUu61qby
-iGM3b+PBArjnxwW/Uem89rUg7eFKKltM0+Y6U1Ss8W328rbf/56rWZwLFOO4tPqe
-5AAtHByqdFLQm+5Z3MhESRvHhLZYKlOsIqwkLA9Sy3Ja2XGIbIyAB6kKKNcuRjVS
-EhbxdbCxvf9aVzP4kbx0
-=fuqM
+iQIcBAEBAgAGBQJXFIecAAoJEORje4g2clinPkYQAMuI1X+pFUKv0kYMx4Ty9vtZ
+4KdVssZqQaWsNTtd4PkawupkMe35EwreYWzFHVR05tK3KvVANGlXkKr5BhcRnPP9
+dH2ywego9cXP/JE0IEB4xz5uNjSfRBXSAlxsZBLFijYME8l/zLeDJrVB47t2oKQ/
+rSPzcr9I3aCivMydV4wJvSwceeXgHri/0T9rjeUDs1MYL5H1v88NjLV/Yq8NWxeO
+d/MVtzw0xEusJ1CMtToVcE2WrIuPB3DpwIceAMUWVR4noAPoK681bfiu1LuS4Hu3
+8zeRuYWEp65smaxXN4JBITsOXcWaB/GLX9PQph0Gn6xrWymvTGaQSNsfUHGuOsew
+SZ8yt4rJDX9lUSnGdgRGg0EvtRj0pz9/a/HXyoKLyrXckcz58+ExUzh21aonOi6n
+Sp4vnlu8Jq8sVd1MDWowu4vLYfhXek9myrvurc7/5Vl431RW1GcYoogZkYUNj59z
+ncQMuSO12IE+EDESe8J53WF17PpVULuLrwY8NTLJzR1SpqDVGTNzcHrLOiC2JtYr
+piJDnSCmlJF2xOkLFH/MI43gi6orSoTv4AWDjLiq+GWfQvE3W2AHzLIT92eAhpLl
+WuC/Plh2WqO+FBt/hGqR58U2ljYVXu9EeEiR7o7YgGOGP2OAIHARZAahQVpsN+X1
+vrMQDRz0LkDiSX9HCah/
+=Nh3z
 -----END PGP SIGNATURE-----
 
---2xeD/fx0+7k8I/QN--
+--QnBU6tTI9sljzm9u--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
