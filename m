@@ -1,48 +1,54 @@
-From: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/mlx5: Use tasklet to decrease completions
- processing time in interrupts
-Date: Mon, 18 Apr 2016 16:21:44 +0300
-Message-ID: <5714DF68.6040509@mellanox.com>
-References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
- <20160418130456.GA11508@infradead.org>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/21] IB/hfi1: First round of fixes for 4.7
+Date: Mon, 18 Apr 2016 09:38:43 -0400
+Message-ID: <20160418133842.GA7596@phlsvsds.ph.intel.com>
+References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com> <20160418070936.GK6349@leon.nu> <20160418120754.GC17987@phlsvsds.ph.intel.com> <20160418121944.GL6349@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160418130456.GA11508-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160418121944.GL6349-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18/04/2016 16:04, Christoph Hellwig wrote:
-> On Sun, Apr 17, 2016 at 05:08:39PM +0300, Matan Barak wrote:
->> Hi Doug,
->>
->> The mlx5 driver handles completion callbacks inside interrupts.
->> These callbacks could be lengthy and thus cause hard lockups.
->> In order to avoid these lockups, we introduce a tasklet mechanism.
->> The mlx5_ib driver uses this mechanism in order to defer its
->> completion callbacks processing to the tasklet.
->>
->> This follows the same mechanism we implemented for mlx4 that
->> successfully decreased the processing time in interrupts.
+On Mon, Apr 18, 2016 at 03:19:44PM +0300, Leon Romanovsky wrote:
+>On Mon, Apr 18, 2016 at 08:07:55AM -0400, Dennis Dalessandro wrote:
+>> On Mon, Apr 18, 2016 at 10:09:36AM +0300, Leon Romanovsky wrote:
+>> >On Tue, Apr 12, 2016 at 10:49:52AM -0700, Dennis Dalessandro wrote:
+>> >>These patches do some clean ups and fix issues which may not be appropriate for
+>> >>an RC so we are targeting these for 4.7. The current patch series applies on top
+>> >>of the "Important bug fixes for 4.6 RC" patch set submitted just prior to this.
+>> >>
+>> >>Patches can be viewed in my GitHub repo at:
+>> >>https://github.com/ddalessa/kernel/tree/for-4.7.
+>> >
+>> >Please follow SubmittingPatches guide - submitting fixes section.
+>> >
+>> 
+>> Can you please be more specific with what your complaint is here? Which
+>> section are you referring to? There is no "submitting fixes" section in the
+>> document.
 >
-> Just curious:  how much of this time is spent inside the mlx5 driver,
-> and how much is spent in the callbacks from the consumers?  We've now
-> more than half done with switch the kernel ULPs to the new CQ API
-> which will always offload the callbacks to softirq or workqueue context,
-> so if we can avoid a previous offload the completions would be a lot
-> more efficient.
 >
+>If your patch fixes a bug in a specific commit, e.g. you found an issue
+>using git-bisect, please use the 'Fixes:' tag with the first 12 characters of
+>the SHA-1 ID, and the one line summary.  For example:
+>
+>  Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
+>
+>https://www.kernel.org/doc/Documentation/SubmittingPatches
 
-In short, you could hit a situation where processing the completions in 
-the interrupt takes longer than the rate at which they arrive (lab cases 
-that use one event queue, but still).
-I agree that going to softirqs/WQs (like the rest of the offloads) is a 
-good solution too - maybe even better than this one as the mechanism 
-already exists, but why would it be a lot more efficient?
+When there is a specific commit that broke something, sure. I think folks 
+usually add that when appropriate, it's not always the case. "Fix" is a 
+general term in a lot of patches. Could be day-0 bug, or the result of 
+multiple commits coming together, etc.
 
+Regardless, is there a patch here in this series that you need more back 
+story on?  Please let me know and I'll track it down.
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
