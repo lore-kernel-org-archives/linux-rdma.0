@@ -1,55 +1,87 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/21] IB/hfi1: First round of fixes for 4.7
-Date: Mon, 18 Apr 2016 09:38:43 -0400
-Message-ID: <20160418133842.GA7596@phlsvsds.ph.intel.com>
-References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com> <20160418070936.GK6349@leon.nu> <20160418120754.GC17987@phlsvsds.ph.intel.com> <20160418121944.GL6349@leon.nu>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Mon, 18 Apr 2016 09:49:10 -0400
+Message-ID: <5714E5D6.7050600@codeaurora.org>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
+ <20160418121247.GA25387@infradead.org>
+ <0c6a430c5f0ec64f51d7c594ef9751dd@codeaurora.org>
+ <20160418131058.GA25421@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160418121944.GL6349-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160418131058.GA25421@infradead.org>
+Sender: netdev-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 18, 2016 at 03:19:44PM +0300, Leon Romanovsky wrote:
->On Mon, Apr 18, 2016 at 08:07:55AM -0400, Dennis Dalessandro wrote:
->> On Mon, Apr 18, 2016 at 10:09:36AM +0300, Leon Romanovsky wrote:
->> >On Tue, Apr 12, 2016 at 10:49:52AM -0700, Dennis Dalessandro wrote:
->> >>These patches do some clean ups and fix issues which may not be appropriate for
->> >>an RC so we are targeting these for 4.7. The current patch series applies on top
->> >>of the "Important bug fixes for 4.6 RC" patch set submitted just prior to this.
->> >>
->> >>Patches can be viewed in my GitHub repo at:
->> >>https://github.com/ddalessa/kernel/tree/for-4.7.
->> >
->> >Please follow SubmittingPatches guide - submitting fixes section.
->> >
->> 
->> Can you please be more specific with what your complaint is here? Which
->> section are you referring to? There is no "submitting fixes" section in the
->> document.
->
->
->If your patch fixes a bug in a specific commit, e.g. you found an issue
->using git-bisect, please use the 'Fixes:' tag with the first 12 characters of
->the SHA-1 ID, and the one line summary.  For example:
->
->  Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
->
->https://www.kernel.org/doc/Documentation/SubmittingPatches
+On 4/18/2016 9:10 AM, Christoph Hellwig wrote:
+> On Mon, Apr 18, 2016 at 09:06:18AM -0400, okaya@codeaurora.org wrote:
+>> On 2016-04-18 08:12, Christoph Hellwig wrote:
+>>> On Sat, Apr 16, 2016 at 06:23:32PM -0400, Sinan Kaya wrote:
+>>>> Current code is assuming that the address returned by dma_alloc_coherent
+>>>> is a logical address. This is not true on ARM/ARM64 systems.
+>>>
+>>> Can you explain what you mean with a 'logical address' and what actual
+>>> issue you're trying to solve?
+>>
+Here is a good description of logical address vs. virtual address.
 
-When there is a specific commit that broke something, sure. I think folks 
-usually add that when appropriate, it's not always the case. "Fix" is a 
-general term in a lot of patches. Could be day-0 bug, or the result of 
-multiple commits coming together, etc.
+https://www.quora.com/What-is-the-Kernel-logical-and-virtual-addresses-What-is-the-difference-between-them-What-is-the-type-of-addresses-listed-in-the-System-map
 
-Regardless, is there a patch here in this series that you need more back 
-story on?  Please let me know and I'll track it down.
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Vmap call is failing on arm64 systems because dma alloc api already returns
+>> an address mapped with vmap.
+> 
+> Please state your problem clearly.  What I'm reverse engineering from
+> your posts is:  because dma_alloc_coherent uses vmap-like mappings on
+> arm64 (all, some systems?) 
+
+All arm64 systems. 
+
+>a driver using a lot of them might run into
+> limits of the vmap pool size.
+> 
+> Is this correct?
+> 
+No, the driver is plain broken without this patch. It causes a kernel panic 
+during driver probe.
+
+This is the definition of vmap API.
+
+https://www.kernel.org/doc/htmldocs/kernel-api/API-vmap.html
+
+VMAP allows you to make several pages look contiguous to the CPU. 
+It can only be used against logical addresses returned from kmalloc 
+or alloc_page. 
+
+You cannot take several virtually mapped addresses returned by dma_alloc_coherent
+and try to make them virtually contiguous again. 
+
+The code happens to work on other architectures by pure luck. AFAIK, dma_alloc_coherent
+returns logical addresses on Intel systems until it runs out of DMA memory. After 
+that intel arch will also start returning virtually mapped addresses and this code
+will also fail. ARM64 on the other hand always returns a virtually mapped address.
+
+The goal of this code is to allocate a bunch of page sized memory and make it look
+contiguous. It is just using the wrong API. The correct API is either kmalloc or
+alloc_page map it with dma_map_page not dma_alloc_coherent.
+
+The proper usage of dma_map_page requires code to call dma_sync API in correct
+places to be compatible with noncoherent systems. This code is already assuming
+coherency. It would be a nice to have dma_sync APIs in right places. There is no
+harm in calling dma_sync API for coherent systems as they are no-ops in DMA mapping
+layer whereas it is a cache flush for non-coherent systems.
+
+>>
+>> Please see arch/arm64/mm directory.
+> ---end quoted text---
+> 
+
+I hope it is clear now. The previous email was the most I could type on my phone.
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
