@@ -1,61 +1,49 @@
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 2/2] IB/mlx5: Report mlx5 LSO capabilities when querying device
-Date: Mon, 18 Apr 2016 19:25:17 +0300
-Message-ID: <1460996717-18778-3-git-send-email-majd@mellanox.com>
-References: <1460996717-18778-1-git-send-email-majd@mellanox.com>
+Subject: [PATCH for-next 0/2] Add support for reporting LSO capabilities
+Date: Mon, 18 Apr 2016 19:25:15 +0300
+Message-ID: <1460996717-18778-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460996717-18778-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch series enabled hardware to report Large Segment
+Offload(LSO) capabilities from kernel to user space. LSO enabled NIC
+will accept big chuck of data with the size greater than MTU.
+The LSO engine will split them into separate packets and insert the
+headers automatically. With LSO, CPU is offloaded from dealing with
+much less throughput of data.
 
-mlx5 based hardware supports LSO for Raw Ethernet QPs.
-LSO (large segment offload) applied here is mainly used
-for TCP (also known as TSO).
+For detailed info about LSO, please refer to the following link:
+https://en.wikipedia.org/wiki/Large_segment_offload
 
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+The capabilities are exposed to user space through
+query_device, ib_device_attr, and their relevant code is updated
+to build the pipe. The following capabilities will be reported:
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5acf346..09502ad 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -454,6 +454,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	int max_rq_sg;
- 	int max_sq_sg;
- 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
-+	u64 max_lso;
- 
- 	if (uhw->inlen || uhw->outlen)
- 		return -EINVAL;
-@@ -508,10 +509,18 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
- 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
- 
--	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
--	    (MLX5_CAP_ETH(dev->mdev, csum_cap)))
-+	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
-+		if (MLX5_CAP_ETH(mdev, csum_cap))
- 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
- 
-+		max_lso = MLX5_CAP_ETH(mdev, max_lso_cap);
-+		if (max_lso) {
-+			props->lso_caps.max_lso = 1 << max_lso;
-+			props->lso_caps.supported_qpts |=
-+				1 << IB_QPT_RAW_ETHERTYPE;
-+		}
-+	}
-+
- 	if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
- 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
- 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
+1. The maximum payload size supported for segmentation by LSO engine.
+2. QP types which support LSO operations.
+
+The capabilities of mlx5-related hardware are reported accordingly.
+
+This series conflicts with scatter FCS series that was posted earlier
+in this kernel cycle. The resolution for this conflict is available
+in Mellanox's git.
+
+Regards,
+Bodong and Majd.
+
+Bodong Wang (2):
+  IB/core: Report LSO capabilities when querying device
+  IB/mlx5: Report mlx5 LSO capabilities when querying device
+
+ drivers/infiniband/core/uverbs_cmd.c |  7 +++++++
+ drivers/infiniband/hw/mlx5/main.c    | 13 +++++++++++--
+ include/rdma/ib_verbs.h              |  6 ++++++
+ include/uapi/rdma/ib_user_verbs.h    |  6 ++++++
+ 4 files changed, 30 insertions(+), 2 deletions(-)
+
 -- 
 1.8.3.1
 
