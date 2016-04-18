@@ -1,32 +1,109 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
- tomorrow - 4/19/2016
-Date: Mon, 18 Apr 2016 16:03:57 -0600
-Message-ID: <20160418220357.GA18261@obsidianresearch.com>
-References: <DB5PR05MB1415AFA345D80EF310B9D315B16B0@DB5PR05MB1415.eurprd05.prod.outlook.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DDABEB2@ORSMSX115.amr.corp.intel.com>
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Mon, 18 Apr 2016 21:24:08 +0000
+Message-ID: <HE1PR05MB1642E27FFFE061C5AA52975EAA6B0@HE1PR05MB1642.eurprd05.prod.outlook.com>
+References: <1460996717-18778-1-git-send-email-majd@mellanox.com>
+ <1460996717-18778-2-git-send-email-majd@mellanox.com>
+ <CAJ3xEMi_W4c+sNgv8f_hPimtkMjs=2Yhm75B9iUCRfY=e7pSpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDABEB2-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 18, 2016 at 09:15:40PM +0000, Woodruff, Robert J wrote:
-> > https://mtlmeet.mellanox.com/shainer/W24KL6ZS
-> 
-> Can you also supply a dial in bridge number for people that
-> want/need to call in from a non-Lync location ?
+On 4/18/2016 3:43 PM, Or Gerlitz wrote:
+> On Mon, Apr 18, 2016 at 7:25 PM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> LSO capabilities include the max LSO packet size in byte, and what QP
+>> types the hardware supports.
+> size in bytes
+>
+>> Relevant verbs to report LSO caps from kernel to user space is updated
+>> accordingly.
+> verbs ... is --> verbs ... are
+>
+>> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
+>>  include/rdma/ib_verbs.h              | 6 ++++++
+>>  include/uapi/rdma/ib_user_verbs.h    | 6 ++++++
+>>  3 files changed, 19 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+>> index 6fdc7ec..b0fb94b 100644
+>> --- a/drivers/infiniband/core/uverbs_cmd.c
+>> +++ b/drivers/infiniband/core/uverbs_cmd.c
+>> @@ -3655,6 +3655,13 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+>>         resp.hca_core_clock = attr.hca_core_clock;
+>>         resp.response_length += sizeof(resp.hca_core_clock);
+>>
+>> +       if (ucore->outlen < resp.response_length + sizeof(resp.lso_caps))
+>> +               goto end;
+>> +
+>> +       resp.lso_caps.max_lso = attr.lso_caps.max_lso;
+>> +       resp.lso_caps.supported_qpts = attr.lso_caps.supported_qpts;
+>> +       resp.response_length += sizeof(resp.lso_caps);
+>> +
+>>  end:
+>>         err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+>>         return err;
+>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+>> index fb2cef4..d5a466f 100644
+>> --- a/include/rdma/ib_verbs.h
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -271,6 +271,11 @@ struct ib_cq_init_attr {
+>>         u32             flags;
+>>  };
+>>
+>> +struct ib_lso_caps {
+>> +       u32 max_lso;
+>> +       u32 supported_qpts; /* Use enum ib_qp_type */
+>> +};
+>> +
+>>  struct ib_device_attr {
+>>         u64                     fw_ver;
+>>         __be64                  sys_image_guid;
+>> @@ -317,6 +322,7 @@ struct ib_device_attr {
+>>         struct ib_odp_caps      odp_caps;
+>>         uint64_t                timestamp_mask;
+>>         uint64_t                hca_core_clock; /* in KHZ */
+>> +       struct ib_lso_caps      lso_caps;
+>>  };
+>>
+>>  enum ib_mtu {
+>> diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+>> index 8126c14..fa039f5 100644
+>> --- a/include/uapi/rdma/ib_user_verbs.h
+>> +++ b/include/uapi/rdma/ib_user_verbs.h
+>> @@ -219,6 +219,11 @@ struct ib_uverbs_odp_caps {
+>>         __u32 reserved;
+>>  };
+>>
+>> +struct ib_uverbs_lso_caps {
+>> +       __u32 max_lso;
+>> +       __u32 supported_qpts; /* Use enum ib_qp_type */
+>> +};
+>> +
+>>  struct ib_uverbs_ex_query_device_resp {
+>>         struct ib_uverbs_query_device_resp base;
+>>         __u32 comp_mask;
+>> @@ -226,6 +231,7 @@ struct ib_uverbs_ex_query_device_resp {
+>>         struct ib_uverbs_odp_caps odp_caps;
+>>         __u64 timestamp_mask;
+>>         __u64 hca_core_clock; /* in KHZ */
+>> +       struct ib_uverbs_lso_caps lso_caps;
+>>  };
 
-+1
+Will fix. Thanks.
 
-Can you guys please use Linux friendly conferencing solution to discuss
-Linux development :P There are several.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
