@@ -1,91 +1,93 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [RDMA PATCH 01/16] RDMA/i40iw: Fix overflow of region length
-Date: Mon, 18 Apr 2016 09:51:07 +0300
-Message-ID: <20160418065107.GH6349@leon.nu>
+Subject: Re: [RDMA PATCH 00/16] RDMA/Intel X722 iWARP driver update
+Date: Mon, 18 Apr 2016 09:56:42 +0300
+Message-ID: <20160418065642.GI6349@leon.nu>
 References: <1460557852-10824-1-git-send-email-mustafa.ismail@intel.com>
- <1460557852-10824-2-git-send-email-mustafa.ismail@intel.com>
 Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LZFKeWUZP29EKQNE"
+	protocol="application/pgp-signature"; boundary="2xeD/fx0+7k8I/QN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460557852-10824-2-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1460557852-10824-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---LZFKeWUZP29EKQNE
+--2xeD/fx0+7k8I/QN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 13, 2016 at 09:30:37AM -0500, Mustafa Ismail wrote:
-> Change region_length to u64 as a region can be > 4GB.
+On Wed, Apr 13, 2016 at 09:30:36AM -0500, Mustafa Ismail wrote:
+> This (V2) series incorporates feedback received for the initial series.
 >=20
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_user.h  | 2 ++
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c | 8 +++++---
->  2 files changed, 7 insertions(+), 3 deletions(-)
+> This patch series covers changes to i40iw since the initial driver
+> submission including base memory management extensions, virtual channel
+> messages queue, corrections for endian warnings and bug fixes.
 >=20
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_user.h b/drivers/infiniban=
-d/hw/i40iw/i40iw_user.h
-> index 5cd971b..eac9524 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_user.h
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_user.h
-> @@ -102,6 +102,8 @@ enum i40iw_device_capabilities_const {
-> =20
->  #define I40IW_STAG_INDEX_FROM_STAG(stag)    (((stag) && 0xFFFFFF00) >> 8)
-> =20
-> +#define	I40IW_MAX_MR_SIZE	0x10000000000L
-> +
->  struct i40iw_qp_uk;
->  struct i40iw_cq_uk;
->  struct i40iw_srq_uk;
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniba=
-nd/hw/i40iw/i40iw_verbs.c
-> index 1fe3b84..d7c4dd1 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> @@ -1526,14 +1526,16 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_=
-pd *pd,
->  	struct i40iw_mr *iwmr;
->  	struct ib_umem *region;
->  	struct i40iw_mem_reg_req req;
-> -	u32 pbl_depth =3D 0;
-> +	u64 pbl_depth =3D 0;
->  	u32 stag =3D 0;
->  	u16 access;
-> -	u32 region_length;
-> +	u64 region_length;
->  	bool use_pbles =3D false;
->  	unsigned long flags;
->  	int err =3D -ENOSYS;
-> =20
-> +	if (length > I40IW_MAX_MR_SIZE)
-> +		return ERR_PTR(-EINVAL);
->  	region =3D ib_umem_get(pd->uobject->context, start, length, acc, 0);
->  	if (IS_ERR(region))
->  		return (struct ib_mr *)region;
-> @@ -1564,7 +1566,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd=
- *pd,
->  	palloc =3D &iwpbl->pble_alloc;
-> =20
->  	iwmr->type =3D req.reg_type;
-> -	iwmr->page_cnt =3D pbl_depth;
-> +	iwmr->page_cnt =3D (u32)pbl_depth;
+> This patch series is based on Doug Ledford's
+> https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+>=20
+> Changes from original version to V2 incorporates feedback received:
+> 1. Move RDMA in subject line.
+> 2. Fix for cast warning due to u64 to u32 assignment.
+> 3. Use named initializers for structures that have meaning outside
+> the file.
 
-The cleanest approach will be to use lower_32_bits() macro, however both
-options are valid.
+Please follow SubmittingPatches guide [1].
 
-Reviewed-by: Leon Romanvsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+If your patch fixes a bug in a specific commit, e.g. you found an issue usi=
+ng
+git-bisect, please use the 'Fixes:' tag with the first 12 characters of the
+SHA-1 ID, and the one line summary.  For example:
 
-> =20
->  	switch (req.reg_type) {
->  	case IW_MEMREG_TYPE_QP:
+	Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
+
+[1] https://www.kernel.org/doc/Documentation/SubmittingPatches
+
+>=20
+>=20
+> Mustafa Ismail (16):
+>   RDMA/i40iw: Fix overflow of region length
+>   RDMA/i40iw: Correct QP size calculation
+>   RDMA/i40iw: Fix refused connections
+>   RDMA/i40iw: Correct max message size in query port
+>   RDMA/i40iw: Do not set self-referencing pointer to NULL after free
+>   RDMA/i40iw: Add qp table lock around AE processing
+>   RDMA/i40iw: Set vendor_err only if there is an actual error
+>   RDMA/i40iw: Populate vendor_id and vendor_part_id fields
+>   RDMA/i40iw: Remove unused code and fix warning
+>   RDMA/i40iw: Add virtual channel message queue
+>   RDMA/i40iw: Correct return code check in add_pble_pool
+>   RDMA/i40iw: Initialize max enabled vfs variable
+>   RDMA/i40iw: Add base memory management extensions
+>   RDMA/i40iw: Fix endian issues and warnings
+>   RDMA/i40iw: Fix SD calculation for initial HMC creation
+>   RDMA/i40iw: Adding queue drain functions
+>=20
+>  drivers/infiniband/hw/i40iw/i40iw.h          |   7 +-
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c       | 144 +++++++-------
+>  drivers/infiniband/hw/i40iw/i40iw_cm.h       |  10 +-
+>  drivers/infiniband/hw/i40iw/i40iw_ctrl.c     | 185 ++++++++++++-----
+>  drivers/infiniband/hw/i40iw/i40iw_d.h        |   2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_hw.c       |  11 +-
+>  drivers/infiniband/hw/i40iw/i40iw_main.c     |  55 ++++--
+>  drivers/infiniband/hw/i40iw/i40iw_osdep.h    |   1 +
+>  drivers/infiniband/hw/i40iw/i40iw_pble.c     |   9 +-
+>  drivers/infiniband/hw/i40iw/i40iw_puda.c     |   2 +-
+>  drivers/infiniband/hw/i40iw/i40iw_type.h     |  12 +-
+>  drivers/infiniband/hw/i40iw/i40iw_uk.c       |  80 +++-----
+>  drivers/infiniband/hw/i40iw/i40iw_user.h     |  36 ++--
+>  drivers/infiniband/hw/i40iw/i40iw_utils.c    |  47 +++--
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 283 +++++++++++++++++++++=
++++---
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.h    |   3 +
+>  drivers/infiniband/hw/i40iw/i40iw_virtchnl.c |  96 ++++-----
+>  17 files changed, 671 insertions(+), 312 deletions(-)
+>=20
 > --=20
 > 2.7.4
 >=20
@@ -94,29 +96,29 @@ Reviewed-by: Leon Romanvsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---LZFKeWUZP29EKQNE
+--2xeD/fx0+7k8I/QN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIbBAEBAgAGBQJXFIPbAAoJEORje4g2clin1HwP9RSktncgVLumAWNn0EJDXjvJ
-tKE7r1WEmDlesvp0hxVBvNU13nbbTu+tV/fzBzuSXF+312BGuMxN2t6ykmgAZM/o
-GqK1v8BcudzXm7xnwamR8SSh3mnXY//55/0sCkMAIo3vHpLZdJNtIUQG0OR2EC6T
-evx6GmRp4c6I851QY6EbcWOYQ+HTxcXTHIa2CkH0xUelJbEYaD2IZEBrf5PuYbgR
-FyCEnI+DXXm/1SuJb1GDfz2R7+WfgFG6XjRW1k59ZSO5L/WfeaTLyOfE2aEx7kt6
-01xtp8746AzojhOPjZ2b2V/wIMpSAtEXq6s1F5hfpyJwIfjN11wh+WvOsrMnQxLR
-K6OaXjq0nvCTaBPUlek8U2Bu/K8N8MR6Q4yKBIp1pDb0aPlM5niiHNZFEmsI8Ze+
-GetgPfLW1ekG3nn63DL0JuZf/E5AsuMnxbJbWOy7zpvyEXIzsWutzPhzqy5PQXLT
-wv8dWZUsLlZUt5bXfNVu9fbrJXsZNMngnes5rvRbSg1e54bw3Z3LnjxAcVXU/y5B
-OCp7LksuLZ44VuJPtskoSBgR9TkCFM7Mjc2DkNAOdCHXFAhuX5J7MmtrRQsrw23O
-G3fH4RqY26g1kGdaYDlP4spuZugM/sDg5N/rellC7lRJY7vG917eT2XB47JOFcVd
-ofWCTyTBA2eZnG+rNaU=
-=YbON
+iQIcBAEBAgAGBQJXFIUqAAoJEORje4g2clin+jsP/0gtgp6dwVvLuXR5GIeWl5tG
+KjXwVXaqt6ljrhJSOTIF8O45Y7CzPoaSCKEF6iXluv+6wwa3cprA741rfS3ibm7W
+yYW6hQWdyTmYag4qYsucaXVEpQ5yMqFzPLoCAdvPQSnok7u64pDRUOmvyW8Vsk+m
+01FM3T118nOwRGFa885IbESkcv4BKiBH4eNHdosn8wJAN2CVedQdXtEh3qUeYJv+
+vgEpRtEEFP9k6XqLOPvMZp7SvU7QtQCZ++FE0/y/dDYeYbgXs89lkNN968yvle3O
+rwoYxNwRMZiBODsg00800kwnjuCfnW3NdolhhHXzjxxJ+OnGKRtxn7uUwxqs19X+
+H8+6WFMuT/fkQQh4uyEYs8DOvGwv/GqlGhvYVvNYrTWToeYIHmiQGdPn9TjwYWGG
+LTRwKE80gg+VMom+2jfGzC95mQkMsj9xa8mqu+pdgQZrFt0/Qb/0IVnVqsqQQEr+
+U2yLwNcxeRcJN2WVRRyXf9Sc0YDYYgUBB0FH7L+aE3TaUkCkKp41KzNSZUu61qby
+iGM3b+PBArjnxwW/Uem89rUg7eFKKltM0+Y6U1Ss8W328rbf/56rWZwLFOO4tPqe
+5AAtHByqdFLQm+5Z3MhESRvHhLZYKlOsIqwkLA9Sy3Ja2XGIbIyAB6kKKNcuRjVS
+EhbxdbCxvf9aVzP4kbx0
+=fuqM
 -----END PGP SIGNATURE-----
 
---LZFKeWUZP29EKQNE--
+--2xeD/fx0+7k8I/QN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
