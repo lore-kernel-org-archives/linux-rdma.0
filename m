@@ -1,7 +1,7 @@
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3 05/16] RDMA/i40iw: Do not set self-referencing pointer to NULL after free
-Date: Mon, 18 Apr 2016 10:32:58 -0500
-Message-ID: <1460993589-9428-6-git-send-email-mustafa.ismail@intel.com>
+Subject: [PATCH V3 07/16] RDMA/i40iw: Set vendor_err only if there is an actual error
+Date: Mon, 18 Apr 2016 10:33:00 -0500
+Message-ID: <1460993589-9428-8-git-send-email-mustafa.ismail@intel.com>
 References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460993589-9428-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,27 +10,44 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-iwqp->allocated_buffer is a self-referencing pointer to iwqp.
-Do not set iwqp->allocated_buffer to NULL after freeing it.
+Add a check for cq_poll_info.error before setting vendor_err
+instead of always setting it.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 2534c5d..aa29736 100644
+index aa29736..d3b4b58 100644
 --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
 +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -437,7 +437,6 @@ void i40iw_free_qp_resources(struct i40iw_device *iwdev,
- 	kfree(iwqp->kqp.wrid_mem);
- 	iwqp->kqp.wrid_mem = NULL;
- 	kfree(iwqp->allocated_buffer);
--	iwqp->allocated_buffer = NULL;
- }
+@@ -2049,10 +2049,12 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
+ 		}
+ 		entry->wc_flags = 0;
+ 		entry->wr_id = cq_poll_info.wr_id;
+-		if (!cq_poll_info.error)
+-			entry->status = IB_WC_SUCCESS;
+-		else
++		if (cq_poll_info.error) {
+ 			entry->status = IB_WC_WR_FLUSH_ERR;
++			entry->vendor_err = cq_poll_info.major_err << 16 | cq_poll_info.minor_err;
++		} else {
++			entry->status = IB_WC_SUCCESS;
++		}
  
- /**
+ 		switch (cq_poll_info.op_type) {
+ 		case I40IW_OP_TYPE_RDMA_WRITE:
+@@ -2076,8 +2078,6 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
+ 			break;
+ 		}
+ 
+-		entry->vendor_err =
+-		    cq_poll_info.major_err << 16 | cq_poll_info.minor_err;
+ 		entry->ex.imm_data = 0;
+ 		qp = (struct i40iw_sc_qp *)cq_poll_info.qp_handle;
+ 		entry->qp = (struct ib_qp *)qp->back_qp;
 -- 
 2.7.4
 
