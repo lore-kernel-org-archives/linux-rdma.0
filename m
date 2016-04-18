@@ -1,56 +1,75 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Mon, 18 Apr 2016 13:47:59 -0400
-Message-ID: <57151DCF.4070908@codeaurora.org>
-References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
- <20160418065447.GA11539@x-vnc01.mtx.labs.mlnx>
- <20160418143255.GA15203@infradead.org>
- <DB5PR05MB1848424EC9DC8D4150EADB03C56B0@DB5PR05MB1848.eurprd05.prod.outlook.com>
- <20160418151702.GA26565@infradead.org> <5714FB68.3020604@codeaurora.org>
- <20160418154058.GA4228@infradead.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Mon, 18 Apr 2016 11:55:59 -0600
+Message-ID: <20160418175559.GC13865@obsidianresearch.com>
+References: <20160414185659.GB12997@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB041C34@ORSMSX109.amr.corp.intel.com>
+ <20160414212702.GA14137@obsidianresearch.com>
+ <20160415000242.GA18400@rhel.sc.intel.com>
+ <20160415044124.GA16805@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0422AE@ORSMSX109.amr.corp.intel.com>
+ <20160415181811.GA22322@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB042530@ORSMSX109.amr.corp.intel.com>
+ <20160415220340.GB24204@obsidianresearch.com>
+ <20160416162203.GA6279@rhel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160418154058.GA4228@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "cov@codeaurora.org" <cov@codeaurora.org>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160416162203.GA6279@rhel>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/18/2016 11:40 AM, Christoph Hellwig wrote:
-> On Mon, Apr 18, 2016 at 11:21:12AM -0400, Sinan Kaya wrote:
->> I was looking at the code. I don't see how removing virt_to_page + vmap 
->> would solve the issue.
->>
->> The code is trying to access the buffer space with direct.buf member
->> from the CPU side. This member would become NULL, when this code is 
->> removed and also in mlx4_en_map_buffer. 
->>
->> ...
->>
->> What am I missing?
+On Sat, Apr 16, 2016 at 12:22:04PM -0400, Ira Weiny wrote:
+> On Fri, Apr 15, 2016 at 04:03:40PM -0600, Jason Gunthorpe wrote:
+> > On Fri, Apr 15, 2016 at 09:04:26PM +0000, Hefty, Sean wrote:
+> > > 
+> > > I wasn't referring to a software interface, but interface to the HW.
+> > > A device like usNIC should not have to depend on ib_core and ib_mad
+> > > because it wants to expose its interfaces up to user space.  That
+> > > makes no sense.  I'm pretty sure that we're going to continue to
+> > > disagree on this.
+> > 
+> > That is a kapi issue.
 > 
-> As mentioned before you'll also need to enforce you hit the nbufs = 1
-> case for these.  In fact most callers should simply switch to a plain
-> dma_zalloc_coherent call without all these wrappers.  If we have a case
-> where we really want multiple buffers that don't have to be contiguous
-> (maybe the MTT case) I'd rather opencode that instead of building this
-> confusing interface on top of it.
+> I'm confused, how is a device wanting to expose its interface to user space a
+> kapi issue?
+
+The kapi forces all RDMA devices to implement a set of verbs function
+pointers and has no way to opt out of that slice of the API. Doing
+that requires linking the driver module to ib_core/ib_mad/etc and
+using symbols that have no relevance to the driver.
+
+> > There is no reason a future kapi couldn't support null's on the verbs
+> > driver ops and let a driver only use RDMA_DRIVER_OPS. usnic probably
+> > would have been a lot better off like that - make it very clear it has
+> > nothing to do with verbs, rdma, standards, etc.
 > 
+> These statements conflict with your previous argument regarding the use of the
+> /dev/infiniband/uverbsX devices...
 
-I hit the first problem with CQE. The alloc routine is allocating pages
-but CQE code is trying to do linear access with direct buf member. 
+It really doesn't conflict. As I keep saying, I don't really care if
+uverbs is more than verbs, or not even verbs, it has *become* the uAPI
+access point for the RDMA subsystem, and we are fairly stuck with the
+name..
 
+> I am still not clear what would have happened had we not exported a verbs
+> device _at_ _all_.  In that case would creating a cdev even be a concern?
+> Where and how would hfi1 fit into the kernel if we did not export a verbs
+> interface at all?
 
-I see that this code implements page_list support. I'd like to do the same
-thing for CQE. Let me know if I'm in the right path.
+IIRC, usnic tried other places but ended up here??
 
-static struct mlx4_eqe *get_eqe(struct mlx4_eq *eq, u32 entry, u8 eqe_factor,
-				u8 eqe_size)
+Basically, no maintainer would take a networking driver that doesn't
+live in one of the networking subsystems. Drivers generally don't just
+get to opt-out of the established common APIs. This is why is so
+tasteless to propose a hfi1 eeprom cdev, for instance.
 
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
