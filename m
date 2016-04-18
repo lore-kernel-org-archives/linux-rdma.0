@@ -1,35 +1,25 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/21] IB/hfi1: First round of fixes for 4.7
-Date: Mon, 18 Apr 2016 08:07:55 -0400
-Message-ID: <20160418120754.GC17987@phlsvsds.ph.intel.com>
-References: <20160412174746.24485.92280.stgit@scvm10.sc.intel.com> <20160418070936.GK6349@leon.nu>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Mon, 18 Apr 2016 05:12:47 -0700
+Message-ID: <20160418121247.GA25387@infradead.org>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160418070936.GK6349-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1460845412-13120-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 18, 2016 at 10:09:36AM +0300, Leon Romanovsky wrote:
->On Tue, Apr 12, 2016 at 10:49:52AM -0700, Dennis Dalessandro wrote:
->> These patches do some clean ups and fix issues which may not be appropriate for
->> an RC so we are targeting these for 4.7. The current patch series applies on top
->> of the "Important bug fixes for 4.6 RC" patch set submitted just prior to this.
->> 
->> Patches can be viewed in my GitHub repo at:
->> https://github.com/ddalessa/kernel/tree/for-4.7.
->
->Please follow SubmittingPatches guide - submitting fixes section.
->
+On Sat, Apr 16, 2016 at 06:23:32PM -0400, Sinan Kaya wrote:
+> Current code is assuming that the address returned by dma_alloc_coherent
+> is a logical address. This is not true on ARM/ARM64 systems.
 
-Can you please be more specific with what your complaint is here? Which 
-section are you referring to? There is no "submitting fixes" section in the 
-document.
+Can you explain what you mean with a 'logical address' and what actual
+issue you're trying to solve?
 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
