@@ -1,7 +1,7 @@
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3 06/16] RDMA/i40iw: Add qp table lock around AE processing
-Date: Mon, 18 Apr 2016 10:32:59 -0500
-Message-ID: <1460993589-9428-7-git-send-email-mustafa.ismail@intel.com>
+Subject: [PATCH V3 16/16] RDMA/i40iw: Adding queue drain functions
+Date: Mon, 18 Apr 2016 10:33:09 -0500
+Message-ID: <1460993589-9428-17-git-send-email-mustafa.ismail@intel.com>
 References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1460993589-9428-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,92 +10,107 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-QP may be freed during Async Event processing.
-Add a lock around QP table to prevent it.
+Adding sq and rq drain functions, which block until all
+previously posted wr-s in the specified queue have completed.
+A completion object is signaled to unblock the thread,
+when the last cqe for the corresponding queue is processed.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw.h       | 1 +
- drivers/infiniband/hw/i40iw/i40iw_hw.c    | 7 +++++++
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 9 +++++++--
- 3 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 38 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h |  2 ++
+ 2 files changed, 40 insertions(+)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
-index 8197676..bf3627f 100644
---- a/drivers/infiniband/hw/i40iw/i40iw.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw.h
-@@ -254,6 +254,7 @@ struct i40iw_device {
- 	u32 arp_table_size;
- 	u32 next_arp_index;
- 	spinlock_t resource_lock; /* hw resource access */
-+	spinlock_t qptable_lock;
- 	u32 vendor_id;
- 	u32 vendor_part_id;
- 	u32 of_device_registered;
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_hw.c b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-index 9fd3024..27cfdd8 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_hw.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_hw.c
-@@ -106,6 +106,7 @@ u32 i40iw_initialize_hw_resources(struct i40iw_device *iwdev)
- 	set_bit(2, iwdev->allocated_pds);
- 
- 	spin_lock_init(&iwdev->resource_lock);
-+	spin_lock_init(&iwdev->qptable_lock);
- 	mrdrvbits = 24 - get_count_order(iwdev->max_mr);
- 	iwdev->mr_stagmask = ~(((1 << mrdrvbits) - 1) << (32 - mrdrvbits));
- 	return 0;
-@@ -301,11 +302,15 @@ void i40iw_process_aeq(struct i40iw_device *iwdev)
- 			    "%s ae_id = 0x%x bool qp=%d qp_id = %d\n",
- 			    __func__, info->ae_id, info->qp, info->qp_cq_id);
- 		if (info->qp) {
-+			spin_lock_irqsave(&iwdev->qptable_lock, flags);
- 			iwqp = iwdev->qp_table[info->qp_cq_id];
- 			if (!iwqp) {
-+				spin_unlock_irqrestore(&iwdev->qptable_lock, flags);
- 				i40iw_pr_err("qp_id %d is already freed\n", info->qp_cq_id);
- 				continue;
- 			}
-+			i40iw_add_ref(&iwqp->ibqp);
-+			spin_unlock_irqrestore(&iwdev->qptable_lock, flags);
- 			qp = &iwqp->sc_qp;
- 			spin_lock_irqsave(&iwqp->lock, flags);
- 			iwqp->hw_tcp_state = info->tcp_state;
-@@ -411,6 +416,8 @@ void i40iw_process_aeq(struct i40iw_device *iwdev)
- 				i40iw_terminate_connection(qp, info);
- 				break;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 196d6f0..bf4e1e3 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -789,6 +789,8 @@ static struct ib_qp *i40iw_create_qp(struct ib_pd *ibpd,
+ 			return ERR_PTR(err_code);
  		}
-+		if (info->qp)
-+			i40iw_rem_ref(&iwqp->ibqp);
- 	} while (1);
+ 	}
++	init_completion(&iwqp->sq_drained);
++	init_completion(&iwqp->rq_drained);
  
- 	if (aeqcnt)
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 1ceec81..7ed998c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -506,14 +506,19 @@ void i40iw_rem_ref(struct ib_qp *ibqp)
- 	struct cqp_commands_info *cqp_info;
- 	struct i40iw_device *iwdev;
- 	u32 qp_num;
-+	unsigned long flags;
+ 	return &iwqp->ibqp;
+ error:
+@@ -1582,6 +1584,32 @@ static int i40iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_ne
+ }
  
- 	iwqp = to_iwqp(ibqp);
--	if (!atomic_dec_and_test(&iwqp->refcount))
-+	iwdev = iwqp->iwdev;
-+	spin_lock_irqsave(&iwdev->qptable_lock, flags);
-+	if (!atomic_dec_and_test(&iwqp->refcount)) {
-+		spin_unlock_irqrestore(&iwdev->qptable_lock, flags);
- 		return;
-+	}
+ /**
++ * i40iw_drain_sq - drain the send queue
++ * @ibqp: ib qp pointer
++ */
++static void i40iw_drain_sq(struct ib_qp *ibqp)
++{
++	struct i40iw_qp *iwqp = to_iwqp(ibqp);
++	struct i40iw_sc_qp *qp = &iwqp->sc_qp;
++
++	if (I40IW_RING_MORE_WORK(qp->qp_uk.sq_ring))
++		wait_for_completion(&iwqp->sq_drained);
++}
++
++/**
++ * i40iw_drain_rq - drain the receive queue
++ * @ibqp: ib qp pointer
++ */
++static void i40iw_drain_rq(struct ib_qp *ibqp)
++{
++	struct i40iw_qp *iwqp = to_iwqp(ibqp);
++	struct i40iw_sc_qp *qp = &iwqp->sc_qp;
++
++	if (I40IW_RING_MORE_WORK(qp->qp_uk.rq_ring))
++		wait_for_completion(&iwqp->rq_drained);
++}
++
++/**
+  * i40iw_hwreg_mr - send cqp command for memory registration
+  * @iwdev: iwarp device
+  * @iwmr: iwarp mr pointer
+@@ -2218,6 +2246,7 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
+ 	enum i40iw_status_code ret;
+ 	struct i40iw_cq_uk *ukcq;
+ 	struct i40iw_sc_qp *qp;
++	struct i40iw_qp *iwqp;
+ 	unsigned long flags;
  
--	iwdev = iwqp->iwdev;
- 	qp_num = iwqp->ibqp.qp_num;
- 	iwdev->qp_table[qp_num] = NULL;
-+	spin_unlock_irqrestore(&iwdev->qptable_lock, flags);
- 	cqp_request = i40iw_get_cqp_request(&iwdev->cqp, false);
- 	if (!cqp_request)
- 		return;
+ 	iwcq = (struct i40iw_cq *)ibcq;
+@@ -2268,6 +2297,13 @@ static int i40iw_poll_cq(struct ib_cq *ibcq,
+ 		qp = (struct i40iw_sc_qp *)cq_poll_info.qp_handle;
+ 		entry->qp = (struct ib_qp *)qp->back_qp;
+ 		entry->src_qp = cq_poll_info.qp_id;
++		iwqp = (struct i40iw_qp *)qp->back_qp;
++		if (iwqp->iwarp_state > I40IW_QP_STATE_RTS) {
++			if (!I40IW_RING_MORE_WORK(qp->qp_uk.sq_ring))
++				complete(&iwqp->sq_drained);
++			if (!I40IW_RING_MORE_WORK(qp->qp_uk.rq_ring))
++				complete(&iwqp->rq_drained);
++		}
+ 		entry->byte_len = cq_poll_info.bytes_xfered;
+ 		entry++;
+ 		cqe_count++;
+@@ -2514,6 +2550,8 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
+ 	iwibdev->ibdev.query_device = i40iw_query_device;
+ 	iwibdev->ibdev.create_ah = i40iw_create_ah;
+ 	iwibdev->ibdev.destroy_ah = i40iw_destroy_ah;
++	iwibdev->ibdev.drain_sq = i40iw_drain_sq;
++	iwibdev->ibdev.drain_rq = i40iw_drain_rq;
+ 	iwibdev->ibdev.alloc_mr = i40iw_alloc_mr;
+ 	iwibdev->ibdev.map_mr_sg = i40iw_map_mr_sg;
+ 	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.h b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+index 0acb6c8..0069be8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.h
+@@ -170,5 +170,7 @@ struct i40iw_qp {
+ 	struct i40iw_pbl *iwpbl;
+ 	struct i40iw_dma_mem q2_ctx_mem;
+ 	struct i40iw_dma_mem ietf_mem;
++	struct completion sq_drained;
++	struct completion rq_drained;
+ };
+ #endif
 -- 
 2.7.4
 
