@@ -1,64 +1,64 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Mon, 18 Apr 2016 12:06:51 -0400
-Message-ID: <5715061A.40802@codeaurora.org>
-References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
- <20160418.000039.1946438541182822213.davem@davemloft.net>
- <87c17d3f979cf0167cd37077f39d0534@codeaurora.org>
- <20160418.115902.1053705461620271779.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 2/2] IB/mlx5: Report mlx5 LSO capabilities when querying device
+Date: Mon, 18 Apr 2016 19:25:17 +0300
+Message-ID: <1460996717-18778-3-git-send-email-majd@mellanox.com>
+References: <1460996717-18778-1-git-send-email-majd@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160418.115902.1053705461620271779.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+In-Reply-To: <1460996717-18778-1-git-send-email-majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/18/2016 11:59 AM, David Miller wrote:
-> From: okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-> Date: Mon, 18 Apr 2016 01:06:27 -0400
-> 
->> On 2016-04-18 00:00, David Miller wrote:
->>> From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>> Date: Sat, 16 Apr 2016 18:23:32 -0400
->>>
->>>> Current code is assuming that the address returned by
->>>> dma_alloc_coherent
->>>> is a logical address. This is not true on ARM/ARM64 systems. This
->>>> patch
->>>> replaces dma_alloc_coherent with dma_map_page API. The address
->>>> returned
->>>> can later by virtually mapped from the CPU side with vmap API.
->>>> Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
->>> You can't do this.
->>> The DMA map page API gives non-coherent mappings, and thus requires
->>> proper flushing.
->>> So a straight conversion like this is never legitimate.
->>
->> I would agree on proper dma api usage. However, the code is already
->> assuming coherent architecture by mapping the cpu pages as
->> page_kernel.
->>
->> Dma_map_page returns cached buffers and you don't need cache flushes
->> on coherent architecture to make the data visible.
-> 
-> All you are telling me is that there are two bugs instead of one, so now
-> both need to be fixed.
-> 
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The removal of vmap also fixes the coherency assumption. It is one fix
-for both.
+mlx5 based hardware supports LSO for Raw Ethernet QPs.
+LSO (large segment offload) applied here is mainly used
+for TCP (also known as TSO).
 
-I was thinking of submitting another patch to change the vmap argument
-PAGE_KERNEL based on the coherency support of the architecture. I don't need
-to do that anymore if the other experiment works.
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 5acf346..09502ad 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -454,6 +454,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_rq_sg;
+ 	int max_sq_sg;
+ 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
++	u64 max_lso;
+ 
+ 	if (uhw->inlen || uhw->outlen)
+ 		return -EINVAL;
+@@ -508,10 +509,18 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+ 
+-	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    (MLX5_CAP_ETH(dev->mdev, csum_cap)))
++	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
++		if (MLX5_CAP_ETH(mdev, csum_cap))
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+ 
++		max_lso = MLX5_CAP_ETH(mdev, max_lso_cap);
++		if (max_lso) {
++			props->lso_caps.max_lso = 1 << max_lso;
++			props->lso_caps.supported_qpts |=
++				1 << IB_QPT_RAW_ETHERTYPE;
++		}
++	}
++
+ 	if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+ 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+ 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
 -- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
