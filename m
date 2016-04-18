@@ -1,22 +1,34 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 07/12] IB/core: add a need_inval flag to struct ib_mr
-Date: Sun, 17 Apr 2016 23:01:57 +0300
-Message-ID: <5713EBB5.2000701@grimberg.me>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-8-git-send-email-hch@lst.de>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Mon, 18 Apr 2016 00:00:39 -0400 (EDT)
+Message-ID: <20160418.000039.1946438541182822213.davem@davemloft.net>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460410360-13104-8-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1460845412-13120-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Yes, thank you.
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Date: Sat, 16 Apr 2016 18:23:32 -0400
 
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Current code is assuming that the address returned by dma_alloc_coherent
+> is a logical address. This is not true on ARM/ARM64 systems. This patch
+> replaces dma_alloc_coherent with dma_map_page API. The address returned
+> can later by virtually mapped from the CPU side with vmap API.
+> 
+> Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+
+You can't do this.
+
+The DMA map page API gives non-coherent mappings, and thus requires
+proper flushing.
+
+So a straight conversion like this is never legitimate.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
