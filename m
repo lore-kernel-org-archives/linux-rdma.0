@@ -1,45 +1,106 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH v2 2/4] io-mapping: Specify mapping size for
- io_mapping_map_wc()
-Date: Tue, 19 Apr 2016 13:34:59 +0100
-Message-ID: <20160419123459.GB14602@nuc-i3427.alporthouse.com>
-References: <1460978042-9953-1-git-send-email-chris@chris-wilson.co.uk>
- <1460978042-9953-2-git-send-email-chris@chris-wilson.co.uk>
- <20160419120225.GF26039@nuc-i3427.alporthouse.com>
- <20160419123028.GI1990@wotan.suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20160419123028.GI1990@wotan.suse.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: David Airlie <airlied@linux.ie>, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, Dan Williams <dan.j.williams@intel.com>, Yishai Hadas <yishaih@mellanox.com>, David Hildenbrand <dahi@linux.vnet.ibm.com>
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next 1/4] IB/core: Add support for get ClassPortInfo from the SA
+Date: Tue, 19 Apr 2016 15:51:24 +0300
+Message-ID: <1461070287-13469-2-git-send-email-erezsh@mellanox.com>
+References: <1461070287-13469-1-git-send-email-erezsh@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1461070287-13469-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBBcHIgMTksIDIwMTYgYXQgMDI6MzA6MjhQTSArMDIwMCwgTHVpcyBSLiBSb2RyaWd1
-ZXogd3JvdGU6Cj4gT24gVHVlLCBBcHIgMTksIDIwMTYgYXQgMDE6MDI6MjVQTSArMDEwMCwgQ2hy
-aXMgV2lsc29uIHdyb3RlOgo+ID4gT24gTW9uLCBBcHIgMTgsIDIwMTYgYXQgMTI6MTQ6MDBQTSAr
-MDEwMCwgQ2hyaXMgV2lsc29uIHdyb3RlOgo+ID4gPiBUaGUgaW9yZW1hcCgpIGhpZGRlbiBiZWhp
-bmQgdGhlIGlvX21hcHBpbmdfbWFwX3djKCkgY29udmVuaWVuY2UgaGVscGVyCj4gPiA+IGNhbiBi
-ZSB1c2VkIGZvciByZW1hcHBpbmcgbXVsdGlwbGUgcGFnZXMuIEV4dGVuZCB0aGUgaGVscGVyIHNv
-IHRoYXQKPiA+ID4gZnV0dXJlIGNhbGxlcnMgY2FuIHVzZSBpdCBmb3IgbGFyZ2VyIHJhbmdlcy4K
-PiA+IAo+ID4gQWRkaW5nIEx1aXMgUm9kcmlndWV6IGFzIGhlIGhhcyBiZWVuIGFjdGl2ZSBpbiB0
-aGUgYXJlYSBvZiBpb3JlbWFwXyooKS4KPiAKPiBDYW4gc29tZW9uZSBib3VuY2UgbWUgYSBjb3B5
-IG9mIHRoZSBvcmlnaW5hbCBlLW1haWxzPyBDYW4geW91IGFsc28gdXNlCj4gbWNncm9mQGtlcm5l
-bC5vcmcgPwoKSG9wZWZ1bGx5IGRvbmUuIFBsZWFzZSBwaW5nIG1lIGlmIHRoZXkgZG9uJ3QgYXJy
-aXZlLCBvciBoYXZlIGEgbG9vayBhdApodHRwczovL2NnaXQuZnJlZWRlc2t0b3Aub3JnL35pY2ts
-ZS9saW51eC0yLjYvbG9nLz9oPWlvbWFwCi1DaHJpcwoKLS0gCkNocmlzIFdpbHNvbiwgSW50ZWwg
-T3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50cmUKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+
+Change struct ib_class_port_info to conform to IB Spec 1.3
+That in order to get specific capability mask from ClassPortInfo mad.
+
+>From the IB Spec, ClassPortInfo section:
+	"CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+	 RespTimeValue the rest 5 bits"
+
+The new struct now has one field that contains both of cap_mask2 (which was
+reserved and resp_time which now is 27 bits for cap_mask2 and 5 bits for
+resp_time in the new field)
+
+More changes to adjust the new structure:
+IB/qib: Change pma_get_classportinfo
+IB/srpt: Adjust the use of ib_class_port_info
+
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_mad.c   | 6 ++++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 5 ++++-
+ include/rdma/ib_mad.h                 | 4 ++--
+ 3 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 0bd1837..c5d029d 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1158,6 +1158,7 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+ 	struct ib_class_port_info *p =
+ 		(struct ib_class_port_info *)pmp->data;
+ 	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	char *p_cap_mask2;
+ 
+ 	memset(pmp->data, 0, sizeof(pmp->data));
+ 
+@@ -1172,11 +1173,12 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+ 	 * Set the most significant bit of CM2 to indicate support for
+ 	 * congestion statistics
+ 	 */
+-	p->reserved[0] = dd->psxmitwait_supported << 7;
++	p_cap_mask2 = (char *)&p->cap_mask2_resp_time;
++	p_cap_mask2[0] = dd->psxmitwait_supported << 7;
+ 	/*
+ 	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+ 	 */
+-	p->resp_time_value = 18;
++	p_cap_mask2[3] = 18;
+ 
+ 	return reply((struct ib_smp *) pmp);
+ }
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 0bd3cb2..d12b602 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -249,12 +249,15 @@ static void srpt_set_ioc(u8 *c_list, u32 slot, u8 value)
+ static void srpt_get_class_port_info(struct ib_dm_mad *mad)
+ {
+ 	struct ib_class_port_info *cif;
++	char *p_cap_mask2;
+ 
+ 	cif = (struct ib_class_port_info *)mad->data;
+ 	memset(cif, 0, sizeof(*cif));
+ 	cif->base_version = 1;
+ 	cif->class_version = 1;
+-	cif->resp_time_value = 20;
++
++	p_cap_mask2 = (char *)&cif->cap_mask2_resp_time;
++	p_cap_mask2[3] = 20;
+ 
+ 	mad->mad_hdr.status = 0;
+ }
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 37dd534c..2aaf1cb 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -243,8 +243,8 @@ struct ib_class_port_info {
+ 	u8			base_version;
+ 	u8			class_version;
+ 	__be16			capability_mask;
+-	u8			reserved[3];
+-	u8			resp_time_value;
++	  /* 27 bits for cap_mask2, 5 bits for resp_time */
++	__be32			cap_mask2_resp_time;
+ 	u8			redirect_gid[16];
+ 	__be32			redirect_tcslfl;
+ 	__be16			redirect_lid;
+-- 
+1.7.11.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
