@@ -1,391 +1,326 @@
-From: Dan Jurgens <danielj@mellanox.com>
-Subject: [RFC PATCH v3 01/12] security: Add LSM hooks for Infiniband security
-Date: Tue, 19 Apr 2016 22:51:18 +0300
-Message-ID: <1461095489-18732-2-git-send-email-danielj@mellanox.com>
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC PATCH v3 02/12] selinux: Create policydb version for Infiniband support
+Date: Tue, 19 Apr 2016 22:51:19 +0300
+Message-ID: <1461095489-18732-3-git-send-email-danielj@mellanox.com>
 References: <1461095489-18732-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1461095489-18732-1-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1461095489-18732-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj@mellanox.com>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add nine new hooks
- 1. Allocate security contexts for Infiniband QPs.
- 2. Free security contexts for Infiniband QPs.
- 3. Allocate security contexts for Infiniband MAD agents.
- 4. Free security contexts for Infiniband MAD agents.
- 5. Enforce QP access to Pkeys
- 6. Enforce MAD agent access to Pkeys
- 7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
-    Management Packets (SMP)
- 8. A hook to register a callback to receive notifications of
-    security policy or enforcement changes.  Restricting a QPs access to
-    a pkey will be done during setup and not on a per packet basis
-    access must be enforced again.
- 9. A hook to unregister the callback.
+Support for Infiniband requires the addition of two new object contexts,
+one for infiniband PKeys and another IB End Ports.  Added handlers to read
+and write the new ocontext types when reading or writing a binary policy
+representation.
 
-Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
-Reviewed-by: Eli Cohen <eli@mellanox.com>
+Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 ---
-v2:
-1. Removed ib_flush hook, replaced with 2 hooks to register and
-unregister a callback, to avoid having to delete hooks.  Casey
-
-2. Changed hooks to take structure pointers instead of void* blobs. Required
-adding more specific hooks. Casey
+v2: No functional changes
 
 v3:
 1. Changed "ibdev" and "smi" to "ib_end_port" and "smp" respectively. Jason
-
-2. Defined ib_qp_security struct. Casey
-
-3. Prepended ib_ to pkey_access hooks for consistency.
 ---
- include/linux/lsm_hooks.h |   71 ++++++++++++++++++++++++++++++++++++++
- include/linux/security.h  |   63 ++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h   |    4 ++
- security/Kconfig          |    9 +++++
- security/security.c       |   83 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 230 insertions(+), 0 deletions(-)
+ security/selinux/include/security.h |    3 +-
+ security/selinux/ss/policydb.c      |  129 +++++++++++++++++++++++++++++++----
+ security/selinux/ss/policydb.h      |   27 +++++--
+ 3 files changed, 135 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
-index cdee11c..c6882b5 100644
---- a/include/linux/lsm_hooks.h
-+++ b/include/linux/lsm_hooks.h
-@@ -8,6 +8,7 @@
-  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
-  * Copyright (C) 2015 Intel Corporation.
-  * Copyright (C) 2015 Casey Schaufler <casey@schaufler-ca.com>
-+ * Copyright (C) 2016 Mellanox Techonologies
+diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
+index 38feb55..a7e6ed2 100644
+--- a/security/selinux/include/security.h
++++ b/security/selinux/include/security.h
+@@ -36,13 +36,14 @@
+ #define POLICYDB_VERSION_DEFAULT_TYPE	28
+ #define POLICYDB_VERSION_CONSTRAINT_NAMES	29
+ #define POLICYDB_VERSION_XPERMS_IOCTL	30
++#define POLICYDB_VERSION_INFINIBAND		31
+ 
+ /* Range of policy versions we understand*/
+ #define POLICYDB_VERSION_MIN   POLICYDB_VERSION_BASE
+ #ifdef CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX
+ #define POLICYDB_VERSION_MAX	CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX_VALUE
+ #else
+-#define POLICYDB_VERSION_MAX	POLICYDB_VERSION_XPERMS_IOCTL
++#define POLICYDB_VERSION_MAX	POLICYDB_VERSION_INFINIBAND
+ #endif
+ 
+ /* Mask for just the mount related flags */
+diff --git a/security/selinux/ss/policydb.c b/security/selinux/ss/policydb.c
+index 992a315..78b819c 100644
+--- a/security/selinux/ss/policydb.c
++++ b/security/selinux/ss/policydb.c
+@@ -17,6 +17,11 @@
   *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
-@@ -876,6 +877,50 @@
-  *	associated with the TUN device's security structure.
-  *	@security pointer to the TUN devices's security structure.
+  *      Added support for the policy capability bitmap
   *
-+ * Security hooks for Infiniband
++ * Update: Mellanox Techonologies
 + *
-+ * @ib_qp_pkey_access:
-+ *	Check permission to access a pkey when modifing a QP.
-+ *	@subnet_prefix the subnet prefix of the port being used.
-+ *	@pkey the pkey to be accessed.
-+ *	@qp_sec pointer to the ib_qp_security structure.
-+ * @ib_mad_agent_pkey_access:
-+ *	Check permission to access a pkey when transmiting and receiving MADS.
-+ *	@subnet_prefix the subnet prefix of the port being used.
-+ *	@pkey the pkey to be accessed.
-+ *	@mad_agent pointer to the ib_mad_agent structure.
-+ * @ib_end_port_smp:
-+ *	Check permissions to send and receive SMPs on a end port.
-+ *	@dev_name the IB device name (i.e. mlx4_0).
-+ *	@port_num the port number.
-+ *	@mad_agent pointer to the ib_mad_agent structure.
-+ * @ib_qp_alloc_security:
-+ *	Allocate and attach a security structure to the qp_sec->q_security
-+ *	field. The q_security field is initialized to NULL when the structure
-+ *	is allocated.  A separate QP security structure is used instead of the
-+ *	QP structure because when a QP is destroyed the memory is freed by the
-+ *	hardware driver.  That operation can fail so the security info must be
-+ *	maintained until the destroy completes successfully.
-+ *	@qp_sec contains the ib_qp_security structure to be modified.
-+ *	Return 0 if operation was successful.
-+ * @ib_mad_agent_alloc_security:
-+ *	Allocate and attach a security structure to the mad_agent->m_security
-+ *	field. The m_security field is initialized to NULL when the structure
-+ *	is allocated.
-+ *	@mad_agent contains the ib_mad_agent structure to be modified.
-+ *	Return 0 if operation was successful.
-+ * @ib_qp_free_security:
-+ *	Deallocate and clear the qp_sec->q_security field.
-+ *	@qp_sec contains the ib_qp_security structure to be modified.
-+ * @ib_mad_agent_free_security:
-+ *	Deallocate and clear the mad_agent->m_security field.
-+ *	@mad_agent contains the ib_mad_agent structure to be modified.
-+ * @register_ib_flush_callback:
-+ *	Provide a way for security modules to notify ib_core of policy changes.
-+ *	@callback function pointer to call when policy changes.
-+ * @unregister_ib_flush_callback:
-+ *	Unregister the callback function.
++ *	Added Infiniband support
 + *
-  * Security hooks for XFRM operations.
-  *
-  * @xfrm_policy_alloc_security:
-@@ -1578,6 +1623,21 @@ union security_list_options {
- 	int (*tun_dev_open)(void *security);
- #endif	/* CONFIG_SECURITY_NETWORK */
- 
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+	int (*ib_qp_pkey_access)(u64 subnet_prefix, u16 pkey,
-+				 struct ib_qp_security *qp_sec);
-+	int (*ib_mad_agent_pkey_access)(u64 subnet_prefix, u16 pkey,
-+					struct ib_mad_agent *mad_agent);
-+	int (*ib_end_port_smp)(const char *dev_name, u8 port,
-+			       struct ib_mad_agent *mad_agent);
-+	int (*ib_qp_alloc_security)(struct ib_qp_security *qp_sec);
-+	int (*ib_mad_agent_alloc_security)(struct ib_mad_agent *mad_agent);
-+	void (*ib_qp_free_security)(struct ib_qp_security *qp_sec);
-+	void (*ib_mad_agent_free_security)(struct ib_mad_agent *mad_agent);
-+	void (*register_ib_flush_callback)(void (*callback)(void));
-+	void (*unregister_ib_flush_callback)(void);
-+#endif	/* CONFIG_SECURITY_INFINIBAND */
-+
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 	int (*xfrm_policy_alloc_security)(struct xfrm_sec_ctx **ctxp,
- 					  struct xfrm_user_sec_ctx *sec_ctx,
-@@ -1806,6 +1866,17 @@ struct security_hook_heads {
- 	struct list_head tun_dev_open;
- 	struct list_head skb_owned_by;
- #endif	/* CONFIG_SECURITY_NETWORK */
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+	struct list_head ib_qp_pkey_access;
-+	struct list_head ib_mad_agent_pkey_access;
-+	struct list_head ib_end_port_smp;
-+	struct list_head ib_qp_alloc_security;
-+	struct list_head ib_qp_free_security;
-+	struct list_head ib_mad_agent_alloc_security;
-+	struct list_head ib_mad_agent_free_security;
-+	struct list_head register_ib_flush_callback;
-+	struct list_head unregister_ib_flush_callback;
-+#endif	/* CONFIG_SECURITY_INFINIBAND */
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 	struct list_head xfrm_policy_alloc_security;
- 	struct list_head xfrm_policy_clone_security;
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 157f0cb..f2a0ca4 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -6,6 +6,7 @@
-  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley@nai.com>
-  * Copyright (C) 2001 James Morris <jmorris@intercode.com.au>
-  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
 + * Copyright (C) 2016 Mellanox Techonologies
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
-@@ -55,6 +56,8 @@ struct msg_queue;
- struct xattr;
- struct xfrm_sec_ctx;
- struct mm_struct;
-+struct ib_qp_security;
-+struct ib_mad_agent;
- 
- /* If capable should audit the security request */
- #define SECURITY_CAP_NOAUDIT 0
-@@ -1356,6 +1359,66 @@ static inline int security_tun_dev_open(void *security)
- }
- #endif	/* CONFIG_SECURITY_NETWORK */
- 
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
-+			       struct ib_qp_security *qp_sec);
-+int security_ib_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
-+				      struct ib_mad_agent *mad_agent);
-+int security_ib_end_port_smp(const char *name, u8 port,
-+			     struct ib_mad_agent *mad_agent);
-+int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec);
-+void security_ib_qp_free_security(struct ib_qp_security *qp_sec);
-+int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent);
-+void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent);
-+void security_register_ib_flush_callback(void (*callback)(void));
-+void security_unregister_ib_flush_callback(void);
-+#else	/* CONFIG_SECURITY_INFINIBAND */
-+static inline int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
-+					     struct ib_qp_security *qp_sec)
-+{
-+	return 0;
-+}
-+
-+static inline int security_ib_mad_agent_pkey_access(u64 subnet_prefix,
-+						    u16 pkey,
-+						    struct ib_mad_agent *mad_agent)
-+{
-+	return 0;
-+}
-+
-+static inline int security_ib_end_port_smp(const char *dev_name, u8 port,
-+					   struct ib_mad_agent *mad_agent)
-+{
-+	return 0;
-+}
-+
-+static inline int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
-+{
-+	return 0;
-+}
-+
-+static inline void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
-+{
-+}
-+
-+static inline int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
-+{
-+	return 0;
-+}
-+
-+static inline void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
-+{
-+}
-+
-+static inline void security_register_ib_flush_callback(void (*callback)(void))
-+{
-+}
-+
-+static inline void security_unregister_ib_flush_callback(void)
-+{
-+}
-+#endif	/* CONFIG_SECURITY_INFINIBAND */
-+
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 
- int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index fb2cef4..ade165c 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1416,6 +1416,10 @@ struct ib_srq {
- 	} ext;
+  * Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
+  * Copyright (C) 2004-2005 Trusted Computer Solutions, Inc.
+  * Copyright (C) 2003 - 2004 Tresys Technology, LLC
+@@ -76,81 +81,86 @@ static struct policydb_compat_info policydb_compat[] = {
+ 	{
+ 		.version	= POLICYDB_VERSION_BASE,
+ 		.sym_num	= SYM_NUM - 3,
+-		.ocon_num	= OCON_NUM - 1,
++		.ocon_num	= OCON_NUM - 3,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_BOOL,
+ 		.sym_num	= SYM_NUM - 2,
+-		.ocon_num	= OCON_NUM - 1,
++		.ocon_num	= OCON_NUM - 3,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_IPV6,
+ 		.sym_num	= SYM_NUM - 2,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_NLCLASS,
+ 		.sym_num	= SYM_NUM - 2,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_MLS,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_AVTAB,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_RANGETRANS,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_POLCAP,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_PERMISSIVE,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_BOUNDARY,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_FILENAME_TRANS,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_ROLETRANS,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_NEW_OBJECT_DEFAULTS,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_DEFAULT_TYPE,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_CONSTRAINT_NAMES,
+ 		.sym_num	= SYM_NUM,
+-		.ocon_num	= OCON_NUM,
++		.ocon_num	= OCON_NUM - 2,
+ 	},
+ 	{
+ 		.version	= POLICYDB_VERSION_XPERMS_IOCTL,
+ 		.sym_num	= SYM_NUM,
++		.ocon_num	= OCON_NUM - 2,
++	},
++	{
++		.version	= POLICYDB_VERSION_INFINIBAND,
++		.sym_num	= SYM_NUM,
+ 		.ocon_num	= OCON_NUM,
+ 	},
  };
+@@ -2219,6 +2229,58 @@ static int ocontext_read(struct policydb *p, struct policydb_compat_info *info,
+ 					goto out;
+ 				break;
+ 			}
++			case OCON_PKEY: {
++				rc = next_entry(nodebuf, fp, sizeof(u32) * 6);
++				if (rc)
++					goto out;
++
++				c->u.pkey.subnet_prefix = be64_to_cpu(*((__be64 *)nodebuf));
++				/* The subnet prefix is stored as an IPv6
++				 * address in the policy.
++				 *
++				 * Check that the lower 2 DWORDS are 0.
++				 */
++				if (nodebuf[2] || nodebuf[3]) {
++					rc = -EINVAL;
++					goto out;
++				}
++
++				if (nodebuf[4] > 0xffff ||
++				    nodebuf[5] > 0xffff) {
++					rc = -EINVAL;
++					goto out;
++				}
++
++				c->u.pkey.low_pkey = le32_to_cpu(nodebuf[4]);
++				c->u.pkey.high_pkey = le32_to_cpu(nodebuf[5]);
++
++				rc = context_read_and_validate(&c->context[0],
++							       p,
++							       fp);
++				if (rc)
++					goto out;
++				break;
++			}
++			case OCON_IB_END_PORT:
++				rc = next_entry(buf, fp, sizeof(u32) * 2);
++				if (rc)
++					goto out;
++				len = le32_to_cpu(buf[0]);
++
++				rc = str_read(&c->u.ib_end_port.dev_name, GFP_KERNEL,
++					      fp,
++					      len);
++				if (rc)
++					goto out;
++
++				c->u.ib_end_port.port = le32_to_cpu(buf[1]);
++
++				rc = context_read_and_validate(&c->context[0],
++							       p,
++							       fp);
++				if (rc)
++					goto out;
++				break;
+ 			}
+ 		}
+ 	}
+@@ -3147,6 +3209,43 @@ static int ocontext_write(struct policydb *p, struct policydb_compat_info *info,
+ 				if (rc)
+ 					return rc;
+ 				break;
++			case OCON_PKEY: {
++				__be64 *sbn_pfx = (__be64 *)nodebuf;
++				*sbn_pfx = cpu_to_be64(c->u.pkey.subnet_prefix);
++
++				/*
++				 * The low order 2 bits were confirmed to be 0
++				 * when the policy was loaded. Write them out
++				 * as zero
++				 */
++				nodebuf[2] = 0;
++				nodebuf[3] = 0;
++
++				nodebuf[4] = cpu_to_le32(c->u.pkey.low_pkey);
++				nodebuf[5] = cpu_to_le32(c->u.pkey.high_pkey);
++
++				rc = put_entry(nodebuf, sizeof(u32), 6, fp);
++				if (rc)
++					return rc;
++				rc = context_write(p, &c->context[0], fp);
++				if (rc)
++					return rc;
++				break;
++			}
++			case OCON_IB_END_PORT:
++				len = strlen(c->u.ib_end_port.dev_name);
++				buf[0] = cpu_to_le32(len);
++				buf[1] = cpu_to_le32(c->u.ib_end_port.port);
++				rc = put_entry(buf, sizeof(u32), 2, fp);
++				if (rc)
++					return rc;
++				rc = put_entry(c->u.ib_end_port.dev_name, 1, len, fp);
++				if (rc)
++					return rc;
++				rc = context_write(p, &c->context[0], fp);
++				if (rc)
++					return rc;
++				break;
+ 			}
+ 		}
+ 	}
+diff --git a/security/selinux/ss/policydb.h b/security/selinux/ss/policydb.h
+index 725d594..751bf60 100644
+--- a/security/selinux/ss/policydb.h
++++ b/security/selinux/ss/policydb.h
+@@ -187,6 +187,15 @@ struct ocontext {
+ 			u32 addr[4];
+ 			u32 mask[4];
+ 		} node6;        /* IPv6 node information */
++		struct {
++			u64 subnet_prefix;
++			u16 low_pkey;
++			u16 high_pkey;
++		} pkey;
++		struct {
++			char *dev_name;
++			u8 port;
++		} ib_end_port;
+ 	} u;
+ 	union {
+ 		u32 sclass;  /* security class for genfs */
+@@ -215,14 +224,16 @@ struct genfs {
+ #define SYM_NUM     8
  
-+struct ib_qp_security {
-+	void *q_security;
-+};
-+
- struct ib_qp {
- 	struct ib_device       *device;
- 	struct ib_pd	       *pd;
-diff --git a/security/Kconfig b/security/Kconfig
-index e452378..bac790a 100644
---- a/security/Kconfig
-+++ b/security/Kconfig
-@@ -49,6 +49,15 @@ config SECURITY_NETWORK
- 	  implement socket and networking access controls.
- 	  If you are unsure how to answer this question, answer N.
+ /* object context array indices */
+-#define OCON_ISID  0	/* initial SIDs */
+-#define OCON_FS    1	/* unlabeled file systems */
+-#define OCON_PORT  2	/* TCP and UDP port numbers */
+-#define OCON_NETIF 3	/* network interfaces */
+-#define OCON_NODE  4	/* nodes */
+-#define OCON_FSUSE 5	/* fs_use */
+-#define OCON_NODE6 6	/* IPv6 nodes */
+-#define OCON_NUM   7
++#define OCON_ISID	 0 /* initial SIDs */
++#define OCON_FS		 1 /* unlabeled file systems */
++#define OCON_PORT	 2 /* TCP and UDP port numbers */
++#define OCON_NETIF	 3 /* network interfaces */
++#define OCON_NODE	 4 /* nodes */
++#define OCON_FSUSE	 5 /* fs_use */
++#define OCON_NODE6	 6 /* IPv6 nodes */
++#define OCON_PKEY	 7 /* Infiniband PKeys */
++#define OCON_IB_END_PORT 8 /* Infiniband End ports */
++#define OCON_NUM	 9
  
-+config SECURITY_INFINIBAND
-+	bool "Infiniband Security Hooks"
-+	depends on SECURITY && INFINIBAND
-+	help
-+	  This enables the Infiniband security hooks.
-+	  If enabled, a security module can use these hooks to
-+	  implement Infiniband access controls.
-+	  If you are unsure how to answer this question, answer N.
-+
- config SECURITY_NETWORK_XFRM
- 	bool "XFRM (IPSec) Networking Security Hooks"
- 	depends on XFRM && SECURITY_NETWORK
-diff --git a/security/security.c b/security/security.c
-index 3644b03..ee883d8 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 2001 WireX Communications, Inc <chris@wirex.com>
-  * Copyright (C) 2001-2002 Greg Kroah-Hartman <greg@kroah.com>
-  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley@nai.com>
-+ * Copyright (C) 2016 Mellanox Technologies
-  *
-  *	This program is free software; you can redistribute it and/or modify
-  *	it under the terms of the GNU General Public License as published by
-@@ -1398,6 +1399,67 @@ EXPORT_SYMBOL(security_tun_dev_open);
- 
- #endif	/* CONFIG_SECURITY_NETWORK */
- 
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+
-+int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
-+			       struct ib_qp_security *qp_sec)
-+{
-+	return call_int_hook(ib_qp_pkey_access, 0, subnet_prefix, pkey, qp_sec);
-+}
-+EXPORT_SYMBOL(security_ib_qp_pkey_access);
-+
-+int security_ib_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
-+				      struct ib_mad_agent *mad_agent)
-+{
-+	return call_int_hook(ib_mad_agent_pkey_access, 0, subnet_prefix, pkey, mad_agent);
-+}
-+EXPORT_SYMBOL(security_ib_mad_agent_pkey_access);
-+
-+int security_ib_end_port_smp(const char *dev_name, u8 port,
-+			     struct ib_mad_agent *mad_agent)
-+{
-+	return call_int_hook(ib_end_port_smp, 0, dev_name, port, mad_agent);
-+}
-+EXPORT_SYMBOL(security_ib_end_port_smp);
-+
-+int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
-+{
-+	return call_int_hook(ib_qp_alloc_security, 0, qp_sec);
-+}
-+EXPORT_SYMBOL(security_ib_qp_alloc_security);
-+
-+void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
-+{
-+	call_void_hook(ib_qp_free_security, qp_sec);
-+}
-+EXPORT_SYMBOL(security_ib_qp_free_security);
-+
-+int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
-+{
-+	return call_int_hook(ib_mad_agent_alloc_security, 0, mad_agent);
-+}
-+EXPORT_SYMBOL(security_ib_mad_agent_alloc_security);
-+
-+void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
-+{
-+	call_void_hook(ib_mad_agent_free_security, mad_agent);
-+}
-+EXPORT_SYMBOL(security_ib_mad_agent_free_security);
-+
-+void security_register_ib_flush_callback(void (*callback)(void))
-+{
-+	call_void_hook(register_ib_flush_callback, callback);
-+}
-+EXPORT_SYMBOL(security_register_ib_flush_callback);
-+
-+void security_unregister_ib_flush_callback(void)
-+{
-+	call_void_hook(unregister_ib_flush_callback);
-+}
-+EXPORT_SYMBOL(security_unregister_ib_flush_callback);
-+
-+#endif	/* CONFIG_SECURITY_INFINIBAND */
-+
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 
- int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
-@@ -1850,6 +1912,27 @@ struct security_hook_heads security_hook_heads = {
- 	.tun_dev_open =	LIST_HEAD_INIT(security_hook_heads.tun_dev_open),
- 	.skb_owned_by =	LIST_HEAD_INIT(security_hook_heads.skb_owned_by),
- #endif	/* CONFIG_SECURITY_NETWORK */
-+
-+#ifdef CONFIG_SECURITY_INFINIBAND
-+	.ib_qp_pkey_access =
-+		LIST_HEAD_INIT(security_hook_heads.ib_qp_pkey_access),
-+	.ib_mad_agent_pkey_access =
-+		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_pkey_access),
-+	.ib_end_port_smp = LIST_HEAD_INIT(security_hook_heads.ib_end_port_smp),
-+	.ib_qp_alloc_security =
-+		LIST_HEAD_INIT(security_hook_heads.ib_qp_alloc_security),
-+	.ib_qp_free_security =
-+		LIST_HEAD_INIT(security_hook_heads.ib_qp_free_security),
-+	.ib_mad_agent_alloc_security =
-+		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_alloc_security),
-+	.ib_mad_agent_free_security =
-+		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_free_security),
-+	.register_ib_flush_callback =
-+		LIST_HEAD_INIT(security_hook_heads.register_ib_flush_callback),
-+	.unregister_ib_flush_callback =
-+		LIST_HEAD_INIT(security_hook_heads.unregister_ib_flush_callback),
-+#endif	/* CONFIG_SECURITY_INFINIBAND */
-+
- #ifdef CONFIG_SECURITY_NETWORK_XFRM
- 	.xfrm_policy_alloc_security =
- 		LIST_HEAD_INIT(security_hook_heads.xfrm_policy_alloc_security),
+ /* The policy database */
+ struct policydb {
 -- 
 1.7.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
