@@ -1,207 +1,49 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
-Date: Tue, 19 Apr 2016 15:51:27 +0300
-Message-ID: <1461070287-13469-5-git-send-email-erezsh@mellanox.com>
-References: <1461070287-13469-1-git-send-email-erezsh@mellanox.com>
+Subject: [PATCH for-next 0/4] Support SendOnlyFullMember join
+Date: Tue, 19 Apr 2016 15:51:23 +0300
+Message-ID: <1461070287-13469-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461070287-13469-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+There are 4 types of multicast join: FullMember, NonMember,
+SendOnlyNonMember and SendOnlyFullMember.
 
-Check (via an sa query) if the SM supports the new option for SendOnly
-multicast joins.
-If the SM supports that option it will use the new join state to create
-such multicast group.
-If SendOnlyFullMember is supported, we wouldn't use faked FullMember state
-join for SendOnly MCG, use the correct state if supported.
+This patch-set introduces the ability to send multicast join requests of
+type SendOnlyFullMember (until now only the first three types were
+supported).
+Host that sends such join request, does not require a multicast
+subscription and will still send properly, and in addition will not get
+other multicast packets from that group.
 
-This check is performed at every invocation of mcast_restart task, to be
-sure that the driver stays in sync with the current state of the SM.
+It adds a new SA query (for classport_info) to check that the sm
+supports sending such requests and it modifies multicast processing in
+the IB/core module to handle SendOnlyFullMember multicast join requests.
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 74 ++++++++++++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 33 +++++++-----
- 3 files changed, 96 insertions(+), 13 deletions(-)
+In addition, the patch set modifies IPoIB so that if the sm does support
+SendOnlyFullMember join requests, IPoIB will send such a request when
+joining a sendonly multicast group.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index caec8e9..c51f618 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -392,6 +392,7 @@ struct ipoib_dev_priv {
- 	struct ipoib_ethtool_st ethtool;
- 	struct timer_list poll_timer;
- 	unsigned max_send_sge;
-+	bool sm_fullmember_sendonly_support;
- };
- 
- struct ipoib_ah {
-@@ -476,6 +477,7 @@ void ipoib_reap_ah(struct work_struct *work);
- 
- void ipoib_mark_paths_invalid(struct net_device *dev);
- void ipoib_flush_paths(struct net_device *dev);
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
- struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
- 
- int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 3b630e5..eb5927b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
- 
- 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
- 
-+	priv->sm_fullmember_sendonly_support = false;
-+
- 	if (ipoib_ib_dev_open(dev)) {
- 		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
- 			return 0;
-@@ -629,6 +631,78 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
- 	spin_unlock_irq(&priv->lock);
- }
- 
-+struct classport_info_context {
-+	struct ipoib_dev_priv	*priv;
-+	struct completion	done;
-+	struct ib_sa_query	*sa_query;
-+};
-+
-+static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
-+				    void *context)
-+{
-+	struct classport_info_context *cb_ctx = context;
-+	struct ipoib_dev_priv *priv;
-+
-+	WARN_ON(!context);
-+
-+	priv = cb_ctx->priv;
-+
-+	if (status) {
-+		pr_debug("device: %s failed query classport_info status: %d\n",
-+			 priv->dev->name, status);
-+		/* keeps the default, will try next mcast_restart */
-+		priv->sm_fullmember_sendonly_support = false;
-+		goto out;
-+	}
-+
-+	/* take out resp_time that located in the last 5 bits */
-+	if ((be32_to_cpu(rec->cap_mask2_resp_time) >> 5) &
-+	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
-+		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = true;
-+	} else {
-+		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = false;
-+	}
-+
-+out:
-+	complete(&cb_ctx->done);
-+}
-+
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
-+{
-+	struct classport_info_context *callback_context;
-+	int ret;
-+
-+	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
-+	if (!callback_context)
-+		return -ENOMEM;
-+
-+	callback_context->priv = priv;
-+	init_completion(&callback_context->done);
-+
-+	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
-+					     priv->ca, priv->port, 3000,
-+					     GFP_KERNEL,
-+					     classport_info_query_cb,
-+					     callback_context,
-+					     &callback_context->sa_query);
-+	if (ret < 0) {
-+		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
-+			priv->dev->name, ret);
-+		kfree(callback_context);
-+		return ret;
-+	}
-+
-+	/* waiting for the callback to finish before returnning */
-+	wait_for_completion(&callback_context->done);
-+	kfree(callback_context);
-+
-+	return ret;
-+}
-+
- void ipoib_flush_paths(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 2588931..c1bb69e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -515,22 +515,20 @@ static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
- 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
- 
- 		/*
--		 * Send-only IB Multicast joins do not work at the core
--		 * IB layer yet, so we can't use them here.  However,
--		 * we are emulating an Ethernet multicast send, which
--		 * does not require a multicast subscription and will
--		 * still send properly.  The most appropriate thing to
-+		 * Send-only IB Multicast joins work at the core IB layer but
-+		 * require specific SM support.
-+		 * We can use such joins here only if the current SM supports that feature.
-+		 * However, if not, we emulate an Ethernet multicast send,
-+		 * which does not require a multicast subscription and will
-+		 * still send properly. The most appropriate thing to
- 		 * do is to create the group if it doesn't exist as that
- 		 * most closely emulates the behavior, from a user space
--		 * application perspecitive, of Ethernet multicast
--		 * operation.  For now, we do a full join, maybe later
--		 * when the core IB layers support send only joins we
--		 * will use them.
-+		 * application perspective, of Ethernet multicast operation.
- 		 */
--#if 0
--		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--			rec.join_state = 4;
--#endif
-+		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-+		    priv->sm_fullmember_sendonly_support)
-+			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-+			rec.join_state = 8;
- 	}
- 	spin_unlock_irq(&priv->lock);
- 
-@@ -559,6 +557,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	struct ib_port_attr port_attr;
- 	unsigned long delay_until = 0;
- 	struct ipoib_mcast *mcast = NULL;
-+	int ret;
- 
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
- 		return;
-@@ -576,6 +575,14 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 	else
- 		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
- 
-+	/* Check if can send sendonly MCG's with sendonly-fullmember join state */
-+	if (priv->broadcast) {
-+		ret = ipoib_check_sm_sendonly_fullmember_support(priv);
-+		if (ret < 0)
-+			pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
-+				 priv->dev->name, ret);
-+	}
-+
- 	spin_lock_irq(&priv->lock);
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
- 		goto out;
+
+Erez Shitrit (4):
+  IB/core: Add support for get ClassPortInfo from the SA
+  IB/sa: Add support for sa get ClassPortInfo
+  IB/core: Support new type of join-state for multicast
+  IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
+
+ drivers/infiniband/core/multicast.c            |  23 +++-
+ drivers/infiniband/core/sa_query.c             | 174 +++++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_mad.c            |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  74 +++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  33 +++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c          |   5 +-
+ include/rdma/ib_mad.h                          |   4 +-
+ include/rdma/ib_sa.h                           |  12 ++
+ 9 files changed, 310 insertions(+), 23 deletions(-)
+
 -- 
 1.7.11.3
 
