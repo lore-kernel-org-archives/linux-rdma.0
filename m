@@ -1,69 +1,67 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Add readout of statistics using ethtool
-Date: Tue, 19 Apr 2016 20:33:40 +0300
-Message-ID: <20160419173339.GR6349@leon.nu>
-References: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
- <CAAk-MO-RuWB_ecPr02Tr5brwv6E9dJWg+06=tpoxW1Ec=O3dUg@mail.gmail.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Tue, 19 Apr 2016 11:35:51 -0600
+Message-ID: <20160419173551.GE20844@obsidianresearch.com>
+References: <20160415044124.GA16805@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0422AE@ORSMSX109.amr.corp.intel.com>
+ <20160415181811.GA22322@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB042530@ORSMSX109.amr.corp.intel.com>
+ <20160415220340.GB24204@obsidianresearch.com>
+ <20160416162203.GA6279@rhel>
+ <20160418175559.GC13865@obsidianresearch.com>
+ <20160418181535.GB7596@phlsvsds.ph.intel.com>
+ <20160418182453.GA14930@obsidianresearch.com>
+ <20160419013649.GA28612@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TDVcAd+kFgbLxwBe"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAAk-MO-RuWB_ecPr02Tr5brwv6E9dJWg+06=tpoxW1Ec=O3dUg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20160419013649.GA28612-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---TDVcAd+kFgbLxwBe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Apr 19, 2016 at 05:50:23PM +0300, Erez Shitrit wrote:
-> On Fri, Apr 15, 2016 at 1:17 PM, Hans Westgaard Ry
-> <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > IPoIB collects statistics of traffic including number of packets
-> > sent/received, number of bytes transferred, and certain errors. This
-> > patch makes these statistics available to be queried by ethtool.
+On Mon, Apr 18, 2016 at 09:36:49PM -0400, Dennis Dalessandro wrote:
+> On Mon, Apr 18, 2016 at 12:24:53PM -0600, Jason Gunthorpe wrote:
+> >On Mon, Apr 18, 2016 at 02:15:36PM -0400, Dennis Dalessandro wrote:
 > >
-> > Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Tested-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->=20
-> Acked-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >>Point taken on eprom cdev. We should be able to simply drop the last two
+> >>patches of this series.
+> >
+> >I would like to hear more explanation about this snoop thing, and
+> >where it lives in the driver today. That also seems inappropriate.
+> >
+> 
+> Fair enough. I will say the name "snoop" may not be the best and perhaps
+> adds to the confusion.
 
-Hans is planning to send slightly (cosmetic change) different
-version of this patch.
+> Basically it's a diagnostic interface that lets user space do things
+> without involving the rest of the kernel (verbs, MAD, etc). It can
+> bring the port up and down, set link credits, and get the status for
+> instance.
 
-Thanks.
+So, none of this stuff shold be part of the char dev. The char dev
+needs to have the same security model as uverbs which means
+unprivileged access - conflating secure stuff with that interface is a
+bad idea.
 
---TDVcAd+kFgbLxwBe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Run it over netlink (you may need to develop the IB cores' netlink
+support a bit more) or put it in debug fs.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> Then there are the things it can do with packets. It can send packets
+> generated by user space. So we can craft all sorts of packets that would not
+> otherwise be able to be sent through verbs. It also captures packets and
+> supports basic filtering and hands them to user space before the packets
+> ever make it to the verbs layer. Depending on mode, packets may be dropped
+> or passed on to verbs.
 
-iQIcBAEBAgAGBQJXFmvzAAoJEORje4g2clin28gP/3kuXtYFxcx5fDbIdWrjbRok
-PxPeXmuKXge8QD3cAWEMyrRWZ9yDqid3Kx608Zxq6eQfxa0e0lsPdHuo2/JXo3Q5
-5qtPAKYEf6NfLm126iM3pfYp+4PPlD+a1EVUEtvKOSpuclTp+jzuPpHQaR6UY8Ii
-N9i6e7uWFb9FRza2YKhEzBi3mAtaGiMGagMacdC83iD5BuUT7fPjzvZbi37thGBm
-7ol7RU/AxMA/5l2qJT+pqK/k/3vky/DV28fbFpAVk0gie5qVgXHAwK7uheMygcWA
-RGcJg6CpYXGmvsdZJirDxBaLldbg2WyNVC/Kc5DFEEskH9dg9DQ2aV50M8ji3d0n
-H65J/X196r18Ql5vnDfNs++lF4MWT8mybtCQmZD+ffcjgkBPJqiHNLdwFStIafdA
-zKCDeWEbGw59iOA5GWAct9cfDDKkfguXhZ4TBhe0ImAWXaNFndswmbOHpOGyE1k0
-y0vu8Q67KSdSr0vxGDYk1QsJTTrHVTkELVRhXwFVmefIJmHYJpgfvZi6OrmfTlEo
-gvWdDPBs16QKujotS1I4RiBAFSbG5EflFHZj/4lwBoKnSg7OajSf/3doY0MsIxy6
-mqctzqBp0FG0Tj1RjshzQqV/tv9YXNjT44kHdwNPUvdEd5PRmTn0MtN/YT8XqYnj
-hrkbbs+w+xxTd5ozgn8r
-=gbGp
------END PGP SIGNATURE-----
+And this seems very common, other vendors have at least the capture
+side as out of tree stuff. It would be ideal to have a raw access as a
+core capability.
 
---TDVcAd+kFgbLxwBe--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
