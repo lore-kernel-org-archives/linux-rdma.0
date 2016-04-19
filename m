@@ -1,133 +1,297 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH v3 08/12] ib/core: IB cache enhancements to support Infiniband security
-Date: Tue, 19 Apr 2016 22:51:25 +0300
-Message-ID: <1461095489-18732-9-git-send-email-danielj@mellanox.com>
+From: Dan Jurgens <danielj@mellanox.com>
+Subject: [RFC PATCH v3 10/12] ib/core: Enforce PKey security on management datagrams
+Date: Tue, 19 Apr 2016 22:51:27 +0300
+Message-ID: <1461095489-18732-11-git-send-email-danielj@mellanox.com>
 References: <1461095489-18732-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461095489-18732-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1461095489-18732-1-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Daniel Jurgens <danielj@mellanox.com>
 
-Cache the subnet prefix and add a function to access it. Enforcing
-security requires frequent queries of the subnet prefix and the pkeys in
-the pkey table.
+Allocate and free a security context when creating and destroying a MAD
+agent.  This context is used for controlling access to PKeys.
 
-Also removed an unneded pr_warn about memory allocation failure.
+When sending or receiving a MAD check that the agent has permission to
+access the PKey for the Subnet Prefix of the port.
 
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+Reviewed-by: Eli Cohen <eli@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
 ---
-v2: Added to series.
+v2: Added patch to series
 
 v3:
-1. Removed unneccesary pr_warn after mem alloc failure. Leon
----
- drivers/infiniband/core/cache.c     |   35 +++++++++++++++++++++++++++++++++--
- drivers/infiniband/core/core_priv.h |    3 +++
- include/rdma/ib_verbs.h             |    1 +
- 3 files changed, 37 insertions(+), 2 deletions(-)
+1. Shortened name of ib_security_enforce_mad_agent_pkey_access to
+ib_security_ma_pkey_acces.  Leon
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index cb00d59..f1d602f 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -925,6 +925,25 @@ int ib_get_cached_pkey(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_get_cached_pkey);
- 
-+int ib_get_cached_subnet_prefix(struct ib_device *device,
-+				u8                port_num,
-+				u64              *sn_pfx)
-+{
-+	unsigned long flags;
-+	int p = port_num - rdma_start_port(device);
-+
-+	if (port_num < rdma_start_port(device) ||
-+	    port_num > rdma_end_port(device))
-+		return -EINVAL;
-+
-+	read_lock_irqsave(&device->cache.lock, flags);
-+	*sn_pfx = device->cache.subnet_prefix_cache[p];
-+	read_unlock_irqrestore(&device->cache.lock, flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(ib_get_cached_subnet_prefix);
-+
- int ib_find_cached_pkey(struct ib_device *device,
- 			u8                port_num,
- 			u16               pkey,
-@@ -1101,6 +1120,8 @@ static void ib_cache_update(struct ib_device *device,
- 
- 	device->cache.lmc_cache[port - rdma_start_port(device)] = tprops->lmc;
- 
-+	device->cache.subnet_prefix_cache[port - rdma_start_port(device)] =
-+							tprops->subnet_prefix;
- 	write_unlock_irq(&device->cache.lock);
- 
- 	kfree(gid_cache);
-@@ -1159,9 +1180,18 @@ int ib_cache_setup_one(struct ib_device *device)
- 					  (rdma_end_port(device) -
- 					   rdma_start_port(device) + 1),
- 					  GFP_KERNEL);
-+
-+	device->cache.subnet_prefix_cache = kcalloc((rdma_end_port(device) -
-+						     rdma_start_port(device) + 1),
-+						    sizeof(*device->cache.subnet_prefix_cache),
-+						    GFP_KERNEL);
-+
- 	if (!device->cache.pkey_cache ||
--	    !device->cache.lmc_cache) {
--		pr_warn("Couldn't allocate cache for %s\n", device->name);
-+	    !device->cache.lmc_cache ||
-+	    !device->cache.subnet_prefix_cache) {
-+		kfree(device->cache.pkey_cache);
-+		kfree(device->cache.lmc_cache);
-+		kfree(device->cache.subnet_prefix_cache);
- 		return -ENOMEM;
- 	}
- 
-@@ -1204,6 +1234,7 @@ void ib_cache_release_one(struct ib_device *device)
- 	gid_table_release_one(device);
- 	kfree(device->cache.pkey_cache);
- 	kfree(device->cache.lmc_cache);
-+	kfree(device->cache.subnet_prefix_cache);
- }
- 
- void ib_cache_cleanup_one(struct ib_device *device)
+2. Refactored how the pkey index and subnet prefix are retreived due to
+changes in the previous patch.
+
+3. Changed call to security_mad_agent_pkey_access to add the ib_
+---
+ drivers/infiniband/core/core_priv.h |   13 +++++++
+ drivers/infiniband/core/mad.c       |   63 +++++++++++++++++++++++++++++++----
+ drivers/infiniband/core/security.c  |   24 +++++++++++++
+ 3 files changed, 93 insertions(+), 7 deletions(-)
+
 diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index eab3221..722b866 100644
+index 0482e12..ea577f0 100644
 --- a/drivers/infiniband/core/core_priv.h
 +++ b/drivers/infiniband/core/core_priv.h
-@@ -137,4 +137,7 @@ static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
- 	return _upper == upper;
+@@ -150,6 +150,11 @@ int ib_get_cached_subnet_prefix(struct ib_device *device,
+ 				u64              *sn_pfx);
+ 
+ #ifdef CONFIG_SECURITY_INFINIBAND
++int ib_security_ma_pkey_access(struct ib_device *dev,
++			       u8 port_num,
++			       u16 pkey_index,
++			       struct ib_mad_agent *mad_agent);
++
+ void ib_security_destroy_port_pkey_list(struct ib_device *device);
+ 
+ void ib_security_cache_change(struct ib_device *device,
+@@ -168,6 +173,14 @@ void ib_destroy_qp_security_end(struct ib_qp_security *sec);
+ int ib_open_shared_qp_security(struct ib_qp *qp, struct ib_device *dev);
+ void ib_close_shared_qp_security(struct ib_qp_security *sec);
+ #else
++static inline int ib_security_ma_pkey_access(struct ib_device *dev,
++					     u8 port_num,
++					     u16 pkey_index,
++					     struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
+ static inline void ib_security_destroy_port_pkey_list(struct ib_device *device)
+ {
+ }
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 9fa5bf3..f76a409 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -40,9 +40,11 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/security.h>
+ #include <rdma/ib_cache.h>
+ 
+ #include "mad_priv.h"
++#include "core_priv.h"
+ #include "mad_rmpp.h"
+ #include "smi.h"
+ #include "opa_smi.h"
+@@ -341,11 +343,17 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 		goto error1;
+ 	}
+ 
++	ret2 = security_ib_mad_agent_alloc_security(&mad_agent_priv->agent);
++	if (ret2) {
++		ret = ERR_PTR(ret2);
++		goto error3;
++	}
++
+ 	if (mad_reg_req) {
+ 		reg_req = kmemdup(mad_reg_req, sizeof *reg_req, GFP_KERNEL);
+ 		if (!reg_req) {
+ 			ret = ERR_PTR(-ENOMEM);
+-			goto error3;
++			goto error4;
+ 		}
+ 	}
+ 
+@@ -388,7 +396,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 				if (method) {
+ 					if (method_in_use(&method,
+ 							   mad_reg_req))
+-						goto error4;
++						goto error5;
+ 				}
+ 			}
+ 			ret2 = add_nonoui_reg_req(mad_reg_req, mad_agent_priv,
+@@ -404,14 +412,14 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 					if (is_vendor_method_in_use(
+ 							vendor_class,
+ 							mad_reg_req))
+-						goto error4;
++						goto error5;
+ 				}
+ 			}
+ 			ret2 = add_oui_reg_req(mad_reg_req, mad_agent_priv);
+ 		}
+ 		if (ret2) {
+ 			ret = ERR_PTR(ret2);
+-			goto error4;
++			goto error5;
+ 		}
+ 	}
+ 
+@@ -421,9 +429,11 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 
+ 	return &mad_agent_priv->agent;
+ 
+-error4:
++error5:
+ 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+ 	kfree(reg_req);
++error4:
++	security_ib_mad_agent_free_security(&mad_agent_priv->agent);
+ error3:
+ 	kfree(mad_agent_priv);
+ error1:
+@@ -493,6 +503,7 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 	struct ib_mad_agent *ret;
+ 	struct ib_mad_snoop_private *mad_snoop_priv;
+ 	int qpn;
++	int err;
+ 
+ 	/* Validate parameters */
+ 	if ((is_snooping_sends(mad_snoop_flags) && !snoop_handler) ||
+@@ -517,6 +528,13 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 		goto error1;
+ 	}
+ 
++	err = security_ib_mad_agent_alloc_security(&mad_snoop_priv->agent);
++
++	if (err) {
++		ret = ERR_PTR(err);
++		goto error2;
++	}
++
+ 	/* Now, fill in the various structures */
+ 	mad_snoop_priv->qp_info = &port_priv->qp_info[qpn];
+ 	mad_snoop_priv->agent.device = device;
+@@ -527,17 +545,19 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+ 	mad_snoop_priv->agent.port_num = port_num;
+ 	mad_snoop_priv->mad_snoop_flags = mad_snoop_flags;
+ 	init_completion(&mad_snoop_priv->comp);
++
+ 	mad_snoop_priv->snoop_index = register_snoop_agent(
+ 						&port_priv->qp_info[qpn],
+ 						mad_snoop_priv);
+ 	if (mad_snoop_priv->snoop_index < 0) {
+ 		ret = ERR_PTR(mad_snoop_priv->snoop_index);
+-		goto error2;
++		goto error3;
+ 	}
+ 
+ 	atomic_set(&mad_snoop_priv->refcount, 1);
+ 	return &mad_snoop_priv->agent;
+-
++error3:
++	security_ib_mad_agent_free_security(&mad_snoop_priv->agent);
+ error2:
+ 	kfree(mad_snoop_priv);
+ error1:
+@@ -583,6 +603,8 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
+ 	deref_mad_agent(mad_agent_priv);
+ 	wait_for_completion(&mad_agent_priv->comp);
+ 
++	security_ib_mad_agent_free_security(&mad_agent_priv->agent);
++
+ 	kfree(mad_agent_priv->reg_req);
+ 	kfree(mad_agent_priv);
+ }
+@@ -601,6 +623,8 @@ static void unregister_mad_snoop(struct ib_mad_snoop_private *mad_snoop_priv)
+ 	deref_snoop_agent(mad_snoop_priv);
+ 	wait_for_completion(&mad_snoop_priv->comp);
+ 
++	security_ib_mad_agent_free_security(&mad_snoop_priv->agent);
++
+ 	kfree(mad_snoop_priv);
  }
  
-+int ib_get_cached_subnet_prefix(struct ib_device *device,
-+				u8                port_num,
-+				u64              *sn_pfx);
- #endif /* _CORE_PRIV_H */
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 66d37b8..870c5ac 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1616,6 +1616,7 @@ struct ib_cache {
- 	struct ib_pkey_cache  **pkey_cache;
- 	struct ib_gid_table   **gid_cache;
- 	u8                     *lmc_cache;
-+	u64                    *subnet_prefix_cache;
- };
+@@ -1220,6 +1244,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+ 	unsigned long flags;
+ 	int ret = -EINVAL;
++	u16 pkey_index;
  
- struct ib_dma_mapping_ops {
+ 	/* Walk list of send WRs and post each on send list */
+ 	for (; send_buf; send_buf = next_send_buf) {
+@@ -1228,6 +1253,15 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+ 					   struct ib_mad_send_wr_private,
+ 					   send_buf);
+ 		mad_agent_priv = mad_send_wr->mad_agent_priv;
++		pkey_index = mad_send_wr->send_wr.pkey_index;
++
++		ret = ib_security_ma_pkey_access(mad_agent_priv->agent.device,
++						 mad_agent_priv->agent.port_num,
++						 pkey_index,
++						 &mad_agent_priv->agent);
++
++		if (ret)
++			goto error;
+ 
+ 		if (!send_buf->mad_agent->send_handler ||
+ 		    (send_buf->timeout_ms &&
+@@ -1962,6 +1996,15 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 	struct ib_mad_send_wr_private *mad_send_wr;
+ 	struct ib_mad_send_wc mad_send_wc;
+ 	unsigned long flags;
++	int ret;
++
++	ret = ib_security_ma_pkey_access(mad_agent_priv->agent.device,
++					 mad_agent_priv->agent.port_num,
++					 mad_recv_wc->wc->pkey_index,
++					 &mad_agent_priv->agent);
++
++	if (ret)
++		goto security_error;
+ 
+ 	INIT_LIST_HEAD(&mad_recv_wc->rmpp_list);
+ 	list_add(&mad_recv_wc->recv_buf.list, &mad_recv_wc->rmpp_list);
+@@ -2019,6 +2062,12 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+ 						   mad_recv_wc);
+ 		deref_mad_agent(mad_agent_priv);
+ 	}
++
++	return;
++
++security_error:
++	ib_free_recv_mad(mad_recv_wc);
++	deref_mad_agent(mad_agent_priv);
+ }
+ 
+ static enum smi_action handle_ib_smi(const struct ib_mad_port_private *port_priv,
+diff --git a/drivers/infiniband/core/security.c b/drivers/infiniband/core/security.c
+index 71a72e7..f88b328 100644
+--- a/drivers/infiniband/core/security.c
++++ b/drivers/infiniband/core/security.c
+@@ -614,4 +614,28 @@ int ib_security_modify_qp(struct ib_qp *qp,
+ }
+ EXPORT_SYMBOL(ib_security_modify_qp);
+ 
++int ib_security_ma_pkey_access(struct ib_device *dev,
++			       u8 port_num,
++			       u16 pkey_index,
++			       struct ib_mad_agent *mad_agent)
++{
++	u64 subnet_prefix;
++	u16 pkey;
++	int ret;
++
++	ret = ib_get_cached_pkey(dev, port_num, pkey_index, &pkey);
++	if (ret)
++		return ret;
++
++	ret = ib_get_cached_subnet_prefix(dev, port_num, &subnet_prefix);
++
++	if (ret)
++		return ret;
++
++	return security_ib_mad_agent_pkey_access(subnet_prefix,
++						 pkey,
++						 mad_agent);
++}
++EXPORT_SYMBOL(ib_security_ma_pkey_access);
++
+ #endif /* CONFIG_SECURITY_INFINIBAND */
 -- 
 1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
