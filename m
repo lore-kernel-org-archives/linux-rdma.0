@@ -1,31 +1,63 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 11/12] IB/core: add RW API support for signature MRs
-Date: Tue, 19 Apr 2016 20:29:50 +0200
-Message-ID: <20160419182950.GC989@lst.de>
-References: <1461010463-6603-1-git-send-email-hch@lst.de> <1461010463-6603-12-git-send-email-hch@lst.de> <57163E99.8090301@grimberg.me> <20160419172627.GC20844@obsidianresearch.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Tue, 19 Apr 2016 14:37:42 -0400
+Message-ID: <57167AF6.9090507@codeaurora.org>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
+ <20160419182212.GA8441@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160419172627.GC20844-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160419182212.GA8441@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 19, 2016 at 11:26:27AM -0600, Jason Gunthorpe wrote:
-> On Tue, Apr 19, 2016 at 05:20:09PM +0300, Sagi Grimberg wrote:
-> 
-> > In isert if the we have a single sg entry, we use the local_dma_lkey
-> > just so we can skip a registration (also for protection sg), perhaps
-> > rdma_rw_init_one_mr can do this optimization too?
-> 
-> Can't more than a single SG can be packed into a WR? Ideally this
-> common code should try and max out the SG entries before falling back
-> to using a WR?
+On 4/19/2016 2:22 PM, Christoph Hellwig wrote:
+> What I think we need is something like the patch below.  In the long
+> ru nwe should also kill the mlx4_buf structure which now is pretty
+> pointless.
 
-Mellanox signature MRs don't support registering more than a single SGE.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Maybe; this could be the correct approach if we can guarantee that the 
+architecture can allocate the requested amount of memory with
+dma_alloc_coherent. 
+
+When I brought this issue a year ago, the objection was that my code
+doesn't compile on intel (dma_to_phys) and also some arches run out of
+DMA memory with existing customer base.
+
+If there is a real need to maintain compatibility with the existing 
+architectures due to limited amount of DMA memory, we need to correct this
+code to make proper use of vmap via alloc_pages and also insert the 
+dma_sync in proper places for DMA API conformance. 
+
+Also, the tx descriptors always has to be allocated from a single DMA region
+or the tx code needs to be corrected to support page_list.
+
+If we can live with just using dma_alloc_coherent, your solution is
+better. I was trying to put this support for 64bit arches only while
+maintaining support for the existing code base.
+
+> 
+> ---
+> From a493881d2a6c90152d3daabb7b6b3afd1d254d78 Mon Sep 17 00:00:00 2001
+> From: Christoph Hellwig <hch@lst.de>
+> Date: Tue, 19 Apr 2016 14:12:14 -0400
+> Subject: mlx4_en: don't try to split and vmap dma coherent allocations
+> 
+> The memory returned by dma_alloc_coherent is not suitable for calling
+> virt_to_page on it, as it might for example come from vmap allocator.
+> 
+> Remove the code that calls virt_to_page and vmap on dma coherent
+> allocations from the mlx4 drivers, and replace them with a single
+> high-order dma_alloc_coherent call.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Reported-by: Sinan Kaya <okaya@codeaurora.org>
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
