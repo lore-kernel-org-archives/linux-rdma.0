@@ -1,63 +1,31 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Tue, 19 Apr 2016 14:37:42 -0400
-Message-ID: <57167AF6.9090507@codeaurora.org>
-References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
- <20160419182212.GA8441@infradead.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
+Date: Tue, 19 Apr 2016 20:38:30 +0200
+Message-ID: <20160419183830.GB1211@lst.de>
+References: <1460410360-13104-1-git-send-email-hch@lst.de> <1460410360-13104-3-git-send-email-hch@lst.de> <20160419031425.GB27515@rhel.amr.corp.intel.com> <20160419173032.GD20844@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160419182212.GA8441@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, Yishai Hadas <yishaih@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160419173032.GD20844@obsidianresearch.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, dledford@redhat.com, bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/19/2016 2:22 PM, Christoph Hellwig wrote:
-> What I think we need is something like the patch below.  In the long
-> ru nwe should also kill the mlx4_buf structure which now is pretty
-> pointless.
-
-Maybe; this could be the correct approach if we can guarantee that the 
-architecture can allocate the requested amount of memory with
-dma_alloc_coherent. 
-
-When I brought this issue a year ago, the objection was that my code
-doesn't compile on intel (dma_to_phys) and also some arches run out of
-DMA memory with existing customer base.
-
-If there is a real need to maintain compatibility with the existing 
-architectures due to limited amount of DMA memory, we need to correct this
-code to make proper use of vmap via alloc_pages and also insert the 
-dma_sync in proper places for DMA API conformance. 
-
-Also, the tx descriptors always has to be allocated from a single DMA region
-or the tx code needs to be corrected to support page_list.
-
-If we can live with just using dma_alloc_coherent, your solution is
-better. I was trying to put this support for 64bit arches only while
-maintaining support for the existing code base.
-
+On Tue, Apr 19, 2016 at 11:30:32AM -0600, Jason Gunthorpe wrote:
+> Right, this was done because rdma_protocol_iwarp takes a port number.
 > 
-> ---
-> From a493881d2a6c90152d3daabb7b6b3afd1d254d78 Mon Sep 17 00:00:00 2001
-> From: Christoph Hellwig <hch@lst.de>
-> Date: Tue, 19 Apr 2016 14:12:14 -0400
-> Subject: mlx4_en: don't try to split and vmap dma coherent allocations
+> I think we discussed this once, the core code doesn't actually support
+> different protocols on different ports, so the port_num argument to
+> rdma_protocol_iwarp is redundant.
 > 
-> The memory returned by dma_alloc_coherent is not suitable for calling
-> virt_to_page on it, as it might for example come from vmap allocator.
-> 
-> Remove the code that calls virt_to_page and vmap on dma coherent
-> allocations from the mlx4 drivers, and replace them with a single
-> high-order dma_alloc_coherent call.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Reported-by: Sinan Kaya <okaya@codeaurora.org>
+> This all starts to look really goofy when multi-port APM is used and
+> the QP's port number changes dynamically at runtime. (I have some
+> experimental patches that do that), I'd rather see all the port_num
+> stuff in this series go away. :(
 
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Reall, I would _love_ to kill all that port_num crap.  But until
+we get agreement from Doug and all the core maintainers that we
+can kill it from the core, and that multi-protocol devices are
+indeed as silly as they seem I can't..
