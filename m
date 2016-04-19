@@ -1,31 +1,35 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
-Date: Tue, 19 Apr 2016 20:38:30 +0200
-Message-ID: <20160419183830.GB1211@lst.de>
-References: <1460410360-13104-1-git-send-email-hch@lst.de> <1460410360-13104-3-git-send-email-hch@lst.de> <20160419031425.GB27515@rhel.amr.corp.intel.com> <20160419173032.GD20844@obsidianresearch.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Tue, 19 Apr 2016 11:40:21 -0700
+Message-ID: <20160419184021.GA26448@infradead.org>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414164550.GC6247@obsidianresearch.com>
+ <20160418130909.GD11508@infradead.org>
+ <20160418174047.GB13865@obsidianresearch.com>
+ <20160418182411.GA4904@infradead.org>
+ <20160419034548.GG27515@rhel.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160419173032.GD20844@obsidianresearch.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Ira Weiny <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, dledford@redhat.com, bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+In-Reply-To: <20160419034548.GG27515-MvMViLc3Pe+yjJhlop0iC9h3ngVCH38I@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 19, 2016 at 11:30:32AM -0600, Jason Gunthorpe wrote:
-> Right, this was done because rdma_protocol_iwarp takes a port number.
+On Mon, Apr 18, 2016 at 11:45:49PM -0400, Ira Weiny wrote:
+> I'm a bit confused by what you are suggesting that "people will have to patch
+> the driver with some vendor version if they really need it."?
 > 
-> I think we discussed this once, the core code doesn't actually support
-> different protocols on different ports, so the port_num argument to
-> rdma_protocol_iwarp is redundant.
-> 
-> This all starts to look really goofy when multi-port APM is used and
-> the QP's port number changes dynamically at runtime. (I have some
-> experimental patches that do that), I'd rather see all the port_num
-> stuff in this series go away. :(
+> Could you elaborate?
 
-Reall, I would _love_ to kill all that port_num crap.  But until
-we get agreement from Doug and all the core maintainers that we
-can kill it from the core, and that multi-protocol devices are
-indeed as silly as they seem I can't..
+There are lots of drivers where we simply did not accept these vendor
+specific extensions at all.  Especially for networking drivers it's
+pretty common.  I'm not proposing this here, just saying that we have
+lots of examples for it.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
