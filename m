@@ -1,55 +1,60 @@
-From: Parav Pandit <pandit.parav@gmail.com>
-Subject: Re: [PATCHv10 1/3] rdmacg: Added rdma cgroup controller
-Date: Tue, 19 Apr 2016 14:26:08 +0530
-Message-ID: <CAG53R5Xt1J9+SBvAFRQOcwvkFzeLMkTZ-7vyBG2BVPYdU8p4Nw@mail.gmail.com>
-References: <1458850962-16057-1-git-send-email-pandit.parav@gmail.com>
-	<1458850962-16057-2-git-send-email-pandit.parav@gmail.com>
-	<20160404193640.GA7822@mtj.duckdns.org>
-	<CAG53R5UgDeFxqvOOJb=r1DH2yFmboQZPM=-_atGrOCvK=XYU=A@mail.gmail.com>
-	<20160405012504.GG24661@htj.duckdns.org>
-	<20160405090627.GA26425@infradead.org>
-	<CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
-	<20160405124252.GA4348@infradead.org>
-	<CAG53R5UOogG1itd8AzMOWnpnyGqKSRLY4CNrX5HWGfdF3q-F3w@mail.gmail.com>
-	<20160405172720.GA31055@infradead.org>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18-2-rc1 release is available
+Date: Tue, 19 Apr 2016 15:00:16 +0300
+Message-ID: <57161DD0.2050607@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160405172720.GA31055@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'OpenFabrics EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
+Hi,
+OFED-3.18-2-rc1 is available at:
+https://openfabrics.org/downloads/OFED/ofed-3.18-2/OFED-3.18-2-rc1.tgz
 
-I was on travel. Sorry for the late inline response and question.
+To get BUILD_ID run ofed_info
 
-Parav
+Please report any issues in bugzilla
+http://bugs.openfabrics.org/bugzilla/ for OFED 3.18
+
+Release notes:
+https://www.openfabrics.org/downloads/OFED/release_notes/OFED_3.18-2-rc1_release_notes
+
+OFED-3.18-2-rc1 Main Changes from OFED 3.18-1
+-------------------------------------------------------------------------------
+1. Updated packages:
+   - dapl-2.1.9
+   - fabtests-1.3.0
+   - ibacm-1.2.1
+   - infinipath-psm-3.3-19_g67c0807_open
+   - libcxgb4-1.3.6
+   - libfabric-1.3.0
+   - libocrdma-1.0.7
+   - librdmacm-1.1.0
+   - mstflint-4.3.0-1.49.g9b9af70
+   - perftest-3.0-0.16.gb2f2e82
+2. compat-rdma changes
+   - xeon-phi: allow full ibscif ud mtu
+   - xeon-phi: allow rdma_bind to mic0 device
+   - NFSRDMA: RHEL7.2 backport
+   - cxgb4: update firmware to 1.4.14.0
+   - cxgb4: RHEL7.2 backports
+   - cxgb4: fix up bonding.h include paths
+   - IB/ipoib: Do not update neigh validity if not resolved yet
+   - mlx4_en: Fixed compilation on RHEL6.6
+   - makefile: Added distclean target
+   - xeon-phi: mlx5_ib bug fix releated to large memory regions registration.
+   - RDMA/ocrdma: ocrdma sync up patch series
+   - be2net: backport fixes for RHEL 7.2
+   - mlx4: Added support for RHEL7.2
 
 
-
-On Tue, Apr 5, 2016 at 10:57 PM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Tue, Apr 05, 2016 at 05:55:26AM -0700, Parav Pandit wrote:
->> Just because we add one more rdma resource, we need to ask someone to
->> upgrade kernel?
->
-> Yes.  Just like when you need any other core kernel resource.
-
-By architecture Linux kernel allows
-(a) plugin of any new block level IO scheduler as kernel module.
-This is much more fundamental resource or functionality than rdma resource.
-(b) plugin of any new file system as kernel module.
-
-Changing both in field and out of box can do be more harmful than
-defining new rdma resource.
-
-RDMA Resource definition by IB core module is very similar to above
-two functionality, where elevator and VFS provides basic support
-framework and so rdma cgroup controller here.
-
-So can you please help me understand - which resource did you compare
-against in your above comment for "core kernel resource"?
-I compared it with similar functionality, flexibility given by (a)
-block IO Scheduler and (b) VFS subsystem to implement them as kernel
-module.
+Regards,
+Vladimir
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
