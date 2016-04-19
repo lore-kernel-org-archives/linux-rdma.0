@@ -1,85 +1,55 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
-Date: Tue, 19 Apr 2016 03:50:47 -0400
-Message-ID: <5715E357.3040407@codeaurora.org>
-References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
- <20160418065447.GA11539@x-vnc01.mtx.labs.mlnx>
- <20160418143255.GA15203@infradead.org>
- <DB5PR05MB1848424EC9DC8D4150EADB03C56B0@DB5PR05MB1848.eurprd05.prod.outlook.com>
- <20160418151702.GA26565@infradead.org> <5714FB68.3020604@codeaurora.org>
- <20160418154058.GA4228@infradead.org>
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: Re: [PATCHv10 1/3] rdmacg: Added rdma cgroup controller
+Date: Tue, 19 Apr 2016 14:26:08 +0530
+Message-ID: <CAG53R5Xt1J9+SBvAFRQOcwvkFzeLMkTZ-7vyBG2BVPYdU8p4Nw@mail.gmail.com>
+References: <1458850962-16057-1-git-send-email-pandit.parav@gmail.com>
+	<1458850962-16057-2-git-send-email-pandit.parav@gmail.com>
+	<20160404193640.GA7822@mtj.duckdns.org>
+	<CAG53R5UgDeFxqvOOJb=r1DH2yFmboQZPM=-_atGrOCvK=XYU=A@mail.gmail.com>
+	<20160405012504.GG24661@htj.duckdns.org>
+	<20160405090627.GA26425@infradead.org>
+	<CAG53R5WBBUj6=B81Q-zEwL_xy3_yXUofJ6p921baqnqeVocDPQ@mail.gmail.com>
+	<20160405124252.GA4348@infradead.org>
+	<CAG53R5UOogG1itd8AzMOWnpnyGqKSRLY4CNrX5HWGfdF3q-F3w@mail.gmail.com>
+	<20160405172720.GA31055@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160418154058.GA4228@infradead.org>
+In-Reply-To: <20160405172720.GA31055@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Christoph Hellwig <hch@infradead.org>
-Cc: Eli Cohen <eli@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "cov@codeaurora.org" <cov@codeaurora.org>, Yishai Hadas <yishaih@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Tejun Heo <tj@kernel.org>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, Johannes Weiner <hannes@cmpxchg.org>, Doug Ledford <dledford@redhat.com>, Liran Liss <liranl@mellanox.com>, "Hefty, Sean" <sean.hefty@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Haggai Eran <haggaie@mellanox.com>, Jonathan Corbet <corbet@lwn.net>, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, Matan Barak <matanb@mellanox.com>, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/18/2016 11:40 AM, Christoph Hellwig wrote:
-> On Mon, Apr 18, 2016 at 11:21:12AM -0400, Sinan Kaya wrote:
->> I was looking at the code. I don't see how removing virt_to_page + vmap 
->> would solve the issue.
->>
->> The code is trying to access the buffer space with direct.buf member
->> from the CPU side. This member would become NULL, when this code is 
->> removed and also in mlx4_en_map_buffer. 
->>
->> ...
->>
->> What am I missing?
-> 
-> As mentioned before you'll also need to enforce you hit the nbufs = 1
-> case for these.  In fact most callers should simply switch to a plain
-> dma_zalloc_coherent call without all these wrappers.  If we have a case
-> where we really want multiple buffers that don't have to be contiguous
-> (maybe the MTT case) I'd rather opencode that instead of building this
-> confusing interface on top of it.
-> 
+Hi Christoph,
 
-So, I did my fair share of investigation. As I pointed out in my previous email, 
-the code is allocating a bunch of page sized arrays and using them for receive,
-transmit and control descriptors. 
+I was on travel. Sorry for the late inline response and question.
 
-I'm unable to limit nbufs to 1 because, none of these allocations make a single
-contiguous allocation by default. They all go to multiple page approach due to 
-2 * PAGE_SIZE max_direct parameter passed. 
+Parav
 
-I tried changing the code to handle page_list vs. single allocation. I was able
-to do this for CQE and receive queue since both of them allocate fixed size chunks. 
-However, I couldn't do this for the transmit queue. 
 
-The transmit code uses the array of descriptors for variable sized transfers and 
-it also assumes that the descriptors are contiguous.
 
-When used with pages, one tx data can spill beyond the first page and do illegal
-writes.
+On Tue, Apr 5, 2016 at 10:57 PM, Christoph Hellwig <hch@infradead.org> wrote:
+> On Tue, Apr 05, 2016 at 05:55:26AM -0700, Parav Pandit wrote:
+>> Just because we add one more rdma resource, we need to ask someone to
+>> upgrade kernel?
+>
+> Yes.  Just like when you need any other core kernel resource.
 
-In the end, my proposed code in this patch is much simpler than what I tried to 
-achieve by removing vmap API. 
+By architecture Linux kernel allows
+(a) plugin of any new block level IO scheduler as kernel module.
+This is much more fundamental resource or functionality than rdma resource.
+(b) plugin of any new file system as kernel module.
 
-Another alternative is to force code use single DMA alloc for all 64 bit architectures.
+Changing both in field and out of box can do be more harmful than
+defining new rdma resource.
 
-Something like this:
+RDMA Resource definition by IB core module is very similar to above
+two functionality, where elevator and VFS provides basic support
+framework and so rdma cgroup controller here.
 
--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-@@ -588,7 +588,7 @@ int mlx4_buf_alloc(struct mlx4_dev *dev, int size, int max_direct,
- {
-        dma_addr_t t;
-
--       if (size <= max_direct) {
-+       if ((size <= max_direct) || (BITS_PER_LONG == 64)){
-                buf->nbufs        = 1;
-                buf->npages       = 1;
-                buf->page_shift   = get_order(size) + PAGE_SHIFT;
-
-This also works on arm64. My proposal is more scalable for memory consumption compared
-to this one.
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+So can you please help me understand - which resource did you compare
+against in your above comment for "core kernel resource"?
+I compared it with similar functionality, flexibility given by (a)
+block IO Scheduler and (b) VFS subsystem to implement them as kernel
+module.
