@@ -1,63 +1,63 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH 02/19] io-mapping: Specify mapping size for
- io_mapping_map_wc()
-Date: Wed, 20 Apr 2016 20:14:32 +0100
-Message-ID: <20160420191432.GK17454@nuc-i3427.alporthouse.com>
-References: <1461177750-20187-1-git-send-email-chris@chris-wilson.co.uk>
- <1461177750-20187-3-git-send-email-chris@chris-wilson.co.uk>
- <20160420185844.GQ1990@wotan.suse.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Wed, 20 Apr 2016 14:36:16 -0600
+Message-ID: <20160420203616.GA28991@obsidianresearch.com>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414164550.GC6247@obsidianresearch.com>
+ <20160414175243.GA9310@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160420185844.GQ1990@wotan.suse.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, Dan Williams <dan.j.williams@intel.com>, Yishai Hadas <yishaih@mellanox.com>, David Hildenbrand <dahi@linux.vnet.ibm.com>
+In-Reply-To: <20160414175243.GA9310-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBBcHIgMjAsIDIwMTYgYXQgMDg6NTg6NDRQTSArMDIwMCwgTHVpcyBSLiBSb2RyaWd1
-ZXogd3JvdGU6Cj4gT24gV2VkLCBBcHIgMjAsIDIwMTYgYXQgMDc6NDI6MTNQTSArMDEwMCwgQ2hy
-aXMgV2lsc29uIHdyb3RlOgo+ID4gVGhlIGlvcmVtYXAoKSBoaWRkZW4gYmVoaW5kIHRoZSBpb19t
-YXBwaW5nX21hcF93YygpIGNvbnZlbmllbmNlIGhlbHBlcgo+ID4gY2FuIGJlIHVzZWQgZm9yIHJl
-bWFwcGluZyBtdWx0aXBsZSBwYWdlcy4gRXh0ZW5kIHRoZSBoZWxwZXIgc28gdGhhdAo+ID4gZnV0
-dXJlIGNhbGxlcnMgY2FuIHVzZSBpdCBmb3IgbGFyZ2VyIHJhbmdlcy4KPiA+IAo+ID4gU2lnbmVk
-LW9mZi1ieTogQ2hyaXMgV2lsc29uIDxjaHJpc0BjaHJpcy13aWxzb24uY28udWs+Cj4gPiBDYzog
-VHZydGtvIFVyc3VsaW4gPHR2cnRrby51cnN1bGluQGludGVsLmNvbT4KPiA+IENjOiBEYW5pZWwg
-VmV0dGVyIDxkYW5pZWwudmV0dGVyQGludGVsLmNvbT4KPiA+IENjOiBKYW5pIE5pa3VsYSA8amFu
-aS5uaWt1bGFAbGludXguaW50ZWwuY29tPgo+ID4gQ2M6IERhdmlkIEFpcmxpZSA8YWlybGllZEBs
-aW51eC5pZT4KPiA+IENjOiBZaXNoYWkgSGFkYXMgPHlpc2hhaWhAbWVsbGFub3guY29tPgo+ID4g
-Q2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+ID4gQ2M6IEluZ28g
-TW9sbmFyIDxtaW5nb0BrZXJuZWwub3JnPgo+ID4gQ2M6ICJQZXRlciBaaWpsc3RyYSAoSW50ZWwp
-IiA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+Cj4gPiBDYzogRGF2aWQgSGlsZGVuYnJhbmQgPGRhaGlA
-bGludXgudm5ldC5pYm0uY29tPgo+ID4gQ2M6IEx1aXMgUi4gUm9kcmlndWV6IDxtY2dyb2ZAa2Vy
-bmVsLm9yZz4KPiA+IENjOiBpbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gPiBDYzog
-ZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+ID4gQ2M6IG5ldGRldkB2Z2VyLmtlcm5l
-bC5vcmcKPiA+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZwo+ID4gQ2M6IGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmcKPiAKPiBXZSBoYXZlIDIgY2FsbGVycyB0b2RheSwgaW4gdGhl
-IGZ1dHVyZSwgY2FuIHlvdSBlbnZpc2lvbgo+IHRoaXMgQVBJIGdldHRpbmcgbW9yZSBvcHRpb25z
-PyBJZiBzbywgaW4gb3JkZXIgdG8gYXZvaWQgdGhlCj4gcGFpbiBvZiBjb2xsYXRlcmFsIGV2b2x1
-dGlvbnMgSSBjYW4gc3VnZ2VzdCBhIGRlc2NyaXB0b3IKPiBiZWluZyBwYXNzZWQgd2l0aCB0aGUg
-cmVxdWlyZWQgc2V0dGluZ3MgLyBvcHRpb25zLiBUaGlzIGxldHMKPiB5b3UgZXZvbHZlIHRoZSBB
-UEkgd2l0aG91dCBuZWVkaW5nIHRvIGdvIGluIGFuZCBtb2RpZnkKPiBvbGQgdXNlcnMuIElmIHlv
-dSBjaG9vc2Ugbm90IHRvIHRoYXQncyBmaW5lIHRvbywganVzdAo+IGZpZ3VyZWQgSSdkIGNoaW1l
-IGluIHdpdGggdGhhdCBhcyBJJ3ZlIHNlZW4gdGhlIHBhaW4KPiB3aXRoIG90aGVyIEFQSXMsIGFu
-ZCBJJ20gcHV0dGluZyBhbiBlbmQgdG8gdGhlIG5lZWRsZXNzCj4gc2V0IG9mIGNvbGxhdGVyYWwg
-ZXZvbHV0aW9ucyB0aGlzIHdheS4KCkRvIHlvdSBoYXZlIGEgZ29vZCBleGFtcGxlIGluIG1pbmQ/
-IEkndmUgb25lIG1vcmUgcGF0Y2ggdG8gdHJ5IGFuZCB0YWtlCmFkdmFudGFnZSBvZiB0aGUgaW8t
-bWFwcGluZyAodGhhdCBtYXkgb3Igbm90IGJlIHN1Y2ggYSBnb29kIGlkZWEgaW4KcHJhY3RpY2Up
-IGJ1dCBJIG1heSBhcyB3ZWxsIHNlZSBpZiBJIGNhbiBtYWtlIGlvX21hcHBpbmcgbW9yZSB1c2Vm
-dWwKd2hlbiBJIGRvLgotQ2hyaXMKCi0tIApDaHJpcyBXaWxzb24sIEludGVsIE9wZW4gU291cmNl
-IFRlY2hub2xvZ3kgQ2VudHJlCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2lu
-dGVsLWdmeAo=
+On Thu, Apr 14, 2016 at 01:52:44PM -0400, Dennis Dalessandro wrote:
+> The eprom device is for low level programming of the eprom on the
+> chip. We do not use i2c for this because the eprom is directly
+> attached to the chip and not accessible via i2c, requires register
+> access.
+
+Okay, but the twsi.c is still not acceptable in a driver, use the i2c
+subsystem to talk to the qsfps. Open coding i2c is not OK.
+
+The char dev(s) are also done wrong, there is no set to 'kobj.parent'
+and there are empty release functions. There are certainly
+use-after-free bugs between close and device removal, someone needs to
+audit all of this carefully.
+
+The patch forgets compat_ioctl.
+
+Stuff like this should be a build bug:
+ /* NOTE: assumes unsigned long is 8 bytes */
+
+The 'goto on success' in hfi1_cdev_init is an anti-pattern, don't do it.
+
+Even if the char dev stays, creating two whole sysfs classes seems
+really unnecessary. Surely there is a better place to attach the cdev.
+
+And this is just outrageous:
+
+        if (atomic_inc_return(&user_count) == 1) {
+                ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
+                                     &wildcard_cdev, &wildcard_device,
+                                     true);
+                if (ret)
+
+I can see an argument for a per-device char dev (as Christoph says,
+that is not entirely uncommon) but this is a multi-device char dev????
+
+It is not OK to create your own private subsystem in a driver! I count
+*three* char devs before this series!?!?! One of them marked 0666 even!
+
+I stopped looking at the code.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
