@@ -1,83 +1,45 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Subject: Re: [PATCH 02/19] io-mapping: Specify mapping size for
- io_mapping_map_wc()
-Date: Wed, 20 Apr 2016 23:23:47 +0200
-Message-ID: <20160420212347.GR1990@wotan.suse.de>
-References: <1461177750-20187-1-git-send-email-chris@chris-wilson.co.uk>
- <1461177750-20187-3-git-send-email-chris@chris-wilson.co.uk>
- <20160420185844.GQ1990@wotan.suse.de>
- <20160420191432.GK17454@nuc-i3427.alporthouse.com>
+From: "Luis R. Rodriguez" <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Intel-gfx] [PATCH 4/4] drm/i915: Move ioremap_wc tracking onto
+ VMA
+Date: Wed, 20 Apr 2016 23:27:27 +0200
+Message-ID: <20160420212727.GS1990@wotan.suse.de>
+References: <20160419123028.GI1990@wotan.suse.de>
+ <1461069238-31539-1-git-send-email-chris@chris-wilson.co.uk>
+ <1461069238-31539-4-git-send-email-chris@chris-wilson.co.uk>
+ <20160420091054.GL1990@wotan.suse.de>
+ <20160420111730.GL2510@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160420191432.GK17454@nuc-i3427.alporthouse.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Chris Wilson <chris@chris-wilson.co.uk>, "Luis R. Rodriguez" <mcgrof@kernel.org>, intel-gfx@lists.freedesktop.org, Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>, Mika Kuoppala <mika.kuoppala@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Tvrtko Ursulin <tvrtko.ursulin@intel.com>, Daniel Vetter <daniel.vetter@intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, David Airlie <airlied@linux.ie>, Yishai Hadas <yishaih@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@kernel.org>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, David Hildenbrand <dahi@linux.vnet.ibm.com>, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20160420111730.GL2510-dv86pmgwkMBes7Z6vYuT8azUEOm+Xw19@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Luis R. Rodriguez" <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Peter Zijlstra (Intel)" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Vetter <daniel.vetter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Hildenbrand <dahi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBBcHIgMjAsIDIwMTYgYXQgMDg6MTQ6MzJQTSArMDEwMCwgQ2hyaXMgV2lsc29uIHdy
-b3RlOgo+IE9uIFdlZCwgQXByIDIwLCAyMDE2IGF0IDA4OjU4OjQ0UE0gKzAyMDAsIEx1aXMgUi4g
-Um9kcmlndWV6IHdyb3RlOgo+ID4gT24gV2VkLCBBcHIgMjAsIDIwMTYgYXQgMDc6NDI6MTNQTSAr
-MDEwMCwgQ2hyaXMgV2lsc29uIHdyb3RlOgo+ID4gPiBUaGUgaW9yZW1hcCgpIGhpZGRlbiBiZWhp
-bmQgdGhlIGlvX21hcHBpbmdfbWFwX3djKCkgY29udmVuaWVuY2UgaGVscGVyCj4gPiA+IGNhbiBi
-ZSB1c2VkIGZvciByZW1hcHBpbmcgbXVsdGlwbGUgcGFnZXMuIEV4dGVuZCB0aGUgaGVscGVyIHNv
-IHRoYXQKPiA+ID4gZnV0dXJlIGNhbGxlcnMgY2FuIHVzZSBpdCBmb3IgbGFyZ2VyIHJhbmdlcy4K
-PiA+ID4gCj4gPiA+IFNpZ25lZC1vZmYtYnk6IENocmlzIFdpbHNvbiA8Y2hyaXNAY2hyaXMtd2ls
-c29uLmNvLnVrPgo+ID4gPiBDYzogVHZydGtvIFVyc3VsaW4gPHR2cnRrby51cnN1bGluQGludGVs
-LmNvbT4KPiA+ID4gQ2M6IERhbmllbCBWZXR0ZXIgPGRhbmllbC52ZXR0ZXJAaW50ZWwuY29tPgo+
-ID4gPiBDYzogSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGxpbnV4LmludGVsLmNvbT4KPiA+ID4g
-Q2M6IERhdmlkIEFpcmxpZSA8YWlybGllZEBsaW51eC5pZT4KPiA+ID4gQ2M6IFlpc2hhaSBIYWRh
-cyA8eWlzaGFpaEBtZWxsYW5veC5jb20+Cj4gPiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndp
-bGxpYW1zQGludGVsLmNvbT4KPiA+ID4gQ2M6IEluZ28gTW9sbmFyIDxtaW5nb0BrZXJuZWwub3Jn
-Pgo+ID4gPiBDYzogIlBldGVyIFppamxzdHJhIChJbnRlbCkiIDxwZXRlcnpAaW5mcmFkZWFkLm9y
-Zz4KPiA+ID4gQ2M6IERhdmlkIEhpbGRlbmJyYW5kIDxkYWhpQGxpbnV4LnZuZXQuaWJtLmNvbT4K
-PiA+ID4gQ2M6IEx1aXMgUi4gUm9kcmlndWV6IDxtY2dyb2ZAa2VybmVsLm9yZz4KPiA+ID4gQ2M6
-IGludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiA+ID4gQ2M6IGRyaS1kZXZlbEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKPiA+ID4gQ2M6IG5ldGRldkB2Z2VyLmtlcm5lbC5vcmcKPiA+ID4g
-Q2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCj4gPiA+IENjOiBsaW51eC1rZXJuZWxAdmdl
-ci5rZXJuZWwub3JnCj4gPiAKPiA+IFdlIGhhdmUgMiBjYWxsZXJzIHRvZGF5LCBpbiB0aGUgZnV0
-dXJlLCBjYW4geW91IGVudmlzaW9uCj4gPiB0aGlzIEFQSSBnZXR0aW5nIG1vcmUgb3B0aW9ucz8g
-SWYgc28sIGluIG9yZGVyIHRvIGF2b2lkIHRoZQo+ID4gcGFpbiBvZiBjb2xsYXRlcmFsIGV2b2x1
-dGlvbnMgSSBjYW4gc3VnZ2VzdCBhIGRlc2NyaXB0b3IKPiA+IGJlaW5nIHBhc3NlZCB3aXRoIHRo
-ZSByZXF1aXJlZCBzZXR0aW5ncyAvIG9wdGlvbnMuIFRoaXMgbGV0cwo+ID4geW91IGV2b2x2ZSB0
-aGUgQVBJIHdpdGhvdXQgbmVlZGluZyB0byBnbyBpbiBhbmQgbW9kaWZ5Cj4gPiBvbGQgdXNlcnMu
-IElmIHlvdSBjaG9vc2Ugbm90IHRvIHRoYXQncyBmaW5lIHRvbywganVzdAo+ID4gZmlndXJlZCBJ
-J2QgY2hpbWUgaW4gd2l0aCB0aGF0IGFzIEkndmUgc2VlbiB0aGUgcGFpbgo+ID4gd2l0aCBvdGhl
-ciBBUElzLCBhbmQgSSdtIHB1dHRpbmcgYW4gZW5kIHRvIHRoZSBuZWVkbGVzcwo+ID4gc2V0IG9m
-IGNvbGxhdGVyYWwgZXZvbHV0aW9ucyB0aGlzIHdheS4KPiAKPiBEbyB5b3UgaGF2ZSBhIGdvb2Qg
-ZXhhbXBsZSBpbiBtaW5kPyBJJ3ZlIG9uZSBtb3JlIHBhdGNoIHRvIHRyeSBhbmQgdGFrZQo+IGFk
-dmFudGFnZSBvZiB0aGUgaW8tbWFwcGluZyAodGhhdCBtYXkgb3Igbm90IGJlIHN1Y2ggYSBnb29k
-IGlkZWEgaW4KPiBwcmFjdGljZSkgYnV0IEkgbWF5IGFzIHdlbGwgc2VlIGlmIEkgY2FuIG1ha2Ug
-aW9fbWFwcGluZyBtb3JlIHVzZWZ1bAo+IHdoZW4gSSBkby4KClN1cmUsIGhlcmUncyBteSBjdXJy
-ZW50IHZlcnNpb24gb2YgdGhlIHJldmFtcCBvZiB0aGUgZmlybXdhcmUgQVBJCnRvIGEgbW9yZSBm
-bGV4aWJsZSBBUEksIHdoaWNoIGxldHMgdXMgY29tcGFydGFtZW50YWxpemUgdGhlCnVzZXJtb2Rl
-IGhlbHBlciwgYW5kIHRocm91Z2ggdGhlIG5ldyBBUEkgYXZvaWRzIHRoZSBpc3N1ZXMgd2l0aCBm
-dXJ0aGVyCmZ1dHVyZSBjb2xsYXRlcmFsIGV2b2x1dGlvbnMuIEl0IGlzIHN0aWxsIGJlaW5nIGJh
-a2VkLCBJJ20gZmluZSB0dW5pbmcKdGhlIFNtUEwgdG8gZm9sa3MgYXV0b21hdGljYWxseSBkbyBj
-b252ZXJzaW9uIGlmIHRoZXkgd2FudDoKCmh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvY2dpdC9saW51
-eC9rZXJuZWwvZ2l0L21jZ3JvZi9saW51eC5naXQvbG9nLz9oPTIwMTYwNDE3LXN5c2RhdGEtYXBp
-LXYxCgpJdCBhbHNvIGhhcyBhIHRlc3QgZHJpdmVyICh3aGljaCBJJ2QgYWxzbyByZWNvbW1lbmQg
-aWYgeW91IGNhbiBwdWxsIG9mZikuCkl0IHdvdWxkIGJlIGtpbmQgb2YgaGFyZCB0byBkbyBzb21l
-dGhpbmcgbGlrZSBhIGxpYi9pby1tYXBwaW5nX3Rlc3QuYwpnaXZlbiB0aGVyZSBpcyBubyByZWFs
-IGRldmljZSB0byBpb3JlbWFwIC0tIF9idXRfIHBlcmhhcHMgcmVndWxhcgpSQU0gY2FuIGJlIHVz
-ZWQgZm9yIGZha2UgYSBkZXZpY2UgTU1JTy4gSSBhbSBub3Qgc3VyZSBpZiBpdHMgZXZlbgpwb3Nz
-aWJsZS4uLiBidXQgaWYgc28gaXQgd291bGQgbm90IG9ubHkgYmUgdXNlZnVsIGZvciBzb21ldGhp
-bmcKbGlrZSB5b3VyIEFQSSBidXQgYWxzbyBmb3IgdGVzdGluZyBpb3JlbWFwKCkgYW5kIGZyaWVu
-ZHMsIGFuZAphbnkgcG9zc2libGUgYWxpYXNpbmcgYm9tYnMgd2UgbWF5IHdhbnQgdG8gdmV0IGZv
-ci4gSXQgYWxzbyBoaW50cwpob3cgd2UgbWF5IGluIHRoZSBmdXR1cmUgYmUgYWJsZSB0byBhdXRv
-bWF0aWNhbGx5IHdyaXRlIHRlc3QgZHJpdmVycwpmb3IgQVBJcyBmb3IgdXMgdGhyb3VnaCBpbmZl
-cmVuY2UsIGJ1dCB0aGF0IG5lZWRzIGEgbG90IG9mIG1vcmUgbG92ZQp0byBtYWtlIGl0IHRhbmdp
-YmxlLgoKICBMdWlzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdm
-eAo=
+On Wed, Apr 20, 2016 at 01:17:30PM +0200, Daniel Vetter wrote:
+> On Wed, Apr 20, 2016 at 11:10:54AM +0200, Luis R. Rodriguez wrote:
+> > Reason I ask is since I noticed a while ago a lot of drivers
+> > were using info->fix.smem_start and info->fix.smem_len consistently
+> > for their ioremap'd areas it might make sense instead to let the
+> > internal framebuffer (register_framebuffer()) optionally manage the
+> > ioremap_wc() for drivers, given that this is pretty generic stuff.
+> 
+> All that legacy fbdev stuff is just for legacy support, and I prefer to
+> have that as dumb as possible. There's been some discussion even around
+> lifting the "kick out firmware fb driver" out of fbdev, since we'd need it
+> to have a simple drm driver for e.g. uefi.
+> 
+> But I definitely don't want a legacy horror show like fbdev to
+> automagically take care of device mappings for drivers.
+
+Makes sense, it also still begs the question if more modern APIs
+could manage the ioremap for you. Evidence shows people get
+sloppy and if things were done internally with helpers it may
+be easier to later make adjustments.
+
+  Luis
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
