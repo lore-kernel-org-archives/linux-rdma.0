@@ -1,218 +1,118 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG for
- SendOnly join
-Date: Wed, 20 Apr 2016 08:11:39 -0400
-Message-ID: <571771FB.90908@dev.mellanox.co.il>
-References: <1461070287-13469-1-git-send-email-erezsh@mellanox.com>
- <1461070287-13469-5-git-send-email-erezsh@mellanox.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] IB/rdmavt,hfi1,qib: Fix memory leak
+Date: Wed, 20 Apr 2016 06:05:24 -0700
+Message-ID: <20160420130523.28231.90454.stgit@scvm10.sc.intel.com>
+References: <20160420125205.28231.86818.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461070287-13469-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160420125205.28231.86818.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/19/2016 8:51 AM, Erez Shitrit wrote:
-> Check (via an sa query) if the SM supports the new option for SendOnly
-> multicast joins.
-> If the SM supports that option it will use the new join state to create
-> such multicast group.
-> If SendOnlyFullMember is supported, we wouldn't use faked FullMember state
-> join for SendOnly MCG, use the correct state if supported.
-> 
-> This check is performed at every invocation of mcast_restart task, to be
-> sure that the driver stays in sync with the current state of the SM.
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Would a better strategy (to minimize gets of SA ClassPortInfo) be to do
-this based on local events (like SM change, etc.) ?
+rdi->ports has memory allocated in rvt_alloc_device(), but does not get
+freed because the hfi1 and qib drivers drivers call ib_dealloc_device()
+directly instead of going through rdmavt. Add a rvt_dealloc_device()
+that frees rdi->ports and then calls ib_dealloc_device(). Switch hfi1
+and qib drivers to calling rvt_dealloc_device() instead of
+ib_dealloc_device() directly.
 
--- Hal
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_init.c |    4 ++--
+ drivers/infiniband/sw/rdmavt/vt.c    |   13 +++++++++++++
+ drivers/staging/rdma/hfi1/init.c     |    4 ++--
+ include/rdma/rdma_vt.h               |    1 +
+ 4 files changed, 18 insertions(+), 4 deletions(-)
 
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +
->  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 74 ++++++++++++++++++++++++++
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 33 +++++++-----
->  3 files changed, 96 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index caec8e9..c51f618 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -392,6 +392,7 @@ struct ipoib_dev_priv {
->  	struct ipoib_ethtool_st ethtool;
->  	struct timer_list poll_timer;
->  	unsigned max_send_sge;
-> +	bool sm_fullmember_sendonly_support;
->  };
->  
->  struct ipoib_ah {
-> @@ -476,6 +477,7 @@ void ipoib_reap_ah(struct work_struct *work);
->  
->  void ipoib_mark_paths_invalid(struct net_device *dev);
->  void ipoib_flush_paths(struct net_device *dev);
-> +int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
->  struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
->  
->  int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 3b630e5..eb5927b 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
->  
->  	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
->  
-> +	priv->sm_fullmember_sendonly_support = false;
-> +
->  	if (ipoib_ib_dev_open(dev)) {
->  		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
->  			return 0;
-> @@ -629,6 +631,78 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
->  	spin_unlock_irq(&priv->lock);
->  }
->  
-> +struct classport_info_context {
-> +	struct ipoib_dev_priv	*priv;
-> +	struct completion	done;
-> +	struct ib_sa_query	*sa_query;
-> +};
-> +
-> +static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
-> +				    void *context)
-> +{
-> +	struct classport_info_context *cb_ctx = context;
-> +	struct ipoib_dev_priv *priv;
-> +
-> +	WARN_ON(!context);
-> +
-> +	priv = cb_ctx->priv;
-> +
-> +	if (status) {
-> +		pr_debug("device: %s failed query classport_info status: %d\n",
-> +			 priv->dev->name, status);
-> +		/* keeps the default, will try next mcast_restart */
-> +		priv->sm_fullmember_sendonly_support = false;
-> +		goto out;
-> +	}
-> +
-> +	/* take out resp_time that located in the last 5 bits */
-> +	if ((be32_to_cpu(rec->cap_mask2_resp_time) >> 5) &
-> +	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
-> +		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
-> +			 priv->dev->name);
-> +		priv->sm_fullmember_sendonly_support = true;
-> +	} else {
-> +		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
-> +			 priv->dev->name);
-> +		priv->sm_fullmember_sendonly_support = false;
-> +	}
-> +
-> +out:
-> +	complete(&cb_ctx->done);
-> +}
-> +
-> +int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
-> +{
-> +	struct classport_info_context *callback_context;
-> +	int ret;
-> +
-> +	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
-> +	if (!callback_context)
-> +		return -ENOMEM;
-> +
-> +	callback_context->priv = priv;
-> +	init_completion(&callback_context->done);
-> +
-> +	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
-> +					     priv->ca, priv->port, 3000,
-> +					     GFP_KERNEL,
-> +					     classport_info_query_cb,
-> +					     callback_context,
-> +					     &callback_context->sa_query);
-> +	if (ret < 0) {
-> +		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
-> +			priv->dev->name, ret);
-> +		kfree(callback_context);
-> +		return ret;
-> +	}
-> +
-> +	/* waiting for the callback to finish before returnning */
-> +	wait_for_completion(&callback_context->done);
-> +	kfree(callback_context);
-> +
-> +	return ret;
-> +}
-> +
->  void ipoib_flush_paths(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 2588931..c1bb69e 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -515,22 +515,20 @@ static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
->  		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
->  
->  		/*
-> -		 * Send-only IB Multicast joins do not work at the core
-> -		 * IB layer yet, so we can't use them here.  However,
-> -		 * we are emulating an Ethernet multicast send, which
-> -		 * does not require a multicast subscription and will
-> -		 * still send properly.  The most appropriate thing to
-> +		 * Send-only IB Multicast joins work at the core IB layer but
-> +		 * require specific SM support.
-> +		 * We can use such joins here only if the current SM supports that feature.
-> +		 * However, if not, we emulate an Ethernet multicast send,
-> +		 * which does not require a multicast subscription and will
-> +		 * still send properly. The most appropriate thing to
->  		 * do is to create the group if it doesn't exist as that
->  		 * most closely emulates the behavior, from a user space
-> -		 * application perspecitive, of Ethernet multicast
-> -		 * operation.  For now, we do a full join, maybe later
-> -		 * when the core IB layers support send only joins we
-> -		 * will use them.
-> +		 * application perspective, of Ethernet multicast operation.
->  		 */
-> -#if 0
-> -		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-> -			rec.join_state = 4;
-> -#endif
-> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-> +		    priv->sm_fullmember_sendonly_support)
-> +			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-> +			rec.join_state = 8;
->  	}
->  	spin_unlock_irq(&priv->lock);
->  
-> @@ -559,6 +557,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  	struct ib_port_attr port_attr;
->  	unsigned long delay_until = 0;
->  	struct ipoib_mcast *mcast = NULL;
-> +	int ret;
->  
->  	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
->  		return;
-> @@ -576,6 +575,14 @@ void ipoib_mcast_join_task(struct work_struct *work)
->  	else
->  		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
->  
-> +	/* Check if can send sendonly MCG's with sendonly-fullmember join state */
-> +	if (priv->broadcast) {
-> +		ret = ipoib_check_sm_sendonly_fullmember_support(priv);
-> +		if (ret < 0)
-> +			pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
-> +				 priv->dev->name, ret);
-> +	}
-> +
->  	spin_lock_irq(&priv->lock);
->  	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
->  		goto out;
-> 
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 3f062f0..f253111 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1090,7 +1090,7 @@ void qib_free_devdata(struct qib_devdata *dd)
+ 	qib_dbg_ibdev_exit(&dd->verbs_dev);
+ #endif
+ 	free_percpu(dd->int_counter);
+-	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
++	rvt_dealloc_device(&dd->verbs_dev.rdi);
+ }
+ 
+ u64 qib_int_counter(struct qib_devdata *dd)
+@@ -1183,7 +1183,7 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ bail:
+ 	if (!list_empty(&dd->list))
+ 		list_del_init(&dd->list);
+-	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
++	rvt_dealloc_device(&dd->verbs_dev.rdi);
+ 	return ERR_PTR(ret);
+ }
+ 
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 6caf527..e1cc2cc 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -106,6 +106,19 @@ struct rvt_dev_info *rvt_alloc_device(size_t size, int nports)
+ }
+ EXPORT_SYMBOL(rvt_alloc_device);
+ 
++/**
++ * rvt_dealloc_device - deallocate rdi
++ * @rdi: structure to free
++ *
++ * Free a structure allocated with rvt_alloc_device()
++ */
++void rvt_dealloc_device(struct rvt_dev_info *rdi)
++{
++	kfree(rdi->ports);
++	ib_dealloc_device(&rdi->ibdev);
++}
++EXPORT_SYMBOL(rvt_dealloc_device);
++
+ static int rvt_query_device(struct ib_device *ibdev,
+ 			    struct ib_device_attr *props,
+ 			    struct ib_udata *uhw)
+diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1/init.c
+index cfcdc16..00edd50 100644
+--- a/drivers/staging/rdma/hfi1/init.c
++++ b/drivers/staging/rdma/hfi1/init.c
+@@ -1007,7 +1007,7 @@ void hfi1_free_devdata(struct hfi1_devdata *dd)
+ 	free_percpu(dd->rcv_limit);
+ 	hfi1_dev_affinity_free(dd);
+ 	free_percpu(dd->send_schedule);
+-	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
++	rvt_dealloc_device(&dd->verbs_dev.rdi);
+ }
+ 
+ /*
+@@ -1110,7 +1110,7 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ bail:
+ 	if (!list_empty(&dd->list))
+ 		list_del_init(&dd->list);
+-	ib_dealloc_device(&dd->verbs_dev.rdi.ibdev);
++	rvt_dealloc_device(&dd->verbs_dev.rdi);
+ 	return ERR_PTR(ret);
+ }
+ 
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index a869655..d57ceee 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -467,6 +467,7 @@ static inline struct rvt_qp *rvt_lookup_qpn(struct rvt_dev_info *rdi,
+ }
+ 
+ struct rvt_dev_info *rvt_alloc_device(size_t size, int nports);
++void rvt_dealloc_device(struct rvt_dev_info *rdi);
+ int rvt_register_device(struct rvt_dev_info *rvd);
+ void rvt_unregister_device(struct rvt_dev_info *rvd);
+ int rvt_check_ah(struct ib_device *ibdev, struct ib_ah_attr *ah_attr);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
