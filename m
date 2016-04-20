@@ -1,133 +1,95 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [PATCH V3 15/16] RDMA/i40iw: Fix SD calculation for initial HMC
- creation
-Date: Wed, 20 Apr 2016 11:25:39 +0300
-Message-ID: <20160420082539.GW6349@leon.nu>
-References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
- <1460993589-9428-16-git-send-email-mustafa.ismail@intel.com>
-Reply-To: leon-2ukJVAZIZ/Y@public.gmane.org
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Subject: Re: [PATCH 4/4] drm/i915: Move ioremap_wc tracking onto
+	VMA
+Date: Wed, 20 Apr 2016 11:10:54 +0200
+Message-ID: <20160420091054.GL1990@wotan.suse.de>
+References: <20160419123028.GI1990@wotan.suse.de>
+ <1461069238-31539-1-git-send-email-chris@chris-wilson.co.uk>
+ <1461069238-31539-4-git-send-email-chris@chris-wilson.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AFjAQ8ujNJnIGHaX"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <1460993589-9428-16-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1461069238-31539-4-git-send-email-chris@chris-wilson.co.uk>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Airlie <airlied@linux.ie>, netdev@vger.kernel.org, intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, mcgrof@kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, Dan Williams <dan.j.williams@intel.com>, Yishai Hadas <yishaih@mellanox.com>, David Hildenbrand <dahi@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---AFjAQ8ujNJnIGHaX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Apr 18, 2016 at 10:33:08AM -0500, Mustafa Ismail wrote:
-> Correct SD calculation by using base address returned from commit FPM.
-> This alleviates any assumptions on resource ordering and alignment
-> requirement. Also consolidate SD estimation code into i40iw_est_sd().
->=20
-> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 93 +++++++++++++++++++++-----=
-------
->  drivers/infiniband/hw/i40iw/i40iw_type.h |  2 +-
->  2 files changed, 62 insertions(+), 33 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniban=
-d/hw/i40iw/i40iw_ctrl.c
-> index 023a7ae..2c4b4d0 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> @@ -114,16 +114,21 @@ static enum i40iw_status_code i40iw_cqp_poll_regist=
-ers(
->   * i40iw_sc_parse_fpm_commit_buf - parse fpm commit buffer
->   * @buf: ptr to fpm commit buffer
->   * @info: ptr to i40iw_hmc_obj_info struct
-> + * @sd: number of SDs for HMC objects
->   *
->   * parses fpm commit info and copy base value
->   * of hmc objects in hmc_info
->   */
->  static enum i40iw_status_code i40iw_sc_parse_fpm_commit_buf(
->  				u64 *buf,
-> -				struct i40iw_hmc_obj_info *info)
-> +				struct i40iw_hmc_obj_info *info,
-> +				u32 *sd)
->  {
->  	u64 temp;
-
-=2E..
-
-> +	size =3D info[k].cnt * info[k].size + info[k].base;
-> +	if (size & 0x1FFFFF)
-> +		*sd =3D (u32)((size >> 21) + 1); /* add 1 for remainder */
-> +	else
-> +		*sd =3D (u32)(size >> 21);
-> +
-
-The code above can be simplified a little bit.
-  *sd =3D (u32)((size >> 21);
-  if (size & 0x1FFFFF)
-        *sd +=3D 1;
-
->  	return 0;
->  }
-
-=2E..
-
-> +
-> +	if (size & 0x1FFFFF)
-> +		sd =3D (size >> 21) + 1; /* add 1 for remainder */
-> +	else
-> +		sd =3D size >> 21;
-
-The same as above.
-
-> +
-> +	if (!dev->is_pf) {
-> +		/* 2MB alignment for VF PBLE HMC */
-> +		size =3D hmc_info->hmc_obj[I40IW_HMC_IW_PBLE].cnt * hmc_info->hmc_obj[=
-I40IW_HMC_IW_PBLE].size;
-> +		if (size & 0x1FFFFF)
-> +			sd +=3D (size >> 21) + 1; /* add 1 for remainder */
-> +		else
-> +			sd +=3D size >> 21;
-> +	}
-
-The same as above.
-
-> +
-> +	return sd;
-> +}
-> +
-
---AFjAQ8ujNJnIGHaX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXFz0DAAoJEORje4g2clincW4P/3WtSZgLW8KIg6I+AwswXtKS
-Qtr2FjZ9HdZDfpm3Y8O7BUWyJXYkaq/5oS3w7ALHB/zbWD7+YDrQyu5JkqmQKvLi
-il00L0hWGfnd1euy2/lyFz3ocWC09HK7HJ/xMZ8dH3Qbr+5aLMB4E9mLPqeXIX92
-x4Po7SkAX3/Q2RGWlDoFu8GEpKBemYx/yackZAmWdTUJwA5+tLpz8BgWmWU4ttYb
-IFfcl5+FRFjCoXzqrL7q5OCBK+cNxMqlZA+WcZ3LvsyTA2TQ18zH0UyDHYvZ2Bjl
-KxEfBaIvW6desTCsT+dje5ORr8xyw1OJHipogP3MkYszRqntraxntYcLJojP2/TG
-4EYrQ1tJycotRAbbzMXOExq9SR3yQ8Hf/6h1bg4LGSjbVEpIdJuMFUGa0NPzrUXl
-WeDZIezvs611uJClOUA2C/952Den602RmqHRQzkRa0dchvOO0xEkFPl53KGnOFv3
-PdTF+9BkIM4ZRJXCZM0QVM2ZBN7CBq+fzIdwBO404eaAJ3/dWo87mAIRTdmsOOHL
-unzvKBxVK+kMLOMX5U4He2tJpgi/8dVa38hFUNF+4qNBwsINLEv8Q+bt7QqLu88l
-O6A+2xB1VHAenLHDHMAoLU5XP4NzNYTuGvP8cBnHP4/ve6byPpYL1wXVIDELraer
-8TTO390jTCVG+0GTxXvr
-=LJ1c
------END PGP SIGNATURE-----
-
---AFjAQ8ujNJnIGHaX--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBBcHIgMTksIDIwMTYgYXQgMDE6MzM6NThQTSArMDEwMCwgQ2hyaXMgV2lsc29uIHdy
+b3RlOgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jIGIvZHJp
+dmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW0uYwo+IGluZGV4IDZjZTJjMzFiOWE4MS4uOWVmNDcz
+MjllOGFlIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtLmMKPiAr
+KysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jCj4gQEAgLTMzNDYsNiArMzM0Niwx
+NSBAQCBzdGF0aWMgdm9pZCBpOTE1X2dlbV9vYmplY3RfZmluaXNoX2d0dChzdHJ1Y3QgZHJtX2k5
+MTVfZ2VtX29iamVjdCAqb2JqKQo+ICAJCQkJCSAgICBvbGRfd3JpdGVfZG9tYWluKTsKPiAgfQo+
+ICAKPiArc3RhdGljIHZvaWQgX19pOTE1X3ZtYV9pb3VubWFwKHN0cnVjdCBpOTE1X3ZtYSAqdm1h
+KQo+ICt7Cj4gKwlpZiAodm1hLT5pb21hcCA9PSBOVUxMKQo+ICsJCXJldHVybjsKPiArCj4gKwlp
+b19tYXBwaW5nX3VubWFwKHZtYS0+aW9tYXApOwoKVGhlIE5VTEwgY2hlY2sgY291bGQganVzdCBi
+ZSBkb25lIGJ5IGlvX21hcHBpbmdfdW5tYXAoKSB0aGVuIHlvdQpjYW4gYXZvaWQgdGhpcyBpbiBv
+dGhlciBkcml2ZXJzIHRvby4KCj4gKwl2bWEtPmlvbWFwID0gTlVMTDsKCllvdSBhZGRlZCBhY2Nv
+dW50aW5nIGhlcmUsIGJ5IHNpbXBsZSBpbnQgYW5kIGluYyAvIGRlYydpbmcgaXQuCkkgY2Fubm90
+IGNvbmZpcm0gaWYgaXQgaXMgY29ycmVjdGx5IGF2b2lkaW5nIHJhY2VzLCBjYW4geW91CmNvbmZp
+cm0/CgpBbHNvIHlvdSBhZGRlZCBhY2NvdW50aW5nIGZvciB0aGUgY3VzdG9tIHZtYSBwaW5uaW5n
+IHRoaW5nIGFuZCBkbwpHRU1fQlVHX09OKHZtYS0+cGluX2NvdW50ID09IDApOyB3aGVuIHlvdSB1
+bnBpbiBvbmUgaW5zdGFuY2UgYnV0ICp5b3UgZG8gbm90KgpkbyBzb21ldGhpbmcgbGlrZSBHRU1f
+QlVHX09OKHZtYS0+cGluX2NvdW50ICE9IDApOyB3aGVuIHlvdSBkbyB0aGUgZmluYWwgZnVsbApp
+b3VubWFwLiBUaGF0IHNlZW1zIHJhdGhlciBzbG9wcHkuCgppb21hcHBpbmcgc3R1ZmYgaGFzIGl0
+cyBvd24gY3VzdG9tIGRhdGEgc3RydWN0dXJlLCB3aHkgbm90IGp1c3QgdXNlIHRoYXQgZGF0YQpz
+dHJ1Y3R1cmUgaW5zdGVhZCBvZiB0aGUgc3RydWN0IGk5MTVfdm1hIGFuZCBnZW5lcmFsaXplIHRo
+aXMgPyBEcml2ZXJzIGNhbgpiZSBidWdneSBhbmQgYmVzdCBpZiB3ZSBhdm9pZCBjdXN0b20gZHJp
+dmVyIGFjY291bnRpbmcgYW5kIGp1c3QgZG8gaXQgaW4gYSBuZWF0CmdlbmVyaWMgZmFzaGlvbi4K
+ClRoZW4gb3RoZXIgZHJpdmVycyBjb3VsZCB1c2UgdGhpcyB0b28uCgo+IGRpZmYgLS1naXQgYS9k
+cml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9mYmRldi5jIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUv
+aW50ZWxfZmJkZXYuYwo+IGluZGV4IDc5YWMyMDJmMzg3MC4uOTNmNTRhMTAwNDJmIDEwMDY0NAo+
+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2ZiZGV2LmMKPiArKysgYi9kcml2ZXJz
+L2dwdS9kcm0vaTkxNS9pbnRlbF9mYmRldi5jCj4gQEAgLTI0NCwyMiArMjQ1LDIzIEBAIHN0YXRp
+YyBpbnQgaW50ZWxmYl9jcmVhdGUoc3RydWN0IGRybV9mYl9oZWxwZXIgKmhlbHBlciwKPiAgCWlu
+Zm8tPmZsYWdzID0gRkJJTkZPX0RFRkFVTFQgfCBGQklORk9fQ0FOX0ZPUkNFX09VVFBVVDsKPiAg
+CWluZm8tPmZib3BzID0gJmludGVsZmJfb3BzOwo+ICAKPiArCXZtYSA9IGk5MTVfZ2VtX29ial90
+b19nZ3R0KG9iaik7Cj4gKwo+ICAJLyogc2V0dXAgYXBlcnR1cmUgYmFzZS9zaXplIGZvciB2ZXNh
+ZmIgdGFrZW92ZXIgKi8KPiAgCWluZm8tPmFwZXJ0dXJlcy0+cmFuZ2VzWzBdLmJhc2UgPSBkZXYt
+Pm1vZGVfY29uZmlnLmZiX2Jhc2U7Cj4gIAlpbmZvLT5hcGVydHVyZXMtPnJhbmdlc1swXS5zaXpl
+ID0gZ2d0dC0+bWFwcGFibGVfZW5kOwo+ICAKPiAtCWluZm8tPmZpeC5zbWVtX3N0YXJ0ID0gZGV2
+LT5tb2RlX2NvbmZpZy5mYl9iYXNlICsgaTkxNV9nZW1fb2JqX2dndHRfb2Zmc2V0KG9iaik7Cj4g
+LQlpbmZvLT5maXguc21lbV9sZW4gPSBzaXplOwo+ICsJaW5mby0+Zml4LnNtZW1fc3RhcnQgPSBk
+ZXYtPm1vZGVfY29uZmlnLmZiX2Jhc2UgKyB2bWEtPm5vZGUuc3RhcnQ7Cj4gKwlpbmZvLT5maXgu
+c21lbV9sZW4gPSB2bWEtPm5vZGUuc2l6ZTsKPiAgCj4gLQlpbmZvLT5zY3JlZW5fYmFzZSA9Cj4g
+LQkJaW9yZW1hcF93YyhnZ3R0LT5tYXBwYWJsZV9iYXNlICsgaTkxNV9nZW1fb2JqX2dndHRfb2Zm
+c2V0KG9iaiksCj4gLQkJCSAgIHNpemUpOwo+IC0JaWYgKCFpbmZvLT5zY3JlZW5fYmFzZSkgewo+
+ICsJdmFkZHIgPSBpOTE1X3ZtYV9waW5faW9tYXAodm1hKTsKPiArCWlmIChJU19FUlIodmFkZHIp
+KSB7Cj4gIAkJRFJNX0VSUk9SKCJGYWlsZWQgdG8gcmVtYXAgZnJhbWVidWZmZXIgaW50byB2aXJ0
+dWFsIG1lbW9yeVxuIik7Cj4gLQkJcmV0ID0gLUVOT1NQQzsKPiArCQlyZXQgPSBQVFJfRVJSKHZh
+ZGRyKTsKPiAgCQlnb3RvIG91dF9kZXN0cm95X2ZiaTsKPiAgCX0KPiAtCWluZm8tPnNjcmVlbl9z
+aXplID0gc2l6ZTsKPiArCWluZm8tPnNjcmVlbl9iYXNlID0gdmFkZHI7Cj4gKwlpbmZvLT5zY3Jl
+ZW5fc2l6ZSA9IHZtYS0+bm9kZS5zaXplOwoKc29tZSBmcmFtZWJ1ZmZlciBkcml2ZXJzIHRlbmQg
+dG8gdXNlIGEgZ2VuZXJpYyBzdGFydCBhZGRyZXNzIG9mCmlpbmZvLT5maXguc21lbV9zdGFydCBh
+bmQgYSBsZW5ndGggb2YgaW5mby0+Zml4LnNtZW1fbGVuLCB0aGlzCmRyaXZlciBzZXRzIHRoZSBz
+bWVtX3N0YXJ0IGFib3ZlLCBidXQgaXRzIGRpZmZlcmVudCB0aGFuIHdoYXQKZ2V0cyBpb3JlbWFw
+IGZvciBhIHN0YXJ0IGFkZHJlc3M6CgorICAgICAgICAgICAgICAgcHRyID0gaW9fbWFwcGluZ19t
+YXBfd2MoaTkxNV92bV90b19nZ3R0KHZtYS0+dm0pLT5tYXBwYWJsZSwKKyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHZtYS0+bm9kZS5zdGFydCwKKyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHZtYS0+bm9kZS5zaXplKTsKCmZpeC5zbWVtX3N0YXJ0
+IGlzIDoKCgo+ICsJaW5mby0+Zml4LnNtZW1fc3RhcnQgPSBkZXYtPm1vZGVfY29uZmlnLmZiX2Jh
+c2UgKyB2bWEtPm5vZGUuc3RhcnQ7CgpUaGUgc21lbV9sZW4gbWF0Y2hlcyB0aG91Z2guIENhbiB5
+b3UgY2xhcmlmeSBpZiBpdHMgY29ycmVjdCBmb3IKdGhlIGlvX21hcHBpbmdfbWFwX3djKCkgc2hv
+dWxkIG5vdCBiZSB1c2luZyBpbmZvLT5maXguc21lbV9zdGFydAood2hpY2ggaXMgZGV2LT5tb2Rl
+X2NvbmZpZy5mYl9iYXNlICsgdm1hLT5ub2RlLnN0YXJ0KT8KClJlYXNvbiBJIGFzayBpcyBzaW5j
+ZSBJIG5vdGljZWQgYSB3aGlsZSBhZ28gYSBsb3Qgb2YgZHJpdmVycwp3ZXJlIHVzaW5nIGluZm8t
+PmZpeC5zbWVtX3N0YXJ0IGFuZCBpbmZvLT5maXguc21lbV9sZW4gY29uc2lzdGVudGx5CmZvciB0
+aGVpciBpb3JlbWFwJ2QgYXJlYXMgaXQgbWlnaHQgbWFrZSBzZW5zZSBpbnN0ZWFkIHRvIGxldCB0
+aGUKaW50ZXJuYWwgZnJhbWVidWZmZXIgKHJlZ2lzdGVyX2ZyYW1lYnVmZmVyKCkpIG9wdGlvbmFs
+bHkgbWFuYWdlIHRoZQppb3JlbWFwX3djKCkgZm9yIGRyaXZlcnMsIGdpdmVuIHRoYXQgdGhpcyBp
+cyBwcmV0dHkgZ2VuZXJpYyBzdHVmZi4KCiAgTHVpcwpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9pbnRlbC1nZngK
