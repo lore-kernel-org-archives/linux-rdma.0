@@ -1,34 +1,34 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next] IB/mlx5: Add UARs write-combining and non-cached mapping
-Date: Wed, 20 Apr 2016 17:51:38 +0300
-Message-ID: <CAJ3xEMhSr2sDTyH6kHVprBUj1WNKKk6fEQKer6ngLX7AZ0DPjQ@mail.gmail.com>
-References: <1460903581-6788-1-git-send-email-matanb@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [ANNOUNCE] Shared Topic Branch For ABI Changes
+Date: Wed, 20 Apr 2016 09:29:24 -0600
+Message-ID: <20160420152924.GA25424@obsidianresearch.com>
+References: <20160420055221.GT6349@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460903581-6788-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160420055221.GT6349-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 17, 2016 at 5:33 PM, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+On Wed, Apr 20, 2016 at 08:52:21AM +0300, Leon Romanovsky wrote:
 
-> +static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
-> +                   struct vm_area_struct *vma, struct mlx5_uuar_info *uuari)
-> +{
-> +       int err;
-> +       unsigned long idx;
-> +       phys_addr_t pfn, pa;
-> +       pgprot_t prot;
-> +
-> +       switch (cmd) {
-> +       case MLX5_IB_MMAP_WC_PAGE:
-> +/* Some architerctures don't support WC memory */
+> The supplementary user space (libibverbs) repository will be set a
+> little bit later.
 
-architerctures --> architectures
+We should also re-consider the idea that has been floated a few times
+over the years:
 
-please fix
+ Combine all the RMDA plumbing libraries into one git repository.
+
+This is librdmacm, libibverbs, libucm, libumad, libmad,
+libmlx4/5/mtcha/ipath/cxgb/etc/etc
+
+With the scope of the planned work this would seem essential to me.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
