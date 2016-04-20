@@ -1,74 +1,68 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v1] IB/ipoib: Add readout of statistics using ethtool
-Date: Wed, 20 Apr 2016 00:58:42 -0700
-Message-ID: <1461139122.1917.52.camel@perches.com>
-References: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
-	 <1461138630-15158-1-git-send-email-hans.westgaard.ry@oracle.com>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: [PATCH V2] powerpc/infiniband: Use cache inhibitted and guarded
+ mapping on powerpc
+Date: Wed, 20 Apr 2016 03:58:17 -0400
+Message-ID: <1461139097-10213-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461138630-15158-1-git-send-email-hans.westgaard.ry@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au
+Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Sean Hefty <sean.hefty@intel.com>, linuxppc-dev@lists.ozlabs.org, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2016-04-20 at 09:50 +0200, Hans Westgaard Ry wrote:
-> IPoIB collects statistics of traffic including number of packets
-> sent/received, number of bytes transferred, and certain errors. This
-> patch makes these statistics available to be queried by ethtool.
-
-trivial notes:
-
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/i=
-nfiniband/ulp/ipoib/ipoib_ethtool.c
-[]
-> @@ -36,6 +36,31 @@
-> =A0
-> =A0#include "ipoib.h"
-> =A0
-> +struct ipoib_stats {
-> +	char stat_string[ETH_GSTRING_LEN];
-> +	int stat_offset;
-> +};
-> +
-> +
-> +#define IPOIB_NETDEV_STAT(str, m) { \
-> +		.stat_string =3D str, \
-> +		.stat_offset =3D offsetof(struct rtnl_link_stats64, m) }
-> +
-> +
-> +
-
-A few unnecessary extra blank lines
-
-> +static const struct ipoib_stats ipoib_gstrings_stats[] =3D {
-> +	IPOIB_NETDEV_STAT("rx_packets", rx_packets),
-> +	IPOIB_NETDEV_STAT("tx_packets", tx_packets),
-> +	IPOIB_NETDEV_STAT("rx_bytes",=A0=A0=A0rx_bytes),
-> +	IPOIB_NETDEV_STAT("tx_bytes",=A0=A0=A0tx_bytes),
-> +	IPOIB_NETDEV_STAT("tx_errors",=A0=A0tx_errors),
-> +	IPOIB_NETDEV_STAT("rx_dropped", rx_dropped),
-> +	IPOIB_NETDEV_STAT("tx_dropped", tx_dropped)
-> +};
-
-Couldn't the macro could be simplified by using # and
-a single argument?
-
-
-> +static int ipoib_get_sset_count(struct net_device __always_unused *d=
-ev,
-> +				=A0int sset)
-> +{
-> +	switch (sset) {
-> +	case ETH_SS_STATS:
-> +		return IPOIB_GLOBAL_STATS_LEN;
-> +	case ETH_SS_TEST:
-> +	default:
-> +		return -EOPNOTSUPP;
-> +	}
-> +}
-
-Didn't some old versions of gcc complain about reaching
-the end of a non-void function?
+VGhlIGRyaXZlciB3YXMgcmVxdWVzdGluZyBmb3IgYSB3cml0ZXRocm91Z2ggbWFwcGluZy4gQnV0
+IHdpdGggdGhvc2VzCmZsYWdzIHdlIHdpbGwgZW5kIHVwIHdpdGggYSBTQU8gbWFwcGluZyBiZWNh
+dXNlIHdlIG5vdyBoYXZlIG1lbW9yeQpjb25oZXJlbmNlIGFsd2F5cyBlbmFibGVkLiBpZSwgdGhl
+IGV4aXN0aW5nIG1hcHBpbmcgd2lsbCBlbmQgdXAgd2l0aAphIFdJTUcgdmFsdWUgMGIxMTEwIHdo
+aWNoIGlzIFN0cm9uZyBBY2Nlc3MgT3JkZXIuCgpVcGRhdGUgdGhpcyB0byB1c2UgY2FjaGUgaW5o
+aWJpdHRlZCBndWFyZGVkIG1hcHBpbmcKCkNjOiBNaWtlIE1hcmNpbmlzenluIDxpbmZpbmlwYXRo
+QGludGVsLmNvbT4KQ2M6IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4KQ2M6IFNl
+YW4gSGVmdHkgPHNlYW4uaGVmdHlAaW50ZWwuY29tPgpDYzogSGFsIFJvc2Vuc3RvY2sgPGhhbC5y
+b3NlbnN0b2NrQGdtYWlsLmNvbT4KQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnClNpZ25l
+ZC1vZmYtYnk6IEFuZWVzaCBLdW1hciBLLlYgPGFuZWVzaC5rdW1hckBsaW51eC52bmV0LmlibS5j
+b20+Ci0tLQpDaGFuZ2VzIGZyb20gdjE6CiogcmVzZW5kIGJlY2F1c2UgVjEgbmV2ZXIgcmVhY2hl
+ZCBtYWlsaW5nIGxpc3QuCgpOT1RFOiBUaGlzIGlzIG9ubHkgY29tcGlsZSB0ZXN0ZWQgYW5kIEkg
+YW0gYWxzbyBub3Qgc3VyZSB3aHkgcHBjNjQgbmVlZHMgc3BlY2lhbCBoYW5kbGluZy4KV2UgbmVl
+ZCB0aGlzIHBhdGNoIGJlY2F1c2UgdGhlIHNlcmllcyBhdCBodHRwOi8vbWlkLmdtYW5lLm9yZy8x
+NDYwMTgyNDQ0LTI0NjgtMS1naXQtc2VuZC1lbWFpbC1hbmVlc2gua3VtYXJAbGludXgudm5ldC5p
+Ym0uY29tCndpbGwgZHJvcCBfUEFHRV9XUklURVRIUlUKCiBkcml2ZXJzL2luZmluaWJhbmQvaHcv
+cWliL3FpYl9maWxlX29wcy5jIHwgNSArLS0tLQogZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9x
+aWJfcGNpZS5jICAgICB8IDYgLS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCsp
+LCAxMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWli
+L3FpYl9maWxlX29wcy5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfZmlsZV9vcHMu
+YwppbmRleCBlNDQ5ZTM5NDk2M2YuLmEzZDU5M2Y1NDZlYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9p
+bmZpbmliYW5kL2h3L3FpYi9xaWJfZmlsZV9vcHMuYworKysgYi9kcml2ZXJzL2luZmluaWJhbmQv
+aHcvcWliL3FpYl9maWxlX29wcy5jCkBAIC04MjIsMTAgKzgyMiw3IEBAIHN0YXRpYyBpbnQgbW1h
+cF9waW9idWZzKHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLAogCXBoeXMgPSBkZC0+cGh5c2Fk
+ZHIgKyBwaW9idWZzOwogCiAjaWYgZGVmaW5lZChfX3Bvd2VycGNfXykKLQkvKiBUaGVyZSBpc24n
+dCBhIGdlbmVyaWMgd2F5IHRvIHNwZWNpZnkgd3JpdGV0aHJvdWdoIG1hcHBpbmdzICovCi0JcGdw
+cm90X3ZhbCh2bWEtPnZtX3BhZ2VfcHJvdCkgfD0gX1BBR0VfTk9fQ0FDSEU7Ci0JcGdwcm90X3Zh
+bCh2bWEtPnZtX3BhZ2VfcHJvdCkgfD0gX1BBR0VfV1JJVEVUSFJVOwotCXBncHJvdF92YWwodm1h
+LT52bV9wYWdlX3Byb3QpICY9IH5fUEFHRV9HVUFSREVEOworCXZtYS0+dm1fcGFnZV9wcm90ID0g
+cGdwcm90X25vbmNhY2hlZCh2bWEtPnZtX3BhZ2VfcHJvdCk7CiAjZW5kaWYKIAogCS8qCmRpZmYg
+LS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMgYi9kcml2ZXJzL2lu
+ZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMKaW5kZXggNDc1OGEzODAxYWU4Li42YWJlMWM2MjFh
+YTQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xaWIvcWliX3BjaWUuYworKysg
+Yi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMKQEAgLTE0NCwxMyArMTQ0LDcg
+QEAgaW50IHFpYl9wY2llX2RkaW5pdChzdHJ1Y3QgcWliX2RldmRhdGEgKmRkLCBzdHJ1Y3QgcGNp
+X2RldiAqcGRldiwKIAlhZGRyID0gcGNpX3Jlc291cmNlX3N0YXJ0KHBkZXYsIDApOwogCWxlbiA9
+IHBjaV9yZXNvdXJjZV9sZW4ocGRldiwgMCk7CiAKLSNpZiBkZWZpbmVkKF9fcG93ZXJwY19fKQot
+CS8qIFRoZXJlIGlzbid0IGEgZ2VuZXJpYyB3YXkgdG8gc3BlY2lmeSB3cml0ZXRocm91Z2ggbWFw
+cGluZ3MgKi8KLQlkZC0+a3JlZ2Jhc2UgPSBfX2lvcmVtYXAoYWRkciwgbGVuLCBfUEFHRV9OT19D
+QUNIRSB8IF9QQUdFX1dSSVRFVEhSVSk7Ci0jZWxzZQogCWRkLT5rcmVnYmFzZSA9IGlvcmVtYXBf
+bm9jYWNoZShhZGRyLCBsZW4pOwotI2VuZGlmCi0KIAlpZiAoIWRkLT5rcmVnYmFzZSkKIAkJcmV0
+dXJuIC1FTk9NRU07CiAKLS0gCjIuNS4wCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpMaW51eHBwYy1kZXYgbWFpbGluZyBsaXN0CkxpbnV4cHBjLWRldkBs
+aXN0cy5vemxhYnMub3JnCmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9saW51eHBw
+Yy1kZXY=
