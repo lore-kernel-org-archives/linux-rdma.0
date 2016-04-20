@@ -1,120 +1,77 @@
-From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2] IB/ipoib: Add readout of statistics using ethtool
-Date: Wed, 20 Apr 2016 12:09:58 +0200
-Message-ID: <1461146999-16649-1-git-send-email-hans.westgaard.ry@oracle.com>
-References: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460715468-16235-1-git-send-email-hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Eran Ben Elisha <eranlinuxmellanox@gmail.com>
+Subject: Re: [PATCH V2] net: ethernet: mellanox: correct page conversion
+Date: Wed, 20 Apr 2016 14:08:22 +0300
+Message-ID: <CAKHjkj=dBd1Ax4=n5UDig6RNDpkrXzCievS1hJfYvhk_ZTwAww@mail.gmail.com>
+References: <1460845412-13120-1-git-send-email-okaya@codeaurora.org>
+	<20160419182212.GA8441@infradead.org>
+	<57167AF6.9090507@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57167AF6.9090507@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Christoph Hellwig <hch@infradead.org>, linux-rdma@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, Yishai Hadas <yishaih@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB collects statistics of traffic including number of packets
-sent/received, number of bytes transferred, and certain errors. This
-patch makes these statistics available to be queried by ethtool.
+Hi Sinan,
 
-Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 67 ++++++++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
+We are working in Mellanox for a solution which
+removes the vmap call and allocate contiguous memory (using dma_alloc_coherent).
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index a53fa5f..f66440b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -36,6 +36,27 @@
- 
- #include "ipoib.h"
- 
-+struct ipoib_stats {
-+	char stat_string[ETH_GSTRING_LEN];
-+	int stat_offset;
-+};
-+
-+#define IPOIB_NETDEV_STAT(m) { \
-+		        .stat_string = #m, \
-+			.stat_offset = offsetof(struct rtnl_link_stats64, m) }
-+
-+static const struct ipoib_stats ipoib_gstrings_stats[] = {
-+	IPOIB_NETDEV_STAT(rx_packets),
-+	IPOIB_NETDEV_STAT(tx_packets),
-+	IPOIB_NETDEV_STAT(rx_bytes),
-+	IPOIB_NETDEV_STAT(tx_bytes),
-+	IPOIB_NETDEV_STAT(tx_errors),
-+	IPOIB_NETDEV_STAT(rx_dropped),
-+	IPOIB_NETDEV_STAT(tx_dropped)
-+};
-+
-+#define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
-+
- static void ipoib_get_drvinfo(struct net_device *netdev,
- 			      struct ethtool_drvinfo *drvinfo)
- {
-@@ -92,11 +113,57 @@ static int ipoib_set_coalesce(struct net_device *dev,
- 
- 	return 0;
- }
-+static void ipoib_get_ethtool_stats(struct net_device *dev,
-+				    struct ethtool_stats __always_unused *stats,
-+				    u64 *data)
-+{
-+	int i;
-+	struct net_device_stats *net_stats = &dev->stats;
-+	u8 *p = (u8 *)net_stats;
-+
-+	for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
-+		data[i] = *(u64 *)(p + ipoib_gstrings_stats[i].stat_offset);
-+
-+}
-+static void ipoib_get_strings(struct net_device __always_unused *dev,
-+			      u32 stringset, u8 *data)
-+{
-+	u8 *p = data;
-+	int i;
-+
-+	switch (stringset) {
-+	case ETH_SS_STATS:
-+		for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++) {
-+			memcpy(p, ipoib_gstrings_stats[i].stat_string,
-+				ETH_GSTRING_LEN);
-+			p += ETH_GSTRING_LEN;
-+		}
-+		break;
-+	case ETH_SS_TEST:
-+	default:
-+		break;
-+	}
-+}
-+static int ipoib_get_sset_count(struct net_device __always_unused *dev,
-+				 int sset)
-+{
-+	switch (sset) {
-+	case ETH_SS_STATS:
-+		return IPOIB_GLOBAL_STATS_LEN;
-+	case ETH_SS_TEST:
-+	default:
-+		break;
-+	}
-+	return -EOPNOTSUPP;
-+}
- 
- static const struct ethtool_ops ipoib_ethtool_ops = {
- 	.get_drvinfo		= ipoib_get_drvinfo,
- 	.get_coalesce		= ipoib_get_coalesce,
- 	.set_coalesce		= ipoib_set_coalesce,
-+	.get_strings		= ipoib_get_strings,
-+	.get_ethtool_stats	= ipoib_get_ethtool_stats,
-+	.get_sset_count		= ipoib_get_sset_count,
- };
- 
- void ipoib_set_ethtool_ops(struct net_device *dev)
--- 
-2.4.3
+Thanks,
+Eran
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+On Tue, Apr 19, 2016 at 9:37 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> On 4/19/2016 2:22 PM, Christoph Hellwig wrote:
+>> What I think we need is something like the patch below.  In the long
+>> ru nwe should also kill the mlx4_buf structure which now is pretty
+>> pointless.
+>
+> Maybe; this could be the correct approach if we can guarantee that the
+> architecture can allocate the requested amount of memory with
+> dma_alloc_coherent.
+>
+> When I brought this issue a year ago, the objection was that my code
+> doesn't compile on intel (dma_to_phys) and also some arches run out of
+> DMA memory with existing customer base.
+>
+> If there is a real need to maintain compatibility with the existing
+> architectures due to limited amount of DMA memory, we need to correct this
+> code to make proper use of vmap via alloc_pages and also insert the
+> dma_sync in proper places for DMA API conformance.
+>
+> Also, the tx descriptors always has to be allocated from a single DMA region
+> or the tx code needs to be corrected to support page_list.
+>
+> If we can live with just using dma_alloc_coherent, your solution is
+> better. I was trying to put this support for 64bit arches only while
+> maintaining support for the existing code base.
+>
+>>
+>> ---
+>> From a493881d2a6c90152d3daabb7b6b3afd1d254d78 Mon Sep 17 00:00:00 2001
+>> From: Christoph Hellwig <hch@lst.de>
+>> Date: Tue, 19 Apr 2016 14:12:14 -0400
+>> Subject: mlx4_en: don't try to split and vmap dma coherent allocations
+>>
+>> The memory returned by dma_alloc_coherent is not suitable for calling
+>> virt_to_page on it, as it might for example come from vmap allocator.
+>>
+>> Remove the code that calls virt_to_page and vmap on dma coherent
+>> allocations from the mlx4 drivers, and replace them with a single
+>> high-order dma_alloc_coherent call.
+>>
+>> Signed-off-by: Christoph Hellwig <hch@lst.de>
+>> Reported-by: Sinan Kaya <okaya@codeaurora.org>
+>
+>
+> --
+> Sinan Kaya
+> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
