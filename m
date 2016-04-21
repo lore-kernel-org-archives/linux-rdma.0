@@ -1,83 +1,65 @@
-From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
-Subject: Re: [ANNOUNCE] Shared Topic Branch For ABI Changes
-Date: Thu, 21 Apr 2016 09:49:59 +0300
-Message-ID: <20160421064959.GB12730@leon.nu>
-References: <20160420055221.GT6349@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 5/5] IB/mlx5: Report Scatter FCS device
+ capability when supported
+Date: Thu, 21 Apr 2016 10:07:16 +0300
+Message-ID: <20160421070716.GE12730@leon.nu>
+References: <1460902778-5977-6-git-send-email-matanb@mellanox.com>
+ <201604172352.60qppaot%fengguang.wu@intel.com>
+ <20160421012442.GA30527@phlsvsds.ph.intel.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aM3YZ0Iwxop3KEKx"
+	protocol="application/pgp-signature"; boundary="h56sxpGKRmy85csR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160420055221.GT6349-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160421012442.GA30527-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---aM3YZ0Iwxop3KEKx
+--h56sxpGKRmy85csR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 20, 2016 at 08:52:21AM +0300, Leon Romanovsky wrote:
-> Hi,
->=20
-> Following the discussions at OFVWG (4/19/2016), I want to present
-> shared repository and topic branch for ABI change proposed patches.
->=20
-> Please post them on linux-rdma mailing list with clear indication that
-> it is supposed for ABI related work.
->=20
-> I would like to suggest to use [PATCH ABI xxx] notation, so it will be
-> easy for me to take them and don't mix with general RDMA development.
->=20
-> Kernel part git address:
->  * git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
->  * https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/
->=20
-> Branch name:
->  * topic/abi
->=20
-> The supplementary user space (libibverbs) repository will be set a
-> little bit later.
+On Wed, Apr 20, 2016 at 09:24:43PM -0400, ira.weiny wrote:
+> I will do my best to review this.  But to save time I'll wait for the kbuilds
+> to be fixed.
 
-Libibverbs:
- * git://git.kernel.org/pub/scm/libs/leon/libibverbs.git
- * https://git.kernel.org/cgit/libs/leon/libibverbs.git/
+This kbuilds are related to shared code patches which are required for
+this patch.
 
-Branch name:
- * topic/abi
+We sent them in advance [1] and it is already part of netdev tree [3].
+Once Doug will apply these patches [3], kbuilds errors will disappear.
 
->=20
-> Thanks
+[1] http://marc.info/?l=linux-netdev&m=146056392230963&w=2
+[2] http://marc.info/?l=linux-rdma&m=146075537926850&w=2
+[3] http://marc.info/?l=linux-rdma&m=146099436110034&w=2
 
-
-
---aM3YZ0Iwxop3KEKx
+--h56sxpGKRmy85csR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXGHgXAAoJEORje4g2clinlDwQAKC6fm7SfU6QEAz58bmSkRSp
-leNsZpFnEL8zILCExRlsskduLB5hU9aWGsE0yJpvPyA2uluOmoA8EvsaUJAwUQk7
-BGMKi6U1A3IRFkTMfQgY8LdfbYpvv9U4Zh2vyTqeHlpXS55gZTGPUGC9UEzPiF59
-ZVzt4PRzYAWPAI9w8d8TErq69nT1157cVaOyZ+kO3AOv0CoPtAHdjobu5vwKLJ1P
-wfnOCxC2Kfd3WiZ2yaLOMzTi6cPzcRy1xe2INKPK8XZAmblW6WtN2UMo3UkfgY+J
-0smrtPsWW5bwqnTSzdrMxEuflbFyZwmVYm16Hal1RrgyAE69i1RCxkqt5CU1D7UT
-eifwWsMXLCy15Zi3BQS4AdzCqMlB9vlJbz510Db45tf9Fhw9kBOvcb/CzlBugRZo
-prqTdoJjPVFXzKSVmzT2/apA5XJUxt+vEhVIlNgELfbGIe9wJ7HcY+iYiqPF9Wkq
-IeT4X9laRfWYcQWZyCeCazDAxVuqpO/pRZmqNphfdP89hQ3MjyuGu5+dtK0p5jZu
-9of4gu2lcfuNZR+1aG+RFT1Wdc574Go0af43UlXvHv5546mvLKt7L++YYixWCsHw
-iyGlt+5kwHTBLpEfZPQ1QCr441bRD7+fBh9jWV60D51tPz2zmApy5hOIv/9e2exz
-d4vQDNHfPXHwJmNtcN/S
-=5Ozp
+iQIcBAEBAgAGBQJXGHwkAAoJEORje4g2clin5rkQAJVUTbXiNT9wbdIrjEGl5kGr
+DOHanGkmS86T5E/x10Wb6tX5ld8GKp74/kWcd2nEVIDhKsJt34JdSLLGPbORG1lp
+yNokMsK5LibHgImcxROFBgb4dL+p20yZ0eEeLgIq6IP50eqV9hu0hmcf2sgjhzDv
+euU7pLWh/PayTBw/kNV7hpfKdn9O8CSxaKMKXfoGr4Sa6JkbxiaCQTUBGoPBsLex
+L0Bhhhg/04uZa22AH9TLSreYdzVlDsoQnyYLLU46+h6QukJQIr/Kds1F3/YrIueT
+HikolSqPXWEs10sEzqcimD8RprNUIfaNkoU2aUSciDXkdi2YdcAyCOjjCRYm555G
+IG+d4YmKEsx3+6NkjY2uPwY5dbYivxZ3EtPwYHcRnaIow5Ph7wlpPeRULSqTOS54
+Y+wyzn/+a2PnpR12xRWDg29bd6Z6BrWrPjhmOGu6q8IfyiGhaX3HS9c+qQzcOpyr
+QXmYSPbPFPybhwqv3CDFuh3YtcB5Tm79WhXVv0Ku0TS/zNVEZmCEyCHjLw7PwgOd
+Z3ZgyYlm9If/vaOtvmoVUfekeW01dWXM2TZrzKy/Mdb/ZZhQpkrFWNjXQVQffUyO
+WjxAXVEqMGNCzIbG47IJ3pXcPpuwbKFXs8qsI6OyuQU3srs7YrnZp1zQfBJ5XbXq
+rgAVHsUq345SQFNMFWwc
+=yVR6
 -----END PGP SIGNATURE-----
 
---aM3YZ0Iwxop3KEKx--
+--h56sxpGKRmy85csR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
