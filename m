@@ -1,68 +1,83 @@
 From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
 Subject: Re: [ANNOUNCE] Shared Topic Branch For ABI Changes
-Date: Thu, 21 Apr 2016 09:58:47 +0300
-Message-ID: <20160421065847.GC12730@leon.nu>
+Date: Thu, 21 Apr 2016 09:49:59 +0300
+Message-ID: <20160421064959.GB12730@leon.nu>
 References: <20160420055221.GT6349@leon.nu>
- <20160420152924.GA25424@obsidianresearch.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Sr1nOIr3CvdE5hEN"
+	protocol="application/pgp-signature"; boundary="aM3YZ0Iwxop3KEKx"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160420152924.GA25424-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160420055221.GT6349-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Sr1nOIr3CvdE5hEN
+--aM3YZ0Iwxop3KEKx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 20, 2016 at 09:29:24AM -0600, Jason Gunthorpe wrote:
-> On Wed, Apr 20, 2016 at 08:52:21AM +0300, Leon Romanovsky wrote:
+On Wed, Apr 20, 2016 at 08:52:21AM +0300, Leon Romanovsky wrote:
+> Hi,
 >=20
-> > The supplementary user space (libibverbs) repository will be set a
-> > little bit later.
+> Following the discussions at OFVWG (4/19/2016), I want to present
+> shared repository and topic branch for ABI change proposed patches.
 >=20
-> We should also re-consider the idea that has been floated a few times
-> over the years:
+> Please post them on linux-rdma mailing list with clear indication that
+> it is supposed for ABI related work.
 >=20
->  Combine all the RMDA plumbing libraries into one git repository.
+> I would like to suggest to use [PATCH ABI xxx] notation, so it will be
+> easy for me to take them and don't mix with general RDMA development.
 >=20
-> This is librdmacm, libibverbs, libucm, libumad, libmad,
-> libmlx4/5/mtcha/ipath/cxgb/etc/etc
+> Kernel part git address:
+>  * git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+>  * https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/
+>=20
+> Branch name:
+>  * topic/abi
+>=20
+> The supplementary user space (libibverbs) repository will be set a
+> little bit later.
 
-Can you point me to relevant discussion?
+Libibverbs:
+ * git://git.kernel.org/pub/scm/libs/leon/libibverbs.git
+ * https://git.kernel.org/cgit/libs/leon/libibverbs.git/
 
-Thanks.
+Branch name:
+ * topic/abi
 
---Sr1nOIr3CvdE5hEN
+>=20
+> Thanks
+
+
+
+--aM3YZ0Iwxop3KEKx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXGHonAAoJEORje4g2clinQD4P/j2XtaW513bgAtzLIG060MX9
-ISNTzhW4yT+mQA9EpMN9ZSlXh6YeqVDqLvpFlSUUgg73bbjTokhAmTO/cNXYvjZ5
-a/+T7wybFYibWdGQ3tUrnkTK/+2+2cIghi3+MG4SVGDe3BdgLb70ZPzJKPXPck9O
-cMS5goJxtMM7B7Bo0n+OxExHgTICRnkHPLuGUUZhuFXzeGqslD4TkeBXDkO0hGvY
-ZkalTnrFN+24/oZLgJFahqbDfA0/eMGwkkrqyfhz8et7erO1GtdXUm/S82s5A8Tb
-MC+0BFAElFaonMPcnzn1bCFnykQDE7Z6DOlTMCEFf5s7qsBoZbvb8cQyxFUj/CF0
-z620HeWFvjzcLKhqje0T01n6MM7JUpYDZQi0lloSS0UhS5qzR2k0lk0Ll8Maf9Uv
-ecZYzhHPkY7lFP2wXKuzKXNKY/a1wV95c8SzrdnuayPiMYiTk5Ceh1grUiS4Z7nq
-uVIBepskh2hT312oaZJVIx81WVIWVNB+I/iNlck3MC9QJmT7ghSZyIFecNEfFr8P
-8s7sOpBfCfHrUKgyH1iJJ5KsXHooep2Ok8pjJ6IZjfZaHwh6TBZN7ORvUYmoUsdh
-zidsPQenNFitDkhAneZWzjMDn9DLr+ZSqH4uPkBpeTuplVRZVEWp4YHKZFIMFgtm
-Enqe0/QoJ9AwaZCMTHhr
-=Rblg
+iQIcBAEBAgAGBQJXGHgXAAoJEORje4g2clinlDwQAKC6fm7SfU6QEAz58bmSkRSp
+leNsZpFnEL8zILCExRlsskduLB5hU9aWGsE0yJpvPyA2uluOmoA8EvsaUJAwUQk7
+BGMKi6U1A3IRFkTMfQgY8LdfbYpvv9U4Zh2vyTqeHlpXS55gZTGPUGC9UEzPiF59
+ZVzt4PRzYAWPAI9w8d8TErq69nT1157cVaOyZ+kO3AOv0CoPtAHdjobu5vwKLJ1P
+wfnOCxC2Kfd3WiZ2yaLOMzTi6cPzcRy1xe2INKPK8XZAmblW6WtN2UMo3UkfgY+J
+0smrtPsWW5bwqnTSzdrMxEuflbFyZwmVYm16Hal1RrgyAE69i1RCxkqt5CU1D7UT
+eifwWsMXLCy15Zi3BQS4AdzCqMlB9vlJbz510Db45tf9Fhw9kBOvcb/CzlBugRZo
+prqTdoJjPVFXzKSVmzT2/apA5XJUxt+vEhVIlNgELfbGIe9wJ7HcY+iYiqPF9Wkq
+IeT4X9laRfWYcQWZyCeCazDAxVuqpO/pRZmqNphfdP89hQ3MjyuGu5+dtK0p5jZu
+9of4gu2lcfuNZR+1aG+RFT1Wdc574Go0af43UlXvHv5546mvLKt7L++YYixWCsHw
+iyGlt+5kwHTBLpEfZPQ1QCr441bRD7+fBh9jWV60D51tPz2zmApy5hOIv/9e2exz
+d4vQDNHfPXHwJmNtcN/S
+=5Ozp
 -----END PGP SIGNATURE-----
 
---Sr1nOIr3CvdE5hEN--
+--aM3YZ0Iwxop3KEKx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
