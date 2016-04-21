@@ -1,85 +1,135 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/rdmavt,hfi1,qib: Fix memory leak
-Date: Thu, 21 Apr 2016 15:50:42 +0300
-Message-ID: <20160421125042.GH26951@leon.nu>
-References: <20160420125205.28231.86818.stgit@scvm10.sc.intel.com>
- <20160420130523.28231.90454.stgit@scvm10.sc.intel.com>
- <20160421093827.GA26951@leon.nu>
- <20160421122216.GA13471@phlsvsds.ph.intel.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3] IB/ipoib: Add readout of statistics using ethtool
+Date: Thu, 21 Apr 2016 14:58:23 +0200
+Message-ID: <5718CE6F.8080105@oracle.com>
+References: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
+ <1461237201-25738-1-git-send-email-hans.westgaard.ry@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="r5lq+205vWdkqwtk"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160421122216.GA13471-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1461237201-25738-1-git-send-email-hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "open list:INFINIBAND SUBSYSTEM" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The only difference between v2 and v3 of this patch is
+"cosmetics"; When running checkpatch I got an error
+  ERROR: code indent should use tabs where possible
+#33: FILE: drivers/infiniband/ulp/ipoib/ipoib_ethtool.c:45:
++^I^I        .stat_string = #m, \$
 
---r5lq+205vWdkqwtk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+So I decided to make yet another version ( I should of course have ran 
+checkpatch before submitting v2)
 
-On Thu, Apr 21, 2016 at 08:22:17AM -0400, Dennis Dalessandro wrote:
-> On Thu, Apr 21, 2016 at 12:38:27PM +0300, Leon Romanovsky wrote:
-> >On Wed, Apr 20, 2016 at 06:05:24AM -0700, Dennis Dalessandro wrote:
-> >>From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >>
-> >>rdi->ports has memory allocated in rvt_alloc_device(), but does not get
-> >>freed because the hfi1 and qib drivers drivers call ib_dealloc_device()
-> >>directly instead of going through rdmavt. Add a rvt_dealloc_device()
-> >>that frees rdi->ports and then calls ib_dealloc_device(). Switch hfi1
-> >>and qib drivers to calling rvt_dealloc_device() instead of
-> >>ib_dealloc_device() directly.
-> >>
-> >>Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> >Dennis,
-> >You posted Fixes line in two other patches, please do in this one two.
-> >It is needed for proper tracking.
-> >
-> >Except this,
-> >Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Hi Leon, I don't think that a fixes line is warranted in this case. There
-> isn't a single commit that causes this issue. It is a missed code path be=
-ing
-> moved to rdmavt.
+Hans
 
-So, it fixed the initial commit.
-You can easily send an appropriate Fixes line as a response to this
-email without need to resubmit the patches.
 
->=20
-> -Denny
+On 04/21/2016 01:13 PM, Hans Westgaard Ry wrote:
+> IPoIB collects statistics of traffic including number of packets
+> sent/received, number of bytes transferred, and certain errors. This
+> patch makes these statistics available to be queried by ethtool.
+>
+> Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>   drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 67 ++++++++++++++++++++++++++++
+>   1 file changed, 67 insertions(+)
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+> index a53fa5f..1502199 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+> @@ -36,6 +36,27 @@
+>   
+>   #include "ipoib.h"
+>   
+> +struct ipoib_stats {
+> +	char stat_string[ETH_GSTRING_LEN];
+> +	int stat_offset;
+> +};
+> +
+> +#define IPOIB_NETDEV_STAT(m) { \
+> +		.stat_string = #m, \
+> +		.stat_offset = offsetof(struct rtnl_link_stats64, m) }
+> +
+> +static const struct ipoib_stats ipoib_gstrings_stats[] = {
+> +	IPOIB_NETDEV_STAT(rx_packets),
+> +	IPOIB_NETDEV_STAT(tx_packets),
+> +	IPOIB_NETDEV_STAT(rx_bytes),
+> +	IPOIB_NETDEV_STAT(tx_bytes),
+> +	IPOIB_NETDEV_STAT(tx_errors),
+> +	IPOIB_NETDEV_STAT(rx_dropped),
+> +	IPOIB_NETDEV_STAT(tx_dropped)
+> +};
+> +
+> +#define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
+> +
+>   static void ipoib_get_drvinfo(struct net_device *netdev,
+>   			      struct ethtool_drvinfo *drvinfo)
+>   {
+> @@ -92,11 +113,57 @@ static int ipoib_set_coalesce(struct net_device *dev,
+>   
+>   	return 0;
+>   }
+> +static void ipoib_get_ethtool_stats(struct net_device *dev,
+> +				    struct ethtool_stats __always_unused *stats,
+> +				    u64 *data)
+> +{
+> +	int i;
+> +	struct net_device_stats *net_stats = &dev->stats;
+> +	u8 *p = (u8 *)net_stats;
+> +
+> +	for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++)
+> +		data[i] = *(u64 *)(p + ipoib_gstrings_stats[i].stat_offset);
+> +
+> +}
+> +static void ipoib_get_strings(struct net_device __always_unused *dev,
+> +			      u32 stringset, u8 *data)
+> +{
+> +	u8 *p = data;
+> +	int i;
+> +
+> +	switch (stringset) {
+> +	case ETH_SS_STATS:
+> +		for (i = 0; i < IPOIB_GLOBAL_STATS_LEN; i++) {
+> +			memcpy(p, ipoib_gstrings_stats[i].stat_string,
+> +				ETH_GSTRING_LEN);
+> +			p += ETH_GSTRING_LEN;
+> +		}
+> +		break;
+> +	case ETH_SS_TEST:
+> +	default:
+> +		break;
+> +	}
+> +}
+> +static int ipoib_get_sset_count(struct net_device __always_unused *dev,
+> +				 int sset)
+> +{
+> +	switch (sset) {
+> +	case ETH_SS_STATS:
+> +		return IPOIB_GLOBAL_STATS_LEN;
+> +	case ETH_SS_TEST:
+> +	default:
+> +		break;
+> +	}
+> +	return -EOPNOTSUPP;
+> +}
+>   
+>   static const struct ethtool_ops ipoib_ethtool_ops = {
+>   	.get_drvinfo		= ipoib_get_drvinfo,
+>   	.get_coalesce		= ipoib_get_coalesce,
+>   	.set_coalesce		= ipoib_set_coalesce,
+> +	.get_strings		= ipoib_get_strings,
+> +	.get_ethtool_stats	= ipoib_get_ethtool_stats,
+> +	.get_sset_count		= ipoib_get_sset_count,
+>   };
+>   
+>   void ipoib_set_ethtool_ops(struct net_device *dev)
 
---r5lq+205vWdkqwtk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXGMyhAAoJEORje4g2clineP4P/Rx69PWYO/Gq3vA/GH3T8J9T
-3TmoFHKp1UXjlXHne3tNH105AomQwAX3Qs7mOmwVLR68ww0Vb8u6dOS6BPwgppKy
-WQ8UemhxBfNJkJiCohFKXLMqXUJCWvAHFNRgKAFn5pXKh1wG7eoKzBd6ORGNX3f2
-6ARaRX6gFIn4dbWmn4BGOOiPbu2Xp4F3cMb16uzk5kFiDJg6iwqg43ywcpl11KGe
-ItgaN3pEL9CaqjAGZUXbifsn1AJW44Ac7J971UECi8lM9RXjj5+FLFTxyJRwAyMR
-HBNrI9sYIc1G96KDMHz66uh/F1ZfDLbH7rywmO+xHSOb1LgzITEj13paJudrgyJt
-L0SZ3xqrjgyei4Pi5WM9bzGbHqg8VL0uvsJs1jwMqoC0v8TsHS/JLnLfJs150E4y
-fDbXLKI3/8KeYtwPZBIlB6vyNlJDKYIPnOif0ZYMjhmL2PyAC5YxKAIrliFnEbXR
-g7zD1gEYZHsSUcvCfQGkHp1L7i+ya/87LQhCLa8BE57MxRYszoWpYf9U9/YDtJbf
-ahAuwQiVEoyaG+8DAlvPn+lIarFMOjOcB5WG/9ELTxPBVDypy/IqNmjwjOREdAHM
-4b0GWAP7EEGfbIljaNHFFq/FtDdJVLal0u6ET6Z2YCV+3M7woEyTEtFilZ5qcIET
-JzlGL5e1TvT8h6ZrORcE
-=Vjit
------END PGP SIGNATURE-----
-
---r5lq+205vWdkqwtk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
