@@ -1,50 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ANNOUNCE] Shared Topic Branch For ABI Changes
-Date: Thu, 21 Apr 2016 11:38:15 -0600
-Message-ID: <20160421173815.GB5102@obsidianresearch.com>
-References: <20160420055221.GT6349@leon.nu>
- <20160420152924.GA25424@obsidianresearch.com>
- <20160421065847.GC12730@leon.nu>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: Testing for RDMA with ib_srp: Failed to map data (-12) with
+ max_sectors_kb=4096 and buffered I/O with 4MB writes
+Date: Thu, 21 Apr 2016 21:15:01 +0300
+Message-ID: <571918A5.8050504@grimberg.me>
+References: <559411025.30902774.1461207472544.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160421065847.GC12730-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <559411025.30902774.1461207472544.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 21, 2016 at 09:58:47AM +0300, Leon Romanovsky wrote:
-> On Wed, Apr 20, 2016 at 09:29:24AM -0600, Jason Gunthorpe wrote:
-> > On Wed, Apr 20, 2016 at 08:52:21AM +0300, Leon Romanovsky wrote:
-> > 
-> > > The supplementary user space (libibverbs) repository will be set a
-> > > little bit later.
-> > 
-> > We should also re-consider the idea that has been floated a few times
-> > over the years:
-> > 
-> >  Combine all the RMDA plumbing libraries into one git repository.
-> > 
-> > This is librdmacm, libibverbs, libucm, libumad, libmad,
-> > libmlx4/5/mtcha/ipath/cxgb/etc/etc
-> 
-> Can you point me to relevant discussion?
 
-I couldn't find it in the archive quickly. Doug, myself and Steve Wise
-were talking about it after Doug started.
+> Hello
+>
+> I am still on my quest for getting 4MB buffered writes to be stable to RDMA SRP targets.
+> Lots of testing has been performed here with EDR 100 back to back connections using
+> mellanox ConnectX-4 with mlx5_ib, an dthe ib_srp* drivers on target server and client.
+>
+> In summary:
+>   setting max_sectors_kb=4096 and running DIRECT_IO is solid as a rock
+>   setting max_sectors_kb=2048 and running buffered 4MB writes to an FS on a multipath is rock solid
+>
+>   However:
+>   setting max_sectors_kb=4096 and running buffered I/O sees serious mapping issues.
+>
+>
+> I have isolated the failure and call flow to this
+>
+> srp_queuecommand
+>      srp_map_data(scmnd, ch, req);
+> 	  srp_map_idb
+> 	      ret = srp_map_finish_fr(&state, req, ch, 1);	
+>
+>
+> The -12 is returned by srp_map_finish_fr() and fed back to fail with
+> ib_srp: Failed to map data (-12)
 
-Doug was ambivalent, Steve was against. There was a concern the natual
-release schedual of the parts was different, so why link them.
+Can you print out how many FRs we used at this point?
 
-My counter was that isn't really important, the goal is is to reduce
-developer time when working on this mess.
-
-Since we are looking at changing *everything* developer time seems
-more important right now.
-
-Jason
+state->nmdesc?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
