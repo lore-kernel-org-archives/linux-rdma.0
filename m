@@ -1,37 +1,74 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v6 00/20] kthread: Use kthread worker API more widely
-Date: Fri, 22 Apr 2016 14:30:40 -0400
-Message-ID: <20160422183040.GW7822@mtj.duckdns.org>
-References: <1460646879-617-1-git-send-email-pmladek@suse.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user access
+Date: Fri, 22 Apr 2016 14:38:45 -0400
+Message-ID: <20160422183844.GB21996@phlsvsds.ph.intel.com>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com> <20160414164550.GC6247@obsidianresearch.com> <20160414175243.GA9310@phlsvsds.ph.intel.com> <20160420203616.GA28991@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1460646879-617-1-git-send-email-pmladek@suse.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Petr Mladek <pmladek@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, Michal Hocko <mhocko@suse.cz>, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, linux-watchdog@vger.kernel.org, Corey Minyard <minyard@acm.org>, openipmi-developer@lists.sourceforge.net, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Maxim Levitsky <maximl>
+In-Reply-To: <20160420203616.GA28991-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Petr.
+On Wed, Apr 20, 2016 at 02:36:16PM -0600, Jason Gunthorpe wrote:
+>On Thu, Apr 14, 2016 at 01:52:44PM -0400, Dennis Dalessandro wrote:
+>> The eprom device is for low level programming of the eprom on the
+>> chip. We do not use i2c for this because the eprom is directly
+>> attached to the chip and not accessible via i2c, requires register
+>> access.
+>
+>Okay, but the twsi.c is still not acceptable in a driver, use the i2c
+>subsystem to talk to the qsfps. Open coding i2c is not OK.
 
-On Thu, Apr 14, 2016 at 05:14:19PM +0200, Petr Mladek wrote:
-> My intention is to make it easier to manipulate and maintain kthreads.
-> Especially, I want to replace all the custom main cycles with a
-> generic one. Also I want to make the kthreads sleep in a consistent
-> state in a common place when there is no work.
-> 
-> My first attempt was with a brand new API (iterant kthread), see
-> http://thread.gmane.org/gmane.linux.kernel.api/11892 . But I was
-> directed to improve the existing kthread worker API. This is
-> the 4th iteration of the new direction.
-> 
-> 1nd..10th patches: improve the existing kthread worker API
+Yeah, I mentioned this at OFA. We are looking at reworking this.
 
-I glanced over them and they generally look good to me.  Let's see how
-people respond to actual conversions.
+>The char dev(s) are also done wrong, there is no set to 'kobj.parent'
+>and there are empty release functions. There are certainly
+>use-after-free bugs between close and device removal, someone needs to
+>audit all of this carefully.
+>
+>The patch forgets compat_ioctl.
 
-Thanks.
+We will take a look at this.
 
--- 
-tejun
+>Stuff like this should be a build bug:
+> /* NOTE: assumes unsigned long is 8 bytes */
+
+Our Kconfig depends on X86_64. Should we add a BUILD_BUG_ON or something?
+
+>The 'goto on success' in hfi1_cdev_init is an anti-pattern, don't do it.
+
+Can fix.
+
+>Even if the char dev stays, creating two whole sysfs classes seems
+>really unnecessary. Surely there is a better place to attach the cdev.
+>
+>And this is just outrageous:
+>
+>        if (atomic_inc_return(&user_count) == 1) {
+>                ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
+>                                     &wildcard_cdev, &wildcard_device,
+>                                     true);
+>                if (ret)
+>
+>I can see an argument for a per-device char dev (as Christoph says,
+>that is not entirely uncommon) but this is a multi-device char dev????
+
+We are discussing what can be done about this internally. On that note we 
+are also looking at what we can do about the twsi as mentioned above, also 
+the eprom, ui, and snoop. We'll send the actual plan for each issue to 
+linux-rdma for feedback soon. 
+
+We are certainly not opposed to improving these areas of the code. So long 
+as we can maintain the same functionality, which seems doable. It's just 
+that no one has spoken up about these things in the 9+ months since the 
+driver was added. We need a bit of time to get it all sorted out.
+
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
