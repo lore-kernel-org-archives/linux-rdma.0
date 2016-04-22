@@ -1,8 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 06/11] IB/srp: Avoid that mapping failure triggers an infinite
- loop
-Date: Fri, 22 Apr 2016 14:14:15 -0700
-Message-ID: <571A9427.8010306@sandisk.com>
+Subject: [PATCH 07/11] IB/srp: Move code out of a loop
+Date: Fri, 22 Apr 2016 14:14:43 -0700
+Message-ID: <571A9443.6000600@sandisk.com>
 References: <571A936F.7040409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,33 +13,42 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The srp_queuecommand() function translates ENOMEM into QUEUE_FULL
-which causes the SCSI mid-layer to retry the command. All other
-error codes are translated into DID_ERROR which causes the SCSI
-command to fail. Return E2BIG if mapping will always fail to
-prevent that the SCSI mid-layer keeps resubmitting a command
-forever.
+Since all srp_map_finish_fr() callers pass a non-zero value as
+the fourth argument (sg_nents), the sg_nents == 0 check in that
+function can be removed. Add a count == 0 check in the caller
+of that function.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 8fd1a51..c0329cd 100644
+index c0329cd..d709428c 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1681,6 +1681,8 @@ map_complete:
+@@ -1315,9 +1315,6 @@ static int srp_map_finish_fr(struct srp_map_state *state,
  
- unmap:
- 	srp_unmap_data(scmnd, ch, req);
-+	if (ret == -ENOMEM && req->nmdesc >= target->mr_pool_size)
-+		ret = -E2BIG;
- 	return ret;
- }
+ 	WARN_ON_ONCE(!dev->use_fast_reg);
+ 
+-	if (sg_nents == 0)
+-		return 0;
+-
+ 	if (sg_nents == 1 && target->global_mr) {
+ 		srp_map_desc(state, sg_dma_address(state->sg),
+ 			     sg_dma_len(state->sg),
+@@ -1439,6 +1436,9 @@ static int srp_map_sg_fr(struct srp_map_state *state, struct srp_rdma_ch *ch,
+ 	state->fr.end = req->fr_list + ch->target->cmd_sg_cnt;
+ 	state->sg = scat;
+ 
++	if (count == 0)
++		return 0;
++
+ 	while (count) {
+ 		int i, n;
  
 -- 
 2.8.1
