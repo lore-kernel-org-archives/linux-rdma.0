@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 01/11] IB/srp: Fix a spelling error in a source code comment
-Date: Fri, 22 Apr 2016 14:12:10 -0700
-Message-ID: <571A93AA.9000605@sandisk.com>
+Subject: [PATCH 02/11] IB/srp: Fix a comment
+Date: Fri, 22 Apr 2016 14:12:47 -0700
+Message-ID: <571A93CF.9050506@sandisk.com>
 References: <571A936F.7040409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,29 +13,30 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Change one occurrence of "boundries" into "boundaries".
+The free request list was removed through patch "IB/srp: Use block layer tags".
+Hence update a comment that refers to that free request list.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
  drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index cff7ec7..9b4f21e 100644
+index 9b4f21e..965b070 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1398,7 +1398,7 @@ static int srp_map_sg_entry(struct srp_map_state *state,
- 	/*
- 	 * If the last entry of the MR wasn't a full page, then we need to
- 	 * close it out and start a new one -- we can only merge at page
--	 * boundries.
-+	 * boundaries.
- 	 */
- 	ret = 0;
- 	if (len != dev->mr_page_size)
+@@ -1112,7 +1112,7 @@ static struct scsi_cmnd *srp_claim_req(struct srp_rdma_ch *ch,
+ }
+ 
+ /**
+- * srp_free_req() - Unmap data and add request to the free request list.
++ * srp_free_req() - Unmap data and adjust ch->req_lim.
+  * @ch:     SRP RDMA channel.
+  * @req:    Request to be freed.
+  * @scmnd:  SCSI command associated with @req.
 -- 
 2.8.1
 
