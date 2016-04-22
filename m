@@ -1,38 +1,38 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 11/12] IB/core: add RW API support for signature MRs
-Date: Fri, 22 Apr 2016 14:53:32 -0700
-Message-ID: <571A9D5C.6070508@sandisk.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: generic RDMA READ/WRITE API V6
+Date: Fri, 22 Apr 2016 15:29:28 -0700
+Message-ID: <571AA5C8.4080502@sandisk.com>
 References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-12-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460410360-13104-12-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1460410360-13104-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, dledford@redhat.com
+Cc: swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
-> +			pr_err("%s: failed to allocated %d MRs\n",
-> +				__func__, nr_mrs);
+> 	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
 
-The above probably should read "failed to allocate" instead of "failed 
-to allocated"?
+Hello Christoph,
 
-> +			pr_err("%s: failed to allocated %d SIG MRs\n",
-> +				__func__, nr_mrs);
+Is the version that has been pushed on April 18 the latest and greatest 
+version of this patch series ? I'm asking because with that version I 
+see error messages appearing that I hadn't seen with the previous version:
 
-Same comment here.
+ib_srpt:srpt_qp_event: ib_srpt QP event 16 on cm_id=ffff8801713d5628 
+sess_name=0x0000000000000000e41d2d03000a85b1 state=1
+ib_srpt:srpt_qp_event: ib_srpt 0x0000000000000000e41d2d03000a85b1-522, 
+state live: received Last WQE event.
+ib_srpt RDMA_READ for ioctx 0xffff8804593092a8 failed with status 4
 
-If you have to repost this patch, please remove the trailing whitespace 
-introduced by this patch.
+This test was run with the force_mr=Y:
 
-Anyway:
+$ cat /etc/modprobe.d/ib_core.conf
+options ib_core force_mr=Y
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Bart.
