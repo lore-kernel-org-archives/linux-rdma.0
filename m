@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 02/11] IB/srp: Fix a comment
-Date: Fri, 22 Apr 2016 14:12:47 -0700
-Message-ID: <571A93CF.9050506@sandisk.com>
+Subject: [PATCH 03/11] IB/srp: Document srp_map_data() return value
+Date: Fri, 22 Apr 2016 14:13:09 -0700
+Message-ID: <571A93E5.7030807@sandisk.com>
 References: <571A936F.7040409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,30 +13,34 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The free request list was removed through patch "IB/srp: Use block layer tags".
-Hence update a comment that refers to that free request list.
-
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 9b4f21e..965b070 100644
+index 965b070..2f8ab5c 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1112,7 +1112,7 @@ static struct scsi_cmnd *srp_claim_req(struct srp_rdma_ch *ch,
+@@ -1534,6 +1534,15 @@ static int srp_map_idb(struct srp_rdma_ch *ch, struct srp_request *req,
+ 	return 0;
  }
  
- /**
-- * srp_free_req() - Unmap data and add request to the free request list.
-+ * srp_free_req() - Unmap data and adjust ch->req_lim.
-  * @ch:     SRP RDMA channel.
-  * @req:    Request to be freed.
-  * @scmnd:  SCSI command associated with @req.
++/**
++ * srp_map_data() - map SCSI data buffer onto an SRP request
++ * @scmnd: SCSI command to map
++ * @ch: SRP RDMA channel
++ * @req: SRP request
++ *
++ * Returns the length in bytes of the SRP_CMD IU or a negative value if
++ * mapping failed.
++ */
+ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
+ 			struct srp_request *req)
+ {
 -- 
 2.8.1
 
