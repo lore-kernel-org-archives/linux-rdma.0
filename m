@@ -1,76 +1,37 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH V2] powerpc/infiniband: Use cache inhibitted and guarded
  mapping on powerpc
-Date: Fri, 22 Apr 2016 08:47:56 +1000
-Message-ID: <1461278876.3135.18.camel@kernel.crashing.org>
+Date: Fri, 22 Apr 2016 10:09:27 -0600
+Message-ID: <20160422160927.GB12897@obsidianresearch.com>
 References: <1461139097-10213-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com>
+ <1461278876.3135.18.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1461139097-10213-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, paulus@samba.org, mpe@ellerman.id.au
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <infinipath@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, linuxppc-dev@lists.ozlabs.org, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461278876.3135.18.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTA0LTIwIGF0IDAzOjU4IC0wNDAwLCBBbmVlc2ggS3VtYXIgSy5WIHdyb3Rl
-Ogo+IFRoZSBkcml2ZXIgd2FzIHJlcXVlc3RpbmcgZm9yIGEgd3JpdGV0aHJvdWdoIG1hcHBpbmcu
-IEJ1dCB3aXRoIHRob3Nlcwo+IGZsYWdzIHdlIHdpbGwgZW5kIHVwIHdpdGggYSBTQU8gbWFwcGlu
-ZyBiZWNhdXNlIHdlIG5vdyBoYXZlIG1lbW9yeQo+IGNvbmhlcmVuY2UgYWx3YXlzIGVuYWJsZWQu
-IGllLCB0aGUgZXhpc3RpbmcgbWFwcGluZyB3aWxsIGVuZCB1cCB3aXRoCj4gYSBXSU1HIHZhbHVl
-IDBiMTExMCB3aGljaCBpcyBTdHJvbmcgQWNjZXNzIE9yZGVyLgo+IAo+IFVwZGF0ZSB0aGlzIHRv
-IHVzZSBjYWNoZSBpbmhpYml0dGVkIGd1YXJkZWQgbWFwcGluZwoKV2h5IGd1YXJkZWQgPyBJZiBp
-dCdzIHBlcmZvcm1hbmNlIHNlbnNpdGl2ZSAoYW5kIHRoZSBkcml2ZXIgaGFzCmFwcHJvcHJpYXRl
-IGJhcnJpZXJzIHdoZXJlIG5lZWRlZCksIHlvdSB3aWxsIGdldCB3cml0ZSBjb21iaW5pbmcKd2l0
-aG91dCBndWFyZGVkLCB5b3Ugd29uJ3Qgd2l0aCBpdC4KCkNoZWVycywKQmVuLgoKPiBDYzogTWlr
-ZSBNYXJjaW5pc3p5biA8aW5maW5pcGF0aEBpbnRlbC5jb20+Cj4gQ2M6IERvdWcgTGVkZm9yZCA8
-ZGxlZGZvcmRAcmVkaGF0LmNvbT4KPiBDYzogU2VhbiBIZWZ0eSA8c2Vhbi5oZWZ0eUBpbnRlbC5j
-b20+Cj4gQ2M6IEhhbCBSb3NlbnN0b2NrIDxoYWwucm9zZW5zdG9ja0BnbWFpbC5jb20+Cj4gQ2M6
-IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCj4gU2lnbmVkLW9mZi1ieTogQW5lZXNoIEt1bWFy
-IEsuViA8YW5lZXNoLmt1bWFyQGxpbnV4LnZuZXQuaWJtLmNvbT4KPiAtLS0KPiBDaGFuZ2VzIGZy
-b20gdjE6Cj4gKiByZXNlbmQgYmVjYXVzZSBWMSBuZXZlciByZWFjaGVkIG1haWxpbmcgbGlzdC4K
-PiAKPiBOT1RFOiBUaGlzIGlzIG9ubHkgY29tcGlsZSB0ZXN0ZWQgYW5kIEkgYW0gYWxzbyBub3Qg
-c3VyZSB3aHkgcHBjNjQKPiBuZWVkcyBzcGVjaWFsIGhhbmRsaW5nLgo+IFdlIG5lZWQgdGhpcyBw
-YXRjaCBiZWNhdXNlIHRoZSBzZXJpZXMgYXQgaHR0cDovL21pZC5nbWFuZS5vcmcvMTQ2MDE4Mgo+
-IDQ0NC0yNDY4LTEtZ2l0LXNlbmQtZW1haWwtYW5lZXNoLmt1bWFyQGxpbnV4LnZuZXQuaWJtLmNv
-bQo+IHdpbGwgZHJvcCBfUEFHRV9XUklURVRIUlUKPiAKPiDCoGRyaXZlcnMvaW5maW5pYmFuZC9o
-dy9xaWIvcWliX2ZpbGVfb3BzLmMgfCA1ICstLS0tCj4gwqBkcml2ZXJzL2luZmluaWJhbmQvaHcv
-cWliL3FpYl9wY2llLmPCoMKgwqDCoMKgfCA2IC0tLS0tLQo+IMKgMiBmaWxlcyBjaGFuZ2VkLCAx
-IGluc2VydGlvbigrKSwgMTAgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9xaWIvcWliX2ZpbGVfb3BzLmMKPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
-dy9xaWIvcWliX2ZpbGVfb3BzLmMKPiBpbmRleCBlNDQ5ZTM5NDk2M2YuLmEzZDU5M2Y1NDZlYyAx
-MDA2NDQKPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9maWxlX29wcy5jCj4g
-KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfZmlsZV9vcHMuYwo+IEBAIC04MjIs
-MTAgKzgyMiw3IEBAIHN0YXRpYyBpbnQgbW1hcF9waW9idWZzKHN0cnVjdCB2bV9hcmVhX3N0cnVj
-dAo+ICp2bWEsCj4gwqAJcGh5cyA9IGRkLT5waHlzYWRkciArIHBpb2J1ZnM7Cj4gwqAKPiDCoCNp
-ZiBkZWZpbmVkKF9fcG93ZXJwY19fKQo+IC0JLyogVGhlcmUgaXNuJ3QgYSBnZW5lcmljIHdheSB0
-byBzcGVjaWZ5IHdyaXRldGhyb3VnaAo+IG1hcHBpbmdzICovCj4gLQlwZ3Byb3RfdmFsKHZtYS0+
-dm1fcGFnZV9wcm90KSB8PSBfUEFHRV9OT19DQUNIRTsKPiAtCXBncHJvdF92YWwodm1hLT52bV9w
-YWdlX3Byb3QpIHw9IF9QQUdFX1dSSVRFVEhSVTsKPiAtCXBncHJvdF92YWwodm1hLT52bV9wYWdl
-X3Byb3QpICY9IH5fUEFHRV9HVUFSREVEOwo+ICsJdm1hLT52bV9wYWdlX3Byb3QgPSBwZ3Byb3Rf
-bm9uY2FjaGVkKHZtYS0+dm1fcGFnZV9wcm90KTsKPiDCoCNlbmRpZgo+IMKgCj4gwqAJLyoKPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfcGNpZS5jCj4gYi9kcml2
-ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMKPiBpbmRleCA0NzU4YTM4MDFhZTguLjZh
-YmUxYzYyMWFhNCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9w
-Y2llLmMKPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9wY2llLmMKPiBAQCAt
-MTQ0LDEzICsxNDQsNyBAQCBpbnQgcWliX3BjaWVfZGRpbml0KHN0cnVjdCBxaWJfZGV2ZGF0YSAq
-ZGQsCj4gc3RydWN0IHBjaV9kZXYgKnBkZXYsCj4gwqAJYWRkciA9IHBjaV9yZXNvdXJjZV9zdGFy
-dChwZGV2LCAwKTsKPiDCoAlsZW4gPSBwY2lfcmVzb3VyY2VfbGVuKHBkZXYsIDApOwo+IMKgCj4g
-LSNpZiBkZWZpbmVkKF9fcG93ZXJwY19fKQo+IC0JLyogVGhlcmUgaXNuJ3QgYSBnZW5lcmljIHdh
-eSB0byBzcGVjaWZ5IHdyaXRldGhyb3VnaAo+IG1hcHBpbmdzICovCj4gLQlkZC0+a3JlZ2Jhc2Ug
-PSBfX2lvcmVtYXAoYWRkciwgbGVuLCBfUEFHRV9OT19DQUNIRSB8Cj4gX1BBR0VfV1JJVEVUSFJV
-KTsKPiAtI2Vsc2UKPiDCoAlkZC0+a3JlZ2Jhc2UgPSBpb3JlbWFwX25vY2FjaGUoYWRkciwgbGVu
-KTsKPiAtI2VuZGlmCj4gLQo+IMKgCWlmICghZGQtPmtyZWdiYXNlKQo+IMKgCQlyZXR1cm4gLUVO
-T01FTTsKPiDCoApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eHBwYy1kZXYgbWFpbGluZyBsaXN0CkxpbnV4cHBjLWRldkBsaXN0cy5vemxhYnMub3Jn
-Cmh0dHBzOi8vbGlzdHMub3psYWJzLm9yZy9saXN0aW5mby9saW51eHBwYy1kZXY=
+On Fri, Apr 22, 2016 at 08:47:56AM +1000, Benjamin Herrenschmidt wrote:
+> On Wed, 2016-04-20 at 03:58 -0400, Aneesh Kumar K.V wrote:
+> > The driver was requesting for a writethrough mapping. But with thoses
+> > flags we will end up with a SAO mapping because we now have memory
+> > conherence always enabled. ie, the existing mapping will end up with
+> > a WIMG value 0b1110 which is Strong Access Order.
+> > 
+> > Update this to use cache inhibitted guarded mapping
+> 
+> Why guarded ? If it's performance sensitive (and the driver has
+> appropriate barriers where needed), you will get write combining
+> without guarded, you won't with it.
+
+This driver uses uncached write combining on x86
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
