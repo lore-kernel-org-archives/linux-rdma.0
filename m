@@ -1,7 +1,7 @@
 From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/7] RDMA/i40iw: Fix for a NOP WQE size
-Date: Fri, 22 Apr 2016 14:14:25 -0500
-Message-ID: <1461352469-16504-4-git-send-email-tatyana.e.nikolova@intel.com>
+Subject: [PATCH 4/7] RDMA/i40iw: Fix for the size of kernel mode SQ
+Date: Fri, 22 Apr 2016 14:14:26 -0500
+Message-ID: <1461352469-16504-5-git-send-email-tatyana.e.nikolova@intel.com>
 References: <1461352469-16504-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1461352469-16504-1-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,30 +10,31 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mohammad Khan <mohammad.a.khan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fix for filling in the WQE size for NOP
+Fix to calculate the SQ size based on the max
+frag_count, requested by the application instead
+of overwriting it with the max supported frag_count
 
 Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_uk.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index 6e0e327..2cd9091 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -56,6 +56,9 @@ static enum i40iw_status_code i40iw_nop_1(struct i40iw_qp_uk *qp)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index bf4e1e3..2d832c7 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -520,8 +520,6 @@ static int i40iw_setup_kmode_qp(struct i40iw_device *iwdev,
+ 	enum i40iw_status_code status;
+ 	struct i40iw_qp_uk_init_info *ukinfo = &info->qp_uk_init_info;
  
- 	wqe_idx = I40IW_RING_GETCURRENT_HEAD(qp->sq_ring);
- 	wqe = qp->sq_base[wqe_idx].elem;
-+
-+	qp->sq_wrtrk_array[wqe_idx].wqe_size = I40IW_QP_WQE_MIN_SIZE;
-+
- 	peek_head = (qp->sq_ring.head + 1) % qp->sq_ring.size;
- 	wqe_0 = qp->sq_base[peek_head].elem;
- 	if (peek_head)
+-	ukinfo->max_sq_frag_cnt = I40IW_MAX_WQ_FRAGMENT_COUNT;
+-
+ 	sq_size = i40iw_qp_roundup(ukinfo->sq_size + 1);
+ 	rq_size = i40iw_qp_roundup(ukinfo->rq_size + 1);
+ 
 -- 
 2.7.4
 
