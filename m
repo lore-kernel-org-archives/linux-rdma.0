@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 10/11] IB/srp: Do not register memory if register_always = -1
-Date: Fri, 22 Apr 2016 14:16:00 -0700
-Message-ID: <571A9490.9010003@sandisk.com>
+Subject: [PATCH 11/11] IB/srp: Prevent mapping failures
+Date: Fri, 22 Apr 2016 14:16:31 -0700
+Message-ID: <571A94AF.7000609@sandisk.com>
 References: <571A936F.7040409@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,79 +13,58 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This makes it easier to test the code path that does not use
-memory registration (srp_map_sg_dma()).
+If both max_sectors and the queue_depth are high enough it can
+happen that the MR pool is depleted temporarily. This causes
+the SRP initiator to report mapping failures. Although the SRP
+initiator recovers from such mapping failures, prevent that
+this can happen by limiting max_sectors.
 
+Reported-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index f4003f6..a173ec4 100644
+index a173ec4..ebd4d90 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -69,7 +69,7 @@ static unsigned int cmd_sg_entries;
- static unsigned int indirect_sg_entries;
- static bool allow_ext_sg;
- static bool prefer_fr = true;
--static bool register_always = true;
-+static int register_always = true;
- static int topspin_workarounds = 1;
+@@ -3172,6 +3172,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 	struct srp_device *srp_dev = host->srp_dev;
+ 	struct ib_device *ibdev = srp_dev->dev;
+ 	int ret, node_idx, node, cpu, i;
++	unsigned int max_max_sectors;
+ 	bool multich = false;
  
- module_param(srp_sg_tablesize, uint, 0444);
-@@ -95,7 +95,7 @@ module_param(prefer_fr, bool, 0444);
- MODULE_PARM_DESC(prefer_fr,
- "Whether to use fast registration if both FMR and fast registration are supported");
+ 	target_host = scsi_host_alloc(&srp_template,
+@@ -3228,6 +3229,25 @@ static ssize_t srp_create_target(struct device *dev,
+ 		target->sg_tablesize = target->cmd_sg_cnt;
+ 	}
  
--module_param(register_always, bool, 0444);
-+module_param(register_always, int, 0444);
- MODULE_PARM_DESC(register_always,
- 		 "Use memory registration even for contiguous memory regions");
- 
-@@ -1600,9 +1600,9 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_rdma_ch *ch,
- 
- 	memset(&state, 0, sizeof(state));
- 	state.desc = req->indirect_desc;
--	if (dev->use_fast_reg)
-+	if (dev->use_fast_reg && register_always >= 0)
- 		ret = srp_map_sg_fr(&state, ch, req, scat, count);
--	else if (dev->use_fmr)
-+	else if (dev->use_fmr && register_always >= 0)
- 		ret = srp_map_sg_fmr(&state, ch, req, scat, count);
- 	else
- 		ret = srp_map_sg_dma(&state, ch, req, scat, count);
-@@ -3430,12 +3430,13 @@ static void srp_add_one(struct ib_device *device)
- 			    device->map_phys_fmr && device->unmap_fmr);
- 	srp_dev->has_fr = (device->attrs.device_cap_flags &
- 			   IB_DEVICE_MEM_MGT_EXTENSIONS);
--	if (!srp_dev->has_fmr && !srp_dev->has_fr)
-+	if (!srp_dev->has_fmr && !srp_dev->has_fr) {
- 		dev_warn(&device->dev, "neither FMR nor FR is supported\n");
--
--	srp_dev->use_fast_reg = (srp_dev->has_fr &&
--				 (!srp_dev->has_fmr || prefer_fr));
--	srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
-+	} else if (register_always >= 0) {
-+		srp_dev->use_fast_reg = (srp_dev->has_fr &&
-+					 (!srp_dev->has_fmr || prefer_fr));
-+		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
++	if (srp_dev->use_fast_reg || srp_dev->use_fmr) {
++		/*
++		 * FR and FMR can only map one HCA page per entry. If the
++		 * start address is not aligned on a HCA page boundary two
++		 * entries will be used for the head and the tail although
++		 * these two entries combined contain at most one HCA page of
++		 * data. Hence the "- 1" in the calculation below.
++		 */
++		max_max_sectors = (srp_dev->max_pages_per_mr - 1) <<
++				  (ilog2(srp_dev->mr_page_size) - 9);
++		if (target->scsi_host->max_sectors > max_max_sectors) {
++			shost_printk(KERN_WARNING, target->scsi_host,
++				     PFX "Reducing max_sectors from %d to %d\n",
++				     target->scsi_host->max_sectors,
++				     max_max_sectors);
++			target->scsi_host->max_sectors = max_max_sectors;
++		}
 +	}
- 
- 	/*
- 	 * Use the smallest page size supported by the HCA, down to a
-@@ -3468,7 +3469,7 @@ static void srp_add_one(struct ib_device *device)
- 	if (IS_ERR(srp_dev->pd))
- 		goto free_dev;
- 
--	if (!register_always || (!srp_dev->has_fmr && !srp_dev->has_fr)) {
-+	if (register_always <= 0 || (!srp_dev->has_fmr && !srp_dev->has_fr)) {
- 		srp_dev->global_mr = ib_get_dma_mr(srp_dev->pd,
- 						   IB_ACCESS_LOCAL_WRITE |
- 						   IB_ACCESS_REMOTE_READ |
++
+ 	target_host->sg_tablesize = target->sg_tablesize;
+ 	target->mr_pool_size = target->scsi_host->can_queue;
+ 	target->indirect_size = target->sg_tablesize *
 -- 
 2.8.1
 
