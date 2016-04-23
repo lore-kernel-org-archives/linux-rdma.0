@@ -1,97 +1,123 @@
-From: Lijun Ou <oulijun@huawei.com>
-Subject: [PATCH v5 11/21] IB/hns: Add IB device registration function
-Date: Sat, 23 Apr 2016 18:26:49 +0800
-Message-ID: <1461407219-72027-12-git-send-email-oulijun@huawei.com>
-References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 11/11] IB/srp: Prevent mapping failures
+Date: Sat, 23 Apr 2016 18:12:52 -0400 (EDT)
+Message-ID: <1738798592.31261905.1461449572512.JavaMail.zimbra@redhat.com>
+References: <571A936F.7040409@sandisk.com> <571A94AF.7000609@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linuxarm@huawei.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <571A94AF.7000609-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch registers IB device and unregister IB device when removed.
+Hello Bart
 
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Signed-off-by: Wei Hu(Xavier) <xavier.huwei@huawei.com>
+I can confirm testing of this series and the specific patch for the sg map failures.
+It prevents the sg mapping failures by reducing the max_sectors_kb and its stable.
+That is what it was designed to do.
+
+However it effectively prevents any max_sectors_kb from getting to 4MB in size.
+This will also of course prevent 4MB I/O being set for DIRECT_IO.
+
+Note that with DIRECT_IO we issue 4MB writes but the queue depth is lower as we dont have any buffering and the 4MB I/O are sent direct to the target.
+The average queue depths are lower.
+
+With buffered I/O we have dynamic queuing and I/O sizes are not set at 4MB.
+
+Does that mean we cannot going forward be looking to get the larger max_sectors_kb 
+
+[  221.378728] scsi host4: ib_srp: Reducing max_sectors from 8192 to 4088
+[  229.563814] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4088
+[  245.620980] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4088
+[  253.677979] scsi host6: ib_srp: Reducing max_sectors from 8192 to 4088
+
+[  221.303479] RHDEBUG: srp_dev->max_pages_per_mr - 1 = 511
+[  221.332902] RHDEBUG: srp_dev->mr_page_size = 4096 and ilog(srp_dev->mr_page_size) -9 = 3
+[  229.563810] RHDEBUG: srp_dev->max_pages_per_mr - 1 = 511
+[  229.563811] RHDEBUG: srp_dev->mr_page_size = 4096 and ilog(srp_dev->mr_page_size) -9 = 3
+[  245.544452] RHDEBUG: srp_dev->max_pages_per_mr - 1 = 511
+[  245.574899] RHDEBUG: srp_dev->mr_page_size = 4096 and ilog(srp_dev->mr_page_size) -9 = 3
+[  253.677977] RHDEBUG: srp_dev->max_pages_per_mr - 1 = 511
+[  253.677978] RHDEBUG: srp_dev->mr_page_size = 4096 and ilog(srp_dev->mr_page_size) -9 = 3
+
+For the series Re: [PATCH 1/11] IB/srp to [PATCH 11/11] IB/srp
+
+Tested-by Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
+Laurence Oberman
+Principal Software Maintenance Engineer
+Red Hat Global Support Services
+
+----- Original Message -----
+From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sent: Friday, April 22, 2016 5:16:31 PM
+Subject: [PATCH 11/11] IB/srp: Prevent mapping failures
+
+If both max_sectors and the queue_depth are high enough it can
+happen that the MR pool is depleted temporarily. This causes
+the SRP initiator to report mapping failures. Although the SRP
+initiator recovers from such mapping failures, prevent that
+this can happen by limiting max_sectors.
+
+Reported-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c | 48 +++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ drivers/infiniband/ulp/srp/ib_srp.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 4c42a24..f98ba23 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -43,6 +43,42 @@
- #include "hns_roce_device.h"
- #include "hns_roce_icm.h"
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index a173ec4..ebd4d90 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3172,6 +3172,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 	struct srp_device *srp_dev = host->srp_dev;
+ 	struct ib_device *ibdev = srp_dev->dev;
+ 	int ret, node_idx, node, cpu, i;
++	unsigned int max_max_sectors;
+ 	bool multich = false;
  
-+void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
-+{
-+	ib_unregister_device(&hr_dev->ib_dev);
-+}
-+
-+int hns_roce_register_device(struct hns_roce_dev *hr_dev)
-+{
-+	int ret;
-+	struct hns_roce_ib_iboe *iboe = NULL;
-+	struct ib_device *ib_dev = NULL;
-+	struct device *dev = &hr_dev->pdev->dev;
-+
-+	iboe = &hr_dev->iboe;
-+
-+	ib_dev = &hr_dev->ib_dev;
-+	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
-+
-+	ib_dev->owner			= THIS_MODULE;
-+	ib_dev->node_type		= RDMA_NODE_IB_CA;
-+	ib_dev->dma_device		= dev;
-+
-+	ib_dev->phys_port_cnt		= hr_dev->caps.num_ports;
-+	ib_dev->local_dma_lkey		= hr_dev->caps.reserved_lkey;
-+	ib_dev->num_comp_vectors	= hr_dev->caps.num_comp_vectors;
-+	ib_dev->uverbs_abi_ver		= 1;
-+
-+	ret = ib_register_device(ib_dev, NULL);
-+	if (ret) {
-+		dev_err(dev, "ib_register_device failed!\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+
- int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
- {
- 	int i;
-@@ -347,6 +383,17 @@ static int hns_roce_probe(struct platform_device *pdev)
- 		goto error_failed_engine_init;
+ 	target_host = scsi_host_alloc(&srp_template,
+@@ -3228,6 +3229,25 @@ static ssize_t srp_create_target(struct device *dev,
+ 		target->sg_tablesize = target->cmd_sg_cnt;
  	}
  
-+	ret = hns_roce_register_device(hr_dev);
-+	if (ret) {
-+		dev_err(dev, "register_device failed!\n");
-+		goto error_failed_register_device;
++	if (srp_dev->use_fast_reg || srp_dev->use_fmr) {
++		/*
++		 * FR and FMR can only map one HCA page per entry. If the
++		 * start address is not aligned on a HCA page boundary two
++		 * entries will be used for the head and the tail although
++		 * these two entries combined contain at most one HCA page of
++		 * data. Hence the "- 1" in the calculation below.
++		 */
++		max_max_sectors = (srp_dev->max_pages_per_mr - 1) <<
++				  (ilog2(srp_dev->mr_page_size) - 9);
++		if (target->scsi_host->max_sectors > max_max_sectors) {
++			shost_printk(KERN_WARNING, target->scsi_host,
++				     PFX "Reducing max_sectors from %d to %d\n",
++				     target->scsi_host->max_sectors,
++				     max_max_sectors);
++			target->scsi_host->max_sectors = max_max_sectors;
++		}
 +	}
 +
-+	return 0;
-+
-+error_failed_register_device:
-+	hns_roce_engine_uninit(hr_dev);
-+
- error_failed_engine_init:
- 	hns_roce_cleanup_bitmap(hr_dev);
- 
-@@ -383,6 +430,7 @@ static int hns_roce_remove(struct platform_device *pdev)
- 	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
- 	int ret = 0;
- 
-+	hns_roce_unregister_device(hr_dev);
- 	hns_roce_engine_uninit(hr_dev);
- 	hns_roce_cleanup_bitmap(hr_dev);
- 	hns_roce_cleanup_icm(hr_dev);
+ 	target_host->sg_tablesize = target->sg_tablesize;
+ 	target->mr_pool_size = target->scsi_host->can_queue;
+ 	target->indirect_size = target->sg_tablesize *
 -- 
-1.9.1
+2.8.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
