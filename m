@@ -1,101 +1,113 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 5/7] RDMA/i40iw: Fix for using one sge for RDMA READ
-Date: Sun, 24 Apr 2016 10:35:10 +0300
-Message-ID: <20160424073510.GC7974@leon.nu>
-References: <1461352469-16504-1-git-send-email-tatyana.e.nikolova@intel.com>
- <1461352469-16504-6-git-send-email-tatyana.e.nikolova@intel.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v5 09/21] IB/hns: Add hca support
+Date: Sun, 24 Apr 2016 10:54:24 +0300
+Message-ID: <20160424075424.GE7974@leon.nu>
+References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
+ <1461407219-72027-10-git-send-email-oulijun@huawei.com>
+Reply-To: leon@kernel.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Fig2xvG2VGoz8o/s"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Uwl7UQhJk99r8jnw"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1461352469-16504-6-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <1461407219-72027-10-git-send-email-oulijun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linuxarm@huawei.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---Fig2xvG2VGoz8o/s
+--Uwl7UQhJk99r8jnw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 22, 2016 at 02:14:27PM -0500, Tatyana Nikolova wrote:
-> From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Sat, Apr 23, 2016 at 06:26:47PM +0800, Lijun Ou wrote:
+> This patch mainly setup hca for RoCE. it will do a series of
+> initial works as follows:
+>       1. init uar table, allocate uar resource
+>       2. init pd table
+>       3. init cq table
+>       4. init mr table
+>       5. init qp table
 >=20
-> A check is added to validate the requested sge number.
-> iWARP doesn't support multiple sg elements for
-> RDMA READ work requests.
->=20
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun@huawei.com>
+> Signed-off-by: Wei Hu(Xavier) <xavier.huwei@huawei.com>
 > ---
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+>  drivers/infiniband/hw/hns/hns_roce_alloc.c  | 104 ++++++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_cq.c     |  25 ++++
+>  drivers/infiniband/hw/hns/hns_roce_device.h |  69 ++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_eq.c     |   1 -
+>  drivers/infiniband/hw/hns/hns_roce_icm.c    |  88 +++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_icm.h    |   9 ++
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |  79 ++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_mr.c     | 187 ++++++++++++++++++++++=
+++++++
+>  drivers/infiniband/hw/hns/hns_roce_pd.c     |  65 ++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  30 +++++
+>  10 files changed, 656 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_alloc.c
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_mr.c
+>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_pd.c
 >=20
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniba=
-nd/hw/i40iw/i40iw_verbs.c
-> index 2d832c7..45f70f5 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> @@ -74,7 +74,7 @@ static int i40iw_query_device(struct ib_device *ibdev,
->  	props->max_cqe =3D iwdev->max_cqe;
->  	props->max_mr =3D iwdev->max_mr;
->  	props->max_pd =3D iwdev->max_pd;
-> -	props->max_sge_rd =3D 1;
-> +	props->max_sge_rd =3D I40IW_MAX_SGE_RD;
->  	props->max_qp_rd_atom =3D I40IW_MAX_IRD_SIZE;
->  	props->max_qp_init_rd_atom =3D props->max_qp_rd_atom;
->  	props->atomic_cap =3D IB_ATOMIC_NONE;
-> @@ -2117,6 +2117,10 @@ static int i40iw_post_send(struct ib_qp *ibqp,
->  			inv_stag =3D true;
->  			/* fall-through*/
-                        ^^^^^^^^^^^^^^^^
-Do you support multiple SGE for RDMA WRITE?
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infinib=
+and/hw/hns/hns_roce_alloc.c
+> new file mode 100644
+> index 0000000..0c76f1b
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+> @@ -0,0 +1,104 @@
+> +/*
+> + * Copyright (c) 2016 Hisilicon Limited.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/bitmap.h>
+> +#include <linux/dma-mapping.h>
+> +#include <linux/errno.h>
+> +#include <linux/mm.h>
+> +#include <linux/slab.h>
+> +#include <linux/vmalloc.h>
+> +#include "hns_roce_device.h"
+> +
+> +int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, u32 *obj)
+> +{
+> +	int ret =3D 0;
+> +
+> +	spin_lock(&bitmap->lock);
+> +	*obj =3D find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
+> +	if (*obj >=3D bitmap->max) {
+> +		bitmap->top =3D (bitmap->top + bitmap->max + bitmap->reserved_top)
+> +			       & bitmap->mask;
+> +		*obj =3D find_first_zero_bit(bitmap->table, bitmap->max);
 
+find_first_zero_bit function returns "unsigned long" which may or may
+not be equal to u32 on some architectures.
 
->  		case IB_WR_RDMA_READ:
-> +			if (ib_wr->num_sge > I40IW_MAX_SGE_RD) {
-> +				err =3D -EINVAL;
-> +				break;
-> +			}
->  			info.op_type =3D I40IW_OP_TYPE_RDMA_READ;
->  			info.op.rdma_read.rem_addr.tag_off =3D rdma_wr(ib_wr)->remote_addr;
->  			info.op.rdma_read.rem_addr.stag =3D rdma_wr(ib_wr)->rkey;
-> --=20
-> 2.7.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Fig2xvG2VGoz8o/s
+--Uwl7UQhJk99r8jnw
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXHHcuAAoJEORje4g2clinTVAP/j1mXpNqHzF502Zxr/SzqbUX
-gFyZTVGCG8/PPpAl7rY/u6jlnhUxQVzBzhwq29lyJ4XKcVMPH00cok/OYT7J9LlJ
-4p6N6Y9D9D9NH6jXjYclKDh4eX7FDaABi74Ogb41TRFgiUkuCBul8sbw4XT9HXVj
-neF04DXy5X+c97fLgfww1ajg+n/DT3++ZuB1rb4IchQGhXCmp/Pc9cYt5idUGsLI
-bKdSf/l/cSvcZj9oVD71hnBYzFN7X4srEfBXEEZTeGqLxE29hOtCmkYLYkYNTul8
-gY3Gl0Pqt4eaaVQmurDtTh4vrnpxP789piP0JQB7Lf4v8jRYXBuaJeB8peHTD4Rl
-d/npDq7I4pUVfFvWPrdmd4wHvolH6Tdm/uKGMaIR+VvqXXLNkLrSHJpjJI+feLwn
-lpuN6JhWrh5gb4FS0SkKVaLsdknfRnxPVCAAMbrYuyza2Ab1DjxL+Mt3nRwUIDNP
-xrGyO7NHSZuw0OZhaNYvNM+EnZFglzSh01O98+9mG37Eiq3T6ptQWQj/v88Xs0vz
-WbIDxuQQdngWRnREuwftfw5FUebhPm+8p/cYsIy4yOAxEUW6ZFUC++ljrzCWECG+
-9e0umjuXHLM5vRIKnrOQvdgokm/y24gkHv5n1gy5xX/vZOcRKEh7S8/yOF4TEed6
-6XUkfrbaY2gwJAEG0AhH
-=N+yV
+iQIcBAEBAgAGBQJXHHuwAAoJEORje4g2clinWiMP/3ZBTrlz1Ozt3UxcT4Dq5G6W
+QgoKo6ulmyOqQnFlkwCrfdf7dzHDEEwcJ9rPU3RPsPOyoCtauCIu2uXAShS8yP0d
+HyNfi+QZ6f8uWFX94yUZC5a/oha4LYSdbF7/Ic730wWCoS/ZpnzBC/FkL6yvum/q
+XIV5f5x5o2duOiUyN9E/Ne++sc4jgnxxX1QTMUvrvSIjPYK86WH3kRd/sRnuuI4/
+8QGXpfzPoxOvcWvD//iTXnTqQ59sSaun4iJCkbNUX7w4dAg35wlv9QZSiRw+HM7O
+5Su/lSMrTwijg604RmqB31RF1dW12731aBt0cfHvv0UtgQRlMT7XNVIg6q4C0EcY
+lkral02hALB6JzJBKuz4Z6MPcudF4OX/zpe9P4fhfawYgaMylGHk8bNG8g07H0SO
+Hggbwi/ySyrzWRacHrCSzOxMpSbXWBGHW6lJIiGZBGoNnUPzkpuVKj/WmG+Vn8kA
+GpiJempS/Pkfq7nqGZGlbkxteYehovkYroz5ItipxiT2Q3ZlMjksy90YzsAnoovX
+4O6LmJbg7vUjMLo0zS7SwZwY1eZLBq4skVG3PuljY0q2s4R4WeYWoL8yogRXGn7K
+40+Irtt7TWOQ+H9gORr0QpbED2IgH14rOU+nxMKpWQ18BDoIggCzRTReecl0IjpE
+dvv1J02hhyX+iERyQh80
+=vphx
 -----END PGP SIGNATURE-----
 
---Fig2xvG2VGoz8o/s--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Uwl7UQhJk99r8jnw--
