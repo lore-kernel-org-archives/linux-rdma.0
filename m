@@ -1,120 +1,85 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 11/11] IB/srp: Prevent mapping failures
-Date: Sun, 24 Apr 2016 11:35:38 +0300
-Message-ID: <20160424083538.GF7974@leon.nu>
-References: <571A936F.7040409@sandisk.com>
- <571A94AF.7000609@sandisk.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: Further thoughts on uAPI
+Date: Sun, 24 Apr 2016 14:15:12 +0000
+Message-ID: <AM3PR05MB141161876D5CA05B1993D20CB1610@AM3PR05MB1411.eurprd05.prod.outlook.com>
+References: <20160420012526.GA25508@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XIiC+We3v3zHqZ6Z"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571A94AF.7000609-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB044043-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---XIiC+We3v3zHqZ6Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Apr 22, 2016 at 02:16:31PM -0700, Bart Van Assche wrote:
-> If both max_sectors and the queue_depth are high enough it can
-> happen that the MR pool is depleted temporarily. This causes
-> the SRP initiator to report mapping failures. Although the SRP
-> initiator recovers from such mapping failures, prevent that
-> this can happen by limiting max_sectors.
->=20
-> Reported-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/srp/ib_srp.c | 20 ++++++++++++++++++++
->  1 file changed, 20 insertions(+)
->=20
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp=
-/srp/ib_srp.c
-> index a173ec4..ebd4d90 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -3172,6 +3172,7 @@ static ssize_t srp_create_target(struct device *dev,
->  	struct srp_device *srp_dev =3D host->srp_dev;
->  	struct ib_device *ibdev =3D srp_dev->dev;
->  	int ret, node_idx, node, cpu, i;
-> +	unsigned int max_max_sectors;
->  	bool multich =3D false;
-> =20
->  	target_host =3D scsi_host_alloc(&srp_template,
-> @@ -3228,6 +3229,25 @@ static ssize_t srp_create_target(struct device *de=
-v,
->  		target->sg_tablesize =3D target->cmd_sg_cnt;
->  	}
-> =20
-> +	if (srp_dev->use_fast_reg || srp_dev->use_fmr) {
-> +		/*
-> +		 * FR and FMR can only map one HCA page per entry. If the
-> +		 * start address is not aligned on a HCA page boundary two
-> +		 * entries will be used for the head and the tail although
-> +		 * these two entries combined contain at most one HCA page of
-> +		 * data. Hence the "- 1" in the calculation below.
-> +		 */
-> +		max_max_sectors =3D (srp_dev->max_pages_per_mr - 1) <<
-> +				  (ilog2(srp_dev->mr_page_size) - 9);
-
-=46rom my understanding, srp_dev->max_pages_per_mr can be equal to 1, in
-case device will advertise it.
-
-Is this understanding correct?
-Will the code work in such case?
-
-> +		if (target->scsi_host->max_sectors > max_max_sectors) {
-> +			shost_printk(KERN_WARNING, target->scsi_host,
-> +				     PFX "Reducing max_sectors from %d to %d\n",
-> +				     target->scsi_host->max_sectors,
-> +				     max_max_sectors);
-> +			target->scsi_host->max_sectors =3D max_max_sectors;
-> +		}
-> +	}
-> +
->  	target_host->sg_tablesize =3D target->sg_tablesize;
->  	target->mr_pool_size =3D target->scsi_host->can_queue;
->  	target->indirect_size =3D target->sg_tablesize *
-> --=20
-> 2.8.1
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---XIiC+We3v3zHqZ6Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXHIVZAAoJEORje4g2clinnU4QAKRgFRS90Z+Ehs3AWE62F/Va
-32A1p/UEt6e19O3DOueEtDc//dJZkjbHla6USL4xAtqdrLMAw9kKjbY+zy2236vz
-sT2riGxrRiplVShTRaJ6g6GJ6VyRU0miKyTr7qSsQZOZHVCbIbat74Uu999kDAYH
-ShPPkEMRD09RwIYE15oXPT7zgpx2bg74EKK9HKbRoYykijtfKXBXUqM6IC3mYenh
-SQRG3jaHOfQx9T0XVoR3XfHNlgEBz0A5Ky203NrP7VpY6t1LGJ2jjn8w/oBOGJzn
-KWfGDXPFK2dfmwUciYmXDAMor54hTl7RjvI2epuXJ0oRLYA4MAO44AzDqsA26psp
-D0GnCSwzTZi/mf77NbNOQsMIh9DI6I+PZJ6ZC7/QbRk7bFLwvM+H5/Ipr3kW2oi8
-CFqQ1JriRQT7Acn+wNvn2/v1z1zvaEXjwXScV3gM+AGp3xWA7S0trYVv88IfD24i
-jntHoG/NHtlfJwPXLcO1i9ADxVl3Mqw1XzgQWUeTFcQKo1pWrMMcS7qB8auUIE+u
-sfPcJqSXiVVY8tqrA2KO/qZwAzzaEVc1HojSc8uuMS917Ev4gQnufNY8Clb7oK1Z
-1fvNgGOcu71pccNVNJu3wohsdFqtZW27VCGqxUNVUq+SZpMyVRolYGEJwZXajqsr
-REw2zuEYAZ+hxVac4cWd
-=akas
------END PGP SIGNATURE-----
-
---XIiC+We3v3zHqZ6Z--
+PiBGcm9tOiBvZnZ3ZyBbbWFpbHRvOm9mdndnLWJvdW5jZXNAbGlzdHMub3BlbmZhYnJpY3Mub3Jn
+XSBPbiBCZWhhbGYgT2YgSGVmdHksDQo+IFNlYW4NCg0KPiANCj4gPiBUaGUga2VybmVsIGNvbW1v
+biBjb2RlIHNpZGUgaXMgcHJldHR5IHN0cmFpZ2h0Zm9yd2FyZCwganVzdCBhIGJ1bmNoIG9mDQo+
+ID4gdGFibGVzIG9mIGZ1bmN0aW9uIHBvaW50ZXJzLCB0ZW1wbGF0ZXMgYW5kIGlkcnMgZm9yIGVh
+Y2ggb2JqZWN0X3R5cGUuDQo+IA0KPiBUaGlzIGlzIHRoZSBwYXJ0IHdoZXJlIHRoZSBpbnRlbnQg
+YW5kIGltcGxlbWVudGF0aW9uIGFyZSBub3QgY2xlYXIgdG8gbWUuICBJIHNlZQ0KPiB2YWx1ZSBp
+biBnZW5lcmljIHVzZXIgc3BhY2UgaGFuZGxlIHZhbGlkYXRpb24sIGJ1dCBJIHByZWZlciB0aGV5
+IG1hcCB0byBkcml2ZXINCj4gc3BlY2lmaWMgcmVzb3VyY2VzLiAgRm9yIGV4YW1wbGUsIEkgZG9u
+J3Qgd2FudCBhIHVzZXIgc3BhY2UgYWxsb2NhdGlvbiBvZiBhIFFQIHRvDQo+IHJlc3VsdCBpbiB0
+aGlzOg0KPiANCj4gMTQwMyBzdHJ1Y3QgaWJfcXAgew0KPiAxNDA0ICAgICAgICAgc3RydWN0IGli
+X2RldmljZSAgICAgICAqZGV2aWNlOw0KPiAxNDA1ICAgICAgICAgc3RydWN0IGliX3BkICAgICAg
+ICAgICAqcGQ7DQo+IDE0MDYgICAgICAgICBzdHJ1Y3QgaWJfY3EgICAgICAgICAgICpzZW5kX2Nx
+Ow0KPiAxNDA3ICAgICAgICAgc3RydWN0IGliX2NxICAgICAgICAgICAqcmVjdl9jcTsNCj4gMTQw
+OCAgICAgICAgIHN0cnVjdCBpYl9zcnEgICAgICAgICAgKnNycTsNCj4gMTQwOSAgICAgICAgIHN0
+cnVjdCBpYl94cmNkICAgICAgICAgKnhyY2Q7IC8qIFhSQyBUR1QgUVBzIG9ubHkgKi8NCj4gMTQx
+MCAgICAgICAgIHN0cnVjdCBsaXN0X2hlYWQgICAgICAgIHhyY2RfbGlzdDsNCj4gMTQxMSAgICAg
+ICAgIC8qIGNvdW50IHRpbWVzIG9wZW5lZCwgbWNhc3QgYXR0YWNoZXMsIGZsb3cgYXR0YWNoZXMg
+Ki8NCj4gMTQxMiAgICAgICAgIGF0b21pY190ICAgICAgICAgICAgICAgIHVzZWNudDsNCj4gMTQx
+MyAgICAgICAgIHN0cnVjdCBsaXN0X2hlYWQgICAgICAgIG9wZW5fbGlzdDsNCj4gMTQxNCAgICAg
+ICAgIHN0cnVjdCBpYl9xcCAgICAgICAgICAgKnJlYWxfcXA7DQo+IDE0MTUgICAgICAgICBzdHJ1
+Y3QgaWJfdW9iamVjdCAgICAgICp1b2JqZWN0Ow0KPiAxNDE2ICAgICAgICAgdm9pZCAgICAgICAg
+ICAgICAgICAgICgqZXZlbnRfaGFuZGxlcikoc3RydWN0IGliX2V2ZW50ICosIHZvaWQgKik7DQo+
+IDE0MTcgICAgICAgICB2b2lkICAgICAgICAgICAgICAgICAgICpxcF9jb250ZXh0Ow0KPiAxNDE4
+ICAgICAgICAgdTMyICAgICAgICAgICAgICAgICAgICAgcXBfbnVtOw0KPiAxNDE5ICAgICAgICAg
+ZW51bSBpYl9xcF90eXBlICAgICAgICAgcXBfdHlwZTsNCj4gMTQyMCB9Ow0KPiANCj4gbW9uc3Ry
+b3NpdHkgYmVpbmcgYWxsb2NhdGVkIGluIHRoZSBrZXJuZWwuICBUaGUgc2l6ZSBhbmQgbGF5b3V0
+IG9mIHRoaXMgc29ydCBvZg0KPiBzdHJ1Y3R1cmUgaW1wYWN0cyBzY2FsYWJpbGl0eSBhbmQgcGVy
+Zm9ybWFuY2UuICBUaGlzIGlzIHdoZXJlIEkgd2FudCB0byBtYWtlDQo+IHN1cmUgdGhlcmUncyBh
+bGlnbm1lbnQgb24gdGhlIG92ZXJhbGwgYXJjaGl0ZWN0dXJlLg0KPiANCg0KSG93IHRoZSBrZXJu
+ZWwgZGVjaWRlcyB0byByZXByZXNlbnQgb2JqZWN0cyBpcyBhIGtlcm5lbCBpbXBsZW1lbnRhdGlv
+biBpc3N1ZSwgbm90IGFuIEFCSSBpc3N1ZS4NCkFzIGxvbmcgYXMgdGhlIEFCSSBpcyBleHByZXNz
+aXZlIGVub3VnaCAoZS5nLiwgcGFzcyBvbmx5IHRoZSByZWxldmFudCBpbmZvcm1hdGlvbiBmb3Ig
+dGhlIHR5cGVkIG9iamVjdCBhdCBoYW5kKSwgdGhlIGtlcm5lbCBjb2RlIGNvdWxkIGRlY2lkZSB3
+aGF0IHRvIGhvbGQgd2hlcmUuDQoNCj4gTW9yZSBzcGVjaWZpY2FsbHksIEkgd291bGQgc3dpdGNo
+IHRoZSBleGlzdGluZyB1QUJJIGNvbW1hbmRzIHRvIGlvY3RsJ3MsIGxlYXZpbmcNCj4gdGhlIGNv
+ZGUgcGF0aHMgbW9zdGx5IHVuY2hhbmdlZCwgYnV0IG1hcmtpbmcgdGhlbSBhcyBsZWdhY3kuICBU
+aGVuIGFkZCB0aGUNCj4gbmV3IGlvY3RscyB0aGF0IHlvdSBzdWdnZXN0ZWQsIHdpdGggZnV0dXJl
+IGRyaXZlcnMgaG9va2luZyBkaXJlY3RseSBpbnRvIHRoZSBpb2N0bA0KPiBmcmFtZXdvcmsuICBI
+b25lc3RseSwgSSdtIG5vdCBzdXJlIHRoZSByZG1hIGNvcmUgc2hvdWxkIGRlZmluZSBhbnl0aGlu
+Zw0KPiBiZXlvbmQgdGhlIGNvbW1vbiBpb2N0bCBzdHJ1Y3R1cmUuICBBbnl0aGluZyBlbHNlIGNh
+biBqdXN0IGJlIHBsYWNlZCBpbnRvIHRoZQ0KPiBkcml2ZXIgc3BlY2lmaWMgcG9ydGlvbiwgb3Ig
+bWF5YmUgcmRtYSBjb3JlIHN1Yi1zdWJzeXN0ZW0gKGUuZy4gaWIsIGl3YXJwLCByb2NlLA0KPiBv
+cGEsIG1seCwgLi4uKSAgTWF5YmUgd2Ugd291bGQgZGVmaW5lIHNvbWUgY29tbW9uIGlvY3RsJ3Mg
+YWNyb3NzIGFsbCBkZXZpY2VzLA0KPiBidXQgSSBkb24ndCB0aGluayB0aGV5IHdvdWxkIGxvb2sg
+YW55dGhpbmcgbGlrZSB0aGUgY3VycmVudCBjb21tYW5kcy4gIFRoZXkNCj4gd291bGQgbmVlZCB0
+byBiZSBtdWNoIGhpZ2hlciBsZXZlbC4NCg0KVGhhdCdzIHdoZXJlIHRoZSBwcm92aWRlciBjaGFu
+bmVsIGNvbWVzIGluLg0KRm9yIHByb3ZpZGVyIHN0dWZmLCB1dmVyYnMgd29uJ3QgZG8gYW55dGhp
+bmcgZWxzZSBvdGhlciB0aGFuIGEgd2F5IHRvIGdldCBhIGNoYW5uZWwgKyBzb21lIGNvbnZlbnRp
+b25zIChtYXliZSkuDQpUaGVyZSB3b24ndCBiZSBhbnkgbWF0Y2hpbmcga0FQSSBmb3IgaXQuDQoN
+CkZvciBnZW5lcmljIGludGVyZmFjZXMgKGN1cnJlbnRseSBpbmNsdWRlcyBWZXJicywgRXRoZXJu
+ZXQgUVBzLCBhbmQgSUIgbWFuYWdlbWVudCksIHRoZSBuZXcgc2NoZW1lIHNob3VsZCBtYXAgd2hh
+dCB3ZSBoYXZlIHRvZGF5IGluIGEgZmxleGlibGUgbWFubmVyLg0KVGhpcyB3b3VsZCBlbmFibGUg
+dXMsIGZvciBleGFtcGxlLCB0byBwYXNzIG9ubHkgUm9DRSBhZGRyZXNzaW5nIGF0dHJpYnV0ZXMg
+d2hpbGUgbW9kaWZ5aW5nIGEgUm9DRSBRUCAoYW5kIG9wdGlvbmFsbHkgb3B0aW1pemluZyB0aGUg
+a2VybmVsIHJlcHJlc2VudGF0aW9uIGFzIHdlbGwpLg0KVGhlc2UgaW50ZXJmYWNlcyBoYXZlIGEg
+bWF0Y2hpbmcga0FQSS4NCg0KTmV3IG9iamVjdCB0eXBlcyBjb3VsZCBiZSBzdXBwb3J0ZWQgd2l0
+aCBhZGRpdGlvbmFsL2FsdGVybmF0aXZlIGF0dHJpYnV0ZXMgdG8gZXhpc3Rpbmcgb2JqZWN0cywg
+d2hlcmUgaXQgbWFrZXMgc2Vuc2UuDQpUaGUgZmxleGliaWxpdHkgb2YgdGhlIEFCSSB3b3VsZCBh
+bGxvdyBmb3IgYm90aCBvcHRpbWFsIHBhcmFtZXRlciBwYXNzaW5nIGFuZCBrZXJuZWwgcmVwcmVz
+ZW50YXRpb24uDQpGb3IgZXhhbXBsZSwgaWYgSSB3YW50IHRvIGFkZCBhIGNvdW50ZXIgdGhhdCBj
+b3VudHMgY29tcGxldGlvbnMsIEkgd291bGQgYWRkIGl0IGFzIGEgbmV3IHR5cGUgb2YgQ1EuIFRo
+aXMgd291bGQgYWxsb3cgaXQgdG8gaW50ZXJvcGVyYXRlIHdpdGggdGhlIGV4aXN0aW5nIG9iamVj
+dCBtb2RlbC4NClRoZSBzYW1lIHdvdWxkIGFwcGx5IGZvciBuZXcgdHJhbnNwb3J0IHR5cGVzLg0K
+DQpJZiBhIGNvbXBsZXRlbHkgbmV3IGdlbmVyaWMgY29uY2VwdCBpcyBpbnRyb2R1Y2VkLCB3ZSBj
+YW4gYWRkIGFkZGl0aW9uYWwgaW50ZXJmYWNlcyBhbmQgZXh0ZW5kIHRoZSBrQVBJIHRvIHN1cHBv
+cnQgaXQuDQoNCj4gDQo+IC0gU2Vhbg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
