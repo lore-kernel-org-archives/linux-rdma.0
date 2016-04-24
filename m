@@ -1,84 +1,101 @@
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: [PATCH v2 03/21] io-mapping: Specify mapping size for
- io_mapping_map_wc()
-Date: Sun, 24 Apr 2016 08:31:23 +0100
-Message-ID: <1461483101-10618-3-git-send-email-chris@chris-wilson.co.uk>
-References: <1461483101-10618-1-git-send-email-chris@chris-wilson.co.uk>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 5/7] RDMA/i40iw: Fix for using one sge for RDMA READ
+Date: Sun, 24 Apr 2016 10:35:10 +0300
+Message-ID: <20160424073510.GC7974@leon.nu>
+References: <1461352469-16504-1-git-send-email-tatyana.e.nikolova@intel.com>
+ <1461352469-16504-6-git-send-email-tatyana.e.nikolova@intel.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1461483101-10618-1-git-send-email-chris@chris-wilson.co.uk>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: intel-gfx@lists.freedesktop.org
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>, netdev@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, linux-kernel@vger.kernel.org, "Peter Zijlstra (Intel)" <peterz@infradead.org>, "Luis R . Rodriguez" <mcgrof@kernel.org>, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@intel.com>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@kernel.org>, David Hildenbrand <dahi@linux.vnet.ibm.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Fig2xvG2VGoz8o/s"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461352469-16504-6-git-send-email-tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIGlvcmVtYXAoKSBoaWRkZW4gYmVoaW5kIHRoZSBpb19tYXBwaW5nX21hcF93YygpIGNvbnZl
-bmllbmNlIGhlbHBlcgpjYW4gYmUgdXNlZCBmb3IgcmVtYXBwaW5nIG11bHRpcGxlIHBhZ2VzLiBF
-eHRlbmQgdGhlIGhlbHBlciBzbyB0aGF0CmZ1dHVyZSBjYWxsZXJzIGNhbiB1c2UgaXQgZm9yIGxh
-cmdlciByYW5nZXMuCgpTaWduZWQtb2ZmLWJ5OiBDaHJpcyBXaWxzb24gPGNocmlzQGNocmlzLXdp
-bHNvbi5jby51az4KQ2M6IFR2cnRrbyBVcnN1bGluIDx0dnJ0a28udXJzdWxpbkBpbnRlbC5jb20+
-CkNjOiBEYW5pZWwgVmV0dGVyIDxkYW5pZWwudmV0dGVyQGludGVsLmNvbT4KQ2M6IEphbmkgTmlr
-dWxhIDxqYW5pLm5pa3VsYUBsaW51eC5pbnRlbC5jb20+CkNjOiBEYXZpZCBBaXJsaWUgPGFpcmxp
-ZWRAbGludXguaWU+CkNjOiBZaXNoYWkgSGFkYXMgPHlpc2hhaWhAbWVsbGFub3guY29tPgpDYzog
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBJbmdvIE1vbG5hciA8
-bWluZ29Aa2VybmVsLm9yZz4KQ2M6ICJQZXRlciBaaWpsc3RyYSAoSW50ZWwpIiA8cGV0ZXJ6QGlu
-ZnJhZGVhZC5vcmc+CkNjOiBEYXZpZCBIaWxkZW5icmFuZCA8ZGFoaUBsaW51eC52bmV0LmlibS5j
-b20+CkNjOiBMdWlzIFIuIFJvZHJpZ3VleiA8bWNncm9mQGtlcm5lbC5vcmc+CkNjOiBpbnRlbC1n
-ZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCkNjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnCkNjOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVs
-Lm9yZwpDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpSZXZpZXdlZC1ieTogTHVpcyBS
-LiBSb2RyaWd1ZXogPG1jZ3JvZkBrZXJuZWwub3JnPgotLS0KIGRyaXZlcnMvZ3B1L2RybS9pOTE1
-L2ludGVsX292ZXJsYXkuYyAgICB8ICAzICsrLQogZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFu
-b3gvbWx4NC9wZC5jIHwgIDQgKysrLQogaW5jbHVkZS9saW51eC9pby1tYXBwaW5nLmggICAgICAg
-ICAgICAgIHwgMTAgKysrKysrKy0tLQogMyBmaWxlcyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCsp
-LCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVs
-X292ZXJsYXkuYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX292ZXJsYXkuYwppbmRleCA5
-NzQ2Yjk4NDFjMTMuLjBkNWEzNzY4NzhkMyAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2k5
-MTUvaW50ZWxfb3ZlcmxheS5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX292ZXJs
-YXkuYwpAQCAtMTk4LDcgKzE5OCw4IEBAIGludGVsX292ZXJsYXlfbWFwX3JlZ3Moc3RydWN0IGlu
-dGVsX292ZXJsYXkgKm92ZXJsYXkpCiAJCXJlZ3MgPSAoc3RydWN0IG92ZXJsYXlfcmVnaXN0ZXJz
-IF9faW9tZW0gKilvdmVybGF5LT5yZWdfYm8tPnBoeXNfaGFuZGxlLT52YWRkcjsKIAllbHNlCiAJ
-CXJlZ3MgPSBpb19tYXBwaW5nX21hcF93YyhnZ3R0LT5tYXBwYWJsZSwKLQkJCQkJIG92ZXJsYXkt
-PmZsaXBfYWRkcik7CisJCQkJCSBvdmVybGF5LT5mbGlwX2FkZHIsCisJCQkJCSBQQUdFX1NJWkUp
-OwogCiAJcmV0dXJuIHJlZ3M7CiB9CmRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9t
-ZWxsYW5veC9tbHg0L3BkLmMgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L3Bk
-LmMKaW5kZXggYjNjYzNhYjYzNzk5Li42ZmMxNTZhMzkxOGQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-bmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvcGQuYworKysgYi9kcml2ZXJzL25ldC9ldGhlcm5l
-dC9tZWxsYW5veC9tbHg0L3BkLmMKQEAgLTIwNSw3ICsyMDUsOSBAQCBpbnQgbWx4NF9iZl9hbGxv
-YyhzdHJ1Y3QgbWx4NF9kZXYgKmRldiwgc3RydWN0IG1seDRfYmYgKmJmLCBpbnQgbm9kZSkKIAkJ
-CWdvdG8gZnJlZV91YXI7CiAJCX0KIAotCQl1YXItPmJmX21hcCA9IGlvX21hcHBpbmdfbWFwX3dj
-KHByaXYtPmJmX21hcHBpbmcsIHVhci0+aW5kZXggPDwgUEFHRV9TSElGVCk7CisJCXVhci0+YmZf
-bWFwID0gaW9fbWFwcGluZ19tYXBfd2MocHJpdi0+YmZfbWFwcGluZywKKwkJCQkJCXVhci0+aW5k
-ZXggPDwgUEFHRV9TSElGVCwKKwkJCQkJCVBBR0VfU0laRSk7CiAJCWlmICghdWFyLT5iZl9tYXAp
-IHsKIAkJCWVyciA9IC1FTk9NRU07CiAJCQlnb3RvIHVuYW1wX3VhcjsKZGlmZiAtLWdpdCBhL2lu
-Y2x1ZGUvbGludXgvaW8tbWFwcGluZy5oIGIvaW5jbHVkZS9saW51eC9pby1tYXBwaW5nLmgKaW5k
-ZXggZTM5OTAyOWI2OGM1Li42NDVhZDA2YjVkNTIgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgv
-aW8tbWFwcGluZy5oCisrKyBiL2luY2x1ZGUvbGludXgvaW8tbWFwcGluZy5oCkBAIC0xMDAsMTQg
-KzEwMCwxNiBAQCBpb19tYXBwaW5nX3VubWFwX2F0b21pYyh2b2lkIF9faW9tZW0gKnZhZGRyKQog
-fQogCiBzdGF0aWMgaW5saW5lIHZvaWQgX19pb21lbSAqCi1pb19tYXBwaW5nX21hcF93YyhzdHJ1
-Y3QgaW9fbWFwcGluZyAqbWFwcGluZywgdW5zaWduZWQgbG9uZyBvZmZzZXQpCitpb19tYXBwaW5n
-X21hcF93YyhzdHJ1Y3QgaW9fbWFwcGluZyAqbWFwcGluZywKKwkJICB1bnNpZ25lZCBsb25nIG9m
-ZnNldCwKKwkJICB1bnNpZ25lZCBsb25nIHNpemUpCiB7CiAJcmVzb3VyY2Vfc2l6ZV90IHBoeXNf
-YWRkcjsKIAogCUJVR19PTihvZmZzZXQgPj0gbWFwcGluZy0+c2l6ZSk7CiAJcGh5c19hZGRyID0g
-bWFwcGluZy0+YmFzZSArIG9mZnNldDsKIAotCXJldHVybiBpb3JlbWFwX3djKHBoeXNfYWRkciwg
-UEFHRV9TSVpFKTsKKwlyZXR1cm4gaW9yZW1hcF93YyhwaHlzX2FkZHIsIHNpemUpOwogfQogCiBz
-dGF0aWMgaW5saW5lIHZvaWQKQEAgLTE1NSw3ICsxNTcsOSBAQCBpb19tYXBwaW5nX3VubWFwX2F0
-b21pYyh2b2lkIF9faW9tZW0gKnZhZGRyKQogCiAvKiBOb24tYXRvbWljIG1hcC91bm1hcCAqLwog
-c3RhdGljIGlubGluZSB2b2lkIF9faW9tZW0gKgotaW9fbWFwcGluZ19tYXBfd2Moc3RydWN0IGlv
-X21hcHBpbmcgKm1hcHBpbmcsIHVuc2lnbmVkIGxvbmcgb2Zmc2V0KQoraW9fbWFwcGluZ19tYXBf
-d2Moc3RydWN0IGlvX21hcHBpbmcgKm1hcHBpbmcsCisJCSAgdW5zaWduZWQgbG9uZyBvZmZzZXQs
-CisJCSAgdW5zaWduZWQgbG9uZyBzaXplKQogewogCXJldHVybiAoKGNoYXIgX19mb3JjZSBfX2lv
-bWVtICopIG1hcHBpbmcpICsgb2Zmc2V0OwogfQotLSAKMi44LjEKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
-LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+
+--Fig2xvG2VGoz8o/s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Apr 22, 2016 at 02:14:27PM -0500, Tatyana Nikolova wrote:
+> From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>=20
+> A check is added to validate the requested sge number.
+> iWARP doesn't support multiple sg elements for
+> RDMA READ work requests.
+>=20
+> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c | 6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniba=
+nd/hw/i40iw/i40iw_verbs.c
+> index 2d832c7..45f70f5 100644
+> --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+> +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+> @@ -74,7 +74,7 @@ static int i40iw_query_device(struct ib_device *ibdev,
+>  	props->max_cqe =3D iwdev->max_cqe;
+>  	props->max_mr =3D iwdev->max_mr;
+>  	props->max_pd =3D iwdev->max_pd;
+> -	props->max_sge_rd =3D 1;
+> +	props->max_sge_rd =3D I40IW_MAX_SGE_RD;
+>  	props->max_qp_rd_atom =3D I40IW_MAX_IRD_SIZE;
+>  	props->max_qp_init_rd_atom =3D props->max_qp_rd_atom;
+>  	props->atomic_cap =3D IB_ATOMIC_NONE;
+> @@ -2117,6 +2117,10 @@ static int i40iw_post_send(struct ib_qp *ibqp,
+>  			inv_stag =3D true;
+>  			/* fall-through*/
+                        ^^^^^^^^^^^^^^^^
+Do you support multiple SGE for RDMA WRITE?
+
+
+>  		case IB_WR_RDMA_READ:
+> +			if (ib_wr->num_sge > I40IW_MAX_SGE_RD) {
+> +				err =3D -EINVAL;
+> +				break;
+> +			}
+>  			info.op_type =3D I40IW_OP_TYPE_RDMA_READ;
+>  			info.op.rdma_read.rem_addr.tag_off =3D rdma_wr(ib_wr)->remote_addr;
+>  			info.op.rdma_read.rem_addr.stag =3D rdma_wr(ib_wr)->rkey;
+> --=20
+> 2.7.4
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--Fig2xvG2VGoz8o/s
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXHHcuAAoJEORje4g2clinTVAP/j1mXpNqHzF502Zxr/SzqbUX
+gFyZTVGCG8/PPpAl7rY/u6jlnhUxQVzBzhwq29lyJ4XKcVMPH00cok/OYT7J9LlJ
+4p6N6Y9D9D9NH6jXjYclKDh4eX7FDaABi74Ogb41TRFgiUkuCBul8sbw4XT9HXVj
+neF04DXy5X+c97fLgfww1ajg+n/DT3++ZuB1rb4IchQGhXCmp/Pc9cYt5idUGsLI
+bKdSf/l/cSvcZj9oVD71hnBYzFN7X4srEfBXEEZTeGqLxE29hOtCmkYLYkYNTul8
+gY3Gl0Pqt4eaaVQmurDtTh4vrnpxP789piP0JQB7Lf4v8jRYXBuaJeB8peHTD4Rl
+d/npDq7I4pUVfFvWPrdmd4wHvolH6Tdm/uKGMaIR+VvqXXLNkLrSHJpjJI+feLwn
+lpuN6JhWrh5gb4FS0SkKVaLsdknfRnxPVCAAMbrYuyza2Ab1DjxL+Mt3nRwUIDNP
+xrGyO7NHSZuw0OZhaNYvNM+EnZFglzSh01O98+9mG37Eiq3T6ptQWQj/v88Xs0vz
+WbIDxuQQdngWRnREuwftfw5FUebhPm+8p/cYsIy4yOAxEUW6ZFUC++ljrzCWECG+
+9e0umjuXHLM5vRIKnrOQvdgokm/y24gkHv5n1gy5xX/vZOcRKEh7S8/yOF4TEed6
+6XUkfrbaY2gwJAEG0AhH
+=N+yV
+-----END PGP SIGNATURE-----
+
+--Fig2xvG2VGoz8o/s--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
