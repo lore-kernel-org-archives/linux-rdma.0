@@ -1,199 +1,263 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 01/18] sunrpc: Advertise maximum backchannel payload size
-Date: Mon, 25 Apr 2016 15:20:55 -0400
-Message-ID: <20160425192055.3566.2467.stgit@manet.1015granger.net>
+Subject: [PATCH v2 04/18] xprtrdma: Prevent inline overflow
+Date: Mon, 25 Apr 2016 15:21:20 -0400
+Message-ID: <20160425192120.3566.99978.stgit@manet.1015granger.net>
 References: <20160425185956.3566.64142.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160425185956.3566.64142.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RPC-over-RDMA transports have a limit on how large a backward
-direction (backchannel) RPC message can be. Ensure that the NFSv4.x
-CREATE_SESSION operation advertises this limit to servers.
+When deciding whether to send a Call inline, rpcrdma_marshal_req
+doesn't take into account header bytes consumed by chunk lists.
+This results in Call messages on the wire that are sometimes larger
+than the inline threshold.
+
+Likewise, when a Write list or Reply chunk is in play, the server's
+reply has to emit an RDMA Send that includes a larger-than-minimal
+RPC-over-RDMA header.
+
+The actual size of a Call message cannot be estimated until after
+the chunk lists have been registered. Thus the size of each
+RPC-over-RDMA header can be estimated only after chunks are
+registered; but the decision to register chunks is based on the size
+of that header. Chicken, meet egg.
+
+The best a client can do is estimate header size based on the
+largest header that might occur, and then ensure that inline content
+is always smaller than that.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- fs/nfs/nfs4proc.c                 |   10 ++++++----
- include/linux/sunrpc/clnt.h       |    1 +
- include/linux/sunrpc/xprt.h       |    1 +
- net/sunrpc/clnt.c                 |   17 +++++++++++++++++
- net/sunrpc/xprtrdma/backchannel.c |   16 ++++++++++++++++
- net/sunrpc/xprtrdma/transport.c   |    1 +
- net/sunrpc/xprtrdma/xprt_rdma.h   |    1 +
- net/sunrpc/xprtsock.c             |    6 ++++++
- 8 files changed, 49 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c      |    3 +
+ net/sunrpc/xprtrdma/frwr_ops.c     |    3 +
+ net/sunrpc/xprtrdma/physical_ops.c |    5 ++
+ net/sunrpc/xprtrdma/rpc_rdma.c     |   85 ++++++++++++++++++++++++++++++++----
+ net/sunrpc/xprtrdma/xprt_rdma.h    |    5 ++
+ 5 files changed, 90 insertions(+), 11 deletions(-)
 
-diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
-index 327b8c3..01bef06 100644
---- a/fs/nfs/nfs4proc.c
-+++ b/fs/nfs/nfs4proc.c
-@@ -7351,9 +7351,11 @@ int nfs4_proc_get_lease_time(struct nfs_client *clp, struct nfs_fsinfo *fsinfo)
-  * always set csa_cachethis to FALSE because the current implementation
-  * of the back channel DRC only supports caching the CB_SEQUENCE operation.
-  */
--static void nfs4_init_channel_attrs(struct nfs41_create_session_args *args)
-+static void nfs4_init_channel_attrs(struct nfs41_create_session_args *args,
-+				    struct rpc_clnt *clnt)
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 4aeb104..009694b 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -39,6 +39,9 @@ static int
+ fmr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	    struct rpcrdma_create_data_internal *cdata)
  {
- 	unsigned int max_rqst_sz, max_resp_sz;
-+	unsigned int max_bc_payload = rpc_max_bc_payload(clnt);
- 
- 	max_rqst_sz = NFS_MAX_FILE_IO_SIZE + nfs41_maxwrite_overhead;
- 	max_resp_sz = NFS_MAX_FILE_IO_SIZE + nfs41_maxread_overhead;
-@@ -7371,8 +7373,8 @@ static void nfs4_init_channel_attrs(struct nfs41_create_session_args *args)
- 		args->fc_attrs.max_ops, args->fc_attrs.max_reqs);
- 
- 	/* Back channel attributes */
--	args->bc_attrs.max_rqst_sz = PAGE_SIZE;
--	args->bc_attrs.max_resp_sz = PAGE_SIZE;
-+	args->bc_attrs.max_rqst_sz = max_bc_payload;
-+	args->bc_attrs.max_resp_sz = max_bc_payload;
- 	args->bc_attrs.max_resp_sz_cached = 0;
- 	args->bc_attrs.max_ops = NFS4_MAX_BACK_CHANNEL_OPS;
- 	args->bc_attrs.max_reqs = NFS41_BC_MAX_CALLBACKS;
-@@ -7476,7 +7478,7 @@ static int _nfs4_proc_create_session(struct nfs_client *clp,
- 	};
- 	int status;
- 
--	nfs4_init_channel_attrs(&args);
-+	nfs4_init_channel_attrs(&args, clp->cl_rpcclient);
- 	args.flags = (SESSION4_PERSIST | SESSION4_BACK_CHAN);
- 
- 	status = rpc_call_sync(session->clp->cl_rpcclient, &msg, RPC_TASK_TIMEOUT);
-diff --git a/include/linux/sunrpc/clnt.h b/include/linux/sunrpc/clnt.h
-index 9a7ddba..19c659d 100644
---- a/include/linux/sunrpc/clnt.h
-+++ b/include/linux/sunrpc/clnt.h
-@@ -176,6 +176,7 @@ void		rpc_setbufsize(struct rpc_clnt *, unsigned int, unsigned int);
- int		rpc_protocol(struct rpc_clnt *);
- struct net *	rpc_net_ns(struct rpc_clnt *);
- size_t		rpc_max_payload(struct rpc_clnt *);
-+size_t		rpc_max_bc_payload(struct rpc_clnt *);
- unsigned long	rpc_get_timeout(struct rpc_clnt *clnt);
- void		rpc_force_rebind(struct rpc_clnt *);
- size_t		rpc_peeraddr(struct rpc_clnt *, struct sockaddr *, size_t);
-diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
-index fb0d212..5aa3834 100644
---- a/include/linux/sunrpc/xprt.h
-+++ b/include/linux/sunrpc/xprt.h
-@@ -142,6 +142,7 @@ struct rpc_xprt_ops {
- 	int		(*bc_setup)(struct rpc_xprt *xprt,
- 				    unsigned int min_reqs);
- 	int		(*bc_up)(struct svc_serv *serv, struct net *net);
-+	size_t		(*bc_maxpayload)(struct rpc_xprt *xprt);
- 	void		(*bc_free_rqst)(struct rpc_rqst *rqst);
- 	void		(*bc_destroy)(struct rpc_xprt *xprt,
- 				      unsigned int max_reqs);
-diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
-index 7e0c9bf..06b4df9 100644
---- a/net/sunrpc/clnt.c
-+++ b/net/sunrpc/clnt.c
-@@ -1414,6 +1414,23 @@ size_t rpc_max_payload(struct rpc_clnt *clnt)
- EXPORT_SYMBOL_GPL(rpc_max_payload);
- 
- /**
-+ * rpc_max_bc_payload - Get maximum backchannel payload size, in bytes
-+ * @clnt: RPC client to query
-+ */
-+size_t rpc_max_bc_payload(struct rpc_clnt *clnt)
-+{
-+	struct rpc_xprt *xprt;
-+	size_t ret;
-+
-+	rcu_read_lock();
-+	xprt = rcu_dereference(clnt->cl_xprt);
-+	ret = xprt->ops->bc_maxpayload(xprt);
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(rpc_max_bc_payload);
-+
-+/**
-  * rpc_get_timeout - Get timeout for transport in units of HZ
-  * @clnt: RPC client to query
-  */
-diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index 2dcd764..87762d9 100644
---- a/net/sunrpc/xprtrdma/backchannel.c
-+++ b/net/sunrpc/xprtrdma/backchannel.c
-@@ -192,6 +192,22 @@ int xprt_rdma_bc_up(struct svc_serv *serv, struct net *net)
- }
- 
- /**
-+ * xprt_rdma_bc_maxpayload - Return maximum backchannel message size
-+ * @xprt: transport
-+ *
-+ * Returns maximum size, in bytes, of a backchannel message
-+ */
-+size_t xprt_rdma_bc_maxpayload(struct rpc_xprt *xprt)
-+{
-+	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-+	struct rpcrdma_create_data_internal *cdata = &r_xprt->rx_data;
-+	size_t maxmsg;
-+
-+	maxmsg = min_t(unsigned int, cdata->inline_rsize, cdata->inline_wsize);
-+	return maxmsg - RPCRDMA_HDRLEN_MIN;
-+}
-+
-+/**
-  * rpcrdma_bc_marshal_reply - Send backwards direction reply
-  * @rqst: buffer containing RPC reply data
-  *
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index b1b009f..9954342 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -707,6 +707,7 @@ static struct rpc_xprt_ops xprt_rdma_procs = {
- #if defined(CONFIG_SUNRPC_BACKCHANNEL)
- 	.bc_setup		= xprt_rdma_bc_setup,
- 	.bc_up			= xprt_rdma_bc_up,
-+	.bc_maxpayload		= xprt_rdma_bc_maxpayload,
- 	.bc_free_rqst		= xprt_rdma_bc_free_rqst,
- 	.bc_destroy		= xprt_rdma_bc_destroy,
- #endif
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 2ebc743..7723e5f 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -534,6 +534,7 @@ void xprt_rdma_cleanup(void);
- #if defined(CONFIG_SUNRPC_BACKCHANNEL)
- int xprt_rdma_bc_setup(struct rpc_xprt *, unsigned int);
- int xprt_rdma_bc_up(struct svc_serv *, struct net *);
-+size_t xprt_rdma_bc_maxpayload(struct rpc_xprt *);
- int rpcrdma_bc_post_recv(struct rpcrdma_xprt *, unsigned int);
- void rpcrdma_bc_receive_call(struct rpcrdma_xprt *, struct rpcrdma_rep *);
- int rpcrdma_bc_marshal_reply(struct rpc_rqst *);
-diff --git a/net/sunrpc/xprtsock.c b/net/sunrpc/xprtsock.c
-index 65e7595..f1faf6b 100644
---- a/net/sunrpc/xprtsock.c
-+++ b/net/sunrpc/xprtsock.c
-@@ -1365,6 +1365,11 @@ static int xs_tcp_bc_up(struct svc_serv *serv, struct net *net)
- 		return ret;
++	rpcrdma_set_max_header_sizes(ia, cdata, max_t(unsigned int, 1,
++						      RPCRDMA_MAX_DATA_SEGS /
++						      RPCRDMA_MAX_FMR_SGES));
  	return 0;
  }
+ 
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 2f37598..41e02e7 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -231,6 +231,9 @@ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 					       depth;
+ 	}
+ 
++	rpcrdma_set_max_header_sizes(ia, cdata, max_t(unsigned int, 1,
++						      RPCRDMA_MAX_DATA_SEGS /
++						      ia->ri_max_frmr_depth));
+ 	return 0;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/physical_ops.c b/net/sunrpc/xprtrdma/physical_ops.c
+index e16ed54..2dc6ec2 100644
+--- a/net/sunrpc/xprtrdma/physical_ops.c
++++ b/net/sunrpc/xprtrdma/physical_ops.c
+@@ -36,8 +36,11 @@ physical_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 		       __func__, PTR_ERR(mr));
+ 		return -ENOMEM;
+ 	}
+-
+ 	ia->ri_dma_mr = mr;
 +
-+static size_t xs_tcp_bc_maxpayload(struct rpc_xprt *xprt)
++	rpcrdma_set_max_header_sizes(ia, cdata, min_t(unsigned int,
++						      RPCRDMA_MAX_DATA_SEGS,
++						      RPCRDMA_MAX_HDR_SEGS));
+ 	return 0;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 888823b..205b81b 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -61,7 +61,6 @@ enum rpcrdma_chunktype {
+ 	rpcrdma_replych
+ };
+ 
+-#if IS_ENABLED(CONFIG_SUNRPC_DEBUG)
+ static const char transfertypes[][12] = {
+ 	"pure inline",	/* no chunks */
+ 	" read chunk",	/* some argument via rdma read */
+@@ -69,18 +68,72 @@ static const char transfertypes[][12] = {
+ 	"write chunk",	/* some result via rdma write */
+ 	"reply chunk"	/* entire reply via rdma write */
+ };
+-#endif
++
++/* Returns size of largest RPC-over-RDMA header in a Call message
++ *
++ * The client marshals only one chunk list per Call message.
++ * The largest list is the Read list.
++ */
++static unsigned int rpcrdma_max_call_header_size(unsigned int maxsegs)
 +{
-+	return PAGE_SIZE;
++	unsigned int size;
++
++	/* Fixed header fields and list discriminators */
++	size = RPCRDMA_HDRLEN_MIN;
++
++	/* Maximum Read list size */
++	maxsegs += 2;	/* segment for head and tail buffers */
++	size = maxsegs * sizeof(struct rpcrdma_read_chunk);
++
++	dprintk("RPC:       %s: max call header size = %u\n",
++		__func__, size);
++	return size;
 +}
- #else
- static inline int _xs_tcp_read_data(struct rpc_xprt *xprt,
- 					struct xdr_skb_reader *desc)
-@@ -2660,6 +2665,7 @@ static struct rpc_xprt_ops xs_tcp_ops = {
- #ifdef CONFIG_SUNRPC_BACKCHANNEL
- 	.bc_setup		= xprt_setup_bc,
- 	.bc_up			= xs_tcp_bc_up,
-+	.bc_maxpayload		= xs_tcp_bc_maxpayload,
- 	.bc_free_rqst		= xprt_free_bc_rqst,
- 	.bc_destroy		= xprt_destroy_bc,
- #endif
++
++/* Returns size of largest RPC-over-RDMA header in a Reply message
++ *
++ * There is only one Write list or one Reply chunk per Reply
++ * message.  The larger list is the Write list.
++ */
++static unsigned int rpcrdma_max_reply_header_size(unsigned int maxsegs)
++{
++	unsigned int size;
++
++	/* Fixed header fields and list discriminators */
++	size = RPCRDMA_HDRLEN_MIN;
++
++	/* Maximum Write list size */
++	maxsegs += 2;	/* segment for head and tail buffers */
++	size = sizeof(__be32);		/* segment count */
++	size += maxsegs * sizeof(struct rpcrdma_segment);
++	size += sizeof(__be32);	/* list discriminator */
++
++	dprintk("RPC:       %s: max reply header size = %u\n",
++		__func__, size);
++	return size;
++}
++
++void rpcrdma_set_max_header_sizes(struct rpcrdma_ia *ia,
++				  struct rpcrdma_create_data_internal *cdata,
++				  unsigned int maxsegs)
++{
++	ia->ri_max_inline_write = cdata->inline_wsize -
++				  rpcrdma_max_call_header_size(maxsegs);
++	ia->ri_max_inline_read = cdata->inline_rsize -
++				 rpcrdma_max_reply_header_size(maxsegs);
++}
+ 
+ /* The client can send a request inline as long as the RPCRDMA header
+  * plus the RPC call fit under the transport's inline limit. If the
+  * combined call message size exceeds that limit, the client must use
+  * the read chunk list for this operation.
+  */
+-static bool rpcrdma_args_inline(struct rpc_rqst *rqst)
++static bool rpcrdma_args_inline(struct rpcrdma_xprt *r_xprt,
++				struct rpc_rqst *rqst)
+ {
+-	unsigned int callsize = RPCRDMA_HDRLEN_MIN + rqst->rq_snd_buf.len;
++	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 
+-	return callsize <= RPCRDMA_INLINE_WRITE_THRESHOLD(rqst);
++	return rqst->rq_snd_buf.len <= ia->ri_max_inline_write;
+ }
+ 
+ /* The client can't know how large the actual reply will be. Thus it
+@@ -89,11 +142,12 @@ static bool rpcrdma_args_inline(struct rpc_rqst *rqst)
+  * limit, the client must provide a write list or a reply chunk for
+  * this request.
+  */
+-static bool rpcrdma_results_inline(struct rpc_rqst *rqst)
++static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
++				   struct rpc_rqst *rqst)
+ {
+-	unsigned int repsize = RPCRDMA_HDRLEN_MIN + rqst->rq_rcv_buf.buflen;
++	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 
+-	return repsize <= RPCRDMA_INLINE_READ_THRESHOLD(rqst);
++	return rqst->rq_rcv_buf.buflen <= ia->ri_max_inline_read;
+ }
+ 
+ static int
+@@ -492,7 +546,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	 */
+ 	if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
+ 		wtype = rpcrdma_writech;
+-	else if (rpcrdma_results_inline(rqst))
++	else if (rpcrdma_results_inline(r_xprt, rqst))
+ 		wtype = rpcrdma_noch;
+ 	else
+ 		wtype = rpcrdma_replych;
+@@ -511,7 +565,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	 * that both has a data payload, and whose non-data arguments
+ 	 * by themselves are larger than the inline threshold.
+ 	 */
+-	if (rpcrdma_args_inline(rqst)) {
++	if (rpcrdma_args_inline(r_xprt, rqst)) {
+ 		rtype = rpcrdma_noch;
+ 	} else if (rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
+ 		rtype = rpcrdma_readch;
+@@ -561,6 +615,9 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	if (hdrlen < 0)
+ 		return hdrlen;
+ 
++	if (hdrlen + rpclen > RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
++		goto out_overflow;
++
+ 	dprintk("RPC:       %s: %s: hdrlen %zd rpclen %zd"
+ 		" headerp 0x%p base 0x%p lkey 0x%x\n",
+ 		__func__, transfertypes[wtype], hdrlen, rpclen,
+@@ -587,6 +644,14 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 
+ 	req->rl_niovs = 2;
+ 	return 0;
++
++out_overflow:
++	pr_err("rpcrdma: send overflow: hdrlen %zd rpclen %zu %s\n",
++		hdrlen, rpclen, transfertypes[wtype]);
++	/* Terminate this RPC. Chunks registered above will be
++	 * released by xprt_release -> xprt_rmda_free .
++	 */
++	return -EIO;
+ }
+ 
+ /*
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 0028748..4349e03 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -73,6 +73,8 @@ struct rpcrdma_ia {
+ 	struct completion	ri_done;
+ 	int			ri_async_rc;
+ 	unsigned int		ri_max_frmr_depth;
++	unsigned int		ri_max_inline_write;
++	unsigned int		ri_max_inline_read;
+ 	struct ib_qp_attr	ri_qp_attr;
+ 	struct ib_qp_init_attr	ri_qp_init_attr;
+ };
+@@ -538,6 +540,9 @@ void rpcrdma_reply_handler(struct rpcrdma_rep *);
+  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
+  */
+ int rpcrdma_marshal_req(struct rpc_rqst *);
++void rpcrdma_set_max_header_sizes(struct rpcrdma_ia *,
++				  struct rpcrdma_create_data_internal *,
++				  unsigned int);
+ 
+ /* RPC/RDMA module init - xprtrdma/transport.c
+  */
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
