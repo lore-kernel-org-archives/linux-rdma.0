@@ -1,115 +1,88 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Further thoughts on uAPI
-Date: Mon, 25 Apr 2016 19:16:12 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04548E@ORSMSX109.amr.corp.intel.com>
-References: <20160420012526.GA25508@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
- <20160421172428.GA5102@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB045101@ORSMSX109.amr.corp.intel.com>
- <20160425181953.GC7675@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 00/18] NFS/RDMA client patches for v4.7
+Date: Mon, 25 Apr 2016 15:20:46 -0400
+Message-ID: <20160425185956.3566.64142.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160425181953.GC7675-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> However, I had intended to use the object type carred in the ioctl arg
-> as the primary mux and the ioctl would just indicate the 'method'. The
-> method ID table would be split much like you describe:
-> 
-> 'core common' object routines
-> 'built-in extra' object routines
-> 'driver-fast-path' object routines
+Second version of NFS/RDMA client patches proposed for merge into
+v4.7. Thanks in advance for any review comments!
 
-I did understand the proposal.  My main concern was that it appeared that it would result in a very large function array, potentially with a significant number of NULL functions, associated with each driver.
+Attempt to fence memory regions after a signal interrupts a
+synchronous RPC. This prevents a server from writing a reply into a
+client's memory after the memory has been released due to a signal.
 
-> Not sure about experimental..
+Support providing a Read list and Reply chunk together in one RPC
+call. This is a pre-requisite for using krb5i or krb5p on RPC/RDMA.
 
-I wasn't sure either.
+In addition, the following changes and fixes are included:
 
-> ~128 unique methods for every object seems like enough??
+- Use new ib_drain_qp() API
+- Advertise max size of NFSv4.1 callbacks on RPC/RDMA
+- Prevent overflowing the server's receive buffers
+- Send small NFS WRITEs inline rather than using a Read chunk
+- Detect connection loss sooner
 
-Seems more than enough to me
 
-> Why do you feel cm/mgmt needs dedicated routines? I was going to model
-> CM as more objects and use the 'built-in extra' block to make CM
-> object specific calls (eg bind/etc)
+Available in the "nfs-rdma-for-4.7" topic branch of this git repo:
 
-I separated the cm/mgmt calls because I doubt a driver will ever override them, and some of the calls are system wide, versus being bound to a driver. 
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-> This still works OK for strace: it has to parse the ioctl # and then
-> look into the class_id uniform first dword, then it knows exactly how
-> to format and parse the ioctl argument.
-> 
-> > A command block has a num_ops, followed by an array of calls.  Each
-> > device structure has an array of pointers to command blocks.  This
-> > allows a driver to override any call, without necessarily storing a
-> > huge function table.
-> 
-> My sketch had the drivers just provide the individual things they
-> wanted to provide/override by number:
-> 
->  static const struct rdma_uapi_class hfi_uapi_ops[] {
->   // Driver directly provides its own object
->   {.class_id = RDMA_OBJECT_HFI1_CTXT,
->    .create_object = assign_ctxt,
-> 
-> And then rely on a 'compile' phase during registration to build a
-> micro-optimized dispatch table.
-> 
-> > For the base ioctl command, I would also add these two fields:
-> > op_ctrl and flags.  I'm envision that these fields can be used to
-> > determine the format of the input/output data.
-> 
-> There has been a lot of talk of using a structure like netlink with a
-> linked list of binary attributes and an optional/mandatory flag. For
-> the lower speed stuff that seems reasonable, though it is certainly
-> over-engineered for some commands.
-> 
-> So, a sketch would look like this:
-> 
-> struct msg
-> {
->    uint16_t length;
->    uint16_t class_id;
->    uint32_t object_id; // in/out
->    struct qp_base_attr
->    {
->        uint16_t length;
->        uint16_t attribute_id;
-> 
->        uint16_t qpn;  //in/out
->        uint16_t qp_flags;
->        uint16_t max_send_wr,max_recv_qr,max_send_sge,////
->    };
->    // Option to piggy back what ibv_modify_qp does:
->    struct qp_addr_ib
->    {
->        uint16_t length;
->        uint16_t attribute_id;
-> 
->        uint16_t dlid,slid,sl,pkey,etc;
->    }
-> }
-> 
-> msg.length = sizeof(msg);
-> msg.class_id = RDMA_OBJ_QP_UD;
-> msg.base.legnth = sizeof(msg.base);
-> msg.base.attribute_id = RDMA_ATTR_QP_BASE;
-> msg.base.qp_flags = XX
-> [..]
-> ioctl(fd,RDMA_CREATE_OBJECT,&msg);
-> [..]
-> ioctl(fd,RDMA_MODIFY_OBJECT,&msg2);
+Or for browsing:
 
-I had followed this, but wondered if it wouldn't be easier to just say, use structure 1 or structure 2.  A lot of the need for this complexity seems driven by treating all QPs as a single object, rather than separate objects.  Making that change might simplify things..?  Also I think we should consider reasonable optimizations for connecting QPs.  Doug and I had to debug apps that broke because the connection process was not completing quick enough.
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.7
 
-- Sean
+
+Changes since v1:
+- Rebased on v4.6-rc5
+- Updated patch description for "Avoid using Write list for ..."
+
+---
+
+Chuck Lever (18):
+      sunrpc: Advertise maximum backchannel payload size
+      xprtrdma: Bound the inline threshold values
+      xprtrdma: Limit number of RDMA segments in RPC-over-RDMA headers
+      xprtrdma: Prevent inline overflow
+      xprtrdma: Avoid using Write list for small NFS READ requests
+      xprtrdma: Update comments in rpcrdma_marshal_req()
+      xprtrdma: Allow Read list and Reply chunk simultaneously
+      xprtrdma: Remove rpcrdma_create_chunks()
+      xprtrdma: Use core ib_drain_qp() API
+      xprtrdma: Rename rpcrdma_frwr::sg and sg_nents
+      xprtrdma: Save I/O direction in struct rpcrdma_frwr
+      xprtrdma: Reset MRs in frwr_op_unmap_sync()
+      xprtrdma: Refactor the FRWR recovery worker
+      xprtrdma: Move fr_xprt and fr_worker to struct rpcrdma_mw
+      xprtrdma: Refactor __fmr_dma_unmap()
+      xprtrdma: Add ro_unmap_safe memreg method
+      xprtrdma: Remove ro_unmap() from all registration modes
+      xprtrdma: Faster server reboot recovery
+
+
+ fs/nfs/nfs4proc.c                  |   10 -
+ include/linux/sunrpc/clnt.h        |    1 
+ include/linux/sunrpc/xprt.h        |    1 
+ include/linux/sunrpc/xprtrdma.h    |    4 
+ net/sunrpc/clnt.c                  |   17 +
+ net/sunrpc/xprtrdma/backchannel.c  |   16 +
+ net/sunrpc/xprtrdma/fmr_ops.c      |  134 +++++++--
+ net/sunrpc/xprtrdma/frwr_ops.c     |  214 ++++++++-------
+ net/sunrpc/xprtrdma/physical_ops.c |   39 ++-
+ net/sunrpc/xprtrdma/rpc_rdma.c     |  517 ++++++++++++++++++++++--------------
+ net/sunrpc/xprtrdma/transport.c    |   16 +
+ net/sunrpc/xprtrdma/verbs.c        |   91 ++----
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   42 ++-
+ net/sunrpc/xprtsock.c              |    6 
+ 14 files changed, 674 insertions(+), 434 deletions(-)
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
