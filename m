@@ -1,44 +1,31 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: trivial fix of spelling mistake on "argument"
-Date: Mon, 25 Apr 2016 13:04:09 -0700
-Message-ID: <571E7839.1030403@sandisk.com>
-References: <1461612410-27604-1-git-send-email-colin.king@canonical.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Further thoughts on uAPI
+Date: Mon, 25 Apr 2016 14:22:12 -0600
+Message-ID: <20160425202212.GB15367@obsidianresearch.com>
+References: <20160420012526.GA25508@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0453F5@ORSMSX109.amr.corp.intel.com>
+ <20160425183243.GD7675@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB045460@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461612410-27604-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB045460-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/25/2016 12:26 PM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->
-> fix spelling mistake, argumant -> argument
->
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->   drivers/infiniband/hw/mlx4/main.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-> index f014eaf..b01ef6e 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -1601,7 +1601,7 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp, struct ib_flow_attr *flow_att
->   	else if (ret == -ENXIO)
->   		pr_err("Device managed flow steering is disabled. Fail to register network rule.\n");
->   	else if (ret)
-> -		pr_err("Invalid argumant. Fail to register network rule.\n");
-> +		pr_err("Invalid argument. Fail to register network rule.\n");
->
->   	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
->   	return ret;
+On Mon, Apr 25, 2016 at 06:51:59PM +0000, Hefty, Sean wrote:
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> I was thinking that create event channel would return an fd and
+> implicitly define its ioctl format.  Create_fd_object is more
+> generic, but how were you thinking of defining the ioctl format?
 
+Just keep going with the main format, on the new fd, except that
+the object_id == 0 and the ioctl must be executed on the new fd.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
