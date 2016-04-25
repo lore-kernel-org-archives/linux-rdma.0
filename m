@@ -1,79 +1,90 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 11/18] xprtrdma: Save I/O direction in struct rpcrdma_frwr
-Date: Mon, 25 Apr 2016 15:22:18 -0400
-Message-ID: <20160425192218.3566.13233.stgit@manet.1015granger.net>
+Subject: [PATCH v2 14/18] xprtrdma: Move fr_xprt and fr_worker to struct
+ rpcrdma_mw
+Date: Mon, 25 Apr 2016 15:22:42 -0400
+Message-ID: <20160425192242.3566.71335.stgit@manet.1015granger.net>
 References: <20160425185956.3566.64142.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160425185956.3566.64142.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Move the the I/O direction field from rpcrdma_mr_seg into the
-rpcrdma_frmr. This makes it possible to perform the DMA unmapping
-long after the rpcrdma_mr_seg has been released and re-used.
+In a subsequent patch, the fr_xprt and fr_worker fields will be
+needed by another memory registration mode. Move them into the
+generic rpcrdma_mw structure that wraps struct rpcrdma_frmr.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c  |    6 +++---
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |   10 +++++-----
+ net/sunrpc/xprtrdma/xprt_rdma.h |    4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 7c22e9e..e1e6ac1 100644
+index 4e0a5c1..1251a1d 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -416,6 +416,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 			break;
+@@ -150,9 +150,9 @@ static void
+ __frwr_recovery_worker(struct work_struct *work)
+ {
+ 	struct rpcrdma_mw *r = container_of(work, struct rpcrdma_mw,
+-					    frmr.fr_work);
++					    mw_work);
+ 
+-	__frwr_reset_and_unmap(r->frmr.fr_xprt, r);
++	__frwr_reset_and_unmap(r->mw_xprt, r);
+ 	return;
+ }
+ 
+@@ -162,8 +162,8 @@ __frwr_recovery_worker(struct work_struct *work)
+ static void
+ __frwr_queue_recovery(struct rpcrdma_mw *r)
+ {
+-	INIT_WORK(&r->frmr.fr_work, __frwr_recovery_worker);
+-	queue_work(frwr_recovery_wq, &r->frmr.fr_work);
++	INIT_WORK(&r->mw_work, __frwr_recovery_worker);
++	queue_work(frwr_recovery_wq, &r->mw_work);
+ }
+ 
+ static int
+@@ -378,9 +378,9 @@ frwr_op_init(struct rpcrdma_xprt *r_xprt)
+ 			return rc;
+ 		}
+ 
++		r->mw_xprt = r_xprt;
+ 		list_add(&r->mw_list, &buf->rb_mws);
+ 		list_add(&r->mw_all, &buf->rb_all);
+-		r->frmr.fr_xprt = r_xprt;
  	}
- 	frmr->fr_nents = i;
-+	frmr->fr_dir = direction;
  
- 	dma_nents = ib_dma_map_sg(device, frmr->fr_sg, frmr->fr_nents, direction);
- 	if (!dma_nents) {
-@@ -455,7 +456,6 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 	if (rc)
- 		goto out_senderr;
- 
--	seg1->mr_dir = direction;
- 	seg1->rl_mw = mw;
- 	seg1->mr_rkey = mr->rkey;
- 	seg1->mr_base = mr->iova;
-@@ -500,7 +500,7 @@ __frwr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 
- 	seg->rl_mw = NULL;
- 
--	ib_dma_unmap_sg(device, f->fr_sg, f->fr_nents, seg->mr_dir);
-+	ib_dma_unmap_sg(device, f->fr_sg, f->fr_nents, f->fr_dir);
- 
- 	if (!rc)
- 		rpcrdma_put_mw(r_xprt, mw);
-@@ -611,7 +611,7 @@ frwr_op_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
- 	invalidate_wr->ex.invalidate_rkey = frmr->fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
--	ib_dma_unmap_sg(ia->ri_device, frmr->fr_sg, frmr->fr_nents, seg1->mr_dir);
-+	ib_dma_unmap_sg(ia->ri_device, frmr->fr_sg, frmr->fr_nents, frmr->fr_dir);
- 	read_lock(&ia->ri_qplock);
- 	rc = ib_post_send(ia->ri_id->qp, invalidate_wr, &bad_wr);
- 	read_unlock(&ia->ri_qplock);
+ 	return 0;
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index abfce80..0b3aa54 100644
+index 0b3aa54..61d5cce 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -222,6 +222,7 @@ enum rpcrdma_frmr_state {
- struct rpcrdma_frmr {
- 	struct scatterlist		*fr_sg;
- 	int				fr_nents;
-+	enum dma_data_direction		fr_dir;
- 	struct ib_mr			*fr_mr;
+@@ -227,8 +227,6 @@ struct rpcrdma_frmr {
  	struct ib_cqe			fr_cqe;
  	enum rpcrdma_frmr_state		fr_state;
+ 	struct completion		fr_linv_done;
+-	struct work_struct		fr_work;
+-	struct rpcrdma_xprt		*fr_xprt;
+ 	union {
+ 		struct ib_reg_wr	fr_regwr;
+ 		struct ib_send_wr	fr_invwr;
+@@ -245,6 +243,8 @@ struct rpcrdma_mw {
+ 		struct rpcrdma_fmr	fmr;
+ 		struct rpcrdma_frmr	frmr;
+ 	};
++	struct work_struct	mw_work;
++	struct rpcrdma_xprt	*mw_xprt;
+ 	struct list_head	mw_list;
+ 	struct list_head	mw_all;
+ };
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
