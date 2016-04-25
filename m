@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 13/18] xprtrdma: Refactor the FRWR recovery worker
-Date: Mon, 25 Apr 2016 15:22:34 -0400
-Message-ID: <20160425192234.3566.63698.stgit@manet.1015granger.net>
+Subject: [PATCH v2 15/18] xprtrdma: Refactor __fmr_dma_unmap()
+Date: Mon, 25 Apr 2016 15:22:51 -0400
+Message-ID: <20160425192251.3566.35007.stgit@manet.1015granger.net>
 References: <20160425185956.3566.64142.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,65 +12,48 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Maintain the order of invalidation and DMA unmapping when doing
-a background MR reset.
+Separate the DMA unmap operation from freeing the MW. In a
+subsequent patch they will not always be done at the same time,
+and they are not related operations (except by order; freeing
+the MW must be the last step during invalidation).
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index ce245dc..4e0a5c1 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -124,6 +124,21 @@ __frwr_reset_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *r)
- 	return 0;
- }
- 
-+static void
-+__frwr_reset_and_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mw *mw)
-+{
-+	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
-+	struct rpcrdma_frmr *f = &mw->frmr;
-+	int rc;
-+
-+	rc = __frwr_reset_mr(ia, mw);
-+	ib_dma_unmap_sg(ia->ri_device, f->fr_sg, f->fr_nents, f->fr_dir);
-+	if (rc)
-+		return;
-+
-+	rpcrdma_put_mw(r_xprt, mw);
-+}
-+
- /* Deferred reset of a single FRMR. Generate a fresh rkey by
-  * replacing the MR.
-  *
-@@ -136,15 +151,8 @@ __frwr_recovery_worker(struct work_struct *work)
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 009694b..9d50f3a 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -186,15 +186,10 @@ static void
+ __fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
  {
- 	struct rpcrdma_mw *r = container_of(work, struct rpcrdma_mw,
- 					    frmr.fr_work);
--	struct rpcrdma_xprt *r_xprt = r->frmr.fr_xprt;
--	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
--	int rc;
+ 	struct ib_device *device = r_xprt->rx_ia.ri_device;
+-	struct rpcrdma_mw *mw = seg->rl_mw;
+ 	int nsegs = seg->mr_nsegs;
+ 
+-	seg->rl_mw = NULL;
 -
--	rc = __frwr_reset_mr(ia, r);
--	if (rc)
--		return;
- 
--	rpcrdma_put_mw(r_xprt, r);
-+	__frwr_reset_and_unmap(r->frmr.fr_xprt, r);
- 	return;
+ 	while (nsegs--)
+ 		rpcrdma_unmap_one(device, seg++);
+-
+-	rpcrdma_put_mw(r_xprt, mw);
  }
  
-@@ -483,7 +491,6 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ /* Invalidate all memory regions that were registered for "req".
+@@ -237,9 +232,11 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 		seg = &req->rl_segments[i];
  
- out_senderr:
- 	dprintk("RPC:       %s: ib_post_send status %i\n", __func__, rc);
--	ib_dma_unmap_sg(device, frmr->fr_sg, dma_nents, direction);
- 	__frwr_queue_recovery(mw);
- 	return rc;
- }
+ 		__fmr_dma_unmap(r_xprt, seg);
++		rpcrdma_put_mw(r_xprt, seg->rl_mw);
+ 
+ 		i += seg->mr_nsegs;
+ 		seg->mr_nsegs = 0;
++		seg->rl_mw = NULL;
+ 	}
+ 
+ 	req->rl_nchunks = 0;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
