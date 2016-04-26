@@ -1,148 +1,61 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/18] NFS/RDMA client patches for v4.7
-Date: Tue, 26 Apr 2016 10:57:50 -0400
-Message-ID: <7580EA21-0782-470B-94FF-2B872A92B089@oracle.com>
-References: <20160425185956.3566.64142.stgit@manet.1015granger.net> <571F778B.5000306@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Further thoughts on uAPI
+Date: Tue, 26 Apr 2016 08:58:13 -0600
+Message-ID: <20160426145813.GB24104@obsidianresearch.com>
+References: <20160420012526.GA25508@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
+ <AM3PR05MB141161876D5CA05B1993D20CB1610@AM3PR05MB1411.eurprd05.prod.outlook.com>
+ <571F78F9.8010401@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <571F778B.5000306-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <571F78F9.8010401-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Apr 26, 2016 at 10:19:37AM -0400, Doug Ledford wrote:
+> For certain operations that have lots of optional items (work requests
+> for one, work completions for another)
 
-> On Apr 26, 2016, at 10:13 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> 
-> Hey Chuck, I'm testing this series on cxgb4.    I'm running 'iozone -a -+d -I' on a share and watching the server stats.  Are the starve numbers expected?
+FWIW, I think we had a general consensus to take a different approach.
 
-Yes, unless you're seeing much higher numbers than
-you used to.
+Basically, the 'common' uAPI does not care about micro-performance.
 
+Drivers have to implement hardware-specific driver calls to micro-optimize
+their own high speed paths, and that would be done specifically with a
+single hardware in mind.
 
-> Every 5.0s: for s in  /proc/sys/sunrpc/svc_rdma/rdma_* ; do echo -n "$(basename $s): "; cat $s; done                              Tue Apr 26 07:10:17 2016
-> 
-> rdma_stat_read: 379872
-> rdma_stat_recv: 498144
-> rdma_stat_rq_poll: 0
-> rdma_stat_rq_prod: 0
-> rdma_stat_rq_starve: 675564
+This is already done by the majority of drivers for wc/wr processing
+(IIRC, only qib calls to the kernel for this)
 
-This means work was enqueued on the svc_xprt, but by the
-time the upper layer invoked svc_rdma_recvfrom, the work
-was already handled by an earlier wake-up.
+If we do provide a common wr/wc API then it can just be designed
+inefficiently around the netlink attribute architecture, uncaring
+about performance because nothing should use it. I'd prefer not to
+implement it at all...
 
-I'm not exactly sure why this happens, but it seems to be
-normal (if suboptimal).
+This same basic idea flows over to other parts, eg if a driver has
+special support for a specific work load (say fast creation of IB UD
+AHs) then it can have a high speed driver-specific call to do that
+work completely micro-optimized using data formed *exactly* the way
+the hardware needs.
 
+> base struct plus the length of all optional structs, and the order of
+> the optional structs matches their bit order from lowest to highest in
+> the magic element.  It's not quite as free form as the patches for
+> timestamp support were, but still allows the structs some flexibility in
+> what is included and what isn't.
 
-> rdma_stat_sq_poll: 0
-> rdma_stat_sq_prod: 0
-> rdma_stat_sq_starve: 1748000
+Mellanox has a patch series that tries to do exactly this for the wc
+in libibverbs - it is quite ugly, and the the benchmarks showed worse
+performance compared to the current technique.
 
-No SQ space to post a Send, so the caller is put to sleep.
+For the reasons above I would prefer to stick entirely with the
+netlink attribute format or very similar as the main mechanism.
 
-The server chronically underestimates the SQ depth, especially
-for FRWR. I haven't figured out a better way to estimate it.
-
-But it's generally harmless, as there is a mechanism to put
-callers to sleep until there is space on the SQ.
-
-
-> rdma_stat_write: 2805420
-> 
-> 
-> On 4/25/2016 2:20 PM, Chuck Lever wrote:
->> Second version of NFS/RDMA client patches proposed for merge into
->> v4.7. Thanks in advance for any review comments!
->> 
->> Attempt to fence memory regions after a signal interrupts a
->> synchronous RPC. This prevents a server from writing a reply into a
->> client's memory after the memory has been released due to a signal.
->> 
->> Support providing a Read list and Reply chunk together in one RPC
->> call. This is a pre-requisite for using krb5i or krb5p on RPC/RDMA.
->> 
->> In addition, the following changes and fixes are included:
->> 
->> - Use new ib_drain_qp() API
->> - Advertise max size of NFSv4.1 callbacks on RPC/RDMA
->> - Prevent overflowing the server's receive buffers
->> - Send small NFS WRITEs inline rather than using a Read chunk
->> - Detect connection loss sooner
->> 
->> 
->> Available in the "nfs-rdma-for-4.7" topic branch of this git repo:
->> 
->> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->> 
->> Or for browsing:
->> 
->> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.7
->> 
->> 
->> Changes since v1:
->> - Rebased on v4.6-rc5
->> - Updated patch description for "Avoid using Write list for ..."
->> 
->> ---
->> 
->> Chuck Lever (18):
->>       sunrpc: Advertise maximum backchannel payload size
->>       xprtrdma: Bound the inline threshold values
->>       xprtrdma: Limit number of RDMA segments in RPC-over-RDMA headers
->>       xprtrdma: Prevent inline overflow
->>       xprtrdma: Avoid using Write list for small NFS READ requests
->>       xprtrdma: Update comments in rpcrdma_marshal_req()
->>       xprtrdma: Allow Read list and Reply chunk simultaneously
->>       xprtrdma: Remove rpcrdma_create_chunks()
->>       xprtrdma: Use core ib_drain_qp() API
->>       xprtrdma: Rename rpcrdma_frwr::sg and sg_nents
->>       xprtrdma: Save I/O direction in struct rpcrdma_frwr
->>       xprtrdma: Reset MRs in frwr_op_unmap_sync()
->>       xprtrdma: Refactor the FRWR recovery worker
->>       xprtrdma: Move fr_xprt and fr_worker to struct rpcrdma_mw
->>       xprtrdma: Refactor __fmr_dma_unmap()
->>       xprtrdma: Add ro_unmap_safe memreg method
->>       xprtrdma: Remove ro_unmap() from all registration modes
->>       xprtrdma: Faster server reboot recovery
->> 
->> 
->>  fs/nfs/nfs4proc.c                  |   10 -
->>  include/linux/sunrpc/clnt.h        |    1
->>  include/linux/sunrpc/xprt.h        |    1
->>  include/linux/sunrpc/xprtrdma.h    |    4
->>  net/sunrpc/clnt.c                  |   17 +
->>  net/sunrpc/xprtrdma/backchannel.c  |   16 +
->>  net/sunrpc/xprtrdma/fmr_ops.c      |  134 +++++++--
->>  net/sunrpc/xprtrdma/frwr_ops.c     |  214 ++++++++-------
->>  net/sunrpc/xprtrdma/physical_ops.c |   39 ++-
->>  net/sunrpc/xprtrdma/rpc_rdma.c     |  517 ++++++++++++++++++++++--------------
->>  net/sunrpc/xprtrdma/transport.c    |   16 +
->>  net/sunrpc/xprtrdma/verbs.c        |   91 ++----
->>  net/sunrpc/xprtrdma/xprt_rdma.h    |   42 ++-
->>  net/sunrpc/xprtsock.c              |    6
->>  14 files changed, 674 insertions(+), 434 deletions(-)
->> 
->> --
->> Chuck Lever
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
