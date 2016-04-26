@@ -1,73 +1,30 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2 00/18] NFS/RDMA client patches for v4.7
-Date: Tue, 26 Apr 2016 11:45:03 -0500
-Message-ID: <571F9B0F.8050202@opengridcomputing.com>
-References: <20160425185956.3566.64142.stgit@manet.1015granger.net>
- <571F778B.5000306@opengridcomputing.com>
- <7580EA21-0782-470B-94FF-2B872A92B089@oracle.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Further thoughts on uAPI
+Date: Tue, 26 Apr 2016 16:46:27 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0458AA@ORSMSX109.amr.corp.intel.com>
+References: <20160420012526.GA25508@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
+ <AM3PR05MB141161876D5CA05B1993D20CB1610@AM3PR05MB1411.eurprd05.prod.outlook.com>
+ <571F78F9.8010401@redhat.com> <20160426145813.GB24104@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7580EA21-0782-470B-94FF-2B872A92B089-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160426145813.GB24104-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/26/2016 9:57 AM, Chuck Lever wrote:
->
->> On Apr 26, 2016, at 10:13 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
->>
->> Hey Chuck, I'm testing this series on cxgb4.    I'm running 'iozone -a -+d -I' on a share and watching the server stats.  Are the starve numbers expected?
->
-> Yes, unless you're seeing much higher numbers than
-> you used to.
->
->
->> Every 5.0s: for s in  /proc/sys/sunrpc/svc_rdma/rdma_* ; do echo -n "$(basename $s): "; cat $s; done                              Tue Apr 26 07:10:17 2016
->>
->> rdma_stat_read: 379872
->> rdma_stat_recv: 498144
->> rdma_stat_rq_poll: 0
->> rdma_stat_rq_prod: 0
->> rdma_stat_rq_starve: 675564
->
-> This means work was enqueued on the svc_xprt, but by the
-> time the upper layer invoked svc_rdma_recvfrom, the work
-> was already handled by an earlier wake-up.
->
-> I'm not exactly sure why this happens, but it seems to be
-> normal (if suboptimal).
->
->
->> rdma_stat_sq_poll: 0
->> rdma_stat_sq_prod: 0
->> rdma_stat_sq_starve: 1748000
->
-> No SQ space to post a Send, so the caller is put to sleep.
->
-> The server chronically underestimates the SQ depth, especially
-> for FRWR. I haven't figured out a better way to estimate it.
->
-> But it's generally harmless, as there is a mechanism to put
-> callers to sleep until there is space on the SQ.
->
+> If we do provide a common wr/wc API then it can just be designed
+> inefficiently around the netlink attribute architecture, uncaring
+> about performance because nothing should use it. I'd prefer not to
+> implement it at all...
 
-
-Thanks.
-
-With this iw_cxgb4 drain fix applied:
-
-[PATCH 3/3] iw_cxgb4: handing draining an idle qp
-
-http://www.spinics.net/lists/linux-rdma/msg34927.html
-
-The series tests good over cxgb4.
-
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
+I agree with this.  WR/WC should be driver specific.  There's no need to mirror a user space API to a kernel uABI and then to a kernel API.
+ 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
