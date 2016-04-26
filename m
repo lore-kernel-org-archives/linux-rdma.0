@@ -1,49 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Don't drain the receive queue for srq attached
- queue-pair
-Date: Tue, 26 Apr 2016 14:25:29 -0500
-Message-ID: <571FC0A9.4010306@opengridcomputing.com>
-References: <1461682538-19647-1-git-send-email-sagi@grimberg.me>
- <571F841D.3010909@opengridcomputing.com>
- <CAB5WxwfAGL2qCe7w6A=mKQ65mwjbKKbp_8qFJFRF6Aj7tE+tLQ@mail.gmail.com>
- <20160426154328.GA12398@lst.de>
- <912C9E71-05E3-4ED9-9B41-137E131E3A71@oracle.com>
- <571F9084.2040506@opengridcomputing.com> <571F917C.40008@sandisk.com>
- <571F972B.6030904@opengridcomputing.com> <571FA4E5.2030501@sandisk.com>
- <571FA6D5.2060607@opengridcomputing.com> <571FC051.7020009@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v1] IB/core: Don't drain the receive queue for srq attached queue-pair
+Date: Tue, 26 Apr 2016 22:34:15 +0300
+Message-ID: <1461699255-23029-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <571FC051.7020009-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/26/2016 2:24 PM, Sagi Grimberg wrote:
->
->> Actually, after thinking more about this, posting anything to the SRQ
->> will not force it to complete.  The only reason that works for a QP with
->> an RQ is that the QP is in ERR state and thus the RECV WR gets completed
->> with FLUSHED status.
->
-> Exactly...
->
->> So SRQ drain would require some other method...
->
-> I still don't understand the meaning of draining a SRQ.
-> There are no QP associated post recvs, the QP and contexts
-> (wc->qp) are assigned at completion processing time. When
-> we have a SRQ the recv contexts are not bound to a
-> session/connection/QP...
->
-> Can you well-define what are you trying to do?
+SRQ attached QPs don't have a dedicated RQ, hence we should not
+try to drain the QP receive queue.
 
-Answer Christoph's question. :)
+Fixes: 765d67748bcf ("IB: new common API for draining queues")
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+Changes from v0:
+- Give a less idiotic patch description
 
-I'll climb out of my rat hole now... :D:D:D
+ drivers/infiniband/core/verbs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 769b000e8360..566bfb31cadb 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1897,6 +1897,7 @@ EXPORT_SYMBOL(ib_drain_rq);
+ void ib_drain_qp(struct ib_qp *qp)
+ {
+ 	ib_drain_sq(qp);
+-	ib_drain_rq(qp);
++	if (!qp->srq)
++		ib_drain_rq(qp);
+ }
+ EXPORT_SYMBOL(ib_drain_qp);
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
