@@ -1,93 +1,173 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Further thoughts on uAPI
-Date: Tue, 26 Apr 2016 08:33:23 -0600
-Message-ID: <20160426143323.GA24104@obsidianresearch.com>
-References: <20160420012526.GA25508@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
- <20160421172428.GA5102@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB045101@ORSMSX109.amr.corp.intel.com>
- <20160425181953.GC7675@obsidianresearch.com>
- <571F6A8C.9080100@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
+ remove_one
+Date: Tue, 26 Apr 2016 10:33:37 -0400
+Message-ID: <571F7C41.70700@redhat.com>
+References: <1457795927-16634-1-git-send-email-devesh.sharma@broadcom.com>
+ <20160312204502.GA8346@obsidianresearch.com>
+ <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA@mail.gmail.com>
+ <20160314174814.GB5240@obsidianresearch.com>
+ <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ@mail.gmail.com>
+ <20160315203112.GA2786@obsidianresearch.com>
+ <CANjDDBj8aZTeAfwxFuyk9r=kdihfxpxDA69-c4uVxkvcAfXViw@mail.gmail.com>
+ <20160317161237.GB19501@obsidianresearch.com>
+ <CANjDDBhYH7HsUyP8-Ko7G0tnWxYDGYCGgaC4HK0Eod_isvoWAA@mail.gmail.com>
+ <20160317164831.GI19501@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="eAVhINUvl12ImeqwGrVEOKR6DdqDTdW13"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571F6A8C.9080100-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160317164831.GI19501-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 09:18:04AM -0400, Doug Ledford wrote:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--eAVhINUvl12ImeqwGrVEOKR6DdqDTdW13
+Content-Type: multipart/mixed; boundary="KEpqFuxs8BBwFaSdIJhRJ7jUmpnm3nGtS"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <571F7C41.70700-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V4] IB/uverbs: Fix race between uverbs_close and
+ remove_one
+References: <1457795927-16634-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+ <20160312204502.GA8346-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <CANjDDBiN8X-Efgp6s2wyT1G6fpQZjdreW0pnnBG71E9jjhy-YA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20160314174814.GB5240-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <CANjDDBhVH10=0nSr0q4P4imAX6YrFBhE7QEd4ccRe2yUhN0pQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20160315203112.GA2786-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <CANjDDBj8aZTeAfwxFuyk9r=kdihfxpxDA69-c4uVxkvcAfXViw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20160317161237.GB19501-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <CANjDDBhYH7HsUyP8-Ko7G0tnWxYDGYCGgaC4HK0Eod_isvoWAA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20160317164831.GI19501-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160317164831.GI19501-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-> > So, a sketch would look like this:
-> > 
-> > struct msg
-> > {
-> >    uint16_t length;
-> >    uint16_t class_id;
-> >    uint32_t object_id; // in/out
-> >    struct qp_base_attr
-> >    {
-> >        uint16_t length;
-> >        uint16_t attribute_id;
-> > 
-> >        uint16_t qpn;  //in/out
-> >        uint16_t qp_flags;
-> >        uint16_t max_send_wr,max_recv_qr,max_send_sge,////
-> >    };
-> >    // Option to piggy back what ibv_modify_qp does:
-> >    struct qp_addr_ib
-> >    {
-> >        uint16_t length;
-> >        uint16_t attribute_id;
-> > 
-> >        uint16_t dlid,slid,sl,pkey,etc;
-> >    }
-> > }
-> > 
-> > msg.length = sizeof(msg);
-> > msg.class_id = RDMA_OBJ_QP_UD;
-> > msg.base.legnth = sizeof(msg.base);
-> > msg.base.attribute_id = RDMA_ATTR_QP_BASE;
-> > msg.base.qp_flags = XX
-> > [..]
-> > ioctl(fd,RDMA_CREATE_OBJECT,&msg);
-> > [..]
-> > ioctl(fd,RDMA_MODIFY_OBJECT,&msg2);
-> 
-> I think I would do it slightly differently.  In this example, the
-> class_id covers the entire list of commands.
+--KEpqFuxs8BBwFaSdIJhRJ7jUmpnm3nGtS
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-It isn't a list of commands, it is a list of attributes - this was
-specifically exploring the idea Liran has talked about where create_qp
-and modify_qp *as a special case* can be combined. This is not
-chaining commands but atomically creating a qp with the full set of
-attributes.
+On 3/17/2016 12:48 PM, Jason Gunthorpe wrote:
+> On Thu, Mar 17, 2016 at 10:01:55PM +0530, Devesh Sharma wrote:
+>> On Thu, Mar 17, 2016 at 9:42 PM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>>> On Thu, Mar 17, 2016 at 09:38:30PM +0530, Devesh Sharma wrote:
+>>>
+>>>> To my mind mutex is *not* solving the problem completely unless we
+>>>> make it a coarser grained lock. The possible deadlock problem still
+>>>> lingers around it.
+>>>
+>>> Review the last version I sent, with this statement in mind:
+>>
+>> I am sorry I lost the track of it, which one you are point..we have
+>> been discussion for a quite some time now!
+>=20
+> Not saying it is perfect, but it should be close:
 
-> if each command in the linked list was fully self-contained and
-> complete.  For the example of the cmtime program that's part of
-> librdamcm, when you run it with 1000s of connections as the test, being
-> able to pipeline 10, or 50, or 100 different commands would be useful to
-> the test.  Likewise, a verbs 2.0 application might want to build up a
-> chain of commands and pass the whole chain down in one ioctl.
+Jason, this is your patch since you completely tossed Devesh's work and
+did your own.  Can you please post a corrected version of this with a
+proper changelog and Signed-off-by.  Thanks.
 
-It would not be too hard to provide a linked list execution ioctl:
+> --- a/drivers/infiniband/core/uverbs_main.c
+> +++ b/drivers/infiniband/core/uverbs_main.c
+> @@ -953,18 +953,20 @@ static int ib_uverbs_close(struct inode *inode, s=
+truct file *filp)
+>  {
+>  	struct ib_uverbs_file *file =3D filp->private_data;
+>  	struct ib_uverbs_device *dev =3D file->device;
+> -	struct ib_ucontext *ucontext =3D NULL;
+> +
+> +	mutex_lock(&file->cleanup_mutex);
+> +	if (file->ucontext) {
+> +		ib_uverbs_cleanup_ucontext(file, file->ucontext);
+> +		file->ucontext =3D NULL;
+> +	}
+> +	mutex_unlock(&file->cleanup_mutex);
+> =20
+>  	mutex_lock(&file->device->lists_mutex);
+> -	ucontext =3D file->ucontext;
+> -	file->ucontext =3D NULL;
+>  	if (!file->is_closed) {
+>  		list_del(&file->list);
+>  		file->is_closed =3D 1;
+>  	}
+>  	mutex_unlock(&file->device->lists_mutex);
+> -	if (ucontext)
+> -		ib_uverbs_cleanup_ucontext(file, ucontext);
+> =20
+>  	if (file->async_file)
+>  		kref_put(&file->async_file->ref, ib_uverbs_release_event_file);
+> @@ -1177,26 +1179,28 @@ static void ib_uverbs_free_hw_resources(struct =
+ib_uverbs_device *uverbs_dev,
+> =20
+>  	mutex_lock(&uverbs_dev->lists_mutex);
+>  	while (!list_empty(&uverbs_dev->uverbs_file_list)) {
+> -		struct ib_ucontext *ucontext;
+> -
+>  		file =3D list_first_entry(&uverbs_dev->uverbs_file_list,
+>  					struct ib_uverbs_file, list);
+>  		file->is_closed =3D 1;
+> -		ucontext =3D file->ucontext;
+>  		list_del(&file->list);
+> -		file->ucontext =3D NULL;
+>  		kref_get(&file->ref);
+>  		mutex_unlock(&uverbs_dev->lists_mutex);
+> +
+>  		/* We must release the mutex before going ahead and calling
+>  		 * disassociate_ucontext. disassociate_ucontext might end up
+>  		 * indirectly calling uverbs_close, for example due to freeing
+>  		 * the resources (e.g mmput).
+>  		 */
+>  		ib_uverbs_event_handler(&file->event_handler, &event);
+> -		if (ucontext) {
+> -			ib_dev->disassociate_ucontext(ucontext);
+> -			ib_uverbs_cleanup_ucontext(file, ucontext);
+> +		mutex_lock(&file->cleanup_mutex);
+> +		if (file->ucontext) {
+> +			file->ucontext =3D NULL;
+> +			mutex_unlock(&file->cleanup_mutex);
+> +			ib_dev->disassociate_ucontext(file->ucontext);
+> +			ib_uverbs_cleanup_ucontext(file, file->ucontext);
+>  		}
+> +		else
+> +			mutex_unlock(&file->cleanup_mutex);
+> =20
+>  		mutex_lock(&uverbs_dev->lists_mutex);
+>  		kref_put(&file->ref, ib_uverbs_release_file);
+>=20
 
-struct chain_hdr
-{
-    uint32_t command;
-    struct chain_hdr *next;
-    uint64_t msg[];
-}
-ioctl(fd,RDMA_EXECUTE_CHAINED_COMMANDS,&chain_hdr);
 
-I think the kernel side would be fairly trivial.
 
-Someone would have to figure out a way to use that from userspace of
-course..
+--KEpqFuxs8BBwFaSdIJhRJ7jUmpnm3nGtS--
 
-Jason
+--eAVhINUvl12ImeqwGrVEOKR6DdqDTdW13
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXH3xBAAoJELgmozMOVy/d7KAP/0jpe6Hn2XkVKbkc8XzCMpYq
+XP/lQf0Sol6ihbbisem5Fru2S+7zXsbuYgqFJcW4ey+AUwWKffsYq1GFdBgO0S3V
+i3VTkjc8OcobXPhFzsVwwcYBgbFruwjbtt0WTdRouhQB1zUyougnUivI5L+LjfFH
+35o/M1t8AKhoYwns3GmRwi3qxsrYVT1tAXdjTrYwaz/iE5LszBrXRs8SJ/8ltjOs
+Bltu28Jv40qCwQJbNuX8b71iKFa2SHmPrNVbvNKRwJ/k5L/e8ZIZmhhjxRJ9HNRH
+93UPkZixc+5iOtCKlHJ6rFNhArjPyiihYA4uVaPuEVe+86eP+lsTED8NqyDc2WcS
+YnnEHRblagjceJW6U7qcyEa41Uwwz9w1w3afqsxtomQefqS5keS8UFf6AM2CXVoh
+jpsyWgE0snlN086uhZpp2rQ1xlUvwwwWaYhsYu8goSh1JdfCQyaDLVJH8xHn4/cK
+HboxJ5odrmhl6ziBrbN7hKpSSKwgaiyxCoKVYAqIu92n82QWlIBmQYpiBKi8zhec
+pQFeuvJuIIZDXFoE23S7Yfdst9WEqwt0pHbVeQ65GwNrN9kx5JpHYdWsQ1/l/nan
+KB7se60ZZGWediCQ+vYe7UBCNXCYmd/CMUJaZOYpddJES7WFpY5f9Z2T44wfD1nL
+LxlkZMNvuayQ2SFkamDK
+=OWQP
+-----END PGP SIGNATURE-----
+
+--eAVhINUvl12ImeqwGrVEOKR6DdqDTdW13--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
