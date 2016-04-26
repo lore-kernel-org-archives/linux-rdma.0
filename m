@@ -1,45 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Further thoughts on uAPI
-Date: Tue, 26 Apr 2016 10:54:50 -0600
-Message-ID: <20160426165450.GA3962@obsidianresearch.com>
-References: <20160420012526.GA25508@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
- <AM3PR05MB141161876D5CA05B1993D20CB1610@AM3PR05MB1411.eurprd05.prod.outlook.com>
- <571F78F9.8010401@redhat.com>
- <20160426145813.GB24104@obsidianresearch.com>
- <571F9968.3080501@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/18] NFS/RDMA client patches for v4.7
+Date: Tue, 26 Apr 2016 13:15:40 -0400
+Message-ID: <65970DB7-5F18-4C66-8698-C0A13F88F4E7@oracle.com>
+References: <20160425185956.3566.64142.stgit@manet.1015granger.net> <571F778B.5000306@opengridcomputing.com> <7580EA21-0782-470B-94FF-2B872A92B089@oracle.com> <571F9B0F.8050202@opengridcomputing.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <571F9968.3080501-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <571F9B0F.8050202-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 26, 2016 at 12:38:00PM -0400, Doug Ledford wrote:
-> We're talking about two different things.  I had the actual user space
-> API on my mind when I wrote what I wrote (aka, libibverbs).
 
-This will become very confusing if we don't focus on one thing..
+> On Apr 26, 2016, at 12:45 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> 
+> On 4/26/2016 9:57 AM, Chuck Lever wrote:
+>> 
+>>> On Apr 26, 2016, at 10:13 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+>>> 
+>>> Hey Chuck, I'm testing this series on cxgb4.    I'm running 'iozone -a -+d -I' on a share and watching the server stats.  Are the starve numbers expected?
+>> 
+>> Yes, unless you're seeing much higher numbers than
+>> you used to.
+>> 
+>> 
+>>> Every 5.0s: for s in  /proc/sys/sunrpc/svc_rdma/rdma_* ; do echo -n "$(basename $s): "; cat $s; done                              Tue Apr 26 07:10:17 2016
+>>> 
+>>> rdma_stat_read: 379872
+>>> rdma_stat_recv: 498144
+>>> rdma_stat_rq_poll: 0
+>>> rdma_stat_rq_prod: 0
+>>> rdma_stat_rq_starve: 675564
+>> 
+>> This means work was enqueued on the svc_xprt, but by the
+>> time the upper layer invoked svc_rdma_recvfrom, the work
+>> was already handled by an earlier wake-up.
+>> 
+>> I'm not exactly sure why this happens, but it seems to be
+>> normal (if suboptimal).
+>> 
+>> 
+>>> rdma_stat_sq_poll: 0
+>>> rdma_stat_sq_prod: 0
+>>> rdma_stat_sq_starve: 1748000
+>> 
+>> No SQ space to post a Send, so the caller is put to sleep.
+>> 
+>> The server chronically underestimates the SQ depth, especially
+>> for FRWR. I haven't figured out a better way to estimate it.
+>> 
+>> But it's generally harmless, as there is a mechanism to put
+>> callers to sleep until there is space on the SQ.
+>> 
+> 
+> 
+> Thanks.
+> 
+> With this iw_cxgb4 drain fix applied:
+> 
+> [PATCH 3/3] iw_cxgb4: handing draining an idle qp
+> 
+> http://www.spinics.net/lists/linux-rdma/msg34927.html
+> 
+> The series tests good over cxgb4.
+> 
+> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-How to fix libibverbs's API is a totally different problem, only very
-loosely related to fixing the uAPI. Whatever new uAPI we come up with
-must support current libibverbs with no loss during translation.
+Excellent. I will mark up my patch series with your
+Tested-by tag.
 
-Tackling a verbs 2.0 along with the uAPI project is too big, IMHO.
+--
+Chuck Lever
 
-It is pretty obvious to me we don't want to retain the current near
-1:1 mapping of libverbs calls and kernel calls.
 
-> There are only a few options for how to expose these things to user
-> space (using the example I gave as a further talking point):
 
-AFAIK Mellanox is working on benchmarking these options, so perhaps we
-will have some data someday.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
