@@ -1,116 +1,27 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2 00/18] NFS/RDMA client patches for v4.7
-Date: Tue, 26 Apr 2016 09:13:31 -0500
-Message-ID: <571F778B.5000306@opengridcomputing.com>
-References: <20160425185956.3566.64142.stgit@manet.1015granger.net>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] net/mlx5e: avoid stack overflow in mlx5e_open_channels
+Date: Tue, 26 Apr 2016 17:41:45 +0300
+Message-ID: <CALzJLG-d1mTs9SdubELzQtczsiVY0cgzBc3BC6wJoBgx4Wg_+Q@mail.gmail.com>
+References: <1461590139-1396745-1-git-send-email-arnd@arndb.de>
+ <CALzJLG98swFRKAZUcoXMWMyzX3z_h-HhTNZD_unh43VHByZY0A@mail.gmail.com> <5940636.9Nic57IXcZ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160425185956.3566.64142.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <5940636.9Nic57IXcZ@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amir-IB5XiEnQfqI@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Chuck, I'm testing this series on cxgb4.    I'm running 'iozone -a 
--+d -I' on a share and watching the server stats.  Are the starve 
-numbers expected?
+On Tue, Apr 26, 2016 at 4:53 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+>
+> Sure, do you want to just edit this when you forward the patch, or
+> do you need me to do it?
+>
 
-Every 5.0s: for s in  /proc/sys/sunrpc/svc_rdma/rdma_* ; do echo -n 
-"$(basename $s): "; cat $s; done                              Tue Apr 26 
-07:10:17 2016
+Well, I won't say no if you want to do it :)
 
-rdma_stat_read: 379872
-rdma_stat_recv: 498144
-rdma_stat_rq_poll: 0
-rdma_stat_rq_prod: 0
-rdma_stat_rq_starve: 675564
-rdma_stat_sq_poll: 0
-rdma_stat_sq_prod: 0
-rdma_stat_sq_starve: 1748000
-rdma_stat_write: 2805420
-
-
-On 4/25/2016 2:20 PM, Chuck Lever wrote:
-> Second version of NFS/RDMA client patches proposed for merge into
-> v4.7. Thanks in advance for any review comments!
->
-> Attempt to fence memory regions after a signal interrupts a
-> synchronous RPC. This prevents a server from writing a reply into a
-> client's memory after the memory has been released due to a signal.
->
-> Support providing a Read list and Reply chunk together in one RPC
-> call. This is a pre-requisite for using krb5i or krb5p on RPC/RDMA.
->
-> In addition, the following changes and fixes are included:
->
-> - Use new ib_drain_qp() API
-> - Advertise max size of NFSv4.1 callbacks on RPC/RDMA
-> - Prevent overflowing the server's receive buffers
-> - Send small NFS WRITEs inline rather than using a Read chunk
-> - Detect connection loss sooner
->
->
-> Available in the "nfs-rdma-for-4.7" topic branch of this git repo:
->
-> git://git.linux-nfs.org/projects/cel/cel-2.6.git
->
-> Or for browsing:
->
-> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.7
->
->
-> Changes since v1:
-> - Rebased on v4.6-rc5
-> - Updated patch description for "Avoid using Write list for ..."
->
-> ---
->
-> Chuck Lever (18):
->        sunrpc: Advertise maximum backchannel payload size
->        xprtrdma: Bound the inline threshold values
->        xprtrdma: Limit number of RDMA segments in RPC-over-RDMA headers
->        xprtrdma: Prevent inline overflow
->        xprtrdma: Avoid using Write list for small NFS READ requests
->        xprtrdma: Update comments in rpcrdma_marshal_req()
->        xprtrdma: Allow Read list and Reply chunk simultaneously
->        xprtrdma: Remove rpcrdma_create_chunks()
->        xprtrdma: Use core ib_drain_qp() API
->        xprtrdma: Rename rpcrdma_frwr::sg and sg_nents
->        xprtrdma: Save I/O direction in struct rpcrdma_frwr
->        xprtrdma: Reset MRs in frwr_op_unmap_sync()
->        xprtrdma: Refactor the FRWR recovery worker
->        xprtrdma: Move fr_xprt and fr_worker to struct rpcrdma_mw
->        xprtrdma: Refactor __fmr_dma_unmap()
->        xprtrdma: Add ro_unmap_safe memreg method
->        xprtrdma: Remove ro_unmap() from all registration modes
->        xprtrdma: Faster server reboot recovery
->
->
->   fs/nfs/nfs4proc.c                  |   10 -
->   include/linux/sunrpc/clnt.h        |    1
->   include/linux/sunrpc/xprt.h        |    1
->   include/linux/sunrpc/xprtrdma.h    |    4
->   net/sunrpc/clnt.c                  |   17 +
->   net/sunrpc/xprtrdma/backchannel.c  |   16 +
->   net/sunrpc/xprtrdma/fmr_ops.c      |  134 +++++++--
->   net/sunrpc/xprtrdma/frwr_ops.c     |  214 ++++++++-------
->   net/sunrpc/xprtrdma/physical_ops.c |   39 ++-
->   net/sunrpc/xprtrdma/rpc_rdma.c     |  517 ++++++++++++++++++++++--------------
->   net/sunrpc/xprtrdma/transport.c    |   16 +
->   net/sunrpc/xprtrdma/verbs.c        |   91 ++----
->   net/sunrpc/xprtrdma/xprt_rdma.h    |   42 ++-
->   net/sunrpc/xprtsock.c              |    6
->   14 files changed, 674 insertions(+), 434 deletions(-)
->
-> --
-> Chuck Lever
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Saeed
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
