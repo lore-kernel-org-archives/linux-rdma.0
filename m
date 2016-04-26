@@ -1,70 +1,107 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 04/18] xprtrdma: Prevent inline overflow
-Date: Tue, 26 Apr 2016 16:04:59 -0400
-Message-ID: <B6501EE8-870B-40C6-8F44-FA74308EC6E5@oracle.com>
-References: <20160425185956.3566.64142.stgit@manet.1015granger.net> <20160425192120.3566.99978.stgit@manet.1015granger.net> <571FC7A3.2010407@grimberg.me>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+Subject: [PATCH v6 03/25] io-mapping: Specify mapping size for io_mapping_map_wc()
+Date: Tue, 26 Apr 2016 21:05:58 +0100
+Message-ID: <1461701180-895-4-git-send-email-chris@chris-wilson.co.uk>
+References: <1461701180-895-1-git-send-email-chris@chris-wilson.co.uk>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <571FC7A3.2010407-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1461701180-895-1-git-send-email-chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Cc: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, Tvrtko Ursulin <tvrtko.ursulin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Vetter <daniel.vetter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Peter Zijlstra (Intel)" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, David Hildenbrand <dahi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Luis R . Rodriguez" <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The ioremap() hidden behind the io_mapping_map_wc() convenience helper
+can be used for remapping multiple pages. Extend the helper so that
+future callers can use it for larger ranges.
 
-> On Apr 26, 2016, at 3:55 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> 
-> 
->> When deciding whether to send a Call inline, rpcrdma_marshal_req
->> doesn't take into account header bytes consumed by chunk lists.
->> This results in Call messages on the wire that are sometimes larger
->> than the inline threshold.
-> 
-> I'm not sure I understand why you need to account the chunk list size
-> when deciding on the inline data size., aren't chunk lists for remote
-> access only?
+Signed-off-by: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+Cc: Tvrtko Ursulin <tvrtko.ursulin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Daniel Vetter <daniel.vetter-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: David Airlie <airlied-cv59FeDIM0c@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Peter Zijlstra (Intel)" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: David Hildenbrand <dahi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Reviewed-by: Luis R. Rodriguez <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/gpu/drm/i915/intel_overlay.c    |  3 ++-
+ drivers/net/ethernet/mellanox/mlx4/pd.c |  4 +++-
+ include/linux/io-mapping.h              | 10 +++++++---
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
-The chunk lists and RPC message payload effectively
-share the same 1024-byte buffer (it's two buffers
-gathered, but the sum of the two buffer sizes has to
-be less than 1025).
-
-If the chunk lists are large, the RPC message size is
-reduced.
-
-
-> Is this a first-burst kind of functionality?
-> 
->> Likewise, when a Write list or Reply chunk is in play, the server's
->> reply has to emit an RDMA Send that includes a larger-than-minimal
->> RPC-over-RDMA header.
->> 
->> The actual size of a Call message cannot be estimated until after
->> the chunk lists have been registered. Thus the size of each
->> RPC-over-RDMA header can be estimated only after chunks are
->> registered; but the decision to register chunks is based on the size
->> of that header. Chicken, meet egg.
-> 
-> :)
-> 
->> The best a client can do is estimate header size based on the
->> largest header that might occur, and then ensure that inline content
->> is always smaller than that.
-> 
-> Isn't that a big loss?
-
-For FRWR, the maximum header size is adjusted based on
-the HCA's capabilities. If the HCA can send the whole
-payload in one chunk, then the maximum header size is
-about 64 bytes.
-
-
---
-Chuck Lever
-
-
+diff --git a/drivers/gpu/drm/i915/intel_overlay.c b/drivers/gpu/drm/i915/intel_overlay.c
+index 06bcd6aee64f..8d5293644d05 100644
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -198,7 +198,8 @@ intel_overlay_map_regs(struct intel_overlay *overlay)
+ 		regs = (struct overlay_registers __iomem *)overlay->reg_bo->phys_handle->vaddr;
+ 	else
+ 		regs = io_mapping_map_wc(ggtt->mappable,
+-					 overlay->flip_addr);
++					 overlay->flip_addr,
++					 PAGE_SIZE);
+ 
+ 	return regs;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx4/pd.c b/drivers/net/ethernet/mellanox/mlx4/pd.c
+index b3cc3ab63799..6fc156a3918d 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/pd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/pd.c
+@@ -205,7 +205,9 @@ int mlx4_bf_alloc(struct mlx4_dev *dev, struct mlx4_bf *bf, int node)
+ 			goto free_uar;
+ 		}
+ 
+-		uar->bf_map = io_mapping_map_wc(priv->bf_mapping, uar->index << PAGE_SHIFT);
++		uar->bf_map = io_mapping_map_wc(priv->bf_mapping,
++						uar->index << PAGE_SHIFT,
++						PAGE_SIZE);
+ 		if (!uar->bf_map) {
+ 			err = -ENOMEM;
+ 			goto unamp_uar;
+diff --git a/include/linux/io-mapping.h b/include/linux/io-mapping.h
+index e399029b68c5..645ad06b5d52 100644
+--- a/include/linux/io-mapping.h
++++ b/include/linux/io-mapping.h
+@@ -100,14 +100,16 @@ io_mapping_unmap_atomic(void __iomem *vaddr)
+ }
+ 
+ static inline void __iomem *
+-io_mapping_map_wc(struct io_mapping *mapping, unsigned long offset)
++io_mapping_map_wc(struct io_mapping *mapping,
++		  unsigned long offset,
++		  unsigned long size)
+ {
+ 	resource_size_t phys_addr;
+ 
+ 	BUG_ON(offset >= mapping->size);
+ 	phys_addr = mapping->base + offset;
+ 
+-	return ioremap_wc(phys_addr, PAGE_SIZE);
++	return ioremap_wc(phys_addr, size);
+ }
+ 
+ static inline void
+@@ -155,7 +157,9 @@ io_mapping_unmap_atomic(void __iomem *vaddr)
+ 
+ /* Non-atomic map/unmap */
+ static inline void __iomem *
+-io_mapping_map_wc(struct io_mapping *mapping, unsigned long offset)
++io_mapping_map_wc(struct io_mapping *mapping,
++		  unsigned long offset,
++		  unsigned long size)
+ {
+ 	return ((char __force __iomem *) mapping) + offset;
+ }
+-- 
+2.8.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
