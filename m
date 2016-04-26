@@ -1,82 +1,94 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH v5 09/21] IB/hns: Add hca support
-Date: Tue, 26 Apr 2016 16:25:17 +0200
-Message-ID: <20160426142517.GA1937@nanopsycho.orion>
-References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
- <1461407219-72027-10-git-send-email-oulijun@huawei.com>
- <20160424075424.GE7974@leon.nu>
- <571F0C04.2010005@huawei.com>
- <20160426141821.GJ7974@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Further thoughts on uAPI
+Date: Tue, 26 Apr 2016 08:33:23 -0600
+Message-ID: <20160426143323.GA24104@obsidianresearch.com>
+References: <20160420012526.GA25508@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB044043@ORSMSX109.amr.corp.intel.com>
+ <20160421172428.GA5102@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB045101@ORSMSX109.amr.corp.intel.com>
+ <20160425181953.GC7675@obsidianresearch.com>
+ <571F6A8C.9080100@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160426141821.GJ7974@leon.nu>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: oulijun <oulijun@huawei.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linuxarm@huawei.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com
+In-Reply-To: <571F6A8C.9080100-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, OFVWG <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tue, Apr 26, 2016 at 04:18:21PM CEST, leon@kernel.org wrote:
->On Tue, Apr 26, 2016 at 02:34:44PM +0800, oulijun wrote:
->> On 2016/4/24 15:54, Leon Romanovsky wrote:
+On Tue, Apr 26, 2016 at 09:18:04AM -0400, Doug Ledford wrote:
 
-<snip>
+> > So, a sketch would look like this:
+> > 
+> > struct msg
+> > {
+> >    uint16_t length;
+> >    uint16_t class_id;
+> >    uint32_t object_id; // in/out
+> >    struct qp_base_attr
+> >    {
+> >        uint16_t length;
+> >        uint16_t attribute_id;
+> > 
+> >        uint16_t qpn;  //in/out
+> >        uint16_t qp_flags;
+> >        uint16_t max_send_wr,max_recv_qr,max_send_sge,////
+> >    };
+> >    // Option to piggy back what ibv_modify_qp does:
+> >    struct qp_addr_ib
+> >    {
+> >        uint16_t length;
+> >        uint16_t attribute_id;
+> > 
+> >        uint16_t dlid,slid,sl,pkey,etc;
+> >    }
+> > }
+> > 
+> > msg.length = sizeof(msg);
+> > msg.class_id = RDMA_OBJ_QP_UD;
+> > msg.base.legnth = sizeof(msg.base);
+> > msg.base.attribute_id = RDMA_ATTR_QP_BASE;
+> > msg.base.qp_flags = XX
+> > [..]
+> > ioctl(fd,RDMA_CREATE_OBJECT,&msg);
+> > [..]
+> > ioctl(fd,RDMA_MODIFY_OBJECT,&msg2);
+> 
+> I think I would do it slightly differently.  In this example, the
+> class_id covers the entire list of commands.
 
->> >> +int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, u32 *obj)
->> >> +{
->> >> +	int ret = 0;
->> >> +
->> >> +	spin_lock(&bitmap->lock);
->> >> +	*obj = find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
->> >> +	if (*obj >= bitmap->max) {
->> >> +		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
->> >> +			       & bitmap->mask;
->> >> +		*obj = find_first_zero_bit(bitmap->table, bitmap->max);
->> > 
->> > find_first_zero_bit function returns "unsigned long" which may or may
->> > not be equal to u32 on some architectures.
->> > 
->> Hi Leon,
->>     I appreciate your keen eye. this code is meant for ARM64bit therefore should run corretly for 64-bit AARCH64.
+It isn't a list of commands, it is a list of attributes - this was
+specifically exploring the idea Liran has talked about where create_qp
+and modify_qp *as a special case* can be combined. This is not
+chaining commands but atomically creating a qp with the full set of
+attributes.
 
-The driver should run correctly on any arch.
+> if each command in the linked list was fully self-contained and
+> complete.  For the example of the cmtime program that's part of
+> librdamcm, when you run it with 1000s of connections as the test, being
+> able to pipeline 10, or 50, or 100 different commands would be useful to
+> the test.  Likewise, a verbs 2.0 application might want to build up a
+> chain of commands and pass the whole chain down in one ioctl.
 
+It would not be too hard to provide a linked list execution ioctl:
 
->> I will consider changing it as part of good partice and better portability "
->> I will give a primary plan to modified it.
->> for example:
->>     *obj = (u32)find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
->> Beause the max size of bitmap->table is u32 in current version.
->> 
->> int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
->> 			 u32 reserved_bot, u32 reserved_top)
->> {
->> 	u32 i;
->> 
->> 	if (num != roundup_pow_of_two(num))
->> 		return -EINVAL;
->> 
->> 	bitmap->last = 0;
->> 	bitmap->top = 0;
->> 	bitmap->max = num - reserved_top;
->> 	bitmap->mask = mask;
->> 	bitmap->reserved_top = reserved_top;
->> 	spin_lock_init(&bitmap->lock);
->> 	bitmap->table = kcalloc(BITS_TO_LONGS(bitmap->max), sizeof(long),
->> 				GFP_KERNEL);
->> 
->> Is this plan ok?
->
->No,
->You are submitting new driver, please do it properly (without casting)
->from the beginning.
->
->> 
->> Thanks
->> Lijun Ou
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+struct chain_hdr
+{
+    uint32_t command;
+    struct chain_hdr *next;
+    uint64_t msg[];
+}
+ioctl(fd,RDMA_EXECUTE_CHAINED_COMMANDS,&chain_hdr);
+
+I think the kernel side would be fairly trivial.
+
+Someone would have to figure out a way to use that from userspace of
+course..
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
