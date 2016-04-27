@@ -1,132 +1,112 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 09/21] IB/hns: Add hca support
-Date: Wed, 27 Apr 2016 11:37:01 +0800
-Message-ID: <572033DD.9050501@huawei.com>
-References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
- <1461407219-72027-10-git-send-email-oulijun@huawei.com>
- <20160424075424.GE7974@leon.nu> <571F0C04.2010005@huawei.com>
- <20160426141821.GJ7974@leon.nu>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/7] IB/hfi1: Remove write() and use ioctl() for user
+ access
+Date: Wed, 27 Apr 2016 05:21:46 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22EC6A98@CRSMSX101.amr.corp.intel.com>
+References: <20160414153727.6387.96381.stgit@scvm10.sc.intel.com>
+ <20160414164550.GC6247@obsidianresearch.com>
+ <20160418130909.GD11508@infradead.org>
+ <20160418174047.GB13865@obsidianresearch.com>
+ <20160418182411.GA4904@infradead.org>
+ <20160419173817.GF20844@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0439B0@ORSMSX109.amr.corp.intel.com>
+ <5717EAC1.6020602@redhat.com> <571F6795.8020808@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160426141821.GJ7974-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <571F6795.8020808-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2016/4/26 22:18, Leon Romanovsky wrote:
-> On Tue, Apr 26, 2016 at 02:34:44PM +0800, oulijun wrote:
->> On 2016/4/24 15:54, Leon Romanovsky wrote:
->>> On Sat, Apr 23, 2016 at 06:26:47PM +0800, Lijun Ou wrote:
->>>> This patch mainly setup hca for RoCE. it will do a series of
->>>> initial works as follows:
->>>>       1. init uar table, allocate uar resource
->>>>       2. init pd table
->>>>       3. init cq table
->>>>       4. init mr table
->>>>       5. init qp table
->>>>
->>>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>> Signed-off-by: Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>>  drivers/infiniband/hw/hns/hns_roce_alloc.c  | 104 ++++++++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_cq.c     |  25 ++++
->>>>  drivers/infiniband/hw/hns/hns_roce_device.h |  69 ++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_eq.c     |   1 -
->>>>  drivers/infiniband/hw/hns/hns_roce_icm.c    |  88 +++++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_icm.h    |   9 ++
->>>>  drivers/infiniband/hw/hns/hns_roce_main.c   |  79 ++++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_mr.c     | 187 ++++++++++++++++++++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_pd.c     |  65 ++++++++++
->>>>  drivers/infiniband/hw/hns/hns_roce_qp.c     |  30 +++++
->>>>  10 files changed, 656 insertions(+), 1 deletion(-)
->>>>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_alloc.c
->>>>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_mr.c
->>>>  create mode 100644 drivers/infiniband/hw/hns/hns_roce_pd.c
->>>>
->>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
->>>> new file mode 100644
->>>> index 0000000..0c76f1b
->>>> --- /dev/null
->>>> +++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
->>>> @@ -0,0 +1,104 @@
->>>> +/*
->>>> + * Copyright (c) 2016 Hisilicon Limited.
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License as published by
->>>> + * the Free Software Foundation; either version 2 of the License, or
->>>> + * (at your option) any later version.
->>>> + */
->>>> +
->>>> +#include <linux/bitmap.h>
->>>> +#include <linux/dma-mapping.h>
->>>> +#include <linux/errno.h>
->>>> +#include <linux/mm.h>
->>>> +#include <linux/slab.h>
->>>> +#include <linux/vmalloc.h>
->>>> +#include "hns_roce_device.h"
->>>> +
->>>> +int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, u32 *obj)
->>>> +{
->>>> +	int ret = 0;
->>>> +
->>>> +	spin_lock(&bitmap->lock);
->>>> +	*obj = find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
->>>> +	if (*obj >= bitmap->max) {
->>>> +		bitmap->top = (bitmap->top + bitmap->max + bitmap->reserved_top)
->>>> +			       & bitmap->mask;
->>>> +		*obj = find_first_zero_bit(bitmap->table, bitmap->max);
->>>
->>> find_first_zero_bit function returns "unsigned long" which may or may
->>> not be equal to u32 on some architectures.
->>>
->> Hi Leon,
->>     I appreciate your keen eye. this code is meant for ARM64bit therefore should run corretly for 64-bit AARCH64.
->> I will consider changing it as part of good partice and better portability "
->> I will give a primary plan to modified it.
->> for example:
->>     *obj = (u32)find_next_zero_bit(bitmap->table, bitmap->max, bitmap->last);
->> Beause the max size of bitmap->table is u32 in current version.
->>
->> int hns_roce_bitmap_init(struct hns_roce_bitmap *bitmap, u32 num, u32 mask,
->> 			 u32 reserved_bot, u32 reserved_top)
->> {
->> 	u32 i;
->>
->> 	if (num != roundup_pow_of_two(num))
->> 		return -EINVAL;
->>
->> 	bitmap->last = 0;
->> 	bitmap->top = 0;
->> 	bitmap->max = num - reserved_top;
->> 	bitmap->mask = mask;
->> 	bitmap->reserved_top = reserved_top;
->> 	spin_lock_init(&bitmap->lock);
->> 	bitmap->table = kcalloc(BITS_TO_LONGS(bitmap->max), sizeof(long),
->> 				GFP_KERNEL);
->>
->> Is this plan ok?
 > 
-> No,
-> You are submitting new driver, please do it properly (without casting)
-> from the beginning.
+> On 4/20/2016 4:46 PM, Doug Ledford wrote:
+> > On 04/19/2016 04:44 PM, Hefty, Sean wrote:
+> >>> Right - and the RDMA uAPI has always had an integrated driver-bypass
+> >>> channel as part of the verb uAPI calls, extending that to allow for
+> >>> new-driver-specific calls seems very natural.
+> >>
+> >> I remain unconvinced that having the equivalent of:
+> >>
+> >> 1 open unrelated-interface
+> >> 2 ioctl open-file
+> >> 3 close unrelated-interface
+> >>
+> >> is desirable.  If you want to push for a generic mechanism for mapping
+> NIC resources into user space, then separate that from the device
+> implementation.
+> >>
+> >> Doug, can you weigh in here with your thoughts?
+> >>
+> >
+> > Yeah.  I've been off working on issues related to 4.6-rc (interfaces
+> > that are DOA).  Give me a little bit to catch up on the thread and
+> > I'll weigh in.
+> >
 > 
-oh, i see. I will give a better plan to modify it.
+> I've spent a decent amount of time thinking about this as well as the general
+> questions posed in the "Furhter thoughts on uAPI" thread.
+> 
+> In regards to the specific issues brought up here, and not really dealing with
+> the concept of a Verbs 2.0 API.
+> 
+> I've been seeing more and more instances where we need to implement
+> something, but over and over again, it's already been done (albeit not
+> necessarily to our needs) in the core net stack.  It's actually so common that
+> I'm starting to feel like I'm in the "Simpson's Did It"
+> South Park episode.
+> 
+> I toyed for a bit with the idea that we could alter the core RDMA stack to
+> simply always allocate a netdevice and in some way transition the RDMA
+> stack to being a more fully integrated member of the net stack.
+> This does have some advantages, but also lots of difficulties.
 
-Thanks
-Lijun Ou
->>
->> Thanks
->> Lijun Ou
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sounds reasonable.
 
+> 
+> However, in retrospect, the iWARP, RoCE, and usNIC devices all already have
+> netdevices because they are all Ethernet devices that support some form of
+> RDMA.  The only devices left out are OPA and IB.
+> 
+> We already have precedent for requiring an IPoIB device, and it's associate
+> netdevice, in order to manage some non-IP, non-Ethernet, IB specific items
+> (the recent SRIOV patches being a perfect example).
+
+I'm not sure this is always going to be the case.  I have heard a number of reports of IPoIBs inability to scale and a desire to not run it.
+
+> 
+> I think we simply need to standardize on this.  As such, I think I want to make
+> this a hard and fast rule: For those devices that aren't netdevices in their own
+> right, management that can be done via their IPoIB device(s), should be done
+> that way.  The Ethernet devices already have their own EEPROM writing
+> code, so I see no reason why we can't add an EEPROM read/write hook to
+> IPoIB and then pass that on down to the
+> hfi1 device.
+> 
+> Unless people have objections to this as a way forward, Dennis, as much as
+> possible, when you attempt to address the comments in this thread, please
+> do so via the IPoIB devices and existing core net stack infrastructure.
+
+I think I have to object, at least in the short term.
+
+Isn't there a way we can create a netdevice that does not have the associated overhead of IPoIB?
+
+Right now it is perfectly reasonable to run some nodes without the IPoIB module even loaded (SM management nodes for example).  What happens to storage target hardware which is Linux based?  Will they be forced to be in an IPoIB subnet?
+
+In the past there have been virtual NIC implementations which could be used instead of IPoIB.  If those are supported are we still going to require IPoIB as well?
+
+I think my biggest concern at this point is the additional load one would place on a large fabric if you required IPoIB.  We have made improvements in this area but even with the path record improvements we have made through netlink multicast join operations are still a scalability concern.  Furthermore, this requires a user space daemon to scale properly.  This is not exactly something you want to depend on just to load your device driver on a node.
+
+I'd really like to explore how to get more integrated with the netdevice functionality without requiring an actual IP subnet device.
+
+I feel like this is a bit too much of "force network technology X to look like network tech Y".  We are discussing Verbs 2.0 specifically because not all RDMA hardware looks like InfiniBand.  Therefore we are looking at ways to make the interface more generic.
+
+I am not opposed to more integration with the netdev stack but I was thinking it would be more of making non-ethernet devices true netdevices, not forcing another emulation layer to be required for OPA to even function.
+
+Ira
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
