@@ -1,199 +1,61 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next] IB/mlx5: Add UARs write-combining and non-cached mapping
-Date: Wed, 27 Apr 2016 16:49:50 +0300
-Message-ID: <1461764990-549-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH V1 for-next 2/2] IB/mlx5: Report mlx5 LSO capabilities when querying device
+Date: Wed, 27 Apr 2016 17:04:52 +0300
+Message-ID: <1461765892-1285-3-git-send-email-matanb@mellanox.com>
+References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1461765892-1285-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-By this patch, the user space library will be able to improve
-performance using appropriate ringing DoorBell method according to the
-memory type it asked for.
+mlx5 based hardware supports LSO for Raw Ethernet QPs.
+LSO (large segment offload) applied here is mainly used
+for TCP (also known as TSO).
 
-Currently only one mapping command is allowed for UARs:
-MLX5_IB_MMAP_REGULAR_PAGE. Using this mapping, the kernel maps the
-UARs to write-combining (WC) if the system supports it.
-If the system is not supporting WC the UARs are mapped to
-non-cached(NC). In this case the user space library can't tell which
-mapping is applied.
-This patch adds 2 new mapping commands: MLX5_IB_MMAP_WC_PAGE and
-MLX5_IB_MMAP_NC_PAGE. For these commands the kernel maps exactly as
-requested and fails if it can't.
-
-Since there is no generic way to check if the requested memory region
-can be mapped as WC, driver enables conclusive WC mapping only for
-x86, PowerPC and ARM which support WC for the device's memory region.
-
-Signed-off-by: Guy Levy <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Hi Doug,
-
-Currently the kernel UAR mapping interface provides a best effort
-mechanism in which the caller simply invokes one mapping command which
-silently maps to one of the memory types (write-combining or
-non-cached).
-
-However, the user space library will be able to improve the performance
-using the appropriate ringing DoorBell method according to the memory
-type.
-
-This patch adds two new mapping commands which enable the library to
-get an explicit mapping type.
-
-Regards,
-Guy and Matan
-
-Changes from V0:
- * Fixed typos.
-
- drivers/infiniband/hw/mlx5/main.c    | 96 ++++++++++++++++++++++++++++--------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +
- 2 files changed, 77 insertions(+), 21 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 5acf346..95bfdc1 100644
+index 5acf346..3716001e 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -38,6 +38,9 @@
- #include <linux/dma-mapping.h>
- #include <linux/slab.h>
- #include <linux/io-mapping.h>
-+#if defined(CONFIG_X86)
-+#include <asm/pat.h>
-+#endif
- #include <linux/sched.h>
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_addr.h>
-@@ -1068,38 +1071,89 @@ static int get_index(unsigned long offset)
- 	return get_arg(offset);
- }
+@@ -454,6 +454,7 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_rq_sg;
+ 	int max_sq_sg;
+ 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
++	u64 max_lso;
  
-+static inline char *mmap_cmd2str(enum mlx5_ib_mmap_cmd cmd)
-+{
-+	switch (cmd) {
-+	case MLX5_IB_MMAP_WC_PAGE:
-+		return "WC";
-+	case MLX5_IB_MMAP_REGULAR_PAGE:
-+		return "best effort WC";
-+	case MLX5_IB_MMAP_NC_PAGE:
-+		return "NC";
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
-+		    struct vm_area_struct *vma, struct mlx5_uuar_info *uuari)
-+{
-+	int err;
-+	unsigned long idx;
-+	phys_addr_t pfn, pa;
-+	pgprot_t prot;
-+
-+	switch (cmd) {
-+	case MLX5_IB_MMAP_WC_PAGE:
-+/* Some architectures don't support WC memory */
-+#if defined(CONFIG_X86)
-+		if (!pat_enabled())
-+			return -EPERM;
-+#elif !(defined(CONFIG_PPC) || (defined(CONFIG_ARM) && defined(CONFIG_MMU)))
-+			return -EPERM;
-+#endif
-+	/* fall through */
-+	case MLX5_IB_MMAP_REGULAR_PAGE:
-+		/* For MLX5_IB_MMAP_REGULAR_PAGE do the best effort to get WC */
-+		prot = pgprot_writecombine(vma->vm_page_prot);
-+		break;
-+	case MLX5_IB_MMAP_NC_PAGE:
-+		prot = pgprot_noncached(vma->vm_page_prot);
-+		break;
-+	default:
-+		return -EINVAL;
+ 	if (uhw->inlen || uhw->outlen)
+ 		return -EINVAL;
+@@ -508,10 +509,18 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+ 
+-	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    (MLX5_CAP_ETH(dev->mdev, csum_cap)))
++	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
++		if (MLX5_CAP_ETH(mdev, csum_cap))
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+ 
++		max_lso = MLX5_CAP_ETH(mdev, max_lso_cap);
++		if (max_lso) {
++			props->lso_caps.max_lso = 1 << max_lso;
++			props->lso_caps.supported_qpts |=
++				1 << IB_QPT_RAW_PACKET;
++		}
 +	}
 +
-+	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
-+		return -EINVAL;
-+
-+	idx = get_index(vma->vm_pgoff);
-+	if (idx >= uuari->num_uars)
-+		return -EINVAL;
-+
-+	pfn = uar_index2pfn(dev, uuari->uars[idx].index);
-+	mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn %pa\n", idx, &pfn);
-+
-+	vma->vm_page_prot = prot;
-+	err = io_remap_pfn_range(vma, vma->vm_start, pfn,
-+				 PAGE_SIZE, vma->vm_page_prot);
-+	if (err) {
-+		mlx5_ib_err(dev, "io_remap_pfn_range failed with error=%d, vm_start=0x%lx, pfn=%pa, mmap_cmd=%s\n",
-+			    err, vma->vm_start, &pfn, mmap_cmd2str(cmd));
-+		return -EAGAIN;
-+	}
-+
-+	pa = pfn << PAGE_SHIFT;
-+	mlx5_ib_dbg(dev, "mapped %s at 0x%lx, PA %pa\n", mmap_cmd2str(cmd),
-+		    vma->vm_start, &pa);
-+
-+	return 0;
-+}
-+
- static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
- {
- 	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
- 	struct mlx5_ib_dev *dev = to_mdev(ibcontext->device);
- 	struct mlx5_uuar_info *uuari = &context->uuari;
- 	unsigned long command;
--	unsigned long idx;
- 	phys_addr_t pfn;
- 
- 	command = get_command(vma->vm_pgoff);
- 	switch (command) {
-+	case MLX5_IB_MMAP_WC_PAGE:
-+	case MLX5_IB_MMAP_NC_PAGE:
- 	case MLX5_IB_MMAP_REGULAR_PAGE:
--		if (vma->vm_end - vma->vm_start != PAGE_SIZE)
--			return -EINVAL;
--
--		idx = get_index(vma->vm_pgoff);
--		if (idx >= uuari->num_uars)
--			return -EINVAL;
--
--		pfn = uar_index2pfn(dev, uuari->uars[idx].index);
--		mlx5_ib_dbg(dev, "uar idx 0x%lx, pfn 0x%llx\n", idx,
--			    (unsigned long long)pfn);
--
--		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
--		if (io_remap_pfn_range(vma, vma->vm_start, pfn,
--				       PAGE_SIZE, vma->vm_page_prot))
--			return -EAGAIN;
--
--		mlx5_ib_dbg(dev, "mapped WC at 0x%lx, PA 0x%llx\n",
--			    vma->vm_start,
--			    (unsigned long long)pfn << PAGE_SHIFT);
--		break;
-+		return uar_mmap(dev, command, vma, uuari);
- 
- 	case MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES:
- 		return -ENOSYS;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index f16c818..7520661 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -70,6 +70,8 @@ enum {
- enum mlx5_ib_mmap_cmd {
- 	MLX5_IB_MMAP_REGULAR_PAGE		= 0,
- 	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES	= 1,
-+	MLX5_IB_MMAP_WC_PAGE			= 2,
-+	MLX5_IB_MMAP_NC_PAGE			= 3,
- 	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
- 	MLX5_IB_MMAP_CORE_CLOCK			= 5,
- };
+ 	if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+ 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+ 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
 -- 
 2.5.0
 
