@@ -1,32 +1,56 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
- querying device
-Date: Wed, 27 Apr 2016 21:54:43 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB046AB1@ORSMSX109.amr.corp.intel.com>
-References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
- <1461765892-1285-2-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Status of RXE/Soft-RoCE driver?
+Date: Wed, 27 Apr 2016 16:57:53 -0600
+Message-ID: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1604271043540.20042-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > +struct ib_lso_caps {
-> > +	u32 max_lso;
-> > +	u32 supported_qpts; /* Use enum ib_qp_type */
-> 
-> So this is a bitmap of the qps supported? And thus we have a limit now of
-> 32 QP types. That needs to be documented and  you need a BUILD_BUG_ON
-> somewhere in case IB_QPT_MAX becomes larger than 32. Also needs to be
-> better commented so we know this is a bitmap.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
 
-I think it would make more sense to indicate what protocol, or specific aspect of a protocol, are being offloaded.  Some qp types support LSO as a matter of practice.
+What is the status of getting RXE included in the mainline kernel? I
+saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
+inclusion [0], but there didn't seem to be any discussion about it. I
+diffed the kernel tree with the RXE tree on GitHub using the
+rxe_submission_v8 branch [1], but there was over 10 million lines in
+the patch file for the same kernel version. I'd rather patch into the
+vanilla kernel tree so that I can see the differences rather than just
+building the tree that someone else provides.
+
+I will probably go through all 32 patches anyway, but thought I would
+prod here about the status as it can be very helpful for
+compatibility.
+
+[0] http://www.spinics.net/lists/linux-rdma/msg28829.html
+[1] https://github.com/SoftRoCE/rxe-dev/tree/rxe_submission_v8
+
+Thanks,
+- ----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+-----BEGIN PGP SIGNATURE-----
+Version: Mailvelope v1.3.6
+Comment: https://www.mailvelope.com
+
+wsFcBAEBCAAQBQJXIUPOCRDmVDuy+mK58QAA+noQALVF1CpD+oqlMR2lgRT1
+zFgy5PeKLjX+nmqZExuvd0uu2kVw/JNJUnsvUGG0083/HT68Qm0XuVzZMoPX
+XQq5VoyuqsapEX2nEGhT2Wy+w6hSvxpVn6xGde11v6RQ9Lq/u1yHGxUFmWGf
+BwHD3G4/pGgJg5dG/BbfxUYE4w+TNl4FpGVAeZOPsCRCVehxQsgU7LNPWyo+
+pWcn3CY1AAIgUB+ZLKASsQq5a7/jbuYKFJCdC0i56dCiv8RHdGxTLRGzquLy
+QOR0sUhxDhUAKS1iwX/UdOXvCm6iWOesF5XWS19311ENPZREgaGtrcCNkXTM
+cDQi1eQU0BB2j2ZIsFMhTh1mD5NxKNTOWDptexEpa0VYFLxs1nnkajhm854d
+YZXXqSOnKtAkatjEXKRXWzJImgVcPl7FnWY6va+VKt/YNpZ4WzekL+V73Xly
+5at18zou4DpZG8OYkg1hTW13X/1NYlOctwdu7qYSj1MAuJ0DHcoV/UAg8/SQ
+L+27Hf71svtsLvDqwN7+uDj3mg74Iu6s5jBhjwYFNU6aeQKOZzllAjOczT+Z
+bY+1MGSGPY3Tt7Y5BunTLsp63O5VPcWBk64P5TE+RDoXYAzfan1Ok0h1Vinm
+x3n6yWY23mlTSflVtzF+z+97Dq6VoSmKDUVhz/yB4Ehu6r54N5bcT25ohDUB
+L9IZ
+=u+48
+-----END PGP SIGNATURE-----
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
