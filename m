@@ -1,49 +1,34 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 09/11] IB/srp: Fix a NULL pointer dereference
-Date: Wed, 27 Apr 2016 08:39:54 -0700
-Message-ID: <5720DD4A.8000704@sandisk.com>
-References: <571A936F.7040409@sandisk.com> <571A9472.5050202@sandisk.com>
- <571FD7F4.4090006@grimberg.me> <20160427062053.GK7974@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Wed, 27 Apr 2016 10:46:52 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
+References: <1461765892-1285-1-git-send-email-matanb@mellanox.com> <1461765892-1285-2-git-send-email-matanb@mellanox.com>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160427062053.GK7974-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1461765892-1285-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/26/2016 11:20 PM, Leon Romanovsky wrote:
-> On Wed, Apr 27, 2016 at 12:04:52AM +0300, Sagi Grimberg wrote:
->>> Avoid that running xfstests on top of the SRP initiator triggers
->>> the call trace below. This patch has been tested by running the
->>> following shell command on an initiator system that has access
->>> to 3200 SRP LUNs:
->>
->> That's good to know, but the patch description needs to state where
->> the NULL deref originates i.e. when can req be NULL and why it is
->> OK to just assign to NULL and continue...
->>
->>>   		scmnd = scsi_host_find_tag(target->scsi_host, rsp->tag);
->>>   		if (scmnd) {
->>>   			req = (void *)scmnd->host_scribble;
->>> -			scmnd = srp_claim_req(ch, req, NULL, scmnd);
->>> +			scmnd = req ? srp_claim_req(ch, req, NULL, scmnd) :
->>> +				NULL;
->>>   		}
->>>   		if (!scmnd) {
->>>   			shost_printk(KERN_ERR, target->scsi_host,
->>>
+On Wed, 27 Apr 2016, Matan Barak wrote:
+
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -271,6 +271,11 @@ struct ib_cq_init_attr {
+>  	u32		flags;
+>  };
 >
-> And if it is OK to assign NULL to scmd, will the error print above still
-> valid?
+> +struct ib_lso_caps {
+> +	u32 max_lso;
+> +	u32 supported_qpts; /* Use enum ib_qp_type */
 
-Yes. The purpose of that printk() statement is to print a message 
-whenever an SRP response has been received but that response is not 
-passed to the SCSI mid-layer through scsi_done().
+So this is a bitmap of the qps supported? And thus we have a limit now of
+32 QP types. That needs to be documented and  you need a BUILD_BUG_ON
+somewhere in case IB_QPT_MAX becomes larger than 32. Also needs to be
+better commented so we know this is a bitmap.
 
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
