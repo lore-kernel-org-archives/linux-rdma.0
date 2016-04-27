@@ -1,101 +1,48 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when querying device
-Date: Wed, 27 Apr 2016 17:04:51 +0300
-Message-ID: <1461765892-1285-2-git-send-email-matanb@mellanox.com>
-References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 09/11] IB/srp: Fix a NULL pointer dereference
+Date: Wed, 27 Apr 2016 07:22:53 -0700
+Message-ID: <5720CB3D.4070404@sandisk.com>
+References: <571A936F.7040409@sandisk.com> <571A9472.5050202@sandisk.com>
+ <571FD7F4.4090006@grimberg.me> <20160427062053.GK7974@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461765892-1285-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160427062053.GK7974-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 04/26/16 23:20, Leon Romanovsky wrote:
+> On Wed, Apr 27, 2016 at 12:04:52AM +0300, Sagi Grimberg wrote:
+>>> Avoid that running xfstests on top of the SRP initiator triggers
+>>> the call trace below. This patch has been tested by running the
+>>> following shell command on an initiator system that has access
+>>> to 3200 SRP LUNs:
+>>
+>> That's good to know, but the patch description needs to state where
+>> the NULL deref originates i.e. when can req be NULL and why it is
+>> OK to just assign to NULL and continue...
+>>
+>>>   		scmnd = scsi_host_find_tag(target->scsi_host, rsp->tag);
+>>>   		if (scmnd) {
+>>>   			req = (void *)scmnd->host_scribble;
+>>> -			scmnd = srp_claim_req(ch, req, NULL, scmnd);
+>>> +			scmnd = req ? srp_claim_req(ch, req, NULL, scmnd) :
+>>> +				NULL;
+>>>   		}
+>>>   		if (!scmnd) {
+>>>   			shost_printk(KERN_ERR, target->scsi_host,
+>>>
+>
+> And if it is OK to assign NULL to scmd, will the error print above still
+> valid?
 
-LSO capabilities include the max LSO packet size in bytes and which QP
-types does the hardware support.
+Sorry Leon but I don't understand your question. Have you noticed the if 
+(!scmnd) above that error print?
 
-Relevant verbs to report LSO capabilities from kernel to user space are
-updated accordingly.
-
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 7 +++++++
- include/rdma/ib_verbs.h              | 6 ++++++
- include/uapi/rdma/ib_user_verbs.h    | 6 ++++++
- 3 files changed, 19 insertions(+)
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 6fdc7ec..b0fb94b 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3655,6 +3655,13 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
- 	resp.hca_core_clock = attr.hca_core_clock;
- 	resp.response_length += sizeof(resp.hca_core_clock);
- 
-+	if (ucore->outlen < resp.response_length + sizeof(resp.lso_caps))
-+		goto end;
-+
-+	resp.lso_caps.max_lso = attr.lso_caps.max_lso;
-+	resp.lso_caps.supported_qpts = attr.lso_caps.supported_qpts;
-+	resp.response_length += sizeof(resp.lso_caps);
-+
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index fb2cef4..d5a466f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -271,6 +271,11 @@ struct ib_cq_init_attr {
- 	u32		flags;
- };
- 
-+struct ib_lso_caps {
-+	u32 max_lso;
-+	u32 supported_qpts; /* Use enum ib_qp_type */
-+};
-+
- struct ib_device_attr {
- 	u64			fw_ver;
- 	__be64			sys_image_guid;
-@@ -317,6 +322,7 @@ struct ib_device_attr {
- 	struct ib_odp_caps	odp_caps;
- 	uint64_t		timestamp_mask;
- 	uint64_t		hca_core_clock; /* in KHZ */
-+	struct ib_lso_caps	lso_caps;
- };
- 
- enum ib_mtu {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 8126c14..fa039f5 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -219,6 +219,11 @@ struct ib_uverbs_odp_caps {
- 	__u32 reserved;
- };
- 
-+struct ib_uverbs_lso_caps {
-+	__u32 max_lso;
-+	__u32 supported_qpts; /* Use enum ib_qp_type */
-+};
-+
- struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_query_device_resp base;
- 	__u32 comp_mask;
-@@ -226,6 +231,7 @@ struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_odp_caps odp_caps;
- 	__u64 timestamp_mask;
- 	__u64 hca_core_clock; /* in KHZ */
-+	struct ib_uverbs_lso_caps lso_caps;
- };
- 
- struct ib_uverbs_query_port {
--- 
-2.5.0
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
