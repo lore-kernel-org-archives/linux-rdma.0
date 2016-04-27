@@ -1,43 +1,34 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
-Date: Wed, 27 Apr 2016 18:45:10 +0300
-Message-ID: <5720DE86.6060503@mellanox.com>
-References: <1461013588-8825-1-git-send-email-hch@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 0/2] Add support for reporting LSO
+ capabilities
+Date: Wed, 27 Apr 2016 10:42:30 -0600
+Message-ID: <20160427164230.GB11617@obsidianresearch.com>
+References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461013588-8825-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461765892-1285-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Apr 27, 2016 at 05:04:50PM +0300, Matan Barak wrote:
 
+> This patch series enables hardware to report Large Segment Offload(LSO)
+> capabilities from kernel to user space. LSO enabled NIC will accept big chuck of
+> data with size greater than MTU. The LSO engine will split them into
+> separate packets and insert the headers automatically. With LSO, CPU is
+> offloaded from dealing with much less throughput of data.
 
-On 4/19/2016 12:06 AM, Christoph Hellwig wrote:
-> iSER currently has a couple places that set max_sectors in either the host
-> template or SCSI host, and all of them get it wrong.
->
-> This patch instead uses a single assignment that (hopefully) gets it right:
-> the max_sectors value must be derived from the number of segments in the
-> FR or FRM structure, but actually be one lower than the page size multiplied
+I also feel like we should stop changing the current uAPI until we get
+the new one in place..
 
-* FRM ==> FMR
+Eg, the gross thing Christoph points out about the QP type bitmap can
+probably go away in the new uAPI.
 
-> by the number of sectors, as it has to handle the case of non-aligned I/O.
->
-> Without this I get trivivial to reproduce hangs when running xfstests
-> (on XFS) over iSER to Linux targets.
->
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> ---
->   drivers/infiniband/ulp/iser/iscsi_iser.c | 14 ++++++++++----
->   1 file changed, 10 insertions(+), 4 deletions(-)
->
-
-Looks good.
-
-Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
