@@ -1,132 +1,42 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 10/10] svcrdma: Switch CQs from IB_POLL_SOFTIRQ to IB_POLL_WORKQUEUE
-Date: Thu, 28 Apr 2016 12:15:16 -0400
-Message-ID: <56ECC5E6-62DB-4498-8E2D-FD6F887C0EEA@oracle.com>
-References: <20160428150915.13068.94602.stgit@klimt.1015granger.net> <20160428151550.13068.24199.stgit@klimt.1015granger.net> <00ec01d1a166$fd134650$f739d2f0$@opengridcomputing.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
+Date: Thu, 28 Apr 2016 10:28:02 -0600
+Message-ID: <20160428162802.GA29690@obsidianresearch.com>
+References: <1461013588-8825-1-git-send-email-hch@lst.de>
+ <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
+ <20160428075508.GA18285@lst.de>
+ <CAJ3xEMj-HX=dRe8zew3VDZ6X_oodzfxX8SwnROCh1T6cfVNTYg@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00ec01d1a166$fd134650$f739d2f0$@opengridcomputing.com>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMj-HX=dRe8zew3VDZ6X_oodzfxX8SwnROCh1T6cfVNTYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-> On Apr 28, 2016, at 11:59 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+On Thu, Apr 28, 2016 at 01:51:21PM +0300, Or Gerlitz wrote:
+> On Thu, Apr 28, 2016 at 10:55 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> > I haven't used that explicit language, but:  go fuck yourself, seriously.
 > 
+> Christoph, I wrote you on both cases this was a nit comment.
 > 
-> 
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
->> Sent: Thursday, April 28, 2016 10:16 AM
->> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: [PATCH 10/10] svcrdma: Switch CQs from IB_POLL_SOFTIRQ to
->> IB_POLL_WORKQUEUE
->> 
->> Spread NFSD completion handling across CPUs, and replace
->> BH-friendly spin locking with plain spin locks.
->> 
->> iozone -i0 -i1 -s128m -y1k -az -I -N
->> 
->> Microseconds/op Mode. Output is in microseconds per operation.
->> 
->> Before:
->>              KB  reclen   write rewrite    read    reread
->>          131072       1      51      51       43       43
->>          131072       2      53      52       42       43
->>          131072       4      53      52       43       43
->>          131072       8      55      54       44       44
->>          131072      16      62      59       49       47
->>          131072      32      72      69       53       53
->>          131072      64      92      87       66       66
->>          131072     128     144     130       94       93
->>          131072     256     225     216      146      145
->>          131072     512     485     474      251      251
->>          131072    1024     573     540      514      512
->>          131072    2048    1007     941      624      618
->>          131072    4096    1672    1699      976      969
->>          131072    8192    3179    3158     1660     1649
->>          131072   16384    5836    5659     3062     3041
->> 
->> After:
->>              KB  reclen   write rewrite    read    reread
->>          131072       1      54      54       43       43
->>          131072       2      55      55       43       43
->>          131072       4      56      57       44       45
->>          131072       8      59      58       45       45
->>          131072      16      64      62       47       47
->>          131072      32      76      74       54       54
->>          131072      64      96      91       67       66
->>          131072     128     148     133       97       97
->>          131072     256     229     227      148      147
->>          131072     512     488     445      252      255
->>          131072    1024     582     534      511      540
->>          131072    2048     998     988      614      620
->>          131072    4096    1685    1679      946      965
->>          131072    8192    3113    3048     1650     1644
->>          131072   16384    6010    5745     3046     3053
->> 
->> NFS READ is roughly the same, NFS WRITE is marginally worse.
->> 
->> Before:
->> GETATTR:
->> 	242 ops (0%)
->> 	avg bytes sent per op: 127
->> 	avg bytes received per op: 112
->> 	backlog wait: 0.000000
->> 	RTT: 0.041322
->> 	total execute time: 0.049587 (milliseconds)
->> 
->> After:
->> GETATTR:
->> 	242 ops (0%)
->> 	avg bytes sent per op: 127
->> 	avg bytes received per op: 112
->> 	backlog wait: 0.000000
->> 	RTT: 0.045455
->> 	total execute time: 0.053719 (milliseconds)
->> 
->> Small op latency increased by 4usec.
->> 
-> 
-> 
-> Hey Chuck, in what scenario or under what type of load do you expect this change to help performance?  I guess it would help as you scale out the number of clients and thus the number of CQs in use?
+> I understand now that you are not willing to accept nits as feedback on
+> your fixes, and that you are really nervous on me, happens.
 
-Allowing completions to run on any CPU should help if the
-softIRQ thread is constrained to one CPU.
+I wondered when this would finally blow up..
 
-Flapping bottom-halfs fewer times for each incoming RPC
-_should_ also be beneficial.
+I would also prefer the nit picking on commit language to stop. It is
+not a welcoming environment for new contributors, and it is a pain to
+those who are doing the bulk of the work.
 
-We are also interested in posting RDMA Read requests during
-Receive completion processing. That would reduce the
-latency of any request involving a Read chunk by removing
-a heavyweight context switch.
+Get Doug to fix stuff up to match your preferences or let it go.
 
-I've also noticed that changing just the Receive CQ to use
-workqueue has only negligible impact on performance (as
-measured using the above tool).
+It is *really* not OK to ask Sagi to not ack such commits when the
+code is OK. Sagi is doing a fine job.
 
-
-> Do you do any measurements along these lines?
-
-I don't have the quantity of hardware needed for that kind
-of analysis. You might have a few more clients in your
-lab...
-
-I think my basic question is whether I've missed something,
-if the approach can be improved, am I using the correct
-metrics, etc.
-
-
---
-Chuck Lever
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
