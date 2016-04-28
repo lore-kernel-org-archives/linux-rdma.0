@@ -1,56 +1,34 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Status of RXE/Soft-RoCE driver?
-Date: Wed, 27 Apr 2016 16:57:53 -0600
-Message-ID: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
+Date: Thu, 28 Apr 2016 10:33:02 +0300
+Message-ID: <CAJ3xEMiVfsWCEF9xX-aEExNGkF+Uxp+6udyJheKrh82Ebm0i+Q@mail.gmail.com>
+References: <1461013588-8825-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1461013588-8825-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+On Tue, Apr 19, 2016 at 12:06 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+> iSER currently has a couple places that set max_sectors in either the host
+> template or SCSI host, and all of them get it wrong.
+>
+> This patch instead uses a single assignment that (hopefully) gets it right:
+> the max_sectors value must be derived from the number of segments in the
+> FR or FRM structure, but actually be one lower than the page size multiplied
+> by the number of sectors, as it has to handle the case of non-aligned I/O.
+>
+> Without this I get trivivial to reproduce hangs when running xfstests
+> (on XFS) over iSER to Linux targets.
 
-What is the status of getting RXE included in the mainline kernel? I
-saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
-inclusion [0], but there didn't seem to be any discussion about it. I
-diffed the kernel tree with the RXE tree on GitHub using the
-rxe_submission_v8 branch [1], but there was over 10 million lines in
-the patch file for the same kernel version. I'd rather patch into the
-vanilla kernel tree so that I can see the differences rather than just
-building the tree that someone else provides.
+nit, trivivial  --> trivial, please fix
 
-I will probably go through all 32 patches anyway, but thought I would
-prod here about the status as it can be very helpful for
-compatibility.
+Sagi, Christoph,
 
-[0] http://www.spinics.net/lists/linux-rdma/msg28829.html
-[1] https://github.com/SoftRoCE/rxe-dev/tree/rxe_submission_v8
-
-Thanks,
-- ----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
------BEGIN PGP SIGNATURE-----
-Version: Mailvelope v1.3.6
-Comment: https://www.mailvelope.com
-
-wsFcBAEBCAAQBQJXIUPOCRDmVDuy+mK58QAA+noQALVF1CpD+oqlMR2lgRT1
-zFgy5PeKLjX+nmqZExuvd0uu2kVw/JNJUnsvUGG0083/HT68Qm0XuVzZMoPX
-XQq5VoyuqsapEX2nEGhT2Wy+w6hSvxpVn6xGde11v6RQ9Lq/u1yHGxUFmWGf
-BwHD3G4/pGgJg5dG/BbfxUYE4w+TNl4FpGVAeZOPsCRCVehxQsgU7LNPWyo+
-pWcn3CY1AAIgUB+ZLKASsQq5a7/jbuYKFJCdC0i56dCiv8RHdGxTLRGzquLy
-QOR0sUhxDhUAKS1iwX/UdOXvCm6iWOesF5XWS19311ENPZREgaGtrcCNkXTM
-cDQi1eQU0BB2j2ZIsFMhTh1mD5NxKNTOWDptexEpa0VYFLxs1nnkajhm854d
-YZXXqSOnKtAkatjEXKRXWzJImgVcPl7FnWY6va+VKt/YNpZ4WzekL+V73Xly
-5at18zou4DpZG8OYkg1hTW13X/1NYlOctwdu7qYSj1MAuJ0DHcoV/UAg8/SQ
-L+27Hf71svtsLvDqwN7+uDj3mg74Iu6s5jBhjwYFNU6aeQKOZzllAjOczT+Z
-bY+1MGSGPY3Tt7Y5BunTLsp63O5VPcWBk64P5TE+RDoXYAzfan1Ok0h1Vinm
-x3n6yWY23mlTSflVtzF+z+97Dq6VoSmKDUVhz/yB4Ehu6r54N5bcT25ohDUB
-L9IZ
-=u+48
------END PGP SIGNATURE-----
+You mentioned stable kernels, can you  spot the breakage point?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
