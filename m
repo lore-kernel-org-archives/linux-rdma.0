@@ -1,46 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
-Date: Thu, 28 Apr 2016 15:11:50 -0600
-Message-ID: <20160428211150.GA32359@obsidianresearch.com>
-References: <1461013588-8825-1-git-send-email-hch@lst.de>
- <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
- <20160428075508.GA18285@lst.de>
- <CAJ3xEMj-HX=dRe8zew3VDZ6X_oodzfxX8SwnROCh1T6cfVNTYg@mail.gmail.com>
- <20160428162802.GA29690@obsidianresearch.com>
- <CAJ3xEMjFbtjD4mBHFcd8-msqATgtOpj-fsUh0P-8v1ZZekBXuA@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: RE: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
+Date: Thu, 28 Apr 2016 21:53:52 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
+References: <1460410360-13104-1-git-send-email-hch@lst.de>
+ <1460410360-13104-3-git-send-email-hch@lst.de>
+ <20160419031425.GB27515@rhel.amr.corp.intel.com>
+ <20160419173032.GD20844@obsidianresearch.com> <57167D9F.9060808@grimberg.me>
+ <20160419192430.GB27028@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB047108@ORSMSX109.amr.corp.intel.com>
+ <20160428200759.GA32110@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjFbtjD4mBHFcd8-msqATgtOpj-fsUh0P-8v1ZZekBXuA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20160428200759.GA32110@obsidianresearch.com>
+Content-Language: en-US
+Sender: target-devel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, "Weiny, Ira" <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "bart.vanassche@sandisk.com" <bart.vanassche@sandisk.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 11:21:45PM +0300, Or Gerlitz wrote:
-> > I would also prefer the nit picking on commit language to stop. It is
-> > not a welcoming environment for new contributors, and it is a pain to
-> > those who are doing the bulk of the work.
+> I see several litmus tests for what kinds of ports can be combined
+> into a device (eg the 'protocol'):
 > 
-> So you are a native English speaker that prefers to have commit
-> change-logs with spelling mistakes vs. see a nit reviewer comment
-> followed by a respin by the submitter?
+> 1) Various cap tests are the same on every port. Particularly the
+>    iWarp special behaviours we are talking about here.
+> 2) AHs are not port-specific, so the AH addressing format must be
+>    defined by the device. Thus IB and iWarp cannot be combined.
+> 3) Verbs APM must work across ports. So eg rocee and IB cannot be
+>    combined since they use a different CM process.
+> 
+> Multi-port really only exists to support APM, if APM doesn't work then
+> drivers don't need to create multi-port devices.
 
-What I do care about is growing our community and drawing in more high
-quality contributions, so seeing good work derided with a bunch of
-ugly emails is far, far worse in my mind.
+I don't know the details of the qlogic device, but it is entirely possible that it allows different protocols to share resources (PDs, CQs, IP addresses, etc.).  I think we need to be careful dismissing multi-protocol devices as silly, or restricting which protocols can run over which port.  Restricting all ports on a device to support all protocols is different than restricting a device to supporting a single protocol, and it affects more than APM.
 
-I can read past a few minor capitalization, spelling and grammar
-errors in a commit, and will happily accept that to improve our
-community.
-
-As a native speaker, I can tell you that the tone of the last batch of
-emails you sent was very poor. Too accusatory and demanding for the
-level of nitpicking you were doing.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Sean
