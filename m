@@ -1,7 +1,7 @@
 From: <omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
 Subject: [PATCH] rdma\hfi1 - coding style issues cleanup
-Date: Thu, 28 Apr 2016 12:22:34 +0300
-Message-ID: <1461835354-3077-1-git-send-email-omer.dagan@tandemg.com>
+Date: Thu, 28 Apr 2016 10:58:20 +0300
+Message-ID: <1461830300-2851-1-git-send-email-omer.dagan@tandemg.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
