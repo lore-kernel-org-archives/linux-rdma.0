@@ -1,35 +1,28 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
-Date: Thu, 28 Apr 2016 10:42:12 +0300
-Message-ID: <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
-References: <1461013588-8825-1-git-send-email-hch@lst.de>
+Date: Thu, 28 Apr 2016 09:55:08 +0200
+Message-ID: <20160428075508.GA18285@lst.de>
+References: <1461013588-8825-1-git-send-email-hch@lst.de> <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461013588-8825-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 19, 2016 at 12:06 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
-> iSER currently has a couple places that set max_sectors in either the host
-> template or SCSI host, and all of them get it wrong.
->
-> This patch instead uses a single assignment that (hopefully) gets it right:
-> the max_sectors value must be derived from the number of segments in the
-> FR or FRM structure, but actually be one lower than the page size multiplied
-> by the number of sectors, as it has to handle the case of non-aligned I/O.
->
-> Without this I get trivivial to reproduce hangs when running xfstests
-> (on XFS) over iSER to Linux targets.
+I haven't used that explicit language, but:  go fuck yourself, seriously.
 
-nit but please fix
 
- IB/iser: fix max_sectors calculation
+If you as a maintained want to update changelogs to fit your taste go
+for it (I do it all the time), but sending half a dozen mails to fix
+minor changelog formatting for a stable patch that fixes a regression
+just makes me angry.
 
--->
- IB/iser: Fix calculation of maximal number of sectors posted to SCSI layer
+I thus withdraw this patch and officially don't care about the broken
+state of iSER anymore.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
