@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 06/10] svcrdma: Drain QP before freeing svcrdma_xprt
-Date: Thu, 28 Apr 2016 11:15:17 -0400
-Message-ID: <20160428151517.13068.28377.stgit@klimt.1015granger.net>
+Subject: [PATCH 05/10] svcrdma: Post Receives only for forward channel
+ requests
+Date: Thu, 28 Apr 2016 11:15:09 -0400
+Message-ID: <20160428151509.13068.89948.stgit@klimt.1015granger.net>
 References: <20160428150915.13068.94602.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,31 +13,35 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the server is forcing the connection disconnect, the QP has not
-been moved to the Error state, meaning Receives are still posted.
+Since backward direction support was added, the rq_depth was
+increased to accommodate both forward and backward Receives.
 
-Ensure Receives (and any other outstanding WRs) are flushed to free
-up resources that can be freed during teardown of an svcrdma_xprt.
+But only forward Receives need to be posted after a connection
+has been accepted. Receives for backward replies are posted as
+needed by svc_rdma_bc_sendto().
 
+This doesn't break anything, but it means some resources are
+wasted.
+
+Fixes: 03fe9931536f ('svcrdma: Define maximum number of ...')
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    3 +++
- 1 file changed, 3 insertions(+)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 02a112c..dd94401 100644
+index d2680b8..02a112c 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -1180,6 +1180,9 @@ static void __svc_rdma_free(struct work_struct *work)
+@@ -1083,7 +1083,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
  
- 	dprintk("svcrdma: %s(%p)\n", __func__, rdma);
- 
-+	if (rdma->sc_qp && !IS_ERR(rdma->sc_qp))
-+		ib_drain_qp(rdma->sc_qp);
-+
- 	/* We should only be called from kref_put */
- 	if (atomic_read(&xprt->xpt_ref.refcount) != 0)
- 		pr_err("svcrdma: sc_xprt still in use? (%d)\n",
+ 	/* Post receive buffers */
+-	for (i = 0; i < newxprt->sc_rq_depth; i++) {
++	for (i = 0; i < newxprt->sc_max_requests; i++) {
+ 		ret = svc_rdma_post_recv(newxprt, GFP_KERNEL);
+ 		if (ret) {
+ 			dprintk("svcrdma: failure posting receive buffers\n");
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
