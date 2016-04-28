@@ -1,68 +1,82 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
-Date: Thu, 28 Apr 2016 16:09:45 -0600
-Message-ID: <20160428220945.GA1542@obsidianresearch.com>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-3-git-send-email-hch@lst.de>
- <20160419031425.GB27515@rhel.amr.corp.intel.com>
- <20160419173032.GD20844@obsidianresearch.com>
- <57167D9F.9060808@grimberg.me>
- <20160419192430.GB27028@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB047108@ORSMSX109.amr.corp.intel.com>
- <20160428200759.GA32110@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH net] RDMA/nes: don't leak skb if carrier down
+Date: Thu, 28 Apr 2016 19:14:26 -0400
+Message-ID: <57229952.5010309@redhat.com>
+References: <1461529139-28582-1-git-send-email-fw@strlen.de>
+ <20160428.142000.1837221734695213663.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, "Weiny, Ira" <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "bart.vanassche@sandisk.com" <bart.vanassche@sandisk.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="84H3kJ6aq0m2rVUSRE7Sa3W53rK0XVnlr"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160428.142000.1837221734695213663.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, fw@strlen.de
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 09:53:52PM +0000, Hefty, Sean wrote:
-> > I see several litmus tests for what kinds of ports can be combined
-> > into a device (eg the 'protocol'):
-> > 
-> > 1) Various cap tests are the same on every port. Particularly the
-> >    iWarp special behaviours we are talking about here.
-> > 2) AHs are not port-specific, so the AH addressing format must be
-> >    defined by the device. Thus IB and iWarp cannot be combined.
-> > 3) Verbs APM must work across ports. So eg rocee and IB cannot be
-> >    combined since they use a different CM process.
-> > 
-> > Multi-port really only exists to support APM, if APM doesn't work then
-> > drivers don't need to create multi-port devices.
-> 
-> I don't know the details of the qlogic device, but it is entirely
-> possible that it allows different protocols to share resources (PDs,
-> CQs, IP addresses, etc.).  I think we need to be careful dismissing
-> multi-protocol devices as silly, or restricting which protocols can
-> run over which port.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--84H3kJ6aq0m2rVUSRE7Sa3W53rK0XVnlr
+Content-Type: multipart/mixed; boundary="xXXwTJ6JRFA7cj3fx68el6sNX3mL8O0oL"
+From: Doug Ledford <dledford@redhat.com>
+To: David Miller <davem@davemloft.net>, fw@strlen.de
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Message-ID: <57229952.5010309@redhat.com>
+Subject: Re: [PATCH net] RDMA/nes: don't leak skb if carrier down
+References: <1461529139-28582-1-git-send-email-fw@strlen.de>
+ <20160428.142000.1837221734695213663.davem@davemloft.net>
+In-Reply-To: <20160428.142000.1837221734695213663.davem@davemloft.net>
 
-This isn't dismissing them as silly, it is a pragmatic need in the
-core code that everything associated with a PD have a minimum standard
-of uniformity - and it is very clear that includes things like the
-iwarp special cases and the particular format of the AHs.
+--xXXwTJ6JRFA7cj3fx68el6sNX3mL8O0oL
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-For instance, even if a hardware device can run rocee and iwarp
-concurrently over a single port, today we absolutely must have
-different struct ib_devices for the same physical port to be able to
-plug that into the core stack.
+On 4/28/2016 2:20 PM, David Miller wrote:
+> From: Florian Westphal <fw@strlen.de>
+> Date: Sun, 24 Apr 2016 22:18:59 +0200
+>=20
+>> Alternatively one could free the skb, OTOH I don't think this test is
+>> useful so just remove it.
+>>
+>> Cc: <linux-rdma@vger.kernel.org>
+>> Signed-off-by: Florian Westphal <fw@strlen.de>
+>> ---
+>>  Noticed this while working on the TX_LOCKED removal.
+>=20
+> Assuming Doug will take this.
 
-Fundamentally we have the wrong model for such hardware. When a PD is
-created it should set the 'protocol' and select the compatible member
-ports that belong to the PD. Cap tests and so forth should be done
-against the PD, not a port or a device.
+Thanks for mentioning this ;-)
 
-Fixing that is major surgery, and having cap tests to the port is not
-helping clarify the current situation.
+They had sent to netdev and cc:ed linux-rdma, so I took that to mean
+they intended for you to take it.  I'll pick it up for my upcoming pull
+request.
 
-> Restricting all ports on a device to support all protocols is
-> different than restricting a device to supporting a single protocol,
-> and it affects more than APM.
 
-What else is there that is cross port in verbs?
 
-Jason
+--xXXwTJ6JRFA7cj3fx68el6sNX3mL8O0oL--
+
+--84H3kJ6aq0m2rVUSRE7Sa3W53rK0XVnlr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXIplSAAoJELgmozMOVy/dU4MP/j3KR5eYjvbOgpDroN0bWEqx
+UwtxS+zpGqbyE54BNSYQfV6hCH6qWr5xWcO7n6fCGJV+Ix0TG8kO57Sr8rBnDt8m
+HMyxAZMkWLC6lYv9ONH++e99aizXGXC5Z5LKkdsYqBTtrMKKck+dCR2pi9sshE9/
+m0N4nNEC0HcM0R6xmN+yjXhLKDHqfj+MFUYMQxbX0ySn61OVBB60PYdrLegfANzB
+nFz30M8la310LH7wBiy6KQjb/5cZHe8dUB4pgKSaPj+ZXkQFpElA5t53oMbLGMAZ
+H1W2A20ttFzkmucQQqN5WXkik0nvaqg567KF/ww01r9mrl/63NlFvebgNHXVKnVZ
+GlNDHKzYLmHuQ2aAQGyH2ljsgfhvnwqfJqE4i8UQ+vKbEqa+iuXBECP4N1OAdUUx
+OPZn1OxODuqpA5I4TSnXaqHfQhowLiy/Mcj2pnFYZa+Yd3BoLEtR/vZE5Eht0cLZ
+A9tgPpAa/1Gwe+GBwUu95zWWBXx/IZiv388qwN5HrB39R4aAIa6OPQTk1CY8IsNS
+Ii4W2poIw6Yv9ww3n0WkBjA3t2StEQLvCFwRLNFpUsFbGR8D//niQxoMgo2mrEMD
+UV8s2avyNEcQam0jU7/Y2FuZXngP4xbofYZNbV75kUi6cYEbtJf0tNvebnaMmzcX
+EIka9MBq6y4u8i99oYty
+=Mtci
+-----END PGP SIGNATURE-----
+
+--84H3kJ6aq0m2rVUSRE7Sa3W53rK0XVnlr--
