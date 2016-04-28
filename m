@@ -1,36 +1,60 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Thu, 28 Apr 2016 14:17:29 +0300
-Message-ID: <5721F149.1090004@grimberg.me>
-References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] rdma\hfi1 - coding style issues cleanup
+Date: Thu, 28 Apr 2016 14:29:20 +0300
+Message-ID: <20160428112920.GA21343@leon.nu>
+References: <1461830300-2851-1-git-send-email-omer.dagan@tandemg.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1461830300-2851-1-git-send-email-omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> What is the status of getting RXE included in the mainline kernel? I
-> saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
-> inclusion [0], but there didn't seem to be any discussion about it. I
-> diffed the kernel tree with the RXE tree on GitHub using the
-> rxe_submission_v8 branch [1], but there was over 10 million lines in
-> the patch file for the same kernel version. I'd rather patch into the
-> vanilla kernel tree so that I can see the differences rather than just
-> building the tree that someone else provides.
->
-> I will probably go through all 32 patches anyway, but thought I would
-> prod here about the status as it can be very helpful for
-> compatibility.
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
-some patches to contribute for it.
+On Thu, Apr 28, 2016 at 10:58:20AM +0300, omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org wrote:
+> From: Omer Dagan <omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
 
-Cheers,
-Sagi.
+Please fix subject line from rdma\hfi1 to be RDMA/hfi1, add description
+to subject and to the commit message itself which explains why unsigned
+variable needs to be declared as unsigned int variable and much more
+important - COMPILE patches before sending them.
+
+> -			unsigned free = 0U;
+> +			unsigned iny free = 0U;
+                                 ^^^
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXIfQQAAoJEORje4g2clinsykQAJ4ME97qSdCn0rrB+oT4EwHA
+A73ID6tYW4w717DLIO/YKPlAFfoClAzcYMh7CIBpCMue42xYn8Eh28SBQPEtAVNU
+IiALB9NBUYJkTvt/oJyzOlH/uuv/vdje2ettPE+PznPlz/+Kg2CzDVa9HeLba1Eo
+oRq/BeXJPVw6ne/KDYGEHSGpoV2lltEGN9o4Jyz756J+A50ZELEwf/9RUNUfI3KQ
+Kw3IyRBDkb5EeObCsGTUx128/3Bcs6uxKECDt/s3dQSf6J6aIx/ia2XJlThI7cJA
+jv1KjfvkhHNgioo/LfOPcGm5EpvGPuVGNF8xhgP6b4YCLxhKfsXNz2ZIf0/8BVSv
+6ktTPUcJOSjq/FS/ZJjYV3FXM3TFJJBBLxo3w2E3pRwmIi5cBY96tLP0AOWhYQmC
+GxNyxE5KohYirc+wHAEdxLXWK1PVQBJ8hTrv86srgIEb9j0PdEkso/uoUERF7IRZ
+9hxo6TTXQrta6kAsl7pMsUsXqVEvbJqTU7WErO/9KScaK+1DIl8dAmXnN7DLg1cp
+g9tV5fgt5pSLrBoWhcWwjYUQPMxwVqrqHpuGA07MF990yvWnvBo7yN6SMC0PEXXd
+1h7+sfU3dFbaZZO9ILrsK+2sl8JsbkftOSbN6t6VTHTtce6Vv4+9aZukY2vNwNv5
+wjtcRrTdzQk2auGcPdDI
+=81wj
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
