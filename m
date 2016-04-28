@@ -1,111 +1,76 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Thu, 28 Apr 2016 17:39:23 -0600
-Message-ID: <CAANLjFrRdcWbC5butmFe29OFZep9RJ-najPAOAq965Y0Jb=i8g@mail.gmail.com>
-References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
-	<5721F149.1090004@grimberg.me>
-	<20160428115653.GB21343@leon.nu>
-	<CAANLjFo2Riv3anBg99CCd2E_9gmZHrL93ZNT2Od58GMw+TPHpw@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
+Date: Thu, 28 Apr 2016 17:49:20 -0600
+Message-ID: <20160428234920.GA2782@obsidianresearch.com>
+References: <1460410360-13104-3-git-send-email-hch@lst.de>
+ <20160419031425.GB27515@rhel.amr.corp.intel.com>
+ <20160419173032.GD20844@obsidianresearch.com>
+ <57167D9F.9060808@grimberg.me>
+ <20160419192430.GB27028@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB047108@ORSMSX109.amr.corp.intel.com>
+ <20160428200759.GA32110@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
+ <20160428220945.GA1542@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB04724A@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFo2Riv3anBg99CCd2E_9gmZHrL93ZNT2Od58GMw+TPHpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB04724A@ORSMSX109.amr.corp.intel.com>
+Sender: target-devel-owner@vger.kernel.org
+To: "Hefty, Sean" <sean.hefty@intel.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, "Weiny, Ira" <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "bart.vanassche@sandisk.com" <bart.vanassche@sandisk.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+On Thu, Apr 28, 2016 at 11:23:33PM +0000, Hefty, Sean wrote:
+> > This isn't dismissing them as silly, it is a pragmatic need in the
+> > core code that everything associated with a PD have a minimum standard
+> > of uniformity - and it is very clear that includes things like the
+> > iwarp special cases and the particular format of the AHs.
+> 
+> I was referring to Christoph's comment "that multi-protocol devices
+> are indeed as silly as they seem".  Maybe we're using different
+> meanings for the term 'device'.  I'm referring to the physical
+> hardware.
 
-Looks like quite a bit has changed especially with
-b7d3e0a94fe128912bbebf0ae68551c85fd2d429 causing those patches to not
-apply cleanly. I'm trying to get this to work on 4.5+, but having
-trouble getting this all figured out (not being a programmer and not
-extremely familiar with the inner workings of RDMA. If someone has a
-newer patch set, I'd like to do some testing.
------BEGIN PGP SIGNATURE-----
-Version: Mailvelope v1.3.6
-Comment: https://www.mailvelope.com
+Oh. I think the rest of this thread uses device to refer to a 'struct
+ib_device'.
 
-wsFcBAEBCAAQBQJXIp8mCRDmVDuy+mK58QAAAwgP+gPby0h66AIYDfzCXv7v
-s+enVrSSCynFxnRALlH5BJjdOZFOaaPQ+K3S9d4w6y8vvszaAdWKJmtabtk2
-jBBQigz7sUI9LjP6Te1VV7e1tjL/b2C/7ieNWCXuZUIQe11ImiaMCYWwwClI
-OsBHYyZTvyW+VjMTNYwmBTUL5mI4yt5MUP0Izj3ZUeQmuhRxqRm3w7ywSjGX
-+8lmFU7Z/oCA8SWIJX5yY0QYfNOLeh/cMPVvXgZwKPnRqqsnO33bGT842UJU
-aQE1YPuLsqFsLTnaVPgqEJAuo2loYdOpCKgIj4MlDu/QSXiOlfBqVDw5DU+c
-Ldj4nIUq4OOdnm9D0IcbgFxSHV17iRhmgaH8oCd3S4lQCtV8FGmS3AN8pVjq
-UMIFIibchEwBI+Q/Xt4Nc00ccU3Cup3jvpWRZw4FXz9GiQQSUPAsdZLMT+Io
-9dDA7hLCgdeWe8pIjeyqfB8nWxWKppu01Dk4Yyxd08KSoYFa0Lj2wgGOyJqp
-RJ3LxI8IX7eKTgk7Vf/IqorEyka9/KpDNgLxxT2nL6EFKArb626DFgWK+YLG
-91gocctxebiGEZ6mDAPdMCEYvEyY5KyG1d02Chyl3uiFqJWZMFSwGr+S1Bqa
-WelDLBvjp8xWiqFduZMWv1Z2RibCbh2McsfNXDI5eSU4JyPGhTUBtFddU1Cz
-LcMQ
-=8ZMY
------END PGP SIGNATURE-----
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> > Fundamentally we have the wrong model for such hardware. When a PD is
+> > created it should set the 'protocol' and select the compatible member
+> > ports that belong to the PD. Cap tests and so forth should be done
+> > against the PD, not a port or a device.
+> 
+> I agree that the model is wrong.  But this is the first email I've
+> read (and I skip reading a lot) mentioning the PD.
 
+The last time this came up we talked about the right place to apply
+the 'cap' tests and the idea of using the PD or QP was briefly
+discussed.
 
-On Thu, Apr 28, 2016 at 9:48 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA256
->
-> Cool, thanks for the update.
-> -----BEGIN PGP SIGNATURE-----
-> Version: Mailvelope v1.3.6
-> Comment: https://www.mailvelope.com
->
-> wsFcBAEBCAAQBQJXIjDMCRDmVDuy+mK58QAAjcMP/jVRTBSRTJNkhGkGCiL5
-> HbRJUsslKXp61BqL4LnLQ26ELq+YPVvG/ds/7wKAaaQrWv8RZyb+L38J0tI6
-> s9C25Bo+PwheTJHmnTjrL4m0MiEWsiKGHCkc/x98YMla//UHoooE1X1QtJ4w
-> pGNcuF4rgCIoZs8Q8Gd2cIuZWgZUhHNK5TEv866YVXcH1YxkVCKFqen3JD0/
-> 8gtcPv9uw0Try4q584TUjZEEw/7SSy+FAcYDsF84ttUvalwWNcGX/1KR9tf+
-> UVokNxuqpJNEsMqyF+UYg9xFCiBdIbR2KDRd7UVtnJLnfbJd4IFOejxV6x/g
-> MEHFnzckK1pwIT24wEOUedyMELbbPJOfzbw2YzIZH6HAfLi/2a92vlAaW4sy
-> rVAEDBbC+DuXIxhY4DdTw63S4ZS1Tphl8DJmd/PBLMlu9vFS7lay1pZsQ3bQ
-> j7PWhb8h+a2us74xHUfHxd4AoFbRfm5s5EYnlZH/9ho8HiY9vubK3R8ID+ND
-> qYTxLHDSkdccw+AsE+vTXoAFl9vx4nF8F2XQcXlMFjlZ9dmgrVjDIgLbQogb
-> cQI1CunsqwLcYxaPl6W6JLWlEENwagdoSfTDjSZQud8MEQ/LTKipAab2tdmK
-> vD3M9HXyb7oKWrdDfcAhSe/TGcMk8RfaVlPKq3FTVTyhcUQyhKIoNb3iKXoX
-> PDCa
-> =Zzq9
-> -----END PGP SIGNATURE-----
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->
->
-> On Thu, Apr 28, 2016 at 5:56 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> On Thu, Apr 28, 2016 at 02:17:29PM +0300, Sagi Grimberg wrote:
->>>
->>> >What is the status of getting RXE included in the mainline kernel? I
->>> >saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
->>> >inclusion [0], but there didn't seem to be any discussion about it. I
->>> >diffed the kernel tree with the RXE tree on GitHub using the
->>> >rxe_submission_v8 branch [1], but there was over 10 million lines in
->>> >the patch file for the same kernel version. I'd rather patch into the
->>> >vanilla kernel tree so that I can see the differences rather than just
->>> >building the tree that someone else provides.
->>> >
->>> >I will probably go through all 32 patches anyway, but thought I would
->>> >prod here about the status as it can be very helpful for
->>> >compatibility.
->>>
->>> FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
->>> some patches to contribute for it.
->>
->> We are planning on submitting it in very near future.
->>
->>>
->>> Cheers,
->>> Sagi.
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> My concern is that the discussion mentioned removing multi-protocol
+> support completely, rather than improving it.
+
+No, the topic is to remove the port num from the cap tests.
+
+This is clarifying the current capability of the core code, which is
+that a struct ib_device must have certain uniformity across all ports.
+
+The port_num is totally wrong headed and is not the way to support
+some future multi-protocol hardware within a single struct
+ib_device.
+
+> I was referring to the sharing of resources (e.g. CQs, MRs) across
+> different protocols on the same device.
+
+Hum, can those even realistically be shared? Eg an iWarp and IB MRs
+have very different semantics, both in terms of the key and how the
+permission model works.
+
+IIRC CQs had some subtle differences too, and of course extracting an
+address from a WC is very different.
+
+This is why I bring up the PD as a 'narrower' container for the
+required uniformity.
+
+Jason
