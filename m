@@ -1,45 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] iw_cxgb3/4 bug fixes
-Date: Thu, 28 Apr 2016 10:25:13 -0400
-Message-ID: <57221D49.7050406@redhat.com>
-References: <20160412143035.3B08CE08CA@smtp.ogc.us>
- <00af01d19b27$f2ed8fe0$d8c8afa0$@opengridcomputing.com>
+Subject: Re: [PATCHv2 for-4.6] RDMA/iw_cxgb4: Fix bar2 virtual address
+ calculation for T4 adapters
+Date: Thu, 28 Apr 2016 10:45:21 -0400
+Message-ID: <57222201.4080503@redhat.com>
+References: <1459832028-27852-1-git-send-email-hariprasad@chelsio.com>
+ <20160405053407.GI5264@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="wacQAapbkNQ13nU1dNEBv5F6CcWMQKat6"
+ boundary="C3xtxO2QSBI34jnFn0NJOMBtTvNIfMofA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00af01d19b27$f2ed8fe0$d8c8afa0$@opengridcomputing.com>
+In-Reply-To: <20160405053407.GI5264-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-2ukJVAZIZ/Y@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wacQAapbkNQ13nU1dNEBv5F6CcWMQKat6
+--C3xtxO2QSBI34jnFn0NJOMBtTvNIfMofA
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 04/20/2016 01:13 PM, Steve Wise wrote:
+On 04/05/2016 01:34 AM, Leon Romanovsky wrote:
+> On Tue, Apr 05, 2016 at 10:23:48AM +0530, Hariprasad Shenai wrote:
 >>
->> Here are three important bug fixes that I recommend get pulled into
->> 4.6-rc.
+>> Fixes: 74217d4c6a4fb0d8 ("iw_cxgb4: support for bar2 qid densities exc=
+eeding the page size")
 >>
->> Steve Wise (3):
->>   iw_cxgb4: initialize ibdev.iwcm->ifname for port mapping
->>   iw_cxgb3: initialize ibdev.iwcm->ifname for port mapping
->>   iw_cxgb4: handing draining an idle qp
->>
->>  drivers/infiniband/hw/cxgb3/iwch_provider.c |  2 ++
->>  drivers/infiniband/hw/cxgb4/provider.c      |  2 ++
->>  drivers/infiniband/hw/cxgb4/qp.c            | 18 ++++++++++++++++--
->>  3 files changed, 20 insertions(+), 2 deletions(-)
->>
+>> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>> ---
+>> V2: Add RDMA to subject line, add kernel panic trace and the commit wh=
+ere
+>>     issue was introduced, based on review comment by Leon Romanovsky <=
+leon-2ukJVAZIZ/Y@public.gmane.org>
 >=20
-> Hey Doug, Will you pull these in for 4.6-rc?
+> Thanks a lot,
+> Reviewed-by: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+>=20
 
-I did, yes.  Thanks.
-
+I picked this up for 4.6-rc, but I reworded the commit message a bit
+(the subject line was too long).
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -47,7 +48,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---wacQAapbkNQ13nU1dNEBv5F6CcWMQKat6
+--C3xtxO2QSBI34jnFn0NJOMBtTvNIfMofA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -56,22 +57,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXIh1JAAoJELgmozMOVy/dHv0P/2IUb1nuWMvTLegOCXPwK/vf
-R5vdwnjvbtsdoOs8Gw8MJZqiXQqIIyVe205ThmzzngZ/gMGktybqkLJxm/6IcqEm
-Rca38dcO7SLyD+/56sGCZAQMQ09XCay4GhQYOYh4o039hFd/C1LefAEyKUaDcR9E
-D3kwzbyO9NaolKhMKix+hXltZM95fuo6h6pes+7nFBY9O338B6qeqzAEaC3ONJkD
-n4+mgtfJAdNzsmbTCGaiCjw4yjZNYkr+NlC5Itgb+WHxFVU/lcLi3tPXfi6HYXvN
-RSrPEZ8bYbHPlxfFytI4V05xjCdXNAnM+EwJo+g2FbFqb3ATdNx+vdWBIorm4h78
-dzHib/Ah9AHxd4Dzs3DX4UzHgLuyR5gGV5NYRD2FUEUa3DqupmKmeSDM2TtuGfr7
-MNiqNOCVJ43qTtBxiLG8zycAkdALqOTBWJ7pKlJWwcQoXwJBfhbQQSIP+7oDa4hv
-u/My0VZbjLcN9V054hFOuBDd8jsGQy6CFXP8uP+NiLBpXCuT1nGCF1Mfv7jkp3G4
-7wjTsiERABxv7+c9J67ofXbxy0gKjDiIv24O/n3PGvT2CMP2T0XrXeP/kutThcA+
-F0QfSGhJSnAgvI6hwjYANpk49V0gYM4qk+lbtNuAGRtvuTljO8A4i7awR1JT4Qmq
-w/A+EnqyzcVHAHylv8Lq
-=/86h
+iQIcBAEBCAAGBQJXIiIBAAoJELgmozMOVy/dwusP/AhLgxm45tX8J918/jlAVI00
+VRxUg7xbRs8Pe8v7fY7hK7J7t94+J3m+yrrwrY4oeE2l+xQQCpPbsILVaq4oPol8
+/fYZY8U4Nvqyc6JX6tcRTcjmU1bD/nvwiBK3sF0dSfLxJjJKPegg3IaTxPpgk77E
+rPnXFCgqxlAPMHrUmJTwW5bBcPTGYii7TjSoJseHi+YxrZ3FlanUaiMew+KYJKbg
+V9ShLZ/yoSUiS1vEenvsfmReGE3dvB2k9lTXiF/QgPaHmXPOGG7gA6xa7m1S7Ozg
+VMoKkrLHzvgZL2LeXzOkbX/h++0vHOZyzdIQbqmY4rj4yZO2kkY2DzJEwGjnEjGI
+aYT1FzVvmTm42SbzY5J22p3XJzZjrB8aFZuqsC5UiQXrXV4zVpOK8erfvBkd2P+h
+HTMrxocydlOSfm+rvhSPNsIZP5wP+P2VLft5EMvfVZtcwRlNwRg53q7TLs01EGQh
+VJ2OMoQleGojY6Y2JUQCGonnVBGRfCuZvwCFsmQdoOLbH6hpxucN/K55JzpHjmQn
+kHp4AKe1Uy4RNTxwfWDQEDVkMYCMZBBgQeduLINP43rirPfwiD+RBmLra9GNlylg
+TS5/mdTIfkNUckvQmXa3e21AzlTW4FLmg2mQIAoGIgWLDbXBNsT/krCkoQ6kiuAY
+e28+OBjuUZPY9pRgr7GP
+=tNAg
 -----END PGP SIGNATURE-----
 
---wacQAapbkNQ13nU1dNEBv5F6CcWMQKat6--
+--C3xtxO2QSBI34jnFn0NJOMBtTvNIfMofA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
