@@ -1,55 +1,38 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] rdma\hfi1 - coding style issues cleanup
-Date: Thu, 28 Apr 2016 08:41:28 -0400
-Message-ID: <20160428124127.GB9685@phlsvsds.ph.intel.com>
-References: <1461830300-2851-1-git-send-email-omer.dagan@tandemg.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Thu, 28 Apr 2016 17:01:29 +0300
+Message-ID: <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+	<5721F149.1090004@grimberg.me>
+	<20160428115653.GB21343@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1461830300-2851-1-git-send-email-omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160428115653.GB21343-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 10:58:20AM +0300, omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org wrote:
->From: Omer Dagan <omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
+On Thu, Apr 28, 2016 at 2:56 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Thu, Apr 28, 2016 at 02:17:29PM +0300, Sagi Grimberg wrote:
 
->diff --git a/drivers/staging/rdma/hfi1/aspm.h b/drivers/staging/rdma/hfi1/aspm.h
->index 0d58fe3..384df0a 100644
->--- a/drivers/staging/rdma/hfi1/aspm.h
->+++ b/drivers/staging/rdma/hfi1/aspm.h
->@@ -234,7 +234,7 @@ static inline void aspm_disable_all(struct hfi1_devdata *dd)
-> {
-> 	struct hfi1_ctxtdata *rcd;
-> 	unsigned long flags;
->-	unsigned i;
->+	unsigned int i;
-
-Can you please explain the value in doing "unsigned int" vs "unsigned"?
-None of the static checkers like checkpatch, sparse, or coccinelle seem to 
-mind.
- 
-> u64 read_csr(const struct hfi1_devdata *dd, u32 offset)
-> {
->-	if (dd->flags & HFI1_PRESENT) {
->+	if (dd->flags & HFI1_PRESENT)
-> 		return readq((void __iomem *)dd->kregbase + offset);
->-	}
->+
-> 	return -1;
-> }
+>> FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
+>> some patches to contribute for it.
 >
+> We are planning on submitting it in very near future.
 
-Also please don't fix multiple types of issues in one patch. This is very 
-easy to lose sight of in the review and stands on its own. 
+So.. lets get this going, Linus made a comment [1] that we might not
+go up even till rc7, which means there very little time left, Moni?
 
-This is a checkpatch issue. Likely the result of a previous patch removing a 
-line of code, something that is only seen when you run checkpatch on the 
-entire file not just the patch so this is a good find.
+On a related note, is there ANY patch merged for 4.7? Doug, are we
+again going to have have it in
+all-patches-merged-on-the-same-night-10-days-after-the-merge-window-opened
+manner?
 
--Denny
+Or.
+
+[1] https://lkml.org/lkml/2016/4/24/177
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
