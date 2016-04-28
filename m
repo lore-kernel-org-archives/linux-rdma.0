@@ -1,81 +1,45 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
-Date: Thu, 28 Apr 2016 17:05:35 -0400
-Message-ID: <57227B1F.5070306@redhat.com>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <1460410360-13104-3-git-send-email-hch@lst.de>
- <20160419031425.GB27515@rhel.amr.corp.intel.com>
- <20160419173032.GD20844@obsidianresearch.com> <20160419183830.GB1211@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
+Date: Thu, 28 Apr 2016 15:11:50 -0600
+Message-ID: <20160428211150.GA32359@obsidianresearch.com>
+References: <1461013588-8825-1-git-send-email-hch@lst.de>
+ <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
+ <20160428075508.GA18285@lst.de>
+ <CAJ3xEMj-HX=dRe8zew3VDZ6X_oodzfxX8SwnROCh1T6cfVNTYg@mail.gmail.com>
+ <20160428162802.GA29690@obsidianresearch.com>
+ <CAJ3xEMjFbtjD4mBHFcd8-msqATgtOpj-fsUh0P-8v1ZZekBXuA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="pTlo6ltI2DSXrQiHhAt4xNgOlo8pdErWa"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160419183830.GB1211-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMjFbtjD4mBHFcd8-msqATgtOpj-fsUh0P-8v1ZZekBXuA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---pTlo6ltI2DSXrQiHhAt4xNgOlo8pdErWa
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, Apr 28, 2016 at 11:21:45PM +0300, Or Gerlitz wrote:
+> > I would also prefer the nit picking on commit language to stop. It is
+> > not a welcoming environment for new contributors, and it is a pain to
+> > those who are doing the bulk of the work.
+> 
+> So you are a native English speaker that prefers to have commit
+> change-logs with spelling mistakes vs. see a nit reviewer comment
+> followed by a respin by the submitter?
 
-On 04/19/2016 02:38 PM, Christoph Hellwig wrote:
-> On Tue, Apr 19, 2016 at 11:30:32AM -0600, Jason Gunthorpe wrote:
->> Right, this was done because rdma_protocol_iwarp takes a port number.
->>
->> I think we discussed this once, the core code doesn't actually support=
+What I do care about is growing our community and drawing in more high
+quality contributions, so seeing good work derided with a bunch of
+ugly emails is far, far worse in my mind.
 
->> different protocols on different ports, so the port_num argument to
->> rdma_protocol_iwarp is redundant.
->>
->> This all starts to look really goofy when multi-port APM is used and
->> the QP's port number changes dynamically at runtime. (I have some
->> experimental patches that do that), I'd rather see all the port_num
->> stuff in this series go away. :(
->=20
-> Reall, I would _love_ to kill all that port_num crap.  But until
-> we get agreement from Doug and all the core maintainers that we
-> can kill it from the core, and that multi-protocol devices are
-> indeed as silly as they seem I can't..
->=20
+I can read past a few minor capitalization, spelling and grammar
+errors in a commit, and will happily accept that to improve our
+community.
 
-No worries, the patchset (and the subsequent series you promised a few
-emails later in this thread) can proceed ;-)
+As a native speaker, I can tell you that the tone of the last batch of
+emails you sent was very poor. Too accusatory and demanding for the
+level of nitpicking you were doing.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---pTlo6ltI2DSXrQiHhAt4xNgOlo8pdErWa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXInsfAAoJELgmozMOVy/dAqEP/iamAoaqge9LQE0fRzNJKB/G
-Ua8j7/E9o6ge9WsMUSoFwVw9fDyUiw6Zg8OQ2G525HyDcA08/wMYYT7iuCHs56Hr
-QH8DVqaFgolYsHtSEd9dSK7mRyKYxJJJ1wEjyN9Sjlcf2j5oBoV5c8y3gZSjqTFq
-JcW9oVpUF4owHhAgD5KzQyL2gP9MBJmMRtX6AH0VQeA1wKW856ZjH9dLuivnVUY0
-97dBZqIaT/TKK/fmevduKZUh1kfvFYedJNwgEuxEZC2dGIp+pvQAbRC9q6n2ISh8
-EJ7FWNp2V3wpavEGIu7JSkMMBHifhHmBGITVNtpbJJmoalsWn38061PhY0YJA0AA
-Dg/JuJdmyXwaAh+hDrz8gDSLH5KapEE39B0KYjV0RBItOniFNnd2ntgbkWubkg4U
-Z5iQBJOaGp0vTPPa9g3zy66x0K44RcUY67RU2ILHTnYGGNHwGfTPzH206KyMAXqs
-09ryLYybnYG5PWGWyWqL2M0bUorB5h1rtKFZpkJAhcwQw2iQMph8Kum8uxBjwwiv
-d/E9+HamTqyH3oTL2Z8oBzlyDoiKDRSviJYyphYsoQ+pV2zkY/tQnXdrogiJt34e
-FO/tKDliXHY6aPjbpUgQz++JhRQlPUnf1o0R9I8ogh5RAGYOMFgtd3LVyKnBtS3S
-0eLe1PwLIBCq9LUMyohv
-=3NJB
------END PGP SIGNATURE-----
-
---pTlo6ltI2DSXrQiHhAt4xNgOlo8pdErWa--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
