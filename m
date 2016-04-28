@@ -1,35 +1,36 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
-Date: Thu, 28 Apr 2016 14:15:50 +0300
-Message-ID: <5721F0E6.9030806@grimberg.me>
-References: <1461013588-8825-1-git-send-email-hch@lst.de>
- <CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
- <20160428075508.GA18285@lst.de>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Thu, 28 Apr 2016 14:17:29 +0300
+Message-ID: <5721F149.1090004@grimberg.me>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160428075508.GA18285-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-OK let's calm down...
 
-Christoph, no need to get angry, Or as a reviewer can suggest a
-change-log fix, and you as a contributor can simply ignore it if
-you don't want to fix it, no reason for the harsh language.
-As you said, Or can fix it if he really cares about it.
+> What is the status of getting RXE included in the mainline kernel? I
+> saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
+> inclusion [0], but there didn't seem to be any discussion about it. I
+> diffed the kernel tree with the RXE tree on GitHub using the
+> rxe_submission_v8 branch [1], but there was over 10 million lines in
+> the patch file for the same kernel version. I'd rather patch into the
+> vanilla kernel tree so that I can see the differences rather than just
+> building the tree that someone else provides.
+>
+> I will probably go through all 32 patches anyway, but thought I would
+> prod here about the status as it can be very helpful for
+> compatibility.
 
-Or, I personally don't care that much about format/capitalization all
-that much, but I know you do, so it's fine if we conform to that, but
-we can fix it ourselves and ease up on the nit-picking in this area.
-
-Thank you both, for contributing and reviewing!
+FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
+some patches to contribute for it.
 
 Cheers,
-Switzerland.
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
