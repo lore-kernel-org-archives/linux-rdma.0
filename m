@@ -1,66 +1,37 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: fix max_sectors calculation
-Date: Thu, 28 Apr 2016 23:21:45 +0300
-Message-ID: <CAJ3xEMjFbtjD4mBHFcd8-msqATgtOpj-fsUh0P-8v1ZZekBXuA@mail.gmail.com>
-References: <1461013588-8825-1-git-send-email-hch@lst.de>
-	<CAJ3xEMh1kd_tXVrS73j46ns5syrw2WDTovqVpP0snbLru_fbQw@mail.gmail.com>
-	<20160428075508.GA18285@lst.de>
-	<CAJ3xEMj-HX=dRe8zew3VDZ6X_oodzfxX8SwnROCh1T6cfVNTYg@mail.gmail.com>
-	<20160428162802.GA29690@obsidianresearch.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2] net/mlx5e: avoid stack overflow in
+ mlx5e_open_channels
+Date: Thu, 28 Apr 2016 16:47:40 -0400 (EDT)
+Message-ID: <20160428.164740.1969113968588250026.davem@davemloft.net>
+References: <1461685993-1049370-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160428162802.GA29690-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1461685993-1049370-1-git-send-email-arnd@arndb.de>
+Sender: netdev-owner@vger.kernel.org
+To: arnd@arndb.de
+Cc: saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com, achiad@mellanox.com, ogerlitz@mellanox.com, amir@vadai.me, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 7:28 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Apr 28, 2016 at 01:51:21PM +0300, Or Gerlitz wrote:
->> On Thu, Apr 28, 2016 at 10:55 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
->> > I haven't used that explicit language, but:  go fuck yourself, seriously.
->>
->> Christoph, I wrote you on both cases this was a nit comment.
->>
->> I understand now that you are not willing to accept nits as feedback on
->> your fixes, and that you are really nervous on me, happens.
->
-> I wondered when this would finally blow up..
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 26 Apr 2016 17:52:33 +0200
 
-> I would also prefer the nit picking on commit language to stop. It is
-> not a welcoming environment for new contributors, and it is a pain to
-> those who are doing the bulk of the work.
+> struct mlx5e_channel_param is a large structure that is allocated
+> on the stack of mlx5e_open_channels, and with a recent change
+> it has grown beyond the warning size for the maximum stack
+> that a single function should use:
+> 
+> mellanox/mlx5/core/en_main.c: In function 'mlx5e_open_channels':
+> mellanox/mlx5/core/en_main.c:1325:1: error: the frame size of 1072 bytes is larger than 1024 bytes [-Werror=frame-larger-than=]
+> 
+> The function is already using dynamic allocation and is not in
+> a fast path, so the easiest workaround is to use another kzalloc
+> for allocating the channel parameters.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: d3c9bc2743dc ("net/mlx5e: Added ICO SQs")
+> ---
+> v2: move allocation back into caller, as suggested by Saeed Mahameed
 
-So you are a native English speaker that prefers to have commit
-change-logs with spelling mistakes vs. see a nit reviewer comment
-followed by a respin by the submitter? your taste, I don't think this
-is the way to go, the change-log stays there for ever and there's no
-reason on earth not to fix spelling if we can do that throughout the
-review. And, yes, I do think that new comers and old suffers need to
-run spelling on their change-logs before submitting.
-
-> Get Doug to fix stuff up to match your preferences or let it go.
-
-How about you get Doug to merge for-next code prior to ten days into
-the merge window? we are 10K KM from having that.
-
-> It is *really* not OK to ask Sagi to not ack such commits when the
-> code is OK. Sagi is doing a fine job.
-
-I disagree. We have some conventions for that driver commits, and we
-have the right to keep them. If Christoph prefers that we will do the
-final touch, sure, we can do that.
-
-And hey, thanks for writing that without cursing [1] me.
-
-Or.
-
-[1] being a non native English speaker, I wasn't sure if that the
-right word, I mean, not telling go fuck yourself or alike on every 2nd
-sentence emitted to the world
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Arnd.
