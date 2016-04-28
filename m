@@ -1,78 +1,142 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Thu, 28 Apr 2016 14:56:53 +0300
-Message-ID: <20160428115653.GB21343@leon.nu>
-References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
- <5721F149.1090004@grimberg.me>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v6 02/21] devicetree: bindings: IB: Add binding document for HiSilicon RoCE
+Date: Thu, 28 Apr 2016 20:09:37 +0800
+Message-ID: <1461845396-61306-3-git-send-email-oulijun@huawei.com>
+References: <1461845396-61306-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5721F149.1090004-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1461845396-61306-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch added DTS binding document for HiSilicon RoCE driver.
 
---oLBj+sq0vYjzfsbl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+ .../bindings/infiniband/hisilicon-hns-roce.txt     | 107 +++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
 
-On Thu, Apr 28, 2016 at 02:17:29PM +0300, Sagi Grimberg wrote:
->=20
-> >What is the status of getting RXE included in the mainline kernel? I
-> >saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
-> >inclusion [0], but there didn't seem to be any discussion about it. I
-> >diffed the kernel tree with the RXE tree on GitHub using the
-> >rxe_submission_v8 branch [1], but there was over 10 million lines in
-> >the patch file for the same kernel version. I'd rather patch into the
-> >vanilla kernel tree so that I can see the differences rather than just
-> >building the tree that someone else provides.
-> >
-> >I will probably go through all 32 patches anyway, but thought I would
-> >prod here about the status as it can be very helpful for
-> >compatibility.
->=20
-> FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
-> some patches to contribute for it.
+diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+new file mode 100644
+index 0000000..2c59ed9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+@@ -0,0 +1,107 @@
++HiSilicon RoCE DT description
++
++HiSilicon RoCE engine is a part of network subsystem.
++It works depending on other part of network wubsytem, such as, gmac and
++dsa fabric.
++
++Additional properties are described here:
++
++Required properties:
++- compatible: Should contain "hisilicon,hns-roce-v1".
++- reg: Physical base address of the roce driver and
++length of memory mapped region.
++- eth-handle: phandle, specifies a reference to a node
++representing a ethernet device.
++- dsaf-handle: phandle, specifies a reference to a node
++representing a dsaf device.
++- #address-cells: must be 2
++- #size-cells: must be 2
++Optional properties:
++- dma-coherent: Present if DMA operations are coherent.
++- interrupt-parent: the interrupt parent of this device.
++- interrupts: should contain 32 completion event irq,1 async event irq
++and 1 event overflow irq.
++- interrupt-names:should be one of 34 irqs for roce device
++  - hns-roce-comp-0 ~ hns-roce-comp-31: 32 complete event irq
++  - hns-roce-async: 1 async event irq
++  - hns-roce-common: named common exception warning irq
++Example:
++	infiniband@c4000000 {
++			compatible = "hisilicon,hns-roce-v1";
++			reg = <0x0 0xc4000000 0x0 0x100000>;
++			dma-coherent;
++			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
++			dsaf-handle = <&soc0_dsa>;
++			#address-cells = <2>;
++			#size-cells = <2>;
++			interrupt-parent = <&mbigen_dsa>;
++			interrupts = <722 1>,
++					<723 1>,
++					<724 1>,
++					<725 1>,
++					<726 1>,
++					<727 1>,
++					<728 1>,
++					<729 1>,
++					<730 1>,
++					<731 1>,
++					<732 1>,
++					<733 1>,
++					<734 1>,
++					<735 1>,
++					<736 1>,
++					<737 1>,
++					<738 1>,
++					<739 1>,
++					<740 1>,
++					<741 1>,
++					<742 1>,
++					<743 1>,
++					<744 1>,
++					<745 1>,
++					<746 1>,
++					<747 1>,
++					<748 1>,
++					<749 1>,
++					<750 1>,
++					<751 1>,
++					<752 1>,
++					<753 1>,
++					<785 1>,
++					<754 4>;
++
++			interrupt-names = "hns-roce-comp-0",
++					"hns-roce-comp-1",
++					"hns-roce-comp-2",
++					"hns-roce-comp-3",
++					"hns-roce-comp-4",
++					"hns-roce-comp-5",
++					"hns-roce-comp-6",
++					"hns-roce-comp-7",
++					"hns-roce-comp-8",
++					"hns-roce-comp-9",
++					"hns-roce-comp-10",
++					"hns-roce-comp-11",
++					"hns-roce-comp-12",
++					"hns-roce-comp-13",
++					"hns-roce-comp-14",
++					"hns-roce-comp-15",
++					"hns-roce-comp-16",
++					"hns-roce-comp-17",
++					"hns-roce-comp-18",
++					"hns-roce-comp-19",
++					"hns-roce-comp-20",
++					"hns-roce-comp-21",
++					"hns-roce-comp-22",
++					"hns-roce-comp-23",
++					"hns-roce-comp-24",
++					"hns-roce-comp-25",
++					"hns-roce-comp-26",
++					"hns-roce-comp-27",
++					"hns-roce-comp-28",
++					"hns-roce-comp-29",
++					"hns-roce-comp-30",
++					"hns-roce-comp-31",
++					"hns-roce-async",
++					"hns-roce-common";
++		};
+-- 
+1.9.1
 
-We are planning on submitting it in very near future.
-
->=20
-> Cheers,
-> Sagi.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---oLBj+sq0vYjzfsbl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXIfqFAAoJEORje4g2clinm8cQAIPAuJarBEupTO7QuyXgtcIx
-WROteiNlQnPVM0Arf9b6fDRkCYQrfcXuA4/ToyFnj8ai/UkfSbKXUlfRIlRNpFxQ
-6zml1Vkx7zIlrCTCilBMjs0s0LLQgBW9hZk7AjSW5Nx7+tmIY/6CQnUWBZiLy7iX
-hSxpIXoPkbMKA3NaKs2AX6aqI/ds+x1VAs21Ybq4VQt7RR2gfr/D71x0SaAKiLNB
-h5McdXsaUlMgKdofx+9dTKbR4C8eTFuBL1/xhgCFag8IQ8H6qTyuQ2FRkLBk5oFj
-Jpj2NTbG5P8JKzm59XCvgdXXu6gt7qZPWqN4yt1RiPaMcI7ogr6hXordYTs8KFZZ
-qupjI+kZ8oXV9QpfPIdsx6DDlfg/sCAOFe5ClU5yCkMMbIlDZjd5JbYF44wqbMaQ
-dGC3lV2OVynIu1vGOUVhfmNHL/BGip6Rkj1oVccK5HltxvZ9Zb4J1z1b2KpnMLEp
-ysd5RSoMXFELFYrY6D1aHG6kokZPAj7fKWs+nFRlp/52yCBZlCox8+bBX8n7T9F+
-vKKV2BTpsHk/dJuCoCl28pabZWbAAYG8nkNsCq190S4Zi+rI4DhsH1jyfe5t9s8s
-Xos8HN9bpdPOi0VzJ0UaxTKHnzgTX+0nWiSNNd3cXaupcGAt8gfFR3SudCLuvXOO
-b4Czs6UgLfHhKsmk55Fk
-=yFTr
------END PGP SIGNATURE-----
-
---oLBj+sq0vYjzfsbl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
