@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 04/10] svcrdma: Remove superfluous line from
- rdma_read_chunks()
-Date: Thu, 28 Apr 2016 11:15:01 -0400
-Message-ID: <20160428151501.13068.1400.stgit@klimt.1015granger.net>
+Subject: [PATCH 06/10] svcrdma: Drain QP before freeing svcrdma_xprt
+Date: Thu, 28 Apr 2016 11:15:17 -0400
+Message-ID: <20160428151517.13068.28377.stgit@klimt.1015granger.net>
 References: <20160428150915.13068.94602.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,31 +12,31 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: svc_rdma_get_read_chunk() already returns a pointer
-to the Read list. No need to set "ch" again to the value it
-already contains.
+If the server is forcing the connection disconnect, the QP has not
+been moved to the Error state, meaning Receives are still posted.
+
+Ensure Receives (and any other outstanding WRs) are flushed to free
+up resources that can be freed during teardown of an svcrdma_xprt.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 234be9d..12e7899 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -447,10 +447,8 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
- 	head->arg.len = rqstp->rq_arg.len;
- 	head->arg.buflen = rqstp->rq_arg.buflen;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 02a112c..dd94401 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -1180,6 +1180,9 @@ static void __svc_rdma_free(struct work_struct *work)
  
--	ch = (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
--	position = be32_to_cpu(ch->rc_position);
--
- 	/* RDMA_NOMSG: RDMA READ data should land just after RDMA RECV data */
-+	position = be32_to_cpu(ch->rc_position);
- 	if (position == 0) {
- 		head->arg.pages = &head->pages[0];
- 		page_offset = head->byte_len;
+ 	dprintk("svcrdma: %s(%p)\n", __func__, rdma);
+ 
++	if (rdma->sc_qp && !IS_ERR(rdma->sc_qp))
++		ib_drain_qp(rdma->sc_qp);
++
+ 	/* We should only be called from kref_put */
+ 	if (atomic_read(&xprt->xpt_ref.refcount) != 0)
+ 		pr_err("svcrdma: sc_xprt still in use? (%d)\n",
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
