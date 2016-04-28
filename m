@@ -1,76 +1,103 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Thu, 28 Apr 2016 09:48:34 -0600
-Message-ID: <CAANLjFo2Riv3anBg99CCd2E_9gmZHrL93ZNT2Od58GMw+TPHpw@mail.gmail.com>
-References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
-	<5721F149.1090004@grimberg.me>
-	<20160428115653.GB21343@leon.nu>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 10/10] svcrdma: Switch CQs from IB_POLL_SOFTIRQ to IB_POLL_WORKQUEUE
+Date: Thu, 28 Apr 2016 10:59:47 -0500
+Message-ID: <00ec01d1a166$fd134650$f739d2f0$@opengridcomputing.com>
+References: <20160428150915.13068.94602.stgit@klimt.1015granger.net> <20160428151550.13068.24199.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160428115653.GB21343-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160428151550.13068.24199.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Language: en-us
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
-
-Cool, thanks for the update.
------BEGIN PGP SIGNATURE-----
-Version: Mailvelope v1.3.6
-Comment: https://www.mailvelope.com
-
-wsFcBAEBCAAQBQJXIjDMCRDmVDuy+mK58QAAjcMP/jVRTBSRTJNkhGkGCiL5
-HbRJUsslKXp61BqL4LnLQ26ELq+YPVvG/ds/7wKAaaQrWv8RZyb+L38J0tI6
-s9C25Bo+PwheTJHmnTjrL4m0MiEWsiKGHCkc/x98YMla//UHoooE1X1QtJ4w
-pGNcuF4rgCIoZs8Q8Gd2cIuZWgZUhHNK5TEv866YVXcH1YxkVCKFqen3JD0/
-8gtcPv9uw0Try4q584TUjZEEw/7SSy+FAcYDsF84ttUvalwWNcGX/1KR9tf+
-UVokNxuqpJNEsMqyF+UYg9xFCiBdIbR2KDRd7UVtnJLnfbJd4IFOejxV6x/g
-MEHFnzckK1pwIT24wEOUedyMELbbPJOfzbw2YzIZH6HAfLi/2a92vlAaW4sy
-rVAEDBbC+DuXIxhY4DdTw63S4ZS1Tphl8DJmd/PBLMlu9vFS7lay1pZsQ3bQ
-j7PWhb8h+a2us74xHUfHxd4AoFbRfm5s5EYnlZH/9ho8HiY9vubK3R8ID+ND
-qYTxLHDSkdccw+AsE+vTXoAFl9vx4nF8F2XQcXlMFjlZ9dmgrVjDIgLbQogb
-cQI1CunsqwLcYxaPl6W6JLWlEENwagdoSfTDjSZQud8MEQ/LTKipAab2tdmK
-vD3M9HXyb7oKWrdDfcAhSe/TGcMk8RfaVlPKq3FTVTyhcUQyhKIoNb3iKXoX
-PDCa
-=Zzq9
------END PGP SIGNATURE-----
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
 
-On Thu, Apr 28, 2016 at 5:56 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Thu, Apr 28, 2016 at 02:17:29PM +0300, Sagi Grimberg wrote:
->>
->> >What is the status of getting RXE included in the mainline kernel? I
->> >saw a post from Kamal Heib on 22 Sep 2015 with a patchset for
->> >inclusion [0], but there didn't seem to be any discussion about it. I
->> >diffed the kernel tree with the RXE tree on GitHub using the
->> >rxe_submission_v8 branch [1], but there was over 10 million lines in
->> >the patch file for the same kernel version. I'd rather patch into the
->> >vanilla kernel tree so that I can see the differences rather than just
->> >building the tree that someone else provides.
->> >
->> >I will probably go through all 32 patches anyway, but thought I would
->> >prod here about the status as it can be very helpful for
->> >compatibility.
->>
->> FWIW, I'd love to see ib_rxe upstream asap. In fact, I even have
->> some patches to contribute for it.
->
-> We are planning on submitting it in very near future.
->
->>
->> Cheers,
->> Sagi.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Chuck Lever
+> Sent: Thursday, April 28, 2016 10:16 AM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH 10/10] svcrdma: Switch CQs from IB_POLL_SOFTIRQ to
+> IB_POLL_WORKQUEUE
+> 
+> Spread NFSD completion handling across CPUs, and replace
+> BH-friendly spin locking with plain spin locks.
+> 
+> iozone -i0 -i1 -s128m -y1k -az -I -N
+> 
+> Microseconds/op Mode. Output is in microseconds per operation.
+> 
+> Before:
+>               KB  reclen   write rewrite    read    reread
+>           131072       1      51      51       43       43
+>           131072       2      53      52       42       43
+>           131072       4      53      52       43       43
+>           131072       8      55      54       44       44
+>           131072      16      62      59       49       47
+>           131072      32      72      69       53       53
+>           131072      64      92      87       66       66
+>           131072     128     144     130       94       93
+>           131072     256     225     216      146      145
+>           131072     512     485     474      251      251
+>           131072    1024     573     540      514      512
+>           131072    2048    1007     941      624      618
+>           131072    4096    1672    1699      976      969
+>           131072    8192    3179    3158     1660     1649
+>           131072   16384    5836    5659     3062     3041
+> 
+> After:
+>               KB  reclen   write rewrite    read    reread
+>           131072       1      54      54       43       43
+>           131072       2      55      55       43       43
+>           131072       4      56      57       44       45
+>           131072       8      59      58       45       45
+>           131072      16      64      62       47       47
+>           131072      32      76      74       54       54
+>           131072      64      96      91       67       66
+>           131072     128     148     133       97       97
+>           131072     256     229     227      148      147
+>           131072     512     488     445      252      255
+>           131072    1024     582     534      511      540
+>           131072    2048     998     988      614      620
+>           131072    4096    1685    1679      946      965
+>           131072    8192    3113    3048     1650     1644
+>           131072   16384    6010    5745     3046     3053
+> 
+> NFS READ is roughly the same, NFS WRITE is marginally worse.
+> 
+> Before:
+> GETATTR:
+> 	242 ops (0%)
+> 	avg bytes sent per op: 127
+> 	avg bytes received per op: 112
+> 	backlog wait: 0.000000
+>  	RTT: 0.041322
+>  	total execute time: 0.049587 (milliseconds)
+> 
+> After:
+> GETATTR:
+> 	242 ops (0%)
+> 	avg bytes sent per op: 127
+> 	avg bytes received per op: 112
+> 	backlog wait: 0.000000
+>  	RTT: 0.045455
+>  	total execute time: 0.053719 (milliseconds)
+> 
+> Small op latency increased by 4usec.
+> 
+
+
+Hey Chuck, in what scenario or under what type of load do you expect this change to help performance?  I guess it would help as you scale out the number of clients and thus the number of CQs in use?   Do you do any measurements along these lines?
+
+Stevo
+
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
