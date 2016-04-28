@@ -1,58 +1,63 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Expose correct max_sge_rd limit
-Date: Thu, 28 Apr 2016 10:53:14 -0400
-Message-ID: <572223DA.7030805@redhat.com>
-References: <1459440205-25208-1-git-send-email-sagig@grimberg.me>
- <20160401000426.GF2670@leon.nu> <570606B4.5040402@grimberg.me>
+Subject: Re: [PATCH] MAINTAINERS: Update iser/isert maintainer contact info
+Date: Thu, 28 Apr 2016 10:53:49 -0400
+Message-ID: <572223FD.8050100@redhat.com>
+References: <1459684992-6885-1-git-send-email-sagi@grimberg.me>
+ <1459793650.10124.0.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="PCGETE7X1QtowVqX7EWrQnqpVHV6uJDkU"
+ boundary="2gwl0Ntw4oqRl1q23mDS4soDqWnVDuFWd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <570606B4.5040402-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1459793650.10124.0.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---PCGETE7X1QtowVqX7EWrQnqpVHV6uJDkU
-Content-Type: text/plain; charset=windows-1252
+--2gwl0Ntw4oqRl1q23mDS4soDqWnVDuFWd
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 04/07/2016 03:05 AM, Sagi Grimberg wrote:
+On 04/04/2016 02:14 PM, Nicholas A. Bellinger wrote:
+> On Sun, 2016-04-03 at 15:03 +0300, Sagi Grimberg wrote:
+>> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>> ---
+>>  MAINTAINERS | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/MAINTAINERS b/MAINTAINERS
+>> index 6ee06ea47be4..1214e8781d17 100644
+>> --- a/MAINTAINERS
+>> +++ b/MAINTAINERS
+>> @@ -5944,7 +5944,7 @@ F:	include/scsi/*iscsi*
+>> =20
+>>  ISCSI EXTENSIONS FOR RDMA (ISER) INITIATOR
+>>  M:	Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> -M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> +M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>  M:	Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>  L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>  S:	Supported
+>> @@ -5954,7 +5954,7 @@ Q:	http://patchwork.kernel.org/project/linux-rdm=
+a/list/
+>>  F:	drivers/infiniband/ulp/iser/
+>> =20
+>>  ISCSI EXTENSIONS FOR RDMA (ISER) TARGET
+>> -M:	Sagi Grimberg <sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> +M:	Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pendi=
+ng.git master
+>>  L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>  L:	target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 >=20
+> For the target bit:
 >=20
-> On 01/04/16 03:04, Leon Romanovsky wrote:
->> On Thu, Mar 31, 2016 at 07:03:25PM +0300, Sagi Grimberg wrote:
->>> mlx5 devices (Connect-IB, ConnectX-4, ConnectX-4-LX) has a limitation=
+> Acked-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 
->>> where rdma read work queue entries cannot exceed 512 bytes.
->>> A rdma_read wqe needs to fit in 512 bytes:
->>> - wqe control segment (16 bytes)
->>> - rdma segment (16 bytes)
->>> - scatter elements (16 bytes each)
->>>
->>> So max_sge_rd should be: (512 - 16 - 16) / 16 =3D 30.
->>>
->>> Reported-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
->>> Tested-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
->>> Signed-off-by: Sagi Grimberg <sagig-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->>
->> Thanks Sagi,
->>
->> Excellent catch, the same as in commit: a5e4ba334e2
->> ("mlx4: Expose correct max_sge_rd limit")
->>
->> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Doug, this is stable material, can we get it to 4.6-rc
-> and place a stable tag on it?
->=20
-> Thanks,
-> Sagi.
+Applied to go with my final -rc pull.  Thanks.
 
-Done, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -60,7 +65,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---PCGETE7X1QtowVqX7EWrQnqpVHV6uJDkU
+--2gwl0Ntw4oqRl1q23mDS4soDqWnVDuFWd
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -69,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXIiPaAAoJELgmozMOVy/dprIP/jHduLmPbrDJTHwHQiJmZ/4d
-+apUurwwql/JyPHpFeXm5zxN4iMt5/7b1BkvQpXxLmM5RWMa1KoHAovlZWws22On
-i9UwExxwLkTz88xJzGfdJa4GhYDHSSBH6go7VxVvtkCgMdPC7Z2sqQO3TzGrhByO
-g4pWXDWwuQUtZQy50JEbMS/Qq9kKOHiGc/iFgO7L8JLZizFoFZc4HTkNJLhWoFq1
-47w33cGASVaasrJc5tj4I5t1pMOgsdgxZ1PQDGspIXeK29oGzPNG8PhQsLOGx/Cy
-A8uhHaFm1Mc0EpZIKnpDuREqNwZ4HNmoeNNSLgftietBvWwst9OlsWlFMgbYrqqw
-gUuoVadIe1/fRJdg2jUSEjEekqG3tWYHJRZqPEOY7UpkQ+AKoFt+gQ9PLMwgciqv
-qtuc1TVsmd94mSaMIA0T9ZlsBdJQAOtEAF3MOO05atMRQLzkfoVJCdYrJS9YWB9p
-sr0BGJOTfrx8ki0BxK8u09ur80hkx90wmRR9t3W+5TtU7jTVxIChzjxpCN3RvFCM
-JFpWJkskU/wN6v/mldSWGGUeFvZ95v6V1y0slCiHPb5ERhEmzqvmJxQA9fe95Rz/
-MemTZT2P6CfuS/6HwX5LTbjIc4n+MKuE/BmWKvVhYxKsGxzOYwHz1EpppeIJlY8n
-M3ULesYNmrmAYnWEY7Hh
-=pOWR
+iQIcBAEBCAAGBQJXIiP9AAoJELgmozMOVy/dMm4P/3S7+4WJJz1eY6eq7cBaaYId
+/DZR/YTMFMLpTLmHn9NCfQ8NQhOsUymp1eUYkh+bodWPyCU/SXBsiRkld/eI6v/E
+9X56e0EoJb0+9dY2p35l4JMmNapgJfcHzpzrm9B1063KukQ2oALmUAEVk5625pIw
+5L51WJSkeUpUbXZsy30aYnbaAi+yX9ByIyAfQ4E04qyc/kdQ2YOoQFK+/pvJxsQH
+VEuiaazWDuYMaYiD8QR/MQ0NIW0Rk5iwrCIh/pC2sGyApvoMwmbDdcL2cof0f083
+K+H2nYpnk9V8jjc2cjsOVS8X5Sv4BQ9yjBblqs+x5NA5IE5DjBdWSfeXjrgC3aT8
+68ayrEWnD8mjjajjTg8Y62NVYUAWIwI4rnIQ6/2hk2dxz14dCGkBeJaeNpS7Bg4b
+vYWldhR2kzQyk0o2LYLcK+QPL6k7q8r9Nauca+UWWNNHXJMyrttZftnSdNqRyQuY
+27PqchSKtozDBgPmiIcgTP0qyFZsV5XfZKBzyC3Ilnhy7Xa0bo+ix07zwGVMFVKV
+wv1J2waM9BkYe95qyH9+vJ7U65CRtftGCwtQD/NRxGKnJT0SbGcCkicaC6zP6wgN
+3JLGJWRhEl4eEYmocb0ceeE+EajjbV3eGnpbzaPftVdeE0rxqqBiyLO1CDRPvSE/
+ItzmOZM5nRvDOX0TroFE
+=Xzs5
 -----END PGP SIGNATURE-----
 
---PCGETE7X1QtowVqX7EWrQnqpVHV6uJDkU--
+--2gwl0Ntw4oqRl1q23mDS4soDqWnVDuFWd--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
