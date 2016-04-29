@@ -1,77 +1,109 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA Read: Local protection error
-Date: Fri, 29 Apr 2016 12:07:19 -0700
-Message-ID: <a3d2d231-5687-8d7a-f786-fcde7612eccb@oracle.com>
-References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com>
- <3fb4e75f-ff14-34e2-b6d3-6b6046812845@oracle.com>
- <72E8335B-282B-4DCC-AE4F-FE7E50ED5A08@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next V1 0/2] mlx5_core: mlx5_ifc updates
+Date: Fri, 29 Apr 2016 22:41:35 +0300
+Message-ID: <20160429194135.GA25593@leon.nu>
+References: <1460563864-22931-1-git-send-email-saeedm@mellanox.com>
+ <CALzJLG__o56edSf__To-BM6jakuwP7zAAEEQH8LQNTKp-2LRDQ@mail.gmail.com>
+ <20160415.172254.1148340547086083909.davem@davemloft.net>
+ <20160418151205.GO6349@leon.nu>
+ <5722BBD1.3030005@redhat.com>
+ <20160429050752.GB774@leon.nu>
+ <f31784f8-080d-6a5c-2396-8eecc831416e@redhat.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <72E8335B-282B-4DCC-AE4F-FE7E50ED5A08-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f31784f8-080d-6a5c-2396-8eecc831416e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 4/29/2016 9:58 AM, Chuck Lever wrote:
->
->> On Apr 29, 2016, at 12:44 PM, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>
->>
->>
->> On 4/29/2016 9:24 AM, Chuck Lever wrote:
->>> I've found some new behavior, recently, while testing the
->>> v4.6-rc Linux NFS/RDMA client and server.
->>>
->>> When certain kernel memory debugging CONFIG options are
->>> enabled, 1MB NFS WRITEs can sometimes result in a
->>> IB_WC_LOC_PROT_ERR. I usually turn on most of them because
->>> I want to see any problems, so I'm not sure which option
->>> in particular is exposing the issue.
->>>
->>> When debugging is enabled on the server, and the underlying
->>> device is using FRWR to register the sink buffer, an RDMA
->>> Read occasionally completes with LOC_PROT_ERR.
->>>
->>> When debugging is enabled on the client, and the underlying
->>> device uses FRWR to register the target of an RDMA Read, an
->>> ingress RDMA Read request sometimes gets a Syndrome 99
->>> (REM_OP_ERR) acknowledgement, and a subsequent RDMA Receive
->>> on the client completes with LOC_PROT_ERR.
->>>
->>> I do not see this problem when kernel memory debugging is
->>> disabled, or when the client is using FMR, or when the
->>> server is using physical addresses to post its RDMA Read WRs,
->>> or when wsize is 512KB or smaller.
->>>
->>> I have not found any obvious problems with the client logic
->>> that registers NFS WRITE buffers, nor the server logic that
->>> constructs and posts RDMA Read WRs.
->>>
->> One possibility here could be the mismatch in posted WR for
->> send/receive. Can you check if for certain cases you are
->> posting receive WRs which can't handle whats send is putting
->> on the wire.
->
-> I've confirmed that the client is posting only 1024-byte
-> Receive buffers, and that the ib_sge for each Receive
-> operation is the same before and after the Receive is
-> posted (ie, the Receive ib_sge is valid and is not
-> getting overwritten somehow).
->
-> The wire traffic contains Send Only requests of 230 or so
-> bytes. If an ingress Send is too large, the Receive should
-> complete with IB_WC_LOC_LEN_ERR, not IB_WC_LOC_PROT_ERR.
->
-You are right. What I described is IB_WC_LOC_LEN_ERR scenario
-and not IB_WC_LOC_PROT_ERR.
+On Fri, Apr 29, 2016 at 01:56:07PM -0400, Doug Ledford wrote:
+> On 04/29/2016 01:07 AM, Leon Romanovsky wrote:
+> > On Thu, Apr 28, 2016 at 09:41:37PM -0400, Doug Ledford wrote:
+> >> On 04/18/2016 11:12 AM, Leon Romanovsky wrote:
+> >>> On Fri, Apr 15, 2016 at 05:22:54PM -0400, David Miller wrote:
+> >>>> From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> >>>> Date: Fri, 15 Apr 2016 20:10:07 +0300
+> >>>>
+> >>>>> On Wed, Apr 13, 2016 at 7:11 PM, Saeed Mahameed <saeedm-VPRAkNaXOzXQFizaE/u3fw@public.gmane.org=
+m> wrote:
+> >>>
+> >>> Hi Doug,
+> >>> Can you please take this patchset in addition to Dave? It will save
+> >>> our list from many kbuild errors.
+> >>
+> >> Dave, did you pull this from Leon's git repo, or apply patches and
+> >> generate new, unique commit hashes?
+> >=20
+> > Doug,
+> > We sent IFC changes before I had a tree, so Dave took it as separate
+> > commits. The coming release submission will be based on my tree.
+>=20
+> The point of my question was that if we both take in patches, we
+> generate diffs with different commit hashes, and that technicall
+> represents a merge (although if the patches are identical, they should
+> auto-merge).  Linus had requested we pull from the same tree so we both
+> get the same commit hashes, then no merge conflicts since git will
+> recognize the commits as being *exactly* identical.  Right now, the only
+> way to accomplish that is for me to pull net-next and base my for-next
+> on net-next.
 
-Regards,
-Santosh
+I don't think that is really needed. I recall two reasons for his
+request: one was mentioned by you and the second was need to chose
+which tree has right order of subsequent commits.
+
+In this merge window, we choose very carefully patch sets and their
+common part, so no merge conflict between different trees will occur,
+because of Mellanox code.
+
+Whatever you decide to pull or not and something will go wrong,
+please put all blame on me.
+
+Thanks.
+
+>=20
+>=20
+> --=20
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>=20
+>=20
+
+
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXI7jvAAoJEORje4g2clinBEQQAL1yWabXP3kopfouFKf50Fao
+yLNIKk6n6murEEUYHwempW7xXrYQYfqOK67TjyNAYT8mD2W6E2IdLfHaVpdyzl6b
+4a17+HVY49poEMGLxS8MrXaoU3vaNLLXf/gGHpYa6Ns5lETeQ2vAQurv528obuJc
+vYLi/U1nFWRvC4ngDy/rWWg9L9dUxQ4V09YyNpb/JapU61o2ZooRTJBOsj8au2vQ
+MHT2kRgVnD8eSAHWtyaSVMcLeB/9UjsCP4I/3D61erhTQBDb8bxtonZZIBek1c1K
+1ZyRsRip4jfpoSQPgAoG8djAyz9+TE+wvbTSYFzgstA1ddvxZB0pCRxWFCSqLjjY
+8b4hu7Bb7BqVcrkAkOR/nYg957Tan0NmB+E8RVmEeaycgvgutZ1S6DqzbxNEomEY
+TdAuGrw8rnylN02tbrUqM0WHHnDVZEwp15JGeJ/+lnCrl54+9Fp79FQpu+ZIlE7W
+b8H0r0ylxmefEzMX1dPTcBb+M1Dim0LrOOuTjWMyzS/OhcT8tliqoEp6bbMAZZ03
+3hIpnBeP1PrV9RSCZPjAxILio/ld6468DHhklrtePGxf4HjfbZVqd5ztzoQRpl5p
+Z2pwisXZfbj5IsqkT8kBEcZyw+DVUVGILV+JCZSv8sZdgVnHnvCSBa4Ur1SCjq+V
+TfF5kLpieY5Tl5AcmiI9
+=wkD9
+-----END PGP SIGNATURE-----
+
+--r5Pyd7+fXNt84Ff3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
