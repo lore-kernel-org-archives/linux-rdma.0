@@ -1,38 +1,42 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc] IB/hfi1: Use kernel default llseek for ui device
-Date: Thu, 28 Apr 2016 22:37:26 -0400
-Message-ID: <5722C8E6.5080503@redhat.com>
-References: <20160422181702.15797.42892.stgit@scvm10.sc.intel.com>
- <20160422182125.GA21996@phlsvsds.ph.intel.com>
+Subject: Re: [PATCH V3 00/16] RDMA/Intel X722 iWARP driver update
+Date: Thu, 28 Apr 2016 22:39:33 -0400
+Message-ID: <5722C965.7080700@redhat.com>
+References: <1460993589-9428-1-git-send-email-mustafa.ismail@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="Fvq1jDdPa92piwiGDdcnRSsntwW91uuX1"
+ boundary="kmm8hShOd11Tfx2FRIn5gwSaFblegqrme"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160422182125.GA21996-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1460993589-9428-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Fvq1jDdPa92piwiGDdcnRSsntwW91uuX1
+--kmm8hShOd11Tfx2FRIn5gwSaFblegqrme
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 04/22/2016 02:21 PM, Dennis Dalessandro wrote:
-> On Fri, Apr 22, 2016 at 11:17:03AM -0700, Dennis Dalessandro wrote:
->> From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>
->> The ui device llseek had a mistake with SEEK_END and did
->> not fully follow seek semantics.  Correct all this by
->> using a kernel supplied function for fixed size devices.
+On 04/18/2016 11:32 AM, Mustafa Ismail wrote:
+> This (V3) series corrects the subject line of the email.
 >=20
-> Doug, I think this should probably go in the rc, it fixes a 0-day bug.
+> This patch series covers changes to i40iw since the initial driver subm=
+ission
+> including base memory management extensions, virtual channel messages q=
+ueue,
+> corrections for endian warnings and bug fixes.
 >=20
-> -Denny
+> This patch series is based on Doug Ledford's
+> https://github.com/dledford/linux.git branch: k.o/for-4.6-rc
+>=20
 
-It's in my next pull request.
+I've taken the series, but in my for-next area.  The existing i40iw
+driver is broken, and the patches to fix it are more than I wanted to
+include in an -rc pull request.  Because it's brand new, it's not a
+regression, so for-next is good enough IMO.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -40,7 +44,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---Fvq1jDdPa92piwiGDdcnRSsntwW91uuX1
+--kmm8hShOd11Tfx2FRIn5gwSaFblegqrme
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -49,22 +53,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXIsjmAAoJELgmozMOVy/dstAP/3zSFt/P2kWXLw12RqJj6gGN
-E+XtygtoycdfOrGfwhJ4gpBM2TgFwhxJVBFsOvkR+uH374FcgLYck958zf0bUdGg
-KtT1I4erBgysgFDn1h0vAu4Q0Raln04DEKgdjEsHukSTzs0kDw55eOQ6evIP33cC
-Ek7qw/5RCujTnihVjkflVkXJv14+7/lz9E0f14WzU1Jt8VCu+VUyja6j6ROwzmhd
-p5KxW6nq8GynSgaKOGnrgt2UNLBwaKLgexWNGra8k0Qn3mBvDASRou1wzTmJiAo0
-3N60vwHstot4uXxmzPWWlsKf02Fc52NBkUY4rOXpZI+hK8sTcr9qzOWajRkTryhL
-J+0FqCTIe8jzuhoulqiLkYj05k0AOeLwJ1NERhY5jAX4t4vssgF5aOqI2yMU9Qol
-grZHGGchAu6rVY5XNykxzkkx1TdR6DS7LK0iy7HSmuwZCeRJ1BEJpU1XM0rmHrxk
-0chPCvgmlcgkcm0ADfzEd1UmOJLG022+AyMbj6wwn1w5xrM2wwcQ96ANwZKj8EPB
-DzsZbI1axRlAkoTdz4D//X2gf6hP0gz1Lkbfe16vDqYUYCcm8gCYRHCVMzi1BPmI
-1in9xyBRIcg0+N8dPwXBlZYVWAR3cJ1hFa4XuV0lABW7zvOuqerbQkHKaD2f2c18
-cBwbCNhnwby2miYIbeDF
-=DRHG
+iQIcBAEBCAAGBQJXIsllAAoJELgmozMOVy/d9RoQAMPDXR1opAGaGukS/mtz/qy+
+OGGgvZ5lYdUX29DdUGvr+2DCOlcVBul1HmglWi6C2EAfIPwAPAQGyriybe0T/lOH
+DR6sExPRxxbwdegjsDiW2YgRu0XdYrvXEcitGgqvnB/5KgDPFGOXnYmbKTyhqAlA
+2lJQHIqzg3hk5gqJZGzna6EoOiy9UY/m3L5wM5YOL+ER49NacuURVzWi/FQx36xV
+6/r0bSD4iu967Xv0tpOFeqIAkDQ1C5HtP4yLEKUMBWOJ6J/2OjssOZYsaiI2UzZu
+iV1DGNGfmuM8svetVQisdmBAxCBvgN8H4RfSd3vHS0tRVeoikU9MCju7Ws7XnSDF
+Hj2yUt7z3x/VnWVbEPvWhyhUqkiDn083ZddvwJ3yhpMu4EbFj/ZzGnNDzJ3nreys
+cJqfNmYfDTi3mdOEWo1cdZyLYhMzBxaeTcVY6//szSkB1d9iylM+uerz5G0GLH4z
+doLn5MR5sF0WngRlJYRI8iS4m3q7ORsJm916Bx7GRTdF2bwV/pqP9kI+vSLLSL0k
+vvAoFDqUPOlLTVg7f1SuOvOckVXXDbkTO1W9jyaY9zUjP8o1lynnLlWaHyysIcl/
+z/qDNTBJxD+BulnunUQXGW0dWlfj3AFFqf4WKFIMAElVX7njqUXuETrZmyvRDo86
+AVrSNDxyQwHsAthbsID/
+=hLQc
 -----END PGP SIGNATURE-----
 
---Fvq1jDdPa92piwiGDdcnRSsntwW91uuX1--
+--kmm8hShOd11Tfx2FRIn5gwSaFblegqrme--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
