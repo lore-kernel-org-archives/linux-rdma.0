@@ -1,109 +1,73 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next V1 0/2] mlx5_core: mlx5_ifc updates
-Date: Fri, 29 Apr 2016 22:41:35 +0300
-Message-ID: <20160429194135.GA25593@leon.nu>
-References: <1460563864-22931-1-git-send-email-saeedm@mellanox.com>
- <CALzJLG__o56edSf__To-BM6jakuwP7zAAEEQH8LQNTKp-2LRDQ@mail.gmail.com>
- <20160415.172254.1148340547086083909.davem@davemloft.net>
- <20160418151205.GO6349@leon.nu>
- <5722BBD1.3030005@redhat.com>
- <20160429050752.GB774@leon.nu>
- <f31784f8-080d-6a5c-2396-8eecc831416e@redhat.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Fri, 29 Apr 2016 14:54:34 -0600
+Message-ID: <20160429205434.GA11286@obsidianresearch.com>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+ <5721F149.1090004@grimberg.me>
+ <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com>
+ <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f31784f8-080d-6a5c-2396-8eecc831416e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <a1d504ff-716c-210a-7114-517577d2e0fa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Apr 29, 2016 at 11:06:46AM -0400, Doug Ledford wrote:
 
---r5Pyd7+fXNt84Ff3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > These patches are long time here in mailing list and they were reviewed as
+> > all other patches in this mailing list.
+> 
+> That's not true.  The RSS patches in particular tend to get no review.
+> No one appears to care about them.  V1 was posted way back last year and
+> no one had anything to say about them.  I don't know when V2 was, it's
+> no longer in my mailbox.  Then v3 has been on the list for 12 days and
+> again, no one has responded.  No review at all does not mean
+> automatically accepted.
 
-On Fri, Apr 29, 2016 at 01:56:07PM -0400, Doug Ledford wrote:
-> On 04/29/2016 01:07 AM, Leon Romanovsky wrote:
-> > On Thu, Apr 28, 2016 at 09:41:37PM -0400, Doug Ledford wrote:
-> >> On 04/18/2016 11:12 AM, Leon Romanovsky wrote:
-> >>> On Fri, Apr 15, 2016 at 05:22:54PM -0400, David Miller wrote:
-> >>>> From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> >>>> Date: Fri, 15 Apr 2016 20:10:07 +0300
-> >>>>
-> >>>>> On Wed, Apr 13, 2016 at 7:11 PM, Saeed Mahameed <saeedm-VPRAkNaXOzXQFizaE/u3fw@public.gmane.org=
-m> wrote:
-> >>>
-> >>> Hi Doug,
-> >>> Can you please take this patchset in addition to Dave? It will save
-> >>> our list from many kbuild errors.
-> >>
-> >> Dave, did you pull this from Leon's git repo, or apply patches and
-> >> generate new, unique commit hashes?
-> >=20
-> > Doug,
-> > We sent IFC changes before I had a tree, so Dave took it as separate
-> > commits. The coming release submission will be based on my tree.
->=20
-> The point of my question was that if we both take in patches, we
-> generate diffs with different commit hashes, and that technicall
-> represents a merge (although if the patches are identical, they should
-> auto-merge).  Linus had requested we pull from the same tree so we both
-> get the same commit hashes, then no merge conflicts since git will
-> recognize the commits as being *exactly* identical.  Right now, the only
-> way to accomplish that is for me to pull net-next and base my for-next
-> on net-next.
+During the Collab summit I thought we reached a rough consensus that
+these sorts of uAPI changes to the common multi-vendor API would go
+through a more rigorous process and those who are proposing them would
+actively seek a multi-vendor sign off instead of simply dumping them
+on the list. Liran nominated himself and the OFVWG to act as a
+forum. I recommend we let that process get going and do it's work.
 
-I don't think that is really needed. I recall two reasons for his
-request: one was mentioned by you and the second was need to chose
-which tree has right order of subsequent commits.
+Further, I also thought we reached a rough consensus that we'd shunt
+some of this stuff to the driver specific uAPI channel to reduce this
+continual churn on the common multi-vendor API for currently
+driver-specific features. Drivers can implement their unique features
+and sanely export them through the kernel without so much pain. The
+uAPI 2.0 concepts from all parties have been heavily influenced by
+this idea.
 
-In this merge window, we choose very carefully patch sets and their
-common part, so no merge conflict between different trees will occur,
-because of Mellanox code.
+Certainly, if patches cannot attract any review or interest from the
+community as part of the core API then I'd say that is an excellent
+sign they should be shunted to a driver specific channel.
 
-Whatever you decide to pull or not and something will go wrong,
-please put all blame on me.
+There is more flexability in user space to make mistakes with the
+libibverbs/etc API, and more options to provide access to these kind
+of services. For instance I really wonder if integrating into
+libibverbs is really the right home to trial a broad range of brand
+new UD offload focused features.
 
-Thanks.
+> >> verbs 2.0 API is settled so we only have one API to apply it too,
+> > 
+> > SELinux code adds hooks which are deep in IB/core code and doesn't
+> > play with ABI at all.
+> 
+> They snoop ABI.  If they ABI changes, they would possibly need to be
+> changed in order to continue to be able to read the elements.
 
->=20
->=20
-> --=20
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
->=20
->=20
+Agree, if we go to a object based uAPI then there may be better ways
+to make use of selinux right at the uapi layer.
 
-
-
---r5Pyd7+fXNt84Ff3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXI7jvAAoJEORje4g2clinBEQQAL1yWabXP3kopfouFKf50Fao
-yLNIKk6n6murEEUYHwempW7xXrYQYfqOK67TjyNAYT8mD2W6E2IdLfHaVpdyzl6b
-4a17+HVY49poEMGLxS8MrXaoU3vaNLLXf/gGHpYa6Ns5lETeQ2vAQurv528obuJc
-vYLi/U1nFWRvC4ngDy/rWWg9L9dUxQ4V09YyNpb/JapU61o2ZooRTJBOsj8au2vQ
-MHT2kRgVnD8eSAHWtyaSVMcLeB/9UjsCP4I/3D61erhTQBDb8bxtonZZIBek1c1K
-1ZyRsRip4jfpoSQPgAoG8djAyz9+TE+wvbTSYFzgstA1ddvxZB0pCRxWFCSqLjjY
-8b4hu7Bb7BqVcrkAkOR/nYg957Tan0NmB+E8RVmEeaycgvgutZ1S6DqzbxNEomEY
-TdAuGrw8rnylN02tbrUqM0WHHnDVZEwp15JGeJ/+lnCrl54+9Fp79FQpu+ZIlE7W
-b8H0r0ylxmefEzMX1dPTcBb+M1Dim0LrOOuTjWMyzS/OhcT8tliqoEp6bbMAZZ03
-3hIpnBeP1PrV9RSCZPjAxILio/ld6468DHhklrtePGxf4HjfbZVqd5ztzoQRpl5p
-Z2pwisXZfbj5IsqkT8kBEcZyw+DVUVGILV+JCZSv8sZdgVnHnvCSBa4Ur1SCjq+V
-TfF5kLpieY5Tl5AcmiI9
-=wkD9
------END PGP SIGNATURE-----
-
---r5Pyd7+fXNt84Ff3--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
