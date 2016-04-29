@@ -1,97 +1,90 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA Read: Local protection error
-Date: Fri, 29 Apr 2016 13:34:55 -0400 (EDT)
-Message-ID: <2015776375.32536550.1461951295911.JavaMail.zimbra@redhat.com>
-References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com> <57238F8C.70505@sandisk.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next V1 0/2] mlx5_core: mlx5_ifc updates
+Date: Fri, 29 Apr 2016 13:56:07 -0400
+Message-ID: <f31784f8-080d-6a5c-2396-8eecc831416e@redhat.com>
+References: <1460563864-22931-1-git-send-email-saeedm@mellanox.com>
+ <CALzJLG__o56edSf__To-BM6jakuwP7zAAEEQH8LQNTKp-2LRDQ@mail.gmail.com>
+ <20160415.172254.1148340547086083909.davem@davemloft.net>
+ <20160418151205.GO6349@leon.nu> <5722BBD1.3030005@redhat.com>
+ <20160429050752.GB774@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="rMSxpguJr8CBGoEWMH6bjblOnK6unAguC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57238F8C.70505-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160429050752.GB774-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Just as an FYI
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--rMSxpguJr8CBGoEWMH6bjblOnK6unAguC
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I went back and tested mlx4 srp as my customer mentioned on the older arrays he was able to set max_sectors_kb=4096.
-The claim was that on mlx4 they did not get into the sg map failure issue when issuing 4MB buffered I/O to a file system backed by the SRP targets.
-This made no sense to me because I know the issues we addressed in Bart's patch set were in ib_srp. 
+On 04/29/2016 01:07 AM, Leon Romanovsky wrote:
+> On Thu, Apr 28, 2016 at 09:41:37PM -0400, Doug Ledford wrote:
+>> On 04/18/2016 11:12 AM, Leon Romanovsky wrote:
+>>> On Fri, Apr 15, 2016 at 05:22:54PM -0400, David Miller wrote:
+>>>> From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>>> Date: Fri, 15 Apr 2016 20:10:07 +0300
+>>>>
+>>>>> On Wed, Apr 13, 2016 at 7:11 PM, Saeed Mahameed <saeedm-VPRAkNaXOzXQFizaE/u3fw@public.gmane.org=
+m> wrote:
+>>>
+>>> Hi Doug,
+>>> Can you please take this patchset in addition to Dave? It will save
+>>> our list from many kbuild errors.
+>>
+>> Dave, did you pull this from Leon's git repo, or apply patches and
+>> generate new, unique commit hashes?
+>=20
+> Doug,
+> We sent IFC changes before I had a tree, so Dave took it as separate
+> commits. The coming release submission will be based on my tree.
 
-I tested without Bart's latest SRP patch set (where we have the throttle back of the max_sectors_kb to avoid the issue) and 
-I see the same sg map failures on mlx4 using using FDR not EDR.
+The point of my question was that if we both take in patches, we
+generate diffs with different commit hashes, and that technicall
+represents a merge (although if the patches are identical, they should
+auto-merge).  Linus had requested we pull from the same tree so we both
+get the same commit hashes, then no merge conflicts since git will
+recognize the commits as being *exactly* identical.  Right now, the only
+way to accomplish that is for me to pull net-next and base my for-next
+on net-next.
 
-So bottom line, with larger max_sectors_kb we will get into this issue on both mlx4 and mlx5 and for now we cannot sustain 4MB for max_sectors_kb with buffered I/O,
 
-Laurence Oberman
-Principal Software Maintenance Engineer
-Red Hat Global Support Services
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
------ Original Message -----
-From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-To: "Chuck Lever" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sent: Friday, April 29, 2016 12:45:00 PM
-Subject: Re: RDMA Read: Local protection error
 
-On 04/29/2016 09:24 AM, Chuck Lever wrote:
-> I've found some new behavior, recently, while testing the
-> v4.6-rc Linux NFS/RDMA client and server.
->
-> When certain kernel memory debugging CONFIG options are
-> enabled, 1MB NFS WRITEs can sometimes result in a
-> IB_WC_LOC_PROT_ERR. I usually turn on most of them because
-> I want to see any problems, so I'm not sure which option
-> in particular is exposing the issue.
->
-> When debugging is enabled on the server, and the underlying
-> device is using FRWR to register the sink buffer, an RDMA
-> Read occasionally completes with LOC_PROT_ERR.
->
-> When debugging is enabled on the client, and the underlying
-> device uses FRWR to register the target of an RDMA Read, an
-> ingress RDMA Read request sometimes gets a Syndrome 99
-> (REM_OP_ERR) acknowledgement, and a subsequent RDMA Receive
-> on the client completes with LOC_PROT_ERR.
->
-> I do not see this problem when kernel memory debugging is
-> disabled, or when the client is using FMR, or when the
-> server is using physical addresses to post its RDMA Read WRs,
-> or when wsize is 512KB or smaller.
->
-> I have not found any obvious problems with the client logic
-> that registers NFS WRITE buffers, nor the server logic that
-> constructs and posts RDMA Read WRs.
->
-> My next step is to bisect. But first, I was wondering if
-> this behavior might be related to the recent problems with
-> s/g lists seen with iSER/SRP? ie, is this a recognized
-> issue?
 
-Hello Chuck,
+--rMSxpguJr8CBGoEWMH6bjblOnK6unAguC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-A few days ago I observed similar behavior with the SRP protocol but 
-only if I increase max_sect in /etc/srp_daemon.conf from the default to 
-4096. My setup was as follows:
-* Kernel 4.6.0-rc5 at the initiator side.
-* A whole bunch of kernel debugging options enabled at the initiator
-   side.
-* The following settings in /etc/modprobe.d/ib_srp.conf:
-   options ib_srp cmd_sg_entries=255 register_always=1
-* The following settings in /etc/srp_daemon.conf:
-   a queue_size=128,max_cmd_per_lun=128,max_sect=4096
-* Kernel 3.0.101 at the target side.
-* Kernel debugging disabled at the target side.
-* mlx4 driver at both sides.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Decreasing max_sge at the target side from 32 to 16 did not help. I have 
-not yet had the time to analyze this further.
+iQIcBAEBCAAGBQJXI6A3AAoJELgmozMOVy/dk2IQAJPC0wcxh+jXvpjzXI/og7gf
+AWOWUTnZi5syt6DyQz7QERnUjW4p1l/+MbAjjtDYJlV4RtGrTa3koBGybr6vvJub
+PILJI3sLaRu+VLIiNw0RDFjoN1B5DvHnjnh0Yfna1C9Bo068y0tRZn+upvhMFuhn
+okvZpejsmqO8mA6d3RSlO49HIhpzS9zZVYb8gnfP9RtbvgNodRrdSlEtvCwodMfw
+zXqqlT7h+OVdWSC9Of3gFOqLzo/ik1Fillm1J3ve6NgybS9C9GfCMIATJ0VlU9TK
++oSr0+ryyVDOYS+gQh21NbheR5nCOHdi7MtUSJmcKdTgrLYLPCqwcqdWpF7VukRB
+N/opRTnOgwZ6IoMVpAoKC6Yt9lYtDtfPD+w8Wz99UfeLDGgkHSfZEEcDMbCJ4ZSA
+CpqrrjnQ6848B/sm/pzbzan7aSwfGCHSe7XZnqOOd5xWxriTN+KrEqDVnaTGKA8V
+1IJJEExT+G1dRLkDDx/dzm9k5Xk0HrDJ6sffFHusaanYMI7zFGX40i0YqBl6Nik1
+vr+fZHIaq9ptkaahGEuNJTQLCkHj7qalOUeHqC3BGdYP650mMK0xrhnpHUccYSUg
+7DkywxiADzJWP26LtR6akTwSwD4bMAF3G+eHjPqsgwe0buFuZyLabxRwTRI/moh+
+QjZoIcm8UcAd9Gz2g6MI
+=k01F
+-----END PGP SIGNATURE-----
 
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--rMSxpguJr8CBGoEWMH6bjblOnK6unAguC--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
