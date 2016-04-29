@@ -1,54 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
-Date: Thu, 28 Apr 2016 18:01:46 -0600
-Message-ID: <20160429000146.GB2782@obsidianresearch.com>
-References: <1460410360-13104-3-git-send-email-hch@lst.de>
- <20160419031425.GB27515@rhel.amr.corp.intel.com>
- <20160419173032.GD20844@obsidianresearch.com>
- <57167D9F.9060808@grimberg.me>
- <20160419192430.GB27028@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB047108@ORSMSX109.amr.corp.intel.com>
- <20160428200759.GA32110@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
- <20160428220945.GA1542@obsidianresearch.com>
- <2807E5FD2F6FDA4886F6618EAC48510E22EC858F@CRSMSX101.amr.corp.intel.com>
+From: Holger =?iso-8859-1?q?Hoffst=E4tte?=
+	<holger.hoffstaette-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Fri, 29 Apr 2016 01:13:07 +0000 (UTC)
+Message-ID: <pan$583bc$3e721561$9d7dc567$cdf52f56@googlemail.com>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+	<5721F149.1090004@grimberg.me> <20160428115653.GB21343@leon.nu>
+	<CAANLjFo2Riv3anBg99CCd2E_9gmZHrL93ZNT2Od58GMw+TPHpw@mail.gmail.com>
+	<CAANLjFrRdcWbC5butmFe29OFZep9RJ-najPAOAq965Y0Jb=i8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E22EC858F-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 11:25:35PM +0000, Weiny, Ira wrote:
+On Thu, 28 Apr 2016 17:39:23 -0600, Robert LeBlanc wrote:
 
-> Mellanox how hard will it be to change your drivers to that model?
-> I'm not even sure how the detection of Link Layer works any more.
+> Looks like quite a bit has changed especially with
+> b7d3e0a94fe128912bbebf0ae68551c85fd2d429 causing those patches to not
+> apply cleanly. I'm trying to get this to work on 4.5+, but having
+> trouble getting this all figured out (not being a programmer and not
+> extremely familiar with the inner workings of RDMA. If someone has a
+> newer patch set, I'd like to do some testing.
 
-Hmm, I vaugely remember looking into this and thinking the mlx drivers
-already did this?
+I have no idea whether it works, but the rxe_submission_v8 branch in
+the Github upstream repo (https://github.com/SoftRoCE/rxe-dev) looks
+up-to-date and is based on top of kernel 4.5, so that will probably be
+the easiest path to get anywhere. I haven't tried myself yet, so good
+luck. :)
 
-It may even be that IB and rocee can do APM and could perhaps be part
-of the same struct ib_device without breaking the world. I actually
-have no idea.
+-h
 
-> But all that is different from the qib/hfi case where we have 1 port
-> with 2 protocols on it.  If we are going to add PSM into the core
-> then I think it is _semantically_ appropriate for users to be able
-> to query for the protocols supported on a port and get back more
-> than 1.
-
-That doesn't make sense, the issue here is that we have a variety of
-verbs 'flavours'. PSM is not a verbs flavour.
-
-*If* PSM gets a kAPI (nobody is talking about doing this?) *and* gains
-multiple incompatible flavours (such as OPA and IB?) then it will need
-a unique set of cap tests and restrictions on which physical ports can
-be used together.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
