@@ -1,10 +1,10 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: RDMA Read: Local protection error
-Date: Fri, 29 Apr 2016 09:44:09 -0700
-Message-ID: <3fb4e75f-ff14-34e2-b6d3-6b6046812845@oracle.com>
+Date: Fri, 29 Apr 2016 09:45:00 -0700
+Message-ID: <57238F8C.70505@sandisk.com>
 References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
@@ -12,9 +12,7 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 4/29/2016 9:24 AM, Chuck Lever wrote:
+On 04/29/2016 09:24 AM, Chuck Lever wrote:
 > I've found some new behavior, recently, while testing the
 > v4.6-rc Linux NFS/RDMA client and server.
 >
@@ -43,27 +41,31 @@ On 4/29/2016 9:24 AM, Chuck Lever wrote:
 > that registers NFS WRITE buffers, nor the server logic that
 > constructs and posts RDMA Read WRs.
 >
-One possibility here could be the mismatch in posted WR for
-send/receive. Can you check if for certain cases you are
-posting receive WRs which can't handle whats send is putting
-on the wire.
-
 > My next step is to bisect. But first, I was wondering if
 > this behavior might be related to the recent problems with
 > s/g lists seen with iSER/SRP? ie, is this a recognized
 > issue?
->
->
-> --
-> Chuck Lever
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+
+Hello Chuck,
+
+A few days ago I observed similar behavior with the SRP protocol but 
+only if I increase max_sect in /etc/srp_daemon.conf from the default to 
+4096. My setup was as follows:
+* Kernel 4.6.0-rc5 at the initiator side.
+* A whole bunch of kernel debugging options enabled at the initiator
+   side.
+* The following settings in /etc/modprobe.d/ib_srp.conf:
+   options ib_srp cmd_sg_entries=255 register_always=1
+* The following settings in /etc/srp_daemon.conf:
+   a queue_size=128,max_cmd_per_lun=128,max_sect=4096
+* Kernel 3.0.101 at the target side.
+* Kernel debugging disabled at the target side.
+* mlx4 driver at both sides.
+
+Decreasing max_sge at the target side from 32 to 16 did not help. I have 
+not yet had the time to analyze this further.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
