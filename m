@@ -1,28 +1,43 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 10/12] IB/srpt: convert to the generic RDMA READ/WRITE
-	API
-Date: Fri, 29 Apr 2016 08:34:43 +0200
-Message-ID: <20160429063443.GA18893@lst.de>
-References: <1460410360-13104-1-git-send-email-hch@lst.de> <1460410360-13104-11-git-send-email-hch@lst.de> <570E96B5.5030002@sandisk.com> <20160414133255.GA22523@lst.de> <57227A6D.4000802@redhat.com>
+From: Anuj Kalia <anujkaliaiitd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Why do only connected transports provide RDMA reads and writes?
+Date: Fri, 29 Apr 2016 03:00:32 -0400
+Message-ID: <CADPSxAjsJH8sV=5XGwNe=YctG4rs0u28=Mq=TLBUfVadH_FUCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <57227A6D.4000802-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 05:02:37PM -0400, Doug Ledford wrote:
-> I see you responded to Bart's comment above, but in the same email he
-> had a second comment on this patch (that the logic was incorrect in part
-> of it), and I've not seen a response to that.  Here's the comment I'm
-> referring to:
+Hi everyone.
 
-That one has also been addressed in the latest repost.  Bart has reported
-another issue with the current version, which I plan to look into by
-the weekend or early next week.
+Connected transports (RC and UC) each provide some subset of RDMA
+reads, writes, and atomic operations. However, these transports suffer
+from scalability issues when the number of queue pairs becomes large.
+Mellanox tries to solve this problem with DCT, but DCT incurs
+additional overhead by sending dynamic disconnect and connect
+messages. On the other hand, datagram transport scales well, but
+provides only messaging.
+
+Is there a fundamental reason why only connected transports provide
+RDMA reads and writes? Why can't we have these over UD? I can think of
+two issues; please let me know your thoughts.
+
+1. RDMA reads and atomics need reliable transport to make sense to the
+application: if the network (or software networking layer) does not
+provide reliability, how does the application distinguish between a
+failed RDMA read and a delayed RDMA read? It is hard to provide
+end-to-end reliability over datagrams, particularly in
+memory-constrained NICs (maybe that's why no one implements reliable
+datagram). So: reads and atomics require reliability which requires
+connection-oriented transport.
+
+2. Exposing host memory for modifications over UD can be a big
+security hole. The initial handshake while establishing a connection
+in RC/UC provides (some) additional security.
+
+Regards,
+Anuj
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
