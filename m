@@ -1,7 +1,7 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 02/12] IB/cma: pass the port number to ib_create_qp
-Date: Thu, 28 Apr 2016 17:49:20 -0600
-Message-ID: <20160428234920.GA2782@obsidianresearch.com>
+Date: Thu, 28 Apr 2016 18:01:46 -0600
+Message-ID: <20160429000146.GB2782@obsidianresearch.com>
 References: <1460410360-13104-3-git-send-email-hch@lst.de>
  <20160419031425.GB27515@rhel.amr.corp.intel.com>
  <20160419173032.GD20844@obsidianresearch.com>
@@ -11,66 +11,45 @@ References: <1460410360-13104-3-git-send-email-hch@lst.de>
  <20160428200759.GA32110@obsidianresearch.com>
  <1828884A29C6694DAF28B7E6B8A82373AB0471EC@ORSMSX109.amr.corp.intel.com>
  <20160428220945.GA1542@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB04724A@ORSMSX109.amr.corp.intel.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E22EC858F@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB04724A@ORSMSX109.amr.corp.intel.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Hefty, Sean" <sean.hefty@intel.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, "Weiny, Ira" <ira.weiny@intel.com>, Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "bart.vanassche@sandisk.com" <bart.vanassche@sandisk.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E22EC858F-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 28, 2016 at 11:23:33PM +0000, Hefty, Sean wrote:
-> > This isn't dismissing them as silly, it is a pragmatic need in the
-> > core code that everything associated with a PD have a minimum standard
-> > of uniformity - and it is very clear that includes things like the
-> > iwarp special cases and the particular format of the AHs.
-> 
-> I was referring to Christoph's comment "that multi-protocol devices
-> are indeed as silly as they seem".  Maybe we're using different
-> meanings for the term 'device'.  I'm referring to the physical
-> hardware.
+On Thu, Apr 28, 2016 at 11:25:35PM +0000, Weiny, Ira wrote:
 
-Oh. I think the rest of this thread uses device to refer to a 'struct
-ib_device'.
+> Mellanox how hard will it be to change your drivers to that model?
+> I'm not even sure how the detection of Link Layer works any more.
 
-> > Fundamentally we have the wrong model for such hardware. When a PD is
-> > created it should set the 'protocol' and select the compatible member
-> > ports that belong to the PD. Cap tests and so forth should be done
-> > against the PD, not a port or a device.
-> 
-> I agree that the model is wrong.  But this is the first email I've
-> read (and I skip reading a lot) mentioning the PD.
+Hmm, I vaugely remember looking into this and thinking the mlx drivers
+already did this?
 
-The last time this came up we talked about the right place to apply
-the 'cap' tests and the idea of using the PD or QP was briefly
-discussed.
+It may even be that IB and rocee can do APM and could perhaps be part
+of the same struct ib_device without breaking the world. I actually
+have no idea.
 
-> My concern is that the discussion mentioned removing multi-protocol
-> support completely, rather than improving it.
+> But all that is different from the qib/hfi case where we have 1 port
+> with 2 protocols on it.  If we are going to add PSM into the core
+> then I think it is _semantically_ appropriate for users to be able
+> to query for the protocols supported on a port and get back more
+> than 1.
 
-No, the topic is to remove the port num from the cap tests.
+That doesn't make sense, the issue here is that we have a variety of
+verbs 'flavours'. PSM is not a verbs flavour.
 
-This is clarifying the current capability of the core code, which is
-that a struct ib_device must have certain uniformity across all ports.
-
-The port_num is totally wrong headed and is not the way to support
-some future multi-protocol hardware within a single struct
-ib_device.
-
-> I was referring to the sharing of resources (e.g. CQs, MRs) across
-> different protocols on the same device.
-
-Hum, can those even realistically be shared? Eg an iWarp and IB MRs
-have very different semantics, both in terms of the key and how the
-permission model works.
-
-IIRC CQs had some subtle differences too, and of course extracting an
-address from a WC is very different.
-
-This is why I bring up the PD as a 'narrower' container for the
-required uniformity.
+*If* PSM gets a kAPI (nobody is talking about doing this?) *and* gains
+multiple incompatible flavours (such as OPA and IB?) then it will need
+a unique set of cap tests and restrictions on which physical ports can
+be used together.
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
