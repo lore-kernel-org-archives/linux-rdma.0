@@ -1,65 +1,125 @@
-From: Ming Lin <mlin@kernel.org>
-Subject: Re: iSER multi-queue configuration
-Date: Fri, 29 Apr 2016 23:13:56 -0700
-Message-ID: <1461996836.4373.5.camel@kernel.org>
-References: <CAF1ivSa24Y114s0f0g74jgmP8MuPfrfU_uAA7AAVR8Tsz=+avg@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Sat, 30 Apr 2016 10:28:47 +0300
+Message-ID: <20160430072847.GB25593@leon.nu>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+ <5721F149.1090004@grimberg.me>
+ <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com>
+ <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
+ <20160429205434.GA11286@obsidianresearch.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAF1ivSa24Y114s0f0g74jgmP8MuPfrfU_uAA7AAVR8Tsz=+avg@mail.gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Sagi Grimberg <sagi@grimberg.me>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, target-devel <target-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160429205434.GA11286-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-04-29 at 14:11 -0700, Ming Lin wrote:
-> Hi,
->=20
-> I use mlx5 to setup iSER and have scsi mq enabled.
->=20
-> root@xxx:~# cat /sys/module/scsi_mod/parameters/use_blk_mq
-> Y
->=20
-> But it seems there is only 1 HW queue that maps to 48 SW queues.
->=20
-> root@xxx:/sys/block/sdb/mq# ls
-> 0
->=20
-> root@xxx:/sys/block/sdb/mq# ls 0/
-> active=C2=A0=C2=A0cpu1=C2=A0=C2=A0=C2=A0cpu11=C2=A0=C2=A0cpu13=C2=A0=C2=
-=A0cpu15=C2=A0=C2=A0cpu17=C2=A0=C2=A0cpu19=C2=A0=C2=A0cpu20=C2=A0=C2=A0=
-cpu22=C2=A0=C2=A0cpu24
-> cpu26=C2=A0=C2=A0cpu28=C2=A0=C2=A0cpu3=C2=A0=C2=A0=C2=A0cpu31=C2=A0=C2=
-=A0cpu33=C2=A0=C2=A0cpu35=C2=A0=C2=A0cpu37=C2=A0=C2=A0cpu39=C2=A0=C2=A0=
-cpu40=C2=A0=C2=A0cpu42
-> cpu44=C2=A0=C2=A0cpu46=C2=A0=C2=A0cpu5=C2=A0=C2=A0cpu7=C2=A0=C2=A0cpu=
-9=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dispatched=C2=A0=C2=A0pending=C2=A0=
-=C2=A0run
-> cpu0=C2=A0=C2=A0=C2=A0=C2=A0cpu10=C2=A0=C2=A0cpu12=C2=A0=C2=A0cpu14=C2=
-=A0=C2=A0cpu16=C2=A0=C2=A0cpu18=C2=A0=C2=A0cpu2=C2=A0=C2=A0=C2=A0cpu21=C2=
-=A0=C2=A0cpu23=C2=A0=C2=A0cpu25
-> cpu27=C2=A0=C2=A0cpu29=C2=A0=C2=A0cpu30=C2=A0=C2=A0cpu32=C2=A0=C2=A0c=
-pu34=C2=A0=C2=A0cpu36=C2=A0=C2=A0cpu38=C2=A0=C2=A0cpu4=C2=A0=C2=A0=C2=A0=
-cpu41=C2=A0=C2=A0cpu43
-> cpu45=C2=A0=C2=A0cpu47=C2=A0=C2=A0cpu6=C2=A0=C2=A0cpu8=C2=A0=C2=A0cpu=
-_list=C2=A0=C2=A0io_poll=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0queued=C2=A0=C2=A0=
-=C2=A0tags
->=20
-> How to configure it that I can have 48 HW queues?
-> That is 1 HW queue map to 1 SW queue.
 
-Hi Sagi,
+--A6N2fC+uXW/VQSAv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm looking at why there is only 1 HW queue for iser.
+On Fri, Apr 29, 2016 at 02:54:34PM -0600, Jason Gunthorpe wrote:
+> On Fri, Apr 29, 2016 at 11:06:46AM -0400, Doug Ledford wrote:
+>=20
+> > > These patches are long time here in mailing list and they were review=
+ed as
+> > > all other patches in this mailing list.
+> >=20
+> > That's not true.  The RSS patches in particular tend to get no review.
+> > No one appears to care about them.  V1 was posted way back last year and
+> > no one had anything to say about them.  I don't know when V2 was, it's
+> > no longer in my mailbox.  Then v3 has been on the list for 12 days and
+> > again, no one has responded.  No review at all does not mean
+> > automatically accepted.
+>=20
+> During the Collab summit I thought we reached a rough consensus that
+> these sorts of uAPI changes to the common multi-vendor API would go
+> through a more rigorous process and those who are proposing them would
+> actively seek a multi-vendor sign off instead of simply dumping them
+> on the list. Liran nominated himself and the OFVWG to act as a
+> forum. I recommend we let that process get going and do it's work.
+>=20
+> Further, I also thought we reached a rough consensus that we'd shunt
+> some of this stuff to the driver specific uAPI channel to reduce this
+> continual churn on the common multi-vendor API for currently
+> driver-specific features. Drivers can implement their unique features
+> and sanely export them through the kernel without so much pain. The
+> uAPI 2.0 concepts from all parties have been heavily influenced by
+> this idea.
+>=20
+> Certainly, if patches cannot attract any review or interest from the
+> community as part of the core API then I'd say that is an excellent
+> sign they should be shunted to a driver specific channel.
+>=20
+> There is more flexability in user space to make mistakes with the
+> libibverbs/etc API, and more options to provide access to these kind
+> of services. For instance I really wonder if integrating into
+> libibverbs is really the right home to trial a broad range of brand
+> new UD offload focused features.
 
-2185 int scsi_mq_setup_tags(struct Scsi_Host *shost)
-2186 {
-=2E..
-2199=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0shost->tag_se=
-t.nr_hw_queues =3D shost->nr_hw_queues ? : 1;
+Jason,
+It is **respin** of patches which were with us for **more than year**, it is
+enough time to all participants and maintainer to say their word.
 
+>=20
+> > >> verbs 2.0 API is settled so we only have one API to apply it too,
+> > >=20
+> > > SELinux code adds hooks which are deep in IB/core code and doesn't
+> > > play with ABI at all.
+> >=20
+> > They snoop ABI.  If they ABI changes, they would possibly need to be
+> > changed in order to continue to be able to read the elements.
+>=20
+> Agree, if we go to a object based uAPI then there may be better ways
+> to make use of selinux right at the uapi layer.
 
-It seems because iser code does not set shost->nr_hw_queues at all.
+=46rom user perspective, it will be the same, so please name me technical
+reason do not proceed with them now.
 
-Why?
+SELinux patches are contributed by open source company who is actively
+supporting IB stack by code and by following IBTA specification.
+
+As I said before and continue to say again, we will invest time and effort =
+to
+update all needed pieces of our code to support new ABI whenever it comes.
+
+>=20
+> Jason
+
+--A6N2fC+uXW/VQSAv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXJF6vAAoJEORje4g2clinYNMP/iLlf+Uv07D2WAyHylJ0Bhjs
+zt6an27iDyQ11kpvOCxZG1oqfmGHnlswPGxHDDD26EcEHq3nIQ2qh/x2jJX3LHtc
+E57yqch4075VZ3jZ8XCMFjxZpmZUNfU2TQB7PiWPTcKd3ps3oXLFUKCaWt6pCgPr
+vLGfaxe4fLXFCapGjLUPHVkgqn/XRT8JX9V6ESBXX/ySNIpJ6zjvV723K7oQ+GHc
+WzDW6R7bhnJ/VoDG3ZssXiNiVpWPPmkKw4FCXbJK5jbUynSVh1BGPwKLnQhZCRlm
+2l5D3tozyP9sAZt93wylmmZZM92w5iey6Kb+rRFv2JTK64ILu+t2c0DlXI4ByhMG
+2EceXuYpAcAZ+m8Rvf/H9FU+UNUBK0eE+4nQXN+ht1sLEn5CYqZGXA1Zo+XIVF1V
+uYM5Q/1m1xeA2lJrKapxQUfhkTl4KlmTwATA2Lhp4HZAMv2uucd4YZ5zbp6d46sZ
+OvZaNhTDArl78hDdnjDzugGj7BzP16fhLJHgPVRLmKcCpFV4dwRo6pzNwfKgIAXr
+f/Ohkr89m6+Faz7GSXghsnSGVRpmFl8zaHH/wnlKqdu0otbEwler+2A22W1SCav2
+kVXfZTHG+7zJYfGPp5qHMYrcXtqFLnHlvhjcKQO7kjMC4a51qJ1UdtoeFcScTW++
+EO2CopG2hyHhrRwL3HDa
+=GcmY
+-----END PGP SIGNATURE-----
+
+--A6N2fC+uXW/VQSAv--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
