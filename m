@@ -1,49 +1,87 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] Proposal to address hfi1 UI and EPROM devices
-Date: Mon, 2 May 2016 15:55:02 -0400
-Message-ID: <20160502195502.GA31800@phlsvsds.ph.intel.com>
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: Re: generic RDMA READ/WRITE API V6
+Date: Mon, 2 May 2016 15:14:34 -0700
+Message-ID: <5727D14A.8040600@sandisk.com>
+References: <1460410360-13104-1-git-send-email-hch@lst.de>
+ <571AA5C8.4080502@sandisk.com> <20160502151535.GA520@lst.de>
+ <5727A5C7.1090009@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <5727A5C7.1090009@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The hfi1 driver has a "UI" device associated with it. This is currently a
-char dev. It is used for debugging/diagnostics. Basically it provides direct
-user level access to HW registers. We have been exploring options to remove
-this char dev, yet retain the same functionality.
+On 05/02/2016 12:08 PM, Bart Van Assche wrote:
+> On 05/02/2016 08:15 AM, Christoph Hellwig wrote:
+>> On Fri, Apr 22, 2016 at 03:29:28PM -0700, Bart Van Assche wrote:
+>>> On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
+>>>> 	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
+>>>
+>>> Hello Christoph,
+>>>
+>>> Is the version that has been pushed on April 18 the latest and greatest
+>>> version of this patch series ?
+>>
+>> Should be.  I've pushed out a new version, but the only changes are
+>> in response to your small review comments, and a no-op rebase to Doug's
+>> latest tree.
+>>
+>>> I'm asking because with that version I see
+>>> error messages appearing that I hadn't seen with the previous version:
+>>>
+>>> ib_srpt:srpt_qp_event: ib_srpt QP event 16 on cm_id=ffff8801713d5628
+>>> sess_name=0x0000000000000000e41d2d03000a85b1 state=1
+>>> ib_srpt:srpt_qp_event: ib_srpt 0x0000000000000000e41d2d03000a85b1-522,
+>>> state live: received Last WQE event.
+>>> ib_srpt RDMA_READ for ioctx 0xffff8804593092a8 failed with status 4
+>>>
+>>> This test was run with the force_mr=Y:
+>>>
+>>> $ cat /etc/modprobe.d/ib_core.conf
+>>> options ib_core force_mr=Y
+>>
+>> I haven't been able to reproduce this with my usual xfstests run
+>> on mlx4 hardware.  What did you do to reproduce the issue, and what
+>> hardware were you using?
+>
+> After having disabled CONFIG_SLUB_DEBUG_ON I don't see the "QP event"
+> message anymore. But running xfstests triggered the following (mlx4
+> hardware; SRP initiator and LIO target running on the same server and
+> communicating over loopback):
+>
+> WARNING: CPU: 11 PID: 9224 at drivers/infiniband/ulp/srpt/ib_srpt.c:1209
+> srpt_rdma_read_done+0xc7/0x110 [ib_srpt]
+> Call Trace:
+>    [<ffffffff812c0bf5>] dump_stack+0x67/0x92
+>    [<ffffffff81058011>] __warn+0xc1/0xe0
+>    [<ffffffff810580e8>] warn_slowpath_null+0x18/0x20
+>    [<ffffffffa05db7c7>] srpt_rdma_read_done+0xc7/0x110 [ib_srpt]
+>    [<ffffffffa045c73b>] __ib_process_cq+0x4b/0xd0 [ib_core]
+>    [<ffffffffa045c82b>] ib_cq_poll_work+0x1b/0x60 [ib_core]
+>    [<ffffffff81071fea>] process_one_work+0x19a/0x490
+>    [<ffffffff81071f8a>] ? process_one_work+0x13a/0x490
+>    [<ffffffff81072329>] worker_thread+0x49/0x490
+>    [<ffffffff810722e0>] ? process_one_work+0x490/0x490
+>    [<ffffffff810788da>] kthread+0xea/0x100
+>    [<ffffffff8159e632>] ret_from_fork+0x22/0x40
 
-One approach we have considered is using the regmap interface. This has a
-number of problems. It is primarily a read only interface. The write
-capability is not even available as a compile time option. A code change is
-needed to make use of it. There are other issues as well such as being 32bit
-when we need 64bit. So this seems like the wrong option.
+(replying to my own e-mail)
 
-Another approach is using the driver's resource0 file. We can mmap() the BAR
-and access the registers. The main drawback we have with that is we have
-some hardware requirements that the driver needs to arbitrate access to
-certain registers. This means some form of kernel/user space shared locking.  
-We are currently not aware of anything that the kernel provides to achieve 
-this. However, we are still looking and would appreciate any pointers.
+I just noticed that ib_comp_wq is created as follows:
 
-The third approach would be to take our existing UI implementation and plop
-it down in debugfs as a binary file. We can control our locking just as we
-do today, in the driver. This gets rid of the character device, and it's not
-even available unless the admin decides to mount debugfs.
+	ib_comp_wq = alloc_workqueue("ib-comp-wq",
+			WQ_UNBOUND | WQ_HIGHPRI | WQ_MEM_RECLAIM,
+			WQ_UNBOUND_MAX_ACTIVE);
 
-We also should be able to use any of these schemes to handle our eprom
-reading/writing. Adding eprom to IPoIB as Doug suggested is a fine plan, but
-we technically don't need to do it right now when we could make do with the
-"UI" functionality and hide the details in user space. In the future there 
-may well be value in having an eprom capability in the rdma sub-system, but 
-for now we believe we can avoid extending the kernel in this regard.
+I think this breaks the locking guarantees for completion handlers. A 
+quote from Documentation/infiniband/core_locking.txt: "The driver must 
+guarantee that only one CQ event handler for a given CQ is running at a 
+time." The ib_srpt driver assumes that completion handler invocations 
+are serialized such that no locking is needed to access wait_list from 
+inside a completion handler.
 
--Denny
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
