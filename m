@@ -1,54 +1,48 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
- querying device
-Date: Mon, 2 May 2016 18:13:45 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04816A@ORSMSX109.amr.corp.intel.com>
-References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
- <1461765892-1285-2-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
- <1828884A29C6694DAF28B7E6B8A82373AB046AB1@ORSMSX109.amr.corp.intel.com>
- <5721C3AD.8050407@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB046FD8@ORSMSX109.amr.corp.intel.com>
- <d8f8d6bf-9fad-fcc9-5a15-2b2423349c26@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0480DB@ORSMSX109.amr.corp.intel.com>
- <20160502175011.GB32096@obsidianresearch.com>
+Subject: RE: Status of RXE/Soft-RoCE driver?
+Date: Mon, 2 May 2016 18:29:38 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0481A1@ORSMSX109.amr.corp.intel.com>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+ <5721F149.1090004@grimberg.me> <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com> <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
+ <20160429205434.GA11286@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160502175011.GB32096-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160429205434.GA11286-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > > So, what do you think about stating an optional protocol in create_qp
-> > > and putting LSO in query_qp?
-> >
-> > This makes sense to me, and I think will work well as devices become
-> > more complex (e.g. the qlogic NIC that supports both iWarp and
-> > RoCE).
+> During the Collab summit I thought we reached a rough consensus that
+> these sorts of uAPI changes to the common multi-vendor API would go
+> through a more rigorous process and those who are proposing them would
+> actively seek a multi-vendor sign off instead of simply dumping them
+> on the list.
+
+I agree that this is the right approach to follow.  A Linux maintainer should not be in the position of having to decide on which features merit a uAPI change.
+
+> Further, I also thought we reached a rough consensus that we'd shunt
+> some of this stuff to the driver specific uAPI channel to reduce this
+> continual churn on the common multi-vendor API for currently
+> driver-specific features. Drivers can implement their unique features
+> and sanely export them through the kernel without so much pain. The
+> uAPI 2.0 concepts from all parties have been heavily influenced by
+> this idea.
 > 
-> What is the actual issue here?
+> Certainly, if patches cannot attract any review or interest from the
+> community as part of the core API then I'd say that is an excellent
+> sign they should be shunted to a driver specific channel.
 
-My issue is how this is being exposed.  RC QPs already do LSO.  What does this change mean in that context?  What is actually being offloaded?
+This is an excellent point.  The lack of interest is likely a very good sign that this is a driver specific feature.
 
-When I see LSO, I think of TCP LSO.  Is LSO the most appropriate term here?
+I'm not sure why there seems to be objection to calling out driver specific features as driver specific and exposing them as such.  It seems like the quickest way to get features into the hands of prospective users.
 
-> LSO should just be programmable UD fragmentation. It should be
-> indistinguishable from a user app sending multiple send WRs to the UD
-> QP. Surely it doesn't have anything to do with the underlying wire
-> protocol?
-
-IMO - the fragmentation has everything to do with the underlying protocol.  Are we fragmenting into IP datagrams?  IB UD datagrams?  UDP packets?  Is re-assembly occurring on the opposite side (assuming no)?  Is the receiver seeing multiple messages (assuming yes)?  How many messages, and where did the breaks occur?  If the wire protocol doesn't matter, why does the qp type?
-
-> That said, I haven't seen anything talking about how to program the
-> segmentation behavior (presumably it is assuming IP datagrams or
-> something?). It is absolutely necessary to specify the segmentation
-> method that the HW is going to use, there is lots of variety there.
-
-I'm hoping that the protocol conveys this information.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
