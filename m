@@ -1,59 +1,84 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Mon, 2 May 2016 12:40:05 -0600
-Message-ID: <20160502184005.GA32613@obsidianresearch.com>
-References: <20160428115653.GB21343@leon.nu>
- <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
- <5722C24B.6020108@redhat.com>
- <20160429051755.GC774@leon.nu>
- <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
- <20160429205434.GA11286@obsidianresearch.com>
- <20160430072847.GB25593@leon.nu>
- <572725E0.4090303@dev.mellanox.co.il>
- <20160502175709.GA31976@obsidianresearch.com>
- <20160502183151.GA6462@infradead.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 04/20] xprtrdma: Bound the inline threshold values
+Date: Mon, 02 May 2016 14:40:48 -0400
+Message-ID: <20160502184048.10798.11350.stgit@manet.1015granger.net>
+References: <20160502183144.10798.99847.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160502183151.GA6462-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160502183144.10798.99847.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 02, 2016 at 11:31:51AM -0700, Christoph Hellwig wrote:
-> On Mon, May 02, 2016 at 11:57:09AM -0600, Jason Gunthorpe wrote:
-> > The other take away from the Collab discussion is that there is a
-> > reasonable opinion that linux-rdma is not the right forum to decide if
-> > major changes to the multi-vendor common-verbs APIs are
-> > OK. I don't know if we reached a consensus on this or not.
-> 
-> Who had that discussion, and why do you believe it's viable?  In fact
-> I'd like to state that any other forum than linux-rdma simply is not
-> credible, just like the relevant list is the only credible place to
-> discuss the ABIs for any other Linux subsystem.
+Currently the sysctls that allow setting the inline threshold allow
+any value to be set.
 
-I would say mostly from people looking at it from a hardware design
-perspective.
+Small values only make the transport run slower. The default 1KB
+setting is as low as is reasonable. And the logic that decides how
+to divide a Send buffer between RPC-over-RDMA header and RPC message
+assumes (but does not check) that the lower bound is not crazy (say,
+57 bytes).
 
-The unique issue with verbs is that nearly all the APIs match directly
-to some feature in silicon, and cross-vendor silicon focused agreements
-are rarely done on Linux focused mailing lists. Particularly when
-these features are expected to be multi-operating system.
+Send and receive buffers share a page with some control information.
+Values larger than about 3KB can't be supported, currently.
 
-That is my fundamental concern every time a uAPI change comes up:
-These proposed API changes *directly* require other vendors to
-implement very specific things in their sillicon. This is not a
-software-only discussion, as the majority of other Linux uAPI things
-are.
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ include/linux/sunrpc/xprtrdma.h |    4 +++-
+ net/sunrpc/xprtrdma/transport.c |    6 ++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-* And I specifically separate the nitty gritty details of the API/ABI
-from the overarching ideas: eg, introducing a dis-aggregated QP
-concept with WQ objects, and defining it how that interacts with
-everything else.
+diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
+index 767190b..39267dc 100644
+--- a/include/linux/sunrpc/xprtrdma.h
++++ b/include/linux/sunrpc/xprtrdma.h
+@@ -52,7 +52,9 @@
+ #define RPCRDMA_DEF_SLOT_TABLE	(128U)
+ #define RPCRDMA_MAX_SLOT_TABLE	(256U)
+ 
+-#define RPCRDMA_DEF_INLINE  (1024)	/* default inline max */
++#define RPCRDMA_MIN_INLINE  (1024)	/* min inline thresh */
++#define RPCRDMA_DEF_INLINE  (1024)	/* default inline thresh */
++#define RPCRDMA_MAX_INLINE  (3068)	/* max inline thresh */
+ 
+ /* Memory registration strategies, by number.
+  * This is part of a kernel / user space API. Do not remove. */
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 9954342..16595ff 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -73,6 +73,8 @@ static unsigned int xprt_rdma_memreg_strategy = RPCRDMA_FRMR;
+ 
+ static unsigned int min_slot_table_size = RPCRDMA_MIN_SLOT_TABLE;
+ static unsigned int max_slot_table_size = RPCRDMA_MAX_SLOT_TABLE;
++static unsigned int min_inline_size = RPCRDMA_MIN_INLINE;
++static unsigned int max_inline_size = RPCRDMA_MAX_INLINE;
+ static unsigned int zero;
+ static unsigned int max_padding = PAGE_SIZE;
+ static unsigned int min_memreg = RPCRDMA_BOUNCEBUFFERS;
+@@ -96,6 +98,8 @@ static struct ctl_table xr_tunables_table[] = {
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
++		.extra1		= &min_inline_size,
++		.extra2		= &max_inline_size,
+ 	},
+ 	{
+ 		.procname	= "rdma_max_inline_write",
+@@ -103,6 +107,8 @@ static struct ctl_table xr_tunables_table[] = {
+ 		.maxlen		= sizeof(unsigned int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
++		.extra1		= &min_inline_size,
++		.extra2		= &max_inline_size,
+ 	},
+ 	{
+ 		.procname	= "rdma_inline_write_padding",
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
