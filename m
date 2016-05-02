@@ -1,41 +1,116 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG
- for SendOnly join
-Date: Mon, 2 May 2016 18:18:08 +0300
-Message-ID: <CAAk-MO_hDdqXciJcVgBq7JtSkx7DQYB0P+ObHzPTjQOZmChL1A@mail.gmail.com>
-References: <1462194141-8902-1-git-send-email-erezsh@mellanox.com>
-	<1462194141-8902-5-git-send-email-erezsh@mellanox.com>
-	<CAJ3xEMjRQjakr+j419oiFPkrk=1KuwKxkznp_YKiwYcB2nNV4Q@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: RDMA Read: Local protection error
+Date: Mon, 2 May 2016 09:08:03 -0700
+Message-ID: <57277B63.8030506@sandisk.com>
+References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com>
+ <57238F8C.70505@sandisk.com>
+ <B72A389F-FFF1-498C-A946-8AA72B7769F8@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjRQjakr+j419oiFPkrk=1KuwKxkznp_YKiwYcB2nNV4Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <B72A389F-FFF1-498C-A946-8AA72B7769F8-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 2, 2016 at 6:11 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, May 2, 2016 at 4:02 PM, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> @@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
+On 05/02/2016 08:10 AM, Chuck Lever wrote:
+>> On Apr 29, 2016, at 12:45 PM, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+>> On 04/29/2016 09:24 AM, Chuck Lever wrote:
+>>> I've found some new behavior, recently, while testing the
+>>> v4.6-rc Linux NFS/RDMA client and server.
+>>>
+>>> When certain kernel memory debugging CONFIG options are
+>>> enabled, 1MB NFS WRITEs can sometimes result in a
+>>> IB_WC_LOC_PROT_ERR. I usually turn on most of them because
+>>> I want to see any problems, so I'm not sure which option
+>>> in particular is exposing the issue.
+>>>
+>>> When debugging is enabled on the server, and the underlying
+>>> device is using FRWR to register the sink buffer, an RDMA
+>>> Read occasionally completes with LOC_PROT_ERR.
+>>>
+>>> When debugging is enabled on the client, and the underlying
+>>> device uses FRWR to register the target of an RDMA Read, an
+>>> ingress RDMA Read request sometimes gets a Syndrome 99
+>>> (REM_OP_ERR) acknowledgement, and a subsequent RDMA Receive
+>>> on the client completes with LOC_PROT_ERR.
+>>>
+>>> I do not see this problem when kernel memory debugging is
+>>> disabled, or when the client is using FMR, or when the
+>>> server is using physical addresses to post its RDMA Read WRs,
+>>> or when wsize is 512KB or smaller.
+>>>
+>>> I have not found any obvious problems with the client logic
+>>> that registers NFS WRITE buffers, nor the server logic that
+>>> constructs and posts RDMA Read WRs.
+>>>
+>>> My next step is to bisect. But first, I was wondering if
+>>> this behavior might be related to the recent problems with
+>>> s/g lists seen with iSER/SRP? ie, is this a recognized
+>>> issue?
 >>
->>         set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
+>> Hello Chuck,
 >>
->> +       priv->sm_fullmember_sendonly_support = false;
->> +
+>> A few days ago I observed similar behavior with the SRP protocol but only if I increase max_sect in /etc/srp_daemon.conf from the default to 4096. My setup was as follows:
+>> * Kernel 4.6.0-rc5 at the initiator side.
+>> * A whole bunch of kernel debugging options enabled at the initiator
+>>   side.
+>> * The following settings in /etc/modprobe.d/ib_srp.conf:
+>>   options ib_srp cmd_sg_entries=255 register_always=1
+>> * The following settings in /etc/srp_daemon.conf:
+>>   a queue_size=128,max_cmd_per_lun=128,max_sect=4096
+>> * Kernel 3.0.101 at the target side.
+>> * Kernel debugging disabled at the target side.
+>> * mlx4 driver at both sides.
+>>
+>> Decreasing max_sge at the target side from 32 to 16 did not help. I have not yet had the time to analyze this further.
 >
-> isn't priv zeroed on allocation? this is typically the case in
-> networking drivers.
+> git bisect result:
+>
+> d86bd1bece6fc41d59253002db5441fe960a37f6 is the first bad commit
+> commit d86bd1bece6fc41d59253002db5441fe960a37f6
+> Author: Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>
+> Date:   Tue Mar 15 14:55:12 2016 -0700
+>
+>      mm/slub: support left redzone
+>
+> I checked out the previous commit and was not able to
+> reproduce, which gives some confidence that the bisect
+> result is valid.
+>
+> I've also investigated the wire behavior a little more.
+> The server I'm using for testing has FRWR artificially
+> disabled, so it uses physical addresses for RDMA Read.
+> This limits it to max_sge_rd, or 30 pages for each Read
+> request.
+>
+> The client sends a single 1MB Read chunk. The server
+> emits 8 30-page Read requests, and a ninth request for
+> the last 16 pages in the chunk.
+>
+> The client's HCA responds to the 30-page Read requests
+> properly. But on the last Read request, it responds
+> with a Read First, 14 Read Middle responses, then an
+> ACK with Syndrome 99 (Remote Operation Error).
+>
+> This suggests the last page in the memory region is
+> not accessible to the HCA.
+>
+> This does not happen on the first NFS WRITE, but
+> rather one or two subsequent NFS WRITEs during the test.
 
-yes it is.
-but ipoib_open can be called many times in the driver's life.
+On an x86 system that patch changes the alignment of buffers > 8 bytes 
+from 16 bytes to 8 bytes (ARCH_SLAB_MINALIGN / ARCH_KMALLOC_MINALIGN). 
+There might be code in the mlx4 driver that makes incorrect assumptions 
+about the alignment of memory allocated by kmalloc(). Can someone from 
+Mellanox comment on the alignment requirements of the buffers allocated 
+by mlx4_buf_alloc()?
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
