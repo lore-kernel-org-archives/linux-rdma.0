@@ -1,67 +1,39 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 20/20] xprtrdma: Faster server reboot recovery
-Date: Mon, 02 May 2016 14:43:03 -0400
-Message-ID: <20160502184303.10798.4709.stgit@manet.1015granger.net>
-References: <20160502183144.10798.99847.stgit@manet.1015granger.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Status of RXE/Soft-RoCE driver?
+Date: Mon, 2 May 2016 18:51:50 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04823F@ORSMSX109.amr.corp.intel.com>
+References: <5721F149.1090004@grimberg.me> <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com> <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
+ <20160429205434.GA11286@obsidianresearch.com>
+ <20160430072847.GB25593@leon.nu> <572725E0.4090303@dev.mellanox.co.il>
+ <20160502175709.GA31976@obsidianresearch.com>
+ <20160502183151.GA6462@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160502183144.10798.99847.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20160502183151.GA6462-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In a cluster failover scenario, it is desirable for the client to
-attempt to reconnect quickly, as an alternate NFS server is already
-waiting to take over for the down server. The client can't see that
-a server IP address has moved to a new server until the existing
-connection is gone.
+> > The other take away from the Collab discussion is that there is a
+> > reasonable opinion that linux-rdma is not the right forum to decide if
+> > major changes to the multi-vendor common-verbs APIs are
+> > OK. I don't know if we reached a consensus on this or not.
+> 
+> Who had that discussion, and why do you believe it's viable?  In fact
+> I'd like to state that any other forum than linux-rdma simply is not
+> credible, just like the relevant list is the only credible place to
+> discuss the ABIs for any other Linux subsystem.
 
-For fabrics and devices where it is meaningful, set a definite upper
-bound on the amount of time before it is determined that a
-connection is no longer valid. This allows the RPC client to detect
-connection loss in a timely matter, then perform a fresh resolution
-of the server GUID in case it has changed (cluster failover).
+The problem is that the linux-rdma stack tries to expose vendor-specific, transport-specific, hardware-implementation specific features to user space under the guise of being a common API.  And many of the items being exported are not defined by any standards body.  Guidance about what's sane needs to come from somewhere other than vendor X posted a patch to change the common API because it suits the latest model of their HW.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- net/sunrpc/xprtrdma/verbs.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index b7a5bc1..be66f65 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -554,6 +554,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 	ep->rep_attr.recv_cq = recvcq;
- 
- 	/* Initialize cma parameters */
-+	memset(&ep->rep_remote_cma, 0, sizeof(ep->rep_remote_cma));
- 
- 	/* RPC/RDMA does not use private data */
- 	ep->rep_remote_cma.private_data = NULL;
-@@ -567,7 +568,16 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrdma_ia *ia,
- 		ep->rep_remote_cma.responder_resources =
- 						ia->ri_device->attrs.max_qp_rd_atom;
- 
--	ep->rep_remote_cma.retry_count = 7;
-+	/* Limit transport retries so client can detect server
-+	 * GID changes quickly. RPC layer handles re-establishing
-+	 * transport connection and retransmission.
-+	 */
-+	ep->rep_remote_cma.retry_count = 6;
-+
-+	/* RPC-over-RDMA handles its own flow control. In addition,
-+	 * make all RNR NAKs visible so we know that RPC-over-RDMA
-+	 * flow control is working correctly (no NAKs should be seen).
-+	 */
- 	ep->rep_remote_cma.flow_control = 0;
- 	ep->rep_remote_cma.rnr_retry_count = 0;
- 
-
+No one is suggesting that the linux-rdma developers do not own the ABI or kernel components, or that some external entity (like OFA) has any authority to dictate what needs to be done.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
