@@ -1,26 +1,65 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 4/4] IB/ipoib: Support SendOnlyFullMember
- MCG for SendOnly join
-Date: Mon, 2 May 2016 10:11:53 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1605021011330.29573@east.gentwo.org>
-References: <1462194141-8902-1-git-send-email-erezsh@mellanox.com> <1462194141-8902-5-git-send-email-erezsh@mellanox.com>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462194141-8902-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: iSER multi-queue configuration
+Date: Mon, 2 May 2016 10:12:22 -0500
+Message-ID: <01c201d1a485$06cc8f50$1465adf0$@opengridcomputing.com>
+References: <CAF1ivSa24Y114s0f0g74jgmP8MuPfrfU_uAA7AAVR8Tsz=+avg@mail.gmail.com>	 <1461996836.4373.5.camel@kernel.org> <57256FB6.7030607@grimberg.me> <1462082826.11010.3.camel@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1462082826.11010.3.camel@kernel.org>
+Content-Language: en-us
+Sender: target-devel-owner@vger.kernel.org
+To: 'Ming Lin' <mlin@kernel.org>, 'Sagi Grimberg' <sagi@grimberg.me>, linux-rdma@vger.kernel.org
+Cc: 'Bart Van Assche' <bart.vanassche@sandisk.com>, 'target-devel' <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2 May 2016, Erez Shitrit wrote:
 
-> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-> +		    priv->sm_fullmember_sendonly_support)
-> +			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-> +			rec.join_state = 8;
 
-Why 8?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> owner@vger.kernel.org] On Behalf Of Ming Lin
+> Sent: Sunday, May 01, 2016 1:07 AM
+> To: Sagi Grimberg; linux-rdma@vger.kernel.org
+> Cc: Bart Van Assche; target-devel
+> Subject: Re: iSER multi-queue configuration
+> 
+> On Sun, 2016-05-01 at 05:53 +0300, Sagi Grimberg wrote:
+> > > Hi Sagi,
+> >
+> > Hi Ming,
+> >
+> > > I'm looking at why there is only 1 HW queue for iser.
+> > >
+> > > 2185 int scsi_mq_setup_tags(struct Scsi_Host *shost)
+> > > 2186 {
+> > > ...
+> > > 2199         shost->tag_set.nr_hw_queues = shost->nr_hw_queues ? :
+> > > 1;
+> > >
+> > >
+> > > It seems because iser code does not set shost->nr_hw_queues at all.
+> > >
+> > > Why?
+> >
+> > The iscsi driver has not yet been converted to scsi_mq and iser as
+> > an iscsi transport still does not use multi-queue.
+> 
+> I'm going to compare performance between NVMe over RDMA and SCSI over
+> RDMA. SRP supports scsi_mq, so I'd use SRP to do the apples-to-apples
+> comparison.
+> 
+> >
+> > In iscsi, a hw queue maps to an iscsi session. In order to support
+> > multi-queue we need to have iscsi open multiple sessions and map
+> > a session to a queue.
+> >
+> > I had some preliminary works on this (joint with Mike Christie) but I
+> > didn't have time thus far to implement a full conversion to scsi-mq.
+> 
+> I'd happy to test it once you done.
+
+Ditto.  SRP as a comparison is only useful for IB/RoCE transports.  iSER will allow iWARP to play in the game as well...
+
+Steve.
