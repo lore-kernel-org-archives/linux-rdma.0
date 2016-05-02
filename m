@@ -1,61 +1,89 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] i40iw: constify i40iw_vf_cqp_ops structure
-Date: Mon, 2 May 2016 08:19:32 +0300
-Message-ID: <20160502051932.GB10276@leon.nu>
-References: <1462105341-6299-1-git-send-email-Julia.Lawall@lip6.fr>
+Subject: Re: [PATCH] staging/rdma/hfi1: use RCU_INIT_POINTER() when NULLing.
+Date: Mon, 2 May 2016 08:27:55 +0300
+Message-ID: <20160502052755.GC10276@leon.nu>
+References: <1462106131-9073-1-git-send-email-falakreyaz@gmail.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+pHx0qQiF2pBVqBT"
+	protocol="application/pgp-signature"; boundary="WplhKdTI2c8ulnbP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1462105341-6299-1-git-send-email-Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+In-Reply-To: <1462106131-9073-1-git-send-email-falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---+pHx0qQiF2pBVqBT
+--WplhKdTI2c8ulnbP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, May 01, 2016 at 02:22:21PM +0200, Julia Lawall wrote:
-> The i40iw_vf_cqp_ops structure is never modified, so declare it as const.
+On Sun, May 01, 2016 at 06:05:31PM +0530, Muhammad Falak R Wani wrote:
+> It is safe to use RCU_INIT_POINTER() to NULL a pointer, instead of
+> rcu_assign_pointer().
+> This results in slightly smaller/faster code.
 >=20
-> Done with the help of Coccinelle.
->=20
-> Signed-off-by: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
->=20
+> Signed-off-by: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Thanks Julia,
+I'm fine with your commit message and don't need to resend, however
+the statements like "smaller code" need to be supported by
+=2E/scripts/bloat-o-meter and "faster code" by performance analysis.
 
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---+pHx0qQiF2pBVqBT
+> ---
+>  drivers/staging/rdma/hfi1/init.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hfi1=
+/init.c
+> index cfcdc16..34e0f90 100644
+> --- a/drivers/staging/rdma/hfi1/init.c
+> +++ b/drivers/staging/rdma/hfi1/init.c
+> @@ -1303,7 +1303,7 @@ static void cleanup_device_data(struct hfi1_devdata=
+ *dd)
+> =20
+>  		spin_lock(&ppd->cc_state_lock);
+>  		cc_state =3D get_cc_state(ppd);
+> -		rcu_assign_pointer(ppd->cc_state, NULL);
+> +		RCU_INIT_POINTER(ppd->cc_state, NULL);
+>  		spin_unlock(&ppd->cc_state_lock);
+> =20
+>  		if (cc_state)
+> --=20
+> 1.9.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--WplhKdTI2c8ulnbP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXJuNkAAoJEORje4g2clin+QQP/2pac6QJxWmNO12AadwjhZGb
-3oKzvhPi5yjbTVljcL4tS9+MbwGwWJV0eOPjUDREDc6DW3uPgGcLnVf1yRx+jCPP
-g9vAzN773cLN0+umkd6Ptf7E2j43UeHQsVYRsqwd11ZEM+D37E/nBr5ISUzMNjoU
-X8zF9bxye5F+lx4qtbW/fhSP5ic6yn3hsfW3pWPtqV0sWWaW278Hbx0sXCwdY1ns
-oDMrdkLwcUkpOl+jLmy8501QT0NZUXYWff75zfh5OJHCWR+fzUbLC67cUDf5w8vI
-To69JClmNci5f1PRgnhkpIV6RxB+/GeduJK5OvR+GUgEA8ndU15EnDzHMEuyGG0o
-rAmXs6AkgBMH3km/7UgN7JMj/S94QHBrGjlSRQkPnUFxo5LJ9NjuxTvnlnh78sUR
-Ng/ehrma7gUdAEzyatYj4y3SVxvVfbXui9ocNotzSFzRIvpYGWds4sA9vxMPZRI3
-G4GfaGmyJdtA4/C8FWP15zMZUVazGdigrpojg+VP5qdLd2dDSoLdz0SsQDBdo9l0
-WOg5ko25b7rWfWRwXSmDD+op3qY62MLUS9/42me+0o3x3iB/3hMIiakzcrtG3w7c
-h58AxjY6hHvspNJoiq/njiBX7mrQDbmGx5XiaOsU+oh0nqYDqvrXNa6DIeC1lWsc
-4HIsD7UWwZyxpu4Zb9bT
-=WVyq
+iQIcBAEBAgAGBQJXJuVbAAoJEORje4g2clinv+gP/Avy6Ojew6LJrAfIY7fr4MXo
+uZakvIwjLfafxZStV+ahu7/WjGkjMmxv9HeUQL1qxxmHmtY7puxNPXivi3bK+Xp7
+mIiGJ1zt2ED0MmsF4MOF1rzpgnllRqPEWHmrVsidPnLeWsHouxAmEgul9CcRNUAJ
+/GUlm7AjDrq9K0Tr82fCRAdadbJApJu4j+94Ko5CfIvIThep6P5D3Mt8ur8XGjOg
+UsK3C8GS8UB+oFt4Wb8pqddpvNpg5keIVlFDP+eAT+E3C8jSym39DhHpcEpgzElQ
+3oaqUT6pb4qwHT8Ix6iwvlTQAfyff9STa3HrNFShRspEdjLThqhQKjFJx3876bAA
+sTWdTBmW1v4jTX5S3f1Q4g49n5Llixnam5cK5Myhre40180KhEQa+OKUa+bweGPh
+3yMeUQ5pxw0bzGTj7EOgOBGFLyBIwHMiVPMq22mkkWzns/lBGGPUbGltIyGRfGNs
+g2TtgTyZkMbesK4K4YxktVWrNRSmR6KcLyYyGU+m7s9eIdR4KrzQO6jcR6yQqUVe
+/fDpN6cCZJ3CfVcjEtfU2b7cBUnl0HVTFMTGoFAgYjtBVayarJqqODV/DrUoJQLR
+foODT6B41FdNLvg3O4Pxxi/GXgEatkTqnU2LtX5XE4XNTw6u1eAHGzK/FtB5etxq
+HN5dJmgMmfcGxDt1DVaB
+=d9ax
 -----END PGP SIGNATURE-----
 
---+pHx0qQiF2pBVqBT--
+--WplhKdTI2c8ulnbP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
