@@ -1,56 +1,72 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 for-next 0/4] Support SendOnlyFullMember join
-Date: Mon,  2 May 2016 16:02:17 +0300
-Message-ID: <1462194141-8902-1-git-send-email-erezsh@mellanox.com>
+Subject: [PATCH V1 for-next 1/4] IB/core: Add support for get ClassPortInfo from the SA
+Date: Mon,  2 May 2016 16:02:18 +0300
+Message-ID: <1462194141-8902-2-git-send-email-erezsh@mellanox.com>
+References: <1462194141-8902-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462194141-8902-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There are 4 types of multicast join: FullMember, NonMember,
-SendOnlyNonMember and SendOnlyFullMember.
 
-This patch-set introduces the ability to send multicast join requests of
-type SendOnlyFullMember (until now only the first three types were
-supported).
-Host that sends such join request, does not require a multicast
-subscription and will still send properly, and in addition will not get
-other multicast packets from that group.
+Change struct ib_class_port_info to conform to IB Spec 1.3
+That in order to get specific capability mask from ClassPortInfo mad.
 
-It adds a new SA query (for classport_info) to check that the sm
-supports sending such requests and it modifies multicast processing in
-the IB/core module to handle SendOnlyFullMember multicast join requests.
+>From the IB Spec, ClassPortInfo section:
+        "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+         RespTimeValue the rest 5 bits"
 
-In addition, the patch set modifies IPoIB so that if the sm does support
-SendOnlyFullMember join requests, IPoIB will send such a request when
-joining a sendonly multicast group.
+The new struct now has one field that contains both of cap_mask2 (which was
+reserved and resp_time which now is 27 bits for cap_mask2 and 5 bits for
+resp_time in the new field)
 
-Changes from V0:
-PORTCLASSINFO_REC_FIELD changed to CLASSPORTINFO_REC_FIELD
-2 fields in ib_class_port_info instead of one
-"sa" changed to SA
-"sa" in the headline changed to SA agent
-No need to indicates NUM_JOIN_MEMBERSHIP_TYPES = 4
-Change the place the ipoib driver calls the new sa_query, does it once after the broadcast is joined.
+More changes to adjust the new structure:
+IB/qib: Change pma_get_classportinfo
 
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_mad.c | 4 +++-
+ include/rdma/ib_mad.h               | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-Erez Shitrit (4):
-  IB/core: Add support for get ClassPortInfo from the SA
-  IB/sa: Add support for SA agent get ClassPortInfo
-  IB/core: Support new type of join-state for multicast
-  IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
-
- drivers/infiniband/core/multicast.c            |  23 +++-
- drivers/infiniband/core/sa_query.c             | 178 +++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mad.c            |   4 +-
- drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  74 ++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  35 +++--
- include/rdma/ib_mad.h                          |   2 +-
- include/rdma/ib_sa.h                           |  12 ++
- 8 files changed, 310 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 0bd1837..c5f6248 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1158,6 +1158,7 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+ 	struct ib_class_port_info *p =
+ 		(struct ib_class_port_info *)pmp->data;
+ 	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	char *p_cap_mask2;
+ 
+ 	memset(pmp->data, 0, sizeof(pmp->data));
+ 
+@@ -1172,7 +1173,8 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+ 	 * Set the most significant bit of CM2 to indicate support for
+ 	 * congestion statistics
+ 	 */
+-	p->reserved[0] = dd->psxmitwait_supported << 7;
++	p_cap_mask2 = (char *)&p->capability_mask2;
++	p_cap_mask2[0] = dd->psxmitwait_supported << 7;
+ 	/*
+ 	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+ 	 */
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 37dd534c..0761ab9 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -243,7 +243,7 @@ struct ib_class_port_info {
+ 	u8			base_version;
+ 	u8			class_version;
+ 	__be16			capability_mask;
+-	u8			reserved[3];
++	__be32			capability_mask2;
+ 	u8			resp_time_value;
+ 	u8			redirect_gid[16];
+ 	__be32			redirect_tcslfl;
 -- 
 1.7.11.3
 
