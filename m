@@ -1,45 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
- querying device
-Date: Mon, 2 May 2016 11:50:11 -0600
-Message-ID: <20160502175011.GB32096@obsidianresearch.com>
-References: <1461765892-1285-1-git-send-email-matanb@mellanox.com>
- <1461765892-1285-2-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
- <1828884A29C6694DAF28B7E6B8A82373AB046AB1@ORSMSX109.amr.corp.intel.com>
- <5721C3AD.8050407@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB046FD8@ORSMSX109.amr.corp.intel.com>
- <d8f8d6bf-9fad-fcc9-5a15-2b2423349c26@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0480DB@ORSMSX109.amr.corp.intel.com>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Mon, 2 May 2016 11:57:09 -0600
+Message-ID: <20160502175709.GA31976@obsidianresearch.com>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+ <5721F149.1090004@grimberg.me>
+ <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com>
+ <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
+ <20160429205434.GA11286@obsidianresearch.com>
+ <20160430072847.GB25593@leon.nu>
+ <572725E0.4090303@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0480DB-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <572725E0.4090303-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 02, 2016 at 05:20:17PM +0000, Hefty, Sean wrote:
-> > So, what do you think about stating an optional protocol in create_qp
-> > and putting LSO in query_qp?
-> 
-> This makes sense to me, and I think will work well as devices become
-> more complex (e.g. the qlogic NIC that supports both iWarp and
-> RoCE).
+On Mon, May 02, 2016 at 01:03:12PM +0300, Yishai Hadas wrote:
+ 
+> The above stages are way over the latest collaboration summit agreed
+> guidelines for submitting new functionality and enriching the API.
 
-What is the actual issue here?
+The key take away from the collab discussion was the changes to the
+common uAPI needs *multi-vendor* support.
 
-LSO should just be programmable UD fragmentation. It should be
-indistinguishable from a user app sending multiple send WRs to the UD
-QP. Surely it doesn't have anything to do with the underlying wire
-protocol?
+All I see is silence from everyone, and a bunch of patches that 
+nobody wants to review. That isn't good enough.
 
-That said, I haven't seen anything talking about how to program the
-segmentation behavior (presumably it is assuming IP datagrams or
-something?). It is absolutely necessary to specify the segmentation
-method that the HW is going to use, there is lots of variety there.
+This is especially critical for RSS because it adds all sorts of new
+verbs objects that need hardware mappings! I see no formal
+specification for this, no IBTA/IETF support, and no voting.
+
+The other take away from the Collab discussion is that there is a
+reasonable opinion that linux-rdma is not the right forum to decide if
+major changes to the multi-vendor common-verbs APIs are
+OK. I don't know if we reached a consensus on this or not.
 
 Jason
 --
