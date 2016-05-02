@@ -1,38 +1,112 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Status of RXE/Soft-RoCE driver?
-Date: Mon, 2 May 2016 11:31:51 -0700
-Message-ID: <20160502183151.GA6462@infradead.org>
-References: <5721F149.1090004@grimberg.me>
- <20160428115653.GB21343@leon.nu>
- <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
- <5722C24B.6020108@redhat.com>
- <20160429051755.GC774@leon.nu>
- <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
- <20160429205434.GA11286@obsidianresearch.com>
- <20160430072847.GB25593@leon.nu>
- <572725E0.4090303@dev.mellanox.co.il>
- <20160502175709.GA31976@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/20] NFS/RDMA client patches proposed for v4.7
+Date: Mon, 02 May 2016 14:40:14 -0400
+Message-ID: <20160502183144.10798.99847.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160502175709.GA31976-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 02, 2016 at 11:57:09AM -0600, Jason Gunthorpe wrote:
-> The other take away from the Collab discussion is that there is a
-> reasonable opinion that linux-rdma is not the right forum to decide if
-> major changes to the multi-vendor common-verbs APIs are
-> OK. I don't know if we reached a consensus on this or not.
+Anna, IMO these are ready for you to consider for your for-next
+branch.
 
-Who had that discussion, and why do you believe it's viable?  In fact
-I'd like to state that any other forum than linux-rdma simply is not
-credible, just like the relevant list is the only credible place to
-discuss the ABIs for any other Linux subsystem.
+This series implements the following:
+
+Attempt to fence memory regions after a signal interrupts a
+synchronous RPC. This prevents a server from writing a reply into a
+client's memory after the memory has been released due to a signal.
+
+Support providing a Read list and Reply chunk together in one RPC
+call. This is a pre-requisite for using krb5i or krb5p on
+RPC-over-RDMA.
+
+In addition, the following changes and fixes are included:
+
+- Use new ib_drain_qp() API
+- Advertise max size of NFSv4.1 callbacks on RPC-over-RDMA
+- Prevent overflowing server Receive buffers
+- Send small NFS WRITEs inline rather than using a Read chunk
+- Connection loss is detected sooner on some hardware
+- IPv6 addressing for RPC-over-RDMA
+
+
+Available in the "nfs-rdma-for-4.7" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.7
+
+
+Client changes since v2:
+
+- Rebased on v4.6-rc6
+- Fixed a bug in the "Read list + Reply chunk" patch
+- Added Tested-by and Reviewed-by tags
+- Updated patch description of patch that introduces fr_dir
+- Removed extra debugging from "fast disconnect recovery" patch
+- Included Shirley's IPv6 patch
+- Bumped RPCBIND_MAXNETIDLEN to accommodate "local" and "rdma6"
+
+
+Changes since v1:
+- Rebased on v4.6-rc5
+- Updated patch description for "Avoid using Write list for ..."
+
+
+---
+
+Chuck Lever (19):
+      sunrpc: Update RPCBIND_MAXNETIDLEN
+      sunrpc: Advertise maximum backchannel payload size
+      xprtrdma: Bound the inline threshold values
+      xprtrdma: Limit number of RDMA segments in RPC-over-RDMA headers
+      xprtrdma: Prevent inline overflow
+      xprtrdma: Avoid using Write list for small NFS READ requests
+      xprtrdma: Update comments in rpcrdma_marshal_req()
+      xprtrdma: Allow Read list and Reply chunk simultaneously
+      xprtrdma: Remove rpcrdma_create_chunks()
+      xprtrdma: Use core ib_drain_qp() API
+      xprtrdma: Rename rpcrdma_frwr::sg and sg_nents
+      xprtrdma: Save I/O direction in struct rpcrdma_frwr
+      xprtrdma: Reset MRs in frwr_op_unmap_sync()
+      xprtrdma: Refactor the FRWR recovery worker
+      xprtrdma: Move fr_xprt and fr_worker to struct rpcrdma_mw
+      xprtrdma: Refactor __fmr_dma_unmap()
+      xprtrdma: Add ro_unmap_safe memreg method
+      xprtrdma: Remove ro_unmap() from all registration modes
+      xprtrdma: Faster server reboot recovery
+
+Shirley Ma (1):
+      xprtrdma: Add rdma6 option to support NFS/RDMA IPv6
+
+
+ fs/nfs/nfs4proc.c                  |   10 -
+ fs/nfs/super.c                     |    4 
+ include/linux/sunrpc/clnt.h        |    1 
+ include/linux/sunrpc/msg_prot.h    |    4 
+ include/linux/sunrpc/xprt.h        |    1 
+ include/linux/sunrpc/xprtrdma.h    |    4 
+ net/sunrpc/clnt.c                  |   17 +
+ net/sunrpc/xprtrdma/backchannel.c  |   16 +
+ net/sunrpc/xprtrdma/fmr_ops.c      |  134 +++++++--
+ net/sunrpc/xprtrdma/frwr_ops.c     |  214 ++++++++-------
+ net/sunrpc/xprtrdma/physical_ops.c |   39 ++-
+ net/sunrpc/xprtrdma/rpc_rdma.c     |  517 ++++++++++++++++++++++--------------
+ net/sunrpc/xprtrdma/transport.c    |   16 +
+ net/sunrpc/xprtrdma/verbs.c        |   75 +----
+ net/sunrpc/xprtrdma/xprt_rdma.h    |   46 +++
+ net/sunrpc/xprtsock.c              |    6 
+ 16 files changed, 670 insertions(+), 434 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
