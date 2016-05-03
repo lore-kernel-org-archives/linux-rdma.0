@@ -1,45 +1,58 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [RFC] Proposal to address hfi1 UI and EPROM devices
-Date: Tue, 3 May 2016 12:54:05 -0400
-Message-ID: <20160503165403.GA11903@phlsvsds.ph.intel.com>
-References: <20160502195502.GA31800@phlsvsds.ph.intel.com> <20160503162457.GB29160@leon.nu>
+Date: Tue, 3 May 2016 11:31:30 -0600
+Message-ID: <20160503173130.GA1921@obsidianresearch.com>
+References: <20160502195502.GA31800@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160503162457.GB29160-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160502195502.GA31800-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 03, 2016 at 07:24:57PM +0300, Leon Romanovsky wrote:
->On Mon, May 02, 2016 at 03:55:02PM -0400, Dennis Dalessandro wrote:
->> We also should be able to use any of these schemes to handle our eprom
->> reading/writing. Adding eprom to IPoIB as Doug suggested is a fine plan, but
->> we technically don't need to do it right now when we could make do with the
->> "UI" functionality and hide the details in user space. In the future there
->> may well be value in having an eprom capability in the rdma sub-system, but
->> for now we believe we can avoid extending the kernel in this regard.
->
->Just to understand better your RFC. Are you asking from the community
->excuse do not implement core functionality just because you don't need
->it? Am I right?
+On Mon, May 02, 2016 at 03:55:02PM -0400, Dennis Dalessandro wrote:
+> One approach we have considered is using the regmap interface. This has a
+> number of problems. It is primarily a read only interface. The write
+> capability is not even available as a compile time option. A code change is
+> needed to make use of it. There are other issues as well such as being 32bit
+> when we need 64bit. So this seems like the wrong option.
 
-The purpose of the RFC is to get the community's feedback on our plans to 
-solve our UI/EPROM issue. The paragraphs [1] not snipped in your response 
-focus on that. It comes down to:
+Yah, the places I've seen regmap used don't seem to match this use
+case.
 
-Use resource0 which does not support locking vs use a file in 
-/sys/kernel/debug.
+> Another approach is using the driver's resource0 file. We can mmap() the BAR
+> and access the registers. The main drawback we have with that is we have
+> some hardware requirements that the driver needs to arbitrate access to
+> certain registers. This means some form of kernel/user space shared locking.
+> We are currently not aware of anything that the kernel provides to achieve
+> this. However, we are still looking and would appreciate any pointers.
 
-The point of the particular paragraph you are questioning is that I don't 
-think we should add more code and complexity to the kernel for something 
-that is not needed.
+You should probably use resource0 as much as possible - that minimizes
+the kernel code required.
 
-[1] http://marc.info/?l=linux-rdma&m=146221891012428&w=2
+> The third approach would be to take our existing UI implementation and plop
+> it down in debugfs as a binary file. We can control our locking just as we
+> do today, in the driver. This gets rid of the character device, and it's not
+> even available unless the admin decides to mount debugfs.
 
--Denny
+.. and use debugfs just for that little bit of shared locking you need
+to make resource0 work out.
+
+Minimizing the kernel impact for debugging code is generally desirable.
+
+> We also should be able to use any of these schemes to handle our eprom
+> reading/writing. Adding eprom to IPoIB as Doug suggested is a fine
+> plan, but
+
+I would be fine with this if you moved the eeprom handling to user
+space and used resource0.
+
+Less fine if the code remains in the kernel but just moves to debugfs.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
