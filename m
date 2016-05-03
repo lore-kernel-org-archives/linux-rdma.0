@@ -1,19 +1,21 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 05/11] IB/srp: Introduce target->mr_pool_size
-Date: Tue, 3 May 2016 11:28:30 +0200
-Message-ID: <20160503092830.GF19931@lst.de>
-References: <571A936F.7040409@sandisk.com> <571A9415.4090002@sandisk.com>
+Subject: Re: [PATCH 06/11] IB/srp: Avoid that mapping failure triggers an
+	infinite loop
+Date: Tue, 3 May 2016 11:29:00 +0200
+Message-ID: <20160503092900.GG19931@lst.de>
+References: <571A936F.7040409@sandisk.com> <571A9427.8010306@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <571A9415.4090002-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <571A9427.8010306-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks fine,
+That's a bit of an odd error, but given that it doesn't leak out
+this is fine with me:
 
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
