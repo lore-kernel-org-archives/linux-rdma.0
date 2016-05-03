@@ -1,61 +1,38 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH v5 09/21] IB/hns: Add hca support
-Date: Tue, 3 May 2016 15:57:59 +0800
-Message-ID: <57285A07.8090407@huawei.com>
-References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
- <1461407219-72027-10-git-send-email-oulijun@huawei.com>
- <20160424075424.GE7974@leon.nu> <571F0C04.2010005@huawei.com>
- <20160426141821.GJ7974@leon.nu> <20160426142517.GA1937@nanopsycho.orion>
- <57203347.4000107@huawei.com>
- <CAJ3xEMgvcRa=qFDs0wDv25Ue2yw0hQoK_E=01G7zikyr7kLKUw@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: generic RDMA READ/WRITE API V6
+Date: Tue, 3 May 2016 10:40:13 +0200
+Message-ID: <20160503084013.GA18906@lst.de>
+References: <1460410360-13104-1-git-send-email-hch@lst.de> <571AA5C8.4080502@sandisk.com> <20160502151535.GA520@lst.de> <5727A5C7.1090009@sandisk.com> <5727D14A.8040600@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMgvcRa=qFDs0wDv25Ue2yw0hQoK_E=01G7zikyr7kLKUw@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>, oulijun <oulijun@huawei.com>
-Cc: Jiri Pirko <jiri@resnulli.us>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, David Miller <davem@davemloft.net>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Jiri Pirko <jiri@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, linuxarm@huawei.com, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5727D14A.8040600@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Christoph Hellwig <hch@lst.de>, "dledford@redhat.com" <dledford@redhat.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2016/4/30 12:33, Or Gerlitz wrote:
-> On Wed, Apr 27, 2016 at 6:34 AM, oulijun <oulijun@huawei.com> wrote:
->> On 2016/4/26 22:25, Jiri Pirko wrote:
->>> Tue, Apr 26, 2016 at 04:18:21PM CEST, leon@kernel.org wrote:
->>>>>      I appreciate your keen eye. this code is meant for ARM64bit therefore should run corretly for 64-bit AARCH64.
->>> The driver should run correctly on any arch.
->>   Hi Jiri Pirko,
->>      Our driver run in ARM64 platform by depending on Kconfig. It will be configure in Kconfig file.
-> Can you elaborate what design aspects in the driver or anywhere else
-> should impose that limitation?
+On Mon, May 02, 2016 at 03:14:34PM -0700, Bart Van Assche wrote:
+> I just noticed that ib_comp_wq is created as follows:
 >
-> Or.
-Hi, Or Gerlitz
-
-1.  Oulijun resloved the problem, and sent PATCH V6 on 2016-4-28. Thanks 
-for more comments.
-
-2.  This driver for Hisilicon RoCE Engine run in ARM SoCs.
-
-The Hisilicon Network Subsystem is a long term evolution IP which is
-supposed to be used in Hisilicon ICT SoCs. HNS(Hisilicon Network Subsystem)
-has a hardware support of performing RDMA with RoCE engine.
-
-This Kconfig related with this driver as below:
-
-config INFINIBAND_HISILICON_HNS
-     tristate "Hisilicon Hns ROCE Driver"
-     depends on NET_VENDOR_HISILICON
-     depends on ARM64 && HNS && HNS_DSAF && HNS_ENET
-
-Regards
-Wei Hu
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 	ib_comp_wq = alloc_workqueue("ib-comp-wq",
+> 			WQ_UNBOUND | WQ_HIGHPRI | WQ_MEM_RECLAIM,
+> 			WQ_UNBOUND_MAX_ACTIVE);
 >
-> .
->
+> I think this breaks the locking guarantees for completion handlers. A quote 
+> from Documentation/infiniband/core_locking.txt: "The driver must guarantee 
+> that only one CQ event handler for a given CQ is running at a time." The 
+> ib_srpt driver assumes that completion handler invocations are serialized 
+> such that no locking is needed to access wait_list from inside a completion 
+> handler.
+
+This should still be the case - the max_active argument to alloc_workqueue
+just specified the amount of work_structs that may be exectured on the
+workqueue concurrently, but each individual work_struct can only be
+excuted once at a time.  See the following paragraph in
+Documentation/workqueue.txt:
+
+"Note that the flag WQ_NON_REENTRANT no longer exists as all workqueues
+ are now non-reentrant - any work item is guaranteed to be executed by
+ at most one worker system-wide at any given time."
