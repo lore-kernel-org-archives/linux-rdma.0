@@ -1,34 +1,55 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 1/4] IB/core: Add support for get
- ClassPortInfo from the SA
-Date: Tue, 3 May 2016 09:52:40 +0300
-Message-ID: <CAAk-MO-NdRnrKRe7FY2Ow5+4o0w4kKGBm=tjpQ86FGaPZoUC3w@mail.gmail.com>
-References: <1462194141-8902-1-git-send-email-erezsh@mellanox.com>
-	<1462194141-8902-2-git-send-email-erezsh@mellanox.com>
-	<alpine.DEB.2.20.1605021012270.29573@east.gentwo.org>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH v5 09/21] IB/hns: Add hca support
+Date: Tue, 3 May 2016 11:14:08 +0300
+Message-ID: <CAJ3xEMj5KMcdEmpD5YYAMPJYmDW-X1J2nU0OjfJ1V93VKJ+A+A@mail.gmail.com>
+References: <1461407219-72027-1-git-send-email-oulijun@huawei.com>
+	<1461407219-72027-10-git-send-email-oulijun@huawei.com>
+	<20160424075424.GE7974@leon.nu>
+	<571F0C04.2010005@huawei.com>
+	<20160426141821.GJ7974@leon.nu>
+	<20160426142517.GA1937@nanopsycho.orion>
+	<57203347.4000107@huawei.com>
+	<CAJ3xEMgvcRa=qFDs0wDv25Ue2yw0hQoK_E=01G7zikyr7kLKUw@mail.gmail.com>
+	<57285A07.8090407@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1605021012270.29573-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <57285A07.8090407@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: oulijun <oulijun@huawei.com>, Jiri Pirko <jiri@resnulli.us>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, David Miller <davem@davemloft.net>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Jiri Pirko <jiri@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, linuxarm@huawei.com, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, lisheng011@huawei.com, charles.chenxin@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 2, 2016 at 6:14 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> I think the main point of this patch is the introduction of
-> capabilitymask2 right? Should be in the title. And it fixes up qib use of
-> the field repurposed to be used as capmask2.
+On Tue, May 3, 2016 at 10:57 AM, Wei Hu (Xavier)
+<xavier.huwei@huawei.com> wrote:
+> On 2016/4/30 12:33, Or Gerlitz wrote:
 
-OK, agree. will change accordingly.
-Thanks.
 
+>> Can you elaborate what design aspects in the driver or anywhere else
+>> should impose that limitation?
+
+> 1.  Oulijun resolved the problem, and sent PATCH V6 on 2016-4-28. Thanks for
+> more comments.
+
+V6 still conditions things on ARM
+
+
+> 2.  This driver for Hisilicon RoCE Engine run in ARM SoCs.
+> The Hisilicon Network Subsystem is a long term evolution IP which is
+> supposed to be used in Hisilicon ICT SoCs. HNS(Hisilicon Network Subsystem)
+> has a hardware support of performing RDMA with RoCE engine.
+
+I understand that the HW is targeted just for ARM environments. Is
+this the reason
+why you want to impose this build limitation or there's something in
+the driver design
+or code that is not going to work in other environments?
+
+> This Kconfig related with this driver as below:
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> config INFINIBAND_HISILICON_HNS
+>     tristate "Hisilicon Hns ROCE Driver"
+>     depends on NET_VENDOR_HISILICON
+>     depends on ARM64 && HNS && HNS_DSAF && HNS_ENET
+
+this is understood, my question came to better understand the limitations
