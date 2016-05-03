@@ -1,87 +1,120 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: generic RDMA READ/WRITE API V6
-Date: Mon, 2 May 2016 15:14:34 -0700
-Message-ID: <5727D14A.8040600@sandisk.com>
-References: <1460410360-13104-1-git-send-email-hch@lst.de>
- <571AA5C8.4080502@sandisk.com> <20160502151535.GA520@lst.de>
- <5727A5C7.1090009@sandisk.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Status of RXE/Soft-RoCE driver?
+Date: Tue, 3 May 2016 09:35:15 +0300
+Message-ID: <20160503063515.GA29160@leon.nu>
+References: <CAANLjFq+6qu7kD75yOmVuztvE-6cbvhfjFOmGAy9i_43Cfdz7A@mail.gmail.com>
+ <5721F149.1090004@grimberg.me>
+ <20160428115653.GB21343@leon.nu>
+ <CAJ3xEMjz-VLvaRvVFBtNc+9GDppW6qjw_5KwZvPRDi1RdUnsgQ@mail.gmail.com>
+ <5722C24B.6020108@redhat.com>
+ <20160429051755.GC774@leon.nu>
+ <a1d504ff-716c-210a-7114-517577d2e0fa@redhat.com>
+ <20160429205434.GA11286@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0481A1@ORSMSX109.amr.corp.intel.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <5727A5C7.1090009@sandisk.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0481A1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/02/2016 12:08 PM, Bart Van Assche wrote:
-> On 05/02/2016 08:15 AM, Christoph Hellwig wrote:
->> On Fri, Apr 22, 2016 at 03:29:28PM -0700, Bart Van Assche wrote:
->>> On 04/11/2016 02:32 PM, Christoph Hellwig wrote:
->>>> 	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
->>>
->>> Hello Christoph,
->>>
->>> Is the version that has been pushed on April 18 the latest and greatest
->>> version of this patch series ?
->>
->> Should be.  I've pushed out a new version, but the only changes are
->> in response to your small review comments, and a no-op rebase to Doug's
->> latest tree.
->>
->>> I'm asking because with that version I see
->>> error messages appearing that I hadn't seen with the previous version:
->>>
->>> ib_srpt:srpt_qp_event: ib_srpt QP event 16 on cm_id=ffff8801713d5628
->>> sess_name=0x0000000000000000e41d2d03000a85b1 state=1
->>> ib_srpt:srpt_qp_event: ib_srpt 0x0000000000000000e41d2d03000a85b1-522,
->>> state live: received Last WQE event.
->>> ib_srpt RDMA_READ for ioctx 0xffff8804593092a8 failed with status 4
->>>
->>> This test was run with the force_mr=Y:
->>>
->>> $ cat /etc/modprobe.d/ib_core.conf
->>> options ib_core force_mr=Y
->>
->> I haven't been able to reproduce this with my usual xfstests run
->> on mlx4 hardware.  What did you do to reproduce the issue, and what
->> hardware were you using?
->
-> After having disabled CONFIG_SLUB_DEBUG_ON I don't see the "QP event"
-> message anymore. But running xfstests triggered the following (mlx4
-> hardware; SRP initiator and LIO target running on the same server and
-> communicating over loopback):
->
-> WARNING: CPU: 11 PID: 9224 at drivers/infiniband/ulp/srpt/ib_srpt.c:1209
-> srpt_rdma_read_done+0xc7/0x110 [ib_srpt]
-> Call Trace:
->    [<ffffffff812c0bf5>] dump_stack+0x67/0x92
->    [<ffffffff81058011>] __warn+0xc1/0xe0
->    [<ffffffff810580e8>] warn_slowpath_null+0x18/0x20
->    [<ffffffffa05db7c7>] srpt_rdma_read_done+0xc7/0x110 [ib_srpt]
->    [<ffffffffa045c73b>] __ib_process_cq+0x4b/0xd0 [ib_core]
->    [<ffffffffa045c82b>] ib_cq_poll_work+0x1b/0x60 [ib_core]
->    [<ffffffff81071fea>] process_one_work+0x19a/0x490
->    [<ffffffff81071f8a>] ? process_one_work+0x13a/0x490
->    [<ffffffff81072329>] worker_thread+0x49/0x490
->    [<ffffffff810722e0>] ? process_one_work+0x490/0x490
->    [<ffffffff810788da>] kthread+0xea/0x100
->    [<ffffffff8159e632>] ret_from_fork+0x22/0x40
 
-(replying to my own e-mail)
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I just noticed that ib_comp_wq is created as follows:
+On Mon, May 02, 2016 at 06:29:38PM +0000, Hefty, Sean wrote:
+> > During the Collab summit I thought we reached a rough consensus that
+> > these sorts of uAPI changes to the common multi-vendor API would go
+> > through a more rigorous process and those who are proposing them would
+> > actively seek a multi-vendor sign off instead of simply dumping them
+> > on the list.
+>=20
+> I agree that this is the right approach to follow.  A Linux maintainer sh=
+ould not be in the position of having to decide on which features merit a u=
+API change.
 
-	ib_comp_wq = alloc_workqueue("ib-comp-wq",
-			WQ_UNBOUND | WQ_HIGHPRI | WQ_MEM_RECLAIM,
-			WQ_UNBOUND_MAX_ACTIVE);
+In this specific case, all guides were followed.
 
-I think this breaks the locking guarantees for completion handlers. A 
-quote from Documentation/infiniband/core_locking.txt: "The driver must 
-guarantee that only one CQ event handler for a given CQ is running at a 
-time." The ib_srpt driver assumes that completion handler invocations 
-are serialized such that no locking is needed to access wait_list from 
-inside a completion handler.
+>=20
+> > Further, I also thought we reached a rough consensus that we'd shunt
+> > some of this stuff to the driver specific uAPI channel to reduce this
+> > continual churn on the common multi-vendor API for currently
+> > driver-specific features. Drivers can implement their unique features
+> > and sanely export them through the kernel without so much pain. The
+> > uAPI 2.0 concepts from all parties have been heavily influenced by
+> > this idea.
+> >=20
+> > Certainly, if patches cannot attract any review or interest from the
+> > community as part of the core API then I'd say that is an excellent
+> > sign they should be shunted to a driver specific channel.
+>=20
+> This is an excellent point.  The lack of interest is likely a very good s=
+ign that this is a driver specific feature.
 
-Bart.
+I don't agree with that point, the lack of discussion doesn't mean that
+this is driver specific feature. In linux-rdma community, there is a small
+amount of developers focused on their products and maintainer who doesn't
+express his opinion.
+
+There is general agreement that Mellanox is a leading provider of IB soluti=
+ons
+and as a leader it's expected from the company to propose new exciting
+features which are valuable for the community (general API) and for the
+customers.
+
+In this particular case (RSS), we followed **all** possible guidelines of
+presenting, discussing and adjusting. It was done in **all** available
+forums (linux-rdma, OFA and OFVWG).
+
+We did it openly without any hiding under "proprietary umbrella", as
+other companies did during review feedback.
+
+>=20
+> I'm not sure why there seems to be objection to calling out driver specif=
+ic features as driver specific and exposing them as such.  It seems like th=
+e quickest way to get features into the hands of prospective users.
+
+We want it beneficial to all participants without proprietary stuff.
+We don't want to see vendor interfaces proposed and implemented without
+any review as it was for several drivers in RDMA world.
+
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXKEajAAoJEORje4g2clinu7gP/RoHKOPNFlT1HsxS40G4sD83
+xJq8jzYlS7CHEGBHPO6M6Ecc5K0EPd1YkdYbji45w3Yp5SFz6DZVEnTI7HIwRdH7
+ZT25Iv7Zuz8ONoB8WXyzExgC8qjbtY2P2QRaTMwqRRT1+Z2qrOnRWwNXOk1alHF7
+pY7TsJBPkU14xd8DwqmmpSryDXQvjZ7DPWWiXD4fLdoVEiMBHA0vatO0Lv7WYUsj
+KcQzhPWkYSZtnpKAd1qnMKUgMkG/8xEeIKpDXqVHGYHEyqcNfrY3liRhzhVvD11a
+CGQBY/GmA6FsL4SjYoJaVM/AUxcYMLN151m0ulybXJeWg2mJIzhb6NVM4vlM5z8L
+JQo6Ky3Uez8E/bGG79IPrCFZm61/Qc3yg+GFWAOjRunrLG5Mhsw0JBZb4b53/dlN
+lcvjIOfFGI5eEHU8ju7audwIyKshIlxV67Z/0zwa1hQCT97YXIbkKsqE76nVz3Qy
+vuBcTPBXxJ/3d9LzFQb6GExMBGRceGhR3jAaZA/cSKP/OUqSVGgPijn32RsOQE3E
+vPc0TsNxgzlCkbm0RGsoH24Rbiev9VKalpC2iVpRcgn0g0cXTOU2LLRhx72V10LT
+s9NR4EOVZmSqklVZx/dn6O+OwmnA0TuoCZL829nrdaTdmE8jXuIzprsPF6RMsIsg
+fUehk9wAngJuHjbi/2Yn
+=tGAr
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
