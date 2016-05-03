@@ -1,58 +1,94 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [RFC] Proposal to address hfi1 UI and EPROM devices
-Date: Tue, 3 May 2016 11:31:30 -0600
-Message-ID: <20160503173130.GA1921@obsidianresearch.com>
+Date: Tue, 3 May 2016 21:42:18 +0300
+Message-ID: <20160503184218.GC29160@leon.nu>
 References: <20160502195502.GA31800@phlsvsds.ph.intel.com>
+ <20160503162457.GB29160@leon.nu>
+ <20160503165403.GA11903@phlsvsds.ph.intel.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0vzXIDBeUiKkjNJl"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160502195502.GA31800-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20160503165403.GA11903-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 02, 2016 at 03:55:02PM -0400, Dennis Dalessandro wrote:
-> One approach we have considered is using the regmap interface. This has a
-> number of problems. It is primarily a read only interface. The write
-> capability is not even available as a compile time option. A code change is
-> needed to make use of it. There are other issues as well such as being 32bit
-> when we need 64bit. So this seems like the wrong option.
 
-Yah, the places I've seen regmap used don't seem to match this use
-case.
+--0vzXIDBeUiKkjNJl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Another approach is using the driver's resource0 file. We can mmap() the BAR
-> and access the registers. The main drawback we have with that is we have
-> some hardware requirements that the driver needs to arbitrate access to
-> certain registers. This means some form of kernel/user space shared locking.
-> We are currently not aware of anything that the kernel provides to achieve
-> this. However, we are still looking and would appreciate any pointers.
+On Tue, May 03, 2016 at 12:54:05PM -0400, Dennis Dalessandro wrote:
+> On Tue, May 03, 2016 at 07:24:57PM +0300, Leon Romanovsky wrote:
+> >On Mon, May 02, 2016 at 03:55:02PM -0400, Dennis Dalessandro wrote:
+> >>We also should be able to use any of these schemes to handle our eprom
+> >>reading/writing. Adding eprom to IPoIB as Doug suggested is a fine plan=
+, but
+> >>we technically don't need to do it right now when we could make do with=
+ the
+> >>"UI" functionality and hide the details in user space. In the future th=
+ere
+> >>may well be value in having an eprom capability in the rdma sub-system,=
+ but
+> >>for now we believe we can avoid extending the kernel in this regard.
+> >
+> >Just to understand better your RFC. Are you asking from the community
+> >excuse do not implement core functionality just because you don't need
+> >it? Am I right?
+>=20
+> The purpose of the RFC is to get the community's feedback on our plans to
+> solve our UI/EPROM issue. The paragraphs [1] not snipped in your response
+> focus on that. It comes down to:
+>=20
+> Use resource0 which does not support locking vs use a file in
+> /sys/kernel/debug.
 
-You should probably use resource0 as much as possible - that minimizes
-the kernel code required.
+I didn't quote the whole email because I didn't see any question in
+these 3 options:
+* First option - doesn't meet the requirements and hard to extend.
+* Second option - doesn't meet the requirements and HW limitations
+* Third option - presented as one possible option and looks like the
+  correct one.
 
-> The third approach would be to take our existing UI implementation and plop
-> it down in debugfs as a binary file. We can control our locking just as we
-> do today, in the driver. This gets rid of the character device, and it's not
-> even available unless the admin decides to mount debugfs.
+And the real question is "where" do you need to implement third option.
 
-.. and use debugfs just for that little bit of shared locking you need
-to make resource0 work out.
+>=20
+> The point of the particular paragraph you are questioning is that I don't
+> think we should add more code and complexity to the kernel for something
+> that is not needed.
+>=20
+> [1] http://marc.info/?l=3Dlinux-rdma&m=3D146221891012428&w=3D2
+>=20
+> -Denny
 
-Minimizing the kernel impact for debugging code is generally desirable.
+--0vzXIDBeUiKkjNJl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> We also should be able to use any of these schemes to handle our eprom
-> reading/writing. Adding eprom to IPoIB as Doug suggested is a fine
-> plan, but
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I would be fine with this if you moved the eeprom handling to user
-space and used resource0.
+iQIcBAEBAgAGBQJXKPEKAAoJEORje4g2clinhm4P/2dA5DFK7JI+32XnQ9vSJQMg
+DK6rbI2CtpkELd3WG+yJ/dng44HyQuDx+HRDLzNEp0eTPvod87x0ShhYPrM+lkNf
+1uuCk7b3GpPCVMwVFZfI4zD94PW77wwOzHI/5CVkI2rL25RhHCRYoy/BQUqU9UQL
+skkq06AJgmz5SbIjo+12GthxZhzbfwOvtV3c10bgOOYixe+boEljNa75JMQYLAiM
+cyvLM4G1Q+Nse/B9oDnK89XxkKPo7K3+Yb1GArcul+2gfiDRbrXyc/+1Bw0qQlLp
+TLnWA8pQZ1S0DJuOOiCssDYuzP2I4dPO3EyJVDZLSUnoQEDiphJkk4fbuylUu0Cz
+wWsAWPLYWeefHZvaIixMPxIYg8R07lXNH4Z4/dj5HEqlnQo9RFNYz15xVQujwwGh
+DzqCPmyIMaJM6OPdPTauuTy3ypxDh91P1d/FBEKuZuQ1ewVYDNom854oTJ6gOYDo
+iSTN2awC01gt/xvjK0/jQ3yi7Lqv6LnzDZHruF6WUUlozXVosFb5VSnv70oauCZa
+iUtlQ6HDk7lIJdVlXz/pPgQyNmxdYLVgQMUtKGJvG737dZtNmgpSYOXhikHfKXEZ
+/8/FCU+Q4JFhwT7LwM2GgqD9pnhDq72e8H/6Lu0HVc9lH39qy3GU0nzexrWDEp1R
+0gfcJKfi28G7Br+J191y
+=Pphi
+-----END PGP SIGNATURE-----
 
-Less fine if the code remains in the kernel but just moves to debugfs.
-
-Jason
+--0vzXIDBeUiKkjNJl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
