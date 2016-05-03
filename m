@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 07/11] IB/core: generic RDMA READ/WRITE API
-Date: Tue,  3 May 2016 18:01:09 +0200
-Message-ID: <1462291273-22403-8-git-send-email-hch@lst.de>
+Subject: [PATCH 09/11] IB/srpt: convert to the generic RDMA READ/WRITE API
+Date: Tue,  3 May 2016 18:01:11 +0200
+Message-ID: <1462291273-22403-10-git-send-email-hch@lst.de>
 References: <1462291273-22403-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462291273-22403-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,731 +10,1051 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This supports both manual mapping of lots of SGEs, as well as using MRs
-from the QP's MR pool, for iWarp or other cases where it's more optimal.
-For now, MRs are only used for iWARP transports.  The user of the RDMA-RW
-API must allocate the QP MR pool as well as size the SQ accordingly.
+Replace the homegrown RDMA READ/WRITE code in srpt with the generic API.
+The only real twist here is that we need to allocate one Linux scatterlist
+per direct buffer in the SRP command, and chain them before handing them
+off to the target core.
 
-Thanks to Steve Wise for testing, fixing and rewriting the iWarp support,
-and to Sagi Grimberg for ideas, reviews and fixes.
+As a side-effect of the conversion the driver will also chain the SEND
+of the SRP response to the RDMA WRITE WRs for a DATA OUT command, and
+properly account for RDMA WRITE WRs instead of just for RDMA READ WRs
+like the driver previously did.
+
+We now allocate half of the SQ size to RDMA READ/WRITE contexts, assuming
+by default one RDMA READ or WRITE operation per command.  If a command
+has multiple operations it will eat into the budget but will still succeed,
+possible after waiting for WQEs to be available.
+
+Also ensure the QPs request the maximum allowed SGEs so that RDMA R/W API
+works correctly.
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile |   2 +-
- drivers/infiniband/core/rw.c     | 509 +++++++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/verbs.c  |  25 ++
- include/rdma/ib_verbs.h          |  14 +-
- include/rdma/rw.h                |  69 ++++++
- 5 files changed, 617 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/core/rw.c
- create mode 100644 include/rdma/rw.h
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 729 ++++++++++++----------------------
+ drivers/infiniband/ulp/srpt/ib_srpt.h |  31 +-
+ 2 files changed, 265 insertions(+), 495 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 48bd9d8..26987d9 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -8,7 +8,7 @@ obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
- obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
- 					$(user_access-y)
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 8b42401..2843f1a 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -765,52 +765,6 @@ static int srpt_post_recv(struct srpt_device *sdev,
+ }
  
--ib_core-y :=			packer.o ud_header.o verbs.o cq.o sysfs.o \
-+ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
- 				device.o fmr_pool.o cache.o netlink.o \
- 				roce_gid_mgmt.o mr_pool.o
- ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-new file mode 100644
-index 0000000..bd700ff
---- /dev/null
-+++ b/drivers/infiniband/core/rw.c
-@@ -0,0 +1,509 @@
-+/*
-+ * Copyright (c) 2016 HGST, a Western Digital Company.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
-+#include <linux/moduleparam.h>
-+#include <linux/slab.h>
-+#include <rdma/mr_pool.h>
-+#include <rdma/rw.h>
-+
-+enum {
-+	RDMA_RW_SINGLE_WR,
-+	RDMA_RW_MULTI_WR,
-+	RDMA_RW_MR,
-+};
-+
-+static bool rdma_rw_force_mr;
-+module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
-+MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
-+
-+/*
-+ * Check if the device might use memory registration.  This is currently only
-+ * true for iWarp devices. In the future we can hopefully fine tune this based
-+ * on HCA driver input.
-+ */
-+static inline bool rdma_rw_can_use_mr(struct ib_device *dev, u8 port_num)
+ /**
+- * srpt_post_send() - Post an IB send request.
+- *
+- * Returns zero upon success and a non-zero value upon failure.
+- */
+-static int srpt_post_send(struct srpt_rdma_ch *ch,
+-			  struct srpt_send_ioctx *ioctx, int len)
+-{
+-	struct ib_sge list;
+-	struct ib_send_wr wr, *bad_wr;
+-	struct srpt_device *sdev = ch->sport->sdev;
+-	int ret;
+-
+-	atomic_inc(&ch->req_lim);
+-
+-	ret = -ENOMEM;
+-	if (unlikely(atomic_dec_return(&ch->sq_wr_avail) < 0)) {
+-		pr_warn("IB send queue full (needed 1)\n");
+-		goto out;
+-	}
+-
+-	ib_dma_sync_single_for_device(sdev->device, ioctx->ioctx.dma, len,
+-				      DMA_TO_DEVICE);
+-
+-	list.addr = ioctx->ioctx.dma;
+-	list.length = len;
+-	list.lkey = sdev->pd->local_dma_lkey;
+-
+-	ioctx->ioctx.cqe.done = srpt_send_done;
+-	wr.next = NULL;
+-	wr.wr_cqe = &ioctx->ioctx.cqe;
+-	wr.sg_list = &list;
+-	wr.num_sge = 1;
+-	wr.opcode = IB_WR_SEND;
+-	wr.send_flags = IB_SEND_SIGNALED;
+-
+-	ret = ib_post_send(ch->qp, &wr, &bad_wr);
+-
+-out:
+-	if (ret < 0) {
+-		atomic_inc(&ch->sq_wr_avail);
+-		atomic_dec(&ch->req_lim);
+-	}
+-	return ret;
+-}
+-
+-/**
+  * srpt_zerolength_write() - Perform a zero-length RDMA write.
+  *
+  * A quote from the InfiniBand specification: C9-88: For an HCA responder
+@@ -843,6 +797,110 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	}
+ }
+ 
++static int srpt_alloc_rw_ctxs(struct srpt_send_ioctx *ioctx,
++		struct srp_direct_buf *db, int nbufs, struct scatterlist **sg,
++		unsigned *sg_cnt)
 +{
-+	if (rdma_protocol_iwarp(dev, port_num))
-+		return true;
-+	if (unlikely(rdma_rw_force_mr))
-+		return true;
-+	return false;
-+}
++	enum dma_data_direction dir = target_reverse_dma_direction(&ioctx->cmd);
++	struct srpt_rdma_ch *ch = ioctx->ch;
++	struct scatterlist *prev = NULL;
++	unsigned prev_nents;
++	int ret, i;
 +
-+/*
-+ * Check if the device will use memory registration for this RW operation.
-+ * We currently always use memory registrations for iWarp RDMA READs, and
-+ * have a debug option to force usage of MRs.
-+ *
-+ * XXX: In the future we can hopefully fine tune this based on HCA driver
-+ * input.
-+ */
-+static inline bool rdma_rw_io_needs_mr(struct ib_device *dev, u8 port_num,
-+		enum dma_data_direction dir, int dma_nents)
-+{
-+	if (rdma_protocol_iwarp(dev, port_num) && dir == DMA_FROM_DEVICE)
-+		return true;
-+	if (unlikely(rdma_rw_force_mr))
-+		return true;
-+	return false;
-+}
-+
-+static inline u32 rdma_rw_max_sge(struct ib_device *dev,
-+		enum dma_data_direction dir)
-+{
-+	return dir == DMA_TO_DEVICE ?
-+		dev->attrs.max_sge : dev->attrs.max_sge_rd;
-+}
-+
-+static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
-+{
-+	/* arbitrary limit to avoid allocating gigantic resources */
-+	return min_t(u32, dev->attrs.max_fast_reg_page_list_len, 256);
-+}
-+
-+static int rdma_rw_init_one_mr(struct ib_qp *qp, u8 port_num,
-+		struct rdma_rw_reg_ctx *reg, struct scatterlist *sg,
-+		u32 sg_cnt, u32 offset)
-+{
-+	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
-+	u32 nents = min(sg_cnt, pages_per_mr);
-+	int count = 0, ret;
-+
-+	reg->mr = ib_mr_pool_get(qp, &qp->rdma_mrs);
-+	if (!reg->mr)
-+		return -EAGAIN;
-+
-+	if (reg->mr->need_inval) {
-+		reg->inv_wr.opcode = IB_WR_LOCAL_INV;
-+		reg->inv_wr.ex.invalidate_rkey = reg->mr->lkey;
-+		reg->inv_wr.next = &reg->reg_wr.wr;
-+		count++;
++	if (nbufs == 1) {
++		ioctx->rw_ctxs = &ioctx->s_rw_ctx;
 +	} else {
-+		reg->inv_wr.next = NULL;
++		ioctx->rw_ctxs = kmalloc_array(nbufs, sizeof(*ioctx->rw_ctxs),
++			GFP_KERNEL);
++		if (!ioctx->rw_ctxs)
++			return -ENOMEM;
 +	}
 +
-+	ret = ib_map_mr_sg(reg->mr, sg, nents, offset, PAGE_SIZE);
-+	if (ret < nents) {
-+		ib_mr_pool_put(qp, &qp->rdma_mrs, reg->mr);
-+		return -EINVAL;
++	for (i = ioctx->n_rw_ctx; i < nbufs; i++, db++) {
++		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
++		u64 remote_addr = be64_to_cpu(db->va);
++		u32 size = be32_to_cpu(db->len);
++		u32 rkey = be32_to_cpu(db->key);
++
++		ret = target_alloc_sgl(&ctx->sg, &ctx->nents, size, false,
++				i < nbufs - 1);
++		if (ret)
++			goto unwind;
++
++		ret = rdma_rw_ctx_init(&ctx->rw, ch->qp, ch->sport->port,
++				ctx->sg, ctx->nents, 0, remote_addr, rkey, dir);
++		if (ret < 0) {
++			target_free_sgl(ctx->sg, ctx->nents);
++			goto unwind;
++		}
++
++		ioctx->n_rdma += ret;
++		ioctx->n_rw_ctx++;
++
++		if (prev) {
++			sg_unmark_end(&prev[prev_nents - 1]);
++			sg_chain(prev, prev_nents + 1, ctx->sg);
++		} else {
++			*sg = ctx->sg;
++		}
++
++		prev = ctx->sg;
++		prev_nents = ctx->nents;
++
++		*sg_cnt += ctx->nents;
 +	}
 +
-+	reg->reg_wr.wr.opcode = IB_WR_REG_MR;
-+	reg->reg_wr.mr = reg->mr;
-+	reg->reg_wr.access = IB_ACCESS_LOCAL_WRITE;
-+	if (rdma_protocol_iwarp(qp->device, port_num))
-+		reg->reg_wr.access |= IB_ACCESS_REMOTE_WRITE;
-+	count++;
++	return 0;
 +
-+	reg->sge.addr = reg->mr->iova;
-+	reg->sge.length = reg->mr->length;
-+	return count;
++unwind:
++	while (--i >= 0) {
++		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
++
++		rdma_rw_ctx_destroy(&ctx->rw, ch->qp, ch->sport->port,
++				ctx->sg, ctx->nents, dir);
++		target_free_sgl(ctx->sg, ctx->nents);
++	}
++	if (ioctx->rw_ctxs != &ioctx->s_rw_ctx)
++		kfree(ioctx->rw_ctxs);
++	return ret;
 +}
 +
-+static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-+		u8 port_num, struct scatterlist *sg, u32 sg_cnt, u32 offset,
-+		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
++static void srpt_free_rw_ctxs(struct srpt_rdma_ch *ch,
++				    struct srpt_send_ioctx *ioctx)
 +{
-+	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
-+	int i, j, ret = 0, count = 0;
++	enum dma_data_direction dir = target_reverse_dma_direction(&ioctx->cmd);
++	int i;
 +
-+	ctx->nr_ops = (sg_cnt + pages_per_mr - 1) / pages_per_mr;
-+	ctx->reg = kcalloc(ctx->nr_ops, sizeof(*ctx->reg), GFP_KERNEL);
-+	if (!ctx->reg) {
++	for (i = 0; i < ioctx->n_rw_ctx; i++) {
++		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
++
++		rdma_rw_ctx_destroy(&ctx->rw, ch->qp, ch->sport->port,
++				ctx->sg, ctx->nents, dir);
++		target_free_sgl(ctx->sg, ctx->nents);
++	}
++
++	if (ioctx->rw_ctxs != &ioctx->s_rw_ctx)
++		kfree(ioctx->rw_ctxs);
++}
++
++static inline void *srpt_get_desc_buf(struct srp_cmd *srp_cmd)
++{
++	/*
++	 * The pointer computations below will only be compiled correctly
++	 * if srp_cmd::add_data is declared as s8*, u8*, s8[] or u8[], so check
++	 * whether srp_cmd::add_data has been declared as a byte pointer.
++	 */
++	BUILD_BUG_ON(!__same_type(srp_cmd->add_data[0], (s8)0) &&
++		     !__same_type(srp_cmd->add_data[0], (u8)0));
++
++	/*
++	 * According to the SRP spec, the lower two bits of the 'ADDITIONAL
++	 * CDB LENGTH' field are reserved and the size in bytes of this field
++	 * is four times the value specified in bits 3..7. Hence the "& ~3".
++	 */
++	return srp_cmd->add_data + (srp_cmd->add_cdb_len & ~3);
++}
++
+ /**
+  * srpt_get_desc_tbl() - Parse the data descriptors of an SRP_CMD request.
+  * @ioctx: Pointer to the I/O context associated with the request.
+@@ -858,94 +916,59 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
+  * -ENOMEM when memory allocation fails and zero upon success.
+  */
+ static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
+-			     struct srp_cmd *srp_cmd,
+-			     enum dma_data_direction *dir, u64 *data_len)
++		struct srp_cmd *srp_cmd, enum dma_data_direction *dir,
++		struct scatterlist **sg, unsigned *sg_cnt, u64 *data_len)
+ {
+-	struct srp_indirect_buf *idb;
+-	struct srp_direct_buf *db;
+-	unsigned add_cdb_offset;
+-	int ret;
+-
+-	/*
+-	 * The pointer computations below will only be compiled correctly
+-	 * if srp_cmd::add_data is declared as s8*, u8*, s8[] or u8[], so check
+-	 * whether srp_cmd::add_data has been declared as a byte pointer.
+-	 */
+-	BUILD_BUG_ON(!__same_type(srp_cmd->add_data[0], (s8)0)
+-		     && !__same_type(srp_cmd->add_data[0], (u8)0));
+-
+ 	BUG_ON(!dir);
+ 	BUG_ON(!data_len);
+ 
+-	ret = 0;
+-	*data_len = 0;
+-
+ 	/*
+ 	 * The lower four bits of the buffer format field contain the DATA-IN
+ 	 * buffer descriptor format, and the highest four bits contain the
+ 	 * DATA-OUT buffer descriptor format.
+ 	 */
+-	*dir = DMA_NONE;
+ 	if (srp_cmd->buf_fmt & 0xf)
+ 		/* DATA-IN: transfer data from target to initiator (read). */
+ 		*dir = DMA_FROM_DEVICE;
+ 	else if (srp_cmd->buf_fmt >> 4)
+ 		/* DATA-OUT: transfer data from initiator to target (write). */
+ 		*dir = DMA_TO_DEVICE;
++	else
++		*dir = DMA_NONE;
++
++	/* initialize data_direction early as srpt_alloc_rw_ctxs needs it */
++	ioctx->cmd.data_direction = *dir;
+ 
+-	/*
+-	 * According to the SRP spec, the lower two bits of the 'ADDITIONAL
+-	 * CDB LENGTH' field are reserved and the size in bytes of this field
+-	 * is four times the value specified in bits 3..7. Hence the "& ~3".
+-	 */
+-	add_cdb_offset = srp_cmd->add_cdb_len & ~3;
+ 	if (((srp_cmd->buf_fmt & 0xf) == SRP_DATA_DESC_DIRECT) ||
+ 	    ((srp_cmd->buf_fmt >> 4) == SRP_DATA_DESC_DIRECT)) {
+-		ioctx->n_rbuf = 1;
+-		ioctx->rbufs = &ioctx->single_rbuf;
++	    	struct srp_direct_buf *db = srpt_get_desc_buf(srp_cmd);
+ 
+-		db = (struct srp_direct_buf *)(srp_cmd->add_data
+-					       + add_cdb_offset);
+-		memcpy(ioctx->rbufs, db, sizeof(*db));
+ 		*data_len = be32_to_cpu(db->len);
++		return srpt_alloc_rw_ctxs(ioctx, db, 1, sg, sg_cnt);
+ 	} else if (((srp_cmd->buf_fmt & 0xf) == SRP_DATA_DESC_INDIRECT) ||
+ 		   ((srp_cmd->buf_fmt >> 4) == SRP_DATA_DESC_INDIRECT)) {
+-		idb = (struct srp_indirect_buf *)(srp_cmd->add_data
+-						  + add_cdb_offset);
++		struct srp_indirect_buf *idb = srpt_get_desc_buf(srp_cmd);
++		int nbufs = be32_to_cpu(idb->table_desc.len) /
++				sizeof(struct srp_direct_buf);
+ 
+-		ioctx->n_rbuf = be32_to_cpu(idb->table_desc.len) / sizeof(*db);
+-
+-		if (ioctx->n_rbuf >
++		if (nbufs >
+ 		    (srp_cmd->data_out_desc_cnt + srp_cmd->data_in_desc_cnt)) {
+ 			pr_err("received unsupported SRP_CMD request"
+ 			       " type (%u out + %u in != %u / %zu)\n",
+ 			       srp_cmd->data_out_desc_cnt,
+ 			       srp_cmd->data_in_desc_cnt,
+ 			       be32_to_cpu(idb->table_desc.len),
+-			       sizeof(*db));
+-			ioctx->n_rbuf = 0;
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-
+-		if (ioctx->n_rbuf == 1)
+-			ioctx->rbufs = &ioctx->single_rbuf;
+-		else {
+-			ioctx->rbufs =
+-				kmalloc(ioctx->n_rbuf * sizeof(*db), GFP_ATOMIC);
+-			if (!ioctx->rbufs) {
+-				ioctx->n_rbuf = 0;
+-				ret = -ENOMEM;
+-				goto out;
+-			}
++			       sizeof(struct srp_direct_buf));
++			return -EINVAL;
+ 		}
+ 
+-		db = idb->desc_list;
+-		memcpy(ioctx->rbufs, db, ioctx->n_rbuf * sizeof(*db));
+ 		*data_len = be32_to_cpu(idb->len);
++		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
++				sg, sg_cnt);
++	} else {
++		*data_len = 0;
++		return 0;
+ 	}
+-out:
+-	return ret;
+ }
+ 
+ /**
+@@ -1049,217 +1072,6 @@ static int srpt_ch_qp_err(struct srpt_rdma_ch *ch)
+ }
+ 
+ /**
+- * srpt_unmap_sg_to_ib_sge() - Unmap an IB SGE list.
+- */
+-static void srpt_unmap_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+-				    struct srpt_send_ioctx *ioctx)
+-{
+-	struct scatterlist *sg;
+-	enum dma_data_direction dir;
+-
+-	BUG_ON(!ch);
+-	BUG_ON(!ioctx);
+-	BUG_ON(ioctx->n_rdma && !ioctx->rdma_wrs);
+-
+-	while (ioctx->n_rdma)
+-		kfree(ioctx->rdma_wrs[--ioctx->n_rdma].wr.sg_list);
+-
+-	kfree(ioctx->rdma_wrs);
+-	ioctx->rdma_wrs = NULL;
+-
+-	if (ioctx->mapped_sg_count) {
+-		sg = ioctx->sg;
+-		WARN_ON(!sg);
+-		dir = ioctx->cmd.data_direction;
+-		BUG_ON(dir == DMA_NONE);
+-		ib_dma_unmap_sg(ch->sport->sdev->device, sg, ioctx->sg_cnt,
+-				target_reverse_dma_direction(&ioctx->cmd));
+-		ioctx->mapped_sg_count = 0;
+-	}
+-}
+-
+-/**
+- * srpt_map_sg_to_ib_sge() - Map an SG list to an IB SGE list.
+- */
+-static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
+-				 struct srpt_send_ioctx *ioctx)
+-{
+-	struct ib_device *dev = ch->sport->sdev->device;
+-	struct se_cmd *cmd;
+-	struct scatterlist *sg, *sg_orig;
+-	int sg_cnt;
+-	enum dma_data_direction dir;
+-	struct ib_rdma_wr *riu;
+-	struct srp_direct_buf *db;
+-	dma_addr_t dma_addr;
+-	struct ib_sge *sge;
+-	u64 raddr;
+-	u32 rsize;
+-	u32 tsize;
+-	u32 dma_len;
+-	int count, nrdma;
+-	int i, j, k;
+-
+-	BUG_ON(!ch);
+-	BUG_ON(!ioctx);
+-	cmd = &ioctx->cmd;
+-	dir = cmd->data_direction;
+-	BUG_ON(dir == DMA_NONE);
+-
+-	ioctx->sg = sg = sg_orig = cmd->t_data_sg;
+-	ioctx->sg_cnt = sg_cnt = cmd->t_data_nents;
+-
+-	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
+-			      target_reverse_dma_direction(cmd));
+-	if (unlikely(!count))
+-		return -EAGAIN;
+-
+-	ioctx->mapped_sg_count = count;
+-
+-	if (ioctx->rdma_wrs && ioctx->n_rdma_wrs)
+-		nrdma = ioctx->n_rdma_wrs;
+-	else {
+-		nrdma = (count + SRPT_DEF_SG_PER_WQE - 1) / SRPT_DEF_SG_PER_WQE
+-			+ ioctx->n_rbuf;
+-
+-		ioctx->rdma_wrs = kcalloc(nrdma, sizeof(*ioctx->rdma_wrs),
+-				GFP_KERNEL);
+-		if (!ioctx->rdma_wrs)
+-			goto free_mem;
+-
+-		ioctx->n_rdma_wrs = nrdma;
+-	}
+-
+-	db = ioctx->rbufs;
+-	tsize = cmd->data_length;
+-	dma_len = ib_sg_dma_len(dev, &sg[0]);
+-	riu = ioctx->rdma_wrs;
+-
+-	/*
+-	 * For each remote desc - calculate the #ib_sge.
+-	 * If #ib_sge < SRPT_DEF_SG_PER_WQE per rdma operation then
+-	 *      each remote desc rdma_iu is required a rdma wr;
+-	 * else
+-	 *      we need to allocate extra rdma_iu to carry extra #ib_sge in
+-	 *      another rdma wr
+-	 */
+-	for (i = 0, j = 0;
+-	     j < count && i < ioctx->n_rbuf && tsize > 0; ++i, ++riu, ++db) {
+-		rsize = be32_to_cpu(db->len);
+-		raddr = be64_to_cpu(db->va);
+-		riu->remote_addr = raddr;
+-		riu->rkey = be32_to_cpu(db->key);
+-		riu->wr.num_sge = 0;
+-
+-		/* calculate how many sge required for this remote_buf */
+-		while (rsize > 0 && tsize > 0) {
+-
+-			if (rsize >= dma_len) {
+-				tsize -= dma_len;
+-				rsize -= dma_len;
+-				raddr += dma_len;
+-
+-				if (tsize > 0) {
+-					++j;
+-					if (j < count) {
+-						sg = sg_next(sg);
+-						dma_len = ib_sg_dma_len(
+-								dev, sg);
+-					}
+-				}
+-			} else {
+-				tsize -= rsize;
+-				dma_len -= rsize;
+-				rsize = 0;
+-			}
+-
+-			++riu->wr.num_sge;
+-
+-			if (rsize > 0 &&
+-			    riu->wr.num_sge == SRPT_DEF_SG_PER_WQE) {
+-				++ioctx->n_rdma;
+-				riu->wr.sg_list = kmalloc_array(riu->wr.num_sge,
+-						sizeof(*riu->wr.sg_list),
+-						GFP_KERNEL);
+-				if (!riu->wr.sg_list)
+-					goto free_mem;
+-
+-				++riu;
+-				riu->wr.num_sge = 0;
+-				riu->remote_addr = raddr;
+-				riu->rkey = be32_to_cpu(db->key);
+-			}
+-		}
+-
+-		++ioctx->n_rdma;
+-		riu->wr.sg_list = kmalloc_array(riu->wr.num_sge,
+-					sizeof(*riu->wr.sg_list),
+-					GFP_KERNEL);
+-		if (!riu->wr.sg_list)
+-			goto free_mem;
+-	}
+-
+-	db = ioctx->rbufs;
+-	tsize = cmd->data_length;
+-	riu = ioctx->rdma_wrs;
+-	sg = sg_orig;
+-	dma_len = ib_sg_dma_len(dev, &sg[0]);
+-	dma_addr = ib_sg_dma_address(dev, &sg[0]);
+-
+-	/* this second loop is really mapped sg_addres to rdma_iu->ib_sge */
+-	for (i = 0, j = 0;
+-	     j < count && i < ioctx->n_rbuf && tsize > 0; ++i, ++riu, ++db) {
+-		rsize = be32_to_cpu(db->len);
+-		sge = riu->wr.sg_list;
+-		k = 0;
+-
+-		while (rsize > 0 && tsize > 0) {
+-			sge->addr = dma_addr;
+-			sge->lkey = ch->sport->sdev->pd->local_dma_lkey;
+-
+-			if (rsize >= dma_len) {
+-				sge->length =
+-					(tsize < dma_len) ? tsize : dma_len;
+-				tsize -= dma_len;
+-				rsize -= dma_len;
+-
+-				if (tsize > 0) {
+-					++j;
+-					if (j < count) {
+-						sg = sg_next(sg);
+-						dma_len = ib_sg_dma_len(
+-								dev, sg);
+-						dma_addr = ib_sg_dma_address(
+-								dev, sg);
+-					}
+-				}
+-			} else {
+-				sge->length = (tsize < rsize) ? tsize : rsize;
+-				tsize -= rsize;
+-				dma_len -= rsize;
+-				dma_addr += rsize;
+-				rsize = 0;
+-			}
+-
+-			++k;
+-			if (k == riu->wr.num_sge && rsize > 0 && tsize > 0) {
+-				++riu;
+-				sge = riu->wr.sg_list;
+-				k = 0;
+-			} else if (rsize > 0 && tsize > 0)
+-				++sge;
+-		}
+-	}
+-
+-	return 0;
+-
+-free_mem:
+-	srpt_unmap_sg_to_ib_sge(ch, ioctx);
+-
+-	return -ENOMEM;
+-}
+-
+-/**
+  * srpt_get_send_ioctx() - Obtain an I/O context for sending to the initiator.
+  */
+ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+@@ -1284,12 +1096,8 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
+ 	BUG_ON(ioctx->ch != ch);
+ 	spin_lock_init(&ioctx->spinlock);
+ 	ioctx->state = SRPT_STATE_NEW;
+-	ioctx->n_rbuf = 0;
+-	ioctx->rbufs = NULL;
+ 	ioctx->n_rdma = 0;
+-	ioctx->n_rdma_wrs = 0;
+-	ioctx->rdma_wrs = NULL;
+-	ioctx->mapped_sg_count = 0;
++	ioctx->n_rw_ctx = 0;
+ 	init_completion(&ioctx->tx_done);
+ 	ioctx->queue_status_only = false;
+ 	/*
+@@ -1359,7 +1167,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
+ 		 * SRP_RSP sending failed or the SRP_RSP send completion has
+ 		 * not been received in time.
+ 		 */
+-		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
+ 		transport_generic_free_cmd(&ioctx->cmd, 0);
+ 		break;
+ 	case SRPT_STATE_MGMT_RSP_SENT:
+@@ -1387,6 +1194,7 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ 	WARN_ON(ioctx->n_rdma <= 0);
+ 	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
++	ioctx->n_rdma = 0;
+ 
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		pr_info("RDMA_READ for ioctx 0x%p failed with status %d\n",
+@@ -1403,23 +1211,6 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		       __LINE__, srpt_get_cmd_state(ioctx));
+ }
+ 
+-static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct srpt_send_ioctx *ioctx =
+-		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
+-
+-	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+-		/*
+-		 * Note: if an RDMA write error completion is received that
+-		 * means that a SEND also has been posted. Defer further
+-		 * processing of the associated command until the send error
+-		 * completion has been received.
+-		 */
+-		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
+-			ioctx, wc->status);
+-	}
+-}
+-
+ /**
+  * srpt_build_cmd_rsp() - Build an SRP_RSP response.
+  * @ch: RDMA channel through which the request has been received.
+@@ -1537,6 +1328,8 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ {
+ 	struct se_cmd *cmd;
+ 	struct srp_cmd *srp_cmd;
++	struct scatterlist *sg = NULL;
++	unsigned sg_cnt = 0;
+ 	u64 data_len;
+ 	enum dma_data_direction dir;
+ 	int rc;
+@@ -1563,16 +1356,21 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+ 		break;
+ 	}
+ 
+-	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
+-		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
+-		       srp_cmd->tag);
++	rc = srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &sg, &sg_cnt,
++			&data_len);
++	if (rc) {
++		if (rc != -EAGAIN) {
++			pr_err("0x%llx: parsing SRP descriptor table failed.\n",
++			       srp_cmd->tag);
++		}
+ 		goto release_ioctx;
+ 	}
+ 
+-	rc = target_submit_cmd(cmd, ch->sess, srp_cmd->cdb,
++	rc = target_submit_cmd_map_sgls(cmd, ch->sess, srp_cmd->cdb,
+ 			       &send_ioctx->sense_data[0],
+ 			       scsilun_to_int(&srp_cmd->lun), data_len,
+-			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
++			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF,
++			       sg, sg_cnt, NULL, 0, NULL, 0);
+ 	if (rc != 0) {
+ 		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
+ 			 srp_cmd->tag);
+@@ -1664,23 +1462,21 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 				   recv_ioctx->ioctx.dma, srp_max_req_size,
+ 				   DMA_FROM_DEVICE);
+ 
+-	if (unlikely(ch->state == CH_CONNECTING)) {
+-		list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
+-		goto out;
+-	}
++	if (unlikely(ch->state == CH_CONNECTING))
++		goto out_wait;
+ 
+ 	if (unlikely(ch->state != CH_LIVE))
+-		goto out;
++		return;
+ 
+ 	srp_cmd = recv_ioctx->ioctx.buf;
+ 	if (srp_cmd->opcode == SRP_CMD || srp_cmd->opcode == SRP_TSK_MGMT) {
+-		if (!send_ioctx)
++		if (!send_ioctx) {
++			if (!list_empty(&ch->cmd_wait_list))
++				goto out_wait;
+ 			send_ioctx = srpt_get_send_ioctx(ch);
+-		if (unlikely(!send_ioctx)) {
+-			list_add_tail(&recv_ioctx->wait_list,
+-				      &ch->cmd_wait_list);
+-			goto out;
+ 		}
++		if (unlikely(!send_ioctx))
++			goto out_wait;
+ 	}
+ 
+ 	switch (srp_cmd->opcode) {
+@@ -1709,8 +1505,10 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 	}
+ 
+ 	srpt_post_recv(ch->sport->sdev, recv_ioctx);
+-out:
+ 	return;
++
++out_wait:
++	list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
+ }
+ 
+ static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+@@ -1779,14 +1577,13 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	WARN_ON(state != SRPT_STATE_CMD_RSP_SENT &&
+ 		state != SRPT_STATE_MGMT_RSP_SENT);
+ 
+-	atomic_inc(&ch->sq_wr_avail);
++	atomic_add(1 + ioctx->n_rdma, &ch->sq_wr_avail);
+ 
+ 	if (wc->status != IB_WC_SUCCESS)
+ 		pr_info("sending response for ioctx 0x%p failed"
+ 			" with status %d\n", ioctx, wc->status);
+ 
+ 	if (state != SRPT_STATE_DONE) {
+-		srpt_unmap_sg_to_ib_sge(ch, ioctx);
+ 		transport_generic_free_cmd(&ioctx->cmd, 0);
+ 	} else {
+ 		pr_err("IB completion has been received too late for"
+@@ -1832,8 +1629,18 @@ retry:
+ 	qp_init->srq = sdev->srq;
+ 	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
+ 	qp_init->qp_type = IB_QPT_RC;
+-	qp_init->cap.max_send_wr = srp_sq_size;
+-	qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
++	/*
++	 * We divide up our send queue size into half SEND WRs to send the
++	 * completions, and half R/W contexts to actually do the RDMA
++	 * READ/WRITE transfers.  Note that we need to allocate CQ slots for
++	 * both both, as RDMA contexts will also post completions for the
++	 * RDMA READ case.
++	 */
++	qp_init->cap.max_send_wr = srp_sq_size / 2;
++	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
++	qp_init->cap.max_send_sge = max(sdev->device->attrs.max_sge_rd,
++					sdev->device->attrs.max_sge);
++	qp_init->port_num = ch->sport->port;
+ 
+ 	ch->qp = ib_create_qp(sdev->pd, qp_init);
+ 	if (IS_ERR(ch->qp)) {
+@@ -2386,95 +2193,6 @@ static int srpt_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 	return ret;
+ }
+ 
+-/**
+- * srpt_perform_rdmas() - Perform IB RDMA.
+- *
+- * Returns zero upon success or a negative number upon failure.
+- */
+-static int srpt_perform_rdmas(struct srpt_rdma_ch *ch,
+-			      struct srpt_send_ioctx *ioctx)
+-{
+-	struct ib_send_wr *bad_wr;
+-	int sq_wr_avail, ret, i;
+-	enum dma_data_direction dir;
+-	const int n_rdma = ioctx->n_rdma;
+-
+-	dir = ioctx->cmd.data_direction;
+-	if (dir == DMA_TO_DEVICE) {
+-		/* write */
+-		ret = -ENOMEM;
+-		sq_wr_avail = atomic_sub_return(n_rdma, &ch->sq_wr_avail);
+-		if (sq_wr_avail < 0) {
+-			pr_warn("IB send queue full (needed %d)\n",
+-				n_rdma);
+-			goto out;
+-		}
+-	}
+-
+-	for (i = 0; i < n_rdma; i++) {
+-		struct ib_send_wr *wr = &ioctx->rdma_wrs[i].wr;
+-
+-		wr->opcode = (dir == DMA_FROM_DEVICE) ?
+-				IB_WR_RDMA_WRITE : IB_WR_RDMA_READ;
+-
+-		if (i == n_rdma - 1) {
+-			/* only get completion event for the last rdma read */
+-			if (dir == DMA_TO_DEVICE) {
+-				wr->send_flags = IB_SEND_SIGNALED;
+-				ioctx->rdma_cqe.done = srpt_rdma_read_done;
+-			} else {
+-				ioctx->rdma_cqe.done = srpt_rdma_write_done;
+-			}
+-			wr->wr_cqe = &ioctx->rdma_cqe;
+-			wr->next = NULL;
+-		} else {
+-			wr->wr_cqe = NULL;
+-			wr->next = &ioctx->rdma_wrs[i + 1].wr;
+-		}
+-	}
+-
+-	ret = ib_post_send(ch->qp, &ioctx->rdma_wrs->wr, &bad_wr);
+-	if (ret)
+-		pr_err("%s[%d]: ib_post_send() returned %d for %d/%d\n",
+-				 __func__, __LINE__, ret, i, n_rdma);
+-out:
+-	if (unlikely(dir == DMA_TO_DEVICE && ret < 0))
+-		atomic_add(n_rdma, &ch->sq_wr_avail);
+-	return ret;
+-}
+-
+-/**
+- * srpt_xfer_data() - Start data transfer from initiator to target.
+- */
+-static int srpt_xfer_data(struct srpt_rdma_ch *ch,
+-			  struct srpt_send_ioctx *ioctx)
+-{
+-	int ret;
+-
+-	ret = srpt_map_sg_to_ib_sge(ch, ioctx);
+-	if (ret) {
+-		pr_err("%s[%d] ret=%d\n", __func__, __LINE__, ret);
+-		goto out;
+-	}
+-
+-	ret = srpt_perform_rdmas(ch, ioctx);
+-	if (ret) {
+-		if (ret == -EAGAIN || ret == -ENOMEM)
+-			pr_info("%s[%d] queue full -- ret=%d\n",
+-				__func__, __LINE__, ret);
+-		else
+-			pr_err("%s[%d] fatal error -- ret=%d\n",
+-			       __func__, __LINE__, ret);
+-		goto out_unmap;
+-	}
+-
+-out:
+-	return ret;
+-out_unmap:
+-	srpt_unmap_sg_to_ib_sge(ch, ioctx);
+-	goto out;
+-}
+-
+ static int srpt_write_pending_status(struct se_cmd *se_cmd)
+ {
+ 	struct srpt_send_ioctx *ioctx;
+@@ -2491,11 +2209,42 @@ static int srpt_write_pending(struct se_cmd *se_cmd)
+ 	struct srpt_send_ioctx *ioctx =
+ 		container_of(se_cmd, struct srpt_send_ioctx, cmd);
+ 	struct srpt_rdma_ch *ch = ioctx->ch;
++	struct ib_send_wr *first_wr = NULL, *bad_wr;
++	struct ib_cqe *cqe = &ioctx->rdma_cqe;
+ 	enum srpt_command_state new_state;
++	int ret, i;
+ 
+ 	new_state = srpt_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA);
+ 	WARN_ON(new_state == SRPT_STATE_DONE);
+-	return srpt_xfer_data(ch, ioctx);
++
++	if (atomic_sub_return(ioctx->n_rdma, &ch->sq_wr_avail) < 0) {
++		pr_warn("%s: IB send queue full (needed %d)\n",
++				__func__, ioctx->n_rdma);
++		ret = -ENOMEM;
++		goto out_undo;
++	}
++
++	cqe->done = srpt_rdma_read_done;
++	for (i = ioctx->n_rw_ctx - 1; i >= 0; i--) {
++		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
++
++		first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp, ch->sport->port,
++				cqe, first_wr);
++		cqe = NULL;
++	}
++	
++	ret = ib_post_send(ch->qp, first_wr, &bad_wr);
++	if (ret) {
++		pr_err("%s: ib_post_send() returned %d for %d (avail: %d)\n",
++			 __func__, ret, ioctx->n_rdma,
++			 atomic_read(&ch->sq_wr_avail));
++		goto out_undo;
++	}
++
++	return 0;
++out_undo:
++	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
++	return ret;
+ }
+ 
+ static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
+@@ -2517,17 +2266,17 @@ static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
+  */
+ static void srpt_queue_response(struct se_cmd *cmd)
+ {
+-	struct srpt_rdma_ch *ch;
+-	struct srpt_send_ioctx *ioctx;
++	struct srpt_send_ioctx *ioctx =
++		container_of(cmd, struct srpt_send_ioctx, cmd);
++	struct srpt_rdma_ch *ch = ioctx->ch;
++	struct srpt_device *sdev = ch->sport->sdev;
++	struct ib_send_wr send_wr, *first_wr = NULL, *bad_wr;
++	struct ib_sge sge;
+ 	enum srpt_command_state state;
+ 	unsigned long flags;
+-	int ret;
+-	enum dma_data_direction dir;
+-	int resp_len;
++	int resp_len, ret, i;
+ 	u8 srp_tm_status;
+ 
+-	ioctx = container_of(cmd, struct srpt_send_ioctx, cmd);
+-	ch = ioctx->ch;
+ 	BUG_ON(!ch);
+ 
+ 	spin_lock_irqsave(&ioctx->spinlock, flags);
+@@ -2554,17 +2303,19 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 		return;
+ 	}
+ 
+-	dir = ioctx->cmd.data_direction;
+-
+ 	/* For read commands, transfer the data to the initiator. */
+-	if (dir == DMA_FROM_DEVICE && ioctx->cmd.data_length &&
++	if (ioctx->cmd.data_direction == DMA_FROM_DEVICE &&
++	    ioctx->cmd.data_length &&
+ 	    !ioctx->queue_status_only) {
+-		ret = srpt_xfer_data(ch, ioctx);
+-		if (ret) {
+-			pr_err("xfer_data failed for tag %llu\n",
+-			       ioctx->cmd.tag);
+-			return;
++		for (i = ioctx->n_rw_ctx - 1; i >= 0; i--) {
++			struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
++
++			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
++					ch->sport->port, NULL,
++					first_wr ? first_wr : &send_wr);
+ 		}
++	} else {
++		first_wr = &send_wr;
+ 	}
+ 
+ 	if (state != SRPT_STATE_MGMT)
+@@ -2576,14 +2327,46 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 		resp_len = srpt_build_tskmgmt_rsp(ch, ioctx, srp_tm_status,
+ 						 ioctx->cmd.tag);
+ 	}
+-	ret = srpt_post_send(ch, ioctx, resp_len);
+-	if (ret) {
+-		pr_err("sending cmd response failed for tag %llu\n",
+-		       ioctx->cmd.tag);
+-		srpt_unmap_sg_to_ib_sge(ch, ioctx);
+-		srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
+-		target_put_sess_cmd(&ioctx->cmd);
++
++	atomic_inc(&ch->req_lim);
++
++	if (unlikely(atomic_sub_return(1 + ioctx->n_rdma,
++			&ch->sq_wr_avail) < 0)) {
++		pr_warn("%s: IB send queue full (needed %d)\n",
++				__func__, ioctx->n_rdma);
 +		ret = -ENOMEM;
 +		goto out;
 +	}
 +
-+	for (i = 0; i < ctx->nr_ops; i++) {
-+		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
-+		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
-+		u32 nents = min(sg_cnt, pages_per_mr);
++	ib_dma_sync_single_for_device(sdev->device, ioctx->ioctx.dma, resp_len,
++				      DMA_TO_DEVICE);
 +
-+		ret = rdma_rw_init_one_mr(qp, port_num, reg, sg, sg_cnt,
-+				offset);
-+		if (ret < 0)
-+			goto out_free;
-+		count += ret;
++	sge.addr = ioctx->ioctx.dma;
++	sge.length = resp_len;
++	sge.lkey = sdev->pd->local_dma_lkey;
 +
-+		if (prev) {
-+			if (reg->mr->need_inval)
-+				prev->wr.wr.next = &reg->inv_wr;
-+			else
-+				prev->wr.wr.next = &reg->reg_wr.wr;
-+		}
++	ioctx->ioctx.cqe.done = srpt_send_done;
++	send_wr.next = NULL;
++	send_wr.wr_cqe = &ioctx->ioctx.cqe;
++	send_wr.sg_list = &sge;
++	send_wr.num_sge = 1;
++	send_wr.opcode = IB_WR_SEND;
++	send_wr.send_flags = IB_SEND_SIGNALED;
 +
-+		reg->reg_wr.wr.next = &reg->wr.wr;
-+
-+		reg->wr.wr.sg_list = &reg->sge;
-+		reg->wr.wr.num_sge = 1;
-+		reg->wr.remote_addr = remote_addr;
-+		reg->wr.rkey = rkey;
-+		if (dir == DMA_TO_DEVICE) {
-+			reg->wr.wr.opcode = IB_WR_RDMA_WRITE;
-+		} else if (!rdma_cap_read_inv(qp->device, port_num)) {
-+			reg->wr.wr.opcode = IB_WR_RDMA_READ;
-+		} else {
-+			reg->wr.wr.opcode = IB_WR_RDMA_READ_WITH_INV;
-+			reg->wr.wr.ex.invalidate_rkey = reg->mr->lkey;
-+		}
-+		count++;
-+
-+		remote_addr += reg->sge.length;
-+		sg_cnt -= nents;
-+		for (j = 0; j < nents; j++)
-+			sg = sg_next(sg);
-+		offset = 0;
-+	}
-+
-+	ctx->type = RDMA_RW_MR;
-+	return count;
-+
-+out_free:
-+	while (--i >= 0)
-+		ib_mr_pool_put(qp, &qp->rdma_mrs, ctx->reg[i].mr);
-+	kfree(ctx->reg);
-+out:
-+	return ret;
-+}
-+
-+static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-+		struct scatterlist *sg, u32 sg_cnt, u32 offset,
-+		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
-+{
-+	struct ib_device *dev = qp->pd->device;
-+	u32 max_sge = rdma_rw_max_sge(dev, dir);
-+	struct ib_sge *sge;
-+	u32 total_len = 0, i, j;
-+
-+	ctx->nr_ops = DIV_ROUND_UP(sg_cnt, max_sge);
-+
-+	ctx->map.sges = sge = kcalloc(sg_cnt, sizeof(*sge), GFP_KERNEL);
-+	if (!ctx->map.sges)
++	ret = ib_post_send(ch->qp, first_wr, &bad_wr);
++	if (ret < 0) {
++		pr_err("%s: sending cmd response failed for tag %llu (%d)\n",
++			__func__, ioctx->cmd.tag, ret);
 +		goto out;
+ 	}
 +
-+	ctx->map.wrs = kcalloc(ctx->nr_ops, sizeof(*ctx->map.wrs), GFP_KERNEL);
-+	if (!ctx->map.wrs)
-+		goto out_free_sges;
++	return;
 +
-+	for (i = 0; i < ctx->nr_ops; i++) {
-+		struct ib_rdma_wr *rdma_wr = &ctx->map.wrs[i];
-+		u32 nr_sge = min(sg_cnt, max_sge);
-+
-+		if (dir == DMA_TO_DEVICE)
-+			rdma_wr->wr.opcode = IB_WR_RDMA_WRITE;
-+		else
-+			rdma_wr->wr.opcode = IB_WR_RDMA_READ;
-+		rdma_wr->remote_addr = remote_addr + total_len;
-+		rdma_wr->rkey = rkey;
-+		rdma_wr->wr.sg_list = sge;
-+
-+		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
-+			rdma_wr->wr.num_sge++;
-+
-+			sge->addr = ib_sg_dma_address(dev, sg) + offset;
-+			sge->length = ib_sg_dma_len(dev, sg) - offset;
-+			sge->lkey = qp->pd->local_dma_lkey;
-+
-+			total_len += sge->length;
-+			sge++;
-+			sg_cnt--;
-+			offset = 0;
-+		}
-+
-+		if (i + 1 < ctx->nr_ops)
-+			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
-+	}
-+
-+	ctx->type = RDMA_RW_MULTI_WR;
-+	return ctx->nr_ops;
-+
-+out_free_sges:
-+	kfree(ctx->map.sges);
 +out:
-+	return -ENOMEM;
-+}
-+
-+static int rdma_rw_init_single_wr(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-+		struct scatterlist *sg, u32 offset, u64 remote_addr, u32 rkey,
-+		enum dma_data_direction dir)
-+{
-+	struct ib_device *dev = qp->pd->device;
-+	struct ib_rdma_wr *rdma_wr = &ctx->single.wr;
-+
-+	ctx->nr_ops = 1;
-+
-+	ctx->single.sge.lkey = qp->pd->local_dma_lkey;
-+	ctx->single.sge.addr = ib_sg_dma_address(dev, sg) + offset;
-+	ctx->single.sge.length = ib_sg_dma_len(dev, sg) - offset;
-+
-+	memset(rdma_wr, 0, sizeof(*rdma_wr));
-+	if (dir == DMA_TO_DEVICE)
-+		rdma_wr->wr.opcode = IB_WR_RDMA_WRITE;
-+	else
-+		rdma_wr->wr.opcode = IB_WR_RDMA_READ;
-+	rdma_wr->wr.sg_list = &ctx->single.sge;
-+	rdma_wr->wr.num_sge = 1;
-+	rdma_wr->remote_addr = remote_addr;
-+	rdma_wr->rkey = rkey;
-+
-+	ctx->type = RDMA_RW_SINGLE_WR;
-+	return 1;
-+}
-+
-+/**
-+ * rdma_rw_ctx_init - initialize a RDMA READ/WRITE context
-+ * @ctx:	context to initialize
-+ * @qp:		queue pair to operate on
-+ * @port_num:	port num to which the connection is bound
-+ * @sg:		scatterlist to READ/WRITE from/to
-+ * @sg_cnt:	number of entries in @sg
-+ * @sg_offset:	current byte offset into @sg
-+ * @remote_addr:remote address to read/write (relative to @rkey)
-+ * @rkey:	remote key to operate on
-+ * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
-+ *
-+ * Returns the number of WQEs that will be needed on the workqueue if
-+ * successful, or a negative error code.
-+ */
-+int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct scatterlist *sg, u32 sg_cnt, u32 sg_offset,
-+		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
-+{
-+	struct ib_device *dev = qp->pd->device;
-+	int ret;
-+
-+	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+	if (!ret)
-+		return -ENOMEM;
-+	sg_cnt = ret;
-+
-+	/*
-+	 * Skip to the S/G entry that sg_offset falls into:
-+	 */
-+	for (;;) {
-+		u32 len = ib_sg_dma_len(dev, sg);
-+
-+		if (sg_offset < len)
-+			break;
-+
-+		sg = sg_next(sg);
-+		sg_offset -= len;
-+		sg_cnt--;
-+	}
-+
-+	ret = -EIO;
-+	if (WARN_ON_ONCE(sg_cnt == 0))
-+		goto out_unmap_sg;
-+
-+	if (rdma_rw_io_needs_mr(qp->device, port_num, dir, sg_cnt)) {
-+		ret = rdma_rw_init_mr_wrs(ctx, qp, port_num, sg, sg_cnt,
-+				sg_offset, remote_addr, rkey, dir);
-+	} else if (sg_cnt > 1) {
-+		ret = rdma_rw_init_map_wrs(ctx, qp, sg, sg_cnt, sg_offset,
-+				remote_addr, rkey, dir);
-+	} else {
-+		ret = rdma_rw_init_single_wr(ctx, qp, sg, sg_offset,
-+				remote_addr, rkey, dir);
-+	}
-+
-+	if (ret < 0)
-+		goto out_unmap_sg;
-+	return ret;
-+
-+out_unmap_sg:
-+	ib_dma_unmap_sg(dev, sg, sg_cnt, dir);
-+	return ret;
-+}
-+EXPORT_SYMBOL(rdma_rw_ctx_init);
-+
-+/*
-+ * Now that we are going to post the WRs we can update the lkey and need_inval
-+ * state on the MRs.  If we were doing this at init time, we would get double
-+ * or missing invalidations if a context was initialized but not actually
-+ * posted.
-+ */
-+static void rdma_rw_update_lkey(struct rdma_rw_reg_ctx *reg, bool need_inval)
-+{
-+	reg->mr->need_inval = need_inval;
-+	ib_update_fast_reg_key(reg->mr, ib_inc_rkey(reg->mr->lkey));
-+	reg->reg_wr.key = reg->mr->lkey;
-+	reg->sge.lkey = reg->mr->lkey;
-+}
-+
-+/**
-+ * rdma_rw_ctx_wrs - return chain of WRs for a RDMA READ or WRITE operation
-+ * @ctx:	context to operate on
-+ * @qp:		queue pair to operate on
-+ * @port_num:	port num to which the connection is bound
-+ * @cqe:	completion queue entry for the last WR
-+ * @chain_wr:	WR to append to the posted chain
-+ *
-+ * Return the WR chain for the set of RDMA READ/WRITE operations described by
-+ * @ctx, as well as any memory registration operations needed.  If @chain_wr
-+ * is non-NULL the WR it points to will be appended to the chain of WRs posted.
-+ * If @chain_wr is not set @cqe must be set so that the caller gets a
-+ * completion notification.
-+ */
-+struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-+		u8 port_num, struct ib_cqe *cqe, struct ib_send_wr *chain_wr)
-+{
-+	struct ib_send_wr *first_wr, *last_wr;
-+	int i;
-+
-+	switch (ctx->type) {
-+	case RDMA_RW_MR:
-+		for (i = 0; i < ctx->nr_ops; i++) {
-+			rdma_rw_update_lkey(&ctx->reg[i],
-+				ctx->reg[i].wr.wr.opcode !=
-+					IB_WR_RDMA_READ_WITH_INV);
-+		}
-+
-+		if (ctx->reg[0].inv_wr.next)
-+			first_wr = &ctx->reg[0].inv_wr;
-+		else
-+			first_wr = &ctx->reg[0].reg_wr.wr;
-+		last_wr = &ctx->reg[ctx->nr_ops - 1].wr.wr;
-+		break;
-+	case RDMA_RW_MULTI_WR:
-+		first_wr = &ctx->map.wrs[0].wr;
-+		last_wr = &ctx->map.wrs[ctx->nr_ops - 1].wr;
-+		break;
-+	case RDMA_RW_SINGLE_WR:
-+		first_wr = &ctx->single.wr.wr;
-+		last_wr = &ctx->single.wr.wr;
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	if (chain_wr) {
-+		last_wr->next = chain_wr;
-+	} else {
-+		last_wr->wr_cqe = cqe;
-+		last_wr->send_flags |= IB_SEND_SIGNALED;
-+	}
-+
-+	return first_wr;
-+}
-+EXPORT_SYMBOL(rdma_rw_ctx_wrs);
-+
-+/**
-+ * rdma_rw_ctx_post - post a RDMA READ or RDMA WRITE operation
-+ * @ctx:	context to operate on
-+ * @qp:		queue pair to operate on
-+ * @port_num:	port num to which the connection is bound
-+ * @cqe:	completion queue entry for the last WR
-+ * @chain_wr:	WR to append to the posted chain
-+ *
-+ * Post the set of RDMA READ/WRITE operations described by @ctx, as well as
-+ * any memory registration operations needed.  If @chain_wr is non-NULL the
-+ * WR it points to will be appended to the chain of WRs posted.  If @chain_wr
-+ * is not set @cqe must be set so that the caller gets a completion
-+ * notification.
-+ */
-+int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct ib_cqe *cqe, struct ib_send_wr *chain_wr)
-+{
-+	struct ib_send_wr *first_wr, *bad_wr;
-+
-+	first_wr = rdma_rw_ctx_wrs(ctx, qp, port_num, cqe, chain_wr);
-+	return ib_post_send(qp, first_wr, &bad_wr);
-+}
-+EXPORT_SYMBOL(rdma_rw_ctx_post);
-+
-+/**
-+ * rdma_rw_ctx_destroy - release all resources allocated by rdma_rw_ctx_init
-+ * @ctx:	context to release
-+ * @qp:		queue pair to operate on
-+ * @port_num:	port num to which the connection is bound
-+ * @sg:		scatterlist that was used for the READ/WRITE
-+ * @sg_cnt:	number of entries in @sg
-+ * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
-+ */
-+void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct scatterlist *sg, u32 sg_cnt, enum dma_data_direction dir)
-+{
-+	int i;
-+
-+	switch (ctx->type) {
-+	case RDMA_RW_MR:
-+		for (i = 0; i < ctx->nr_ops; i++)
-+			ib_mr_pool_put(qp, &qp->rdma_mrs, ctx->reg[i].mr);
-+		kfree(ctx->reg);
-+		break;
-+	case RDMA_RW_MULTI_WR:
-+		kfree(ctx->map.wrs);
-+		kfree(ctx->map.sges);
-+		break;
-+	case RDMA_RW_SINGLE_WR:
-+		break;
-+	default:
-+		BUG();
-+		break;
-+	}
-+
-+	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
-+}
-+EXPORT_SYMBOL(rdma_rw_ctx_destroy);
-+
-+void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr)
-+{
-+	u32 factor;
-+
-+	WARN_ON_ONCE(attr->port_num == 0);
-+
-+	/*
-+	 * Each context needs at least one RDMA READ or WRITE WR.
-+	 *
-+	 * For some hardware we might need more, eventually we should ask the
-+	 * HCA driver for a multiplier here.
-+	 */
-+	factor = 1;
-+
-+	/*
-+	 * If the devices needs MRs to perform RDMA READ or WRITE operations,
-+	 * we'll need two additional MRs for the registrations and the
-+	 * invalidation.
-+	 */
-+	if (rdma_rw_can_use_mr(dev, attr->port_num))
-+		factor += 2;	/* inv + reg */
-+
-+	attr->cap.max_send_wr += factor * attr->cap.max_rdma_ctxs;
-+
-+	/*
-+	 * But maybe we were just too high in the sky and the device doesn't
-+	 * even support all we need, and we'll have to live with what we get..
-+	 */
-+	attr->cap.max_send_wr =
-+		min_t(u32, attr->cap.max_send_wr, dev->attrs.max_qp_wr);
-+}
-+
-+int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr)
-+{
-+	struct ib_device *dev = qp->pd->device;
-+	int ret = 0;
-+
-+	if (rdma_rw_can_use_mr(dev, attr->port_num)) {
-+		ret = ib_mr_pool_init(qp, &qp->rdma_mrs,
-+				attr->cap.max_rdma_ctxs, IB_MR_TYPE_MEM_REG,
-+				rdma_rw_fr_page_list_len(dev));
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+void rdma_rw_cleanup_mrs(struct ib_qp *qp)
-+{
-+	ib_mr_pool_destroy(qp, &qp->rdma_mrs);
-+}
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 76c9c3f..566bfb3 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -48,6 +48,7 @@
++	atomic_add(1 + ioctx->n_rdma, &ch->sq_wr_avail);
++	atomic_dec(&ch->req_lim);
++	srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
++	target_put_sess_cmd(&ioctx->cmd);
+ }
+ 
+ static int srpt_queue_data_in(struct se_cmd *cmd)
+@@ -2599,10 +2382,6 @@ static void srpt_queue_tm_rsp(struct se_cmd *cmd)
+ 
+ static void srpt_aborted_task(struct se_cmd *cmd)
+ {
+-	struct srpt_send_ioctx *ioctx = container_of(cmd,
+-				struct srpt_send_ioctx, cmd);
+-
+-	srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
+ }
+ 
+ static int srpt_queue_status(struct se_cmd *cmd)
+@@ -2903,12 +2682,10 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
+ 	unsigned long flags;
+ 
+ 	WARN_ON(ioctx->state != SRPT_STATE_DONE);
+-	WARN_ON(ioctx->mapped_sg_count != 0);
+ 
+-	if (ioctx->n_rbuf > 1) {
+-		kfree(ioctx->rbufs);
+-		ioctx->rbufs = NULL;
+-		ioctx->n_rbuf = 0;
++	if (ioctx->n_rw_ctx) {
++		srpt_free_rw_ctxs(ch, ioctx);
++		ioctx->n_rw_ctx = 0;
+ 	}
+ 
+ 	spin_lock_irqsave(&ch->spinlock, flags);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index af9b8b5..fee6bfd 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -42,6 +42,7 @@
  #include <rdma/ib_verbs.h>
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
+ #include <rdma/ib_sa.h>
+ #include <rdma/ib_cm.h>
 +#include <rdma/rw.h>
  
- #include "core_priv.h"
+ #include <scsi/srp.h>
  
-@@ -751,6 +752,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- {
- 	struct ib_device *device = pd ? pd->device : qp_init_attr->xrcd->device;
- 	struct ib_qp *qp;
-+	int ret;
-+
-+	/*
-+	 * If the callers is using the RDMA API calculate the resources
-+	 * needed for the RDMA READ/WRITE operations.
-+	 *
-+	 * Note that these callers need to pass in a port number.
-+	 */
-+	if (qp_init_attr->cap.max_rdma_ctxs)
-+		rdma_rw_init_qp(device, qp_init_attr);
+@@ -105,7 +106,6 @@ enum {
+ 	SRP_LOGIN_RSP_MULTICHAN_MAINTAINED = 0x2,
  
- 	qp = device->create_qp(pd, qp_init_attr, NULL);
- 	if (IS_ERR(qp))
-@@ -764,6 +775,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 	atomic_set(&qp->usecnt, 0);
- 	qp->mrs_used = 0;
- 	spin_lock_init(&qp->mr_lock);
-+	INIT_LIST_HEAD(&qp->rdma_mrs);
+ 	SRPT_DEF_SG_TABLESIZE = 128,
+-	SRPT_DEF_SG_PER_WQE = 16,
  
- 	if (qp_init_attr->qp_type == IB_QPT_XRC_TGT)
- 		return ib_create_xrc_qp(qp, qp_init_attr);
-@@ -787,6 +799,16 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 
- 	atomic_inc(&pd->usecnt);
- 	atomic_inc(&qp_init_attr->send_cq->usecnt);
-+
-+	if (qp_init_attr->cap.max_rdma_ctxs) {
-+		ret = rdma_rw_init_mrs(qp, qp_init_attr);
-+		if (ret) {
-+			pr_err("failed to init MR pool ret= %d\n", ret);
-+			ib_destroy_qp(qp);
-+			qp = ERR_PTR(ret);
-+		}
-+	}
-+
- 	return qp;
- }
- EXPORT_SYMBOL(ib_create_qp);
-@@ -1271,6 +1293,9 @@ int ib_destroy_qp(struct ib_qp *qp)
- 	rcq  = qp->recv_cq;
- 	srq  = qp->srq;
- 
-+	if (!qp->uobject)
-+		rdma_rw_cleanup_mrs(qp);
-+
- 	ret = qp->device->destroy_qp(qp);
- 	if (!ret) {
- 		if (pd)
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3f66647..dd8e15d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -931,6 +931,13 @@ struct ib_qp_cap {
- 	u32	max_send_sge;
- 	u32	max_recv_sge;
- 	u32	max_inline_data;
-+
-+	/*
-+	 * Maximum number of rdma_rw_ctx structures in flight at a time.
-+	 * ib_create_qp() will calculate the right amount of neededed WRs
-+	 * and MRs based on this.
-+	 */
-+	u32	max_rdma_ctxs;
+ 	MIN_SRPT_SQ_SIZE = 16,
+ 	DEF_SRPT_SQ_SIZE = 4096,
+@@ -174,21 +174,17 @@ struct srpt_recv_ioctx {
+ 	struct srpt_ioctx	ioctx;
+ 	struct list_head	wait_list;
  };
- 
- enum ib_sig_type {
-@@ -1002,7 +1009,11 @@ struct ib_qp_init_attr {
- 	enum ib_sig_type	sq_sig_type;
- 	enum ib_qp_type		qp_type;
- 	enum ib_qp_create_flags	create_flags;
--	u8			port_num; /* special QP types only */
-+
-+	/*
-+	 * Only needed for special QP types, or when using the RW API.
-+	 */
-+	u8			port_num;
- };
- 
- struct ib_qp_open_attr {
-@@ -1423,6 +1434,7 @@ struct ib_qp {
- 	struct ib_cq	       *recv_cq;
- 	spinlock_t		mr_lock;
- 	int			mrs_used;
-+	struct list_head	rdma_mrs;
- 	struct ib_srq	       *srq;
- 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
- 	struct list_head	xrcd_list;
-diff --git a/include/rdma/rw.h b/include/rdma/rw.h
-new file mode 100644
-index 0000000..d3896bb
---- /dev/null
-+++ b/include/rdma/rw.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright (c) 2016 HGST, a Western Digital Company.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
-+#ifndef _RDMA_RW_H
-+#define _RDMA_RW_H
-+
-+#include <linux/dma-mapping.h>
-+#include <linux/scatterlist.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/rdma_cm.h>
-+#include <rdma/mr_pool.h>
-+
-+struct rdma_rw_ctx {
-+	/* number of RDMA READ/WRITE WRs (not counting MR WRs) */
-+	u32			nr_ops;
-+
-+	/* tag for the union below: */
-+	u8			type;
-+
-+	union {
-+		/* for mapping a single SGE: */
-+		struct {
-+			struct ib_sge		sge;
-+			struct ib_rdma_wr	wr;
-+		} single;
-+
-+		/* for mapping of multiple SGEs: */
-+		struct {
-+			struct ib_sge		*sges;
-+			struct ib_rdma_wr	*wrs;
-+		} map;
-+
-+		/* for registering multiple WRs: */
-+		struct rdma_rw_reg_ctx {
-+			struct ib_sge		sge;
-+			struct ib_rdma_wr	wr;
-+			struct ib_reg_wr	reg_wr;
-+			struct ib_send_wr	inv_wr;
-+			struct ib_mr		*mr;
-+		} *reg;
-+	};
++	
++struct srpt_rw_ctx {
++	struct rdma_rw_ctx	rw;
++	struct scatterlist	*sg;
++	unsigned int		nents;
 +};
+ 
+ /**
+  * struct srpt_send_ioctx - SRPT send I/O context.
+  * @ioctx:       See above.
+  * @ch:          Channel pointer.
+- * @free_list:   Node in srpt_rdma_ch.free_list.
+- * @n_rbuf:      Number of data buffers in the received SRP command.
+- * @rbufs:       Pointer to SRP data buffer array.
+- * @single_rbuf: SRP data buffer if the command has only a single buffer.
+- * @sg:          Pointer to sg-list associated with this I/O context.
+- * @sg_cnt:      SG-list size.
+- * @mapped_sg_count: ib_dma_map_sg() return value.
+- * @n_rdma_wrs:  Number of elements in the rdma_wrs array.
+- * @rdma_wrs:    Array with information about the RDMA mapping.
+- * @tag:         Tag of the received SRP information unit.
+  * @spinlock:    Protects 'state'.
+  * @state:       I/O context state.
+  * @cmd:         Target core command data structure.
+@@ -197,21 +193,18 @@ struct srpt_recv_ioctx {
+ struct srpt_send_ioctx {
+ 	struct srpt_ioctx	ioctx;
+ 	struct srpt_rdma_ch	*ch;
+-	struct ib_rdma_wr	*rdma_wrs;
 +
-+int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct scatterlist *sg, u32 sg_cnt, u32 sg_offset,
-+		u64 remote_addr, u32 rkey, enum dma_data_direction dir);
-+void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct scatterlist *sg, u32 sg_cnt,
-+		enum dma_data_direction dir);
++	struct srpt_rw_ctx	s_rw_ctx;
++	struct srpt_rw_ctx	*rw_ctxs;
 +
-+struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
-+		u8 port_num, struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
-+int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
-+		struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
-+
-+void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
-+int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
-+void rdma_rw_cleanup_mrs(struct ib_qp *qp);
-+
-+#endif /* _RDMA_RW_H */
+ 	struct ib_cqe		rdma_cqe;
+-	struct srp_direct_buf	*rbufs;
+-	struct srp_direct_buf	single_rbuf;
+-	struct scatterlist	*sg;
+ 	struct list_head	free_list;
+ 	spinlock_t		spinlock;
+ 	enum srpt_command_state	state;
+ 	struct se_cmd		cmd;
+ 	struct completion	tx_done;
+-	int			sg_cnt;
+-	int			mapped_sg_count;
+-	u16			n_rdma_wrs;
+ 	u8			n_rdma;
+-	u8			n_rbuf;
++	u8			n_rw_ctx;
+ 	bool			queue_status_only;
+ 	u8			sense_data[TRANSPORT_SENSE_BUFFER];
+ };
 -- 
 2.1.4
 
