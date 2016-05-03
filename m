@@ -1,126 +1,177 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: RDMA Read: Local protection error
-Date: Tue, 3 May 2016 10:57:05 -0400
-Message-ID: <6BBFD126-877C-4638-BB91-ABF715E29326@oracle.com>
-References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com> <57238F8C.70505@sandisk.com> <B72A389F-FFF1-498C-A946-8AA72B7769F8@oracle.com> <57277B63.8030506@sandisk.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57277B63.8030506-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH net-next 2/5] drivers: replace dev->trans_start accesses with dev_trans_start
+Date: Tue,  3 May 2016 16:30:59 +0200
+Message-ID: <1462285862-30946-3-git-send-email-fw@strlen.de>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1462285862-30946-1-git-send-email-fw@strlen.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Florian Westphal <fw@strlen.de>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+a trans_start struct member exists twice:
+- in struct net_device (legacy)
+- in struct netdev_queue
 
-> On May 2, 2016, at 12:08 PM, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> 
-> On 05/02/2016 08:10 AM, Chuck Lever wrote:
->>> On Apr 29, 2016, at 12:45 PM, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
->>> On 04/29/2016 09:24 AM, Chuck Lever wrote:
->>>> I've found some new behavior, recently, while testing the
->>>> v4.6-rc Linux NFS/RDMA client and server.
->>>> 
->>>> When certain kernel memory debugging CONFIG options are
->>>> enabled, 1MB NFS WRITEs can sometimes result in a
->>>> IB_WC_LOC_PROT_ERR. I usually turn on most of them because
->>>> I want to see any problems, so I'm not sure which option
->>>> in particular is exposing the issue.
->>>> 
->>>> When debugging is enabled on the server, and the underlying
->>>> device is using FRWR to register the sink buffer, an RDMA
->>>> Read occasionally completes with LOC_PROT_ERR.
->>>> 
->>>> When debugging is enabled on the client, and the underlying
->>>> device uses FRWR to register the target of an RDMA Read, an
->>>> ingress RDMA Read request sometimes gets a Syndrome 99
->>>> (REM_OP_ERR) acknowledgement, and a subsequent RDMA Receive
->>>> on the client completes with LOC_PROT_ERR.
->>>> 
->>>> I do not see this problem when kernel memory debugging is
->>>> disabled, or when the client is using FMR, or when the
->>>> server is using physical addresses to post its RDMA Read WRs,
->>>> or when wsize is 512KB or smaller.
->>>> 
->>>> I have not found any obvious problems with the client logic
->>>> that registers NFS WRITE buffers, nor the server logic that
->>>> constructs and posts RDMA Read WRs.
->>>> 
->>>> My next step is to bisect. But first, I was wondering if
->>>> this behavior might be related to the recent problems with
->>>> s/g lists seen with iSER/SRP? ie, is this a recognized
->>>> issue?
->>> 
->>> Hello Chuck,
->>> 
->>> A few days ago I observed similar behavior with the SRP protocol but only if I increase max_sect in /etc/srp_daemon.conf from the default to 4096. My setup was as follows:
->>> * Kernel 4.6.0-rc5 at the initiator side.
->>> * A whole bunch of kernel debugging options enabled at the initiator
->>>  side.
->>> * The following settings in /etc/modprobe.d/ib_srp.conf:
->>>  options ib_srp cmd_sg_entries=255 register_always=1
->>> * The following settings in /etc/srp_daemon.conf:
->>>  a queue_size=128,max_cmd_per_lun=128,max_sect=4096
->>> * Kernel 3.0.101 at the target side.
->>> * Kernel debugging disabled at the target side.
->>> * mlx4 driver at both sides.
->>> 
->>> Decreasing max_sge at the target side from 32 to 16 did not help. I have not yet had the time to analyze this further.
->> 
->> git bisect result:
->> 
->> d86bd1bece6fc41d59253002db5441fe960a37f6 is the first bad commit
->> commit d86bd1bece6fc41d59253002db5441fe960a37f6
->> Author: Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>
->> Date:   Tue Mar 15 14:55:12 2016 -0700
->> 
->>     mm/slub: support left redzone
->> 
->> I checked out the previous commit and was not able to
->> reproduce, which gives some confidence that the bisect
->> result is valid.
->> 
->> I've also investigated the wire behavior a little more.
->> The server I'm using for testing has FRWR artificially
->> disabled, so it uses physical addresses for RDMA Read.
->> This limits it to max_sge_rd, or 30 pages for each Read
->> request.
->> 
->> The client sends a single 1MB Read chunk. The server
->> emits 8 30-page Read requests, and a ninth request for
->> the last 16 pages in the chunk.
->> 
->> The client's HCA responds to the 30-page Read requests
->> properly. But on the last Read request, it responds
->> with a Read First, 14 Read Middle responses, then an
->> ACK with Syndrome 99 (Remote Operation Error).
->> 
->> This suggests the last page in the memory region is
->> not accessible to the HCA.
->> 
->> This does not happen on the first NFS WRITE, but
->> rather one or two subsequent NFS WRITEs during the test.
-> 
-> On an x86 system that patch changes the alignment of buffers > 8 bytes from 16 bytes to 8 bytes (ARCH_SLAB_MINALIGN / ARCH_KMALLOC_MINALIGN). There might be code in the mlx4 driver that makes incorrect assumptions about the alignment of memory allocated by kmalloc(). Can someone from Mellanox comment on the alignment requirements of the buffers allocated by mlx4_buf_alloc()?
-> 
-> Thanks,
-> 
-> Bart.
+Instead of open-coding dev->trans_start usage to obtain the current
+trans_start value, use dev_trans_start() instead.
 
-Let's also bring this to the attention of the patch's author.
+This is not exactly the same, as dev_trans_start also considers
+the trans_start values of the netdev queues owned by the device
+and provides the most recent one.
 
-Joonsoo, any ideas about how to track this down? There have
-been several reports on linux-rdma of unexplained issues when
-SLUB debugging is enabled.
+For legacy devices this doesn't matter as dev_trans_start can cope
+with netdev trans_start values of 0 (they are ignored).
 
+This is a prerequisite to eventual removal of dev->trans_start.
 
---
-Chuck Lever
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Checkpatch complains about Lines > 80 but I find line break more ugly.
 
+ drivers/infiniband/ulp/ipoib/ipoib_main.c              | 2 +-
+ drivers/net/ethernet/intel/e1000e/netdev.c             | 2 +-
+ drivers/net/ethernet/intel/igb/igb_main.c              | 2 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c          | 2 +-
+ drivers/net/ethernet/microchip/encx24j600.c            | 2 +-
+ drivers/net/ethernet/qualcomm/qca_spi.c                | 2 +-
+ drivers/net/fjes/fjes_main.c                           | 2 +-
+ drivers/net/hamradio/mkiss.c                           | 2 +-
+ drivers/staging/rtl8192e/rtllib_softmac.c              | 2 +-
+ drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c | 2 +-
+ 10 files changed, 10 insertions(+), 10 deletions(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 80807d6..b940ef1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1036,7 +1036,7 @@ static void ipoib_timeout(struct net_device *dev)
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 
+ 	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
+-		   jiffies_to_msecs(jiffies - dev->trans_start));
++		   jiffies_to_msecs(jiffies - dev_trans_start(dev)));
+ 	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
+ 		   netif_queue_stopped(dev),
+ 		   priv->tx_head, priv->tx_tail);
+diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
+index a7f16c3..269087c 100644
+--- a/drivers/net/ethernet/intel/e1000e/netdev.c
++++ b/drivers/net/ethernet/intel/e1000e/netdev.c
+@@ -242,7 +242,7 @@ static void e1000e_dump(struct e1000_adapter *adapter)
+ 		dev_info(&adapter->pdev->dev, "Net device Info\n");
+ 		pr_info("Device Name     state            trans_start      last_rx\n");
+ 		pr_info("%-15s %016lX %016lX %016lX\n", netdev->name,
+-			netdev->state, netdev->trans_start, netdev->last_rx);
++			netdev->state, dev_trans_start(netdev), netdev->last_rx);
+ 	}
+ 
+ 	/* Print Registers */
+diff --git a/drivers/net/ethernet/intel/igb/igb_main.c b/drivers/net/ethernet/intel/igb/igb_main.c
+index 8e96c35..7460bdb 100644
+--- a/drivers/net/ethernet/intel/igb/igb_main.c
++++ b/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -383,7 +383,7 @@ static void igb_dump(struct igb_adapter *adapter)
+ 		dev_info(&adapter->pdev->dev, "Net device Info\n");
+ 		pr_info("Device Name     state            trans_start      last_rx\n");
+ 		pr_info("%-15s %016lX %016lX %016lX\n", netdev->name,
+-			netdev->state, netdev->trans_start, netdev->last_rx);
++			netdev->state, dev_trans_start(netdev), netdev->last_rx);
+ 	}
+ 
+ 	/* Print Registers */
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index 0ef4a15..18dcfc5 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -608,7 +608,7 @@ static void ixgbe_dump(struct ixgbe_adapter *adapter)
+ 		pr_info("%-15s %016lX %016lX %016lX\n",
+ 			netdev->name,
+ 			netdev->state,
+-			netdev->trans_start,
++			dev_trans_start(netdev),
+ 			netdev->last_rx);
+ 	}
+ 
+diff --git a/drivers/net/ethernet/microchip/encx24j600.c b/drivers/net/ethernet/microchip/encx24j600.c
+index 7df3183..707283b 100644
+--- a/drivers/net/ethernet/microchip/encx24j600.c
++++ b/drivers/net/ethernet/microchip/encx24j600.c
+@@ -890,7 +890,7 @@ static void encx24j600_tx_timeout(struct net_device *dev)
+ 	struct encx24j600_priv *priv = netdev_priv(dev);
+ 
+ 	netif_err(priv, tx_err, dev, "TX timeout at %ld, latency %ld\n",
+-		  jiffies, jiffies - dev->trans_start);
++		  jiffies, jiffies - dev_trans_start(dev));
+ 
+ 	dev->stats.tx_errors++;
+ 	netif_wake_queue(dev);
+diff --git a/drivers/net/ethernet/qualcomm/qca_spi.c b/drivers/net/ethernet/qualcomm/qca_spi.c
+index 1ef0393..82f3c88 100644
+--- a/drivers/net/ethernet/qualcomm/qca_spi.c
++++ b/drivers/net/ethernet/qualcomm/qca_spi.c
+@@ -734,7 +734,7 @@ qcaspi_netdev_tx_timeout(struct net_device *dev)
+ 	struct qcaspi *qca = netdev_priv(dev);
+ 
+ 	netdev_info(qca->net_dev, "Transmit timeout at %ld, latency %ld\n",
+-		    jiffies, jiffies - dev->trans_start);
++		    jiffies, jiffies - dev_trans_start(dev));
+ 	qca->net_dev->stats.tx_errors++;
+ 	/* Trigger tx queue flush and QCA7000 reset */
+ 	qca->sync = QCASPI_SYNC_UNKNOWN;
+diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
+index bb7e903..7ad3d04 100644
+--- a/drivers/net/fjes/fjes_main.c
++++ b/drivers/net/fjes/fjes_main.c
+@@ -471,7 +471,7 @@ static void fjes_tx_stall_task(struct work_struct *work)
+ 	int i;
+ 
+ 	if (((long)jiffies -
+-		(long)(netdev->trans_start)) > FJES_TX_TX_STALL_TIMEOUT) {
++		dev_trans_start(netdev)) > FJES_TX_TX_STALL_TIMEOUT) {
+ 		netif_wake_queue(netdev);
+ 		return;
+ 	}
+diff --git a/drivers/net/hamradio/mkiss.c b/drivers/net/hamradio/mkiss.c
+index 85828f1..c685937 100644
+--- a/drivers/net/hamradio/mkiss.c
++++ b/drivers/net/hamradio/mkiss.c
+@@ -542,7 +542,7 @@ static netdev_tx_t ax_xmit(struct sk_buff *skb, struct net_device *dev)
+ 		 * May be we must check transmitter timeout here ?
+ 		 *      14 Oct 1994 Dmitry Gorodchanin.
+ 		 */
+-		if (time_before(jiffies, dev->trans_start + 20 * HZ)) {
++		if (time_before(jiffies, dev_trans_start(dev) + 20 * HZ)) {
+ 			/* 20 sec timeout not reached */
+ 			return NETDEV_TX_BUSY;
+ 		}
+diff --git a/drivers/staging/rtl8192e/rtllib_softmac.c b/drivers/staging/rtl8192e/rtllib_softmac.c
+index cfab715..62154e3 100644
+--- a/drivers/staging/rtl8192e/rtllib_softmac.c
++++ b/drivers/staging/rtl8192e/rtllib_softmac.c
+@@ -1991,7 +1991,7 @@ static short rtllib_sta_ps_sleep(struct rtllib_device *ieee, u64 *time)
+ 		return 2;
+ 
+ 	if (!time_after(jiffies,
+-			ieee->dev->trans_start + msecs_to_jiffies(timeout)))
++			dev_trans_start(ieee->dev) + msecs_to_jiffies(timeout)))
+ 		return 0;
+ 	if (!time_after(jiffies,
+ 			ieee->last_rx_ps_time + msecs_to_jiffies(timeout)))
+diff --git a/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c b/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
+index ae1274c..de71450 100644
+--- a/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
++++ b/drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
+@@ -1737,7 +1737,7 @@ static short ieee80211_sta_ps_sleep(struct ieee80211_device *ieee, u32 *time_h,
+ 		return 2;
+ 
+ 	if(!time_after(jiffies,
+-		       ieee->dev->trans_start + msecs_to_jiffies(timeout)))
++		       dev_trans_start(ieee->dev) + msecs_to_jiffies(timeout)))
+ 		return 0;
+ 
+ 	if(!time_after(jiffies,
+-- 
+2.7.3
