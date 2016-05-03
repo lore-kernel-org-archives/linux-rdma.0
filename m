@@ -1,13 +1,13 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 02/11] IB/srp: Fix a comment
-Date: Tue, 3 May 2016 11:26:30 +0200
-Message-ID: <20160503092630.GB19931@lst.de>
-References: <571A936F.7040409@sandisk.com> <571A93CF.9050506@sandisk.com>
+Subject: Re: [PATCH 03/11] IB/srp: Document srp_map_data() return value
+Date: Tue, 3 May 2016 11:27:50 +0200
+Message-ID: <20160503092750.GD19931@lst.de>
+References: <571A936F.7040409@sandisk.com> <571A93E5.7030807@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <571A93CF.9050506-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <571A93E5.7030807-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
