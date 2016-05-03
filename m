@@ -1,1064 +1,496 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 09/11] IB/srpt: convert to the generic RDMA READ/WRITE API
-Date: Tue,  3 May 2016 18:01:11 +0200
-Message-ID: <1462291273-22403-10-git-send-email-hch@lst.de>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 02/11] IB/core: allow passing mapping an offset into the SG in ib_map_mr_sg
+Date: Tue,  3 May 2016 18:01:04 +0200
+Message-ID: <1462291273-22403-3-git-send-email-hch@lst.de>
 References: <1462291273-22403-1-git-send-email-hch@lst.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462291273-22403-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1462291273-22403-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Replace the homegrown RDMA READ/WRITE code in srpt with the generic API.
-The only real twist here is that we need to allocate one Linux scatterlist
-per direct buffer in the SRP command, and chain them before handing them
-off to the target core.
-
-As a side-effect of the conversion the driver will also chain the SEND
-of the SRP response to the RDMA WRITE WRs for a DATA OUT command, and
-properly account for RDMA WRITE WRs instead of just for RDMA READ WRs
-like the driver previously did.
-
-We now allocate half of the SQ size to RDMA READ/WRITE contexts, assuming
-by default one RDMA READ or WRITE operation per command.  If a command
-has multiple operations it will eat into the budget but will still succeed,
-possible after waiting for WQEs to be available.
-
-Also ensure the QPs request the maximum allowed SGEs so that RDMA R/W API
-works correctly.
-
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 729 ++++++++++++----------------------
- drivers/infiniband/ulp/srpt/ib_srpt.h |  31 +-
- 2 files changed, 265 insertions(+), 495 deletions(-)
+ drivers/infiniband/core/verbs.c             | 24 ++++++++++++------------
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |  7 +++----
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  5 ++---
+ drivers/infiniband/hw/cxgb4/mem.c           |  7 +++----
+ drivers/infiniband/hw/mlx4/mlx4_ib.h        |  5 ++---
+ drivers/infiniband/hw/mlx4/mr.c             |  7 +++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h        |  5 ++---
+ drivers/infiniband/hw/mlx5/mr.c             | 21 ++++++++++++---------
+ drivers/infiniband/hw/nes/nes_verbs.c       |  7 +++----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  7 +++----
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h |  5 ++---
+ drivers/infiniband/ulp/iser/iser_memory.c   |  4 ++--
+ drivers/infiniband/ulp/isert/ib_isert.c     |  2 +-
+ drivers/infiniband/ulp/srp/ib_srp.c         |  2 +-
+ include/rdma/ib_verbs.h                     | 23 +++++++++--------------
+ net/rds/ib_frmr.c                           |  2 +-
+ net/sunrpc/xprtrdma/frwr_ops.c              |  2 +-
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c     |  2 +-
+ 18 files changed, 63 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 8b42401..2843f1a 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -765,52 +765,6 @@ static int srpt_post_recv(struct srpt_device *sdev,
- }
- 
- /**
-- * srpt_post_send() - Post an IB send request.
-- *
-- * Returns zero upon success and a non-zero value upon failure.
-- */
--static int srpt_post_send(struct srpt_rdma_ch *ch,
--			  struct srpt_send_ioctx *ioctx, int len)
--{
--	struct ib_sge list;
--	struct ib_send_wr wr, *bad_wr;
--	struct srpt_device *sdev = ch->sport->sdev;
--	int ret;
--
--	atomic_inc(&ch->req_lim);
--
--	ret = -ENOMEM;
--	if (unlikely(atomic_dec_return(&ch->sq_wr_avail) < 0)) {
--		pr_warn("IB send queue full (needed 1)\n");
--		goto out;
--	}
--
--	ib_dma_sync_single_for_device(sdev->device, ioctx->ioctx.dma, len,
--				      DMA_TO_DEVICE);
--
--	list.addr = ioctx->ioctx.dma;
--	list.length = len;
--	list.lkey = sdev->pd->local_dma_lkey;
--
--	ioctx->ioctx.cqe.done = srpt_send_done;
--	wr.next = NULL;
--	wr.wr_cqe = &ioctx->ioctx.cqe;
--	wr.sg_list = &list;
--	wr.num_sge = 1;
--	wr.opcode = IB_WR_SEND;
--	wr.send_flags = IB_SEND_SIGNALED;
--
--	ret = ib_post_send(ch->qp, &wr, &bad_wr);
--
--out:
--	if (ret < 0) {
--		atomic_inc(&ch->sq_wr_avail);
--		atomic_dec(&ch->req_lim);
--	}
--	return ret;
--}
--
--/**
-  * srpt_zerolength_write() - Perform a zero-length RDMA write.
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b65b354..73fa9da 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1597,6 +1597,7 @@ EXPORT_SYMBOL(ib_set_vf_guid);
+  * @mr:            memory region
+  * @sg:            dma mapped scatterlist
+  * @sg_nents:      number of entries in sg
++ * @sg_offset:     offset in bytes into sg
+  * @page_size:     page vector desired page size
   *
-  * A quote from the InfiniBand specification: C9-88: For an HCA responder
-@@ -843,6 +797,110 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
- 	}
- }
- 
-+static int srpt_alloc_rw_ctxs(struct srpt_send_ioctx *ioctx,
-+		struct srp_direct_buf *db, int nbufs, struct scatterlist **sg,
-+		unsigned *sg_cnt)
-+{
-+	enum dma_data_direction dir = target_reverse_dma_direction(&ioctx->cmd);
-+	struct srpt_rdma_ch *ch = ioctx->ch;
-+	struct scatterlist *prev = NULL;
-+	unsigned prev_nents;
-+	int ret, i;
-+
-+	if (nbufs == 1) {
-+		ioctx->rw_ctxs = &ioctx->s_rw_ctx;
-+	} else {
-+		ioctx->rw_ctxs = kmalloc_array(nbufs, sizeof(*ioctx->rw_ctxs),
-+			GFP_KERNEL);
-+		if (!ioctx->rw_ctxs)
-+			return -ENOMEM;
-+	}
-+
-+	for (i = ioctx->n_rw_ctx; i < nbufs; i++, db++) {
-+		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
-+		u64 remote_addr = be64_to_cpu(db->va);
-+		u32 size = be32_to_cpu(db->len);
-+		u32 rkey = be32_to_cpu(db->key);
-+
-+		ret = target_alloc_sgl(&ctx->sg, &ctx->nents, size, false,
-+				i < nbufs - 1);
-+		if (ret)
-+			goto unwind;
-+
-+		ret = rdma_rw_ctx_init(&ctx->rw, ch->qp, ch->sport->port,
-+				ctx->sg, ctx->nents, 0, remote_addr, rkey, dir);
-+		if (ret < 0) {
-+			target_free_sgl(ctx->sg, ctx->nents);
-+			goto unwind;
-+		}
-+
-+		ioctx->n_rdma += ret;
-+		ioctx->n_rw_ctx++;
-+
-+		if (prev) {
-+			sg_unmark_end(&prev[prev_nents - 1]);
-+			sg_chain(prev, prev_nents + 1, ctx->sg);
-+		} else {
-+			*sg = ctx->sg;
-+		}
-+
-+		prev = ctx->sg;
-+		prev_nents = ctx->nents;
-+
-+		*sg_cnt += ctx->nents;
-+	}
-+
-+	return 0;
-+
-+unwind:
-+	while (--i >= 0) {
-+		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
-+
-+		rdma_rw_ctx_destroy(&ctx->rw, ch->qp, ch->sport->port,
-+				ctx->sg, ctx->nents, dir);
-+		target_free_sgl(ctx->sg, ctx->nents);
-+	}
-+	if (ioctx->rw_ctxs != &ioctx->s_rw_ctx)
-+		kfree(ioctx->rw_ctxs);
-+	return ret;
-+}
-+
-+static void srpt_free_rw_ctxs(struct srpt_rdma_ch *ch,
-+				    struct srpt_send_ioctx *ioctx)
-+{
-+	enum dma_data_direction dir = target_reverse_dma_direction(&ioctx->cmd);
-+	int i;
-+
-+	for (i = 0; i < ioctx->n_rw_ctx; i++) {
-+		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
-+
-+		rdma_rw_ctx_destroy(&ctx->rw, ch->qp, ch->sport->port,
-+				ctx->sg, ctx->nents, dir);
-+		target_free_sgl(ctx->sg, ctx->nents);
-+	}
-+
-+	if (ioctx->rw_ctxs != &ioctx->s_rw_ctx)
-+		kfree(ioctx->rw_ctxs);
-+}
-+
-+static inline void *srpt_get_desc_buf(struct srp_cmd *srp_cmd)
-+{
-+	/*
-+	 * The pointer computations below will only be compiled correctly
-+	 * if srp_cmd::add_data is declared as s8*, u8*, s8[] or u8[], so check
-+	 * whether srp_cmd::add_data has been declared as a byte pointer.
-+	 */
-+	BUILD_BUG_ON(!__same_type(srp_cmd->add_data[0], (s8)0) &&
-+		     !__same_type(srp_cmd->add_data[0], (u8)0));
-+
-+	/*
-+	 * According to the SRP spec, the lower two bits of the 'ADDITIONAL
-+	 * CDB LENGTH' field are reserved and the size in bytes of this field
-+	 * is four times the value specified in bits 3..7. Hence the "& ~3".
-+	 */
-+	return srp_cmd->add_data + (srp_cmd->add_cdb_len & ~3);
-+}
-+
- /**
-  * srpt_get_desc_tbl() - Parse the data descriptors of an SRP_CMD request.
-  * @ioctx: Pointer to the I/O context associated with the request.
-@@ -858,94 +916,59 @@ static void srpt_zerolength_write_done(struct ib_cq *cq, struct ib_wc *wc)
-  * -ENOMEM when memory allocation fails and zero upon success.
+  * Constraints:
+@@ -1615,17 +1616,15 @@ EXPORT_SYMBOL(ib_set_vf_guid);
+  * After this completes successfully, the  memory region
+  * is ready for registration.
   */
- static int srpt_get_desc_tbl(struct srpt_send_ioctx *ioctx,
--			     struct srp_cmd *srp_cmd,
--			     enum dma_data_direction *dir, u64 *data_len)
-+		struct srp_cmd *srp_cmd, enum dma_data_direction *dir,
-+		struct scatterlist **sg, unsigned *sg_cnt, u64 *data_len)
+-int ib_map_mr_sg(struct ib_mr *mr,
+-		 struct scatterlist *sg,
+-		 int sg_nents,
+-		 unsigned int page_size)
++int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset, unsigned int page_size)
  {
--	struct srp_indirect_buf *idb;
--	struct srp_direct_buf *db;
--	unsigned add_cdb_offset;
--	int ret;
--
--	/*
--	 * The pointer computations below will only be compiled correctly
--	 * if srp_cmd::add_data is declared as s8*, u8*, s8[] or u8[], so check
--	 * whether srp_cmd::add_data has been declared as a byte pointer.
--	 */
--	BUILD_BUG_ON(!__same_type(srp_cmd->add_data[0], (s8)0)
--		     && !__same_type(srp_cmd->add_data[0], (u8)0));
--
- 	BUG_ON(!dir);
- 	BUG_ON(!data_len);
+ 	if (unlikely(!mr->device->map_mr_sg))
+ 		return -ENOSYS;
  
--	ret = 0;
--	*data_len = 0;
--
- 	/*
- 	 * The lower four bits of the buffer format field contain the DATA-IN
- 	 * buffer descriptor format, and the highest four bits contain the
- 	 * DATA-OUT buffer descriptor format.
- 	 */
--	*dir = DMA_NONE;
- 	if (srp_cmd->buf_fmt & 0xf)
- 		/* DATA-IN: transfer data from target to initiator (read). */
- 		*dir = DMA_FROM_DEVICE;
- 	else if (srp_cmd->buf_fmt >> 4)
- 		/* DATA-OUT: transfer data from initiator to target (write). */
- 		*dir = DMA_TO_DEVICE;
-+	else
-+		*dir = DMA_NONE;
-+
-+	/* initialize data_direction early as srpt_alloc_rw_ctxs needs it */
-+	ioctx->cmd.data_direction = *dir;
+ 	mr->page_size = page_size;
  
--	/*
--	 * According to the SRP spec, the lower two bits of the 'ADDITIONAL
--	 * CDB LENGTH' field are reserved and the size in bytes of this field
--	 * is four times the value specified in bits 3..7. Hence the "& ~3".
--	 */
--	add_cdb_offset = srp_cmd->add_cdb_len & ~3;
- 	if (((srp_cmd->buf_fmt & 0xf) == SRP_DATA_DESC_DIRECT) ||
- 	    ((srp_cmd->buf_fmt >> 4) == SRP_DATA_DESC_DIRECT)) {
--		ioctx->n_rbuf = 1;
--		ioctx->rbufs = &ioctx->single_rbuf;
-+	    	struct srp_direct_buf *db = srpt_get_desc_buf(srp_cmd);
- 
--		db = (struct srp_direct_buf *)(srp_cmd->add_data
--					       + add_cdb_offset);
--		memcpy(ioctx->rbufs, db, sizeof(*db));
- 		*data_len = be32_to_cpu(db->len);
-+		return srpt_alloc_rw_ctxs(ioctx, db, 1, sg, sg_cnt);
- 	} else if (((srp_cmd->buf_fmt & 0xf) == SRP_DATA_DESC_INDIRECT) ||
- 		   ((srp_cmd->buf_fmt >> 4) == SRP_DATA_DESC_INDIRECT)) {
--		idb = (struct srp_indirect_buf *)(srp_cmd->add_data
--						  + add_cdb_offset);
-+		struct srp_indirect_buf *idb = srpt_get_desc_buf(srp_cmd);
-+		int nbufs = be32_to_cpu(idb->table_desc.len) /
-+				sizeof(struct srp_direct_buf);
- 
--		ioctx->n_rbuf = be32_to_cpu(idb->table_desc.len) / sizeof(*db);
--
--		if (ioctx->n_rbuf >
-+		if (nbufs >
- 		    (srp_cmd->data_out_desc_cnt + srp_cmd->data_in_desc_cnt)) {
- 			pr_err("received unsupported SRP_CMD request"
- 			       " type (%u out + %u in != %u / %zu)\n",
- 			       srp_cmd->data_out_desc_cnt,
- 			       srp_cmd->data_in_desc_cnt,
- 			       be32_to_cpu(idb->table_desc.len),
--			       sizeof(*db));
--			ioctx->n_rbuf = 0;
--			ret = -EINVAL;
--			goto out;
--		}
--
--		if (ioctx->n_rbuf == 1)
--			ioctx->rbufs = &ioctx->single_rbuf;
--		else {
--			ioctx->rbufs =
--				kmalloc(ioctx->n_rbuf * sizeof(*db), GFP_ATOMIC);
--			if (!ioctx->rbufs) {
--				ioctx->n_rbuf = 0;
--				ret = -ENOMEM;
--				goto out;
--			}
-+			       sizeof(struct srp_direct_buf));
-+			return -EINVAL;
- 		}
- 
--		db = idb->desc_list;
--		memcpy(ioctx->rbufs, db, ioctx->n_rbuf * sizeof(*db));
- 		*data_len = be32_to_cpu(idb->len);
-+		return srpt_alloc_rw_ctxs(ioctx, idb->desc_list, nbufs,
-+				sg, sg_cnt);
-+	} else {
-+		*data_len = 0;
-+		return 0;
- 	}
--out:
--	return ret;
+-	return mr->device->map_mr_sg(mr, sg, sg_nents);
++	return mr->device->map_mr_sg(mr, sg, sg_nents, sg_offset);
  }
+ EXPORT_SYMBOL(ib_map_mr_sg);
  
- /**
-@@ -1049,217 +1072,6 @@ static int srpt_ch_qp_err(struct srpt_rdma_ch *ch)
- }
- 
- /**
-- * srpt_unmap_sg_to_ib_sge() - Unmap an IB SGE list.
-- */
--static void srpt_unmap_sg_to_ib_sge(struct srpt_rdma_ch *ch,
--				    struct srpt_send_ioctx *ioctx)
--{
--	struct scatterlist *sg;
--	enum dma_data_direction dir;
--
--	BUG_ON(!ch);
--	BUG_ON(!ioctx);
--	BUG_ON(ioctx->n_rdma && !ioctx->rdma_wrs);
--
--	while (ioctx->n_rdma)
--		kfree(ioctx->rdma_wrs[--ioctx->n_rdma].wr.sg_list);
--
--	kfree(ioctx->rdma_wrs);
--	ioctx->rdma_wrs = NULL;
--
--	if (ioctx->mapped_sg_count) {
--		sg = ioctx->sg;
--		WARN_ON(!sg);
--		dir = ioctx->cmd.data_direction;
--		BUG_ON(dir == DMA_NONE);
--		ib_dma_unmap_sg(ch->sport->sdev->device, sg, ioctx->sg_cnt,
--				target_reverse_dma_direction(&ioctx->cmd));
--		ioctx->mapped_sg_count = 0;
--	}
--}
--
--/**
-- * srpt_map_sg_to_ib_sge() - Map an SG list to an IB SGE list.
-- */
--static int srpt_map_sg_to_ib_sge(struct srpt_rdma_ch *ch,
--				 struct srpt_send_ioctx *ioctx)
--{
--	struct ib_device *dev = ch->sport->sdev->device;
--	struct se_cmd *cmd;
--	struct scatterlist *sg, *sg_orig;
--	int sg_cnt;
--	enum dma_data_direction dir;
--	struct ib_rdma_wr *riu;
--	struct srp_direct_buf *db;
--	dma_addr_t dma_addr;
--	struct ib_sge *sge;
--	u64 raddr;
--	u32 rsize;
--	u32 tsize;
--	u32 dma_len;
--	int count, nrdma;
--	int i, j, k;
--
--	BUG_ON(!ch);
--	BUG_ON(!ioctx);
--	cmd = &ioctx->cmd;
--	dir = cmd->data_direction;
--	BUG_ON(dir == DMA_NONE);
--
--	ioctx->sg = sg = sg_orig = cmd->t_data_sg;
--	ioctx->sg_cnt = sg_cnt = cmd->t_data_nents;
--
--	count = ib_dma_map_sg(ch->sport->sdev->device, sg, sg_cnt,
--			      target_reverse_dma_direction(cmd));
--	if (unlikely(!count))
--		return -EAGAIN;
--
--	ioctx->mapped_sg_count = count;
--
--	if (ioctx->rdma_wrs && ioctx->n_rdma_wrs)
--		nrdma = ioctx->n_rdma_wrs;
--	else {
--		nrdma = (count + SRPT_DEF_SG_PER_WQE - 1) / SRPT_DEF_SG_PER_WQE
--			+ ioctx->n_rbuf;
--
--		ioctx->rdma_wrs = kcalloc(nrdma, sizeof(*ioctx->rdma_wrs),
--				GFP_KERNEL);
--		if (!ioctx->rdma_wrs)
--			goto free_mem;
--
--		ioctx->n_rdma_wrs = nrdma;
--	}
--
--	db = ioctx->rbufs;
--	tsize = cmd->data_length;
--	dma_len = ib_sg_dma_len(dev, &sg[0]);
--	riu = ioctx->rdma_wrs;
--
--	/*
--	 * For each remote desc - calculate the #ib_sge.
--	 * If #ib_sge < SRPT_DEF_SG_PER_WQE per rdma operation then
--	 *      each remote desc rdma_iu is required a rdma wr;
--	 * else
--	 *      we need to allocate extra rdma_iu to carry extra #ib_sge in
--	 *      another rdma wr
--	 */
--	for (i = 0, j = 0;
--	     j < count && i < ioctx->n_rbuf && tsize > 0; ++i, ++riu, ++db) {
--		rsize = be32_to_cpu(db->len);
--		raddr = be64_to_cpu(db->va);
--		riu->remote_addr = raddr;
--		riu->rkey = be32_to_cpu(db->key);
--		riu->wr.num_sge = 0;
--
--		/* calculate how many sge required for this remote_buf */
--		while (rsize > 0 && tsize > 0) {
--
--			if (rsize >= dma_len) {
--				tsize -= dma_len;
--				rsize -= dma_len;
--				raddr += dma_len;
--
--				if (tsize > 0) {
--					++j;
--					if (j < count) {
--						sg = sg_next(sg);
--						dma_len = ib_sg_dma_len(
--								dev, sg);
--					}
--				}
--			} else {
--				tsize -= rsize;
--				dma_len -= rsize;
--				rsize = 0;
--			}
--
--			++riu->wr.num_sge;
--
--			if (rsize > 0 &&
--			    riu->wr.num_sge == SRPT_DEF_SG_PER_WQE) {
--				++ioctx->n_rdma;
--				riu->wr.sg_list = kmalloc_array(riu->wr.num_sge,
--						sizeof(*riu->wr.sg_list),
--						GFP_KERNEL);
--				if (!riu->wr.sg_list)
--					goto free_mem;
--
--				++riu;
--				riu->wr.num_sge = 0;
--				riu->remote_addr = raddr;
--				riu->rkey = be32_to_cpu(db->key);
--			}
--		}
--
--		++ioctx->n_rdma;
--		riu->wr.sg_list = kmalloc_array(riu->wr.num_sge,
--					sizeof(*riu->wr.sg_list),
--					GFP_KERNEL);
--		if (!riu->wr.sg_list)
--			goto free_mem;
--	}
--
--	db = ioctx->rbufs;
--	tsize = cmd->data_length;
--	riu = ioctx->rdma_wrs;
--	sg = sg_orig;
--	dma_len = ib_sg_dma_len(dev, &sg[0]);
--	dma_addr = ib_sg_dma_address(dev, &sg[0]);
--
--	/* this second loop is really mapped sg_addres to rdma_iu->ib_sge */
--	for (i = 0, j = 0;
--	     j < count && i < ioctx->n_rbuf && tsize > 0; ++i, ++riu, ++db) {
--		rsize = be32_to_cpu(db->len);
--		sge = riu->wr.sg_list;
--		k = 0;
--
--		while (rsize > 0 && tsize > 0) {
--			sge->addr = dma_addr;
--			sge->lkey = ch->sport->sdev->pd->local_dma_lkey;
--
--			if (rsize >= dma_len) {
--				sge->length =
--					(tsize < dma_len) ? tsize : dma_len;
--				tsize -= dma_len;
--				rsize -= dma_len;
--
--				if (tsize > 0) {
--					++j;
--					if (j < count) {
--						sg = sg_next(sg);
--						dma_len = ib_sg_dma_len(
--								dev, sg);
--						dma_addr = ib_sg_dma_address(
--								dev, sg);
--					}
--				}
--			} else {
--				sge->length = (tsize < rsize) ? tsize : rsize;
--				tsize -= rsize;
--				dma_len -= rsize;
--				dma_addr += rsize;
--				rsize = 0;
--			}
--
--			++k;
--			if (k == riu->wr.num_sge && rsize > 0 && tsize > 0) {
--				++riu;
--				sge = riu->wr.sg_list;
--				k = 0;
--			} else if (rsize > 0 && tsize > 0)
--				++sge;
--		}
--	}
--
--	return 0;
--
--free_mem:
--	srpt_unmap_sg_to_ib_sge(ch, ioctx);
--
--	return -ENOMEM;
--}
--
--/**
-  * srpt_get_send_ioctx() - Obtain an I/O context for sending to the initiator.
+@@ -1635,6 +1634,7 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+  * @mr:            memory region
+  * @sgl:           dma mapped scatterlist
+  * @sg_nents:      number of entries in sg
++ * @sg_offset:     offset in bytes into sg
+  * @set_page:      driver page assignment function pointer
+  *
+  * Core service helper for drivers to convert the largest
+@@ -1645,10 +1645,8 @@ EXPORT_SYMBOL(ib_map_mr_sg);
+  * Returns the number of sg elements that were assigned to
+  * a page vector.
   */
- static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
-@@ -1284,12 +1096,8 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- 	BUG_ON(ioctx->ch != ch);
- 	spin_lock_init(&ioctx->spinlock);
- 	ioctx->state = SRPT_STATE_NEW;
--	ioctx->n_rbuf = 0;
--	ioctx->rbufs = NULL;
- 	ioctx->n_rdma = 0;
--	ioctx->n_rdma_wrs = 0;
--	ioctx->rdma_wrs = NULL;
--	ioctx->mapped_sg_count = 0;
-+	ioctx->n_rw_ctx = 0;
- 	init_completion(&ioctx->tx_done);
- 	ioctx->queue_status_only = false;
- 	/*
-@@ -1359,7 +1167,6 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 		 * SRP_RSP sending failed or the SRP_RSP send completion has
- 		 * not been received in time.
- 		 */
--		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
- 		transport_generic_free_cmd(&ioctx->cmd, 0);
- 		break;
- 	case SRPT_STATE_MGMT_RSP_SENT:
-@@ -1387,6 +1194,7 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
+-int ib_sg_to_pages(struct ib_mr *mr,
+-		   struct scatterlist *sgl,
+-		   int sg_nents,
+-		   int (*set_page)(struct ib_mr *, u64))
++int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
++		unsigned int sg_offset, int (*set_page)(struct ib_mr *, u64))
+ {
+ 	struct scatterlist *sg;
+ 	u64 last_end_dma_addr = 0;
+@@ -1656,12 +1654,12 @@ int ib_sg_to_pages(struct ib_mr *mr,
+ 	u64 page_mask = ~((u64)mr->page_size - 1);
+ 	int i, ret;
  
- 	WARN_ON(ioctx->n_rdma <= 0);
- 	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
-+	ioctx->n_rdma = 0;
+-	mr->iova = sg_dma_address(&sgl[0]);
++	mr->iova = sg_dma_address(&sgl[0]) + sg_offset;
+ 	mr->length = 0;
  
- 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
- 		pr_info("RDMA_READ for ioctx 0x%p failed with status %d\n",
-@@ -1403,23 +1211,6 @@ static void srpt_rdma_read_done(struct ib_cq *cq, struct ib_wc *wc)
- 		       __LINE__, srpt_get_cmd_state(ioctx));
+ 	for_each_sg(sgl, sg, sg_nents, i) {
+-		u64 dma_addr = sg_dma_address(sg);
+-		unsigned int dma_len = sg_dma_len(sg);
++		u64 dma_addr = sg_dma_address(sg) + sg_offset;
++		unsigned int dma_len = sg_dma_len(sg) - sg_offset;
+ 		u64 end_dma_addr = dma_addr + dma_len;
+ 		u64 page_addr = dma_addr & page_mask;
+ 
+@@ -1694,6 +1692,8 @@ next_page:
+ 		mr->length += dma_len;
+ 		last_end_dma_addr = end_dma_addr;
+ 		last_page_off = end_dma_addr & ~page_mask;
++
++		sg_offset = 0;
+ 	}
+ 
+ 	return i;
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index 3234a8b..608aa0c 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -783,15 +783,14 @@ static int iwch_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
  }
  
--static void srpt_rdma_write_done(struct ib_cq *cq, struct ib_wc *wc)
--{
--	struct srpt_send_ioctx *ioctx =
--		container_of(wc->wr_cqe, struct srpt_send_ioctx, rdma_cqe);
--
--	if (unlikely(wc->status != IB_WC_SUCCESS)) {
--		/*
--		 * Note: if an RDMA write error completion is received that
--		 * means that a SEND also has been posted. Defer further
--		 * processing of the associated command until the send error
--		 * completion has been received.
--		 */
--		pr_info("RDMA_WRITE for ioctx 0x%p failed with status %d\n",
--			ioctx, wc->status);
--	}
--}
--
- /**
-  * srpt_build_cmd_rsp() - Build an SRP_RSP response.
-  * @ch: RDMA channel through which the request has been received.
-@@ -1537,6 +1328,8 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
+-static int iwch_map_mr_sg(struct ib_mr *ibmr,
+-			  struct scatterlist *sg,
+-			  int sg_nents)
++static int iwch_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
++		int sg_nents, unsigned sg_offset)
  {
- 	struct se_cmd *cmd;
- 	struct srp_cmd *srp_cmd;
-+	struct scatterlist *sg = NULL;
-+	unsigned sg_cnt = 0;
- 	u64 data_len;
- 	enum dma_data_direction dir;
+ 	struct iwch_mr *mhp = to_iwch_mr(ibmr);
+ 
+ 	mhp->npages = 0;
+ 
+-	return ib_sg_to_pages(ibmr, sg, sg_nents, iwch_set_page);
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, iwch_set_page);
+ }
+ 
+ static int iwch_destroy_qp(struct ib_qp *ib_qp)
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index df43f87..067cb3f 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -917,9 +917,8 @@ void c4iw_qp_rem_ref(struct ib_qp *qp);
+ struct ib_mr *c4iw_alloc_mr(struct ib_pd *pd,
+ 			    enum ib_mr_type mr_type,
+ 			    u32 max_num_sg);
+-int c4iw_map_mr_sg(struct ib_mr *ibmr,
+-		   struct scatterlist *sg,
+-		   int sg_nents);
++int c4iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset);
+ int c4iw_dealloc_mw(struct ib_mw *mw);
+ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ 			    struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 008be07..38afb3d 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -690,15 +690,14 @@ static int c4iw_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
+ }
+ 
+-int c4iw_map_mr_sg(struct ib_mr *ibmr,
+-		   struct scatterlist *sg,
+-		   int sg_nents)
++int c4iw_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset)
+ {
+ 	struct c4iw_mr *mhp = to_c4iw_mr(ibmr);
+ 
+ 	mhp->mpl_len = 0;
+ 
+-	return ib_sg_to_pages(ibmr, sg, sg_nents, c4iw_set_page);
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, c4iw_set_page);
+ }
+ 
+ int c4iw_dereg_mr(struct ib_mr *ib_mr)
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 1eca01c..ba32817 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -717,9 +717,8 @@ int mlx4_ib_dealloc_mw(struct ib_mw *mw);
+ struct ib_mr *mlx4_ib_alloc_mr(struct ib_pd *pd,
+ 			       enum ib_mr_type mr_type,
+ 			       u32 max_num_sg);
+-int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
+-		      struct scatterlist *sg,
+-		      int sg_nents);
++int mlx4_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset);
+ int mlx4_ib_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
+ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata);
+ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index ce0b5aa..b04f623 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -528,9 +528,8 @@ static int mlx4_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
+ }
+ 
+-int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
+-		      struct scatterlist *sg,
+-		      int sg_nents)
++int mlx4_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset)
+ {
+ 	struct mlx4_ib_mr *mr = to_mmr(ibmr);
  	int rc;
-@@ -1563,16 +1356,21 @@ static void srpt_handle_cmd(struct srpt_rdma_ch *ch,
- 		break;
- 	}
+@@ -541,7 +540,7 @@ int mlx4_ib_map_mr_sg(struct ib_mr *ibmr,
+ 				   sizeof(u64) * mr->max_pages,
+ 				   DMA_TO_DEVICE);
  
--	if (srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &data_len)) {
--		pr_err("0x%llx: parsing SRP descriptor table failed.\n",
--		       srp_cmd->tag);
-+	rc = srpt_get_desc_tbl(send_ioctx, srp_cmd, &dir, &sg, &sg_cnt,
-+			&data_len);
-+	if (rc) {
-+		if (rc != -EAGAIN) {
-+			pr_err("0x%llx: parsing SRP descriptor table failed.\n",
-+			       srp_cmd->tag);
-+		}
- 		goto release_ioctx;
- 	}
+-	rc = ib_sg_to_pages(ibmr, sg, sg_nents, mlx4_set_page);
++	rc = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mlx4_set_page);
  
--	rc = target_submit_cmd(cmd, ch->sess, srp_cmd->cdb,
-+	rc = target_submit_cmd_map_sgls(cmd, ch->sess, srp_cmd->cdb,
- 			       &send_ioctx->sense_data[0],
- 			       scsilun_to_int(&srp_cmd->lun), data_len,
--			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF);
-+			       TCM_SIMPLE_TAG, dir, TARGET_SCF_ACK_KREF,
-+			       sg, sg_cnt, NULL, 0, NULL, 0);
- 	if (rc != 0) {
- 		pr_debug("target_submit_cmd() returned %d for tag %#llx\n", rc,
- 			 srp_cmd->tag);
-@@ -1664,23 +1462,21 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
- 				   recv_ioctx->ioctx.dma, srp_max_req_size,
- 				   DMA_FROM_DEVICE);
- 
--	if (unlikely(ch->state == CH_CONNECTING)) {
--		list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
--		goto out;
--	}
-+	if (unlikely(ch->state == CH_CONNECTING))
-+		goto out_wait;
- 
- 	if (unlikely(ch->state != CH_LIVE))
--		goto out;
-+		return;
- 
- 	srp_cmd = recv_ioctx->ioctx.buf;
- 	if (srp_cmd->opcode == SRP_CMD || srp_cmd->opcode == SRP_TSK_MGMT) {
--		if (!send_ioctx)
-+		if (!send_ioctx) {
-+			if (!list_empty(&ch->cmd_wait_list))
-+				goto out_wait;
- 			send_ioctx = srpt_get_send_ioctx(ch);
--		if (unlikely(!send_ioctx)) {
--			list_add_tail(&recv_ioctx->wait_list,
--				      &ch->cmd_wait_list);
--			goto out;
- 		}
-+		if (unlikely(!send_ioctx))
-+			goto out_wait;
- 	}
- 
- 	switch (srp_cmd->opcode) {
-@@ -1709,8 +1505,10 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
- 	}
- 
- 	srpt_post_recv(ch->sport->sdev, recv_ioctx);
--out:
- 	return;
-+
-+out_wait:
-+	list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
- }
- 
- static void srpt_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-@@ -1779,14 +1577,13 @@ static void srpt_send_done(struct ib_cq *cq, struct ib_wc *wc)
- 	WARN_ON(state != SRPT_STATE_CMD_RSP_SENT &&
- 		state != SRPT_STATE_MGMT_RSP_SENT);
- 
--	atomic_inc(&ch->sq_wr_avail);
-+	atomic_add(1 + ioctx->n_rdma, &ch->sq_wr_avail);
- 
- 	if (wc->status != IB_WC_SUCCESS)
- 		pr_info("sending response for ioctx 0x%p failed"
- 			" with status %d\n", ioctx, wc->status);
- 
- 	if (state != SRPT_STATE_DONE) {
--		srpt_unmap_sg_to_ib_sge(ch, ioctx);
- 		transport_generic_free_cmd(&ioctx->cmd, 0);
- 	} else {
- 		pr_err("IB completion has been received too late for"
-@@ -1832,8 +1629,18 @@ retry:
- 	qp_init->srq = sdev->srq;
- 	qp_init->sq_sig_type = IB_SIGNAL_REQ_WR;
- 	qp_init->qp_type = IB_QPT_RC;
--	qp_init->cap.max_send_wr = srp_sq_size;
--	qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
-+	/*
-+	 * We divide up our send queue size into half SEND WRs to send the
-+	 * completions, and half R/W contexts to actually do the RDMA
-+	 * READ/WRITE transfers.  Note that we need to allocate CQ slots for
-+	 * both both, as RDMA contexts will also post completions for the
-+	 * RDMA READ case.
-+	 */
-+	qp_init->cap.max_send_wr = srp_sq_size / 2;
-+	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
-+	qp_init->cap.max_send_sge = max(sdev->device->attrs.max_sge_rd,
-+					sdev->device->attrs.max_sge);
-+	qp_init->port_num = ch->sport->port;
- 
- 	ch->qp = ib_create_qp(sdev->pd, qp_init);
- 	if (IS_ERR(ch->qp)) {
-@@ -2386,95 +2193,6 @@ static int srpt_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 	return ret;
- }
- 
--/**
-- * srpt_perform_rdmas() - Perform IB RDMA.
-- *
-- * Returns zero upon success or a negative number upon failure.
-- */
--static int srpt_perform_rdmas(struct srpt_rdma_ch *ch,
--			      struct srpt_send_ioctx *ioctx)
--{
--	struct ib_send_wr *bad_wr;
--	int sq_wr_avail, ret, i;
--	enum dma_data_direction dir;
--	const int n_rdma = ioctx->n_rdma;
--
--	dir = ioctx->cmd.data_direction;
--	if (dir == DMA_TO_DEVICE) {
--		/* write */
--		ret = -ENOMEM;
--		sq_wr_avail = atomic_sub_return(n_rdma, &ch->sq_wr_avail);
--		if (sq_wr_avail < 0) {
--			pr_warn("IB send queue full (needed %d)\n",
--				n_rdma);
--			goto out;
--		}
--	}
--
--	for (i = 0; i < n_rdma; i++) {
--		struct ib_send_wr *wr = &ioctx->rdma_wrs[i].wr;
--
--		wr->opcode = (dir == DMA_FROM_DEVICE) ?
--				IB_WR_RDMA_WRITE : IB_WR_RDMA_READ;
--
--		if (i == n_rdma - 1) {
--			/* only get completion event for the last rdma read */
--			if (dir == DMA_TO_DEVICE) {
--				wr->send_flags = IB_SEND_SIGNALED;
--				ioctx->rdma_cqe.done = srpt_rdma_read_done;
--			} else {
--				ioctx->rdma_cqe.done = srpt_rdma_write_done;
--			}
--			wr->wr_cqe = &ioctx->rdma_cqe;
--			wr->next = NULL;
--		} else {
--			wr->wr_cqe = NULL;
--			wr->next = &ioctx->rdma_wrs[i + 1].wr;
--		}
--	}
--
--	ret = ib_post_send(ch->qp, &ioctx->rdma_wrs->wr, &bad_wr);
--	if (ret)
--		pr_err("%s[%d]: ib_post_send() returned %d for %d/%d\n",
--				 __func__, __LINE__, ret, i, n_rdma);
--out:
--	if (unlikely(dir == DMA_TO_DEVICE && ret < 0))
--		atomic_add(n_rdma, &ch->sq_wr_avail);
--	return ret;
--}
--
--/**
-- * srpt_xfer_data() - Start data transfer from initiator to target.
-- */
--static int srpt_xfer_data(struct srpt_rdma_ch *ch,
--			  struct srpt_send_ioctx *ioctx)
--{
--	int ret;
--
--	ret = srpt_map_sg_to_ib_sge(ch, ioctx);
--	if (ret) {
--		pr_err("%s[%d] ret=%d\n", __func__, __LINE__, ret);
--		goto out;
--	}
--
--	ret = srpt_perform_rdmas(ch, ioctx);
--	if (ret) {
--		if (ret == -EAGAIN || ret == -ENOMEM)
--			pr_info("%s[%d] queue full -- ret=%d\n",
--				__func__, __LINE__, ret);
--		else
--			pr_err("%s[%d] fatal error -- ret=%d\n",
--			       __func__, __LINE__, ret);
--		goto out_unmap;
--	}
--
--out:
--	return ret;
--out_unmap:
--	srpt_unmap_sg_to_ib_sge(ch, ioctx);
--	goto out;
--}
--
- static int srpt_write_pending_status(struct se_cmd *se_cmd)
+ 	ib_dma_sync_single_for_device(ibmr->device, mr->page_map,
+ 				      sizeof(u64) * mr->max_pages,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b46c255..8c835b2 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -712,9 +712,8 @@ int mlx5_ib_dereg_mr(struct ib_mr *ibmr);
+ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
+ 			       enum ib_mr_type mr_type,
+ 			       u32 max_num_sg);
+-int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
+-		      struct scatterlist *sg,
+-		      int sg_nents);
++int mlx5_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset);
+ int mlx5_ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 			const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+ 			const struct ib_mad_hdr *in, size_t in_mad_size,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 4d5bff1..b678eac 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1751,24 +1751,27 @@ done:
+ static int
+ mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
+ 		   struct scatterlist *sgl,
+-		   unsigned short sg_nents)
++		   unsigned short sg_nents,
++		   unsigned int sg_offset)
  {
- 	struct srpt_send_ioctx *ioctx;
-@@ -2491,11 +2209,42 @@ static int srpt_write_pending(struct se_cmd *se_cmd)
- 	struct srpt_send_ioctx *ioctx =
- 		container_of(se_cmd, struct srpt_send_ioctx, cmd);
- 	struct srpt_rdma_ch *ch = ioctx->ch;
-+	struct ib_send_wr *first_wr = NULL, *bad_wr;
-+	struct ib_cqe *cqe = &ioctx->rdma_cqe;
- 	enum srpt_command_state new_state;
-+	int ret, i;
+ 	struct scatterlist *sg = sgl;
+ 	struct mlx5_klm *klms = mr->descs;
+ 	u32 lkey = mr->ibmr.pd->local_dma_lkey;
+ 	int i;
  
- 	new_state = srpt_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA);
- 	WARN_ON(new_state == SRPT_STATE_DONE);
--	return srpt_xfer_data(ch, ioctx);
+-	mr->ibmr.iova = sg_dma_address(sg);
++	mr->ibmr.iova = sg_dma_address(sg) + sg_offset;
+ 	mr->ibmr.length = 0;
+ 	mr->ndescs = sg_nents;
+ 
+ 	for_each_sg(sgl, sg, sg_nents, i) {
+ 		if (unlikely(i > mr->max_descs))
+ 			break;
+-		klms[i].va = cpu_to_be64(sg_dma_address(sg));
+-		klms[i].bcount = cpu_to_be32(sg_dma_len(sg));
++		klms[i].va = cpu_to_be64(sg_dma_address(sg) + sg_offset);
++		klms[i].bcount = cpu_to_be32(sg_dma_len(sg) - sg_offset);
+ 		klms[i].key = cpu_to_be32(lkey);
+ 		mr->ibmr.length += sg_dma_len(sg);
 +
-+	if (atomic_sub_return(ioctx->n_rdma, &ch->sq_wr_avail) < 0) {
-+		pr_warn("%s: IB send queue full (needed %d)\n",
-+				__func__, ioctx->n_rdma);
-+		ret = -ENOMEM;
-+		goto out_undo;
-+	}
-+
-+	cqe->done = srpt_rdma_read_done;
-+	for (i = ioctx->n_rw_ctx - 1; i >= 0; i--) {
-+		struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
-+
-+		first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp, ch->sport->port,
-+				cqe, first_wr);
-+		cqe = NULL;
-+	}
-+	
-+	ret = ib_post_send(ch->qp, first_wr, &bad_wr);
-+	if (ret) {
-+		pr_err("%s: ib_post_send() returned %d for %d (avail: %d)\n",
-+			 __func__, ret, ioctx->n_rdma,
-+			 atomic_read(&ch->sq_wr_avail));
-+		goto out_undo;
-+	}
-+
-+	return 0;
-+out_undo:
-+	atomic_add(ioctx->n_rdma, &ch->sq_wr_avail);
-+	return ret;
++		sg_offset = 0;
+ 	}
+ 
+ 	return i;
+@@ -1788,9 +1791,8 @@ static int mlx5_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
  }
  
- static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
-@@ -2517,17 +2266,17 @@ static u8 tcm_to_srp_tsk_mgmt_status(const int tcm_mgmt_status)
-  */
- static void srpt_queue_response(struct se_cmd *cmd)
+-int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
+-		      struct scatterlist *sg,
+-		      int sg_nents)
++int mlx5_ib_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset)
  {
--	struct srpt_rdma_ch *ch;
--	struct srpt_send_ioctx *ioctx;
-+	struct srpt_send_ioctx *ioctx =
-+		container_of(cmd, struct srpt_send_ioctx, cmd);
-+	struct srpt_rdma_ch *ch = ioctx->ch;
-+	struct srpt_device *sdev = ch->sport->sdev;
-+	struct ib_send_wr send_wr, *first_wr = NULL, *bad_wr;
-+	struct ib_sge sge;
- 	enum srpt_command_state state;
- 	unsigned long flags;
--	int ret;
--	enum dma_data_direction dir;
--	int resp_len;
-+	int resp_len, ret, i;
- 	u8 srp_tm_status;
+ 	struct mlx5_ib_mr *mr = to_mmr(ibmr);
+ 	int n;
+@@ -1802,9 +1804,10 @@ int mlx5_ib_map_mr_sg(struct ib_mr *ibmr,
+ 				   DMA_TO_DEVICE);
  
--	ioctx = container_of(cmd, struct srpt_send_ioctx, cmd);
--	ch = ioctx->ch;
- 	BUG_ON(!ch);
+ 	if (mr->access_mode == MLX5_ACCESS_MODE_KLM)
+-		n = mlx5_ib_sg_to_klms(mr, sg, sg_nents);
++		n = mlx5_ib_sg_to_klms(mr, sg, sg_nents, sg_offset);
+ 	else
+-		n = ib_sg_to_pages(ibmr, sg, sg_nents, mlx5_set_page);
++		n = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset,
++				mlx5_set_page);
  
- 	spin_lock_irqsave(&ioctx->spinlock, flags);
-@@ -2554,17 +2303,19 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 		return;
- 	}
- 
--	dir = ioctx->cmd.data_direction;
--
- 	/* For read commands, transfer the data to the initiator. */
--	if (dir == DMA_FROM_DEVICE && ioctx->cmd.data_length &&
-+	if (ioctx->cmd.data_direction == DMA_FROM_DEVICE &&
-+	    ioctx->cmd.data_length &&
- 	    !ioctx->queue_status_only) {
--		ret = srpt_xfer_data(ch, ioctx);
--		if (ret) {
--			pr_err("xfer_data failed for tag %llu\n",
--			       ioctx->cmd.tag);
--			return;
-+		for (i = ioctx->n_rw_ctx - 1; i >= 0; i--) {
-+			struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
-+
-+			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
-+					ch->sport->port, NULL,
-+					first_wr ? first_wr : &send_wr);
- 		}
-+	} else {
-+		first_wr = &send_wr;
- 	}
- 
- 	if (state != SRPT_STATE_MGMT)
-@@ -2576,14 +2327,46 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 		resp_len = srpt_build_tskmgmt_rsp(ch, ioctx, srp_tm_status,
- 						 ioctx->cmd.tag);
- 	}
--	ret = srpt_post_send(ch, ioctx, resp_len);
--	if (ret) {
--		pr_err("sending cmd response failed for tag %llu\n",
--		       ioctx->cmd.tag);
--		srpt_unmap_sg_to_ib_sge(ch, ioctx);
--		srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
--		target_put_sess_cmd(&ioctx->cmd);
-+
-+	atomic_inc(&ch->req_lim);
-+
-+	if (unlikely(atomic_sub_return(1 + ioctx->n_rdma,
-+			&ch->sq_wr_avail) < 0)) {
-+		pr_warn("%s: IB send queue full (needed %d)\n",
-+				__func__, ioctx->n_rdma);
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	ib_dma_sync_single_for_device(sdev->device, ioctx->ioctx.dma, resp_len,
-+				      DMA_TO_DEVICE);
-+
-+	sge.addr = ioctx->ioctx.dma;
-+	sge.length = resp_len;
-+	sge.lkey = sdev->pd->local_dma_lkey;
-+
-+	ioctx->ioctx.cqe.done = srpt_send_done;
-+	send_wr.next = NULL;
-+	send_wr.wr_cqe = &ioctx->ioctx.cqe;
-+	send_wr.sg_list = &sge;
-+	send_wr.num_sge = 1;
-+	send_wr.opcode = IB_WR_SEND;
-+	send_wr.send_flags = IB_SEND_SIGNALED;
-+
-+	ret = ib_post_send(ch->qp, first_wr, &bad_wr);
-+	if (ret < 0) {
-+		pr_err("%s: sending cmd response failed for tag %llu (%d)\n",
-+			__func__, ioctx->cmd.tag, ret);
-+		goto out;
- 	}
-+
-+	return;
-+
-+out:
-+	atomic_add(1 + ioctx->n_rdma, &ch->sq_wr_avail);
-+	atomic_dec(&ch->req_lim);
-+	srpt_set_cmd_state(ioctx, SRPT_STATE_DONE);
-+	target_put_sess_cmd(&ioctx->cmd);
+ 	ib_dma_sync_single_for_device(ibmr->device, mr->desc_map,
+ 				      mr->desc_size * mr->max_descs,
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index fba69a3..698aab6 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -402,15 +402,14 @@ static int nes_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
  }
  
- static int srpt_queue_data_in(struct se_cmd *cmd)
-@@ -2599,10 +2382,6 @@ static void srpt_queue_tm_rsp(struct se_cmd *cmd)
- 
- static void srpt_aborted_task(struct se_cmd *cmd)
+-static int nes_map_mr_sg(struct ib_mr *ibmr,
+-			 struct scatterlist *sg,
+-			 int sg_nents)
++static int nes_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
++		int sg_nents, unsigned int sg_offset)
  {
--	struct srpt_send_ioctx *ioctx = container_of(cmd,
--				struct srpt_send_ioctx, cmd);
--
--	srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
+ 	struct nes_mr *nesmr = to_nesmr(ibmr);
+ 
+ 	nesmr->npages = 0;
+ 
+-	return ib_sg_to_pages(ibmr, sg, sg_nents, nes_set_page);
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, nes_set_page);
  }
- 
- static int srpt_queue_status(struct se_cmd *cmd)
-@@ -2903,12 +2682,10 @@ static void srpt_release_cmd(struct se_cmd *se_cmd)
- 	unsigned long flags;
- 
- 	WARN_ON(ioctx->state != SRPT_STATE_DONE);
--	WARN_ON(ioctx->mapped_sg_count != 0);
- 
--	if (ioctx->n_rbuf > 1) {
--		kfree(ioctx->rbufs);
--		ioctx->rbufs = NULL;
--		ioctx->n_rbuf = 0;
-+	if (ioctx->n_rw_ctx) {
-+		srpt_free_rw_ctxs(ch, ioctx);
-+		ioctx->n_rw_ctx = 0;
- 	}
- 
- 	spin_lock_irqsave(&ch->spinlock, flags);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index af9b8b5..fee6bfd 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -42,6 +42,7 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_sa.h>
- #include <rdma/ib_cm.h>
-+#include <rdma/rw.h>
- 
- #include <scsi/srp.h>
- 
-@@ -105,7 +106,6 @@ enum {
- 	SRP_LOGIN_RSP_MULTICHAN_MAINTAINED = 0x2,
- 
- 	SRPT_DEF_SG_TABLESIZE = 128,
--	SRPT_DEF_SG_PER_WQE = 16,
- 
- 	MIN_SRPT_SQ_SIZE = 16,
- 	DEF_SRPT_SQ_SIZE = 4096,
-@@ -174,21 +174,17 @@ struct srpt_recv_ioctx {
- 	struct srpt_ioctx	ioctx;
- 	struct list_head	wait_list;
- };
-+	
-+struct srpt_rw_ctx {
-+	struct rdma_rw_ctx	rw;
-+	struct scatterlist	*sg;
-+	unsigned int		nents;
-+};
  
  /**
-  * struct srpt_send_ioctx - SRPT send I/O context.
-  * @ioctx:       See above.
-  * @ch:          Channel pointer.
-- * @free_list:   Node in srpt_rdma_ch.free_list.
-- * @n_rbuf:      Number of data buffers in the received SRP command.
-- * @rbufs:       Pointer to SRP data buffer array.
-- * @single_rbuf: SRP data buffer if the command has only a single buffer.
-- * @sg:          Pointer to sg-list associated with this I/O context.
-- * @sg_cnt:      SG-list size.
-- * @mapped_sg_count: ib_dma_map_sg() return value.
-- * @n_rdma_wrs:  Number of elements in the rdma_wrs array.
-- * @rdma_wrs:    Array with information about the RDMA mapping.
-- * @tag:         Tag of the received SRP information unit.
-  * @spinlock:    Protects 'state'.
-  * @state:       I/O context state.
-  * @cmd:         Target core command data structure.
-@@ -197,21 +193,18 @@ struct srpt_recv_ioctx {
- struct srpt_send_ioctx {
- 	struct srpt_ioctx	ioctx;
- 	struct srpt_rdma_ch	*ch;
--	struct ib_rdma_wr	*rdma_wrs;
-+
-+	struct srpt_rw_ctx	s_rw_ctx;
-+	struct srpt_rw_ctx	*rw_ctxs;
-+
- 	struct ib_cqe		rdma_cqe;
--	struct srp_direct_buf	*rbufs;
--	struct srp_direct_buf	single_rbuf;
--	struct scatterlist	*sg;
- 	struct list_head	free_list;
- 	spinlock_t		spinlock;
- 	enum srpt_command_state	state;
- 	struct se_cmd		cmd;
- 	struct completion	tx_done;
--	int			sg_cnt;
--	int			mapped_sg_count;
--	u16			n_rdma_wrs;
- 	u8			n_rdma;
--	u8			n_rbuf;
-+	u8			n_rw_ctx;
- 	bool			queue_status_only;
- 	u8			sense_data[TRANSPORT_SENSE_BUFFER];
- };
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index a8496a1..9ddd550 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -3081,13 +3081,12 @@ static int ocrdma_set_page(struct ib_mr *ibmr, u64 addr)
+ 	return 0;
+ }
+ 
+-int ocrdma_map_mr_sg(struct ib_mr *ibmr,
+-		     struct scatterlist *sg,
+-		     int sg_nents)
++int ocrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset)
+ {
+ 	struct ocrdma_mr *mr = get_ocrdma_mr(ibmr);
+ 
+ 	mr->npages = 0;
+ 
+-	return ib_sg_to_pages(ibmr, sg, sg_nents, ocrdma_set_page);
++	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, ocrdma_set_page);
+ }
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index 8b517fd..b290e5d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -122,8 +122,7 @@ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *, u64 start, u64 length,
+ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *pd,
+ 			      enum ib_mr_type mr_type,
+ 			      u32 max_num_sg);
+-int ocrdma_map_mr_sg(struct ib_mr *ibmr,
+-		     struct scatterlist *sg,
+-		     int sg_nents);
++int ocrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		unsigned sg_offset);
+ 
+ #endif				/* __OCRDMA_VERBS_H__ */
+diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
+index 9a391cc..44cc85f 100644
+--- a/drivers/infiniband/ulp/iser/iser_memory.c
++++ b/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -236,7 +236,7 @@ int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
+ 	page_vec->npages = 0;
+ 	page_vec->fake_mr.page_size = SIZE_4K;
+ 	plen = ib_sg_to_pages(&page_vec->fake_mr, mem->sg,
+-			      mem->size, iser_set_page);
++			      mem->size, 0, iser_set_page);
+ 	if (unlikely(plen < mem->size)) {
+ 		iser_err("page vec too short to hold this SG\n");
+ 		iser_data_buf_dump(mem, device->ib_device);
+@@ -446,7 +446,7 @@ static int iser_fast_reg_mr(struct iscsi_iser_task *iser_task,
+ 
+ 	ib_update_fast_reg_key(mr, ib_inc_rkey(mr->rkey));
+ 
+-	n = ib_map_mr_sg(mr, mem->sg, mem->size, SIZE_4K);
++	n = ib_map_mr_sg(mr, mem->sg, mem->size, 0, SIZE_4K);
+ 	if (unlikely(n != mem->size)) {
+ 		iser_err("failed to map sg (%d/%d)\n",
+ 			 n, mem->size);
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index 411e446..a44a736 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2461,7 +2461,7 @@ isert_fast_reg_mr(struct isert_conn *isert_conn,
+ 		wr = &inv_wr;
+ 	}
+ 
+-	n = ib_map_mr_sg(mr, mem->sg, mem->nents, PAGE_SIZE);
++	n = ib_map_mr_sg(mr, mem->sg, mem->nents, 0, PAGE_SIZE);
+ 	if (unlikely(n != mem->nents)) {
+ 		isert_err("failed to map mr sg (%d/%d)\n",
+ 			 n, mem->nents);
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index b6bf204..ca425f2 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1333,7 +1333,7 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	rkey = ib_inc_rkey(desc->mr->rkey);
+ 	ib_update_fast_reg_key(desc->mr, rkey);
+ 
+-	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, dev->mr_page_size);
++	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, 0, dev->mr_page_size);
+ 	if (unlikely(n < 0))
+ 		return n;
+ 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fb2cef4..24d0d82 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1827,7 +1827,8 @@ struct ib_device {
+ 					       u32 max_num_sg);
+ 	int                        (*map_mr_sg)(struct ib_mr *mr,
+ 						struct scatterlist *sg,
+-						int sg_nents);
++						int sg_nents,
++						unsigned sg_offset);
+ 	struct ib_mw *             (*alloc_mw)(struct ib_pd *pd,
+ 					       enum ib_mw_type type,
+ 					       struct ib_udata *udata);
+@@ -3111,29 +3112,23 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev, u8 port,
+ 					    u16 pkey, const union ib_gid *gid,
+ 					    const struct sockaddr *addr);
+ 
+-int ib_map_mr_sg(struct ib_mr *mr,
+-		 struct scatterlist *sg,
+-		 int sg_nents,
+-		 unsigned int page_size);
++int ib_map_mr_sg(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset, unsigned int page_size);
+ 
+ static inline int
+-ib_map_mr_sg_zbva(struct ib_mr *mr,
+-		  struct scatterlist *sg,
+-		  int sg_nents,
+-		  unsigned int page_size)
++ib_map_mr_sg_zbva(struct ib_mr *mr, struct scatterlist *sg, int sg_nents,
++		unsigned int sg_offset, unsigned int page_size)
+ {
+ 	int n;
+ 
+-	n = ib_map_mr_sg(mr, sg, sg_nents, page_size);
++	n = ib_map_mr_sg(mr, sg, sg_nents, sg_offset, page_size);
+ 	mr->iova = 0;
+ 
+ 	return n;
+ }
+ 
+-int ib_sg_to_pages(struct ib_mr *mr,
+-		   struct scatterlist *sgl,
+-		   int sg_nents,
+-		   int (*set_page)(struct ib_mr *, u64));
++int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
++		unsigned int sg_offset, int (*set_page)(struct ib_mr *, u64));
+ 
+ void ib_drain_rq(struct ib_qp *qp);
+ void ib_drain_sq(struct ib_qp *qp);
+diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
+index 93ff038..d921adc 100644
+--- a/net/rds/ib_frmr.c
++++ b/net/rds/ib_frmr.c
+@@ -111,7 +111,7 @@ static int rds_ib_post_reg_frmr(struct rds_ib_mr *ibmr)
+ 		cpu_relax();
+ 	}
+ 
+-	ret = ib_map_mr_sg_zbva(frmr->mr, ibmr->sg, ibmr->sg_len, PAGE_SIZE);
++	ret = ib_map_mr_sg_zbva(frmr->mr, ibmr->sg, ibmr->sg_len, 0, PAGE_SIZE);
+ 	if (unlikely(ret != ibmr->sg_len))
+ 		return ret < 0 ? ret : -EINVAL;
+ 
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index c250924..3274a4a 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -421,7 +421,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 		return -ENOMEM;
+ 	}
+ 
+-	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
++	n = ib_map_mr_sg(mr, frmr->sg, frmr->sg_nents, 0, PAGE_SIZE);
+ 	if (unlikely(n != frmr->sg_nents)) {
+ 		pr_err("RPC:       %s: failed to map mr %p (%u/%u)\n",
+ 		       __func__, frmr->fr_mr, n, frmr->sg_nents);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 3b24a64..19a74e9 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -281,7 +281,7 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
+ 	}
+ 	atomic_inc(&xprt->sc_dma_used);
+ 
+-	n = ib_map_mr_sg(frmr->mr, frmr->sg, frmr->sg_nents, PAGE_SIZE);
++	n = ib_map_mr_sg(frmr->mr, frmr->sg, frmr->sg_nents, 0, PAGE_SIZE);
+ 	if (unlikely(n != frmr->sg_nents)) {
+ 		pr_err("svcrdma: failed to map mr %p (%d/%d elements)\n",
+ 		       frmr->mr, n, frmr->sg_nents);
 -- 
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
