@@ -1,38 +1,125 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: generic RDMA READ/WRITE API V6
-Date: Tue, 3 May 2016 16:31:05 +0200
-Message-ID: <20160503143104.GA30342@lst.de>
-References: <1460410360-13104-1-git-send-email-hch@lst.de> <571AA5C8.4080502@sandisk.com> <20160502151535.GA520@lst.de> <5727A5C7.1090009@sandisk.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: RDMA Read: Local protection error
+Date: Tue, 3 May 2016 10:57:05 -0400
+Message-ID: <6BBFD126-877C-4638-BB91-ABF715E29326@oracle.com>
+References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com> <57238F8C.70505@sandisk.com> <B72A389F-FFF1-498C-A946-8AA72B7769F8@oracle.com> <57277B63.8030506@sandisk.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5727A5C7.1090009-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <57277B63.8030506-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 02, 2016 at 12:08:55PM -0700, Bart Van Assche wrote:
-> After having disabled CONFIG_SLUB_DEBUG_ON I don't see the "QP event" 
-> message anymore.
 
-This brings up memories: we've seen odd, unexplainable with SLUB debug and
-MRs during NVMe over fabrics development..
+> On May 2, 2016, at 12:08 PM, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> 
+> On 05/02/2016 08:10 AM, Chuck Lever wrote:
+>>> On Apr 29, 2016, at 12:45 PM, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+>>> On 04/29/2016 09:24 AM, Chuck Lever wrote:
+>>>> I've found some new behavior, recently, while testing the
+>>>> v4.6-rc Linux NFS/RDMA client and server.
+>>>> 
+>>>> When certain kernel memory debugging CONFIG options are
+>>>> enabled, 1MB NFS WRITEs can sometimes result in a
+>>>> IB_WC_LOC_PROT_ERR. I usually turn on most of them because
+>>>> I want to see any problems, so I'm not sure which option
+>>>> in particular is exposing the issue.
+>>>> 
+>>>> When debugging is enabled on the server, and the underlying
+>>>> device is using FRWR to register the sink buffer, an RDMA
+>>>> Read occasionally completes with LOC_PROT_ERR.
+>>>> 
+>>>> When debugging is enabled on the client, and the underlying
+>>>> device uses FRWR to register the target of an RDMA Read, an
+>>>> ingress RDMA Read request sometimes gets a Syndrome 99
+>>>> (REM_OP_ERR) acknowledgement, and a subsequent RDMA Receive
+>>>> on the client completes with LOC_PROT_ERR.
+>>>> 
+>>>> I do not see this problem when kernel memory debugging is
+>>>> disabled, or when the client is using FMR, or when the
+>>>> server is using physical addresses to post its RDMA Read WRs,
+>>>> or when wsize is 512KB or smaller.
+>>>> 
+>>>> I have not found any obvious problems with the client logic
+>>>> that registers NFS WRITE buffers, nor the server logic that
+>>>> constructs and posts RDMA Read WRs.
+>>>> 
+>>>> My next step is to bisect. But first, I was wondering if
+>>>> this behavior might be related to the recent problems with
+>>>> s/g lists seen with iSER/SRP? ie, is this a recognized
+>>>> issue?
+>>> 
+>>> Hello Chuck,
+>>> 
+>>> A few days ago I observed similar behavior with the SRP protocol but only if I increase max_sect in /etc/srp_daemon.conf from the default to 4096. My setup was as follows:
+>>> * Kernel 4.6.0-rc5 at the initiator side.
+>>> * A whole bunch of kernel debugging options enabled at the initiator
+>>>  side.
+>>> * The following settings in /etc/modprobe.d/ib_srp.conf:
+>>>  options ib_srp cmd_sg_entries=255 register_always=1
+>>> * The following settings in /etc/srp_daemon.conf:
+>>>  a queue_size=128,max_cmd_per_lun=128,max_sect=4096
+>>> * Kernel 3.0.101 at the target side.
+>>> * Kernel debugging disabled at the target side.
+>>> * mlx4 driver at both sides.
+>>> 
+>>> Decreasing max_sge at the target side from 32 to 16 did not help. I have not yet had the time to analyze this further.
+>> 
+>> git bisect result:
+>> 
+>> d86bd1bece6fc41d59253002db5441fe960a37f6 is the first bad commit
+>> commit d86bd1bece6fc41d59253002db5441fe960a37f6
+>> Author: Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>
+>> Date:   Tue Mar 15 14:55:12 2016 -0700
+>> 
+>>     mm/slub: support left redzone
+>> 
+>> I checked out the previous commit and was not able to
+>> reproduce, which gives some confidence that the bisect
+>> result is valid.
+>> 
+>> I've also investigated the wire behavior a little more.
+>> The server I'm using for testing has FRWR artificially
+>> disabled, so it uses physical addresses for RDMA Read.
+>> This limits it to max_sge_rd, or 30 pages for each Read
+>> request.
+>> 
+>> The client sends a single 1MB Read chunk. The server
+>> emits 8 30-page Read requests, and a ninth request for
+>> the last 16 pages in the chunk.
+>> 
+>> The client's HCA responds to the 30-page Read requests
+>> properly. But on the last Read request, it responds
+>> with a Read First, 14 Read Middle responses, then an
+>> ACK with Syndrome 99 (Remote Operation Error).
+>> 
+>> This suggests the last page in the memory region is
+>> not accessible to the HCA.
+>> 
+>> This does not happen on the first NFS WRITE, but
+>> rather one or two subsequent NFS WRITEs during the test.
+> 
+> On an x86 system that patch changes the alignment of buffers > 8 bytes from 16 bytes to 8 bytes (ARCH_SLAB_MINALIGN / ARCH_KMALLOC_MINALIGN). There might be code in the mlx4 driver that makes incorrect assumptions about the alignment of memory allocated by kmalloc(). Can someone from Mellanox comment on the alignment requirements of the buffers allocated by mlx4_buf_alloc()?
+> 
+> Thanks,
+> 
+> Bart.
 
-> But running xfstests triggered the following (mlx4 
-> hardware; SRP initiator and LIO target running on the same server and 
-> communicating over loopback):
+Let's also bring this to the attention of the patch's author.
 
-I can reproduce this, thanks.  The issue was that my implementation
-of keeping the MRs around when getting an -EAGAIN for setting up new
-RDMA R/W contexts wasn't correct.  To make it properly work we'd need
-a pointer to the send ioctx from the recv ioctx.  I don't feel safe
-to make this change at this point, and given that force_mr is only
-a debug option for the SRP target until RDMA/CM support goes in I
-think we should be fine without it.  I'll resend the series once I
-get feedback from the buildbot, and I'd be happy if you could review
-it quickly.
+Joonsoo, any ideas about how to track this down? There have
+been several reports on linux-rdma of unexplained issues when
+SLUB debugging is enabled.
+
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
