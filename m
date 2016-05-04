@@ -1,39 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] Proposal to address hfi1 UI and EPROM devices
-Date: Wed, 4 May 2016 12:15:09 -0600
-Message-ID: <20160504181509.GA20488@obsidianresearch.com>
-References: <20160502195502.GA31800@phlsvsds.ph.intel.com>
- <20160503162457.GB29160@leon.nu>
- <20160503165403.GA11903@phlsvsds.ph.intel.com>
- <20160503184218.GC29160@leon.nu>
- <20160504044107.GE29160@leon.nu>
- <20160504123621.GC10916@phlsvsds.ph.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/4] IB/netlink: Allow multiple clients to register under the same family
+Date: Wed, 4 May 2016 14:14:39 -0400
+Message-ID: <20160504181438.GA2072@phlsvsds.ph.intel.com>
+References: <1462376518-6725-1-git-send-email-leon@kernel.org> <1462376518-6725-3-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160504123621.GC10916-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1462376518-6725-3-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 04, 2016 at 08:36:21AM -0400, Dennis Dalessandro wrote:
+On Wed, May 04, 2016 at 06:41:56PM +0300, Leon Romanovsky wrote:
+>From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+>This commit adds the ability for multiple clients to register to the same
+>family. We will allow this only if there isn't an overlap between them.
+>If there is an overlap, we will fail the latest client registration.
 
-> I think it's slightly more complicated than that. There are three options
-> really: core, driver, or get it out of the kernel.
+Can you expand on why we need to do this and what you mean by "overlap"?
 
->From a core maintenance perspective, I think it is very simple, if
-someone wishes to add code to their driver to manipulate the EEPROM,
-then at this point the work to make a common uAPI falls on to their
-shoulders.
+Maybe I'm not clear on the terminology. I thought the "family" was something 
+like NETLINK_RDMA, which we already allow multiple "clients" to register with.
 
-I'd also make a very clear message to driver submitters: Do not
-include uAPIs in your initial driver patch set. Those should follow on
-as dedicated well identified patches so that they attracted the proper
-review.
+These things:
 
-Jason
+enum {
+        RDMA_NL_RDMA_CM = 1,
+        RDMA_NL_IWCM,
+        RDMA_NL_RSVD,
+        RDMA_NL_LS,     /* RDMA Local Services */
+        RDMA_NL_I40IW,
+        RDMA_NL_NUM_CLIENTS
+};
+
+It seems what you are trying to do is allow the same "client" to register 
+multiple times, but with differing numbers of ops?
+
+Is there a reason to not just have another client index?
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
