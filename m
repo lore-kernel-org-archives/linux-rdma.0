@@ -1,105 +1,82 @@
-From: Antonio Quartulli <a@unstable.cc>
-Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
- with helper
-Date: Thu, 5 May 2016 01:20:42 +0800
-Message-ID: <20160504172042.GH11201@prodigo.lan>
-References: <1462285862-30946-1-git-send-email-fw@strlen.de>
- <1462285994-31983-1-git-send-email-fw@strlen.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Wed, 4 May 2016 12:11:35 -0600
+Message-ID: <20160504181135.GA15355@obsidianresearch.com>
+References: <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB046AB1@ORSMSX109.amr.corp.intel.com>
+ <5721C3AD.8050407@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB046FD8@ORSMSX109.amr.corp.intel.com>
+ <d8f8d6bf-9fad-fcc9-5a15-2b2423349c26@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0480DB@ORSMSX109.amr.corp.intel.com>
+ <20160502175011.GB32096@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB04816A@ORSMSX109.amr.corp.intel.com>
+ <20160502190619.GB32613@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="hEk4XxIzAisM6naS"
-Return-path: <linux-can-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
-Sender: linux-can-owner@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB048E47-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, May 04, 2016 at 04:49:47PM +0000, Hefty, Sean wrote:
 
---hEk4XxIzAisM6naS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Okay - this isn't what I think about when I read LSO at all
+> (i.e. large segment offload, not large send [WR] offload).  We have
+> chained WRs.  What your describing sounds like some sort of
+> optimized version of that.
 
-On Tue, May 03, 2016 at 04:33:13PM +0200, Florian Westphal wrote:
-> Replace all trans_start updates with netif_trans_update helper.
-> change was done via spatch:
->=20
-> struct net_device *d;
-> @@
-> - d->trans_start =3D jiffies
-> + netif_trans_update(d)
->=20
-> Compile tested only.
->=20
-> Cc: user-mode-linux-devel@lists.sourceforge.net
-> Cc: linux-xtensa@linux-xtensa.org
-> Cc: linux1394-devel@lists.sourceforge.net
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: MPT-FusionLinux.pdl@broadcom.com
-> Cc: linux-scsi@vger.kernel.org
-> Cc: linux-can@vger.kernel.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-hams@vger.kernel.org
-> Cc: linux-usb@vger.kernel.org
-> Cc: linux-wireless@vger.kernel.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: b.a.t.m.a.n@lists.open-mesh.org
-> Cc: linux-bluetooth@vger.kernel.org
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
+Yes.
 
-[...]
+But critically the typical LSO engine will have the ability to do header
+replication and editing as it splits up the send.
 
->  net/batman-adv/soft-interface.c                        | 2 +-
+> This concept should apply to the receive side as well.
 
-[...]
+The receive side is asymmetric in this case, LRO is a different
+animal.
 
-> diff --git a/net/batman-adv/soft-interface.c b/net/batman-adv/soft-interf=
-ace.c
-> index 0710379..bae1397 100644
-> --- a/net/batman-adv/soft-interface.c
-> +++ b/net/batman-adv/soft-interface.c
-> @@ -208,7 +208,7 @@ static int batadv_interface_tx(struct sk_buff *skb,
->  	if (atomic_read(&bat_priv->mesh_state) !=3D BATADV_MESH_ACTIVE)
->  		goto dropped;
-> =20
-> -	soft_iface->trans_start =3D jiffies;
-> +	netif_trans_update(soft_iface);
->  	vid =3D batadv_get_vid(skb, 0);
->  	ethhdr =3D eth_hdr(skb);
-> =20
+> > The rules *must* be specified in the API. I think this is what you are
+> > thinking about when you say 'protocol', but this is not IB or iWarp,
+> > it is 'LSO packet format protocol #1' or something.
+> 
+> I was under the impression that this was actually working at a
+> protocol level that was above the transport level of the QP --
+> i.e. TCP/UDP/IP segmentation offload.
 
+Sort of. The typical LSO rules the NIC vendors have designed are
+intended for TCP and UDP packet segmentation.
 
-Acked-by: Antonio Quartulli <a@unstable.cc>
+But in our verbs context, we'd talk about this process as a
+transformation of 1xLSO_SEND WRs into NxSEND WRs and maintain strict
+layering. The use of LSO can not do anything the user could not do
+just by creating SENDs on their own.
 
---=20
-Antonio Quartulli
+Further, a LSO rule set should always operate the same, no matter what
+sort of QP it is running on - the LSO rules don't change just because a
+QP is iwarp or IB.
 
---hEk4XxIzAisM6naS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Matan: I think the take away here is that the API needs a lot more
+work on specifying exactly what 'LSO' means, in terms of what it
+actually does, and we almost certainly need some way to negotiate
+different rule-sets, as I doubt all NIC vendors agree on how this
+works. Even Linux net has a few variations over time (TSO, LSO/GSO)
+supported by the core code. And it is easy to predict that things like
+FCoX, SCTP and so forth will have their own unique rule sets.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+This should probably be done after creating the QP (and AH?), as a NIC
+may not be able to do certain LSO rules with certain QP/AH
+configurations.
 
-iQIcBAEBCAAGBQJXKi9qAAoJEJ4aZjxxc6bKdy0QAKpnm2haE6oZ01LtxQu1VfKB
-Qer6rc7it+otFT8jIMkZ3Be9sL2++PZyMSivw0YZRQBHwv4vsauG8HeXUmnFGS9r
-rTGv5P9Z0R1TrDTlZBXH0Pui6GIWlyKkxpRqqVu4q/xHmWH8Y2yLUXi/0BA5xB6L
-3EPPoN/WyiCdZ/NGY8WJbuyF3H+UD0s8/YXLWbOGdzxZ4UgAJp5WPVr1QdvZ4Cl7
-kqnB2g/KvHc6ruY9viT21FDjEdWvxTZlKYGbLJAQNyuM1IunThZQ/fOM82Rdtnj6
-u46FixCz2AbHVnBZht+ODlnrypKj3jBdEXu1/YclguwBHzSnwdF2M7Wswpx38VZN
-zkArU7t5LIZfiGqNpwXL0A7jovBRqI6FDJrynTKqJFjNTA/IZHwzZcWErXXp/4En
-xD/9GPLK/Lr1dUY7vteYvIjzTq3YUfPsiRsMvdyhHlDU/KJWYPrJIjotjJgXCdcT
-sLyCSGpSATmyZGhQW6BEkr3rm3y1fSOxQSD2Jmyv6sBXwaGSBpQzSalTgezUQjKm
-GpARsJONS/PpV0PbIt660Of7OikWXgDOTR6z2Oe8tPt55D+UKoUHlfQU83dPm6m1
-VW+3QZx2xue3jH05I8BeX6SKBVrtQfRh1nVi6xhkWgHaVahuh9BLgcPh2copDt/3
-UB23coo6jv90cnkJg5FC
-=6q9+
------END PGP SIGNATURE-----
+I'd probably also use the driver-specific channel to communicate the
+NIC's capability and prototype some kind of API in libibverbs.
 
---hEk4XxIzAisM6naS--
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
