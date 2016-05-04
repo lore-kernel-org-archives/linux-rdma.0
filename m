@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 6/9] svcrdma: Drain QP before freeing svcrdma_xprt
-Date: Wed, 04 May 2016 10:53:30 -0400
-Message-ID: <20160504145330.6602.53005.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 7/9] svcrdma: Eliminate code duplication in
+ svc_rdma_recvfrom()
+Date: Wed, 04 May 2016 10:53:39 -0400
+Message-ID: <20160504145339.6602.43042.stgit@klimt.1015granger.net>
 References: <20160504144730.6602.89073.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,32 +14,73 @@ To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the server has forced a disconnect, the associated QP has not
-been moved to the Error state, and thus Receives are still posted.
-
-Ensure Receives (and any other outstanding WRs) are drained to
-release resources that can be freed during teardown of the
-svcrdma_xprt.
+Clean up.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |    3 +++
- 1 file changed, 3 insertions(+)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 02a112c..dd94401 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -1180,6 +1180,9 @@ static void __svc_rdma_free(struct work_struct *work)
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+index 12e7899..1b72f35 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
+@@ -508,11 +508,10 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
+ 	return ret;
+ }
  
- 	dprintk("svcrdma: %s(%p)\n", __func__, rdma);
+-static int rdma_read_complete(struct svc_rqst *rqstp,
+-			      struct svc_rdma_op_ctxt *head)
++static void rdma_read_complete(struct svc_rqst *rqstp,
++			       struct svc_rdma_op_ctxt *head)
+ {
+ 	int page_no;
+-	int ret;
  
-+	if (rdma->sc_qp && !IS_ERR(rdma->sc_qp))
-+		ib_drain_qp(rdma->sc_qp);
-+
- 	/* We should only be called from kref_put */
- 	if (atomic_read(&xprt->xpt_ref.refcount) != 0)
- 		pr_err("svcrdma: sc_xprt still in use? (%d)\n",
+ 	/* Copy RPC pages */
+ 	for (page_no = 0; page_no < head->count; page_no++) {
+@@ -548,23 +547,6 @@ static int rdma_read_complete(struct svc_rqst *rqstp,
+ 	rqstp->rq_arg.tail[0] = head->arg.tail[0];
+ 	rqstp->rq_arg.len = head->arg.len;
+ 	rqstp->rq_arg.buflen = head->arg.buflen;
+-
+-	/* Free the context */
+-	svc_rdma_put_context(head, 0);
+-
+-	/* XXX: What should this be? */
+-	rqstp->rq_prot = IPPROTO_MAX;
+-	svc_xprt_copy_addrs(rqstp, rqstp->rq_xprt);
+-
+-	ret = rqstp->rq_arg.head[0].iov_len
+-		+ rqstp->rq_arg.page_len
+-		+ rqstp->rq_arg.tail[0].iov_len;
+-	dprintk("svcrdma: deferred read ret=%d, rq_arg.len=%u, "
+-		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zu\n",
+-		ret, rqstp->rq_arg.len,	rqstp->rq_arg.head[0].iov_base,
+-		rqstp->rq_arg.head[0].iov_len);
+-
+-	return ret;
+ }
+ 
+ /* By convention, backchannel calls arrive via rdma_msg type
+@@ -622,7 +604,8 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 				  dto_q);
+ 		list_del_init(&ctxt->dto_q);
+ 		spin_unlock_bh(&rdma_xprt->sc_rq_dto_lock);
+-		return rdma_read_complete(rqstp, ctxt);
++		rdma_read_complete(rqstp, ctxt);
++		goto complete;
+ 	} else if (!list_empty(&rdma_xprt->sc_rq_dto_q)) {
+ 		ctxt = list_entry(rdma_xprt->sc_rq_dto_q.next,
+ 				  struct svc_rdma_op_ctxt,
+@@ -680,6 +663,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 		return 0;
+ 	}
+ 
++complete:
+ 	ret = rqstp->rq_arg.head[0].iov_len
+ 		+ rqstp->rq_arg.page_len
+ 		+ rqstp->rq_arg.tail[0].iov_len;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
