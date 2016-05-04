@@ -1,42 +1,41 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/4] Trivial fixes
-Date: Wed,  4 May 2016 08:36:01 +0300
-Message-ID: <1462340165-16067-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 1/4] IB/iwpm: Fix a potential skb leak
+Date: Wed,  4 May 2016 08:36:02 +0300
+Message-ID: <1462340165-16067-2-git-send-email-leon@kernel.org>
+References: <1462340165-16067-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1462340165-16067-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I'm sending to you small collection of trivial fixes to core code.
+In case ibnl_put_msg fails in send_nlmsg_done,
+the function returns with -ENOMEM without freeing.
 
-It fixes forgotten skb release call, potential overrun in CMA. SA and
-two code simplifications which doesn't introduce any code change
-behavior.
+This patch fixes this behavior.
 
-Available in the "topic/fix-core" topic branch of this git repo:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/fix-core
-
-Mark Bloch (4):
-  IB/iwpm: Fix a potential skb leak
-  IB/core: Remove unnecessary check in ibnl_rcv_msg
-  IB/core: Fix a potential array overrun in CMA and SA agent
-  IB/sa: Use nlmsg_free instead of kfree_skb
-
- drivers/infiniband/core/cma.c       | 2 +-
- drivers/infiniband/core/iwcm.c      | 2 +-
+Fixes: 30dc5e63d6a5 ("RDMA/core: Add support for iWARP Port Mapper user space service")
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
  drivers/infiniband/core/iwpm_util.c | 1 +
- drivers/infiniband/core/netlink.c   | 3 +--
- drivers/infiniband/core/sa_query.c  | 4 ++--
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 9b2bf2f..b65e06c 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -634,6 +634,7 @@ static int send_nlmsg_done(struct sk_buff *skb, u8 nl_client, int iwpm_pid)
+ 	if (!(ibnl_put_msg(skb, &nlh, 0, 0, nl_client,
+ 			   RDMA_NL_IWPM_MAPINFO, NLM_F_MULTI))) {
+ 		pr_warn("%s Unable to put NLMSG_DONE\n", __func__);
++		dev_kfree_skb(skb);
+ 		return -ENOMEM;
+ 	}
+ 	nlh->nlmsg_type = NLMSG_DONE;
 -- 
 2.1.4
 
