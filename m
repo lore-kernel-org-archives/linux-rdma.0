@@ -1,79 +1,52 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] xprtrdma: Remove qplock
-Date: Wed, 4 May 2016 14:27:54 -0400
-Message-ID: <42a5d6b3-b861-2af3-7ab8-d09bda142923@Netapp.com>
-References: <20160504144108.15760.95228.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/IPoIB: Allow setting the device address
+Date: Wed, 4 May 2016 12:41:05 -0600
+Message-ID: <20160504184105.GB20554@obsidianresearch.com>
+References: <1462340207-16174-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160504144108.15760.95228.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1462340207-16174-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/04/2016 10:41 AM, Chuck Lever wrote:
-> Clean up.
-> 
-> After "xprtrdma: Remove ro_unmap() from all registration modes",
-> there are no longer any sites that take rpcrdma_ia::qplock for read.
-> The one site that takes it for write is always single-threaded. It
-> is safe to remove it.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> Hi Anna-
-> 
-> One more simple clean up for 4.7?
+On Wed, May 04, 2016 at 08:36:47AM +0300, Leon Romanovsky wrote:
+> +static int ipoib_set_mac(struct net_device *dev, void *addr)
+> +{
+> +	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> +	struct sockaddr_storage *ss = addr;
+> +
+> +	set_base_guid(priv, (union ib_gid *)(ss->__data + 4), 0);
 
-Sure, it looks okay to me.
+Hurm, this should also check that the QPN and reserved in the provided
+20 byte LLADDR match the current state of the device's LLADDR since
+those cannot be changed.
 
-Anna
+It is should also be illegal to try and change the GID prefix, so it
+must also match the current value.
 
-> 
->  net/sunrpc/xprtrdma/verbs.c     |    3 ---
->  net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
->  2 files changed, 4 deletions(-)
-> 
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index be66f65..b044d98a 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -433,7 +433,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
->  	dprintk("RPC:       %s: memory registration strategy is '%s'\n",
->  		__func__, ia->ri_ops->ro_displayname);
->  
-> -	rwlock_init(&ia->ri_qplock);
->  	return 0;
->  
->  out3:
-> @@ -672,10 +671,8 @@ retry:
->  			goto out;
->  		}
->  
-> -		write_lock(&ia->ri_qplock);
->  		old = ia->ri_id;
->  		ia->ri_id = id;
-> -		write_unlock(&ia->ri_qplock);
->  
->  		rdma_destroy_qp(old);
->  		rpcrdma_destroy_id(old);
-> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-> index 512bbdc..95cdc66 100644
-> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
-> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-> @@ -65,7 +65,6 @@
->   */
->  struct rpcrdma_ia {
->  	const struct rpcrdma_memreg_ops	*ri_ops;
-> -	rwlock_t		ri_qplock;
->  	struct ib_device	*ri_device;
->  	struct rdma_cm_id 	*ri_id;
->  	struct ib_pd		*ri_pd;
-> 
+Did these checks from eth_prepare_mac_addr_change get included?
 
+         if (!(dev->priv_flags & IFF_LIVE_ADDR_CHANGE) && netif_running(dev))
+                 return -EBUSY;
+
+As well as basic sanity checks on the formation of GUID - can't be 0,
+and must be unicast.
+
+> +	if (test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
+> +		priv->local_gid.global.subnet_prefix =
+> +			cpu_to_be64(port_attr.subnet_prefix);
+> +		memcpy(dev->dev_addr + 4, priv->local_gid.raw,
+> +		       sizeof(union ib_gid));
+
+Seems strange - why is the subnet prefix being treated differently in
+this one case?
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
