@@ -1,272 +1,135 @@
 From: Lijun Ou <oulijun@huawei.com>
-Subject: [PATCH v7 03/21] IB/hns: Add initial main frame driver and get cfg info
-Date: Wed, 4 May 2016 20:21:00 +0800
-Message-ID: <1462364478-10808-4-git-send-email-oulijun@huawei.com>
-References: <1462364478-10808-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH v7 00/21] Add HiSilicon RoCE driver
+Date: Wed, 4 May 2016 20:20:57 +0800
+Message-ID: <1462364478-10808-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462364478-10808-1-git-send-email-oulijun@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patch mainly added the initial bare main driver. It
-could get the relative configure information of net node.
+The HiSilicon Network Substem is a long term evolution IP which is
+supposed to be used in HiSilicon ICT SoCs. HNS (HiSilicon Network
+Sybsystem) also has a hardware support of performing RDMA with
+RoCEE.
+The driver for HiSilicon RoCEE(RoCE Engine) is a platform driver and
+will support mulitple versions of SOCs in future. This version of driver
+is meant to support Hip06 SoC(which confirms to RoCEEv1 hardware
+specifications).
 
-Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
-Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_device.h |  49 ++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   | 182 ++++++++++++++++++++++++++++
- 2 files changed, 231 insertions(+)
+Changes v6 -> v7:
+1. modify some type of parameter, use bool replace the original type.
+2. add the Signed-off-by signatures in the first patch.
+3. delete the improper print sentence in hns_roce_create_eq.
+
+Changes v5 -> v6:
+1. modify the type of obj for unsigned long according the reviews, and
+   modify the same questions in RoCE module.
+2. fix the spelling error.
+3. fix the Signed-off-by signatures.
+
+Changes v4 -> v5:
+1. redesign the patchset for RoCE modules in order to split the huge
+   patch into small patches.
+2. fix the directory path for RoCE module. Delete the hisilicon level.
+3. modify the name of roce_v1_hw into roce_hw_v1.
+
+Changes v3 -> v4:
+1. modify roce.o into hns-roce.o in Makefile and Kconfig file.
+
+Changes v2 -> v3:
+1. modify the formats of RoCE driver code base v2 by the experts 
+   reviewing. also, it used kmalloc_array instead of kmalloc, kcalloc
+   instead of kzalloc, when refer to memory allocation for array
+2. remove some functions without use and unconnected macros
+3. modify the binding document with RoCE DT base v2 which added
+   interrupt-names
+4. redesign the port_map and si_map in hns_dsaf_roce_reset
+5. add HiSilicon RoCE driver maintainers introduction in MAINTAINERS
+   document
+
+Changes v1 -> v2:
+1. modify the formats of roce driver code by the experts reviewing
+2. modify the bindings file with roce dts. add the attribute named 
+   interrput-names.
+3. modify the way of defining port mode in hns_dsaf_main.c
+4. move the Kconfig file into the hns directory and send it with roce
+
+Lijun Ou (21):
+  net: hns: Add reset function support for RoCE driver
+  devicetree: bindings: IB: Add binding document for HiSilicon RoCE
+  IB/hns: Add initial main frame driver and get cfg info
+  IB/hns: Add RoCE engine reset function
+  IB/hns: Add initial profile resource
+  IB/hns: Add initial cmd operation
+  IB/hns: Add event queue support
+  IB/hns: Add icm support
+  IB/hns: Add hca support
+  IB/hns: Add process flow to init RoCE engine
+  IB/hns: Add IB device registration
+  IB/hns: Set mtu and gid support
+  IB/hns: Add interface of the protocol stack registration
+  IB/hns: Add operations support for IB device and port
+  IB/hns: Add PD operations support
+  IB/hns: Add ah operations support
+  IB/hns: Add QP operations support
+  IB/hns: Add CQ operations support
+  IB/hns: Add memory region operations support
+  IB/hns: Kconfig and Makefile for RoCE module
+  MAINTAINERS: Add maintainers for HiSilicon RoCE driver
+
+ .../bindings/infiniband/hisilicon-hns-roce.txt     |  107 +
+ MAINTAINERS                                        |    8 +
+ drivers/infiniband/Kconfig                         |    1 +
+ drivers/infiniband/hw/Makefile                     |    1 +
+ drivers/infiniband/hw/hns/Kconfig                  |   10 +
+ drivers/infiniband/hw/hns/Makefile                 |    9 +
+ drivers/infiniband/hw/hns/hns_roce_ah.c            |  109 +
+ drivers/infiniband/hw/hns/hns_roce_alloc.c         |  238 ++
+ drivers/infiniband/hw/hns/hns_roce_cmd.c           |  324 +++
+ drivers/infiniband/hw/hns/hns_roce_cmd.h           |   80 +
+ drivers/infiniband/hw/hns/hns_roce_common.h        |  302 +++
+ drivers/infiniband/hw/hns/hns_roce_cq.c            |  437 +++
+ drivers/infiniband/hw/hns/hns_roce_device.h        |  732 +++++
+ drivers/infiniband/hw/hns/hns_roce_eq.c            |  755 ++++++
+ drivers/infiniband/hw/hns/hns_roce_eq.h            |  108 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c         | 2812 ++++++++++++++++++++
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.h         |  966 +++++++
+ drivers/infiniband/hw/hns/hns_roce_icm.c           |  583 ++++
+ drivers/infiniband/hw/hns/hns_roce_icm.h           |  112 +
+ drivers/infiniband/hw/hns/hns_roce_main.c          | 1071 ++++++++
+ drivers/infiniband/hw/hns/hns_roce_mr.c            |  599 +++++
+ drivers/infiniband/hw/hns/hns_roce_pd.c            |  127 +
+ drivers/infiniband/hw/hns/hns_roce_qp.c            |  835 ++++++
+ drivers/infiniband/hw/hns/hns_roce_user.h          |   27 +
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c |   90 +-
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.h |   32 +-
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_misc.c |   64 +-
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_reg.h  |   16 +-
+ 28 files changed, 10539 insertions(+), 16 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+ create mode 100644 drivers/infiniband/hw/hns/Kconfig
+ create mode 100644 drivers/infiniband/hw/hns/Makefile
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_ah.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_alloc.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_cmd.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_cmd.h
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_common.h
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_cq.c
  create mode 100644 drivers/infiniband/hw/hns/hns_roce_device.h
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_eq.h
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v1.h
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_icm.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_icm.h
  create mode 100644 drivers/infiniband/hw/hns/hns_roce_main.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_mr.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_pd.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_qp.c
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_user.h
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-new file mode 100644
-index 0000000..b48f518
---- /dev/null
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -0,0 +1,49 @@
-+/*
-+ * Copyright (c) 2016 Hisilicon Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef _HNS_ROCE_DEVICE_H
-+#define _HNS_ROCE_DEVICE_H
-+
-+#include <linux/platform_device.h>
-+#include <linux/radix-tree.h>
-+#include <linux/semaphore.h>
-+#include <rdma/ib_addr.h>
-+#include <rdma/ib_smi.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_verbs.h>
-+
-+#define DRV_NAME "hns_roce"
-+
-+#define HNS_ROCE_MAX_IRQ_NUM			34
-+#define HNS_ROCE_MAX_PORTS			6
-+
-+struct hns_roce_ib_iboe {
-+	struct net_device      *netdevs[HNS_ROCE_MAX_PORTS];
-+	u8			phy_port[HNS_ROCE_MAX_PORTS];
-+};
-+
-+struct hns_roce_caps {
-+	u8			num_ports;
-+};
-+
-+struct hns_roce_dev {
-+	struct ib_device	ib_dev;
-+	struct platform_device  *pdev;
-+	struct hns_roce_ib_iboe iboe;
-+
-+	int			irq[HNS_ROCE_MAX_IRQ_NUM];
-+	u8 __iomem		*reg_base;
-+	struct hns_roce_caps	caps;
-+
-+	int			cmd_mod;
-+	int			loop_idc;
-+};
-+
-+#endif /* _HNS_ROCE_DEVICE_H */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-new file mode 100644
-index 0000000..1616148
---- /dev/null
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -0,0 +1,182 @@
-+/*
-+ * Copyright (c) 2016 Hisilicon Limited.
-+ *
-+ * Authors: Wei Hu <xavier.huwei@huawei.com>
-+ * Authors: Nenglong Zhao <zhaonenglong@hisilicon.com>
-+ * Authors: Lijun Ou <oulijun@huawei.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <linux/cdev.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/ethtool.h>
-+#include <linux/etherdevice.h>
-+#include <linux/fs.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/netdevice.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/of_net.h>
-+#include <linux/of_platform.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/netdevice.h>
-+#include <net/ipv6.h>
-+#include <net/addrconf.h>
-+#include <rdma/ib_addr.h>
-+#include <rdma/ib_smi.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_verbs.h>
-+#include "hns_roce_device.h"
-+
-+int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
-+{
-+	int i;
-+	u8 phy_port;
-+	int port_cnt = 0;
-+	struct device *dev = &hr_dev->pdev->dev;
-+	struct device_node *np = dev->of_node;
-+	struct device_node *net_node;
-+	struct net_device *netdev = NULL;
-+	struct platform_device *pdev = NULL;
-+	struct resource *res;
-+
-+	if (!of_device_is_compatible(np, "hisilicon,hns-roce-v1")) {
-+		dev_err(dev, "device no compatible!\n");
-+		return -EINVAL;
-+	}
-+
-+	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
-+	hr_dev->reg_base = devm_ioremap_resource(dev, res);
-+	if (!hr_dev->reg_base) {
-+		dev_err(dev, "devm_ioremap_resource failed!\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
-+		net_node = of_parse_phandle(np, "eth-handle", i);
-+		if (net_node) {
-+			pdev = of_find_device_by_node(net_node);
-+			netdev = platform_get_drvdata(pdev);
-+			phy_port = (u8)i;
-+			if (netdev) {
-+				hr_dev->iboe.netdevs[port_cnt] = netdev;
-+				hr_dev->iboe.phy_port[port_cnt] = phy_port;
-+			} else {
-+				return -ENODEV;
-+			}
-+			port_cnt++;
-+		}
-+	}
-+
-+	hr_dev->caps.num_ports = port_cnt;
-+
-+	/* Cmd issue mode: 0 is poll, 1 is event */
-+	hr_dev->cmd_mod = 1;
-+	hr_dev->loop_idc = 0;
-+
-+	for (i = 0; i < HNS_ROCE_MAX_IRQ_NUM; i++) {
-+		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
-+		if (hr_dev->irq[i] <= 0) {
-+			dev_err(dev, "Get No.%d irq resource failed!\n", i);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+* hns_roce_probe - RoCE driver entrance
-+* @pdev: pointer to platform device
-+* Return : int
-+*
-+*/
-+static int hns_roce_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+	struct hns_roce_dev *hr_dev;
-+	struct device *dev = &pdev->dev;
-+
-+	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
-+	if (!hr_dev) {
-+		dev_err(dev, "Device struct alloc failed, aborting.\n");
-+		return -ENOMEM;
-+	}
-+
-+	memset((u8 *)hr_dev + sizeof(struct ib_device), 0,
-+		sizeof(struct hns_roce_dev) - sizeof(struct ib_device));
-+
-+	hr_dev->pdev = pdev;
-+	platform_set_drvdata(pdev, hr_dev);
-+
-+	if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)))
-+		dev_info(dev, "set mask to 64bit\n");
-+	else if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32ULL)))
-+		dev_info(dev, "set mask to 32bit\n");
-+	else {
-+		dev_err(dev, "No usable DMA addressing mode\n");
-+		ret = -EIO;
-+		goto error_failed_get_cfg;
-+	}
-+
-+	ret = hns_roce_get_cfg(hr_dev);
-+	if (ret) {
-+		dev_err(dev, "Get Configuration failed!\n");
-+		goto error_failed_get_cfg;
-+	}
-+
-+error_failed_get_cfg:
-+	ib_dealloc_device(&hr_dev->ib_dev);
-+
-+	return ret;
-+}
-+
-+/**
-+* hns_roce_remove - remove roce device
-+* @pdev: pointer to platform device
-+*/
-+static int hns_roce_remove(struct platform_device *pdev)
-+{
-+	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
-+
-+	ib_dealloc_device(&hr_dev->ib_dev);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id hns_roce_of_match[] = {
-+	{ .compatible = "hisilicon,hns-roce-v1",},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, hns_roce_of_match);
-+
-+static struct platform_driver hns_roce_driver = {
-+	.probe = hns_roce_probe,
-+	.remove = hns_roce_remove,
-+	.driver = {
-+		.name = DRV_NAME,
-+		.of_match_table = hns_roce_of_match,
-+	},
-+};
-+
-+module_platform_driver(hns_roce_driver);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Wei Hu <xavier.huwei@huawei.com>");
-+MODULE_AUTHOR("Nenglong Zhao <zhaonenglong@hisilicon.com>");
-+MODULE_AUTHOR("Lijun Ou <oulijun@huawei.com>");
-+MODULE_DESCRIPTION("HISILICON RoCE driver");
-+MODULE_ALIAS("platform:" DRV_NAME);
 -- 
 1.9.1
