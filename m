@@ -1,87 +1,67 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 9/9] svcrdma: Simplify the check for backward direction
- replies
-Date: Wed, 04 May 2016 10:53:55 -0400
-Message-ID: <20160504145355.6602.64946.stgit@klimt.1015granger.net>
-References: <20160504144730.6602.89073.stgit@klimt.1015granger.net>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 3/3] net/mlx5e: don't build RFS without ethernet
+Date: Wed, 4 May 2016 17:55:20 +0300
+Message-ID: <CALzJLG9NnqPmm1TpdKub3u=bPRWDDevJh0=oECz0m1O-caqAzw@mail.gmail.com>
+References: <1462364774-3792510-1-git-send-email-arnd@arndb.de>
+ <1462365155-3861405-1-git-send-email-arnd@arndb.de> <CALzJLG9j6ZodwDToX8iuvNVKLoMoaM8V9w8cFR6jM-ktU0ynHg@mail.gmail.com>
+ <6481938.m1ihicFdKr@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160504144730.6602.89073.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6481938.m1ihicFdKr@wuerfel>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Abramonvsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: rq_arg.head[0] already points to the RPC header. No need
-to walk down the RPC-over-RDMA header again.
+On Wed, May 4, 2016 at 5:23 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+> On Wednesday 04 May 2016 16:09:16 Saeed Mahameed wrote:
+>> On Wed, May 4, 2016 at 3:32 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+>> > The RFS acceleration support in mlx5 is enabled whenever CONFIG_RFS_ACCEL
+>> > is in use. However, this fails if a user turns off CONFIG_MLX5_CORE_EN,
+>> > because the rfs code now calls into the ethernet portion of the
+>> > driver:
+>> >
+>> > ERROR: "mlx5e_destroy_flow_table" [drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.ko] undefined!
+>> >
+>>
+>> Hi Arnd,
+>>
+>> We already posted a fix for this, please see "[PATCH net-next V1
+>> 01/12] net/mlx5e: Fix aRFS compilation dependency", and give us your
+>> feedback.
+>
+> That version looks fine as well. I think it's better to be a little
+> more explicit as I was, but either way seems fine.
+>
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+Simply we didn't want to add new Kconfig flag.
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index c984b0a..f30a43b 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -549,35 +549,24 @@ static void rdma_read_complete(struct svc_rqst *rqstp,
- 	rqstp->rq_arg.buflen = head->arg.buflen;
- }
- 
--/* By convention, backchannel calls arrive via rdma_msg type
-- * messages, and never populate the chunk lists. This makes
-- * the RPC/RDMA header small and fixed in size, so it is
-- * straightforward to check the RPC header's direction field.
-+/* Currently, this implementation does not support chunks in the
-+ * backward direction. Thus only RDMA_MSG bc replies are accepted.
-  */
- static bool
--svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
-+svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp,
-+			      struct xdr_buf *msgp)
- {
--	__be32 *p = (__be32 *)rmsgp;
-+	__be32 *p = (__be32 *)msgp->head[0].iov_base;
- 
-+	/* Is there a backchannel transport associated with xprt? */
- 	if (!xprt->xpt_bc_xprt)
- 		return false;
--
-+	/* Is there an RPC message in the inline buffer? */
- 	if (rmsgp->rm_type != rdma_msg)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
--		return false;
--	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-+	/* Is that message a Call or a Reply? */
-+	if (p[1] != cpu_to_be32(RPC_REPLY))
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
--		return false;
--
--	/* sanity */
--	if (p[7] != rmsgp->rm_xid)
--		return false;
--	/* call direction */
--	if (p[8] == cpu_to_be32(RPC_CALL))
--		return false;
--
- 	return true;
- }
- 
-@@ -643,7 +632,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		goto out_drop;
- 	rqstp->rq_xprt_hlen = ret;
- 
--	if (svc_rdma_is_backchannel_reply(xprt, rmsgp)) {
-+	if (svc_rdma_is_backchannel_reply(xprt, rmsgp, &rqstp->rq_arg)) {
- 		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt, rmsgp,
- 					       &rqstp->rq_arg);
- 		svc_rdma_put_context(ctxt, 0);
+>
+> You can also achieve the same thing in yet another way using Makefile
+> syntax instead of cpp or Kconfig:
+>
+> ifdef CONFIG_MLX5_CORE_EN
+> mlx5_core-y += wq.o eswitch.o \
+>                en_main.o en_fs.o en_ethtool.o en_tx.o en_rx.o \
+>                en_txrx.o en_clock.o vxlan.o en_tc.o
+>                en_txrx.o en_clock.o vxlan.o en_tc.o en_arfs.o
+>
+> mlx5_core-$(CONFIG_RFS_ACCEL) += en_arfs.o
+> endif
+>
+>
+> If you prefer Maor's version, feel free to add
+>
+>
+> Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+>
 
+I do prefer this version, but the difference is small, so will keep Maor's.
+Thanks Arnd for the Ack and the suggestion.
+
+Saeed.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
