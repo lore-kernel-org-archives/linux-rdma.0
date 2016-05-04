@@ -1,114 +1,121 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 20/20] xprtrdma: Faster server reboot recovery
-Date: Wed, 4 May 2016 09:37:21 +0300
-Message-ID: <20160504063721.GG29160@leon.nu>
-References: <20160502183144.10798.99847.stgit@manet.1015granger.net>
- <20160502184303.10798.4709.stgit@manet.1015granger.net>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
+ with helper
+Date: Wed, 04 May 2016 11:14:45 +0300
+Message-ID: <87vb2udytm.fsf@intel.com>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+ <1462285994-31983-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GdbWtwDHkcXqP16f"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160502184303.10798.4709.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============0612351183774410813=="
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: netdev@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, linux-xtensa@linux-xtensa.org, linux-omap@vger.kernel.org, linux-scsi@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, linux-wireless@vger.kernel.org, linux-usb@vger.kernel.org, Florian Westphal <fw@strlen.de>, linux-can@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-parisc@vger.kernel.org, b.a.t.m.a.n@lists.open-mesh.org, linux-hams@vger.kernel.org, linux1394-devel@lists.sourceforge.net, MPT-FusionLinux.pdl@broadcom.com
 List-Id: linux-rdma@vger.kernel.org
 
+--===============0612351183774410813==
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 
---GdbWtwDHkcXqP16f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-=-=
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 02, 2016 at 02:43:03PM -0400, Chuck Lever wrote:
-> In a cluster failover scenario, it is desirable for the client to
-> attempt to reconnect quickly, as an alternate NFS server is already
-> waiting to take over for the down server. The client can't see that
-> a server IP address has moved to a new server until the existing
-> connection is gone.
->=20
-> For fabrics and devices where it is meaningful, set a definite upper
-> bound on the amount of time before it is determined that a
-> connection is no longer valid. This allows the RPC client to detect
-> connection loss in a timely matter, then perform a fresh resolution
-> of the server GUID in case it has changed (cluster failover).
->=20
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
+Hi,
+
+Florian Westphal <fw@strlen.de> writes:
+> Replace all trans_start updates with netif_trans_update helper.
+> change was done via spatch:
+>
+> struct net_device *d;
+> @@
+> - d->trans_start =3D jiffies
+> + netif_trans_update(d)
+>
+> Compile tested only.
+>
+> Cc: user-mode-linux-devel@lists.sourceforge.net
+> Cc: linux-xtensa@linux-xtensa.org
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: MPT-FusionLinux.pdl@broadcom.com
+> Cc: linux-scsi@vger.kernel.org
+> Cc: linux-can@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-hams@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-wireless@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: b.a.t.m.a.n@lists.open-mesh.org
+> Cc: linux-bluetooth@vger.kernel.org
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 > ---
->  net/sunrpc/xprtrdma/verbs.c |   12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
->=20
-> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-> index b7a5bc1..be66f65 100644
-> --- a/net/sunrpc/xprtrdma/verbs.c
-> +++ b/net/sunrpc/xprtrdma/verbs.c
-> @@ -554,6 +554,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrd=
-ma_ia *ia,
->  	ep->rep_attr.recv_cq =3D recvcq;
-> =20
->  	/* Initialize cma parameters */
-> +	memset(&ep->rep_remote_cma, 0, sizeof(ep->rep_remote_cma));
-> =20
->  	/* RPC/RDMA does not use private data */
->  	ep->rep_remote_cma.private_data =3D NULL;
-> @@ -567,7 +568,16 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcr=
-dma_ia *ia,
->  		ep->rep_remote_cma.responder_resources =3D
->  						ia->ri_device->attrs.max_qp_rd_atom;
-> =20
-> -	ep->rep_remote_cma.retry_count =3D 7;
-> +	/* Limit transport retries so client can detect server
-> +	 * GID changes quickly. RPC layer handles re-establishing
-> +	 * transport connection and retransmission.
-> +	 */
-> +	ep->rep_remote_cma.retry_count =3D 6;
 
-Out of curiosity,
-Do you know how much time take this retry cycle?
-I understand why lowering retry count will cause to faster reconnect,
-but I wonder will it be really visible.
+for u_ether.c:
 
-> +
-> +	/* RPC-over-RDMA handles its own flow control. In addition,
-> +	 * make all RNR NAKs visible so we know that RPC-over-RDMA
-> +	 * flow control is working correctly (no NAKs should be seen).
-> +	 */
->  	ep->rep_remote_cma.flow_control =3D 0;
->  	ep->rep_remote_cma.rnr_retry_count =3D 0;
-> =20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 
---GdbWtwDHkcXqP16f
+> diff --git a/drivers/usb/gadget/function/u_ether.c b/drivers/usb/gadget/f=
+unction/u_ether.c
+> index 637809e..a3f7e7c 100644
+> --- a/drivers/usb/gadget/function/u_ether.c
+> +++ b/drivers/usb/gadget/function/u_ether.c
+> @@ -597,7 +597,7 @@ static netdev_tx_t eth_start_xmit(struct sk_buff *skb,
+>  		DBG(dev, "tx queue err %d\n", retval);
+>  		break;
+>  	case 0:
+> -		net->trans_start =3D jiffies;
+> +		netif_trans_update(net);
+>  		atomic_inc(&dev->tx_qlen);
+>  	}
+
+=2D-=20
+balbi
+
+--=-=-=
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXKZihAAoJEORje4g2clinF7kQAI4c3nfvY6LhL0fxX4sZD7sF
-CSEFPljv/4CcV5tBsdfdD3jFQqriydSsdkZ44DDa88jF0CIr5gMnSrY1Hu3b4LT1
-rU3tZ0yBR+9FL0IpWVrYdtHQNuLkY3d7Hzb1Y6fvSllBs7VVb2kArlzht5OCJNQ9
-pjCIxN3bvpVdK32Eqp7dQvv2rEVZZZaOOxIuE5ULpBoaww+m78F8zpg67OSPlzZn
-KJNGJlTlKBDqry6KAR1IR9PI2uIeCkV923svfGqkAF6eeSUjDeGiloP9vPGN9Wqs
-EFZ3l93Zy3nQLM1GmkcSMVzy2FSjddIabtG14bNrsk2/CTe0s5oGrjK0AeVBAKIN
-S+V/wuFVXBXv/4pghvB08k8wXpGyqUu+3F7B6yNZupgrcDpPubidrLOJa7MvmkuQ
-JM7QY/U1ESqdqYW1ohKpijGmKOPbxjqFlf5DvF5P7o1H9sEc8KU5LYRmJQ/bC75k
-cqzQtNWilyGb/HLcyhZlMCs7Pa7OLACA9sCGGqp0u0Kov18q18KnSBiElmWZw2Ko
-APO1Lm/uhW/CBlTVCRVxblP5enPZTc9UyKIkwqIybY2d9ITtdKiDRdgE1QspATsd
-E3QJ56HCtfIOaDq15fVDmXvuMuLA0jNVuRwNOSq5D4awegEKNZqevuQOItK4CHa+
-VSgq9W9tbTg/GBbh/Eqo
-=HDcN
+iQIcBAEBAgAGBQJXKa91AAoJEIaOsuA1yqREa0UP/35SFn4ZofIoB65PTj1xg8X/
+n7p9jjvrvEml10E4POQ/ZKeKzNBobiZfTvPVQ5fJ3DeaxYRMFNldcoNvv3XLHgb1
+J/A6NNdCBYPMo7cc/67RCJKC+NEMbplqQSrLyCL4N8KDaR0ToDvFOhDW5ENtYAFR
++hHewPpprXHex8FPax3PMuuNCRkV/hz3PxCXnF+1h5nKD3hsXZwzQQAVC4OkWkzo
+f9pAczgygfMWpsdOK4lBqAf82sK9P/bOJoE7ag/6zJ3E8EvmiB2oqtBzWzpdpWgL
+JAZ4O8g2q2eV+vXK8ZqMt/yUwdS+V0ouR+iReYAATahEXzu0XPRZSHwmL0qKbl/D
+RN4cVtSHl9cYltkxEMUSNUWZhGDaAyOiYbWWXwDQvus915p5Nq41v2VJailJBQD0
+w+K4gJAw+0igWKgvq1M/JwoJftk9cA75Dw18f+6T6j/e78k0ZCnj1F4WHjWAIAAm
+b54FVVjKATCK8/vIl73vtUpgdAzYeue3mwfd+PP5UfMXRpcEZU2icEyvHgyvbU5U
+ChlCb1NRYIJ01e+J5Ov/Xd6+Pln8EwV4W4imFjzcsLNjiVU0OumWVqFqPtlDd4tq
+5rKSXFa4XdaMA0CAM48AjdQmE3ta+xFFe+Q0GqVTMgyc4QOvSmZuWmsdfTmgyqC+
+DjWMdryqMVHstUt2mUPA
+=NJVp
 -----END PGP SIGNATURE-----
+--=-=-=--
 
---GdbWtwDHkcXqP16f--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--===============0612351183774410813==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devel mailing list
+devel@linuxdriverproject.org
+http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel
+
+--===============0612351183774410813==--
