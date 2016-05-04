@@ -1,51 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 3/3] net/mlx5e: don't build RFS without ethernet
-Date: Wed, 04 May 2016 16:23:19 +0200
-Message-ID: <6481938.m1ihicFdKr@wuerfel>
-References: <1462364774-3792510-1-git-send-email-arnd@arndb.de> <1462365155-3861405-1-git-send-email-arnd@arndb.de> <CALzJLG9j6ZodwDToX8iuvNVKLoMoaM8V9w8cFR6jM-ktU0ynHg@mail.gmail.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] xprtrdma: Remove qplock
+Date: Wed, 04 May 2016 10:41:48 -0400
+Message-ID: <20160504144108.15760.95228.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALzJLG9j6ZodwDToX8iuvNVKLoMoaM8V9w8cFR6jM-ktU0ynHg@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Matthew Finlay <matt@mellanox.com>, Richard Cochran <richardcochran@gmail.com>, Amir Vadai <amirv@mellanox.com>, Haggai Abramonvsky <hagaya@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Majd Dibbiny <majd@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 04 May 2016 16:09:16 Saeed Mahameed wrote:
-> On Wed, May 4, 2016 at 3:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > The RFS acceleration support in mlx5 is enabled whenever CONFIG_RFS_ACCEL
-> > is in use. However, this fails if a user turns off CONFIG_MLX5_CORE_EN,
-> > because the rfs code now calls into the ethernet portion of the
-> > driver:
-> >
-> > ERROR: "mlx5e_destroy_flow_table" [drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.ko] undefined!
-> >
-> 
-> Hi Arnd,
-> 
-> We already posted a fix for this, please see "[PATCH net-next V1
-> 01/12] net/mlx5e: Fix aRFS compilation dependency", and give us your
-> feedback.
+Clean up.
 
-That version looks fine as well. I think it's better to be a little
-more explicit as I was, but either way seems fine.
+After "xprtrdma: Remove ro_unmap() from all registration modes",
+there are no longer any sites that take rpcrdma_ia::qplock for read.
+The one site that takes it for write is always single-threaded. It
+is safe to remove it.
 
-You can also achieve the same thing in yet another way using Makefile
-syntax instead of cpp or Kconfig:
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+Hi Anna-
 
-ifdef CONFIG_MLX5_CORE_EN
-mlx5_core-y += wq.o eswitch.o \
-               en_main.o en_fs.o en_ethtool.o en_tx.o en_rx.o \
-               en_txrx.o en_clock.o vxlan.o en_tc.o
-               en_txrx.o en_clock.o vxlan.o en_tc.o en_arfs.o
+One more simple clean up for 4.7?
 
-mlx5_core-$(CONFIG_RFS_ACCEL) += en_arfs.o
-endif
+ net/sunrpc/xprtrdma/verbs.c     |    3 ---
+ net/sunrpc/xprtrdma/xprt_rdma.h |    1 -
+ 2 files changed, 4 deletions(-)
 
-If you prefer Maor's version, feel free to add
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index be66f65..b044d98a 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -433,7 +433,6 @@ rpcrdma_ia_open(struct rpcrdma_xprt *xprt, struct sockaddr *addr, int memreg)
+ 	dprintk("RPC:       %s: memory registration strategy is '%s'\n",
+ 		__func__, ia->ri_ops->ro_displayname);
+ 
+-	rwlock_init(&ia->ri_qplock);
+ 	return 0;
+ 
+ out3:
+@@ -672,10 +671,8 @@ retry:
+ 			goto out;
+ 		}
+ 
+-		write_lock(&ia->ri_qplock);
+ 		old = ia->ri_id;
+ 		ia->ri_id = id;
+-		write_unlock(&ia->ri_qplock);
+ 
+ 		rdma_destroy_qp(old);
+ 		rpcrdma_destroy_id(old);
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 512bbdc..95cdc66 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -65,7 +65,6 @@
+  */
+ struct rpcrdma_ia {
+ 	const struct rpcrdma_memreg_ops	*ri_ops;
+-	rwlock_t		ri_qplock;
+ 	struct ib_device	*ri_device;
+ 	struct rdma_cm_id 	*ri_id;
+ 	struct ib_pd		*ri_pd;
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-
-	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
