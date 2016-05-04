@@ -1,65 +1,113 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 11/11] IB/isert: convert to the generic RDMA READ/WRITE
- API
-Date: Wed, 4 May 2016 09:15:31 +0300
-Message-ID: <20160504061531.GF29160@leon.nu>
-References: <1462291273-22403-1-git-send-email-hch@lst.de>
- <1462291273-22403-12-git-send-email-hch@lst.de>
+Subject: Re: [PATCH v3 20/20] xprtrdma: Faster server reboot recovery
+Date: Wed, 4 May 2016 09:37:21 +0300
+Message-ID: <20160504063721.GG29160@leon.nu>
+References: <20160502183144.10798.99847.stgit@manet.1015granger.net>
+ <20160502184303.10798.4709.stgit@manet.1015granger.net>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="m1UC1K4AOz1Ywdkx"
+	protocol="application/pgp-signature"; boundary="GdbWtwDHkcXqP16f"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1462291273-22403-12-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160502184303.10798.4709.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---m1UC1K4AOz1Ywdkx
+--GdbWtwDHkcXqP16f
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 03, 2016 at 06:01:13PM +0200, Christoph Hellwig wrote:
-> Replace the homegrown RDMA READ/WRITE code in isert with the generic API,
-> which also adds iWarp support to the I/O path as a side effect.  Note
-> that full iWarp operation will need a few additional patches from Steve.
+On Mon, May 02, 2016 at 02:43:03PM -0400, Chuck Lever wrote:
+> In a cluster failover scenario, it is desirable for the client to
+> attempt to reconnect quickly, as an alternate NFS server is already
+> waiting to take over for the down server. The client can't see that
+> a server IP address has moved to a new server until the existing
+> connection is gone.
 >=20
-> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> For fabrics and devices where it is meaningful, set a definite upper
+> bound on the amount of time before it is determined that a
+> connection is no longer valid. This allows the RPC client to detect
+> connection loss in a timely matter, then perform a fresh resolution
+> of the server GUID in case it has changed (cluster failover).
+>=20
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/isert/ib_isert.c | 841 ++++----------------------=
-------
->  drivers/infiniband/ulp/isert/ib_isert.h |  69 +--
->  2 files changed, 85 insertions(+), 825 deletions(-)
+>  net/sunrpc/xprtrdma/verbs.c |   12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+> index b7a5bc1..be66f65 100644
+> --- a/net/sunrpc/xprtrdma/verbs.c
+> +++ b/net/sunrpc/xprtrdma/verbs.c
+> @@ -554,6 +554,7 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcrd=
+ma_ia *ia,
+>  	ep->rep_attr.recv_cq =3D recvcq;
+> =20
+>  	/* Initialize cma parameters */
+> +	memset(&ep->rep_remote_cma, 0, sizeof(ep->rep_remote_cma));
+> =20
+>  	/* RPC/RDMA does not use private data */
+>  	ep->rep_remote_cma.private_data =3D NULL;
+> @@ -567,7 +568,16 @@ rpcrdma_ep_create(struct rpcrdma_ep *ep, struct rpcr=
+dma_ia *ia,
+>  		ep->rep_remote_cma.responder_resources =3D
+>  						ia->ri_device->attrs.max_qp_rd_atom;
+> =20
+> -	ep->rep_remote_cma.retry_count =3D 7;
+> +	/* Limit transport retries so client can detect server
+> +	 * GID changes quickly. RPC layer handles re-establishing
+> +	 * transport connection and retransmission.
+> +	 */
+> +	ep->rep_remote_cma.retry_count =3D 6;
 
-Amazing, Thank you.
+Out of curiosity,
+Do you know how much time take this retry cycle?
+I understand why lowering retry count will cause to faster reconnect,
+but I wonder will it be really visible.
 
---m1UC1K4AOz1Ywdkx
+> +
+> +	/* RPC-over-RDMA handles its own flow control. In addition,
+> +	 * make all RNR NAKs visible so we know that RPC-over-RDMA
+> +	 * flow control is working correctly (no NAKs should be seen).
+> +	 */
+>  	ep->rep_remote_cma.flow_control =3D 0;
+>  	ep->rep_remote_cma.rnr_retry_count =3D 0;
+> =20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--GdbWtwDHkcXqP16f
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXKZODAAoJEORje4g2clinIcEQALBcwdct1MQ0CbkcyY2X3V/P
-GrcWXnn+lT1wCblOlReYvgkkSlvT07emQqH6gbmoo3yoK9hydEv537ymY8i7rY9T
-8uiStm8yyek14N8N00B9Oq3ujJzb1BjQ8N3mTNHcSI/Iq9FfNzE+xY//CSWvgAdw
-9dPYE7Nngymy7wdBbwcDkglle1gBcyqkLhcYBdBYyhFBnTm6aFZxkpIGIxHXpjR5
-dxtKwYHU+6UD+3bA6pmcPDIRw+mLrXRlu96ApBAMJ6vLWYvr2UlL0ObJdg9p/ztc
-AKmryoMU7I9d8MJ1WIbGsVJxm8xUCWt2NI2Rqzl5uo3kjgvc/cVYgvNg/UiFWnDh
-EbTfA9U5Y+1Qmdd1C84HuD1GoQgqkBU0CmIwIRdAIBjyFJJYzvdUE696wep5VIN8
-xWexmQK8ui3stm3z+w2ZmakFQMe45R8X3IbsFiY1N8tnTZcrTfJsdsQtZnhugzij
-+X9ahthbcpcdJdOH++0elEMXHw8d+Z0y7jLYYocBGe6klla+jBG/RZpIKbdy9Nra
-Yi2Xgd4mfjtuhjirqZamO8KZhfOUkLFwUQHMWp+Fv47Mj/tmPEn9ctArfXIJyOE1
-+psUtePsWLSU8LGnXPW7p2wixyuXbRIhj+VQTXXBk/MRG0iV+no5NVdMqIHzTEnZ
-KjtE5JOhSSurtloCkWKY
-=jpFH
+iQIcBAEBAgAGBQJXKZihAAoJEORje4g2clinF7kQAI4c3nfvY6LhL0fxX4sZD7sF
+CSEFPljv/4CcV5tBsdfdD3jFQqriydSsdkZ44DDa88jF0CIr5gMnSrY1Hu3b4LT1
+rU3tZ0yBR+9FL0IpWVrYdtHQNuLkY3d7Hzb1Y6fvSllBs7VVb2kArlzht5OCJNQ9
+pjCIxN3bvpVdK32Eqp7dQvv2rEVZZZaOOxIuE5ULpBoaww+m78F8zpg67OSPlzZn
+KJNGJlTlKBDqry6KAR1IR9PI2uIeCkV923svfGqkAF6eeSUjDeGiloP9vPGN9Wqs
+EFZ3l93Zy3nQLM1GmkcSMVzy2FSjddIabtG14bNrsk2/CTe0s5oGrjK0AeVBAKIN
+S+V/wuFVXBXv/4pghvB08k8wXpGyqUu+3F7B6yNZupgrcDpPubidrLOJa7MvmkuQ
+JM7QY/U1ESqdqYW1ohKpijGmKOPbxjqFlf5DvF5P7o1H9sEc8KU5LYRmJQ/bC75k
+cqzQtNWilyGb/HLcyhZlMCs7Pa7OLACA9sCGGqp0u0Kov18q18KnSBiElmWZw2Ko
+APO1Lm/uhW/CBlTVCRVxblP5enPZTc9UyKIkwqIybY2d9ITtdKiDRdgE1QspATsd
+E3QJ56HCtfIOaDq15fVDmXvuMuLA0jNVuRwNOSq5D4awegEKNZqevuQOItK4CHa+
+VSgq9W9tbTg/GBbh/Eqo
+=HDcN
 -----END PGP SIGNATURE-----
 
---m1UC1K4AOz1Ywdkx--
+--GdbWtwDHkcXqP16f--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
