@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 4/9] svcrdma: Remove superfluous line from
- rdma_read_chunks()
-Date: Wed, 04 May 2016 10:53:14 -0400
-Message-ID: <20160504145314.6602.32998.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 5/9] svcrdma: Post Receives only for forward channel
+ requests
+Date: Wed, 04 May 2016 10:53:22 -0400
+Message-ID: <20160504145322.6602.71848.stgit@klimt.1015granger.net>
 References: <20160504144730.6602.89073.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,31 +14,35 @@ To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: svc_rdma_get_read_chunk() already returns a pointer
-to the Read list. No need to set "ch" again to the value it
-already contains.
+Since backward direction support was added, the rq_depth was
+increased to accommodate both forward and backward Receives.
 
+But only forward Receives need to be posted after a connection
+has been accepted. Receives for backward replies are posted as
+needed by svc_rdma_bc_sendto().
+
+This doesn't break anything, but it means some resources are
+wasted.
+
+Fixes: 03fe9931536f ('svcrdma: Define maximum number of ...')
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 234be9d..12e7899 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -447,10 +447,8 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
- 	head->arg.len = rqstp->rq_arg.len;
- 	head->arg.buflen = rqstp->rq_arg.buflen;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index d2680b8..02a112c 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -1083,7 +1083,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		newxprt->sc_dev_caps |= SVCRDMA_DEVCAP_READ_W_INV;
  
--	ch = (struct rpcrdma_read_chunk *)&rmsgp->rm_body.rm_chunks[0];
--	position = be32_to_cpu(ch->rc_position);
--
- 	/* RDMA_NOMSG: RDMA READ data should land just after RDMA RECV data */
-+	position = be32_to_cpu(ch->rc_position);
- 	if (position == 0) {
- 		head->arg.pages = &head->pages[0];
- 		page_offset = head->byte_len;
+ 	/* Post receive buffers */
+-	for (i = 0; i < newxprt->sc_rq_depth; i++) {
++	for (i = 0; i < newxprt->sc_max_requests; i++) {
+ 		ret = svc_rdma_post_recv(newxprt, GFP_KERNEL);
+ 		if (ret) {
+ 			dprintk("svcrdma: failure posting receive buffers\n");
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
