@@ -1,54 +1,101 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/4] Trivial fixes
-Date: Thu, 5 May 2016 09:43:51 +0300
-Message-ID: <20160505064351.GJ29160@leon.nu>
-References: <1462340165-16067-1-git-send-email-leon@kernel.org>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Thu, 5 May 2016 11:21:29 +0300
+Message-ID: <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com>
+References: <alpine.DEB.2.20.1604271043540.20042@east.gentwo.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB046AB1@ORSMSX109.amr.corp.intel.com>
+ <5721C3AD.8050407@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB046FD8@ORSMSX109.amr.corp.intel.com>
+ <d8f8d6bf-9fad-fcc9-5a15-2b2423349c26@mellanox.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0480DB@ORSMSX109.amr.corp.intel.com>
+ <20160502175011.GB32096@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB04816A@ORSMSX109.amr.corp.intel.com>
+ <20160502190619.GB32613@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com>
+ <20160504181135.GA15355@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tKy6e3LXpfmanBFM"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1462340165-16067-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160504181135.GA15355-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 04/05/2016 21:11, Jason Gunthorpe wrote:
+> On Wed, May 04, 2016 at 04:49:47PM +0000, Hefty, Sean wrote:
+>
+>> Okay - this isn't what I think about when I read LSO at all
+>> (i.e. large segment offload, not large send [WR] offload).  We have
+>> chained WRs.  What your describing sounds like some sort of
+>> optimized version of that.
+>
+> Yes.
+>
+> But critically the typical LSO engine will have the ability to do header
+> replication and editing as it splits up the send.
+>
+>> This concept should apply to the receive side as well.
+>
+> The receive side is asymmetric in this case, LRO is a different
+> animal.
+>
+>>> The rules *must* be specified in the API. I think this is what you are
+>>> thinking about when you say 'protocol', but this is not IB or iWarp,
+>>> it is 'LSO packet format protocol #1' or something.
+>>
+>> I was under the impression that this was actually working at a
+>> protocol level that was above the transport level of the QP --
+>> i.e. TCP/UDP/IP segmentation offload.
+>
+> Sort of. The typical LSO rules the NIC vendors have designed are
+> intended for TCP and UDP packet segmentation.
+>
+> But in our verbs context, we'd talk about this process as a
+> transformation of 1xLSO_SEND WRs into NxSEND WRs and maintain strict
+> layering. The use of LSO can not do anything the user could not do
+> just by creating SENDs on their own.
+>
+> Further, a LSO rule set should always operate the same, no matter what
+> sort of QP it is running on - the LSO rules don't change just because a
+> QP is iwarp or IB.
+>
 
---tKy6e3LXpfmanBFM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Agree
 
-On Wed, May 04, 2016 at 08:36:01AM +0300, Leon Romanovsky wrote:
-> I'm sending to you small collection of trivial fixes to core code.
+> Matan: I think the take away here is that the API needs a lot more
+> work on specifying exactly what 'LSO' means, in terms of what it
+> actually does, and we almost certainly need some way to negotiate
+> different rule-sets, as I doubt all NIC vendors agree on how this
+> works. Even Linux net has a few variations over time (TSO, LSO/GSO)
+> supported by the core code. And it is easy to predict that things like
+> FCoX, SCTP and so forth will have their own unique rule sets.
+>
 
-Thanks for the feedback.
-I'll repost it.
+I agree that we're lacking especially in the query capabilities area here.
 
---tKy6e3LXpfmanBFM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> This should probably be done after creating the QP (and AH?), as a NIC
+> may not be able to do certain LSO rules with certain QP/AH
+> configurations.
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+So I guess we want something that after a user creates a QP, he can 
+query which protocols (IP, TCP, etc) could be used in the NIC's 
+segmentation offload mechanism.
 
-iQIcBAEBAgAGBQJXKuunAAoJEORje4g2clinivAP/0S2CvBS5Ch4CoCHM7N0vtMa
-E1q/A11RmvggkPbBvFO+JgAfCOLaYaSvFa363W3njOWgg/wL1MahEJpXImdodl8B
-Dgkwpju1Q/rliro4IwUJg1Zd04hdy/ydyYKuJwu3hc0RBD0R/Sj0jSZQaG8gXf5v
-LS3M2KtaMUSKIiOEJg1s3rkK6mRT9t+FwtQsnQt1cxibMoBTVmEZYBFenilaCimh
-yXsfJwJ8DhMsPrHN9BjZO3F6V3sm/6jXG/42LNR4A8BfnnGi4Yi6lM6UZpJsMiIq
-Gs5Fo+GHKz0Gsbq50LodDYiew/7cs21d1JI/LxXLzS1cHC9sgDQhXu7ZFZcyXARx
-5cZ3O/38XspUzNvItbzy6UK/XJP07Z6Ew+mGk7btGqHzQzs7hmSyxd29gq0b837I
-hqg4O+QP/d4y1uCjthavI47k8R1H5NJpRcbTEXfSZ7/mWlkR9lOfYIQ9tx8EUIc0
-bmoimKXsH/QNO7o1+mSkUJOUe65cdgHXAeAHS27/DYZemBP2/qXacX8A+jVPO3P5
-AWYbvnB+0eNlAPpVtbitVa5AQPlKh02ssBk2BXzW3vGASEzpwpPRea9hgRbYNoY8
-6xL6T7Xz8YGC9K+pWgAFiUAZBjosuw3SlL7UBA4mto5L3enWcl/ppvvmPgDiHC66
-vrcipjeJVGaaAecx1sDq
-=MSAF
------END PGP SIGNATURE-----
+> I'd probably also use the driver-specific channel to communicate the
+> NIC's capability and prototype some kind of API in libibverbs.
+>
 
---tKy6e3LXpfmanBFM--
+If we would like to expose this feature in the uAPI, why would we want 
+to use the vendor specific channel instead of the standard core channel?
+
+> Jason
+>
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
