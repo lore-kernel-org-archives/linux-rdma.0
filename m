@@ -1,56 +1,80 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/11] More SRP patches for kernel v4.7
-Date: Thu, 5 May 2016 13:50:07 -0700
-Message-ID: <572BB1FF.2030404@sandisk.com>
-References: <571A936F.7040409@sandisk.com>
- <f406cd39-c6dc-d458-0ab0-c400fdd5b243@redhat.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 11/11] IB/srp: Prevent mapping failures
+Date: Thu, 5 May 2016 16:55:56 -0400 (EDT)
+Message-ID: <804753248.34153510.1462481756460.JavaMail.zimbra@redhat.com>
+References: <571A936F.7040409@sandisk.com> <571A94AF.7000609@sandisk.com> <20160503093307.GL19931@lst.de> <572A8975.9060606@sandisk.com> <20160505140616.GA15000@lst.de> <2102017158.34060891.1462478304470.JavaMail.zimbra@redhat.com> <572BA98F.4090109@sandisk.com> <572BAA6F.1060607@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f406cd39-c6dc-d458-0ab0-c400fdd5b243-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <572BAA6F.1060607-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/05/2016 01:44 PM, Doug Ledford wrote:
-> On 04/22/2016 05:11 PM, Bart Van Assche wrote:
->> Hello Doug,
->>
->> This patch series is what I came up with while retesting the SRP
->> initiator. Please consider these patches for inclusion in kernel v4.7.
->> Several of the patches in this series had already been posted in October
->> 2015. See also http://thread.gmane.org/gmane.linux.drivers.rdma/30216.
->>
->> The individual patches in this series are:
->>
->> 0001-IB-srp-Fix-a-spelling-error-in-a-source-code-comment.patch
->> 0002-IB-srp-Fix-a-comment.patch
->> 0003-IB-srp-Document-srp_map_data-return-value.patch
->> 0004-IB-srp-Fix-srp_map_data-error-paths.patch
->> 0005-IB-srp-Introduce-target-mr_pool_size.patch
->> 0006-IB-srp-Avoid-that-mapping-failure-triggers-an-infini.patch
->> 0007-IB-srp-Move-code-out-of-a-loop.patch
->> 0008-IB-srp-Move-common-code-into-the-caller.patch
->> 0009-IB-srp-Fix-a-NULL-pointer-dereference.patch
->> 0010-IB-srp-Do-not-register-memory-if-register_always-1.patch
->> 0011-IB-srp-Prevent-mapping-failures.patch
->
-> Hi Bart,
->
-> I've pulled in the first 8 of these patches.  The last three all had
-> comments.  When you respin those, just spin those and not the first 8.
 
-Hello Doug,
 
-Can you check whether patch "IB/srp: Fix a debug kernel crash" is 
-already in your tree 
-(http://thread.gmane.org/gmane.linux.drivers.rdma/35409)?
+----- Original Message -----
+> From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>
+> Cc: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Thursday, May 5, 2016 4:17:51 PM
+> Subject: Re: [PATCH 11/11] IB/srp: Prevent mapping failures
+> 
+> On 05/05/2016 01:14 PM, Bart Van Assche wrote:
+> > On 05/05/2016 12:58 PM, Laurence Oberman wrote:
+> >> I added and tested this patch.
+> >> I left the warn message in as I need it.
+> >>
+> >> [root@srptest ~]# dmesg | grep Reducing
+> >> [  551.526015] scsi host4: ib_srp: Reducing max_sectors from 8192 to 4080
+> >> [  559.367609] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4080
+> >> [  570.449121] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4080
+> >> [  577.831703] scsi host6: ib_srp: Reducing max_sectors from 8192 to 4080
+> >>
+> >> Its stable but only because we constrain the max_sectors.
+> >> I am writing 4MB buffered to 10 file systems (ext3) however the
+> >> max_sectors is constrained to 2040k and its stable.
+> >>
+> >> I have been told that RHEL6 and the Mofed stack happily does 4MB buffered
+> >> I/O with mapping failures but I need to check that out.
+> >> That would make no sense to me unless the Mofed stack has code that
+> >> differs enough to what we have upstream to make a difference.
+> >>
+> >> I am about to install RHEL6 and Mofed to compare and see what happens with
+> >> 4MB buffered.
+> >>
+> >> Tested-by Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >
+> > Thanks for the help with testing :-)
+> >
+> > Can you try to increase SRP_MAX_PAGES_PER_MR in ib_srp.h from 512 to
+> > 1024 and see whether that allows 4MB I/O?
+> 
+> (replying to my own e-mail)
+> 
+> That was a typo - I meant 1025 instead of 1024.
+> 
+> Bart.
+> 
+> 
+Set at 1025, rebuilt ib_srp module, rebooted client and:
 
-Thanks,
+Still get:
 
-Bart.
+[root@srptest ~]# dmesg | grep Reducing
+[  227.076550] scsi host4: ib_srp: Reducing max_sectors from 8192 to 4080
+[  235.316995] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4080
+[  245.726223] scsi host5: ib_srp: Reducing max_sectors from 8192 to 4080
+[  253.197573] scsi host6: ib_srp: Reducing max_sectors from 8192 to 4080
+
+And then of course we are constrained
+
+[root@srptest queue]# cat max_sectors_kb
+2040
+[root@srptest queue]# echo 4096 > max_sectors_kb
+-bash: echo: write error: Invalid argument
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
