@@ -1,7 +1,7 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 2/4] IB/SA Agent: Add support for SA agent get ClassPortInfo
-Date: Thu,  5 May 2016 14:36:57 +0300
-Message-ID: <1462448219-24571-3-git-send-email-erezsh@mellanox.com>
+Subject: [PATCH V2 for-next 3/4] IB/core: Support new type of join-state for multicast
+Date: Thu,  5 May 2016 14:36:58 +0300
+Message-ID: <1462448219-24571-4-git-send-email-erezsh@mellanox.com>
 References: <1462448219-24571-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462448219-24571-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -11,248 +11,82 @@ Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3
 List-Id: linux-rdma@vger.kernel.org
 
 
-New SA query function to return the ClassPortInfo struct from the SA.
-If the SM supports FullMemberSendOnly mode for MCG's, it sets a
-capability bit in the capability_mask2 field of the response.
+There are four types for MCG, FullMember, NonMember, SendOnlyNonMember,
+and the new added type: SendOnlyFullMember.
+Add support for the new SendOnlyFullMember join state.
+
+The new type allows host to send join request as sendonly, it will cause the
+group to be created but without getting packets from this multicast back to the
+host.
 
 Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c | 178 +++++++++++++++++++++++++++++++++++++
- include/rdma/ib_sa.h               |  12 +++
- 2 files changed, 190 insertions(+)
+ drivers/infiniband/core/multicast.c | 23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 8a09c0f..73d7b86 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -119,6 +119,12 @@ struct ib_sa_guidinfo_query {
- 	struct ib_sa_query sa_query;
- };
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 250937c..a83ec28 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -93,6 +93,18 @@ enum {
  
-+struct ib_sa_classport_info_query {
-+	void (*callback)(int, struct ib_class_port_info *, void *);
-+	void *context;
-+	struct ib_sa_query sa_query;
+ struct mcast_member;
+ 
++/*
++* There are 4 types of join states:
++* FullMember, NonMember, SendOnlyNonMember, SendOnlyFullMember.
++*/
++enum {
++	FULLMEMBER_JOIN,
++	NONMEMBER_JOIN,
++	SENDONLY_NONMEBER_JOIN,
++	SENDONLY_FULLMEMBER_JOIN,
++	NUM_JOIN_MEMBERSHIP_TYPES,
 +};
 +
- struct ib_sa_mcmember_query {
- 	void (*callback)(int, struct ib_sa_mcmember_rec *, void *);
- 	void *context;
-@@ -392,6 +398,87 @@ static const struct ib_field service_rec_table[] = {
- 	  .size_bits    = 2*64 },
- };
- 
-+#define CLASSPORTINFO_REC_FIELD(field) \
-+	.struct_offset_bytes = offsetof(struct ib_class_port_info, field),	\
-+	.struct_size_bytes   = sizeof((struct ib_class_port_info *)0)->field,	\
-+	.field_name          = "ib_class_port_info:" #field
-+
-+static const struct ib_field classport_info_rec_table[] = {
-+	{ CLASSPORTINFO_REC_FIELD(base_version),
-+	  .offset_words = 0,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 8 },
-+	{ CLASSPORTINFO_REC_FIELD(class_version),
-+	  .offset_words = 0,
-+	  .offset_bits  = 8,
-+	  .size_bits    = 8 },
-+	{ CLASSPORTINFO_REC_FIELD(capability_mask),
-+	  .offset_words = 0,
-+	  .offset_bits  = 16,
-+	  .size_bits    = 16 },
-+	{ CLASSPORTINFO_REC_FIELD(capability_mask2),
-+	  .offset_words = 1,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 27 },
-+	{ CLASSPORTINFO_REC_FIELD(resp_time_value),
-+	  .offset_words = 1,
-+	  .offset_bits  = 27,
-+	  .size_bits    = 5 },
-+	{ CLASSPORTINFO_REC_FIELD(redirect_gid),
-+	  .offset_words = 2,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 128 },
-+	{ CLASSPORTINFO_REC_FIELD(redirect_tcslfl),
-+	  .offset_words = 6,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+
-+	{ CLASSPORTINFO_REC_FIELD(redirect_lid),
-+	  .offset_words = 7,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 16 },
-+	{ CLASSPORTINFO_REC_FIELD(redirect_pkey),
-+	  .offset_words = 7,
-+	  .offset_bits  = 16,
-+	  .size_bits    = 16 },
-+
-+	{ CLASSPORTINFO_REC_FIELD(redirect_qp),
-+	  .offset_words = 8,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+	{ CLASSPORTINFO_REC_FIELD(redirect_qkey),
-+	  .offset_words = 9,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+
-+	{ CLASSPORTINFO_REC_FIELD(trap_gid),
-+	  .offset_words = 10,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 128 },
-+	{ CLASSPORTINFO_REC_FIELD(trap_tcslfl),
-+	  .offset_words = 14,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+
-+	{ CLASSPORTINFO_REC_FIELD(trap_lid),
-+	  .offset_words = 15,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 16 },
-+	{ CLASSPORTINFO_REC_FIELD(trap_pkey),
-+	  .offset_words = 15,
-+	  .offset_bits  = 16,
-+	  .size_bits    = 16 },
-+
-+	{ CLASSPORTINFO_REC_FIELD(trap_hlqp),
-+	  .offset_words = 16,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+	{ CLASSPORTINFO_REC_FIELD(trap_qkey),
-+	  .offset_words = 17,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+};
-+
- #define GUIDINFO_REC_FIELD(field) \
- 	.struct_offset_bytes = offsetof(struct ib_sa_guidinfo_rec, field),	\
- 	.struct_size_bytes   = sizeof((struct ib_sa_guidinfo_rec *) 0)->field,	\
-@@ -1645,6 +1732,97 @@ err1:
+ struct mcast_group {
+ 	struct ib_sa_mcmember_rec rec;
+ 	struct rb_node		node;
+@@ -102,7 +114,7 @@ struct mcast_group {
+ 	struct list_head	pending_list;
+ 	struct list_head	active_list;
+ 	struct mcast_member	*last_join;
+-	int			members[3];
++	int			members[NUM_JOIN_MEMBERSHIP_TYPES];
+ 	atomic_t		refcount;
+ 	enum mcast_group_state	state;
+ 	struct ib_sa_query	*query;
+@@ -220,8 +232,9 @@ static void queue_join(struct mcast_member *member)
  }
- EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
  
-+/* Support get SA ClassPortInfo */
-+static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
-+					      int status,
-+					      struct ib_sa_mad *mad)
-+{
-+	struct ib_sa_classport_info_query *query =
-+		container_of(sa_query, struct ib_sa_classport_info_query, sa_query);
-+
-+	if (mad) {
-+		struct ib_class_port_info rec;
-+
-+		ib_unpack(classport_info_rec_table,
-+			  ARRAY_SIZE(classport_info_rec_table),
-+			  mad->data, &rec);
-+		query->callback(status, &rec, query->context);
-+	} else {
-+		query->callback(status, NULL, query->context);
-+	}
-+}
-+
-+static void ib_sa_portclass_info_rec_release(struct ib_sa_query *sa_query)
-+{
-+	kfree(container_of(sa_query, struct ib_sa_classport_info_query,
-+			   sa_query));
-+}
-+
-+int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
-+				   struct ib_device *device, u8 port_num,
-+				   int timeout_ms, gfp_t gfp_mask,
-+				   void (*callback)(int status,
-+						    struct ib_class_port_info *resp,
-+						    void *context),
-+				   void *context,
-+				   struct ib_sa_query **sa_query)
-+{
-+	struct ib_sa_classport_info_query *query;
-+	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
-+	struct ib_sa_port *port;
-+	struct ib_mad_agent *agent;
-+	struct ib_sa_mad *mad;
-+	int ret;
-+
-+	if (!sa_dev)
-+		return -ENODEV;
-+
-+	port  = &sa_dev->port[port_num - sa_dev->start_port];
-+	agent = port->agent;
-+
-+	query = kzalloc(sizeof(*query), gfp_mask);
-+	if (!query)
-+		return -ENOMEM;
-+
-+	query->sa_query.port = port;
-+	ret = alloc_mad(&query->sa_query, gfp_mask);
-+	if (ret)
-+		goto err1;
-+
-+	ib_sa_client_get(client);
-+	query->sa_query.client = client;
-+	query->callback        = callback;
-+	query->context         = context;
-+
-+	mad = query->sa_query.mad_buf->mad;
-+	init_mad(mad, agent);
-+
-+	query->sa_query.callback = callback ? ib_sa_classport_info_rec_callback : NULL;
-+
-+	query->sa_query.release  = ib_sa_portclass_info_rec_release;
-+	/* support GET only */
-+	mad->mad_hdr.method	 = IB_MGMT_METHOD_GET;
-+	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_CLASS_PORTINFO);
-+	mad->sa_hdr.comp_mask	 = 0;
-+	*sa_query = &query->sa_query;
-+
-+	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
-+	if (ret < 0)
-+		goto err2;
-+
-+	return ret;
-+
-+err2:
-+	*sa_query = NULL;
-+	ib_sa_client_put(query->sa_query.client);
-+	free_mad(&query->sa_query);
-+
-+err1:
-+	kfree(query);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ib_sa_classport_info_rec_query);
-+
- static void send_handler(struct ib_mad_agent *agent,
- 			 struct ib_mad_send_wc *mad_send_wc)
- {
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index cdc1c81..3840416 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -94,6 +94,8 @@ enum ib_sa_selector {
- 	IB_SA_BEST = 3
- };
- 
-+#define IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT	BIT(12)
-+
  /*
-  * Structures for SA records are named "struct ib_sa_xxx_rec."  No
-  * attempt is made to pack structures to match the physical layout of
-@@ -439,4 +441,14 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
- 			      void *context,
- 			      struct ib_sa_query **sa_query);
+- * A multicast group has three types of members: full member, non member, and
+- * send only member.  We need to keep track of the number of members of each
++ * A multicast group has four types of members: full member, non member,
++ * sendonly non member and sendonly full member.
++ * We need to keep track of the number of members of each
+  * type based on their join state.  Adjust the number of members the belong to
+  * the specified join states.
+  */
+@@ -229,7 +242,7 @@ static void adjust_membership(struct mcast_group *group, u8 join_state, int inc)
+ {
+ 	int i;
  
-+/* Support get SA ClassPortInfo */
-+int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
-+				   struct ib_device *device, u8 port_num,
-+				   int timeout_ms, gfp_t gfp_mask,
-+				   void (*callback)(int status,
-+						    struct ib_class_port_info *resp,
-+						    void *context),
-+				   void *context,
-+				   struct ib_sa_query **sa_query);
-+
- #endif /* IB_SA_H */
+-	for (i = 0; i < 3; i++, join_state >>= 1)
++	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++, join_state >>= 1)
+ 		if (join_state & 0x1)
+ 			group->members[i] += inc;
+ }
+@@ -245,7 +258,7 @@ static u8 get_leave_state(struct mcast_group *group)
+ 	u8 leave_state = 0;
+ 	int i;
+ 
+-	for (i = 0; i < 3; i++)
++	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++)
+ 		if (!group->members[i])
+ 			leave_state |= (0x1 << i);
+ 
 -- 
 1.7.11.3
 
