@@ -1,51 +1,64 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH 2/3] net/mlx5e: make VXLAN support conditional
-Date: Thu, 5 May 2016 19:44:36 +0300
-Message-ID: <CALzJLG885q-Nm4xD3FobvY4A9RhLAV3jLwfAWdJwyDOid+tJ6g@mail.gmail.com>
-References: <1462364774-3792510-1-git-send-email-arnd@arndb.de> <1462365116-3856622-1-git-send-email-arnd@arndb.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] Proposal to address hfi1 UI and EPROM devices
+Date: Thu, 5 May 2016 12:08:43 -0600
+Message-ID: <20160505180843.GA5957@obsidianresearch.com>
+References: <20160502195502.GA31800@phlsvsds.ph.intel.com>
+ <20160503162457.GB29160@leon.nu>
+ <20160503165403.GA11903@phlsvsds.ph.intel.com>
+ <20160503184218.GC29160@leon.nu>
+ <20160504044107.GE29160@leon.nu>
+ <20160504123621.GC10916@phlsvsds.ph.intel.com>
+ <20160504181509.GA20488@obsidianresearch.com>
+ <20160505063834.GH29160@leon.nu>
+ <20160505120033.GA23895@phlsvsds.ph.intel.com>
+ <20160505123932.GK29160@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1462365116-3856622-1-git-send-email-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Matthew Finlay <matt@mellanox.com>, Richard Cochran <richardcochran@gmail.com>, Amir Vadai <amirv@mellanox.com>, Haggai Abramonvsky <hagaya@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Achiad Shochat <achiad@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, Gal Pressman <galp@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160505123932.GK29160-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 4, 2016 at 3:31 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> VXLAN can be disabled at compile-time or it can be a loadable
-> module while mlx5 is built-in, which leads to a link error:
->
-> drivers/net/built-in.o: In function `mlx5e_create_netdev':
-> ntb_netdev.c:(.text+0x106de4): undefined reference to `vxlan_get_rx_port'
->
-> This avoids the link error and makes the vxlan code optional,
-> like the other ethernet drivers do as well.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Link: https://patchwork.ozlabs.org/patch/589296/
-> Fixes: b3f63c3d5e2c ("net/mlx5e: Add netdev support for VXLAN tunneling")
-> ---
-> I sent it originally on Feb 26 2016, but misread Saeed Mahameed's
-> reply as saying that he'd fix it up himself. The new version
-> should address the original comment.
-> ---
+On Thu, May 05, 2016 at 03:39:32PM +0300, Leon Romanovsky wrote:
 
-Hi Arnd,
+> > I think the message really should be that if your driver contains uAPI
+> > changes those should be in separate patches that are clearly identified. So
+> > if you have a driver that is developed off-list initially, instead of just
+> > breaking it up into chunks for submission add another step.
+> > 
+> > Something like this:
+> > 1) Submit patch series which break-ups internally developed code
+> > 2) Submit patch series with separated out uAPI code
+> > 3) Submit patch that makes the build go-live
 
-I didn't post a fix up since it is not needed anymore, see
-b7aade15485a ('vxlan: break dependency with netdev drivers') in
-net-next.
+Yes. Perhaps even submit #2 after getting #1 mainlined.
 
-The new issue is introduced due to : "net/mlx5: Kconfig: Fix
-MLX5_EN/VXLAN build issue" which was merged from net tree.
+Make it easy to find the important/controversial things and the review
+process will work much better for everyone. Buring stuff in a monster
+patch is just going to stretch it out.
 
-Dave shouldn't have merged it into net-next, I explicitly asked him
-that in the cover letter.  Maybe he missed it.
+> > These can all be submitted together, but with the patches broken up like
+> > this reviewers can target uAPI code more easily.
+ 
+> At the end, there is no point of accepting (1) without finished review
+> of (2 and 3). Right now all patch series already have such internal separation
+> in a slightly different order.
 
-I just checked and It is sufficient to only take the revert patch:
-[PATCH 1/3] Revert "net/mlx5: Kconfig: Fix MLX5_EN/VXLAN build issue"
-to net-next.
+Eh?
 
-Can you please confirm that with only the revert patch, you don't see
-the issue ?
+Drivers should be able to stand alone without dedicated uapis
+(excluding the udata stuff).
+
+For instance, the HFI1 driver is as functional as any other RDMA
+driver without it's cdev, eeprom, debug and sysfs uAPIs. Those are all
+value add features that do not impact the driver's ability to operate
+as an RDMA device.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
