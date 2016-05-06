@@ -1,27 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 3/5] IB/core: Fix a potential array overrun
- in CMA and SA agent
-Date: Fri, 6 May 2016 12:23:21 -0600
-Message-ID: <20160506182321.GB24503@obsidianresearch.com>
-References: <1462540026-12012-1-git-send-email-leon@kernel.org>
- <1462540026-12012-4-git-send-email-leon@kernel.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH 2/3] net/mlx5e: make VXLAN support conditional
+Date: Fri, 06 May 2016 15:35:56 -0400 (EDT)
+Message-ID: <20160506.153556.1442520532117922001.davem@davemloft.net>
+References: <1462365116-3856622-1-git-send-email-arnd@arndb.de>
+	<CALzJLG885q-Nm4xD3FobvY4A9RhLAV3jLwfAWdJwyDOid+tJ6g@mail.gmail.com>
+	<4306900.EI0LQtX7kx@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1462540026-12012-4-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <4306900.EI0LQtX7kx@wuerfel>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: arnd-r2nGTMty4D4@public.gmane.org
+Cc: saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 06, 2016 at 04:07:04PM +0300, Leon Romanovsky wrote:
-> -static struct ibnl_client_cbs iwcm_nl_cb_table[] = {
-> +static struct ibnl_client_cbs iwcm_nl_cb_table[RDMA_NL_IWPM_NUM_OPS] = {
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Date: Thu, 05 May 2016 20:09:19 +0200
 
-Why keep this hunk instead of using ARRAY_SIZE?
+> For reference, I've tried it out on the MLX4 driver, and it does
+> seem nicer that way, see below.
 
-Jason
+Is it possible to wind down this conversation and have someone submit
+whatever final patch everyone agrees to?
+
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
