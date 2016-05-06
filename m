@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 16/17] RDMA/iw_cxgb4: Always wake up waiter in c4iw_peer_abort_intr()
-Date: Fri,  6 May 2016 22:18:09 +0530
-Message-ID: <1462553290-16422-17-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH for-next 14/17] RDMA/iw_cxgb4: atomic find and reference for listening endpoints
+Date: Fri,  6 May 2016 22:18:07 +0530
+Message-ID: <1462553290-16422-15-git-send-email-hariprasad@chelsio.com>
 References: <1462553290-16422-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462553290-16422-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,77 +10,125 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently c4iw_peer_abort_intr() does not wake up the waiter if the
-endpoint state indicates we're using MPAv2 and we're currently trying to
-connect. This was introduced with commit 7c0a33d61187a ("RDMA/cxgb4:
-Don't wakeup threads for MPAv2")
+Add get_ep_from_stid() which will atomically find and reference the
+endpoint struct if found. This avoids touch-after-free races between
+threads destroying listening endpoints and the CPL processing thread
+processing an incoming PASS_ACCEPT_REQ CPL.
 
-However, this original fix is flawed because it introduces a race that
-can cause a deadlock of the iwarp stack.  Here is the race:
-
-->local side sets up an active offload connection.
-
-->local side sends MPA_START request.
-
-->peer sends MPA_START response.
-
-->local side ingress cpl thread begins processing the MPA_START response,
-but before it changes the state from MPA_REQ_SENT to FPDU_MODE:
-
-->peer sends a RST which results in a ABORT_REQ_RSS.  This triggers
-peer_abort_intr() which sees the state in MPA_REQ_SENT and since mpa_rev
-is 2, it will avoid waking up the endpoint with -ECONNRESET, assuming the
-stack will re-attempt the connection using MPAv1.
-
-->Meanwhile, the cpl thread moves the state to FPDU_MODE and calls
-c4iw_modify_rc_qp() which calls rdma_init() which sends a RI_WR/INIT WR
-to firmware.  But since HW sent an abort, FW correctly drops the RI_WR/INIT
-WR.
-
-->So the cpl thread is stuck waiting for a reply and cannot process the
-ABORT_REQ_RSS cpl sitting in its input queue. Thus everything comes to a
-halt because no more ingress cpls are processed by the stack...
-
-The correct fix for the issue is to always do the wake up in
-c4iw_abort_intr() but reinitialize the wait object in c4iw_reconnect().
-
-Fixes: 7c0a33d61187a ("RDMA/cxgb4: Don't wakeup threads for MPAv2")
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 0502fac4a214..4f8afa2b8e21 100644
+index e8edfeea84f9..4ee10547a4e4 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2136,6 +2136,7 @@ static int c4iw_reconnect(struct c4iw_ep *ep)
+@@ -342,6 +342,23 @@ static struct c4iw_ep *get_ep_from_tid(struct c4iw_dev *dev, unsigned int tid)
+ 	return ep;
+ }
  
- 	PDBG("%s qp %p cm_id %p\n", __func__, ep->com.qp, ep->com.cm_id);
- 	init_timer(&ep->timer);
-+	c4iw_init_wr_wait(&ep->com.wr_wait);
++/*
++ * Atomically lookup the ep ptr given the stid and grab a reference on the ep.
++ */
++static struct c4iw_listen_ep *get_ep_from_stid(struct c4iw_dev *dev,
++					       unsigned int stid)
++{
++	struct c4iw_listen_ep *ep;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dev->lock, flags);
++	ep = idr_find(&dev->stid_idr, stid);
++	if (ep)
++		c4iw_get_ep(&ep->com);
++	spin_unlock_irqrestore(&dev->lock, flags);
++	return ep;
++}
++
+ void _c4iw_free_ep(struct kref *kref)
+ {
+ 	struct c4iw_ep *ep;
+@@ -2306,9 +2323,8 @@ fail:
+ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ {
+ 	struct cpl_pass_open_rpl *rpl = cplhdr(skb);
+-	struct tid_info *t = dev->rdev.lldi.tids;
+ 	unsigned int stid = GET_TID(rpl);
+-	struct c4iw_listen_ep *ep = lookup_stid(t, stid);
++	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
  
- 	/*
- 	 * Allocate an active TID to initiate a TCP connection.
-@@ -4239,16 +4240,7 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
- 	PDBG("%s ep %p tid %u state %u\n", __func__, ep, ep->hwtid,
- 	     ep->com.state);
- 
--	/*
--	 * Wake up any threads in rdma_init() or rdma_fini().
--	 * However, if we are on MPAv2 and want to retry with MPAv1
--	 * then, don't wake up yet.
--	 */
--	if (mpa_rev == 2 && !ep->tried_with_mpa_v1) {
--		if (ep->com.state != MPA_REQ_SENT)
--			c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
--	} else
--		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
-+	c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 	if (!ep) {
+ 		PDBG("%s stid %d lookup failure!\n", __func__, stid);
+@@ -2317,7 +2333,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	PDBG("%s ep %p status %d error %d\n", __func__, ep,
+ 	     rpl->status, status2errno(rpl->status));
+ 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
+-
++	c4iw_put_ep(&ep->com);
  out:
- 	sched(dev, skb);
  	return 0;
+ }
+@@ -2325,12 +2341,12 @@ out:
+ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ {
+ 	struct cpl_close_listsvr_rpl *rpl = cplhdr(skb);
+-	struct tid_info *t = dev->rdev.lldi.tids;
+ 	unsigned int stid = GET_TID(rpl);
+-	struct c4iw_listen_ep *ep = lookup_stid(t, stid);
++	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
+ 
+ 	PDBG("%s ep %p\n", __func__, ep);
+ 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
++	c4iw_put_ep(&ep->com);
+ 	return 0;
+ }
+ 
+@@ -2490,7 +2506,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	unsigned short hdrs;
+ 	u8 tos = PASS_OPEN_TOS_G(ntohl(req->tos_stid));
+ 
+-	parent_ep = lookup_stid(t, stid);
++	parent_ep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
+ 	if (!parent_ep) {
+ 		PDBG("%s connect request on invalid stid %d\n", __func__, stid);
+ 		goto reject;
+@@ -2618,6 +2634,8 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	goto out;
+ reject:
+ 	reject_cr(dev, hwtid, skb);
++	if (parent_ep)
++		c4iw_put_ep(&parent_ep->com);
+ out:
+ 	return 0;
+ }
+@@ -3868,7 +3886,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	struct cpl_pass_accept_req *req = (void *)(rss + 1);
+ 	struct l2t_entry *e;
+ 	struct dst_entry *dst;
+-	struct c4iw_ep *lep;
++	struct c4iw_ep *lep = NULL;
+ 	u16 window;
+ 	struct port_info *pi;
+ 	struct net_device *pdev;
+@@ -3893,7 +3911,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	 */
+ 	stid = (__force int) cpu_to_be32((__force u32) rss->hash_val);
+ 
+-	lep = (struct c4iw_ep *)lookup_stid(dev->rdev.lldi.tids, stid);
++	lep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
+ 	if (!lep) {
+ 		PDBG("%s connect request on invalid stid %d\n", __func__, stid);
+ 		goto reject;
+@@ -3994,6 +4012,8 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
+ free_dst:
+ 	dst_release(dst);
+ reject:
++	if (lep)
++		c4iw_put_ep(&lep->com);
+ 	return 0;
+ }
+ 
 -- 
 2.3.4
 
