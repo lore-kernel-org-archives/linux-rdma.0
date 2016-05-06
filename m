@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 2/5] IB/core: Remove unnecessary check in ibnl_rcv_msg
-Date: Fri,  6 May 2016 16:07:03 +0300
-Message-ID: <1462540026-12012-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 4/5] IB/SA: Use correct free function
+Date: Fri,  6 May 2016 16:07:05 +0300
+Message-ID: <1462540026-12012-5-git-send-email-leon@kernel.org>
 References: <1462540026-12012-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462540026-12012-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,36 +12,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RDMA_NL_GET_OP is defined like this: (type & ((1 << 10) - 1))
-which means op (defined as an int) can never be a negative number.
+Fixes a direct call to kfree_skb when nlmsg_free should be used.
 
-Fixes: b2cbae2c2487 ('RDMA: Add netlink infrastructure')
+Fixes: 2ca546b92a02 ('IB/sa: Route SA pathrecord query through netlink')
 Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/sa_query.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index d47df93..9b8c20c 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -151,12 +151,11 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 	struct ibnl_client *client;
- 	int type = nlh->nlmsg_type;
- 	int index = RDMA_NL_GET_CLIENT(type);
--	int op = RDMA_NL_GET_OP(type);
-+	unsigned int op = RDMA_NL_GET_OP(type);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 1e7c652..3ebd108 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -536,7 +536,7 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
+ 	data = ibnl_put_msg(skb, &nlh, query->seq, 0, RDMA_NL_LS,
+ 			    RDMA_NL_LS_OP_RESOLVE, NLM_F_REQUEST);
+ 	if (!data) {
+-		kfree_skb(skb);
++		nlmsg_free(skb);
+ 		return -EMSGSIZE;
+ 	}
  
- 	list_for_each_entry(client, &client_list, list) {
- 		if (client->index == index) {
--			if (op < 0 || op >= client->nops ||
--			    !client->cb_table[op].dump)
-+			if (op >= client->nops || !client->cb_table[op].dump)
- 				return -EINVAL;
- 
- 			/*
 -- 
 2.1.4
 
