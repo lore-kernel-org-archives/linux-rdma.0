@@ -1,59 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/5] Trivial fixes for 4.7
-Date: Fri,  6 May 2016 16:07:01 +0300
-Message-ID: <1462540026-12012-1-git-send-email-leon@kernel.org>
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH for-next 00/17] RDMA/iw_cxgb4: Misc. fixes and enhancements for iw_cxgb4
+Date: Fri,  6 May 2016 22:17:53 +0530
+Message-ID: <1462553290-16422-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+Hi
 
-I'm sending to you small collection of trivial fixes to core code.
+This patch series corrects the RFC number of MPA, fixes endpoint leaks in
+lot of failure paths, adds code to handle return values for c4iw_ofld_send,
+c4iw_l2t_send and process_mpa_reply. Adds code to lookup and reference the
+endpoints atomically. Some fixes related to endpoint timer during MPA
+negotiation. Pass correct FID value in DSGL command.
 
-It fixes forgotten skb release call, potential overrun in CMA/SA, integration of
-ib_addr.ko into ib_core.ko and one code simplifications which doesn't introduce
-any code change behavior.
+This patch series has been created against Doug Ledford's linux tree and
+includes patches on iw_cxgb4 driver.
 
-Available in the "topic/fix-core" topic branch of this git repo:
+We have included all the maintainers of respective drivers. Kindly review
+the change and let us know in case of any review comments.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+Thanks
 
-Or for browsing:
+Hariprasad Shenai (17):
+  RDMA/iw_cxgb4: Add few history bits for ep
+  RDMA/iw_cxgb4: Correct RFC number of MPA
+  RDMA/iw_cxgb4: set the correct FID value in DSGL commands
+  RDMA/iw_cxgb4: parent_ep has to be dereferenced in case of passive
+    accept failure
+  RDMA/iw_cxgb4: Do not stop timer in case of incomplete messages
+  RDMA/iw_cxgb4: stop_ep_timer() after MPA negotiation
+  RDMA/iw_cxgb4: handle return value of c4iw_l2t_send() and
+    send_mpa_req()
+  RDMA/iw_cxgb4: in process_timeout() don't move ep state to ABORTING
+  RDMA/iw_cxgb4: Handle return value of c4iw_ofld_send() in
+    abort_arp_failure()
+  RDMA/iw_cxgb4: atomically lookup ep and get a reference
+  RDMA/iw_cxgb4: Free skb in case of arp failure in _c4iw_free_ep()
+  RDMA/iw_cxgb4: Release ep for for FPDU_MODE and MPA_REQ_RCVD in
+    process_timeout
+  RDMA/iw_cxgb4: Handle ULP accept/reject during ABORTING
+  RDMA/iw_cxgb4: atomic find and reference for listening endpoints
+  RDMA/iw_cxgb4: Handle ret value of process_mpa_reply() in rx_data
+  RDMA/iw_cxgb4: Always wake up waiter in c4iw_peer_abort_intr()
+  RDMA/iw_cxgb4: Add arp failure handlers to send_mpa_reply/reject()
 
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/fix-core
-
-Changes since v1:
- * Added Reviewed-by tags
- * Revisited titles
- * Removed RDMA_NL_RDMA_CM_NUM_OPS and RDMA_NL_LS_NUM_OPS
- * Removed useless enumeration value
- * Converted ib_addr module to be integral part of ib_core module
-
-Leon Romanovsky (1):
-  IB/core: Integrate IB address resolution module into core
-
-Mark Bloch (4):
-  IB/IWPM: Fix a potential skb leak
-  IB/core: Remove unnecessary check in ibnl_rcv_msg
-  IB/core: Fix a potential array overrun in CMA and SA agent
-  IB/SA: Use correct free function
-
- drivers/infiniband/core/Makefile    |  6 ++----
- drivers/infiniband/core/addr.c      | 11 ++---------
- drivers/infiniband/core/cma.c       |  3 ++-
- drivers/infiniband/core/device.c    | 11 ++++++++++-
- drivers/infiniband/core/iwcm.c      |  2 +-
- drivers/infiniband/core/iwpm_util.c |  1 +
- drivers/infiniband/core/netlink.c   |  5 ++---
- drivers/infiniband/core/sa_query.c  |  4 ++--
- include/rdma/ib_addr.h              |  3 +++
- include/uapi/rdma/rdma_netlink.h    |  8 +++-----
- 10 files changed, 28 insertions(+), 26 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c            | 371 ++++++++++++++++++----------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |   9 +-
+ drivers/infiniband/hw/cxgb4/mem.c           |   5 +-
+ drivers/net/ethernet/chelsio/cxgb4/t4_msg.h |   4 +
+ 4 files changed, 257 insertions(+), 132 deletions(-)
 
 -- 
-2.1.4
+2.3.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
