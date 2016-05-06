@@ -1,33 +1,43 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 4/4] IB/ipoib: Support SendOnlyFullMember
- MCG for SendOnly join
-Date: Thu, 5 May 2016 21:29:14 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1605052124140.1091@east.gentwo.org>
-References: <1462448219-24571-1-git-send-email-erezsh@mellanox.com> <1462448219-24571-5-git-send-email-erezsh@mellanox.com>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462448219-24571-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 net-next] net/mlx4: Avoid wrong virtual mappings
+Date: Thu, 05 May 2016 23:22:39 -0400 (EDT)
+Message-ID: <20160505.232239.927667859977554070.davem@davemloft.net>
+References: <1462362615-20238-1-git-send-email-hagaya@mellanox.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1462362615-20238-1-git-send-email-hagaya@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: hagaya@mellanox.com
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, okaya@codeaurora.org, timur@codeaurora.org, eli@mellanox.com, ogerlitz@mellanox.com, eranbe@mellanox.com, yishaih@mellanox.com, talal@mellanox.com, saeedm@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 5 May 2016, Erez Shitrit wrote:
+From: Haggai Abramovsky <hagaya@mellanox.com>
+Date: Wed,  4 May 2016 14:50:15 +0300
 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 2588931..fc3e50e 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -64,6 +64,9 @@ struct ipoib_mcast_iter {
->  	unsigned int       send_only;
->  };
->
-> +/* join state that allows creating mcg with sendonly member request */
-> +#define SENDONLY_FULLMEMBER_JOIN	8
+> The dma_alloc_coherent() function returns a virtual address which can
+> be used for coherent access to the underlying memory.  On some
+> architectures, like arm64, undefined behavior results if this memory is
+> also accessed via virtual mappings that are not coherent.  Because of
+> their undefined nature, operations like virt_to_page() return garbage
+> when passed virtual addresses obtained from dma_alloc_coherent().  Any
+> subsequent mappings via vmap() of the garbage page values are unusable
+> and result in bad things like bus errors (synchronous aborts in ARM64
+> speak).
+> 
+> The mlx4 driver contains code that does the equivalent of:
+> vmap(virt_to_page(dma_alloc_coherent)), this results in an OOPs when the
+> device is opened.
+> 
+> Prevent Ethernet driver to run this problematic code by forcing it to
+> allocate contiguous memory. As for the Infiniband driver, at first we
+> are trying to allocate contiguous memory, but in case of failure roll
+> back to work with fragmented memory.
+> 
+> Signed-off-by: Haggai Abramovsky <hagaya@mellanox.com>
+> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> Reported-by: David Daney <david.daney@cavium.com>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
 
-What are the other join states etc? Should all the join states not be
-defined with struct ib_sa_mcmbember_rec in include/rdma/ib_sa.h?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
