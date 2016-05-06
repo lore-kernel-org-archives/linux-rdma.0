@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 09/17] RDMA/iw_cxgb4: Handle return value of c4iw_ofld_send() in abort_arp_failure()
-Date: Fri,  6 May 2016 22:18:02 +0530
-Message-ID: <1462553290-16422-10-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH for-next 17/17] RDMA/iw_cxgb4: Add arp failure handlers to send_mpa_reply/reject()
+Date: Fri,  6 May 2016 22:18:10 +0530
+Message-ID: <1462553290-16422-18-git-send-email-hariprasad@chelsio.com>
 References: <1462553290-16422-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462553290-16422-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,51 +10,47 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In abort_arp_failure(), the return value from c4iw_ofld_send() is
-ignored and thus if the CPL isn't sent, the endpoint is stuck and never
-gets aborted. Failure of c4iw_ofld_send() is treated as fatal error, and
-the ep resources are released in a safer context through process_work().
+These handlers when called print error message to the kernel log,
+but the actual handling is done by _c4iw_free_ep() and process_timeout().
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 6c22bc95a112..6129dbd0dc9e 100644
+index 4f8afa2b8e21..c4b7f1f8f8a5 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -540,12 +540,18 @@ static void act_open_req_arp_failure(void *handle, struct sk_buff *skb)
-  */
- static void abort_arp_failure(void *handle, struct sk_buff *skb)
- {
--	struct c4iw_rdev *rdev = handle;
-+	int ret;
-+	struct c4iw_ep *ep = handle;
-+	struct c4iw_rdev *rdev = &ep->com.dev->rdev;
- 	struct cpl_abort_req *req = cplhdr(skb);
- 
- 	PDBG("%s rdev %p\n", __func__, rdev);
- 	req->cmd = CPL_ABORT_NO_RST;
--	c4iw_ofld_send(rdev, skb);
-+	ret = c4iw_ofld_send(rdev, skb);
-+	if (ret) {
-+		__state_set(&ep->com, DEAD);
-+		queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
-+	}
+@@ -515,6 +515,11 @@ static void arp_failure_discard(void *handle, struct sk_buff *skb)
+ 	kfree_skb(skb);
  }
  
- static int send_flowc(struct c4iw_ep *ep, struct sk_buff *skb)
-@@ -642,7 +648,7 @@ static int send_abort(struct c4iw_ep *ep, struct sk_buff *skb, gfp_t gfp)
- 		return -ENOMEM;
- 	}
++static void mpa_start_arp_failure(void *handle, struct sk_buff *skb)
++{
++	pr_err("ARP failure during MPA Negotiation - Closing Connection\n");
++}
++
+ enum {
+ 	NUM_FAKE_CPLS = 2,
+ 	FAKE_CPL_PUT_EP_SAFE = NUM_CPL_CMDS + 0,
+@@ -1118,6 +1123,7 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	 */
+ 	skb_get(skb);
  	set_wr_txq(skb, CPL_PRIORITY_DATA, ep->txq_idx);
--	t4_set_arp_err_handler(skb, &ep->com.dev->rdev, abort_arp_failure);
-+	t4_set_arp_err_handler(skb, ep, abort_arp_failure);
- 	req = (struct cpl_abort_req *) skb_put(skb, wrlen);
- 	memset(req, 0, wrlen);
- 	INIT_TP_WR(req, ep->hwtid);
++	t4_set_arp_err_handler(skb, NULL, mpa_start_arp_failure);
+ 	BUG_ON(ep->mpa_skb);
+ 	ep->mpa_skb = skb;
+ 	ep->snd_seq += mpalen;
+@@ -1202,6 +1208,7 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	 * Function fw4_ack() will deref it.
+ 	 */
+ 	skb_get(skb);
++	t4_set_arp_err_handler(skb, NULL, mpa_start_arp_failure);
+ 	ep->mpa_skb = skb;
+ 	__state_set(&ep->com, MPA_REP_SENT);
+ 	ep->snd_seq += mpalen;
 -- 
 2.3.4
 
