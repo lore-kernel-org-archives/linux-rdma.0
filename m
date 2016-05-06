@@ -1,68 +1,80 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 3/5] IB/core: Fix a potential array overrun
- in CMA and SA agent
-Date: Fri, 6 May 2016 22:40:44 +0300
-Message-ID: <20160506194044.GM29160@leon.nu>
-References: <1462540026-12012-1-git-send-email-leon@kernel.org>
- <1462540026-12012-4-git-send-email-leon@kernel.org>
- <20160506182321.GB24503@obsidianresearch.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YS7t75H5cNTCpbja"
+Subject: [PATCH rdma-next V2 3/5] IB/core: Fix a potential array overrun in CMA and SA agent
+Date: Fri,  6 May 2016 22:45:26 +0300
+Message-ID: <1462563928-29164-4-git-send-email-leon@kernel.org>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160506182321.GB24503-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1462563928-29164-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---YS7t75H5cNTCpbja
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix array overrun when going over callback table.
+In declaration of callback table, the max size isn't provided and
+in registration phase, it is provided.
 
-On Fri, May 06, 2016 at 12:23:21PM -0600, Jason Gunthorpe wrote:
-> On Fri, May 06, 2016 at 04:07:04PM +0300, Leon Romanovsky wrote:
-> > -static struct ibnl_client_cbs iwcm_nl_cb_table[] =3D {
-> > +static struct ibnl_client_cbs iwcm_nl_cb_table[RDMA_NL_IWPM_NUM_OPS] =
-=3D {
->=20
-> Why keep this hunk instead of using ARRAY_SIZE?
+There is potential scenario where a new operation is added
+and it is not supported by current client. The acceptance of
+such operation by ib_netlink will cause to array overrun.
 
-I tried to minimize my changes to original author patch. I'm sending
-updated version.
+Fixes: 809d5fc9bf65 ("infiniband: pass rdma_cm module to netlink_dump_start")
+Fixes: b493d91d333e ("iwcm: common code for port mapper")
+Fixes: 2ca546b92a02 ("IB/sa: Route SA pathrecord query through netlink")
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c      | 3 ++-
+ drivers/infiniband/core/iwcm.c     | 2 +-
+ drivers/infiniband/core/sa_query.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-Thanks for review.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 93ab0ae..b575bd5 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4294,7 +4294,8 @@ static int __init cma_init(void)
+ 	if (ret)
+ 		goto err;
+ 
+-	if (ibnl_add_client(RDMA_NL_RDMA_CM, RDMA_NL_RDMA_CM_NUM_OPS, cma_cb_table))
++	if (ibnl_add_client(RDMA_NL_RDMA_CM, ARRAY_SIZE(cma_cb_table),
++			    cma_cb_table))
+ 		pr_warn("RDMA CMA: failed to add netlink callback\n");
+ 	cma_configfs_init();
+ 
+diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
+index e28a160..51079e3 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -1175,7 +1175,7 @@ static int __init iw_cm_init(void)
+ 	if (ret)
+ 		pr_err("iw_cm: couldn't init iwpm\n");
+ 
+-	ret = ibnl_add_client(RDMA_NL_IWCM, RDMA_NL_IWPM_NUM_OPS,
++	ret = ibnl_add_client(RDMA_NL_IWCM, ARRAY_SIZE(iwcm_nl_cb_table),
+ 			      iwcm_nl_cb_table);
+ 	if (ret)
+ 		pr_err("iw_cm: couldn't register netlink callbacks\n");
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 8a09c0f..1e7c652 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1820,7 +1820,7 @@ static int __init ib_sa_init(void)
+ 		goto err3;
+ 	}
+ 
+-	if (ibnl_add_client(RDMA_NL_LS, RDMA_NL_LS_NUM_OPS,
++	if (ibnl_add_client(RDMA_NL_LS, ARRAY_SIZE(ib_sa_cb_table),
+ 			    ib_sa_cb_table)) {
+ 		pr_err("Failed to add netlink callback\n");
+ 		ret = -EINVAL;
+-- 
+2.1.4
 
->=20
-> Jason
-
---YS7t75H5cNTCpbja
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXLPM7AAoJEORje4g2clinyicQAMAaBDagArMBwZgSceyQcZrT
-6URdh4JkhKJubrthW4AVfnSGDatxCXrpb6IHS93QYoeQq3HeGqk8LBqbOfKxumeX
-r6+gT/VZI3cZUIMPi4qcYvPVXM7eFSwXWMBVZoPUhVM/auXusrGYNzGUikNkvzTQ
-1DvnkgrYUtgL42yEv6hGDz47XJq3IcdTL/+4xIkp+JngfJZ1f/OI8CYgZlY8zHj6
-NUq0l1OWU3gMT3lKsVhZv0q1rlq5QBY7lo/WN5nTbcAZIwTA0Uz5S9Xj8fkVbyg8
-qaA6/q1FO8J+HzufYSQMhlKoRoEdVGHw6G/ynHG6eL2cExlUEuIg/1awwS9Wmb69
-1HoJZp6BGY3WH9Jl7dpQrl2/CEBuUm7jclUOfHYoImamdAt1V9XAdElbKDi6T+Df
-cf6NfjNRKUMGEt/bflsudweNvL31Aoi4jjBTC6benAs0tEzHyLCKf0IFGWKxCwuU
-XIfgCm4GWp55qrBa92AxnQLBUSgDmpW1zc598KU/zOmDTMkMmrYT8ar8TJZabdCJ
-aZ8IF9Oug5DKnSO7x0YXe/dnHDM85ON+MWNOKnW0ahn7c2RFIcaO54XH2EtcHWlQ
-lgxvaF0MO1rqQ67Jb4wF71qjqjFgWZyrnPmWC7l1JHvucq/SnLJMnGYaVCDkSIyU
-acNK5lRUmHi7M7jDEUco
-=Fswg
------END PGP SIGNATURE-----
-
---YS7t75H5cNTCpbja--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
