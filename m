@@ -1,136 +1,114 @@
-From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 14/17] RDMA/iw_cxgb4: atomic find and reference for listening endpoints
-Date: Fri,  6 May 2016 22:18:07 +0530
-Message-ID: <1462553290-16422-15-git-send-email-hariprasad@chelsio.com>
-References: <1462553290-16422-1-git-send-email-hariprasad@chelsio.com>
+From: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v1 1/1] RDMA/nes: replace custom print_hex_dump()
+Date: Fri,  6 May 2016 20:19:42 +0300
+Message-ID: <1462555182-49917-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462553290-16422-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add get_ep_from_stid() which will atomically find and reference the
-endpoint struct if found. This avoids touch-after-free races between
-threads destroying listening endpoints and the CPL processing thread
-processing an incoming PASS_ACCEPT_REQ CPL.
+There is no need to duplicate a lot of code that is in the kernel library for ages.
+Replace duplicating code by calling to print_hex_dump() directly.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Note that output is slightly changed:
+- hex and ascii parts have just two spaces delimeter
+- there is no delimeter for ascii portions
+- file and line removed from prefix (they were redundant anyway since previous
+  output shows same closer enough)
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 36 ++++++++++++++++++++++++++++--------
- 1 file changed, 28 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/nes/nes_utils.c | 60 ++---------------------------------
+ 1 file changed, 3 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index e8edfeea84f9..4ee10547a4e4 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -342,6 +342,23 @@ static struct c4iw_ep *get_ep_from_tid(struct c4iw_dev *dev, unsigned int tid)
- 	return ep;
- }
+diff --git a/drivers/infiniband/hw/nes/nes_utils.c b/drivers/infiniband/hw/nes/nes_utils.c
+index 6d3a169..37331e2 100644
+--- a/drivers/infiniband/hw/nes/nes_utils.c
++++ b/drivers/infiniband/hw/nes/nes_utils.c
+@@ -44,6 +44,7 @@
+ #include <linux/ip.h>
+ #include <linux/tcp.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
  
-+/*
-+ * Atomically lookup the ep ptr given the stid and grab a reference on the ep.
-+ */
-+static struct c4iw_listen_ep *get_ep_from_stid(struct c4iw_dev *dev,
-+					       unsigned int stid)
-+{
-+	struct c4iw_listen_ep *ep;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dev->lock, flags);
-+	ep = idr_find(&dev->stid_idr, stid);
-+	if (ep)
-+		c4iw_get_ep(&ep->com);
-+	spin_unlock_irqrestore(&dev->lock, flags);
-+	return ep;
-+}
-+
- void _c4iw_free_ep(struct kref *kref)
+ #include <asm/io.h>
+ #include <asm/irq.h>
+@@ -903,70 +904,15 @@ void nes_clc(unsigned long parm)
+  */
+ void nes_dump_mem(unsigned int dump_debug_level, void *addr, int length)
  {
- 	struct c4iw_ep *ep;
-@@ -2306,9 +2323,8 @@ fail:
- static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- {
- 	struct cpl_pass_open_rpl *rpl = cplhdr(skb);
--	struct tid_info *t = dev->rdev.lldi.tids;
- 	unsigned int stid = GET_TID(rpl);
--	struct c4iw_listen_ep *ep = lookup_stid(t, stid);
-+	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
- 	if (!ep) {
- 		PDBG("%s stid %d lookup failure!\n", __func__, stid);
-@@ -2317,7 +2333,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	PDBG("%s ep %p status %d error %d\n", __func__, ep,
- 	     rpl->status, status2errno(rpl->status));
- 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
+-	char  xlate[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+-		'a', 'b', 'c', 'd', 'e', 'f'};
+-	char  *ptr;
+-	char  hex_buf[80];
+-	char  ascii_buf[20];
+-	int   num_char;
+-	int   num_ascii;
+-	int   num_hex;
 -
-+	c4iw_put_ep(&ep->com);
- out:
- 	return 0;
+ 	if (!(nes_debug_level & dump_debug_level)) {
+ 		return;
+ 	}
+ 
+-	ptr = addr;
+ 	if (length > 0x100) {
+ 		nes_debug(dump_debug_level, "Length truncated from %x to %x\n", length, 0x100);
+ 		length = 0x100;
+ 	}
+-	nes_debug(dump_debug_level, "Address=0x%p, length=0x%x (%d)\n", ptr, length, length);
+-
+-	memset(ascii_buf, 0, 20);
+-	memset(hex_buf, 0, 80);
+-
+-	num_ascii = 0;
+-	num_hex = 0;
+-	for (num_char = 0; num_char < length; num_char++) {
+-		if (num_ascii == 8) {
+-			ascii_buf[num_ascii++] = ' ';
+-			hex_buf[num_hex++] = '-';
+-			hex_buf[num_hex++] = ' ';
+-		}
+-
+-		if (*ptr < 0x20 || *ptr > 0x7e)
+-			ascii_buf[num_ascii++] = '.';
+-		else
+-			ascii_buf[num_ascii++] = *ptr;
+-		hex_buf[num_hex++] = xlate[((*ptr & 0xf0) >> 4)];
+-		hex_buf[num_hex++] = xlate[*ptr & 0x0f];
+-		hex_buf[num_hex++] = ' ';
+-		ptr++;
+-
+-		if (num_ascii >= 17) {
+-			/* output line and reset */
+-			nes_debug(dump_debug_level, "   %s |  %s\n", hex_buf, ascii_buf);
+-			memset(ascii_buf, 0, 20);
+-			memset(hex_buf, 0, 80);
+-			num_ascii = 0;
+-			num_hex = 0;
+-		}
+-	}
++	nes_debug(dump_debug_level, "Address=0x%p, length=0x%x (%d)\n", addr, length, length);
+ 
+-	/* output the rest */
+-	if (num_ascii) {
+-		while (num_ascii < 17) {
+-			if (num_ascii == 8) {
+-				hex_buf[num_hex++] = ' ';
+-				hex_buf[num_hex++] = ' ';
+-			}
+-			hex_buf[num_hex++] = ' ';
+-			hex_buf[num_hex++] = ' ';
+-			hex_buf[num_hex++] = ' ';
+-			num_ascii++;
+-		}
+-
+-		nes_debug(dump_debug_level, "   %s |  %s\n", hex_buf, ascii_buf);
+-	}
++	print_hex_dump(KERN_ERR, PFX, DUMP_PREFIX_NONE, 16, 1, addr, length, true);
  }
-@@ -2325,12 +2341,12 @@ out:
- static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- {
- 	struct cpl_close_listsvr_rpl *rpl = cplhdr(skb);
--	struct tid_info *t = dev->rdev.lldi.tids;
- 	unsigned int stid = GET_TID(rpl);
--	struct c4iw_listen_ep *ep = lookup_stid(t, stid);
-+	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
- 	PDBG("%s ep %p\n", __func__, ep);
- 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
-+	c4iw_put_ep(&ep->com);
- 	return 0;
- }
- 
-@@ -2490,7 +2506,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	unsigned short hdrs;
- 	u8 tos = PASS_OPEN_TOS_G(ntohl(req->tos_stid));
- 
--	parent_ep = lookup_stid(t, stid);
-+	parent_ep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
- 	if (!parent_ep) {
- 		PDBG("%s connect request on invalid stid %d\n", __func__, stid);
- 		goto reject;
-@@ -2618,6 +2634,8 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	goto out;
- reject:
- 	reject_cr(dev, hwtid, skb);
-+	if (parent_ep)
-+		c4iw_put_ep(&parent_ep->com);
- out:
- 	return 0;
- }
-@@ -3868,7 +3886,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 	struct cpl_pass_accept_req *req = (void *)(rss + 1);
- 	struct l2t_entry *e;
- 	struct dst_entry *dst;
--	struct c4iw_ep *lep;
-+	struct c4iw_ep *lep = NULL;
- 	u16 window;
- 	struct port_info *pi;
- 	struct net_device *pdev;
-@@ -3893,7 +3911,7 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- 	 */
- 	stid = (__force int) cpu_to_be32((__force u32) rss->hash_val);
- 
--	lep = (struct c4iw_ep *)lookup_stid(dev->rdev.lldi.tids, stid);
-+	lep = (struct c4iw_ep *)get_ep_from_stid(dev, stid);
- 	if (!lep) {
- 		PDBG("%s connect request on invalid stid %d\n", __func__, stid);
- 		goto reject;
-@@ -3994,6 +4012,8 @@ static int rx_pkt(struct c4iw_dev *dev, struct sk_buff *skb)
- free_dst:
- 	dst_release(dst);
- reject:
-+	if (lep)
-+		c4iw_put_ep(&lep->com);
- 	return 0;
- }
- 
 -- 
-2.3.4
+2.8.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
