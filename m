@@ -1,62 +1,82 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 0/5] Trivial fixes for 4.7
-Date: Fri,  6 May 2016 22:45:23 +0300
-Message-ID: <1462563928-29164-1-git-send-email-leon@kernel.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Fri, 6 May 2016 16:11:54 -0400
+Message-ID: <3b794d06-5ad6-f163-6bc6-df0200129dd0@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="h5snOVcsoP7P8xVWP4c52UuhiJlfLHEMr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--h5snOVcsoP7P8xVWP4c52UuhiJlfLHEMr
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I'm sending to you small collection of trivial fixes to core code.
+Hi Linus,
 
-It fixes forgotten skb release call, potential overrun in CMA/SA, integration of
-ib_addr.ko into ib_core.ko and one code simplifications which doesn't introduce
-any code change behavior.
+I have one more fix queued up for -rc.
 
-Available in the "topic/fix-core" topic branch of this git repo:
+The following changes since commit 4c8bb95921e9ac01b9dd0c3abbaf6514ce88af=
+92:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+  RDMA/nes: don't leak skb if carrier down (2016-04-28 21:11:09 -0400)
 
-Or for browsing:
+are available in the git repository at:
 
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/fix-core
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
 
-Changes since v2:
- * Removed iwcm_nl_cb_table size initialization
+for you to fetch changes up to 9c674815d346305068b27bf03b5e86b659a1b111:
 
-Changes since v1:
- * Added Reviewed-by tags
- * Revisited titles
- * Removed RDMA_NL_RDMA_CM_NUM_OPS and RDMA_NL_LS_NUM_OPS
- * Removed useless enumeration value
- * Converted ib_addr module to be integral part of ib_core module
+  IB/iser: Fix max_sectors calculation (2016-05-05 12:41:24 -0400)
 
-Leon Romanovsky (1):
-  IB/core: Integrate IB address resolution module into core
+----------------------------------------------------------------
+Late 4.6-rc fixes
 
-Mark Bloch (4):
-  IB/IWPM: Fix a potential skb leak
-  IB/core: Remove unnecessary check in ibnl_rcv_msg
-  IB/core: Fix a potential array overrun in CMA and SA agent
-  IB/SA: Use correct free function
+- Fix for max sector calculation in iSER
 
- drivers/infiniband/core/Makefile    |  6 ++----
- drivers/infiniband/core/addr.c      | 11 ++---------
- drivers/infiniband/core/cma.c       |  3 ++-
- drivers/infiniband/core/device.c    | 11 ++++++++++-
- drivers/infiniband/core/iwcm.c      |  2 +-
- drivers/infiniband/core/iwpm_util.c |  1 +
- drivers/infiniband/core/netlink.c   |  5 ++---
- drivers/infiniband/core/sa_query.c  |  4 ++--
- include/rdma/ib_addr.h              |  3 +++
- 9 files changed, 25 insertions(+), 21 deletions(-)
+----------------------------------------------------------------
+Christoph Hellwig (1):
+      IB/iser: Fix max_sectors calculation
 
--- 
-2.1.4
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--h5snOVcsoP7P8xVWP4c52UuhiJlfLHEMr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXLPqKAAoJELgmozMOVy/dIQ0QAIQzSE3E1TPlhZJYfTdFyYfE
+2iNKU+JcYDI2hERnjEimxZ6BnV9lVWk2W5BZFzByfJ49DKRnnTSwhxkGOEAHbnjU
+2hI5zgEU4keusB3g7tJEPhjQ8G5sNo0fKOXI6Xc0VPXizCa6VPZwdd4Qdrwx9cUd
+D1BYK3VY0yxHDMDF5A55pfsjHvPD7gDjUCDzEa1JWgCth5xP8NGj10g8wEYv5ayH
+8sDB59unS+IALbAGF+rC0TAoQ+ex9LB5UEVNewT+QJzVA2FO4ixjeixFZy7Xh9Ew
+57RSEzJUU/7JXQ+xWE4jdRFpIucP3c6H1s17NHqNeFXh/3u8uPZkFmwcMPS6xuQg
+H9Z7bV2UZe8O6EzqRjcKMkgDLp6hHlEd8B/Z35EpXKyIPnjYN2XoULpkics4uPVS
+3a0kvTj14wgT0jlSZXE9sLMHYBquJ0rKlBpLVfY1XDEdSiljXH4K2+ieb2/jET3x
+rT0oyOXvDhVSWn1SJ0AlJuDzVGd62w0+enfsWl0Sq5/NMLbq6DGDVvbEKzvZiqcg
+P2zldtTOhHWqoQW1MCkbXUXU86T4Whq6jnhFMdyy0q1MFr3+VGcJ0AkcbneEuicA
+qK+r4XJO0n7grOQiMPo+JFeyNa1qvaEpEpmHnwcrPeErIFTRO2O9IzrnqbV7o0wh
+7sAC9r6B6Xael+UA1t0f
+=lUha
+-----END PGP SIGNATURE-----
+
+--h5snOVcsoP7P8xVWP4c52UuhiJlfLHEMr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
