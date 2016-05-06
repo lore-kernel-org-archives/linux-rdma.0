@@ -1,7 +1,7 @@
 From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH for-next 03/17] RDMA/iw_cxgb4: set the correct FID value in DSGL commands
-Date: Fri,  6 May 2016 22:17:56 +0530
-Message-ID: <1462553290-16422-4-git-send-email-hariprasad@chelsio.com>
+Subject: [PATCH for-next 04/17] RDMA/iw_cxgb4: parent_ep has to be dereferenced in case of passive accept failure
+Date: Fri,  6 May 2016 22:17:57 +0530
+Message-ID: <1462553290-16422-5-git-send-email-hariprasad@chelsio.com>
 References: <1462553290-16422-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1462553290-16422-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,51 +10,92 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The FID value in a ULP_MEMIO command needs to be set to an IQ ID of
-a queue configured for our PF.  The FID/IQ id is used to index into the
-PCIE FID table, to find out on which function the DMA needs to be
-issued. Essentially, every DMA needs to have the ingress queue. The exact
-ingress queue doesn't matter, but it needs to be an ingress queue
-associated with the function you want to see the DMA on.
+-> On passive side of connection parent_ep referenced during connection
+request has to be dereferenced during the passive accept failure.
+-> As passive accept failure error handlinglogic runs in atomic context,
+the parent ep is dereferenced by scheduling work request.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/mem.c           | 5 +++--
- drivers/net/ethernet/chelsio/cxgb4/t4_msg.h | 4 ++++
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 008be07d5604..d495675ea68d 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -86,8 +86,9 @@ static int _c4iw_write_mem_dma_aligned(struct c4iw_rdev *rdev, u32 addr,
- 			(wait ? FW_WR_COMPL_F : 0));
- 	req->wr.wr_lo = wait ? (__force __be64)(unsigned long) &wr_wait : 0L;
- 	req->wr.wr_mid = cpu_to_be32(FW_WR_LEN16_V(DIV_ROUND_UP(wr_len, 16)));
--	req->cmd = cpu_to_be32(ULPTX_CMD_V(ULP_TX_MEM_WRITE));
--	req->cmd |= cpu_to_be32(T5_ULP_MEMIO_ORDER_V(1));
-+	req->cmd = cpu_to_be32(ULPTX_CMD_V(ULP_TX_MEM_WRITE) |
-+			       T5_ULP_MEMIO_ORDER_V(1) |
-+			       T5_ULP_MEMIO_FID_V(rdev->lldi.rxq_ids[0]));
- 	req->dlen = cpu_to_be32(ULP_MEMIO_DATA_LEN_V(len>>5));
- 	req->len16 = cpu_to_be32(DIV_ROUND_UP(wr_len-sizeof(req->wr), 16));
- 	req->lock_addr = cpu_to_be32(ULP_MEMIO_ADDR_V(addr));
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h b/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
-index 80417fc564d4..4705e2dea423 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/t4_msg.h
-@@ -1392,6 +1392,10 @@ struct ulp_mem_io {
- #define T5_ULP_MEMIO_ORDER_V(x) ((x) << T5_ULP_MEMIO_ORDER_S)
- #define T5_ULP_MEMIO_ORDER_F    T5_ULP_MEMIO_ORDER_V(1U)
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index e953f8fd36a0..cae1794cef83 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -453,8 +453,9 @@ static void arp_failure_discard(void *handle, struct sk_buff *skb)
+ }
  
-+#define T5_ULP_MEMIO_FID_S	4
-+#define T5_ULP_MEMIO_FID_M	0x7ff
-+#define T5_ULP_MEMIO_FID_V(x)	((x) << T5_ULP_MEMIO_FID_S)
+ enum {
+-	NUM_FAKE_CPLS = 1,
++	NUM_FAKE_CPLS = 2,
+ 	FAKE_CPL_PUT_EP_SAFE = NUM_CPL_CMDS + 0,
++	FAKE_CPL_PASS_PUT_EP_SAFE = NUM_CPL_CMDS + 1,
+ };
+ 
+ static int _put_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
+@@ -466,18 +467,29 @@ static int _put_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	return 0;
+ }
+ 
++static int _put_pass_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
++{
++	struct c4iw_ep *ep;
 +
- /* ulp_mem_io.lock_addr fields */
- #define ULP_MEMIO_ADDR_S    0
- #define ULP_MEMIO_ADDR_V(x) ((x) << ULP_MEMIO_ADDR_S)
++	ep = *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
++	c4iw_put_ep(&ep->parent_ep->com);
++	release_ep_resources(ep);
++	return 0;
++}
++
+ /*
+  * Fake up a special CPL opcode and call sched() so process_work() will call
+  * _put_ep_safe() in a safe context to free the ep resources.  This is needed
+  * because ARP error handlers are called in an ATOMIC context, and
+  * _c4iw_free_ep() needs to block.
+  */
+-static void queue_arp_failure_cpl(struct c4iw_ep *ep, struct sk_buff *skb)
++static void queue_arp_failure_cpl(struct c4iw_ep *ep, struct sk_buff *skb,
++				  int cpl)
+ {
+ 	struct cpl_act_establish *rpl = cplhdr(skb);
+ 
+ 	/* Set our special ARP_FAILURE opcode */
+-	rpl->ot.opcode = FAKE_CPL_PUT_EP_SAFE;
++	rpl->ot.opcode = cpl;
+ 
+ 	/*
+ 	 * Save ep in the skb->cb area, after where sched() will save the dev
+@@ -496,7 +508,7 @@ static void pass_accept_rpl_arp_failure(void *handle, struct sk_buff *skb)
+ 	       ep->hwtid);
+ 
+ 	__state_set(&ep->com, DEAD);
+-	queue_arp_failure_cpl(ep, skb);
++	queue_arp_failure_cpl(ep, skb, FAKE_CPL_PASS_PUT_EP_SAFE);
+ }
+ 
+ /*
+@@ -517,7 +529,7 @@ static void act_open_req_arp_failure(void *handle, struct sk_buff *skb)
+ 	}
+ 	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, ep->atid);
+ 	cxgb4_free_atid(ep->com.dev->rdev.lldi.tids, ep->atid);
+-	queue_arp_failure_cpl(ep, skb);
++	queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
+ }
+ 
+ /*
+@@ -3935,7 +3947,8 @@ static c4iw_handler_func work_handlers[NUM_CPL_CMDS + NUM_FAKE_CPLS] = {
+ 	[CPL_FW4_ACK] = fw4_ack,
+ 	[CPL_FW6_MSG] = deferred_fw6_msg,
+ 	[CPL_RX_PKT] = rx_pkt,
+-	[FAKE_CPL_PUT_EP_SAFE] = _put_ep_safe
++	[FAKE_CPL_PUT_EP_SAFE] = _put_ep_safe,
++	[FAKE_CPL_PASS_PUT_EP_SAFE] = _put_pass_ep_safe
+ };
+ 
+ static void process_timeout(struct c4iw_ep *ep)
 -- 
 2.3.4
 
