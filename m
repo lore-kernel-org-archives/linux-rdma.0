@@ -1,86 +1,46 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [oss-security] CVE Request: Linux: IB/security: Restrict use of
- the write() interface'
-Date: Mon, 09 May 2016 21:48:59 +0200
-Message-ID: <1462823339.4268.54.camel@opteya.com>
-References: <20160507042232.GA5286@eldamar.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Mon, 9 May 2016 13:57:34 -0600
+Message-ID: <20160509195734.GA22669@obsidianresearch.com>
+References: <20160502190619.GB32613@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com>
+ <20160504181135.GA15355@obsidianresearch.com>
+ <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com>
+ <20160505181423.GB5957@obsidianresearch.com>
+ <alpine.DEB.2.20.1605052116570.1091@east.gentwo.org>
+ <20160506225523.GA21309@obsidianresearch.com>
+ <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org>
+ <20160509163537.GA15479@obsidianresearch.com>
+ <20160509191613.GS29160@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160507042232.GA5286-yvBWh1Eg28aNj9Bq2fkWzw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160509191613.GS29160-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oss-security-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Red Hat Security Response Team <secalert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ben Hutchings <benh-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Mon, May 09, 2016 at 10:16:13PM +0300, Leon Romanovsky wrote:
 
-Le samedi 07 mai 2016 =C3=A0 06:22 +0200, Salvatore Bonaccorso a =C3=A9=
-crit=C2=A0:
->=20
-> Jann Horn reported an issue in the infiniband stack. It has been
-> fixed
-> in v4.6-rc6 with commit e6bd18f57aad1a2d1ef40e646d03ed0f2515c9e3:
->=20
-> https://git.kernel.org/linus/e6bd18f57aad1a2d1ef40e646d03ed0f2515c9e3
->=20
-> >=20
-> > IB/security: Restrict use of the write() interface
-> > The drivers/infiniband stack uses write() as a replacement for
-> > bi-directional ioctl().=C2=A0=C2=A0This is not safe. There are ways=
- to
-> > trigger write calls that result in the return structure that
-> > is normally written to user space being shunted off to user
-> > specified kernel memory instead.
-> >=20
-> > For the immediate repair, detect and deny suspicious accesses to
-> > the write API.
-> >=20
-> > For long term, update the user space libraries and the kernel API
-> > to something that doesn't present the same security vulnerabilities
-> > (likely a structured ioctl() interface).
-> >=20
-> > The impacted uAPI interfaces are generally only available if
-> > hardware from drivers/infiniband is installed in the system.
+> > If you want hardware knowledgeable people to help, then you need to go
+> > to the forums they are active in.
+> 
+> It doesn't make sense to look after these people who have no interest in
+> linux RDMA at all.
 
-As a workaround, I would suggest that systems which do not require
-(userspace) RDMA/Infiniband to blacklist/remove the following modules:
+Linux RDMA is only one half of the coin - most of our uAPIs are
+backed by a hardware implementation, and thus defining a bad API
+directly limits future hardware designs. It is very foolish not to ask
+the people who are designing future hardware what they think.
 
-=C2=A0 rdma_ucm
-=C2=A0 ib_uverbs
-=C2=A0 ib_ucm
-=C2=A0=C2=A0ib_umad
+This isn't like other places in the kernel where everything is just
+software.
 
-=46or example, adds the following in /etc/modprobe.d/blacklist.conf
-
-=C2=A0 blacklist rdma_ucm
-=C2=A0 blacklist ib_uverbs
-=C2=A0 blacklist ib_ucm
-=C2=A0 blacklist ib_umad
-
-Those building their own kernel might want to disable, if not already,
-
-=C2=A0 CONFIG_INFINIBAND_USER_ACCESS,=C2=A0
-=C2=A0 CONFIG_INFINIBAND_USER_MAD,
-=C2=A0 CONFIG_INFINIBAND_ADDR_TRANS
-
-(Unfortunately the last one will also disable those features:
-=C2=A0 iSCSI Extensions for RDMA (iSER)
-=C2=A0 iSCSI Extensions for RDMA (iSER) target support
-=C2=A0 RDS over Infiniband and iWARP
-=C2=A0 9P RDMA Transport (Experimental)
-=C2=A0 RPC-over-RDMA transport
-=C2=A0 =C2=A0 (which actually disable NFSoRDMA))
-
-Regards.
-
---=C2=A0
-Yann Droneaud
-OPTEYA
-
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
