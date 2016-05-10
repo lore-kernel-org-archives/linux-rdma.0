@@ -1,8 +1,8 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
  querying device
-Date: Tue, 10 May 2016 07:58:01 +0300
-Message-ID: <20160510045801.GV29160@leon.nu>
+Date: Tue, 10 May 2016 07:41:07 +0300
+Message-ID: <20160510044107.GU29160@leon.nu>
 References: <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com>
  <20160504181135.GA15355@obsidianresearch.com>
  <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com>
@@ -11,92 +11,72 @@ References: <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.c
  <20160506225523.GA21309@obsidianresearch.com>
  <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org>
  <20160509163537.GA15479@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB04A390@ORSMSX109.amr.corp.intel.com>
- <20160509200507.GA23911@obsidianresearch.com>
+ <20160509191613.GS29160@leon.nu>
+ <20160509195734.GA22669@obsidianresearch.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sr8SBrQ3fbgntwtR"
+	protocol="application/pgp-signature"; boundary="AHVSF3we4xtO5oi5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160509200507.GA23911-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160509195734.GA22669-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---sr8SBrQ3fbgntwtR
+--AHVSF3we4xtO5oi5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 09, 2016 at 02:05:07PM -0600, Jason Gunthorpe wrote:
-> On Mon, May 09, 2016 at 07:11:23PM +0000, Hefty, Sean wrote:
-> > > > An IBTA process? How would that be relevant here?
-> > >=20
-> > > What do you mean? IBTA is the only multi-vendor body left working on
-> > > standardizing the hardware specification for verbs.
-> > >=20
-> > > These various recent patches are adding new hardware features to
-> > > verbs.
-> > >=20
+On Mon, May 09, 2016 at 01:57:34PM -0600, Jason Gunthorpe wrote:
+> On Mon, May 09, 2016 at 10:16:13PM +0300, Leon Romanovsky wrote:
+>=20
 > > > If you want hardware knowledgeable people to help, then you need to go
 > > > to the forums they are active in.
-> > >=20
-> > > This isn't just a software exercise.
 > >=20
-> > Previous changes to the uABI (for example, XRC) were not accepted
-> > until they were standardized by the IBTA.  An exception that I'm
-> > aware of are the flow specs.
+> > It doesn't make sense to look after these people who have no interest in
+> > linux RDMA at all.
 >=20
-> We need to decide as a community what we want to do here, because this
-> uncertain process is getting tiring for everyone.
->=20
-> The Collab Summit discussions ended with a general consensus that some
-> things would go to the driver-specific channel, while hardware
-> behavior related to the common uAPI would go through at least a
-> multi-vendor sign off process - like IBTA.
+> Linux RDMA is only one half of the coin - most of our uAPIs are
+> backed by a hardware implementation, and thus defining a bad API
+> directly limits future hardware designs. It is very foolish not to ask
+> the people who are designing future hardware what they think.
 
-Jason,
-We did ALL and much more from the discussed for RSS patches and at the end,
-we saw half a word from the maintainer about the future plans for its accep=
-tance.
+Exactly, this is why it is posted on the open mailing list where
+everyone has stage to express their opinion, including these mysterious
+hardware architecture who cares about future design, but doesn't care about
+its future support.
 
->=20
-> We didn't talk about how to expose them to apps in userspace once they
-> were exposed through the kernel.
->=20
-> It is pretty obvious the current 'process' isn't working.
+The intension for submitted new uAPI to be generic from the
+beginning and authors are always open to adjust it to answer
+reviews feedback.
 
-There is no meaning of "process" without people and their execution, and ri=
-ght
-now, I don't see any execution of it in the linux RDMA community (fixes
-and ULP changes are not merged for a while).
-
---sr8SBrQ3fbgntwtR
+--AHVSF3we4xtO5oi5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXMWpZAAoJEORje4g2clinX2oQAICCpifiFfWlZiqMPkjZ4YWL
-8ZExAzWX4NbOCRKViFs+LDfwyRtm6Ozd5QwQcF1JB/O/qoM1ZV8PS+olOOZufao5
-sgWqBiOFWzXvium3OtjAxlgTvzINiwiCMe5oA3SibMSl/wrM8HTu6ac4cDnsqRp0
-09iOOFKn04asL86wcI2XeZoP5LAMOzDS+E/6Uyc6diVvRczGdGi3XkdaijGj+y6U
-48qJLClhnXYknD3LF0imNCmBAEP8+kg9b20dVQZNavr5nQB4ruWgDaasLOAS/2ve
-HaE44MR2xXg5O90LznFZi5ygqIVEx837eFLu6vEDyMH5AztUpl64atXzFJILcW+N
-b4Q0JDESnBSuh6ZbvnPen2Vd+vzH65WHMXR6TS3IibJrASZuGdD5rH6mSyXsz7Ur
-aPjsQyKd48+mX6qAs/L8Touui/7gzDHsK1NPDxM+OpHcWywrXQyFXNKEwmizNTm2
-6BjxcWVIRmWKoNhLIRml1rnPnFJOo6JMF5FcYZqU0H7WCj3khlmq4a57Z4f3W85K
-N0pFukema6B42wlMgPHT77Wv3p0XoTOh+xMLT+V7SCX5lcC6BgnMid/Sbp09ewD9
-bIOoWaAviCNRbINGHirvzHoxeIz4GWJYRKkxFoweiqoRYMBIdoWxZaoRhpu+2TjX
-a/1MiUd+KopOLRmia1S9
-=Z86B
+iQIcBAEBAgAGBQJXMWZjAAoJEORje4g2clindNEP/jxFo+saRHU2RjJSk6YJFF1i
+Ip3SlZIB6cx0c4J77SfZvW1Mhg9e+2EOWxeae74oeFBu0/nUK3iK5SYPS9uXeW3P
+RY06/D2wTY9YUMv8fc/k+gIQfCw60GM74XJ0KRvcQ7rHuUZLxspTHEztVS/NaTw2
+7WYyZ2Lj4AnPqhr5VtrrIzxiCHrYyentK0Ix40acrf/XpdeOLixjOR43gU4+BfY0
+DOs4MO9NA1l6z0v/6k5DgzvkWGzkjKonoweAVwEbhm7W7yvFGp3ekmNlZj4zSvpB
+sHvCFfqAyUmtYZ+VxiZOb+PLChjegCSaF+1W0tVnJnT97r7FBQPrMItYwCDbUwsS
+fUGFJCsft/p4p+NyN0ceeKiCdp6qWHlZpOeJ8EvFDm/bHqF60DYwqc/3ORanMTaZ
+Nnzo4Fv/RVLOkLzgx89DTzVwODn1jiz4CzvTu6yTLhztRc9e3uzRaagAxZE70ih/
+LXPp/5uAl+ybG4yaNQw0Jh9r9IHi9FkIN4WXnpCswluItjlG13pxzVVPsK1wOnYq
+ZaprSHscwBFvBXtfuIujP1xPIcG286+IbudVtKkoZ53vpzjRoSpJNodmTRF/47Bc
+F0XSoqQOrc/hp/mF5Me3pck0VSqPFdqu2sahb/nNscawdaS04Hq3qXegEgrKEMb6
+eXP4ELus0HM1/xQ74YI1
+=JnzE
 -----END PGP SIGNATURE-----
 
---sr8SBrQ3fbgntwtR--
+--AHVSF3we4xtO5oi5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
