@@ -1,60 +1,72 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/hfi1: Fix buffer cache races which may cause corruption
-Date: Tue, 10 May 2016 13:41:49 +0300
-Message-ID: <20160510104149.GA1326@mwanda>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 4/4] IB/core: Add IP to GID netlink offload
+Date: Tue, 10 May 2016 10:57:58 +0000
+Message-ID: <VI1PR05MB1391E99DF74B2A76025ADAA0D2710@VI1PR05MB1391.eurprd05.prod.outlook.com>
+References: <1462376518-6725-1-git-send-email-leon@kernel.org>
+ <1462376518-6725-5-git-send-email-leon@kernel.org>
+ <20160504185241.GD20554@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20160504185241.GD20554-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Mitko Haralanov,
+Sorry it took me so long to response, I had personal matters I had to attend
+and was without internet access.
 
-The patch e88c9271d9f8: "IB/hfi1: Fix buffer cache races which may
-cause corruption" from Apr 12, 2016, leads to the following static
-checker warning:
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Wednesday, May 04, 2016 9:53 PM
+> To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Mark Bloch
+> <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Matan
+> Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH rdma-next 4/4] IB/core: Add IP to GID netlink offload
+> 
+> On Wed, May 04, 2016 at 06:41:58PM +0300, Leon Romanovsky wrote:
+> > From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > There is an assumption that rdmacm is used only between nodes
+> > in the same IB subnet, this why ARP resolution can be used to turn
+> > IP to GID in rdmacm.
+> >
+> > When dealing with IB communication between subnets this assumption
+> > is no longer valid. ARP resolution will get us the next hop device
+> > address and not the peer node's device address.
+> >
+> > To overcome this limitation, let's check user space if it can
+> > provide the GID of the peer node, and fail if not.
+> >
+> > We add a sequence number to identify each request and fill in the GID
+> > upon answer from user space.
+> 
+> This description doesn't describe what this patch is trying to do.
+> 
+> This patch is delegating IP to GID translation to user space if there
+> is a route table entry for the destination.
+> 
+> I have to say, I really don't like this at all. If we want to have
+> proper routing support then the translation needs to be done somehow
+> in-band. What is user space supposed to do?
+I agree that in the long term an in-band kernel based solution is a better option.
+As it stands today, I don't know of any standard way to achieve that.
 
-	drivers/staging/rdma/hfi1/user_sdma.c:1053 sdma_cache_evict()
-	warn: test_bit() takes a bit number
+I'll add a better description to the next version, but in a nutshell:
+We are using ibacm to answer those requests, we envision two ways to do that,
+The easier one is to load Ibacm with a file that contains ip->gid of the entire fabric.
+The more tricky one is feed live information, so if a new node becomes active, update
+The entire fabric about its IP and GID and remove the information if a node goes down.
 
-drivers/staging/rdma/hfi1/user_sdma.c
-  1043  static u32 sdma_cache_evict(struct hfi1_user_sdma_pkt_q *pq, u32 npages)
-  1044  {
-  1045          u32 cleared = 0;
-  1046          struct sdma_mmu_node *node, *ptr;
-  1047          struct list_head to_evict = LIST_HEAD_INIT(to_evict);
-  1048  
-  1049          spin_lock(&pq->evict_lock);
-  1050          list_for_each_entry_safe_reverse(node, ptr, &pq->evict, list) {
-  1051                  /* Make sure that no one is still using the node. */
-  1052                  if (!atomic_read(&node->refcount)) {
-  1053                          set_bit(SDMA_CACHE_NODE_EVICT, &node->flags);
-                                        ^^^^^^^^^^^^^^^^^^^^^
-This is doing set_bit(BIT(0), &node->flags); but presumably the intent
-was to do "set_bit(0, &node->flags);".  In other words it is setting bit
-1 instead of 0.
+That's also the reason why I've added the RDMA_NL_LS_OP_IP_RESOLVE under 
+Local service operations. This way ibacm can still listen on one netlink socket
+For both SA and IP->GID queries.
 
-  1054                          list_del_init(&node->list);
-  1055                          list_add(&node->list, &to_evict);
-  1056                          cleared += node->npages;
-  1057                          if (cleared >= npages)
-  1058                                  break;
-  1059                  }
-  1060          }
-  1061          spin_unlock(&pq->evict_lock);
-  1062  
-  1063          list_for_each_entry_safe(node, ptr, &to_evict, list)
-  1064                  hfi1_mmu_rb_remove(&pq->sdma_rb_root, &node->rb);
-  1065  
-  1066          return cleared;
-  1067  }
-
-
-regards,
-dan carpenter
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
