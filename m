@@ -1,69 +1,37 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when querying device
-Date: Tue, 10 May 2016 10:03:48 -0500
-Message-ID: <0c0801d1aacd$280e52e0$782af8a0$@opengridcomputing.com>
-References: <20160502190619.GB32613@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com> <20160504181135.GA15355@obsidianresearch.com> <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com> <20160505181423.GB5957@obsidianresearch.com> <alpine.DEB.2.20.1605052116570.1091@east.gentwo.org> <20160506225523.GA21309@obsidianresearch.com> <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org> <20160509163537.GA15479@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB04A390@ORSMSX109.amr.corp.intel.com> <20160509200507.GA23911@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB04A40A@ORSMSX109.amr.corp.intel.com>
+From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: IB/hfi1: Fix buffer cache races which may cause corruption
+Date: Tue, 10 May 2016 08:04:32 -0700
+Message-ID: <20160510080432.6e651311@hematite.sc.intel.com>
+References: <20160510104149.GA1326@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB04A40A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20160510104149.GA1326@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Bodong Wang' <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> > We need to decide as a community what we want to do here, because this
-> > uncertain process is getting tiring for everyone.
-> 
-> Agree greatly
-> 
-> > The Collab Summit discussions ended with a general consensus that some
-> > things would go to the driver-specific channel, while hardware
-> > behavior related to the common uAPI would go through at least a
-> > multi-vendor sign off process - like IBTA.
-> 
-> I agree with this approach.
-> 
-> > We didn't talk about how to expose them to apps in userspace once they
-> > were exposed through the kernel.
-> 
-> I think this will end up being vendor specific, and I'm not sure each vendor
-knows
-> what they want to do.
-> 
-> > It is pretty obvious the current 'process' isn't working. This new
-> > idea that the common uAPI should just be a union of every vendor's
-> > unique hardware ideas has not resulted in patches being merged any
-> > faster; and I think the quality of the API is not as good now..
-> 
-> IMO, crafting a common API means a higher level of abstraction.  The lower the
-> API, the more it needs to be driver specific.  I prefer a method that: allows
-vendors
-> to stay out of each other's way, and quickly allows vendors to export their
-features
-> to user space.  Either of these options can work for that.  I don't see that a
-low-
-> level, common API is suitable.
+On Tue, 10 May 2016 13:41:49 +0300
+Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-Hey all,
+> The patch e88c9271d9f8: "IB/hfi1: Fix buffer cache races which may
+> cause corruption" from Apr 12, 2016, leads to the following static
+> checker warning:
+> 
+> 	drivers/staging/rdma/hfi1/user_sdma.c:1053 sdma_cache_evict()
+> 	warn: test_bit() takes a bit number
 
-I've been trying to follow this thread, and there has been comments that other
-device owners should speak up.  But I'm not sure what LSO would do for an iWARP
-RC QP connection.  Can someone give me a quick summary?  
+Hi Dan,
 
-Because as it stands now, a ~4GB send can be posted in 1 work request, and FW/HW
-(in the iWARP DDP layer) deals with segmenting it based on the MTU for the
-interface, and then assembling it to deliver as a single RECV completion at the
-peer.  What would LSO do beyond this?
- 
-Sorry for the dumb question.
+Thank you for reporting this issue. I've double checked and while
+there is no correctness problem at this time, we will fix the
+set_bit()/test_bit() argument.
 
-Steve
-
+-- 
+Thank you
+Mitko
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
