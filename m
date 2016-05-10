@@ -1,46 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
- querying device
-Date: Tue, 10 May 2016 10:46:08 -0600
-Message-ID: <20160510164608.GA29825@obsidianresearch.com>
-References: <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com>
- <20160505181423.GB5957@obsidianresearch.com>
- <alpine.DEB.2.20.1605052116570.1091@east.gentwo.org>
- <20160506225523.GA21309@obsidianresearch.com>
- <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org>
- <20160509163537.GA15479@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB04A390@ORSMSX109.amr.corp.intel.com>
- <20160509200507.GA23911@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB04A40A@ORSMSX109.amr.corp.intel.com>
- <0c0801d1aacd$280e52e0$782af8a0$@opengridcomputing.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: IB/hfi1: Fix buffer cache races which may cause corruption
+Date: Tue, 10 May 2016 19:57:09 +0300
+Message-ID: <20160510165709.GB19274@mwanda>
+References: <20160510104149.GA1326@mwanda>
+ <20160510080432.6e651311@hematite.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0c0801d1aacd$280e52e0$782af8a0$@opengridcomputing.com>
+In-Reply-To: <20160510080432.6e651311-xX4rS/KCtk00dzWUSSna/BL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Bodong Wang' <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 10, 2016 at 10:03:48AM -0500, Steve Wise wrote:
+On Tue, May 10, 2016 at 08:04:32AM -0700, Mitko Haralanov wrote:
+> On Tue, 10 May 2016 13:41:49 +0300
+> Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> > The patch e88c9271d9f8: "IB/hfi1: Fix buffer cache races which may
+> > cause corruption" from Apr 12, 2016, leads to the following static
+> > checker warning:
+> > 
+> > 	drivers/staging/rdma/hfi1/user_sdma.c:1053 sdma_cache_evict()
+> > 	warn: test_bit() takes a bit number
+> 
+> Hi Dan,
+> 
+> Thank you for reporting this issue. I've double checked and while
+> there is no correctness problem at this time, we will fix the
+> set_bit()/test_bit() argument.
 
-> I've been trying to follow this thread, and there has been comments that other
-> device owners should speak up.  But I'm not sure what LSO would do for an iWARP
-> RC QP connection.  Can someone give me a quick summary?  
+I don't understand what a "correctness problem" is...  It's obviously
+wrong to use BIT(1) instead of BIT(0) but if it's done incorrectly every
+time and nothing else is using BIT(1) then it might not affect run time.
+Perhaps that's what you are saying?
 
-It is unlikely someone would use LSO and an iWarp RC QP together.
+regards,
+dan carpenter
 
-However, an iWarp NIC may want to expose the raw ethernet QP style of
-feature, which would probably also want to include the LSO, RSS,
-timestamping etc features.
-
-Most likely iWarp cards already include LSO features in their
-netdevice drivers? In that instance I'd say, imagine that same LSO
-feature works on a verbs QP and ask if the patch covers the way it
-works.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
