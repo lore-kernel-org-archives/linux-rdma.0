@@ -1,35 +1,42 @@
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: IB/hfi1: Fix buffer cache races which may cause corruption
-Date: Tue, 10 May 2016 10:03:51 -0700
-Message-ID: <20160510100351.243658aa@hematite.sc.intel.com>
-References: <20160510104149.GA1326@mwanda>
-	<20160510080432.6e651311@hematite.sc.intel.com>
-	<20160510165709.GB19274@mwanda>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when
+ querying device
+Date: Tue, 10 May 2016 11:07:39 -0600
+Message-ID: <20160510170739.GA2879@obsidianresearch.com>
+References: <20160504181135.GA15355@obsidianresearch.com>
+ <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com>
+ <20160505181423.GB5957@obsidianresearch.com>
+ <alpine.DEB.2.20.1605052116570.1091@east.gentwo.org>
+ <20160506225523.GA21309@obsidianresearch.com>
+ <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org>
+ <20160509163537.GA15479@obsidianresearch.com>
+ <20160509191613.GS29160@leon.nu>
+ <20160509195734.GA22669@obsidianresearch.com>
+ <20160510044107.GU29160@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160510165709.GB19274@mwanda>
+Content-Disposition: inline
+In-Reply-To: <20160510044107.GU29160-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 10 May 2016 19:57:09 +0300
-Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> Exactly, this is why it is posted on the open mailing list where
+> everyone has stage to express their opinion, including these mysterious
+> hardware architecture who cares about future design, but doesn't care about
+> its future support.
 
-> I don't understand what a "correctness problem" is...  It's obviously
-> wrong to use BIT(1) instead of BIT(0) but if it's done incorrectly every
-> time and nothing else is using BIT(1) then it might not affect run time.
-> Perhaps that's what you are saying?
+Look, if you want linux-rdma to be setting hardware standards then get
+a consensus from the vendors on this idea.
 
-Yes, that is what I was saying. I apologize for not being more clear.
-Furthermore, even if it does not affect run time, we will still fix the
-incorrect usage of BIT().
+This was tried at the Collab summit and I heard several representatives
+strongly say no.
 
--- 
-Thank you
-Mitko
+It is not an inherently unworkable idea.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
