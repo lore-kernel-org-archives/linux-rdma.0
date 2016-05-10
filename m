@@ -1,94 +1,68 @@
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 3/4] IB/core: Support new type of join-state for multicast
-Date: Tue, 10 May 2016 17:56:47 +0300
-Message-ID: <1462892208-6140-4-git-send-email-erezsh@mellanox.com>
-References: <1462892208-6140-1-git-send-email-erezsh@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V1 for-next 1/2] IB/core: Report LSO capabilities when querying device
+Date: Tue, 10 May 2016 10:03:48 -0500
+Message-ID: <0c0801d1aacd$280e52e0$782af8a0$@opengridcomputing.com>
+References: <20160502190619.GB32613@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB048E47@ORSMSX109.amr.corp.intel.com> <20160504181135.GA15355@obsidianresearch.com> <21d9307f-766e-9aaa-54d3-207a4a4d5d8c@mellanox.com> <20160505181423.GB5957@obsidianresearch.com> <alpine.DEB.2.20.1605052116570.1091@east.gentwo.org> <20160506225523.GA21309@obsidianresearch.com> <alpine.DEB.2.20.1605090926440.6128@east.gentwo.org> <20160509163537.GA15479@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB04A390@ORSMSX109.amr.corp.intel.com> <20160509200507.GA23911@obsidianresearch.com> <1828884A29C6694DAF28B7E6B8A82373AB04A40A@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462892208-6140-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB04A40A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Bodong Wang' <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> 
+> > We need to decide as a community what we want to do here, because this
+> > uncertain process is getting tiring for everyone.
+> 
+> Agree greatly
+> 
+> > The Collab Summit discussions ended with a general consensus that some
+> > things would go to the driver-specific channel, while hardware
+> > behavior related to the common uAPI would go through at least a
+> > multi-vendor sign off process - like IBTA.
+> 
+> I agree with this approach.
+> 
+> > We didn't talk about how to expose them to apps in userspace once they
+> > were exposed through the kernel.
+> 
+> I think this will end up being vendor specific, and I'm not sure each vendor
+knows
+> what they want to do.
+> 
+> > It is pretty obvious the current 'process' isn't working. This new
+> > idea that the common uAPI should just be a union of every vendor's
+> > unique hardware ideas has not resulted in patches being merged any
+> > faster; and I think the quality of the API is not as good now..
+> 
+> IMO, crafting a common API means a higher level of abstraction.  The lower the
+> API, the more it needs to be driver specific.  I prefer a method that: allows
+vendors
+> to stay out of each other's way, and quickly allows vendors to export their
+features
+> to user space.  Either of these options can work for that.  I don't see that a
+low-
+> level, common API is suitable.
 
-There are four types for MCG, FullMember, NonMember, SendOnlyNonMember,
-and the new added type: SendOnlyFullMember.
-Add support for the new SendOnlyFullMember join state.
+Hey all,
 
-The new type allows host to send join request as sendonly, it will cause the
-group to be created but without getting packets from this multicast back to the
-host.
+I've been trying to follow this thread, and there has been comments that other
+device owners should speak up.  But I'm not sure what LSO would do for an iWARP
+RC QP connection.  Can someone give me a quick summary?  
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/multicast.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+Because as it stands now, a ~4GB send can be posted in 1 work request, and FW/HW
+(in the iWARP DDP layer) deals with segmenting it based on the MTU for the
+interface, and then assembling it to deliver as a single RECV completion at the
+peer.  What would LSO do beyond this?
+ 
+Sorry for the dumb question.
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 250937c..a83ec28 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -93,6 +93,18 @@ enum {
- 
- struct mcast_member;
- 
-+/*
-+* There are 4 types of join states:
-+* FullMember, NonMember, SendOnlyNonMember, SendOnlyFullMember.
-+*/
-+enum {
-+	FULLMEMBER_JOIN,
-+	NONMEMBER_JOIN,
-+	SENDONLY_NONMEBER_JOIN,
-+	SENDONLY_FULLMEMBER_JOIN,
-+	NUM_JOIN_MEMBERSHIP_TYPES,
-+};
-+
- struct mcast_group {
- 	struct ib_sa_mcmember_rec rec;
- 	struct rb_node		node;
-@@ -102,7 +114,7 @@ struct mcast_group {
- 	struct list_head	pending_list;
- 	struct list_head	active_list;
- 	struct mcast_member	*last_join;
--	int			members[3];
-+	int			members[NUM_JOIN_MEMBERSHIP_TYPES];
- 	atomic_t		refcount;
- 	enum mcast_group_state	state;
- 	struct ib_sa_query	*query;
-@@ -220,8 +232,9 @@ static void queue_join(struct mcast_member *member)
- }
- 
- /*
-- * A multicast group has three types of members: full member, non member, and
-- * send only member.  We need to keep track of the number of members of each
-+ * A multicast group has four types of members: full member, non member,
-+ * sendonly non member and sendonly full member.
-+ * We need to keep track of the number of members of each
-  * type based on their join state.  Adjust the number of members the belong to
-  * the specified join states.
-  */
-@@ -229,7 +242,7 @@ static void adjust_membership(struct mcast_group *group, u8 join_state, int inc)
- {
- 	int i;
- 
--	for (i = 0; i < 3; i++, join_state >>= 1)
-+	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++, join_state >>= 1)
- 		if (join_state & 0x1)
- 			group->members[i] += inc;
- }
-@@ -245,7 +258,7 @@ static u8 get_leave_state(struct mcast_group *group)
- 	u8 leave_state = 0;
- 	int i;
- 
--	for (i = 0; i < 3; i++)
-+	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++)
- 		if (!group->members[i])
- 			leave_state |= (0x1 << i);
- 
--- 
-1.7.11.3
+Steve
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
