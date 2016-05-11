@@ -1,40 +1,58 @@
-From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Subject: [PATCH] infiniband/ulp/ipoib: remove pkey_mutex
-Date: Wed, 11 May 2016 12:04:09 +0200
-Message-ID: <1462961049-11026-1-git-send-email-bigeasy@linutronix.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+From: Petr Mladek <pmladek@suse.com>
+Subject: Re: [PATCH v6 00/20] kthread: Use kthread worker API more widely
+Date: Wed, 11 May 2016 12:52:24 +0200
+Message-ID: <20160511105224.GE2749@pathway.suse.cz>
+References: <1460646879-617-1-git-send-email-pmladek@suse.com>
+ <20160422183040.GW7822@mtj.duckdns.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20160422183040.GW7822@mtj.duckdns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Jiri Kosina <jkosina@suse.cz>, Borislav Petkov <bp@suse.de>, Michal Hocko <mhocko@suse.cz>, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, linux-watchdog@vger.kernel.org, Corey Minyard <minyard@acm.org>, openipmi-developer@lists.sourceforge.net, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, Maxim Levitsky <maximlevitsky@gmail.com>, Zhang Rui <rui.zhang@int>
 List-Id: linux-rdma@vger.kernel.org
 
-The last user of pkey_mutex was removed in db84f8803759 ("IB/ipoib: Use
-P_Key change event instead of P_Key polling mechanism") but the lock
-remained.
-This patch removes it.
+On Fri 2016-04-22 14:30:40, Tejun Heo wrote:
+> Hello, Petr.
+> 
+> On Thu, Apr 14, 2016 at 05:14:19PM +0200, Petr Mladek wrote:
+> > My intention is to make it easier to manipulate and maintain kthreads.
+> > Especially, I want to replace all the custom main cycles with a
+> > generic one. Also I want to make the kthreads sleep in a consistent
+> > state in a common place when there is no work.
+> > 
+> > My first attempt was with a brand new API (iterant kthread), see
+> > http://thread.gmane.org/gmane.linux.kernel.api/11892 . But I was
+> > directed to improve the existing kthread worker API. This is
+> > the 4th iteration of the new direction.
+> > 
+> > 1nd..10th patches: improve the existing kthread worker API
+> 
+> I glanced over them and they generally look good to me.  Let's see how
+> people respond to actual conversions.
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c | 2 --
- 1 file changed, 2 deletions(-)
+The part improving the kthread worker API and the intel powerclamp
+conversion seem to be ready for the mainline. But it is getting too late
+for 4.7.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index f0e55e47eb54..da5f28c892ca 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -51,8 +51,6 @@ MODULE_PARM_DESC(data_debug_level,
- 		 "Enable data path debug tracing if > 0");
- #endif
- 
--static DEFINE_MUTEX(pkey_mutex);
--
- struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
- 				 struct ib_pd *pd, struct ib_ah_attr *attr)
- {
--- 
-2.8.1
+I am going to resend this part of the patch set separately after
+the 4.7 merge window finishes with the aim for 4.8. The other
+conversions are spread over many subsystems, so I will send
+them separately.
+
+Tejun, may I add your ack for some of the patches, please?
+Or do you want to wait for the resend?
+
+Andrew, I wonder if it could go via the -mm tree once I get
+the acks.
+
+Best Regards,
+Petr
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
