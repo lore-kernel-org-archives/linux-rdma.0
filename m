@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/6] IB/srp: Print "ib_srp: " prefix once
-Date: Tue, 10 May 2016 17:12:52 -0700
-Message-ID: <57327904.1040102@sandisk.com>
+Subject: [PATCH 2/6] IB/srp: Fix a memory descriptor leak in an error path
+Date: Tue, 10 May 2016 17:13:21 -0700
+Message-ID: <57327921.9030306@sandisk.com>
 References: <573278D9.4050908@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,31 +13,39 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-pr_debug() already prints prefix PFX. Avoid that PFX is printed
-twice if the debug statement in srp_add_target() is enabled.
+If an error occurs after srp_fr_pool_get() succeeded and before the
+descriptor is stored in srp_map_state (*state->fr.next++ = desc)
+then srp_unmap_data() won't free the newly allocated memory
+descriptor. Hence free the descriptor explicitly.
 
-Fixes: 34aa654ecb8e ("IB/srp: Avoid that I/O hangs due to a cable pull during LUN scanning")
+Fixes: f7f7aab1a5c0 ("IB/srp: Convert to new registration API")
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sai-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.19+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.4+
 ---
- drivers/infiniband/ulp/srp/ib_srp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srp/ib_srp.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index caefd1a..e088a49 100644
+index e088a49..74e3ec8 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2839,7 +2839,7 @@ static int srp_add_target(struct srp_host *host, struct srp_target_port *target)
- 		goto out;
- 	}
+@@ -1330,8 +1330,13 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	ib_update_fast_reg_key(desc->mr, rkey);
  
--	pr_debug(PFX "%s: SCSI scan succeeded - detected %d LUNs\n",
-+	pr_debug("%s: SCSI scan succeeded - detected %d LUNs\n",
- 		 dev_name(&target->scsi_host->shost_gendev),
- 		 srp_sdev_count(target->scsi_host));
+ 	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, 0, dev->mr_page_size);
+-	if (unlikely(n < 0))
++	if (unlikely(n < 0)) {
++		srp_fr_pool_put(ch->fr_pool, &desc, 1);
++		pr_debug("%s: ib_map_mr_sg(%d) returned %d.\n",
++			 dev_name(&req->scmnd->device->sdev_gendev), sg_nents,
++			 n);
+ 		return n;
++	}
+ 
+ 	req->reg_cqe.done = srp_reg_mr_err_done;
  
 -- 
 2.8.2
