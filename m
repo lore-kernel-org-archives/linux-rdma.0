@@ -1,65 +1,67 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: generic RDMA READ/WRITE API V8
-Date: Thu, 12 May 2016 14:43:30 -0400
-Message-ID: <1a3914af-45ad-0944-95f0-dd138b632014@redhat.com>
-References: <1462291273-22403-1-git-send-email-hch@lst.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] IB/srp: Second series of patches for kernel v4.7
+Date: Thu, 12 May 2016 14:44:04 -0400
+Message-ID: <0dc43faf-18d4-15e2-2e10-fd4a0447d501@redhat.com>
+References: <5734C181.2020003@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1462291273-22403-1-git-send-email-hch@lst.de>
-Sender: target-devel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+ boundary="SV4uv4uv610a5dR56ArJq2AfwipS7Cq73"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5734C181.2020003-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw
+--SV4uv4uv610a5dR56ArJq2AfwipS7Cq73
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 05/03/2016 12:01 PM, Christoph Hellwig wrote:
-> This series contains patches that implement a first version of a generi=
-c
-> API to handle RDMA READ/WRITE operations as commonly used on the target=
+On 05/12/2016 01:46 PM, Bart Van Assche wrote:
+> Hello Doug,
+>=20
+> Since the first eight patches of the patch series "[PATCH 0/11] More SR=
+P
+> patches for kernel v4.7" have already been applied I'm reposting versio=
+n
+> two of the reworked remaining patches. These patches are:
+>=20
+> 0001-IB-srp-Print-ib_srp-prefix-once.patch
+> 0002-IB-srp-Fix-a-memory-descriptor-leak-in-an-error-path.patch
+> 0003-IB-srp-Fix-srp_create_target-error-handling.patch
+> 0004-IB-core-Enhance-ib_map_mr_sg.patch
+> 0005-IB-srp-Swap-two-code-blocks-in-srp_add_one.patch
+> 0006-IB-srp-Prevent-mapping-failures.patch
+> 0007-IB-srp-Do-not-register-memory-if-never_register-has-.patch
+>=20
+> The changes compared to v1 of this patch series are:
+> * Fixed a bug in patch 4/7, the patch that modifies ib_map_mr_sg().
+> * Added code that checks how many data has been mapped in patch 6/7.
+>   This code can be enabled and disabled dynamically via the dynamic
+>   debug mechanism.
+> * Added a seventh patch that introduces the never_register parameter.
+>=20
+> This patch series is based on Christoph's RDMA read/write API rework
+> patch series.
+>=20
+> A git tree with these patches is available at
+> https://github.com/bvanassche/linux/commits/srp-initiator-for-next.
+>=20
+> Thanks,
+>=20
+> Bart.
 
-> (or server) side for storage protocols.
->=20
-> This has been developed for the upcoming NVMe over Fabrics target, and
-> extensively te=D1=95ted as part of that, although this upstream version=
- has
-> additional updates over the one we're currently using.
->=20
-> It hides details such as the use of MRs for iWarp devices, and will all=
-ow
-> looking at other HCA specifics easily in the future.
->=20
-> This series contains also conversion the SRP and iSER targets to the ne=
-w
-> API.
->=20
-> I think it's basically ready to merge now.
->=20
-> I also have a git tree available at:
->=20
-> 	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
->=20
-> gitweb:
->=20
-> 	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
-w-api
-
-Thanks Christoph, this has been applied.
-
+Thanks Bart, these have been applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw
+--SV4uv4uv610a5dR56ArJq2AfwipS7Cq73
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,19 +70,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNM7TAAoJELgmozMOVy/dhFYQAIa9xlhY4JZqseNR31Vf51Qp
-pTS8LDk5mh2T3+yEdUwBw25Kmox6ugjcom+bhUgt7RcrPTjg4uVp+oNbXDlR8qha
-s9oNcjRYn9siWojH+Vz+WK4vX4v3cUvR1HIz6Kc9gw8qD3Xbo/LCjuSiWP1mjp56
-0mTQOrSSI7USw03/tlLsAGcLNGezRzdd2F2jZLi0Bbs8HJZpmmUNCHqO4yw+ws3Q
-V8DZ5fSWhuvJUDz7IORWDqTm3LzwsEV0ZwxiYs4A456bJZuvxMDr5MPghKl/LkPo
-XHR/fOTWlgOPi/38qz3MTZXAQn19eKzjN4QJmQTJk+2TMqy65us6A6OrMCghWjuZ
-obEv9La9l3U0upXLmz/VrkjJcozUN9Or0HBlYPPU9tBetclKUXytt0kgqFrenczg
-8NBManWhrMpGgh8yfS77jWbAlOkH6RcwCHxvhYDcKkJoH0+RtAxBzwGalY7oNy2s
-p34VQ8Uye0Z/Xagxwq/XsxqvT9sIQlfLoihBreE1ju5OmX66TRJThSHXBlaKLCyB
-RjlV8LLkUu8/oA4hXknuskjkq6Obb0n4FRC1cqzO76UeNfjveXPhSOvsoHyOhVgM
-QkwNLnnQaA2usA9NZZPMCHlKgOO8xo7ZUysq2H/oG+Dprl00WKo+PzPmxZqc6IJs
-tnZOhxc0qqAEfKlYuxen
-=jVTv
+iQIcBAEBCAAGBQJXNM70AAoJELgmozMOVy/d2U8QALjVCOrLZTcY1048SId49rBU
+roYHTIgRw8+9LEz5Sq6vSTuay1ZJmjk3+VnhZImJRsxvUjCDbJGQmFgimOyqNGBS
+QWJAHmiXoDojEV2J70n14+xMtbxAIin24GWWbh95RFsmfXrEo93xYRVbnTwV2a+t
+PoMpFs3uO8UtrBq15v0AqadIHWZ8EzTS6CHInrbpQ5s0MXMIjXRM8zNAhAyGQ3Dn
+fnLFImPo/HZOtHiXdjYKnDPn8yTcz+sJYSZtKdUHXOG0PSyqN7fPDUuZdzD80ZdB
+MOxK90TeopsFNnNMIS+WKxLr7emugsTJnwhSgMQzaaDKPQXFhW1AnbhaO+UsCEkO
+s7psNmwNeZ8HpOBkmZyRDGu9yjbWf8oe4AAFc2wkJUrXpx8dLUGHNzidJ6Ge5GsL
+VarBE/2P8vRc2/56afWiKdLH/2b5In+sQN2VrcH8RZAbaqJYGIUzOy3MHGHoA1CG
+7jY1dqnXaRudVra6zmirEGi2fT3zvw5QDMg0WKjwAI8jerVgeprH7KrZk+oKNyqU
+hDwxMKSpA4mqWO6HuqavHAaGleUzPtcqhKr4+wq6GQHFjIuw1bgGmCuj6gaqJVJx
+/7R6SWT4/XenJjDS1CESVnR7+VJBhterkS6rcKO8qwWGdvDiSOyWewxj1GmBBkYD
+wpWftW/DzLU/Fifzr+Zv
+=/9pe
 -----END PGP SIGNATURE-----
 
---A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw--
+--SV4uv4uv610a5dR56ArJq2AfwipS7Cq73--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
