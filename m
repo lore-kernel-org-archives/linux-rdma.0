@@ -1,66 +1,95 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
-Date: Thu, 12 May 2016 13:40:06 -0600
-Message-ID: <20160512194006.GA6364@obsidianresearch.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
- <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
- <20160512174332.GB13553@obsidianresearch.com>
- <20160512192726.GB15146@phlsvsds.ph.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
+ with helper
+Date: Thu, 12 May 2016 15:40:46 -0400
+Message-ID: <20118955-8739-b79a-e20e-96302e8b41bf@redhat.com>
+References: <1462285862-30946-1-git-send-email-fw@strlen.de>
+ <1462285994-31983-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160512192726.GB15146@phlsvsds.ph.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r"
+Return-path: <linux-parisc-owner@vger.kernel.org>
+In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
+Sender: linux-parisc-owner@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
+Cc: user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, mpt-fusionlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 03:27:27PM -0400, Dennis Dalessandro wrote:
-> >I thought we agreed to get rid of this as well? It certainly does not
-> >belong here, and as a general rule, I don't think ioctls should be
-> >doing capable tests..
-> 
-> Yeah. I left it in this patch set because this just "ports" our existing
-> code to ioctl(). The eprom stuff is completely removed in another patch set
-> that I posted shortly after this. It's at:
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Adding code and then removing it in a later patch is not a best
-practice.. Just don't add it or define ioctl numbers at all..
+On 05/03/2016 10:33 AM, Florian Westphal wrote:
+> Replace all trans_start updates with netif_trans_update helper.
+> change was done via spatch:
+>=20
+> struct net_device *d;
+> @@
+> - d->trans_start =3D jiffies
+> + netif_trans_update(d)
+>=20
+> Compile tested only.
+>=20
+> Cc: user-mode-linux-devel@lists.sourceforge.net
+> Cc: linux-xtensa@linux-xtensa.org
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: MPT-FusionLinux.pdl@broadcom.com
+> Cc: linux-scsi@vger.kernel.org
+> Cc: linux-can@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-hams@vger.kernel.org
+> Cc: linux-usb@vger.kernel.org
+> Cc: linux-wireless@vger.kernel.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: b.a.t.m.a.n@lists.open-mesh.org
+> Cc: linux-bluetooth@vger.kernel.org
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Checkpatch complains about whitespace damage, but
+>  this extra whitespace already exists before this patch.
+>=20
+>  drivers/infiniband/hw/nes/nes_nic.c                    | 2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c                | 2 +-
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c                | 2 +-
 
-> >>+static inline int check_ioctl_access(unsigned int cmd, unsigned long arg)
-> >>+{
-> >>+	int read_cmd, write_cmd, read_ok, write_ok;
-> >>+
-> >>+	read_cmd = _IOC_DIR(cmd) & _IOC_READ;
-> >>+	write_cmd = _IOC_DIR(cmd) & _IOC_WRITE;
-> >>+	write_ok = access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-> >>+	read_ok = access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-> >>+
-> >>+	if ((read_cmd && !write_ok) || (write_cmd && !read_ok))
-> >>+		return -EFAULT;
-> >
-> >This seems kind of goofy, didn't Ira say this is performance senstive?
+For InfiniBand bits,
 
-Well, calling access_ok twice when only once is typically needed is
-certainly not performant. Typically this check is done at every access
-via get_user/put_user/copy_to/from_user - why is it being hoisted like
-this?
+Acked-by: Doug Ledford <dledford@redhat.com>
 
-> >Driver shouldn't be open coding __get_user like that, IMHO.
-> 
-> Can you explain what you mean here? We should not use __get_user()?
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
-Generally speaking, yes. Use get_user() that includes the correct
-access_ok. Unless there is a good reason to avoid it, the standard API
-should be used.
 
-> _IOW means user is writing data to the device. So the device is reading data
-> from the user. Or am I missing your point?
 
-You are right, I spaced on this when reading the above - 'write_ok'
-and 'write_cmd' seem like they should have been related, but really
-aren't. It is doing the right tests, just odd. (eg use names like
-write_cmd_ok, write_cmd for better clarity)
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Jason
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXNNw+AAoJELgmozMOVy/dVQcP/1RZvmqQVJpZMtptIm8OpoPW
+4QrFlnjv+KorYVaF1Hg7+0X6yfCF53ofTKRAg4zaYiASZw4AJWYzslxA9b0OvpPS
+TzMjJrbWm27+W2pH8ZivFepys9afxW5o/qb7CFYyOPOEml495zReUvTqt/nSh7jG
+8nTdwO4xH5kY4P82bDn18Lyqd/8cS7yFl1OAK88eqq+y9JgveiIsO2PlsrtFENtX
++RyadCAluEUdfe6CZjMjUptBptIi6hfoMqmXXu4vcFs48mqbVf4QubFp5f+4wJa2
+KScILHNil3156j3TY3lpG1ukf2SfF0UYDYxco5tZlZ3O7nB3Xteif94gvvUiszyO
+IfGn3/wblQs6tRSHjMRNYiTVeYkyh0eXbdbha/7bkBG58mEjYFnrjtRuBMD2Ogmm
+uz6MhyD6Ez7mKKVBc3ooQ6SYpcwb4surHEGm36a2Utnb/vftxyPYpA75neZbSGZO
+X828tsNcxB9K8FUCEcP/Xasc5xE6kPtpwu5TIbJ7itYLs4yRoZbsmcI5UrhjqERp
+YAAiI07vifFHyFLUnfAOefjXxQOFJdQHtMphlnjfYiKXSpJsAhT2LIJpepgbovCc
+/268dPol/ul7WUbLu2P4zlnnIEQgABW6NKFMAg/N/b4XQ08VkeKv82yJ9aLuyG2J
+0QbOFyrXnR/I1OYFeDAU
+=2VMH
+-----END PGP SIGNATURE-----
+
+--MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r--
