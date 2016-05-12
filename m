@@ -1,283 +1,166 @@
-From: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/1] mm: thp: calculate the mapcount correctly for THP pages during WP faults
-Date: Thu, 12 May 2016 18:32:22 +0200
-Message-ID: <1463070742-18401-1-git-send-email-aarcange@redhat.com>
-References: <1462908082-12657-1-git-send-email-aarcange@redhat.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 4/6] IB/core: Enhance ib_map_mr_sg()
+Date: Thu, 12 May 2016 12:38:13 -0400 (EDT)
+Message-ID: <2086883286.35494019.1463071093121.JavaMail.zimbra@redhat.com>
+References: <573278D9.4050908@sandisk.com> <57327981.4080404@sandisk.com> <20160511075359.GE25215@leon.nu> <57334E35.3010403@sandisk.com> <688520061.35288974.1462980673444.JavaMail.zimbra@redhat.com> <573352B3.4030908@sandisk.com> <1821483712.35493025.1463070514224.JavaMail.zimbra@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462908082-12657-1-git-send-email-aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1821483712.35493025.1463070514224.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Kirill A. Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>, "Luick, Dean" <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This will provide fully accuracy to the mapcount calculation in the
-write protect faults, so page pinning will not get broken by false
-positive copy-on-writes.
 
-total_mapcount() isn't the right calculation needed in
-reuse_swap_page(), so this introduces a page_trans_huge_mapcount()
-that is effectively the full accurate return value for page_mapcount()
-if dealing with Transparent Hugepages, however we only use the
-page_trans_huge_mapcount() during COW faults where it strictly needed,
-due to its higher runtime cost.
 
-This also provide at practical zero cost the total_mapcount
-information which is needed to know if we can still relocate the page
-anon_vma to the local vma. If page_trans_huge_mapcount() returns 1 we
-can reuse the page no matter if it's a pte or a pmd_trans_huge
-triggering the fault, but we can only relocate the page anon_vma to
-the local vma->anon_vma if we're sure it's only this "vma" mapping the
-whole THP physical range.
+----- Original Message -----
+> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, "Sagi Grimberg"
+> <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Or Gerlitz" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Sent: Thursday, May 12, 2016 12:28:34 PM
+> Subject: Re: [PATCH 4/6] IB/core: Enhance ib_map_mr_sg()
+> 
+> 
+> 
+> ----- Original Message -----
+> > From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Christoph
+> > Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, "Sagi Grimberg"
+> > <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Or Gerlitz"
+> > <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Sent: Wednesday, May 11, 2016 11:41:39 AM
+> > Subject: Re: [PATCH 4/6] IB/core: Enhance ib_map_mr_sg()
+> > 
+> > On 05/11/2016 08:31 AM, Laurence Oberman wrote:
+> > > I chased that for a while too.:)
+> > > Landed up pulling the latest next, applying all of Christoph's 11 RDMA
+> > > patches, then the first 11 of Barts and the latest 6.
+> > > I had to hand fix some stuff.
+> > > Kernel is building now for testing :)
+> > 
+> > Hello Laurence,
+> > 
+> > Please wait with starting your tests until I have made a kernel tree
+> > with this patch series available.
+> > 
+> > Thanks,
+> > 
+> > Bart.
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> For Barts latest set of patches see subject, using Barts's tree the mapping
+> failures are gone and its run for over 24 hours stable.
+> This is with multiple parallel reads of 4MB issued direct and multiple
+> parallel writes to the same mpath devices issued buffered.
+> The only variation from what I am used to seeing (when its not failing :) on
+> prior ib_srp) is that the I/O sizes reach 4MB often but are also often
+> smaller.
+> Some of this could be issues with my LIO target and next week will have an
+> enterprise array directly connected I will be testing with.
+> 
+> Its a huge improvement and seems good to me as I know these failures very
+> well.
+> 
+> Tested-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> 
+> Example with direct reads and buffered writes
+> 
+> mpath view
+> 
+> ### RECORD  556 >>> jumpclient <<< (1463070126.001) (Thu May 12 12:22:06
+> 2016) ###
+> # DISK STATISTICS (/sec)
+> #
+> <---------reads---------><---------writes---------><--------averages-------->
+> Pct
+> #Time     Name       KBytes Merged  IOs Size  KBytes Merged  IOs Size  RWSize
+> QLen  Wait SvcTim Util
+> 12:22:06 dm-6        212992    128  247  862  130200     64  126 1033     920
+> 7    20      2   99
+> 12:22:06 dm-7        213180     52  885  241  118784     29  406  293     257
+> 25    20      0   99
+> 12:22:06 dm-8        217088     53  424  512  122880     60  270  455     489
+> 14    21      1   99
+> 12:22:06 dm-9        211968     52  465  456  119760     30  409  293     379
+> 19    22      1   99
+> 12:22:06 dm-10       212992     52  364  585  121340     60  146  831     655
+> 10    20      1   99
+> 12:22:06 dm-11       221184    162   54 4096  135168     33  297  455    1015
+> 9    26      2   99  *** Reads reach 4MB here, often smaller though
+> 12:22:06 dm-12       229376    168  280  819  126976     93   62 2048    1041
+> 6    17      2   99
+> 12:22:06 dm-13       229376    168  112 2048  131072     64  128 1024    1501
+> 5    23      4   99
+> 12:22:06 dm-14       225280    110  385  585  122880     29  185  664     610
+> 11    20      1   99
+> 12:22:06 dm-15       203912     50  549  371  118792     29  379  313     347
+> 20    21      1   99
+> 
+> individual path view
+> 
+> ### RECORD  556 >>> jumpclient <<< (1463070126.001) (Thu May 12 12:22:06
+> 2016) ###
+> # DISK STATISTICS (/sec)
+> #
+> <---------reads---------><---------writes---------><--------averages-------->
+> Pct
+> #Time     Name       KBytes Merged  IOs Size  KBytes Merged  IOs Size  RWSize
+> QLen  Wait SvcTim Util
+> 12:26:37 sdc         128092      0  348  368   44468      0  482   92     207
+> 18    21      1   95
+> 12:26:37 sdd         103476      0  461  224   62956      0  266  237     228
+> 14    20      1   97
+> 12:26:37 sde         118100      0  145  814   65488      0  127  516     674
+> 5    19      3   97
+> 12:26:37 sdf         121660      0  651  187   53960      0  277  195     189
+> 17    18      1   97
+> 12:26:37 sdg          87276      0  305  286   76020      0  191  398     329
+> 10    20      1   97
+> 12:26:37 sdh          98688      0  166  595   67400      0  554  122     230
+> 17    23      1   95
+> 12:26:37 sdi         197112      0  945  209   16208      0   81  200     207
+> 16    15      0   99
+> 12:26:37 sdj           1776      0   16  111  143360      0   35 4096    2845
+> 1    24     18   95
+> 12:26:37 sdk              0      0    0    0  139264      0  374  372     372
+> 10    26      2   96
+> 12:26:37 sdl          77600      0  572  136   76624      0  268  286     183
+> 17    19      1   93
+> 12:26:37 sdm          80804      0  264  306   74316      0  533  139     194
+> 19    24      1   98
+> 12:26:37 sdn         101324      0  439  231   64020      0  385  166     200
+> 18    22      1   98
+> 12:26:37 sdo         107180      0  130  824   73776      0  145  509     658
+> 5    21      3   97
+> 12:26:37 sdp          80788      0  389  208   69376      0  339  205     206
+> 17    22      1   99
+> 12:26:37 sdq         116704      0  390  299   55052      0  129  427     330
+> 10    20      1   99
+> 12:26:37 sdr         113280      0  249  455   53816      0  401  134     257
+> 16    24      1   99
+> 12:26:37 sds          13192      0   93  142  110768      0  291  381     322
+> 10    26      2   95
+> 12:26:37 sdt         165184      0 1197  138       0      0    0    0     137
+> 23    18      0   99
+> 12:26:37 sdu         241664      0   59 4096       0      0    0    0    4096
+> 1    16     16   97
+> 
 
-Kirill A. Shutemov discovered the problem with moving the page
-anon_vma to the local vma->anon_vma in a previous version of this
-patch and another problem in the way page_move_anon_rmap() was called.
+Bart,
+I meant to mention that that was with ib_srp untuned.
+My next set of tests will be with indirect_sg_entries=512 and cmd_sg_entries=64 for a start.
+Then I will max them out and see how we do.
 
-Andrew Morton discovered that CONFIG_SWAP=n wouldn't build in a
-previous version, because reuse_swap_page must be a macro to call
-page_trans_huge_mapcount from swap.h, so this uses a macro again
-instead of an inline function. With this change at least it's a less
-dangerous usage than it was before, because "page" is used only once
-now, while with the previous code reuse_swap_page(page++) would have
-called page_mapcount on page+1 and it would have increased page twice
-instead of just once.
-
-Dean Luick noticed an uninitialized variable that could result in a
-rmap inefficiency for the non-THP case in a previous version.
-
-Reviewed-by: "Kirill A. Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>
-Signed-off-by: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- include/linux/mm.h   |  9 +++++++
- include/linux/swap.h |  6 ++---
- mm/huge_memory.c     | 71 +++++++++++++++++++++++++++++++++++++++++++++-------
- mm/memory.c          | 22 ++++++++++------
- mm/swapfile.c        | 13 +++++-----
- 5 files changed, 95 insertions(+), 26 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 864d722..8f468e0 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -500,11 +500,20 @@ static inline int page_mapcount(struct page *page)
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- int total_mapcount(struct page *page);
-+int page_trans_huge_mapcount(struct page *page, int *total_mapcount);
- #else
- static inline int total_mapcount(struct page *page)
- {
- 	return page_mapcount(page);
- }
-+static inline int page_trans_huge_mapcount(struct page *page,
-+					   int *total_mapcount)
-+{
-+	int mapcount = page_mapcount(page);
-+	if (total_mapcount)
-+		*total_mapcount = mapcount;
-+	return mapcount;
-+}
- #endif
- 
- static inline struct page *virt_to_head_page(const void *x)
-diff --git a/include/linux/swap.h b/include/linux/swap.h
-index 0a4cd47..ad22035 100644
---- a/include/linux/swap.h
-+++ b/include/linux/swap.h
-@@ -418,7 +418,7 @@ extern sector_t swapdev_block(int, pgoff_t);
- extern int page_swapcount(struct page *);
- extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
--extern int reuse_swap_page(struct page *);
-+extern bool reuse_swap_page(struct page *, int *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- 
-@@ -513,8 +513,8 @@ static inline int swp_swapcount(swp_entry_t entry)
- 	return 0;
- }
- 
--#define reuse_swap_page(page) \
--	(!PageTransCompound(page) && page_mapcount(page) == 1)
-+#define reuse_swap_page(page, total_mapcount) \
-+	(page_trans_huge_mapcount(page, total_mapcount) == 1)
- 
- static inline int try_to_free_swap(struct page *page)
- {
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index f7daa7d..b49ee12 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -1298,15 +1298,9 @@ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 	VM_BUG_ON_PAGE(!PageCompound(page) || !PageHead(page), page);
- 	/*
- 	 * We can only reuse the page if nobody else maps the huge page or it's
--	 * part. We can do it by checking page_mapcount() on each sub-page, but
--	 * it's expensive.
--	 * The cheaper way is to check page_count() to be equal 1: every
--	 * mapcount takes page reference reference, so this way we can
--	 * guarantee, that the PMD is the only mapping.
--	 * This can give false negative if somebody pinned the page, but that's
--	 * fine.
-+	 * part.
- 	 */
--	if (page_mapcount(page) == 1 && page_count(page) == 1) {
-+	if (page_trans_huge_mapcount(page, NULL) == 1) {
- 		pmd_t entry;
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-@@ -2079,7 +2073,8 @@ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
- 		if (pte_write(pteval)) {
- 			writable = true;
- 		} else {
--			if (PageSwapCache(page) && !reuse_swap_page(page)) {
-+			if (PageSwapCache(page) &&
-+			    !reuse_swap_page(page, NULL)) {
- 				unlock_page(page);
- 				result = SCAN_SWAP_CACHE_PAGE;
- 				goto out;
-@@ -3223,6 +3218,64 @@ int total_mapcount(struct page *page)
- }
- 
- /*
-+ * This calculates accurately how many mappings a transparent hugepage
-+ * has (unlike page_mapcount() which isn't fully accurate). This full
-+ * accuracy is primarily needed to know if copy-on-write faults can
-+ * reuse the page and change the mapping to read-write instead of
-+ * copying them. At the same time this returns the total_mapcount too.
-+ *
-+ * The function returns the highest mapcount any one of the subpages
-+ * has. If the return value is one, even if different processes are
-+ * mapping different subpages of the transparent hugepage, they can
-+ * all reuse it, because each process is reusing a different subpage.
-+ *
-+ * The total_mapcount is instead counting all virtual mappings of the
-+ * subpages. If the total_mapcount is equal to "one", it tells the
-+ * caller all mappings belong to the same "mm" and in turn the
-+ * anon_vma of the transparent hugepage can become the vma->anon_vma
-+ * local one as no other process may be mapping any of the subpages.
-+ *
-+ * It would be more accurate to replace page_mapcount() with
-+ * page_trans_huge_mapcount(), however we only use
-+ * page_trans_huge_mapcount() in the copy-on-write faults where we
-+ * need full accuracy to avoid breaking page pinning, because
-+ * page_trans_huge_mapcount() is slower than page_mapcount().
-+ */
-+int page_trans_huge_mapcount(struct page *page, int *total_mapcount)
-+{
-+	int i, ret, _total_mapcount, mapcount;
-+
-+	/* hugetlbfs shouldn't call it */
-+	VM_BUG_ON_PAGE(PageHuge(page), page);
-+
-+	if (likely(!PageTransCompound(page))) {
-+		mapcount = atomic_read(&page->_mapcount) + 1;
-+		if (total_mapcount)
-+			*total_mapcount = mapcount;
-+		return mapcount;
-+	}
-+
-+	page = compound_head(page);
-+
-+	_total_mapcount = ret = 0;
-+	for (i = 0; i < HPAGE_PMD_NR; i++) {
-+		mapcount = atomic_read(&page[i]._mapcount) + 1;
-+		ret = max(ret, mapcount);
-+		_total_mapcount += mapcount;
-+	}
-+	if (PageDoubleMap(page)) {
-+		ret -= 1;
-+		_total_mapcount -= HPAGE_PMD_NR;
-+	}
-+	mapcount = compound_mapcount(page);
-+	ret += mapcount;
-+	_total_mapcount += mapcount;
-+	if (total_mapcount)
-+		*total_mapcount = _total_mapcount;
-+	return ret;
-+}
-+
-+/*
-  * This function splits huge page into normal pages. @page can point to any
-  * subpage of huge page to split. Split doesn't change the position of @page.
-  *
-diff --git a/mm/memory.c b/mm/memory.c
-index 52c218e..07493e3 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2373,6 +2373,7 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 	 * not dirty accountable.
- 	 */
- 	if (PageAnon(old_page) && !PageKsm(old_page)) {
-+		int total_mapcount;
- 		if (!trylock_page(old_page)) {
- 			get_page(old_page);
- 			pte_unmap_unlock(page_table, ptl);
-@@ -2387,13 +2388,18 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			}
- 			put_page(old_page);
- 		}
--		if (reuse_swap_page(old_page)) {
--			/*
--			 * The page is all ours.  Move it to our anon_vma so
--			 * the rmap code will not search our parent or siblings.
--			 * Protected against the rmap code by the page lock.
--			 */
--			page_move_anon_rmap(old_page, vma, address);
-+		if (reuse_swap_page(old_page, &total_mapcount)) {
-+			if (total_mapcount == 1) {
-+				/*
-+				 * The page is all ours. Move it to
-+				 * our anon_vma so the rmap code will
-+				 * not search our parent or siblings.
-+				 * Protected against the rmap code by
-+				 * the page lock.
-+				 */
-+				page_move_anon_rmap(compound_head(old_page),
-+						    vma, address);
-+			}
- 			unlock_page(old_page);
- 			return wp_page_reuse(mm, vma, address, page_table, ptl,
- 					     orig_pte, old_page, 0, 0);
-@@ -2617,7 +2623,7 @@ static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 	inc_mm_counter_fast(mm, MM_ANONPAGES);
- 	dec_mm_counter_fast(mm, MM_SWAPENTS);
- 	pte = mk_pte(page, vma->vm_page_prot);
--	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
-+	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page, NULL)) {
- 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 		flags &= ~FAULT_FLAG_WRITE;
- 		ret |= VM_FAULT_WRITE;
-diff --git a/mm/swapfile.c b/mm/swapfile.c
-index 83874ec..031713ab 100644
---- a/mm/swapfile.c
-+++ b/mm/swapfile.c
-@@ -922,18 +922,19 @@ out:
-  * to it.  And as a side-effect, free up its swap: because the old content
-  * on disk will never be read, and seeking back there to write new content
-  * later would only waste time away from clustering.
-+ *
-+ * NOTE: total_mapcount should not be relied upon by the caller if
-+ * reuse_swap_page() returns false, but it may be always overwritten
-+ * (see the other implementation for CONFIG_SWAP=n).
-  */
--int reuse_swap_page(struct page *page)
-+bool reuse_swap_page(struct page *page, int *total_mapcount)
- {
- 	int count;
- 
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	if (unlikely(PageKsm(page)))
--		return 0;
--	/* The page is part of THP and cannot be reused */
--	if (PageTransCompound(page))
--		return 0;
--	count = page_mapcount(page);
-+		return false;
-+	count = page_trans_huge_mapcount(page, total_mapcount);
- 	if (count <= 1 && PageSwapCache(page)) {
- 		count += page_swapcount(page);
- 		if (count == 1 && !PageWriteback(page)) {
+Thanks!!!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
