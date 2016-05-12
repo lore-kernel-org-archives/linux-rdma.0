@@ -1,88 +1,55 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Prepared RDMA Tree for 4.7
-Date: Thu, 12 May 2016 20:47:05 +0300
-Message-ID: <20160512174705.GC11827@leon.nu>
-References: <20160512174406.GB11827@leon.nu>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 2/7] IB/srp: Fix a memory descriptor leak in an error path
+Date: Thu, 12 May 2016 10:48:13 -0700
+Message-ID: <5734C1DD.80702@sandisk.com>
+References: <5734C181.2020003@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160512174406.GB11827-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <5734C181.2020003-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+If an error occurs after srp_fr_pool_get() succeeded and before the
+descriptor is stored in srp_map_state (*state->fr.next++ = desc)
+then srp_unmap_data() won't free the newly allocated memory
+descriptor. Hence free the descriptor explicitly.
 
---XWOWbaMNXpFDWE00
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixes: f7f7aab1a5c0 ("IB/srp: Convert to new registration API")
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Tested-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sai-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.4+
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-On Thu, May 12, 2016 at 08:44:06PM +0300, Leon Romanovsky wrote:
-> Hi Doug,
->=20
-> I prepared the base tree [1] with patches sent to RDMA mailing and passed=
- review.
->=20
-> This base tree is part of linux-next and kbuild system, and it passed
-> sanity checks.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index e088a49..74e3ec8 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1330,8 +1330,13 @@ static int srp_map_finish_fr(struct srp_map_state *state,
+ 	ib_update_fast_reg_key(desc->mr, rkey);
+ 
+ 	n = ib_map_mr_sg(desc->mr, state->sg, sg_nents, 0, dev->mr_page_size);
+-	if (unlikely(n < 0))
++	if (unlikely(n < 0)) {
++		srp_fr_pool_put(ch->fr_pool, &desc, 1);
++		pr_debug("%s: ib_map_mr_sg(%d) returned %d.\n",
++			 dev_name(&req->scmnd->device->sdev_gendev), sg_nents,
++			 n);
+ 		return n;
++	}
+ 
+ 	req->reg_cqe.done = srp_reg_mr_err_done;
+ 
+-- 
+2.8.2
 
-Forgot to mention that it based on v4.6-rc7.
-
->=20
-> I believe that it will save you a lot of work and time if you use it
-> as a base for next merge window submission (4.7).
->=20
-> The topics which were added:
->  * topic/fix-core
->  * topic/hfi1
->  * topic/i40iw
->  * topic/ipoib
->  * topic/iw_cxgb4
->  * topic/iwcm
->  * topic/nes
->  * topic/rdma-rw-api
->  * topic/srp
->=20
-> [1]
-> Git repository:
-> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git rdma-ne=
-xt
->=20
-> Gitweb:
-> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=
-=3Drdma-next
->=20
-> Thanks.
-
-
-
---XWOWbaMNXpFDWE00
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXNMGZAAoJEORje4g2clinecMP/i6qZkxcrUKphaLKVQRTrN+w
-7Vg5nyCm0kJ2NeYJgjbfpAxYqU7nSrfwEgUba3JyaUxS55g5TNhMEosA90EyImSF
-5AKGSwN8KvSB/zUSzc3WUUSxtabzIthtlxOu0njY6l+hL0t5YEQzKqD2SH+ux5fd
-qILKKpQj0pvb3jwxlEO+o3rPhxizR0IfWOxvynLEmN73HYA2f7H89TZp52kFm57Q
-bOKRXkNltBW411JtEqC86rLZRvxr8VgoA4wsyBrrHLrygLUOKP81z54rYkRZ5lkj
-0zBDXTLCJ6gcPIgfCHYCMu/v4pmzkVgWvcOIvWiUyt9rhxWBo/0XjESI/gPH8PBo
-rq278cNriO5LO4+8heFJpd9PyTr5rZTdkGL2QAG78iYeJJRrjeT5iMO+2I1A9PBm
-sYzUwNWCuX6pYrxcTknS0LCpzvYXsrp3A6C0ODyd2dlARSTGO6srjcxYd3mXQsUr
-+B7rrOh7vkhXUy/Kv5vqWD16b5CNgokH6K9VxMP+8jUyJCVD/9ymLAkdcTyWYfDe
-VeePysAtn6jwZmHmGSkgdAmRr+0FVoaQFL9+LswH/JmkYcF5RFn+fVtZHSMM5cOH
-nfmDD1xBe2heNROW1WoD8lp7inWuXgN2wtyUzhmrcMPF8O1di2XEuKKrWKUpLDat
-y2yv7DHnQSzUTayvRCed
-=/Ko2
------END PGP SIGNATURE-----
-
---XWOWbaMNXpFDWE00--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
