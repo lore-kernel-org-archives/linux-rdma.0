@@ -1,68 +1,86 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
-Date: Thu, 12 May 2016 18:12:36 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04B473@ORSMSX109.amr.corp.intel.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
- <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
- <20160512174332.GB13553@obsidianresearch.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: generic RDMA READ/WRITE API V8
+Date: Thu, 12 May 2016 14:43:30 -0400
+Message-ID: <1a3914af-45ad-0944-95f0-dd138b632014@redhat.com>
+References: <1462291273-22403-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160512174332.GB13553-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Haralanov, Mitko" <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1462291273-22403-1-git-send-email-hch@lst.de>
+Sender: target-devel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: bart.vanassche@sandisk.com, swise@opengridcomputing.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Thu, May 12, 2016 at 10:18:47AM -0700, Dennis Dalessandro wrote:
-> > +	case HFI1_IOCTL_EP_INFO:
-> > +	case HFI1_IOCTL_EP_ERASE_CHIP:
-> > +	case HFI1_IOCTL_EP_ERASE_RANGE:
-> > +	case HFI1_IOCTL_EP_READ_RANGE:
-> > +	case HFI1_IOCTL_EP_WRITE_RANGE:
-> > +		if (!capable(CAP_SYS_ADMIN))
-> > +			return -EPERM;
-> > +		if (copy_from_user(&ucmd,
-> > +				   (struct hfi11_cmd __user *)arg,
-> > +				   sizeof(ucmd)))
-> > +			return -EFAULT;
-> > +		return handle_eprom_command(fp, &ucmd);
-> 
-> I thought we agreed to get rid of this as well? It certainly does not
-> belong here, and as a general rule, I don't think ioctls should be
-> doing capable tests..
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-At least the drm ioctl code has similar capable test
+On 05/03/2016 12:01 PM, Christoph Hellwig wrote:
+> This series contains patches that implement a first version of a generi=
+c
+> API to handle RDMA READ/WRITE operations as commonly used on the target=
 
-http://lxr.free-electrons.com/source/drivers/gpu/drm/drm_ioctl.c#L519
+> (or server) side for storage protocols.
+>=20
+> This has been developed for the upcoming NVMe over Fabrics target, and
+> extensively te=D1=95ted as part of that, although this upstream version=
+ has
+> additional updates over the one we're currently using.
+>=20
+> It hides details such as the use of MRs for iWarp devices, and will all=
+ow
+> looking at other HCA specifics easily in the future.
+>=20
+> This series contains also conversion the SRP and iSER targets to the ne=
+w
+> API.
+>=20
+> I think it's basically ready to merge now.
+>=20
+> I also have a git tree available at:
+>=20
+> 	git://git.infradead.org/users/hch/rdma.git rdma-rw-api
+>=20
+> gitweb:
+>=20
+> 	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-r=
+w-api
+
+Thanks Christoph, this has been applied.
 
 
-> > +static inline int check_ioctl_access(unsigned int cmd, unsigned long
-> arg)
-> > +{
-> > +	int read_cmd, write_cmd, read_ok, write_ok;
-> > +
-> > +	read_cmd = _IOC_DIR(cmd) & _IOC_READ;
-> > +	write_cmd = _IOC_DIR(cmd) & _IOC_WRITE;
-> > +	write_ok = access_ok(VERIFY_WRITE, (void __user *)arg,
-> _IOC_SIZE(cmd));
-> > +	read_ok = access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-> > +
-> > +	if ((read_cmd && !write_ok) || (write_cmd && !read_ok))
-> > +		return -EFAULT;
-> 
-> This seems kind of goofy, didn't Ira say this is performance senstive?
-> 
-> Driver shouldn't be open coding __get_user like that, IMHO.
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
 
-FWIW, drm keeps an ioctl 'descriptor', which maintains a kernel copy of the ioctl cmd.  It uses the kernel's version of the cmd for processing, instead of the cmd value passed in from user space.
 
-It doesn't open code get_user or do checks similar to what's here.  But if there's concern that the cmd value cannot be trusted, a similar descriptor mechanism could be used here.
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXNM7TAAoJELgmozMOVy/dhFYQAIa9xlhY4JZqseNR31Vf51Qp
+pTS8LDk5mh2T3+yEdUwBw25Kmox6ugjcom+bhUgt7RcrPTjg4uVp+oNbXDlR8qha
+s9oNcjRYn9siWojH+Vz+WK4vX4v3cUvR1HIz6Kc9gw8qD3Xbo/LCjuSiWP1mjp56
+0mTQOrSSI7USw03/tlLsAGcLNGezRzdd2F2jZLi0Bbs8HJZpmmUNCHqO4yw+ws3Q
+V8DZ5fSWhuvJUDz7IORWDqTm3LzwsEV0ZwxiYs4A456bJZuvxMDr5MPghKl/LkPo
+XHR/fOTWlgOPi/38qz3MTZXAQn19eKzjN4QJmQTJk+2TMqy65us6A6OrMCghWjuZ
+obEv9La9l3U0upXLmz/VrkjJcozUN9Or0HBlYPPU9tBetclKUXytt0kgqFrenczg
+8NBManWhrMpGgh8yfS77jWbAlOkH6RcwCHxvhYDcKkJoH0+RtAxBzwGalY7oNy2s
+p34VQ8Uye0Z/Xagxwq/XsxqvT9sIQlfLoihBreE1ju5OmX66TRJThSHXBlaKLCyB
+RjlV8LLkUu8/oA4hXknuskjkq6Obb0n4FRC1cqzO76UeNfjveXPhSOvsoHyOhVgM
+QkwNLnnQaA2usA9NZZPMCHlKgOO8xo7ZUysq2H/oG+Dprl00WKo+PzPmxZqc6IJs
+tnZOhxc0qqAEfKlYuxen
+=jVTv
+-----END PGP SIGNATURE-----
+
+--A1Bad5ptTwLPS33LHPGs3D0srTVvPcIOw--
