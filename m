@@ -1,33 +1,123 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
-Date: Thu, 12 May 2016 15:28:21 -0600
-Message-ID: <20160512212821.GC6545@obsidianresearch.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
- <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
- <20160512174332.GB13553@obsidianresearch.com>
- <20160512192726.GB15146@phlsvsds.ph.intel.com>
- <20160512194006.GA6364@obsidianresearch.com>
- <f96bfe93-6bcc-7d55-8f7a-1792d12d41d9@redhat.com>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 1/4] IB/core: Add support for get ClassPortInfo
+ from the SA
+Date: Thu, 12 May 2016 19:17:37 -0400
+Message-ID: <20160512231737.GA16168@rhel.sc.intel.com>
+References: <1461070287-13469-1-git-send-email-erezsh@mellanox.com>
+ <1461070287-13469-2-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f96bfe93-6bcc-7d55-8f7a-1792d12d41d9-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1461070287-13469-2-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 03:48:16PM -0400, Doug Ledford wrote:
-> were going to rip out the EEPROM code.  In any case, the best fix would
-> be to rebase the two series that are remaining and move any "rip out
-> things like eeprom support" patches to prior to the ioctl patches and
-> make it so that they rip out the write interface version of it instead,
-> and then squash a second copy of the ioctl removal into this patch.
+On Tue, Apr 19, 2016 at 03:51:24PM +0300, Erez Shitrit wrote:
+> 
+> Change struct ib_class_port_info to conform to IB Spec 1.3
+> That in order to get specific capability mask from ClassPortInfo mad.
+> 
+> From the IB Spec, ClassPortInfo section:
+> 	"CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+> 	 RespTimeValue the rest 5 bits"
+> 
+> The new struct now has one field that contains both of cap_mask2 (which was
+> reserved and resp_time which now is 27 bits for cap_mask2 and 5 bits for
+> resp_time in the new field)
+> 
+> More changes to adjust the new structure:
+> IB/qib: Change pma_get_classportinfo
+> IB/srpt: Adjust the use of ib_class_port_info
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib_mad.c   | 6 ++++--
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 5 ++++-
+>  include/rdma/ib_mad.h                 | 4 ++--
+>  3 files changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+> index 0bd1837..c5d029d 100644
+> --- a/drivers/infiniband/hw/qib/qib_mad.c
+> +++ b/drivers/infiniband/hw/qib/qib_mad.c
+> @@ -1158,6 +1158,7 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+>  	struct ib_class_port_info *p =
+>  		(struct ib_class_port_info *)pmp->data;
+>  	struct qib_devdata *dd = dd_from_ibdev(ibdev);
+> +	char *p_cap_mask2;
+>  
+>  	memset(pmp->data, 0, sizeof(pmp->data));
+>  
+> @@ -1172,11 +1173,12 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+>  	 * Set the most significant bit of CM2 to indicate support for
+>  	 * congestion statistics
+>  	 */
+> -	p->reserved[0] = dd->psxmitwait_supported << 7;
+> +	p_cap_mask2 = (char *)&p->cap_mask2_resp_time;
+> +	p_cap_mask2[0] = dd->psxmitwait_supported << 7;
+>  	/*
+>  	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+>  	 */
+> -	p->resp_time_value = 18;
+> +	p_cap_mask2[3] = 18;
 
-Yes, this would look best
+Does this get the endianess right?
 
-Jason
+To me it would be cleaner to use a temp u32 set the values and then byteswap
+into the MAD.
+
+Ira
+
+>  
+>  	return reply((struct ib_smp *) pmp);
+>  }
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 0bd3cb2..d12b602 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -249,12 +249,15 @@ static void srpt_set_ioc(u8 *c_list, u32 slot, u8 value)
+>  static void srpt_get_class_port_info(struct ib_dm_mad *mad)
+>  {
+>  	struct ib_class_port_info *cif;
+> +	char *p_cap_mask2;
+>  
+>  	cif = (struct ib_class_port_info *)mad->data;
+>  	memset(cif, 0, sizeof(*cif));
+>  	cif->base_version = 1;
+>  	cif->class_version = 1;
+> -	cif->resp_time_value = 20;
+> +
+> +	p_cap_mask2 = (char *)&cif->cap_mask2_resp_time;
+> +	p_cap_mask2[3] = 20;
+>  
+>  	mad->mad_hdr.status = 0;
+>  }
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index 37dd534c..2aaf1cb 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -243,8 +243,8 @@ struct ib_class_port_info {
+>  	u8			base_version;
+>  	u8			class_version;
+>  	__be16			capability_mask;
+> -	u8			reserved[3];
+> -	u8			resp_time_value;
+> +	  /* 27 bits for cap_mask2, 5 bits for resp_time */
+> +	__be32			cap_mask2_resp_time;
+>  	u8			redirect_gid[16];
+>  	__be32			redirect_tcslfl;
+>  	__be16			redirect_lid;
+> -- 
+> 1.7.11.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
