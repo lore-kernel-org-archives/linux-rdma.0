@@ -1,35 +1,246 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] infiniband/ulp/ipoib: remove pkey_mutex
-Date: Thu, 12 May 2016 14:57:20 -0400
-Message-ID: <259b14ef-493c-8596-b281-68cc80fdf49e@redhat.com>
-References: <1462961049-11026-1-git-send-email-bigeasy@linutronix.de>
- <57336505.6070801@sandisk.com>
+Subject: Re: [RFC PATCH] IB/mlx5: set correct gid_tbl_len for MAD_IFC
+Date: Thu, 12 May 2016 15:01:21 -0400
+Message-ID: <4c57d68a-2d08-d41c-9e06-ebe26c61c687@redhat.com>
+References: <1462912922.23006.3.camel@ssi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="ST5O4aCdkLQvFUrNCpv6VOKem5Dlv7GXt"
+ boundary="qJ7u0UNuBvbrtkPTkP8rPlkTuXBkhnLSn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57336505.6070801-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1462912922.23006.3.camel@ssi>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org
+To: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ST5O4aCdkLQvFUrNCpv6VOKem5Dlv7GXt
-Content-Type: text/plain; charset=windows-1252
+--qJ7u0UNuBvbrtkPTkP8rPlkTuXBkhnLSn
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 05/11/2016 12:59 PM, Bart Van Assche wrote:
-> On 05/11/2016 03:04 AM, Sebastian Andrzej Siewior wrote:
->> The last user of pkey_mutex was removed in db84f8803759 ("IB/ipoib: Us=
-e
->> P_Key change event instead of P_Key polling mechanism") but the lock
->> remained. This patch removes it.
+On 05/10/2016 04:42 PM, Ming Lin wrote:
+> Here is a bug with mlx5_ib.
 >=20
-> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> commit d603c809ef91fa2d211bde5e95be417847410379
+> Author: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Fri Mar 11 22:58:35 2016 +0200
+>=20
+>     IB/mlx5: Fix decision on using MAD_IFC
 
-Thanks, applied.
+I ran into this same bug when testing 4.6-rc.  I submitted a patch for
+4.6-rc that resolves the oops (but leaves the WARN_ON in place).  Once I
+updated to the latest official mlx5 firmware on the devices, the issue
+wen away.  So, this can probably be mostly ignored since the oops has
+been fixed, and I would suggest updating your firmware.
+
+>=20
+> This commit causes below WARN. The "ix" returns -1
+>=20
+>  658 void ib_cache_gid_set_default_gid(struct ib_device *ib_dev, u8 por=
+t,
+> ...
+>=20
+>  693                 /* Coudn't find default GID location */
+>  694                 WARN_ON(ix < 0);
+>  695=20
+>=20
+>=20
+> WARNING: CPU: 1 PID: 2651 at /home/mlin/linux/drivers/infiniband/core/c=
+ache.c:717 ib_cache_gid_set_default_gid+0x2f8/0x340 [ib_core]
+>=20
+> [  394.725187] CPU: 1 PID: 2651 Comm: modprobe Tainted: G           OE =
+  4.6.0-rc3+ #195
+> [  394.734464] Hardware name: Dell Inc. OptiPlex 7010/0YXT71, BIOS A15 =
+08/12/2013
+> [  394.743131]  0000000000000000 ffff88006791b848 ffffffff8132996a 0000=
+000000000000
+> [  394.752045]  0000000000000000 ffff88006791b888 ffffffff8106a7c7 0000=
+02cd00000008
+> [  394.761426]  0000000000000000 0000000000000001 ffff880063028780 ffff=
+880060d7c000
+> [  394.770370] Call Trace:
+> [  394.774749]  [<ffffffff8132996a>] dump_stack+0x63/0x89
+> [  394.781582]  [<ffffffff8106a7c7>] __warn+0xc7/0xf0
+> [  394.788325]  [<ffffffff8106a8a8>] warn_slowpath_null+0x18/0x20
+> [  394.795732]  [<ffffffffc0860c48>] ib_cache_gid_set_default_gid+0x2f8=
+/0x340 [ib_core]
+> [  394.804556]  [<ffffffff8109ef07>] ? pick_next_task_fair+0x367/0x490
+> [  394.811923]  [<ffffffff816db9e0>] ? __schedule+0x660/0x770
+> [  394.818487]  [<ffffffffc08624ef>] add_netdev_ips+0xaf/0xc0 [ib_core]=
+
+> [  394.825935]  [<ffffffffc0862685>] enum_all_gids_of_dev_cb+0x85/0xc0 =
+[ib_core]
+> [  394.834155]  [<ffffffffc0861760>] ? rdma_protocol_roce_eth_encap+0x2=
+0/0x20 [ib_core]
+> [  394.842993]  [<ffffffffc085e642>] ib_enum_roce_netdev+0xe2/0x100 [ib=
+_core]
+> [  394.850959]  [<ffffffffc0862600>] ? is_eth_port_of_netdev+0x90/0x90 =
+[ib_core]
+> [  394.859193]  [<ffffffffc086281c>] roce_rescan_device+0x1c/0x20 [ib_c=
+ore]
+> [  394.866981]  [<ffffffffc0860d7b>] ib_cache_setup_one+0xeb/0x400 [ib_=
+core]
+> [  394.874851]  [<ffffffffc085e299>] ib_register_device+0x2d9/0x500 [ib=
+_core]
+> [  394.882807]  [<ffffffffc0979961>] mlx5_ib_add+0xad1/0x1370 [mlx5_ib]=
+
+> [  394.890211]  [<ffffffff8108dad8>] ? ttwu_do_activate.constprop.81+0x=
+58/0x60
+> [  394.898212]  [<ffffffff81084224>] ? __alloc_workqueue_key+0x1f4/0x54=
+0
+> [  394.905696]  [<ffffffffc08840ec>] mlx5_add_device+0x3c/0xa0 [mlx5_co=
+re]
+> [  394.913340]  [<ffffffffc09e3000>] ? 0xffffffffc09e3000
+> [  394.919516]  [<ffffffffc08841bc>] mlx5_register_interface+0x6c/0xa0 =
+[mlx5_core]
+> [  394.927858]  [<ffffffffc09e3035>] mlx5_ib_init+0x35/0x4b [mlx5_ib]
+> [  394.935059]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+> [  394.941734]  [<ffffffff81159690>] ? __vunmap+0x80/0xd0
+> [  394.947875]  [<ffffffff8111d04f>] do_init_module+0x56/0x1c8
+> [  394.954450]  [<ffffffff810dd2be>] load_module+0x1dae/0x2670
+> [  394.961034]  [<ffffffff810da7b0>] ? __symbol_put+0x50/0x50
+> [  394.967543]  [<ffffffff810ddd89>] SYSC_finit_module+0xa9/0xd0
+> [  394.974302]  [<ffffffff810dddc9>] SyS_finit_module+0x9/0x10
+> [  394.980878]  [<ffffffff816df1b6>] entry_SYSCALL_64_fastpath+0x1e/0xa=
+8
+> [  394.988336] ---[ end trace df64015bed03617a ]---
+>=20
+> [  395.007774] BUG: unable to handle kernel paging request at fffffffff=
+fffffe0
+>=20
+> [  395.302076] Call Trace:
+> [  395.305549]  [<ffffffff8106a7a0>] ? __warn+0xa0/0xf0
+> [  395.311550]  [<ffffffffc0860bd4>] ib_cache_gid_set_default_gid+0x284=
+/0x340 [ib_core]
+> [  395.320335]  [<ffffffff816db9e0>] ? __schedule+0x660/0x770
+> [  395.326868]  [<ffffffffc08624ef>] add_netdev_ips+0xaf/0xc0 [ib_core]=
+
+> [  395.334268]  [<ffffffffc0862685>] enum_all_gids_of_dev_cb+0x85/0xc0 =
+[ib_core]
+> [  395.342452]  [<ffffffffc0861760>] ? rdma_protocol_roce_eth_encap+0x2=
+0/0x20 [ib_core]
+> [  395.351239]  [<ffffffffc085e642>] ib_enum_roce_netdev+0xe2/0x100 [ib=
+_core]
+> [  395.359167]  [<ffffffffc0862600>] ? is_eth_port_of_netdev+0x90/0x90 =
+[ib_core]
+> [  395.367353]  [<ffffffffc086281c>] roce_rescan_device+0x1c/0x20 [ib_c=
+ore]
+> [  395.375115]  [<ffffffffc0860d7b>] ib_cache_setup_one+0xeb/0x400 [ib_=
+core]
+> [  395.382949]  [<ffffffffc085e299>] ib_register_device+0x2d9/0x500 [ib=
+_core]
+> [  395.390869]  [<ffffffffc0979961>] mlx5_ib_add+0xad1/0x1370 [mlx5_ib]=
+
+> [  395.398289]  [<ffffffff8108dad8>] ? ttwu_do_activate.constprop.81+0x=
+58/0x60
+> [  395.406318]  [<ffffffff81084224>] ? __alloc_workqueue_key+0x1f4/0x54=
+0
+> [  395.413806]  [<ffffffffc08840ec>] mlx5_add_device+0x3c/0xa0 [mlx5_co=
+re]
+> [  395.421467]  [<ffffffffc09e3000>] ? 0xffffffffc09e3000
+> [  395.427644]  [<ffffffffc08841bc>] mlx5_register_interface+0x6c/0xa0 =
+[mlx5_core]
+> [  395.436002]  [<ffffffffc09e3035>] mlx5_ib_init+0x35/0x4b [mlx5_ib]
+> [  395.443222]  [<ffffffff81002138>] do_one_initcall+0xc8/0x1f0
+> [  395.449938]  [<ffffffff81159690>] ? __vunmap+0x80/0xd0
+> [  395.456114]  [<ffffffff8111d04f>] do_init_module+0x56/0x1c8
+> [  395.462722]  [<ffffffff810dd2be>] load_module+0x1dae/0x2670
+> [  395.469324]  [<ffffffff810da7b0>] ? __symbol_put+0x50/0x50
+> [  395.475872]  [<ffffffff810ddd89>] SYSC_finit_module+0xa9/0xd0
+> [  395.482656]  [<ffffffff810dddc9>] SyS_finit_module+0x9/0x10
+> [  395.489252]  [<ffffffff816df1b6>] entry_SYSCALL_64_fastpath+0x1e/0xa=
+8
+>=20
+>=20
+> Instead of reverting the commit, I tried to find out the cause.
+>=20
+> ib_cache_gid_set_default_gid() calls find_gid()
+>=20
+>  249 static int find_gid(struct ib_gid_table *table, const union ib_gid=
+ *gid,
+>  250                     const struct ib_gid_attr *val, bool default_gi=
+d,
+>  251                     unsigned long mask, int *pempty)
+>  252 {
+>  253         int i =3D 0;
+>  254         int found =3D -1;
+>  255         int empty =3D pempty ? -1 : 0;
+>  256=20
+>  257         while (i < table->sz && (found < 0 || empty < 0)) {
+>=20
+> find_gid() returns -1 because table->sz is 0.
+>=20
+>=20
+>  757 static int _gid_table_setup_one(struct ib_device *ib_dev)
+>  758 {
+>  759         u8 port;
+>  760         struct ib_gid_table **table;
+>  761         int err =3D 0;
+>  762=20
+>  763         table =3D kcalloc(ib_dev->phys_port_cnt, sizeof(*table), G=
+FP_KERNEL);
+>  764=20
+>  765         if (!table) {
+>  766                 pr_warn("failed to allocate ib gid cache for %s\n"=
+,
+>  767                         ib_dev->name);
+>  768                 return -ENOMEM;
+>  769         }
+>  770=20
+>  771         for (port =3D 0; port < ib_dev->phys_port_cnt; port++) {
+>  772                 u8 rdma_port =3D port + rdma_start_port(ib_dev);
+>  773=20
+>  774                 table[port] =3D
+>  775                         alloc_gid_table(
+>  776                                 ib_dev->port_immutable[rdma_port].=
+gid_tbl_len);
+>=20
+> "table" is allocated in alloc_gid_table().
+> And debug shows ib_dev->port_immutable[rdma_port].gid_tbl_len is 0.
+>=20
+> "gid_tbl_len" is set in mlx5_query_mad_ifc_port()
+>=20
+> 498 int mlx5_query_mad_ifc_port(struct ib_device *ibdev, u8 port,
+> 499                             struct ib_port_attr *props)
+> 500 {
+> ...
+>=20
+> 537         props->gid_tbl_len      =3D out_mad->data[50];
+>=20
+> Debug shows out_mad->data[50] is 0.
+>=20
+> So here is the "temporary" patch.
+> I just copied it from mlx5_query_hca_port()
+>=20
+> diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/m=
+lx5/mad.c
+> index 1534af1..ef19b5c 100644
+> --- a/drivers/infiniband/hw/mlx5/mad.c
+> +++ b/drivers/infiniband/hw/mlx5/mad.c
+> @@ -534,7 +534,7 @@ int mlx5_query_mad_ifc_port(struct ib_device *ibdev=
+, u8 port,
+>  	props->state		=3D out_mad->data[32] & 0xf;
+>  	props->phys_state	=3D out_mad->data[33] >> 4;
+>  	props->port_cap_flags	=3D be32_to_cpup((__be32 *)(out_mad->data + 20)=
+);
+> -	props->gid_tbl_len	=3D out_mad->data[50];
+> +	props->gid_tbl_len	=3D mlx5_get_gid_table_len(MLX5_CAP_GEN(mdev, gid_=
+table_size));
+>  	props->max_msg_sz	=3D 1 << MLX5_CAP_GEN(mdev, log_max_msg);
+>  	props->pkey_tbl_len	=3D mdev->port_caps[port - 1].pkey_table_len;
+>  	props->bad_pkey_cntr	=3D be16_to_cpup((__be16 *)(out_mad->data + 46))=
+;
+>=20
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -37,7 +248,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---ST5O4aCdkLQvFUrNCpv6VOKem5Dlv7GXt
+--qJ7u0UNuBvbrtkPTkP8rPlkTuXBkhnLSn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -46,22 +257,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNNIQAAoJELgmozMOVy/d9BQQAIGvJq6e94NG7uRsRRQkH40j
-xRc2AXVwQDa50jvNK5mv5CkWBfnmVj8uZHkEaPJNsGzYAYFjH+YDehMXyBxXjWaZ
-/9C1WX3kpI8tuhAcR7eBbYrEKx3uvKKOjZln+wP84RqjYGblwZq3iQn8JqvyBtG8
-w1pHpIJFdnm6r4x7jkB1vvhq1ywyWUjWqpHGjW+Aw0/tmitSIDXwvMvSwb2HulJW
-WIbiD+XObWe+TGf3uV6uapgP8xzZPkZbMozswnfzfCl5gcnzagO2aDSGBVX7eVvw
-5T+uhmVRvplz5tsYC96n8nD0Xypi1KE9t7rgdhxa3ozibSwLX+Q2lE5jclbrvPNd
-J/9PT4uLbCdDBRxy1c3T2Gb0i16dZPKEMj6JkCtPvEyEaJ/3F3wccpkLm/YsGr4q
-rdVCl+GwBjFdedEcJX3nygdSBNGsiu3Bp7usm2BiOgHQp5YyxSlZ11dusuufT08j
-VUcfosw1k0ePGsua0IDIt9w4uEMoW3y1Z9hYsFQSl04Vk2oAI8WJugRKWtX78zIC
-TcCk/u+FKc539D5PvH2hWljY/5Trnws3YbRR3t/7ENUNlQAXQZIMtpoEfNJOc/Sb
-5KJ5mKNg519DNjvk8c9nDP0TKMvgsXmZd+qFN51aW5FzOmbLc7HC98zFKia7mgTf
-4qX9zkoS9651BtQLaP0S
-=qXTN
+iQIcBAEBCAAGBQJXNNMBAAoJELgmozMOVy/dnsYQAMRoy1TopyK9eFJfPp/c3AVr
+lRs79zf7V7SLmyLJsgatEHm6XNst3Cbyugwy0BYDICTicsT8k6888HIiUIHQ14+M
+OzF7SCjks34gatWlht5SErF+o1HzymTDPJXuxKqPxNv8m3IOCqmBHkAhH36sRrJh
+JBUTA7vwpepGR4hW6xSaAtiZJJ4gfaRbOast8DMEbSVBSQapQk6y+ZyMShqONqL8
+HY7J9UhJH3jM5jffHh0B09jca4Ur08+ZZlm8umN5nmmNuaIxEx3AtNj3Q+nWZ9l1
+tecbEuZhj5VHQsyJt7NFqlOvuhXJf2AT6UocErvu2233ITog7ruvthypdkWToZ1B
+wFjWNfMjf8uTuDaox5Uk6Cko4Bwi3JLeNhkU78A8AXde8PAfeTCilV1tDq1ocdKO
+5ZiIjtJ6IZv/QMqOZz7yVl4amMFRYu6n7JXy5hwPzSVHkesSA8nLbHVGmYjN3PrD
+Gsubs8ITIvbrVtKfrJDQymDimv2fY6AvfkYxXVDpLOLrRDR9wE7Y5X3TtDkbhTWA
+KqFNkZ44yidyNHn3obSjukzKHKUlbJPm5c4NHQNtY+8rDTlUWXAKrO9rlM90nn6K
+guAThvxYgCqxL6EZ8GevmcT95qpzely7ujrJ1UeMbboMXkaxWnOwE4ZbveyOkeHn
+xcETwy3mWUdovCkDPqxu
+=UkTy
 -----END PGP SIGNATURE-----
 
---ST5O4aCdkLQvFUrNCpv6VOKem5Dlv7GXt--
+--qJ7u0UNuBvbrtkPTkP8rPlkTuXBkhnLSn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
