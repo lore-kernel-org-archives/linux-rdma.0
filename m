@@ -1,74 +1,66 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH net-next 4/5] treewide: replace dev->trans_start update
- with helper
-Date: Thu, 12 May 2016 15:40:46 -0400
-Message-ID: <20118955-8739-b79a-e20e-96302e8b41bf@redhat.com>
-References: <1462285862-30946-1-git-send-email-fw@strlen.de>
- <1462285994-31983-1-git-send-email-fw@strlen.de>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
+Date: Thu, 12 May 2016 15:48:16 -0400
+Message-ID: <f96bfe93-6bcc-7d55-8f7a-1792d12d41d9@redhat.com>
+References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
+ <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
+ <20160512174332.GB13553@obsidianresearch.com>
+ <20160512192726.GB15146@phlsvsds.ph.intel.com>
+ <20160512194006.GA6364@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r"
-Return-path: <linux-parisc-owner@vger.kernel.org>
-In-Reply-To: <1462285994-31983-1-git-send-email-fw@strlen.de>
-Sender: linux-parisc-owner@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
-Cc: user-mode-linux-devel@lists.sourceforge.net, linux-xtensa@linux-xtensa.org, linux1394-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, mpt-fusionlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, linux-can@vger.kernel.org, linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org, linux-hams@vger.kernel.org, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, b.a.t.m.a.n@lists.open-mesh.org, linux-bluetooth@vger.kernel.org
+ boundary="tin3h2IX4Ol26MUVN6Um5QmKd33ncMiDm"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160512194006.GA6364-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+--tin3h2IX4Ol26MUVN6Um5QmKd33ncMiDm
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/03/2016 10:33 AM, Florian Westphal wrote:
-> Replace all trans_start updates with netif_trans_update helper.
-> change was done via spatch:
->=20
-> struct net_device *d;
-> @@
-> - d->trans_start =3D jiffies
-> + netif_trans_update(d)
->=20
-> Compile tested only.
->=20
-> Cc: user-mode-linux-devel@lists.sourceforge.net
-> Cc: linux-xtensa@linux-xtensa.org
-> Cc: linux1394-devel@lists.sourceforge.net
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: MPT-FusionLinux.pdl@broadcom.com
-> Cc: linux-scsi@vger.kernel.org
-> Cc: linux-can@vger.kernel.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org
-> Cc: linux-hams@vger.kernel.org
-> Cc: linux-usb@vger.kernel.org
-> Cc: linux-wireless@vger.kernel.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: b.a.t.m.a.n@lists.open-mesh.org
-> Cc: linux-bluetooth@vger.kernel.org
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Checkpatch complains about whitespace damage, but
->  this extra whitespace already exists before this patch.
->=20
->  drivers/infiniband/hw/nes/nes_nic.c                    | 2 +-
->  drivers/infiniband/ulp/ipoib/ipoib_cm.c                | 2 +-
->  drivers/infiniband/ulp/ipoib/ipoib_ib.c                | 2 +-
+On 05/12/2016 03:40 PM, Jason Gunthorpe wrote:
+> On Thu, May 12, 2016 at 03:27:27PM -0400, Dennis Dalessandro wrote:
+>>> I thought we agreed to get rid of this as well? It certainly does not=
 
-For InfiniBand bits,
+>>> belong here, and as a general rule, I don't think ioctls should be
+>>> doing capable tests..
+>>
+>> Yeah. I left it in this patch set because this just "ports" our existi=
+ng
+>> code to ioctl(). The eprom stuff is completely removed in another patc=
+h set
+>> that I posted shortly after this. It's at:
+>=20
+> Adding code and then removing it in a later patch is not a best
+> practice.. Just don't add it or define ioctl numbers at all..
 
-Acked-by: Doug Ledford <dledford@redhat.com>
+Yeah, but then that changes the nature of the patchset.  It goes from
+being "We ported the existing write API to ioctl API" to "We ported
+existing write API to ioctl API and also changed the scope of the API in
+the process", which is considered bad coding practice (one stand alone
+change per commit).  It's pretty 6 of one, half dozen of the other if
+you ask me.  A better solution would have been to remove the EEPROM
+stuff from the write ioctl, then only port the remaining stuff.  That
+would have avoided both coding issues, but I also understand how they
+got here, which is they did the ioctl conversion before they knew they
+were going to rip out the EEPROM code.  In any case, the best fix would
+be to rebase the two series that are remaining and move any "rip out
+things like eeprom support" patches to prior to the ioctl patches and
+make it so that they rip out the write interface version of it instead,
+and then squash a second copy of the ioctl removal into this patch.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r
+--tin3h2IX4Ol26MUVN6Um5QmKd33ncMiDm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,19 +69,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNNw+AAoJELgmozMOVy/dVQcP/1RZvmqQVJpZMtptIm8OpoPW
-4QrFlnjv+KorYVaF1Hg7+0X6yfCF53ofTKRAg4zaYiASZw4AJWYzslxA9b0OvpPS
-TzMjJrbWm27+W2pH8ZivFepys9afxW5o/qb7CFYyOPOEml495zReUvTqt/nSh7jG
-8nTdwO4xH5kY4P82bDn18Lyqd/8cS7yFl1OAK88eqq+y9JgveiIsO2PlsrtFENtX
-+RyadCAluEUdfe6CZjMjUptBptIi6hfoMqmXXu4vcFs48mqbVf4QubFp5f+4wJa2
-KScILHNil3156j3TY3lpG1ukf2SfF0UYDYxco5tZlZ3O7nB3Xteif94gvvUiszyO
-IfGn3/wblQs6tRSHjMRNYiTVeYkyh0eXbdbha/7bkBG58mEjYFnrjtRuBMD2Ogmm
-uz6MhyD6Ez7mKKVBc3ooQ6SYpcwb4surHEGm36a2Utnb/vftxyPYpA75neZbSGZO
-X828tsNcxB9K8FUCEcP/Xasc5xE6kPtpwu5TIbJ7itYLs4yRoZbsmcI5UrhjqERp
-YAAiI07vifFHyFLUnfAOefjXxQOFJdQHtMphlnjfYiKXSpJsAhT2LIJpepgbovCc
-/268dPol/ul7WUbLu2P4zlnnIEQgABW6NKFMAg/N/b4XQ08VkeKv82yJ9aLuyG2J
-0QbOFyrXnR/I1OYFeDAU
-=2VMH
+iQIcBAEBCAAGBQJXNN4AAAoJELgmozMOVy/d5IsP/jUkefaiH+a1HIbgcng/ZnC4
+lS2rx2fNfhaOsDf649QC4St1Dz4K6DBPytgQp88+Yb79CrRvGgufOemy0riKVM77
+KuCLMECBR0qN6nH8LlJCR6PqyTU9t+qh3FFOOYHOTmq0jpM+/NzDP5xmG9FV673w
+TvPAnpd78BcHt2Agj0Aq5busYPUhH4wDtD3Xk5DTpGNxR2LPloEteq0H/MhTzQom
+DEx1oFXMhxp2T1xWomtHNy9f9QCxj+MGY4DDhW/PnNvby57TB6HKcqjnhcYMwVAK
+5efIz6SqZ/YEEbUxZ/dmVRC8TeLuHTBm4/yLrR1jQW5G+wzPXCBP4kJVUS1mesaA
+crRMOn7isxw9oHelF753rvyosnvVOdIJVUbh2wqmEBaubzlMS0OxancRvlWOdaWM
+M/eAyT5SMav6SRr+Ui2rP/zpuP00wP4UxOzkvV8zvra4q8o1hWtLmDcftXAmBxxx
+X2LFBVxeTmm639loHf5g/7cu/DEKzuaTxhHQS0PUdUuH1y4ZxB4UParscyxKF0Z0
+2h51aM+UwilHkFVjlEI3pBys00H6d3GUNf1MVAId4dAGtKMqPF+zk3xXgPNFBgUC
+IbPNBWU1wSShcwZ8tMoKX26VfiHxJdgDH0PHZzAyocaK0kgyi0O8c8Wj07ZXtys9
+854QdFc8pdyEVXkrB1Be
+=MYT0
 -----END PGP SIGNATURE-----
 
---MxOQ9rEvBghhBiQvcDah4SfXu2ff5Ef0r--
+--tin3h2IX4Ol26MUVN6Um5QmKd33ncMiDm--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
