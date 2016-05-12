@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/6] IB/hfi1: Remove multiple device cdev
-Date: Thu, 12 May 2016 10:27:56 -0700
-Message-ID: <20160512172754.11667.15171.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 2/6] IB/hfi1: Remove UI char device
+Date: Thu, 12 May 2016 10:28:02 -0700
+Message-ID: <20160512172801.11667.38334.stgit@scvm10.sc.intel.com>
 References: <20160512172500.11667.11333.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,237 +10,213 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160512172500.11667.11333.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hfi1 current exports a cdev that can be used to target all of the hfi's
-in the system. However there is a problem with this approach in
-that the devices could be on different subnets. This is a problem that
-user space can figure out and explicitly tell the driver on which device
-to create a context.
-
-Remove the multi-purpose cdev leaving a dedicated cdev for each port.
-Also remove the striping capability that is dependent upon the user
-choosing the multi-purpose cdev. It is now up to user space to determine
-how to stripe contexts.
+Remove UI char device which exposes direct access to registers for user
+space. This was put in to aid in debugging the hardware. We are looking
+into alternatives means of providing the same functionality. This
+removes another char device from HFI1's footprint.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/file_ops.c |  102 ++++++----------------------------
- include/uapi/rdma/hfi/hfi1_user.h    |   19 +-----
- 2 files changed, 21 insertions(+), 100 deletions(-)
+ drivers/staging/rdma/hfi1/file_ops.c |  168 ----------------------------------
+ 1 files changed, 1 insertions(+), 167 deletions(-)
 
 diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index bfcf1a2..930d829 100644
+index 930d829..60f8885 100644
 --- a/drivers/staging/rdma/hfi1/file_ops.c
 +++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -84,8 +84,7 @@ static int get_ctxt_info(struct file *, void __user *, __u32);
- static int get_base_info(struct file *, void __user *, __u32);
- static int setup_ctxt(struct file *);
- static int setup_subctxt(struct hfi1_ctxtdata *);
--static int get_user_context(struct file *, struct hfi1_user_info *,
--			    int, unsigned);
-+static int get_user_context(struct file *, struct hfi1_user_info *, int);
- static int find_shared_ctxt(struct file *, const struct hfi1_user_info *);
- static int allocate_ctxt(struct file *, struct hfi1_devdata *,
- 			 struct hfi1_user_info *);
-@@ -810,7 +809,7 @@ static u64 kvirt_to_phys(void *addr)
- static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
- {
- 	int i_minor, ret = 0;
--	unsigned swmajor, swminor, alg = HFI1_ALG_ACROSS;
-+	unsigned int swmajor, swminor;
- 
- 	swmajor = uinfo->userversion >> 16;
- 	if (swmajor != HFI1_USER_SWMAJOR) {
-@@ -820,9 +819,6 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
- 
- 	swminor = uinfo->userversion & 0xffff;
- 
--	if (uinfo->hfi1_alg < HFI1_ALG_COUNT)
--		alg = uinfo->hfi1_alg;
--
- 	mutex_lock(&hfi1_mutex);
- 	/* First, lets check if we need to setup a shared context? */
- 	if (uinfo->subctxt_cnt) {
-@@ -842,7 +838,7 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
- 	 */
- 	if (!ret) {
- 		i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
--		ret = get_user_context(fp, uinfo, i_minor - 1, alg);
-+		ret = get_user_context(fp, uinfo, i_minor);
- 	}
- done_unlock:
- 	mutex_unlock(&hfi1_mutex);
-@@ -850,71 +846,26 @@ done:
+@@ -1471,163 +1471,10 @@ done:
  	return ret;
  }
  
--/* return true if the device available for general use */
--static int usable_device(struct hfi1_devdata *dd)
+-static int ui_open(struct inode *inode, struct file *filp)
 -{
--	struct hfi1_pportdata *ppd = dd->pport;
+-	struct hfi1_devdata *dd;
 -
--	return driver_lstate(ppd) == IB_PORT_ACTIVE;
+-	dd = container_of(inode->i_cdev, struct hfi1_devdata, ui_cdev);
+-	filp->private_data = dd; /* for other methods */
+-	return 0;
 -}
 -
- static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
--			    int devno, unsigned alg)
-+			    int devno)
- {
- 	struct hfi1_devdata *dd = NULL;
--	int ret = 0, devmax, npresent, nup, dev;
-+	int devmax, npresent, nup;
- 
- 	devmax = hfi1_count_units(&npresent, &nup);
--	if (!npresent) {
--		ret = -ENXIO;
--		goto done;
--	}
--	if (!nup) {
--		ret = -ENETDOWN;
--		goto done;
--	}
--	if (devno >= 0) {
--		dd = hfi1_lookup(devno);
--		if (!dd)
--			ret = -ENODEV;
--		else if (!dd->freectxts)
--			ret = -EBUSY;
--	} else {
--		struct hfi1_devdata *pdd;
+-static int ui_release(struct inode *inode, struct file *filp)
+-{
+-	/* nothing to do */
+-	return 0;
+-}
 -
--		if (alg == HFI1_ALG_ACROSS) {
--			unsigned free = 0U;
+-static loff_t ui_lseek(struct file *filp, loff_t offset, int whence)
+-{
+-	struct hfi1_devdata *dd = filp->private_data;
 -
--			for (dev = 0; dev < devmax; dev++) {
--				pdd = hfi1_lookup(dev);
--				if (!pdd)
--					continue;
--				if (!usable_device(pdd))
--					continue;
--				if (pdd->freectxts &&
--				    pdd->freectxts > free) {
--					dd = pdd;
--					free = pdd->freectxts;
--				}
+-	return fixed_size_llseek(filp, offset, whence,
+-		(dd->kregend - dd->kregbase) + DC8051_DATA_MEM_SIZE);
+-}
+-
+-/* NOTE: assumes unsigned long is 8 bytes */
+-static ssize_t ui_read(struct file *filp, char __user *buf, size_t count,
+-		       loff_t *f_pos)
+-{
+-	struct hfi1_devdata *dd = filp->private_data;
+-	void __iomem *base = dd->kregbase;
+-	unsigned long total, csr_off,
+-		barlen = (dd->kregend - dd->kregbase);
+-	u64 data;
+-
+-	/* only read 8 byte quantities */
+-	if ((count % 8) != 0)
+-		return -EINVAL;
+-	/* offset must be 8-byte aligned */
+-	if ((*f_pos % 8) != 0)
+-		return -EINVAL;
+-	/* destination buffer must be 8-byte aligned */
+-	if ((unsigned long)buf % 8 != 0)
+-		return -EINVAL;
+-	/* must be in range */
+-	if (*f_pos + count > (barlen + DC8051_DATA_MEM_SIZE))
+-		return -EINVAL;
+-	/* only set the base if we are not starting past the BAR */
+-	if (*f_pos < barlen)
+-		base += *f_pos;
+-	csr_off = *f_pos;
+-	for (total = 0; total < count; total += 8, csr_off += 8) {
+-		/* accessing LCB CSRs requires more checks */
+-		if (is_lcb_offset(csr_off)) {
+-			if (read_lcb_csr(dd, csr_off, (u64 *)&data))
+-				break; /* failed */
+-		}
+-		/*
+-		 * Cannot read ASIC GPIO/QSFP* clear and force CSRs without a
+-		 * false parity error.  Avoid the whole issue by not reading
+-		 * them.  These registers are defined as having a read value
+-		 * of 0.
+-		 */
+-		else if (csr_off == ASIC_GPIO_CLEAR ||
+-			 csr_off == ASIC_GPIO_FORCE ||
+-			 csr_off == ASIC_QSFP1_CLEAR ||
+-			 csr_off == ASIC_QSFP1_FORCE ||
+-			 csr_off == ASIC_QSFP2_CLEAR ||
+-			 csr_off == ASIC_QSFP2_FORCE)
+-			data = 0;
+-		else if (csr_off >= barlen) {
+-			/*
+-			 * read_8051_data can read more than just 8 bytes at
+-			 * a time. However, folding this into the loop and
+-			 * handling the reads in 8 byte increments allows us
+-			 * to smoothly transition from chip memory to 8051
+-			 * memory.
+-			 */
+-			if (read_8051_data(dd,
+-					   (u32)(csr_off - barlen),
+-					   sizeof(data), &data))
+-				break; /* failed */
+-		} else
+-			data = readq(base + total);
+-		if (put_user(data, (unsigned long __user *)(buf + total)))
+-			break;
+-	}
+-	*f_pos += total;
+-	return total;
+-}
+-
+-/* NOTE: assumes unsigned long is 8 bytes */
+-static ssize_t ui_write(struct file *filp, const char __user *buf,
+-			size_t count, loff_t *f_pos)
+-{
+-	struct hfi1_devdata *dd = filp->private_data;
+-	void __iomem *base;
+-	unsigned long total, data, csr_off;
+-	int in_lcb;
+-
+-	/* only write 8 byte quantities */
+-	if ((count % 8) != 0)
+-		return -EINVAL;
+-	/* offset must be 8-byte aligned */
+-	if ((*f_pos % 8) != 0)
+-		return -EINVAL;
+-	/* source buffer must be 8-byte aligned */
+-	if ((unsigned long)buf % 8 != 0)
+-		return -EINVAL;
+-	/* must be in range */
+-	if (*f_pos + count > dd->kregend - dd->kregbase)
+-		return -EINVAL;
+-
+-	base = (void __iomem *)dd->kregbase + *f_pos;
+-	csr_off = *f_pos;
+-	in_lcb = 0;
+-	for (total = 0; total < count; total += 8, csr_off += 8) {
+-		if (get_user(data, (unsigned long __user *)(buf + total)))
+-			break;
+-		/* accessing LCB CSRs requires a special procedure */
+-		if (is_lcb_offset(csr_off)) {
+-			if (!in_lcb) {
+-				int ret = acquire_lcb_access(dd, 1);
+-
+-				if (ret)
+-					break;
+-				in_lcb = 1;
 -			}
 -		} else {
--			for (dev = 0; dev < devmax; dev++) {
--				pdd = hfi1_lookup(dev);
--				if (!pdd)
--					continue;
--				if (!usable_device(pdd))
--					continue;
--				if (pdd->freectxts) {
--					dd = pdd;
--					break;
--				}
+-			if (in_lcb) {
+-				release_lcb_access(dd, 1);
+-				in_lcb = 0;
 -			}
 -		}
--		if (!dd)
--			ret = -EBUSY;
+-		writeq(data, base + total);
 -	}
--done:
--	return ret ? ret : allocate_ctxt(fp, dd, uinfo);
-+	if (!npresent)
-+		return -ENXIO;
-+
-+	if (!nup)
-+		return -ENETDOWN;
-+
-+	dd = hfi1_lookup(devno);
-+	if (!dd)
-+		return -ENODEV;
-+	else if (!dd->freectxts)
-+		return -EBUSY;
-+
-+	return allocate_ctxt(fp, dd, uinfo);
- }
- 
- static int find_shared_ctxt(struct file *fp,
-@@ -1672,15 +1623,8 @@ static const struct file_operations ui_file_ops = {
- #define UI_OFFSET 192	/* device minor offset for UI devices */
- static int create_ui = 1;
- 
--static struct cdev wildcard_cdev;
--static struct device *wildcard_device;
+-	if (in_lcb)
+-		release_lcb_access(dd, 1);
+-	*f_pos += total;
+-	return total;
+-}
 -
--static atomic_t user_count = ATOMIC_INIT(0);
+-static const struct file_operations ui_file_ops = {
+-	.owner = THIS_MODULE,
+-	.llseek = ui_lseek,
+-	.read = ui_read,
+-	.write = ui_write,
+-	.open = ui_open,
+-	.release = ui_release,
+-};
+-
+-#define UI_OFFSET 192	/* device minor offset for UI devices */
+-static int create_ui = 1;
 -
  static void user_remove(struct hfi1_devdata *dd)
  {
--	if (atomic_dec_return(&user_count) == 0)
--		hfi1_cdev_cleanup(&wildcard_cdev, &wildcard_device);
  
  	hfi1_cdev_cleanup(&dd->user_cdev, &dd->user_device);
- 	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
-@@ -1691,16 +1635,8 @@ static int user_add(struct hfi1_devdata *dd)
- 	char name[10];
- 	int ret;
+-	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
+ }
  
--	if (atomic_inc_return(&user_count) == 1) {
--		ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
--				     &wildcard_cdev, &wildcard_device,
--				     true);
+ static int user_add(struct hfi1_devdata *dd)
+@@ -1640,21 +1487,8 @@ static int user_add(struct hfi1_devdata *dd)
+ 			     &dd->user_cdev, &dd->user_device,
+ 			     true);
+ 	if (ret)
+-		goto done;
++		user_remove(dd);
+ 
+-	if (create_ui) {
+-		snprintf(name, sizeof(name),
+-			 "%s_ui%d", class_name(), dd->unit);
+-		ret = hfi1_cdev_init(dd->unit + UI_OFFSET, name, &ui_file_ops,
+-				     &dd->ui_cdev, &dd->ui_device,
+-				     false);
 -		if (ret)
 -			goto done;
 -	}
 -
- 	snprintf(name, sizeof(name), "%s_%d", class_name(), dd->unit);
--	ret = hfi1_cdev_init(dd->unit + 1, name, &hfi1_file_ops,
-+	ret = hfi1_cdev_init(dd->unit, name, &hfi1_file_ops,
- 			     &dd->user_cdev, &dd->user_device,
- 			     true);
- 	if (ret)
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index 383d036..33a9b1a 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -75,7 +75,7 @@
-  * may not be implemented; the user code must deal with this if it
-  * cares, or it must abort after initialization reports the difference.
-  */
--#define HFI1_USER_SWMINOR 0
-+#define HFI1_USER_SWMINOR 1
+-	return 0;
+-done:
+-	user_remove(dd);
+ 	return ret;
+ }
  
- /*
-  * We will encode the major/minor inside a single 32bit version number.
-@@ -112,19 +112,6 @@
- #define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
- #define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
- 
--/*
-- * If the unit is specified via open, HFI choice is fixed.  If port is
-- * specified, it's also fixed.  Otherwise we try to spread contexts
-- * across ports and HFIs, using different algorithms.  WITHIN is
-- * the old default, prior to this mechanism.
-- */
--#define HFI1_ALG_ACROSS 0 /* round robin contexts across HFIs, then
--			  * ports; this is the default */
--#define HFI1_ALG_WITHIN 1 /* use all contexts on an HFI (round robin
--			  * active ports within), then next HFI */
--#define HFI1_ALG_COUNT  2 /* number of algorithm choices */
--
--
- /* User commands. */
- #define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
- #define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
-@@ -245,9 +232,7 @@ struct hfi1_user_info {
- 	 * Should be set to HFI1_USER_SWVERSION.
- 	 */
- 	__u32 userversion;
--	__u16 pad;
--	/* HFI selection algorithm, if unit has not selected */
--	__u16 hfi1_alg;
-+	__u32 pad;
- 	/*
- 	 * If two or more processes wish to share a context, each process
- 	 * must set the subcontext_cnt and subcontext_id to the same
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
