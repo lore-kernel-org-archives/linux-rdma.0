@@ -1,62 +1,34 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v2 0/5] IB/hfi1: Remove write() and use ioctl() for user
- access
-Date: Thu, 12 May 2016 15:27:09 -0600
-Message-ID: <20160512212709.GB6545@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
+Date: Thu, 12 May 2016 15:28:21 -0600
+Message-ID: <20160512212821.GC6545@obsidianresearch.com>
 References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
- <20160512173445.GA13553@obsidianresearch.com>
- <20160512190738.GA15146@phlsvsds.ph.intel.com>
- <20160512192508.GA17319@obsidianresearch.com>
- <20160512195304.GA10419@phlsvsds.ph.intel.com>
+ <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
+ <20160512174332.GB13553@obsidianresearch.com>
+ <20160512192726.GB15146@phlsvsds.ph.intel.com>
+ <20160512194006.GA6364@obsidianresearch.com>
+ <f96bfe93-6bcc-7d55-8f7a-1792d12d41d9@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160512195304.GA10419@phlsvsds.ph.intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <f96bfe93-6bcc-7d55-8f7a-1792d12d41d9-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 03:53:04PM -0400, Dennis Dalessandro wrote:
-> >>Is it really that big of a deal to export a version number?
-> >
-> >If it isn't needed, don't add it..
-> 
-> For the reason I gave, I think it is needed so unless you are vehemently
-> opposed to it I would prefer to leave it.
+On Thu, May 12, 2016 at 03:48:16PM -0400, Doug Ledford wrote:
+> were going to rip out the EEPROM code.  In any case, the best fix would
+> be to rebase the two series that are remaining and move any "rip out
+> things like eeprom support" patches to prior to the ioctl patches and
+> make it so that they rip out the write interface version of it instead,
+> and then squash a second copy of the ioctl removal into this patch.
 
-It represents the opposite of what we want to see in good uapi
-design. Linux generally doesn't use versioning, it uses active in-band
-discovery (eg via ENOSYS or something)
-
-If you do something that needs versioning then add it, otherwise
-assume a design using in-band discovery.
-
-> >Drivers can be removed in other ways, eg pci hot unplug. Do not assume
-> >module_exit is the only way and rely on module ref counting for
-> >correctness.
-> 
-> Point taken. I'll look into this. So are you perhaps suggesting we do
-> something like is done for uverbs_dev in ib_verbs_add_one() where there is a
-> kobj for uverbs_dev and the parent of uverbs_dev->cdeb is set to that? In
-> our case it would probably be something like hfi1_devdata.
-
-Unconditionally the cdev parent kref must point to the kref that holds
-the liftime of the memory containing the struct cdev.
-
-See
-
-commit 35d4a0b63dc0c6d1177d4f532a9deae958f0662c
-Author: Yishai Hadas <yishaih@mellanox.com>
-Date:   Thu Aug 13 18:32:03 2015 +0300
-
-    IB/uverbs: Fix race between ib_uverbs_open and remove_one
-
-But I thought there might be more issues with release racing with
-remove as some of the release functions were quite complex, and I
-didn't see much locking (I did not study it closely). It needs a
-careful analysis to show that is OK.  Remember unregistering the cdev
-is not a fence and open fd's can remain and be released at any time.
+Yes, this would look best
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
