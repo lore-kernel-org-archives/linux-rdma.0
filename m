@@ -1,66 +1,70 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH v2 0/5] IB/hfi1: Remove write() and use ioctl() for user access
-Date: Thu, 12 May 2016 15:07:38 -0400
-Message-ID: <20160512190738.GA15146@phlsvsds.ph.intel.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com> <20160512173445.GA13553@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Could use some help getting SIW compiling on latest kernels
+Date: Thu, 12 May 2016 15:08:24 -0400
+Message-ID: <76dbb62f-71f8-d348-2847-702a19ed32c7@redhat.com>
+References: <CAANLjFpmhtdfBsVCwAsLkmOx-mmTv9fb4u9VMM7ps3_c50s53Q@mail.gmail.com>
+ <CAANLjFrhNathEQViOTePpjphWLqaXLTjPu=XrUiM3GAyD9yktA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160512173445.GA13553@obsidianresearch.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="oFX6QE4JSEdRJ6MD4fGHSM9ahkFGED3HD"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFrhNathEQViOTePpjphWLqaXLTjPu=XrUiM3GAyD9yktA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 11:34:45AM -0600, Jason Gunthorpe wrote:
->On Thu, May 12, 2016 at 10:18:27AM -0700, Dennis Dalessandro wrote:
->
->> There is also a driver software version being exported via a sysfs
->> file. This is needed so that user space applications (psm) can
->> determine if it needs to do ioctl() or write().
->
->Why? Don't do this, just call ioctl() and if it fails then use write().
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--oFX6QE4JSEdRJ6MD4fGHSM9ahkFGED3HD
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Is it really that big of a deal to export a version number?
+On 05/10/2016 06:30 PM, Robert LeBlanc wrote:
+> I've figured out the error for the stack trace. Apparently iWARP
+> doesn't need/use MADs and removing
+>=20
+> immutable->max_mad_size =3D IB_MGMT_MAD_SIZE;
+>=20
+> fixes it. I still don't get a device to show up with ibv_devices so I
+> have some more digging to do. This is a minimal VM, so I could just be
+> missing some libraries or something.
 
-There are cases where psm could be built with a different kernel (depends on  
-a header file) than the currently running one.  This allows psm to check the 
-current running version with what it was built against. This could be useful 
-for other scenarios in the future as well. Not just the write vs ioctl.
+I wouldn't expect ibv_devices to show your device.  There is no user
+space library I assume.  Is there even a /dev/infiniband/uverbs0 file
+for the device?
 
->> This does not add anything for compat_ioctl() as it is my understanding that
->> 32 bit applications that attempt to call the ioctl() will just fail. Which is
->> the intended behavior.
->
->qib works fine with a 64 bit kernel and 32 bit user space, don't
->break it.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
-We will handle this issue when we get to the qib patches. I want to hammer 
-out what the solution for hfi1 looks like first.
 
->> There is also a question of if we need to set kobj.parent [1], I'm
->
->It is needed, you need to audit this stuff, there might be more wrong
->than that.
 
->> not sure this is the case since the cdev in question lives
->> in /dev, not /dev/infiniband.
->
->Irrelevant. kobj.parent is needed because the cdev is embedded within
->another reference counted structure. You need to consider how all this
->works when the driver is removed while the cdev is still open (or
->driver remove is racing with the cdev release).
+--oFX6QE4JSEdRJ6MD4fGHSM9ahkFGED3HD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-The driver can't be removed while the cdev is still open. I tested with a
-test code that opens /dev/hfi1_0 and spins. The use count as reported by 
-lsmod ticks up and the driver can not be unloaded until I ctrl+c the test 
-program.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Are you saying the driver's cdev release function could race with the 
-drivers moudle_exit()? I don't think this happens. I put a sleep in the 
-release function and ctrl+c my test program and it hangs until the sleep 
-expires.  I tried to rmmod the driver (during the window)  and it fails as 
-in use.
+iQIcBAEBCAAGBQJXNNSoAAoJELgmozMOVy/dcA4QAIJamT94E9sKxVGJJXgURXPM
+iiHPRJpjiWpo3Ryf4luGeDmVywT9uSfeoFjRTglbDUnfqNlkxwFfVmK7NcNMpk69
+BJZFyZ81MZsNLnRyCm8AqH48ZFA24o4bSVblEYlocYz4o2/Qo2qEqOHUep7Q0zh/
+8KqVYk+yLCsTfoTf17+qHil6ylF2hqxQXN28o5BLpymNIQyjjHROoRWhDu/q//ag
+NvIBWFstI9WYLyXuDwJPVeJalnzBRVQNXmjvqbQdBm2JZdJtqsPZbE11L0dpQmTY
+Kha1d89hcElhw0Eku94/LoYVbwFuvx0Mo/E6EdScJPiF+3qIZjKoyCt54Ob3h7Qt
+JYmZXYktrjCaigDVLrudN6wv4UZQV6XPxtKqtTkRixrLd2cXBR/C4/O7bYljtNDU
+T7B4vqHIqO4GJVYvQ2ylWrgfxeL80WhwnR3jMdw3XuiC5nUjyW/+J/Bbr51L2V+W
+qd5inytz33y/uy3iotrCNVqFIS4LKxxXOUx10otKDpGTB6UnQqry2rKfj0+5JLvb
+9xXdVxnf6hSV8C/t1T0iMs6WP7o6zsW8xNc3IdIo596mYF7djsOTjLcZgl+vpVcX
+cnqqz7pf1wKB/lFZzDmxlHio5AUTM1ek4sjY7IBJXhxpXYOj1XO7rUQZIgabkqdk
+Mc5U/oFCWg5auKnPXCa8
+=1+Qc
+-----END PGP SIGNATURE-----
 
--Denny
+--oFX6QE4JSEdRJ6MD4fGHSM9ahkFGED3HD--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
