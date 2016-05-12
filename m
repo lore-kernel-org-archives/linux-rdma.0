@@ -1,44 +1,52 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH 2/3] net/mlx5e: make VXLAN support conditional
-Date: Thu, 12 May 2016 10:15:08 +0200
-Message-ID: <7520028.gr0eEEeEF0@wuerfel>
-References: <1462365116-3856622-1-git-send-email-arnd@arndb.de> <20160506.153556.1442520532117922001.davem@davemloft.net> <CALzJLG_rkLvgKE2WnmU_CsdTFaYHEaYhnxyPtTkyQ4hjxdzRMQ@mail.gmail.com>
+From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Subject: Slow performance of IPoIB on Qlogic card
+Date: Thu, 12 May 2016 15:03:57 +0300
+Message-ID: <5734712D.5010507@kyup.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CALzJLG_rkLvgKE2WnmU_CsdTFaYHEaYhnxyPtTkyQ4hjxdzRMQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Finlay <matt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Richard Cochran <richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Abramonvsky <hagaya-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Achiad Shochat <achiad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Gal Pressman <galp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sunday 08 May 2016 14:58:38 Saeed Mahameed wrote:
-> On Fri, May 6, 2016 at 10:35 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
-> > From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> > Date: Thu, 05 May 2016 20:09:19 +0200
-> >
-> >> For reference, I've tried it out on the MLX4 driver, and it does
-> >> seem nicer that way, see below.
-> >
-> > Is it possible to wind down this conversation and have someone submit
-> > whatever final patch everyone agrees to?
-> >
-> 
-> Yes, Just reposted to net what Arnd originally posted to net-next.
-> "[PATCH net 0/2] net/mlx5e: Kconfig fixes for VxLAN"
-> [...]
-> Arnd Bergmann (2):
->   Revert "net/mlx5: Kconfig: Fix MLX5_EN/VXLAN build issue"
->   net/mlx5e: make VXLAN support conditional
-> 
-> I just rebased the patches on top of net.
-> 
-> Arnd please have a look.
+Hello,
 
-Sorry for the delay, it looks all fine now and I see no more warnings.
 
-	Arnd
+I have 2 machines which are connected via an infiniband switch and are
+using the QLogic 12300 switch and InfiniPath_QLE7340 adapter. I'm
+running a very naive iperf test between the 2 machines. When running an
+upstream elrepo kernel 4.4.4-1.el6.elrepo.x86_64 I can do around
+15-18gbit which is sort of the max in my setup. At the same time I'm
+also seeing a lot of sdmaP interrupts being served.
+
+When I boot the client iperf machine with my custom built machine I'm
+barely able to get more than 4gbit/s. At the same time I'm seeing a lot
+of sdmaI interrupts being served.
+
+After some investigation it turned out that changing CONFIG_HZ to 1000
+(from 100) put the performance of my custom built kernel on par with the
+elrepo one. Despite iperf showing a 4x increase in bandwidth I still see
+a lot of sdmaI interrupt and not much sdmaP.
+
+Another interesting this is the output of 'perf top -g'. With
+CONFIG_HZ=100 the profile is dominated by 'cpuidle_enter' while iperf is
+running i.e. that my machine is almost idle. With CONFIG_HZ=1000 the
+profile is dominated by qib_verbs_send/qib_do_send/worker_thread which I
+believe is the expected behavior.
+
+Given that I have the following questions:
+
+1. What does the sdmaI/sdmaP interrupts mean. Looking around the code
+and ML it seems they I stands for Idle and P for progress. But other
+than that this doesn't mean much to me, can you expand on their meaning?
+
+2. Is it bad that more sdmaI interrupts are coming rather than sdmaP.
+Currently they seem to be on the same core(0)
+
+3. Why does changing the timer tick-rate have such a tremendous impact
+on the performance?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
