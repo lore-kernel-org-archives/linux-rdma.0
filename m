@@ -1,53 +1,71 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/5] IB/hfi1: Remove write() and use ioctl() for user access
-Date: Thu, 12 May 2016 15:53:04 -0400
-Message-ID: <20160512195304.GA10419@phlsvsds.ph.intel.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com> <20160512173445.GA13553@obsidianresearch.com> <20160512190738.GA15146@phlsvsds.ph.intel.com> <20160512192508.GA17319@obsidianresearch.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v3] IB/ipoib: Add readout of statistics using ethtool
+Date: Thu, 12 May 2016 16:10:05 -0400
+Message-ID: <9457c19d-364c-2b33-594c-6b1dda4b600f@redhat.com>
+References: <1460715468-16235-1-git-send-email-hans.westgaard.ry@oracle.com>
+ <1461237201-25738-1-git-send-email-hans.westgaard.ry@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160512192508.GA17319-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="fuAMU6pqfOnbKDJT9CJ2qrX3tUaEPOpAg"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1461237201-25738-1-git-send-email-hans.westgaard.ry@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Or Gerlitz <ogerlitz@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, INFINIBAND SUBSYSTEM <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 01:25:08PM -0600, Jason Gunthorpe wrote:
->On Thu, May 12, 2016 at 03:07:38PM -0400, Dennis Dalessandro wrote:
->> >>There is also a driver software version being exported via a sysfs
->> >>file. This is needed so that user space applications (psm) can
->> >>determine if it needs to do ioctl() or write().
->> >
->> >Why? Don't do this, just call ioctl() and if it fails then use write().
->> 
->> Is it really that big of a deal to export a version number?
->
->If it isn't needed, don't add it..
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--fuAMU6pqfOnbKDJT9CJ2qrX3tUaEPOpAg
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-For the reason I gave, I think it is needed so unless you are vehemently 
-opposed to it I would prefer to leave it.
+On 04/21/2016 07:13 AM, Hans Westgaard Ry wrote:
+> IPoIB collects statistics of traffic including number of packets
+> sent/received, number of bytes transferred, and certain errors. This
+> patch makes these statistics available to be queried by ethtool.
+>=20
+> Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+> Tested-by: Yuval Shaia <yuval.shaia@oracle.com>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 67 ++++++++++++++++++++=
+++++++++
+>  1 file changed, 67 insertions(+)
 
->> >another reference counted structure. You need to consider how all this
->> >works when the driver is removed while the cdev is still open (or
->> >driver remove is racing with the cdev release).
->> 
->> The driver can't be removed while the cdev is still open. I tested with a
->> test code that opens /dev/hfi1_0 and spins. The use count as reported by
->> lsmod ticks up and the driver can not be unloaded until I ctrl+c the test
->> program.
->
->Drivers can be removed in other ways, eg pci hot unplug. Do not assume
->module_exit is the only way and rely on module ref counting for
->correctness.
 
-Point taken. I'll look into this. So are you perhaps suggesting we do 
-something like is done for uverbs_dev in ib_verbs_add_one() where there is a 
-kobj for uverbs_dev and the parent of uverbs_dev->cdeb is set to that? In 
-our case it would probably be something like hfi1_devdata.
+Thanks, applied.
 
--Denny
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Doug Ledford <dledford@redhat.com>
+              GPG KeyID: 0E572FDD
+
+
+
+--fuAMU6pqfOnbKDJT9CJ2qrX3tUaEPOpAg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXNOMdAAoJELgmozMOVy/dt8gQAIcuntfN697SVs7fQJNNaRsc
++Y9JZdlBwZW+PxM40RVX9HFGlIvBnu0w3qLLq/hZOj05b72zCBcFHjq80RGvmEEP
++k539aJvIOAM3UUMacr+iW5P4j8PRokPZTv4IVIBkYttmB0DFKKXz6iGbPjDUiOw
+RT2FtdkSMpkc+NRmDyF/aNosxTT3O4nrNGgUGURNPXXtkZdaSHM6dSpCGpqSdvVi
+BPuo+4s2hn0rE+iiRFpjd6DHVzjybsfFMFiMiwBSSFVp2Pp5dBPw5DYlhGyAJTKX
+kGiANUVZgajIaac/sBhIrZEvGC6kC1NQ6h1SIXlC/j3l5wXmsTxb3Ko2+Atlqmhh
+lGsSklnioTmVsX8dT6d3jBkNr2JIMAo+5jUI8f46xY+ak+ZfH7QYJVFpgQlkR8rA
+PwiIkG34q+BTNloHrphEVxHR6M1puQd/NhkUrNgYgPaa6vjociVclRIJJ+0Iy+jS
+4owBlOn1mm6g90AE4Q/bfdJ9VFm1DoYJH6l8Dagqce+HTOB5j0b2Yue5XKwE0juR
+oXSZ2E6ZqsZBjtb1bv5UlKoVkhC1waQ/lHM4Ox/luTsVCHQLbcd6OVN/eOr9m71K
+b5je+xUe4wJ9+ZsNDQJSJnLNIoTdrpnmzPXEwuyWv4BFu4rYXBkDFgOewPK3ncEy
+A2uAFBXMHdl8UUQjpOqd
+=8c4S
+-----END PGP SIGNATURE-----
+
+--fuAMU6pqfOnbKDJT9CJ2qrX3tUaEPOpAg--
