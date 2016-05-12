@@ -1,67 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 3/5] IB/hfi1: Add ioctl() interface for user commands
-Date: Thu, 12 May 2016 11:43:32 -0600
-Message-ID: <20160512174332.GB13553@obsidianresearch.com>
-References: <20160512171115.6198.77458.stgit@scvm10.sc.intel.com>
- <20160512171846.6198.31415.stgit@scvm10.sc.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Prepared RDMA Tree for 4.7
+Date: Thu, 12 May 2016 20:44:06 +0300
+Message-ID: <20160512174406.GB11827@leon.nu>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/WwmFnJnmDyWGHa4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160512171846.6198.31415.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 12, 2016 at 10:18:47AM -0700, Dennis Dalessandro wrote:
-> +	case HFI1_IOCTL_EP_INFO:
-> +	case HFI1_IOCTL_EP_ERASE_CHIP:
-> +	case HFI1_IOCTL_EP_ERASE_RANGE:
-> +	case HFI1_IOCTL_EP_READ_RANGE:
-> +	case HFI1_IOCTL_EP_WRITE_RANGE:
-> +		if (!capable(CAP_SYS_ADMIN))
-> +			return -EPERM;
-> +		if (copy_from_user(&ucmd,
-> +				   (struct hfi11_cmd __user *)arg,
-> +				   sizeof(ucmd)))
-> +			return -EFAULT;
-> +		return handle_eprom_command(fp, &ucmd);
 
-I thought we agreed to get rid of this as well? It certainly does not
-belong here, and as a general rule, I don't think ioctls should be
-doing capable tests..
+--/WwmFnJnmDyWGHa4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> +static inline int check_ioctl_access(unsigned int cmd, unsigned long arg)
-> +{
-> +	int read_cmd, write_cmd, read_ok, write_ok;
-> +
-> +	read_cmd = _IOC_DIR(cmd) & _IOC_READ;
-> +	write_cmd = _IOC_DIR(cmd) & _IOC_WRITE;
-> +	write_ok = access_ok(VERIFY_WRITE, (void __user *)arg, _IOC_SIZE(cmd));
-> +	read_ok = access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
-> +
-> +	if ((read_cmd && !write_ok) || (write_cmd && !read_ok))
-> +		return -EFAULT;
+Hi Doug,
 
-This seems kind of goofy, didn't Ira say this is performance senstive?
+I prepared the base tree [1] with patches sent to RDMA mailing and passed review.
 
-Driver shouldn't be open coding __get_user like that, IMHO.
+This base tree is part of linux-next and kbuild system, and it passed
+sanity checks.
 
-> +#define HFI1_IOCTL_RECV_CTRL \
-> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_RECV_CTRL, int)
+I believe that it will save you a lot of work and time if you use it
+as a base for next merge window submission (4.7).
 
-Have you audited this? Confused why this is marked IOW when I see
-this:
+The topics which were added:
+ * topic/fix-core
+ * topic/hfi1
+ * topic/i40iw
+ * topic/ipoib
+ * topic/iw_cxgb4
+ * topic/iwcm
+ * topic/nes
+ * topic/rdma-rw-api
+ * topic/srp
 
-+       case HFI1_IOCTL_RECV_CTRL:
-+               ret = __get_user(uval, (int __user *)arg);
+[1]
+Git repository:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git rdma-next
 
-Seeing many other examples.
+Gitweb:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-next
 
-I stopped looking again
+Thanks.
 
-Jason
+--/WwmFnJnmDyWGHa4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXNMDmAAoJEORje4g2clinkr0QAK2GAxbTn52UhxcsG4TmiZFt
++HeNYl8FDtmoBYBZK3tKgMWVjq69ITuakdGZmKpN1im1KPlSjVLH0EyyTdZ3+NRs
+5R/Q2h5woderK30As3V8tuBC6q7sqFY9Xyh7Ab3wzlpCKJLx6u+GUakle03kEl7o
+q4lQzYGYae/0tBfdNGUcrPNDa2tB/AOos6bfkVH0Dexzh44erIONmjSOoH/4Ddzf
+2cC1DRrN7a+r71R2VgJcNXCDktZgD761S4j+vgjwEBimnpXyMsjSJ1MyhrObFbCU
+/BYkAx/IrJE2dau7zEK07kQSeSdaoDHWevL66d+W/GxNPUadisoKGhn1YiQdHHyS
+pr5wDWjYc3fG2xqeHCvM1bkbpehNQ8DLBQ1bY/lM2Iul52yKoI0INY3oJ+pT0cz+
+u38sXY45y/+e99JHJZbFDDRTbgXJbVqrHm/B6GkB8Zrp5Ar+m6jfcd063xG01r/C
+RbFYstGiLmwRD8wbF7M+F9FCyH0RXumE7KeLP7uS/S1teSE123YNLsHMMb39ut2u
+13cu00m0qVNb7q3jAlVuV+S+1ckuqoLtQE8qHPmadVmUKe/hDgOKwpRqyvqyLGXd
+GrgHJisbOUL3dp8s8dV2EnKDBho9JTGR4mHmEupHkrkv/E/65j9j4+2egRP2VG+T
+/nIQsujhzRq9qTzY2JqH
+=RUiM
+-----END PGP SIGNATURE-----
+
+--/WwmFnJnmDyWGHa4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
