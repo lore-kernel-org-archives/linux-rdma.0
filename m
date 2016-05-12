@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/15] IB/hfi1: Remove no-op QSFP reset code
-Date: Thu, 12 May 2016 10:22:51 -0700
-Message-ID: <20160512172250.9741.86084.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 03/15] IB/hfi1: Correct external device configuration shift
+Date: Thu, 12 May 2016 10:22:45 -0700
+Message-ID: <20160512172244.9741.17985.stgit@scvm10.sc.intel.com>
 References: <20160512172050.9741.84190.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,32 +13,33 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The RESET_N bit of the ASIC_QSFPn_OE register is not used by
-the hardware.  Remove code that tries to use it - it does
-nothing.
+The external device configuration was incorrectly shifted to byte 3 of
+the 32 bit DC_HOST_COMM_SETTINGS instead of byte 0. This patch corrects
+the shift and provides the cable capability information in byte 0.
 
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/chip.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/platform.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/chip.c b/drivers/staging/rdma/hfi1/chip.c
-index ce4c275..ec0953e 100644
---- a/drivers/staging/rdma/hfi1/chip.c
-+++ b/drivers/staging/rdma/hfi1/chip.c
-@@ -9212,9 +9212,6 @@ void reset_qsfp(struct hfi1_pportdata *ppd)
- 
- 	/* Reset the QSFP */
- 	mask = (u64)QSFP_HFI0_RESET_N;
--	qsfp_mask = read_csr(dd, dd->hfi1_id ? ASIC_QSFP2_OE : ASIC_QSFP1_OE);
--	qsfp_mask |= mask;
--	write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_OE : ASIC_QSFP1_OE, qsfp_mask);
- 
- 	qsfp_mask = read_csr(dd,
- 			     dd->hfi1_id ? ASIC_QSFP2_OUT : ASIC_QSFP1_OUT);
+diff --git a/drivers/staging/rdma/hfi1/platform.c b/drivers/staging/rdma/hfi1/platform.c
+index dfa413c..ae0e498 100644
+--- a/drivers/staging/rdma/hfi1/platform.c
++++ b/drivers/staging/rdma/hfi1/platform.c
+@@ -575,8 +575,8 @@ static void apply_tunings(
+ 		ret = read_8051_config(ppd->dd, DC_HOST_COMM_SETTINGS,
+ 				       GENERAL_CONFIG, &config_data);
+ 		/* Clear, then set the external device config field */
+-		config_data &= ~(0xFF << 24);
+-		config_data |= (external_device_config << 24);
++		config_data &= ~(u32)0xFF;
++		config_data |= external_device_config;
+ 		ret = load_8051_config(ppd->dd, DC_HOST_COMM_SETTINGS,
+ 				       GENERAL_CONFIG, config_data);
+ 		if (ret != HCMD_SUCCESS)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
