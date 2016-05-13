@@ -1,79 +1,52 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rdma] IB/mlx5: Allow mapping the free running counter
- on PROT_EXEC
-Date: Fri, 13 May 2016 15:43:22 -0400
-Message-ID: <29e2d9d7-7140-efcf-df05-e868dc7abad8@redhat.com>
-References: <1460641930-5118-1-git-send-email-matanb@mellanox.com>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH] i40e: constify i40e_client_ops structure
+Date: Fri, 13 May 2016 21:46:16 +0200 (CEST)
+Message-ID: <alpine.DEB.2.02.1605132143400.2235@localhost6.localdomain6>
+References: <1462104443-30724-1-git-send-email-Julia.Lawall@lip6.fr>  <0c2df9ca-64bd-ac73-9071-f4d619887df8@redhat.com> <1463168405.2612.23.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460641930-5118-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1052710282-1463168778=:2235"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1463168405.2612.23.camel@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Faisal Latif <faisal.latif@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Shannon Nelson <shannon.nelson@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, John Ronciak <john.ronciak@intel.com>, Mitch Williams <mitch.a.williams@intel.com>, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 04/14/2016 09:52 AM, Matan Barak wrote:
-> The current mlx5 code disallows mapping the free running counter of
-> mlx5 based hardwares when PROT_EXEC is set.
-> Although this behaviour is correct, Linux does add an implicit VM_EXEC
-> to the vm_flags if the READ_IMPLIES_EXEC bit is set in the process
-> personality. This happens for example if the process stack is
-> executable.
->=20
-> This causes libmlx5 to output a warning and prevents the user from
-> reading the free running clock.
-> Executing the init segment of the hardware isn't a security risk
-> (at least no more than executing a process own stack), so we just
-> prevent writes to there.
->=20
-> Fixes: d69e3bcf7976 ('IB/mlx5: Mmap the HCA's core clock register to
-> 		      user-space')
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks, applied.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+--8323328-1052710282-1463168778=:2235
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
 
 
---cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+On Fri, 13 May 2016, Jeff Kirsher wrote:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+> On Fri, 2016-05-13 at 12:50 -0400, Doug Ledford wrote:
+> > On 05/01/2016 08:07 AM, Julia Lawall wrote:
+> > > The i40e_client_ops structure is never modified, so declare it as
+> > const.
+> > > 
+> > > Done with the help of Coccinelle.
+> > > 
+> > > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> > 
+> > Thanks, applied.
+> 
+> I already have this patch queued up to push through David Miller's net-next 
+> tree.
+> 
+> Julia- please do not shotgun blast several maintainers and several lists,
+> it causes confusion on who is *REALLY* going to accept and apply the patch.
+> Please use scripts/get_maintainer.pl to get the correct mailing lists and
+> maintainers to add to the To: and CC: lines.
 
-iQIcBAEBCAAGBQJXNi5aAAoJELgmozMOVy/dRL4P/3qYv3Akhv8rMzq3VuzVz4n/
-Oi6+lh3aCsBbwJkyDLR/D2SSLG2+/7Wm6qjRGjIu48nqqmg4aJHo2aPqbpKi6/Po
-B2kJUkXC3zbrdrMTLb3ELuunt8wHYMNeK5i90zhwxaa34GMoGIMXKE+OhiAMLtLV
-rSvnAleraYMarO6ULzBlpAHQ8gjcWNirpeGSUJNiSiY8ShYwqW4asjB6aASTGT6I
-F2FYzFSXVHg6wtPehun/bmU1fUfa9eZO3Z8JgtFbDgJiDSHf1ehFlpM5I8nkRmtE
-GRx3uVaa91/Lc9DZHldboohnoxlgtDOxsTXtW38wjvg2GeDYbYUALYA7QJlMX3Ay
-Ij98EUm5V9aDqdW+GxWvIn+ETuWyYEtz85e0nzdVjKNYDfWSwrTB+JQSBPBhIsPl
-NXKFNt4bYB1LfVVg8/wVuYtdDmKsO4Mi3YBpP2BQZvt4dW0yDLhNyHkK4Ux5UelT
-HF3DcHQ9r5vd3nNuayP8Z12TvW2AXNMpe9WTvHieUaVipD4o9r+rY6di8nqLoS23
-IKI6qgtSC2CzxgC+KY8pYjWhpFOHL+luWhAdZEvYVyGaMqHLCFqQrNSg1mq0wGx9
-ttgA7eh6JKv6szwUyQa/g0EFs143lLQtlzLtB8n25ozz3WTjfbu/ApGmFiAraBip
-lzDdgFZrmhvWEqja5ID1
-=ptfV
------END PGP SIGNATURE-----
+I do.  Probably the patch affects files maintained by different people.  
+My assumption would be that everyone responsible for the code that is 
+affected by the patch would want to see it.  Perhaps there would have been 
+a way to separate it, but the const annotations typically have to be 
+consistent everywhere.
 
---cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+julia
+--8323328-1052710282-1463168778=:2235--
