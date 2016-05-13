@@ -1,60 +1,85 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] i40e: constify i40e_client_ops structure
-Date: Fri, 13 May 2016 16:42:52 -0400
-Message-ID: <7b2cd30a-77c3-4204-c2cf-df5a2870b443@redhat.com>
-References: <1462104443-30724-1-git-send-email-Julia.Lawall@lip6.fr>
- <0c2df9ca-64bd-ac73-9071-f4d619887df8@redhat.com>
- <1463168405.2612.23.camel@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Do not require CAP_NET_ADMIN for flow steering
+Date: Fri, 13 May 2016 16:53:26 -0400
+Message-ID: <cf61efc8-e426-dd7c-7065-e46bbfb323b0@redhat.com>
+References: <alpine.DEB.2.20.1605131020320.13832@east.gentwo.org>
+ <alpine.DEB.2.20.1605131051170.27372@east.gentwo.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="qNWrvwFh2QVa1sF9q7gn4CFd7nFXSRqlO"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1463168405.2612.23.camel@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kernel@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Faisal Latif <faisal.latif@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Shannon Nelson <shannon.nelson@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, John Ronciak <john.ronciak@intel.com>, Mitch Williams <mitch.a.williams@intel.com>, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org
+ boundary="ShvlMBRtPtHhiNprKLvvUAUUnW3jLJTmC"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1605131051170.27372-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qNWrvwFh2QVa1sF9q7gn4CFd7nFXSRqlO
-Content-Type: text/plain; charset=utf-8
+--ShvlMBRtPtHhiNprKLvvUAUUnW3jLJTmC
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/13/2016 03:40 PM, Jeff Kirsher wrote:
-> On Fri, 2016-05-13 at 12:50 -0400, Doug Ledford wrote:
->> On 05/01/2016 08:07 AM, Julia Lawall wrote:
->>> The i40e_client_ops structure is never modified, so declare it as
->> const.
->>> =20
->>> Done with the help of Coccinelle.
->>> =20
->>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>
->> Thanks, applied.
+On 05/13/2016 11:52 AM, Christoph Lameter wrote:
+> Sorry slight mistake in the original patch. V2 follows
 >=20
-> I already have this patch queued up to push through David Miller's net-=
-next=20
-> tree.
 >=20
-> Julia- please do not shotgun blast several maintainers and several list=
-s,
-> it causes confusion on who is *REALLY* going to accept and apply the pa=
-tch.
-> Please use scripts/get_maintainer.pl to get the correct mailing lists a=
-nd
-> maintainers to add to the To: and CC: lines.
+>=20
+> Subject: [PATCH] IB/core: Do not require CAP_NET_ADMIN for sniffing V2
+>=20
+> Having to enable CAP_NET_ADMIN for every app that uses sniffer mode is =
+kind
+> of risky. We do not want people to have the ability to mess around with=
+ the
+> network configuration and routing. We just want the app to direct strea=
+ms and
+> deal with inbound data streams in various ways.
+>=20
+> So lets drop the requirement for CAP_NET_ADMIN and keep just CAP_NET_RA=
+W.
+>=20
+> V1->V2
+> - Check for CAP_NET_ADMIN was conditional on IB_FLOW_ATTR_SNIFFER. We n=
+eed
+> 	to remove this in the correct way.
+> - Update description
+>=20
+>=20
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+>=20
+> Index: linux/drivers/infiniband/core/uverbs_cmd.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux.orig/drivers/infiniband/core/uverbs_cmd.c	2016-03-24 09:16:27=
+=2E782778586 -0500
+> +++ linux/drivers/infiniband/core/uverbs_cmd.c	2016-05-13 10:49:28.9530=
+00945 -0500
+> @@ -3088,8 +3088,7 @@ int ib_uverbs_ex_create_flow(struct ib_u
+>  	if (cmd.comp_mask)
+>  		return -EINVAL;
+>=20
+> -	if ((cmd.flow_attr.type =3D=3D IB_FLOW_ATTR_SNIFFER &&
+> -	     !capable(CAP_NET_ADMIN)) || !capable(CAP_NET_RAW))
+> +	if (!capable(CAP_NET_RAW))
+>  		return -EPERM;
+>=20
+>  	if (cmd.flow_attr.flags >=3D IB_FLOW_ATTR_FLAGS_RESERVED)
 >=20
 
-I've dropped it from my tree.  There won't be a conflict.
+I'm not at all convinced this is the right thing to do.  Sniffing of
+packets is definitely a privileged operation.  Tcpdump needs to be run
+as root to do this on regular devices.  If not CAP_NET_ADMIN, then a
+root check seems appropriate.  CAP_NET_RAW does not seem sufficient for
+sniffing other people's packets.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---qNWrvwFh2QVa1sF9q7gn4CFd7nFXSRqlO
+--ShvlMBRtPtHhiNprKLvvUAUUnW3jLJTmC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -63,19 +88,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNjxMAAoJELgmozMOVy/dTLkP/RNLyYE+Eih1PRkb8xWrsGrj
-JCzANSluRVpTPLZWEm+2w54tsDi5ZZOdXmHHWJEBIJ+2Cq2Twu5URjUYTCM07anL
-g8P+UFMCKpoSlpFwinUbnNl4KHNdfGwvpHgvTz7Cl6WEInujKh8wCZORe1dMVVUD
-nOCLnCQd9Sa9UlBAGK6Im14YorX1qp+rhuqWhrdqUufv5fWH9T3YTeKlXtrKRl1N
-4fZ8zLQ4RhHF/EI6USEtdVfSZXD29i5jvWo9klJxSwqM5QTnLbb5Y2Q9kbXrPWoJ
-F1cXDdZ50wHcCtvmZRjjjPCnXEHh/cTJRCFPjxsS+/lJIj3ECiTiHci0peuaYHaE
-WT6uluntfuNszpxul2nNBBW0gWSYKvQLrBtipKgc0v1YiERfaGhiMoMkYX5XIvek
-ZTJmuLYvIYnRkjagkrMcBD8c3NepiiYUErczKvrwOIDDci7UKeLesWMZI+h03ff5
-cUM2oDRKtEi1aAlQ7Wdp6kCW+1L81+5NXj8mTMMoo1oSz/JWY8nwjP2FXIdPwQqV
-DIMsAeGSJ/WddcnXJV14oVcvG7yiO+2u8pAMZ3jNBKJc03uC1YproqtasewVMq4/
-IFwNy4Wh4KHw8IZolAD48fZT3TCV5GeippdwOGSkLhnru5ZMelFdkvJ1lthWP67D
-I+C8PNkj74nVP0qIIfIZ
-=OgVU
+iQIcBAEBCAAGBQJXNj7GAAoJELgmozMOVy/dM2gP/jWmhbTA1nk1XGb6L5hmMkrF
+lJG4iuXVA/GN7cKW+7e3lUVRat3BvhWWOfJCUYJa6cpeckcuWFK7f0GQ5RDwgimc
+wWuADeqEuV3G3EjuQ5SEogv7uoSlrpK667i8mJiQpX/XsCRCQGNMpgIHdJvDoSr7
+u0GYveoHD6tnGpL82SIkksVfrQ547XBYLRuqGDqn0Mc+wBeD7FlwSnjMFjUw+8bY
+N41FlDZL1yEmrKzI/cnW9PHJ9QRIYD+PFsKQpDZrz/onNjdEaylezYInQNJtZ78n
+70bqcKg1M2TlCfKi23+jOw8pYCtn/3wTtC5ZaJ7IXKxfXLNOBHCK/CSgeXksF4cr
+HziLc+Mz/bJam9BsB48LXSsa5dfc4CJ+vlJcr6xmgWML4WUkIsYhtSj3RRV6RO+z
+yoDHevZ+p0wFXEmM1R3CKNKUDzbZKwk2jM8AvzOLQW8e86JUGvpHp5Bak1FhIT0H
+poEZ1vHv6FlhMKvV7gOCylpBURY4uKxTgKV4d6nXWYa+ncF6A2PtOt4yppRZN6Yz
+DbFebO9qQyBBCTzr8haYtnqZ4DVVZDqwoyS4WPeOO3FL1kjY6CiQxu4oTPZiK07a
+WYKuSbLoS+orxfU43MQxrEQeWItsJFBXbzrna/rKsVeWghVqUPxj+rgEmAxVB9fy
+qYlcytYaF0vSW4zL2gyn
+=OYoX
 -----END PGP SIGNATURE-----
 
---qNWrvwFh2QVa1sF9q7gn4CFd7nFXSRqlO--
+--ShvlMBRtPtHhiNprKLvvUAUUnW3jLJTmC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
