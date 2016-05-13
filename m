@@ -1,57 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/6] IB/hfi1: Clean up char devs and destage driver
-Date: Fri, 13 May 2016 13:16:36 +0300
-Message-ID: <20160513101636.GE11827@leon.nu>
-References: <20160512172500.11667.11333.stgit@scvm10.sc.intel.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] rdma\hfi1 - coding style issues cleanup
+Date: Fri, 13 May 2016 10:21:48 -0400
+Message-ID: <20160513142148.GA12909@phlsvsds.ph.intel.com>
+References: <1461830300-2851-1-git-send-email-omer.dagan@tandemg.com> <20160428124127.GB9685@phlsvsds.ph.intel.com> <f7fb16c7-7d5b-6b77-7879-1f16bdf76665@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lkTb+7nhmha7W+c3"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160512172500.11667.11333.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <f7fb16c7-7d5b-6b77-7879-1f16bdf76665-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---lkTb+7nhmha7W+c3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, May 12, 2016 at 10:27:49AM -0700, Dennis Dalessandro wrote:
-> We realize there is still an on-going effort to redo the verbs uAPI and
-> understand that may have an impact on our use of the /dev/hfi1_x cdevs and are
-> looking forward to working with the community on that front. However we do not
-> believe that alone should hold the hfi1 driver in staging.
+On Thu, May 12, 2016 at 04:25:38PM -0400, Doug Ledford wrote:
+>On 04/28/2016 08:41 AM, Dennis Dalessandro wrote:
+>> On Thu, Apr 28, 2016 at 10:58:20AM +0300, omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org wrote:
+>>> From: Omer Dagan <omer.dagan-CtGflUZwD1xBDgjK7y7TUQ@public.gmane.org>
+>> 
+>>> diff --git a/drivers/staging/rdma/hfi1/aspm.h
+>>> b/drivers/staging/rdma/hfi1/aspm.h
+>>> index 0d58fe3..384df0a 100644
+>>> --- a/drivers/staging/rdma/hfi1/aspm.h
+>>> +++ b/drivers/staging/rdma/hfi1/aspm.h
+>>> @@ -234,7 +234,7 @@ static inline void aspm_disable_all(struct
+>>> hfi1_devdata *dd)
+>>> {
+>>>     struct hfi1_ctxtdata *rcd;
+>>>     unsigned long flags;
+>>> -    unsigned i;
+>>> +    unsigned int i;
+>> 
+>> Can you please explain the value in doing "unsigned int" vs "unsigned"?
+>> None of the static checkers like checkpatch, sparse, or coccinelle seem
+>> to mind.
 >
+>I'm not a big fan of all this churn for something that means next to
+>nothing.  The C language specifies that unsigned means unsigned int,
+>adding int is actually redundant and makes code lines longer to read.
 
-There are the same believe for RSS and Selinux patches.
+I completely agree with Doug. This is a lot of churn for something that 
+doesn't really add much value.
 
---lkTb+7nhmha7W+c3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+To be fair though, I do want to correct my statement above, apparently 
+checkpatch *does* indeed throw a warning for this, was just checked in a few 
+weeks back:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+a1ce18e4f941("checkpatch: warn on bare unsigned or signed declarations 
+without int")
 
-iQIcBAEBAgAGBQJXNamEAAoJEORje4g2clineqgP/3k44OWFcOnZcgOSiLzzmVp2
-NnAKHnyd4U5NxwNvLp19VoHrLsVXQZ2b4y0F8groRijLejYDavZkRzemRfXtCaj+
-5FCP2MTRo9LY5B8v4p93+Qso3CKMsf8wkFWEBDezZbZ7L5wx+5P0z3bEvEMTGOIW
-jigpWTIww/wYHwakDBFK7/FqQsoUryPwnXE4oWdHPHSdfxhUVyOHYF8OZrR28eV1
-/aOeyRlKR2GlmsFqBKj/mPVR/v08DYbHKMFeCmKkPs8c+YiBMYuUXbCpFrUzmJoB
-QK8qjJoHisZwDQhDz9mtWzAw6DGZcO33g5uS23wJ54kFC7zR+WgSO0SYZsJsFpz+
-9k4/fK78WG7g7uEiBBJHB6RbZrP7+ubyzHmaWN+BNZcWzlA7YCX2RIj6gV8azR9Y
-cskrJIOJpwr/s7jmNC06PKHQOhVqpQSJsQVFkBPu37ujqjQ/rVPaEJq1m5ZKRR62
-71xvG1bnr7mEPekWvinaru24zVOhr3dytKER8wKkR05e4g1ZAymkajQzKySYfqkl
-tCfnEQDEcZ+gdpZIBWi6hhd0VM3oSVJVb5TLxKImY8omGdL18FoDrmwLVTwm9Slb
-g1/gySscfiMju2hMrPE1lXrH82d0/TPD8E/KPsYUc5pY5CB8oEDpb8uuO0oRptxY
-exY2JTRXCuYv+yZAYD3A
-=iwfL
------END PGP SIGNATURE-----
+Since the hfi1 driver is in staging, it's probably a big target for stuff 
+like this. The git log for the above checkpatch commit just says kernel 
+style prefers it this way.  I don't see any justification for why and I fail 
+to see the benefit so I would prefer we drop this part of the patch.
 
---lkTb+7nhmha7W+c3--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
