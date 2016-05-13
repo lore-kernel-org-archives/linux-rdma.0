@@ -1,40 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: Adding queue drain functions
-Date: Fri, 13 May 2016 15:59:06 -0400
-Message-ID: <91dabe24-d51a-ca8c-d876-f344ac7429d0@redhat.com>
-References: <20160329175837.GA9868@TENIKOLO-MOBL2>
+Subject: Re: [PATCH libibverbs 0/3] Misc fixes
+Date: Fri, 13 May 2016 16:00:40 -0400
+Message-ID: <fd3f59ca-3f81-3520-af2d-ffdd1213f4d0@redhat.com>
+References: <1459352360-32663-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="eDng0w7iKoAisbmNLPIRwvU6qgCjeaVPi"
+ boundary="5KrtueShP8bSH8cpqQ3d5XqOPbEFO8og4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160329175837.GA9868@TENIKOLO-MOBL2>
+In-Reply-To: <1459352360-32663-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, leon-2ukJVAZIZ/Y@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---eDng0w7iKoAisbmNLPIRwvU6qgCjeaVPi
+--5KrtueShP8bSH8cpqQ3d5XqOPbEFO8og4
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 03/29/2016 01:58 PM, Tatyana Nikolova wrote:
-> Adding sq and rq drain functions, which block until all
-> previously posted wr-s in the specified queue have completed.
-> A completion object is signaled to unblock the thread,
-> when the last cqe for the corresponding queue is processed.
+On 03/30/2016 11:39 AM, Yishai Hadas wrote:
+> Hi Doug,
 >=20
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/nes/nes_verbs.c | 34 +++++++++++++++++++++++++++=
-+++++++
->  drivers/infiniband/hw/nes/nes_verbs.h |  2 ++
->  2 files changed, 36 insertions(+)
+> This series handles few issues:
+> - Add an example to ibv_create_flow man page.
+> - Handle few issues in ibv_xsrq_pingpong example.
+>=20
+> Thanks,
+> Yishai
+>=20
+>=20
+> Noa Osherovich (2):
+>   Fix exchange message size in ibv_xsrq_pinpong example
+>   Add GID support to ibv_xsrq_pingpong example
+>=20
+> Yishai Hadas (1):
+>   Add an example to ibv_create_flow man page
+>=20
+>  examples/pingpong.c      | 10 -------
+>  examples/pingpong.h      |  1 -
+>  examples/xsrq_pingpong.c | 72 ++++++++++++++++++++++++++++++++++++++++=
+--------
+>  man/ibv_create_flow.3    | 62 ++++++++++++++++++++++++++++++++++++++++=
++
+>  4 files changed, 122 insertions(+), 23 deletions(-)
+>=20
 
 Thanks, applied.
-
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -42,7 +54,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---eDng0w7iKoAisbmNLPIRwvU6qgCjeaVPi
+--5KrtueShP8bSH8cpqQ3d5XqOPbEFO8og4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -51,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNjIKAAoJELgmozMOVy/dDqAQAJskbyMdBoLgMk5Z0V2M6KQk
-fn0/YoYt5ECjs7w9u8x83W6CrDebBmIZdAvNJeqi3/LVNT9+WUorPjyLECWZCTrE
-y4+D0DTWKdwP4pZ1MHwbkZ00d2nrsUzbwcus7Ki4+msjlsTHfL4VVOizSR9druKo
-WUxTmbUpumdofmVi4oQD2la1ZHFM/6jKbOO2BLWisOPmiImNAltC+kXeR6mfDwwW
-EG8oHl86zbEmphlL0A5bM055YIEQCAczsc+JrVXfUFzTp/YBqMDzh8preVnsNNAb
-ZgKA1lED0K9APqBm1ZWLrX2cW1wQg1bVzzQqfzHKb7IAgK5rWIZLLdnR9w93YZfc
-UjHPYLASCdVsiR9894F5ipGa9mCB3ghfyhgjdOk7jDrbCo5VFNs3q8adaPv9McNd
-Mx6YmWUgwQm3HgTZnWUholcUAsmoZ8I97CaDnviRv+wn5AYkSL/L7CQ3HrcwdQyx
-3bj83x8mzzTngAZsaOmCGwxJf43fxqPzlSaDCoxqFuXt4g7s9CIfqT5wGB74Axia
-JwqTHstYHOGeQqipAhIHsGBo3/XP3848Uz2Rc8/9XEDBgTe2c22/YiOlAJTZ9yzb
-54J7CaGdcd2K6hCUCrbfSzTCCVidOW/cfT37i35ZExS9A9VePomYcJMBG+u0Nf8L
-bbs9DXx6I+p/2GsxpCXR
-=ze0H
+iQIcBAEBCAAGBQJXNjJpAAoJELgmozMOVy/d/KgP/j3TWsXgBEAABfQIG9VQ5Qt+
+U1LwJCiLgl8bnIqrD7AYW3pVgNKGlesn6JIOyPgMGQHdZUMg7ocsUZSMUCm42de4
+9+l2ujI2VOGsBjfoRbRHzV+yUiO1k6K56QdFAx3LCbSMv6yQe/iQaAvbPawJza/Z
+CTpacP6BdrF6bCjHhMsVldgv3MlOQNoLdRrQIj+CXEJ5EObqbPRXQJA9wMiUqE1y
+6iT461GjPNMGyUgAvxC6y73YW74EKG0UfbLzb5KNOuRoNsPxmC5pFIROvW3h3NL6
+t55cf6xQQb9aS4nQfpLkqnohFcXYyLEvmfoz52rsxve9kesLeD0PVfn8JYtebZfw
+exP89o5lsBDgtKiZ4yhH5yxe64aPCiCerfXZ1Olj8n14ZulMi1urXUs7RPBHgMyZ
+Xayappdd3XmPCVv+pRzZM5vzCVnUS1wQar9LqFaYlR9oi2DrYoyvz1Q7huCfhhAZ
+St7PJtjj0S8/5cTQxVDMapNL4XxCXy1RH3yB+78Xu4wC2lEeJaE2SE0D7sKqG3LS
+QmIvJvP97zpkrWrU0rMkcJ8Y8cbFMdJmAPve8j7zD/qOkAzi78YLN/bAikaah26K
+6SQXEYle7plPah1E3I1T+mi9JooD5u1dRFDbFkZdranF6hb1XP6DB2o4bB0BWMbQ
+a71Pgbm/pfCF4gcaZ+Jb
+=Cb7r
 -----END PGP SIGNATURE-----
 
---eDng0w7iKoAisbmNLPIRwvU6qgCjeaVPi--
+--5KrtueShP8bSH8cpqQ3d5XqOPbEFO8og4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
