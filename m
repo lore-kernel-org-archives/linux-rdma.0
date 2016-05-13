@@ -1,74 +1,53 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
- module into core
-Date: Fri, 13 May 2016 15:34:20 -0400
-Message-ID: <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
-References: <1462563928-29164-1-git-send-email-leon@kernel.org>
- <1462563928-29164-6-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH] IB/mlx4: trivial fix of spelling mistake on "argument"
+Date: Fri, 13 May 2016 15:34:56 -0400
+Message-ID: <712fbfbf-dce1-f5a2-380a-fa2843813f7b@redhat.com>
+References: <1461612410-27604-1-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe"
+ boundary="Ha7MvkiF32QvWxrJintANnhr0vobKteLu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462563928-29164-6-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1461612410-27604-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe
+--Ha7MvkiF32QvWxrJintANnhr0vobKteLu
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/06/2016 03:45 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 04/25/2016 03:26 PM, Colin King wrote:
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 >=20
-> IB address resolution is declared as a module (ib_addr.ko) which loads
-> itself before IB core module (ib_core.ko).
+> fix spelling mistake, argumant -> argument
 >=20
-> It causes to the scenario where IB netlink which is initialized by IB
-> core can't be used by ib_addr.ko.
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx4/main.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> In order to solve it, we are converting ib_addr.ko to be part of
-> IB core module.
-
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core=
-/device.c
-> index 1097984..8894ad0 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -977,16 +977,24 @@ static int __init ib_core_init(void)
->  		goto err_comp;
->  	}
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/=
+mlx4/main.c
+> index f014eaf..b01ef6e 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -1601,7 +1601,7 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp=
+, struct ib_flow_attr *flow_att
+>  	else if (ret =3D=3D -ENXIO)
+>  		pr_err("Device managed flow steering is disabled. Fail to register n=
+etwork rule.\n");
+>  	else if (ret)
+> -		pr_err("Invalid argumant. Fail to register network rule.\n");
+> +		pr_err("Invalid argument. Fail to register network rule.\n");
 > =20
-> +	ret =3D addr_init();
-> +	if (ret) {
-> +		pr_warn("Could't init IB address resolution\n");
-> +		goto err_sysfs;
-> +	}
-> +
->  	ret =3D ibnl_init();
->  	if (ret) {
->  		pr_warn("Couldn't init IB netlink interface\n");
-> -		goto err_sysfs;
-> +		goto err_addr;
->  	}
+>  	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
+>  	return ret;
+>=20
 
-It's unclear to me how this change helps things.  Theoretically, if you
-load ib_addr before ib_core (and therefore before any ibnl_init() is
-run) and that prevents ib_addr from using the ibnl infrastructure, then
-you would think that building ib_addr into ib_core and then running the
-addr_init() before the ibnl_init() would have exactly the same problem.
-I don't see what issue is resolved by this patch.  But, just as
-importantly, after reading addr.c to see how it uses the ibnl
-infrastructure, I don't even see what the original problem can be.
-Please elaborate more on what actual problem we are solving with this
-because I am loathe to change the module structure without good cause
-(in particular, I know at least the Red Hat init scripts and systemd
-units know about module names, so this requires changes to user space
-scripts and that's a big no-no if it can be avoided).
-
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -76,7 +55,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe
+--Ha7MvkiF32QvWxrJintANnhr0vobKteLu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -85,22 +64,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNiw8AAoJELgmozMOVy/d+1IP/0afspvCnHmPJYDL4ljxxL7X
-zjdwYQEsoYNYfdOeSTe6oTu5gkhIy/5yrmsHkVLXwFA5gnMLjorUiorvHsTus7jv
-4q9VQAp6EHJY5UbqqqMfZd36rCA4XnO2HC6D+YiiKS4AArFSk/HB6Ef4iL4scFwQ
-6NTJkSv0Cso0r2LllAsCMJT4KviakdH/1JR9WfiFcYxjdsF7HeCTwjQqKPg/949Q
-/6riJR7XJM0YW7+YQ8poJJ1dcmuaVkevBN/cBoi0IzSpxnyofAQwfu7RvA9ukzh2
-KfpObyy9CLrKvXcEZqJt4VpbXyYKn92nGSUha1zjsf4x/vCdF4mLOUK56Ja5YLlK
-vciSTixA8aEcL/GK6qyegHyl1vtYjcuXasByiKuJdYc82vmlG+pKwTIV3Aq6oCrJ
-Yr1gL6HyNVkc0bKJO2lIkttVi839sa2GRb/QSt8C3OrZuCWN3GuZEVjNDWf2LTps
-ysEsnYHT+WoTKRPWeIjXr/XgHC5zY/9M+J9NSs3VehWzwWVPJNjIejLS79nMBcar
-Ggo8Oa3Tu5bvkPYF7w1nJf3g4Y6KEfE1XBoeWQSw50pr6rk2NsGcIEOsG8dG6src
-LGlq2cQaT9TFko3+C1xeSV1n7DFO6nGR4FZTP936JGeMowMM8FlQZugRQawan0Nd
-fe0mg+76n0w4kMsQdFr9
-=oOMi
+iQIcBAEBCAAGBQJXNixgAAoJELgmozMOVy/dxs8P/R4I9UxoLoJkPZ1DmkNsVOEe
+XzFhT2Wf2oEzveKgcnSm+eu5C5+NSWst1eGYJoCv9TEB33ORI6pqiukDx170xwlZ
+dPDvKOySCEmHyj4rM+QgSdHvyTFkXM2rLyqznoF3SMV2T/jNPwiNtomlGZuR9CCB
+bNThagYMbd1JLWrbmZr2DhhxxD5udr1BIWVVfCklnM9ULasiWcko9vnqacTAI8bc
+wEcMEfmSD3+eOHPOeqXNIE2mtuKhMQH0dm/5+zL1p+zfxc4VK9n4kGM6ZePLA4Mp
+37uDjFa1XUoQAd7BJptTqp1gvsfpTY+oh63cRVSMLyWerCsaTOYyKEQDpw8dEgRb
+SnuI+/xiptn0YTp1TTNqlEJIb1CitAZBb826XdDoPjYMPbSFtSTclXN0xVLKZ+Cx
+Z8gbemRbP5dxYPmZfwmcMPr/PSTV1roER1SgvH26XkmAkaVRhMddgGV11bFGtiHA
+wjVOuQ9XATOOkEmBkpuTG8CnOtHvq07T57g/Q8N0cWUusAHGCQdhxAJ/VYSsLzEg
+Lz1wFj8owEvBa06qyl+gFAAM37HU63z/CRYhl9V2Mv2aspDZFQDZtTrko4yPHmBw
+c7a2lCGG8mtiZSS7AB3gxoDUMMIW6VAZtkscqkXxINZ6YAuCBMuL/dspFrbIc8Zj
+e7PgDeubhQlMN4VhWvp/
+=fSFJ
 -----END PGP SIGNATURE-----
 
---4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe--
+--Ha7MvkiF32QvWxrJintANnhr0vobKteLu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
