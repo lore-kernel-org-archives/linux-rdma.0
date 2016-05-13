@@ -1,40 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RESEND PATCH v7 17/21] IB/hns: Add QP operations support
-Date: Fri, 13 May 2016 18:04:00 -0400
-Message-ID: <16fc19ea-308a-ceee-d2da-4de93c66e2d7@redhat.com>
-References: <1462849483-67927-1-git-send-email-oulijun@huawei.com>
- <1462849483-67927-18-git-send-email-oulijun@huawei.com>
+Subject: Re: [PATCH V1 for-next] IB/mlx5: Add UARs write-combining and
+ non-cached mapping
+Date: Fri, 13 May 2016 18:55:11 -0400
+Message-ID: <70548f9f-a7ca-2b4d-80b4-b13232080a24@redhat.com>
+References: <1461764990-549-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="gqmVEoNUsX4c6WUwINla6lvFkkGeFnUcm"
+ boundary="EHWOfInefqoHU9RBnWPQeA70xKNMQLf77"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1462849483-67927-18-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1461764990-549-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gqmVEoNUsX4c6WUwINla6lvFkkGeFnUcm
+--EHWOfInefqoHU9RBnWPQeA70xKNMQLf77
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/09/2016 11:04 PM, Lijun Ou wrote:
-> +static void hns_roce_v1_cq_clean(struct hns_roce_cq *hr_cq, u32 qpn,
-> +				 struct hns_roce_srq *srq)
-> +{
-> +	spin_lock_irq(&hr_cq->lock);
-> +	hns_roce_v1_clean_cq(hr_cq, qpn, srq);
-> +	spin_unlock_irq(&hr_cq->lock);
-> +}
+On 04/27/2016 09:49 AM, Matan Barak wrote:
+> From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> By this patch, the user space library will be able to improve
+> performance using appropriate ringing DoorBell method according to the
+> memory type it asked for.
+>=20
+> Currently only one mapping command is allowed for UARs:
+> MLX5_IB_MMAP_REGULAR_PAGE. Using this mapping, the kernel maps the
+> UARs to write-combining (WC) if the system supports it.
+> If the system is not supporting WC the UARs are mapped to
+> non-cached(NC). In this case the user space library can't tell which
+> mapping is applied.
+> This patch adds 2 new mapping commands: MLX5_IB_MMAP_WC_PAGE and
+> MLX5_IB_MMAP_NC_PAGE. For these commands the kernel maps exactly as
+> requested and fails if it can't.
+>=20
+> Since there is no generic way to check if the requested memory region
+> can be mapped as WC, driver enables conclusive WC mapping only for
+> x86, PowerPC and ARM which support WC for the device's memory region.
+>=20
+> Signed-off-by: Guy Levy <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Moshe Lazer <moshel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> Hi Doug,
+>=20
+> Currently the kernel UAR mapping interface provides a best effort
+> mechanism in which the caller simply invokes one mapping command which
+> silently maps to one of the memory types (write-combining or
+> non-cached).
+>=20
+> However, the user space library will be able to improve the performance=
 
-This is a perfect example of what I was talking about in my last email.
-The convention here would be to name the main function
-__hns_roce_v1_cq_clean and the wrapper hns_roce_v1_cq_clean.  Instead,
-you have one named cq_clean and one named clean_cq.  Keeping straight
-which of those locks itself and which needs to be called with the lock
-held is nigh impossible.
+> using the appropriate ringing DoorBell method according to the memory
+> type.
+>=20
+> This patch adds two new mapping commands which enable the library to
+> get an explicit mapping type.
+
+Thanks, applied.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -42,7 +69,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---gqmVEoNUsX4c6WUwINla6lvFkkGeFnUcm
+--EHWOfInefqoHU9RBnWPQeA70xKNMQLf77
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -51,22 +78,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNk9QAAoJELgmozMOVy/d5KkQAKtVYYM4THOrYfL7ArX+qXUf
-xzovO2VKoa9Vbf7OtuGlpfF1Uk/RSJVlNFyB5qEo58useH4x5VBTWIvBbtPIvtEC
-o5PfkAvBfo6hRj7ZuHmxd4/OguZFVkxX7oZXr619Exv9dn33RmgAlWibv2TCYss4
-3RUPBDylSkFTjtpr0HWzFOYa8u2KFbprZi477Xf1Ry9R/j25ezSXFgTvXSsGMLy1
-cSnvBfvvXcS8sgGmj7Gr4BHWcJeCRcjWAkMe4e/MGA2wUR66gNfHdsbUgAo1u9Ur
-ZHKKQjqVMb9N1zl4frfPrOkuNNgNX2PPEI0cR1QQMBJ1W0SpBAx2lMpo+cwp2TTh
-Cl7c4PhfLgQNj3dnkkzmL8cEui4MEzKU7UBXuWLa8CFbP72VYPW6K/0e3MzI8OE/
-+ng0OqWVIZhSwSZtYiG5a/+uSdH0nF8y4Fjou4ZXuN8RMKxL0bpJGZ7NZ1YEh/g/
-wyRVQvQsb1CrdskjKjAUJGcgwbRkVF/9saW28RZ+rBXbJT+3E/j1AUBI3Ro+i6So
-FaMjKA5d8IIAbmXJJsMWiKOGAeLHQkcs++NJpcr5eSHzI89QuB4fHVEkTqLKAzkK
-HhmtmgVt/XfVV3OW4Zi/oaoOXpemXz3GhpsAlEb3xAc8n8t/RElCyIYHGjuDitE8
-NfQHoQfCfX+pddFIMcLi
-=5Mnc
+iQIcBAEBCAAGBQJXNltPAAoJELgmozMOVy/dbJQP/i0FULoeugPVfCYVf1wgh/e7
+1a6vO5qaP6Oj5MsZBr5YOADB9oD/6i5s08l/p1krZMkzoAlfbPtWBzSCM4UugIG4
+KaQJt9ItXVoiPLGIG8k8+8V3As40Wau/nM3DZy1KDlqM20evE/mq3VvkLj702eMd
+at9f7peCD7O146UFAIAO6q+/ICCuQsZ3qyVxzG2+wKtWI/gnzF3vL1ZtbrmUarxE
+NMHNH6ayWAjS+AMF8CAABKaPCIn5w0wWExvTeyR6arUzHRqDaFMcCru6CgJ4A3oq
+Pm7VwaZseaR0T+6rI1XVIb3hQt9OyRxdsUaguvAu/DdgZ91BXbf38h+f16in6Wfy
+j0tPBQuqlyxnGtqYWc8vrMTU9Fvy0Vtu6us+3MWSvpZtEnjPD5caZ+lsKphIsRHR
+cNd7Qv/z9AVgF+igpg+lraJzWnywcpXDjBpG8RnxFDFcmDFcBHTdka2S2C3bdzZE
+nwxWQD705wW4WpHwIHFsBt/1k/91wxLWRx7MsD8ZNMpdvjzRipCEsIHz7cTI2em3
+si2cSTeyYpEVPQNnKSyQ6hYVatIAwv5QUESX0iFzYadTTUyAM0AkA8OTorhOJnau
+0OTsNJxpQE4W4FsR0uGlNkaJ3hCpWYrEBsOgfY34X4/5oAhmQzx6ZRt4uC+ThLHm
+hi4Fn6I5yZM/HwiWP23k
+=rFPe
 -----END PGP SIGNATURE-----
 
---gqmVEoNUsX4c6WUwINla6lvFkkGeFnUcm--
+--EHWOfInefqoHU9RBnWPQeA70xKNMQLf77--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
