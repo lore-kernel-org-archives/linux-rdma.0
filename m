@@ -1,64 +1,79 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: [PATCH] i40e: constify i40e_client_ops structure
-Date: Fri, 13 May 2016 12:40:05 -0700
-Message-ID: <1463168405.2612.23.camel@intel.com>
-References: <1462104443-30724-1-git-send-email-Julia.Lawall@lip6.fr>
-	 <0c2df9ca-64bd-ac73-9071-f4d619887df8@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rdma] IB/mlx5: Allow mapping the free running counter
+ on PROT_EXEC
+Date: Fri, 13 May 2016 15:43:22 -0400
+Message-ID: <29e2d9d7-7140-efcf-df05-e868dc7abad8@redhat.com>
+References: <1460641930-5118-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-vV0PYM8H2g365e1FqTYt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0c2df9ca-64bd-ac73-9071-f4d619887df8@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kernel@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Faisal Latif <faisal.latif@intel.com>, Jesse Brandeburg <jesse.brandeburg@intel.com>, Shannon Nelson <shannon.nelson@intel.com>, Carolyn Wyborny <carolyn.wyborny@intel.com>, Don Skidmore <donald.c.skidmore@intel.com>, Bruce Allan <bruce.w.allan@intel.com>, John Ronciak <john.ronciak@intel.com>, Mitch Williams <mitch.a.williams@intel.com>, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1460641930-5118-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-vV0PYM8H2g365e1FqTYt
-Content-Type: text/plain; charset="UTF-8"
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2016-05-13 at 12:50 -0400, Doug Ledford wrote:
-> On 05/01/2016 08:07 AM, Julia Lawall wrote:
-> > The i40e_client_ops structure is never modified, so declare it as
-> const.
-> >=C2=A0
-> > Done with the help of Coccinelle.
-> >=C2=A0
-> > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+On 04/14/2016 09:52 AM, Matan Barak wrote:
+> The current mlx5 code disallows mapping the free running counter of
+> mlx5 based hardwares when PROT_EXEC is set.
+> Although this behaviour is correct, Linux does add an implicit VM_EXEC
+> to the vm_flags if the READ_IMPLIES_EXEC bit is set in the process
+> personality. This happens for example if the process stack is
+> executable.
 >=20
-> Thanks, applied.
+> This causes libmlx5 to output a warning and prevents the user from
+> reading the free running clock.
+> Executing the init segment of the hardware isn't a security risk
+> (at least no more than executing a process own stack), so we just
+> prevent writes to there.
+>=20
+> Fixes: d69e3bcf7976 ('IB/mlx5: Mmap the HCA's core clock register to
+> 		      user-space')
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I already have this patch queued up to push through David Miller's net-next=
-=20
-tree.
+Thanks, applied.
 
-Julia- please do not shotgun blast several maintainers and several lists,
-it causes confusion on who is *REALLY* going to accept and apply the patch.
-Please use scripts/get_maintainer.pl to get the correct mailing lists and
-maintainers to add to the To: and CC: lines.
---=-vV0PYM8H2g365e1FqTYt
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAABCgAGBQJXNi2VAAoJEOVv75VaS+3O7IkP/09XaicK8c6ye5Qj1w9wtN9s
-fDeDOoUGjDQgUglacfackaoprYHduiPjeK/SRzmIa9BYBqhrCt6LKGOpsaZ+9Eot
-HRg6pppEDTdlxuphSwaSzuvZ36Po3weTlvHwvnYvB+uIs0QUtq0LwKTms0d9WsTM
-GgaCIdvHXi8In1WwCiQY1Pw7Q3G/T4LyqZZJLsS5j+sCtxzinoRqIpSyhCMXmUrK
-tU8lYDQL8tITev3lFN8kIC2EW/m5emJOEBBoK3Ei1bHywnERUukfOc0n8bowxbKj
-9b2vSWLyEOUY9CL0leeMimjAbnojmlblLh5GYJZX08KDqddIiI2sBrLqiGHQ6G0V
-L3vFaxJ//gtwmwjA1YhYTW3OiHTpWV/DN3L7JtFuTh+6WqaKA6KST1d77KLieLax
-olHufr//PSbctXkDTuQUyZHNOXblb8vFmgBOeAFiNn5/3zbLTYgs5bRupu47Fc1i
-4IIPr0jJJ0km+gnrGxMpzZASiGYA943j0rw3NGZf2CvTZomAdW665N3OZgk6jK7J
-rZ8EhBpeRiMnp6I9E7jozZLkxHxjudQjhhiPAroW1obArqD7BtK+FdH5ywdJO1yF
-lM1eMQ3ShhMISEnonbJkv5Mlai50upuYbmRdAokQmoONEG0xgO10kVqWVAZynDC1
-dLNw0bmXJRaAAPyqlIhU
-=z8/s
+iQIcBAEBCAAGBQJXNi5aAAoJELgmozMOVy/dRL4P/3qYv3Akhv8rMzq3VuzVz4n/
+Oi6+lh3aCsBbwJkyDLR/D2SSLG2+/7Wm6qjRGjIu48nqqmg4aJHo2aPqbpKi6/Po
+B2kJUkXC3zbrdrMTLb3ELuunt8wHYMNeK5i90zhwxaa34GMoGIMXKE+OhiAMLtLV
+rSvnAleraYMarO6ULzBlpAHQ8gjcWNirpeGSUJNiSiY8ShYwqW4asjB6aASTGT6I
+F2FYzFSXVHg6wtPehun/bmU1fUfa9eZO3Z8JgtFbDgJiDSHf1ehFlpM5I8nkRmtE
+GRx3uVaa91/Lc9DZHldboohnoxlgtDOxsTXtW38wjvg2GeDYbYUALYA7QJlMX3Ay
+Ij98EUm5V9aDqdW+GxWvIn+ETuWyYEtz85e0nzdVjKNYDfWSwrTB+JQSBPBhIsPl
+NXKFNt4bYB1LfVVg8/wVuYtdDmKsO4Mi3YBpP2BQZvt4dW0yDLhNyHkK4Ux5UelT
+HF3DcHQ9r5vd3nNuayP8Z12TvW2AXNMpe9WTvHieUaVipD4o9r+rY6di8nqLoS23
+IKI6qgtSC2CzxgC+KY8pYjWhpFOHL+luWhAdZEvYVyGaMqHLCFqQrNSg1mq0wGx9
+ttgA7eh6JKv6szwUyQa/g0EFs143lLQtlzLtB8n25ozz3WTjfbu/ApGmFiAraBip
+lzDdgFZrmhvWEqja5ID1
+=ptfV
 -----END PGP SIGNATURE-----
 
---=-vV0PYM8H2g365e1FqTYt--
+--cpUrnqMq9LKO9tEgu9DwJueqKpE4f2MK6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
