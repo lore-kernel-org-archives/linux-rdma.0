@@ -1,71 +1,106 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: consult//Fwd: [RESEND PATCH v7 00/21] Add HiSilicon RoCE driver
-Date: Fri, 13 May 2016 22:32:21 +0300
-Message-ID: <20160513193221.GF11827@leon.nu>
-References: <1462849483-67927-1-git-send-email-oulijun@huawei.com>
- <5735B5D9.2030903@huawei.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Fri, 13 May 2016 15:34:20 -0400
+Message-ID: <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JcvBIhDvR6w3jUPA"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5735B5D9.2030903-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1462563928-29164-6-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---JcvBIhDvR6w3jUPA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 13, 2016 at 07:09:13PM +0800, Wei Hu (Xavier) wrote:
-> Hi leon, jiri, ogerlitz
+On 05/06/2016 03:45 PM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> We developed the driver for Hisilicon RoCE engine referring to the mellan=
-ox
-> driver.
-> Now we want upstream the driver to kernel to support our hardware.
+> IB address resolution is declared as a module (ib_addr.ko) which loads
+> itself before IB core module (ib_core.ko).
 >=20
-> Maybe we should  declare this code refered to the mlx4 driver in the
-> beggining of the code file.
+> It causes to the scenario where IB netlink which is initialized by IB
+> core can't be used by ib_addr.ko.
+>=20
+> In order to solve it, we are converting ib_addr.ko to be part of
+> IB core module.
 
-It is known to reviewers.
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core=
+/device.c
+> index 1097984..8894ad0 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -977,16 +977,24 @@ static int __init ib_core_init(void)
+>  		goto err_comp;
+>  	}
+> =20
+> +	ret =3D addr_init();
+> +	if (ret) {
+> +		pr_warn("Could't init IB address resolution\n");
+> +		goto err_sysfs;
+> +	}
+> +
+>  	ret =3D ibnl_init();
+>  	if (ret) {
+>  		pr_warn("Couldn't init IB netlink interface\n");
+> -		goto err_sysfs;
+> +		goto err_addr;
+>  	}
 
-> Can you give advices? Thanks
+It's unclear to me how this change helps things.  Theoretically, if you
+load ib_addr before ib_core (and therefore before any ibnl_init() is
+run) and that prevents ib_addr from using the ibnl infrastructure, then
+you would think that building ib_addr into ib_core and then running the
+addr_init() before the ibnl_init() would have exactly the same problem.
+I don't see what issue is resolved by this patch.  But, just as
+importantly, after reading addr.c to see how it uses the ibnl
+infrastructure, I don't even see what the original problem can be.
+Please elaborate more on what actual problem we are solving with this
+because I am loathe to change the module structure without good cause
+(in particular, I know at least the Red Hat init scripts and systemd
+units know about module names, so this requires changes to user space
+scripts and that's a big no-no if it can be avoided).
 
-I suggest you to ask from IB maintainer (Doug Ledford) to review this patch=
- set,
-at the end it is his decision to accept or not.
 
->  28 files changed, 10539 insertions(+), 16 deletions(-)
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
 
---JcvBIhDvR6w3jUPA
+
+
+--4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJXNivFAAoJEORje4g2clinbmwQAKtDr9nh5MUXOIFsK/4kBSs/
-UjXGA+D+gvL4r5Nw3A8GYM2c6ohxkhXvaGy1No7Z8FrHpf0BHXKGFl45fLvxwLFx
-M6UDqYIGeUJDVww4cc1gsUpHIrUVw78oj4gAsmfNv1VmFS10EugOGp3VwlR+j+MS
-flPh0AMcEXf9ZtZi0Z/u6x4IBbW7trWFYcVgnIfMU3RD4lN8g+7PkuIDLib+vAB7
-9NHi1ToyeBRJSgchh5Srnqchu3kBmeY/cg+ANmTDz/MsOPPmeW21lb8BovM/FlN3
-Hah8x/zxqEu3ye0PpapkhH5FEIDFk5wzMzWdC2o/IvY2kktWGIHs2LKkg2zizY+9
-REmO3xrQgrjHKysiyzC1aqT84vZgPoOINvzQ8cFFUeYSMuA7BOeXqCEyqAttKMbu
-N5AyqM+iyuT+Q8Rn/LCYWcCCAP2QCkDMlJJo7rk1DSgEtPLLgv7VSBh0fl0baJMV
-NsI50uX5KXiBNLJ81xMCPg5N8FZ80LvBm3sE9o5oMUTx37hMWRGZn8BWm1v2yLtO
-0xMsYBNfH7owoAl8nicULysrNcLr0BBG53iQg0Dqz9ZKtG8MLA40VxlEq/mpnXp9
-pwHJYjVouC/o1JMFLRhcmD8ghNuT86LCuBuQOe2NBO4CeF7Tweg7rk1sa+lHPY/h
-nZ5RcX35BMcYEVct4hJg
-=feYS
+iQIcBAEBCAAGBQJXNiw8AAoJELgmozMOVy/d+1IP/0afspvCnHmPJYDL4ljxxL7X
+zjdwYQEsoYNYfdOeSTe6oTu5gkhIy/5yrmsHkVLXwFA5gnMLjorUiorvHsTus7jv
+4q9VQAp6EHJY5UbqqqMfZd36rCA4XnO2HC6D+YiiKS4AArFSk/HB6Ef4iL4scFwQ
+6NTJkSv0Cso0r2LllAsCMJT4KviakdH/1JR9WfiFcYxjdsF7HeCTwjQqKPg/949Q
+/6riJR7XJM0YW7+YQ8poJJ1dcmuaVkevBN/cBoi0IzSpxnyofAQwfu7RvA9ukzh2
+KfpObyy9CLrKvXcEZqJt4VpbXyYKn92nGSUha1zjsf4x/vCdF4mLOUK56Ja5YLlK
+vciSTixA8aEcL/GK6qyegHyl1vtYjcuXasByiKuJdYc82vmlG+pKwTIV3Aq6oCrJ
+Yr1gL6HyNVkc0bKJO2lIkttVi839sa2GRb/QSt8C3OrZuCWN3GuZEVjNDWf2LTps
+ysEsnYHT+WoTKRPWeIjXr/XgHC5zY/9M+J9NSs3VehWzwWVPJNjIejLS79nMBcar
+Ggo8Oa3Tu5bvkPYF7w1nJf3g4Y6KEfE1XBoeWQSw50pr6rk2NsGcIEOsG8dG6src
+LGlq2cQaT9TFko3+C1xeSV1n7DFO6nGR4FZTP936JGeMowMM8FlQZugRQawan0Nd
+fe0mg+76n0w4kMsQdFr9
+=oOMi
 -----END PGP SIGNATURE-----
 
---JcvBIhDvR6w3jUPA--
+--4V4CWKiToonb7H5vMo66ntXhB4g3iCIJe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
