@@ -1,62 +1,87 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/mlx5: Use tasklet to decrease completions
- processing time in interrupts
-Date: Fri, 13 May 2016 16:16:30 -0400
-Message-ID: <a93b20ca-42bf-ca2b-2995-aa2837a1bafe@redhat.com>
-References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
- <20160418130456.GA11508@infradead.org> <5714DF68.6040509@mellanox.com>
+Subject: Re: [PATCH for-next 0/5] Add scatter FCS support
+Date: Fri, 13 May 2016 16:39:23 -0400
+Message-ID: <92e9a494-c363-db42-894c-17d67fe96ecc@redhat.com>
+References: <1460902778-5977-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="oq2SHTsSdxmNqt7gQ62vL68v9Ue0eDpv5"
+ boundary="WN9NxRmhSq7LWefG7qDPuxHmVixHMRIKX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5714DF68.6040509-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1460902778-5977-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---oq2SHTsSdxmNqt7gQ62vL68v9Ue0eDpv5
+--WN9NxRmhSq7LWefG7qDPuxHmVixHMRIKX
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 04/18/2016 09:21 AM, Matan Barak (External) wrote:
-> On 18/04/2016 16:04, Christoph Hellwig wrote:
->> On Sun, Apr 17, 2016 at 05:08:39PM +0300, Matan Barak wrote:
->>> Hi Doug,
->>>
->>> The mlx5 driver handles completion callbacks inside interrupts.
->>> These callbacks could be lengthy and thus cause hard lockups.
->>> In order to avoid these lockups, we introduce a tasklet mechanism.
->>> The mlx5_ib driver uses this mechanism in order to defer its
->>> completion callbacks processing to the tasklet.
->>>
->>> This follows the same mechanism we implemented for mlx4 that
->>> successfully decreased the processing time in interrupts.
->>
->> Just curious:  how much of this time is spent inside the mlx5 driver,
->> and how much is spent in the callbacks from the consumers?  We've now
->> more than half done with switch the kernel ULPs to the new CQ API
->> which will always offload the callbacks to softirq or workqueue contex=
-t,
->> so if we can avoid a previous offload the completions would be a lot
->> more efficient.
->>
+On 04/17/2016 10:19 AM, Matan Barak wrote:
+> Hi Doug,
 >=20
-> In short, you could hit a situation where processing the completions in=
-
-> the interrupt takes longer than the rate at which they arrive (lab case=
-s
-> that use one event queue, but still).
-> I agree that going to softirqs/WQs (like the rest of the offloads) is a=
-
-> good solution too - maybe even better than this one as the mechanism
-> already exists, but why would it be a lot more efficient?
+> Frame Check Sequence (FCS) is an error detecting code that terminates
+> an Ethernet frame. When using Raw Ethernet, users sometimes want
+> to validate the FCS themselves, and therefore it should be scattered
+> to the receive buffers.
+>=20
+> This series adds the above support.
+>=20
+> The user can control scattering the FCS using Queue-Pair(QP) creation
+> flag called IB_QP_CREATE_SCATTER_FCS.
+>=20
+> Also, to report this new device capability, we had to add a new
+> device capability flags in the uverbs response called
+> device_cap_flags_ex, since all the current device_cap_flags are
+> occupied.
+>=20
+> device_cap_flags_ex 0-31 bits are identical to the legacy
+> device_cap_flags, and the upper 32 bits (32-63 bits) report new
+> extended device capabilities.
+>=20
+> Devices that support scattering the FCS should report it in
+> device_cap_flags_ex using IB_DEVICE_RAW_SCATTER_FCS.
+>=20
+> This patch depends on the mlx5 core shared code that was sent to both
+> IB and net trees and was already accepted by Dave Miller:
+> net/mlx5: Update mlx5_ifc hardware features
+> net/mlx5: Fix mlx5 ifc cmd_hca_cap bad offsets
+>=20
+> Moreover, this patch conflicts with the LSO series (that will be
+> sent soon). The resolution of this conflict is available in
+> Mellanox's tree.
+>=20
+> Thanks,
+> Majd and Matan
+>=20
+> Majd Dibbiny (5):
+>   IB/core: Add extended device capability flags
+>   IB/core: Add Raw Scatter FCS device capability
+>   IB/core: Add Scatter FCS create flag
+>   IB/mlx5: Add Scatter FCS support for Raw Packet QP
+>   IB/mlx5: Report Scatter FCS device capability when supported
+>=20
+>  drivers/infiniband/core/uverbs_cmd.c |  8 +++++++-
+>  drivers/infiniband/hw/mlx5/main.c    |  4 ++++
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+>  drivers/infiniband/hw/mlx5/qp.c      | 20 +++++++++++++++++++-
+>  include/rdma/ib_verbs.h              |  2 ++
+>  include/uapi/rdma/ib_user_verbs.h    |  1 +
+>  6 files changed, 34 insertions(+), 2 deletions(-)
 >=20
 
-Given the amount of the kernel converted to the new CQ API, are you guys
-still looking to have this included?
+This patchset is a uAPI extending patchset.  Recently, there has been
+talk of requiring a higher level of review and acknowledgment from
+various vendors for such patches.  However, in this case, it extends the
+QP creation code, which is already an extended function, and it extends
+it in a manner consistent with the original extension mechanism.  The
+only use visible change is a new bit in a bitmap with plenty of space
+free at the moment, and the resulting WC SGE entries will be extended.
+The overall patches themselves look fine, the extension was done
+appropriately, and this isn't a newly extended API, so I'm OK taking
+these as they are.  Applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -64,7 +89,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---oq2SHTsSdxmNqt7gQ62vL68v9Ue0eDpv5
+--WN9NxRmhSq7LWefG7qDPuxHmVixHMRIKX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -73,22 +98,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNjYeAAoJELgmozMOVy/dlh4QAJ+67DSgCe6uw3bbvLY5/NxZ
-Nh/fBbr9FhzCrv9SScIy54FsT9rf5rBwMG0+VympB+xlim9NfXPEAPeK5Auvcr4m
-jTq8oSvm4vKjmhhrHcUW1qHZ2ykF7P5Yhf+xsQsoQhh4I6GPhOScFv+RHNjz+UWW
-0LmgOKRWQGZMhevF+Yk1GPU7kyLhYH0oD8/cExFY4RwGRMAyxNSpFHadpN25sHiv
-8LdgipC1puLZophOj45xY7DLNzK9guhp7OKvOsPQnPqAYHF97AU/7wqruoS1W6ot
-jO6rKwEBHCz881RoADwsJGBcIJ8XwrdAhl462Fj+j9mHUEn64V6x8ROEfXVe+ocm
-ymyS/JH0Z+Yc0LZJr8IMP2QmIYU3jLMAnikeOM8z/AFXIh0Z5QLw43YdA2hFLpIx
-HMw1QnPRUxpC4DtA4tReVdY6jGZgY6HhyEUYvm2nzv5dn6FlTc+X/o45l/WNijsz
-f1AFjju3pBsuWU9mZczRv79uOdCNOQlqe+hIFrkt6WUDiUUypKpxKjIwHJyoRTld
-iJLK2g8hg1VSQaviOhMbwYb/wjl7U/mLRcc+S1yQuWDf8jyDbTGGGXbvC7EhG+AB
-F2+Rrkp+ISDvhAAqEYOmOqfTcjPeYqXs6Xu21IAtnbbbTWXIpJvibwpW2hqjuObO
-DoZV1AYmFlJttwyUDW9L
-=Al5m
+iQIcBAEBCAAGBQJXNjt7AAoJELgmozMOVy/dMI8P/jkfvo7rxKMpKtsG+VlGjJae
+y9dD5QIdUKpxAZDnyInWk/jaycYjtvYFRFpTYg4vAGKZGNsxe4EbkoOdGZbxXUJ6
+qOAC2WwONampyoo447iB7uiFUuHcjq8JfSUFh3iBsBag95+g2wTkJVpgxaiaj492
+qxhnaJLKBEuqsntwTiiHH5JMka5865e9HJCvgUvRI51p//c5JJp3/lVSYNkW5ABw
+GVhUIPiiCh4jW+sC2vzFR84+LZG3pSOGzz79178FIsgMlvaAi2BKc/+v+ZAxSSu3
+l/0CY73pq7J7dv35o82INcKLM3+IYgRz6WvP2miYjzsBUYjEO4FTWAiXLLQN7dzv
+qgUoxgVUSKr975sfppZKmJfEM5YfgCYrVyGkyK8fNEEETfpzLRyl3mdqyNvcGCPV
+rcuY3SrQupjwPKXblvQytfPzoHaj7DhmBHCQ/Z0+WVT89lKYZYqFfd6JRVOmSEyZ
+T9ISihmvnenGQMUA9MKtVFZG5kWfF5Q/eMN4VMSYoluT/KJYHbwxVTXI44axcwMp
+OgED0vVAIiS5FNn+NpaX/xvUaM1o7ujjlykO5ctUTlkg1Y+MWy3xG/EzmAbXZ7ME
+HB3Sdm7+JA4O8JOvAIPbfmMLQim8zGiJ63J46lG73p9kXg2tvQYLUEVOjEly5W/+
+hpdyLvd874BTNEJsFhV9
+=I2oe
 -----END PGP SIGNATURE-----
 
---oq2SHTsSdxmNqt7gQ62vL68v9Ue0eDpv5--
+--WN9NxRmhSq7LWefG7qDPuxHmVixHMRIKX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
