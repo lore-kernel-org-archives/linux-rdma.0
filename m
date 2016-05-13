@@ -1,86 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/6] IB/hfi1: Clean up char devs and destage driver
-Date: Fri, 13 May 2016 16:55:26 -0400
-Message-ID: <e31e561d-8ad7-0e9f-a70c-b6c138de945a@redhat.com>
-References: <20160512172500.11667.11333.stgit@scvm10.sc.intel.com>
+Subject: Re: [RESEND PATCH v7 00/21] Add HiSilicon RoCE driver
+Date: Fri, 13 May 2016 17:09:39 -0400
+Message-ID: <ee4fe6df-e9b0-28da-c960-c288d6617025@redhat.com>
+References: <1462849483-67927-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="TaDk02MtUFJrOJax6HRPeEQsMdOCqUeOX"
+ boundary="EdjFGaXEAr61LuLmHVlr8sxX9ipGHrGa3"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160512172500.11667.11333.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1462849483-67927-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---TaDk02MtUFJrOJax6HRPeEQsMdOCqUeOX
-Content-Type: text/plain; charset=utf-8
+--EdjFGaXEAr61LuLmHVlr8sxX9ipGHrGa3
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/12/2016 01:27 PM, Dennis Dalessandro wrote:
-> Based on feedback we have received during review of recent hfi1 driver =
-patches
-> [1] we have decided to go ahead and remove the driver specific characte=
-r devices
-> for the UI and snoop/diag. Furthermore we remove the EPROM specific cod=
-e since=20
-> we have discovered a way to do this sort of stuff from user space.
+On 05/09/2016 11:04 PM, Lijun Ou wrote:
+> The HiSilicon Network Substem is a long term evolution IP which is
+> supposed to be used in HiSilicon ICT SoCs. HNS (HiSilicon Network
+> Sybsystem) also has a hardware support of performing RDMA with
+> RoCEE.
+> The driver for HiSilicon RoCEE(RoCE Engine) is a platform driver and
+> will support mulitple versions of SOCs in future. This version of drive=
+r
+> is meant to support Hip06 SoC(which confirms to RoCEEv1 hardware
+> specifications).
 >=20
-> This series also removes the multi-purpose hfi1 cdev. We still maintain=
- a per
-> hfi cdev (/dev/hfi1_x) but the /dev/hfi1 cdev has been removed.
->=20
-> The write()/writev() problem [2] has been addressed in a patch series p=
-reviously
-> posted and resubmitted just prior to this.
->=20
-> Since the hfi1 TODO file is complete and we have removed the parts of t=
-he code
-> which have drawn the most ire from the community list we believe it is =
-now fair
-> to let the driver move out of staging and into the mainline. We will wo=
-rk with
-> the community to get back the features that have been removed as separa=
-te
-> patches that can be more easily reviewed and commented on.
->=20
-> We realize there is still an on-going effort to redo the verbs uAPI and=
+> Changes v6 -> v7:
+> 1. modify some type of parameter, use bool replace the original type.
+> 2. add the Signed-off-by signatures in the first patch.
+> 3. delete the improper print sentence in hns_roce_create_eq.
 
-> understand that may have an impact on our use of the /dev/hfi1_x cdevs =
-and are
-> looking forward to working with the community on that front. However we=
- do not
-> believe that alone should hold the hfi1 driver in staging.
->=20
-> There is one other aspect that has been called out, which is the
-> driver's use of twsi code. We are currently working on a patch set to a=
-ddress
-> that which will hopefully be out soon, but want to get this on the mail=
-ing list
-> for comments rather than wait.
->=20
-> [1] https://www.spinics.net/lists/linux-rdma/msg35319.html
-> [2] https://www.spinics.net/lists/linux-rdma/msg34451.html
->=20
-> This patch series applies on Doug's k.o/for-4.7 branch.
->=20
-> Patches can also be viewed in my repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.7
->=20
-> ---
->=20
-> Dennis Dalessandro (6):
->       IB/hfi1: Remove multiple device cdev
->       IB/hfi1: Remove UI char device
->       IB/hfi1: Remove EPROM functionality from data device
->       IB/hfi1: Remove snoop/diag interface
->       IB/hfi1: Remove anti-pattern in cdev init
->       IB/hfi1: Move driver out of staging
-
-I've delayed this until after the respin of this and the ioctl switch
-series.
+One thing you should be aware of (but which you may not care about,
+which is fine) is that if you want your driver to be available as part
+of the OpenFabric Alliances OFED distribution, the license on the files
+would need to be "GPL or BSD" (see the remainder of the RDMA stack for
+examples).  If you don't want that license on your files, I'm fine with
+that, and I won't hold up your submission based on the license.  If,
+however, you *do* want your code to be shipable as part of OFED, it is
+much easier to update the license on the files before you submit them
+and third parties modify them.  If you want to change the license later,
+you have to get every person that has made any substantive change to the
+file to agree to the license change.
 
 
 --=20
@@ -89,7 +54,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---TaDk02MtUFJrOJax6HRPeEQsMdOCqUeOX
+--EdjFGaXEAr61LuLmHVlr8sxX9ipGHrGa3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -98,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNj8+AAoJELgmozMOVy/dWGIP/A2NoJvi2kf2wZwJWpjtC+nh
-KouwECz8Ey1BDtGPK0Du9WszR2DLM95iACgDEsc4v8SlhLpdsN+5wfL3OZBdUj1F
-UQxgHGfDoBuoblHjGIyg+Vb14W5JvLObkRLoJNYbgRQotux3lyK2pgJRDsKaQ0ou
-cguhLlLNSObs4vAbzMn6H0JGYlRrenYxSOJu9WDFdcrsQHVYSkPhvaG7SzIS0Q6W
-hGalt4jXhJPgwDKKEEEVfBIRlN6w1+VCf5yis7TqU55Rbf+Yw0Wl5zzqLl2j0idW
-R7qOnY0hJtK0vo23VFUngYJ0d1fjcoOiUqAeQD5GCleINjrNkDhwnN4N6uDZSHmO
-YcW9gNayUui2B1RrIxtR8bQFYjvp8M+o3QRHNplNK27UTxCWPjvrgeX8BihKeUq9
-dO2JyU/jv4fcpV+k8h24qXkpKHTSS9e5z+bcTJFl7aqJK73a8FJhkGEjgQHvebwB
-EFclhnrdSnXah/lc3Ud7oqR+sxagPTNNGwAE4fUDnRXLdegAF6RoJs2GIWTrLc+y
-glHqMB13ViQyFSgEyN+BYCPqewKRS4SOmTB8TH//rKyxzh8BnmqriMvmoRAav1Iz
-LrPipHVZ/Sj1yqg5QLeVyZPwXy37Wx6uAX0ZDxzb0yV46jtjIZM+phc/KaAguuIo
-yZhtI7opou+7wOw53hpy
-=paPW
+iQIcBAEBCAAGBQJXNkKTAAoJELgmozMOVy/drEsP/R2CqLByXp0pcEluRItRQuiN
+Bq/1NsUB6WcodZAN+QwoP9G4tXCU7G/N4d5MnkkI965KAgBGe7bhJaYJhVCmFiMr
+Ca9xvSLRqvZt6HcONB/kwHY39tC9SjNBfQBD8sWb81sIPOFR6AowvY4b+SF0tlTJ
+JeaAgyrwU8MncE2LI7mYurkWoPvAL4uevN0r/Ai8UixYjBJ48vPOz5zH3fkPml/n
+pYqlvu6ruPXOkAMAiXLOh6ZV+/jz9uK44h8kwr+blwPlb6WvIMTxjYYWBDWDdhWD
+xhfvX0YIK9++MLZW+4boTgI6tlW3y5BFHUactlEb2UfY+FN49do1+L9yTX1sacfq
+ausO/EGkFI3X61MhIbPvG9NnByE2R2AQAV1fuQo0Igtd9x9uddzBMi3jqoL/6Vfi
+Ge4KgHED8v9c7ibYDmJpCANRkrAufsL2T5vRnTVf4UjS+qHv5dqfQf41bfveS9eE
+hy+DkCwo//8uGFgmylggkAa+H2L0a8ZUcsSlRdB7q1h/iFAiKOPWMHjucKmBnAvq
+/w7B9hPsPsv4uMluyFTH3DMHFzJL1XiHxt5jwHlqcN2m2iU9qGbG6HiMgrdom9uX
+9ZtAU9+KMiqcbnTjpfAw5oW7tzOsAM+6jRKSZzIP0KacNacKUmKKiHqSMQpcF7yF
+36gIc0+3kX3HEmVI7kdW
+=pW2L
 -----END PGP SIGNATURE-----
 
---TaDk02MtUFJrOJax6HRPeEQsMdOCqUeOX--
+--EdjFGaXEAr61LuLmHVlr8sxX9ipGHrGa3--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
