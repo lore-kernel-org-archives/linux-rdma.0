@@ -1,50 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: trivial fix of spelling mistake on "argument"
-Date: Fri, 13 May 2016 15:34:56 -0400
-Message-ID: <712fbfbf-dce1-f5a2-380a-fa2843813f7b@redhat.com>
-References: <1461612410-27604-1-git-send-email-colin.king@canonical.com>
+Subject: Re: [PATCH] staging/rdma/hfi1: use RCU_INIT_POINTER() when NULLing.
+Date: Fri, 13 May 2016 15:38:34 -0400
+Message-ID: <d039b5f5-4b5e-f916-97d5-3d4f186aeb3c@redhat.com>
+References: <1462106131-9073-1-git-send-email-falakreyaz@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="Ha7MvkiF32QvWxrJintANnhr0vobKteLu"
+ boundary="n50pDvBTok0edQS55ULb7tsLbxSQRgPLt"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1461612410-27604-1-git-send-email-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+In-Reply-To: <1462106131-9073-1-git-send-email-falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Ha7MvkiF32QvWxrJintANnhr0vobKteLu
+--n50pDvBTok0edQS55ULb7tsLbxSQRgPLt
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 04/25/2016 03:26 PM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+On 05/01/2016 08:35 AM, Muhammad Falak R Wani wrote:
+> It is safe to use RCU_INIT_POINTER() to NULL a pointer, instead of
+> rcu_assign_pointer().
+> This results in slightly smaller/faster code.
 >=20
-> fix spelling mistake, argumant -> argument
->=20
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> Signed-off-by: Muhammad Falak R Wani <falakreyaz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/mlx4/main.c | 2 +-
+>  drivers/staging/rdma/hfi1/init.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/=
-mlx4/main.c
-> index f014eaf..b01ef6e 100644
-> --- a/drivers/infiniband/hw/mlx4/main.c
-> +++ b/drivers/infiniband/hw/mlx4/main.c
-> @@ -1601,7 +1601,7 @@ static int __mlx4_ib_create_flow(struct ib_qp *qp=
-, struct ib_flow_attr *flow_att
->  	else if (ret =3D=3D -ENXIO)
->  		pr_err("Device managed flow steering is disabled. Fail to register n=
-etwork rule.\n");
->  	else if (ret)
-> -		pr_err("Invalid argumant. Fail to register network rule.\n");
-> +		pr_err("Invalid argument. Fail to register network rule.\n");
+> diff --git a/drivers/staging/rdma/hfi1/init.c b/drivers/staging/rdma/hf=
+i1/init.c
+> index cfcdc16..34e0f90 100644
+> --- a/drivers/staging/rdma/hfi1/init.c
+> +++ b/drivers/staging/rdma/hfi1/init.c
+> @@ -1303,7 +1303,7 @@ static void cleanup_device_data(struct hfi1_devda=
+ta *dd)
 > =20
->  	mlx4_free_cmd_mailbox(mdev->dev, mailbox);
->  	return ret;
+>  		spin_lock(&ppd->cc_state_lock);
+>  		cc_state =3D get_cc_state(ppd);
+> -		rcu_assign_pointer(ppd->cc_state, NULL);
+> +		RCU_INIT_POINTER(ppd->cc_state, NULL);
+>  		spin_unlock(&ppd->cc_state_lock);
+> =20
+>  		if (cc_state)
 >=20
 
 Thanks, applied.
@@ -55,7 +54,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---Ha7MvkiF32QvWxrJintANnhr0vobKteLu
+--n50pDvBTok0edQS55ULb7tsLbxSQRgPLt
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXNixgAAoJELgmozMOVy/dxs8P/R4I9UxoLoJkPZ1DmkNsVOEe
-XzFhT2Wf2oEzveKgcnSm+eu5C5+NSWst1eGYJoCv9TEB33ORI6pqiukDx170xwlZ
-dPDvKOySCEmHyj4rM+QgSdHvyTFkXM2rLyqznoF3SMV2T/jNPwiNtomlGZuR9CCB
-bNThagYMbd1JLWrbmZr2DhhxxD5udr1BIWVVfCklnM9ULasiWcko9vnqacTAI8bc
-wEcMEfmSD3+eOHPOeqXNIE2mtuKhMQH0dm/5+zL1p+zfxc4VK9n4kGM6ZePLA4Mp
-37uDjFa1XUoQAd7BJptTqp1gvsfpTY+oh63cRVSMLyWerCsaTOYyKEQDpw8dEgRb
-SnuI+/xiptn0YTp1TTNqlEJIb1CitAZBb826XdDoPjYMPbSFtSTclXN0xVLKZ+Cx
-Z8gbemRbP5dxYPmZfwmcMPr/PSTV1roER1SgvH26XkmAkaVRhMddgGV11bFGtiHA
-wjVOuQ9XATOOkEmBkpuTG8CnOtHvq07T57g/Q8N0cWUusAHGCQdhxAJ/VYSsLzEg
-Lz1wFj8owEvBa06qyl+gFAAM37HU63z/CRYhl9V2Mv2aspDZFQDZtTrko4yPHmBw
-c7a2lCGG8mtiZSS7AB3gxoDUMMIW6VAZtkscqkXxINZ6YAuCBMuL/dspFrbIc8Zj
-e7PgDeubhQlMN4VhWvp/
-=fSFJ
+iQIcBAEBCAAGBQJXNi06AAoJELgmozMOVy/dLtIP/RHP/Z0c+Ja7rmW4+t9f/6K5
+C0Xyf+NJX40YK6I99al0Z/j+kf8WziwMUp6dChtSPmXoaeRHbbKAyOtvyBCRIO0O
+BXWltFb2RLIipZB+6FA2IrBXiybWPXuy3KZmtl+xX9poi9+LkMmyhguMICxiSATN
+1nB+lfSb3GorA6yHhYbOvONnNkD2T5yEgetLLwgStj9Pg++Yuh65do6Gs843LMTB
+ANxmDf36bCM7jSEL64C7nfYIf1m18TQAI80MmTY9bA/+Pp3PnT/R4eboaV/OwHx8
+xQKArcmvWkFkYpvZFH36WYAwV9n6O+5Th17ruOKT1RA9JTxK7UDuipuFUlgE7X5l
+UFzeBODcI8uWMdw/zc8E2aMJmtrwD8g+mMUqmACVMhVCW5Bhm7aZxcMHeguC8wjB
+K9ayofaS75JWVne375Srf4g8OVbAOPlipJcsuz4barH70FGLuhyR/FBm1P22bBhm
+UEbn9JF6k9Wu9aw8+m2EaAlhUJ1IscxY4LmJLrWzB45X0qbNEtRxXJC2dkOa8zCL
+NvzVZhSIu/hOdUOEaZ0QVmiyC3cAFLkCVe/p3HsLAlv7ndDlx+ZwW94v62muODCX
+aQQiyZQ/tnJcdWifUAbcg2xkjfJH5swV24W0iQpgrr2aPClpuAS8ZZBiO6cfD1QA
+RcCfj6UOr19EiVn/ifg+
+=jaIJ
 -----END PGP SIGNATURE-----
 
---Ha7MvkiF32QvWxrJintANnhr0vobKteLu--
+--n50pDvBTok0edQS55ULb7tsLbxSQRgPLt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
