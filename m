@@ -1,82 +1,44 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 1/4] IB/core: Introduce capabilitymask2 field
- in ClassPortInfo mad
-Date: Sun, 15 May 2016 09:12:52 +0300
-Message-ID: <CAAk-MO9iUc1=MNMY72-KUr=RW3LGKU1f2xmb9H0XYU+HOd1m2g@mail.gmail.com>
-References: <1462892208-6140-1-git-send-email-erezsh@mellanox.com>
-	<1462892208-6140-2-git-send-email-erezsh@mellanox.com>
-	<57320078.9060608@sandisk.com>
-	<20160513152335.GA599@phlsvsds.ph.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160513152335.GA599-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: [PATCH net] net/mlx4_core: Fix access to uninitialized index
+Date: Sun, 15 May 2016 10:21:26 +0300
+Message-ID: <1463296886-4364-1-git-send-email-tariqt@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Eran Ben Elisha <eranbe@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 13, 2016 at 6:23 PM, ira.weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, May 10, 2016 at 08:38:32AM -0700, Bart Van Assche wrote:
->> On 05/10/2016 07:56 AM, Erez Shitrit wrote:
->> >   drivers/infiniband/hw/qib/qib_mad.c   | 6 ++++--
->> >   drivers/infiniband/ulp/srpt/ib_srpt.c | 5 ++++-
->> >   include/rdma/ib_mad.h                 | 4 ++--
->> >   3 files changed, 10 insertions(+), 5 deletions(-)
->>
->> This patch modifies ib_srpt but I'm not on the CC-list for this patch
->> series?
->>
->> >diff --git a/drivers/infiniband/hw/qib/qib_mad.c
->> >b/drivers/infiniband/hw/qib/qib_mad.c
->> >index 0bd1837..c5d029d 100644
->> >--- a/drivers/infiniband/hw/qib/qib_mad.c
->> >+++ b/drivers/infiniband/hw/qib/qib_mad.c
->> >@@ -1158,6 +1158,7 @@ static int pma_get_classportinfo(struct ib_pma_mad
->> >*pmp,
->> >     struct ib_class_port_info *p =
->> >             (struct ib_class_port_info *)pmp->data;
->> >     struct qib_devdata *dd = dd_from_ibdev(ibdev);
->> >+    char *p_cap_mask2;
->> >
->> >     memset(pmp->data, 0, sizeof(pmp->data));
->> >
->> >@@ -1172,11 +1173,12 @@ static int pma_get_classportinfo(struct ib_pma_mad
->> >*pmp,
->> >      * Set the most significant bit of CM2 to indicate support for
->> >      * congestion statistics
->> >      */
->> >-    p->reserved[0] = dd->psxmitwait_supported << 7;
->> >+    p_cap_mask2 = (char *)&p->cap_mask2_resp_time;
->> >+    p_cap_mask2[0] = dd->psxmitwait_supported << 7;
->>
->> Casting __be32 * into char * will make the sparse endianness checks go
->> crazy. Please introduce (inline) functions that allow to extract and set
->> the cap_mask2 and resp_time fields. Please also verify whether the
->> modified code builds cleanly with make C=2 CF=-D__CHECK_ENDIAN__.
->
-> Agreed.  I sent a reply yesterday but apparently my mail did not get through?
+Prevent using uninitialized or negative index when handling
+steering entries.
 
-Hi Bart, Ira,
+Fixes: b12d93d63c32 ('mlx4: Add support for promiscuous mode in the new steering model.')
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/mcg.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I will add setter/getter for the 2 field.
-Thanks,
-
->
-> Ira
->
->
->>
->> Bart.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mcg.c b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+index 6aa7397..f2d0920 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mcg.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mcg.c
+@@ -1102,7 +1102,7 @@ int mlx4_qp_attach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
+ 	struct mlx4_cmd_mailbox *mailbox;
+ 	struct mlx4_mgm *mgm;
+ 	u32 members_count;
+-	int index, prev;
++	int index = -1, prev;
+ 	int link = 0;
+ 	int i;
+ 	int err;
+@@ -1181,7 +1181,7 @@ int mlx4_qp_attach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
+ 		goto out;
+ 
+ out:
+-	if (prot == MLX4_PROT_ETH) {
++	if (prot == MLX4_PROT_ETH && index != -1) {
+ 		/* manage the steering entry for promisc mode */
+ 		if (new_entry)
+ 			err = new_steering_entry(dev, port, steer,
+-- 
+1.8.3.1
