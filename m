@@ -1,63 +1,69 @@
-From: shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Subject: [PATCH v1 1/1] mlx4/mad: unalign access in send_reply_to_slave
-Date: Sun, 15 May 2016 03:27:24 -0400
-Message-ID: <1463297244-3837-1-git-send-email-shamir.rabinovitch@oracle.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 0/2] IB/mlx5: Use tasklet to decrease completions
+ processing time in interrupts
+Date: Sun, 15 May 2016 10:31:57 +0300
+Message-ID: <868e5bcf-18c5-30f4-fe3f-b361c0ce43ec@mellanox.com>
+References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
+ <20160418130456.GA11508@infradead.org> <5714DF68.6040509@mellanox.com>
+ <a93b20ca-42bf-ca2b-2995-aa2837a1bafe@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <a93b20ca-42bf-ca2b-2995-aa2837a1bafe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 13/05/2016 23:16, Doug Ledford wrote:
+> On 04/18/2016 09:21 AM, Matan Barak (External) wrote:
+>> On 18/04/2016 16:04, Christoph Hellwig wrote:
+>>> On Sun, Apr 17, 2016 at 05:08:39PM +0300, Matan Barak wrote:
+>>>> Hi Doug,
+>>>>
+>>>> The mlx5 driver handles completion callbacks inside interrupts.
+>>>> These callbacks could be lengthy and thus cause hard lockups.
+>>>> In order to avoid these lockups, we introduce a tasklet mechanism.
+>>>> The mlx5_ib driver uses this mechanism in order to defer its
+>>>> completion callbacks processing to the tasklet.
+>>>>
+>>>> This follows the same mechanism we implemented for mlx4 that
+>>>> successfully decreased the processing time in interrupts.
+>>>
+>>> Just curious:  how much of this time is spent inside the mlx5 driver,
+>>> and how much is spent in the callbacks from the consumers?  We've now
+>>> more than half done with switch the kernel ULPs to the new CQ API
+>>> which will always offload the callbacks to softirq or workqueue context,
+>>> so if we can avoid a previous offload the completions would be a lot
+>>> more efficient.
+>>>
+>>
+>> In short, you could hit a situation where processing the completions in
+>> the interrupt takes longer than the rate at which they arrive (lab cases
+>> that use one event queue, but still).
+>> I agree that going to softirqs/WQs (like the rest of the offloads) is a
+>> good solution too - maybe even better than this one as the mechanism
+>> already exists, but why would it be a lot more efficient?
+>>
+>
+> Given the amount of the kernel converted to the new CQ API, are you guys
+> still looking to have this included?
+>
 
-The problem is that the function 'send_reply_to_slave' get the
-'req_sa_mad' as pointer whose address can be unaligned to 8 bytes.
-In this case the compiler cannot know in advance what will be the
-alignment of the 'data' field.
+Using irqpoll might be better, although - If I got things right it 
+really polls the CQ instead of just notifying the user-space it has some 
+work to do (because it handles kernel usages probably). So, in order to 
+use the current approach for user-space, we might needs to change it a 
+bit (unless I missed something).
 
-Sowmini Varadhan pointed to this reply from Dave Miller that say
-that memcpy should not be used to solve alignment issues:
-https://lkml.org/lkml/2015/10/21/352
+Saying that, because we're risking here at having a hard lockup and the 
+mlx4 driver already uses this proposed method successfully, I'll be very 
+happy if we can merge this and look at migrating to the new CQ API later 
+if it makes sense here.
 
-The reason why memcpy works here is because we memcpy someting that
-is bigger then 8 bytes and so the compiler cannot optimize this to
-'ldx' instruction.
-
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/mcg.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index 99451d8..180f76b 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -319,8 +319,9 @@ static int send_reply_to_slave(int slave, struct mcast_group *group,
- 		struct ib_sa_mad *req_sa_mad, u16 status)
- {
- 	struct ib_sa_mad mad;
-+	struct ib_sa_mcmember_data req_data;
- 	struct ib_sa_mcmember_data *sa_data = (struct ib_sa_mcmember_data *)&mad.data;
--	struct ib_sa_mcmember_data *req_sa_data = (struct ib_sa_mcmember_data *)&req_sa_mad->data;
-+	struct ib_sa_mcmember_data *req_sa_data = &req_data;
- 	int ret;
- 
- 	memset(&mad, 0, sizeof mad);
-@@ -343,6 +344,11 @@ static int send_reply_to_slave(int slave, struct mcast_group *group,
- 	/* reconstruct VF's requested join_state and port_gid */
- 	sa_data->scope_join_state &= 0xf0;
- 	sa_data->scope_join_state |= (group->func[slave].join_state & 0x0f);
-+	BUILD_BUG_ON(sizeof(req_sa_mad->data) < sizeof(req_data));
-+	/* req_sa_mad is packed structure whose start address is not
-+	 * aligned to 8
-+	 */
-+	memcpy(&req_data, &req_sa_mad->data, sizeof(req_data));
- 	memcpy(&sa_data->port_gid, &req_sa_data->port_gid, sizeof req_sa_data->port_gid);
- 
- 	ret = send_mad_to_slave(slave, group->demux, (struct ib_mad *)&mad);
--- 
-1.7.1
-
+Regards,
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
