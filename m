@@ -1,104 +1,50 @@
 From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
- module into core
-Date: Sun, 15 May 2016 10:51:41 +0000
-Message-ID: <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
-References: <1462563928-29164-1-git-send-email-leon@kernel.org>
- <1462563928-29164-6-git-send-email-leon@kernel.org>
- <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+Subject: RE: [PATCH rdma-next] IB/IPoIB: Allow setting the device address
+Date: Sun, 15 May 2016 12:24:22 +0000
+Message-ID: <VI1PR05MB1391776675CAF318DEB245F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+References: <1462340207-16174-1-git-send-email-leon@kernel.org>
+ <20160504184105.GB20554@obsidianresearch.com>
+ <VI1PR05MB1391263ABAC5F4892DBD69E9D2710@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <20160513164548.GA27209@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160513164548.GA27209-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
-> Sent: Friday, May 13, 2016 10:34 PM
-> To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
-> resolution module into core
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Friday, May 13, 2016 7:46 PM
+> To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Matan Barak
+> <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH rdma-next] IB/IPoIB: Allow setting the device address
 > 
-> On 05/06/2016 03:45 PM, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > IB address resolution is declared as a module (ib_addr.ko) which loads
-> > itself before IB core module (ib_core.ko).
-> >
-> > It causes to the scenario where IB netlink which is initialized by IB
-> > core can't be used by ib_addr.ko.
-> >
-> > In order to solve it, we are converting ib_addr.ko to be part of
-> > IB core module.
+> On Tue, May 10, 2016 at 03:26:27PM +0000, Mark Bloch wrote:
 > 
-> > diff --git a/drivers/infiniband/core/device.c
-> b/drivers/infiniband/core/device.c
-> > index 1097984..8894ad0 100644
-> > --- a/drivers/infiniband/core/device.c
-> > +++ b/drivers/infiniband/core/device.c
-> > @@ -977,16 +977,24 @@ static int __init ib_core_init(void)
-> >  		goto err_comp;
-> >  	}
-> >
-> > +	ret = addr_init();
-> > +	if (ret) {
-> > +		pr_warn("Could't init IB address resolution\n");
-> > +		goto err_sysfs;
-> > +	}
-> > +
-> >  	ret = ibnl_init();
-> >  	if (ret) {
-> >  		pr_warn("Couldn't init IB netlink interface\n");
-> > -		goto err_sysfs;
-> > +		goto err_addr;
-> >  	}
+> > > Did these checks from eth_prepare_mac_addr_change get included?
+> > >
+> > >          if (!(dev->priv_flags & IFF_LIVE_ADDR_CHANGE) &&
+> > > netif_running(dev))
+> > >                  return -EBUSY;
+> > >
+> > Why do I need to include that?
 > 
-> It's unclear to me how this change helps things.  Theoretically, if you
-> load ib_addr before ib_core (and therefore before any ibnl_init() is
-> run) and that prevents ib_addr from using the ibnl infrastructure, then
-> you would think that building ib_addr into ib_core and then running the
-> addr_init() before the ibnl_init() would have exactly the same problem.
-> I don't see what issue is resolved by this patch.
-You are right, this patch doesn't solve the problem of using ibnl inside ib_addr,
-But this patch didn't try to do that, all it did was to integrate ib_addr into ib_core,
-It tried to preserve the current order of dependencies . 
+> That is standard in all the other implementations - you should be
+> asking instead why IPoIB doesn't need to copy that.
+What I've meant is that I don't see why IPoIB won't support live address change.
+Having said that, it seems IPv6 multicast group membership has issues with live address change.
+I'll add the if to the next patch version.
 
-If this change is accepted, the order will be switched in the patches that add
-ibnl usage inside addr.c, another option is to pull this patch with the correct order
-into that series, this way we won't have to touch this area twice.
-
-> But, just as importantly, after reading addr.c to see how it uses the ibnl
-> infrastructure, I don't even see what the original problem can be.
-As it stands today:
-- ibnl is part of ib_core.
-- ib_core needs ib_addr.
-
-So if we add ibnl usage to ib_addr it means ib_addr will need ib_core,
-which causes a dependency cycle.
-
-> Please elaborate more on what actual problem we are solving with this
-> because I am loathe to change the module structure without good cause
-> (in particular, I know at least the Red Hat init scripts and systemd
-> units know about module names, so this requires changes to user space
-> scripts and that's a big no-no if it can be avoided).
-> 
-> 
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
-> 
-
-
-Mark Bloch.
+Mark.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
