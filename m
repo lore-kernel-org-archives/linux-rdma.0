@@ -1,378 +1,212 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [rdma-next,V2] IB/IPoIB: Allow setting the device address
-Date: Mon, 16 May 2016 14:23:41 +0000
-Message-ID: <1463408621-15825-1-git-send-email-markb@mellanox.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/4] IB/core: Introduce capabilitymask2 field
+ in ClassPortInfo mad
+Date: Mon, 16 May 2016 17:59:13 +0300
+Message-ID: <CAAk-MO8+imZbmE-2x-BtRWvwgKQ0=8QEheN9poDMp3z+VRhoCQ@mail.gmail.com>
+References: <1463401694-19247-1-git-send-email-erezsh@mellanox.com>
+	<1463401694-19247-2-git-send-email-erezsh@mellanox.com>
+	<508890fe-b1c2-14c4-21a3-2d9afcb00916@dev.mellanox.co.il>
+	<CAAk-MO-q7z=TsJgLhbbj6LeDzEQ8c6q_yFnNTft8hkB_sd4gpw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAk-MO-q7z=TsJgLhbbj6LeDzEQ8c6q_yFnNTft8hkB_sd4gpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In IB networks, and specifically in IPoIB/rdmacm traffic, the device
-address of an IPoIB interface is used as a means to exchange information
-between nodes needed for communication.
+Hi,
 
-Currently an IPoIB interface will always be created with a device
-address based on its node GUID without a way to change that.
+I will address Hal's comments and re-post tomorrow morning, in order
+to wait the others that made comments on V3.
+(to make sure they are ok with that version).
 
-This change adds the ability to set the device address of an IPoIB
-interface by value. We use the set mac address ndo to do that.
+Thanks, Erez
 
-The flow should be broken down to two:
-1) The GID value is already in the GID table,
-   in this case the interface will be able to set carrier up.
-
-2) The GID value is not yet in the GID table,
-   in this case the interface won't try to join the multicast group
-   and will wait (listen on GID_CHANGE event) until the GID is inserted.
-
-In order to track those changes, we add a new flag:
-* IPOIB_FLAG_DEV_ADDR_SET.
-
-When set, it means the dev_addr is a based on a value in the gid
-table. this bit will be cleared upon a dev_addr change triggered
-by the user and set after validation.
-
-Per IB spec the port GUID can't change if the module is loaded.
-port GUID is the basis for GID at index 0 which is the basis for
-the default device address of a ipoib interface.
-
-The issue is that there are devices that don't follow the spec,
-they change the port GUID while HCA is powered on, so in order
-not to break userspace applications. We need to check if the
-user wanted to control the device address and we assume that
-if he sets the device address back to be based on GID index 0,
-he no longer wishs to control it.
-
-In order to track this, we add an additional flag:
-* IPOIB_FLAG_DEV_ADDR_CTRL
-
-When setting the device address, there is no validation of the upper
-twelve bytes of the device address (flags, qpn, subnet prefix) as those
-bytes are not under the control of the user.
-
-Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
-Changes from V0:
- * Add basic sanity/validation checks on the LLADDR.
- * Update the subnet prefix upon GID_CHNAGE_EVENT.
-Changes from v1:
- * Add a check to see if the inerface is running,
-   don't allow changing the device address if it is.
----
- drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
- drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 109 ++++++++++++++++++++++++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  67 +++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  10 ++-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c     |   3 +
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c      |   1 +
- 6 files changed, 186 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index caec8e9..7830bde 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -92,6 +92,8 @@ enum {
- 	IPOIB_FLAG_UMCAST	  = 10,
- 	IPOIB_STOP_NEIGH_GC	  = 11,
- 	IPOIB_NEIGH_TBL_FLUSH	  = 12,
-+	IPOIB_FLAG_DEV_ADDR_SET	  = 13,
-+	IPOIB_FLAG_DEV_ADDR_CTRL  = 14,
- 
- 	IPOIB_MAX_BACKOFF_SECONDS = 16,
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index f0e55e4..11ebcc9 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -999,6 +999,106 @@ static inline int update_child_pkey(struct ipoib_dev_priv *priv)
- 	return 0;
- }
- 
-+/*
-+ * returns true if the device address of the ipoib interface has changed and the
-+ * new address is a valid one (i.e in the gid table), return false otherwise.
-+ */
-+static bool ipoib_dev_addr_changed_valid(struct ipoib_dev_priv *priv)
-+{
-+	union ib_gid search_gid;
-+	union ib_gid gid0;
-+	union ib_gid *netdev_gid;
-+	int err;
-+	u16 index;
-+	u8 port;
-+	bool ret = false;
-+
-+	netdev_gid = (union ib_gid *)(priv->dev->dev_addr + 4);
-+	if (ib_query_gid(priv->ca, priv->port, 0, &gid0, NULL))
-+		return false;
-+
-+	netif_addr_lock(priv->dev);
-+
-+	/* The subnet prefix may have changed, update it now so we won't have
-+	 * to do it later
-+	 */
-+	priv->local_gid.global.subnet_prefix = gid0.global.subnet_prefix;
-+	netdev_gid->global.subnet_prefix = gid0.global.subnet_prefix;
-+	search_gid.global.subnet_prefix = gid0.global.subnet_prefix;
-+
-+	search_gid.global.interface_id = priv->local_gid.global.interface_id;
-+
-+	netif_addr_unlock(priv->dev);
-+
-+	err = ib_find_gid(priv->ca, &search_gid, IB_GID_TYPE_IB,
-+			  priv->dev, &port, &index);
-+
-+	netif_addr_lock(priv->dev);
-+
-+	if (search_gid.global.interface_id !=
-+	    priv->local_gid.global.interface_id)
-+		/* There was a change while we were looking up the gid, bail
-+		 * here and let the next work sort this out
-+		 */
-+		goto out;
-+
-+	/* The next section of code needs some background:
-+	 * Per IB spec the port GUID can't change if the HCA is powered on.
-+	 * port GUID is the basis for GID at index 0 which is the basis for
-+	 * the default device address of a ipoib interface.
-+	 *
-+	 * so it seems the flow should be:
-+	 * if user_changed_dev_addr && gid in gid tbl
-+	 *	set bit dev_addr_set
-+	 *	return true
-+	 * else
-+	 *	return false
-+	 *
-+	 * The issue is that there are devices that don't follow the spec,
-+	 * they change the port GUID when the HCA is powered, so in order
-+	 * not to break userspace applications, We need to check if the
-+	 * user wanted to control the device address and we assume that
-+	 * if he sets the device address back to be based on GID index 0,
-+	 * he no longer wishs to control it.
-+	 *
-+	 * If the user doesn't control the the device address,
-+	 * IPOIB_FLAG_DEV_ADDR_SET is set and ib_find_gid failed it means
-+	 * the port GUID has changed and GID at index 0 has changed
-+	 * so we need to change priv->local_gid and priv->dev->dev_addr
-+	 * to reflect the new GID.
-+	 */
-+	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-+		if (!err && port == priv->port) {
-+			set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
-+			if (index == 0)
-+				clear_bit(IPOIB_FLAG_DEV_ADDR_CTRL,
-+					  &priv->flags);
-+			else
-+				set_bit(IPOIB_FLAG_DEV_ADDR_CTRL, &priv->flags);
-+			ret = true;
-+		} else {
-+			ret = false;
-+		}
-+	} else {
-+		if (!err && port == priv->port) {
-+			ret = true;
-+		} else {
-+			if (!test_bit(IPOIB_FLAG_DEV_ADDR_CTRL, &priv->flags)) {
-+				memcpy(&priv->local_gid, &gid0,
-+				       sizeof(priv->local_gid));
-+				memcpy(priv->dev->dev_addr + 4, &gid0,
-+				       sizeof(priv->local_gid));
-+				ret = true;
-+			}
-+		}
-+	}
-+
-+out:
-+	netif_addr_unlock(priv->dev);
-+
-+	return ret;
-+}
-+
- static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 				enum ipoib_flush_level level,
- 				int nesting)
-@@ -1020,6 +1120,9 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 
- 	if (!test_bit(IPOIB_FLAG_INITIALIZED, &priv->flags) &&
- 	    level != IPOIB_FLUSH_HEAVY) {
-+		/* Make sure the dev_addr is set even if not flushing */
-+		if (level == IPOIB_FLUSH_LIGHT)
-+			ipoib_dev_addr_changed_valid(priv);
- 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_INITIALIZED not set.\n");
- 		return;
- 	}
-@@ -1031,7 +1134,8 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 				update_parent_pkey(priv);
- 			else
- 				update_child_pkey(priv);
--		}
-+		} else if (level == IPOIB_FLUSH_LIGHT)
-+			ipoib_dev_addr_changed_valid(priv);
- 		ipoib_dbg(priv, "Not flushing - IPOIB_FLAG_ADMIN_UP not set.\n");
- 		return;
- 	}
-@@ -1083,7 +1187,8 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 	if (test_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags)) {
- 		if (level >= IPOIB_FLUSH_NORMAL)
- 			ipoib_ib_dev_up(dev);
--		ipoib_mcast_restart_task(&priv->restart_task);
-+		if (ipoib_dev_addr_changed_valid(priv))
-+			ipoib_mcast_restart_task(&priv->restart_task);
- 	}
- }
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 80807d6..e43fd4d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -99,6 +99,7 @@ static struct net_device *ipoib_get_net_dev_by_params(
- 		struct ib_device *dev, u8 port, u16 pkey,
- 		const union ib_gid *gid, const struct sockaddr *addr,
- 		void *client_data);
-+static int ipoib_set_mac(struct net_device *dev, void *addr);
- 
- static struct ib_client ipoib_client = {
- 	.name   = "ipoib",
-@@ -1649,6 +1650,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
- 	.ndo_get_vf_config	 = ipoib_get_vf_config,
- 	.ndo_get_vf_stats	 = ipoib_get_vf_stats,
- 	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
-+	.ndo_set_mac_address	 = ipoib_set_mac,
- };
- 
- static const struct net_device_ops ipoib_netdev_ops_vf = {
-@@ -1771,6 +1773,70 @@ int ipoib_add_umcast_attr(struct net_device *dev)
- 	return device_create_file(&dev->dev, &dev_attr_umcast);
- }
- 
-+static void set_base_guid(struct ipoib_dev_priv *priv, union ib_gid *gid,
-+			  int nesting)
-+{
-+	struct ipoib_dev_priv *child_priv;
-+	struct net_device *netdev = priv->dev;
-+
-+	netif_addr_lock(netdev);
-+
-+	if (!nesting)
-+		memcpy(&priv->local_gid.global.interface_id,
-+		       &gid->global.interface_id,
-+		       sizeof(gid->global.interface_id));
-+	memcpy(netdev->dev_addr + 4, &priv->local_gid, sizeof(priv->local_gid));
-+	clear_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
-+
-+	netif_addr_unlock(netdev);
-+
-+	down_read_nested(&priv->vlan_rwsem, nesting);
-+	list_for_each_entry(child_priv, &priv->child_intfs, list)
-+		set_base_guid(child_priv, gid, nesting + 1);
-+	up_read(&priv->vlan_rwsem);
-+}
-+
-+static int ipoib_check_lladdr(struct net_device *dev,
-+			      struct sockaddr_storage *ss)
-+{
-+	union ib_gid *gid = (union ib_gid *)(ss->__data + 4);
-+	int ret = 0;
-+
-+	netif_addr_lock(dev);
-+
-+	/* Make sure the QPN, reserved and subnet prefix match the current
-+	 * lladdr, it also makes sure the lladdr is unicast.
-+	 */
-+	if (memcmp(dev->dev_addr, ss->__data,
-+		   4 + sizeof(gid->global.subnet_prefix)) ||
-+	    gid->global.interface_id == 0)
-+		ret = -EINVAL;
-+
-+	netif_addr_unlock(dev);
-+
-+	return ret;
-+}
-+
-+static int ipoib_set_mac(struct net_device *dev, void *addr)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	struct sockaddr_storage *ss = addr;
-+	int ret;
-+
-+	if (!(dev->priv_flags & IFF_LIVE_ADDR_CHANGE) && netif_running(dev))
-+		return -EBUSY;
-+
-+	ret = ipoib_check_lladdr(dev, ss);
-+	if (ret)
-+		return ret;
-+
-+	set_base_guid(priv, (union ib_gid *)(ss->__data + 4), 0);
-+
-+	queue_work(ipoib_workqueue, &priv->flush_light);
-+
-+	return 0;
-+}
-+
- static ssize_t create_child(struct device *dev,
- 			    struct device_attribute *attr,
- 			    const char *buf, size_t count)
-@@ -1894,6 +1960,7 @@ static struct net_device *ipoib_add_port(const char *format,
- 		goto device_init_failed;
- 	} else
- 		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
-+	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
- 
- 	result = ipoib_dev_init(priv->dev, hca, port);
- 	if (result < 0) {
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 2588931..c4b9339 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -570,11 +570,13 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 		return;
- 	}
- 	priv->local_lid = port_attr.lid;
-+	netif_addr_lock(dev);
- 
--	if (ib_query_gid(priv->ca, priv->port, 0, &priv->local_gid, NULL))
--		ipoib_warn(priv, "ib_query_gid() failed\n");
--	else
--		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
-+	if (!test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-+		netif_addr_unlock(dev);
-+		return;
-+	}
-+	netif_addr_unlock(dev);
- 
- 	spin_lock_irq(&priv->lock);
- 	if (!test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index b809c37..1e7cbba 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -307,5 +307,8 @@ void ipoib_event(struct ib_event_handler *handler,
- 		queue_work(ipoib_workqueue, &priv->flush_normal);
- 	} else if (record->event == IB_EVENT_PKEY_CHANGE) {
- 		queue_work(ipoib_workqueue, &priv->flush_heavy);
-+	} else if (record->event == IB_EVENT_GID_CHANGE &&
-+		   !test_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags)) {
-+		queue_work(ipoib_workqueue, &priv->flush_light);
- 	}
- }
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index fca1a88..7e5f171 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -68,6 +68,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 	priv->pkey = pkey;
- 
- 	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
-+	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
- 	priv->dev->broadcast[8] = pkey >> 8;
- 	priv->dev->broadcast[9] = pkey & 0xff;
- 
--- 
-1.8.4.3
-
+On Mon, May 16, 2016 at 4:04 PM, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Mon, May 16, 2016 at 4:00 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>> On 5/16/2016 8:28 AM, Erez Shitrit wrote:
+>>> Change struct ib_class_port_info to conform to IB Spec 1.3
+>>> That in order to get specific capability mask from ClassPortInfo mad.
+>>>
+>>>>From the IB Spec, ClassPortInfo section:
+>>>         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+>>>          RespTimeValue the rest 5 bits"
+>>>
+>>> The new struct now has one field for capabilitymask2 (previously was the
+>>> reserved field) and the resp_time field.
+>>>
+>>> And it fixes up qib and srpt, use of the field repurposed to be used as
+>>> capabilitymask2:
+>>> IB/qib: Change pma_get_classportinfo
+>>> IB/srpt: Adjust the use of ib_class_port_info
+>>>
+>>> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/hw/qib/qib_mad.c   |  4 +--
+>>>  drivers/infiniband/ulp/srpt/ib_srpt.c |  2 +-
+>>>  include/rdma/ib_mad.h                 | 62 +++++++++++++++++++++++++++++++++--
+>>>  3 files changed, 63 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+>>> index 0bd1837..a872865 100644
+>>> --- a/drivers/infiniband/hw/qib/qib_mad.c
+>>> +++ b/drivers/infiniband/hw/qib/qib_mad.c
+>>> @@ -1172,11 +1172,11 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+>>>        * Set the most significant bit of CM2 to indicate support for
+>>>        * congestion statistics
+>>>        */
+>>> -     p->reserved[0] = dd->psxmitwait_supported << 7;
+>>> +     ib_set_cpi_capmask2(p, dd->psxmitwait_supported << 7);
+>>>       /*
+>>>        * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+>>>        */
+>>> -     p->resp_time_value = 18;
+>>> +     ib_set_cpi_resp_time(p, 18);
+>>>
+>>>       return reply((struct ib_smp *) pmp);
+>>>  }
+>>> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+>>> index 2843f1a..887ebad 100644
+>>> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+>>> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+>>> @@ -254,8 +254,8 @@ static void srpt_get_class_port_info(struct ib_dm_mad *mad)
+>>>       memset(cif, 0, sizeof(*cif));
+>>>       cif->base_version = 1;
+>>>       cif->class_version = 1;
+>>> -     cif->resp_time_value = 20;
+>>>
+>>> +     ib_set_cpi_resp_time(cif, 20);
+>>>       mad->mad_hdr.status = 0;
+>>>  }
+>>>
+>>> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+>>> index 37dd534c..a471348 100644
+>>> --- a/include/rdma/ib_mad.h
+>>> +++ b/include/rdma/ib_mad.h
+>>> @@ -243,8 +243,8 @@ struct ib_class_port_info {
+>>>       u8                      base_version;
+>>>       u8                      class_version;
+>>>       __be16                  capability_mask;
+>>> -     u8                      reserved[3];
+>>> -     u8                      resp_time_value;
+>>> +       /* 27 bits for cap_mask2, 5 bits for resp_time */
+>>> +     __be32                  cap_mask2_resp_time;
+>>>       u8                      redirect_gid[16];
+>>>       __be32                  redirect_tcslfl;
+>>>       __be16                  redirect_lid;
+>>> @@ -259,6 +259,64 @@ struct ib_class_port_info {
+>>>       __be32                  trap_qkey;
+>>>  };
+>>>
+>>> +/**
+>>> + * ib_get_cpi_resp_time - Returns the resp_time value from
+>>> + * cap_mask2_resp_time in ib_class_port_info.
+>>> + * @cpi: A struct ib_class_port_info mad.
+>>> + */
+>>> +static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
+>>> +{
+>>> +     return ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0xF8) >> 3);
+>>
+>> Should this be:
+>>
+>>         return ((be32_to_cpu(cpi->cap_mask2_resp_time) & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
+>>
+>> where
+>>
+>> #define IB_CLASS_PORT_INFO_RESP_TIME_MASK 0x1F
+>>
+>> ?
+>
+> Ok, will do.
+> Thanks
+>
+>
+>>
+>>> +}
+>>> +
+>>> +/**
+>>> + * ib_set_cpi_resptime - Sets the response time in an
+>>> + * ib_class_port_info mad.
+>>> + * @cpi: A struct ib_class_port_info.
+>>> + * @rtime: The response time to set.
+>>> + */
+>>> +static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
+>>> +                                     u8 rtime)
+>>> +{
+>>> +     u32 tmp;
+>>> +     u32 tmp2;
+>>> +
+>>> +     tmp = rtime;
+>>> +     tmp = tmp << 3;
+>>> +     tmp2 = (be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xF8);
+>>> +     tmp = tmp | tmp2;
+>>> +     cpi->cap_mask2_resp_time = cpu_to_be32(tmp);
+>>
+>> Should this be:
+>>
+>>         cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(~IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+>>                                      cpu_to_be32(rtime & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
+>>
+>> ?
+>
+> Ok, will do.
+> Thanks
+>
+>
+>>
+>>> +}
+>>> +
+>>> +/**
+>>> + * ib_get_cpi_capmask2 - Returns the capmask2 value from
+>>> + * cap_mask2_resp_time in ib_class_port_info.
+>>> + * @cpi: A struct ib_class_port_info mad.
+>>> + */
+>>> +static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
+>>> +{
+>>> +     u8 tmp;
+>>> +
+>>> +     tmp = ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0x7) << 5);
+>>> +     return (((be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xFF) >> 5) | tmp);
+>>
+>> #define IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT 5
+>>
+>>         return (be32_to_cpu(cpi->cap_mask2_resp_time) >> IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
+>> ?
+>>
+>>> +}
+>>> +
+>>> +/**
+>>> + * ib_set_cpi_capmask2 - Sets the capmask2 in an
+>>> + * ib_class_port_info mad.
+>>> + * @cpi: A struct ib_class_port_info.
+>>> + * @capmask2: The capmask2 to set.
+>>> + */
+>>> +static inline void ib_set_cpi_capmask2(struct ib_class_port_info *cpi,
+>>> +                                    u32 capmask2)
+>>> +{
+>>> +     u32 tmp;
+>>> +
+>>> +     tmp = ib_get_cpi_resp_time(cpi);
+>>> +     tmp = tmp << 27;
+>>> +     cpi->cap_mask2_resp_time = (__force __be32)(tmp | capmask2);
+>>
+>>         cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+>>                                    cpu_to_be32(capmask2 << IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
+>> ?
+>>
+>>> +}
+>>> +
+>>>  struct ib_mad_notice_attr {
+>>>       u8 generic_type;
+>>>       u8 prod_type_msb;
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
