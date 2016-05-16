@@ -1,212 +1,83 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 1/4] IB/core: Introduce capabilitymask2 field
- in ClassPortInfo mad
-Date: Mon, 16 May 2016 17:59:13 +0300
-Message-ID: <CAAk-MO8+imZbmE-2x-BtRWvwgKQ0=8QEheN9poDMp3z+VRhoCQ@mail.gmail.com>
-References: <1463401694-19247-1-git-send-email-erezsh@mellanox.com>
-	<1463401694-19247-2-git-send-email-erezsh@mellanox.com>
-	<508890fe-b1c2-14c4-21a3-2d9afcb00916@dev.mellanox.co.il>
-	<CAAk-MO-q7z=TsJgLhbbj6LeDzEQ8c6q_yFnNTft8hkB_sd4gpw@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Mon, 16 May 2016 11:09:44 -0400
+Message-ID: <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="hJlIVoQn0ObJAoxxpdQgmpvSqmjJlKwS8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAk-MO-q7z=TsJgLhbbj6LeDzEQ8c6q_yFnNTft8hkB_sd4gpw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <VI1PR05MB1391AD099C536541E79A09F9D2760-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--hJlIVoQn0ObJAoxxpdQgmpvSqmjJlKwS8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-I will address Hal's comments and re-post tomorrow morning, in order
-to wait the others that made comments on V3.
-(to make sure they are ok with that version).
+On 05/15/2016 06:51 AM, Mark Bloch wrote:
 
-Thanks, Erez
+>> But, just as importantly, after reading addr.c to see how it uses the =
+ibnl
+>> infrastructure, I don't even see what the original problem can be.
+> As it stands today:
+> - ibnl is part of ib_core.
+> - ib_core needs ib_addr.
+>=20
+> So if we add ibnl usage to ib_addr it means ib_addr will need ib_core,
+> which causes a dependency cycle.
 
-On Mon, May 16, 2016 at 4:04 PM, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On Mon, May 16, 2016 at 4:00 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> On 5/16/2016 8:28 AM, Erez Shitrit wrote:
->>> Change struct ib_class_port_info to conform to IB Spec 1.3
->>> That in order to get specific capability mask from ClassPortInfo mad.
->>>
->>>>From the IB Spec, ClassPortInfo section:
->>>         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
->>>          RespTimeValue the rest 5 bits"
->>>
->>> The new struct now has one field for capabilitymask2 (previously was the
->>> reserved field) and the resp_time field.
->>>
->>> And it fixes up qib and srpt, use of the field repurposed to be used as
->>> capabilitymask2:
->>> IB/qib: Change pma_get_classportinfo
->>> IB/srpt: Adjust the use of ib_class_port_info
->>>
->>> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>> ---
->>>  drivers/infiniband/hw/qib/qib_mad.c   |  4 +--
->>>  drivers/infiniband/ulp/srpt/ib_srpt.c |  2 +-
->>>  include/rdma/ib_mad.h                 | 62 +++++++++++++++++++++++++++++++++--
->>>  3 files changed, 63 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
->>> index 0bd1837..a872865 100644
->>> --- a/drivers/infiniband/hw/qib/qib_mad.c
->>> +++ b/drivers/infiniband/hw/qib/qib_mad.c
->>> @@ -1172,11 +1172,11 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
->>>        * Set the most significant bit of CM2 to indicate support for
->>>        * congestion statistics
->>>        */
->>> -     p->reserved[0] = dd->psxmitwait_supported << 7;
->>> +     ib_set_cpi_capmask2(p, dd->psxmitwait_supported << 7);
->>>       /*
->>>        * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
->>>        */
->>> -     p->resp_time_value = 18;
->>> +     ib_set_cpi_resp_time(p, 18);
->>>
->>>       return reply((struct ib_smp *) pmp);
->>>  }
->>> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> index 2843f1a..887ebad 100644
->>> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
->>> @@ -254,8 +254,8 @@ static void srpt_get_class_port_info(struct ib_dm_mad *mad)
->>>       memset(cif, 0, sizeof(*cif));
->>>       cif->base_version = 1;
->>>       cif->class_version = 1;
->>> -     cif->resp_time_value = 20;
->>>
->>> +     ib_set_cpi_resp_time(cif, 20);
->>>       mad->mad_hdr.status = 0;
->>>  }
->>>
->>> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
->>> index 37dd534c..a471348 100644
->>> --- a/include/rdma/ib_mad.h
->>> +++ b/include/rdma/ib_mad.h
->>> @@ -243,8 +243,8 @@ struct ib_class_port_info {
->>>       u8                      base_version;
->>>       u8                      class_version;
->>>       __be16                  capability_mask;
->>> -     u8                      reserved[3];
->>> -     u8                      resp_time_value;
->>> +       /* 27 bits for cap_mask2, 5 bits for resp_time */
->>> +     __be32                  cap_mask2_resp_time;
->>>       u8                      redirect_gid[16];
->>>       __be32                  redirect_tcslfl;
->>>       __be16                  redirect_lid;
->>> @@ -259,6 +259,64 @@ struct ib_class_port_info {
->>>       __be32                  trap_qkey;
->>>  };
->>>
->>> +/**
->>> + * ib_get_cpi_resp_time - Returns the resp_time value from
->>> + * cap_mask2_resp_time in ib_class_port_info.
->>> + * @cpi: A struct ib_class_port_info mad.
->>> + */
->>> +static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
->>> +{
->>> +     return ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0xF8) >> 3);
->>
->> Should this be:
->>
->>         return ((be32_to_cpu(cpi->cap_mask2_resp_time) & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
->>
->> where
->>
->> #define IB_CLASS_PORT_INFO_RESP_TIME_MASK 0x1F
->>
->> ?
->
-> Ok, will do.
-> Thanks
->
->
->>
->>> +}
->>> +
->>> +/**
->>> + * ib_set_cpi_resptime - Sets the response time in an
->>> + * ib_class_port_info mad.
->>> + * @cpi: A struct ib_class_port_info.
->>> + * @rtime: The response time to set.
->>> + */
->>> +static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
->>> +                                     u8 rtime)
->>> +{
->>> +     u32 tmp;
->>> +     u32 tmp2;
->>> +
->>> +     tmp = rtime;
->>> +     tmp = tmp << 3;
->>> +     tmp2 = (be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xF8);
->>> +     tmp = tmp | tmp2;
->>> +     cpi->cap_mask2_resp_time = cpu_to_be32(tmp);
->>
->> Should this be:
->>
->>         cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(~IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
->>                                      cpu_to_be32(rtime & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
->>
->> ?
->
-> Ok, will do.
-> Thanks
->
->
->>
->>> +}
->>> +
->>> +/**
->>> + * ib_get_cpi_capmask2 - Returns the capmask2 value from
->>> + * cap_mask2_resp_time in ib_class_port_info.
->>> + * @cpi: A struct ib_class_port_info mad.
->>> + */
->>> +static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
->>> +{
->>> +     u8 tmp;
->>> +
->>> +     tmp = ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0x7) << 5);
->>> +     return (((be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xFF) >> 5) | tmp);
->>
->> #define IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT 5
->>
->>         return (be32_to_cpu(cpi->cap_mask2_resp_time) >> IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
->> ?
->>
->>> +}
->>> +
->>> +/**
->>> + * ib_set_cpi_capmask2 - Sets the capmask2 in an
->>> + * ib_class_port_info mad.
->>> + * @cpi: A struct ib_class_port_info.
->>> + * @capmask2: The capmask2 to set.
->>> + */
->>> +static inline void ib_set_cpi_capmask2(struct ib_class_port_info *cpi,
->>> +                                    u32 capmask2)
->>> +{
->>> +     u32 tmp;
->>> +
->>> +     tmp = ib_get_cpi_resp_time(cpi);
->>> +     tmp = tmp << 27;
->>> +     cpi->cap_mask2_resp_time = (__force __be32)(tmp | capmask2);
->>
->>         cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
->>                                    cpu_to_be32(capmask2 << IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
->> ?
->>
->>> +}
->>> +
->>>  struct ib_mad_notice_attr {
->>>       u8 generic_type;
->>>       u8 prod_type_msb;
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Right, but in that case, this patch needs to be part of the series that
+adds the ibnl support into the ib_addr functionality.  Because you split
+them into separate series, this was a patch looking for a problem to
+solve and it wasn't clear what it was.  If I had taken the other series
+and not this series, it would have broken things.  So please keep
+patches like this together with the other patches that depend on it.
+
+That said, I also don't want to redo modules if we don't have to.  As my
+previous email points out, changing modules breaks init scripts and
+systemd unit files.  It is to be avoided when possible.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--hJlIVoQn0ObJAoxxpdQgmpvSqmjJlKwS8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXOeK4AAoJELgmozMOVy/dTzMP/3j2zPuRy6NFyCyc5YyVcbkJ
+X1h+calpOiod4TY7QBMAWspPar1TqnBLs4ZWlH6cOQ5pO3FKeCef4w0mj7KGwMIL
+1I7Ldkdd3SYpt2mQnpq0wCRrEGYX4vjTLIDuEaUG2Dx9oB1Qz1tAhsK6b5mHNCUz
+oWpSKlC206fDv2cuuz8eApt6UsqqMXfwzeKxGWEHJ5kwevsbVJK8aPuSS2p4B0iJ
+j7OU6n8VP30n5yesmsGqzY3qvH+mKeJHgtdaqyTpXGBO7u3XRrLqodMLDLyDHXH+
+h9rbPPOHkZiYjJDoH9iAOC2/0HXgpbwbPX0dy2qQ6fa77cFYbsKIPQp+RXbrgC++
+N80K/L34UGQHph2u48GbDR0QjycbxeI388rt5jDJ2X9pOukTBbl9LBnCRcET+VIU
+pnKHLXx6W1DzOJALedrl103UuiJEeEwSIeh3YU8xlrZnd4Y97kZzJLbCUeQqZMXz
+jscRE3M+v7ithc8zYEWAhWVZLnzmyWnDa7wlRMHtbnnN6mKTlQ+f5e+b1/F4hq6Q
+MMw7BM60EtX2AFm/00tyuEy5x++YvIy1fIsdHh3NZidMaZ53+axjE2a+Xx/ONfcX
+qIT2LNEEHDtl2O4M084gvi5tcYoo98biE5FpJ/D4AKba4YnxRRYP2gaKmbALStOy
+37DPr4Pc98RCmDA/obLS
+=VWjY
+-----END PGP SIGNATURE-----
+
+--hJlIVoQn0ObJAoxxpdQgmpvSqmjJlKwS8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
