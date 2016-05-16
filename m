@@ -1,72 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [hch-jcswGhMUV9g@public.gmane.org: Re: CQ and RDMA READ/WRITE APIs]
-Date: Mon, 16 May 2016 11:20:20 -0400
-Message-ID: <9a67fdac-88c2-ce29-f56b-e4d906a01518@redhat.com>
-References: <20160516124838.GA1896@lst.de>
+Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
+Date: Mon, 16 May 2016 11:43:59 -0400
+Message-ID: <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
+References: <20160315155441.222586021@linux.com>
+ <20160315155455.173645653@linux.com>
+ <057c8ac8-1d34-e7b9-c0ad-91d805c81139@redhat.com>
+ <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="h0jCUgDOirggB0QAuMq9e2VhL5jRxmKiH"
+ boundary="BxUV6soTe0RQRbxn0DD2tLs0uHfUwmmlW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160516124838.GA1896-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1605160851370.23895-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---h0jCUgDOirggB0QAuMq9e2VhL5jRxmKiH
-Content-Type: text/plain; charset=utf-8
+--BxUV6soTe0RQRbxn0DD2tLs0uHfUwmmlW
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/16/2016 08:48 AM, Christoph Hellwig wrote:
-> Sorry, forgot linux-rdma.  Please reply on the main thread on linux-ker=
-nel
-> instead of here.
+On 05/16/2016 09:52 AM, Christoph Lameter wrote:
+> On Fri, 13 May 2016, Doug Ledford wrote:
+>=20
+>> I don't like this entire chunk.  Please handle both the cxgb3 and cxgb=
+4
+>> changes like you did the mlx4 changes.  Specifically, use an enum to
+>> define the array index for names and an array of offsets so that the
+>> textual names from the enum can be used to access the array.  The way
+>> things are here is horribly fragile.
+>=20
+> Ok but I cannot separate this out in a a distinct patch.
 
-Indeed.  And I please need Sagi and Bart to comment on the linux-kernel
-thread about this issue.  Please provide your acknowledgment of this
-effective licensing change of your respective code bases.
+That's fine.
 
+>> Secondly, do *not* use a BUG_ON in this patch.  I saw at least two of
+>> them.  There is nothing in this patch so serious that we should crash
+>> the kernel.  Any failure here is something we can work around and keep=
+
+>> running.
 >=20
-> ----- Forwarded message from Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> -----
->=20
-> Date: Mon, 16 May 2016 13:49:26 +0200
-> From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Subject: Re: CQ and RDMA READ/WRITE APIs
-> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->=20
-> [adding Linus and linux-kernel to Cc]
->=20
-> On Fri, May 13, 2016 at 08:04:17PM -0400, Doug Ledford wrote:
->> You submitted new files into the subsystem under GPL only license in
->> contrast to the rest of the subsystem.  This presents a problem.  I'm =
-in
->> the position where I need to either revert them, or I need your
->> permission to make them dual license GPL/BSD to match the rest of the
->> subsystem.  Were you intentionally trying to make the OFED work illega=
-l,
->> or just an oversight?
->=20
-> Hi Doug,
->=20
-> the RDMA code was developed for a GPLed driver and moved to the code,
-> and lots of people contributed to it under the GPL, as they assumed
-> Linux code in genral is.  =D0=86f dual-licensing is possible at all it =
-would
-> require a lot of work, which I don't think is worth it.  If you don't
-> want GPL code in the core rdma.ko module we can move it to a rdma-gpl.k=
-o
-> module, but that would be a little bit odd.
->=20
-> ----- End forwarded message -----
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> WARN_ON_ONCE then?
 >=20
 
+Yep.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -74,7 +53,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---h0jCUgDOirggB0QAuMq9e2VhL5jRxmKiH
+--BxUV6soTe0RQRbxn0DD2tLs0uHfUwmmlW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -83,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXOeU0AAoJELgmozMOVy/deo0QAIPOiEMszT+6w/AXbTUsSuPO
-2kJWcB5T1yJVT7HJk+/M5SsBDM1FZ7KuxL2RBG1IBgz4pyM7hC1dCEFieNSyw/l2
-DIcG416kT4z2AiyjITm6Fywbc4TIAlCSb021vyWmzpz2Isw68JNQDIj21U/378pl
-k5aboqLB/Z5sxQI0ecLPLhv3DlKfeHr6xMmDzprcv3pXYuwpW1aG7TUDtGJOFtJt
-5jbSJ0GhH5+zLa33D+QImjpCD0g+dSvtrZM60g3Wxl73Hw4mlel6qVf0+Gl8WE+w
-fQQk8YZ6QIlcbzXHZluW5G8BaYCV3NaReIOG3uoPnhDiuBDhzbEatDdyHPWflw2i
-hjvfNIfLQWGqX9WCr3Myiph1MwuR6tp0JSo6kwTMVekDXKj3Rn0FcrF6vsJeQZPh
-zG2W1YAIyljBH6H23EtHi6rt9vaXgmVPDL7zgiRETjiA8VXBq0gU3JUbVVrbCu+l
-RMWX90F2gbT/ai8FftaB1fjovQUPfsVUDL+T33GoVe7oDeNpkX0maQXkIxkU3Pdj
-Jp5bfgEFuOQ4xGonsNbLvyWr9WezBnYcoo0WrAn1iGtTei0RzOHqFIXhcXwbdWM/
-TClcFaatLx352p2d3wkFW9HqRmIaxDIDntpS10uDLy+TQWC74f0i/yPkPkIXDFVl
-Yp1mmwSi4HWNDdQj5MYn
-=lwqd
+iQIcBAEBCAAGBQJXOeq/AAoJELgmozMOVy/dB9EQAMQMjscwWnQghkPlnhuTIzpU
+kld9tlwLoa1S2PqG2gdbcju9w/8lsFeJWLN2Jb0+P/DRZ/sogVZl9S429X6uEXhD
+1xxTdps5gGIptGUi+zzj7lklY0gMQr1YuMxGBc2hao1hVCFnK47BDETcWxeYhkeK
+2fxU74DPiJLHz+Wx7itWFwdpOYcPgYQ7/Tj1lV2poIwbwvOhX6yAPE3nn4Bf4zh2
+C9A1PqNfIn5xFxsBocQQtPnn4+RAtOyqoWtiu4g7KiWRH7TLTGPxHXrSbIhE98FT
+TZC1tXkfNOYJZPYiTdpz1PQOKUsR7qXplG3hRoXr3h6ncjiW8OlHnnaKE5cJht2P
+pxroNDv10fEkPsI8OJmBNLfs0520o+vGoO3cGANON4xcc2oK6eLZNI+KAu2UJC12
+lt3z5lR+NntPVSakTofpzYzL70z4/yZsl0s44U5AX1nx2pzHXtETXLLp2iU/K3A/
+kNhI5mx0/1SkpFzZij+IwOpBIGzI/p4eqewIVifM8Hp/CXTIQvKKQhCOKUg+XHk0
+CcvbMWmF9nwoLzHZ/OyhbJUNZV9w/cDOS9DeEprI/baAmCsrfdKd0BxW2q62tFyc
+RZFQYvW4+tvSpgaj3NuoWB6dM/R2p3H1Rxt/qcAcXwub37iy35zBbE2tFaHmNTbD
+esbSLmwFPXQs1brjslvV
+=IV3t
 -----END PGP SIGNATURE-----
 
---h0jCUgDOirggB0QAuMq9e2VhL5jRxmKiH--
+--BxUV6soTe0RQRbxn0DD2tLs0uHfUwmmlW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
