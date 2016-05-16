@@ -1,39 +1,54 @@
-From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Subject: Re: intel iommu causing performance drop in mlx4 ipoib (OFFLIST)
-Date: Mon, 16 May 2016 15:46:04 +0300
-Message-ID: <5739C10C.6040805@kyup.com>
-References: <5739A347.20807@kyup.com>
- <1463396094.2484.194.camel@infradead.org> <5739BEEC.3070308@kyup.com>
- <1463402381.2484.202.camel@infradead.org>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [hch-jcswGhMUV9g@public.gmane.org: Re: CQ and RDMA READ/WRITE APIs]
+Date: Mon, 16 May 2016 14:48:38 +0200
+Message-ID: <20160516124838.GA1896@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463402381.2484.202.camel-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Sorry, forgot linux-rdma.  Please reply on the main thread on linux-ker=
+nel
+instead of here.
 
+----- Forwarded message from Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> -----
 
-On 05/16/2016 03:39 PM, David Woodhouse wrote:
-> On Mon, 2016-05-16 at 15:37 +0300, Nikolay Borisov wrote:
->>
->> Oops, turned out I had intel_iommu=on, though I'm sure some days ago I
->> didn't and performance suffered. I now tried with this option removed
->> and performance is again back to normal. All in all this driver +
->> intel_iommu is a bad combination I guess. Anyway, sorry for the noise
->> and thanks for the prompt reply.
-> 
-> I would be very interested to see your results with the latest code
-> from git://git.infradead.org/intel-iommu.git (and with the IOMMU still
-> enabled).
+Date: Mon, 16 May 2016 13:49:26 +0200
+=46rom: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: CQ and RDMA READ/WRITE APIs
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Would I be able to apply this cleanly on 4.4, since this is the version
-I'm currently using?
+[adding Linus and linux-kernel to Cc]
 
+On Fri, May 13, 2016 at 08:04:17PM -0400, Doug Ledford wrote:
+> You submitted new files into the subsystem under GPL only license in
+> contrast to the rest of the subsystem.  This presents a problem.  I'm=
+ in
+> the position where I need to either revert them, or I need your
+> permission to make them dual license GPL/BSD to match the rest of the
+> subsystem.  Were you intentionally trying to make the OFED work illeg=
+al,
+> or just an oversight?
+
+Hi Doug,
+
+the RDMA code was developed for a GPLed driver and moved to the code,
+and lots of people contributed to it under the GPL, as they assumed
+Linux code in genral is.  =D0=86f dual-licensing is possible at all it =
+would
+require a lot of work, which I don't think is worth it.  If you don't
+want GPL code in the core rdma.ko module we can move it to a rdma-gpl.k=
+o
+module, but that would be a little bit odd.
+
+----- End forwarded message -----
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
