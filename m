@@ -1,106 +1,68 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Mon, 16 May 2016 13:27:36 -0400
-Message-ID: <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
-References: <20160315155441.222586021@linux.com>
- <20160315155455.173645653@linux.com>
- <057c8ac8-1d34-e7b9-c0ad-91d805c81139@redhat.com>
- <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
- <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
- <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Mon, 16 May 2016 13:42:34 -0400
+Message-ID: <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="s9OpGwNBiK852kamqVk5xllbtcWTsd0IS"
+ boundary="MWPenGE2H42MFAxhCpK9vPBD0r6pfwM30"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1605161203010.26453-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <20160516163048.GB4662-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---s9OpGwNBiK852kamqVk5xllbtcWTsd0IS
+--MWPenGE2H42MFAxhCpK9vPBD0r6pfwM30
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/16/2016 01:04 PM, Christoph Lameter wrote:
-> On Mon, 16 May 2016, Doug Ledford wrote:
->=20
->>>> Secondly, do *not* use a BUG_ON in this patch.  I saw at least two o=
-f
->>>> them.  There is nothing in this patch so serious that we should cras=
-h
->>>> the kernel.  Any failure here is something we can work around and ke=
-ep
->>>> running.
+On 05/16/2016 12:30 PM, Leon Romanovsky wrote:
+> On Mon, May 16, 2016 at 11:09:44AM -0400, Doug Ledford wrote:
+>> On 05/15/2016 06:51 AM, Mark Bloch wrote:
+>>
+>>>> But, just as importantly, after reading addr.c to see how it uses th=
+e ibnl
+>>>> infrastructure, I don't even see what the original problem can be.
+>>> As it stands today:
+>>> - ibnl is part of ib_core.
+>>> - ib_core needs ib_addr.
 >>>
->>> WARN_ON_ONCE then?
->> Yep.
+>>> So if we add ibnl usage to ib_addr it means ib_addr will need ib_core=
+,
+>>> which causes a dependency cycle.
+>>
+>> Right, but in that case, this patch needs to be part of the series tha=
+t
+>> adds the ibnl support into the ib_addr functionality.  Because you spl=
+it
+>> them into separate series, this was a patch looking for a problem to
+>> solve and it wasn't clear what it was.  If I had taken the other serie=
+s
+>> and not this series, it would have broken things.  So please keep
+>> patches like this together with the other patches that depend on it.
+>>
+>> That said, I also don't want to redo modules if we don't have to.  As =
+my
+>> previous email points out, changing modules breaks init scripts and
+>> systemd unit files.  It is to be avoided when possible.
 >=20
-> BUILD_BUG_ON works even better once we have the enum. Revised patch
-> follows:
+> Sorry,
+> I was in the mood of fixing things when I wrote and sent this patch.
+> The question is which version will you more likely to accept: this one
+> (remove ib_addr module) or previous one (add ib_netlink module)?
 
-There's still one BUG_ON.  See below...
-
-> +static struct attribute_group *create_protocol_stats(struct ib_device =
-*device,
-> +						     struct kobject *kobj,
-> +						     u8 port) {
-> +	struct attribute_group *ag;
-> +	struct rdma_protocol_stats stats =3D {0};
-
-We allocated our struct on the stack.  We have a static length counter
-array in this struct.
-
-> +	u32 counters;
-> +	u32 i;
-> +	int ret;
-> +
-> +	ret =3D device->get_protocol_stats(device, &stats, port);
-
-We then pass our struct to get_protocol_stats to fill out.
-
-> +
-> +	if (ret || !stats.name)
-> +		return NULL;
-> +
-> +	ag =3D kzalloc(sizeof(*ag), GFP_KERNEL);
-> +	if (!ag)
-> +		return NULL;
-> +
-> +	ag->name =3D stats.dirname;
-> +
-> +	for (counters =3D 0; stats.name[counters]; counters++)
-> +		;
-
-We count how many names there are...
-
-> +
-> +	BUG_ON(counters > MAX_NR_PROTOCOL_STATS);
-
-And we BUG_ON if there are more names than we allocated static counters
-in our struct.  However, by now, it's too late.  The device's
-get_protocol_stats function has already likely written beyond the end of
-our array and smashed our stack.  Let's fix this another way entirely...
-
-
-> +	/* Emsure we provided all values */
-
-Typo in comment...
-
-> +	BUILD_BUG_ON(NR_COUNTERS !=3D (sizeof(names) / sizeof(char *)) - 1);
-
-Here's where we ant to fix the problem.  We need a second BUILD_BUG_ON
-that reads:
-
-	BUILD_BUG_ON(NR_COUNTERS > MAX_NR_PROTOCOL_STATS);
-
-Then we can safely reduce the size of the MAX_NR_PROTOCOL_STATS and know
-that if we exceed our allocation, the build will fail and we can
-increase it accordingly.  So in all of the get_stats routines we want
-both build time checks to make sure that the counter structs are sized
-appropriately and the name/enum list lengths match.
+Can you build netlink in and then init the ib_addr module after the
+netlink init is complete?  Wouldn't that resolve the dependency ordering
+issue without changing the module names?
 
 
 --=20
@@ -109,7 +71,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---s9OpGwNBiK852kamqVk5xllbtcWTsd0IS
+--MWPenGE2H42MFAxhCpK9vPBD0r6pfwM30
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -118,22 +80,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXOgMIAAoJELgmozMOVy/daagP+wSSRy2TlmFMBJLUiwh4g/Nw
-k1N8vhg2EbHNrl1bhecXMdDRZMQ8clRQdIIn2fuihy/Fuev7zV25Jq9m4gc5Z+Xl
-7xV9MiEMUMo8o+G/qWaMWBPUYXVSMQYmvhiighDZYtpKTA7Hx8xrgwMCfHK1+tfN
-Qf71pVHN5Qa6KMTvqcv+6t+uNv5O1p1/nJsYzOsggQsmwgAZBhGurOq6Fumx/CQ7
-+AenbMR+2ScoLOK6LJG9AN7oJeQb7WW3o5V+vWM1AxLBJWnQioQildTmYEb+j0PU
-UnoDpgQ4ej219RDAMImk4KjJSFPu1L/IOIViu88m9a08FDQekNSexfIpnNrRVgpB
-Ntyk5Zb4MMm+XmiDrHBy10rOP9K1EDc5gWO0UKSj2W7+7Ap6kh2eFDyR9RfP1sFG
-y+VkLpxokB+G4w2CukdIdKW8czCbtKuWM19asbd7Hi+OSaqfNs6hkPic7YAc0Oq7
-9NMs9/0IR1/gHyFwW2JVvcgvc3Qp8duYktF48zSLfphTi9depOGOqWUq23jrGDF4
-cfwf7aqoJP6+KtwGmS3nAydi12IZsK8rfLhBhfhWlROH0GwsAlfXq+qxn352i8Wx
-lC3B6Wdzo0DyWv8122NtZLc3AYRAumwq7Rr6Icfj5SZROWvgMuERfqz6qbkZwki8
-lZ6TUPYFd/lrxAiLpkAp
-=Ur9+
+iQIcBAEBCAAGBQJXOgaKAAoJELgmozMOVy/dUhAQAKTz1dnKq1qLbineKZuaw2oZ
+vSDgCAcw0rQPTbR1ZmkOs9GuRwHWmhsUGvTQD+M8zMUUpOOUGl81wrr9Iu3VjUmj
+sIhWiC3mkz8zWjGssF2PF496gIQ47RwiPFjRVhcgCWA8FAq25fEdBsEApsUzUFLS
+XGxFVTAtjaCyyAXcWZa/KMEUKkBh9vikIvSQ7eBiYx4+142NhYXE6CE93IMdg/fK
+zLDYRhOov9+Or8NYlSv6DF+ZKbhQLF0JI4IamC0YzRtOK9ObxJ8wlPyypG43eLgC
+pGpDMNmdZOQiA663gdlgB5UrBKyOKjskt+4ht20CETTVYXIP7iliMzPHna6MC4yL
+0AuuKq3b4LbUUaN7JioeryhUKU1N0wH87W7ntVR7kx7hqtBlPgHilTW51/HKMh5j
+yE1OsJlYXRAuINufVehVVyLJOlxsM2A7OFDnw2AuLz1fU7R6xEmXf4Z1f73iydqH
+msitgQlcZwGqvuai07nG0MSFUFaOU2b804cQODXqu4G1FBSBOkX67ibZxcp1VBkL
+O6Z4JQ2sfw11NDKoUdyQgLiih8l5StPw2Fn25sQGfrpbPQ+seguuly8cvAw0ogDy
+LePFVHmhcD+D/MeTg3NCnU+322v5duf8E8ghbFrmDinO9si1Z6ke7O5hIsiuUQ+x
+MypfPr3AVKQ+JVIvX4G8
+=iHhh
 -----END PGP SIGNATURE-----
 
---s9OpGwNBiK852kamqVk5xllbtcWTsd0IS--
+--MWPenGE2H42MFAxhCpK9vPBD0r6pfwM30--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
