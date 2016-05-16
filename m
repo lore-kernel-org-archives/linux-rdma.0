@@ -1,116 +1,97 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Prepared RDMA Tree for 4.7
-Date: Mon, 16 May 2016 16:15:45 -0400
-Message-ID: <04c7b983-66b4-0609-9cf4-3c7b1e126a53@redhat.com>
-References: <20160512174406.GB11827@leon.nu>
- <9dbc023f-e442-843a-ab68-eec38ca1d6b7@redhat.com>
- <20160513042217.GD11827@leon.nu>
- <9e5233c8-6641-7f6b-3825-1b67eb70c05b@redhat.com>
- <20160514043353.GG11827@leon.nu>
- <f9210e1d-667d-5f62-f1bd-7545a0ff6153@redhat.com>
- <20160515060005.GH11827@leon.nu>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Mon, 16 May 2016 16:27:05 -0400
+Message-ID: <82b21da8-8bec-a7ed-fc48-b7570c0aa4ce@redhat.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <20160516185434.GC4662@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="bN9KD1wutCMEht4cpfwiC50V6OWVcciFa"
+ boundary="9qreQSbgcBOn994FLhNXOQlxxtVBLNMBW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160515060005.GH11827-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160516185434.GC4662-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bN9KD1wutCMEht4cpfwiC50V6OWVcciFa
+--9qreQSbgcBOn994FLhNXOQlxxtVBLNMBW
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/15/2016 02:00 AM, Leon Romanovsky wrote:
-> On Sat, May 14, 2016 at 09:09:54AM -0400, Doug Ledford wrote:
->> On 05/14/2016 12:33 AM, Leon Romanovsky wrote:
->>> On Fri, May 13, 2016 at 12:31:55PM -0400, Doug Ledford wrote:
+On 05/16/2016 02:54 PM, Leon Romanovsky wrote:
+> On Mon, May 16, 2016 at 01:42:34PM -0400, Doug Ledford wrote:
+>> On 05/16/2016 12:30 PM, Leon Romanovsky wrote:
+>>> On Mon, May 16, 2016 at 11:09:44AM -0400, Doug Ledford wrote:
+>>>> On 05/15/2016 06:51 AM, Mark Bloch wrote:
+>>>>
+>>>>>> But, just as importantly, after reading addr.c to see how it uses =
+the ibnl
+>>>>>> infrastructure, I don't even see what the original problem can be.=
+
+>>>>> As it stands today:
+>>>>> - ibnl is part of ib_core.
+>>>>> - ib_core needs ib_addr.
+>>>>>
+>>>>> So if we add ibnl usage to ib_addr it means ib_addr will need ib_co=
+re,
+>>>>> which causes a dependency cycle.
+>>>>
+>>>> Right, but in that case, this patch needs to be part of the series t=
+hat
+>>>> adds the ibnl support into the ib_addr functionality.  Because you s=
+plit
+>>>> them into separate series, this was a patch looking for a problem to=
+
+>>>> solve and it wasn't clear what it was.  If I had taken the other ser=
+ies
+>>>> and not this series, it would have broken things.  So please keep
+>>>> patches like this together with the other patches that depend on it.=
+
+>>>>
+>>>> That said, I also don't want to redo modules if we don't have to.  A=
+s my
+>>>> previous email points out, changing modules breaks init scripts and
+>>>> systemd unit files.  It is to be avoided when possible.
 >>>
->>> <snip>
->>>
->>> I had an intent to help you,
+>>> Sorry,
+>>> I was in the mood of fixing things when I wrote and sent this patch.
+>>> The question is which version will you more likely to accept: this on=
+e
+>>> (remove ib_addr module) or previous one (add ib_netlink module)?
 >>
->> That's fine.  As I pointed out in my email, I need to know what I'm
->> sending to Linus.
->>
->>> So can you please share with us your plans on how-to address the
->>> general lack of "communication, transparency and coordination",
->>> which is definitely happen here?
->>
->> I could always just artificially limit each release to no more than 10=
-0
->> patches or something like that.  Then I would have more time per patch=
-
->> to be communicative.  But that wouldn't make people happy, it would ta=
-ke
->> months and years to get things done.
+>> Can you build netlink in and then init the ib_addr module after the
+>> netlink init is complete?  Wouldn't that resolve the dependency orderi=
+ng
+>> issue without changing the module names?
 >=20
-> Most of the patches are fixes and a lot of them one line only. They can=
+> It seems reasonable and we will test it, before reposting.
 
-> be acknowledged and applied in more timely manner. This will definitely=
+Thanks.
 
-> remove the tension.
+> However generally speaking, I agree with Jason and Ira that this module=
+
+> (ib_addr.ko) is useless as module and can be part of ib_core.ko.
 >=20
-> For example, I have a build warning fix for hfi1 driver, but I prefer
-> don't send it till I see their fixes are applied.
+> It doesn't seem as a big deal to fix all that init scripts (remove two
+> lines).
 
-I don't know what you are talking about.  All of their approved fixes
-*have* been applied, and commented as such on list.
+It's not removing two lines.  If someone wants to be able to boot both
+kernels prior to this change and kernel post this change, they have to
+now write their script to handle both conditions sanely.  And they have
+to know to do so, where as very often they simply get caught off guard
+and things are broken for some period of time.  If the change to ib_addr
+actually solved a problem that couldn't be solved otherwise, that would
+be one thing.  But it doesn't.  It's a complete no-op.
 
->> You guys have a ton of features you want to
->> get into the kernel, each one being a different sort of hardware
->> offload, and while you may have worked with customers to do the initia=
-l
->> creation, you didn't work with the community on describing them or
->> anything else, and you bring them here fully done to your satisfaction=
-,
->> and it takes other people time to wrap their head around what they are=
-,
->> whether or not they might be usable in their own hardware, and then to=
-
->> decide if the design as presented would work for them if they did deci=
-de
->> to implement it.  Without their input, I'm left in a rather untenable
->> position.  And frankly, I'm rather sick of being in that position.
->=20
-> What is wrong with SELinux patches?
-
-They need time for people to think about them.  You call them the
-SELinux patches, but that is somewhat misleading.  When I think of
-SELinux, I think of things like limited context server applications
-("Can httpd read home directories?", "Can dovecot write to home
-direcories?  Can dovecot listen on port 993? 995?", etc.)  It's very
-general purpose and has a lot of policy that goes with it.  From what I
-read, these patches are different.  They are mainly used to enforce the
-subnet manager's P_Key policy.  There isn't anything else they do.  From
-that standpoint, they look like the user space half of the namespace
-equation.  But they're devoid of any of the other policy decisions that
-SELinux often makes.  I haven't read them closes enough to see if they
-could be easily extended to implement any of these other types of policy
-or not, but that's certainly an issue.  If you are going to go monkeying
-around in the SELinux subsystem (and 7 of the 12 patches do), then
-making sure we do things in a manner that is not going to paint us into
-a corner seems appropriate.  I haven't had the time to do that level of
-looking at these patches.
-
-> There are three issues with this request:
-> 1. It is not silence, but readiness to merge, since all feedback is
-> answered and everything is understandable. LSO patches are great
-> example for it, if the people don't understand they will ask and will
-> request to adjust patches accordingly.
-
-No, you don't merge things before they are understood and then adjust
-them.  You merge things you already understand.
-
-> 2. It will limit ability to move IB stack further and will eliminate
-> fair competitive market.
-
-Competition is not a valid reason to merge poorly understood or poorly
-designed code.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -118,7 +99,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---bN9KD1wutCMEht4cpfwiC50V6OWVcciFa
+--9qreQSbgcBOn994FLhNXOQlxxtVBLNMBW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -127,22 +108,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXOipxAAoJELgmozMOVy/d4VMP/3lA8184XdXgiiFWMgmBnjrq
-c7s07HsaSty3mUYq4/FvYwW+XuaCAfdBzSDnSCgGaoeVN7d8I+pOx1+05KYhWWR+
-4p4Mwj03p4LVIZJ8Vb+kQwWfzuIsdIVW7FlLdZl5ZEuOdflLR3pyjjJ+OVgD12kz
-oNbc2DXGwRV3lDcmT8fEAR2gOd68A+17q7u5f8Q+t2Jk+Je/9sSFiMt4z5FNOcji
-eOOiYzP94kLQ4ptY40spr+TVFoF31PrWH2aWOS72raH4h7FEwbkU/kmYoPOVuvNx
-hhizb2bGYXM9W9C7+4M6b8rrTz07ouBwSJIzNldRN7WMMZ7rd3vyv9kE6x7A3/rd
-Db8kxrWdcKk65fcRUFz95s4VHYLuyR2WCOOWUPSPU9w7SlzeyYQiPtxSVzXvPsFQ
-G1XYdW5nOzcDt/Qrs9VszgtwFdpwugEjVCW/vpp4bKGelDkeGA9sjC+KWt2pbbP6
-Gx0zy87erQ4/9M4UAOieNjSCUB0wH55B6EbKiijmdOHuQuwefgR5urouUmKIdF7c
-/vMwoNBF7mk8d/kM1XqqRKj0UonlcxrEgvnChz0N/PAbb8AQZEuXnSgSqpEB9Gmp
-Fi+Myghb0VjyOJ/fdGcbF0d7VDltYy1R9X4ChhSZyO6rKtVH5TdTd/2CSNKXqpsn
-TKd2O7+dBf3zBASZInpf
-=Mgkz
+iQIcBAEBCAAGBQJXOi0ZAAoJELgmozMOVy/dKhQP/R1R3zqSkYtuBR56Q9xL/DM2
+cMrkSdo2K5fLo5926IxD62NgDdPJhetkzQkvhbuCfk+tDehWxozKuX2ydhe8ZloB
+OFb7MzqlADmnWngmESYXXvtxretQxqYHLdUw4OaQEJCOEliuOr0NVCUXy9w0BzPd
+5gWjMenNMfKFUd7xOiLn+2UyLh6TYR2R3ZDg879HLaISRNalC2Buw2gEfch25LLp
+eYyt0GDbqg4MK1YSkrHsBDDOd3tFDWPjVZkpHHqL1YM3Lr7Zw8wIEIOEbxiCe/xB
+RFb220upVrFQNv0gfj85wvewG3KXHQtva+gCPplS1wuqF9OKW8lpXGfaBzeVTKwc
+Cu/b5K5ocEKvTbdHZJob7gZyxndhVm1ZnB4sSCbsgjgJHfwZxwjqFsfPJaOR2RPb
+gzvym4uXhL6Fsl0dlm/JhmCyG8YQ119BWq85XUwmXM6fxtPkTdM+n3gCE7y5q2Ab
+bqSQxYofXSIwysndR+wmOYje+O0EbS+7vVt+LR83JEzdKoFdIYcOuI3JgbUwbvsQ
+MirwUqDvwQJaT3m5gdkUpJNSrMKpwwbUfaoXIHne6eU5hFkzLX+wx2FwqmpRyc9p
+29JaZsqb1wbulXyxKQ2DamOqINQ9IPk1002BHMR9va+UPi3x1UTg1UPvEstnuEH/
+kCYe30Grm/qgdYa4lp4u
+=NI7T
 -----END PGP SIGNATURE-----
 
---bN9KD1wutCMEht4cpfwiC50V6OWVcciFa--
+--9qreQSbgcBOn994FLhNXOQlxxtVBLNMBW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
