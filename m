@@ -1,148 +1,187 @@
-From: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: intel iommu causing performance drop in mlx4 ipoib (OFFLIST)
-Date: Mon, 16 May 2016 13:53:41 +0100
-Message-ID: <1463403221.2484.205.camel@infradead.org>
-References: <5739A347.20807@kyup.com>
-	 <1463396094.2484.194.camel@infradead.org> <5739BEEC.3070308@kyup.com>
-	 <1463402381.2484.202.camel@infradead.org> <5739C10C.6040805@kyup.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 1/4] IB/core: Introduce capabilitymask2 field
+ in ClassPortInfo mad
+Date: Mon, 16 May 2016 09:00:14 -0400
+Message-ID: <508890fe-b1c2-14c4-21a3-2d9afcb00916@dev.mellanox.co.il>
+References: <1463401694-19247-1-git-send-email-erezsh@mellanox.com>
+ <1463401694-19247-2-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="sha-256";
-	protocol="application/x-pkcs7-signature";
-	boundary="=-7hKXDPgEYDc+GTzs7eUl"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5739C10C.6040805-6AxghH7DbtA@public.gmane.org>
+In-Reply-To: <1463401694-19247-2-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/16/2016 8:28 AM, Erez Shitrit wrote:
+> Change struct ib_class_port_info to conform to IB Spec 1.3
+> That in order to get specific capability mask from ClassPortInfo mad.
+> 
+>>From the IB Spec, ClassPortInfo section:
+>         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+>          RespTimeValue the rest 5 bits"
+> 
+> The new struct now has one field for capabilitymask2 (previously was the
+> reserved field) and the resp_time field.
+> 
+> And it fixes up qib and srpt, use of the field repurposed to be used as
+> capabilitymask2:
+> IB/qib: Change pma_get_classportinfo
+> IB/srpt: Adjust the use of ib_class_port_info
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib_mad.c   |  4 +--
+>  drivers/infiniband/ulp/srpt/ib_srpt.c |  2 +-
+>  include/rdma/ib_mad.h                 | 62 +++++++++++++++++++++++++++++++++--
+>  3 files changed, 63 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+> index 0bd1837..a872865 100644
+> --- a/drivers/infiniband/hw/qib/qib_mad.c
+> +++ b/drivers/infiniband/hw/qib/qib_mad.c
+> @@ -1172,11 +1172,11 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+>  	 * Set the most significant bit of CM2 to indicate support for
+>  	 * congestion statistics
+>  	 */
+> -	p->reserved[0] = dd->psxmitwait_supported << 7;
+> +	ib_set_cpi_capmask2(p, dd->psxmitwait_supported << 7);
+>  	/*
+>  	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+>  	 */
+> -	p->resp_time_value = 18;
+> +	ib_set_cpi_resp_time(p, 18);
+>  
+>  	return reply((struct ib_smp *) pmp);
+>  }
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 2843f1a..887ebad 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -254,8 +254,8 @@ static void srpt_get_class_port_info(struct ib_dm_mad *mad)
+>  	memset(cif, 0, sizeof(*cif));
+>  	cif->base_version = 1;
+>  	cif->class_version = 1;
+> -	cif->resp_time_value = 20;
+>  
+> +	ib_set_cpi_resp_time(cif, 20);
+>  	mad->mad_hdr.status = 0;
+>  }
+>  
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index 37dd534c..a471348 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -243,8 +243,8 @@ struct ib_class_port_info {
+>  	u8			base_version;
+>  	u8			class_version;
+>  	__be16			capability_mask;
+> -	u8			reserved[3];
+> -	u8			resp_time_value;
+> +	  /* 27 bits for cap_mask2, 5 bits for resp_time */
+> +	__be32			cap_mask2_resp_time;
+>  	u8			redirect_gid[16];
+>  	__be32			redirect_tcslfl;
+>  	__be16			redirect_lid;
+> @@ -259,6 +259,64 @@ struct ib_class_port_info {
+>  	__be32			trap_qkey;
+>  };
+>  
+> +/**
+> + * ib_get_cpi_resp_time - Returns the resp_time value from
+> + * cap_mask2_resp_time in ib_class_port_info.
+> + * @cpi: A struct ib_class_port_info mad.
+> + */
+> +static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
+> +{
+> +	return ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0xF8) >> 3);
 
---=-7hKXDPgEYDc+GTzs7eUl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Should this be:
+	
+	return ((be32_to_cpu(cpi->cap_mask2_resp_time) & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
 
-On Mon, 2016-05-16 at 15:46 +0300, Nikolay Borisov wrote:
-> Would I be able to apply this cleanly on 4.4, since this is the
-> version I'm currently using?
+where
 
-Yes, it all applies cleanly as long as you also apply commit
-da972fb13bc5a1baad450c11f9182e4cd0a091f6 first.
+#define IB_CLASS_PORT_INFO_RESP_TIME_MASK 0x1F
 
---=20
-dwmw2
+?
 
+> +}
+> +
+> +/**
+> + * ib_set_cpi_resptime - Sets the response time in an
+> + * ib_class_port_info mad.
+> + * @cpi: A struct ib_class_port_info.
+> + * @rtime: The response time to set.
+> + */
+> +static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
+> +					u8 rtime)
+> +{
+> +	u32 tmp;
+> +	u32 tmp2;
+> +
+> +	tmp = rtime;
+> +	tmp = tmp << 3;
+> +	tmp2 = (be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xF8);
+> +	tmp = tmp | tmp2;
+> +	cpi->cap_mask2_resp_time = cpu_to_be32(tmp);
 
---=-7hKXDPgEYDc+GTzs7eUl
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
+Should this be:
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0BBwEAAKCCEeAw
-ggXiMIIDyqADAgECAhBrp4p9CteI1lEK+Vnk57ThMA0GCSqGSIb3DQEBCwUAMH0xCzAJBgNVBAYT
-AklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSswKQYDVQQLEyJTZWN1cmUgRGlnaXRhbCBDZXJ0
-aWZpY2F0ZSBTaWduaW5nMSkwJwYDVQQDEyBTdGFydENvbSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
-eTAeFw0xNTEyMTYwMTAwMDVaFw0zMDEyMTYwMTAwMDVaMHUxCzAJBgNVBAYTAklMMRYwFAYDVQQK
-Ew1TdGFydENvbSBMdGQuMSkwJwYDVQQLEyBTdGFydENvbSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
-eTEjMCEGA1UEAxMaU3RhcnRDb20gQ2xhc3MgMSBDbGllbnQgQ0EwggEiMA0GCSqGSIb3DQEBAQUA
-A4IBDwAwggEKAoIBAQC9fdr3w6J9g/Zbgv3bW1+uHht1wLUZr5gkrLtXedg17AkefMyUGwrQdvwO
-bhajcVmnKVxhrUwkZPXRAwZZosRHfEIi5FH7x6SV/8Sp5lZEuiMnvMFG2MzLA84J6Ws5T4NfXZ0q
-n4TPgnr3X2vPVS51M7Ua9nIJgn8jvTra4eyyQzxvuA/GZwKg7VQfDCmCS+kICslYYWgXOMt2xlsS
-slxLce0CGWRsT8EpMyt1iDflSjXZIsE7m1uTyHaKZspMLyIyz6mySu8j8BWWHpChNNeTrFuhVfrO
-AyDPFJVUvKZCLKBhibTLloyy+LatoWELrjdI4a8StZY8+dIR9t4APXGzAgMBAAGjggFkMIIBYDAO
-BgNVHQ8BAf8EBAMCAQYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMBIGA1UdEwEB/wQI
-MAYBAf8CAQAwMgYDVR0fBCswKTAnoCWgI4YhaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2ZzY2Eu
-Y3JsMGYGCCsGAQUFBwEBBFowWDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29t
-MDAGCCsGAQUFBzAChiRodHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9jYS5jcnQwHQYDVR0O
-BBYEFCSBbDlhvkkPj7cbRivJKLUnSG1oMB8GA1UdIwQYMBaAFE4L7xqkQFulF2mHMMo0aEPQQa7y
-MD8GA1UdIAQ4MDYwNAYEVR0gADAsMCoGCCsGAQUFBwIBFh5odHRwOi8vd3d3LnN0YXJ0c3NsLmNv
-bS9wb2xpY3kwDQYJKoZIhvcNAQELBQADggIBAIvj94fsAYuErQ8BAluc4SMnIwS9NPBwAm5SH9uh
-2NCXTq7im61g7F1LIiNI/+wq37fUuaMbz4g7VarKQTgf8ubs0p7NZWcIe7Bvem2AWaXBsxsaRTYw
-5kG3DN8pd1hSEUuFoTa7DmNeFe8tiK1BrL3rbA/m48jp4AiFXgvxprJrW7izsyetOrRHPbkW4Y07
-v29MdhaPv3u1JELyszXqOzjIYo4sWlC8iDQXwgSW/ntvWy2n4LuiaozlCfXl149tKeqvwlvrla2Y
-klue/quWp9j9ou4T/OY0CXMuY+B8wNK0ohd2D4ShgFlMSjzAFRoHGKF81snTr2d1A7Ew02oF6UQy
-CkC2aNNsK5cWOojBar5c7HplX9aHYUCZouxIeU28SONJAxnATgR4cJ2jrpmYSz/kliUJ46S6UpVD
-o/ebn9c6PaM/XtDYCCaM/7XX6wc3s++sbQ7CtCn1Ax7df6ufQbwyO0V+oFa9H0KAsjHMzcwk3EV2
-B2NLatidKE/m7G+rB9m+FlVgIiSp0mGlg43QO9Kh1+JqvTCIzv2bJJkmPMLQJNuKKwHNL8F4GGp6
-jbAV+WL+LDeGfVcq8DHS3LrD+xyYEXQBiqZEdiPVOMxLDSUCXsDO0uCWpaNQ8j6y6S9p0xE/Ga0p
-eVLadVHhqf9nXqKaxnr358VgfrxzUIrvOaOjMIIF+TCCBOGgAwIBAgIQaRjuleoVgt0XsPAUByve
-JDANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEp
-MCcGA1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0
-Q29tIENsYXNzIDEgQ2xpZW50IENBMB4XDTE2MDMxMjE2MjEyNVoXDTE3MDMxMjE2MjEyNVowQjEc
-MBoGA1UEAwwTZHdtdzJAaW5mcmFkZWFkLm9yZzEiMCAGCSqGSIb3DQEJARYTZHdtdzJAaW5mcmFk
-ZWFkLm9yZzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANBDAiGnoeOIQJ/Aolutct4z
-x6Yt3dOUI5d0YnydAMNOiyVLXzHuuuVjUpk/6nRxg1FN3e0i3TWe5MjSTD98760qWoAuF2g5BGU+
-tN/GUsyws26ZWOt82w7xhn4dcI8EhmASUtwDTZs5ZXPQzSkuNs6uX5SY0eKPlBNHkAtMf39hNc4m
-liy6WRDKApZxA1vCbiHsJQZdNEBYO35022bu8PZBe6LSAFKoncoGMHl1xNEkN6kfOJFYnLqBYeXO
-2mDA8KZ4h15EnQyyHGSghN92OUTc9stAWEt9a+q6TCtyW5zNgYTaaOtE41t5x2xDAgsnNU7sVM8f
-wSR3tYeW9IqTgU6eDUllb1a9FK7es3+j9UDg7OxNv9rnXIda6TdXlGWYfFltujF7FMwTofq3UG7t
-w68Ugk0MMfpZadhPhjYLI/qXiEDgQi8Xr+eWSo5P0ygaLvAz8OPcWAt8RG5Y8Id9hpb5neW1HTAR
-Q+k8lbpkx2wDPHZEft0ITROOupf76f9CNF4jYcyCKZNnjSsKeJv69VX1TsVaeqT1LJUEudXLa/BK
-FSb7x5M1KF4z46yImJrnagI19Nk/ufWn1usBXqXh8pY8cVN/I7C+TDPBY5SqIceTq7DaHZp19JQU
-IIWlyRsm2d4UoVcgIdTjX57Odap4Pjzrfp2RmC6hvkW2hQ5EreIPAgMBAAGjggG2MIIBsjAOBgNV
-HQ8BAf8EBAMCBLAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMAkGA1UdEwQCMAAwHQYD
-VR0OBBYEFBDmK2IjZJ7MKmBK0A7J/tKaSIdoMB8GA1UdIwQYMBaAFCSBbDlhvkkPj7cbRivJKLUn
-SG1oMG8GCCsGAQUFBwEBBGMwYTAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29t
-MDkGCCsGAQUFBzAChi1odHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9zY2EuY2xpZW50MS5j
-cnQwOAYDVR0fBDEwLzAtoCugKYYnaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2NhLWNsaWVudDEu
-Y3JsMB4GA1UdEQQXMBWBE2R3bXcyQGluZnJhZGVhZC5vcmcwIwYDVR0SBBwwGoYYaHR0cDovL3d3
-dy5zdGFydHNzbC5jb20vMEYGA1UdIAQ/MD0wOwYLKwYBBAGBtTcBAgQwLDAqBggrBgEFBQcCARYe
-aHR0cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5MA0GCSqGSIb3DQEBCwUAA4IBAQAn5wvdgC0V
-kS226sFKAbqPnmVhc9jgrbsiXUcpdtYEzv6EZonARIeRC1UlIzK7jzZFRe95W5y4/qlcPQDoAeZL
-cSsbpW3AYPFFWdRgVp/eIR3iy9C5KEcAbkJES2lRUZWyRqAceW1Gur9kfvjM5H0kM6BBwJfCtoqo
-WragTXfsIXGNsF0F+60mUYYsKFPZzPmyz9J0Dr0xx9Lcp4fbD6UckDWCNJt2AJAiEPt/vPiiBzU8
-edaRzkYhzxd9f3pZAzhlzIf2CgTrGtKSL2X1bS/b3siREjQLhVrlGw4qxqllqER3APrDzyijLFuc
-CWpS8hxjTmYcNZSibv+3Oy6uU+wqMIIF+TCCBOGgAwIBAgIQaRjuleoVgt0XsPAUByveJDANBgkq
-hkiG9w0BAQsFADB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEpMCcGA1UE
-CxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0Q29tIENs
-YXNzIDEgQ2xpZW50IENBMB4XDTE2MDMxMjE2MjEyNVoXDTE3MDMxMjE2MjEyNVowQjEcMBoGA1UE
-AwwTZHdtdzJAaW5mcmFkZWFkLm9yZzEiMCAGCSqGSIb3DQEJARYTZHdtdzJAaW5mcmFkZWFkLm9y
-ZzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANBDAiGnoeOIQJ/Aolutct4zx6Yt3dOU
-I5d0YnydAMNOiyVLXzHuuuVjUpk/6nRxg1FN3e0i3TWe5MjSTD98760qWoAuF2g5BGU+tN/GUsyw
-s26ZWOt82w7xhn4dcI8EhmASUtwDTZs5ZXPQzSkuNs6uX5SY0eKPlBNHkAtMf39hNc4mliy6WRDK
-ApZxA1vCbiHsJQZdNEBYO35022bu8PZBe6LSAFKoncoGMHl1xNEkN6kfOJFYnLqBYeXO2mDA8KZ4
-h15EnQyyHGSghN92OUTc9stAWEt9a+q6TCtyW5zNgYTaaOtE41t5x2xDAgsnNU7sVM8fwSR3tYeW
-9IqTgU6eDUllb1a9FK7es3+j9UDg7OxNv9rnXIda6TdXlGWYfFltujF7FMwTofq3UG7tw68Ugk0M
-MfpZadhPhjYLI/qXiEDgQi8Xr+eWSo5P0ygaLvAz8OPcWAt8RG5Y8Id9hpb5neW1HTARQ+k8lbpk
-x2wDPHZEft0ITROOupf76f9CNF4jYcyCKZNnjSsKeJv69VX1TsVaeqT1LJUEudXLa/BKFSb7x5M1
-KF4z46yImJrnagI19Nk/ufWn1usBXqXh8pY8cVN/I7C+TDPBY5SqIceTq7DaHZp19JQUIIWlyRsm
-2d4UoVcgIdTjX57Odap4Pjzrfp2RmC6hvkW2hQ5EreIPAgMBAAGjggG2MIIBsjAOBgNVHQ8BAf8E
-BAMCBLAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMAkGA1UdEwQCMAAwHQYDVR0OBBYE
-FBDmK2IjZJ7MKmBK0A7J/tKaSIdoMB8GA1UdIwQYMBaAFCSBbDlhvkkPj7cbRivJKLUnSG1oMG8G
-CCsGAQUFBwEBBGMwYTAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29tMDkGCCsG
-AQUFBzAChi1odHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9zY2EuY2xpZW50MS5jcnQwOAYD
-VR0fBDEwLzAtoCugKYYnaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2NhLWNsaWVudDEuY3JsMB4G
-A1UdEQQXMBWBE2R3bXcyQGluZnJhZGVhZC5vcmcwIwYDVR0SBBwwGoYYaHR0cDovL3d3dy5zdGFy
-dHNzbC5jb20vMEYGA1UdIAQ/MD0wOwYLKwYBBAGBtTcBAgQwLDAqBggrBgEFBQcCARYeaHR0cDov
-L3d3dy5zdGFydHNzbC5jb20vcG9saWN5MA0GCSqGSIb3DQEBCwUAA4IBAQAn5wvdgC0VkS226sFK
-AbqPnmVhc9jgrbsiXUcpdtYEzv6EZonARIeRC1UlIzK7jzZFRe95W5y4/qlcPQDoAeZLcSsbpW3A
-YPFFWdRgVp/eIR3iy9C5KEcAbkJES2lRUZWyRqAceW1Gur9kfvjM5H0kM6BBwJfCtoqoWragTXfs
-IXGNsF0F+60mUYYsKFPZzPmyz9J0Dr0xx9Lcp4fbD6UckDWCNJt2AJAiEPt/vPiiBzU8edaRzkYh
-zxd9f3pZAzhlzIf2CgTrGtKSL2X1bS/b3siREjQLhVrlGw4qxqllqER3APrDzyijLFucCWpS8hxj
-TmYcNZSibv+3Oy6uU+wqMYIEXjCCBFoCAQEwgYkwdTELMAkGA1UEBhMCSUwxFjAUBgNVBAoTDVN0
-YXJ0Q29tIEx0ZC4xKTAnBgNVBAsTIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MSMw
-IQYDVQQDExpTdGFydENvbSBDbGFzcyAxIENsaWVudCBDQQIQaRjuleoVgt0XsPAUByveJDANBglg
-hkgBZQMEAgEFAKCCAaUwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
-MTYwNTE2MTI1MzQxWjAvBgkqhkiG9w0BCQQxIgQgaEicMcsEaePNuharNMQiz8ZKs3t2B87+3GJn
-kgZ1tSswgZoGCSsGAQQBgjcQBDGBjDCBiTB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRD
-b20gTHRkLjEpMCcGA1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNV
-BAMTGlN0YXJ0Q29tIENsYXNzIDEgQ2xpZW50IENBAhBpGO6V6hWC3Rew8BQHK94kMIGcBgsqhkiG
-9w0BCRACCzGBjKCBiTB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEpMCcG
-A1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0Q29t
-IENsYXNzIDEgQ2xpZW50IENBAhBpGO6V6hWC3Rew8BQHK94kMA0GCSqGSIb3DQEBAQUABIICAHnH
-1+Uvljit93H+gOZig78T/N2esc8pMUZMUPsi8bpRliOXzwD1nkkYCMgCUTK0WE1HY5aqN62go+d3
-UPyfrBR5AiPeLuqDJJZCNbDskdwtwVfP10VmIXthKuRaOGTKe+WKtsTZC2Uv/fsi3Z2Iv4uIXPwW
-7CDtEIUCSIQUX0+GWN8PSIs3/pgq4ORarBpOmzc1v6P5CpjdyU3z7adwYBPissXhQYBBgYuUfile
-/gPWZRki46OM3BmUJv2wSIFs2VQmnxT6MDkintmse+DBcGj4NzhLdD43+DHJdvDdKVNTzH4ibWSK
-I074AJcD7K5Jgtgff5lKxucpgBpTDacrHREL8MH0tI/GKP4d6slEXPHH3SG01M1CgnzFOqUCu3WS
-RJqa+cpZLa59BMEi1G0UkNu5UkWUDleXHguP2AJOgHHXgsidE88Gq0NFsJsT/53LZ3EtgWcKZkt+
-Lmkk6k/Dvl6S4KbxBPxROXEYgWrbJ9NSnoS6ME9Y2+Byr2A8uEALJgUWK0rpQxp2Hx/xTyj9Sqxp
-3g+jEALbFuCTVHbhv2KJ3yFcJ6kgpSRi1TZvSya7GWje+aZqv9nPMMXKshABlBisnf+RHUCz2DN3
-Urjui50eRSmDFQYiT+e5bSsjFB2SLt35YDhlT8QSXRVmfnqzdcYAib7Bvf/lS6YdC5O2z0zDAAAA
-AAAA
+	cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(~IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+				     cpu_to_be32(rtime & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
 
+?
 
---=-7hKXDPgEYDc+GTzs7eUl--
+> +}
+> +
+> +/**
+> + * ib_get_cpi_capmask2 - Returns the capmask2 value from
+> + * cap_mask2_resp_time in ib_class_port_info.
+> + * @cpi: A struct ib_class_port_info mad.
+> + */
+> +static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
+> +{
+> +	u8 tmp;
+> +
+> +	tmp = ((be32_to_cpu(cpi->cap_mask2_resp_time) & 0x7) << 5);
+> +	return (((be32_to_cpu(cpi->cap_mask2_resp_time) & ~0xFF) >> 5) | tmp);
 
+#define IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT 5
+
+	return (be32_to_cpu(cpi->cap_mask2_resp_time) >> IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
+?
+
+> +}
+> +
+> +/**
+> + * ib_set_cpi_capmask2 - Sets the capmask2 in an
+> + * ib_class_port_info mad.
+> + * @cpi: A struct ib_class_port_info.
+> + * @capmask2: The capmask2 to set.
+> + */
+> +static inline void ib_set_cpi_capmask2(struct ib_class_port_info *cpi,
+> +				       u32 capmask2)
+> +{
+> +	u32 tmp;
+> +
+> +	tmp = ib_get_cpi_resp_time(cpi);
+> +	tmp = tmp << 27;
+> +	cpi->cap_mask2_resp_time = (__force __be32)(tmp | capmask2);
+
+	cpi->cap_mask2_resp_time = (cpi->cap_mask2_resp_time & cpu_to_be32(IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+				   cpu_to_be32(capmask2 << IB_CLASS_PORT_INFO_CAP_MASK2_SHIFT);
+?
+
+> +}
+> +
+>  struct ib_mad_notice_attr {
+>  	u8 generic_type;
+>  	u8 prod_type_msb;
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
