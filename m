@@ -1,63 +1,79 @@
-From: shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Subject: [PATCH v2 1/1] IB/mlx4: Unaligned access in send_reply_to_slave
-Date: Tue, 17 May 2016 01:16:38 -0400
-Message-ID: <1463462198-15674-1-git-send-email-shamir.rabinovitch@oracle.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/mlx5: Support RAW Ethernet when RoCE is disabled
+Date: Tue, 17 May 2016 08:31:53 +0300
+Message-ID: <CAJ3xEMjDRzRc6h1NHXp9Xp004bBm95Fgf9oaEr04vY34AahmTg@mail.gmail.com>
+References: <1463317066-29900-1-git-send-email-ogerlitz@mellanox.com>
+	<f0e2e407-5a32-b5fb-1ff0-86a9bb4faa88@redhat.com>
+	<d6b3c895-6af0-33b7-79c5-f932243e7c48@mellanox.com>
+	<6a25dc81-503e-15b4-58a2-66e1cb6a16f1@redhat.com>
+	<CAJ3xEMinuAUeb2EzGBwR7fxE6+cLMxJ1WQnfM1GQ03D_-kQYZA@mail.gmail.com>
+	<18402022-8a88-f166-d813-10df90e16662@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <18402022-8a88-f166-d813-10df90e16662-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Tue, May 17, 2016 at 4:01 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On 05/16/2016 05:03 PM, Or Gerlitz wrote:
 
-The problem is that the function 'send_reply_to_slave' get the
-'req_sa_mad' as pointer whose address can be unaligned to 8 bytes.
-In this case the compiler cannot know in advance what will be the
-alignment of the 'data' field.
+>> To answer your questions: YES there is a way, namely
+>> RDMA_CORE_CAP_PROT_ROCE and RDMA_CORE_PORT_IBA_ROCE - under this
+>> patch, when RoCE isn't supported we do create the device but not
+>> advertizing these caps.
 
-Sowmini Varadhan pointed to this reply from Dave Miller that say
-that memcpy should not be used to solve alignment issues:
-https://lkml.org/lkml/2015/10/21/352
+> I wasn't referring to the kernel.  I was referring to a user space
+> application.  There is currently no way for a user space app to tell the
+> difference between this and a full RoCE device until they try to create
+> something other than a raw Eth QP and it fails.
 
-The reason why memcpy works here is because we memcpy someting that
-is bigger then 8 bytes and so the compiler cannot optimize this to
-'ldx' instruction.
+And how a general purpose user-space app should be realizing that UD isn't
+supported by the iWARP drivers and RC isn't supported by the Cisco driver?
 
-Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/mcg.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+c4iw_create_qp -->
+ if (attrs->qp_type != IB_QPT_RC)
+                return ERR_PTR(-EINVAL);
 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index 99451d8..180f76b 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -319,8 +319,9 @@ static int send_reply_to_slave(int slave, struct mcast_group *group,
- 		struct ib_sa_mad *req_sa_mad, u16 status)
- {
- 	struct ib_sa_mad mad;
-+	struct ib_sa_mcmember_data req_data;
- 	struct ib_sa_mcmember_data *sa_data = (struct ib_sa_mcmember_data *)&mad.data;
--	struct ib_sa_mcmember_data *req_sa_data = (struct ib_sa_mcmember_data *)&req_sa_mad->data;
-+	struct ib_sa_mcmember_data *req_sa_data = &req_data;
- 	int ret;
- 
- 	memset(&mad, 0, sizeof mad);
-@@ -343,6 +344,11 @@ static int send_reply_to_slave(int slave, struct mcast_group *group,
- 	/* reconstruct VF's requested join_state and port_gid */
- 	sa_data->scope_join_state &= 0xf0;
- 	sa_data->scope_join_state |= (group->func[slave].join_state & 0x0f);
-+	BUILD_BUG_ON(sizeof(req_sa_mad->data) < sizeof(req_data));
-+	/* req_sa_mad is packed structure whose start address is not
-+	 * aligned to 8
-+	 */
-+	memcpy(&req_data, &req_sa_mad->data, sizeof(req_data));
- 	memcpy(&sa_data->port_gid, &req_sa_data->port_gid, sizeof req_sa_data->port_gid);
- 
- 	ret = send_mad_to_slave(slave, group->demux, (struct ib_mad *)&mad);
--- 
-1.7.1
+usnic_ib_create_qp -->
+if (init_attr->qp_type != IB_QPT_UD)
+                return ERR_PTR(-EINVAL);
 
+We need to fix mlx5 to work over a port not supporting RoCE, this patch does
+that, in a manner which puts it ~in par with other vendors/transports
+limitation.
+
+If you really want, we can add such -EINVAL-ing when RoCE isn't supported
+when the user attempts to create IBTA QP types (UC/RD/RC/etc)
+
+
+>>> OK, so you want a plain Ethernet device with QPs as a means of enabling
+>>> RDMA for Ethernet, but without the full blown Verbs support, just direct
+>>> data placement in memory.  That's a reasonable thing to want to do.
+>>> However, I'm not sure I agree with the implementation here.  It seems
+>>> very hackish.  This setup probably deserves its own type setting in the
+>>> RDMA stack to differentiate it (aka, InfiniBand, OPA, RoCE, iWARP,
+>>> USNIC, Ethernet + QPs).
+
+>> Why? we should be doing things for a reason. There's no entity I know
+>> of in the stack which needs to be operative and is not b/c that new
+>> type you're suggesting was not defined.
+
+> The reason is to properly support this as a valid device type.  Not full
+> RDMA, but still with direct data placement in user memory.  That has
+> value, I'm thinking it should be properly represented.
+
+Again, going with you, say we add that CAP, I didn't find a single place
+in the kernel IB stack to where it would be used, please suggest a use-case!
+
+I/F code which don't have consumer is not upstreamable. BTW, AFAIR.,we have
+some little code like that from the early days for some IB switch HW
+drivers which
+are not upstream, and whenever we get there this is PITA to change/maintain.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
