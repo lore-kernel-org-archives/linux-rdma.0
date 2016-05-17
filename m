@@ -1,180 +1,133 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
- module into core
-Date: Tue, 17 May 2016 11:48:48 -0400
-Message-ID: <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
-References: <1462563928-29164-1-git-send-email-leon@kernel.org>
- <1462563928-29164-6-git-send-email-leon@kernel.org>
- <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
- <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
- <20160516163048.GB4662@leon.nu>
- <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
- <VI1PR05MB13915036338162B126E55CC2D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
+Date: Tue, 17 May 2016 12:00:39 -0400
+Message-ID: <3e9a3e19-58cb-c25f-89a1-f0e51df562d8@redhat.com>
+References: <20160315155441.222586021@linux.com>
+ <20160315155455.173645653@linux.com>
+ <057c8ac8-1d34-e7b9-c0ad-91d805c81139@redhat.com>
+ <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
+ <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
+ <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
+ <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
+ <alpine.DEB.2.20.1605161238560.10085@east.gentwo.org>
+ <102cd100-55f7-fa85-cd75-ba0db5b9fa34@redhat.com>
+ <alpine.DEB.2.20.1605170918080.9956@east.gentwo.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="66EvemGQa4hnaiKhOLTaNQjkIu4mIWOK2"
+ boundary="3ovjuMhmCfS0g82KphOC2Plihm50049Bn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR05MB13915036338162B126E55CC2D2480-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1605170918080.9956-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---66EvemGQa4hnaiKhOLTaNQjkIu4mIWOK2
+--3ovjuMhmCfS0g82KphOC2Plihm50049Bn
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/17/2016 04:29 AM, Mark Bloch wrote:
+On 05/17/2016 10:19 AM, Christoph Lameter wrote:
 >=20
+> On Mon, 16 May 2016, Doug Ledford wrote:
+>>
+>> Thanks, this looks good now.  When the other two patches come through
 >=20
->> -----Original Message-----
->> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, May 16, 2016 8:43 PM
->> To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
->> Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
->> resolution module into core
->> Can you build netlink in and then init the ib_addr module after the
->> netlink init is complete?  Wouldn't that resolve the dependency orderi=
-ng
->> issue without changing the module names?
-> Sorry, but I don't understand what do you mean by this.
-> If you would like to keep the current module structure (ib_core.ko and =
-ib_addr.ko)
-> The only way to use ibnl from within addr.c is to move the ibnl initial=
-ization to addr.c
-> and build netlink.c as part of ib_addr.ko, but it seems kind of strange=
- if
-> ib_addr is responsible to initialize ibnl.
+> The patch can stand on its own and there has been the expectation
+> expressed by Mellanox that they want to see this merged first. Guess th=
+is
+> is to reduce the amount of rewrite they would have to do if things chan=
+ge.
+> Then also the team from Mellanox can directly merge the driver changes
+> without my involvement.
+>=20
 
-Not according to what I was looking at.  In the original patch, you
-moved addr.c into ib_core and changed addr_init and addr_cleanup from
-static to normal.  You were then able to control whether the addr code
-went before or after the netlink code by rearranging the order of init
-sequences in device.c:ib_core_init().  It is entirely possible that you
-could leave ib_addr as a module, change addr_init to rdma_addr_init and
-EXPORT_SYMBOL it, and likewise with the cleanup function, and remove the
-module_init(addr_init); and module_exit(addr_cleanup); from the addr.c
-file.  This would then allow you to control when ib_addr was inited by
-adding a call to rdma_addr_init() in device.c:ib_core_init() just like
-you had in your patch.  It would solve the problem and give you complete
-control while being transparent to user space.  This is what I mean:
+OK.  There are comments from Jason outstanding, and I found one thing
+that I missed in my earlier reviews.  I think we need to refactor how we
+pull out the stats, or at least consider doing so.  In particular, look
+at how many stats the cxgb3 driver fills in:
 
-commit ec5394412286e325b83b6c64d026f4d7bab40ccd
-Author: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date:   Tue May 17 11:43:57 2016 -0400
-
-    IB/core: change module init ordering
-
-    Change ib_addr to be init'ed by ib_core and not by the module load
-    process.  This gives us precise controle of when the module is
-    initialized while still preserving the existing module names and load=
-
-    ordering.  This is to be backward compatible with existing, older
-    SysV init scripts.  When those older systems are dead and gone, we
-    can revisit this and change the module names and load orders however
-    we want.
-
-    Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/add=
-r.c
-index 337353d86cfa..fda808546e0e 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -634,7 +634,17 @@ static struct notifier_block nb =3D {
-        .notifier_call =3D netevent_callback
- };
-
--static int __init addr_init(void)
-+/*
-+ * This is a little unorthodox.  We export our init function so that the=
-
-+ * ib_core module can call it at the right time after the other modules
-+ * we depend on have registered.  We do this solely because there are so=
-me
-+ * user space init scripts that expect ib_addr to be loaded prior to
-ib_core
-+ * and due to recent changes, we need the ib netlink code brought up bef=
-ore
-+ * we bring this code up and that code is now in ib_core.  When the olde=
-r
-+ * SysV init script systems that have these init scripts are dead and go=
-ne,
-+ * we can revisit this and possibly just include addr.c in ib_core.
-+ */
-+int rdma_addr_init(void)
- {
-        addr_wq =3D create_singlethread_workqueue("ib_addr");
-        if (!addr_wq)
-@@ -644,13 +654,12 @@ static int __init addr_init(void)
-        rdma_addr_register_client(&self);
-        return 0;
- }
-+EXPORT_SYMBOL(rdma_addr_init);
-
--static void __exit addr_cleanup(void)
-+void rdma_addr_cleanup(void)
- {
-        rdma_addr_unregister_client(&self);
-        unregister_netevent_notifier(&nb);
-        destroy_workqueue(addr_wq);
- }
--
--module_init(addr_init);
--module_exit(addr_cleanup);
-+EXPORT_SYMBOL(rdma_addr_cleanup);
-diff --git a/drivers/infiniband/core/core_priv.h
-b/drivers/infiniband/core/core_priv.h
-index eab32215756b..e0a5187ea98c 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -137,4 +137,7 @@ static inline bool rdma_is_upper_dev_rcu(struct
-net_device *dev,
-        return _upper =3D=3D upper;
- }
-
-+int rdma_addr_init(void);
-+void rdma_addr_cleanup(void);
++	stats->dirname =3D "iw_stats";
++	stats->name =3D names;
 +
- #endif /* _CORE_PRIV_H */
-diff --git a/drivers/infiniband/core/device.c
-b/drivers/infiniband/core/device.c
-index 10979844026a..4fdf87a485cc 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -983,10 +983,18 @@ static int __init ib_core_init(void)
-                goto err_sysfs;
-        }
++	stats->value[IPINRECEIVES] =3D ((u64)m.ipInReceive_hi << 32) +
+m.ipInReceive_lo;
++	stats->value[IPINHDRERRORS] =3D ((u64)m.ipInHdrErrors_hi << 32) +
+m.ipInHdrErrors_lo;
++	stats->value[IPINADDRERRORS] =3D ((u64)m.ipInAddrErrors_hi << 32) +
+m.ipInAddrErrors_lo;
++	stats->value[IPINUNKNOWNPROTOS] =3D ((u64)m.ipInUnknownProtos_hi << 32)=
 
-+       ret =3D rdma_addr_init();
-+       if (ret) {
-+               pr_warn("Couldn't init IB address resolution module\n");
-+               goto err_ibnl;
-+       }
++ m.ipInUnknownProtos_lo;
++	stats->value[IPINDISCARDS] =3D ((u64)m.ipInDiscards_hi << 32) +
+m.ipInDiscards_lo;
++	stats->value[IPINDELIVERS] =3D ((u64)m.ipInDelivers_hi << 32) +
+m.ipInDelivers_lo;
++	stats->value[IPOUTREQUESTS] =3D ((u64)m.ipOutRequests_hi << 32) +
+m.ipOutRequests_lo;
++	stats->value[IPOUTDISCARDS] =3D ((u64)m.ipOutDiscards_hi << 32) +
+m.ipOutDiscards_lo;
++	stats->value[IPOUTNOROUTES] =3D ((u64)m.ipOutNoRoutes_hi << 32) +
+m.ipOutNoRoutes_lo;
++	stats->value[IPREASMTIMEOUT] =3D 	m.ipReasmTimeout;
++	stats->value[IPREASMREQDS] =3D m.ipReasmReqds;
++	stats->value[IPREASMOKS] =3D m.ipReasmOKs;
++	stats->value[IPREASMFAILS] =3D m.ipReasmFails;
++	stats->value[TCPACTIVEOPENS] =3D	m.tcpActiveOpens;
++	stats->value[TCPPASSIVEOPENS] =3D	m.tcpPassiveOpens;
++	stats->value[TCPATTEMPTFAILS] =3D m.tcpAttemptFails;
++	stats->value[TCPESTABRESETS] =3D m.tcpEstabResets;
++	stats->value[TCPCURRESTAB] =3D m.tcpOutRsts;
++	stats->value[TCPINSEGS] =3D m.tcpCurrEstab;
++	stats->value[TCPOUTSEGS] =3D ((u64)m.tcpInSegs_hi << 32) + m.tcpInSegs_=
+lo;
++	stats->value[TCPRETRANSSEGS] =3D ((u64)m.tcpOutSegs_hi << 32) +
+m.tcpOutSegs_lo;
++	stats->value[TCPINERRS] =3D ((u64)m.tcpRetransSeg_hi << 32) +
+m.tcpRetransSeg_lo,
++	stats->value[TCPOUTRSTS] =3D ((u64)m.tcpInErrs_hi << 32) + m.tcpInErrs_=
+lo;
++	stats->value[TCPRTOMIN] =3D m.tcpRtoMin;
++	stats->value[TCPRTOMAX] =3D m.tcpRtoMax;
+
+That's a lot of copies, and shifts, and everything else.  Then look at
+what it does to get them:
+
+ 	ret =3D dev->rdev.t3cdev_p->ctl(dev->rdev.t3cdev_p, RDMA_GET_MIB, &m);
+
+I didn't dig too deep, but that looks suspiciously like it might be an
+actual mailbox command to the card.  That can be rather expensive.
+
+Then look at how we get the stats to print them to user space:
+
++static ssize_t show_protocol_stats(struct ib_device *dev, int index,
++				   u8 port, char *buf)
++{
++	struct rdma_protocol_stats stats =3D {0};
++	ssize_t ret;
 +
-        ib_cache_setup();
++	ret =3D dev->get_protocol_stats(dev, &stats, port);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%llu\n", stats.value[index]);
++}
 
-        return 0;
-
-+err_ibnl:
-+       ibnl_cleanup();
- err_sysfs:
-        class_unregister(&ib_class);
- err_comp:
-@@ -999,6 +1007,7 @@ err:
- static void __exit ib_core_cleanup(void)
- {
-        ib_cache_cleanup();
-+       rdma_addr_cleanup();
-        ibnl_cleanup();
-        class_unregister(&ib_class);
-        destroy_workqueue(ib_comp_wq);
-
-
+In a nutshell, we go through the effort of a suspected mailbox command,
+then we fill in all of the stats including all of the copies and shifts
+and everything else, then we print out precisely one and only one stat
+before we throw the rest of them away.  If someone goes into the stats
+directory for a card and does cat * or for i in *; do echo -ne "$i:\t";
+cat $i; done, then we will issue 25 mailbox commands, and fill out all
+25 stats structs 25 times, just to print out one complete set of stats.
+For cxgb4 this isn't so bad, it's only got 4 items.  But the longer the
+list gets, the worst this is because it makes our efficiency of
+operation O(n^2).  Since we can't break out mailbox commands to only
+provide part of the data, I think we need to consider using a cached
+struct for each device.  If the cached data is less than a certain age
+on subsequent reads, we use the cached data.  If it's too old, we
+discard it and get new data.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -182,7 +135,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---66EvemGQa4hnaiKhOLTaNQjkIu4mIWOK2
+--3ovjuMhmCfS0g82KphOC2Plihm50049Bn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -191,22 +144,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXOz1gAAoJELgmozMOVy/dBWQP/1/GuZLQs5leejhwcrG815xr
-YlYB2nnbBHOMllw3o286ksIA8AMJxyZo2s/q8oenAZBLUji/zk6WYMDOuKkOkg0n
-GbTJN/FBnf3EeS0r7v52DPbkLs8l8sPcgYDTL8vq9FRv+y1fVxdbw2XX9aLAfEBa
-t9le29mcGZsFejLoqmEFmaE9lcDLsAJcsQHqh3/Vp4vQPhguMBa9X8w3yKLvehV0
-OUgUTXe0V2HhmsD8jCPttEWECgK47nT9NoYr01Hs3snalAuvVh+79r93xarj8jvb
-hCENjZQSSq4UxlafV5SP7oGdK3YHiXeU0+HFoPO4XhNEKJN9T2j1falYcR+03H+M
-3fqeKU6fRi4nlNPRGfVelp8Bit211jkfXxaEvz4rOTJ9O4FRHDdhPz4U/6RA5TKk
-NHWMIQo4oEhQfofOYks8+v57n+w6oEbWC2XG9Gilm0bGJbJonhyEJ9izEwc8akWA
-h3MHHlqPqe+N2HacF1co+8Z0c7h/tcqRWlwHGyKV+azEepjiyzLm1A0q1QvhZc4o
-4ndC8ncNEBLQJrUrwcH/yhKIA0WeEt3LGVsuLW9EryFidl4aSl9LGWEQTTI7+pfb
-p5Au1i1TxKWpFujEArbapXcwmQNUZ1Ney65OaYGgjmmd7+N03DyKO9j5jEEEDYV3
-d2MsoUBVYCWPa21L2NUy
-=7ry1
+iQIcBAEBCAAGBQJXO0AoAAoJELgmozMOVy/dBvkP/3qmr/upEsRCoyIsKldI4oEB
+IgXm5/w0I+rWAjG4oaT6nMEOD1vnoC0IRNYhBzXy0d+R5MZyc/2HL7rf/dkGo32B
+b+H5omtOruYpWQyVukgIL5LqfcD5uvvmOPfqWHehlTqZJoVLHG4OOzZcY+erOiCu
+XociEeGyOBvo/1iWZWDn/nNu0bGQwMiYecAWXSqgbqbE10GaviFg18hfDNBrq7QP
+wIwTemtfYBpQNHouJ6NEYb+CfIYyAcx1BQK/kDbLwOytgvrDmkTQE+9bNuhlPwhb
+x9ZjHK4M3d7ZZjr0rUAfZ2NNyzRGYH/zk63UkczTPHbEHdMdi24RZz+D7NEvrsdu
+ykPUGjHQYUepvFV6k7omJ0nokx8em5DiwFoBCWMA3IoArZ8uwRPwtUgwN29UhyN3
+K9KoEekwJcvQXxng8C8x6o1d0VJZlzQLw/Y7flMe+iOw8egBarR2E5Y1FarttX4F
+iGblHcRq5Gx270fgH+DFNJQ/cxbduIi9+egj52xEzxkCGfrCVgPZLkafK5a+8MCr
+CnbWUOpZhorTw5WMA5Vv45uHEgKri7M8mDXCQYrMeUNCwgI6sPDUPvSdve63s70p
+VAkBJxJMrDs5LoQXf5IhKe1BliSOGzpxCDoJEhJFZy4w6nGYB5FCNRFrG+g9IO/E
+EfdiRYybWeuV+C06zF+9
+=S7k2
 -----END PGP SIGNATURE-----
 
---66EvemGQa4hnaiKhOLTaNQjkIu4mIWOK2--
+--3ovjuMhmCfS0g82KphOC2Plihm50049Bn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
