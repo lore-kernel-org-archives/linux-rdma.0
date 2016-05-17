@@ -1,24 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v1 1/1] [librdmacm] examples/rping.c: fix unwanted abort
- during qp creation
-Date: Tue, 17 May 2016 16:29:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04DDDE@ORSMSX109.amr.corp.intel.com>
-References: <1462779876-9480-1-git-send-email-bharat@chelsio.com>
- <007601d1b057$c838bd20$58aa3760$@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+ resolution module into core
+Date: Tue, 17 May 2016 10:56:47 -0600
+Message-ID: <20160517165647.GB19976@obsidianresearch.com>
+References: <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <20160516185434.GC4662@leon.nu>
+ <82b21da8-8bec-a7ed-fc48-b7570c0aa4ce@redhat.com>
+ <20160516210327.GB10945@obsidianresearch.com>
+ <VI1PR05MB1391FBF91190C84744581DB8D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <007601d1b057$c838bd20$58aa3760$@opengridcomputing.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <VI1PR05MB1391FBF91190C84744581DB8D2480-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Sean, does this look good to merge?
+On Tue, May 17, 2016 at 05:00:03AM +0000, Mark Bloch wrote:
 
-Yes - I have it marked in my inbox, just haven't take time to merge it.  Sorry, I should have responded sooner with at least an update.
+> Are you talking about  the changes in ibnl_add_client?
+> Those changes were because of a different module (ib_sa.ko)
+
+Bleck, why is this such a mess? Can't you get everything into one
+module so we don't need this dynamic stuff??
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
