@@ -1,44 +1,33 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Tue, 17 May 2016 11:00:27 -0600
-Message-ID: <20160517170027.GC19976@obsidianresearch.com>
-References: <20160315155455.173645653@linux.com>
- <057c8ac8-1d34-e7b9-c0ad-91d805c81139@redhat.com>
- <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
- <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
- <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
- <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
- <alpine.DEB.2.20.1605161238560.10085@east.gentwo.org>
- <102cd100-55f7-fa85-cd75-ba0db5b9fa34@redhat.com>
- <alpine.DEB.2.20.1605170918080.9956@east.gentwo.org>
- <3e9a3e19-58cb-c25f-89a1-f0e51df562d8@redhat.com>
+Subject: Re: [PATCH v2 1/1] IB/mlx4: Unaligned access in send_reply_to_slave
+Date: Tue, 17 May 2016 11:07:33 -0600
+Message-ID: <20160517170733.GD19976@obsidianresearch.com>
+References: <1463462198-15674-1-git-send-email-shamir.rabinovitch@oracle.com>
+ <20160517073940.GF4662@leon.nu>
+ <20160517083710.GA14673@shamir-linux.uk.oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3e9a3e19-58cb-c25f-89a1-f0e51df562d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160517083710.GA14673-wNzywhU3BCWJbeQQAEUYZUB3C2bhBk7L0E9HWUfgJXw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 17, 2016 at 12:00:39PM -0400, Doug Ledford wrote:
+On Tue, May 17, 2016 at 11:37:11AM +0300, Shamir Rabinovitch wrote:
 
-> operation O(n^2).  Since we can't break out mailbox commands to only
-> provide part of the data, I think we need to consider using a cached
-> struct for each device.  If the cached data is less than a certain age
-> on subsequent reads, we use the cached data.  If it's too old, we
-> discard it and get new data.
+> Comments are more then welcome..
 
-I noticed this too, but for sysfs reading I just felt it doesn't
-matter.
+Something like this should fix it with less overhead:
 
-Ultimately a followup patch should export the entire stats block
-through netlink as one operation and nothing should use sysfs except
-debugging. Keeping the driver interface simple seems valuable.
+struct ib_sa_mcmember_data {
+[..]
+} __packed __aligned(4);
 
-Caching is going to detrimental to apps that sync stats with external
-time. (which is almost every real-world app)
+Which tells the compiler the structure is only aligned on dword
+boundaries. It will then emit the proper architecture dependent
+unaligned read for the 8 byte values.
 
 Jason
 --
