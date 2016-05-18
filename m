@@ -1,286 +1,135 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH perftest] Fix assorted memory leaks on error paths
-Date: Wed, 18 May 2016 13:44:06 -0400
-Message-ID: <1463593448-30864-1-git-send-email-jarod@redhat.com>
+Subject: [PATCH perftest] Fix use of uninitialized wc
+Date: Wed, 18 May 2016 13:44:07 -0400
+Message-ID: <1463593448-30864-2-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clang noticed that we might leak mcg_params.ib_devname in failure paths.
-There are additional leaks after fixing this initial one that it still
-reported, here's hoping I've got them all now...
+Clang noticed that we may be assigning a garbage/undefined value to wc_id, due
+to a potentially uninitialized wc. Just memset wc after allocation, and we're
+all set.
 
- 1. perftest-3.0/src/send_lat.c:232:3: warning: Potential leak of memory pointed to by 'mcg_params.ib_devname'
- #                 fprintf(stderr, " Couldn't get context for the device\n");
- #                 ^
- 4. perftest-3.0/src/send_lat.c:203:6: note: Assuming 'ret_val' is 0
- #         if (ret_val) {
- #             ^~~~~~~
- 7. perftest-3.0/src/send_lat.c:203:2: note: Taking false branch
- #         if (ret_val) {
- #         ^
- 10. perftest-3.0/src/send_lat.c:209:5: note: Left side of '||' is false
- #         if(user_param.use_xrc || user_param.connection_type == DC) {
- #            ^
- 13. perftest-3.0/src/send_lat.c:209:2: note: Taking false branch
- #         if(user_param.use_xrc || user_param.connection_type == DC) {
- #         ^
- 16. perftest-3.0/src/send_lat.c:214:2: note: Taking false branch
- #         if (user_param.connection_type == RawEth) {
- #         ^
- 19. perftest-3.0/src/send_lat.c:221:6: note: Assuming 'ib_dev' is non-null
- #         if (!ib_dev) {
- #             ^~~~~~~
- 22. perftest-3.0/src/send_lat.c:221:2: note: Taking false branch
- #         if (!ib_dev) {
- #         ^
- 25. perftest-3.0/src/send_lat.c:226:2: note: Taking true branch
- #         if (user_param.use_mcg)
- #         ^
- 28. perftest-3.0/src/send_lat.c:227:3: note: Memory is allocated
- #                 GET_STRING(mcg_params.ib_devname,ibv_get_device_name(ib_dev));
- #                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 31. perftest-3.0/src/perftest_parameters.h:217:3: note: expanded from macro 'GET_STRING'
- # { ALLOCATE(orig,char,(strlen(temp) + 1)); strcpy(orig,temp); }
- #   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 34. perftest-3.0/src/perftest_parameters.h:212:20: note: expanded from macro 'ALLOCATE'
+ 1. perftest-3.0/src/raw_ethernet_resources.c:842:12: warning: Assigned value is garbage or undefined
+ #                                         wc_id = (user_param->verb_type == ACCL_INTF) ?
+ #                                               ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 4. perftest-3.0/src/raw_ethernet_resources.c:673:2: note: Uninitialized value stored to field 'wr_id'
+ #         ALLOCATE(wc,struct ibv_wc,CTX_POLL_BATCH);
+ #         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 7. perftest-3.0/src/perftest_parameters.h:212:20: note: expanded from macro 'ALLOCATE'
  # { if((var = (type*)malloc(sizeof(type)*(size))) == NULL)        \
  #                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
- 37. perftest-3.0/src/send_lat.c:227:3: note: Taking false branch
- 38. perftest-3.0/src/perftest_parameters.h:217:3: note: expanded from macro 'GET_STRING'
- # { ALLOCATE(orig,char,(strlen(temp) + 1)); strcpy(orig,temp); }
- #   ^
- 41. perftest-3.0/src/perftest_parameters.h:212:3: note: expanded from macro 'ALLOCATE'
+ 10. perftest-3.0/src/raw_ethernet_resources.c:673:2: note: Taking false branch
+ 11. perftest-3.0/src/perftest_parameters.h:212:3: note: expanded from macro 'ALLOCATE'
  # { if((var = (type*)malloc(sizeof(type)*(size))) == NULL)        \
  #   ^
- 44. perftest-3.0/src/send_lat.c:231:2: note: Taking true branch
- #         if (!ctx.context) {
+ 14. perftest-3.0/src/raw_ethernet_resources.c:682:2: note: Taking false branch
+ #         if (user_param->noPeak == ON)
  #         ^
- 47. perftest-3.0/src/send_lat.c:232:3: note: Potential leak of memory pointed to by 'mcg_params.ib_devname'
- #                 fprintf(stderr, " Couldn't get context for the device\n");
+ 17. perftest-3.0/src/raw_ethernet_resources.c:685:39: note: Left side of '&&' is false
+ #         if(user_param->test_type == DURATION && user_param->machine == CLIENT && firstRx) {
+ #                                              ^
+ 20. perftest-3.0/src/raw_ethernet_resources.c:694:44: note: Left side of '&&' is false
+ #         while ((user_param->test_type == DURATION && user_param->state != END_STATE) || totccnt < tot_iters || totrcnt < tot_iters) {
+ #                                                   ^
+ 23. perftest-3.0/src/raw_ethernet_resources.c:694:82: note: Assuming 'totccnt' is < 'tot_iters'
+ #         while ((user_param->test_type == DURATION && user_param->state != END_STATE) || totccnt < tot_iters || totrcnt < tot_iters) {
+ #                                                                                         ^~~~~~~~~~~~~~~~~~~
+ 26. perftest-3.0/src/raw_ethernet_resources.c:694:102: note: Left side of '||' is true
+ #         while ((user_param->test_type == DURATION && user_param->state != END_STATE) || totccnt < tot_iters || totrcnt < tot_iters) {
+ #                                                                                                             ^
+ 29. perftest-3.0/src/raw_ethernet_resources.c:696:3: note: Loop condition is false. Execution continues on line 786
+ #                 for (index=0; index < user_param->num_of_qps; index++) {
  #                 ^
- #   230|   	ctx.context = ibv_open_device(ib_dev);
- #   231|   	if (!ctx.context) {
- #   232|-> 		fprintf(stderr, " Couldn't get context for the device\n");
- #   233|   		return 1;
- #   234|   	}
+ 32. perftest-3.0/src/raw_ethernet_resources.c:786:3: note: Taking false branch
+ #                 if (user_param->use_event) {
+ #                 ^
+ 35. perftest-3.0/src/raw_ethernet_resources.c:795:44: note: Left side of '&&' is false
+ #                 if ((user_param->test_type == ITERATIONS && (totrcnt < tot_iters)) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                                          ^
+ 38. perftest-3.0/src/raw_ethernet_resources.c:795:108: note: Left side of '&&' is false
+ #                 if ((user_param->test_type == ITERATIONS && (totrcnt < tot_iters)) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                                                                                                          ^
+ 41. perftest-3.0/src/raw_ethernet_resources.c:832:29: note: Left side of '||' is true
+ #                 if ((totccnt < tot_iters) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                           ^
+ 44. perftest-3.0/src/raw_ethernet_resources.c:840:8: note: Assuming 'ne' is <= 0
+ #                         if (ne > 0) {
+ #                             ^~~~~~
+ 47. perftest-3.0/src/raw_ethernet_resources.c:840:4: note: Taking false branch
+ #                         if (ne > 0) {
+ #                         ^
+ 50. perftest-3.0/src/raw_ethernet_resources.c:864:15: note: Assuming 'ne' is >= 0
+ #                         } else if (ne < 0) {
+ #                                    ^~~~~~
+ 53. perftest-3.0/src/raw_ethernet_resources.c:864:11: note: Taking false branch
+ #                         } else if (ne < 0) {
+ #                                ^
+ 56. perftest-3.0/src/raw_ethernet_resources.c:869:4: note: Loop condition is false. Execution continues on line 694
+ #                         while (rwqe_sent - totccnt < user_param->rx_depth) {    /* Post more than buffer_size */
+ #                         ^
+ 59. perftest-3.0/src/raw_ethernet_resources.c:694:44: note: Left side of '&&' is false
+ #         while ((user_param->test_type == DURATION && user_param->state != END_STATE) || totccnt < tot_iters || totrcnt < tot_iters) {
+ #                                                   ^
+ 62. perftest-3.0/src/raw_ethernet_resources.c:694:102: note: Left side of '||' is true
+ #         while ((user_param->test_type == DURATION && user_param->state != END_STATE) || totccnt < tot_iters || totrcnt < tot_iters) {
+ #                                                                                                             ^
+ 65. perftest-3.0/src/raw_ethernet_resources.c:696:3: note: Loop condition is false. Execution continues on line 786
+ #                 for (index=0; index < user_param->num_of_qps; index++) {
+ #                 ^
+ 68. perftest-3.0/src/raw_ethernet_resources.c:786:3: note: Taking false branch
+ #                 if (user_param->use_event) {
+ #                 ^
+ 71. perftest-3.0/src/raw_ethernet_resources.c:795:44: note: Left side of '&&' is false
+ #                 if ((user_param->test_type == ITERATIONS && (totrcnt < tot_iters)) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                                          ^
+ 74. perftest-3.0/src/raw_ethernet_resources.c:795:108: note: Left side of '&&' is false
+ #                 if ((user_param->test_type == ITERATIONS && (totrcnt < tot_iters)) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                                                                                                          ^
+ 77. perftest-3.0/src/raw_ethernet_resources.c:832:29: note: Left side of '||' is true
+ #                 if ((totccnt < tot_iters) || (user_param->test_type == DURATION && user_param->state != END_STATE)) {
+ #                                           ^
+ 80. perftest-3.0/src/raw_ethernet_resources.c:840:8: note: Assuming 'ne' is > 0
+ #                         if (ne > 0) {
+ #                             ^~~~~~
+ 83. perftest-3.0/src/raw_ethernet_resources.c:840:4: note: Taking true branch
+ #                         if (ne > 0) {
+ #                         ^
+ 86. perftest-3.0/src/raw_ethernet_resources.c:841:5: note: Loop condition is true. Entering loop body
+ #                                 for (i = 0; i < ne; i++) {
+ #                                 ^
+ 89. perftest-3.0/src/raw_ethernet_resources.c:842:14: note: '?' condition is false
+ #                                         wc_id = (user_param->verb_type == ACCL_INTF) ?
+ #                                                 ^
+ 92. perftest-3.0/src/raw_ethernet_resources.c:842:12: note: Assigned value is garbage or undefined
+ #                                         wc_id = (user_param->verb_type == ACCL_INTF) ?
+ #                                               ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ #   840|   			if (ne > 0) {
+ #   841|   				for (i = 0; i < ne; i++) {
+ #   842|-> 					wc_id = (user_param->verb_type == ACCL_INTF) ?
+ #   843|   						0 : (int)wc[i].wr_id;
+ #   844|
 
 CC: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- src/send_lat.c | 62 ++++++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 39 insertions(+), 23 deletions(-)
+ src/raw_ethernet_resources.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/send_lat.c b/src/send_lat.c
-index bc194d8..e5beda9 100755
---- a/src/send_lat.c
-+++ b/src/send_lat.c
-@@ -230,19 +230,19 @@ int main(int argc, char *argv[])
- 	ctx.context = ibv_open_device(ib_dev);
- 	if (!ctx.context) {
- 		fprintf(stderr, " Couldn't get context for the device\n");
--		return 1;
-+		goto failure;
- 	}
+diff --git a/src/raw_ethernet_resources.c b/src/raw_ethernet_resources.c
+index e87654d..534943d 100755
+--- a/src/raw_ethernet_resources.c
++++ b/src/raw_ethernet_resources.c
+@@ -696,6 +696,7 @@ int run_iter_fw(struct pingpong_context *ctx,struct perftest_parameters *user_pa
+ 	ALLOCATE(wc_tx,struct ibv_wc,CTX_POLL_BATCH);
+ 	ALLOCATE(rcnt_for_qp,uint64_t,user_param->num_of_qps);
  
- 	/* See if MTU and link type are valid and supported. */
- 	if (check_link(ctx.context,&user_param)) {
- 		fprintf(stderr, " Couldn't get context for the device\n");
--		return FAILURE;
-+		goto failure;
- 	}
++	memset(wc,0,sizeof(struct ibv_wc));
+ 	memset(rcnt_for_qp,0,sizeof(uint64_t)*user_param->num_of_qps);
  
- 	/* copy the relevant user parameters to the comm struct + creating rdma_cm resources. */
- 	if (create_comm_struct(&user_comm,&user_param)) {
- 		fprintf(stderr," Unable to create RDMA_CM resources\n");
--		return 1;
-+		goto failure;
- 	}
- 
- 	if (user_param.output == FULL_VERBOSITY && user_param.machine == SERVER) {
-@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
- 	/* Initialize the connection and print the local data. */
- 	if (establish_connection(&user_comm)) {
- 		fprintf(stderr," Unable to init the socket connection\n");
--		return FAILURE;
-+		goto failure;
- 	}
- 
- 	exchange_versions(&user_comm, &user_param);
-@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
- 	/* See if MTU and link type are valid and supported. */
- 	if (check_mtu(ctx.context,&user_param, &user_comm)) {
- 		fprintf(stderr, " Couldn't get context for the device\n");
--		return FAILURE;
-+		goto failure;
- 	}
- 
- 	/* Print basic test information. */
-@@ -284,17 +284,17 @@ int main(int argc, char *argv[])
- 		if (user_param.machine == CLIENT) {
- 			if (retry_rdma_connect(&ctx,&user_param)) {
- 				fprintf(stderr,"Unable to perform rdma_client function\n");
--				return FAILURE;
-+				goto failure2;
- 			}
- 
- 		} else {
- 			if (create_rdma_resources(&ctx,&user_param)) {
- 				fprintf(stderr," Unable to create the rdma_resources\n");
--				return FAILURE;
-+				goto failure2;
- 			}
- 			if (rdma_server_connect(&ctx,&user_param)) {
- 				fprintf(stderr,"Unable to perform rdma_client function\n");
--				return FAILURE;
-+				goto failure2;
- 			}
- 		}
- 
-@@ -303,14 +303,14 @@ int main(int argc, char *argv[])
- 		/* create all the basic IB resources (data buffer, PD, MR, CQ and events channel) */
- 		if (ctx_init(&ctx,&user_param)) {
- 			fprintf(stderr, " Couldn't create IB resources\n");
--			return FAILURE;
-+			goto failure2;
- 		}
- 	}
- 
- 	/* Set up the Connection. */
- 	if (send_set_up_connection(&ctx,&user_param,my_dest,&mcg_params,&user_comm)) {
- 		fprintf(stderr," Unable to set up socket connection\n");
--		return 1;
-+		goto failure2;
- 	}
- 
- 	for (i=0; i < user_param.num_of_qps; i++)
-@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
- 		/* shaking hands and gather the other side info. */
- 		if (ctx_hand_shake(&user_comm,&my_dest[i],&rem_dest[i])) {
- 			fprintf(stderr,"Failed to exchange data between server and clients\n");
--			return 1;
-+			goto failure2;
- 		}
- 
- 		ctx_print_pingpong_data(&rem_dest[i],&user_comm);
-@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
- 		if (ctx_check_gid_compatibility(&my_dest[0], &rem_dest[0])) {
- 			fprintf(stderr,"\n Found Incompatibility issue with GID types.\n");
- 			fprintf(stderr," Please Try to use a different IP version.\n\n");
--			return 1;
-+			goto failure2;
- 		}
- 	}
- 
-@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
- 			/* Request for Mcast group create registery in SM. */
- 			if (join_multicast_group(SUBN_ADM_METHOD_SET,&mcg_params)) {
- 				fprintf(stderr," Failed to Join Mcast request\n");
--				return 1;
-+				goto failure;
- 			}
- 		}
- 
-@@ -367,26 +367,26 @@ int main(int argc, char *argv[])
- 		/* Prepare IB resources for rtr/rts. */
- 		if (ctx_connect(&ctx,rem_dest,&user_param,my_dest)) {
- 			fprintf(stderr," Unable to Connect the HCA's through the link\n");
--			return 1;
-+			goto failure2;
- 		}
- 	}
- 
- 	/* shaking hands and gather the other side info. */
- 	if (ctx_hand_shake(&user_comm,&my_dest[0],&rem_dest[0])) {
- 		fprintf(stderr,"Failed to exchange data between server and clients\n");
--		return 1;
-+		goto failure;
- 	}
- 
- 	if (user_param.use_event) {
- 
- 		if (ibv_req_notify_cq(ctx.send_cq, 0)) {
- 			fprintf(stderr, "Couldn't request RCQ notification\n");
--			return 1;
-+			goto failure2;
- 		}
- 
- 		if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
- 			fprintf(stderr, "Couldn't request RCQ notification\n");
--			return 1;
-+			goto failure;
- 		}
- 	}
- 	if (user_param.output == FULL_VERBOSITY) {
-@@ -409,7 +409,7 @@ int main(int argc, char *argv[])
- 			/* Post receive recv_wqes fo current message size */
- 			if (ctx_set_recv_wqes(&ctx,&user_param)) {
- 				fprintf(stderr," Failed to post receive recv_wqes\n");
--				return 1;
-+				goto failure2;
- 			}
- 
- 			/* Sync between the client and server so the client won't send packets
-@@ -418,11 +418,15 @@ int main(int argc, char *argv[])
- 
- 			if (ctx_hand_shake(&user_comm,&my_dest[0],&rem_dest[0])) {
- 				fprintf(stderr,"Failed to exchange data between server and clients\n");
--				return 1;
-+				goto failure2;
- 			}
- 
--			if(run_iter_lat_send(&ctx, &user_param))
-+			if(run_iter_lat_send(&ctx, &user_param)) {
-+				free(my_dest);
-+				free(rem_dest);
-+				free(mcg_params.ib_devname);
- 				return 17;
-+			}
- 
- 			user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
- 		}
-@@ -432,7 +436,7 @@ int main(int argc, char *argv[])
- 		/* Post recevie recv_wqes fo current message size */
- 		if (ctx_set_recv_wqes(&ctx,&user_param)) {
- 			fprintf(stderr," Failed to post receive recv_wqes\n");
--			return 1;
-+			goto failure2;
- 		}
- 
- 		/* Sync between the client and server so the client won't send packets
-@@ -441,11 +445,15 @@ int main(int argc, char *argv[])
- 
- 		if (ctx_hand_shake(&user_comm,my_dest,rem_dest)) {
- 			fprintf(stderr,"Failed to exchange data between server and clients\n");
--			return 1;
-+			goto failure2;
- 		}
- 
--		if(run_iter_lat_send(&ctx, &user_param))
-+		if(run_iter_lat_send(&ctx, &user_param)) {
-+			free(my_dest);
-+			free(rem_dest);
-+			free(mcg_params.ib_devname);
- 			return 17;
-+		}
- 
- 		user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
- 	}
-@@ -460,4 +468,12 @@ int main(int argc, char *argv[])
- 	}
- 
- 	return send_destroy_ctx(&ctx,&user_param,&mcg_params);
-+
-+failure2:
-+	free(my_dest);
-+	free(rem_dest);
-+	destroy_ctx(&ctx,&user_param);
-+failure:
-+	free(mcg_params.ib_devname);
-+	return FAILURE;
- }
+ 	tot_iters = (uint64_t)user_param->iters*user_param->num_of_qps;
 -- 
 1.8.3.1
 
