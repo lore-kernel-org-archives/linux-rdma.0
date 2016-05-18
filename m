@@ -1,90 +1,73 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] IB/mlx5: Use tasklet to decrease completions
- processing time in interrupts
-Date: Wed, 18 May 2016 10:48:25 -0400
-Message-ID: <a6c058cd-929c-9f35-16fc-101467013572@redhat.com>
-References: <1460902121-5567-1-git-send-email-matanb@mellanox.com>
- <20160418130456.GA11508@infradead.org> <5714DF68.6040509@mellanox.com>
- <a93b20ca-42bf-ca2b-2995-aa2837a1bafe@redhat.com>
- <868e5bcf-18c5-30f4-fe3f-b361c0ce43ec@mellanox.com>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Wed, 18 May 2016 10:51:02 -0400
+Message-ID: <0558d12b-2646-63b4-89f8-9bf4aba689db@redhat.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <VI1PR05MB13915036338162B126E55CC2D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
+ <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
+ <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4FjSXh0mpsRq3kAMmafPPlwCLWgMLiLVf"
+ boundary="rXXUDx4tQsJ23vf46ntm5oRqgBmmCBGjS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <868e5bcf-18c5-30f4-fe3f-b361c0ce43ec-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4FjSXh0mpsRq3kAMmafPPlwCLWgMLiLVf
+--rXXUDx4tQsJ23vf46ntm5oRqgBmmCBGjS
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/15/2016 03:31 AM, Matan Barak wrote:
-> On 13/05/2016 23:16, Doug Ledford wrote:
->> On 04/18/2016 09:21 AM, Matan Barak (External) wrote:
->>> On 18/04/2016 16:04, Christoph Hellwig wrote:
->>>> On Sun, Apr 17, 2016 at 05:08:39PM +0300, Matan Barak wrote:
->>>>> Hi Doug,
->>>>>
->>>>> The mlx5 driver handles completion callbacks inside interrupts.
->>>>> These callbacks could be lengthy and thus cause hard lockups.
->>>>> In order to avoid these lockups, we introduce a tasklet mechanism.
->>>>> The mlx5_ib driver uses this mechanism in order to defer its
->>>>> completion callbacks processing to the tasklet.
->>>>>
->>>>> This follows the same mechanism we implemented for mlx4 that
->>>>> successfully decreased the processing time in interrupts.
->>>>
->>>> Just curious:  how much of this time is spent inside the mlx5 driver=
-,
->>>> and how much is spent in the callbacks from the consumers?  We've no=
-w
->>>> more than half done with switch the kernel ULPs to the new CQ API
->>>> which will always offload the callbacks to softirq or workqueue
->>>> context,
->>>> so if we can avoid a previous offload the completions would be a lot=
-
->>>> more efficient.
->>>>
->>>
->>> In short, you could hit a situation where processing the completions =
-in
->>> the interrupt takes longer than the rate at which they arrive (lab ca=
-ses
->>> that use one event queue, but still).
->>> I agree that going to softirqs/WQs (like the rest of the offloads) is=
- a
->>> good solution too - maybe even better than this one as the mechanism
->>> already exists, but why would it be a lot more efficient?
->>>
->>
->> Given the amount of the kernel converted to the new CQ API, are you gu=
-ys
->> still looking to have this included?
->>
+On 05/18/2016 10:26 AM, Mark Bloch wrote:
 >=20
-> Using irqpoll might be better, although - If I got things right it
-> really polls the CQ instead of just notifying the user-space it has som=
-e
-> work to do (because it handles kernel usages probably). So, in order to=
-
-> use the current approach for user-space, we might needs to change it a
-> bit (unless I missed something).
 >=20
-> Saying that, because we're risking here at having a hard lockup and the=
+>> -----Original Message-----
+>> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+>> Sent: Wednesday, May 18, 2016 5:17 PM
+>> To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+>> resolution module into core
+>>
+> [snip]
+>> Unless you went back to your original first patch set where ib_netlink=
 
-> mlx4 driver already uses this proposed method successfully, I'll be ver=
-y
-> happy if we can merge this and look at migrating to the new CQ API late=
-r
-> if it makes sense here.
+>> was a separate module, then the load order could be ib_netlink ->
+>> ib_addr -> ib_core and things would work.  Possibly.  Depends on wheth=
+er
+>> the ib_netlink module has anything in it that references symbols in ib=
+_core.
+> Yes, the first version did just that and worked, but then there were
+> comments that we have too many modules and I shouldn't add another one.=
 
-I've taken these, but I want you to look into whether or not the CQ API
-is the next appropriate things to use here.
+>=20
+> V0 adds a new kernel module (ib_netlink.ko ) but leaves ib_core and ib_=
+addr
+> modules unchanged. I also have a version with Leon's patch
+> that eliminates ib_addr.ko and doesn't add a new module.
+>=20
+> Would you like me to submit  a new version (with Leon's patch) or the r=
+eview can continue with V0?
+
+One of the things that has come about as a result of this conversation
+is that EL6 is the only distro to provide the reload capability.  I have
+the ability to make sure it gets updated to account for the module
+change, so let's move forward with a version that removes ib_addr and
+moves it into the ib_core and also keep the new ib_netlink stuff in
+ib_core.  So, fewer modules, not more.
 
 
 --=20
@@ -93,7 +76,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---4FjSXh0mpsRq3kAMmafPPlwCLWgMLiLVf
+--rXXUDx4tQsJ23vf46ntm5oRqgBmmCBGjS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -102,22 +85,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPIC5AAoJELgmozMOVy/dOjkQAIq2z9fLO0Moq0OHiWOXmB0i
-w+32LFI8Ad7EbmtTiTtSmBVo1yCKFzIFqh5j93hbOF2fhOqulSZxryY1qYiaSHof
-d4s8K0Lsg3BkLAws7VU1b7KRRF9oRlO2flmOJiblmYiprdftj66KjByBhV3NBt3y
-YLV8Q+5rxbEOOzDH5AOGP0FcxqV+bSPt6CR4bgS3UaXRjq7b+cbZnFdpZycHDUF9
-U+zUL0sADJwI+7Hi9xrSzP2wHU1iyhebvapf2iQ0Na35Qds6TnjK/4ILMLtACJuf
-XOF9MSamVKv3sV+FQwfiMu8T8Xaw+swotJ2Qz1NlAgmfXW1tifnDVP488PIZpT8F
-VpcgY44Qo4x9J97PELZP08jynuRcDRbuk0iR3EJYASNrMV9Ce2f4T1LAEIcc9kCj
-TzBfbdXUroPquav1lvVw8kMJX9BarmpUZxBiCAQeGvd/sWEfaVIz43bBBqL+WQnX
-yDoAZ1gFsDd5oK4OYbv9wVcv4dm9CKM7f4v4aaeokVkNxbS7ZMhU5jXSPJwJt/97
-EKUlsvhs1uNFxae2//xF+NAosbNCCj077/HovsUl/8QERNx9Pa+VnJCNtUgj1G3b
-+JlQsXHux2CZAro6c5YfgoAi+q2pUshBX56T2soXoJIqdnkM91d0255JfKlOq+6w
-iGROHFPJlLHIh6GPH39i
-=dpw4
+iQIcBAEBCAAGBQJXPIFWAAoJELgmozMOVy/d1zUP/j/2Z3bb0eAeY+Egrx5sS05K
+QgaDbh/Nda1iHRfuouFnOWPU0LyJdBlKM+eLsyyGRlLnIRDnpi8VcXB+X5zJxufJ
+6Os4aiiTH6KmJ+gDPVN/hFJkro4t338l/LAGmZpgLyHEqu+6JCFL55S9TITRI+u3
+XRbhnh58XgEXdxVicJGfYVZ0Vc1D9JcslpmgazQEsqbiWtl5rvo6UmiuArrOAYIn
+qF2pycJp/3DnokuAvWnKNrLI3ssNoXRBJRz5ughNqSVmQnqYmSFyeehTaPnGx3AW
+dfxIspKKDXvHZ4jnZOWMBfaoD6MA5rGXTChgEbwOnwJc1EH4GDz+F76MGuv6wHR3
+TQCDNxC0ysAiqwXBZxaWtbHai1PyeEQnhNNNASzxJ4/FzdamwyjYD4zF07pWEJmg
+4HTEOWiR0vyLSxac7zHpPZFYO7m6Qy+6pURhfrzNyCTKirCVXYEtL61Q85S01f+c
+EsY9RVPN1l6OxlTdppkSzOdWOlyyi9u8DqxiuxSF3zuLxFHPwBXrc7h37qk+zyjU
+A8MB962CwZt7IJ+muifuew8u6jG2mEFAKXGJ5+rIYMYtZvxVRs2v7cGZmxfkkK9Y
+Y718qoPlbKUcXT9I3fa2h16l76T308M5nQW4DYkGJclJIV4hHRBTVFGZil8xBW5w
+Qs5+Ty7YKLlps0uLYcuy
+=ciJO
 -----END PGP SIGNATURE-----
 
---4FjSXh0mpsRq3kAMmafPPlwCLWgMLiLVf--
+--rXXUDx4tQsJ23vf46ntm5oRqgBmmCBGjS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
