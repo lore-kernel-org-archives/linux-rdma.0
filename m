@@ -1,81 +1,47 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/security: Restrict use of the write() interface
-Date: Wed, 18 May 2016 15:05:05 -0400
-Message-ID: <53639dec-5d1d-58af-3022-963368c144db@redhat.com>
-References: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
- <20160518172012.GA6879@kroah.com>
- <c6c952ea-3562-48e1-cf56-5b8c810654f1@redhat.com>
- <CAJ3xEMi0Rg7nc7TN9Hn7=nuWmBZH1qoncKr+HuzjUP=8yMRrDA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="NFdO6PPRCqEj0fLLtrWF2NuJd3qTOsLdG"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMi0Rg7nc7TN9Hn7=nuWmBZH1qoncKr+HuzjUP=8yMRrDA@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Greg KH <greg@kroah.com>, stable@vger.kernel.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Do not require CAP_NET_ADMIN for flow
+ steering
+Date: Wed, 18 May 2016 14:07:22 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1605181402180.29313@east.gentwo.org>
+References: <alpine.DEB.2.20.1605131020320.13832@east.gentwo.org> <alpine.DEB.2.20.1605131051170.27372@east.gentwo.org> <cf61efc8-e426-dd7c-7065-e46bbfb323b0@redhat.com> <alpine.DEB.2.20.1605160853050.23895@east.gentwo.org> <2994c976-8ed1-75f9-7534-2d0e5f5303b8@redhat.com>
+ <alpine.DEB.2.20.1605161123170.26453@east.gentwo.org> <9fa74108-e2f8-6a42-6d71-bf50b754734d@redhat.com> <alpine.DEB.2.20.1605181311460.14296@east.gentwo.org> <2cba91dc-3489-0376-fe74-a3fa1c5d63a7@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2cba91dc-3489-0376-fe74-a3fa1c5d63a7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---NFdO6PPRCqEj0fLLtrWF2NuJd3qTOsLdG
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, 18 May 2016, Doug Ledford wrote:
 
-On 05/18/2016 02:59 PM, Or Gerlitz wrote:
-> On Wed, May 18, 2016 at 8:57 PM, Doug Ledford <dledford@redhat.com> wro=
-te:
->> On 05/18/2016 01:20 PM, Greg KH wrote:
->=20
->>> I don't understand, is this only for 3.14.x?
->=20
->> Yes.
->=20
-> Wait, any reason not to apply it on all stable kernels?
+> On 05/18/2016 02:12 PM, Christoph Lameter wrote:
+> > On Wed, 18 May 2016, Doug Ledford wrote:
+> >
+> >>> One can switch the interface into promiscuous mode in addition if one
+> >>> wants that. Then you need CAP_NET_ADMIN.
+> >>
+> >> I've applied your patch.  I completely reworded the commit message,
+> >> you'll want to check that it meets your satisfaction before I issue my
+> >> pull request.
+> >
+> > I wish I knew how to view the patch. Its not in the kernel.org git repo.
+> > Could you post the patches you edit or provide a link to them. See how
+> > Andrew Morton does it.
+> >
+>
+> It's in *my* kernel.org repo.  Where you trying to see it in Linus' repo?
 
-It already is.  The only kernel that Greg takes care of that it failed
-to apply to was this one, and so nothing was applied.  For the two
-kernels that Kamal manages, he munged the upstream patch to apply by
-dropping the hfi1 hunks, but that didn't add in the missing ipath hunks,
-so that's the reason for the two other patches I sent, they were for him
-so that he could apply those to his two trees to update his patch to
-cover everything.
+Why would I be looking at Linus'ses tree?
 
-> Or.
->=20
->> You already applied the same patch against 4.5.x, but without the
->> update to include the ipath driver and with the hfi1 driver still in t=
-he patch.
+Ahh.. just an update issue I guess.
+
+Changelog is ok. Just a note that there are no levels of capabilities.
+CAP_NET_ADMIN covers different things from CAP_NET_RAW. It is not a higher
+level.
 
 
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
-
-
-
---NFdO6PPRCqEj0fLLtrWF2NuJd3qTOsLdG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXPLzhAAoJELgmozMOVy/dbc4P+wcPeShlZs2qLrCoBGh2qGBm
-gDtQfjR7LZF4EIADG5XcYqFeyCVmSXbM3gf3jQSBzoIptW6OhVFZzN/f5chvdql0
-9Y6ZSG4QLuYhmHp9ffIpCbd5ldyNH/SZ4yjx0USZGlyOa//S9hPVa9NrrW1H00hB
-wDk2u+Foiem3zKd4uJ5db0wsRxE4FioyKGITktjKgAJnwnimqEDn8tmXggXfedBo
-qfAAWrTO5sr++DwMm8vm8tEamAxmhWLBfMsJ1G8DSKv8nx3BlUk2ZYUk87aHXy5d
-n8s4khBfZBen1uDbjaBLD3CiZ0I+KdK7MbJqHMUEAd0m64dB4JLOYtzu9Cj0oooO
-6OH35qdJScIDVmzOxh2ESfXVv3vXRvUihmWGEy2qvHlmP0DUK7uq6tsGttFT7JTp
-RPxG6THcjvpXzmHdlLPc9/hr4KraDs1kOLMTtgTNysPToYCODi2wntyhvMJSWvMu
-Vddc2nZ+7ThM/02NWuzxBiPK6rk5PR/TYKgB4VXWHtA3ZLRJpQXmI1qUTx02zhKl
-2oeiKH1045OwOa2CsxYYucUNRn1JSr0BDMWBM99o5XDqeTop23IfqO02RS5t3CnU
-sYL5XRQShFZzNWQFha6HXqmNVzx8DdnsknHFJ57h2+4Q4GOmsgiDIoBeAb3har4v
-0dBIpYOz5mITshOol/mn
-=5Y3i
------END PGP SIGNATURE-----
-
---NFdO6PPRCqEj0fLLtrWF2NuJd3qTOsLdG--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
