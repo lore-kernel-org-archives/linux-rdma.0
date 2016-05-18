@@ -1,63 +1,289 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Wed, 18 May 2016 11:25:42 -0600
-Message-ID: <20160518172542.GA15516@obsidianresearch.com>
-References: <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
- <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
- <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
- <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
- <alpine.DEB.2.20.1605161238560.10085@east.gentwo.org>
- <102cd100-55f7-fa85-cd75-ba0db5b9fa34@redhat.com>
- <alpine.DEB.2.20.1605170918080.9956@east.gentwo.org>
- <3e9a3e19-58cb-c25f-89a1-f0e51df562d8@redhat.com>
- <20160517170027.GC19976@obsidianresearch.com>
- <bc83cc75-aa2e-6fc6-e1c6-a0190b972013@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH perftest] Fix assorted memory leaks on error paths
+Date: Wed, 18 May 2016 13:44:06 -0400
+Message-ID: <1463593448-30864-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <bc83cc75-aa2e-6fc6-e1c6-a0190b972013-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 17, 2016 at 01:34:34PM -0400, Doug Ledford wrote:
-> > I noticed this too, but for sysfs reading I just felt it doesn't
-> > matter.
-> 
-> I prefer not to have O(n^2), even for sysfs.  You say it doesn't matter,
-> but if someone creates a script to check all of their stats via
-> sysfs
+Clang noticed that we might leak mcg_params.ib_devname in failure paths.
+There are additional leaks after fixing this initial one that it still
+reported, here's hoping I've got them all now...
 
-Well, it matters if it actually takes a long time, but I don't really
-care of it is O(n^2) and still only adding a few additional 100us's..
+ 1. perftest-3.0/src/send_lat.c:232:3: warning: Potential leak of memory pointed to by 'mcg_params.ib_devname'
+ #                 fprintf(stderr, " Couldn't get context for the device\n");
+ #                 ^
+ 4. perftest-3.0/src/send_lat.c:203:6: note: Assuming 'ret_val' is 0
+ #         if (ret_val) {
+ #             ^~~~~~~
+ 7. perftest-3.0/src/send_lat.c:203:2: note: Taking false branch
+ #         if (ret_val) {
+ #         ^
+ 10. perftest-3.0/src/send_lat.c:209:5: note: Left side of '||' is false
+ #         if(user_param.use_xrc || user_param.connection_type == DC) {
+ #            ^
+ 13. perftest-3.0/src/send_lat.c:209:2: note: Taking false branch
+ #         if(user_param.use_xrc || user_param.connection_type == DC) {
+ #         ^
+ 16. perftest-3.0/src/send_lat.c:214:2: note: Taking false branch
+ #         if (user_param.connection_type == RawEth) {
+ #         ^
+ 19. perftest-3.0/src/send_lat.c:221:6: note: Assuming 'ib_dev' is non-null
+ #         if (!ib_dev) {
+ #             ^~~~~~~
+ 22. perftest-3.0/src/send_lat.c:221:2: note: Taking false branch
+ #         if (!ib_dev) {
+ #         ^
+ 25. perftest-3.0/src/send_lat.c:226:2: note: Taking true branch
+ #         if (user_param.use_mcg)
+ #         ^
+ 28. perftest-3.0/src/send_lat.c:227:3: note: Memory is allocated
+ #                 GET_STRING(mcg_params.ib_devname,ibv_get_device_name(ib_dev));
+ #                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 31. perftest-3.0/src/perftest_parameters.h:217:3: note: expanded from macro 'GET_STRING'
+ # { ALLOCATE(orig,char,(strlen(temp) + 1)); strcpy(orig,temp); }
+ #   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 34. perftest-3.0/src/perftest_parameters.h:212:20: note: expanded from macro 'ALLOCATE'
+ # { if((var = (type*)malloc(sizeof(type)*(size))) == NULL)        \
+ #                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 37. perftest-3.0/src/send_lat.c:227:3: note: Taking false branch
+ 38. perftest-3.0/src/perftest_parameters.h:217:3: note: expanded from macro 'GET_STRING'
+ # { ALLOCATE(orig,char,(strlen(temp) + 1)); strcpy(orig,temp); }
+ #   ^
+ 41. perftest-3.0/src/perftest_parameters.h:212:3: note: expanded from macro 'ALLOCATE'
+ # { if((var = (type*)malloc(sizeof(type)*(size))) == NULL)        \
+ #   ^
+ 44. perftest-3.0/src/send_lat.c:231:2: note: Taking true branch
+ #         if (!ctx.context) {
+ #         ^
+ 47. perftest-3.0/src/send_lat.c:232:3: note: Potential leak of memory pointed to by 'mcg_params.ib_devname'
+ #                 fprintf(stderr, " Couldn't get context for the device\n");
+ #                 ^
+ #   230|   	ctx.context = ibv_open_device(ib_dev);
+ #   231|   	if (!ctx.context) {
+ #   232|-> 		fprintf(stderr, " Couldn't get context for the device\n");
+ #   233|   		return 1;
+ #   234|   	}
 
-> > and nothing should use sysfs except
-> > debugging.
-> 
-> Nobody manually checking on numbers themselves will use netlink.  And if
-> the stats are there, people will check them.  You can't depend on this
-> being used for debug access only.  If I recall correctly, ibstatus uses
-> all sysfs entries, and people would easily think that using it uses the
-> "preferred" method.  So, like I said, if it's there, it *will* get used,
-> and not just for debug,
+CC: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/send_lat.c | 62 ++++++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 39 insertions(+), 23 deletions(-)
 
-Why would people manually use sysfs? A netlink interface would be
-accompanied by a tool. I don't schlep around in sysfs for netdev, I
-use 'ip -s link show'
+diff --git a/src/send_lat.c b/src/send_lat.c
+index bc194d8..e5beda9 100755
+--- a/src/send_lat.c
++++ b/src/send_lat.c
+@@ -230,19 +230,19 @@ int main(int argc, char *argv[])
+ 	ctx.context = ibv_open_device(ib_dev);
+ 	if (!ctx.context) {
+ 		fprintf(stderr, " Couldn't get context for the device\n");
+-		return 1;
++		goto failure;
+ 	}
+ 
+ 	/* See if MTU and link type are valid and supported. */
+ 	if (check_link(ctx.context,&user_param)) {
+ 		fprintf(stderr, " Couldn't get context for the device\n");
+-		return FAILURE;
++		goto failure;
+ 	}
+ 
+ 	/* copy the relevant user parameters to the comm struct + creating rdma_cm resources. */
+ 	if (create_comm_struct(&user_comm,&user_param)) {
+ 		fprintf(stderr," Unable to create RDMA_CM resources\n");
+-		return 1;
++		goto failure;
+ 	}
+ 
+ 	if (user_param.output == FULL_VERBOSITY && user_param.machine == SERVER) {
+@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
+ 	/* Initialize the connection and print the local data. */
+ 	if (establish_connection(&user_comm)) {
+ 		fprintf(stderr," Unable to init the socket connection\n");
+-		return FAILURE;
++		goto failure;
+ 	}
+ 
+ 	exchange_versions(&user_comm, &user_param);
+@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
+ 	/* See if MTU and link type are valid and supported. */
+ 	if (check_mtu(ctx.context,&user_param, &user_comm)) {
+ 		fprintf(stderr, " Couldn't get context for the device\n");
+-		return FAILURE;
++		goto failure;
+ 	}
+ 
+ 	/* Print basic test information. */
+@@ -284,17 +284,17 @@ int main(int argc, char *argv[])
+ 		if (user_param.machine == CLIENT) {
+ 			if (retry_rdma_connect(&ctx,&user_param)) {
+ 				fprintf(stderr,"Unable to perform rdma_client function\n");
+-				return FAILURE;
++				goto failure2;
+ 			}
+ 
+ 		} else {
+ 			if (create_rdma_resources(&ctx,&user_param)) {
+ 				fprintf(stderr," Unable to create the rdma_resources\n");
+-				return FAILURE;
++				goto failure2;
+ 			}
+ 			if (rdma_server_connect(&ctx,&user_param)) {
+ 				fprintf(stderr,"Unable to perform rdma_client function\n");
+-				return FAILURE;
++				goto failure2;
+ 			}
+ 		}
+ 
+@@ -303,14 +303,14 @@ int main(int argc, char *argv[])
+ 		/* create all the basic IB resources (data buffer, PD, MR, CQ and events channel) */
+ 		if (ctx_init(&ctx,&user_param)) {
+ 			fprintf(stderr, " Couldn't create IB resources\n");
+-			return FAILURE;
++			goto failure2;
+ 		}
+ 	}
+ 
+ 	/* Set up the Connection. */
+ 	if (send_set_up_connection(&ctx,&user_param,my_dest,&mcg_params,&user_comm)) {
+ 		fprintf(stderr," Unable to set up socket connection\n");
+-		return 1;
++		goto failure2;
+ 	}
+ 
+ 	for (i=0; i < user_param.num_of_qps; i++)
+@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
+ 		/* shaking hands and gather the other side info. */
+ 		if (ctx_hand_shake(&user_comm,&my_dest[i],&rem_dest[i])) {
+ 			fprintf(stderr,"Failed to exchange data between server and clients\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 
+ 		ctx_print_pingpong_data(&rem_dest[i],&user_comm);
+@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
+ 		if (ctx_check_gid_compatibility(&my_dest[0], &rem_dest[0])) {
+ 			fprintf(stderr,"\n Found Incompatibility issue with GID types.\n");
+ 			fprintf(stderr," Please Try to use a different IP version.\n\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 	}
+ 
+@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
+ 			/* Request for Mcast group create registery in SM. */
+ 			if (join_multicast_group(SUBN_ADM_METHOD_SET,&mcg_params)) {
+ 				fprintf(stderr," Failed to Join Mcast request\n");
+-				return 1;
++				goto failure;
+ 			}
+ 		}
+ 
+@@ -367,26 +367,26 @@ int main(int argc, char *argv[])
+ 		/* Prepare IB resources for rtr/rts. */
+ 		if (ctx_connect(&ctx,rem_dest,&user_param,my_dest)) {
+ 			fprintf(stderr," Unable to Connect the HCA's through the link\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 	}
+ 
+ 	/* shaking hands and gather the other side info. */
+ 	if (ctx_hand_shake(&user_comm,&my_dest[0],&rem_dest[0])) {
+ 		fprintf(stderr,"Failed to exchange data between server and clients\n");
+-		return 1;
++		goto failure;
+ 	}
+ 
+ 	if (user_param.use_event) {
+ 
+ 		if (ibv_req_notify_cq(ctx.send_cq, 0)) {
+ 			fprintf(stderr, "Couldn't request RCQ notification\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 
+ 		if (ibv_req_notify_cq(ctx.recv_cq, 0)) {
+ 			fprintf(stderr, "Couldn't request RCQ notification\n");
+-			return 1;
++			goto failure;
+ 		}
+ 	}
+ 	if (user_param.output == FULL_VERBOSITY) {
+@@ -409,7 +409,7 @@ int main(int argc, char *argv[])
+ 			/* Post receive recv_wqes fo current message size */
+ 			if (ctx_set_recv_wqes(&ctx,&user_param)) {
+ 				fprintf(stderr," Failed to post receive recv_wqes\n");
+-				return 1;
++				goto failure2;
+ 			}
+ 
+ 			/* Sync between the client and server so the client won't send packets
+@@ -418,11 +418,15 @@ int main(int argc, char *argv[])
+ 
+ 			if (ctx_hand_shake(&user_comm,&my_dest[0],&rem_dest[0])) {
+ 				fprintf(stderr,"Failed to exchange data between server and clients\n");
+-				return 1;
++				goto failure2;
+ 			}
+ 
+-			if(run_iter_lat_send(&ctx, &user_param))
++			if(run_iter_lat_send(&ctx, &user_param)) {
++				free(my_dest);
++				free(rem_dest);
++				free(mcg_params.ib_devname);
+ 				return 17;
++			}
+ 
+ 			user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
+ 		}
+@@ -432,7 +436,7 @@ int main(int argc, char *argv[])
+ 		/* Post recevie recv_wqes fo current message size */
+ 		if (ctx_set_recv_wqes(&ctx,&user_param)) {
+ 			fprintf(stderr," Failed to post receive recv_wqes\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 
+ 		/* Sync between the client and server so the client won't send packets
+@@ -441,11 +445,15 @@ int main(int argc, char *argv[])
+ 
+ 		if (ctx_hand_shake(&user_comm,my_dest,rem_dest)) {
+ 			fprintf(stderr,"Failed to exchange data between server and clients\n");
+-			return 1;
++			goto failure2;
+ 		}
+ 
+-		if(run_iter_lat_send(&ctx, &user_param))
++		if(run_iter_lat_send(&ctx, &user_param)) {
++			free(my_dest);
++			free(rem_dest);
++			free(mcg_params.ib_devname);
+ 			return 17;
++		}
+ 
+ 		user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
+ 	}
+@@ -460,4 +468,12 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	return send_destroy_ctx(&ctx,&user_param,&mcg_params);
++
++failure2:
++	free(my_dest);
++	free(rem_dest);
++	destroy_ctx(&ctx,&user_param);
++failure:
++	free(mcg_params.ib_devname);
++	return FAILURE;
+ }
+-- 
+1.8.3.1
 
-> > Caching is going to detrimental to apps that sync stats with external
-> > time. (which is almost every real-world app)
-> 
-> That's problematic with or without caching as the stats don't have a
-> timestamp, so scheduling delays could easily make the stats that you
-> get
-
-One can avoid scheduling delays with the right SCHED_ policy, how do
-you avoid timing jitter from caching?
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
