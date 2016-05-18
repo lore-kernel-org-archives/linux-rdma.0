@@ -1,81 +1,53 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/security: Restrict use of the write() interface
-Date: Wed, 18 May 2016 13:57:51 -0400
-Message-ID: <c6c952ea-3562-48e1-cf56-5b8c810654f1@redhat.com>
-References: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
- <20160518172012.GA6879@kroah.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Wed, 18 May 2016 13:58:41 -0400
+Message-ID: <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
+References: <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <VI1PR05MB13915036338162B126E55CC2D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
+ <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
+ <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <0558d12b-2646-63b4-89f8-9bf4aba689db@redhat.com>
+ <20160518171536.GB15170@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="C2Po7uJGpBukwncCeD8PXr3UP12W8J8BK"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160518172012.GA6879@kroah.com>
-Sender: stable-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org
+ boundary="7ijVnKSjsicPw1Ql43kWWGwnwCfNq6TeC"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160518171536.GB15170-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---C2Po7uJGpBukwncCeD8PXr3UP12W8J8BK
+--7ijVnKSjsicPw1Ql43kWWGwnwCfNq6TeC
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/18/2016 01:20 PM, Greg KH wrote:
-> On Wed, May 18, 2016 at 12:58:38PM -0400, Doug Ledford wrote:
->> From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->>
->> The drivers/infiniband stack uses write() as a replacement for
->> bi-directional ioctl().  This is not safe. There are ways to
->> trigger write calls that result in the return structure that
->> is normally written to user space being shunted off to user
->> specified kernel memory instead.
->>
->> For the immediate repair, detect and deny suspicious accesses to
->> the write API.
->>
->> For long term, update the user space libraries and the kernel API
->> to something that doesn't present the same security vulnerabilities
->> (likely a structured ioctl() interface).
->>
->> The impacted uAPI interfaces are generally only available if
->> hardware from drivers/infiniband is installed in the system.
->>
->> Reported-by: Jann Horn <jann@thejh.net>
->> Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
->> Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
->> [ Expanded check to all known write() entry points ]
->> Cc: stable@vger.kernel.org # 3.14.x
->> Signed-off-by: Doug Ledford <dledford@redhat.com>
->> [ Expanded to include removed ipath driver, and dropped non-existent
->>   hfi1 driver ]
->> ---
->>  drivers/infiniband/core/ucm.c                |  4 ++++
->>  drivers/infiniband/core/ucma.c               |  3 +++
->>  drivers/infiniband/core/uverbs_main.c        |  5 +++++
->>  drivers/infiniband/hw/ipath/ipath_file_ops.c |  5 +++++
->>  drivers/infiniband/hw/qib/qib_file_ops.c     |  5 +++++
->>  include/rdma/ib.h                            | 16 ++++++++++++++++
->>  6 files changed, 38 insertions(+)
+On 05/18/2016 01:15 PM, Jason Gunthorpe wrote:
+> On Wed, May 18, 2016 at 10:51:02AM -0400, Doug Ledford wrote:
+>> moves it into the ib_core and also keep the new ib_netlink stuff in
+>> ib_core.  So, fewer modules, not more.
 >=20
-> I don't understand, is this only for 3.14.x?
+> What about getting rid of ib_sa as well so we can avoid that dynamic
+> netlink registration patch too?
 
-Yes.  You already applied the same patch against 4.5.x, but without the
-update to include the ipath driver and with the hfi1 driver still in the
-patch.
-
->  If so, what is the git
-> commit id in Linus's tree for this?
-
-Sorry, forgot that: e6bd18f57aad
+That's fine too.
 
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
 
 
---C2Po7uJGpBukwncCeD8PXr3UP12W8J8BK
+--7ijVnKSjsicPw1Ql43kWWGwnwCfNq6TeC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -84,19 +56,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPK0fAAoJELgmozMOVy/d2F0QAK6Ty2ZqXwqg2HFJCIHPViuN
-a2pUtrs0whjzkzvJVp8gWGWBAe2vnm7FXgYVFlb4kxG3pbvXCcMswPEhah8yeNgX
-hqqLI3BZSIJ3RUr2SRLqw1tsVjNaZYEBzYU9hUfILPVDLDkw5Dj0vkP4bbUp0wnW
-0r2ad+bGGWBdnHK0L8x7vVTzbeberQDjPmDNFpyR99potOiJRCxOEslG+Iwb+aRD
-UBdNm2ZaDawP+DyOMJGVXVw7UtXrlwhuWBl+9HvlGQqfTu0G291cl8TT5lXfYPal
-WamxiZEuBMaBjFZRxcypGrAD4WBrXLhUjBy8h2WawVQRcNTRYuVWKHOcewWQVktD
-W9p7bH1VP+IQmmY7PawSu/UY+H11lpZ4z3qN8p2A61dqiaj0MkMysX4m94kesfMC
-3ysYlAouILVzzFOemCzyu9hNBZWqKiWTLFUAwTQixlC+kQ7dPQoIfbMvDfHiMIvR
-Md+P2pKt4H2Qtn9KyKtz615uWnLgYhC35olVyN3bSr/UhZvA8iKzvXPPwJnqtXpT
-WrOQfEm9vwHNwOlWxS32rKIxDwoUwtQpn9wgoR8nTOHYnvHdmgOxWV+9Xht6btWg
-5OOiuYKrUtCxia/+5+qSOioarxLYiDOWFXndfv7IYbn4c1tPYFVaXBnliizLNuUE
-DPoJhrUrmr85gWe5S0ja
-=Noj1
+iQIcBAEBCAAGBQJXPK1RAAoJELgmozMOVy/de44QAJdtsz6BbPSN+uBz0gZRNCCO
+qn93BMynG3GNGa9M9JME4cIIT3i5fwx8uMCrOW/MNXzy5MgKzAhaJy2Sb7gDX/f9
+SfnmmlUY7QujzAUhAYLC5rubQpsHmZzpp1LPdMoGwSEXydG5KnACNQVeWmKLJmwm
+IZ0vSO1e46qjm76ScuTKIcRXa4F7gOMwLI1GKuJvOk05Dma1EyrWLwTF4rib7pTv
+T2xxDh+OHtQieWtNEY25z7sIpWHVJOWHF+JObSMfvsNoBqJZoLAyjOGLIfL0jWzf
+UsFYtFJL1PLLSqA9jOargsVLiJwUKT0O+Be7ABRvrpWSvv9z406/Mh+TWwABvBAC
+U4mLBMrkm0+z9GCaagHeHZIkECGAHV+3tib01yiNRrUNebMRMXgcRFnqg/3glhlh
+W93pXFQdzyu+i/PZcAsiNkGjWaibZj1y4ZK+hvRTIko0D2QBrbSX8mEiXSlYeq6W
+5RzvzLtbwUHMx6AF4g9lfLtyJwCCcp6sMxOtz/K5p+nJ4ZdG7mXPewfcy6lQ/JvO
+4rjM8insLSikYf9s445TEXkto9Rmw/sc2khrIkEgnaEIeOjrRMHk5PxHlMl6HxTF
+/8sX9eKD6fv2YEgoRc0kcNzyoLyzwzwyidsFUYVwGCe5+bVXN85s6LJic4gghyeX
+zhZ9Ia/eChdanfpnQ1+4
+=B6BP
 -----END PGP SIGNATURE-----
 
---C2Po7uJGpBukwncCeD8PXr3UP12W8J8BK--
+--7ijVnKSjsicPw1Ql43kWWGwnwCfNq6TeC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
