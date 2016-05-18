@@ -1,73 +1,47 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 16/20] IB/fmr_pool: Convert the cleanup thread into
- kthread worker API
-Date: Wed, 18 May 2016 11:36:33 -0400
-Message-ID: <d62ae983-aa52-e60b-712f-e47708f2bfb7@redhat.com>
-References: <1460646879-617-1-git-send-email-pmladek@suse.com>
- <1460646879-617-17-git-send-email-pmladek@suse.com>
+Subject: Re: OFED release with RoCE v2 support
+Date: Wed, 18 May 2016 11:37:53 -0400
+Message-ID: <669ee5b8-11c6-e2c7-c60b-d1410c7e631b@redhat.com>
+References: <BN4PR11MB094679B0C45AA332E6BEE7BBFF770@BN4PR11MB0946.namprd11.prod.outlook.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDB98D5@ORSMSX115.amr.corp.intel.com>
+ <BN4PR11MB0946718DFF5ECF08958AC620FF490@BN4PR11MB0946.namprd11.prod.outlook.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA450@ORSMSX115.amr.corp.intel.com>
+ <5a4ccdf6-94d9-3038-175d-e3500c7d3d13@redhat.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA58D@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="B4jlfRJk9sh51sJDPxaeTFG9r0QdnC0nw"
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1460646879-617-17-git-send-email-pmladek-IBi9RG/b67k@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Michal Hocko <mhocko-AlSwsSmVLrQ@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="bWGdIT5TCniaaSW5Xn9UfpQ9eFfkWxp3x"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA58D-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert J <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---B4jlfRJk9sh51sJDPxaeTFG9r0QdnC0nw
+--bWGdIT5TCniaaSW5Xn9UfpQ9eFfkWxp3x
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 04/14/2016 11:14 AM, Petr Mladek wrote:
-> Kthreads are currently implemented as an infinite loop. Each
-> has its own variant of checks for terminating, freezing,
-> awakening. In many cases it is unclear to say in which state
-> it is and sometimes it is done a wrong way.
+On 05/18/2016 11:22 AM, Woodruff, Robert J wrote:
+>> In this case, I expect you guys to be hurting hard when you try to do =
+all the backports.  The problem is that in the last year we have made lot=
+s >of changes that depend on upstream kernel improvements both inside the=
+ RDMA stack and out.  I suspect this backport cycle may be worse >than th=
+ose in the past.  But I could be wrong...
 >=20
-> The plan is to convert kthreads into kthread_worker or workqueues
-> API. It allows to split the functionality into separate operations.
-> It helps to make a better structure. Also it defines a clean state
-> where no locks are taken, IRQs blocked, the kthread might sleep
-> or even be safely migrated.
->=20
-> The kthread worker API is useful when we want to have a dedicated
-> single thread for the work. It helps to make sure that it is
-> available when needed. Also it allows a better control, e.g.
-> define a scheduling priority.
->=20
-> This patch converts the frm_pool kthread into the kthread worker
-> API because I am not sure how busy the thread is. It is well
-> possible that it does not need a dedicated kthread and workqueues
-> would be perfectly fine. Well, the conversion between kthread
-> worker API and workqueues is pretty trivial.
->=20
-> The patch moves one iteration from the kthread into the work function.
-> It preserves the check for a spurious queuing (wake up). Then it
-> processes one request. Finally, it re-queues itself if more requests
-> are pending.
->=20
-> Otherwise, wake_up_process() is replaced by queuing the work.
->=20
-> Important: The change is only compile tested. I did not find an easy
-> way how to check it in a real life.
+> Yes, and of course it depends on which distro kernel we attempt to back=
+port to. For the later model RHEL 7.x and SLES 12 kernels, it may not
+> be as bad, if those kernels have picked up the required upstream kernel=
+ improvements. I am however worried that it might be too hard to try to b=
+ackport to a RHEL 6.x series kernel. We'll have to evaluate that once we =
+start work on the next major OFED.=20
 
-I had to do some digging myself to figure out how to move forward on
-this patch.  The issue is that your conversion touches the fmr_pool code
-as your target.  That code is slowly being phased out.  Right now, only
-two drivers in the IB core support fmr: mthca and mlx4.  The generally
-preferred method of mem management is fr instead of fmr.  The mlx4
-driver support both fr and fmr, while the mthca driver is fmr only.  All
-of the other drivers are fr only.  The only code that uses the fmr pools
-are the upper layer iSER and SRP drivers.  So, if you have mthca
-hardware, you can test fmr using either iSER or SRP clients.  If you
-have mlx4 hardware, you can still test fmr by using the SRP client and
-setting prefer_fr to false when you load the module.
+I would not be surprised in the least if backports to an EL6 kernel are
+a simple no-go for current upstream code.
 
-Now that I know that, I can provide testing of this patch when the
-overall patchset is ready to be submitted next.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -75,7 +49,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---B4jlfRJk9sh51sJDPxaeTFG9r0QdnC0nw
+--bWGdIT5TCniaaSW5Xn9UfpQ9eFfkWxp3x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -84,19 +58,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPIwBAAoJELgmozMOVy/drgsP/jbdrRoWcMiq7FnAV/MGP7+C
-Pf8VqrSoMgF6RrdIRofcrpZP+eODYdBleTqq14fFpnN3tMvCnLGyKr2fpFlpw95C
-gKIt8TVLNWnGRkfOhgvtJ0L/VAraF4QFXvGHasKw8QGSuDCP2tXfM3O0OFeAnUNx
-MAXj6B0QIfhMGZTgRbSfZ+HS8O8gYYC50vMwzXGyRqsafh5GqmtVGWH6e1UQ7FfT
-zh+bt6WFJw6Y3fgZKQWnY9PuXdeMr1bXr5O2nf4JEhFfenP/D26CpkEwf+iAAQSi
-0R84T3tFFR6WCqB/RjnGHhcF358dWoXNyV6SJcgGlJ9pYfRQ5nWRpi50iLiak7eK
-QBRcBwlBl4eVFRuWB2GDAz6qovRWcZsCDjZCkNaJdH6/K7nd4n70moGEihoJ2GVd
-6yheYxn4Vg7Kv9r29O25S0/3WBHLchjeX+y10uQkxvyGW+/jdywWISI7j9Mt9G9G
-trs4OEyQsAb0x73ye548tkPtHm/jAEapcEwt+v6Ilb3lp2qCcd/2gm7SbIZIJlFe
-g8FDUdO5qo7nbK0sQW6UNkYwXweXMprSNy6dNgf6L1K46+EW3nRj/L5XhnEWTLZq
-3qzNudWCKD/xSS5LTUoEm23DUGeLBRQmH0Xdd4OxK67KDIwk8UrMJ344FCF1uxOa
-uLneBbe4G4ZHE9ZxdySO
-=T0xk
+iQIcBAEBCAAGBQJXPIxRAAoJELgmozMOVy/dElcQAKvzK4zIZNir386KV56qT9ml
+tF/zZvHux+WxZwW8oNLQ9GfWrE0B3hvmygQ1dZfz4KNckim385h4NOBsjI4rLfzu
+Y7hMela1DmGetoxqdOcxXrT/5IWfq4MguEYNGS9kWGOxIXX3c+2M8KB7pfIv1iBj
+tVfHhS2yyBO1XWVyPcK0OE4GP4zm3eqO3g40n1xsdMqswca6eoc6QgTwUsSgFFoO
+DcVcvfFRpO8dQQ0tnjJS9XMEoDI1UOrp7Q9Ailj8g0rwRyokm+F+hdXH8PJBtm/f
+JKXYFUFODOECmGUP2W3sRi8kcudlMLXCvTIhbGCrpLcKnpUrvhycQI2e7kE+JCN4
+Hidi3H5k4YZokI4LfjltlSWsEtAf6Z53HRfyHQreheDQ5zOvJlg/kVFHbWXdGVzd
+lashQmG0Pmq+iJdoFhblzXWaU9ivjRw1CjUGSFibP/OHXaxaNCJyXILc8LBPyDRh
+/eEoky/uqF6tzMg8aue4DzsqYjB+tE1BAwVvQfSNY/IjdH6IFus6TBeDIpqAkVDX
+nmIT3ykhGYX2Exo7/+OzKYa5ndk6l3KUIOFtJJPqBDSApgfjfqXJd/SHoY5yjs+P
+djB3Qsef4/Ql4qF/ipkVdlzf/dFO/EPc8/KOnBLywmNiiZpdUjmAyWt+TKKwNrdU
+sbsQxcmen1XxGv9E+3sF
+=cE6U
 -----END PGP SIGNATURE-----
 
---B4jlfRJk9sh51sJDPxaeTFG9r0QdnC0nw--
+--bWGdIT5TCniaaSW5Xn9UfpQ9eFfkWxp3x--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
