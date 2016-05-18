@@ -1,29 +1,55 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: OFED release with RoCE v2 support
-Date: Wed, 18 May 2016 15:22:37 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA58D@ORSMSX115.amr.corp.intel.com>
-References: <BN4PR11MB094679B0C45AA332E6BEE7BBFF770@BN4PR11MB0946.namprd11.prod.outlook.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DDB98D5@ORSMSX115.amr.corp.intel.com>
- <BN4PR11MB0946718DFF5ECF08958AC620FF490@BN4PR11MB0946.namprd11.prod.outlook.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA450@ORSMSX115.amr.corp.intel.com>
- <5a4ccdf6-94d9-3038-175d-e3500c7d3d13@redhat.com>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Wed, 18 May 2016 15:09:05 +0000
+Message-ID: <VI1PR05MB1391F03CA2C8975CF9656D0CD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+References: <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <20160516185434.GC4662@leon.nu>
+ <82b21da8-8bec-a7ed-fc48-b7570c0aa4ce@redhat.com>
+ <20160516210327.GB10945@obsidianresearch.com>
+ <VI1PR05MB1391FBF91190C84744581DB8D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <20160517165647.GB19976@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5a4ccdf6-94d9-3038-175d-e3500c7d3d13-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160517165647.GB19976-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->In this case, I expect you guys to be hurting hard when you try to do all the backports.  The problem is that in the last year we have made lots >of changes that depend on upstream kernel improvements both inside the RDMA stack and out.  I suspect this backport cycle may be worse >than those in the past.  But I could be wrong...
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Tuesday, May 17, 2016 7:57 PM
+> To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+> resolution module into core
+> 
+> On Tue, May 17, 2016 at 05:00:03AM +0000, Mark Bloch wrote:
+> 
+> > Are you talking about  the changes in ibnl_add_client?
+> > Those changes were because of a different module (ib_sa.ko)
+> 
+> Bleck, why is this such a mess? Can't you get everything into one
+> module so we don't need this dynamic stuff??
+Well, seeing as ib_sa.ko doesn't have to be loaded we will still need
+A dynamic part somewhere, to handle the registration/deregistration.
+We will probably need a new module to manage that.
+I think this is doable, but do we need it?
 
-Yes, and of course it depends on which distro kernel we attempt to backport to. For the later model RHEL 7.x and SLES 12 kernels, it may not
-be as bad, if those kernels have picked up the required upstream kernel improvements. I am however worried that it might be too hard to try to backport to a RHEL 6.x series kernel. We'll have to evaluate that once we start work on the next major OFED. 
+I agree there might be a more elegant solution, but I don't see any other
+modules that will use it.  Do we have a use case other than ib_sa/ib_core?
 
-
+Mark
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
