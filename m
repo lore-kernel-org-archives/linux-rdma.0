@@ -1,60 +1,63 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/security: Restrict use of the write() interface
-Date: Wed, 18 May 2016 10:20:12 -0700
-Message-ID: <20160518172012.GA6879@kroah.com>
-References: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
+Date: Wed, 18 May 2016 11:25:42 -0600
+Message-ID: <20160518172542.GA15516@obsidianresearch.com>
+References: <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
+ <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
+ <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
+ <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
+ <alpine.DEB.2.20.1605161238560.10085@east.gentwo.org>
+ <102cd100-55f7-fa85-cd75-ba0db5b9fa34@redhat.com>
+ <alpine.DEB.2.20.1605170918080.9956@east.gentwo.org>
+ <3e9a3e19-58cb-c25f-89a1-f0e51df562d8@redhat.com>
+ <20160517170027.GC19976@obsidianresearch.com>
+ <bc83cc75-aa2e-6fc6-e1c6-a0190b972013@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <bc83cc75-aa2e-6fc6-e1c6-a0190b972013-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 18, 2016 at 12:58:38PM -0400, Doug Ledford wrote:
-> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Tue, May 17, 2016 at 01:34:34PM -0400, Doug Ledford wrote:
+> > I noticed this too, but for sysfs reading I just felt it doesn't
+> > matter.
 > 
-> The drivers/infiniband stack uses write() as a replacement for
-> bi-directional ioctl().  This is not safe. There are ways to
-> trigger write calls that result in the return structure that
-> is normally written to user space being shunted off to user
-> specified kernel memory instead.
-> 
-> For the immediate repair, detect and deny suspicious accesses to
-> the write API.
-> 
-> For long term, update the user space libraries and the kernel API
-> to something that doesn't present the same security vulnerabilities
-> (likely a structured ioctl() interface).
-> 
-> The impacted uAPI interfaces are generally only available if
-> hardware from drivers/infiniband is installed in the system.
-> 
-> Reported-by: Jann Horn <jann-XZ1E9jl8jIdeoWH0uzbU5w@public.gmane.org>
-> Signed-off-by: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> [ Expanded check to all known write() entry points ]
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 3.14.x
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> [ Expanded to include removed ipath driver, and dropped non-existent
->   hfi1 driver ]
-> ---
->  drivers/infiniband/core/ucm.c                |  4 ++++
->  drivers/infiniband/core/ucma.c               |  3 +++
->  drivers/infiniband/core/uverbs_main.c        |  5 +++++
->  drivers/infiniband/hw/ipath/ipath_file_ops.c |  5 +++++
->  drivers/infiniband/hw/qib/qib_file_ops.c     |  5 +++++
->  include/rdma/ib.h                            | 16 ++++++++++++++++
->  6 files changed, 38 insertions(+)
+> I prefer not to have O(n^2), even for sysfs.  You say it doesn't matter,
+> but if someone creates a script to check all of their stats via
+> sysfs
 
-I don't understand, is this only for 3.14.x?  If so, what is the git
-commit id in Linus's tree for this?
+Well, it matters if it actually takes a long time, but I don't really
+care of it is O(n^2) and still only adding a few additional 100us's..
 
-thanks,
+> > and nothing should use sysfs except
+> > debugging.
+> 
+> Nobody manually checking on numbers themselves will use netlink.  And if
+> the stats are there, people will check them.  You can't depend on this
+> being used for debug access only.  If I recall correctly, ibstatus uses
+> all sysfs entries, and people would easily think that using it uses the
+> "preferred" method.  So, like I said, if it's there, it *will* get used,
+> and not just for debug,
 
-greg k-h
+Why would people manually use sysfs? A netlink interface would be
+accompanied by a tool. I don't schlep around in sysfs for netdev, I
+use 'ip -s link show'
+
+> > Caching is going to detrimental to apps that sync stats with external
+> > time. (which is almost every real-world app)
+> 
+> That's problematic with or without caching as the stats don't have a
+> timestamp, so scheduling delays could easily make the stats that you
+> get
+
+One can avoid scheduling delays with the right SCHED_ policy, how do
+you avoid timing jitter from caching?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
