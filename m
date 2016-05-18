@@ -1,50 +1,63 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Do not require CAP_NET_ADMIN for flow steering
-Date: Wed, 18 May 2016 14:40:56 -0400
-Message-ID: <2cba91dc-3489-0376-fe74-a3fa1c5d63a7@redhat.com>
-References: <alpine.DEB.2.20.1605131020320.13832@east.gentwo.org>
- <alpine.DEB.2.20.1605131051170.27372@east.gentwo.org>
- <cf61efc8-e426-dd7c-7065-e46bbfb323b0@redhat.com>
- <alpine.DEB.2.20.1605160853050.23895@east.gentwo.org>
- <2994c976-8ed1-75f9-7534-2d0e5f5303b8@redhat.com>
- <alpine.DEB.2.20.1605161123170.26453@east.gentwo.org>
- <9fa74108-e2f8-6a42-6d71-bf50b754734d@redhat.com>
- <alpine.DEB.2.20.1605181311460.14296@east.gentwo.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Wed, 18 May 2016 14:42:48 -0400
+Message-ID: <561a675d-89d2-e675-cf83-e86ecb7519b6@redhat.com>
+References: <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <VI1PR05MB13915036338162B126E55CC2D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
+ <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
+ <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <0558d12b-2646-63b4-89f8-9bf4aba689db@redhat.com>
+ <20160518171536.GB15170@obsidianresearch.com>
+ <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
+ <VI1PR05MB1391B1C6DFE620C31A6474A0D2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1C5ndle4hpdD93K2Kb8mFMgI7F8Mtc6sr"
+ boundary="897p3pAnhj7B1O73fgqEd8FBUTHTfFhCQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1605181311460.14296-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <VI1PR05MB1391B1C6DFE620C31A6474A0D2490-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ira weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1C5ndle4hpdD93K2Kb8mFMgI7F8Mtc6sr
+--897p3pAnhj7B1O73fgqEd8FBUTHTfFhCQ
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/18/2016 02:12 PM, Christoph Lameter wrote:
-> On Wed, 18 May 2016, Doug Ledford wrote:
+On 05/18/2016 02:28 PM, Mark Bloch wrote:
 >=20
->>> One can switch the interface into promiscuous mode in addition if one=
-
->>> wants that. Then you need CAP_NET_ADMIN.
+>=20
+>> -----Original Message-----
+>> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+>> Sent: Wednesday, May 18, 2016 8:59 PM
+>> To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>> Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+>> resolution module into core
 >>
->> I've applied your patch.  I completely reworded the commit message,
->> you'll want to check that it meets your satisfaction before I issue my=
+>> On 05/18/2016 01:15 PM, Jason Gunthorpe wrote:
+>>> On Wed, May 18, 2016 at 10:51:02AM -0400, Doug Ledford wrote:
+>>>> moves it into the ib_core and also keep the new ib_netlink stuff in
+>>>> ib_core.  So, fewer modules, not more.
+>>>
+>>> What about getting rid of ib_sa as well so we can avoid that dynamic
+>>> netlink registration patch too?
+>>
+>> That's fine too.
+> Integrating ib_sa into ib_core also means to do the same for ib_mad.
+> If you agree with it (ib_sa & ib_mad becoming part of ib_core), I'll cr=
+eate the patches.
 
->> pull request.
->=20
-> I wish I knew how to view the patch. Its not in the kernel.org git repo=
-=2E
-> Could you post the patches you edit or provide a link to them. See how
-> Andrew Morton does it.
->=20
-
-It's in *my* kernel.org repo.  Where you trying to see it in Linus' repo?=
+Ira, Hal?
 
 
 --=20
@@ -53,7 +66,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---1C5ndle4hpdD93K2Kb8mFMgI7F8Mtc6sr
+--897p3pAnhj7B1O73fgqEd8FBUTHTfFhCQ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,22 +75,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPLc4AAoJELgmozMOVy/dnNYQAIi1kU/Cfz6r5xs7BOYGt/cM
-lQakoj2FeZFMRxRuRdgUDi5dnHdQUl/Epv1Up9IhD69OxsZzVPWUkIixeTIKJtad
-7n4sHWIPa0bu3TvEVcY3kf57ALKfaVkWCjjKA8bxKXhPRJbKIa3YJdkXDCBI64wB
-fXB2W/CZTKoWpSq0PLNRXc6w3u7klWxsYYT6vRYf4LM2yVPuA9kWc47WcNYnRK4G
-mXhk8+UhmeMfEKV1FGeu+suAE5cc0bVIUkgkL1IZV4LB921VCBoqucvpL8ZAFOff
-5Hkq/nm2x7yTb1cJWdoLQJB1dr6CNXZwmXjqdohkwqh2Kt+USNgy0i5MBJlQbOfh
-M9FsCPSuirCQSfi7q0FETbjBE+X9YAfzn1YmV1hxMmUsQm7Pe79RIcJj5Upx9nCM
-EjmDxXu5cFW0oZp6waBZwZFW43AALyWeFWPUTk57qcmWvBnm4mMrie4LYdvqr57V
-vsiwm9x6QHg3RH8MAePBAFHjqjp38Aax/scO1IFlf0yswRe4Wc3sdY3TY0nocdi3
-9e6+ZeKyrD/Sr0Vx3FjXMrAL9vGS32I1m5laYE00c7mRRkt1g24Tp3ZA9HASCy7K
-6ynLbg2wThs9OH9YTzbzicAhNLmP8Cfbu7Y1cioPQi8J8MfM7xcHUua5O+XUV5Gl
-o0Mpuu9R1mmptOj4072E
-=iW4W
+iQIcBAEBCAAGBQJXPLeoAAoJELgmozMOVy/dhosQAJhSGpBcpl0Bn5VWRSHlUrNf
+3puXfFVLragFmJuhmRfuY2cGVRimsdXqzZcXCnJugo3Oin+zMUNx46r751vYJnRy
+xfhmRoGe2lAA7Eicw9qMlKNj9Ywt1uxydzWckCSpbwmuwLzJTrgzdU6E9g9POnaU
+F/Gq0o7sVdbMCJB2iEGgz9GtOtqyZ/XuNLx8PvFKE2aNRvpPmRasKsvuXAQxOG9A
+VzOCetEksCysfvGWtdGcvEtW4MyFTdAJwVIbgk43Rhzy7UTqER0+cGp4uujG8blw
+k5Txqk5ze/pIsGCNxhtJOx0u7tZ91PB2s4xIVoTvkke/V0bjU2cBL03DEyD61IUC
+VD2hUg+BBzh+6bYZhgyrVAam5loaOFNKCnObQY9KtnapA0lEb+gb5YZ0tGAb817D
+KKv2yVg0zfwiAijMYkeydU5czaRIRT9LypdcmKr21iZlq7oC5yBqRcmatYMHkWXA
+30hv+xKR5vqWzBuNSLRAmFV+Fd0jcK3pl7sYcAb28hCHv+cNwmKbjVz09NMyB1DL
+1XaT6LjxF0e94I3J1o7K34qlu0ljNZsv/ZFF6EOuIeVdr9M1G5pbVpIzJuvNq+Nm
+Woph4XRyI1ZzJYi/3g0/TVTxtRqwaZNtOV7+tsZ6cF5jXzP+DWuVTswAmYhUtEVK
+3PZjpUr5zskKyUR9QE/P
+=TqdR
 -----END PGP SIGNATURE-----
 
---1C5ndle4hpdD93K2Kb8mFMgI7F8Mtc6sr--
+--897p3pAnhj7B1O73fgqEd8FBUTHTfFhCQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
