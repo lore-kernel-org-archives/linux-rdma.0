@@ -1,74 +1,53 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/security: restrict use of the write() interface
-Date: Wed, 18 May 2016 17:40:00 -0400
-Message-ID: <07725b77-3275-ea07-4315-13997aeed70f@redhat.com>
-References: <1b7a157f0f701f65ee8de1c208df256e860d7b93.1463589719.git.dledford@redhat.com>
- <20160518204203.GB4268@whence.com>
+Subject: Re: [PATCH] IB/security: Restrict use of the write() interface
+Date: Wed, 18 May 2016 17:42:34 -0400
+Message-ID: <673ebb5e-80fa-f4d5-1fbd-59e8a27e0f86@redhat.com>
+References: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
+ <20160518172012.GA6879@kroah.com>
+ <c6c952ea-3562-48e1-cf56-5b8c810654f1@redhat.com>
+ <CAJ3xEMi0Rg7nc7TN9Hn7=nuWmBZH1qoncKr+HuzjUP=8yMRrDA@mail.gmail.com>
+ <53639dec-5d1d-58af-3022-963368c144db@redhat.com>
+ <CAJ3xEMjrNUYPmxSBm6J-w+3gr6Uv60tN-Y00=o4dk1aS9yEYuA@mail.gmail.com>
+ <8496b72b-c6ac-4d71-48c1-80d48991b6ca@redhat.com>
+ <CAJ3xEMj4Q0Y1OsEqJaoEpWjitaLDy0G8qmLBrPo30JCc596Kyw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="Sh903NuLnouMs2Vrj7xS7wJ491odQ23fJ"
+ boundary="FkHTTbeO6tk4QTqC1qCPSwt8vX9QCVJPu"
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160518204203.GB4268@whence.com>
+In-Reply-To: <CAJ3xEMj4Q0Y1OsEqJaoEpWjitaLDy0G8qmLBrPo30JCc596Kyw@mail.gmail.com>
 Sender: stable-owner@vger.kernel.org
-To: Kamal Mostafa <kamal@canonical.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Greg KH <greg@kroah.com>, stable@vger.kernel.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Sh903NuLnouMs2Vrj7xS7wJ491odQ23fJ
-Content-Type: text/plain; charset=windows-1252
+--FkHTTbeO6tk4QTqC1qCPSwt8vX9QCVJPu
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 05/18/2016 04:42 PM, Kamal Mostafa wrote:
-> On Wed, May 18, 2016 at 12:41:59PM -0400, Doug Ledford wrote:
->> Upstream commit e6bd18f57aad (IB/security: Restrict use of the write()=
-
->> interface) handled the cases for all drivers in the current upstream
->> kernel.  The ipath driver had recently been deprecated and moved to
->> staging, and then removed entirely.  It had the same security flaw as
->> the qib driver.  Fix that up with this separate patch.
->>
->> Note: The ipath driver only supports hardware that ended production
->> over 10 years ago, so there should be none of this hardware still
->> present in the wild.
->>
->> Cc: stable@vger.kernel.org # <=3D 4.2.x
->> Signed-off-by: Doug Ledford <dledford@redhat.com>
->> ---
->>  drivers/infiniband/hw/ipath/ipath_file_ops.c | 5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/in=
-finiband/hw/ipath/ipath_file_ops.c
->> index 450d15965005..1f94b560d749 100644
->> --- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
->> +++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
->> @@ -45,6 +45,8 @@
->>  #include <linux/uio.h>
->>  #include <asm/pgtable.h>
->> =20
->> +#include <rdma/ib.h>
->> +
->>  #include "ipath_kernel.h"
->>  #include "ipath_common.h"
->>  #include "ipath_user_sdma.h"
->> @@ -2244,6 +2246,9 @@ static ssize_t ipath_write(struct file *fp, cons=
-t char __user *data,
->>  	ssize_t ret =3D 0;
->>  	void *dest;
->> =20
->> +	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
->> +		return -EACCESS;
+On 05/18/2016 04:36 PM, Or Gerlitz wrote:
+> On Wed, May 18, 2016 at 10:59 PM, Doug Ledford <dledford@redhat.com> wr=
+ote:
+>> On 05/18/2016 03:47 PM, Or Gerlitz wrote:
 >=20
-> (Same as for the 4.4.x patch)...
+>>> Is there a special reason you didn't add the CVE number to the change=
+-log?
 >=20
-> This needs to be "EACCES" (one fewer 'S').
+>> I didn't write the commit change log.  I used the commit change log fr=
+om
+>> the original patch that didn't fail to apply.
 >=20
-> Thanks, Doug.  Queued up (with one fewer 'S') for 4.2 and 3.19 -stable.=
+> I mean on the original patch when you added your maintainer S.O.B
 
+Because of an issue of confusion.  Red Hat had an internal CVE assigned,
+but I didn't know I could put that on here.  There wasn't an assigned
+MITRE CVE yet.  Then people noticed the patch, someone requested a CVE
+on the mitre list, and another one got assigned.  Red Hat has since
+dropped their internal CVE and adopted the mitre CVE.  That probably
+would have been avoided had I known to put Red Hat's internal CVE on ther=
+e.
 
-Thanks for fixing it up!
 
 --=20
 Doug Ledford <dledford@redhat.com>
@@ -76,7 +55,7 @@ Doug Ledford <dledford@redhat.com>
 
 
 
---Sh903NuLnouMs2Vrj7xS7wJ491odQ23fJ
+--FkHTTbeO6tk4QTqC1qCPSwt8vX9QCVJPu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -85,19 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPOEwAAoJELgmozMOVy/dOCsQAKjnjZVTOw9k+65GuVjJj+Dc
-O+CdoS1LFNUuESHxaWizcWty/FR8rtNP5ODUKzm5KTKv96r1y5YYg3Y0nDl+deb5
-EL7mnZEjHhGf9gpSiuv2zDK2+w40T8YIGgz+PjQvtgMsvzHRVoZqTRH7Nza53JC0
-In4I5NFQHq9+OowKdc0aaWiQ/40oP5ma9OZwe/hY+KegJVKDMoPE5xKlD5AOgX5A
-mhNJOt8QPuf9io6E9mOx4e95BY3GjHQCHjreHRCWLfJU8gPzyi/He6V0V9jS6nSq
-s6odUmm3NBFL7G16WU3TjTJgODEozvtPFwMs1R3yiRkUXcsm6O+a0Vkqovto4RJi
-W2a+oYp1O0trBmp15SrG/CXSFIStMUtYguOyUAGIFFlmT0KgC9KW8ViV+b7Pz4pr
-g6UMnO0KrDNkxqYb0Wd/8g6XU/Z9LlzvlEu47XnVm5SlODf+QVZGTezja1USqk91
-PqP2JEFx0ulARZqZZ+s5se00OIY6DHcdmiirxoj8r+qpgx8HUKjJ/FNIt/FA/Quc
-O2Ui9Gjc8vNK2OcDBCCZM/dTxJVS7ECLVQc3UlcIYLak6IcN6+2g6vyDfCEZaj+I
-AbfIcp985YBrOl/DYJcVERxDJUyaLOf4tHJBARbFSdGwB/MSkQUOQnqjQYaA1AhW
-p4Ehjw1Qr0Lw2eEjBOHk
-=pqo8
+iQIcBAEBCAAGBQJXPOHKAAoJELgmozMOVy/drxYP/04eVgo1/HX+B1mYdfz+Kxv5
+xfrzMBmdZZUURc1gWP2//M72o+mb69agEM01mL7xanZRBNt1N+8bvSfY1++KLs6C
+qXfI2qhSfR2Excm2RY6Oh1BEMAIc2rFpjiTX7hfG6AnYaKeAqd24XJGWWH0Cj3VI
+sAHszQZ37idvs329fLpJh9A2PSRQeS9Ce7Bck/o7m5Uq7JMJ9fgQ8Ml9e1Er4zGS
+yyHYm0z5IOGwY3+epi1qOx+iXknlgrDjTSCAlTwjucUE00epHs2BsNf+RUk144CT
+vlmlTPH96+SmVBF30HWtB3ibD/kCpkZMXin302G6wo5M2WVA7Op51HgwXQ2nxFDQ
+GRKm1NzfTDdFoAbBeyJRhMqw3d33wjTYtY4KNaO7zssW7G3XHlDrRhFW4s4FT4Zz
+fwvXcKLLFecj0xisKBRr7m7KinjnXHjr7b/oIhybuSDEBZfroXqLi/O+wFJyV1lK
+xpOW35OodCg0JJrf5n1MzWHOZL3l3z/6chDdgsuWa9sUE737TSSq1uaqi5WjT4Ef
+j/Q6dlc6vzQaNo4/9VzJ2mEw/+EwWvqG9RKRd/Gwl8zXyxrqW+bO81HDnLyQYzAs
+xe7tDLi38hZS57En61aybd0rhxtx0TibLcDuHR3K/bpwza319x+u/b0L1pA8/uh4
+ZK2TOWP2SLg9MMqxkNML
+=YF1r
 -----END PGP SIGNATURE-----
 
---Sh903NuLnouMs2Vrj7xS7wJ491odQ23fJ--
+--FkHTTbeO6tk4QTqC1qCPSwt8vX9QCVJPu--
