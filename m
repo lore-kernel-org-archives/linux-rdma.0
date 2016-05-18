@@ -1,39 +1,38 @@
-From: Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: OFED release with RoCE v2 support
-Date: Wed, 18 May 2016 00:30:54 +0000
-Message-ID: <BN4PR11MB0946718DFF5ECF08958AC620FF490@BN4PR11MB0946.namprd11.prod.outlook.com>
-References: <BN4PR11MB094679B0C45AA332E6BEE7BBFF770@BN4PR11MB0946.namprd11.prod.outlook.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DDB98D5@ORSMSX115.amr.corp.intel.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: CQ and RDMA READ/WRITE APIs
+Date: Wed, 18 May 2016 08:18:49 +0530
+Message-ID: <CAG53R5VSjz_G1adajcoUdgh3Sf1yyKf7UREFoNF9x_V+N6oR6A@mail.gmail.com>
+References: <743399f9-10b7-6e62-2bf4-6a8656df8a55@redhat.com>
+	<20160516114926.GA681@lst.de>
+	<f6fdfc59-8193-18ed-0449-a16bba4601e0@redhat.com>
+	<CA+55aFzq+4DJL46B8PXQQG-DpNpzZNzk=O6j+8U_NC6H6BwTdQ@mail.gmail.com>
+	<6633ce02-7983-ad09-f95d-03cea6f54e31@redhat.com>
+	<573B550D.5020008@sandisk.com>
+	<732fb772-2f21-3ac9-a35a-aa4383734df5@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDB98D5-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <732fb772-2f21-3ac9-a35a-aa4383734df5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
-> -----Original Message-----
-> From: Woodruff, Robert J [mailto:robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Tuesday, May 17, 2016 7:23 AM
-> To: Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-> Subject: RE: OFED release with RoCE v2 support
-> 
-> >When can we expect to see an OFED release with RoCE v2 support?
-> 
-> Since the RoCEv2 support has now been accepted upstream (in 4.6 I believe),
-> it will be in the next major OFED release which we will start working on
-> following the completion of OFED-3.18-2.  Work on that next OFED should
-> start in a few weeks as OFED-3.18-2 is already at RC1.
+On Tue, May 17, 2016 at 11:02 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> Nice catch there Bart.  That was well before my role as maintainer and
+> so settles things well enough for me.  IOW, I don't feel I need to worry
+> about trying to maintain the dual license nature of the RDMA stack as it
+> was broken long before I took over.  Thanks for pointing that out.
+>
 
-Thanks for the quick response.  
+Does it mean we can submit new code files under GPL only license?
+I submitted RDMA cgroup related code in ib_core under GPLv2 only license.
+Existing files which are calling those new APIs will continue to be
+dual license (similar to CQ and RDMA APIs)?
 
-Do we have any rough estimate on when the next major release of  OFED will GA?
+Parav
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
