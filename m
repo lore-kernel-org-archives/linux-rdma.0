@@ -1,55 +1,54 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 1/1] IB/mlx4: Unaligned access in send_reply_to_slave
-Date: Wed, 18 May 2016 10:41:13 -0400
-Message-ID: <bacbd948-1a7e-4c8b-0397-3699093d88be@redhat.com>
-References: <1463566690-22881-1-git-send-email-shamir.rabinovitch@oracle.com>
+Subject: Re: [PATCH] IB/core: Do not require CAP_NET_ADMIN for flow steering
+Date: Wed, 18 May 2016 10:42:21 -0400
+Message-ID: <9fa74108-e2f8-6a42-6d71-bf50b754734d@redhat.com>
+References: <alpine.DEB.2.20.1605131020320.13832@east.gentwo.org>
+ <alpine.DEB.2.20.1605131051170.27372@east.gentwo.org>
+ <cf61efc8-e426-dd7c-7065-e46bbfb323b0@redhat.com>
+ <alpine.DEB.2.20.1605160853050.23895@east.gentwo.org>
+ <2994c976-8ed1-75f9-7534-2d0e5f5303b8@redhat.com>
+ <alpine.DEB.2.20.1605161123170.26453@east.gentwo.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="2IIDelUwu36tUicUnUHtwatMVb69dXtNu"
+ boundary="pgShRl61f6wdt4OwJO4jeT6GIQcmbFEBx"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463566690-22881-1-git-send-email-shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1605161123170.26453-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, marinav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---2IIDelUwu36tUicUnUHtwatMVb69dXtNu
+--pgShRl61f6wdt4OwJO4jeT6GIQcmbFEBx
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 05/18/2016 06:18 AM, shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org wrote:
-> From: shamir rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 05/16/2016 12:28 PM, Christoph Lameter wrote:
+> On Mon, 16 May 2016, Doug Ledford wrote:
 >=20
-> The problem is that the function 'send_reply_to_slave' get the
-> 'req_sa_mad' as pointer whose address can be unaligned to 8 bytes.
-> In this case the compiler cannot know in advance what will be the
-> alignment of the 'data' field.
->=20
-> Sowmini Varadhan pointed to this reply from Dave Miller that say
-> that memcpy should not be used to solve alignment issues:
-> https://lkml.org/lkml/2015/10/21/352
->=20
-> Optimization of memcpy to 'ldx' instruction can only happen if the
-> compiler see that the size of the data we copy is 8 bytes and it
-> assume it is aligned to 8. If the compiler know the type is not
-> aligned to 8 it must not optimize the 8 bytes copy. Defining the
-> data type as aligned to 4 force the compiler to assume it is not
-> aligned to 8 at all time.
->=20
-> Full credit for the idea goes to Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>.
->=20
-> v3: Change patch according to suggestion by Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->=20
-> v2: Minor fix in patch headline by Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->=20
-> Signed-off-by: shamir rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> CAP_NET_RAW is sufficient for tcpdump and this is not more than that.=
 
-I considerably reworked the commit message, but otherwise applied.  Thank=
-s.
+>>
+>>
+>> That's not true.  In order to set promisc on an interface, tcpdump cal=
+ls
+>> ioctl with SIOCSIFFLAGS as the ioctl and IFF_PROMISC set in the flags,=
+
+>> and in net/core/dev_ioctl.c we see this check for SIOCSIFFLAGS:
+>=20
+> Tcpdump works fine without promiscuous mode. DONT_TRAP does not
+> mean that the interface is switched into promiscuous mode. It just mean=
+s
+> that all traffic accepted by the hardware is also going to the QP
+> specified.
+>=20
+> One can switch the interface into promiscuous mode in addition if one
+> wants that. Then you need CAP_NET_ADMIN.
+
+I've applied your patch.  I completely reworded the commit message,
+you'll want to check that it meets your satisfaction before I issue my
+pull request.
 
 
 --=20
@@ -58,7 +57,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---2IIDelUwu36tUicUnUHtwatMVb69dXtNu
+--pgShRl61f6wdt4OwJO4jeT6GIQcmbFEBx
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -67,22 +66,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXPH8JAAoJELgmozMOVy/djswQALKMiWhLgZOrKHlHg2SSLYk3
-rbzLZi6WX9SGoi58z4B8mNGatPW1eySypCyxHv08hzSZ2xNdpSvCuQ4wttRkCkjF
-Cbbljken0i/5YS2yQxg+1p/cqDSG5gy+xh7qMkGiq5UHCqiBJD0PH0YY/dVt4jT3
-uVOxPGfiNkMM28mQY90SG9fGnAShz2RSxJic68Xpc7TlMdZ35Oj2PFAhL9kNayAP
-v6pEzBHe+arhnDHJjq2my598EA3Sh1vGahNjqD6CKsByoEGf7w63M+jcnpp4mlQO
-wty+N/TcOYX518mnAM1cEI45VlaA8terpqVI1cvlq2Dwqz86nf2bFMJTMS7B3abp
-CnNLJI7yWul/cjD+5XNrrC6O+YPSp+XSuy11wGPdd7ZWY10HXff9jS0HlFqJQv2R
-WF5kKn4JwuUoxtihC4uCaORPlyxnxbiD879cf5lkfFJaVkuv2sAn0p90pgL84+UV
-2rTqw2S/h6qJg4O7woD5cDlNnPAktHEqW+AZ8HZoXqwCjyhjoPHv85cSFGDYyLny
-8B6rwrl4uK2DOoE7B7AB189RFJBDBTAdwk8sKP20yXuVnMaLlrwxwDgSWTAUhV/+
-OK+rBoNsKc72OATyt3nf7sJscM4WLChdW0ElIb3ncj+ruqxZphYRwO791c7f3glP
-Nh+enu71mwwkNn4JDyR6
-=32XH
+iQIcBAEBCAAGBQJXPH9NAAoJELgmozMOVy/ddEMP/jhu/Em4cAVbKKDjisufWJAe
+0TI2LhJJkBjvKkTWKo1ibUKR5JIIIQks85ewlbPW7mrXMvnSc/BKBvQKb5eLHh44
+Fn2CTfjrojexjlJ7+PyklnCTKetvKGz/E58mSOiXhjrH9TRe4YSmG4WGhc02XAU8
+QihvgQb0SohL8lr0mLKmsmrYXR7ZOv+xlX63Vi54atlvAxMYv/lfUTJtKoZvIyfw
+zAJ4UuwqyGG27Qb597mE1o+714THkj/Aye13ZIRNQubtYeJENzxQQ6d8zS+Rdtlp
+fvdLAe18dh8LYoz2iIufcKevIMEA/PLaSgRSV3lzuYROKeTsCQEh9NSg1HU1nx0q
+S2Tn1mgNj1Kxt676lDgMVQowbkm3bpgxA1czsa+Lz+DsenMsLO4e+t6u17zKlNvo
+IksWjcm8EuNxDSAbr5xntTliZLqNG0rgUAD8r4I54ktFki6MgZCyW92qriK6p/K2
+w4tIucXqA58DC1zpPaosEIyOFzTHpwuG9lO1zHs78k3chLqcFkp95F5+D2KGis0q
+UzTJsYntx1YdZlzAR9u5SvE6hdlWF3edDuaCRl/wNnR8xzo6+ud3tlFy4Ikt019A
+ljStD8XrdsBzZDiKMj4606YpqTI1ieR2572nTpiwJoWA+4fV6KBDSZFQ8jlqIKw5
+IqXcu8ZrRIDfvCwzy1lg
+=93z9
 -----END PGP SIGNATURE-----
 
---2IIDelUwu36tUicUnUHtwatMVb69dXtNu--
+--pgShRl61f6wdt4OwJO4jeT6GIQcmbFEBx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
