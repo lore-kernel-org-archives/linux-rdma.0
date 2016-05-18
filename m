@@ -1,51 +1,184 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: [PATCH] IB/security: restrict use of the write() interface
-Date: Wed, 18 May 2016 12:46:11 -0400
-Message-ID: <616598d79c0b8750d74e50cf22f8b61a9ef55c1d.1463589971.git.dledford@redhat.com>
+Subject: [PATCH] IB/security: Restrict use of the write() interface
+Date: Wed, 18 May 2016 12:58:38 -0400
+Message-ID: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
 Return-path: <stable-owner@vger.kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-rdma@vger.kernel.org
 Cc: dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-Upstream commit e6bd18f57aad (IB/security: Restrict use of the write()
-interface) handled the cases for all drivers in the current upstream
-kernel.  The ipath driver had recently been deprecated and moved to
-staging, and then removed entirely.  It had the same security flaw as
-the qib driver.  Fix that up with this separate patch.
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 
-Note: The ipath driver only supports hardware that ended production
-over 10 years ago, so there should be none of this hardware still
-present in the wild.
+The drivers/infiniband stack uses write() as a replacement for
+bi-directional ioctl().  This is not safe. There are ways to
+trigger write calls that result in the return structure that
+is normally written to user space being shunted off to user
+specified kernel memory instead.
 
-Cc: stable@vger.kernel.org # 4.4.x
+For the immediate repair, detect and deny suspicious accesses to
+the write API.
+
+For long term, update the user space libraries and the kernel API
+to something that doesn't present the same security vulnerabilities
+(likely a structured ioctl() interface).
+
+The impacted uAPI interfaces are generally only available if
+hardware from drivers/infiniband is installed in the system.
+
+Reported-by: Jann Horn <jann@thejh.net>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+[ Expanded check to all known write() entry points ]
+Cc: stable@vger.kernel.org # 3.14.x
 Signed-off-by: Doug Ledford <dledford@redhat.com>
+[ Expanded to include removed ipath driver, and dropped non-existent
+  hfi1 driver ]
 ---
- drivers/staging/rdma/ipath/ipath_file_ops.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/core/ucm.c                |  4 ++++
+ drivers/infiniband/core/ucma.c               |  3 +++
+ drivers/infiniband/core/uverbs_main.c        |  5 +++++
+ drivers/infiniband/hw/ipath/ipath_file_ops.c |  5 +++++
+ drivers/infiniband/hw/qib/qib_file_ops.c     |  5 +++++
+ include/rdma/ib.h                            | 16 ++++++++++++++++
+ 6 files changed, 38 insertions(+)
 
-diff --git a/drivers/staging/rdma/ipath/ipath_file_ops.c b/drivers/staging/rdma/ipath/ipath_file_ops.c
-index 13c3cd11ab92..f237a2e2a086 100644
---- a/drivers/staging/rdma/ipath/ipath_file_ops.c
-+++ b/drivers/staging/rdma/ipath/ipath_file_ops.c
-@@ -45,6 +45,8 @@
- #include <linux/uio.h>
- #include <asm/pgtable.h>
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index f2f63933e8a9..5befec118a18 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -48,6 +48,7 @@
+ 
+ #include <asm/uaccess.h>
  
 +#include <rdma/ib.h>
+ #include <rdma/ib_cm.h>
+ #include <rdma/ib_user_cm.h>
+ #include <rdma/ib_marshall.h>
+@@ -1104,6 +1105,9 @@ static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
+ 	struct ib_ucm_cmd_hdr hdr;
+ 	ssize_t result;
+ 
++	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++		return -EACCES;
++
+ 	if (len < sizeof(hdr))
+ 		return -EINVAL;
+ 
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 56a4b7ca7ee3..22e02805147b 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1484,6 +1484,9 @@ static ssize_t ucma_write(struct file *filp, const char __user *buf,
+ 	struct rdma_ucm_cmd_hdr hdr;
+ 	ssize_t ret;
+ 
++	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++		return -EACCES;
++
+ 	if (len < sizeof(hdr))
+ 		return -EINVAL;
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 08219fb3338b..d12ae04657c8 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -48,6 +48,8 @@
+ 
+ #include <asm/uaccess.h>
+ 
++#include <rdma/ib.h>
++
+ #include "uverbs.h"
+ 
+ MODULE_AUTHOR("Roland Dreier");
+@@ -594,6 +596,9 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 	struct ib_uverbs_cmd_hdr hdr;
+ 	__u32 flags;
+ 
++	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++		return -EACCES;
++
+ 	if (count < sizeof hdr)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+index 6d7f453b4d05..2b828ea3ac4a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
++++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+@@ -45,6 +45,8 @@
+ #include <linux/cpu.h>
+ #include <asm/pgtable.h>
+ 
++#include "rdma/ib.h"
 +
  #include "ipath_kernel.h"
  #include "ipath_common.h"
  #include "ipath_user_sdma.h"
-@@ -2243,6 +2245,9 @@ static ssize_t ipath_write(struct file *fp, const char __user *data,
+@@ -2240,6 +2242,9 @@ static ssize_t ipath_write(struct file *fp, const char __user *data,
  	ssize_t ret = 0;
  	void *dest;
  
-+	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
-+		return -EACCESS;
++	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++		return -EACCES;
 +
  	if (count < sizeof(cmd.type)) {
  		ret = -EINVAL;
  		goto bail;
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 275f247f9fca..ff5e7acc8d3f 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -45,6 +45,8 @@
+ #include <linux/delay.h>
+ #include <linux/export.h>
+ 
++#include <rdma/ib.h>
++
+ #include "qib.h"
+ #include "qib_common.h"
+ #include "qib_user_sdma.h"
+@@ -2057,6 +2059,9 @@ static ssize_t qib_write(struct file *fp, const char __user *data,
+ 	ssize_t ret = 0;
+ 	void *dest;
+ 
++	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
++		return -EACCES;
++
+ 	if (count < sizeof(cmd.type)) {
+ 		ret = -EINVAL;
+ 		goto bail;
+diff --git a/include/rdma/ib.h b/include/rdma/ib.h
+index cf8f9e700e48..a6b93706b0fc 100644
+--- a/include/rdma/ib.h
++++ b/include/rdma/ib.h
+@@ -34,6 +34,7 @@
+ #define _RDMA_IB_H
+ 
+ #include <linux/types.h>
++#include <linux/sched.h>
+ 
+ struct ib_addr {
+ 	union {
+@@ -86,4 +87,19 @@ struct sockaddr_ib {
+ 	__u64			sib_scope_id;
+ };
+ 
++/*
++ * The IB interfaces that use write() as bi-directional ioctl() are
++ * fundamentally unsafe, since there are lots of ways to trigger "write()"
++ * calls from various contexts with elevated privileges. That includes the
++ * traditional suid executable error message writes, but also various kernel
++ * interfaces that can write to file descriptors.
++ *
++ * This function provides protection for the legacy API by restricting the
++ * calling context.
++ */
++static inline bool ib_safe_file_access(struct file *filp)
++{
++	return filp->f_cred == current_cred() && segment_eq(get_fs(), USER_DS);
++}
++
+ #endif /* _RDMA_IB_H */
 -- 
 2.5.5
