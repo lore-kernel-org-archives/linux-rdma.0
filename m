@@ -1,34 +1,52 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH] IB/security: Restrict use of the write() interface
-Date: Wed, 18 May 2016 22:47:09 +0300
-Message-ID: <CAJ3xEMjrNUYPmxSBm6J-w+3gr6Uv60tN-Y00=o4dk1aS9yEYuA@mail.gmail.com>
-References: <02bf2ebafbc5d757c0d250d8e5fba3ebdc7393fd.1463590718.git.dledford@redhat.com>
-	<20160518172012.GA6879@kroah.com>
-	<c6c952ea-3562-48e1-cf56-5b8c810654f1@redhat.com>
-	<CAJ3xEMi0Rg7nc7TN9Hn7=nuWmBZH1qoncKr+HuzjUP=8yMRrDA@mail.gmail.com>
-	<53639dec-5d1d-58af-3022-963368c144db@redhat.com>
+From: Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: OFED release with RoCE v2 support
+Date: Wed, 18 May 2016 19:53:12 +0000
+Message-ID: <BN4PR11MB09461F99471DD8E92FB858FCFF490@BN4PR11MB0946.namprd11.prod.outlook.com>
+References: <BN4PR11MB094679B0C45AA332E6BEE7BBFF770@BN4PR11MB0946.namprd11.prod.outlook.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDB98D5@ORSMSX115.amr.corp.intel.com>
+ <BN4PR11MB0946718DFF5ECF08958AC620FF490@BN4PR11MB0946.namprd11.prod.outlook.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA450@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <53639dec-5d1d-58af-3022-963368c144db@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Greg KH <greg@kroah.com>, stable@vger.kernel.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDBA450-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 18, 2016 at 10:05 PM, Doug Ledford <dledford@redhat.com> wrote:
-> On 05/18/2016 02:59 PM, Or Gerlitz wrote:
->> On Wed, May 18, 2016 at 8:57 PM, Doug Ledford <dledford@redhat.com> wrote:
->>> On 05/18/2016 01:20 PM, Greg KH wrote:
->>
->>>> I don't understand, is this only for 3.14.x?
->>
->>> Yes.
->>
->> Wait, any reason not to apply it on all stable kernels?
->
-> It already is.
 
-Is there a special reason you didn't add the CVE number to the change-log?
+> -----Original Message-----
+> From: Woodruff, Robert J [mailto:robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> Sent: Wednesday, May 18, 2016 7:25 AM
+> To: Ameen Rahman <ameen.rahman-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> Subject: RE: OFED release with RoCE v2 support
+> 
+> 
+> >Thanks for the quick response.
+> 
+> >Do we have any rough estimate on when the next major release of  OFED
+> will GA?
+> 
+> In the past, when we move up to a new kernel version, it usually takes a fair
+> amount of time for people to develop all the backports to the various Linux
+> distro kernels.  From past experience, I would estimate at least 6 months,
+> which would put the release at the end of the year or so. If you want to keep
+> closer tabs on the activities, you can subscribe to the ewg email list and/or
+> attend the bi-weekly ewg conference calls.
 
-Or.
+Thanks again for the quick response. 
+
+I am now subscribed to the ewg mailing list.
+
+Do they send out the bi-weekly ewg conference call details in the ewg mailing list?
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
