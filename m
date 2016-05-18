@@ -1,88 +1,109 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Support RAW Ethernet when RoCE is disabled
-Date: Wed, 18 May 2016 06:31:02 +0300
-Message-ID: <CAJ3xEMhmDG+YMOehJ1zPZyLoSiiVBbLPx8XveYHa_03AS+PJZQ@mail.gmail.com>
-References: <1463317066-29900-1-git-send-email-ogerlitz@mellanox.com>
-	<f0e2e407-5a32-b5fb-1ff0-86a9bb4faa88@redhat.com>
-	<d6b3c895-6af0-33b7-79c5-f932243e7c48@mellanox.com>
-	<6a25dc81-503e-15b4-58a2-66e1cb6a16f1@redhat.com>
-	<CAJ3xEMinuAUeb2EzGBwR7fxE6+cLMxJ1WQnfM1GQ03D_-kQYZA@mail.gmail.com>
-	<18402022-8a88-f166-d813-10df90e16662@redhat.com>
-	<CAJ3xEMjDRzRc6h1NHXp9Xp004bBm95Fgf9oaEr04vY34AahmTg@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+ resolution module into core
+Date: Wed, 18 May 2016 07:41:19 +0300
+Message-ID: <20160518044119.GH4662@leon.nu>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <20160516182743.GF7248@obsidianresearch.com>
+ <5045d314-e2f5-bda6-5583-2212335593fd@redhat.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ik0NlRzMGhMnxrMX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMjDRzRc6h1NHXp9Xp004bBm95Fgf9oaEr04vY34AahmTg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5045d314-e2f5-bda6-5583-2212335593fd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 17, 2016 at 8:31 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, May 17, 2016 at 4:01 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> On 05/16/2016 05:03 PM, Or Gerlitz wrote:
->
->>> To answer your questions: YES there is a way, namely
->>> RDMA_CORE_CAP_PROT_ROCE and RDMA_CORE_PORT_IBA_ROCE - under this
->>> patch, when RoCE isn't supported we do create the device but not
->>> advertizing these caps.
->
->> I wasn't referring to the kernel.  I was referring to a user space
->> application.  There is currently no way for a user space app to tell the
->> difference between this and a full RoCE device until they try to create
->> something other than a raw Eth QP and it fails.
->
-> And how a general purpose user-space app should be realizing that UD isn't
-> supported by the iWARP drivers and RC isn't supported by the Cisco driver?
->
-> c4iw_create_qp -->
->  if (attrs->qp_type != IB_QPT_RC)
->                 return ERR_PTR(-EINVAL);
->
-> usnic_ib_create_qp -->
-> if (init_attr->qp_type != IB_QPT_UD)
->                 return ERR_PTR(-EINVAL);
->
-> We need to fix mlx5 to work over a port not supporting RoCE, this patch does
-> that, in a manner which puts it ~in par with other vendors/transports
-> limitation.
->
-> If you really want, we can add such -EINVAL-ing when RoCE isn't supported
-> when the user attempts to create IBTA QP types (UC/RD/RC/etc)
 
-Doug,
+--ik0NlRzMGhMnxrMX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You left me in the air... can you comment here and below on my
-responses, we need the driver to be functions on these envs, lets see
-what's needed!
+On Mon, May 16, 2016 at 02:39:10PM -0400, Doug Ledford wrote:
+> On 05/16/2016 02:27 PM, Jason Gunthorpe wrote:
+> > On Mon, May 16, 2016 at 01:42:34PM -0400, Doug Ledford wrote:
+> >> Can you build netlink in and then init the ib_addr module after the
+> >> netlink init is complete?  Wouldn't that resolve the dependency orderi=
+ng
+> >> issue without changing the module names?
+> >=20
+> > Why are you so worried about ib_addr's module name? Is that actually
+> > hand loaded instead of relying in the implicit dependencies???
+>=20
+> It's hand unloaded.  Depending on the release of software you are
+> talking about, the init script has the ability to unload/reload the IB
+> stack.  In that case, it has to know about ib_addr so that it can unload
+> after ib_core.  I should know, when the order changed from ib_core first
+> and ib_addr second to the opposite it broke the Red Hat init script for
+> a release, including all the bug reports about the rdma stack failing to
+> shut down properly because it was unloading modules in the wrong order.
+> This falls in the same category of a lot of other things: you don't
+> break user space if you don't have to.
 
+I think the reason that this thread fails to die is our trouble to
+understand if code refactoring is enough justification to get rid of all
+these modules.
 
->>>> OK, so you want a plain Ethernet device with QPs as a means of enabling
->>>> RDMA for Ethernet, but without the full blown Verbs support, just direct
->>>> data placement in memory.  That's a reasonable thing to want to do.
->>>> However, I'm not sure I agree with the implementation here.  It seems
->>>> very hackish.  This setup probably deserves its own type setting in the
->>>> RDMA stack to differentiate it (aka, InfiniBand, OPA, RoCE, iWARP,
->>>> USNIC, Ethernet + QPs).
->
->>> Why? we should be doing things for a reason. There's no entity I know
->>> of in the stack which needs to be operative and is not b/c that new
->>> type you're suggesting was not defined.
->
->> The reason is to properly support this as a valid device type.  Not full
->> RDMA, but still with direct data placement in user memory.  That has
->> value, I'm thinking it should be properly represented.
->
-> Again, going with you, say we add that CAP, I didn't find a single place
-> in the kernel IB stack to where it would be used, please suggest a use-case!
+All guides/scripts which I saw, instructs to load all these ib_...
+modules together and it looks redundant to have such large number of
+them [1].
+
+[1]
+http://www.rdmamojo.com/2014/11/08/working-rdma-ubuntu/#Starting_the_RDMA_s=
+ervices
+
+>=20
+> > Is failure to load a module going to break any existing scripts?
+> >=20
+> > Worse comes to worse, just make dummy empty ib_addr.ko, but
+> > I've never seen that in-kernel before.
+> >=20
+> > Jason
+> >=20
+>=20
+>=20
+> --=20
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+>=20
+>=20
 
 
-Doug, here too, anywhere that you see a use for that new cap?
 
-> I/F code which don't have consumer is not upstreamable. BTW, AFAIR.,we have
-> some little code like that from the early days for some IB switch HW
-> drivers which
-> are not upstream, and whenever we get there this is PITA to change/maintain.
+--ik0NlRzMGhMnxrMX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXO/JvAAoJEORje4g2clin/ZwQALSEdbG8dUPj1m64mXkanJFS
++6/LDKoAYct+4HXsbQwULqWqOzg6H+/WDomxl/G5+h12osr3oDXjcqa94KcpjBOM
+Ic3qQTBhyT1gpBWtxTDCw5qEgHzJIfjhbyy17LvrNqjRATswGZWxCs7/BAjItd/p
+/SnLHRTzSlrgHYLYpY4GdqrGrsf6xUQ1y72y2k/NXjz59HCO17CgrGmw44+L2yc2
+ZzWjBAt+WBUR6hCOApCMQ1JANMLVMWGvlhGBz4BeP2QAf1dfxEW/MW5Fxmiedspf
+9dx0z/uIze9GMKJe+YheyQTVQnIH+oNU8HLyqLJrKpZk14XaKTnWpfMGMU8UV4Uj
+tOWPEtEyQMJRlrdUBs1W4oxBZ4Wmm3CUNdpG/Q9e7Sidr5VLHZI3EF9E/8QPOwKF
+sftycE0GOePJLH00vEh7B6oUnQD43/MuYKaFhCp0gUoN/h8ZGLqSnn+sPympwcKu
+bvtWNkBUs3ebeO/p2P6QyxAuMhaasdFBlVn8ixR6soTF4dKeXeyaPtE7AwgaAH1o
+/TCQ2VnoiTOUZejp9yoiGBHIe4ACr6wGp8Bns1fiCUzOPpyrPQ7TcC/RucBrHSNU
+UrmNL5D56jRZR4dUWVidlnBsQxxhawz40I1ozV3LL4p8QJmTvehMZe4CR87bwyFr
+XHmTKl5uG20fuSPF8x63
+=3i4o
+-----END PGP SIGNATURE-----
+
+--ik0NlRzMGhMnxrMX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
