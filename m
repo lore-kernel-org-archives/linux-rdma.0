@@ -1,59 +1,61 @@
-From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: CQ and RDMA READ/WRITE APIs
-Date: Wed, 18 May 2016 21:24:39 +0530
-Message-ID: <CAG53R5X=u4M8xgn_9Z9rSuhaBhci-qWNBZo6Nfz5Rovp1bzGVA@mail.gmail.com>
-References: <743399f9-10b7-6e62-2bf4-6a8656df8a55@redhat.com>
-	<20160516114926.GA681@lst.de>
-	<f6fdfc59-8193-18ed-0449-a16bba4601e0@redhat.com>
-	<CA+55aFzq+4DJL46B8PXQQG-DpNpzZNzk=O6j+8U_NC6H6BwTdQ@mail.gmail.com>
-	<6633ce02-7983-ad09-f95d-03cea6f54e31@redhat.com>
-	<573B550D.5020008@sandisk.com>
-	<732fb772-2f21-3ac9-a35a-aa4383734df5@redhat.com>
-	<CAG53R5VSjz_G1adajcoUdgh3Sf1yyKf7UREFoNF9x_V+N6oR6A@mail.gmail.com>
-	<43b558b1-8400-612c-9b27-6539be080871@redhat.com>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
+ module into core
+Date: Wed, 18 May 2016 14:26:52 +0000
+Message-ID: <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+References: <1462563928-29164-1-git-send-email-leon@kernel.org>
+ <1462563928-29164-6-git-send-email-leon@kernel.org>
+ <ea50f1d2-6f05-66f7-18f7-0a569fd9cea5@redhat.com>
+ <VI1PR05MB1391AD099C536541E79A09F9D2760@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <db369e8e-7993-dfb8-d459-2c4f3d6e5b14@redhat.com>
+ <20160516163048.GB4662@leon.nu>
+ <298657b0-6e57-745b-5eb3-001984bffbc3@redhat.com>
+ <VI1PR05MB13915036338162B126E55CC2D2480@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
+ <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <43b558b1-8400-612c-9b27-6539be080871-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <d54c2884-c2e9-8952-75f8-43147943640c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 18, 2016 at 7:37 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On 05/17/2016 10:48 PM, Parav Pandit wrote:
->> Hi Doug,
->>
->> On Tue, May 17, 2016 at 11:02 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>> Nice catch there Bart.  That was well before my role as maintainer and
->>> so settles things well enough for me.  IOW, I don't feel I need to worry
->>> about trying to maintain the dual license nature of the RDMA stack as it
->>> was broken long before I took over.  Thanks for pointing that out.
->>>
->>
->> Does it mean we can submit new code files under GPL only license?
->
-> You always could.
->
->> I submitted RDMA cgroup related code in ib_core under GPLv2 only license.
->
-> You did and you didn't.  For instance, in patch 1/3, the new
-> cgroup_rdma.c file has a notice of GPLv2, but no notice of copyright, so
-> it's incomplete.  You need to put a copyright notice in the file too.
-> And in the file cgroup_rdma.h you have neither a copyright notice or a
-> license statement.  It's a plain file.
->
-> In patch 2/3, the file infiniband/core/cgroup.c has a copied dual
-> license (not necessary, it can be GPL only), but again, it is missing
-> the copyright notice.
->
-ok. I will fix this part too in v11.
 
-> You need to finish the conversation you and Christoph were having in
-> that thread, but you also need a v11 of the patchset that fixes the
-> copyright issues.
->
-Yes. I will ping Christoph and Tejun as I am waiting for their responses.
+
+> -----Original Message-----
+> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+> Sent: Wednesday, May 18, 2016 5:17 PM
+> To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+> resolution module into core
+> 
+[snip]
+> Unless you went back to your original first patch set where ib_netlink
+> was a separate module, then the load order could be ib_netlink ->
+> ib_addr -> ib_core and things would work.  Possibly.  Depends on whether
+> the ib_netlink module has anything in it that references symbols in ib_core.
+Yes, the first version did just that and worked, but then there were
+comments that we have too many modules and I shouldn't add another one.
+
+V0 adds a new kernel module (ib_netlink.ko ) but leaves ib_core and ib_addr
+modules unchanged. I also have a version with Leon's patch
+that eliminates ib_addr.ko and doesn't add a new module.
+
+Would you like me to submit  a new version (with Leon's patch) or the review can continue with V0?
+
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>               GPG KeyID: 0E572FDD
+> 
+
+Mark
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
