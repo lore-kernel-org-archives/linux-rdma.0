@@ -1,54 +1,69 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: Re: small conflict between rdma-next and net-next
-Date: Fri, 20 May 2016 07:42:04 +1000
-Message-ID: <20160520074204.1061c1b2@canb.auug.org.au>
-References: <VI1PR05MB1742B61672A343702D9E8483B04A0@VI1PR05MB1742.eurprd05.prod.outlook.com>
-	<995acb69-f95d-a298-231c-20810e390cf0@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Make device counter infrastructure dynamic
+Date: Thu, 19 May 2016 15:50:02 -0600
+Message-ID: <20160519215002.GB2469@obsidianresearch.com>
+References: <9ed44c11acf2de44f06ce5d88758ce8d732d1be2.1463693558.git.dledford@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <995acb69-f95d-a298-231c-20810e390cf0-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <9ed44c11acf2de44f06ce5d88758ce8d732d1be2.1463693558.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
+On Thu, May 19, 2016 at 05:35:13PM -0400, Doug Ledford wrote:
 
-On Thu, 19 May 2016 16:25:44 +0300 Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->
-> Conflict:
-> 
-> ------------------------------------------------------------
-> 
-> diff --cc include/linux/mlx5/driver.h
-> index 07b504f7eb84,816fe005ca5e..000000000000
-> --- a/include/linux/mlx5/driver.h
-> +++ b/include/linux/mlx5/driver.h
-> @@@ -41,7 -41,7 +41,11 @@@
->    #include <linux/slab.h>
->    #include <linux/vmalloc.h>
->    #include <linux/radix-tree.h>
-> ++<<<<<<< HEAD
-> +#include <linux/workqueue.h>
-> ++=======
-> + #include <linux/interrupt.h>
-> ++>>>>>>> origin/ib-next-mlx  
->    #include <linux/mlx5/device.h>
->    #include <linux/mlx5/doorbell.h>
+> +	return sprintf(buf, "%d msecs (rounded from jiffies), 0-10000 allowed "
+> +		       "range\n", msecs);
 
-I reported this yesterday when it appeared in linux-next.  Small
-conflicts like this are really nothing to worry about and Linus (and I)
-deal with them all the time.  I only report them in case there is some
-semantic change I missed so that the authors can correct me.
+sysfs files should not have usage commentary like that, just use the
+%d
 
-P.S. there is something wrong in your mailer (or some part of your
-process as the patch parts of your email were double spaced and whits
-space damaged.
--- 
-Cheers,
-Stephen Rothwell
+> +char *names[] = {
+
+static const char * const names[] = {
+
+For Kees
+
+> +	[NR_COUNTERS] = NULL
+
+Don't really need this, just use ARRAY_SIZE(names) in place of
+NR_COUTNERS
+
+> +       stats = kzalloc(sizeof(*stats) + NR_COUNTERS * sizeof(u64), GFP_KERNEL);
+
+People have been switching the above pattern to use kcalloc
+
+> +static char *names[] = {
+> +	[TCPINSEGS] = "tcpInSegs",
+> +	[TCPOUTSEGS] = "tcpOutSegs",
+> +	[TCPRETRANSSEGS] = "tcpRetransSegs",
+> +	[TCPOUTRSTS] = "tcpOutRsts",
+> +	[NR_COUNTERS] = NULL
+> +};
+
+ditto
+
+> +static char *i40iw_hw_stat_names[] = {
+
+ditto
+
+> +	[I40IW_HW_STAT_INDEX_MAX_64 + I40IW_HW_STAT_INDEX_MAX_32] = ""
+
+Why an empty string?
+
+> +	char		*dirname; /* Sysfs directory name */
+> +	char		**name;   /* array of names of the counters in the
+> +				   * sysfs dir
+
+const char * const *name
+
+Trailing comments are not the kdoc standard for structure members,
+IIRC.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
