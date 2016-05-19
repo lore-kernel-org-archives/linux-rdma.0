@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 2/3] Add extended device capability flags
-Date: Thu, 19 May 2016 15:52:48 +0300
-Message-ID: <1463662369-18395-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH libibverbs 1/3] Extend devinfo verbosity mode
+Date: Thu, 19 May 2016 15:52:47 +0300
+Message-ID: <1463662369-18395-2-git-send-email-yishaih@mellanox.com>
 References: <1463662369-18395-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463662369-18395-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,123 +12,113 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since the legacy device capability flags are occupied, add new
-device capability flags to the extended query device.
+Extend verbosity mode to print device capability flags in text format.
 
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- examples/devinfo.c            | 15 +++++++++++++++
- include/infiniband/kern-abi.h |  2 ++
- include/infiniband/verbs.h    |  7 +++++++
- man/ibv_query_device_ex.3     |  1 +
- src/cmd.c                     | 10 ++++++++++
- 5 files changed, 35 insertions(+)
+ examples/devinfo.c | 81 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
 diff --git a/examples/devinfo.c b/examples/devinfo.c
-index 5da6773..7391b84 100644
+index a8de982..5da6773 100644
 --- a/examples/devinfo.c
 +++ b/examples/devinfo.c
-@@ -333,6 +333,18 @@ void print_odp_caps(const struct ibv_odp_caps *caps)
- 	print_odp_trans_caps(caps->per_transport_caps.ud_odp_caps);
+@@ -205,6 +205,86 @@ static const char *link_layer_str(uint8_t link_layer)
+ 	}
  }
  
-+static void print_device_cap_flags_ex(uint64_t device_cap_flags_ex)
++static void print_device_cap_flags(uint32_t dev_cap_flags)
 +{
-+	uint64_t ex_flags = device_cap_flags_ex & 0xffffffff00000000;
-+	uint64_t unknown_flags = ~(IBV_DEVICE_RAW_SCATTER_FCS);
++	uint32_t unknown_flags = ~(IBV_DEVICE_RESIZE_MAX_WR |
++				   IBV_DEVICE_BAD_PKEY_CNTR |
++				   IBV_DEVICE_BAD_QKEY_CNTR |
++				   IBV_DEVICE_RAW_MULTI |
++				   IBV_DEVICE_AUTO_PATH_MIG |
++				   IBV_DEVICE_CHANGE_PHY_PORT |
++				   IBV_DEVICE_UD_AV_PORT_ENFORCE |
++				   IBV_DEVICE_CURR_QP_STATE_MOD |
++				   IBV_DEVICE_SHUTDOWN_PORT |
++				   IBV_DEVICE_INIT_TYPE |
++				   IBV_DEVICE_PORT_ACTIVE_EVENT |
++				   IBV_DEVICE_SYS_IMAGE_GUID |
++				   IBV_DEVICE_RC_RNR_NAK_GEN |
++				   IBV_DEVICE_SRQ_RESIZE |
++				   IBV_DEVICE_N_NOTIFY_CQ |
++				   IBV_DEVICE_MEM_WINDOW |
++				   IBV_DEVICE_UD_IP_CSUM |
++				   IBV_DEVICE_XRC |
++				   IBV_DEVICE_MEM_MGT_EXTENSIONS |
++				   IBV_DEVICE_MEM_WINDOW_TYPE_2A |
++				   IBV_DEVICE_MEM_WINDOW_TYPE_2B |
++				   IBV_DEVICE_RC_IP_CSUM |
++				   IBV_DEVICE_RAW_IP_CSUM |
++				   IBV_DEVICE_MANAGED_FLOW_STEERING);
 +
-+	if (ex_flags & IBV_DEVICE_RAW_SCATTER_FCS)
-+		printf("\t\t\t\t\tRAW_SCATTER_FCS\n");
-+	if (ex_flags & unknown_flags)
-+		printf("\t\t\t\t\tUnknown flags: 0x%" PRIX64 "\n",
-+		       ex_flags & unknown_flags);
++	if (dev_cap_flags & IBV_DEVICE_RESIZE_MAX_WR)
++		printf("\t\t\t\t\tRESIZE_MAX_WR\n");
++	if (dev_cap_flags & IBV_DEVICE_BAD_PKEY_CNTR)
++		printf("\t\t\t\t\tBAD_PKEY_CNTR\n");
++	if (dev_cap_flags & IBV_DEVICE_BAD_QKEY_CNTR)
++		printf("\t\t\t\t\tBAD_QKEY_CNTR\n");
++	if (dev_cap_flags & IBV_DEVICE_RAW_MULTI)
++		printf("\t\t\t\t\tRAW_MULTI\n");
++	if (dev_cap_flags & IBV_DEVICE_AUTO_PATH_MIG)
++		printf("\t\t\t\t\tAUTO_PATH_MIG\n");
++	if (dev_cap_flags & IBV_DEVICE_CHANGE_PHY_PORT)
++		printf("\t\t\t\t\tCHANGE_PHY_PORT\n");
++	if (dev_cap_flags & IBV_DEVICE_UD_AV_PORT_ENFORCE)
++		printf("\t\t\t\t\tUD_AV_PORT_ENFORCE\n");
++	if (dev_cap_flags & IBV_DEVICE_CURR_QP_STATE_MOD)
++		printf("\t\t\t\t\tCURR_QP_STATE_MOD\n");
++	if (dev_cap_flags & IBV_DEVICE_SHUTDOWN_PORT)
++		printf("\t\t\t\t\tSHUTDOWN_PORT\n");
++	if (dev_cap_flags & IBV_DEVICE_INIT_TYPE)
++		printf("\t\t\t\t\tINIT_TYPE\n");
++	if (dev_cap_flags & IBV_DEVICE_PORT_ACTIVE_EVENT)
++		printf("\t\t\t\t\tPORT_ACTIVE_EVENT\n");
++	if (dev_cap_flags & IBV_DEVICE_SYS_IMAGE_GUID)
++		printf("\t\t\t\t\tSYS_IMAGE_GUID\n");
++	if (dev_cap_flags & IBV_DEVICE_RC_RNR_NAK_GEN)
++		printf("\t\t\t\t\tRC_RNR_NAK_GEN\n");
++	if (dev_cap_flags & IBV_DEVICE_SRQ_RESIZE)
++		printf("\t\t\t\t\tSRQ_RESIZE\n");
++	if (dev_cap_flags & IBV_DEVICE_N_NOTIFY_CQ)
++		printf("\t\t\t\t\tN_NOTIFY_CQ\n");
++	if (dev_cap_flags & IBV_DEVICE_MEM_WINDOW)
++		printf("\t\t\t\t\tMEM_WINDOW\n");
++	if (dev_cap_flags & IBV_DEVICE_UD_IP_CSUM)
++		printf("\t\t\t\t\tUD_IP_CSUM\n");
++	if (dev_cap_flags & IBV_DEVICE_XRC)
++		printf("\t\t\t\t\tXRC\n");
++	if (dev_cap_flags & IBV_DEVICE_MEM_MGT_EXTENSIONS)
++		printf("\t\t\t\t\tMEM_MGT_EXTENSIONS\n");
++	if (dev_cap_flags & IBV_DEVICE_MEM_WINDOW_TYPE_2A)
++		printf("\t\t\t\t\tMEM_WINDOW_TYPE_2A\n");
++	if (dev_cap_flags & IBV_DEVICE_MEM_WINDOW_TYPE_2B)
++		printf("\t\t\t\t\tMEM_WINDOW_TYPE_2B\n");
++	if (dev_cap_flags & IBV_DEVICE_RC_IP_CSUM)
++		printf("\t\t\t\t\tRC_IP_CSUM\n");
++	if (dev_cap_flags & IBV_DEVICE_RAW_IP_CSUM)
++		printf("\t\t\t\t\tRAW_IP_CSUM\n");
++	if (dev_cap_flags & IBV_DEVICE_MANAGED_FLOW_STEERING)
++		printf("\t\t\t\t\tMANAGED_FLOW_STEERING\n");
++	if (dev_cap_flags & unknown_flags)
++		printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
++		       dev_cap_flags & unknown_flags);
 +}
 +
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ void print_odp_trans_caps(uint32_t trans)
  {
- 	struct ibv_context *ctx;
-@@ -420,6 +432,9 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		printf("\tlocal_ca_ack_delay:\t\t%d\n", device_attr.orig_attr.local_ca_ack_delay);
- 
- 		print_odp_caps(&device_attr.odp_caps);
-+
-+		printf("\tdevice_cap_flags_ex:\t\t0x%" PRIX64 "\n", device_attr.device_cap_flags_ex);
-+		print_device_cap_flags_ex(device_attr.device_cap_flags_ex);
- 	}
- 
- 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 31da4be..f222593 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -269,6 +269,8 @@ struct ibv_query_device_resp_ex {
- 	__u32 comp_mask;
- 	__u32 response_length;
- 	struct ibv_odp_caps_resp odp_caps;
-+	__u64 reserved[2];
-+	__u64 device_cap_flags_ex;
- };
- 
- struct ibv_query_port {
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index bda31a8..f45667f 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -127,6 +127,12 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_MANAGED_FLOW_STEERING = 1 << 29
- };
- 
-+/*
-+ * Can't extended above ibv_device_cap_flags enum as in some systems/compilers
-+ * enum range is limited to 4 bytes.
-+ */
-+#define IBV_DEVICE_RAW_SCATTER_FCS (1ULL << 34)
-+
- enum ibv_atomic_cap {
- 	IBV_ATOMIC_NONE,
- 	IBV_ATOMIC_HCA,
-@@ -207,6 +213,7 @@ struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
- 	struct ibv_odp_caps	odp_caps;
-+	uint64_t		device_cap_flags_ex;
- };
- 
- enum ibv_mtu {
-diff --git a/man/ibv_query_device_ex.3 b/man/ibv_query_device_ex.3
-index 1f483d2..01c41eb 100644
---- a/man/ibv_query_device_ex.3
-+++ b/man/ibv_query_device_ex.3
-@@ -24,6 +24,7 @@ struct ibv_device_attr_ex {
- struct ibv_device_attr orig_attr;
- uint32_t               comp_mask;              /* Compatibility mask that defines which of the following variables are valid */
- struct ibv_odp_caps    odp_caps;               /* On-Demand Paging capabilities */
-+uint64_t               device_cap_flags_ex;    /* Extended device capability flags */
- .in -8
- };
- 
-diff --git a/src/cmd.c b/src/cmd.c
-index b8c51ce..b9c5c67 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -189,6 +189,16 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 		}
- 	}
- 
-+	if (attr_size >= offsetof(struct ibv_device_attr_ex, device_cap_flags_ex) +
-+			 sizeof(attr->device_cap_flags_ex)) {
-+		if (resp->response_length >=
-+		    offsetof(struct ibv_query_device_resp_ex, device_cap_flags_ex) +
-+		    sizeof(resp->device_cap_flags_ex))
-+			attr->device_cap_flags_ex = resp->device_cap_flags_ex;
-+		else
-+			attr->device_cap_flags_ex = 0;
-+	}
-+
- 	return 0;
- }
- 
+ 	uint32_t unknown_transport_caps = ~(IBV_ODP_SUPPORT_SEND |
+@@ -304,6 +384,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		printf("\tmax_qp:\t\t\t\t%d\n", device_attr.orig_attr.max_qp);
+ 		printf("\tmax_qp_wr:\t\t\t%d\n", device_attr.orig_attr.max_qp_wr);
+ 		printf("\tdevice_cap_flags:\t\t0x%08x\n", device_attr.orig_attr.device_cap_flags);
++		print_device_cap_flags(device_attr.orig_attr.device_cap_flags);
+ 		printf("\tmax_sge:\t\t\t%d\n", device_attr.orig_attr.max_sge);
+ 		printf("\tmax_sge_rd:\t\t\t%d\n", device_attr.orig_attr.max_sge_rd);
+ 		printf("\tmax_cq:\t\t\t\t%d\n", device_attr.orig_attr.max_cq);
 -- 
 1.8.3.1
 
