@@ -1,110 +1,123 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure dynamic
-Date: Thu, 19 May 2016 15:24:16 -0400
-Message-ID: <2b0ccdf6-7687-8897-b605-5e3262e05bfd@redhat.com>
-References: <alpine.DEB.2.20.1605160851370.23895@east.gentwo.org>
- <041c6da0-e022-2bd1-5f00-e569c077e154@redhat.com>
- <alpine.DEB.2.20.1605161203010.26453@east.gentwo.org>
- <db1bf3dd-20b1-3f2f-eaa3-25e5e8aff35b@redhat.com>
- <alpine.DEB.2.20.1605161238560.10085@east.gentwo.org>
- <102cd100-55f7-fa85-cd75-ba0db5b9fa34@redhat.com>
- <alpine.DEB.2.20.1605170918080.9956@east.gentwo.org>
- <3e9a3e19-58cb-c25f-89a1-f0e51df562d8@redhat.com>
- <20160517170027.GC19976@obsidianresearch.com>
- <bc83cc75-aa2e-6fc6-e1c6-a0190b972013@redhat.com>
- <20160518172542.GA15516@obsidianresearch.com>
- <12e991bc-aa9b-a8b0-3cd4-b56d58a44d60@redhat.com>
- <alpine.DEB.2.20.1605181401030.29313@east.gentwo.org>
- <038401d1b143$b68b6950$23a23bf0$@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RFC] libibverbs: add ARM64 memory barrier macros
+Date: Thu, 19 May 2016 13:28:05 -0600
+Message-ID: <20160519192805.GA32668@obsidianresearch.com>
+References: <20160518220302.81260E09E9@smtp.ogc.us>
+ <20160518222857.GB23835@obsidianresearch.com>
+ <060701d1b1e7$dc7e1ff0$957a5fd0$@opengridcomputing.com>
+ <20160519180552.GA26130@obsidianresearch.com>
+ <065c01d1b1ff$e1e149f0$a5a3ddd0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="nne7mHRH2OLlPtAbQPC14GsIV1oQVOdEC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <038401d1b143$b68b6950$23a23bf0$@opengridcomputing.com>
+Content-Disposition: inline
+In-Reply-To: <065c01d1b1ff$e1e149f0$a5a3ddd0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---nne7mHRH2OLlPtAbQPC14GsIV1oQVOdEC
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Thu, May 19, 2016 at 01:54:33PM -0500, Steve Wise wrote:
+> > So, I'd say libibverbs is kinda broken here, as it is using a model
+> > that is different from the kernel model. Sigh, it actually looks like
+> > kinda a mess because provider libraries are abusing the primitives for
+> > lots of different things. :(
+> 
+> How so?
 
-On 05/18/2016 04:27 PM, Steve Wise wrote:
->=20
->=20
->> -----Original Message-----
->> From: Christoph Lameter [mailto:cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org]
->> Sent: Wednesday, May 18, 2016 2:02 PM
->> To: Doug Ledford
->> Cc: Jason Gunthorpe; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Mark Bloch; Steve Wis=
-e; Majd
->> Dibbiny; alonvi-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
->> Subject: Re: [PATCH 1/3] ib core: Make device counter infrastructure d=
-ynamic
->>
->> Attached a revision of the patch that only fetches one value. Simplifi=
-es
->> things too.
->>
->>
->=20
-> What if you enhance cxgb3 to allow fetching one MIB at a time?  Maybe a=
-dd a new
-> RDMA_GET_MIB_ONE (or something similar) command that takes an offset?
+The kernel model uses very heavy weight barriers for wmb,rmb,mb and
+then provides a host of weaker barrier options.
 
-I have a version that does caching compiling now.  I'm getting ready to
-test it.  All in all, there were significant re-writes from Christoph's
-patch.  But the caching is flexible enough that it supports the i40iw
-driver's needs out of the box (namely, typical cache age on parent
-devices, but make vfs have a 1 second delay between updates because of
-the expense of getting the stats).  It also works out nicely in that in
-the i40iw driver, I'm pretty sure you can safely just pass the core
-value[] array to the get_hw_stats function and it would all work, but
-for now I left it using its own struct and doing a memcpy before it
-passes the struct back to the core.  Other drivers might be able to do
-the same thing.
+verbs is the opposite on x86, wmb is weak and wc_wmb is the stronger
+version.
 
-And I thought about making the get_stats function pass in the specific
-stat, and then leaving it up to the driver whether or not to update the
-lot of just one, depending on the cost of getting stats.  That would be
-an easy change from what I have now.
+> >  wmb can be memory_order_release
+> >  rmb can be memory_order_acquire
+> 
+> From my compile experiments the above two turned out to be a no-op for x64.  Is
+> that correct (assuming system memory)?
 
-Once I have a successful test on cxgb4 I'll post the updated patch.
+Certainly yes for system memory.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+For system mem vs device mmio? No. C11 does not contemplate that case.
+On x86 these are the same things (eg libibverbs uses nop for
+barriers), on other arches they are not.
 
+It isn't clear to me if the much stronger kernel barries are needed
+for system vs device. On x86 those might only be needed for really old
+CPUs, or maybe libibverbs is just totally wrong here.. I don't know.
 
+Same question for arm on dsb vs dsm.
 
---nne7mHRH2OLlPtAbQPC14GsIV1oQVOdEC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> >  mb can be memory_order_seq_cst
+ 
+> What about the wc_wmb?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+wc_wmb seesm to be used as some kind of flushing operation to get data
+out of the write combining write buffer promptly. Terrible name.
 
-iQIcBAEBCAAGBQJXPhLgAAoJELgmozMOVy/dzAkP/j1fgFJKfE2vPY6YVJRz7eQK
-ej16Hot435MPANvuVn8kiY8s5D5IOPq8LApYGxHKb1ql91K9dluvX0eEIm62UVef
-E3byZ6D9SItc9drNeFB1hS0B4pxdjYntBF1V2nCTMKIooR7RlmfvgGLB/qY44BOm
-xY1JBEvp/mXcYLWVrxnN9htsVEIRuDrdJd7VBiGdnGu9nM/dvvC6aiC5aa9eKkqG
-439q6w/xRU5aQn3Nqq2jb8KdpvFQzjlvuTt2ZSQxuBWyV8plb+iGNcZro/Jk7kgB
-kiIEfxuLVAKgGf9WPVZCiY11GrRbm1OLQHRp78ll9gHq/HUR9X3DcP0rFEpBBZTY
-6rO5Tb/zWLAJAEhGSJtc0QRPqN8D5NsLbXmjxCUj6TTRT85iITcOXg5B6+a2Ayqi
-UV+FwTQOu0KfiQLL37PuKhd0qHSMgB/sJzqM4+wAfuK7ZkGOcdVONhMetYRdwbTd
-+WeBcd5S/rv8Yz8cm+yopJ3uCB7ZWEiDGIrZtpZbbzAaMlXnr0INew6eRRWG/oEA
-SFG7zV/g3SDgXGUpGmbka6sO1/L9k+KQcd4rif6yYliRgux3kNA/5mYfKzrnKcnm
-+IKyQjRCIdDhXRAs8f/dOjKjJgMOM6zQDrip5ZhqIbaV6JAmmzCzGJWJoa+Mhmn1
-AcCiTY9Tei/Adm+ZLjnW
-=s0AK
------END PGP SIGNATURE-----
+> >  /* Guarentee all system memory writes are visible by the device
+> >     before value's write is seen at the device */
+> >  mmio_barrier_write32(void *ptr, uint32_t value);
 
---nne7mHRH2OLlPtAbQPC14GsIV1oQVOdEC--
+> How would the above be implemented?
+
+It would have to use the correct asm for each arch. But at least we
+can now speak clearly about what the expected behavior is and identify
+the correct asm for each arch instead of this crazy catch all that wmb
+has become for verbs.
+
+> > Most everything else can then safely use C11 atomics as it is not
+> > working with device memory.
+> 
+> One case I wonder about is the write-combining path.   Some devices provide a
+> per-QP "slot" of device memory that can be used to send down small work
+> requests.  The host copies the work request from host memory into that device
+> memory hoping the CPU will do write combining and make the entire, say 64B, work
+> request a single PCIE transaction/cmd.
+
+Yes, we probably should have had a 'memcpy to wc' verbs helper that
+did the best possible wc copy and prompt flush rather than the mess
+with wc_wmb and open coded memcpy. IIRC there is some way to do this
+with xmm non temporal cache line stores that is even better???
+
+> thus no db write is needed and the hw doesn't need to fetch the WR from host
+> memory.  Currently we use wc_wmb() to fence this, but It seems that will need
+> some mmio_barrier() operation as well.
+
+This isn't a fence, it is a flush. It is needed to get the data out of
+the write buffer promptly - intel is always strongly ordered so no
+fencing is needed here.
+
+> Changing all this scares me. :)  The location of where the barriers are in the
+> provider libs have been very carefully placed, most likely has the
+> result of
+
+You should probably just go ahead with your patch, it is a bigger mess
+than I imagined at first :(
+
+> seeing barrier problems under load.   I would hate to break any of this in the
+> name of "cleaning it up".  Also, the code in question is in the data-transfer
+> fast paths, and adding unneeded barriers would be bad too...
+
+Well, therein is the problem.
+
+It isn't clear what wmb is supposed to do, and it isn't the same as
+the kernel wmb. So what should you implement for ARMv8? The kernel
+version will work, but it is overkill in many places.
+
+The truth is, none of these wmbs really do anything on x86 except
+cause a compiler fence. Other arches are different, particularly ARM &
+PPC tend to need correct fencing or it just doesn't work (as you
+noticed).
+
+Due to the mess this is in, I'd have a healthy skepticism about this.
+x86 tests none of this!
+
+If you want to optimize ARM then you need to use the correct, weaker
+barriers when appropriate and not just use wmb as a big hammer.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
