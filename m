@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/10] IB/hfi1: Remove EPROM functionality from data device
-Date: Thu, 19 May 2016 05:26:04 -0700
-Message-ID: <20160519122602.22041.82427.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 06/10] IB/hfi1: Add ioctl() interface for user commands
+Date: Thu, 19 May 2016 05:26:24 -0700
+Message-ID: <20160519122622.22041.41686.stgit@scvm10.sc.intel.com>
 References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,483 +10,331 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160519122318.22041.58871.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove EPROM handling from the cdev which is used for user application
-data traffic.
+IOCTL is more suited to what user space commands need to do than the
+write() interface. Add IOCTL definitions for all existing write commands
+and the handling for those. The write() interface will be removed in a
+follow on patch.
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/eprom.c    |  369 ----------------------------------
- drivers/staging/rdma/hfi1/file_ops.c |   23 --
- include/uapi/rdma/hfi/hfi1_user.h    |    7 -
- 3 files changed, 0 insertions(+), 399 deletions(-)
+ drivers/staging/rdma/hfi1/common.h   |    5 +
+ drivers/staging/rdma/hfi1/file_ops.c |  204 ++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/hfi/hfi1_user.h    |   40 +++++++
+ 3 files changed, 248 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/eprom.c b/drivers/staging/rdma/hfi1/eprom.c
-index bd87715..36b7794 100644
---- a/drivers/staging/rdma/hfi1/eprom.c
-+++ b/drivers/staging/rdma/hfi1/eprom.c
-@@ -49,387 +49,18 @@
- #include "common.h"
- #include "eprom.h"
+diff --git a/drivers/staging/rdma/hfi1/common.h b/drivers/staging/rdma/hfi1/common.h
+index e9b6bb3..fcc9c21 100644
+--- a/drivers/staging/rdma/hfi1/common.h
++++ b/drivers/staging/rdma/hfi1/common.h
+@@ -178,7 +178,8 @@
+ 		     HFI1_CAP_PKEY_CHECK |		\
+ 		     HFI1_CAP_NO_INTEGRITY)
  
--/*
-- * The EPROM is logically divided into three partitions:
-- *	partition 0: the first 128K, visible from PCI ROM BAR
-- *	partition 1: 4K config file (sector size)
-- *	partition 2: the rest
-- */
--#define P0_SIZE (128 * 1024)
--#define P1_SIZE   (4 * 1024)
--#define P1_START P0_SIZE
--#define P2_START (P0_SIZE + P1_SIZE)
--
--/* erase sizes supported by the controller */
--#define SIZE_4KB (4 * 1024)
--#define MASK_4KB (SIZE_4KB - 1)
--
--#define SIZE_32KB (32 * 1024)
--#define MASK_32KB (SIZE_32KB - 1)
--
--#define SIZE_64KB (64 * 1024)
--#define MASK_64KB (SIZE_64KB - 1)
--
--/* controller page size, in bytes */
--#define EP_PAGE_SIZE 256
--#define EEP_PAGE_MASK (EP_PAGE_SIZE - 1)
--
--/* controller commands */
- #define CMD_SHIFT 24
--#define CMD_NOP			    (0)
--#define CMD_PAGE_PROGRAM(addr)	    ((0x02 << CMD_SHIFT) | addr)
--#define CMD_READ_DATA(addr)	    ((0x03 << CMD_SHIFT) | addr)
--#define CMD_READ_SR1		    ((0x05 << CMD_SHIFT))
--#define CMD_WRITE_ENABLE	    ((0x06 << CMD_SHIFT))
--#define CMD_SECTOR_ERASE_4KB(addr)  ((0x20 << CMD_SHIFT) | addr)
--#define CMD_SECTOR_ERASE_32KB(addr) ((0x52 << CMD_SHIFT) | addr)
--#define CMD_CHIP_ERASE		    ((0x60 << CMD_SHIFT))
--#define CMD_READ_MANUF_DEV_ID	    ((0x90 << CMD_SHIFT))
- #define CMD_RELEASE_POWERDOWN_NOID  ((0xab << CMD_SHIFT))
--#define CMD_SECTOR_ERASE_64KB(addr) ((0xd8 << CMD_SHIFT) | addr)
+-#define HFI1_USER_SWVERSION ((HFI1_USER_SWMAJOR << 16) | HFI1_USER_SWMINOR)
++#define HFI1_USER_SWVERSION ((HFI1_USER_SWMAJOR << HFI1_SWMAJOR_SHIFT) | \
++			     HFI1_USER_SWMINOR)
  
- /* controller interface speeds */
- #define EP_SPEED_FULL 0x2	/* full speed */
+ #ifndef HFI1_KERN_TYPE
+ #define HFI1_KERN_TYPE 0
+@@ -349,6 +350,8 @@ struct hfi1_message_header {
+ #define HFI1_BECN_MASK 1
+ #define HFI1_BECN_SMASK BIT(HFI1_BECN_SHIFT)
  
--/* controller status register 1 bits */
--#define SR1_BUSY 0x1ull		/* the BUSY bit in SR1 */
--
--/* sleep length while waiting for controller */
--#define WAIT_SLEEP_US 100	/* must be larger than 5 (see usage) */
--#define COUNT_DELAY_SEC(n) ((n) * (1000000 / WAIT_SLEEP_US))
--
--/* GPIO pins */
--#define EPROM_WP_N BIT_ULL(14)	/* EPROM write line */
--
- /*
-  * How long to wait for the EPROM to become available, in ms.
-  * The spec 32 Mb EPROM takes around 40s to erase then write.
-  * Double it for safety.
-  */
- #define EPROM_TIMEOUT 80000 /* ms */
--
--/*
-- * Turn on external enable line that allows writing on the flash.
-- */
--static void write_enable(struct hfi1_devdata *dd)
--{
--	/* raise signal */
--	write_csr(dd, ASIC_GPIO_OUT, read_csr(dd, ASIC_GPIO_OUT) | EPROM_WP_N);
--	/* raise enable */
--	write_csr(dd, ASIC_GPIO_OE, read_csr(dd, ASIC_GPIO_OE) | EPROM_WP_N);
--}
--
--/*
-- * Turn off external enable line that allows writing on the flash.
-- */
--static void write_disable(struct hfi1_devdata *dd)
--{
--	/* lower signal */
--	write_csr(dd, ASIC_GPIO_OUT, read_csr(dd, ASIC_GPIO_OUT) & ~EPROM_WP_N);
--	/* lower enable */
--	write_csr(dd, ASIC_GPIO_OE, read_csr(dd, ASIC_GPIO_OE) & ~EPROM_WP_N);
--}
--
--/*
-- * Wait for the device to become not busy.  Must be called after all
-- * write or erase operations.
-- */
--static int wait_for_not_busy(struct hfi1_devdata *dd)
--{
--	unsigned long count = 0;
--	u64 reg;
--	int ret = 0;
--
--	/* starts page mode */
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_READ_SR1);
--	while (1) {
--		udelay(WAIT_SLEEP_US);
--		usleep_range(WAIT_SLEEP_US - 5, WAIT_SLEEP_US + 5);
--		count++;
--		reg = read_csr(dd, ASIC_EEP_DATA);
--		if ((reg & SR1_BUSY) == 0)
--			break;
--		/* 200s is the largest time for a 128Mb device */
--		if (count > COUNT_DELAY_SEC(200)) {
--			dd_dev_err(dd, "waited too long for SPI FLASH busy to clear - failing\n");
--			ret = -ETIMEDOUT;
--			break; /* break, not goto - must stop page mode */
--		}
--	}
--
--	/* stop page mode with a NOP */
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_NOP);
--
--	return ret;
--}
--
--/*
-- * Read the device ID from the SPI controller.
-- */
--static u32 read_device_id(struct hfi1_devdata *dd)
--{
--	/* read the Manufacture Device ID */
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_READ_MANUF_DEV_ID);
--	return (u32)read_csr(dd, ASIC_EEP_DATA);
--}
--
--/*
-- * Erase the whole flash.
-- */
--static int erase_chip(struct hfi1_devdata *dd)
--{
--	int ret;
--
--	write_enable(dd);
--
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_WRITE_ENABLE);
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_CHIP_ERASE);
--	ret = wait_for_not_busy(dd);
--
--	write_disable(dd);
--
--	return ret;
--}
--
--/*
-- * Erase a range.
-- */
--static int erase_range(struct hfi1_devdata *dd, u32 start, u32 len)
--{
--	u32 end = start + len;
--	int ret = 0;
--
--	if (end < start)
--		return -EINVAL;
--
--	/* check the end points for the minimum erase */
--	if ((start & MASK_4KB) || (end & MASK_4KB)) {
--		dd_dev_err(dd,
--			   "%s: non-aligned range (0x%x,0x%x) for a 4KB erase\n",
--			   __func__, start, end);
--		return -EINVAL;
--	}
--
--	write_enable(dd);
--
--	while (start < end) {
--		write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_WRITE_ENABLE);
--		/* check in order of largest to smallest */
--		if (((start & MASK_64KB) == 0) && (start + SIZE_64KB <= end)) {
--			write_csr(dd, ASIC_EEP_ADDR_CMD,
--				  CMD_SECTOR_ERASE_64KB(start));
--			start += SIZE_64KB;
--		} else if (((start & MASK_32KB) == 0) &&
--			   (start + SIZE_32KB <= end)) {
--			write_csr(dd, ASIC_EEP_ADDR_CMD,
--				  CMD_SECTOR_ERASE_32KB(start));
--			start += SIZE_32KB;
--		} else {	/* 4KB will work */
--			write_csr(dd, ASIC_EEP_ADDR_CMD,
--				  CMD_SECTOR_ERASE_4KB(start));
--			start += SIZE_4KB;
--		}
--		ret = wait_for_not_busy(dd);
--		if (ret)
--			goto done;
--	}
--
--done:
--	write_disable(dd);
--
--	return ret;
--}
--
--/*
-- * Read a 256 byte (64 dword) EPROM page.
-- * All callers have verified the offset is at a page boundary.
-- */
--static void read_page(struct hfi1_devdata *dd, u32 offset, u32 *result)
--{
--	int i;
--
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_READ_DATA(offset));
--	for (i = 0; i < EP_PAGE_SIZE / sizeof(u32); i++)
--		result[i] = (u32)read_csr(dd, ASIC_EEP_DATA);
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_NOP); /* close open page */
--}
--
--/*
-- * Read length bytes starting at offset.  Copy to user address addr.
-- */
--static int read_length(struct hfi1_devdata *dd, u32 start, u32 len, u64 addr)
--{
--	u32 offset;
--	u32 buffer[EP_PAGE_SIZE / sizeof(u32)];
--	int ret = 0;
--
--	/* reject anything not on an EPROM page boundary */
--	if ((start & EEP_PAGE_MASK) || (len & EEP_PAGE_MASK))
--		return -EINVAL;
--
--	for (offset = 0; offset < len; offset += EP_PAGE_SIZE) {
--		read_page(dd, start + offset, buffer);
--		if (copy_to_user((void __user *)(addr + offset),
--				 buffer, EP_PAGE_SIZE)) {
--			ret = -EFAULT;
--			goto done;
--		}
--	}
--
--done:
--	return ret;
--}
--
--/*
-- * Write a 256 byte (64 dword) EPROM page.
-- * All callers have verified the offset is at a page boundary.
-- */
--static int write_page(struct hfi1_devdata *dd, u32 offset, u32 *data)
--{
--	int i;
--
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_WRITE_ENABLE);
--	write_csr(dd, ASIC_EEP_DATA, data[0]);
--	write_csr(dd, ASIC_EEP_ADDR_CMD, CMD_PAGE_PROGRAM(offset));
--	for (i = 1; i < EP_PAGE_SIZE / sizeof(u32); i++)
--		write_csr(dd, ASIC_EEP_DATA, data[i]);
--	/* will close the open page */
--	return wait_for_not_busy(dd);
--}
--
--/*
-- * Write length bytes starting at offset.  Read from user address addr.
-- */
--static int write_length(struct hfi1_devdata *dd, u32 start, u32 len, u64 addr)
--{
--	u32 offset;
--	u32 buffer[EP_PAGE_SIZE / sizeof(u32)];
--	int ret = 0;
--
--	/* reject anything not on an EPROM page boundary */
--	if ((start & EEP_PAGE_MASK) || (len & EEP_PAGE_MASK))
--		return -EINVAL;
--
--	write_enable(dd);
--
--	for (offset = 0; offset < len; offset += EP_PAGE_SIZE) {
--		if (copy_from_user(buffer, (void __user *)(addr + offset),
--				   EP_PAGE_SIZE)) {
--			ret = -EFAULT;
--			goto done;
--		}
--		ret = write_page(dd, start + offset, buffer);
--		if (ret)
--			goto done;
--	}
--
--done:
--	write_disable(dd);
--	return ret;
--}
--
--/* convert an range composite to a length, in bytes */
--static inline u32 extract_rlen(u32 composite)
--{
--	return (composite & 0xffff) * EP_PAGE_SIZE;
--}
--
--/* convert an range composite to a start, in bytes */
--static inline u32 extract_rstart(u32 composite)
--{
--	return (composite >> 16) * EP_PAGE_SIZE;
--}
--
--/*
-- * Perform the given operation on the EPROM.  Called from user space.  The
-- * user credentials have already been checked.
-- *
-- * Return 0 on success, -ERRNO on error
-- */
--int handle_eprom_command(struct file *fp, const struct hfi1_cmd *cmd)
--{
--	struct hfi1_devdata *dd;
--	u32 dev_id;
--	u32 rlen;	/* range length */
--	u32 rstart;	/* range start */
--	int i_minor;
--	int ret = 0;
--
--	/*
--	 * Map the device file to device data using the relative minor.
--	 * The device file minor number is the unit number + 1.  0 is
--	 * the generic device file - reject it.
--	 */
--	i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
--	if (i_minor <= 0)
--		return -EINVAL;
--	dd = hfi1_lookup(i_minor - 1);
--	if (!dd) {
--		pr_err("%s: cannot find unit %d!\n", __func__, i_minor);
--		return -EINVAL;
--	}
--
--	/* some devices do not have an EPROM */
--	if (!dd->eprom_available)
--		return -EOPNOTSUPP;
--
--	ret = acquire_chip_resource(dd, CR_EPROM, EPROM_TIMEOUT);
--	if (ret) {
--		dd_dev_err(dd, "%s: unable to acquire EPROM resource\n",
--			   __func__);
--		goto done_asic;
--	}
--
--	dd_dev_info(dd, "%s: cmd: type %d, len 0x%x, addr 0x%016llx\n",
--		    __func__, cmd->type, cmd->len, cmd->addr);
--
--	switch (cmd->type) {
--	case HFI1_CMD_EP_INFO:
--		if (cmd->len != sizeof(u32)) {
--			ret = -ERANGE;
--			break;
--		}
--		dev_id = read_device_id(dd);
--		/* addr points to a u32 user buffer */
--		if (copy_to_user((void __user *)cmd->addr, &dev_id,
--				 sizeof(u32)))
--			ret = -EFAULT;
--		break;
--
--	case HFI1_CMD_EP_ERASE_CHIP:
--		ret = erase_chip(dd);
--		break;
--
--	case HFI1_CMD_EP_ERASE_RANGE:
--		rlen = extract_rlen(cmd->len);
--		rstart = extract_rstart(cmd->len);
--		ret = erase_range(dd, rstart, rlen);
--		break;
--
--	case HFI1_CMD_EP_READ_RANGE:
--		rlen = extract_rlen(cmd->len);
--		rstart = extract_rstart(cmd->len);
--		ret = read_length(dd, rstart, rlen, cmd->addr);
--		break;
--
--	case HFI1_CMD_EP_WRITE_RANGE:
--		rlen = extract_rlen(cmd->len);
--		rstart = extract_rstart(cmd->len);
--		ret = write_length(dd, rstart, rlen, cmd->addr);
--		break;
--
--	default:
--		dd_dev_err(dd, "%s: unexpected command %d\n",
--			   __func__, cmd->type);
--		ret = -EINVAL;
--		break;
--	}
--
--	release_chip_resource(dd, CR_EPROM);
--done_asic:
--	return ret;
--}
--
- /*
-  * Initialize the EPROM handler.
-  */
++#define HFI1_PSM_IOC_BASE_SEQ 0x0
++
+ static inline __u64 rhf_to_cpu(const __le32 *rbuf)
+ {
+ 	return __le64_to_cpu(*((__le64 *)rbuf));
 diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
-index eb66bef..2eddd33 100644
+index 322e55f..a338238 100644
 --- a/drivers/staging/rdma/hfi1/file_ops.c
 +++ b/drivers/staging/rdma/hfi1/file_ops.c
-@@ -189,7 +189,6 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 	void *dest = NULL;
- 	__u64 user_val = 0;
- 	int uctxt_required = 1;
--	int must_be_root = 0;
+@@ -96,6 +96,8 @@ static int user_event_ack(struct hfi1_ctxtdata *, int, unsigned long);
+ static int set_ctxt_pkey(struct hfi1_ctxtdata *, unsigned, u16);
+ static int manage_rcvq(struct hfi1_ctxtdata *, unsigned, int);
+ static int vma_fault(struct vm_area_struct *, struct vm_fault *);
++static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
++			    unsigned long arg);
  
- 	/* FIXME: This interface cannot continue out of staging */
- 	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
-@@ -234,15 +233,6 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		copy = 0;
- 		user_val = cmd.addr;
- 		break;
--	case HFI1_CMD_EP_INFO:
--	case HFI1_CMD_EP_ERASE_CHIP:
--	case HFI1_CMD_EP_ERASE_RANGE:
--	case HFI1_CMD_EP_READ_RANGE:
--	case HFI1_CMD_EP_WRITE_RANGE:
--		uctxt_required = 0;	/* assigned user context not required */
--		must_be_root = 1;	/* validate user */
--		copy = 0;
--		break;
- 	default:
- 		ret = -EINVAL;
- 		goto bail;
-@@ -265,12 +255,6 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 		goto bail;
- 	}
+ static const struct file_operations hfi1_file_ops = {
+ 	.owner = THIS_MODULE,
+@@ -103,6 +105,7 @@ static const struct file_operations hfi1_file_ops = {
+ 	.write_iter = hfi1_write_iter,
+ 	.open = hfi1_file_open,
+ 	.release = hfi1_file_close,
++	.unlocked_ioctl = hfi1_file_ioctl,
+ 	.poll = hfi1_poll,
+ 	.mmap = hfi1_file_mmap,
+ 	.llseek = noop_llseek,
+@@ -175,6 +178,207 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
+ 	return fp->private_data ? 0 : -ENOMEM;
+ }
  
--	/* only root can do these operations */
--	if (must_be_root && !capable(CAP_SYS_ADMIN)) {
--		ret = -EPERM;
--		goto bail;
--	}
--
- 	switch (cmd.type) {
- 	case HFI1_CMD_ASSIGN_CTXT:
- 		ret = assign_ctxt(fp, &uinfo);
-@@ -409,13 +393,6 @@ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
- 			sc_return_credits(sc);
- 		break;
- 	}
--	case HFI1_CMD_EP_INFO:
--	case HFI1_CMD_EP_ERASE_CHIP:
--	case HFI1_CMD_EP_ERASE_RANGE:
--	case HFI1_CMD_EP_READ_RANGE:
--	case HFI1_CMD_EP_WRITE_RANGE:
--		ret = handle_eprom_command(fp, &cmd);
--		break;
- 	}
- 
- 	if (ret >= 0)
++static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
++			    unsigned long arg)
++{
++	struct hfi1_filedata *fd = fp->private_data;
++	struct hfi1_ctxtdata *uctxt = fd->uctxt;
++	struct hfi1_user_info uinfo;
++	struct hfi1_tid_info tinfo;
++	int ret = 0;
++	unsigned long addr;
++	int uval = 0;
++	unsigned long ul_uval = 0;
++	u16 uval16 = 0;
++
++	if (cmd != HFI1_IOCTL_ASSIGN_CTXT &&
++	    cmd != HFI1_IOCTL_GET_VERS &&
++	    !uctxt)
++		return -EINVAL;
++
++	switch (cmd) {
++	case HFI1_IOCTL_ASSIGN_CTXT:
++		if (copy_from_user(&uinfo,
++				   (struct hfi1_user_info __user *)arg,
++				   sizeof(uinfo)))
++			return -EFAULT;
++
++		ret = assign_ctxt(fp, &uinfo);
++		if (ret < 0)
++			return ret;
++		setup_ctxt(fp);
++		if (ret)
++			return ret;
++		ret = user_init(fp);
++		break;
++	case HFI1_IOCTL_CTXT_INFO:
++		ret = get_ctxt_info(fp, (void __user *)(unsigned long)arg,
++				    sizeof(struct hfi1_ctxt_info));
++		break;
++	case HFI1_IOCTL_USER_INFO:
++		ret = get_base_info(fp, (void __user *)(unsigned long)arg,
++				    sizeof(struct hfi1_base_info));
++		break;
++	case HFI1_IOCTL_CREDIT_UPD:
++		if (uctxt && uctxt->sc)
++			sc_return_credits(uctxt->sc);
++		break;
++
++	case HFI1_IOCTL_TID_UPDATE:
++		if (copy_from_user(&tinfo,
++				   (struct hfi11_tid_info __user *)arg,
++				   sizeof(tinfo)))
++			return -EFAULT;
++
++		ret = hfi1_user_exp_rcv_setup(fp, &tinfo);
++		if (!ret) {
++			/*
++			 * Copy the number of tidlist entries we used
++			 * and the length of the buffer we registered.
++			 * These fields are adjacent in the structure so
++			 * we can copy them at the same time.
++			 */
++			addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
++			if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
++					 sizeof(tinfo.tidcnt) +
++					 sizeof(tinfo.length)))
++				ret = -EFAULT;
++		}
++		break;
++
++	case HFI1_IOCTL_TID_FREE:
++		if (copy_from_user(&tinfo,
++				   (struct hfi11_tid_info __user *)arg,
++				   sizeof(tinfo)))
++			return -EFAULT;
++
++		ret = hfi1_user_exp_rcv_clear(fp, &tinfo);
++		if (ret)
++			break;
++		addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
++		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
++				 sizeof(tinfo.tidcnt)))
++			ret = -EFAULT;
++		break;
++
++	case HFI1_IOCTL_TID_INVAL_READ:
++		if (copy_from_user(&tinfo,
++				   (struct hfi11_tid_info __user *)arg,
++				   sizeof(tinfo)))
++			return -EFAULT;
++
++		ret = hfi1_user_exp_rcv_invalid(fp, &tinfo);
++		if (ret)
++			break;
++		addr = arg + offsetof(struct hfi1_tid_info, tidcnt);
++		if (copy_to_user((void __user *)addr, &tinfo.tidcnt,
++				 sizeof(tinfo.tidcnt)))
++			ret = -EFAULT;
++		break;
++
++	case HFI1_IOCTL_RECV_CTRL:
++		ret = get_user(uval, (int __user *)arg);
++		if (ret != 0)
++			return -EFAULT;
++		ret = manage_rcvq(uctxt, fd->subctxt, uval);
++		break;
++
++	case HFI1_IOCTL_POLL_TYPE:
++		ret = get_user(uval, (int __user *)arg);
++		if (ret != 0)
++			return -EFAULT;
++		uctxt->poll_type = (typeof(uctxt->poll_type))uval;
++		break;
++
++	case HFI1_IOCTL_ACK_EVENT:
++		ret = get_user(ul_uval, (unsigned long __user *)arg);
++		if (ret != 0)
++			return -EFAULT;
++		ret = user_event_ack(uctxt, fd->subctxt, ul_uval);
++		break;
++
++	case HFI1_IOCTL_SET_PKEY:
++		ret = get_user(uval16, (u16 __user *)arg);
++		if (ret != 0)
++			return -EFAULT;
++		if (HFI1_CAP_IS_USET(PKEY_CHECK))
++			ret = set_ctxt_pkey(uctxt, fd->subctxt, uval16);
++		else
++			return -EPERM;
++		break;
++
++	case HFI1_IOCTL_CTXT_RESET: {
++		struct send_context *sc;
++		struct hfi1_devdata *dd;
++
++		if (!uctxt || !uctxt->dd || !uctxt->sc)
++			return -EINVAL;
++
++		/*
++		 * There is no protection here. User level has to
++		 * guarantee that no one will be writing to the send
++		 * context while it is being re-initialized.
++		 * If user level breaks that guarantee, it will break
++		 * it's own context and no one else's.
++		 */
++		dd = uctxt->dd;
++		sc = uctxt->sc;
++		/*
++		 * Wait until the interrupt handler has marked the
++		 * context as halted or frozen. Report error if we time
++		 * out.
++		 */
++		wait_event_interruptible_timeout(
++			sc->halt_wait, (sc->flags & SCF_HALTED),
++			msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
++		if (!(sc->flags & SCF_HALTED))
++			return -ENOLCK;
++
++		/*
++		 * If the send context was halted due to a Freeze,
++		 * wait until the device has been "unfrozen" before
++		 * resetting the context.
++		 */
++		if (sc->flags & SCF_FROZEN) {
++			wait_event_interruptible_timeout(
++				dd->event_queue,
++				!(ACCESS_ONCE(dd->flags) & HFI1_FROZEN),
++				msecs_to_jiffies(SEND_CTXT_HALT_TIMEOUT));
++			if (dd->flags & HFI1_FROZEN)
++				return -ENOLCK;
++
++			if (dd->flags & HFI1_FORCED_FREEZE)
++				/*
++				 * Don't allow context reset if we are into
++				 * forced freeze
++				 */
++				return -ENODEV;
++
++			sc_disable(sc);
++			ret = sc_enable(sc);
++			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB,
++				     uctxt->ctxt);
++		} else {
++			ret = sc_restart(sc);
++		}
++		if (!ret)
++			sc_return_credits(sc);
++		break;
++	}
++
++	case HFI1_IOCTL_GET_VERS:
++		uval = HFI1_USER_SWVERSION;
++		if (put_user(uval, (int __user *)arg))
++			return -EFAULT;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	return ret;
++}
++
+ static ssize_t hfi1_file_write(struct file *fp, const char __user *data,
+ 			       size_t count, loff_t *offset)
+ {
 diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index 0955899..3e3680d 100644
+index aa48fbe..9fd8725 100644
 --- a/include/uapi/rdma/hfi/hfi1_user.h
 +++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -122,13 +122,6 @@
+@@ -78,6 +78,11 @@
+ #define HFI1_USER_SWMINOR 1
+ 
+ /*
++ * We will encode the major/minor inside a single 32bit version number.
++ */
++#define HFI1_SWMAJOR_SHIFT 16
++
++/*
+  * Set of HW and driver capability/feature bits.
+  * These bit values are used to configure enabled/disabled HW and
+  * driver features. The same set of bits are communicated to user
+@@ -121,6 +126,41 @@
  #define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
  #define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
  #define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
--/* separate EPROM commands from normal PSM commands */
--#define HFI1_CMD_EP_INFO         64      /* read EPROM device ID */
--#define HFI1_CMD_EP_ERASE_CHIP   65      /* erase whole EPROM */
--/* range 66-74 no longer used */
--#define HFI1_CMD_EP_ERASE_RANGE  75      /* erase EPROM range */
--#define HFI1_CMD_EP_READ_RANGE   76      /* read EPROM range */
--#define HFI1_CMD_EP_WRITE_RANGE  77      /* write EPROM range */
++#define HFI1_CMD_GET_VERS	 14	/* get the version of the user cdev */
++
++/*
++ * User IOCTLs can not go above 128 if they do then see common.h and change the
++ * base for the snoop ioctl
++ */
++#define IB_IOCTL_MAGIC 0x1b /* See Documentation/ioctl/ioctl-number.txt */
++
++struct hfi1_cmd;
++#define HFI1_IOCTL_ASSIGN_CTXT \
++	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_ASSIGN_CTXT, struct hfi1_user_info)
++#define HFI1_IOCTL_CTXT_INFO \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_CTXT_INFO, struct hfi1_ctxt_info)
++#define HFI1_IOCTL_USER_INFO \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_USER_INFO, struct hfi1_base_info)
++#define HFI1_IOCTL_TID_UPDATE \
++	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_UPDATE, struct hfi1_tid_info)
++#define HFI1_IOCTL_TID_FREE \
++	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_FREE, struct hfi1_tid_info)
++#define HFI1_IOCTL_CREDIT_UPD \
++	_IO(IB_IOCTL_MAGIC, HFI1_CMD_CREDIT_UPD)
++#define HFI1_IOCTL_RECV_CTRL \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_RECV_CTRL, int)
++#define HFI1_IOCTL_POLL_TYPE \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_POLL_TYPE, int)
++#define HFI1_IOCTL_ACK_EVENT \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_ACK_EVENT, unsigned long)
++#define HFI1_IOCTL_SET_PKEY \
++	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_SET_PKEY, __u16)
++#define HFI1_IOCTL_CTXT_RESET \
++	_IO(IB_IOCTL_MAGIC, HFI1_CMD_CTXT_RESET)
++#define HFI1_IOCTL_TID_INVAL_READ \
++	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_INVAL_READ, struct hfi1_tid_info)
++#define HFI1_IOCTL_GET_VERS \
++	_IOR(IB_IOCTL_MAGIC, HFI1_CMD_GET_VERS, int)
  
  #define _HFI1_EVENT_FROZEN_BIT         0
  #define _HFI1_EVENT_LINKDOWN_BIT       1
