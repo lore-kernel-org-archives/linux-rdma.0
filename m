@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/8] IB/hfi1: Remove unnecessary comment
-Date: Thu, 19 May 2016 05:21:44 -0700
-Message-ID: <20160519122142.30706.55792.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 8/8] IB/hfi1: Remove anti-pattern in cdev init
+Date: Thu, 19 May 2016 05:22:03 -0700
+Message-ID: <20160519122202.30706.48532.stgit@scvm10.sc.intel.com>
 References: <20160519000433.30706.21093.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,34 +10,44 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160519000433.30706.21093.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Remove the usage of an anti-pattern goto in hfi1_cdev_init to improve
+code readability.
 
-This comment was old, the MTU enums have been defined.
-
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Suggested-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/staging/rdma/hfi1/qp.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/staging/rdma/hfi1/device.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/qp.c
-index c626508..14f889e 100644
---- a/drivers/staging/rdma/hfi1/qp.c
-+++ b/drivers/staging/rdma/hfi1/qp.c
-@@ -160,9 +160,6 @@ static inline int opa_mtu_enum_to_int(int mtu)
-  * This function is what we would push to the core layer if we wanted to be a
-  * "first class citizen".  Instead we hide this here and rely on Verbs ULPs
-  * to blindly pass the MTU enum value from the PathRecord to us.
-- *
-- * The actual flag used to determine "8k MTU" will change and is currently
-- * unknown.
-  */
- static inline int verbs_mtu_enum_to_int(struct ib_device *dev, enum ib_mtu mtu)
- {
+diff --git a/drivers/staging/rdma/hfi1/device.c b/drivers/staging/rdma/hfi1/device.c
+index c05c39d..6ee800f 100644
+--- a/drivers/staging/rdma/hfi1/device.c
++++ b/drivers/staging/rdma/hfi1/device.c
+@@ -82,13 +82,13 @@ int hfi1_cdev_init(int minor, const char *name,
+ 	else
+ 		device = device_create(class, NULL, dev, NULL, "%s", name);
+ 
+-	if (!IS_ERR(device))
+-		goto done;
+-	ret = PTR_ERR(device);
+-	device = NULL;
+-	pr_err("Could not create device for minor %d, %s (err %d)\n",
+-	       minor, name, -ret);
+-	cdev_del(cdev);
++	if (IS_ERR(device)) {
++		ret = PTR_ERR(device);
++		device = NULL;
++		pr_err("Could not create device for minor %d, %s (err %d)\n",
++			minor, name, -ret);
++		cdev_del(cdev);
++	}
+ done:
+ 	*devp = device;
+ 	return ret;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
