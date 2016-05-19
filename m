@@ -1,50 +1,81 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH RFC] libibverbs: add ARM64 memory barrier macros
-Date: Thu, 19 May 2016 11:02:36 -0500
-Message-ID: <060701d1b1e7$dc7e1ff0$957a5fd0$@opengridcomputing.com>
-References: <20160518220302.81260E09E9@smtp.ogc.us> <20160518222857.GB23835@obsidianresearch.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: small conflict between rdma-next and net-next
+Date: Thu, 19 May 2016 19:04:08 +0300
+Message-ID: <CAJ3xEMh7XB-1ugxWkWkOLkSPkPM5eYoMm99Csxn2y70xoMSFUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160518222857.GB23835-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Wed, May 18, 2016 at 02:16:39PM -0700, Steve Wise wrote:
-> > The default generic barriers are not correct for ARM64. This results in
-> > data corruption.  The correct macros are lifted from the linux kernel.
-> >
-> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> >
-> > I wonder why the linux kernel doesn't export these?  Also, if the hw
-> > platform is unknown, I don't think libibverbs should pick a default
-> > implementation that might cause data corruption.  Rather, I think it
-> > should just fail a compile on that platform.
-> 
-> These days, in user space this sort of stuff should be done following
-> the C11 atomic memory ordering model and not by trying to shoe-horn in
-> the kernel model. Then the compiler takes care of things properly.
-> 
-> This is using calls like atomic_store, atomic_load and
-> atomic_thread_fence to create the same sort of barriers.
-> 
-> You could probably implement the Xmbs() with variations on
-> atomic_thread_fence ??
+Hi Doug (resending, due to some mailer problem, probably on my end)
 
-Looking at the documentation, it is not clear to me which parameter value passed
-to atomic_thread_fence() maps to each of the mb services.  Is it correct to
-think that if I get it right, the resulting assembly should be what we currently
-have for the mb services?
+We've identified a small conflict between net-next commit
 
-Or perhaps someone else can provide guidance?
+43a335e "net/mlx5_core: Flow counters infrastructure"
 
-Steve.
+and rdma-next (your k.o/for-4.7 branch) commit
 
+94c6825e "net/mlx5_core: Use tasklet for user-space CQ completion events"
+
+see below the exact conflict and a possible resolution. If you want,
+you can add tiny commit in your tree that would cause the rdma-next
+patch to be merged smoothly by Linus.
+
+Alternatively, as done other subsystem maintainers after doing
+pre-merge tests before sending their pull requests, I guess you can
+add a note to Linus to your pull email, can even put there the
+resolution. The net-next patch is upstream by now so you would see
+this conflict if you do a merge test.
+
+I assume you have put your for-next bits to a branch where linux-next
+merge tests would also catch that.
+
+We did a great effort here towards the 4.7 merge window to minimize
+the conflicts between rdma and net-next commits. I believe that such a
+small conflict is something that happens when you have a driver which
+is patched through two subsystems.
+
+Or.
+
+Conflict:
+
+------------------------------------------------------------
+
+diff --cc include/linux/mlx5/driver.h
+index 07b504f7eb84,816fe005ca5e..000000000000
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@@ -41,7 -41,7 +41,11 @@@
+  #include <linux/slab.h>
+  #include <linux/vmalloc.h>
+  #include <linux/radix-tree.h>
+++<<<<<<< HEAD
++#include <linux/workqueue.h>
+++=======
++ #include <linux/interrupt.h>
+++>>>>>>> origin/ib-next-mlx
+
+  #include <linux/mlx5/device.h>
+  #include <linux/mlx5/doorbell.h>
+
+
+Solution:
+------------------------------------------------------------
+
+include/linux/mlx5/driver.h
+
+@@@ -41,7 -41,7 +41,11 @@@
+  #include <linux/slab.h>
+  #include <linux/vmalloc.h>
+  #include <linux/radix-tree.h>
++ #include <linux/workqueue.h>
++ #include <linux/interrupt.h>
+
+   #include <linux/mlx5/device.h>
+  #include <linux/mlx5/doorbell.h>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
