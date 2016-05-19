@@ -1,200 +1,247 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 00/10] IB/hfi1: Clean up cdevs, convert write to ioctl,
- and destage driver
-Date: Thu, 19 May 2016 05:25:43 -0700
-Message-ID: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 01/10] IB/hfi1: Remove multiple device cdev
+Date: Thu, 19 May 2016 05:25:50 -0700
+Message-ID: <20160519122548.22041.17208.stgit@scvm10.sc.intel.com>
+References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160519122318.22041.58871.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The purpose of this patch series is to get the hfi1 driver out of staging and
-into the drivers/infiniband mainline. We have made significant changes beyond
-what was originally requested in the TODO list. The biggest areas of contention
-have simply been removed: snoop/capture, eprom, ui and the write()/writev()
-problem has been solved. We will be working with the community to get back the
-removed functionality, particularly the snoop/capture.
+hfi1 current exports a cdev that can be used to target all of the hfi's
+in the system. However there is a problem with this approach in
+that the devices could be on different subnets. This is a problem that
+user space can figure out and explicitly tell the driver on which device
+to create a context.
 
-This patch series combines the previously posted series which converts write()
-to ioctl() [1] and the previously posted series to remove cdevs [2]. These have
-been merged into a single series to have a more logical order and aid in review.
-For instance there is no change to convert eprom to ioctl then remove it. It is
-just removed.
+Remove the multi-purpose cdev leaving a dedicated cdev for each port.
+Also remove the striping capability that is dependent upon the user
+choosing the multi-purpose cdev. It is now up to user space to determine
+how to stripe contexts.
 
-Other changes in this series which were not included in [1] and [2] include:
-
-* Dropped sysfs version file
-* Added a new ioctl to get the sw version
-* Remove ioctl access OK helper function and rely on get_user and friends
-* Adds kref object accounting for opening/closing the cdev to prevent parent
-  structure from being removed.
-
-This patch series should apply on Doug's k.o/for-4.7 branch.
-
-Patches can also be viewed in my repo at:
-https://github.com/ddalessa/kernel/tree/for-4.7
-
-For history on the two patch sets please see:
-[1] http://marc.info/?l=linux-rdma&m=146307351401595&w=2
-[2] http://marc.info/?l=linux-rdma&m=146307407201814&w=2
-
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/staging/rdma/hfi1/file_ops.c |  102 ++++++----------------------------
+ include/uapi/rdma/hfi/hfi1_user.h    |   19 +-----
+ 2 files changed, 21 insertions(+), 100 deletions(-)
 
-Dennis Dalessandro (10):
-      IB/hfi1: Remove multiple device cdev
-      IB/hfi1: Remove UI char device
-      IB/hfi1: Remove EPROM functionality from data device
-      IB/hfi1: Remove snoop/diag interface
-      IB/hfi1: Remove unused user command
-      IB/hfi1: Add ioctl() interface for user commands
-      IB/hfi1: Remove write(), use ioctl() for user cmds
-      IB/hfi1: Add trace message in user IOCTL handling
-      IB/hfi1: Do not free hfi1 cdev parent structure early
-      IB/hfi1: Move driver out of staging
+diff --git a/drivers/staging/rdma/hfi1/file_ops.c b/drivers/staging/rdma/hfi1/file_ops.c
+index c1c5bf8..518cd89 100644
+--- a/drivers/staging/rdma/hfi1/file_ops.c
++++ b/drivers/staging/rdma/hfi1/file_ops.c
+@@ -86,8 +86,7 @@ static int get_ctxt_info(struct file *, void __user *, __u32);
+ static int get_base_info(struct file *, void __user *, __u32);
+ static int setup_ctxt(struct file *);
+ static int setup_subctxt(struct hfi1_ctxtdata *);
+-static int get_user_context(struct file *, struct hfi1_user_info *,
+-			    int, unsigned);
++static int get_user_context(struct file *, struct hfi1_user_info *, int);
+ static int find_shared_ctxt(struct file *, const struct hfi1_user_info *);
+ static int allocate_ctxt(struct file *, struct hfi1_devdata *,
+ 			 struct hfi1_user_info *);
+@@ -836,7 +835,7 @@ static u64 kvirt_to_phys(void *addr)
+ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
+ {
+ 	int i_minor, ret = 0;
+-	unsigned swmajor, swminor, alg = HFI1_ALG_ACROSS;
++	unsigned int swmajor, swminor;
+ 
+ 	swmajor = uinfo->userversion >> 16;
+ 	if (swmajor != HFI1_USER_SWMAJOR) {
+@@ -846,9 +845,6 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
+ 
+ 	swminor = uinfo->userversion & 0xffff;
+ 
+-	if (uinfo->hfi1_alg < HFI1_ALG_COUNT)
+-		alg = uinfo->hfi1_alg;
+-
+ 	mutex_lock(&hfi1_mutex);
+ 	/* First, lets check if we need to setup a shared context? */
+ 	if (uinfo->subctxt_cnt) {
+@@ -868,7 +864,7 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
+ 	 */
+ 	if (!ret) {
+ 		i_minor = iminor(file_inode(fp)) - HFI1_USER_MINOR_BASE;
+-		ret = get_user_context(fp, uinfo, i_minor - 1, alg);
++		ret = get_user_context(fp, uinfo, i_minor);
+ 	}
+ done_unlock:
+ 	mutex_unlock(&hfi1_mutex);
+@@ -876,71 +872,26 @@ done:
+ 	return ret;
+ }
+ 
+-/* return true if the device available for general use */
+-static int usable_device(struct hfi1_devdata *dd)
+-{
+-	struct hfi1_pportdata *ppd = dd->pport;
+-
+-	return driver_lstate(ppd) == IB_PORT_ACTIVE;
+-}
+-
+ static int get_user_context(struct file *fp, struct hfi1_user_info *uinfo,
+-			    int devno, unsigned alg)
++			    int devno)
+ {
+ 	struct hfi1_devdata *dd = NULL;
+-	int ret = 0, devmax, npresent, nup, dev;
++	int devmax, npresent, nup;
+ 
+ 	devmax = hfi1_count_units(&npresent, &nup);
+-	if (!npresent) {
+-		ret = -ENXIO;
+-		goto done;
+-	}
+-	if (!nup) {
+-		ret = -ENETDOWN;
+-		goto done;
+-	}
+-	if (devno >= 0) {
+-		dd = hfi1_lookup(devno);
+-		if (!dd)
+-			ret = -ENODEV;
+-		else if (!dd->freectxts)
+-			ret = -EBUSY;
+-	} else {
+-		struct hfi1_devdata *pdd;
+-
+-		if (alg == HFI1_ALG_ACROSS) {
+-			unsigned free = 0U;
+-
+-			for (dev = 0; dev < devmax; dev++) {
+-				pdd = hfi1_lookup(dev);
+-				if (!pdd)
+-					continue;
+-				if (!usable_device(pdd))
+-					continue;
+-				if (pdd->freectxts &&
+-				    pdd->freectxts > free) {
+-					dd = pdd;
+-					free = pdd->freectxts;
+-				}
+-			}
+-		} else {
+-			for (dev = 0; dev < devmax; dev++) {
+-				pdd = hfi1_lookup(dev);
+-				if (!pdd)
+-					continue;
+-				if (!usable_device(pdd))
+-					continue;
+-				if (pdd->freectxts) {
+-					dd = pdd;
+-					break;
+-				}
+-			}
+-		}
+-		if (!dd)
+-			ret = -EBUSY;
+-	}
+-done:
+-	return ret ? ret : allocate_ctxt(fp, dd, uinfo);
++	if (!npresent)
++		return -ENXIO;
++
++	if (!nup)
++		return -ENETDOWN;
++
++	dd = hfi1_lookup(devno);
++	if (!dd)
++		return -ENODEV;
++	else if (!dd->freectxts)
++		return -EBUSY;
++
++	return allocate_ctxt(fp, dd, uinfo);
+ }
+ 
+ static int find_shared_ctxt(struct file *fp,
+@@ -1698,15 +1649,8 @@ static const struct file_operations ui_file_ops = {
+ #define UI_OFFSET 192	/* device minor offset for UI devices */
+ static int create_ui = 1;
+ 
+-static struct cdev wildcard_cdev;
+-static struct device *wildcard_device;
+-
+-static atomic_t user_count = ATOMIC_INIT(0);
+-
+ static void user_remove(struct hfi1_devdata *dd)
+ {
+-	if (atomic_dec_return(&user_count) == 0)
+-		hfi1_cdev_cleanup(&wildcard_cdev, &wildcard_device);
+ 
+ 	hfi1_cdev_cleanup(&dd->user_cdev, &dd->user_device);
+ 	hfi1_cdev_cleanup(&dd->ui_cdev, &dd->ui_device);
+@@ -1717,16 +1661,8 @@ static int user_add(struct hfi1_devdata *dd)
+ 	char name[10];
+ 	int ret;
+ 
+-	if (atomic_inc_return(&user_count) == 1) {
+-		ret = hfi1_cdev_init(0, class_name(), &hfi1_file_ops,
+-				     &wildcard_cdev, &wildcard_device,
+-				     true);
+-		if (ret)
+-			goto done;
+-	}
+-
+ 	snprintf(name, sizeof(name), "%s_%d", class_name(), dd->unit);
+-	ret = hfi1_cdev_init(dd->unit + 1, name, &hfi1_file_ops,
++	ret = hfi1_cdev_init(dd->unit, name, &hfi1_file_ops,
+ 			     &dd->user_cdev, &dd->user_device,
+ 			     true);
+ 	if (ret)
+diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
+index a533cec..0955899 100644
+--- a/include/uapi/rdma/hfi/hfi1_user.h
++++ b/include/uapi/rdma/hfi/hfi1_user.h
+@@ -75,7 +75,7 @@
+  * may not be implemented; the user code must deal with this if it
+  * cares, or it must abort after initialization reports the difference.
+  */
+-#define HFI1_USER_SWMINOR 0
++#define HFI1_USER_SWMINOR 1
+ 
+ /*
+  * Set of HW and driver capability/feature bits.
+@@ -107,19 +107,6 @@
+ #define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
+ #define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
+ 
+-/*
+- * If the unit is specified via open, HFI choice is fixed.  If port is
+- * specified, it's also fixed.  Otherwise we try to spread contexts
+- * across ports and HFIs, using different algorithms.  WITHIN is
+- * the old default, prior to this mechanism.
+- */
+-#define HFI1_ALG_ACROSS 0 /* round robin contexts across HFIs, then
+-			  * ports; this is the default */
+-#define HFI1_ALG_WITHIN 1 /* use all contexts on an HFI (round robin
+-			  * active ports within), then next HFI */
+-#define HFI1_ALG_COUNT  2 /* number of algorithm choices */
+-
+-
+ /* User commands. */
+ #define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
+ #define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
+@@ -199,9 +186,7 @@ struct hfi1_user_info {
+ 	 * Should be set to HFI1_USER_SWVERSION.
+ 	 */
+ 	__u32 userversion;
+-	__u16 pad;
+-	/* HFI selection algorithm, if unit has not selected */
+-	__u16 hfi1_alg;
++	__u32 pad;
+ 	/*
+ 	 * If two or more processes wish to share a context, each process
+ 	 * must set the subcontext_cnt and subcontext_id to the same
 
-
- MAINTAINERS                                 |   13 
- drivers/infiniband/Kconfig                  |    2 
- drivers/infiniband/hw/Makefile              |    1 
- drivers/infiniband/hw/hfi1/Kconfig          |    0 
- drivers/infiniband/hw/hfi1/Makefile         |    2 
- drivers/infiniband/hw/hfi1/affinity.c       |    0 
- drivers/infiniband/hw/hfi1/affinity.h       |    0 
- drivers/infiniband/hw/hfi1/aspm.h           |    0 
- drivers/infiniband/hw/hfi1/chip.c           |    0 
- drivers/infiniband/hw/hfi1/chip.h           |    0 
- drivers/infiniband/hw/hfi1/chip_registers.h |    0 
- drivers/infiniband/hw/hfi1/common.h         |    5 
- drivers/infiniband/hw/hfi1/debugfs.c        |    0 
- drivers/infiniband/hw/hfi1/debugfs.h        |    0 
- drivers/infiniband/hw/hfi1/device.c         |    4 
- drivers/infiniband/hw/hfi1/device.h         |    3 
- drivers/infiniband/hw/hfi1/dma.c            |    0 
- drivers/infiniband/hw/hfi1/driver.c         |    0 
- drivers/infiniband/hw/hfi1/efivar.c         |    0 
- drivers/infiniband/hw/hfi1/efivar.h         |    0 
- drivers/infiniband/hw/hfi1/eprom.c          |   84 +
- drivers/infiniband/hw/hfi1/eprom.h          |    0 
- drivers/infiniband/hw/hfi1/file_ops.c       |  549 ++------
- drivers/infiniband/hw/hfi1/firmware.c       |    0 
- drivers/infiniband/hw/hfi1/hfi.h            |    1 
- drivers/infiniband/hw/hfi1/init.c           |   14 
- drivers/infiniband/hw/hfi1/intr.c           |    0 
- drivers/infiniband/hw/hfi1/iowait.h         |    0 
- drivers/infiniband/hw/hfi1/mad.c            |    0 
- drivers/infiniband/hw/hfi1/mad.h            |    0 
- drivers/infiniband/hw/hfi1/mmu_rb.c         |    0 
- drivers/infiniband/hw/hfi1/mmu_rb.h         |    0 
- drivers/infiniband/hw/hfi1/opa_compat.h     |    0 
- drivers/infiniband/hw/hfi1/pcie.c           |    0 
- drivers/infiniband/hw/hfi1/pio.c            |    0 
- drivers/infiniband/hw/hfi1/pio.h            |    0 
- drivers/infiniband/hw/hfi1/pio_copy.c       |    0 
- drivers/infiniband/hw/hfi1/platform.c       |    0 
- drivers/infiniband/hw/hfi1/platform.h       |    0 
- drivers/infiniband/hw/hfi1/qp.c             |    0 
- drivers/infiniband/hw/hfi1/qp.h             |    0 
- drivers/infiniband/hw/hfi1/qsfp.c           |    0 
- drivers/infiniband/hw/hfi1/qsfp.h           |    0 
- drivers/infiniband/hw/hfi1/rc.c             |    0 
- drivers/infiniband/hw/hfi1/ruc.c            |    0 
- drivers/infiniband/hw/hfi1/sdma.c           |    0 
- drivers/infiniband/hw/hfi1/sdma.h           |    0 
- drivers/infiniband/hw/hfi1/sdma_txreq.h     |    0 
- drivers/infiniband/hw/hfi1/sysfs.c          |    0 
- drivers/infiniband/hw/hfi1/trace.c          |    1 
- drivers/infiniband/hw/hfi1/trace.h          |    1 
- drivers/infiniband/hw/hfi1/twsi.c           |    0 
- drivers/infiniband/hw/hfi1/twsi.h           |    0 
- drivers/infiniband/hw/hfi1/uc.c             |    0 
- drivers/infiniband/hw/hfi1/ud.c             |    0 
- drivers/infiniband/hw/hfi1/user_exp_rcv.c   |    0 
- drivers/infiniband/hw/hfi1/user_exp_rcv.h   |    0 
- drivers/infiniband/hw/hfi1/user_pages.c     |    0 
- drivers/infiniband/hw/hfi1/user_sdma.c      |    0 
- drivers/infiniband/hw/hfi1/user_sdma.h      |    0 
- drivers/infiniband/hw/hfi1/verbs.c          |    0 
- drivers/infiniband/hw/hfi1/verbs.h          |    0 
- drivers/infiniband/hw/hfi1/verbs_txreq.c    |    0 
- drivers/infiniband/hw/hfi1/verbs_txreq.h    |    0 
- drivers/staging/rdma/Kconfig                |    2 
- drivers/staging/rdma/Makefile               |    1 
- drivers/staging/rdma/hfi1/TODO              |    6 
- drivers/staging/rdma/hfi1/diag.c            | 1925 ---------------------------
- drivers/staging/rdma/hfi1/eprom.c           |  471 -------
- include/uapi/rdma/hfi/hfi1_user.h           |   75 +
- 70 files changed, 267 insertions(+), 2893 deletions(-)
- rename drivers/{staging/rdma/hfi1/Kconfig => infiniband/hw/hfi1/Kconfig} (100%)
- rename drivers/{staging/rdma/hfi1/Makefile => infiniband/hw/hfi1/Makefile} (88%)
- rename drivers/{staging/rdma/hfi1/affinity.c => infiniband/hw/hfi1/affinity.c} (100%)
- rename drivers/{staging/rdma/hfi1/affinity.h => infiniband/hw/hfi1/affinity.h} (100%)
- rename drivers/{staging/rdma/hfi1/aspm.h => infiniband/hw/hfi1/aspm.h} (100%)
- rename drivers/{staging/rdma/hfi1/chip.c => infiniband/hw/hfi1/chip.c} (100%)
- rename drivers/{staging/rdma/hfi1/chip.h => infiniband/hw/hfi1/chip.h} (100%)
- rename drivers/{staging/rdma/hfi1/chip_registers.h => infiniband/hw/hfi1/chip_registers.h} (100%)
- rename drivers/{staging/rdma/hfi1/common.h => infiniband/hw/hfi1/common.h} (98%)
- rename drivers/{staging/rdma/hfi1/debugfs.c => infiniband/hw/hfi1/debugfs.c} (100%)
- rename drivers/{staging/rdma/hfi1/debugfs.h => infiniband/hw/hfi1/debugfs.h} (100%)
- rename drivers/{staging/rdma/hfi1/device.c => infiniband/hw/hfi1/device.c} (98%)
- rename drivers/{staging/rdma/hfi1/device.h => infiniband/hw/hfi1/device.h} (97%)
- rename drivers/{staging/rdma/hfi1/dma.c => infiniband/hw/hfi1/dma.c} (100%)
- rename drivers/{staging/rdma/hfi1/driver.c => infiniband/hw/hfi1/driver.c} (100%)
- rename drivers/{staging/rdma/hfi1/efivar.c => infiniband/hw/hfi1/efivar.c} (100%)
- rename drivers/{staging/rdma/hfi1/efivar.h => infiniband/hw/hfi1/efivar.h} (100%)
- copy drivers/{staging/rdma/hfi1/user_sdma.h => infiniband/hw/hfi1/eprom.c} (61%)
- rename drivers/{staging/rdma/hfi1/eprom.h => infiniband/hw/hfi1/eprom.h} (100%)
- rename drivers/{staging/rdma/hfi1/file_ops.c => infiniband/hw/hfi1/file_ops.c} (78%)
- rename drivers/{staging/rdma/hfi1/firmware.c => infiniband/hw/hfi1/firmware.c} (100%)
- rename drivers/{staging/rdma/hfi1/hfi.h => infiniband/hw/hfi1/hfi.h} (99%)
- rename drivers/{staging/rdma/hfi1/init.c => infiniband/hw/hfi1/init.c} (99%)
- rename drivers/{staging/rdma/hfi1/intr.c => infiniband/hw/hfi1/intr.c} (100%)
- rename drivers/{staging/rdma/hfi1/iowait.h => infiniband/hw/hfi1/iowait.h} (100%)
- rename drivers/{staging/rdma/hfi1/mad.c => infiniband/hw/hfi1/mad.c} (100%)
- rename drivers/{staging/rdma/hfi1/mad.h => infiniband/hw/hfi1/mad.h} (100%)
- rename drivers/{staging/rdma/hfi1/mmu_rb.c => infiniband/hw/hfi1/mmu_rb.c} (100%)
- rename drivers/{staging/rdma/hfi1/mmu_rb.h => infiniband/hw/hfi1/mmu_rb.h} (100%)
- rename drivers/{staging/rdma/hfi1/opa_compat.h => infiniband/hw/hfi1/opa_compat.h} (100%)
- rename drivers/{staging/rdma/hfi1/pcie.c => infiniband/hw/hfi1/pcie.c} (100%)
- rename drivers/{staging/rdma/hfi1/pio.c => infiniband/hw/hfi1/pio.c} (100%)
- rename drivers/{staging/rdma/hfi1/pio.h => infiniband/hw/hfi1/pio.h} (100%)
- rename drivers/{staging/rdma/hfi1/pio_copy.c => infiniband/hw/hfi1/pio_copy.c} (100%)
- rename drivers/{staging/rdma/hfi1/platform.c => infiniband/hw/hfi1/platform.c} (100%)
- rename drivers/{staging/rdma/hfi1/platform.h => infiniband/hw/hfi1/platform.h} (100%)
- rename drivers/{staging/rdma/hfi1/qp.c => infiniband/hw/hfi1/qp.c} (100%)
- rename drivers/{staging/rdma/hfi1/qp.h => infiniband/hw/hfi1/qp.h} (100%)
- rename drivers/{staging/rdma/hfi1/qsfp.c => infiniband/hw/hfi1/qsfp.c} (100%)
- rename drivers/{staging/rdma/hfi1/qsfp.h => infiniband/hw/hfi1/qsfp.h} (100%)
- rename drivers/{staging/rdma/hfi1/rc.c => infiniband/hw/hfi1/rc.c} (100%)
- rename drivers/{staging/rdma/hfi1/ruc.c => infiniband/hw/hfi1/ruc.c} (100%)
- rename drivers/{staging/rdma/hfi1/sdma.c => infiniband/hw/hfi1/sdma.c} (100%)
- rename drivers/{staging/rdma/hfi1/sdma.h => infiniband/hw/hfi1/sdma.h} (100%)
- rename drivers/{staging/rdma/hfi1/sdma_txreq.h => infiniband/hw/hfi1/sdma_txreq.h} (100%)
- rename drivers/{staging/rdma/hfi1/sysfs.c => infiniband/hw/hfi1/sysfs.c} (100%)
- rename drivers/{staging/rdma/hfi1/trace.c => infiniband/hw/hfi1/trace.c} (99%)
- rename drivers/{staging/rdma/hfi1/trace.h => infiniband/hw/hfi1/trace.h} (99%)
- rename drivers/{staging/rdma/hfi1/twsi.c => infiniband/hw/hfi1/twsi.c} (100%)
- rename drivers/{staging/rdma/hfi1/twsi.h => infiniband/hw/hfi1/twsi.h} (100%)
- rename drivers/{staging/rdma/hfi1/uc.c => infiniband/hw/hfi1/uc.c} (100%)
- rename drivers/{staging/rdma/hfi1/ud.c => infiniband/hw/hfi1/ud.c} (100%)
- rename drivers/{staging/rdma/hfi1/user_exp_rcv.c => infiniband/hw/hfi1/user_exp_rcv.c} (100%)
- rename drivers/{staging/rdma/hfi1/user_exp_rcv.h => infiniband/hw/hfi1/user_exp_rcv.h} (100%)
- rename drivers/{staging/rdma/hfi1/user_pages.c => infiniband/hw/hfi1/user_pages.c} (100%)
- rename drivers/{staging/rdma/hfi1/user_sdma.c => infiniband/hw/hfi1/user_sdma.c} (100%)
- rename drivers/{staging/rdma/hfi1/user_sdma.h => infiniband/hw/hfi1/user_sdma.h} (100%)
- rename drivers/{staging/rdma/hfi1/verbs.c => infiniband/hw/hfi1/verbs.c} (100%)
- rename drivers/{staging/rdma/hfi1/verbs.h => infiniband/hw/hfi1/verbs.h} (100%)
- rename drivers/{staging/rdma/hfi1/verbs_txreq.c => infiniband/hw/hfi1/verbs_txreq.c} (100%)
- rename drivers/{staging/rdma/hfi1/verbs_txreq.h => infiniband/hw/hfi1/verbs_txreq.h} (100%)
- delete mode 100644 drivers/staging/rdma/hfi1/TODO
- delete mode 100644 drivers/staging/rdma/hfi1/diag.c
- delete mode 100644 drivers/staging/rdma/hfi1/eprom.c
-
--- 
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
