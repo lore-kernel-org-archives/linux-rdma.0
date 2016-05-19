@@ -1,65 +1,89 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 0/3] Scatter FCS support
-Date: Thu, 19 May 2016 15:52:46 +0300
-Message-ID: <1463662369-18395-1-git-send-email-yishaih@mellanox.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [rdma-next,V2 0/6] IB/core: Add InfiniBand router support
+Date: Thu, 19 May 2016 17:12:30 +0300
+Message-ID: <1463667156-6518-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This series from Majd adds 'Scatter FCS support' for libibverbs.
-You already accepted the kernel part for coming kernel 4.7.
+InfiniBand has gone a long way in providing efficient large-scale
+high performance connectivity. IB subnets have shown to scale to
+tens of thousands of nodes, both in raw capacity and in management.
 
-The series was tested successfully with mlx5 driver (lib, kernel)
-and can be accessed also from my openfabrics GIT at:
-git://openfabrics.org/~yishaih/libibverbs.git
-branch: fcs
+As demand for computing capacity increases, future clusters sizes might
+exceed the number of addressable endpoints in a single IB subnet (around
+40K nodes).
 
-It exists also on top of V2 timestamp series
-that we just sent, for that the 'for-upstream' branch should
-be used.
+To accommodate such clusters, a routing layer with the same latencies
+and bandwidth characteristics as switches is required. In addition, as
+data center deployments evolve, it becomes beneficial to consolidate
+resources across multiple clusters.
 
-Thanks,
-Yishai
+There are multiple applications for this technology such as computing
+clusters which require access to a common storage infrastructure.
+Routers enable such connectivity while reducing management complexity
+and isolating intra-subnet faults.
 
-Frame Check Sequence(FCS) is an error detecting code that terminates an
-Ethernet frame. When using Raw Ethernet, users sometimes want to
-validate the FCS themselves, and therefore it should be scattered to the
-receive buffers.
+In this patch set the forwarding between the IB subnets is performed
+by including a GRH header.
+The IB router's basic functionality includes:
+ * Removal of current L2 LRH (local routing header)
+ * Routing table lookup - using GID from GRH
+ * Building new LRH according to the destination based on the routing table
 
-This series adds the above support.
+In order to retrieve the destination GID, new resolution method was needed.
+There is an assumption that rdmacm is used only between nodes in the same
+IB subnet, this is why ARP resolution can be used to turn IP to GID in rdmacm.
 
-The user can control scattering the FCS using Queue-Pair(QP) creation flag
-called IBV_QP_CREATE_SCATTER_FCS.
+When dealing with IB communication between subnets this assumption
+is no longer valid. ARP resolution will get us the next hop device
+address and not the peer node's device address.
 
-Also, to report this new device capability, we had to add a new device
-capability flags in the uverbs response called device_cap_flags_ex, since all
-the current device_cap_flags are occupied.
+To solve this issue, we will check user space if it can provide the
+GID of the peer node, and fail if not. For doing so, we added a new
+RDMA local service operation (IP to GID resolution) and a sequence number
+to identify each request. The client request would include the ifindex
+of the outgoing interface and attributes which indicate the destination IP.
+The local service would answer with the requested destination GID.
 
-device_cap_flags_ex 0-31 bits are identical to the legacy device_cap_flags, and
-the upper 32 bits (32-63 bits) report new extended device capabilities.
+Changes from V0:
+1. Remove the commit that turned netlink into a kernel module.
+2. Intergrade ib_addr module into ib_core.
+Changes from V1:
+1. Remove dynamic ibnl client registration.
+2. Intergrade ib_mad module into ib_core module.
+3. Intergrade ib_sa module into ib_core module.
+4. Move SA ibnl client registration to ib_core.
+5. Move ib_addr ibnl registration to ib_core, intergrade
+   it with the SA ibnl client to make a single RDMA_NL_LS
+   client.
+6. Minor code cleanups in the IP to GID netlink offload patch.
 
-Devices that support scattering the FCS should report it in device_cap_flags_ex
-using IBV_DEVICE_RAW_SCATTER_FCS.
+Leon Romanovsky (1):
+  IB/core: Integrate IB address resolution module into core
 
+Mark Bloch (5):
+  IB/MAD: Integrate ib_mad module into ib_core module
+  IB/SA: Integrate ib_sa module into ib_core module
+  IB/netlink: Add a new local service operation
+  IB/core: Register SA ibnl client during ib_core initialization
+  IB/core: Add IP to GID netlink offload
 
-Majd Dibbiny (3):
-  Extend devinfo verbosity mode
-  Add extended device capability flags
-  Add SCATTER_FCS QP create flag
-
- examples/devinfo.c            | 96 +++++++++++++++++++++++++++++++++++++++++++
- include/infiniband/kern-abi.h |  2 +
- include/infiniband/verbs.h    |  8 ++++
- man/ibv_query_device_ex.3     |  1 +
- src/cmd.c                     | 13 +++++-
- 5 files changed, 119 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/Makefile    |  12 +-
+ drivers/infiniband/core/addr.c      | 226 +++++++++++++++++++++++++++++++-----
+ drivers/infiniband/core/core_priv.h |  16 +++
+ drivers/infiniband/core/device.c    |  58 +++++++++
+ drivers/infiniband/core/mad.c       |  13 +--
+ drivers/infiniband/core/sa_query.c  |  38 ++----
+ include/uapi/rdma/rdma_netlink.h    |  10 ++
+ 7 files changed, 291 insertions(+), 82 deletions(-)
 
 -- 
-1.8.3.1
+1.8.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
