@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 libibverbs 5/7] Create a single threaded CQ
-Date: Thu, 19 May 2016 14:51:40 +0300
-Message-ID: <1463658702-9975-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 libibverbs 6/7] Add a verb that queries real time values from the HCA
+Date: Thu, 19 May 2016 14:51:41 +0300
+Message-ID: <1463658702-9975-7-git-send-email-yishaih@mellanox.com>
 References: <1463658702-9975-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1463658702-9975-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,86 +12,152 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When a CQ is used only from one thread, there's no need to waste cycles
-on locking. Since this series introduces a mechanism which allows the
-vendor to introduce different polling functions per CQ, it allows the
-vendor to implement both locking and lockless CQs and assign them
-accordingly.
+Add ibv_query_rt_values_ex, an extension verb to query certain real
+time values of a device. Currently, only IBV_VALUES_MASK_RAW_CLOCK is
+supported, but this verb could support other flags like
+IBV_VALUES_MASK_TEMP_SENSOR, IBV_VALUES_MASK_CORE_FREQ, etc.
 
-Adding a new creation flag for this.
+This extension verb only calls the provider.
+The provider has to query this value somehow and mark the queried
+values in comp_mask.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h | 12 +++++++++++-
- man/ibv_create_cq_ex.3     |  8 ++++++++
- src/cmd.c                  |  4 ++++
- 3 files changed, 23 insertions(+), 1 deletion(-)
+ Makefile.am                  |  3 ++-
+ include/infiniband/verbs.h   | 33 +++++++++++++++++++++++++++++
+ man/ibv_query_rt_values_ex.3 | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 85 insertions(+), 1 deletion(-)
+ create mode 100644 man/ibv_query_rt_values_ex.3
 
+diff --git a/Makefile.am b/Makefile.am
+index a1c2122..16f838d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -65,7 +65,8 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
+     man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
+     man/ibv_get_srq_num.3 man/ibv_open_qp.3 man/ibv_query_device_ex.3	\
+     man/ibv_alloc_mw.3 man/ibv_bind_mw.3 man/ibv_inc_rkey.3		\
+-    man/ibv_rereg_mr.3 man/ibv_create_cq_ex.3
++    man/ibv_rereg_mr.3 man/ibv_create_cq_ex.3				\
++    man/ibv_query_rt_values_ex.3
+ 
+ DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
+     debian/ibverbs-utils.install debian/libibverbs1.install \
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index c5a0177..c96eb26 100644
+index c96eb26..337dbda 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -1198,7 +1198,13 @@ struct ibv_context {
+@@ -1232,6 +1232,16 @@ struct ibv_cq_init_attr_ex {
+ 	uint32_t		flags;
  };
  
- enum ibv_cq_init_attr_mask {
--	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 0 << 1
-+	IBV_CQ_INIT_ATTR_MASK_FLAGS	= 1 << 0,
-+	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 1 << 1
++enum ibv_values_mask {
++	IBV_VALUES_MASK_RAW_CLOCK	= 1 << 0,
++	IBV_VALUES_MASK_RESERVED	= 1 << 1
 +};
 +
-+enum ibv_create_cq_attr_flags {
-+	IBV_CREATE_CQ_ATTR_SINGLE_THREADED = 1 << 0,
-+	IBV_CREATE_CQ_ATTR_RESERVED = 1 << 1,
- };
- 
- struct ibv_cq_init_attr_ex {
-@@ -1220,6 +1226,10 @@ struct ibv_cq_init_attr_ex {
- 	 * enum ibv_cq_init_attr_mask
- 	 */
- 	uint32_t		comp_mask;
-+	/* create cq attr flags - one or more flags from
-+	 * enum ibv_create_cq_attr_flags
-+	 */
-+	uint32_t		flags;
- };
- 
++struct ibv_values_ex {
++	uint32_t	comp_mask;
++	struct timespec raw_clock;
++};
++
  enum verbs_context_mask {
-diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index 4f8ff4b..81cbf17 100644
---- a/man/ibv_create_cq_ex.3
-+++ b/man/ibv_create_cq_ex.3
-@@ -42,6 +42,14 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 8,  /* Require completion timestamp in WC /*
- };
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+ 	VERBS_CONTEXT_SRQ	= 1 << 1,
+@@ -1243,6 +1253,8 @@ enum verbs_context_mask {
  
-+enum ibv_cq_init_attr_mask {
-+        IBV_CQ_INIT_ATTR_MASK_FLAGS             = 1 << 0,
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*query_rt_values)(struct ibv_context *context,
++			       struct ibv_values_ex *values);
+ 	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
+ 					  struct ibv_cq_init_attr_ex *init_attr);
+ 	struct verbs_ex_private *priv;
+@@ -1762,6 +1774,27 @@ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_ini
+ }
+ 
+ /**
++ * ibv_query_rt_values_ex - Get current real time @values of a device.
++ * @values - in/out - defines the attributes we need to query/queried.
++ * (Or's bits of enum ibv_values_mask on values->comp_mask field)
++ */
++static inline int
++ibv_query_rt_values_ex(struct ibv_context *context,
++		       struct ibv_values_ex *values)
++{
++	struct verbs_context *vctx;
++
++	vctx = verbs_get_ctx_op(context, query_rt_values);
++	if (!vctx)
++		return ENOSYS;
++
++	if (values->comp_mask & ~(IBV_VALUES_MASK_RESERVED - 1))
++		return EINVAL;
++
++	return vctx->query_rt_values(context, values);
++}
++
++/**
+  * ibv_query_device_ex - Get extended device properties
+  */
+ static inline int
+diff --git a/man/ibv_query_rt_values_ex.3 b/man/ibv_query_rt_values_ex.3
+new file mode 100644
+index 0000000..fcc460c
+--- /dev/null
++++ b/man/ibv_query_rt_values_ex.3
+@@ -0,0 +1,50 @@
++.\" -*- nroff -*-
++.\"
++.TH IBV_QUERY_RT_VALUES_EX 3 2016-2-20 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_query_rt_values_ex \- query an RDMA device for some real time values
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "int ibv_query_rt_values_ex(struct ibv_context " "*context",
++.BI "                           struct ibv_values_ex " "*values" );
++.fi
++.SH "DESCRIPTION"
++.B ibv_query_rt_values_ex()
++returns certain real time values of a device
++.I context\fR.
++The argument
++.I attr
++is a pointer to an ibv_device_attr_ex struct, as defined in <infiniband/verbs.h>.
++.PP
++.nf
++struct ibv_values_ex {
++.in +8
++uint32_t             comp_mask;    /* Compatibility mask that defines the query/queried fields [in/out] */
++struct timespec      raw_clock;    /* HW raw clock */
++.in -8
 +};
 +
-+enum ibv_create_cq_attr_flags {
-+        IBV_CREATE_CQ_ATTR_SINGLE_THREADED      = 1 << 0, /* This CQ is used from a single threaded, thus no locking is required */
++enum ibv_values_mask {
++        IBV_VALUES_MASK_RAW_CLOCK = 1 << 0, /* HW raw clock */
 +};
 +
- .SH "Polling an extended CQ"
- In order to poll an extended CQ efficiently, a user could use the following functions.
- 
-diff --git a/src/cmd.c b/src/cmd.c
-index 647fbbb..5cd3e78 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -486,6 +486,10 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
- 
- 	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
- 	    sizeof(cmd->flags)) {
-+		if ((cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS) &&
-+		    (cq_attr->flags & ~(IBV_CREATE_CQ_ATTR_RESERVED - 1)))
-+			return EOPNOTSUPP;
-+
- 		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
- 			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
- 	}
++.fi
++.SH "RETURN VALUE"
++.B ibv_query_rt_values_ex()
++returns 0 on success, or the value of errno on failure (which indicates the failure reason).
++.SH "NOTES"
++This extension verb only calls the provider, the provider has to query this value somehow and mark
++the queried values in the comp_mask field.
++.SH "SEE ALSO"
++.BR ibv_query_device (3),
++.BR ibv_open_device (3),
++.BR ibv_query_port (3),
++.BR ibv_query_pkey (3),
++.BR ibv_query_gid (3)
++.SH "AUTHORS"
++.TP
++Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++.TP
++Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 -- 
 1.8.3.1
 
