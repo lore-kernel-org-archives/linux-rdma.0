@@ -1,69 +1,22 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Make device counter infrastructure dynamic
-Date: Thu, 19 May 2016 15:50:02 -0600
-Message-ID: <20160519215002.GB2469@obsidianresearch.com>
-References: <9ed44c11acf2de44f06ce5d88758ce8d732d1be2.1463693558.git.dledford@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v1 1/1] [librdmacm] examples/rping.c: fix unwanted abort
+ during qp creation
+Date: Thu, 19 May 2016 22:19:01 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB04ED20@ORSMSX109.amr.corp.intel.com>
+References: <1462779876-9480-1-git-send-email-bharat@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9ed44c11acf2de44f06ce5d88758ce8d732d1be2.1463693558.git.dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1462779876-9480-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 19, 2016 at 05:35:13PM -0400, Doug Ledford wrote:
+Thanks - applied
 
-> +	return sprintf(buf, "%d msecs (rounded from jiffies), 0-10000 allowed "
-> +		       "range\n", msecs);
-
-sysfs files should not have usage commentary like that, just use the
-%d
-
-> +char *names[] = {
-
-static const char * const names[] = {
-
-For Kees
-
-> +	[NR_COUNTERS] = NULL
-
-Don't really need this, just use ARRAY_SIZE(names) in place of
-NR_COUTNERS
-
-> +       stats = kzalloc(sizeof(*stats) + NR_COUNTERS * sizeof(u64), GFP_KERNEL);
-
-People have been switching the above pattern to use kcalloc
-
-> +static char *names[] = {
-> +	[TCPINSEGS] = "tcpInSegs",
-> +	[TCPOUTSEGS] = "tcpOutSegs",
-> +	[TCPRETRANSSEGS] = "tcpRetransSegs",
-> +	[TCPOUTRSTS] = "tcpOutRsts",
-> +	[NR_COUNTERS] = NULL
-> +};
-
-ditto
-
-> +static char *i40iw_hw_stat_names[] = {
-
-ditto
-
-> +	[I40IW_HW_STAT_INDEX_MAX_64 + I40IW_HW_STAT_INDEX_MAX_32] = ""
-
-Why an empty string?
-
-> +	char		*dirname; /* Sysfs directory name */
-> +	char		**name;   /* array of names of the counters in the
-> +				   * sysfs dir
-
-const char * const *name
-
-Trailing comments are not the kdoc standard for structure members,
-IIRC.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
