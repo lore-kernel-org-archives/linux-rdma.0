@@ -1,42 +1,61 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH] libibverbs: add ARM64 memory barrier macros
-Date: Fri, 20 May 2016 15:20:23 -0500
-Message-ID: <015501d1b2d5$0a020de0$1e0629a0$@opengridcomputing.com>
-References: <20160520163207.B99DCE0B9D@smtp.ogc.us> <9C6B67F36DCAFC479B1CF6A967258A8C7DDBB201@ORSMSX115.amr.corp.intel.com> <011001d1b2c6$a95a6f40$fc0f4dc0$@opengridcomputing.com> <011e01d1b2c7$e9a70c10$bcf52430$@opengridcomputing.com> <2dc25c9c-748c-098c-f7a1-5d6e59504308@redhat.com>
+Subject: RE: [PATCH RFC v2 0/2] libibverbs memory barrier fixes
+Date: Fri, 20 May 2016 15:27:45 -0500
+Message-ID: <016901d1b2d6$113b4ee0$33b1eca0$@opengridcomputing.com>
+References: <20160520200053.6983AE0B9D@smtp.ogc.us> <3ffd3089-ede9-aebf-4781-2e012bc65252@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2dc25c9c-748c-098c-f7a1-5d6e59504308-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <3ffd3089-ede9-aebf-4781-2e012bc65252-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Woodruff Robert J' <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> >> I could utilize the code from FreeBSD.  Does that allow me to submit this
-to
-> >> libibverbs under the dual GPL/BSD license?
-> >>
+> > This is v2 of the ARM64 mb* support, plus an additional patch to fail
+> > compiles if there is no platform implementation of the memory barriers.
+> > I've included the 2nd patch because I think it is important to not
+> > assume any default barrier implementation.  Getting it wrong can result
+> > in data corruption.
 > >
-> > I think I can just re-implement these services myself based published works
-> > describing the memory barrier assembly for ARM (like the document Jason
-> > referenced earlier).  That will avoid any tainting.
+> > Changes since V1:
 > >
-> > Doug: Will that work?
+> > Put the RFC tag back on because I want to retest this series.
+> >
+> > Implemented the ARM64 memory barrier macros from scratch using the AMD
+> > reference docs.
+> >
+> > Added 2nd patch to fail compiles if no mb* macros exist for the platform.
+> >
+> > Steve Wise (2):
+> >   libibverbs: add ARM64 memory barrier macros
+> >   Fail compiles if no platform specific memory barriers exist
+> >
+> >  include/infiniband/arch.h |   15 +++++++++------
+> >  1 files changed, 9 insertions(+), 6 deletions(-)
+> >
 > 
-> Either way works actually.  IANAL, but I've been told this multiple
-> times and will relay my possibly flawed memory of the legal issue.  The
-> original patch, even though lifted from the linux kernel, is likely to
-> fall under the scope of "operationally defined" code.  In other words,
-> the specific patch you wrote and the thing it implemented is so rigidly
-> defined by what it does, that there really is little to no room for any
-> different expression of the code.  When there is no room for different
-> expressions, the code is not copyrightable.
-> 
+> Please remember to use --thread=shallow when sending patch emails using
+> git send-email (which is what I assume you did).
+>
 
-That makes too much sense... ;)
+Will do.  I use git format-patch.  I added -t, but that apparently does nothing.
+:)  I'll use --thread=shallow next time.
+
+ 
+> Let me know how the testing comes out.  The patches look fine to me
+> (thanks for adding the second one, it's the right thing to do).
+>
+
+It will be next week, and I'll send out a final version of the series then.  
+
+Thanks!
+
+Steve
+
 
 
 --
