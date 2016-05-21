@@ -1,143 +1,82 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Fwd: Re: [PATCH] IB/security: restrict use of the write() interface
-Date: Sat, 21 May 2016 10:27:56 -0400
-Message-ID: <f08a20a3-9c4a-9c17-7cfd-6f25990cdbda@redhat.com>
-References: <0ab5724f-d6db-20eb-dd60-35aae9d6d9d6@redhat.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 06/10] IB/hfi1: Add ioctl() interface for user commands
+Date: Sat, 21 May 2016 12:23:02 -0400
+Message-ID: <20160521162301.GA16770@phlsvsds.ph.intel.com>
+References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com> <20160519122622.22041.41686.stgit@scvm10.sc.intel.com> <20160521123404.GB25500@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="3dTJ1neATBpxg0hAs5MEOuQwlomROTGwO"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0ab5724f-d6db-20eb-dd60-35aae9d6d9d6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160521123404.GB25500-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-stable <linux-stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---3dTJ1neATBpxg0hAs5MEOuQwlomROTGwO
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Sat, May 21, 2016 at 03:34:04PM +0300, Leon Romanovsky wrote:
+>On Thu, May 19, 2016 at 05:26:24AM -0700, Dennis Dalessandro wrote:
+>> IOCTL is more suited to what user space commands need to do than the
+>> write() interface. Add IOCTL definitions for all existing write commands
+>> and the handling for those. The write() interface will be removed in a
+>> follow on patch.
+>> 
+>> Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/staging/rdma/hfi1/common.h   |    5 +
+>>  drivers/staging/rdma/hfi1/file_ops.c |  204 ++++++++++++++++++++++++++++++++++
+>>  include/uapi/rdma/hfi/hfi1_user.h    |   40 +++++++
+>>  3 files changed, 248 insertions(+), 1 deletions(-)
+>> 
+>
+><...>
+>
+>> +#define IB_IOCTL_MAGIC 0x1b /* See Documentation/ioctl/ioctl-number.txt */
+>> +
+>> +struct hfi1_cmd;
+>> +#define HFI1_IOCTL_ASSIGN_CTXT \
+>> +	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_ASSIGN_CTXT, struct hfi1_user_info)
+>> +#define HFI1_IOCTL_CTXT_INFO \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_CTXT_INFO, struct hfi1_ctxt_info)
+>> +#define HFI1_IOCTL_USER_INFO \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_USER_INFO, struct hfi1_base_info)
+>> +#define HFI1_IOCTL_TID_UPDATE \
+>> +	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_UPDATE, struct hfi1_tid_info)
+>> +#define HFI1_IOCTL_TID_FREE \
+>> +	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_FREE, struct hfi1_tid_info)
+>> +#define HFI1_IOCTL_CREDIT_UPD \
+>> +	_IO(IB_IOCTL_MAGIC, HFI1_CMD_CREDIT_UPD)
+>> +#define HFI1_IOCTL_RECV_CTRL \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_RECV_CTRL, int)
+>> +#define HFI1_IOCTL_POLL_TYPE \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_POLL_TYPE, int)
+>> +#define HFI1_IOCTL_ACK_EVENT \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_ACK_EVENT, unsigned long)
+>> +#define HFI1_IOCTL_SET_PKEY \
+>> +	_IOW(IB_IOCTL_MAGIC, HFI1_CMD_SET_PKEY, __u16)
+>> +#define HFI1_IOCTL_CTXT_RESET \
+>> +	_IO(IB_IOCTL_MAGIC, HFI1_CMD_CTXT_RESET)
+>> +#define HFI1_IOCTL_TID_INVAL_READ \
+>> +	_IOWR(IB_IOCTL_MAGIC, HFI1_CMD_TID_INVAL_READ, struct hfi1_tid_info)
+>> +#define HFI1_IOCTL_GET_VERS \
+>> +	_IOR(IB_IOCTL_MAGIC, HFI1_CMD_GET_VERS, int)
+>>  
+>
+>I think the overall consensus over participants in OFVWG call was to use
+>one IOCTL to enter into device specific handler which will do all
+>necessary parsing and not spamming common IOCTL interface.
 
-Hmmm, for some reason, reply-all didn't get either list.
+That was for the verbs working group and the verbs 2.0 uAPI. This is for 
+psm. We have some commands which are write or read only, and some which are  
+read and write. It seems natural to classify their ioctl as such.
 
+In the interim, while the OFVWG is solidifying its one API to rule them all, 
+this solves our current and very specific problem of treating 
+write()/writev() differently.  
 
--------- Forwarded Message --------
-Subject: Re: [PATCH] IB/security: restrict use of the write() interface
-Date: Sat, 21 May 2016 10:07:12 -0400
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Organization: Red Hat, Inc.
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-CC: Kamal Mostafa <kamal-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-
-On 05/21/2016 01:32 AM, Greg KH wrote:
-> On Wed, May 18, 2016 at 01:40:13PM -0700, Kamal Mostafa wrote:
->> On Wed, May 18, 2016 at 12:46:11PM -0400, Doug Ledford wrote:
->>> Upstream commit e6bd18f57aad (IB/security: Restrict use of the write(=
-)
->>> interface) handled the cases for all drivers in the current upstream
->>> kernel.  The ipath driver had recently been deprecated and moved to
->>> staging, and then removed entirely.  It had the same security flaw as=
-
->>> the qib driver.  Fix that up with this separate patch.
->>>
->>> Note: The ipath driver only supports hardware that ended production
->>> over 10 years ago, so there should be none of this hardware still
->>> present in the wild.
->>>
->>> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org # 4.4.x
->>> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>> ---
->>>  drivers/staging/rdma/ipath/ipath_file_ops.c | 5 +++++
->>>  1 file changed, 5 insertions(+)
->>>
->>> diff --git a/drivers/staging/rdma/ipath/ipath_file_ops.c b/drivers/st=
-aging/rdma/ipath/ipath_file_ops.c
->>> index 13c3cd11ab92..f237a2e2a086 100644
->>> --- a/drivers/staging/rdma/ipath/ipath_file_ops.c
->>> +++ b/drivers/staging/rdma/ipath/ipath_file_ops.c
->>> @@ -45,6 +45,8 @@
->>>  #include <linux/uio.h>
->>>  #include <asm/pgtable.h>
->>> =20
->>> +#include <rdma/ib.h>
->>> +
->>>  #include "ipath_kernel.h"
->>>  #include "ipath_common.h"
->>>  #include "ipath_user_sdma.h"
->>> @@ -2243,6 +2245,9 @@ static ssize_t ipath_write(struct file *fp, con=
-st char __user *data,
->>>  	ssize_t ret =3D 0;
->>>  	void *dest;
->>> =20
->>> +	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
->>> +		return -EACCESS;
->>
->> This needs to be "EACCES" (one fewer 'S').
->=20
-> And so goes the "if it isn't in Linus's tree, and it is asked to be
-> merged into -stable, it is almost always wrong" proof :(
->=20
-> Doug, why did you send these if you didn't even build them?
-
-It's a bit embarassing that I did a typo while copying the fix from qib
-to ipath (I used middle mouse click to copy the previous line, but the
-return line was so simple I hand typed it and my muscle memory of using
-correct spelling bit me in the ass), but it's not the end of the world.
-
->  Because of
-> that, I _know_ you didn't test them, how do I know these are safe to
-> apply?
-
-These are patches to 10+ year old hardware that I don't even have any
-more.  Nor does anyone else likely.  In this case, it has to be "the
-devil you know versus the devil you don't", and the devil you know is a
-security issue, and you know that the qib driver was originally lifted
-directly from the ipath driver and so they are very close to identical
-in major portions of their code, and you know that the fix was tested in
-qib modulo my copy-n-paste error.
-
-> ugh.
-
-The fix is good, just my copy of it was broken.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---3dTJ1neATBpxg0hAs5MEOuQwlomROTGwO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXQHBtAAoJELgmozMOVy/dBRMP/Rj6CSH76uMFc089wNB6Bjmc
-3fLvlph1zQ9i2s6wCPLU2SW8t+7culjZxA4JBg1qYhvrLBQC8nSB5ijTyl+bo4dH
-8oAEhMhcfXO2tVPnptHhNBh3LYa8mQVRyRTxTuv2YgF1OPSuyGbTL1Yka/yluw3L
-RMtS17cJFrthyGJeYUNH+6EOjeAgjKnLPBp1RQujogF3x40ZXooZvDisIuCII7SL
-5jeHbm3mL8cCaDCHQvO9+Aij2PObSiFpHxSX5cjoz0ivFZLBbw5oPhL8zMa7GV3U
-mfP+5YMnVKy7mWy84zR1FtCjXidQGPVhyICrtRhPSsQlSZOpwV4ZPtRfDyqrJ/Ha
-O0I49Fy5Lc15P1PK+mjL0xyIVpXooC2v4ZildW95/gSqqZeIPu1+Dew3s/sfBlYL
-eMngGtieBrO+O5uu913CkClKH+ON88foWJIid7lmBn8xfyXz+5WNEff2XfhwYGKY
-j5XMcqW2qqSjHG9L2OZs04XNWgUqNk8CQ90ZrvzFzgHDMB5FDD+Z1wPYtEIVHf0v
-F7yKV7ZozvBzlm5UXRz6qP+NhT7a67ExRDp8Y8J7vD9ZygmMI5uz10e1niCBjq7R
-dM7q43nths/jvsveavEzad1jDAvQHPnU5d1fP6VhO9dFQ2G3IhxMW5WmyXUbCcpi
-H8djXalP6yyqpwMJm+Cn
-=mHom
------END PGP SIGNATURE-----
-
---3dTJ1neATBpxg0hAs5MEOuQwlomROTGwO--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
