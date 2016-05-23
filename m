@@ -1,173 +1,78 @@
-From: Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH 1/1] Staging: rdma: hfi1: sdma.c: Fixed coding style issues
-Date: Mon, 23 May 2016 12:06:02 +0530
-Message-ID: <1463985362-8429-2-git-send-email-mayhs11saini@gmail.com>
-References: <1463985362-8429-1-git-send-email-mayhs11saini@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <1463985362-8429-1-git-send-email-mayhs11saini@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: gregkh@linuxfoundation.org
-Cc: devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, infinipath@intel.com, dledford@redhat.com, Shyam Saini <mayhs11saini@gmail.com>, sean.hefty@intel.com
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V5 for-next 0/4] Support SendOnlyFullMember join
+Date: Mon, 23 May 2016 11:14:19 +0300
+Message-ID: <1463991263-13084-1-git-send-email-erezsh@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixed following checkpatch.pl warnings:
-    Prefer 'unsigned int' to bare use of 'unsigned'
-    Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)
+There are four types of multicast join: FullMember, NonMember,
+SendOnlyNonMember and SendOnlyFullMember.
 
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
----
- drivers/staging/rdma/hfi1/sdma.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+This patch-set introduces the ability to send multicast join requests of
+type SendOnlyFullMember (until now only the first three types were
+supported).
+Host that sends such join request, does not require a multicast
+subscription and will still send properly, and in addition will not get
+other multicast packets from that group.
 
-diff --git a/drivers/staging/rdma/hfi1/sdma.c b/drivers/staging/rdma/hfi1/sdma.c
-index abb8ebc..c2e2856 100644
---- a/drivers/staging/rdma/hfi1/sdma.c
-+++ b/drivers/staging/rdma/hfi1/sdma.c
-@@ -234,7 +234,7 @@ static void sdma_put(struct sdma_state *);
- static void sdma_set_state(struct sdma_engine *, enum sdma_states);
- static void sdma_start_hw_clean_up(struct sdma_engine *);
- static void sdma_sw_clean_up_task(unsigned long);
--static void sdma_sendctrl(struct sdma_engine *, unsigned);
-+static void sdma_sendctrl(struct sdma_engine *, unsigned int);
- static void init_sdma_regs(struct sdma_engine *, u32, uint);
- static void sdma_process_event(
- 	struct sdma_engine *sde,
-@@ -244,7 +244,7 @@ static void __sdma_process_event(
- 	enum sdma_events event);
- static void dump_sdma_state(struct sdma_engine *sde);
- static void sdma_make_progress(struct sdma_engine *sde, u64 status);
--static void sdma_desc_avail(struct sdma_engine *sde, unsigned avail);
-+static void sdma_desc_avail(struct sdma_engine *sde, unsigned int avail);
- static void sdma_flush_descq(struct sdma_engine *sde);
- 
- /**
-@@ -346,7 +346,7 @@ void sdma_wait(struct hfi1_devdata *dd)
- 	}
- }
- 
--static inline void sdma_set_desc_cnt(struct sdma_engine *sde, unsigned cnt)
-+static inline void sdma_set_desc_cnt(struct sdma_engine *sde, unsigned int cnt)
- {
- 	u64 reg;
- 
-@@ -472,7 +472,7 @@ static void sdma_err_halt_wait(struct work_struct *work)
- static void sdma_err_progress_check_schedule(struct sdma_engine *sde)
- {
- 	if (!is_bx(sde->dd) && HFI1_CAP_IS_KSET(SDMA_AHG)) {
--		unsigned index;
-+		unsigned int index;
- 		struct hfi1_devdata *dd = sde->dd;
- 
- 		for (index = 0; index < dd->num_sdma; index++) {
-@@ -491,7 +491,7 @@ static void sdma_err_progress_check_schedule(struct sdma_engine *sde)
- 
- static void sdma_err_progress_check(unsigned long data)
- {
--	unsigned index;
-+	unsigned int index;
- 	struct sdma_engine *sde = (struct sdma_engine *)data;
- 
- 	dd_dev_err(sde->dd, "SDE progress check event\n");
-@@ -657,7 +657,7 @@ static void sdma_set_state(struct sdma_engine *sde,
- {
- 	struct sdma_state *ss = &sde->state;
- 	const struct sdma_set_state_action *action = sdma_action_table;
--	unsigned op = 0;
-+	unsigned int op = 0;
- 
- 	trace_hfi1_sdma_state(
- 		sde,
-@@ -989,7 +989,7 @@ static void sdma_clean(struct hfi1_devdata *dd, size_t num_engines)
-  */
- int sdma_init(struct hfi1_devdata *dd, u8 port)
- {
--	unsigned this_idx;
-+	unsigned int this_idx;
- 	struct sdma_engine *sde;
- 	u16 descq_cnt;
- 	void *curr_head;
-@@ -1213,7 +1213,7 @@ void sdma_all_idle(struct hfi1_devdata *dd)
-  */
- void sdma_start(struct hfi1_devdata *dd)
- {
--	unsigned i;
-+	unsigned int i;
- 	struct sdma_engine *sde;
- 
- 	/* kick off the engines state processing */
-@@ -1229,7 +1229,7 @@ void sdma_start(struct hfi1_devdata *dd)
-  */
- void sdma_exit(struct hfi1_devdata *dd)
- {
--	unsigned this_idx;
-+	unsigned int this_idx;
- 	struct sdma_engine *sde;
- 
- 	for (this_idx = 0; dd->per_sdma && this_idx < dd->num_sdma;
-@@ -1351,7 +1351,7 @@ retry:
- 
- 		swhead = sde->descq_head & sde->sdma_mask;
- 		/* this code is really bad for cache line trading */
--		swtail = ACCESS_ONCE(sde->descq_tail) & sde->sdma_mask;
-+		swtail = READ_ONCE(sde->descq_tail) & sde->sdma_mask;
- 		cnt = sde->descq_cnt;
- 
- 		if (swhead < swtail)
-@@ -1557,7 +1557,7 @@ void sdma_engine_error(struct sdma_engine *sde, u64 status)
- 	spin_unlock_irqrestore(&sde->tail_lock, flags);
- }
- 
--static void sdma_sendctrl(struct sdma_engine *sde, unsigned op)
-+static void sdma_sendctrl(struct sdma_engine *sde, unsigned int op)
- {
- 	u64 set_senddmactrl = 0;
- 	u64 clr_senddmactrl = 0;
-@@ -1736,7 +1736,7 @@ static void init_sdma_regs(
- void sdma_dumpstate(struct sdma_engine *sde)
- {
- 	u64 csr;
--	unsigned i;
-+	unsigned int i;
- 
- 	sdma_dumpstate_helper(SD(CTRL));
- 	sdma_dumpstate_helper(SD(STATUS));
-@@ -1854,7 +1854,7 @@ void sdma_seqfile_dump_sde(struct seq_file *s, struct sdma_engine *sde)
- 	u16 len;
- 
- 	head = sde->descq_head & sde->sdma_mask;
--	tail = ACCESS_ONCE(sde->descq_tail) & sde->sdma_mask;
-+	tail = READ_ONCE(sde->descq_tail) & sde->sdma_mask;
- 	seq_printf(s, SDE_FMT, sde->this_idx,
- 		   sde->cpu,
- 		   sdma_state_name(sde->state.current_state),
-@@ -1999,7 +1999,7 @@ static int sdma_check_progress(
- 		return -EAGAIN;
- 	/* pulse the head_lock */
- 	if (wait && wait->sleep) {
--		unsigned seq;
-+		unsigned int seq;
- 
- 		seq = raw_seqcount_begin(
- 			(const seqcount_t *)&sde->head_lock.seqcount);
-@@ -2926,7 +2926,7 @@ int sdma_ahg_alloc(struct sdma_engine *sde)
- 		return -EINVAL;
- 	}
- 	while (1) {
--		nr = ffz(ACCESS_ONCE(sde->ahg_bits));
-+		nr = ffz(READ_ONCE(sde->ahg_bits));
- 		if (nr > 31) {
- 			trace_hfi1_ahg_allocate(sde, -ENOSPC);
- 			return -ENOSPC;
+It adds a new SA query (for classport_info) to check that the sm
+supports sending such requests and it modifies multicast processing in
+the IB/core module to handle SendOnlyFullMember multicast join requests.
+
+In addition, the patch set modifies IPoIB so that if the sm does support
+SendOnlyFullMember join requests, IPoIB will send such a request when
+joining a sendonly multicast group.
+
+Changes from V0:
+PORTCLASSINFO_REC_FIELD changed to CLASSPORTINFO_REC_FIELD
+2 fields in ib_class_port_info instead of one
+"sa" changed to SA
+"sa" in the headline changed to SA agent
+No need to indicates NUM_JOIN_MEMBERSHIP_TYPES = 4
+Change the place the ipoib driver calls the new sa_query, does it once after the broadcast is joined.
+
+Changes from V1:
+1. add define to sendonly_full_member join state, instead of "8"
+2. change commit message to introduce the capmask2
+3. number name instead of digit in commit message
+4. SA agent instead of SA in commit message header.
+
+Changes from V2:
+1. returned back to one field in ib_class_port_info (as in V0).
+
+Changes from V3:
+1. Add setter and getter for cap_mask2_resp_time and change accordingly.
+2. add relevant reviewd-by section
+
+Changes from V4:
+1. add defines for mask/offsets, and sync with the sm code (Thanks to Hal).
+2. add check in ipoib for rec is not NULL.
+3. Add reviewd-by section.
+
+Erez Shitrit (4):
+  IB/core: Introduce capabilitymask2 field in ClassPortInfo mad
+  IB/SA Agent: Add support for SA agent get ClassPortInfo
+  IB/core: Support new type of join-state for multicast
+  IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
+
+ drivers/infiniband/core/multicast.c            |  23 +++-
+ drivers/infiniband/core/sa_query.c             | 173 +++++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_mad.c            |   4 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  73 +++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  38 ++++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c          |   2 +-
+ include/rdma/ib_mad.h                          |  57 +++++++-
+ include/rdma/ib_sa.h                           |  12 ++
+ 9 files changed, 361 insertions(+), 23 deletions(-)
+
 -- 
-1.9.1
+1.7.11.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
