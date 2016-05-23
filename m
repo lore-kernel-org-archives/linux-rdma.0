@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 03/10] IB/uverbs: Add WQ support
-Date: Mon, 23 May 2016 15:20:49 +0300
-Message-ID: <1464006056-19653-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 for-next 10/10] IB/mlx5: Add RSS QP support
+Date: Mon, 23 May 2016 15:20:56 +0300
+Message-ID: <1464006056-19653-11-git-send-email-yishaih@mellanox.com>
 References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464006056-19653-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,482 +10,328 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-User space applications which use RSS functionality need to create
-a work queue object (WQ). The lifetime of such an object is:
- * Create a WQ
- * Modify the WQ from reset to init state.
- * Use the WQ (by downstream patches).
- * Destroy the WQ.
+Add support for Raw Ethernet RX HASH QP. Currently, creation and
+destruction of such a QP are supported. This QP is implemented as
+a simple TIR object which points to the receive RQ indirection table.
+The given hashing configuration is used to configure the TIR and by
+that it chooses the right RQ from the RQ indirection table.
 
-These commands are added to the uverbs API.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |   9 ++
- drivers/infiniband/core/uverbs_cmd.c  | 243 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |  25 ++++
- include/rdma/ib_verbs.h               |   3 +
- include/uapi/rdma/ib_user_verbs.h     |  41 ++++++
- 5 files changed, 321 insertions(+)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   5 +
+ drivers/infiniband/hw/mlx5/qp.c      | 200 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/user.h    |  34 ++++++
+ 3 files changed, 239 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 612ccfd..74776c6 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -162,6 +162,10 @@ struct ib_uqp_object {
- 	struct ib_uxrcd_object *uxrcd;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index cd3d620..7ac4647 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -295,6 +295,10 @@ struct mlx5_ib_qp_trans {
+ 	u8			resp_depth;
  };
  
-+struct ib_uwq_object {
-+	struct ib_uevent_object	uevent;
++struct mlx5_ib_rss_qp {
++	u32	tirn;
 +};
 +
- struct ib_ucq_object {
- 	struct ib_uobject	uobject;
- 	struct ib_uverbs_file  *uverbs_file;
-@@ -181,6 +185,7 @@ extern struct idr ib_uverbs_qp_idr;
- extern struct idr ib_uverbs_srq_idr;
- extern struct idr ib_uverbs_xrcd_idr;
- extern struct idr ib_uverbs_rule_idr;
-+extern struct idr ib_uverbs_wq_idr;
+ struct mlx5_ib_rq {
+ 	struct mlx5_ib_qp_base base;
+ 	struct mlx5_ib_wq	*rq;
+@@ -323,6 +327,7 @@ struct mlx5_ib_qp {
+ 	union {
+ 		struct mlx5_ib_qp_trans trans_qp;
+ 		struct mlx5_ib_raw_packet_qp raw_packet_qp;
++		struct mlx5_ib_rss_qp rss_qp;
+ 	};
+ 	struct mlx5_buf		buf;
  
- void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
- 
-@@ -199,6 +204,7 @@ void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
- void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context);
- void ib_uverbs_cq_event_handler(struct ib_event *event, void *context_ptr);
- void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr);
-+void ib_uverbs_wq_event_handler(struct ib_event *event, void *context_ptr);
- void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr);
- void ib_uverbs_event_handler(struct ib_event_handler *handler,
- 			     struct ib_event *event);
-@@ -275,5 +281,8 @@ IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
- IB_UVERBS_DECLARE_EX_CMD(query_device);
- IB_UVERBS_DECLARE_EX_CMD(create_cq);
- IB_UVERBS_DECLARE_EX_CMD(create_qp);
-+IB_UVERBS_DECLARE_EX_CMD(create_wq);
-+IB_UVERBS_DECLARE_EX_CMD(modify_wq);
-+IB_UVERBS_DECLARE_EX_CMD(destroy_wq);
- 
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 1a8babb..22e6173 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -57,6 +57,7 @@ static struct uverbs_lock_class ah_lock_class	= { .name = "AH-uobj" };
- static struct uverbs_lock_class srq_lock_class	= { .name = "SRQ-uobj" };
- static struct uverbs_lock_class xrcd_lock_class = { .name = "XRCD-uobj" };
- static struct uverbs_lock_class rule_lock_class = { .name = "RULE-uobj" };
-+static struct uverbs_lock_class wq_lock_class = { .name = "WQ-uobj" };
- 
- /*
-  * The ib_uobject locking scheme is as follows:
-@@ -243,6 +244,16 @@ static struct ib_qp *idr_read_qp(int qp_handle, struct ib_ucontext *context)
- 	return idr_read_obj(&ib_uverbs_qp_idr, qp_handle, context, 0);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 94faa50..2d462c6 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1264,6 +1264,187 @@ static void raw_packet_qp_copy_info(struct mlx5_ib_qp *qp,
+ 	rq->doorbell = &qp->db;
  }
  
-+static struct ib_wq *idr_read_wq(int wq_handle, struct ib_ucontext *context)
++static void destroy_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
 +{
-+	return idr_read_obj(&ib_uverbs_wq_idr, wq_handle, context, 0);
++	mlx5_core_destroy_tir(dev->mdev, qp->rss_qp.tirn);
 +}
 +
-+static void put_wq_read(struct ib_wq *wq)
++static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
++				 struct ib_pd *pd,
++				 struct ib_qp_init_attr *init_attr,
++				 struct ib_udata *udata)
 +{
-+	put_uobj_read(wq->uobject);
-+}
-+
- static struct ib_qp *idr_write_qp(int qp_handle, struct ib_ucontext *context)
- {
- 	struct ib_uobject *uobj;
-@@ -326,6 +337,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&ucontext->qp_list);
- 	INIT_LIST_HEAD(&ucontext->srq_list);
- 	INIT_LIST_HEAD(&ucontext->ah_list);
-+	INIT_LIST_HEAD(&ucontext->wq_list);
- 	INIT_LIST_HEAD(&ucontext->xrcd_list);
- 	INIT_LIST_HEAD(&ucontext->rule_list);
- 	rcu_read_lock();
-@@ -3056,6 +3068,237 @@ static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
- 	return 0;
- }
- 
-+int ib_uverbs_ex_create_wq(struct ib_uverbs_file *file,
-+			   struct ib_device *ib_dev,
-+			   struct ib_udata *ucore,
-+			   struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_create_wq	  cmd = {};
-+	struct ib_uverbs_ex_create_wq_resp resp = {};
-+	struct ib_uwq_object           *obj;
-+	int err = 0;
-+	struct ib_cq *cq;
-+	struct ib_pd *pd;
-+	struct ib_wq *wq;
-+	struct ib_wq_init_attr wq_init_attr = {};
++	struct ib_uobject *uobj = pd->uobject;
++	struct ib_ucontext *ucontext = uobj->context;
++	struct mlx5_ib_ucontext *mucontext = to_mucontext(ucontext);
++	struct mlx5_ib_create_qp_resp resp = {};
++	int inlen;
++	int err;
++	u32 *in;
++	void *tirc;
++	void *hfso;
++	u32 selected_fields = 0;
++	size_t min_resp_len;
++	u32 tdn = mucontext->tdn;
++	struct mlx5_ib_create_qp_rss ucmd = {};
 +	size_t required_cmd_sz;
-+	size_t required_resp_len;
 +
-+	required_cmd_sz = offsetof(typeof(cmd), max_sge) + sizeof(cmd.max_sge);
-+	required_resp_len = offsetof(typeof(resp), wqn) + sizeof(resp.wqn);
++	if (init_attr->qp_type != IB_QPT_RAW_PACKET)
++		return -EOPNOTSUPP;
 +
-+	if (ucore->inlen < required_cmd_sz)
++	if (init_attr->create_flags || init_attr->send_cq)
 +		return -EINVAL;
 +
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
++	min_resp_len = offsetof(typeof(resp), uuar_index) + sizeof(resp.uuar_index);
++	if (udata->outlen < min_resp_len)
++		return -EINVAL;
 +
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+				 ucore->inlen - sizeof(cmd)))
++	required_cmd_sz = offsetof(typeof(ucmd), reserved1) + sizeof(ucmd.reserved1);
++	if (udata->inlen < required_cmd_sz) {
++		mlx5_ib_dbg(dev, "invalid inlen\n");
++		return -EINVAL;
++	}
++
++	if (udata->inlen > sizeof(ucmd) &&
++	    !ib_is_udata_cleared(udata, sizeof(ucmd),
++				 udata->inlen - sizeof(ucmd))) {
++		mlx5_ib_dbg(dev, "inlen is not supported\n");
 +		return -EOPNOTSUPP;
++	}
 +
-+	err = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (err)
-+		return err;
++	if (ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen))) {
++		mlx5_ib_dbg(dev, "copy failed\n");
++		return -EFAULT;
++	}
 +
-+	if (cmd.comp_mask)
++	if (ucmd.comp_mask) {
++		mlx5_ib_dbg(dev, "invalid comp mask\n");
 +		return -EOPNOTSUPP;
++	}
 +
-+	obj = kmalloc(sizeof(*obj), GFP_KERNEL);
-+	if (!obj)
++	if (memchr_inv(ucmd.reserved, 0, sizeof(ucmd.reserved)) || ucmd.reserved1) {
++		mlx5_ib_dbg(dev, "invalid reserved\n");
++		return -EOPNOTSUPP;
++	}
++
++	err = ib_copy_to_udata(udata, &resp, min_resp_len);
++	if (err) {
++		mlx5_ib_dbg(dev, "copy failed\n");
++		return -EINVAL;
++	}
++
++	inlen = MLX5_ST_SZ_BYTES(create_tir_in);
++	in = mlx5_vzalloc(inlen);
++	if (!in)
 +		return -ENOMEM;
 +
-+	init_uobj(&obj->uevent.uobject, cmd.user_handle, file->ucontext,
-+		  &wq_lock_class);
-+	down_write(&obj->uevent.uobject.mutex);
-+	pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
-+	if (!pd) {
++	tirc = MLX5_ADDR_OF(create_tir_in, in, ctx);
++	MLX5_SET(tirc, tirc, disp_type,
++		 MLX5_TIRC_DISP_TYPE_INDIRECT);
++	MLX5_SET(tirc, tirc, indirect_table,
++		 init_attr->rwq_ind_tbl->ind_tbl_num);
++	MLX5_SET(tirc, tirc, transport_domain, tdn);
++
++	hfso = MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_outer);
++	switch (ucmd.rx_hash_function) {
++	case MLX5_RX_HASH_FUNC_TOEPLITZ:
++	{
++		void *rss_key = MLX5_ADDR_OF(tirc, tirc, rx_hash_toeplitz_key);
++		size_t len = MLX5_FLD_SZ_BYTES(tirc, rx_hash_toeplitz_key);
++
++		if (len != ucmd.rx_key_len) {
++			err = -EINVAL;
++			goto err;
++		}
++
++		MLX5_SET(tirc, tirc, rx_hash_fn, MLX5_RX_HASH_FN_TOEPLITZ);
++		MLX5_SET(tirc, tirc, rx_hash_symmetric, 1);
++		memcpy(rss_key, ucmd.rx_hash_key, len);
++		break;
++	}
++	default:
++		err = -EOPNOTSUPP;
++		goto err;
++	}
++
++	if (!ucmd.rx_hash_fields_mask) {
++		/* special case when this TIR serves as steering entry without hashing */
++		if (!init_attr->rwq_ind_tbl->log_ind_tbl_size)
++			goto create_tir;
 +		err = -EINVAL;
-+		goto err_uobj;
++		goto err;
 +	}
 +
-+	cq = idr_read_cq(cmd.cq_handle, file->ucontext, 0);
-+	if (!cq) {
++	if (((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV4) ||
++	     (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV4)) &&
++	     ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV6) ||
++	     (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV6))) {
 +		err = -EINVAL;
-+		goto err_put_pd;
++		goto err;
 +	}
 +
-+	wq_init_attr.cq = cq;
-+	wq_init_attr.max_sge = cmd.max_sge;
-+	wq_init_attr.max_wr = cmd.max_wr;
-+	wq_init_attr.wq_context = file;
-+	wq_init_attr.wq_type = cmd.wq_type;
-+	wq_init_attr.event_handler = ib_uverbs_wq_event_handler;
-+	obj->uevent.events_reported = 0;
-+	INIT_LIST_HEAD(&obj->uevent.event_list);
-+	wq = pd->device->create_wq(pd, &wq_init_attr, uhw);
-+	if (IS_ERR(wq)) {
-+		err = PTR_ERR(wq);
-+		goto err_put_cq;
++	/* If none of IPV4 & IPV6 SRC/DST was set - this bit field is ignored */
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV4) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV4))
++		MLX5_SET(rx_hash_field_select, hfso, l3_prot_type,
++			 MLX5_L3_PROT_TYPE_IPV4);
++	else if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV6) ||
++		 (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV6))
++		MLX5_SET(rx_hash_field_select, hfso, l3_prot_type,
++			 MLX5_L3_PROT_TYPE_IPV6);
++
++	if (((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_TCP) ||
++	     (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_TCP)) &&
++	     ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_UDP) ||
++	     (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_UDP))) {
++		err = -EINVAL;
++		goto err;
 +	}
 +
-+	wq->uobject = &obj->uevent.uobject;
-+	obj->uevent.uobject.object = wq;
-+	wq->wq_type = wq_init_attr.wq_type;
-+	wq->cq = cq;
-+	wq->pd = pd;
-+	wq->device = pd->device;
-+	wq->wq_context = wq_init_attr.wq_context;
-+	atomic_set(&wq->usecnt, 0);
-+	atomic_inc(&pd->usecnt);
-+	atomic_inc(&cq->usecnt);
-+	wq->uobject = &obj->uevent.uobject;
-+	obj->uevent.uobject.object = wq;
-+	err = idr_add_uobj(&ib_uverbs_wq_idr, &obj->uevent.uobject);
++	/* If none of TCP & UDP SRC/DST was set - this bit field is ignored */
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_TCP) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_TCP))
++		MLX5_SET(rx_hash_field_select, hfso, l4_prot_type,
++			 MLX5_L4_PROT_TYPE_TCP);
++	else if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_UDP) ||
++		 (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_UDP))
++		MLX5_SET(rx_hash_field_select, hfso, l4_prot_type,
++			 MLX5_L4_PROT_TYPE_UDP);
++
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV4) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_IPV6))
++		selected_fields |= MLX5_HASH_FIELD_SEL_SRC_IP;
++
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV4) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_IPV6))
++		selected_fields |= MLX5_HASH_FIELD_SEL_DST_IP;
++
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_TCP) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_SRC_PORT_UDP))
++		selected_fields |= MLX5_HASH_FIELD_SEL_L4_SPORT;
++
++	if ((ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_TCP) ||
++	    (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_DST_PORT_UDP))
++		selected_fields |= MLX5_HASH_FIELD_SEL_L4_DPORT;
++
++	MLX5_SET(rx_hash_field_select, hfso, selected_fields, selected_fields);
++
++create_tir:
++	err = mlx5_core_create_tir(dev->mdev, in, inlen, &qp->rss_qp.tirn);
++
 +	if (err)
-+		goto destroy_wq;
++		goto err;
 +
-+	memset(&resp, 0, sizeof(resp));
-+	resp.wq_handle = obj->uevent.uobject.id;
-+	resp.max_sge = wq_init_attr.max_sge;
-+	resp.max_wr = wq_init_attr.max_wr;
-+	resp.wqn = wq->wq_num;
-+	resp.response_length = required_resp_len;
-+	err = ib_copy_to_udata(ucore,
-+			       &resp, resp.response_length);
-+	if (err)
-+		goto err_copy;
-+
-+	put_pd_read(pd);
-+	put_cq_read(cq);
-+
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&obj->uevent.uobject.list, &file->ucontext->wq_list);
-+	mutex_unlock(&file->mutex);
-+
-+	obj->uevent.uobject.live = 1;
-+	up_write(&obj->uevent.uobject.mutex);
++	kvfree(in);
++	/* qpn is reserved for that QP */
++	qp->trans_qp.base.mqp.qpn = 0;
 +	return 0;
 +
-+err_copy:
-+	idr_remove_uobj(&ib_uverbs_wq_idr, &obj->uevent.uobject);
-+destroy_wq:
-+	ib_destroy_wq(wq);
-+err_put_cq:
-+	put_cq_read(cq);
-+err_put_pd:
-+	put_pd_read(pd);
-+err_uobj:
-+	put_uobj_write(&obj->uevent.uobject);
-+
++err:
++	kvfree(in);
 +	return err;
 +}
 +
-+int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
-+			    struct ib_device *ib_dev,
-+			    struct ib_udata *ucore,
-+			    struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_destroy_wq	cmd = {};
-+	struct ib_uverbs_ex_destroy_wq_resp	resp = {};
-+	struct ib_wq			*wq;
-+	struct ib_uobject		*uobj;
-+	struct ib_uwq_object		*obj;
-+	size_t required_cmd_sz;
-+	size_t required_resp_len;
-+	int				ret;
-+
-+	required_cmd_sz = offsetof(typeof(cmd), wq_handle) + sizeof(cmd.wq_handle);
-+	required_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
-+
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+				 ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask)
-+		return -EOPNOTSUPP;
-+
-+	resp.response_length = required_resp_len;
-+	uobj = idr_write_uobj(&ib_uverbs_wq_idr, cmd.wq_handle,
-+			      file->ucontext);
-+	if (!uobj)
-+		return -EINVAL;
-+
-+	wq = uobj->object;
-+	obj = container_of(uobj, struct ib_uwq_object, uevent.uobject);
-+	ret = ib_destroy_wq(wq);
-+	if (!ret)
-+		uobj->live = 0;
-+
-+	put_uobj_write(uobj);
-+	if (ret)
-+		return ret;
-+
-+	idr_remove_uobj(&ib_uverbs_wq_idr, uobj);
-+
-+	mutex_lock(&file->mutex);
-+	list_del(&uobj->list);
-+	mutex_unlock(&file->mutex);
-+
-+	ib_uverbs_release_uevent(file, &obj->uevent);
-+	resp.events_reported = obj->uevent.events_reported;
-+	put_uobj(uobj);
-+
-+	ret = ib_copy_to_udata(ucore, &resp, resp.response_length);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
-+			   struct ib_device *ib_dev,
-+			   struct ib_udata *ucore,
-+			   struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_modify_wq cmd = {};
-+	struct ib_wq *wq;
-+	struct ib_wq_attr wq_attr = {};
-+	size_t required_cmd_sz;
-+	int ret;
-+
-+	required_cmd_sz = offsetof(typeof(cmd), curr_wq_state) + sizeof(cmd.curr_wq_state);
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+				 ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (!cmd.attr_mask)
-+		return -EINVAL;
-+
-+	if (cmd.attr_mask > (IB_WQ_STATE | IB_WQ_CUR_STATE))
-+		return -EINVAL;
-+
-+	wq = idr_read_wq(cmd.wq_handle, file->ucontext);
-+	if (!wq)
-+		return -EINVAL;
-+
-+	wq_attr.curr_wq_state = cmd.curr_wq_state;
-+	wq_attr.wq_state = cmd.wq_state;
-+	ret = wq->device->modify_wq(wq, &wq_attr, cmd.attr_mask, uhw);
-+	put_wq_read(wq);
-+	return ret;
-+}
-+
- int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 			     struct ib_device *ib_dev,
- 			     struct ib_udata *ucore,
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 31f422a..91cb36f 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -76,6 +76,7 @@ DEFINE_IDR(ib_uverbs_qp_idr);
- DEFINE_IDR(ib_uverbs_srq_idr);
- DEFINE_IDR(ib_uverbs_xrcd_idr);
- DEFINE_IDR(ib_uverbs_rule_idr);
-+DEFINE_IDR(ib_uverbs_wq_idr);
+ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+ 			    struct ib_udata *udata, struct mlx5_ib_qp *qp)
+@@ -1290,6 +1471,14 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	spin_lock_init(&qp->sq.lock);
+ 	spin_lock_init(&qp->rq.lock);
  
- static DEFINE_SPINLOCK(map_lock);
- static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
-@@ -130,6 +131,9 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	= ib_uverbs_ex_query_device,
- 	[IB_USER_VERBS_EX_CMD_CREATE_CQ]	= ib_uverbs_ex_create_cq,
- 	[IB_USER_VERBS_EX_CMD_CREATE_QP]        = ib_uverbs_ex_create_qp,
-+	[IB_USER_VERBS_EX_CMD_CREATE_WQ]        = ib_uverbs_ex_create_wq,
-+	[IB_USER_VERBS_EX_CMD_MODIFY_WQ]        = ib_uverbs_ex_modify_wq,
-+	[IB_USER_VERBS_EX_CMD_DESTROY_WQ]       = ib_uverbs_ex_destroy_wq,
- };
- 
- static void ib_uverbs_add_one(struct ib_device *device);
-@@ -265,6 +269,17 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uqp);
- 	}
- 
-+	list_for_each_entry_safe(uobj, tmp, &context->wq_list, list) {
-+		struct ib_wq *wq = uobj->object;
-+		struct ib_uwq_object *uwq =
-+			container_of(uobj, struct ib_uwq_object, uevent.uobject);
++	if (init_attr->rwq_ind_tbl) {
++		if (!udata)
++			return -ENOSYS;
 +
-+		idr_remove_uobj(&ib_uverbs_wq_idr, uobj);
-+		ib_destroy_wq(wq);
-+		ib_uverbs_release_uevent(file, &uwq->uevent);
-+		kfree(uwq);
++		err = create_rss_raw_qp_tir(dev, qp, pd, init_attr, udata);
++		return err;
 +	}
 +
- 	list_for_each_entry_safe(uobj, tmp, &context->srq_list, list) {
- 		struct ib_srq *srq = uobj->object;
- 		struct ib_uevent_object *uevent =
-@@ -568,6 +583,16 @@ void ib_uverbs_qp_event_handler(struct ib_event *event, void *context_ptr)
- 				&uobj->events_reported);
- }
+ 	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK) {
+ 		if (!MLX5_CAP_GEN(mdev, block_lb_mc)) {
+ 			mlx5_ib_dbg(dev, "block multicast loopback isn't supported\n");
+@@ -1642,6 +1831,11 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	struct mlx5_modify_qp_mbox_in *in;
+ 	int err;
  
-+void ib_uverbs_wq_event_handler(struct ib_event *event, void *context_ptr)
-+{
-+	struct ib_uevent_object *uobj = container_of(event->element.wq->uobject,
-+						  struct ib_uevent_object, uobject);
++	if (qp->ibqp.rwq_ind_tbl) {
++		destroy_rss_raw_qp_tir(dev, qp);
++		return;
++	}
 +
-+	ib_uverbs_async_handler(context_ptr, uobj->uobject.user_handle,
-+				event->event, &uobj->event_list,
-+				&uobj->events_reported);
-+}
+ 	base = qp->ibqp.qp_type == IB_QPT_RAW_PACKET ?
+ 	       &qp->raw_packet_qp.rq.base :
+ 	       &qp->trans_qp.base;
+@@ -2498,6 +2692,9 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	int port;
+ 	enum rdma_link_layer ll = IB_LINK_LAYER_UNSPECIFIED;
+ 
++	if (ibqp->rwq_ind_tbl)
++		return -ENOSYS;
 +
- void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr)
- {
- 	struct ib_uevent_object *uobj;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e58c1a4..fc0f817 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -563,6 +563,7 @@ enum ib_event_type {
- 	IB_EVENT_QP_LAST_WQE_REACHED,
- 	IB_EVENT_CLIENT_REREGISTER,
- 	IB_EVENT_GID_CHANGE,
-+	IB_EVENT_WQ_FATAL,
+ 	if (unlikely(ibqp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_modify_qp(ibqp, attr, attr_mask);
+ 
+@@ -4112,6 +4309,9 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 	int err = 0;
+ 	u8 raw_packet_qp_state;
+ 
++	if (ibqp->rwq_ind_tbl)
++		return -ENOSYS;
++
+ 	if (unlikely(ibqp->qp_type == IB_QPT_GSI))
+ 		return mlx5_ib_gsi_query_qp(ibqp, qp_attr, qp_attr_mask,
+ 					    qp_init_attr);
+diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
+index 0f87955..33c54fb 100644
+--- a/drivers/infiniband/hw/mlx5/user.h
++++ b/drivers/infiniband/hw/mlx5/user.h
+@@ -152,6 +152,40 @@ struct mlx5_ib_create_qp {
+ 	__u64	sq_buf_addr;
  };
  
- const char *__attribute_const__ ib_event_msg(enum ib_event_type event);
-@@ -573,6 +574,7 @@ struct ib_event {
- 		struct ib_cq	*cq;
- 		struct ib_qp	*qp;
- 		struct ib_srq	*srq;
-+		struct ib_wq	*wq;
- 		u8		port_num;
- 	} element;
- 	enum ib_event_type	event;
-@@ -1324,6 +1326,7 @@ struct ib_ucontext {
- 	struct list_head	ah_list;
- 	struct list_head	xrcd_list;
- 	struct list_head	rule_list;
-+	struct list_head	wq_list;
- 	int			closing;
- 
- 	struct pid             *tgid;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index b6543d7..c9470e5 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -95,6 +95,9 @@ enum {
- 	IB_USER_VERBS_EX_CMD_CREATE_QP = IB_USER_VERBS_CMD_CREATE_QP,
- 	IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
- 	IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
-+	IB_USER_VERBS_EX_CMD_CREATE_WQ,
-+	IB_USER_VERBS_EX_CMD_MODIFY_WQ,
-+	IB_USER_VERBS_EX_CMD_DESTROY_WQ,
++/* RX Hash function flags */
++enum mlx5_rx_hash_function_flags {
++	MLX5_RX_HASH_FUNC_TOEPLITZ	= 1 << 0,
++};
++
++/*
++ * RX Hash flags, these flags allows to set which incoming packet's field should
++ * participates in RX Hash. Each flag represent certain packet's field,
++ * when the flag is set the field that is represented by the flag will
++ * participate in RX Hash calculation.
++ * Note: *IPV4 and *IPV6 flags can't be enabled together on the same QP
++ * and *TCP and *UDP flags can't be enabled together on the same QP.
++*/
++enum mlx5_rx_hash_fields {
++	MLX5_RX_HASH_SRC_IPV4	= 1 << 0,
++	MLX5_RX_HASH_DST_IPV4	= 1 << 1,
++	MLX5_RX_HASH_SRC_IPV6	= 1 << 2,
++	MLX5_RX_HASH_DST_IPV6	= 1 << 3,
++	MLX5_RX_HASH_SRC_PORT_TCP	= 1 << 4,
++	MLX5_RX_HASH_DST_PORT_TCP	= 1 << 5,
++	MLX5_RX_HASH_SRC_PORT_UDP	= 1 << 6,
++	MLX5_RX_HASH_DST_PORT_UDP	= 1 << 7
++};
++
++struct mlx5_ib_create_qp_rss {
++	__u64 rx_hash_fields_mask; /* enum mlx5_rx_hash_fields */
++	__u8 rx_hash_function; /* enum mlx5_rx_hash_function_flags */
++	__u8 rx_key_len; /* valid only for Toeplitz */
++	__u8 reserved[6];
++	__u8 rx_hash_key[128]; /* valid only for Toeplitz */
++	__u32   comp_mask;
++	__u32   reserved1;
++};
++
+ struct mlx5_ib_create_qp_resp {
+ 	__u32	uuar_index;
  };
- 
- /*
-@@ -946,4 +949,42 @@ struct ib_uverbs_destroy_srq_resp {
- 	__u32 events_reported;
- };
- 
-+struct ib_uverbs_ex_create_wq  {
-+	__u32 comp_mask;
-+	__u32 wq_type;
-+	__u64 user_handle;
-+	__u32 pd_handle;
-+	__u32 cq_handle;
-+	__u32 max_wr;
-+	__u32 max_sge;
-+};
-+
-+struct ib_uverbs_ex_create_wq_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 wq_handle;
-+	__u32 max_wr;
-+	__u32 max_sge;
-+	__u32 wqn;
-+};
-+
-+struct ib_uverbs_ex_destroy_wq  {
-+	__u32 comp_mask;
-+	__u32 wq_handle;
-+};
-+
-+struct ib_uverbs_ex_destroy_wq_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 events_reported;
-+	__u32 reserved;
-+};
-+
-+struct ib_uverbs_ex_modify_wq  {
-+	__u32 attr_mask;
-+	__u32 wq_handle;
-+	__u32 wq_state;
-+	__u32 curr_wq_state;
-+};
-+
- #endif /* IB_USER_VERBS_H */
 -- 
 1.8.3.1
 
