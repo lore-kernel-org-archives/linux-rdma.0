@@ -1,220 +1,101 @@
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V5 for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
-Date: Mon, 23 May 2016 11:14:23 +0300
-Message-ID: <1463991263-13084-5-git-send-email-erezsh@mellanox.com>
-References: <1463991263-13084-1-git-send-email-erezsh@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+ resolution module into core
+Date: Mon, 23 May 2016 11:58:09 +0300
+Message-ID: <20160523085809.GF25500@leon.nu>
+References: <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
+ <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
+ <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <0558d12b-2646-63b4-89f8-9bf4aba689db@redhat.com>
+ <20160518171536.GB15170@obsidianresearch.com>
+ <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
+ <VI1PR05MB1391B1C6DFE620C31A6474A0D2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <561a675d-89d2-e675-cf83-e86ecb7519b6@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E22EDE332@CRSMSX101.amr.corp.intel.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7cm2iqirTL37Ot+N"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1463991263-13084-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E22EDE332-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Check (via an SA query) if the SM supports the new option for SendOnly
-multicast joins.
-If the SM supports that option it will use the new join state to create
-such multicast group.
-If SendOnlyFullMember is supported, we wouldn't use faked FullMember state
-join for SendOnly MCG, use the correct state if supported.
+--7cm2iqirTL37Ot+N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This check is performed at every invocation of mcast_restart task, to be
-sure that the driver stays in sync with the current state of the SM.
+On Wed, May 18, 2016 at 07:36:03PM +0000, Weiny, Ira wrote:
+> > On 05/18/2016 02:28 PM, Mark Bloch wrote:
+> > >
+> > >
+> > >> -----Original Message-----
+> > >> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+> > >> Sent: Wednesday, May 18, 2016 8:59 PM
+> > >> To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > >> Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-
+> > >> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > >> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+> > >> resolution module into core
+> > >>
+> > >> On 05/18/2016 01:15 PM, Jason Gunthorpe wrote:
+> > >>> On Wed, May 18, 2016 at 10:51:02AM -0400, Doug Ledford wrote:
+> > >>>> moves it into the ib_core and also keep the new ib_netlink stuff in
+> > >>>> ib_core.  So, fewer modules, not more.
+> > >>>
+> > >>> What about getting rid of ib_sa as well so we can avoid that dynamic
+> > >>> netlink registration patch too?
+> > >>
+> > >> That's fine too.
+> > > Integrating ib_sa into ib_core also means to do the same for ib_mad.
+> > > If you agree with it (ib_sa & ib_mad becoming part of ib_core), I'll =
+create
+> > the patches.
+> >=20
+> > Ira, Hal?
+> >=20
+>=20
+> I don't see a problem with that.
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 73 ++++++++++++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 38 +++++++++-----
- 3 files changed, 100 insertions(+), 13 deletions(-)
+Doug,
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index caec8e9..c51f618 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -392,6 +392,7 @@ struct ipoib_dev_priv {
- 	struct ipoib_ethtool_st ethtool;
- 	struct timer_list poll_timer;
- 	unsigned max_send_sge;
-+	bool sm_fullmember_sendonly_support;
- };
- 
- struct ipoib_ah {
-@@ -476,6 +477,7 @@ void ipoib_reap_ah(struct work_struct *work);
- 
- void ipoib_mark_paths_invalid(struct net_device *dev);
- void ipoib_flush_paths(struct net_device *dev);
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
- struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
- 
- int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 3b630e5..53f177f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
- 
- 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
- 
-+	priv->sm_fullmember_sendonly_support = false;
-+
- 	if (ipoib_ib_dev_open(dev)) {
- 		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
- 			return 0;
-@@ -629,6 +631,77 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
- 	spin_unlock_irq(&priv->lock);
- }
- 
-+struct classport_info_context {
-+	struct ipoib_dev_priv	*priv;
-+	struct completion	done;
-+	struct ib_sa_query	*sa_query;
-+};
-+
-+static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
-+				    void *context)
-+{
-+	struct classport_info_context *cb_ctx = context;
-+	struct ipoib_dev_priv *priv;
-+
-+	WARN_ON(!context);
-+
-+	priv = cb_ctx->priv;
-+
-+	if (status || !rec) {
-+		pr_debug("device: %s failed query classport_info status: %d\n",
-+			 priv->dev->name, status);
-+		/* keeps the default, will try next mcast_restart */
-+		priv->sm_fullmember_sendonly_support = false;
-+		goto out;
-+	}
-+
-+	if (ib_get_cpi_capmask2(rec) &
-+	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
-+		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = true;
-+	} else {
-+		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = false;
-+	}
-+
-+out:
-+	complete(&cb_ctx->done);
-+}
-+
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
-+{
-+	struct classport_info_context *callback_context;
-+	int ret;
-+
-+	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
-+	if (!callback_context)
-+		return -ENOMEM;
-+
-+	callback_context->priv = priv;
-+	init_completion(&callback_context->done);
-+
-+	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
-+					     priv->ca, priv->port, 3000,
-+					     GFP_KERNEL,
-+					     classport_info_query_cb,
-+					     callback_context,
-+					     &callback_context->sa_query);
-+	if (ret < 0) {
-+		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
-+			priv->dev->name, ret);
-+		kfree(callback_context);
-+		return ret;
-+	}
-+
-+	/* waiting for the callback to finish before returnning */
-+	wait_for_completion(&callback_context->done);
-+	kfree(callback_context);
-+
-+	return ret;
-+}
-+
- void ipoib_flush_paths(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 2588931..fc3e50e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -64,6 +64,9 @@ struct ipoib_mcast_iter {
- 	unsigned int       send_only;
- };
- 
-+/* join state that allows creating mcg with sendonly member request */
-+#define SENDONLY_FULLMEMBER_JOIN	8
-+
- /*
-  * This should be called with the priv->lock held
-  */
-@@ -326,12 +329,23 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
- 	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
- 						   carrier_on_task);
- 	struct ib_port_attr attr;
-+	int ret;
- 
- 	if (ib_query_port(priv->ca, priv->port, &attr) ||
- 	    attr.state != IB_PORT_ACTIVE) {
- 		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
- 		return;
- 	}
-+	/*
-+	 * Check if can send sendonly MCG's with sendonly-fullmember join state.
-+	 * It done here after the successfully join to the broadcast group,
-+	 * because the broadcast group must always be joined first and is always
-+	 * re-joined if the SM changes substantially.
-+	 */
-+	ret = ipoib_check_sm_sendonly_fullmember_support(priv);
-+	if (ret < 0)
-+		pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
-+			 priv->dev->name, ret);
- 
- 	/*
- 	 * Take rtnl_lock to avoid racing with ipoib_stop() and
-@@ -515,22 +529,20 @@ static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
- 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
- 
- 		/*
--		 * Send-only IB Multicast joins do not work at the core
--		 * IB layer yet, so we can't use them here.  However,
--		 * we are emulating an Ethernet multicast send, which
--		 * does not require a multicast subscription and will
--		 * still send properly.  The most appropriate thing to
-+		 * Send-only IB Multicast joins work at the core IB layer but
-+		 * require specific SM support.
-+		 * We can use such joins here only if the current SM supports that feature.
-+		 * However, if not, we emulate an Ethernet multicast send,
-+		 * which does not require a multicast subscription and will
-+		 * still send properly. The most appropriate thing to
- 		 * do is to create the group if it doesn't exist as that
- 		 * most closely emulates the behavior, from a user space
--		 * application perspecitive, of Ethernet multicast
--		 * operation.  For now, we do a full join, maybe later
--		 * when the core IB layers support send only joins we
--		 * will use them.
-+		 * application perspective, of Ethernet multicast operation.
- 		 */
--#if 0
--		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--			rec.join_state = 4;
--#endif
-+		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-+		    priv->sm_fullmember_sendonly_support)
-+			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-+			rec.join_state = SENDONLY_FULLMEMBER_JOIN;
- 	}
- 	spin_unlock_irq(&priv->lock);
- 
--- 
-1.7.11.3
+Will it be acceptable to you if Mark base his patches on this assumption?
 
+Thanks.
+
+>=20
+> Ira
+>=20
+
+--7cm2iqirTL37Ot+N
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXQsYhAAoJEORje4g2clinQ9sQAJlKvP4jkXdWLb5jGmVasmrg
+5nKm8Ztfiebqh89Y514pVuRQZ94cWI5Eylvk45Zz3xZvrNi2yuBPXQ+C5QSrXRtf
+N4k5mxMymzQARibjW7DOkJ0jsnzjsHpPU/KKXGrZSDfl1U7w6DXs/gEcI21vgjq3
+SLUs6YbGnoPHMtE5Qs53T45tZ1mNWJb823IH+AJzzHkCUpqxSNcVsB5XzDw2cVrU
+/FOwiaH3/EjJZVrx+OYieptRnDPztckYcJtYzcDP/UgT7uOXa+0cB+m+jMlG866f
+Ry05v5cYMsyCDj3RQjSGvQ7/cxffDSog3ygtGI707vu2ioF+IPFIkSwFpLhEiFW+
+tzAQbJbwRnTtJ78jOV22Ft0AT4dVWetVNMMsAfgqqEzjL8pcRp0nqz/41je33F+p
+it2805gPuU2iSIKKsvJeAfYYGdcOjeKVseU50k5TaoE26S6P5vTll9GXCjA65t/+
+43W9F/bbaK0XAkDM/RZ9nHtKyXgPBIAFpSC95gvTJQjONecydBJe4bfirmo4c2Tq
+wRZrPEnDk3OwroPe6s5UUBkVYHXXhdp7iHHMirc+J6o851/F17mFOPvfij9xmTfq
+ZB8RbY6hVsRGwjf0vnMqjYPsEGhjosJglpDUs10IG7h5wg6SCbvQXsKy+QIbY238
+mtrUh7Dve8mJf4Ee3OM8
+=vVyV
+-----END PGP SIGNATURE-----
+
+--7cm2iqirTL37Ot+N--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
