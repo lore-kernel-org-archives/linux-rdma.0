@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 06/10] IB/uverbs: Introduce RWQ Indirection table
-Date: Mon, 23 May 2016 15:20:52 +0300
-Message-ID: <1464006056-19653-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 for-next 01/10] net/mlx5: Export required core functions to support RSS
+Date: Mon, 23 May 2016 15:20:47 +0300
+Message-ID: <1464006056-19653-2-git-send-email-yishaih@mellanox.com>
 References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464006056-19653-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,368 +10,49 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-User applications that want to spread traffic on several WQs, need to
-create an indirection table, by using already created WQs.
-
-Adding uverbs API in order to create and destroy this table.
+In order to support RSS QPs, we need to create Ethernet based objects.
+This is done by create_rq, destroy_rq, create_rqt and destroy_rqt
+mlx5_core functions. We export these functions.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h      |   3 +
- drivers/infiniband/core/uverbs_cmd.c  | 210 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |  13 +++
- include/rdma/ib_verbs.h               |   1 +
- include/uapi/rdma/ib_user_verbs.h     |  26 +++++
- 5 files changed, 253 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/transobj.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 74776c6..6c22923 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -186,6 +186,7 @@ extern struct idr ib_uverbs_srq_idr;
- extern struct idr ib_uverbs_xrcd_idr;
- extern struct idr ib_uverbs_rule_idr;
- extern struct idr ib_uverbs_wq_idr;
-+extern struct idr ib_uverbs_rwq_ind_tbl_idr;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
+index 03a5093..28274a6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
+@@ -85,6 +85,7 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *rqn)
  
- void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
- 
-@@ -284,5 +285,7 @@ IB_UVERBS_DECLARE_EX_CMD(create_qp);
- IB_UVERBS_DECLARE_EX_CMD(create_wq);
- IB_UVERBS_DECLARE_EX_CMD(modify_wq);
- IB_UVERBS_DECLARE_EX_CMD(destroy_wq);
-+IB_UVERBS_DECLARE_EX_CMD(create_rwq_ind_table);
-+IB_UVERBS_DECLARE_EX_CMD(destroy_rwq_ind_table);
- 
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 22e6173..327a56c 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -58,6 +58,7 @@ static struct uverbs_lock_class srq_lock_class	= { .name = "SRQ-uobj" };
- static struct uverbs_lock_class xrcd_lock_class = { .name = "XRCD-uobj" };
- static struct uverbs_lock_class rule_lock_class = { .name = "RULE-uobj" };
- static struct uverbs_lock_class wq_lock_class = { .name = "WQ-uobj" };
-+static struct uverbs_lock_class rwq_ind_table_lock_class = { .name = "IND_TBL-uobj" };
- 
- /*
-  * The ib_uobject locking scheme is as follows:
-@@ -338,6 +339,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&ucontext->srq_list);
- 	INIT_LIST_HEAD(&ucontext->ah_list);
- 	INIT_LIST_HEAD(&ucontext->wq_list);
-+	INIT_LIST_HEAD(&ucontext->rwq_ind_tbl_list);
- 	INIT_LIST_HEAD(&ucontext->xrcd_list);
- 	INIT_LIST_HEAD(&ucontext->rule_list);
- 	rcu_read_lock();
-@@ -3299,6 +3301,214 @@ int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
- 	return ret;
+ 	return err;
  }
++EXPORT_SYMBOL(mlx5_core_create_rq);
  
-+int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
-+				      struct ib_device *ib_dev,
-+				      struct ib_udata *ucore,
-+				      struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_create_rwq_ind_table	  cmd = {};
-+	struct ib_uverbs_ex_create_rwq_ind_table_resp  resp = {};
-+	struct ib_uobject		  *uobj;
-+	int err = 0;
-+	struct ib_rwq_ind_table_init_attr init_attr = {};
-+	struct ib_rwq_ind_table *rwq_ind_tbl;
-+	struct ib_wq	**wqs = NULL;
-+	u32 *wqs_handles = NULL;
-+	struct ib_wq	*wq = NULL;
-+	int i, j, num_read_wqs;
-+	u32 num_wq_handles;
-+	u32 expected_in_size;
-+	size_t required_cmd_sz_header;
-+	size_t required_resp_len;
-+
-+	required_cmd_sz_header = offsetof(typeof(cmd), log_ind_tbl_size) + sizeof(cmd.log_ind_tbl_size);
-+	required_resp_len = offsetof(typeof(resp), ind_tbl_num) + sizeof(resp.ind_tbl_num);
-+
-+	if (ucore->inlen < required_cmd_sz_header)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < required_resp_len)
-+		return -ENOSPC;
-+
-+	err = ib_copy_from_udata(&cmd, ucore, required_cmd_sz_header);
-+	if (err)
-+		return err;
-+
-+	ucore->inbuf += required_cmd_sz_header;
-+	ucore->inlen -= required_cmd_sz_header;
-+
-+	if (cmd.comp_mask)
-+		return -EOPNOTSUPP;
-+
-+	if (cmd.log_ind_tbl_size > IB_USER_VERBS_MAX_LOG_IND_TBL_SIZE)
-+		return -EINVAL;
-+
-+	num_wq_handles = 1 << cmd.log_ind_tbl_size;
-+	expected_in_size = num_wq_handles * sizeof(__u32);
-+	if (num_wq_handles == 1)
-+		/* input size for wq handles is u64 aligned */
-+		expected_in_size += sizeof(__u32);
-+
-+	if (ucore->inlen < expected_in_size)
-+		return -EINVAL;
-+
-+	if (ucore->inlen > expected_in_size &&
-+	    !ib_is_udata_cleared(ucore, expected_in_size,
-+				 ucore->inlen - expected_in_size))
-+		return -EOPNOTSUPP;
-+
-+	wqs_handles = kcalloc(num_wq_handles, sizeof(*wqs_handles),
-+			      GFP_KERNEL);
-+	if (!wqs_handles)
-+		return -ENOMEM;
-+
-+	err = ib_copy_from_udata(wqs_handles, ucore,
-+				 num_wq_handles * sizeof(__u32));
-+	if (err)
-+		goto err_free;
-+
-+	wqs = kcalloc(num_wq_handles, sizeof(*wqs), GFP_KERNEL);
-+	if (!wqs) {
-+		err = -ENOMEM;
-+		goto  err_free;
-+	}
-+
-+	for (num_read_wqs = 0; num_read_wqs < num_wq_handles;
-+			num_read_wqs++) {
-+		wq = idr_read_wq(wqs_handles[num_read_wqs], file->ucontext);
-+		if (!wq) {
-+			err = -EINVAL;
-+			goto put_wqs;
-+		}
-+
-+		wqs[num_read_wqs] = wq;
-+	}
-+
-+	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
-+	if (!uobj) {
-+		err = -ENOMEM;
-+		goto put_wqs;
-+	}
-+
-+	init_uobj(uobj, 0, file->ucontext, &rwq_ind_table_lock_class);
-+	down_write(&uobj->mutex);
-+	init_attr.log_ind_tbl_size = cmd.log_ind_tbl_size;
-+	init_attr.ind_tbl = wqs;
-+	rwq_ind_tbl = ib_dev->create_rwq_ind_table(ib_dev, &init_attr, uhw);
-+
-+	if (IS_ERR(rwq_ind_tbl)) {
-+		err = PTR_ERR(rwq_ind_tbl);
-+		goto err_uobj;
-+	}
-+
-+	rwq_ind_tbl->ind_tbl = wqs;
-+	rwq_ind_tbl->log_ind_tbl_size = init_attr.log_ind_tbl_size;
-+	rwq_ind_tbl->uobject = uobj;
-+	uobj->object = rwq_ind_tbl;
-+	rwq_ind_tbl->device = ib_dev;
-+	atomic_set(&rwq_ind_tbl->usecnt, 0);
-+
-+	for (i = 0; i < num_wq_handles; i++)
-+		atomic_inc(&wqs[i]->usecnt);
-+
-+	err = idr_add_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
-+	if (err)
-+		goto destroy_ind_tbl;
-+
-+	resp.ind_tbl_handle = uobj->id;
-+	resp.ind_tbl_num = rwq_ind_tbl->ind_tbl_num;
-+	resp.response_length = required_resp_len;
-+
-+	err = ib_copy_to_udata(ucore,
-+			       &resp, resp.response_length);
-+	if (err)
-+		goto err_copy;
-+
-+	kfree(wqs_handles);
-+
-+	for (j = 0; j < num_read_wqs; j++)
-+		put_wq_read(wqs[j]);
-+
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&uobj->list, &file->ucontext->rwq_ind_tbl_list);
-+	mutex_unlock(&file->mutex);
-+
-+	uobj->live = 1;
-+
-+	up_write(&uobj->mutex);
-+	return 0;
-+
-+err_copy:
-+	idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
-+destroy_ind_tbl:
-+	ib_destroy_rwq_ind_table(rwq_ind_tbl);
-+err_uobj:
-+	put_uobj_write(uobj);
-+put_wqs:
-+	for (j = 0; j < num_read_wqs; j++)
-+		put_wq_read(wqs[j]);
-+err_free:
-+	kfree(wqs_handles);
-+	kfree(wqs);
-+	return err;
-+}
-+
-+int ib_uverbs_ex_destroy_rwq_ind_table(struct ib_uverbs_file *file,
-+				       struct ib_device *ib_dev,
-+				       struct ib_udata *ucore,
-+				       struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_destroy_rwq_ind_table	cmd = {};
-+	struct ib_rwq_ind_table *rwq_ind_tbl;
-+	struct ib_uobject		*uobj;
-+	int			ret;
-+	struct ib_wq	**ind_tbl;
-+	size_t required_cmd_sz;
-+
-+	required_cmd_sz = offsetof(typeof(cmd), ind_tbl_handle) + sizeof(cmd.ind_tbl_handle);
-+
-+	if (ucore->inlen < required_cmd_sz)
-+		return -EINVAL;
-+
-+	if (ucore->inlen > sizeof(cmd) &&
-+	    !ib_is_udata_cleared(ucore, sizeof(cmd),
-+				 ucore->inlen - sizeof(cmd)))
-+		return -EOPNOTSUPP;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask)
-+		return -EOPNOTSUPP;
-+
-+	uobj = idr_write_uobj(&ib_uverbs_rwq_ind_tbl_idr, cmd.ind_tbl_handle,
-+			      file->ucontext);
-+	if (!uobj)
-+		return -EINVAL;
-+	rwq_ind_tbl = uobj->object;
-+	ind_tbl = rwq_ind_tbl->ind_tbl;
-+
-+	ret = ib_destroy_rwq_ind_table(rwq_ind_tbl);
-+	if (!ret)
-+		uobj->live = 0;
-+
-+	put_uobj_write(uobj);
-+
-+	if (ret)
-+		return ret;
-+
-+	idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
-+
-+	mutex_lock(&file->mutex);
-+	list_del(&uobj->list);
-+	mutex_unlock(&file->mutex);
-+
-+	put_uobj(uobj);
-+	kfree(ind_tbl);
-+	return ret;
-+}
-+
- int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 			     struct ib_device *ib_dev,
- 			     struct ib_udata *ucore,
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 91cb36f..426e0ac 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -77,6 +77,7 @@ DEFINE_IDR(ib_uverbs_srq_idr);
- DEFINE_IDR(ib_uverbs_xrcd_idr);
- DEFINE_IDR(ib_uverbs_rule_idr);
- DEFINE_IDR(ib_uverbs_wq_idr);
-+DEFINE_IDR(ib_uverbs_rwq_ind_tbl_idr);
+ int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen)
+ {
+@@ -110,6 +111,7 @@ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
  
- static DEFINE_SPINLOCK(map_lock);
- static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
-@@ -134,6 +135,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_CREATE_WQ]        = ib_uverbs_ex_create_wq,
- 	[IB_USER_VERBS_EX_CMD_MODIFY_WQ]        = ib_uverbs_ex_modify_wq,
- 	[IB_USER_VERBS_EX_CMD_DESTROY_WQ]       = ib_uverbs_ex_destroy_wq,
-+	[IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL] = ib_uverbs_ex_create_rwq_ind_table,
-+	[IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL] = ib_uverbs_ex_destroy_rwq_ind_table,
- };
+ 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_core_destroy_rq);
  
- static void ib_uverbs_add_one(struct ib_device *device);
-@@ -269,6 +272,16 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 		kfree(uqp);
- 	}
+ int mlx5_core_query_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *out)
+ {
+@@ -430,6 +432,7 @@ int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
  
-+	list_for_each_entry_safe(uobj, tmp, &context->rwq_ind_tbl_list, list) {
-+		struct ib_rwq_ind_table *rwq_ind_tbl = uobj->object;
-+		struct ib_wq **ind_tbl = rwq_ind_tbl->ind_tbl;
-+
-+		idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
-+		ib_destroy_rwq_ind_table(rwq_ind_tbl);
-+		kfree(ind_tbl);
-+		kfree(uobj);
-+	}
-+
- 	list_for_each_entry_safe(uobj, tmp, &context->wq_list, list) {
- 		struct ib_wq *wq = uobj->object;
- 		struct ib_uwq_object *uwq =
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5ca3b1a..a12682e 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1327,6 +1327,7 @@ struct ib_ucontext {
- 	struct list_head	xrcd_list;
- 	struct list_head	rule_list;
- 	struct list_head	wq_list;
-+	struct list_head	rwq_ind_tbl_list;
- 	int			closing;
+ 	return err;
+ }
++EXPORT_SYMBOL(mlx5_core_create_rqt);
  
- 	struct pid             *tgid;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index c9470e5..2cf7c95 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -98,6 +98,8 @@ enum {
- 	IB_USER_VERBS_EX_CMD_CREATE_WQ,
- 	IB_USER_VERBS_EX_CMD_MODIFY_WQ,
- 	IB_USER_VERBS_EX_CMD_DESTROY_WQ,
-+	IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL,
-+	IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL
- };
+ int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
+ 			 int inlen)
+@@ -455,3 +458,4 @@ void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn)
  
- /*
-@@ -987,4 +989,28 @@ struct ib_uverbs_ex_modify_wq  {
- 	__u32 curr_wq_state;
- };
- 
-+/* Prevent memory allocation rather than max expected size */
-+#define IB_USER_VERBS_MAX_LOG_IND_TBL_SIZE 0x0d
-+struct ib_uverbs_ex_create_rwq_ind_table  {
-+	__u32 comp_mask;
-+	__u32 log_ind_tbl_size;
-+	/* Following are the wq handles according to log_ind_tbl_size
-+	 * wq_handle1
-+	 * wq_handle2
-+	 */
-+	__u32 wq_handles[0];
-+};
-+
-+struct ib_uverbs_ex_create_rwq_ind_table_resp {
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 ind_tbl_handle;
-+	__u32 ind_tbl_num;
-+};
-+
-+struct ib_uverbs_ex_destroy_rwq_ind_table  {
-+	__u32 comp_mask;
-+	__u32 ind_tbl_handle;
-+};
-+
- #endif /* IB_USER_VERBS_H */
+ 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_core_destroy_rqt);
 -- 
 1.8.3.1
 
