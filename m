@@ -1,87 +1,81 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address resolution
- module into core
-Date: Mon, 23 May 2016 14:09:29 +0000
-Message-ID: <VI1PR05MB13910E30E227D4DCDBC19033D24E0@VI1PR05MB1391.eurprd05.prod.outlook.com>
-References: <eea7049c-5a27-1498-8e8b-674d69468fbb@redhat.com>
- <VI1PR05MB13910C6D09E0B6B9D477B1EAD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <d54c2884-c2e9-8952-75f8-43147943640c@redhat.com>
- <VI1PR05MB1391C3E551DDAEA3ABFE71FFD2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <0558d12b-2646-63b4-89f8-9bf4aba689db@redhat.com>
- <20160518171536.GB15170@obsidianresearch.com>
- <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
- <VI1PR05MB1391B1C6DFE620C31A6474A0D2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <561a675d-89d2-e675-cf83-e86ecb7519b6@redhat.com>
- <2807E5FD2F6FDA4886F6618EAC48510E22EDE332@CRSMSX101.amr.corp.intel.com>
- <20160523085809.GF25500@leon.nu> <57430E34.3090501@redhat.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 06/10] IB/hfi1: Add ioctl() interface for user commands
+Date: Mon, 23 May 2016 10:10:50 -0400
+Message-ID: <20160523141049.GE16764@phlsvsds.ph.intel.com>
+References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com> <20160519122622.22041.41686.stgit@scvm10.sc.intel.com> <20160521123404.GB25500@leon.nu> <20160521162301.GA16770@phlsvsds.ph.intel.com> <20160522120129.GC25500@leon.nu> <20160522140351.GA10696@phlsvsds.ph.intel.com> <20160522175715.GD25500@leon.nu> <20160523122207.GA16764@phlsvsds.ph.intel.com> <20160523130312.GG25500@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57430E34.3090501-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160523130312.GG25500-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, May 23, 2016 at 04:03:12PM +0300, Leon Romanovsky wrote:
+>On Mon, May 23, 2016 at 08:22:08AM -0400, Dennis Dalessandro wrote:
+>> On Sun, May 22, 2016 at 08:57:15PM +0300, Leon Romanovsky wrote:
+>> >On Sun, May 22, 2016 at 10:03:52AM -0400, Dennis Dalessandro wrote:
+>> >>On Sun, May 22, 2016 at 03:01:29PM +0300, Leon Romanovsky wrote:
+>> >>>>>I think the overall consensus over participants in OFVWG call was to use
+>> >>>>>one IOCTL to enter into device specific handler which will do all
+>> >>>>>necessary parsing and not spamming common IOCTL interface.
+>> >>>>
+>> >>>>That was for the verbs working group and the verbs 2.0 uAPI. This is for
+>> >>>>psm.
+>> >>>
+>> >>>I'm glad that you are supporting my point.
+>> >>>It is vendor specific implementation for vendor specific driver and not
+>> >>>for whole IB core, so there is no need to pollute general IB ioctls.
+>> >>
+>> >>It is making use of and applying a proper classification.  Is there a
+>> >>technical concern with this other than that's not how verbs may end up doing
+>> >>it?
+>> >>
+>> >>I'm not completely opposed to the single ioctl, I just don't necessarily see
+>> >>that as better in this case but am willing to listen to a technical
+>> >>justification for why it's incorrect.
+>> >
+>> >it will simplify internal and external development by removing the
+>> >tensions over ioctls numbers. Do you plan to take the block of ioctls
+>> >for future expansion? Do you plan to mix hfi's ioctls with verbs's ioctls
+>> >based on acceptance of new code?
+>> 
+>> I'm still not sure what you are getting at here. Can you explain what you
+>> mean by tensions over ioctl numbers?  I guess I don't understand why the
+>> hfi1_x device's use of icotl numbers has any bearing at all on the
+>> ibcore/verbs ioctl(s).
+>> 
+>> If and when new code is accepted and hfi1 converges its API to go through a
+>> common character device, then hfi1 would surely change to match whatever is
+>> there whether that's a single ioctl with a command type embedded or
+>> something that has not even yet been proposed.
+>
+>Denny,
+>
+>It is easy for everyone to converge hfi1 API from day one, so if and
+>when new code is posted, the hfi1 changes will be summarized by one
+>line change.
+
+Let's put the future API issue, and the specifics of this patch aside for 
+just a minute.  I'd like to understand the rationale for wanting a single 
+ioctl over specific ioctls in the general sense. I know that's what folks 
+seem to prefer from the calls, but perhaps we can get that down in writing 
+here on the list.
+
+I see an advantage for the specific ioctls because we can classify them 
+based on permission. When running things like strace you can decode the 
+ioctl number and see what access it is making. It also makes it easy to have 
+a gist of what is going on based on the ioctl call itself.
+
+On the other hand, having a bunch of ioctls may make it harder on user 
+space. A well known ioctl may make life easier. I'm assuming there are other 
+compelling reasons?
+
+-Denny
 
 
-> -----Original Message-----
-> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> Sent: Monday, May 23, 2016 5:06 PM
-> To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
-> resolution module into core
-> 
-> On 5/23/2016 4:58 AM, Leon Romanovsky wrote:
-> > On Wed, May 18, 2016 at 07:36:03PM +0000, Weiny, Ira wrote:
-> >>> On 05/18/2016 02:28 PM, Mark Bloch wrote:
-> >>>>
-> >>>>
-> >>>>> -----Original Message-----
-> >>>>> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
-> >>>>> Sent: Wednesday, May 18, 2016 8:59 PM
-> >>>>> To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> >>>>> Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; linux-
-> >>>>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>>>> Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
-> >>>>> resolution module into core
-> >>>>>
-> >>>>> On 05/18/2016 01:15 PM, Jason Gunthorpe wrote:
-> >>>>>> On Wed, May 18, 2016 at 10:51:02AM -0400, Doug Ledford wrote:
-> >>>>>>> moves it into the ib_core and also keep the new ib_netlink stuff in
-> >>>>>>> ib_core.  So, fewer modules, not more.
-> >>>>>>
-> >>>>>> What about getting rid of ib_sa as well so we can avoid that dynamic
-> >>>>>> netlink registration patch too?
-> >>>>>
-> >>>>> That's fine too.
-> >>>> Integrating ib_sa into ib_core also means to do the same for ib_mad.
-> >>>> If you agree with it (ib_sa & ib_mad becoming part of ib_core), I'll
-> create
-> >>> the patches.
-> >>>
-> >>> Ira, Hal?
-> >>>
-> >>
-> >> I don't see a problem with that.
-> >
-> > Doug,
-> >
-> > Will it be acceptable to you if Mark base his patches on this assumption?
-> 
-> Yes.
-> 
-
-Actually the new series is already posted, 
-http://marc.info/?l=linux-rdma&m=146366717406108&w=2
-if you can have a look at it'll be great.
-
-Mark
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
