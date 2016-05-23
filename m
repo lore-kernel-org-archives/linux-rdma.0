@@ -1,60 +1,153 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 01/10] net/mlx5: Export required core functions to support RSS
-Date: Mon, 23 May 2016 15:20:47 +0300
-Message-ID: <1464006056-19653-2-git-send-email-yishaih@mellanox.com>
-References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V3 for-next 02/10] IB/core: Introduce Work Queue object
+ and its verbs
+Date: Mon, 23 May 2016 15:33:02 +0300
+Message-ID: <2ef3f222-cf56-140c-7d69-7a872853c82e@dev.mellanox.co.il>
+References: <1460903237-16870-1-git-send-email-yishaih@mellanox.com>
+ <1460903237-16870-3-git-send-email-yishaih@mellanox.com>
+ <20160520053051.GA15274@phlsvsds.ph.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464006056-19653-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160520053051.GA15274-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.orgAlex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to support RSS QPs, we need to create Ethernet based objects.
-This is done by create_rq, destroy_rq, create_rqt and destroy_rqt
-mlx5_core functions. We export these functions.
+On 5/20/2016 8:30 AM, ira.weiny wrote:
+> On Sun, Apr 17, 2016 at 05:27:09PM +0300, Yishai Hadas wrote:
+>> Introduce Work Queue object and its create/destroy/modify verbs.
+>>
+>> QP can be created without internal WQs "packaged" inside it,
+>> this QP can be configured to use "external" WQ object as its
+>> receive/send queue.
+>> WQ is a necessary component for RSS technology since RSS mechanism
+>> is supposed to distribute the traffic between multiple
+>> Receive Work Queues.
+>
+> I'm confused by what a WQ actually is.  Does a QP contain a WQ ("'packaged'
+> inside it")?  Or is a set of WQ's associated with a single QP?  What is meant
+> by "internal" and "external" WQ?
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Currently when a QP is created its RQ and SQ parts are created 
+internally. A WQ is actually one of above (RQ/SQ) based on its type, 
+however, it's given externally as part of the QP create API.
+This series exposed IB_WQT_RQ, in the future we may add IB_WQT_SQ.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-index 03a5093..28274a6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-@@ -85,6 +85,7 @@ int mlx5_core_create_rq(struct mlx5_core_dev *dev, u32 *in, int inlen, u32 *rqn)
- 
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_core_create_rq);
- 
- int mlx5_core_modify_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *in, int inlen)
- {
-@@ -110,6 +111,7 @@ void mlx5_core_destroy_rq(struct mlx5_core_dev *dev, u32 rqn)
- 
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_core_destroy_rq);
- 
- int mlx5_core_query_rq(struct mlx5_core_dev *dev, u32 rqn, u32 *out)
- {
-@@ -430,6 +432,7 @@ int mlx5_core_create_rqt(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_core_create_rqt);
- 
- int mlx5_core_modify_rqt(struct mlx5_core_dev *dev, u32 rqtn, u32 *in,
- 			 int inlen)
-@@ -455,3 +458,4 @@ void mlx5_core_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn)
- 
- 	mlx5_cmd_exec_check_status(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_core_destroy_rqt);
--- 
-1.8.3.1
+> Can a WQ be associated with more than 1 QP?  I'm thinking not, except
+> indirectly when it is associated with a single SRQ.
+
+This series enables setting WQ(s) by an indirection table to a QP, this 
+indirection table can be associated with other QPs as well.
+
+>
+> It looks like the user configures a set of WQs which will get wrs.  What types
+> of QPs can be associated with a IB_WQT_RQ?
+
+This should be based on capabilities, please see cover letter as well. 
+Currently in this series, mlx5 driver supports RAW_ETH_QP but it can be 
+extended in the future for others as of UD QP.
+
+> Does the user post Recv WR's to the QP or the WQs?  Looks like to the QP/SRQ.
+> So are their ordering expectations here or can WRs posted to the QP get
+> processed out of order depending on which WQ they get sent to?  It seems that
+> then the user is responsible for dealing with out of order messages or
+> hopefully does not care?
+
+No, the user should post to a WQ which holds the memory that the HW 
+scatters to.
+
+>
+> Given the hash fields specified in the patch series and the information
+> discussed on the last verbs call it seems like only Raw Ethernet QPs are
+> supported.  Or can IPoIB UD QPs work as well.  If so how does a low level
+> driver know where to look for the IP headers?
+
+As discussed in the last verbs call the hash attributes (fields, key, 
+etc.) were moved to be vendor specific, this enables any vendor to get 
+its specific properties to support different cases. Specific to IPoIB 
+the HW should be able to detect the packet and to active the RSS 
+offload. Please look at V4 series for above change.
+
+>
+> Shouldn't the size of the indirection table determine the number of WQs or vice
+> versa?  It seems like the user has to do a lot of work here to make that
+> association.
+
+Each WQ can be repeated in the indirection table so the number of 
+different WQs can differ from the indirection table size.
+
+The user should create WQs, usually it will be based on number of cores 
+then create indirection table holding those WQs. It should be quite 
+simple from user point of view to do that.
+
+  What types of errors occur if the indirection table/hash
+> specifies a WQ which does not exist?
+
+The IB/uverbs layer will return -EINVAL please follow V4 which addressed 
+that specifically.
+
+> Maybe I'm just confused about the differences between the indirection table and
+> the hash function?
+
+For further understanding the concept please have a look at below URL 
+which was also mentioned in the cover letter.
+http://lxr.free-electrons.com/source/Documentation/networking/scaling.txt
+
+>>
+>> WQ associated (many to one) with Completion Queue and it owns WQ
+>> properties (PD, WQ size, etc.).
+>> WQ has a type, this patch introduces the IB_WQT_RQ (i.e.receive queue),
+>> it may be extend to others such as IB_WQT_SQ. (send queue).
+>> WQ from type IB_WQT_RQ contains receive work requests.
+>>
+>> PD is an attribute of a work queue (i.e. send/receive queue), it's used
+>> by the hardware for security validation before scattering to a memory
+>> region which is pointed by the WQ. For that, an external WQ object
+>> needs a PD, letting the hardware makes that validation.
+>>
+>> When accessing a memory region that is pointed by the WQ its PD
+>> is used and not the QP's PD, this behavior is similar
+>> to a SRQ and a QP.
+>>
+>> WQ context is subject to a well-defined state transitions done by
+>> the modify_wq verb.
+>> When WQ is created its initial state becomes IB_WQS_RESET.
+>> From IB_WQS_RESET it can be modified to itself or to IB_WQS_RDY.
+>> From IB_WQS_RDY it can be modified to itself, to IB_WQS_RESET
+>> or to IB_WQS_ERR.
+>> From IB_WQS_ERR it can be modified to IB_WQS_RESET.
+>>
+>> Note: transition to IB_WQS_ERR might occur implicitly in case there
+>> was some HW error.
+>>
+>> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/verbs.c | 82 +++++++++++++++++++++++++++++++++++++++++
+>>  include/rdma/ib_verbs.h         | 56 +++++++++++++++++++++++++++-
+>>  2 files changed, 137 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+>> index 15b8adb..c6c5792 100644
+>> --- a/drivers/infiniband/core/verbs.c
+>> +++ b/drivers/infiniband/core/verbs.c
+>> @@ -1516,6 +1516,88 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+>>  }
+>>  EXPORT_SYMBOL(ib_dealloc_xrcd);
+>>
+>> +/**
+>> + * ib_create_wq - Creates a WQ associated with the specified protection
+>> + * domain.
+>> + * @pd: The protection domain associated with the WQ.
+>> + * @wq_init_attr: A list of initial attributes required to create the
+>
+> Is this really a list of attributes?
+
+Yes, it follows the qp_init_attr notation.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
