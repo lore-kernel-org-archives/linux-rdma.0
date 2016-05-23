@@ -1,89 +1,31 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V4 for-next 05/10] IB/core: Introduce Receive Work Queue indirection table
-Date: Mon, 23 May 2016 12:07:47 -0500
-Message-ID: <01ba01d1b515$a18a6f80$e49f4e80$@opengridcomputing.com>
-References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com> <1464006056-19653-6-git-send-email-yishaih@mellanox.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+ tomorrow - 5/24/2016
+Date: Mon, 23 May 2016 19:36:54 +0000
+Message-ID: <HE1PR05MB1418BA79ED5CADD3A4BFFA1CB14E0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <HE1PR05MB14189704DA1D862F5BF8B384B14E0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464006056-19653-6-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <HE1PR05MB14189704DA1D862F5BF8B384B14E0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Introduce Receive Work Queue (WQ) indirection table.
-> This object can be used to spread incoming traffic to different
-> receive Work Queues.
-> 
-> A Receive WQ indirection table points to variable size of WQs.
-> This table is given to a QP in downstream patches.
-> 
-> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/core/verbs.c | 62
-> +++++++++++++++++++++++++++++++++++++++++
->  include/rdma/ib_verbs.h         | 23 +++++++++++++++
->  2 files changed, 85 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index c096cad..6b548d7 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1636,6 +1636,68 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr
-> *wq_attr,
->  }
->  EXPORT_SYMBOL(ib_modify_wq);
-> 
-> +/*
-> + * ib_create_rwq_ind_table - Creates a RQ Indirection Table.
-> + * @device: The device on which to create the rwq indirection table.
-> + * @ib_rwq_ind_table_init_attr: A list of initial attributes required to
-> + * create the Indirection Table.
-> + *
-> + * Note: The life time of ib_rwq_ind_table_init_attr->ind_tbl is not less
-> + *	than the created ib_rwq_ind_table object and the caller is responsible
-> + *	for its memory allocation/free.
-> + */
-> +struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
-> +						 struct
-ib_rwq_ind_table_init_attr
-> *init_attr)
-> +{
-> +	struct ib_rwq_ind_table *rwq_ind_table;
-> +	int i;
-> +	u32 table_size;
-> +
-> +	if (!device->create_rwq_ind_table)
-> +		return ERR_PTR(-ENOSYS);
-> +
-> +	table_size = (1 << init_attr->log_ind_tbl_size);
-> +	rwq_ind_table = device->create_rwq_ind_table(device,
-> +				init_attr, NULL);
-> +	if (IS_ERR(rwq_ind_table))
-> +		return rwq_ind_table;
-> +
-> +	rwq_ind_table->ind_tbl = init_attr->ind_tbl;
-> +	rwq_ind_table->log_ind_tbl_size = init_attr->log_ind_tbl_size;
-> +	rwq_ind_table->device = device;
-> +	rwq_ind_table->uobject = NULL;
-> +	atomic_set(&rwq_ind_table->usecnt, 0);
-> +
-> +	for (i = 0; i < table_size; i++)
-> +		atomic_inc(&rwq_ind_table->ind_tbl[i]->usecnt);
-
-Hey Yishai,
-
-Why do you need usecnt on the individual tables allocated by the device?  I see
-them inc'd here and dec'd in destroy.  But I don't see them used anywhere else?
-
-Steve.
-
-
+PiBGcm9tOiBvZnZ3ZyBbbWFpbHRvOm9mdndnLWJvdW5jZXNAbGlzdHMub3BlbmZhYnJpY3Mub3Jn
+XSBPbiBCZWhhbGYgT2YgTGlyYW4NCj4gTGlzcw0KDQpQLlMuLCBtZWV0aW5nIGlzIHNjaGVkdWxl
+ZCBmb3IgMTE6MDBQRFQgKyBub3RlIHRoZSB1cGRhdGVkIGNvbmNhbGwgZGV0YWlscy4NCg0KPiBD
+b25jYWxsIGRldGFpbHMNCj4gPT09PT09PT09PT0NCj4gSk9JTiBXRUJFWCBNRUVUSU5HDQo+IGh0
+dHBzOi8vbWVsbGFub3gtdGVjaC53ZWJleC5jb20vam9pbi9MaXJhbi5MaXNzICB8ICA3MDIgODMw
+IDQyNA0KPiANCj4gSk9JTiBCWSBQSE9ORQ0KPiAxLTgwLTk0NTM1NTAgSXNyYWVsIHRvbGwgZnJl
+ZQ0KPiAxLTg1NS0yOTktNTIyNCBVU0EvQ2FuYWRhIHRvbGwgZnJlZQ0KPiBBY2Nlc3MgY29kZTog
+NzAyIDgzMCA0MjQNCj4gDQo+IEdsb2JhbCBjYWxsLWluIG51bWJlcnM6DQo+IGh0dHBzOi8vbWVs
+bGFub3gtdGVjaC53ZWJleC5jb20vbWVsbGFub3gtDQo+IHRlY2gvZ2xvYmFsY2FsbGluLnBocD9z
+ZXJ2aWNlVHlwZT1NQyZFRD00NTc2MzcyNTcmdG9sbEZyZWU9MQ0KPiANCj4gVG9sbC1mcmVlIGNh
+bGxpbmcgcmVzdHJpY3Rpb25zOg0KPiBodHRwOi8vd3d3LndlYmV4LmNvbS9wZGYvdG9sbGZyZWVf
+cmVzdHJpY3Rpb25zLnBkZg0KPg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
