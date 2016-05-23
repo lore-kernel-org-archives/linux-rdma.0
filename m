@@ -1,62 +1,64 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V5 for-next 1/4] IB/core: Introduce capabilitymask2 field
- in ClassPortInfo mad
-Date: Mon, 23 May 2016 12:46:19 -0400
-Message-ID: <eee564bc-01d9-b371-ab4f-972c4f0387bb@dev.mellanox.co.il>
-References: <1463991263-13084-1-git-send-email-erezsh@mellanox.com>
- <1463991263-13084-2-git-send-email-erezsh@mellanox.com>
- <ead67cbd-ca28-322b-0435-ab01c1f04be5@dev.mellanox.co.il>
- <CAAk-MO-2JQpmb8xR4gqQQEfpEpQCgMbxgbOLXhLPW991FhvJWQ@mail.gmail.com>
- <f576c725-b78f-6432-5991-bf82fd0d9a8c@sandisk.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 02/10] IB/core: Introduce Work Queue object
+ and its verbs
+Date: Mon, 23 May 2016 11:57:03 -0500
+Message-ID: <5d0982d2-3b07-11a3-a74c-a52b8e9fb392@opengridcomputing.com>
+References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
+ <1464006056-19653-3-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f576c725-b78f-6432-5991-bf82fd0d9a8c-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1464006056-19653-3-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/23/2016 11:26 AM, Bart Van Assche wrote:
-> On 05/23/2016 04:49 AM, Erez Shitrit wrote:
->> On Mon, May 23, 2016 at 2:33 PM, Hal Rosenstock
->> <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>> On 5/23/2016 4:14 AM, Erez Shitrit wrote:
->>>> diff --git a/drivers/infiniband/hw/qib/qib_mad.c
->>>> b/drivers/infiniband/hw/qib/qib_mad.c
->>>> index 0bd1837..a872865 100644
->>>> --- a/drivers/infiniband/hw/qib/qib_mad.c
->>>> +++ b/drivers/infiniband/hw/qib/qib_mad.c
->>>> @@ -1172,11 +1172,11 @@ static int pma_get_classportinfo(struct
->>>> ib_pma_mad *pmp,
->>>>        * Set the most significant bit of CM2 to indicate support for
->>>>        * congestion statistics
->>>>        */
->>>> -     p->reserved[0] = dd->psxmitwait_supported << 7;
->>>> +     ib_set_cpi_capmask2(p, dd->psxmitwait_supported << 7);
->>>
->>> Is this really equivalent to what it's replacing ?
->>
->> Yes. the previous code sets the msb bit in the first byte of the
->> capmask2 (where it was with 3 bytes), no other setting for capmask2
->> in that flow, so it is the same.
-> 
-> Hello Erez,
-> 
-> I think you need the following to set the highest bit of
-> cap_mask2_resp_time:
-> 
-> ib_set_cpi_capmask2(p, dd->psxmitwait_supported << (31 - 5))
+On 5/23/2016 7:20 AM, Yishai Hadas wrote:
+> Introduce Work Queue object and its create/destroy/modify verbs.
+>
+> QP can be created without internal WQs "packaged" inside it,
+> this QP can be configured to use "external" WQ object as its
+> receive/send queue.
+> WQ is a necessary component for RSS technology since RSS mechanism
+> is supposed to distribute the traffic between multiple
+> Receive Work Queues.
+>
+> WQ associated (many to one) with Completion Queue and it owns WQ
+> properties (PD, WQ size, etc.).
+> WQ has a type, this patch introduces the IB_WQT_RQ (i.e.receive queue),
+> it may be extend to others such as IB_WQT_SQ. (send queue).
+> WQ from type IB_WQT_RQ contains receive work requests.
+>
+> PD is an attribute of a work queue (i.e. send/receive queue), it's used
+> by the hardware for security validation before scattering to a memory
+> region which is pointed by the WQ. For that, an external WQ object
+> needs a PD, letting the hardware makes that validation.
+>
+> When accessing a memory region that is pointed by the WQ its PD
+> is used and not the QP's PD, this behavior is similar
+> to a SRQ and a QP.
+>
+> WQ context is subject to a well-defined state transitions done by
+> the modify_wq verb.
+> When WQ is created its initial state becomes IB_WQS_RESET.
+> >From IB_WQS_RESET it can be modified to itself or to IB_WQS_RDY.
+> >From IB_WQS_RDY it can be modified to itself, to IB_WQS_RESET
+> or to IB_WQS_ERR.
+> >From IB_WQS_ERR it can be modified to IB_WQS_RESET.
+>
+> Note: transition to IB_WQS_ERR might occur implicitly in case there
+> was some HW error.
 
-Agreed. I confirmed this with some test code which I ran on both LE and
-BE archs.
+Hey Yishai,
 
--- Hal
+What happens to posted RQ WRs when transitioning from RDY->RESET, 
+RDY->ERR, and ERR->RESET?
+Shouldn't the state machine be defined more?
 
-> Bart.
-> 
-> 
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
