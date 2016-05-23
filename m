@@ -1,211 +1,145 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 09/10] IB/uverbs: Extend create QP to get RWQ indirection table
-Date: Mon, 23 May 2016 15:20:55 +0300
-Message-ID: <1464006056-19653-10-git-send-email-yishaih@mellanox.com>
-References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 for-next 00/10] Verbs RSS
+Date: Mon, 23 May 2016 15:20:46 +0300
+Message-ID: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464006056-19653-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-User applications that want to spread incoming traffic between several WQs
-should create a QP which contains an indirection table.
+Hi Doug,
 
-When such a QP is created other receive side parameters are not valid
-and should not be given. Its send side is optional and assumed active
-based on max_send_wr capability value.
+This V4 series addressed the note to move RSS hash capabilities
+from the common udata to be part of vendor specific data.
+As was agreed in the OFAWG meeting, WQ and indirection table
+are common objects. The last 3 patches were changed
+accordingly.
 
-Extend create QP to work accordingly.
+As the RSS series already missed few kernel merging, would appreciate
+if it can be taken into 4.7.
 
+Thanks,
+Yishai
+ 
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 75 ++++++++++++++++++++++++++++++------
- include/uapi/rdma/ib_user_verbs.h    | 10 +++++
- 2 files changed, 73 insertions(+), 12 deletions(-)
+RSS (Receive Side Scaling) technology allows to spread incoming traffic
+between different receive descriptor queues.
+Assigning each queue to different CPU cores allows to better load
+balance the incoming traffic and improve performance.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 327a56c..65ab209 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -255,6 +255,17 @@ static void put_wq_read(struct ib_wq *wq)
- 	put_uobj_read(wq->uobject);
- }
- 
-+static struct ib_rwq_ind_table *idr_read_rwq_indirection_table(int ind_table_handle,
-+							       struct ib_ucontext *context)
-+{
-+	return idr_read_obj(&ib_uverbs_rwq_ind_tbl_idr, ind_table_handle, context, 0);
-+}
-+
-+static void put_rwq_indirection_table_read(struct ib_rwq_ind_table *ind_table)
-+{
-+	put_uobj_read(ind_table->uobject);
-+}
-+
- static struct ib_qp *idr_write_qp(int qp_handle, struct ib_ucontext *context)
- {
- 	struct ib_uobject *uobj;
-@@ -1761,9 +1772,11 @@ static int create_qp(struct ib_uverbs_file *file,
- 	struct ib_srq			*srq = NULL;
- 	struct ib_qp			*qp;
- 	char				*buf;
--	struct ib_qp_init_attr		attr;
-+	struct ib_qp_init_attr		attr = {};
- 	struct ib_uverbs_ex_create_qp_resp resp;
- 	int				ret;
-+	struct ib_rwq_ind_table *ind_tbl = NULL;
-+	bool has_sq = true;
- 
- 	if (cmd->qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
- 		return -EPERM;
-@@ -1775,6 +1788,32 @@ static int create_qp(struct ib_uverbs_file *file,
- 	init_uobj(&obj->uevent.uobject, cmd->user_handle, file->ucontext,
- 		  &qp_lock_class);
- 	down_write(&obj->uevent.uobject.mutex);
-+	if (cmd_sz >= offsetof(typeof(*cmd), rwq_ind_tbl_handle) +
-+		      sizeof(cmd->rwq_ind_tbl_handle) &&
-+		      (cmd->comp_mask & IB_UVERBS_CREATE_QP_MASK_IND_TABLE)) {
-+		ind_tbl = idr_read_rwq_indirection_table(cmd->rwq_ind_tbl_handle,
-+							 file->ucontext);
-+		if (!ind_tbl) {
-+			ret = -EINVAL;
-+			goto err_put;
-+		}
-+
-+		attr.rwq_ind_tbl = ind_tbl;
-+	}
-+
-+	if ((cmd_sz >= offsetof(typeof(*cmd), reserved1) +
-+		       sizeof(cmd->reserved1)) && cmd->reserved1) {
-+		ret = -EOPNOTSUPP;
-+		goto err_put;
-+	}
-+
-+	if (ind_tbl && (cmd->max_recv_wr || cmd->max_recv_sge || cmd->is_srq)) {
-+		ret = -EINVAL;
-+		goto err_put;
-+	}
-+
-+	if (ind_tbl && !cmd->max_send_wr)
-+		has_sq = false;
- 
- 	if (cmd->qp_type == IB_QPT_XRC_TGT) {
- 		xrcd = idr_read_xrcd(cmd->pd_handle, file->ucontext,
-@@ -1798,20 +1837,24 @@ static int create_qp(struct ib_uverbs_file *file,
- 				}
- 			}
- 
--			if (cmd->recv_cq_handle != cmd->send_cq_handle) {
--				rcq = idr_read_cq(cmd->recv_cq_handle,
--						  file->ucontext, 0);
--				if (!rcq) {
--					ret = -EINVAL;
--					goto err_put;
-+			if (!ind_tbl) {
-+				if (cmd->recv_cq_handle != cmd->send_cq_handle) {
-+					rcq = idr_read_cq(cmd->recv_cq_handle,
-+							  file->ucontext, 0);
-+					if (!rcq) {
-+						ret = -EINVAL;
-+						goto err_put;
-+					}
- 				}
- 			}
- 		}
- 
--		scq = idr_read_cq(cmd->send_cq_handle, file->ucontext, !!rcq);
--		rcq = rcq ?: scq;
-+		if (has_sq)
-+			scq = idr_read_cq(cmd->send_cq_handle, file->ucontext, !!rcq);
-+		if (!ind_tbl)
-+			rcq = rcq ?: scq;
- 		pd  = idr_read_pd(cmd->pd_handle, file->ucontext);
--		if (!pd || !scq) {
-+		if (!pd || (!scq && has_sq)) {
- 			ret = -EINVAL;
- 			goto err_put;
- 		}
-@@ -1878,16 +1921,20 @@ static int create_qp(struct ib_uverbs_file *file,
- 		qp->send_cq	  = attr.send_cq;
- 		qp->recv_cq	  = attr.recv_cq;
- 		qp->srq		  = attr.srq;
-+		qp->rwq_ind_tbl	  = ind_tbl;
- 		qp->event_handler = attr.event_handler;
- 		qp->qp_context	  = attr.qp_context;
- 		qp->qp_type	  = attr.qp_type;
- 		atomic_set(&qp->usecnt, 0);
- 		atomic_inc(&pd->usecnt);
--		atomic_inc(&attr.send_cq->usecnt);
-+		if (attr.send_cq)
-+			atomic_inc(&attr.send_cq->usecnt);
- 		if (attr.recv_cq)
- 			atomic_inc(&attr.recv_cq->usecnt);
- 		if (attr.srq)
- 			atomic_inc(&attr.srq->usecnt);
-+		if (ind_tbl)
-+			atomic_inc(&ind_tbl->usecnt);
- 	}
- 	qp->uobject = &obj->uevent.uobject;
- 
-@@ -1927,6 +1974,8 @@ static int create_qp(struct ib_uverbs_file *file,
- 		put_cq_read(rcq);
- 	if (srq)
- 		put_srq_read(srq);
-+	if (ind_tbl)
-+		put_rwq_indirection_table_read(ind_tbl);
- 
- 	mutex_lock(&file->mutex);
- 	list_add_tail(&obj->uevent.uobject.list, &file->ucontext->qp_list);
-@@ -1954,6 +2003,8 @@ err_put:
- 		put_cq_read(rcq);
- 	if (srq)
- 		put_srq_read(srq);
-+	if (ind_tbl)
-+		put_rwq_indirection_table_read(ind_tbl);
- 
- 	put_uobj_write(&obj->uevent.uobject);
- 	return ret;
-@@ -2047,7 +2098,7 @@ int ib_uverbs_ex_create_qp(struct ib_uverbs_file *file,
- 	if (err)
- 		return err;
- 
--	if (cmd.comp_mask)
-+	if (cmd.comp_mask & ~IB_UVERBS_CREATE_QP_SUP_COMP_MASK)
- 		return -EINVAL;
- 
- 	if (cmd.reserved)
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 2cf7c95..2c8bca8 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -523,6 +523,14 @@ struct ib_uverbs_create_qp {
- 	__u64 driver_data[0];
- };
- 
-+enum ib_uverbs_create_qp_mask {
-+	IB_UVERBS_CREATE_QP_MASK_IND_TABLE = 1UL << 0,
-+};
-+
-+enum {
-+	IB_UVERBS_CREATE_QP_SUP_COMP_MASK = IB_UVERBS_CREATE_QP_MASK_IND_TABLE,
-+};
-+
- struct ib_uverbs_ex_create_qp {
- 	__u64 user_handle;
- 	__u32 pd_handle;
-@@ -540,6 +548,8 @@ struct ib_uverbs_ex_create_qp {
- 	__u8 reserved;
- 	__u32 comp_mask;
- 	__u32 create_flags;
-+	__u32 rwq_ind_tbl_handle;
-+	__u32  reserved1;
- };
- 
- struct ib_uverbs_open_qp {
+This patch-set introduces some new objects and verbs in order to allow
+verbs based solutions to utilize the RSS offload capability which is
+widely supported today by many modern NICs. It extends the IB and uverbs
+layers to support the above functionality and supplies a specific
+implementation for the mlx5_ib driver.
+
+The implementation is based on an RFC that was sent to the list some
+months ago and describes the expected verbs and objects.
+RFC: http://www.spinics.net/lists/linux-rdma/msg25012.html
+
+In addition, below URL can be used as a reference to the motivation and
+the justification to add the new objects that are described below.
+http://lxr.free-electrons.com/source/Documentation/networking/scaling.txt
+
+Overview of the changes:
+- Add new objects: Work Queue and Receive Work Queues Indirection Table.
+- Add new verbs that are required to handle the new objects:
+  ib_create_wq(), ib_modify_wq(), ib_destory_wq(),
+  ib_create_rwq_ind_table(), ib_destroy_rwq_ind_table().
+- Extend ib_create_qp() to get Receive Work Queues Indirection Table.
+
+Work Queue: (ib_wq)
+- Work Queue is associated (many to one) with  Completion Queue.
+- It owns Work Queue properties (PD, WQ size etc.).
+- Currently Work Queue type can be IB_WQT_RQ (receive queue), other ones
+  may be added in the future. (e.g. IB_WQT_SQ, send queue)
+- Work Queue from type IB_WQT_RQ contains receive work requests.
+- Work Queue context is subject to a well-defined state transitions done
+  by the modify_wq verb.
+- Work Queue is a necessary component for RSS technology since RSS
+  mechanism is supposed to distribute the traffic between multiple
+  Receive Work Queues.
+
+Receive Work Queue Indirection Table: (ib_rwq_ind_tbl)
+- Serves to spread traffic between Work Queues from type RQ.
+- Can be modified dynamically to give different queues different relative
+  weights.
+- The receive queue for a packet is determined by computed hash for the
+  incoming packet.
+- Receive Work Queue Indirection Table is associated (one to many) with QPs.
+
+RSS hashing configuration:
+- Should be used to compute the required RQ entry for the incoming packet.
+- It includes:
+    * The hashing function used to choose the WQ from this table.
+    * The packet's properties that the hashing function should use.
+    * Was changed to be vendor specific based on OFAWG verbs discussion.
+
+Future extensions to this patch-set:
+- Add ib_modify_rwq_ind_table() verb to enable a dynamic RQ mapping change.
+- Reflect RSS capabilities by the query device verb.
+- User space support (i.e. libibverbs/vendor drivers) to expose the new verbs
+  and objects.
+
+Patches:
+#1:  Exposes the required APIs from mlx5_core to be used in coming patches
+     by mlx5_ib driver.
+#2:  Introduces the Work Queue object and its verbs in the IB layer.
+#3:  Adds uverbs support for the Work Queue verbs.
+#4:  Implements the Work Queue verbs in mlx5_ib driver.
+#5:  Introduces Receive Work Queue indirection table and its verbs in
+     the IB layer.
+#6:  Adds uverbs support for the Receive Work Queue indirection table verbs.
+#7:  Implements the Receive Work Queue indirection table verbs in mlx5_ib driver.
+#8:  Extends create QP to get indirection table in the IB layer.
+#9:  Extends create QP to get indirection table in the uverbs layer.
+#10: Adds RSS QP support in mlx5_ib driver.
+
+Changes from V3:
+Move hash properties from the common udata to be vendor specific data.
+
+Changes from V2:
+- Improve the new verbs to enable clean future extensions in both uverbs
+  and mlx5_ib layers.
+- Add the last three patches to enable RSS QP creation.
+
+Changes from V1:
+#patch #2: Change ib_modify_wq to use u32 instead of enum for bit wise values.
+#patch #3: Improve usage of attr_mask/comp_mask.
+#patch #4: Fix driver issue in mlx5_ib in PPC.
+#patch #6: Limit un-expected memory allocation.
+
+Changes from V0:
+patch #2: Move the new verbs documentation to be in the C file,
+          improve the commit message.
+patch #5: Move the new verbs documentation to be in the C file.
+
+Yishai Hadas (10):
+  net/mlx5: Export required core functions to support RSS
+  IB/core: Introduce Work Queue object and its verbs
+  IB/uverbs: Add WQ support
+  IB/mlx5: Add receive Work Queue verbs
+  IB/core: Introduce Receive Work Queue indirection table
+  IB/uverbs: Introduce RWQ Indirection table
+  IB/mlx5: Add Receive Work Queue Indirection table operations
+  IB/core: Extend create QP to get indirection table
+  IB/uverbs: Extend create QP to get RWQ indirection table
+  IB/mlx5: Add RSS QP support
+
+ drivers/infiniband/core/uverbs.h                   |  12 +
+ drivers/infiniband/core/uverbs_cmd.c               | 528 ++++++++++++++++++-
+ drivers/infiniband/core/uverbs_main.c              |  38 ++
+ drivers/infiniband/core/verbs.c                    | 163 +++++-
+ drivers/infiniband/hw/mlx5/main.c                  |  12 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  54 ++
+ drivers/infiniband/hw/mlx5/qp.c                    | 584 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/user.h                  |  64 +++
+ drivers/net/ethernet/mellanox/mlx5/core/transobj.c |   4 +
+ include/rdma/ib_verbs.h                            |  85 ++-
+ include/uapi/rdma/ib_user_verbs.h                  |  77 +++
+ 11 files changed, 1605 insertions(+), 16 deletions(-)
+
 -- 
 1.8.3.1
 
