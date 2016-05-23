@@ -1,145 +1,377 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 00/10] Verbs RSS
-Date: Mon, 23 May 2016 15:20:46 +0300
-Message-ID: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 for-next 06/10] IB/uverbs: Introduce RWQ Indirection table
+Date: Mon, 23 May 2016 15:20:52 +0300
+Message-ID: <1464006056-19653-7-git-send-email-yishaih@mellanox.com>
+References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1464006056-19653-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+User applications that want to spread traffic on several WQs, need to
+create an indirection table, by using already created WQs.
 
-This V4 series addressed the note to move RSS hash capabilities
-from the common udata to be part of vendor specific data.
-As was agreed in the OFAWG meeting, WQ and indirection table
-are common objects. The last 3 patches were changed
-accordingly.
+Adding uverbs API in order to create and destroy this table.
 
-As the RSS series already missed few kernel merging, would appreciate
-if it can be taken into 4.7.
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs.h      |   3 +
+ drivers/infiniband/core/uverbs_cmd.c  | 210 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c |  13 +++
+ include/rdma/ib_verbs.h               |   1 +
+ include/uapi/rdma/ib_user_verbs.h     |  26 +++++
+ 5 files changed, 253 insertions(+)
 
-Thanks,
-Yishai
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 74776c6..6c22923 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -186,6 +186,7 @@ extern struct idr ib_uverbs_srq_idr;
+ extern struct idr ib_uverbs_xrcd_idr;
+ extern struct idr ib_uverbs_rule_idr;
+ extern struct idr ib_uverbs_wq_idr;
++extern struct idr ib_uverbs_rwq_ind_tbl_idr;
  
-
-RSS (Receive Side Scaling) technology allows to spread incoming traffic
-between different receive descriptor queues.
-Assigning each queue to different CPU cores allows to better load
-balance the incoming traffic and improve performance.
-
-This patch-set introduces some new objects and verbs in order to allow
-verbs based solutions to utilize the RSS offload capability which is
-widely supported today by many modern NICs. It extends the IB and uverbs
-layers to support the above functionality and supplies a specific
-implementation for the mlx5_ib driver.
-
-The implementation is based on an RFC that was sent to the list some
-months ago and describes the expected verbs and objects.
-RFC: http://www.spinics.net/lists/linux-rdma/msg25012.html
-
-In addition, below URL can be used as a reference to the motivation and
-the justification to add the new objects that are described below.
-http://lxr.free-electrons.com/source/Documentation/networking/scaling.txt
-
-Overview of the changes:
-- Add new objects: Work Queue and Receive Work Queues Indirection Table.
-- Add new verbs that are required to handle the new objects:
-  ib_create_wq(), ib_modify_wq(), ib_destory_wq(),
-  ib_create_rwq_ind_table(), ib_destroy_rwq_ind_table().
-- Extend ib_create_qp() to get Receive Work Queues Indirection Table.
-
-Work Queue: (ib_wq)
-- Work Queue is associated (many to one) with  Completion Queue.
-- It owns Work Queue properties (PD, WQ size etc.).
-- Currently Work Queue type can be IB_WQT_RQ (receive queue), other ones
-  may be added in the future. (e.g. IB_WQT_SQ, send queue)
-- Work Queue from type IB_WQT_RQ contains receive work requests.
-- Work Queue context is subject to a well-defined state transitions done
-  by the modify_wq verb.
-- Work Queue is a necessary component for RSS technology since RSS
-  mechanism is supposed to distribute the traffic between multiple
-  Receive Work Queues.
-
-Receive Work Queue Indirection Table: (ib_rwq_ind_tbl)
-- Serves to spread traffic between Work Queues from type RQ.
-- Can be modified dynamically to give different queues different relative
-  weights.
-- The receive queue for a packet is determined by computed hash for the
-  incoming packet.
-- Receive Work Queue Indirection Table is associated (one to many) with QPs.
-
-RSS hashing configuration:
-- Should be used to compute the required RQ entry for the incoming packet.
-- It includes:
-    * The hashing function used to choose the WQ from this table.
-    * The packet's properties that the hashing function should use.
-    * Was changed to be vendor specific based on OFAWG verbs discussion.
-
-Future extensions to this patch-set:
-- Add ib_modify_rwq_ind_table() verb to enable a dynamic RQ mapping change.
-- Reflect RSS capabilities by the query device verb.
-- User space support (i.e. libibverbs/vendor drivers) to expose the new verbs
-  and objects.
-
-Patches:
-#1:  Exposes the required APIs from mlx5_core to be used in coming patches
-     by mlx5_ib driver.
-#2:  Introduces the Work Queue object and its verbs in the IB layer.
-#3:  Adds uverbs support for the Work Queue verbs.
-#4:  Implements the Work Queue verbs in mlx5_ib driver.
-#5:  Introduces Receive Work Queue indirection table and its verbs in
-     the IB layer.
-#6:  Adds uverbs support for the Receive Work Queue indirection table verbs.
-#7:  Implements the Receive Work Queue indirection table verbs in mlx5_ib driver.
-#8:  Extends create QP to get indirection table in the IB layer.
-#9:  Extends create QP to get indirection table in the uverbs layer.
-#10: Adds RSS QP support in mlx5_ib driver.
-
-Changes from V3:
-Move hash properties from the common udata to be vendor specific data.
-
-Changes from V2:
-- Improve the new verbs to enable clean future extensions in both uverbs
-  and mlx5_ib layers.
-- Add the last three patches to enable RSS QP creation.
-
-Changes from V1:
-#patch #2: Change ib_modify_wq to use u32 instead of enum for bit wise values.
-#patch #3: Improve usage of attr_mask/comp_mask.
-#patch #4: Fix driver issue in mlx5_ib in PPC.
-#patch #6: Limit un-expected memory allocation.
-
-Changes from V0:
-patch #2: Move the new verbs documentation to be in the C file,
-          improve the commit message.
-patch #5: Move the new verbs documentation to be in the C file.
-
-Yishai Hadas (10):
-  net/mlx5: Export required core functions to support RSS
-  IB/core: Introduce Work Queue object and its verbs
-  IB/uverbs: Add WQ support
-  IB/mlx5: Add receive Work Queue verbs
-  IB/core: Introduce Receive Work Queue indirection table
-  IB/uverbs: Introduce RWQ Indirection table
-  IB/mlx5: Add Receive Work Queue Indirection table operations
-  IB/core: Extend create QP to get indirection table
-  IB/uverbs: Extend create QP to get RWQ indirection table
-  IB/mlx5: Add RSS QP support
-
- drivers/infiniband/core/uverbs.h                   |  12 +
- drivers/infiniband/core/uverbs_cmd.c               | 528 ++++++++++++++++++-
- drivers/infiniband/core/uverbs_main.c              |  38 ++
- drivers/infiniband/core/verbs.c                    | 163 +++++-
- drivers/infiniband/hw/mlx5/main.c                  |  12 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |  54 ++
- drivers/infiniband/hw/mlx5/qp.c                    | 584 +++++++++++++++++++++
- drivers/infiniband/hw/mlx5/user.h                  |  64 +++
- drivers/net/ethernet/mellanox/mlx5/core/transobj.c |   4 +
- include/rdma/ib_verbs.h                            |  85 ++-
- include/uapi/rdma/ib_user_verbs.h                  |  77 +++
- 11 files changed, 1605 insertions(+), 16 deletions(-)
-
+ void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
+ 
+@@ -284,5 +285,7 @@ IB_UVERBS_DECLARE_EX_CMD(create_qp);
+ IB_UVERBS_DECLARE_EX_CMD(create_wq);
+ IB_UVERBS_DECLARE_EX_CMD(modify_wq);
+ IB_UVERBS_DECLARE_EX_CMD(destroy_wq);
++IB_UVERBS_DECLARE_EX_CMD(create_rwq_ind_table);
++IB_UVERBS_DECLARE_EX_CMD(destroy_rwq_ind_table);
+ 
+ #endif /* UVERBS_H */
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 22e6173..327a56c 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -58,6 +58,7 @@ static struct uverbs_lock_class srq_lock_class	= { .name = "SRQ-uobj" };
+ static struct uverbs_lock_class xrcd_lock_class = { .name = "XRCD-uobj" };
+ static struct uverbs_lock_class rule_lock_class = { .name = "RULE-uobj" };
+ static struct uverbs_lock_class wq_lock_class = { .name = "WQ-uobj" };
++static struct uverbs_lock_class rwq_ind_table_lock_class = { .name = "IND_TBL-uobj" };
+ 
+ /*
+  * The ib_uobject locking scheme is as follows:
+@@ -338,6 +339,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
+ 	INIT_LIST_HEAD(&ucontext->srq_list);
+ 	INIT_LIST_HEAD(&ucontext->ah_list);
+ 	INIT_LIST_HEAD(&ucontext->wq_list);
++	INIT_LIST_HEAD(&ucontext->rwq_ind_tbl_list);
+ 	INIT_LIST_HEAD(&ucontext->xrcd_list);
+ 	INIT_LIST_HEAD(&ucontext->rule_list);
+ 	rcu_read_lock();
+@@ -3299,6 +3301,214 @@ int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
+ 	return ret;
+ }
+ 
++int ib_uverbs_ex_create_rwq_ind_table(struct ib_uverbs_file *file,
++				      struct ib_device *ib_dev,
++				      struct ib_udata *ucore,
++				      struct ib_udata *uhw)
++{
++	struct ib_uverbs_ex_create_rwq_ind_table	  cmd = {};
++	struct ib_uverbs_ex_create_rwq_ind_table_resp  resp = {};
++	struct ib_uobject		  *uobj;
++	int err = 0;
++	struct ib_rwq_ind_table_init_attr init_attr = {};
++	struct ib_rwq_ind_table *rwq_ind_tbl;
++	struct ib_wq	**wqs = NULL;
++	u32 *wqs_handles = NULL;
++	struct ib_wq	*wq = NULL;
++	int i, j, num_read_wqs;
++	u32 num_wq_handles;
++	u32 expected_in_size;
++	size_t required_cmd_sz_header;
++	size_t required_resp_len;
++
++	required_cmd_sz_header = offsetof(typeof(cmd), log_ind_tbl_size) + sizeof(cmd.log_ind_tbl_size);
++	required_resp_len = offsetof(typeof(resp), ind_tbl_num) + sizeof(resp.ind_tbl_num);
++
++	if (ucore->inlen < required_cmd_sz_header)
++		return -EINVAL;
++
++	if (ucore->outlen < required_resp_len)
++		return -ENOSPC;
++
++	err = ib_copy_from_udata(&cmd, ucore, required_cmd_sz_header);
++	if (err)
++		return err;
++
++	ucore->inbuf += required_cmd_sz_header;
++	ucore->inlen -= required_cmd_sz_header;
++
++	if (cmd.comp_mask)
++		return -EOPNOTSUPP;
++
++	if (cmd.log_ind_tbl_size > IB_USER_VERBS_MAX_LOG_IND_TBL_SIZE)
++		return -EINVAL;
++
++	num_wq_handles = 1 << cmd.log_ind_tbl_size;
++	expected_in_size = num_wq_handles * sizeof(__u32);
++	if (num_wq_handles == 1)
++		/* input size for wq handles is u64 aligned */
++		expected_in_size += sizeof(__u32);
++
++	if (ucore->inlen < expected_in_size)
++		return -EINVAL;
++
++	if (ucore->inlen > expected_in_size &&
++	    !ib_is_udata_cleared(ucore, expected_in_size,
++				 ucore->inlen - expected_in_size))
++		return -EOPNOTSUPP;
++
++	wqs_handles = kcalloc(num_wq_handles, sizeof(*wqs_handles),
++			      GFP_KERNEL);
++	if (!wqs_handles)
++		return -ENOMEM;
++
++	err = ib_copy_from_udata(wqs_handles, ucore,
++				 num_wq_handles * sizeof(__u32));
++	if (err)
++		goto err_free;
++
++	wqs = kcalloc(num_wq_handles, sizeof(*wqs), GFP_KERNEL);
++	if (!wqs) {
++		err = -ENOMEM;
++		goto  err_free;
++	}
++
++	for (num_read_wqs = 0; num_read_wqs < num_wq_handles;
++			num_read_wqs++) {
++		wq = idr_read_wq(wqs_handles[num_read_wqs], file->ucontext);
++		if (!wq) {
++			err = -EINVAL;
++			goto put_wqs;
++		}
++
++		wqs[num_read_wqs] = wq;
++	}
++
++	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
++	if (!uobj) {
++		err = -ENOMEM;
++		goto put_wqs;
++	}
++
++	init_uobj(uobj, 0, file->ucontext, &rwq_ind_table_lock_class);
++	down_write(&uobj->mutex);
++	init_attr.log_ind_tbl_size = cmd.log_ind_tbl_size;
++	init_attr.ind_tbl = wqs;
++	rwq_ind_tbl = ib_dev->create_rwq_ind_table(ib_dev, &init_attr, uhw);
++
++	if (IS_ERR(rwq_ind_tbl)) {
++		err = PTR_ERR(rwq_ind_tbl);
++		goto err_uobj;
++	}
++
++	rwq_ind_tbl->ind_tbl = wqs;
++	rwq_ind_tbl->log_ind_tbl_size = init_attr.log_ind_tbl_size;
++	rwq_ind_tbl->uobject = uobj;
++	uobj->object = rwq_ind_tbl;
++	rwq_ind_tbl->device = ib_dev;
++	atomic_set(&rwq_ind_tbl->usecnt, 0);
++
++	for (i = 0; i < num_wq_handles; i++)
++		atomic_inc(&wqs[i]->usecnt);
++
++	err = idr_add_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
++	if (err)
++		goto destroy_ind_tbl;
++
++	resp.ind_tbl_handle = uobj->id;
++	resp.ind_tbl_num = rwq_ind_tbl->ind_tbl_num;
++	resp.response_length = required_resp_len;
++
++	err = ib_copy_to_udata(ucore,
++			       &resp, resp.response_length);
++	if (err)
++		goto err_copy;
++
++	kfree(wqs_handles);
++
++	for (j = 0; j < num_read_wqs; j++)
++		put_wq_read(wqs[j]);
++
++	mutex_lock(&file->mutex);
++	list_add_tail(&uobj->list, &file->ucontext->rwq_ind_tbl_list);
++	mutex_unlock(&file->mutex);
++
++	uobj->live = 1;
++
++	up_write(&uobj->mutex);
++	return 0;
++
++err_copy:
++	idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
++destroy_ind_tbl:
++	ib_destroy_rwq_ind_table(rwq_ind_tbl);
++err_uobj:
++	put_uobj_write(uobj);
++put_wqs:
++	for (j = 0; j < num_read_wqs; j++)
++		put_wq_read(wqs[j]);
++err_free:
++	kfree(wqs_handles);
++	kfree(wqs);
++	return err;
++}
++
++int ib_uverbs_ex_destroy_rwq_ind_table(struct ib_uverbs_file *file,
++				       struct ib_device *ib_dev,
++				       struct ib_udata *ucore,
++				       struct ib_udata *uhw)
++{
++	struct ib_uverbs_ex_destroy_rwq_ind_table	cmd = {};
++	struct ib_rwq_ind_table *rwq_ind_tbl;
++	struct ib_uobject		*uobj;
++	int			ret;
++	struct ib_wq	**ind_tbl;
++	size_t required_cmd_sz;
++
++	required_cmd_sz = offsetof(typeof(cmd), ind_tbl_handle) + sizeof(cmd.ind_tbl_handle);
++
++	if (ucore->inlen < required_cmd_sz)
++		return -EINVAL;
++
++	if (ucore->inlen > sizeof(cmd) &&
++	    !ib_is_udata_cleared(ucore, sizeof(cmd),
++				 ucore->inlen - sizeof(cmd)))
++		return -EOPNOTSUPP;
++
++	ret = ib_copy_from_udata(&cmd, ucore, min(sizeof(cmd), ucore->inlen));
++	if (ret)
++		return ret;
++
++	if (cmd.comp_mask)
++		return -EOPNOTSUPP;
++
++	uobj = idr_write_uobj(&ib_uverbs_rwq_ind_tbl_idr, cmd.ind_tbl_handle,
++			      file->ucontext);
++	if (!uobj)
++		return -EINVAL;
++	rwq_ind_tbl = uobj->object;
++	ind_tbl = rwq_ind_tbl->ind_tbl;
++
++	ret = ib_destroy_rwq_ind_table(rwq_ind_tbl);
++	if (!ret)
++		uobj->live = 0;
++
++	put_uobj_write(uobj);
++
++	if (ret)
++		return ret;
++
++	idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
++
++	mutex_lock(&file->mutex);
++	list_del(&uobj->list);
++	mutex_unlock(&file->mutex);
++
++	put_uobj(uobj);
++	kfree(ind_tbl);
++	return ret;
++}
++
+ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 			     struct ib_device *ib_dev,
+ 			     struct ib_udata *ucore,
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 91cb36f..426e0ac 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -77,6 +77,7 @@ DEFINE_IDR(ib_uverbs_srq_idr);
+ DEFINE_IDR(ib_uverbs_xrcd_idr);
+ DEFINE_IDR(ib_uverbs_rule_idr);
+ DEFINE_IDR(ib_uverbs_wq_idr);
++DEFINE_IDR(ib_uverbs_rwq_ind_tbl_idr);
+ 
+ static DEFINE_SPINLOCK(map_lock);
+ static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
+@@ -134,6 +135,8 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ 	[IB_USER_VERBS_EX_CMD_CREATE_WQ]        = ib_uverbs_ex_create_wq,
+ 	[IB_USER_VERBS_EX_CMD_MODIFY_WQ]        = ib_uverbs_ex_modify_wq,
+ 	[IB_USER_VERBS_EX_CMD_DESTROY_WQ]       = ib_uverbs_ex_destroy_wq,
++	[IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL] = ib_uverbs_ex_create_rwq_ind_table,
++	[IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL] = ib_uverbs_ex_destroy_rwq_ind_table,
+ };
+ 
+ static void ib_uverbs_add_one(struct ib_device *device);
+@@ -269,6 +272,16 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		kfree(uqp);
+ 	}
+ 
++	list_for_each_entry_safe(uobj, tmp, &context->rwq_ind_tbl_list, list) {
++		struct ib_rwq_ind_table *rwq_ind_tbl = uobj->object;
++		struct ib_wq **ind_tbl = rwq_ind_tbl->ind_tbl;
++
++		idr_remove_uobj(&ib_uverbs_rwq_ind_tbl_idr, uobj);
++		ib_destroy_rwq_ind_table(rwq_ind_tbl);
++		kfree(ind_tbl);
++		kfree(uobj);
++	}
++
+ 	list_for_each_entry_safe(uobj, tmp, &context->wq_list, list) {
+ 		struct ib_wq *wq = uobj->object;
+ 		struct ib_uwq_object *uwq =
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 5ca3b1a..a12682e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1327,6 +1327,7 @@ struct ib_ucontext {
+ 	struct list_head	xrcd_list;
+ 	struct list_head	rule_list;
+ 	struct list_head	wq_list;
++	struct list_head	rwq_ind_tbl_list;
+ 	int			closing;
+ 
+ 	struct pid             *tgid;
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index c9470e5..2cf7c95 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -98,6 +98,8 @@ enum {
+ 	IB_USER_VERBS_EX_CMD_CREATE_WQ,
+ 	IB_USER_VERBS_EX_CMD_MODIFY_WQ,
+ 	IB_USER_VERBS_EX_CMD_DESTROY_WQ,
++	IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL,
++	IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL
+ };
+ 
+ /*
+@@ -987,4 +989,28 @@ struct ib_uverbs_ex_modify_wq  {
+ 	__u32 curr_wq_state;
+ };
+ 
++/* Prevent memory allocation rather than max expected size */
++#define IB_USER_VERBS_MAX_LOG_IND_TBL_SIZE 0x0d
++struct ib_uverbs_ex_create_rwq_ind_table  {
++	__u32 comp_mask;
++	__u32 log_ind_tbl_size;
++	/* Following are the wq handles according to log_ind_tbl_size
++	 * wq_handle1
++	 * wq_handle2
++	 */
++	__u32 wq_handles[0];
++};
++
++struct ib_uverbs_ex_create_rwq_ind_table_resp {
++	__u32 comp_mask;
++	__u32 response_length;
++	__u32 ind_tbl_handle;
++	__u32 ind_tbl_num;
++};
++
++struct ib_uverbs_ex_destroy_rwq_ind_table  {
++	__u32 comp_mask;
++	__u32 ind_tbl_handle;
++};
++
+ #endif /* IB_USER_VERBS_H */
 -- 
 1.8.3.1
 
