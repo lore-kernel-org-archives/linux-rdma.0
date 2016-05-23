@@ -1,77 +1,57 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: device driver frees DMA memory with different size
-Date: Mon, 23 May 2016 08:32:09 +0800
-Message-ID: <1463963529-23183-1-git-send-email-honli@redhat.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RESEND PATCH v7 00/21] Add HiSilicon RoCE driver
+Date: Mon, 23 May 2016 09:06:22 +0800
+Message-ID: <5742578E.5070601@huawei.com>
+References: <1462849483-67927-1-git-send-email-oulijun@huawei.com>
+ <ee4fe6df-e9b0-28da-c960-c288d6617025@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ee4fe6df-e9b0-28da-c960-c288d6617025-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Hi, Doug Ledford
 
-[  598.852037] ------------[ cut here ]------------
-[  598.856698] WARNING: at lib/dma-debug.c:887 check_unmap+0xf8/0x920()
-[  598.863079] cxgb3 0000:01:00.0: DMA-API: device driver frees DMA memory with different size [device address=0x0000000003310000] [map size=17 bytes] [unmap size=16 bytes]
-[  598.878265] Modules linked in: xprtrdma ib_isert iscsi_target_mod ib_iser libiscsi scsi_transport_iscsi ib_srpt target_core_mod ib_srp scsi_transport_srp scsi_tgt ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm ib_sa ib_mad kvm_amd kvm ipmi_devintf ipmi_ssif dcdbas pcspkr ipmi_si sg ipmi_msghandler acpi_power_meter amd64_edac_mod shpchp edac_core sp5100_tco k10temp edac_mce_amd i2c_piix4 acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables xfs libcrc32c sd_mod crc_t10dif crct10dif_generic crct10dif_common ata_generic iw_cxgb3 pata_acpi ib_core ib_addr mgag200 syscopyarea sysfillrect sysimgblt i2c_algo_bit drm_kms_helper ttm pata_atiixp drm ahci libahci serio_raw i2c_core cxgb3 libata bnx2 mdio dm_mirror dm_region_hash dm_log dm_mod
-[  598.946822] CPU: 3 PID: 11820 Comm: cmtime Not tainted 3.10.0-327.el7.x86_64.debug #1
-[  598.954681] Hardware name: Dell Inc. PowerEdge R415/0GXH08, BIOS 2.0.2 10/22/2012
-[  598.962193]  ffff8808077479a8 000000000381a432 ffff880807747960 ffffffff81700918
-[  598.969663]  ffff880807747998 ffffffff8108b6c0 ffff880807747a80 ffff8808063f55c0
-[  598.977132]  ffffffff833ca850 0000000000000282 ffff88080b1bb800 ffff880807747a00
-[  598.984602] Call Trace:
-[  598.987062]  [<ffffffff81700918>] dump_stack+0x19/0x1b
-[  598.992224]  [<ffffffff8108b6c0>] warn_slowpath_common+0x70/0xb0
-[  598.998254]  [<ffffffff8108b75c>] warn_slowpath_fmt+0x5c/0x80
-[  599.004033]  [<ffffffff813903b8>] check_unmap+0xf8/0x920
-[  599.009369]  [<ffffffff81025959>] ? sched_clock+0x9/0x10
-[  599.014702]  [<ffffffff81390cee>] debug_dma_free_coherent+0x7e/0xa0
-[  599.021008]  [<ffffffffa01ece2c>] cxio_destroy_cq+0xcc/0x160 [iw_cxgb3]
-[  599.027654]  [<ffffffffa01e8da0>] iwch_destroy_cq+0xf0/0x140 [iw_cxgb3]
-[  599.034307]  [<ffffffffa01c4bfe>] ib_destroy_cq+0x1e/0x30 [ib_core]
-[  599.040601]  [<ffffffffa04ff2d2>] ib_uverbs_close+0x302/0x4d0 [ib_uverbs]
-[  599.047417]  [<ffffffff812335a2>] __fput+0x102/0x310
-[  599.052401]  [<ffffffff8123388e>] ____fput+0xe/0x10
-[  599.057297]  [<ffffffff810bbde4>] task_work_run+0xb4/0xe0
-[  599.062719]  [<ffffffff81092a84>] do_exit+0x304/0xc60
-[  599.067789]  [<ffffffff81025905>] ? native_sched_clock+0x35/0x80
-[  599.073820]  [<ffffffff81025959>] ? sched_clock+0x9/0x10
-[  599.079153]  [<ffffffff8170a49c>] ? _raw_spin_unlock_irq+0x2c/0x50
-[  599.085358]  [<ffffffff8109346c>] do_group_exit+0x4c/0xc0
-[  599.090779]  [<ffffffff810a8661>] get_signal_to_deliver+0x2e1/0x960
-[  599.097071]  [<ffffffff8101c497>] do_signal+0x57/0x6e0
-[  599.102229]  [<ffffffff81714bd1>] ? sysret_signal+0x5/0x4e
-[  599.107738]  [<ffffffff8101cb7f>] do_notify_resume+0x5f/0xb0
-[  599.113418]  [<ffffffff81714e7d>] int_signal+0x12/0x17
-[  599.118576] ---[ end trace 1e4653102e7e7019 ]---
-[  599.123211] Mapped at:
-[  599.125577]  [<ffffffff8138ed8b>] debug_dma_alloc_coherent+0x2b/0x80
-[  599.131968]  [<ffffffffa01ec862>] cxio_create_cq+0xf2/0x1f0 [iw_cxgb3]
-[  599.139920]  [<ffffffffa01e9c05>] iwch_create_cq+0x105/0x4e0 [iw_cxgb3]
-[  599.147895]  [<ffffffffa0500584>] create_cq.constprop.14+0x184/0x2e0 [ib_uverbs]
-[  599.156649]  [<ffffffffa05027fb>] ib_uverbs_create_cq+0x10b/0x140 [ib_uverbs]
+We will modify the license description of the beginning of the code file 
+in  patch v8.
+Thanks
 
-Fixes: b955150ea784 ('RDMA/cxgb3: When a user QP is marked in error, also mark the CQs in error')
-Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/cxgb3/cxio_hal.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards
+Wei Hu
 
-diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-index de1c61b4..ada2e50 100644
---- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
-+++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-@@ -327,7 +327,7 @@ int cxio_destroy_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq)
- 	kfree(cq->sw_queue);
- 	dma_free_coherent(&(rdev_p->rnic_info.pdev->dev),
- 			  (1UL << (cq->size_log2))
--			  * sizeof(struct t3_cqe), cq->queue,
-+			  * sizeof(struct t3_cqe) + 1, cq->queue,
- 			  dma_unmap_addr(cq, mapping));
- 	cxio_hal_put_cqid(rdev_p->rscp, cq->cqid);
- 	return err;
--- 
-2.5.5
+On 2016/5/14 5:09, Doug Ledford wrote:
+> On 05/09/2016 11:04 PM, Lijun Ou wrote:
+>> The HiSilicon Network Substem is a long term evolution IP which is
+>> supposed to be used in HiSilicon ICT SoCs. HNS (HiSilicon Network
+>> Sybsystem) also has a hardware support of performing RDMA with
+>> RoCEE.
+>> The driver for HiSilicon RoCEE(RoCE Engine) is a platform driver and
+>> will support mulitple versions of SOCs in future. This version of driver
+>> is meant to support Hip06 SoC(which confirms to RoCEEv1 hardware
+>> specifications).
+>>
+>> Changes v6 -> v7:
+>> 1. modify some type of parameter, use bool replace the original type.
+>> 2. add the Signed-off-by signatures in the first patch.
+>> 3. delete the improper print sentence in hns_roce_create_eq.
+> One thing you should be aware of (but which you may not care about,
+> which is fine) is that if you want your driver to be available as part
+> of the OpenFabric Alliances OFED distribution, the license on the files
+> would need to be "GPL or BSD" (see the remainder of the RDMA stack for
+> examples).  If you don't want that license on your files, I'm fine with
+> that, and I won't hold up your submission based on the license.  If,
+> however, you *do* want your code to be shipable as part of OFED, it is
+> much easier to update the license on the files before you submit them
+> and third parties modify them.  If you want to change the license later,
+> you have to get every person that has made any substantive change to the
+> file to agree to the license change.
+>
+>
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
