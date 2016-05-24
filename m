@@ -1,65 +1,102 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V5 for-next 1/4] IB/core: Introduce capabilitymask2 field
- in ClassPortInfo mad
-Date: Tue, 24 May 2016 10:03:36 +0300
-Message-ID: <CAAk-MO-M6heX7bXi53gbDe89AnUQQ0fA2d_uiKHPyF+S_G4qhA@mail.gmail.com>
-References: <1463991263-13084-1-git-send-email-erezsh@mellanox.com>
-	<1463991263-13084-2-git-send-email-erezsh@mellanox.com>
-	<ead67cbd-ca28-322b-0435-ab01c1f04be5@dev.mellanox.co.il>
-	<CAAk-MO-2JQpmb8xR4gqQQEfpEpQCgMbxgbOLXhLPW991FhvJWQ@mail.gmail.com>
-	<f576c725-b78f-6432-5991-bf82fd0d9a8c@sandisk.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 05/10] IB/core: Introduce Receive Work Queue
+ indirection table
+Date: Tue, 24 May 2016 10:39:49 +0300
+Message-ID: <46a7de86-dffe-e44c-3768-10dfb70e8802@dev.mellanox.co.il>
+References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
+ <1464006056-19653-6-git-send-email-yishaih@mellanox.com>
+ <01ba01d1b515$a18a6f80$e49f4e80$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f576c725-b78f-6432-5991-bf82fd0d9a8c-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <01ba01d1b515$a18a6f80$e49f4e80$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 23, 2016 at 6:26 PM, Bart Van Assche
-<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On 05/23/2016 04:49 AM, Erez Shitrit wrote:
+On 5/23/2016 8:07 PM, Steve Wise wrote:
+>> Introduce Receive Work Queue (WQ) indirection table.
+>> This object can be used to spread incoming traffic to different
+>> receive Work Queues.
 >>
->> On Mon, May 23, 2016 at 2:33 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> wrote:
->>>
->>> On 5/23/2016 4:14 AM, Erez Shitrit wrote:
->>>>
->>>> diff --git a/drivers/infiniband/hw/qib/qib_mad.c
->>>> b/drivers/infiniband/hw/qib/qib_mad.c
->>>> index 0bd1837..a872865 100644
->>>> --- a/drivers/infiniband/hw/qib/qib_mad.c
->>>> +++ b/drivers/infiniband/hw/qib/qib_mad.c
->>>> @@ -1172,11 +1172,11 @@ static int pma_get_classportinfo(struct
->>>> ib_pma_mad *pmp,
->>>>        * Set the most significant bit of CM2 to indicate support for
->>>>        * congestion statistics
->>>>        */
->>>> -     p->reserved[0] = dd->psxmitwait_supported << 7;
->>>> +     ib_set_cpi_capmask2(p, dd->psxmitwait_supported << 7);
->>>
->>>
->>> Is this really equivalent to what it's replacing ?
+>> A Receive WQ indirection table points to variable size of WQs.
+>> This table is given to a QP in downstream patches.
 >>
+>> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/verbs.c | 62
+>> +++++++++++++++++++++++++++++++++++++++++
+>>  include/rdma/ib_verbs.h         | 23 +++++++++++++++
+>>  2 files changed, 85 insertions(+)
 >>
->> Yes. the previous code sets the msb bit in the first byte of the
->> capmask2 (where it was with 3 bytes), no other setting for capmask2
->> in that flow, so it is the same.
+>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+>> index c096cad..6b548d7 100644
+>> --- a/drivers/infiniband/core/verbs.c
+>> +++ b/drivers/infiniband/core/verbs.c
+>> @@ -1636,6 +1636,68 @@ int ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr
+>> *wq_attr,
+>>  }
+>>  EXPORT_SYMBOL(ib_modify_wq);
+>>
+>> +/*
+>> + * ib_create_rwq_ind_table - Creates a RQ Indirection Table.
+>> + * @device: The device on which to create the rwq indirection table.
+>> + * @ib_rwq_ind_table_init_attr: A list of initial attributes required to
+>> + * create the Indirection Table.
+>> + *
+>> + * Note: The life time of ib_rwq_ind_table_init_attr->ind_tbl is not less
+>> + *	than the created ib_rwq_ind_table object and the caller is responsible
+>> + *	for its memory allocation/free.
+>> + */
+>> +struct ib_rwq_ind_table *ib_create_rwq_ind_table(struct ib_device *device,
+>> +						 struct
+> ib_rwq_ind_table_init_attr
+>> *init_attr)
+>> +{
+>> +	struct ib_rwq_ind_table *rwq_ind_table;
+>> +	int i;
+>> +	u32 table_size;
+>> +
+>> +	if (!device->create_rwq_ind_table)
+>> +		return ERR_PTR(-ENOSYS);
+>> +
+>> +	table_size = (1 << init_attr->log_ind_tbl_size);
+>> +	rwq_ind_table = device->create_rwq_ind_table(device,
+>> +				init_attr, NULL);
+>> +	if (IS_ERR(rwq_ind_table))
+>> +		return rwq_ind_table;
+>> +
+>> +	rwq_ind_table->ind_tbl = init_attr->ind_tbl;
+>> +	rwq_ind_table->log_ind_tbl_size = init_attr->log_ind_tbl_size;
+>> +	rwq_ind_table->device = device;
+>> +	rwq_ind_table->uobject = NULL;
+>> +	atomic_set(&rwq_ind_table->usecnt, 0);
+>> +
+>> +	for (i = 0; i < table_size; i++)
+>> +		atomic_inc(&rwq_ind_table->ind_tbl[i]->usecnt);
 >
+> Hey Yishai,
 >
-> Hello Erez,
+> Why do you need usecnt on the individual tables allocated by the device?  I see
+> them inc'd here and dec'd in destroy.  But I don't see them used anywhere else?
 >
-> I think you need the following to set the highest bit of
-> cap_mask2_resp_time:
->
-> ib_set_cpi_capmask2(p, dd->psxmitwait_supported << (31 - 5))
->
-> Bart.
+> Steve.
 
-Thanks Bart, I will check. and update.
+Look at ib_destroy_wq for this reference count usage.
 
->
+WQ and indirection table are IB objects that are managed by the IB layer 
+for both update/cleanup. Specifically, a WQ can't be cleaned up if there 
+is an indirection table that points to. From application point of view 
+when it has an handle to an indirection table it assumes that all its 
+underlying WQ(s) are valid so the IB layer should prevent any 
+destruction of any WQ before releasing the indirection table, this is 
+done by the ref count mechanism as done for other related IB objects.
+You can look also at ib_uverbs_cleanup_ucontext where upon process 
+termination the order of cleanup is first destroying the indirection 
+table(s) then going over all WQ(s) and destroy them.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
