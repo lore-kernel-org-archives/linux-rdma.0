@@ -1,124 +1,195 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI 0/8] Netlink-based IOCTLs RDMA ABI
-Date: Tue, 24 May 2016 17:35:18 +0300
-Message-ID: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
+Subject: [RFC ABI 1/8] IB/core: Export RDMA IOCTL declarations
+Date: Tue, 24 May 2016 17:35:19 +0300
+Message-ID: <1464100526-31730-2-git-send-email-leonro@mellanox.com>
+References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1464100526-31730-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following patch set comes to enrich security model as a follow up
-to commit e6bd18f57aad ('IB/security: Restrict use of the write() interface').
+Place all external RDMA IOCTL declarations into one UAPI exported
+header file and move all legacy MAD commands to that file.
 
-This patch series add ioctl() interface to the existing write() interface and
-provide an easy route to backport this change to legacy supported systems.
-
-The proposed code was initially tested with ibv_devinfo application
-and supplementary part of libibverbs, which will be posted next.
-
-In a response to the ABI discussion [1] and the summary posted [2], two ioctl()
-calls were introduced: IB_IOCTL_VERBS and IB_IOCTL_DIRECT.
-
-* IB_IOCTL_VERBS command will perform all validation and parsing
-  supplied by IB CORE logic, before serving the request.
-* IB_IOCTL_DIRECT command will bypass IB core logic and it
-  is intended for vendor specific channel operations.
-
-Such separation will simplify the user space development by working with
-limited and constant number of ioctl numbers without limiting the
-ability to expand the vendor's interface in the future.
-
-In order to fully utilize such opportunity to extend ABI while converting
-write() to ioctl() interfaces, the community decision was to introduce
-netlink-based ABI for ioctl() data [3].
-
-IB_IOCTL_VERBS commands start with generic header:
-
-struct ib_uverbs_ioctl_hdr {
-	__u32 length;
-	__u16 flags;
-	__u16 object_type;
-	__u16 reserved;
-	/* First 8 actions are common to all objects */
-	__u16 action;
-	__u32 user_handler;
-	/*
-	 * These fields represent core response only,
-	 * provider's response is given as a netlink attribute.
-	 */
-	struct ib_uverbs_uptr resp;
-};
-
-struct ib_uverbs_uptr {
-	__u64 ptr;
-	__u32 len;
-};
-
-After the header, a stream of netlink attributes (TLVs) are given. These
-attributes represent the command itself.
-
-Every command validates its attributes using a generic way by ensure:
-1. Attributes are known
-2. Attributes' sizes are correct
-3. Mandatory attributes exist
-
-The actual uverbs implementation get an array of pointers to
-netlink attributes represents the core command, a udata attribute
-which the response will be written to (the response starts with a
-header identical to netlink nested attribute header) and a udata
-represents the vendor data.
-
-Commands and responses are now extensible by nature, as new netlink
-attributes could be added when required.
-
-Vendor commands and responses which have udata will use pointers to a
-different buffer (using a new netlink uptr attribute). Such separation
-will allow to retain backward compatibility with current user-space vendor
-drivers.
-
-Thanks,
-	Matan, Haggai and Leon.
-
-[1] http://www.spinics.net/lists/linux-rdma/msg36295.html
-[2] http://marc.info/?l=linux-rdma&m=146403269100691&w=2
-[3] http://lists.openfabrics.org/pipermail/ofvwg/attachments/20160517/0ddbded9/attachment-0002.pdf
-
-Leon Romanovsky (2):
-  IB/core: Export RDMA IOCTL declarations
-  IB/core: Add DIRECT ioctl call to vendor
-
-Matan Barak (6):
-  lib/nlattr: Add parsing netlink and validate using callback
-  IB/core: Adding netlink based udata
-  IB/core: Add new ioctl for VERBS commands with netlink style parsing
-  IB/core: Add outptr to udata in order to track the output size
-  IB/core: Refactor idr to a shared file
-  IB/core: Implement device_create with the new ABI
-
- drivers/infiniband/core/Makefile            |   3 +-
- drivers/infiniband/core/user_mad.c          |   2 +-
- drivers/infiniband/core/uverbs.h            |  64 +++-
- drivers/infiniband/core/uverbs_cmd.c        | 558 ++++++++--------------------
- drivers/infiniband/core/uverbs_cmd_common.c | 280 ++++++++++++++
- drivers/infiniband/core/uverbs_cmd_nl.c     | 151 ++++++++
- drivers/infiniband/core/uverbs_main.c       | 322 +++++++++++++++-
- drivers/infiniband/core/uverbs_nl.c         |  92 +++++
- include/linux/netlink.h                     |   1 -
- include/net/netlink.h                       |   5 +
- include/rdma/ib_ioctl.h                     |  49 +++
- include/rdma/ib_verbs.h                     |  10 +-
- include/uapi/rdma/Kbuild                    |   1 +
- include/uapi/rdma/ib_user_ioctl.h           | 126 +++++++
- include/uapi/rdma/ib_user_mad.h             |  12 -
- lib/nlattr.c                                |  43 ++-
- 16 files changed, 1290 insertions(+), 429 deletions(-)
- create mode 100644 drivers/infiniband/core/uverbs_cmd_common.c
- create mode 100644 drivers/infiniband/core/uverbs_cmd_nl.c
- create mode 100644 drivers/infiniband/core/uverbs_nl.c
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/user_mad.c    |  2 +-
+ drivers/infiniband/core/uverbs_main.c |  1 +
+ include/rdma/ib_ioctl.h               | 38 ++++++++++++++++++++++++
+ include/uapi/rdma/Kbuild              |  1 +
+ include/uapi/rdma/ib_user_ioctl.h     | 55 +++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/ib_user_mad.h       | 12 --------
+ 6 files changed, 96 insertions(+), 13 deletions(-)
  create mode 100644 include/rdma/ib_ioctl.h
  create mode 100644 include/uapi/rdma/ib_user_ioctl.h
 
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 415a318..bee2a34 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -52,8 +52,8 @@
+ 
+ #include <asm/uaccess.h>
+ 
++#include <rdma/ib_ioctl.h>
+ #include <rdma/ib_mad.h>
+-#include <rdma/ib_user_mad.h>
+ 
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("InfiniBand userspace MAD packet access");
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 31f422a..42fbb6d 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -49,6 +49,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <rdma/ib.h>
++#include <rdma/ib_ioctl.h>
+ 
+ #include "uverbs.h"
+ 
+diff --git a/include/rdma/ib_ioctl.h b/include/rdma/ib_ioctl.h
+new file mode 100644
+index 0000000..2d8db54
+--- /dev/null
++++ b/include/rdma/ib_ioctl.h
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef IB_IOCTL_H
++#define IB_IOCTL_H
++
++#include <uapi/rdma/ib_user_ioctl.h>
++
++#endif /* IB_IOCTL_H */
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 231901b..c9344b3 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -1,5 +1,6 @@
+ # UAPI Header export list
+ header-y += ib_user_cm.h
++header-y += ib_user_ioctl.h
+ header-y += ib_user_mad.h
+ header-y += ib_user_sa.h
+ header-y += ib_user_verbs.h
+diff --git a/include/uapi/rdma/ib_user_ioctl.h b/include/uapi/rdma/ib_user_ioctl.h
+new file mode 100644
+index 0000000..d1928dea
+--- /dev/null
++++ b/include/uapi/rdma/ib_user_ioctl.h
+@@ -0,0 +1,55 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef IB_USER_IOCTL_H
++#define IB_USER_IOCTL_H
++
++#include <linux/types.h>
++#include <linux/ioctl.h>
++
++#define IB_IOCTL_MAGIC		0x1b
++
++/* Legacy part
++ * !!!! NOTE: It uses the same command index as VERBS
++ */
++#include <rdma/ib_user_mad.h>
++#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
++					      struct ib_user_mad_reg_req)
++
++#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
++
++#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
++
++#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
++					      struct ib_user_mad_reg_req2)
++
++#endif /* IB_USER_IOCTL_H */
+diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
+index 09f809f..7e722e7 100644
+--- a/include/uapi/rdma/ib_user_mad.h
++++ b/include/uapi/rdma/ib_user_mad.h
+@@ -230,16 +230,4 @@ struct ib_user_mad_reg_req2 {
+ 	__u8	reserved[3];
+ };
+ 
+-#define IB_IOCTL_MAGIC		0x1b
+-
+-#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
+-					      struct ib_user_mad_reg_req)
+-
+-#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
+-
+-#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
+-
+-#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
+-					      struct ib_user_mad_reg_req2)
+-
+ #endif /* IB_USER_MAD_H */
 -- 
 2.1.4
 
