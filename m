@@ -1,99 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI 0/8] Netlink-based IOCTLs RDMA ABI
-Date: Tue, 24 May 2016 16:30:52 -0600
-Message-ID: <20160524223052.GI7950@obsidianresearch.com>
-References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05004F@ORSMSX109.amr.corp.intel.com>
- <20160524210132.GB7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0501E2@ORSMSX109.amr.corp.intel.com>
- <20160524214951.GC7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05023F@ORSMSX109.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] rdma/uverbs: Sketch for an ioctl framework
+Date: Tue, 24 May 2016 22:38:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0502ED@ORSMSX109.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
+ <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
+ <20160524214137.GA6760@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB05023F-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20160524214137.GA6760-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 24, 2016 at 09:59:46PM +0000, Hefty, Sean wrote:
-> > Your patch didn't explore how to encode the arguments to the
-> > operations - what did you want to do? (ie the stuff that trails the urdma_ioctl)
-> 
-> I hadn't considered that aspect yet.  I planned to look at the
-> netlink proposal as a first step, but as an API it looks painful.
+> > Under that model, each vendor only carries what they need.  It woul=
+d
+> > then be libibverbs responsibility to take that driver specific data
+> > and
+>=20
+> Either patchset could go in this direction. This is a basic question
+> we need to decide on.
+>=20
+> I'm starting to think the basic thrust of the Mellanox series (provid=
+e
+> an easy compatability with our userspace) is a sane approach. The
+> other options look like far too much work to use as a starting point.
 
-I agree.
+What matters is whether the work needs to be done anyway, and how can w=
+e get to the end design.  I don=92t see a time crunch to force switchin=
+g to ioctls.
 
-If we are using SGL for the response then why not use SGL for
-everything? We've already lost the advantage of the packet-like
-encoding netlink uses.
+> You are the only person I've heard who wants to restructure the
+> libibverbs interface at the same time..
+>=20
+> When I kicked off this process at the OFA meeting the discussions
+> revolved around some very clear goals:
+>  1) Comprehensively close the security issue
+>  2) Provide 100% support for existing libibverbs users on the current
+>     libibverbs API
+>  3) Restructure obvious known weaknesses (eg IB specific areas)
+>  4) Add additional extension points
 
-eg:
+I still don't think we even have agreement on what this interface shoul=
+d be.  There is not a single user space library that's being targeted h=
+ere.  If the only goal is to support libibverbs, then we need another o=
+ption for devices that are not verbs based, but expose hardware specifi=
+c structures to user space.  This is why you see objections to putting =
+this under uverbs.  Non-verbs use cases keep getting completely overloo=
+ked in the conversation.
 
-struct urdma_ioctl {
-	u64	flags;
-	u16	domain;
-	u8	object_count;
-	u8	in_arg_count;
-	u8	out_arg_count;
-	u8      reserved[3];
-	// union urdma_object objects[object_count];
-	// struct arg_sgl in_args[in_arg_count];
-	// struct arg_sgl out_args[out_arg_count];
-};
 
-union urdma_object {
-      struct urdma_obj_id obj_id;
-      u64 data;
-};
 
-struct urdma_arg_sgl {
-      void *ptr;
-      u32 id;
-      u32 length;
-};
 
-(same comment goes for Mellanox's version)
-
-This looks like it would make the decode and validation steps simpler
-and avoid some of those ugly memory allocations in the Mellanox patch
-as well...
-
-This would also address your concern about hard-wiring the libibverbs
-1.0 needs, and meet mellanox's concern to have a 0 copy path for the
-compat udata/etc.
-
-The user caller then uses the simplifed on-stack setup I was
-suggesting:
-
-int ibv_open_device(...)
-{
-    struct xxx resp;
-    struct kern_call
-    {
-        struct urdma_ioctl hdr;
-	struct urdma_arg common_out;
-	struct urdma_arg udata_out;
-    } call = {
-       .hdr = {.domain = URDMA_DEVICE, .out_arg_count = 2},
-       .common_out = {.ptr = &resp, id = CREATE_DEVICE_COMMON_RESP, .length = sizeof(resp)},
-       .udata_out = {.ptr = &udata_resp, id = CREATE_DEVICE_MLX4_UDATA_RESP, .length = sizeof(udata_resp)},
-    };
-
-    ioctl(fd, URDMA_IOCTL_OPEN, &kern_call);
-
-    // Kernel 0's the resp ID when it writes so user space knows it was supported
-    if (call.common_out.id != 0)
-       return EINVAL;
-}
-
-This outline is a mash up of ideas from both patches.
-
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
