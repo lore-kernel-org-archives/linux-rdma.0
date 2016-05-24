@@ -1,54 +1,38 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 09/10] IB/hfi1: Do not free hfi1 cdev parent structure
- early
-Date: Tue, 24 May 2016 11:20:54 -0600
-Message-ID: <20160524172054.GC8037@obsidianresearch.com>
-References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com>
- <20160519122642.22041.66203.stgit@scvm10.sc.intel.com>
- <20160519183100.GC26130@obsidianresearch.com>
- <20160524141756.GA17438@phlsvsds.ph.intel.com>
+Subject: Re: [PATCH RFC] libibverbs: add ARM64 memory barrier macros
+Date: Tue, 24 May 2016 11:22:50 -0600
+Message-ID: <20160524172250.GD8037@obsidianresearch.com>
+References: <20160518220302.81260E09E9@smtp.ogc.us>
+ <20160518222857.GB23835@obsidianresearch.com>
+ <060701d1b1e7$dc7e1ff0$957a5fd0$@opengridcomputing.com>
+ <20160519180552.GA26130@obsidianresearch.com>
+ <065c01d1b1ff$e1e149f0$a5a3ddd0$@opengridcomputing.com>
+ <20160519192805.GA32668@obsidianresearch.com>
+ <b4eb5c63-9f20-b927-ebc8-f8016accc93c@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160524141756.GA17438-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <b4eb5c63-9f20-b927-ebc8-f8016accc93c-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 24, 2016 at 10:17:57AM -0400, Dennis Dalessandro wrote:
+On Fri, May 20, 2016 at 11:44:14AM +0200, Gabriele Svelto wrote:
+> On 19/05/2016 21:28, Jason Gunthorpe wrote:
+> > Yes, we probably should have had a 'memcpy to wc' verbs helper that
+> > did the best possible wc copy and prompt flush rather than the mess
+> > with wc_wmb and open coded memcpy. IIRC there is some way to do this
+> > with xmm non temporal cache line stores that is even better???
+> 
+> Non-temporal stores will go straight to memory IIRC. With many modern
+> HCAs being able to read data directly out of the last-level cache of the
+> processor they could end up being a suboptimal choice.
 
-> Due to the nature of our hardware user space has direct access to the
-> device. This means there is always going to be a race between the card going
-> away and user space trying to access something that isn't there.
-
-You have to fix this. mlx did and uses a similar direct sharing
-scheme. IIRC for hot-removal they swapped out the mmapped PCI bar with
-0's or something.
-
-Alternatively, somehow block device removal until it is safe, all
-mmaps are closed and all fds are closed.
-
-> The situations which we have to worry about are someone physically removing
-> the card, or using admin priv to unbind it from pci, things of that nature.
-> All of which are not normal use cases.
-
-You need to go through this process for PCI error recovery, IIRC, and
-there was a patch series lately to make the core support device
-hot-removal for exactly this reason.
-
-hfi1 does not need to support hot removal, but it must support safe
-removal by blocking remove until it is safe. This is the problem with
-doing all your own cdev infrastructure, you have to also duplicate all
-this stuff from the core code as well.
-
-> This patch handles a specific issue. The parent data structure of the cdev
-> going away. So if something is hanging onto the cdev we won't panic when it
-> tries to close. For instance a user application sending the get_version
-> ioctl after the device has gone away but before closing its FD.
-
-Yes, but there are clearly more problems.
+We are not talking about memory backed write for DMA, but batching a
+MMIO write into a 64 byte burst. non-temporal stores would seem to be
+the best way to do that?
 
 Jason
 --
