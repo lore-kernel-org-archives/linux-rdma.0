@@ -1,159 +1,116 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI 3/8] IB/core: Adding netlink based udata
-Date: Tue, 24 May 2016 17:35:21 +0300
-Message-ID: <1464100526-31730-4-git-send-email-leonro@mellanox.com>
+Subject: [RFC ABI 4/8] IB/core: Add DIRECT ioctl call to vendor
+Date: Tue, 24 May 2016 17:35:22 +0300
+Message-ID: <1464100526-31730-5-git-send-email-leonro@mellanox.com>
 References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464100526-31730-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Introduce a new RDMA IOCTL command, which will be visible to
+consumers, which would like to execute commands straight on the
+vendor's driver. It bypasses IB core logic and is intended for
+vendor specific channel operations.
 
-The new ABI is based on netlink attributes. Currently, the netlink
-implementation uses a skb in order to write data into. Adding an
-ability to serialize netlink attributes straight to udata.
-
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile    |  3 +-
- drivers/infiniband/core/uverbs.h    |  8 ++++
- drivers/infiniband/core/uverbs_nl.c | 92 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 102 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/core/uverbs_nl.c
+ drivers/infiniband/core/uverbs_main.c | 33 +++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h               |  2 ++
+ include/uapi/rdma/ib_user_ioctl.h     |  5 +++++
+ 3 files changed, 40 insertions(+)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index 26987d9..3d8a423 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -34,4 +34,5 @@ ib_umad-y :=			user_mad.o
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 42fbb6d..68cf1fd 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -850,6 +850,37 @@ out:
+ 	return ret;
+ }
  
- ib_ucm-y :=			ucm.o
- 
--ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o
-+ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o \
-+				uverbs_nl.o
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 612ccfd..a46cb29 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -84,6 +84,14 @@
-  * released when the CQ is destroyed.
-  */
- 
-+struct nlattr __user *ib_uverbs_nla_put(struct ib_udata *udata,
-+					int attrtype, int attrlen,
-+					const void *data);
-+void ib_uverbs_nla_nest_end(struct ib_udata *udata,
-+			    struct nlattr __user *nla);
-+struct nlattr __user *ib_uverbs_nla_nest_start(struct ib_udata *udata,
-+					       uint16_t type);
-+
- struct ib_uverbs_device {
- 	atomic_t				refcount;
- 	int					num_comp_vectors;
-diff --git a/drivers/infiniband/core/uverbs_nl.c b/drivers/infiniband/core/uverbs_nl.c
-new file mode 100644
-index 0000000..abf2d35
---- /dev/null
-+++ b/drivers/infiniband/core/uverbs_nl.c
-@@ -0,0 +1,92 @@
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <net/netlink.h>
-+#include <rdma/ib_verbs.h>
-+
-+static struct nlattr __user *ib_uverbs_nla_reserve(struct ib_udata *udata,
-+						   int attrtype, int attrlen)
++static long ib_uverbs_ioctl(struct file *filp, unsigned int cmd,
++			    unsigned long arg)
 +{
-+	struct nlattr __user *nla;
-+	unsigned int i;
++	struct ib_uverbs_file *file = filp->private_data;
++	struct ib_device *ib_dev;
++	int srcu_key;
 +
-+	if (nla_total_size(attrlen) > udata->outlen)
-+		return ERR_PTR(-ENOSPC);
++	if (WARN_ON_ONCE(!ib_safe_file_access(filp)))
++		return -EACCES;
 +
-+	nla = (struct nlattr __user *)udata->outbuf;
-+	udata->outbuf += nla_total_size(attrlen);
-+	udata->outlen -= nla_total_size(attrlen);
-+	put_user(attrtype, &nla->nla_type);
-+	put_user(nla_attr_size(attrlen), &nla->nla_len);
++	if (cmd == IB_IOCTL_DIRECT) {
++		long ret = 0;
 +
-+	/* TODO: optimize */
-+	for (i = 0; i < nla_padlen(attrlen); i++)
-+		put_user(0,
-+			 (unsigned char __user *)nla + nla_attr_size(attrlen));
++		srcu_key = srcu_read_lock(&file->device->disassociate_srcu);
++		ib_dev = srcu_dereference(file->device->ib_dev,
++					  &file->device->disassociate_srcu);
++		if (!ib_dev) {
++			srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
++			return -EIO;
++		}
 +
-+	return nla;
-+}
++		if (ib_dev->direct_fn)
++			ret = ib_dev->direct_fn(filp, arg);
 +
-+struct nlattr __user *ib_uverbs_nla_put(struct ib_udata *udata,
-+					int attrtype, int attrlen,
-+					const void *data)
-+{
-+	struct nlattr __user *nla;
-+	int ret;
-+
-+	nla = ib_uverbs_nla_reserve(udata, attrtype, attrlen);
-+	if (IS_ERR(nla))
-+		return nla;
-+
-+	ret = copy_to_user(nla_data(nla), data, attrlen);
-+	if (ret) {
-+		udata->outbuf -= nla_total_size(attrlen);
-+		udata->outlen += nla_total_size(attrlen);
-+		return ERR_PTR(ret);
++		srcu_read_unlock(&file->device->disassociate_srcu, srcu_key);
++		return ret;
 +	}
 +
-+	return nla;
++	return -ENOIOCTLCMD;
 +}
 +
-+void ib_uverbs_nla_nest_end(struct ib_udata *udata,  struct nlattr __user *nla)
-+{
-+	put_user(udata->outbuf - (void __user *)nla, &nla->nla_len);
-+}
+ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
+ {
+ 	struct ib_uverbs_file *file = filp->private_data;
+@@ -985,6 +1016,7 @@ static const struct file_operations uverbs_fops = {
+ 	.open	 = ib_uverbs_open,
+ 	.release = ib_uverbs_close,
+ 	.llseek	 = no_llseek,
++	.unlocked_ioctl = ib_uverbs_ioctl,
+ };
+ 
+ static const struct file_operations uverbs_mmap_fops = {
+@@ -994,6 +1026,7 @@ static const struct file_operations uverbs_mmap_fops = {
+ 	.open	 = ib_uverbs_open,
+ 	.release = ib_uverbs_close,
+ 	.llseek	 = no_llseek,
++	.unlocked_ioctl = ib_uverbs_ioctl,
+ };
+ 
+ static struct ib_client uverbs_client = {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index fc0320c..1904c02 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1707,6 +1707,8 @@ struct ib_device {
+ 
+ 	struct iw_cm_verbs	     *iwcm;
+ 
++	long		           (*direct_fn)(struct file *filp,
++						unsigned long arg);
+ 	int		           (*get_protocol_stats)(struct ib_device *device,
+ 							 union rdma_protocol_stats *stats);
+ 	int		           (*query_device)(struct ib_device *device,
+diff --git a/include/uapi/rdma/ib_user_ioctl.h b/include/uapi/rdma/ib_user_ioctl.h
+index d1928dea..f17e51a 100644
+--- a/include/uapi/rdma/ib_user_ioctl.h
++++ b/include/uapi/rdma/ib_user_ioctl.h
+@@ -38,6 +38,11 @@
+ 
+ #define IB_IOCTL_MAGIC		0x1b
+ 
++#define IB_CMD_DIRECT		0x2
 +
-+struct nlattr __user *ib_uverbs_nla_nest_start(struct ib_udata *udata,
-+					       uint16_t type)
-+{
-+	struct nlattr __user *nla = ib_uverbs_nla_put(udata, type, 0, NULL);
++#define IB_IOCTL_DIRECT \
++	_IOWR(IB_IOCTL_MAGIC, IB_CMD_DIRECT, unsigned long)
 +
-+	return nla;
-+}
-+
+ /* Legacy part
+  * !!!! NOTE: It uses the same command index as VERBS
+  */
 -- 
 2.1.4
 
