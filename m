@@ -1,79 +1,144 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 libibverbs 2/7] Add member functions to poll an
- extended CQ
-Date: Tue, 24 May 2016 11:34:37 -0600
-Message-ID: <20160524173436.GA6337@obsidianresearch.com>
-References: <1463658702-9975-1-git-send-email-yishaih@mellanox.com>
- <1463658702-9975-3-git-send-email-yishaih@mellanox.com>
- <20160519181933.GB26130@obsidianresearch.com>
- <c2a28acc-811a-84da-0793-88032de99b23@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC] rdma/uverbs: Sketch for an ioctl framework
+Date: Tue, 24 May 2016 13:57:54 -0400
+Message-ID: <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
+ <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="IclfCcOB3j7BTxQjeoW9nSVmRekeVfh1f"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c2a28acc-811a-84da-0793-88032de99b23-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <HE1PR05MB141819B27F9AAA360DCB420FB14F0-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 23, 2016 at 06:31:52PM +0300, Yishai Hadas wrote:
-> On 5/19/2016 9:19 PM, Jason Gunthorpe wrote:
-> >On Thu, May 19, 2016 at 02:51:37PM +0300, Yishai Hadas wrote:
-> >>+	int (*start_poll_ex)(struct ibv_cq_ex *current,
-> >>+			     struct ibv_poll_cq_ex_attr *attr);
-> >>+	int (*next_poll_ex)(struct ibv_cq_ex *current);
-> >>+	void (*end_poll_ex)(struct ibv_cq_ex *current);
-> >
-> >Probably don't need the _ex here..
-> 
-> The '_ex' points that those functions support extension. (ibv_poll_cq_ex*
-> attr, ibv_cq_ex). Their matching ibv_xxx wrappers also have _ex (e.g.
-> ibv_start_poll_ex).
-> Makes sense ?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--IclfCcOB3j7BTxQjeoW9nSVmRekeVfh1f
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-No, don't use _ex unless there is an non-_ex variant.
+On 05/24/2016 12:02 PM, Liran Liss wrote:
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
+> ...
+>>
+>> The following is a sketch, or outline, for an ioctl framework.
+>> The purpose of the patch is to drive discussion and feedback on variou=
+s design
+>> decisions rather than low-level comments on the code, so that the chan=
+ges can
+>> be incorporated earlier in the development cycle.  The code is entirel=
+y untested
+>> and some functionality is not coded.
+>>
+>=20
+> This approach focuses on facilities for arbitrary device-specific objec=
+ts (which could basically fit GPUs, NVMe, whatever...), while our primary=
+ goals are to replace write() with ioctl() and strive for a common *rdma*=
+ object model.
 
-> Specifically talking on 'opcode', the fact that it always exists doesn't
-> mean that application will read it. Furthermore, in many cases application
-> doesn't need it at all (e.g. only SEND is done, there is CQ per operation,
-> etc.) In addition, in some cases it can be achieved based on the wr_id that
-> is returned.
-> 
-> Re 'status' and 'wr_id':
-> From our benchmark testing we found that coping the the data as part of the
-> read_xxx is the major cost and not the function call, so not sure that
-> coping the status/wr_id to ibv_cq_ex directly will really give a boost here.
+Please be precise when you use the word "our".  In particular, I do not
+count myself among your "our".
 
-Interesting result, OK.
+> In contrast, the patchset [1], focuses on the task at hand. The emphasi=
+s is on a common framework for parsing and parameter validation. It follo=
+ws the agreed-upon
 
-> As part of our benchmark testing we grouped in one read call status & wr_id
-> which are usually needed but didn't see a real impact. Even in UD flow,
-> application may not need all fields so supplying a read_ud_info which will
-> copy whole candidate fields might not be useful.
-> As the API is extensible we may do further extensions in the future if will
-> be proved to be useful.
+Again, precision is needed here.  Agreed upon by whom?  Not I, and
+evidently not Sean either.
 
-Okay, if benchmarks support this..
+> concepts such as a single ioctl request code for common objects,
 
-> >Finally, these extended APIs really need to be always available - so
-> >the core code should always provide a compatability wrapper for
-> >providers that do not implement this API. The compat wrapper should
-> >use the existing provider wc interface.
-> 
-> The compat layer will work in a non optimal way as it can't support batching
-> and there will 2 copies, one from the HW CQ to ibv_wc even for not required
-> fields, second, from the ibv_wc to the read_xxx output.
+I'm not sure I agree with this as a priority.
 
-Yes. We should be encouraging all our drivers to implement the new API
-and all our users to use the new API.
+> natural mapping of the existing object mode (and hence easier backporti=
+ng),
 
-> However, if required it can be posted as some extra patches in another
-> series.
+Nor this.
 
-Yes, this avoids the friction moving the users.
+> typed attributes for extending the objects to accommodate multiple vend=
+or features, and a unique ioctl request code for vendor-specific commands=
+=2E
+> --Liran
+>=20
+> [1] http://permalink.gmane.org/gmane.linux.drivers.rdma/36984
 
-Jason
+While concalls to discuss these topics are handy, it is easy to miss
+objections or alternative priorities.
+
+So let me sum up how I see things.
+
+First, we had a security issue that needed addressed.  We did so with a
+security check on the current ABI.  During the discussions about that, I
+specifically told Linus we wanted to address it that way for now so that
+we could work on getting the verbs 2.0 API that addresses some of the
+shortcomings of the current API out the door, but do it right and not
+rush things.  That verbs 2.0 API would fix the security issue up
+completely where the security checks are no longer needed.
+
+What we have today is a proposal to basically take the verbs 1.0 API and
+convert it from write() to ioctl() with as little change as possible to
+the API.  This is what the patchset you referenced is all about, and
+what you and Jason have been talking about.  Allow me to be clear: this
+is not verbs 2.0 API.  This is verbs 1.0 over ioctl.  Nothing more.  And
+it does nothing to fix up the shortcomings of the verbs 1.0 API that are
+playing out right now in things like the timestamp pacthset.
+
+Sean's proposal does away with the rigid nature of the current verbs 1.0
+API and makes it much more flexible on a per-driver basis.  This doesn't
+address the end user API issues, but it at least cleans up the user
+driver <-> kernel driver API so that one vendor's driver is not forced
+to carry around all the baggage needed for every other vendor's drivers.
+
+Under that model, each vendor only carries what they need.  It would
+then be libibverbs responsibility to take that driver specific data and
+present it to the user in a generic way.  The mechanism of that is not
+yet known, but thinking about it is what prompted my email in the
+"Further thoughts on uAPI" discussion, the one where I made the possible
+wc processing example.
+
+This is why I don't think it's possible to think about the verbs 2.0 API
+and not also the user visible libibverbs API at the same time.  If all
+we want to talk about is verbs 1.0 over ioctl, then yes, we can do that.
+ But not if we truly want to discuss a verbs 2.0 API.  And I have yet to
+gather from the discussions I hear from people that we are in fact
+decided on pursuing a verbs 1.0 over ioctl API instead of considering a
+verbs 2.0 API.  So please don't present things as though they are
+settled.  As far as I can tell, they very much are not.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--IclfCcOB3j7BTxQjeoW9nSVmRekeVfh1f
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXRJYiAAoJELgmozMOVy/dsKcP/0Q1KF1TtTY5z68APRYlCAx7
+eMTfh6pqh4hXovp0rNp2gg9/OL47uHItRDTKVQ16ti77Rg4dx4DB5gnV01mfkQbx
+3P3GHhoFVY/1FCOAzNFmotb8Fm7FVNFebGl1V4TcXc7gaasjqvmOBmG0lLefUdEw
+FA8gHRK+CTumK/XxsVtxnfC5BeSyqDo8cu8KIxR6spZD/JOP9Gb3UZCSgLG39Qv0
+FomfDbUR1nYhCtafryTRXB8+MAXB0lv46EvqwSfSk58bl6ZygCcHeb0WJypwUaO0
+ONGvesp7U75+RcxPpLaqjUQfmaXGcgkWJXLCeMou37NlbcSXYM00A5/oY0tYRqYe
+Ie9MqPBoQOYuNublEP48fyXk40+z0PZ9wIaeisds46IVyvZylsmZBYBvXFiwUzpB
+S0VCYLeMMix93rAD+fGwfHtGliTn4GY/7YytRCCBnVhtwWJyS7+P5NOhWOjjOohp
+e4qdcjSF891gN8GpfMj+5/dOLZqG6iCPpTLflj/3Dd0s9Up3U9NhaR9gktMXw8S1
+gUor2BtNplsrz5kRn1TnCfig3MIQW4Z231QQc7Y02/h/w2vkvlrv82cT9HXwjxZ6
+k0hFN+UGrz/NfGX9EvcrCqnEOR3xB9/fhJqEdWYSqlq1RJSa9OeUdhatnGKCav0P
+DLAskhF0z+3paKGcdwOu
+=OWTs
+-----END PGP SIGNATURE-----
+
+--IclfCcOB3j7BTxQjeoW9nSVmRekeVfh1f--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
