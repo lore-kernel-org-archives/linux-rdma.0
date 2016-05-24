@@ -1,74 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI 8/8] IB/core: Implement device_create with the new ABI
-Date: Tue, 24 May 2016 16:07:20 -0600
-Message-ID: <20160524220720.GF7950@obsidianresearch.com>
-References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
- <1464100526-31730-9-git-send-email-leonro@mellanox.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 06/10] IB/hfi1: Add ioctl() interface for user commands
+Date: Tue, 24 May 2016 22:08:10 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB05027E@ORSMSX109.amr.corp.intel.com>
+References: <20160522140351.GA10696@phlsvsds.ph.intel.com>
+ <20160522175715.GD25500@leon.nu>
+ <20160523122207.GA16764@phlsvsds.ph.intel.com>
+ <20160523130312.GG25500@leon.nu>
+ <20160523141049.GE16764@phlsvsds.ph.intel.com>
+ <b9dc4ac8-cfa2-d66e-7e36-f28116f23e59@redhat.com>
+ <20160524175409.GI25500@leon.nu>
+ <a4477030-c966-636e-e395-96857454c7de@redhat.com>
+ <20160524201317.GK25500@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB050188@ORSMSX109.amr.corp.intel.com>
+ <20160524205425.GA7950@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1464100526-31730-9-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160524205425.GA7950-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Haralanov, Mitko" <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 24, 2016 at 05:35:26PM +0300, Leon Romanovsky wrote:
+> > Ioctl commands are naturally scoped per open file.  Unless the
+> > opened file supports ioctls directed to every piece of hardware, I
+> > don't see why there's an obsession with command space.
+> 
+> The kernel standard is to have ioctl numbers be globally unique, even
+> though technically you are right and they are scoped to a file.
 
-> +	ucontext->device = ib_dev;
-> +	INIT_LIST_HEAD(&ucontext->pd_list);
-> +	INIT_LIST_HEAD(&ucontext->mr_list);
-> +	INIT_LIST_HEAD(&ucontext->mw_list);
-> +	INIT_LIST_HEAD(&ucontext->cq_list);
-> +	INIT_LIST_HEAD(&ucontext->qp_list);
-> +	INIT_LIST_HEAD(&ucontext->srq_list);
-> +	INIT_LIST_HEAD(&ucontext->ah_list);
-> +	INIT_LIST_HEAD(&ucontext->xrcd_list);
-> +	INIT_LIST_HEAD(&ucontext->rule_list);
-[..]
-
-Please don't cut and paste like this.
-
-Considering your approach I'd suggest just go ahead and immediately
-implement a compat wrapper for each replaced write() style call.
-
-eg replace ib_uverbs_get_context with something that forms a
-new-style-command and calls the netlink version directly.
-
-This also then serves as the example on how to implement the user
-space migration.
-
-> +		nla = ib_uverbs_nla_put(uresp, IBNL_RESPONSE_TYPE_VENDOR,
-> +					sizeof(vendor_len), &vendor_len);
-
-Please don't use the word 'vendor' in any of this.
-
-There is only common and driver-specific.
-
-Maybe call this IBNL_RESPONSE_DRIVER_UDATA
-
-> +	nla = ib_uverbs_nla_put(uresp, IBNL_RESPONSE_TYPE_RESP,
-> +				sizeof(resp), &resp);
-
-And this IBNL_RESPONSE_COMMON ?
-
-> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> index f5dc276..10c2412 100644
-> +++ b/drivers/infiniband/core/uverbs_main.c
-
-> +static const struct nla_policy ibnl_create_device_policy[] = {
-
-Why isn't this stuff in a _nl file?
-
-> +enum ibnl_create_device {
-> +	IBNL_CREATE_DEVICE_CORE = IBNL_VENDOR_ATTRS_MAX,
-> +	IBNL_CREATE_DEVICE_MAX
-> +};
-
-Whats all this about? Looks very strange.
-
-Jason
+I thought the reason behind that was so that an app that sent an ioctl to the wrong file would get an error, rather than unspecified behavior.  If so, collapsing all ioctls to a single command doesn't really solve the issue.  It's kind of like using a write interface instead of an ioctl interface to avoid using ioctls.  :)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
