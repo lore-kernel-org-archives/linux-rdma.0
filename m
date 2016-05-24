@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 07/10] IB/hfi1: Add a retry for the first-time QSFP access
-Date: Tue, 24 May 2016 12:50:53 -0700
-Message-ID: <20160524195052.19706.43009.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 08/10] IB/hfi1: Correct 8051 link parameter settings
+Date: Tue, 24 May 2016 12:51:00 -0700
+Message-ID: <20160524195058.19706.59020.stgit@scvm10.sc.intel.com>
 References: <20160524194746.19706.42976.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,51 +15,60 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some QSFPs do not respond within the expected time, but later
-appear fine.  Add a limited retry on the first access.
+Two 8051 link settings, external device config and tuning method,
+were written in the wrong location and the previous settings were
+not cleared.  For both, clear the old value and write the new
+value.
 
+Fixes: 8ebd4cf1852a ("staging/rdma/hfi1: Add active and optical cable support")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qsfp.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.h     |    6 ++++++
+ drivers/infiniband/hw/hfi1/platform.c |    6 ++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
-index 2441669..aa7ed23 100644
---- a/drivers/infiniband/hw/hfi1/qsfp.c
-+++ b/drivers/infiniband/hw/hfi1/qsfp.c
-@@ -362,6 +362,7 @@ int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
- {
- 	u32 target = ppd->dd->hfi1_id;
- 	int ret;
-+	int retry_count;
- 	unsigned long flags;
- 	u8 *cache = &cp->cache[0];
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 1948706..66a3279 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -398,6 +398,12 @@
+ /* Lane ID for general configuration registers */
+ #define GENERAL_CONFIG 4
  
-@@ -376,8 +377,23 @@ int refresh_qsfp_cache(struct hfi1_pportdata *ppd, struct qsfp_data *cp)
- 		goto bail;
- 	}
- 
-+	retry_count = 0;
-+retry:
- 	ret = qsfp_read(ppd, target, 0, cache, QSFP_PAGESIZE);
- 	if (ret != QSFP_PAGESIZE) {
-+		/*
-+		 * This is the first QSFP access the driver makes.
-+		 * Some QSFPs don't respond within the expected time,
-+		 * but later appear fine.  Retry at 2s intervals for up
-+		 * to 10s.
-+		 */
-+		if (ret < 0 && retry_count < 5) {
-+			retry_count++;
-+			dd_dev_info(ppd->dd, "%s: QSFP not responding, waiting and retrying %d\n",
-+				    __func__, retry_count);
-+			msleep(2000);
-+			goto retry;
-+		}
- 		dd_dev_info(ppd->dd,
- 			    "%s: Page 0 read failed, expected %d, got %d\n",
- 			    __func__, QSFP_PAGESIZE, ret);
++/* LINK_TUNING_PARAMETERS fields */
++#define TUNING_METHOD_SHIFT 24
++
++/* LINK_OPTIMIZATION_SETTINGS fields */
++#define ENABLE_EXT_DEV_CONFIG_SHIFT 24
++
+ /* LOAD_DATA 8051 command shifts and fields */
+ #define LOAD_DATA_FIELD_ID_SHIFT 40
+ #define LOAD_DATA_FIELD_ID_MASK 0xfull
+diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
+index ae0e498..03df932 100644
+--- a/drivers/infiniband/hw/hfi1/platform.c
++++ b/drivers/infiniband/hw/hfi1/platform.c
+@@ -540,7 +540,8 @@ static void apply_tunings(
+ 	/* Enable external device config if channel is limiting active */
+ 	read_8051_config(ppd->dd, LINK_OPTIMIZATION_SETTINGS,
+ 			 GENERAL_CONFIG, &config_data);
+-	config_data |= limiting_active;
++	config_data &= ~(0xff << ENABLE_EXT_DEV_CONFIG_SHIFT);
++	config_data |= ((u32)limiting_active << ENABLE_EXT_DEV_CONFIG_SHIFT);
+ 	ret = load_8051_config(ppd->dd, LINK_OPTIMIZATION_SETTINGS,
+ 			       GENERAL_CONFIG, config_data);
+ 	if (ret != HCMD_SUCCESS)
+@@ -553,7 +554,8 @@ static void apply_tunings(
+ 	/* Pass tuning method to 8051 */
+ 	read_8051_config(ppd->dd, LINK_TUNING_PARAMETERS, GENERAL_CONFIG,
+ 			 &config_data);
+-	config_data |= tuning_method;
++	config_data &= ~(0xff << TUNING_METHOD_SHIFT);
++	config_data |= ((u32)tuning_method << TUNING_METHOD_SHIFT);
+ 	ret = load_8051_config(ppd->dd, LINK_TUNING_PARAMETERS, GENERAL_CONFIG,
+ 			       config_data);
+ 	if (ret != HCMD_SUCCESS)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
