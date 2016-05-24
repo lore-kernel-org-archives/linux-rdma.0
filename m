@@ -1,46 +1,50 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V4 for-next 05/10] IB/core: Introduce Receive Work Queue indirection table
-Date: Tue, 24 May 2016 09:02:37 -0500
-Message-ID: <004c01d1b5c4$ed768500$c8638f00$@opengridcomputing.com>
-References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com> <1464006056-19653-6-git-send-email-yishaih@mellanox.com> <01ba01d1b515$a18a6f80$e49f4e80$@opengridcomputing.com> <46a7de86-dffe-e44c-3768-10dfb70e8802@dev.mellanox.co.il>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 09/10] IB/hfi1: Do not free hfi1 cdev parent structure early
+Date: Tue, 24 May 2016 10:17:57 -0400
+Message-ID: <20160524141756.GA17438@phlsvsds.ph.intel.com>
+References: <20160519122318.22041.58871.stgit@scvm10.sc.intel.com> <20160519122642.22041.66203.stgit@scvm10.sc.intel.com> <20160519183100.GC26130@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <46a7de86-dffe-e44c-3768-10dfb70e8802-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20160519183100.GC26130-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > Hey Yishai,
-> >
-> > Why do you need usecnt on the individual tables allocated by the device?  I
-see
-> > them inc'd here and dec'd in destroy.  But I don't see them used anywhere
-else?
-> >
-> > Steve.
-> 
-> Look at ib_destroy_wq for this reference count usage.
-> 
-> WQ and indirection table are IB objects that are managed by the IB layer
-> for both update/cleanup. Specifically, a WQ can't be cleaned up if there
-> is an indirection table that points to. From application point of view
-> when it has an handle to an indirection table it assumes that all its
-> underlying WQ(s) are valid so the IB layer should prevent any
-> destruction of any WQ before releasing the indirection table, this is
-> done by the ref count mechanism as done for other related IB objects.
-> You can look also at ib_uverbs_cleanup_ucontext where upon process
-> termination the order of cleanup is first destroying the indirection
-> table(s) then going over all WQ(s) and destroy them.
+On Thu, May 19, 2016 at 12:31:00PM -0600, Jason Gunthorpe wrote:
+>If dd->kobj is passed as the parent to hfi1_cdev_init then cdev core
+>will do this for you, just confusing to duplicate it here??
+>
+>> @@ -1007,6 +1009,15 @@ void hfi1_free_devdata(struct hfi1_devdata *dd)
+>>  	rvt_dealloc_device(&dd->verbs_dev.rdi);
+>
+>Hurm. How are you synchronizing pci device removal with ioctls on the
+>cdev?
 
-I see.  Thanks for the clarification.
+We have a system in place to tear down the various resources, unregister 
+from the core, disable interrupts, disable send/rcv contexts, etc. 
 
-Steve.
+Due to the nature of our hardware user space has direct access to the 
+device. This means there is always going to be a race between the card going 
+away and user space trying to access something that isn't there.
 
+We could add a flag that says to start failing ioctls, we could forcibly 
+close the file descriptor on the user, and I'm sure there are other things 
+we could do. However there is always the race condition when the user has 
+direct access.
+
+The situations which we have to worry about are someone physically removing 
+the card, or using admin priv to unbind it from pci, things of that nature.  
+All of which are not normal use cases.
+
+This patch handles a specific issue. The parent data structure of the cdev 
+going away. So if something is hanging onto the cdev we won't panic when it 
+tries to close. For instance a user application sending the get_version 
+ioctl after the device has gone away but before closing its FD. 
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
