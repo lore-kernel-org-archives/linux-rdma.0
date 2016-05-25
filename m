@@ -1,71 +1,59 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC] rdma/uverbs: Sketch for an ioctl framework
-Date: Wed, 25 May 2016 14:44:58 +0000
-Message-ID: <HE1PR05MB141853FFF8C77E486362D202B1400@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
- <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
- <20160524214137.GA6760@obsidianresearch.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH RFC v2 0/2] libibverbs memory barrier fixes
+Date: Wed, 25 May 2016 09:51:53 -0500
+Message-ID: <00c801d1b694$f9d7f5b0$ed87e110$@opengridcomputing.com>
+References: <20160520200053.6983AE0B9D@smtp.ogc.us> <3ffd3089-ede9-aebf-4781-2e012bc65252@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160524214137.GA6760-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <3ffd3089-ede9-aebf-4781-2e012bc65252-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Noa Osherovich' <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-> Sent: Wednesday, May 25, 2016 12:42 AM
-
-> > Sean's proposal does away with the rigid nature of the current verbs
-> > 1.0 API and makes it much more flexible on a per-driver basis.  This
-> > doesn't address the end user API issues, but it at least cleans up the
-> > user driver <-> kernel driver API so that one vendor's driver is not
-> > forced to carry around all the baggage needed for every other vendor's
-> drivers.
+> On 05/20/2016 03:43 PM, Steve Wise wrote:
+> > This is v2 of the ARM64 mb* support, plus an additional patch to fail
+> > compiles if there is no platform implementation of the memory barriers.
+> > I've included the 2nd patch because I think it is important to not
+> > assume any default barrier implementation.  Getting it wrong can result
+> > in data corruption.
+> >
+> > Changes since V1:
+> >
+> > Put the RFC tag back on because I want to retest this series.
+> >
+> > Implemented the ARM64 memory barrier macros from scratch using the AMD
+> > reference docs.
+> >
+> > Added 2nd patch to fail compiles if no mb* macros exist for the platform.
+> >
+> > Steve Wise (2):
+> >   libibverbs: add ARM64 memory barrier macros
+> >   Fail compiles if no platform specific memory barriers exist
+> >
+> >  include/infiniband/arch.h |   15 +++++++++------
+> >  1 files changed, 9 insertions(+), 6 deletions(-)
+> >
 > 
-> I'm not sure what you are reading, but to me both proposals look very similar.
-> They are both based on the generic object/action/method sort of model I talked
-> about in an earlier thread.
+> Please remember to use --thread=shallow when sending patch emails using
+> git send-email (which is what I assume you did).
 > 
-> The main differences seem to boil down to the data marshalling and the
-> dispatching style for the kernel side..
-> 
-> Sean hasn't explored how to encode the actual method arguments, while
-> Mellanox's has a fairly well developed scheme with the netlink encoding and sgl
-> result list thingy.
-> 
-
-BTW, we can easily incorporate Sean's facility for mapping user-->kernel objects as helper function for method handlers in the proposed patches.
-
-> > Under that model, each vendor only carries what they need.  It would
-> > then be libibverbs responsibility to take that driver specific data
-> > and
-> 
-> Either patchset could go in this direction. This is a basic question we need to
-> decide on.
-> 
-> I'm starting to think the basic thrust of the Mellanox series (provide an easy
-> compatability with our userspace) is a sane approach. The other options look
-> like far too much work to use as a starting point.
-> 
-> That doesn't mean we can't decide to move in a direct-only direction - the uAPI
-> needs to have enough extension points to allow for that. Such work should
-> happen incrementally, and mainly target new uAPIs.
+> Let me know how the testing comes out.  The patches look fine to me
+> (thanks for adding the second one, it's the right thing to do).
 > 
 
-Right.
+Hey Doug, the series tests good with cxgb4 on ARM64.  Do I need to repost a
+final series, or can you merge v2? 
 
-The proposed patches go a long way in enabling extensibility.
-Typed parameters allow you to extend/replace/omit object properties as the interface evolves.
-New object types allow you to introduce new concepts.
-And the vendor channel can be used for arbitrary communication between a provider's user/kernel drivers.
+Hey Noa, have you all had a chance to test this series?
 
-We are not rushing anything.
---Liran
+Thanks,
+
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
