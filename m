@@ -1,41 +1,98 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] rdma/uverbs: Sketch for an ioctl framework
-Date: Wed, 25 May 2016 14:59:41 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB050592@ORSMSX109.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
- <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
- <20160524214137.GA6760@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0502ED@ORSMSX109.amr.corp.intel.com>
- <20160524231359.GA10664@obsidianresearch.com>
+From: Lijun Ou <oulijun@huawei.com>
+Subject: [PATCH v8 11/22] IB/hns: Add IB device registration
+Date: Wed, 25 May 2016 23:05:14 +0800
+Message-ID: <1464188725-42805-12-git-send-email-oulijun@huawei.com>
+References: <1464188725-42805-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160524231359.GA10664-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464188725-42805-1-git-send-email-oulijun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-> As I outlined, the genesis to do this was to migrate libibverbs to an
-> ioctl interface and in the process set a better stage for all the
-> other things people want to do. That includes better supporting
-> non-libibverbs libraries (dpdk, libfabric, whatever)
+This patch registered IB device when loaded, and unregistered
+IB device when removed.
 
-Then create ioctl 1 - direct mapping of the write interface
-Ioctl 2-255 - extensions
+Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_main.c | 47 +++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-This requires the least amount of work, supports what's needed, and is extensible.
-
-> The purpose of the object/method style framework was to better set the
-> stage for the core code to provide that kind of wider interface for
-> the drivers.
-
-I tried applying this to the rdma cm.  It's a very poor fit.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 589a9f7..788fe69 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -62,6 +62,41 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_icm.h"
+ 
++void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
++{
++	ib_unregister_device(&hr_dev->ib_dev);
++}
++
++int hns_roce_register_device(struct hns_roce_dev *hr_dev)
++{
++	int ret;
++	struct hns_roce_ib_iboe *iboe = NULL;
++	struct ib_device *ib_dev = NULL;
++	struct device *dev = &hr_dev->pdev->dev;
++
++	iboe = &hr_dev->iboe;
++
++	ib_dev = &hr_dev->ib_dev;
++	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
++
++	ib_dev->owner			= THIS_MODULE;
++	ib_dev->node_type		= RDMA_NODE_IB_CA;
++	ib_dev->dma_device		= dev;
++
++	ib_dev->phys_port_cnt		= hr_dev->caps.num_ports;
++	ib_dev->local_dma_lkey		= hr_dev->caps.reserved_lkey;
++	ib_dev->num_comp_vectors	= hr_dev->caps.num_comp_vectors;
++	ib_dev->uverbs_abi_ver		= 1;
++
++	ret = ib_register_device(ib_dev, NULL);
++	if (ret) {
++		dev_err(dev, "ib_register_device failed!\n");
++		return ret;
++	}
++
++	return 0;
++}
++
+ int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+ {
+ 	int i;
+@@ -367,6 +402,17 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 		goto error_failed_engine_init;
+ 	}
+ 
++	ret = hns_roce_register_device(hr_dev);
++	if (ret) {
++		dev_err(dev, "register_device failed!\n");
++		goto error_failed_register_device;
++	}
++
++	return 0;
++
++error_failed_register_device:
++	hns_roce_engine_uninit(hr_dev);
++
+ error_failed_engine_init:
+ 	hns_roce_cleanup_bitmap(hr_dev);
+ 
+@@ -402,6 +448,7 @@ static int hns_roce_remove(struct platform_device *pdev)
+ {
+ 	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
+ 
++	hns_roce_unregister_device(hr_dev);
+ 	hns_roce_engine_uninit(hr_dev);
+ 	hns_roce_cleanup_bitmap(hr_dev);
+ 	hns_roce_cleanup_icm(hr_dev);
+-- 
+1.9.1
