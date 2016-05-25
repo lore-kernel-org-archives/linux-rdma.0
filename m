@@ -1,61 +1,40 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 05/10] IB/rdamvt: Fix rdmavt s_ack_queue sizing
-Date: Wed, 25 May 2016 15:05:37 -0400
-Message-ID: <20160525190536.GC24021@phlsvsds.ph.intel.com>
-References: <20160524194746.19706.42976.stgit@scvm10.sc.intel.com> <20160524195039.19706.66866.stgit@scvm10.sc.intel.com> <20160525182928.GP25500@leon.nu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V7 for-next 1/4] IB/core: Introduce capabilitymask2 field
+ in ClassPortInfo mad
+Date: Wed, 25 May 2016 15:25:18 -0400
+Message-ID: <414e108a-b0cc-52c7-a5af-3823fcbf7d55@dev.mellanox.co.il>
+References: <1464202927-14979-1-git-send-email-erezsh@mellanox.com>
+ <1464202927-14979-2-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160525182928.GP25500-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1464202927-14979-2-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 25, 2016 at 09:29:28PM +0300, Leon Romanovsky wrote:
->On Tue, May 24, 2016 at 12:50:40PM -0700, Dennis Dalessandro wrote:
->> From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> 
->> rdmavt allows the driver to specify the size of the ack queue, but
->> only uses it for the modify QP limit testing for setting the atomic
->> limit value.
->> 
->> The driver dependent size is now used to size the s_ack_queue ring
->> dynamicially.
->> 
->> Since the driver knows its size, the driver will use its define
->> for any ring size dependent code.
->> 
->> Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/infiniband/sw/rdmavt/qp.c |   22 ++++++++++++++++++++--
->>  include/rdma/rdma_vt.h            |    9 +++++++++
->>  include/rdma/rdmavt_qp.h          |    5 +----
->>  3 files changed, 30 insertions(+), 6 deletions(-)
->> 
->
->...
->
->>  /*
->> + * Return the max atomic suitable for determining
->> + * the size of the ack ring buffer in a QP.
->> + */
->> +static inline unsigned int rvt_max_atomic(struct rvt_dev_info *rdi)
->> +{
->
->In previous patch, you changed max_rdma_atomic to be u8 instead of int,
->so why are you returning unsigned int and not u8?
->
->> +	return rdi->dparms.max_rdma_atomic + 1;
->> +}
->> +
+On 5/25/2016 3:02 PM, Erez Shitrit wrote:
+> Change struct ib_class_port_info to conform to IB Spec 1.3
+> That in order to get specific capability mask from ClassPortInfo mad.
+> 
+>>From the IB Spec, ClassPortInfo section:
+>         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+>          RespTimeValue the rest 5 bits"
+> 
+> The new struct now has one field for capabilitymask2 (previously was the
+> reserved field) and the resp_time field.
+> 
+> And it fixes up qib and srpt, use of the field repurposed to be used as
+> capabilitymask2:
+> IB/qib: Change pma_get_classportinfo
+> IB/srpt: Adjust the use of ib_class_port_info
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Because of the "+1", so we don't have a wrapping issue. 255 is a valid 
-value.  Now we could bump it up to a u16 vs int if it matters that much.
-
--Denny
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
