@@ -1,232 +1,67 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V7 for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG
- for SendOnly join
-Date: Wed, 25 May 2016 16:49:53 -0400
-Message-ID: <945ba79c-c942-1792-f624-c4f50ec4c752@dev.mellanox.co.il>
-References: <1464202927-14979-1-git-send-email-erezsh@mellanox.com>
- <1464202927-14979-5-git-send-email-erezsh@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] rdma/uverbs: Sketch for an ioctl framework
+Date: Wed, 25 May 2016 14:51:56 -0600
+Message-ID: <20160525205156.GB5525@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
+ <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
+ <20160524214137.GA6760@obsidianresearch.com>
+ <5745E9AE.6020700@redhat.com>
+ <20160525190039.GA5525@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB050907@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464202927-14979-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB050907-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/25/2016 3:02 PM, Erez Shitrit wrote:
-> Check (via an SA query) if the SM supports the new option for SendOnly
-> multicast joins.
-> If the SM supports that option it will use the new join state to create
-> such multicast group.
-> If SendOnlyFullMember is supported, we wouldn't use faked FullMember state
-> join for SendOnly MCG, use the correct state if supported.
+On Wed, May 25, 2016 at 07:59:29PM +0000, Hefty, Sean wrote:
+> > It is time for the people who are hand waving about non-verbs, non-qp,
+> > 'new data transfers' to sit down and specify what they want to see out
+> > of the kernel uABI.
 > 
-> This check is performed at every invocation of mcast_restart task, to be
-> sure that the driver stays in sync with the current state of the SM.
+> I want the core ioctl framework to do this:
 > 
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +
->  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 73 ++++++++++++++++++++++++++
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 38 +++++++++-----
->  3 files changed, 100 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index caec8e9..c51f618 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -392,6 +392,7 @@ struct ipoib_dev_priv {
->  	struct ipoib_ethtool_st ethtool;
->  	struct timer_list poll_timer;
->  	unsigned max_send_sge;
-> +	bool sm_fullmember_sendonly_support;
->  };
->  
->  struct ipoib_ah {
-> @@ -476,6 +477,7 @@ void ipoib_reap_ah(struct work_struct *work);
->  
->  void ipoib_mark_paths_invalid(struct net_device *dev);
->  void ipoib_flush_paths(struct net_device *dev);
-> +int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
->  struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
->  
->  int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 3b630e5..53f177f 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
->  
->  	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
->  
-> +	priv->sm_fullmember_sendonly_support = false;
-> +
->  	if (ipoib_ib_dev_open(dev)) {
->  		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
->  			return 0;
-> @@ -629,6 +631,77 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
->  	spin_unlock_irq(&priv->lock);
->  }
->  
-> +struct classport_info_context {
-> +	struct ipoib_dev_priv	*priv;
-> +	struct completion	done;
-> +	struct ib_sa_query	*sa_query;
-> +};
-> +
-> +static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
-> +				    void *context)
-> +{
-> +	struct classport_info_context *cb_ctx = context;
-> +	struct ipoib_dev_priv *priv;
-> +
-> +	WARN_ON(!context);
-> +
-> +	priv = cb_ctx->priv;
-> +
-> +	if (status || !rec) {
-> +		pr_debug("device: %s failed query classport_info status: %d\n",
-> +			 priv->dev->name, status);
-> +		/* keeps the default, will try next mcast_restart */
-> +		priv->sm_fullmember_sendonly_support = false;
-> +		goto out;
-> +	}
-> +
-> +	if (ib_get_cpi_capmask2(rec) &
-> +	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
-> +		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
-> +			 priv->dev->name);
-> +		priv->sm_fullmember_sendonly_support = true;
-> +	} else {
-> +		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
-> +			 priv->dev->name);
-> +		priv->sm_fullmember_sendonly_support = false;
-> +	}
-> +
-> +out:
-> +	complete(&cb_ctx->done);
-> +}
-> +
-> +int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
-> +{
-> +	struct classport_info_context *callback_context;
-> +	int ret;
-> +
-> +	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
-> +	if (!callback_context)
-> +		return -ENOMEM;
-> +
-> +	callback_context->priv = priv;
-> +	init_completion(&callback_context->done);
-> +
-> +	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
-> +					     priv->ca, priv->port, 3000,
-> +					     GFP_KERNEL,
-> +					     classport_info_query_cb,
-> +					     callback_context,
-> +					     &callback_context->sa_query);
-> +	if (ret < 0) {
-> +		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
-> +			priv->dev->name, ret);
-> +		kfree(callback_context);
-> +		return ret;
-> +	}
-> +
-> +	/* waiting for the callback to finish before returnning */
+> 1. Map user objects to/from the kernel to validate pointers.
+> 2. Provide reference counting on such objects, in order to protect against the user attempting to destroy objects that are in use.
+> 3. Provide protection that the state of an object is not driven in two different directions.
+> 4. Safely process the removal of the underlying driver or device.
+> 5. Support driver specific operations to the kernel.
+> 6. Report events from multiple sources to a single file descriptor.
+> 7. Minimize the kernel footprint for allocated kernel objects.
+> 8. Minimize the code path needed to process any ioctl, without greatly affecting maintainability.
+> 9. Copy ioctl input/output data to/from the kernel.
 
-typo: returning
+I agree with all of this as a suitable goal for the common
+dispatch/marshal framework.
 
-> +	wait_for_completion(&callback_context->done);
+I like the idea of the generic uobject stuff in your patches.
 
-Is it possible/would it be better for completion to be handled
-asynchronously ? Doesn't this wait for SM response (or timeout/retry
-exhausted) ? Maybe this is follow on improvement if possible and makes
-sense/doesn't add too much complexity.
+#6 seems 'not like the others' - seems like a reasonable concrete
+thing to consider as we build the objects on the
+framework. [understanding that compat operation is still required]
 
-> +	kfree(callback_context);
-> +
-> +	return ret;
-> +}
-> +
->  void ipoib_flush_paths(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 2588931..fc3e50e 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -64,6 +64,9 @@ struct ipoib_mcast_iter {
->  	unsigned int       send_only;
->  };
->  
-> +/* join state that allows creating mcg with sendonly member request */
-> +#define SENDONLY_FULLMEMBER_JOIN	8
-> +
->  /*
->   * This should be called with the priv->lock held
->   */
-> @@ -326,12 +329,23 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
->  	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
->  						   carrier_on_task);
->  	struct ib_port_attr attr;
-> +	int ret;
->  
->  	if (ib_query_port(priv->ca, priv->port, &attr) ||
->  	    attr.state != IB_PORT_ACTIVE) {
->  		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
->  		return;
->  	}
-> +	/*
-> +	 * Check if can send sendonly MCG's with sendonly-fullmember join state.
-> +	 * It done here after the successfully join to the broadcast group,
-> +	 * because the broadcast group must always be joined first and is always
-> +	 * re-joined if the SM changes substantially.
-> +	 */
-> +	ret = ipoib_check_sm_sendonly_fullmember_support(priv);
-> +	if (ret < 0)
-> +		pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
-> +			 priv->dev->name, ret);
->  
->  	/*
->  	 * Take rtnl_lock to avoid racing with ipoib_stop() and
-> @@ -515,22 +529,20 @@ static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
->  		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
->  
->  		/*
-> -		 * Send-only IB Multicast joins do not work at the core
-> -		 * IB layer yet, so we can't use them here.  However,
-> -		 * we are emulating an Ethernet multicast send, which
-> -		 * does not require a multicast subscription and will
-> -		 * still send properly.  The most appropriate thing to
-> +		 * Send-only IB Multicast joins work at the core IB layer but
-> +		 * require specific SM support.
-> +		 * We can use such joins here only if the current SM supports that feature.
-> +		 * However, if not, we emulate an Ethernet multicast send,
-> +		 * which does not require a multicast subscription and will
-> +		 * still send properly. The most appropriate thing to
->  		 * do is to create the group if it doesn't exist as that
->  		 * most closely emulates the behavior, from a user space
-> -		 * application perspecitive, of Ethernet multicast
-> -		 * operation.  For now, we do a full join, maybe later
-> -		 * when the core IB layers support send only joins we
-> -		 * will use them.
-> +		 * application perspective, of Ethernet multicast operation.
->  		 */
-> -#if 0
-> -		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
-> -			rec.join_state = 4;
-> -#endif
-> +		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-> +		    priv->sm_fullmember_sendonly_support)
-> +			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-> +			rec.join_state = SENDONLY_FULLMEMBER_JOIN;
->  	}
->  	spin_unlock_irq(&priv->lock);
->  
-> 
+> I started re-working my patch to address the rdma cm.  The original
+> proposal wasn't generic enough and provided a poor fit, because the
+> rdma cm has a single object and 25 versions of 'modify'.
+
+I was imagining that all objects would be able to have a set of object
+specific functions beyond the common set. IIRC some verbs objects will
+need this as well, and I expect drivers to want it.
+
+This is why I wasn't thinking of using the ioctl # to dispatch the
+method. It is best if the driver specific calls have globally unique
+identifiers of some sort to protect against calling a method on the
+wrong driver.
+
+I would encourage you to go as far as Mellanox's series does and
+demonstrate the verbs context object in this framework ...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
