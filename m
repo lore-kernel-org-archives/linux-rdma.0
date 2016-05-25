@@ -1,76 +1,48 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-next,V3] IB/IPoIB: Allow setting the device address
-Date: Wed, 25 May 2016 15:45:32 -0400
-Message-ID: <d24ab05a-cd35-42b4-73a8-2fb52ef1a643@redhat.com>
-References: <1463578963-14956-1-git-send-email-markb@mellanox.com>
- <VI1PR05MB139136EF3C46570069764F35D2400@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <dca48241-291a-e13c-4e26-ed332c26c612@redhat.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] rdma/uverbs: Sketch for an ioctl framework
+Date: Wed, 25 May 2016 19:59:29 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB050907@ORSMSX109.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
+ <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
+ <20160524214137.GA6760@obsidianresearch.com> <5745E9AE.6020700@redhat.com>
+ <20160525190039.GA5525@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="17rLFNrjejHGKa6ClTXaD7L5gvK3Dw1ti"
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <dca48241-291a-e13c-4e26-ed332c26c612-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160525190039.GA5525-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---17rLFNrjejHGKa6ClTXaD7L5gvK3Dw1ti
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> It is time for the people who are hand waving about non-verbs, non-qp,
+> 'new data transfers' to sit down and specify what they want to see out
+> of the kernel uABI.
 
-On 05/25/2016 01:59 PM, Doug Ledford wrote:
-> On 05/25/2016 09:15 AM, Mark Bloch wrote:
->> Hi Doug,
->>
->> Are you planning to take this one? Do you have issues I need to addres=
-s?
->>
->> I've fixed Jason's comments, but no further input
->> was given besides that.
->=20
-> I was just waiting on the final version of the SendOnly mcast join
-> series as that's IPoIB related too and I was going to pull them togethe=
-r
-> into an IPoIB topic branch.
->=20
->=20
+I want the core ioctl framework to do this:
 
-I've pulled this in now.
+1. Map user objects to/from the kernel to validate pointers.
+2. Provide reference counting on such objects, in order to protect against the user attempting to destroy objects that are in use.
+3. Provide protection that the state of an object is not driven in two different directions.
+4. Safely process the removal of the underlying driver or device.
+5. Support driver specific operations to the kernel.
+6. Report events from multiple sources to a single file descriptor.
+7. Minimize the kernel footprint for allocated kernel objects.
+8. Minimize the code path needed to process any ioctl, without greatly affecting maintainability.
+9. Copy ioctl input/output data to/from the kernel.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+If designed correctly, I believe that the ioctl core will be suitably generic to support uverbs, ucm (if kept), urdma cm, umad (if there's a reason to add new ioctls), and any drivers.  Honestly, there's very little that would stand in the way of future subsystems (e.g. accelerators like Xeon Phi, maybe nvm) adopting it, if they so choose, though I'm not suggesting that be a goal.
 
+Even limiting the discussion to short term needs, the rdma cm requires the same update.  The same ioctl core should work there as well.  Otherwise, it's a very good indication that we will not meet the needs of whatever future drivers are thrown to linux-rdma, except to say use a driver specific channel and re-implement the above functionality.  I would go as far as mixing rdma cm, verbs, and driver ioctls on the same fd (driven by shared event reporting), and that's a different file structure than what we have today.
 
+IMO, the format of the ioctl data is a much lower concern and not something the framework should be concerned about.  From the above requirements, the framework needs to understand specific types of operations: creation, close, and ones that require exclusive access.  Event handling requires more thought.
 
---17rLFNrjejHGKa6ClTXaD7L5gvK3Dw1ti
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I started re-working my patch to address the rdma cm.  The original proposal wasn't generic enough and provided a poor fit, because the rdma cm has a single object and 25 versions of 'modify'.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXRgDcAAoJELgmozMOVy/dPAUQAIcRiqJ7r3MVWacXwBv9/C2t
-pZbLO/iBOZVZJOdZFe+gf9xJRRW0YmH+swdkFWKcV2AQMzc+ExYOd3H8v5N9IKbM
-qvh6Va1Sh6mF26HQAPsYcoM88XfHRgYFkRhDq5lLwL9zo5zuil8iAicwwvpqHDe9
-ryFxSTBdiDBOPFmodJCDRLt5dht7Da0VrhSnb34qITNc9jputzt2fvZPh5tJAj2x
-Ip1Z0u/MwxBdtp3QMwPdd7Lc9l0CGyC/YZME3KfP+tMBTZBW/xhYSB3nhkqDkCPu
-EFHw7NObntRHXhJh9UQASIBROsSZbbDcq4l0GsOBPTJRC0nr/V+LyJZoYyVo4RMe
-GGAI2+jgnkG3fSCPwgE46MiGKE9nEAXqEC+OZ2MhkdVOjwSQ/yaKpz/HDyydWnEg
-bXhsku9/nEHeAFGK8FROx/uFGFZLBr+G9VdB/OLC0dM/KM4te/uMJhNZm74Yuvkp
-I1vCuDHGLpjuWtW3XanQOYH0IZBT2GfIOBqC/uaPcSAk56wjPFMvegB++fHfGu1V
-kSEIO6vKXnqa4d8ZCiVTjsK3vaILRixgPuRzrs9cUYTUVroPVSHE08m5wi1DB+uc
-4usR/9XDfA02dakkTS9bpQ8ptzUxg5TwLnp70aIiyPaMHom36z2hKuS54zhZ38TF
-7EirPlOoiZ0U78J56AGF
-=6KK4
------END PGP SIGNATURE-----
-
---17rLFNrjejHGKa6ClTXaD7L5gvK3Dw1ti--
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
