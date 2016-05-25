@@ -1,78 +1,94 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V6 for-next 0/4] Support SendOnlyFullMember join
-Date: Wed, 25 May 2016 11:40:18 +0300
-Message-ID: <1464165622-1540-1-git-send-email-erezsh@mellanox.com>
+Subject: [PATCH V6 for-next 3/4] IB/core: Support new type of join-state for multicast
+Date: Wed, 25 May 2016 11:40:21 +0300
+Message-ID: <1464165622-1540-4-git-send-email-erezsh@mellanox.com>
+References: <1464165622-1540-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1464165622-1540-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There are four types of multicast join: FullMember, NonMember,
-SendOnlyNonMember and SendOnlyFullMember.
 
-This patch-set introduces the ability to send multicast join requests of
-type SendOnlyFullMember (until now only the first three types were
-supported).
-Host that sends such join request, does not require a multicast
-subscription and will still send properly, and in addition will not get
-other multicast packets from that group.
+There are four types for MCG, FullMember, NonMember, SendOnlyNonMember,
+and the new added type: SendOnlyFullMember.
+Add support for the new SendOnlyFullMember join state.
 
-It adds a new SA query (for classport_info) to check that the sm
-supports sending such requests and it modifies multicast processing in
-the IB/core module to handle SendOnlyFullMember multicast join requests.
+The new type allows host to send join request as sendonly, it will cause the
+group to be created but without getting packets from this multicast back to the
+host.
 
-In addition, the patch set modifies IPoIB so that if the sm does support
-SendOnlyFullMember join requests, IPoIB will send such a request when
-joining a sendonly multicast group.
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/multicast.c | 23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-Changes from V0:
-PORTCLASSINFO_REC_FIELD changed to CLASSPORTINFO_REC_FIELD
-2 fields in ib_class_port_info instead of one
-"sa" changed to SA
-"sa" in the headline changed to SA agent
-No need to indicates NUM_JOIN_MEMBERSHIP_TYPES = 4
-Change the place the ipoib driver calls the new sa_query, does it once after the broadcast is joined.
-
-Changes from V1:
-1. add define to sendonly_full_member join state, instead of "8"
-2. change commit message to introduce the capmask2
-3. number name instead of digit in commit message
-4. SA agent instead of SA in commit message header.
-
-Changes from V2:
-1. returned back to one field in ib_class_port_info (as in V0).
-
-Changes from V3:
-1. Add setter and getter for cap_mask2_resp_time and change accordingly.
-2. add relevant reviewd-by section
-
-Changes from V4:
-1. add defines for mask/offsets, and sync with the sm code (Thanks to Hal).
-2. add check in ipoib for rec is not NULL.
-3. Add reviewd-by section.
-
-
-Changes from V5:
-1. set msb in capmask2 in qib_mad.c as needed.
-
-Erez Shitrit (4):
-  IB/core: Introduce capabilitymask2 field in ClassPortInfo mad
-  IB/SA Agent: Add support for SA agent get ClassPortInfo
-  IB/core: Support new type of join-state for multicast
-  IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
-
- drivers/infiniband/core/multicast.c            |  23 +++-
- drivers/infiniband/core/sa_query.c             | 173 +++++++++++++++++++++++++
- drivers/infiniband/hw/qib/qib_mad.c            |   6 +-
- drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |  73 +++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  38 ++++--
- drivers/infiniband/ulp/srpt/ib_srpt.c          |   2 +-
- include/rdma/ib_mad.h                          |  58 ++++++++-
- include/rdma/ib_sa.h                           |  12 ++
- 9 files changed, 364 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 250937c..a83ec28 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -93,6 +93,18 @@ enum {
+ 
+ struct mcast_member;
+ 
++/*
++* There are 4 types of join states:
++* FullMember, NonMember, SendOnlyNonMember, SendOnlyFullMember.
++*/
++enum {
++	FULLMEMBER_JOIN,
++	NONMEMBER_JOIN,
++	SENDONLY_NONMEBER_JOIN,
++	SENDONLY_FULLMEMBER_JOIN,
++	NUM_JOIN_MEMBERSHIP_TYPES,
++};
++
+ struct mcast_group {
+ 	struct ib_sa_mcmember_rec rec;
+ 	struct rb_node		node;
+@@ -102,7 +114,7 @@ struct mcast_group {
+ 	struct list_head	pending_list;
+ 	struct list_head	active_list;
+ 	struct mcast_member	*last_join;
+-	int			members[3];
++	int			members[NUM_JOIN_MEMBERSHIP_TYPES];
+ 	atomic_t		refcount;
+ 	enum mcast_group_state	state;
+ 	struct ib_sa_query	*query;
+@@ -220,8 +232,9 @@ static void queue_join(struct mcast_member *member)
+ }
+ 
+ /*
+- * A multicast group has three types of members: full member, non member, and
+- * send only member.  We need to keep track of the number of members of each
++ * A multicast group has four types of members: full member, non member,
++ * sendonly non member and sendonly full member.
++ * We need to keep track of the number of members of each
+  * type based on their join state.  Adjust the number of members the belong to
+  * the specified join states.
+  */
+@@ -229,7 +242,7 @@ static void adjust_membership(struct mcast_group *group, u8 join_state, int inc)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < 3; i++, join_state >>= 1)
++	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++, join_state >>= 1)
+ 		if (join_state & 0x1)
+ 			group->members[i] += inc;
+ }
+@@ -245,7 +258,7 @@ static u8 get_leave_state(struct mcast_group *group)
+ 	u8 leave_state = 0;
+ 	int i;
+ 
+-	for (i = 0; i < 3; i++)
++	for (i = 0; i < NUM_JOIN_MEMBERSHIP_TYPES; i++)
+ 		if (!group->members[i])
+ 			leave_state |= (0x1 << i);
+ 
 -- 
 1.7.11.3
 
