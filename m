@@ -1,39 +1,97 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH V7 for-next 1/4] IB/core: Introduce capabilitymask2 field
- in ClassPortInfo mad
-Date: Wed, 25 May 2016 13:24:09 -0700
-Message-ID: <1688bf61-9035-f68f-2b62-e6262fba28cd@sandisk.com>
-References: <1464202927-14979-1-git-send-email-erezsh@mellanox.com>
- <1464202927-14979-2-git-send-email-erezsh@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Fwd: Re: [PATCH 04/10] IB/hfi1: Remove snoop/diag interface
+Date: Wed, 25 May 2016 16:32:55 -0400
+Message-ID: <d73fa33f-16a4-f401-e103-771f2f173532@redhat.com>
+References: <5a69c05b-bb26-6e79-bb7b-4b3809a277dd@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="pljM9oCVDT9sVulTeVX8FAv52I3DhU9Nb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464202927-14979-2-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <5a69c05b-bb26-6e79-bb7b-4b3809a277dd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/25/2016 12:02 PM, Erez Shitrit wrote:
->
-> Change struct ib_class_port_info to conform to IB Spec 1.3
-> That in order to get specific capability mask from ClassPortInfo mad.
->
-> From the IB Spec, ClassPortInfo section:
->         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
->          RespTimeValue the rest 5 bits"
->
-> The new struct now has one field for capabilitymask2 (previously was the
-> reserved field) and the resp_time field.
->
-> And it fixes up qib and srpt, use of the field repurposed to be used as
-> capabilitymask2:
-> IB/qib: Change pma_get_classportinfo
-> IB/srpt: Adjust the use of ib_class_port_info
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--pljM9oCVDT9sVulTeVX8FAv52I3DhU9Nb
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
+
+
+-------- Forwarded Message --------
+Subject: Re: [PATCH 04/10] IB/hfi1: Remove snoop/diag interface
+Date: Wed, 25 May 2016 16:07:38 -0400
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Organization: Red Hat, Inc.
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org jgunthorpe"@obsidianresearch.com Mike
+Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuE@public.gmane.org=
+m>
+
+On 05/19/2016 08:26 AM, Dennis Dalessandro wrote:
+> The snoop/diag interface is better served by an implementation which is=
+
+> more general and usable by other drivers perhaps. Go ahead and remove
+> the code now and get rid of the char dev. We can put the feature back
+> when we have a more agreeable solution.
+>=20
+> Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Hi Dennis,
+
+This series failed on this patch.  I was going to take the series in and
+fixup patch 6/10 to move the ioctl numbers up to the upper end of the
+0x1b range so that we won't have to worry about number collision with
+the soon-to-come IB ioctl(s).  But, since this patch failed, I'll let
+you fix both of those issue up.  Please make your changes relative to my
+hfi1-3 branch on github:
+
+git://github.com/dledford/linux hfi1-3
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--pljM9oCVDT9sVulTeVX8FAv52I3DhU9Nb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXRgv3AAoJELgmozMOVy/d7qwQAJFLY2U1hS0PawwizEu2IJEG
+j6SQ42r5y9eqlvVQ+Efa9PI+wemS3+Jj/KeXwEO8l7lYCXagi314dLfccOaY6fFQ
+tisOxSf2rEex0TkVdjgIit2qSMWlSn+fB78X0U2w0tqtnJq9Emce3k1rch/8wtXg
+W1SoEVVPGefDbOMU2oA69Y4e7I0PDuCtfYgC3u6HjPMYR/oeoI/Q9YnIFlNTS4JI
+AyfTSRN2066NDCNrMpDU3M9B1MKWuOk2ITdH4ROS54uBznr1ZVKaL5XEbqquoUb+
+S37fu2h2dUDz5uRzd1QRaE4oVVJlYFSki4NQyilTKxzrnGITuAWeW0ecHZg2h5oK
+760/XK6Mf2S4dX8pufwhCrVWmljOszTPFJOENKavRXa+aF5qhQXVfs/ZNKybBQ9q
+hnJfMrEvWZz1CmCP/ROd7PNUkZ6ifNzAnEto42GxgqCVuTdqJKFR/wX09mzZ/p6Z
+5R9HABmPXnFmXpaIK+S3snVHF49td5F0yJDAsBGrVdIyFGOiAXf/Skogdx1gy740
+QUuq5K9AsEUwmBUQ/K1K77E8FCpCT917elQ0u48GwdtOrFBi758ERjnG6X230RvR
+dhVi94zAwTZM8R78DCeCJjeCWOlEqKIUNAT+lPNY5gyOI2ln0kdEX6naYnxDwhZG
+ZsunrMKTJ0nOmaqp7uK0
+=pw1F
+-----END PGP SIGNATURE-----
+
+--pljM9oCVDT9sVulTeVX8FAv52I3DhU9Nb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
