@@ -1,134 +1,256 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] rdma/uverbs: Sketch for an ioctl framework
-Date: Wed, 25 May 2016 13:00:39 -0600
-Message-ID: <20160525190039.GA5525@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
- <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
- <20160524214137.GA6760@obsidianresearch.com>
- <5745E9AE.6020700@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V7 for-next 2/4] IB/SA Agent: Add support for SA agent get ClassPortInfo
+Date: Wed, 25 May 2016 22:02:05 +0300
+Message-ID: <1464202927-14979-3-git-send-email-erezsh@mellanox.com>
+References: <1464202927-14979-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5745E9AE.6020700-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1464202927-14979-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 25, 2016 at 02:06:38PM -0400, Doug Ledford wrote:
 
-> >> Sean's proposal does away with the rigid nature of the current verbs 1.0
-> >> API and makes it much more flexible on a per-driver basis.  This doesn't
-> >> address the end user API issues, but it at least cleans up the user
-> >> driver <-> kernel driver API so that one vendor's driver is not forced
-> >> to carry around all the baggage needed for every other vendor's drivers.
-> > 
-> > I'm not sure what you are reading, but to me both proposals look very
-> > similar. They are both based on the generic object/action/method sort
-> > of model I talked about in an earlier thread.
+New SA query function to return the ClassPortInfo struct from the SA.
+If the SM supports FullMemberSendOnly mode for MCG's, it sets a
+capability bit in the capability_mask2 field of the response.
+
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/sa_query.c | 173 +++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_sa.h               |  12 +++
+ 2 files changed, 185 insertions(+)
+
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 3ebd108..5c37f2f 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -119,6 +119,12 @@ struct ib_sa_guidinfo_query {
+ 	struct ib_sa_query sa_query;
+ };
  
-> They are similar in initial expression, but not in intent.  Sean's is
-> not concerned about preserving struct ib_qp (just as an example) as it
-> stands, while Mellanox's patchset is all about passing around the same
-> objects via a different interface.  Even though they encode objects in
-> netlink attributes, they are still expected to be the same basic objects
-> we use today (and this is how they minimize the driver impact).
++struct ib_sa_classport_info_query {
++	void (*callback)(int, struct ib_class_port_info *, void *);
++	void *context;
++	struct ib_sa_query sa_query;
++};
++
+ struct ib_sa_mcmember_query {
+ 	void (*callback)(int, struct ib_sa_mcmember_rec *, void *);
+ 	void *context;
+@@ -392,6 +398,82 @@ static const struct ib_field service_rec_table[] = {
+ 	  .size_bits    = 2*64 },
+ };
+ 
++#define CLASSPORTINFO_REC_FIELD(field) \
++	.struct_offset_bytes = offsetof(struct ib_class_port_info, field),	\
++	.struct_size_bytes   = sizeof((struct ib_class_port_info *)0)->field,	\
++	.field_name          = "ib_class_port_info:" #field
++
++static const struct ib_field classport_info_rec_table[] = {
++	{ CLASSPORTINFO_REC_FIELD(base_version),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 8 },
++	{ CLASSPORTINFO_REC_FIELD(class_version),
++	  .offset_words = 0,
++	  .offset_bits  = 8,
++	  .size_bits    = 8 },
++	{ CLASSPORTINFO_REC_FIELD(capability_mask),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ CLASSPORTINFO_REC_FIELD(cap_mask2_resp_time),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ CLASSPORTINFO_REC_FIELD(redirect_gid),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 128 },
++	{ CLASSPORTINFO_REC_FIELD(redirect_tcslfl),
++	  .offset_words = 6,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ CLASSPORTINFO_REC_FIELD(redirect_lid),
++	  .offset_words = 7,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ CLASSPORTINFO_REC_FIELD(redirect_pkey),
++	  .offset_words = 7,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++
++	{ CLASSPORTINFO_REC_FIELD(redirect_qp),
++	  .offset_words = 8,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ CLASSPORTINFO_REC_FIELD(redirect_qkey),
++	  .offset_words = 9,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++
++	{ CLASSPORTINFO_REC_FIELD(trap_gid),
++	  .offset_words = 10,
++	  .offset_bits  = 0,
++	  .size_bits    = 128 },
++	{ CLASSPORTINFO_REC_FIELD(trap_tcslfl),
++	  .offset_words = 14,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++
++	{ CLASSPORTINFO_REC_FIELD(trap_lid),
++	  .offset_words = 15,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ CLASSPORTINFO_REC_FIELD(trap_pkey),
++	  .offset_words = 15,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++
++	{ CLASSPORTINFO_REC_FIELD(trap_hlqp),
++	  .offset_words = 16,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ CLASSPORTINFO_REC_FIELD(trap_qkey),
++	  .offset_words = 17,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++};
++
+ #define GUIDINFO_REC_FIELD(field) \
+ 	.struct_offset_bytes = offsetof(struct ib_sa_guidinfo_rec, field),	\
+ 	.struct_size_bytes   = sizeof((struct ib_sa_guidinfo_rec *) 0)->field,	\
+@@ -1645,6 +1727,97 @@ err1:
+ }
+ EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
+ 
++/* Support get SA ClassPortInfo */
++static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
++					      int status,
++					      struct ib_sa_mad *mad)
++{
++	struct ib_sa_classport_info_query *query =
++		container_of(sa_query, struct ib_sa_classport_info_query, sa_query);
++
++	if (mad) {
++		struct ib_class_port_info rec;
++
++		ib_unpack(classport_info_rec_table,
++			  ARRAY_SIZE(classport_info_rec_table),
++			  mad->data, &rec);
++		query->callback(status, &rec, query->context);
++	} else {
++		query->callback(status, NULL, query->context);
++	}
++}
++
++static void ib_sa_portclass_info_rec_release(struct ib_sa_query *sa_query)
++{
++	kfree(container_of(sa_query, struct ib_sa_classport_info_query,
++			   sa_query));
++}
++
++int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
++				   struct ib_device *device, u8 port_num,
++				   int timeout_ms, gfp_t gfp_mask,
++				   void (*callback)(int status,
++						    struct ib_class_port_info *resp,
++						    void *context),
++				   void *context,
++				   struct ib_sa_query **sa_query)
++{
++	struct ib_sa_classport_info_query *query;
++	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
++	struct ib_sa_port *port;
++	struct ib_mad_agent *agent;
++	struct ib_sa_mad *mad;
++	int ret;
++
++	if (!sa_dev)
++		return -ENODEV;
++
++	port  = &sa_dev->port[port_num - sa_dev->start_port];
++	agent = port->agent;
++
++	query = kzalloc(sizeof(*query), gfp_mask);
++	if (!query)
++		return -ENOMEM;
++
++	query->sa_query.port = port;
++	ret = alloc_mad(&query->sa_query, gfp_mask);
++	if (ret)
++		goto err1;
++
++	ib_sa_client_get(client);
++	query->sa_query.client = client;
++	query->callback        = callback;
++	query->context         = context;
++
++	mad = query->sa_query.mad_buf->mad;
++	init_mad(mad, agent);
++
++	query->sa_query.callback = callback ? ib_sa_classport_info_rec_callback : NULL;
++
++	query->sa_query.release  = ib_sa_portclass_info_rec_release;
++	/* support GET only */
++	mad->mad_hdr.method	 = IB_MGMT_METHOD_GET;
++	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_CLASS_PORTINFO);
++	mad->sa_hdr.comp_mask	 = 0;
++	*sa_query = &query->sa_query;
++
++	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
++	if (ret < 0)
++		goto err2;
++
++	return ret;
++
++err2:
++	*sa_query = NULL;
++	ib_sa_client_put(query->sa_query.client);
++	free_mad(&query->sa_query);
++
++err1:
++	kfree(query);
++	return ret;
++}
++EXPORT_SYMBOL(ib_sa_classport_info_rec_query);
++
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+ {
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index cdc1c81..3840416 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -94,6 +94,8 @@ enum ib_sa_selector {
+ 	IB_SA_BEST = 3
+ };
+ 
++#define IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT	BIT(12)
++
+ /*
+  * Structures for SA records are named "struct ib_sa_xxx_rec."  No
+  * attempt is made to pack structures to match the physical layout of
+@@ -439,4 +441,14 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+ 			      void *context,
+ 			      struct ib_sa_query **sa_query);
+ 
++/* Support get SA ClassPortInfo */
++int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
++				   struct ib_device *device, u8 port_num,
++				   int timeout_ms, gfp_t gfp_mask,
++				   void (*callback)(int status,
++						    struct ib_class_port_info *resp,
++						    void *context),
++				   void *context,
++				   struct ib_sa_query **sa_query);
++
+ #endif /* IB_SA_H */
+-- 
+1.7.11.3
 
-Again, I think you are reading way too much into both patches. Until
-we go down the object by object patches it is too early to say how
-exactly things will be translated in either case.
-
-Eg Sean's comments about dis-aggregating the event_fd from the context
-in the Mellanox series is a good example of the kind of discussion and
-improvements I'm expecting to see on an object-by-object basis.
-
-But today I view both series as primarily exploring the dispatch and
-marshalling of the function calls - which is one of the first
-questions to settle.
-
-> their own on the passed through data.  The Mellanox patches do so, but
-> at the expense of netlink which many people on this list find painful to
-> read.
-
-Well, I'm not sold on the netlink idea either, and I posted an
-alternative already. If you see another alternative you should
-describe it.
-
-> There are multiple trains of thought on where this will end up, and
-> simply switching from write to ioctl is only part of the overall big
-> picture.  There should only be one API break in this entire process, so
-> we need to make sure that any other possible API breakers are included
-> in the initial change to the ioctl interface.
-
-To be very clear, an *API* break is not tolerable. The libibverbs 1.0
-API must still be 100% functional on the new interface. We are talking
-about changing the *ABI* that transports that API. There is a lot
-of latitude there, but at the end of the day all the same objects must
-still exist in some form.
-
-If people have ideas for different future APIs then the best approach
-is to make room for them in the ABI. Sean's discussion on the event
-stuff is a prime example of that process. eg we can make room in the
-ABI for a different async event model by dis-aggregating things at the
-ABI level. The old API still remains preserved by that kind of
-dis-aggregation.
-
-If someone wants to suggest a different starting point for this than
-libibverbs 1.0 then they had better do the work and concretely
-describe that soon. Otherwise I see no better option than to go
-object-by-object through the libibverbs 1.0 API and collect comments.
-
-Obvious existing avenues to source comments from are better support
-for OPA, iWarp, rocee, dpdk and libfabric.
-
-> > I'm starting to think the basic thrust of the Mellanox series (provide
-> > an easy compatability with our userspace) is a sane approach. The
-> > other options look like far too much work to use as a starting point.
-> 
-> I could not care less about this argument.  When you have to break an
-> API, you do what you have to do to do the job right.  Doing things the
-> right way may turn out to be the easy way, but the argument would be
-> because it's the right thing to do, not the easy thing to do.
-
-Usually giant monster changes result in failure, it is a bad software
-engineering practice. Substantially recoding every driver and every
-provider seems like it is too big a task to complete to me.
-
-Just preserving the existing write interface structure-by-structure
-also seems like a bad idea because we already know it has an
-inadaquate ABI for current drivers.
-
-> This is arguable.  If we know we want to go basically direct only in the
-> future, then preserving the existing layer in the ioctl API eventually
-> becomes a burden.  It would be better to go direct only from the
-> beginning.  This needs to be settled.
-
-It would be like any other migration, if we eventually reach a point
-where the kernel fully supports something like direct-only for all
-kernel drivers then we can talk about an obsolescence path for the
-other interface.
-
-But, it also isn't really clear if direct-only is even a good idea, I
-would be really interested to see some patches exploring what that
-would look like.
-
-I'm still thinking of a hybrid common & direct approach as the leading
-option ...
-
-> If we end up just doing a behind the scenes switch from write to ioctl
-> with no changing of data structures or command flow or anything else,
-> then we can ignore the end to end picture because it won't change
-> significantly.
-
-You should describe what specific things you want to see.
-
-It is time for the people who are hand waving about non-verbs, non-qp,
-'new data transfers' to sit down and specify what they want to see out
-of the kernel uABI.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
