@@ -1,220 +1,168 @@
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V6 for-next 4/4] IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
-Date: Wed, 25 May 2016 11:40:22 +0300
-Message-ID: <1464165622-1540-5-git-send-email-erezsh@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V6 for-next 1/4] IB/core: Introduce capabilitymask2 field
+ in ClassPortInfo mad
+Date: Wed, 25 May 2016 07:06:18 -0400
+Message-ID: <ea04e299-ba87-ad6c-77ae-5abc46cd6ea5@dev.mellanox.co.il>
 References: <1464165622-1540-1-git-send-email-erezsh@mellanox.com>
+ <1464165622-1540-2-git-send-email-erezsh@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464165622-1540-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1464165622-1540-2-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/25/2016 4:40 AM, Erez Shitrit wrote:
+> Change struct ib_class_port_info to conform to IB Spec 1.3
+> That in order to get specific capability mask from ClassPortInfo mad.
+> 
+>>From the IB Spec, ClassPortInfo section:
+>         "CapabilityMask2 Bits 0-26: Additional class-specific capabilities...
+>          RespTimeValue the rest 5 bits"
+> 
+> The new struct now has one field for capabilitymask2 (previously was the
+> reserved field) and the resp_time field.
+> 
+> And it fixes up qib and srpt, use of the field repurposed to be used as
+> capabilitymask2:
+> IB/qib: Change pma_get_classportinfo
+> IB/srpt: Adjust the use of ib_class_port_info
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib_mad.c   |  6 ++--
+>  drivers/infiniband/ulp/srpt/ib_srpt.c |  2 +-
+>  include/rdma/ib_mad.h                 | 58 +++++++++++++++++++++++++++++++++--
+>  3 files changed, 61 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+> index 0bd1837..d2ac298 100644
+> --- a/drivers/infiniband/hw/qib/qib_mad.c
+> +++ b/drivers/infiniband/hw/qib/qib_mad.c
+> @@ -1172,11 +1172,13 @@ static int pma_get_classportinfo(struct ib_pma_mad *pmp,
+>  	 * Set the most significant bit of CM2 to indicate support for
+>  	 * congestion statistics
+>  	 */
+> -	p->reserved[0] = dd->psxmitwait_supported << 7;
+> +	ib_set_cpi_capmask2(p,
+> +			    dd->psxmitwait_supported <<
+> +			    (31 - IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE));
+>  	/*
+>  	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+>  	 */
+> -	p->resp_time_value = 18;
+> +	ib_set_cpi_resp_time(p, 18);
+>  
+>  	return reply((struct ib_smp *) pmp);
+>  }
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 2843f1a..887ebad 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -254,8 +254,8 @@ static void srpt_get_class_port_info(struct ib_dm_mad *mad)
+>  	memset(cif, 0, sizeof(*cif));
+>  	cif->base_version = 1;
+>  	cif->class_version = 1;
+> -	cif->resp_time_value = 20;
+>  
+> +	ib_set_cpi_resp_time(cif, 20);
+>  	mad->mad_hdr.status = 0;
+>  }
+>  
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index 37dd534c..3f3ae04 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -239,12 +239,15 @@ struct ib_vendor_mad {
+>  
+>  #define IB_MGMT_CLASSPORTINFO_ATTR_ID	cpu_to_be16(0x0001)
+>  
+> +#define IB_CLASS_PORT_INFO_RESP_TIME_MASK	0x1F
+> +#define IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE 5
+> +
+>  struct ib_class_port_info {
+>  	u8			base_version;
+>  	u8			class_version;
+>  	__be16			capability_mask;
+> -	u8			reserved[3];
+> -	u8			resp_time_value;
+> +	  /* 27 bits for cap_mask2, 5 bits for resp_time */
+> +	__be32			cap_mask2_resp_time;
+>  	u8			redirect_gid[16];
+>  	__be32			redirect_tcslfl;
+>  	__be16			redirect_lid;
+> @@ -259,6 +262,57 @@ struct ib_class_port_info {
+>  	__be32			trap_qkey;
+>  };
+>  
+> +/**
+> + * ib_get_cpi_resp_time - Returns the resp_time value from
+> + * cap_mask2_resp_time in ib_class_port_info.
+> + * @cpi: A struct ib_class_port_info mad.
+> + */
+> +static inline u8 ib_get_cpi_resp_time(struct ib_class_port_info *cpi)
+> +{
+> +	return (u8)(be32_to_cpu(cpi->cap_mask2_resp_time) &
+> +		    IB_CLASS_PORT_INFO_RESP_TIME_MASK);
+> +}
+> +
+> +/**
+> + * ib_set_cpi_resptime - Sets the response time in an
 
-Check (via an SA query) if the SM supports the new option for SendOnly
-multicast joins.
-If the SM supports that option it will use the new join state to create
-such multicast group.
-If SendOnlyFullMember is supported, we wouldn't use faked FullMember state
-join for SendOnly MCG, use the correct state if supported.
+ib_set_cpi_resp_time
 
-This check is performed at every invocation of mcast_restart task, to be
-sure that the driver stays in sync with the current state of the SM.
+> + * ib_class_port_info mad.
+> + * @cpi: A struct ib_class_port_info.
+> + * @rtime: The response time to set.
+> + */
+> +static inline void ib_set_cpi_resp_time(struct ib_class_port_info *cpi,
+> +					u8 rtime)
+> +{
+> +	cpi->cap_mask2_resp_time =
+> +		(cpi->cap_mask2_resp_time &
+> +		 cpu_to_be32(~IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+> +		cpu_to_be32(rtime & IB_CLASS_PORT_INFO_RESP_TIME_MASK);
+> +}
+> +
+> +/**
+> + * ib_get_cpi_capmask2 - Returns the capmask2 value from
+> + * cap_mask2_resp_time in ib_class_port_info.
+> + * @cpi: A struct ib_class_port_info mad.
+> + */
+> +static inline u32 ib_get_cpi_capmask2(struct ib_class_port_info *cpi)
+> +{
+> +	return (be32_to_cpu(cpi->cap_mask2_resp_time) >> 5);
 
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h           |  2 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c      | 73 ++++++++++++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 38 +++++++++-----
- 3 files changed, 100 insertions(+), 13 deletions(-)
+Why not now use IB_CLASS_PORT_INFO_RESP_TIME_FIELD_SIZE rather than 5 ?
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index caec8e9..c51f618 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -392,6 +392,7 @@ struct ipoib_dev_priv {
- 	struct ipoib_ethtool_st ethtool;
- 	struct timer_list poll_timer;
- 	unsigned max_send_sge;
-+	bool sm_fullmember_sendonly_support;
- };
- 
- struct ipoib_ah {
-@@ -476,6 +477,7 @@ void ipoib_reap_ah(struct work_struct *work);
- 
- void ipoib_mark_paths_invalid(struct net_device *dev);
- void ipoib_flush_paths(struct net_device *dev);
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
- struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
- 
- int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 3b630e5..53f177f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -117,6 +117,8 @@ int ipoib_open(struct net_device *dev)
- 
- 	set_bit(IPOIB_FLAG_ADMIN_UP, &priv->flags);
- 
-+	priv->sm_fullmember_sendonly_support = false;
-+
- 	if (ipoib_ib_dev_open(dev)) {
- 		if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags))
- 			return 0;
-@@ -629,6 +631,77 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
- 	spin_unlock_irq(&priv->lock);
- }
- 
-+struct classport_info_context {
-+	struct ipoib_dev_priv	*priv;
-+	struct completion	done;
-+	struct ib_sa_query	*sa_query;
-+};
-+
-+static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
-+				    void *context)
-+{
-+	struct classport_info_context *cb_ctx = context;
-+	struct ipoib_dev_priv *priv;
-+
-+	WARN_ON(!context);
-+
-+	priv = cb_ctx->priv;
-+
-+	if (status || !rec) {
-+		pr_debug("device: %s failed query classport_info status: %d\n",
-+			 priv->dev->name, status);
-+		/* keeps the default, will try next mcast_restart */
-+		priv->sm_fullmember_sendonly_support = false;
-+		goto out;
-+	}
-+
-+	if (ib_get_cpi_capmask2(rec) &
-+	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
-+		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = true;
-+	} else {
-+		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
-+			 priv->dev->name);
-+		priv->sm_fullmember_sendonly_support = false;
-+	}
-+
-+out:
-+	complete(&cb_ctx->done);
-+}
-+
-+int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
-+{
-+	struct classport_info_context *callback_context;
-+	int ret;
-+
-+	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
-+	if (!callback_context)
-+		return -ENOMEM;
-+
-+	callback_context->priv = priv;
-+	init_completion(&callback_context->done);
-+
-+	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
-+					     priv->ca, priv->port, 3000,
-+					     GFP_KERNEL,
-+					     classport_info_query_cb,
-+					     callback_context,
-+					     &callback_context->sa_query);
-+	if (ret < 0) {
-+		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
-+			priv->dev->name, ret);
-+		kfree(callback_context);
-+		return ret;
-+	}
-+
-+	/* waiting for the callback to finish before returnning */
-+	wait_for_completion(&callback_context->done);
-+	kfree(callback_context);
-+
-+	return ret;
-+}
-+
- void ipoib_flush_paths(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 2588931..fc3e50e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -64,6 +64,9 @@ struct ipoib_mcast_iter {
- 	unsigned int       send_only;
- };
- 
-+/* join state that allows creating mcg with sendonly member request */
-+#define SENDONLY_FULLMEMBER_JOIN	8
-+
- /*
-  * This should be called with the priv->lock held
-  */
-@@ -326,12 +329,23 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
- 	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
- 						   carrier_on_task);
- 	struct ib_port_attr attr;
-+	int ret;
- 
- 	if (ib_query_port(priv->ca, priv->port, &attr) ||
- 	    attr.state != IB_PORT_ACTIVE) {
- 		ipoib_dbg(priv, "Keeping carrier off until IB port is active\n");
- 		return;
- 	}
-+	/*
-+	 * Check if can send sendonly MCG's with sendonly-fullmember join state.
-+	 * It done here after the successfully join to the broadcast group,
-+	 * because the broadcast group must always be joined first and is always
-+	 * re-joined if the SM changes substantially.
-+	 */
-+	ret = ipoib_check_sm_sendonly_fullmember_support(priv);
-+	if (ret < 0)
-+		pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
-+			 priv->dev->name, ret);
- 
- 	/*
- 	 * Take rtnl_lock to avoid racing with ipoib_stop() and
-@@ -515,22 +529,20 @@ static int ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast)
- 		rec.hop_limit	  = priv->broadcast->mcmember.hop_limit;
- 
- 		/*
--		 * Send-only IB Multicast joins do not work at the core
--		 * IB layer yet, so we can't use them here.  However,
--		 * we are emulating an Ethernet multicast send, which
--		 * does not require a multicast subscription and will
--		 * still send properly.  The most appropriate thing to
-+		 * Send-only IB Multicast joins work at the core IB layer but
-+		 * require specific SM support.
-+		 * We can use such joins here only if the current SM supports that feature.
-+		 * However, if not, we emulate an Ethernet multicast send,
-+		 * which does not require a multicast subscription and will
-+		 * still send properly. The most appropriate thing to
- 		 * do is to create the group if it doesn't exist as that
- 		 * most closely emulates the behavior, from a user space
--		 * application perspecitive, of Ethernet multicast
--		 * operation.  For now, we do a full join, maybe later
--		 * when the core IB layers support send only joins we
--		 * will use them.
-+		 * application perspective, of Ethernet multicast operation.
- 		 */
--#if 0
--		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags))
--			rec.join_state = 4;
--#endif
-+		if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-+		    priv->sm_fullmember_sendonly_support)
-+			/* SM supports sendonly-fullmember, otherwise fallback to full-member */
-+			rec.join_state = SENDONLY_FULLMEMBER_JOIN;
- 	}
- 	spin_unlock_irq(&priv->lock);
- 
--- 
-1.7.11.3
+> +}
+> +
+> +/**
+> + * ib_set_cpi_capmask2 - Sets the capmask2 in an
+> + * ib_class_port_info mad.
+> + * @cpi: A struct ib_class_port_info.
+> + * @capmask2: The capmask2 to set.
+> + */
+> +static inline void ib_set_cpi_capmask2(struct ib_class_port_info *cpi,
+> +				       u32 capmask2)
+> +{
+> +	cpi->cap_mask2_resp_time =
+> +		(cpi->cap_mask2_resp_time &
+> +		 cpu_to_be32(IB_CLASS_PORT_INFO_RESP_TIME_MASK)) |
+> +		cpu_to_be32(capmask2 << 5);
 
+Same comment as above.
+
+> +}
+> +
+>  struct ib_mad_notice_attr {
+>  	u8 generic_type;
+>  	u8 prod_type_msb;
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
