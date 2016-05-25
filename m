@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 libibverbs 5/7] Create a single threaded CQ
-Date: Wed, 25 May 2016 16:02:22 +0300
-Message-ID: <1464181344-11987-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V3 libibverbs 3/7] Add timestamp_mask and hca_core_clock to ibv_query_device_ex
+Date: Wed, 25 May 2016 16:02:20 +0300
+Message-ID: <1464181344-11987-4-git-send-email-yishaih@mellanox.com>
 References: <1464181344-11987-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464181344-11987-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,86 +12,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When a CQ is used only from one thread, there's no need to waste cycles
-on locking. Since this series introduces a mechanism which allows the
-vendor to introduce different polling functions per CQ, it allows the
-vendor to implement both locking and lockless CQs and assign them
-accordingly.
+The fields timestamp_mask and hca_core_clock were added
+to the extended version of ibv_query_device verb.
+timestamp_mask represents the supported mask of the timestamp.
+Users could infer the accuracy of the reported possible
+timestamp.
+hca_core_clock represents the frequency of the HCA (in kHZ).
 
-Adding a new creation flag for this.
+Since timestamp is given in hardware cycles, knowing the frequency
+is mandatory in order to convert this number into seconds.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h | 12 +++++++++++-
- man/ibv_create_cq_ex.3     |  8 ++++++++
- src/cmd.c                  |  4 ++++
- 3 files changed, 23 insertions(+), 1 deletion(-)
+ examples/devinfo.c            | 10 ++++++++++
+ include/infiniband/kern-abi.h |  2 ++
+ include/infiniband/verbs.h    |  2 ++
+ man/ibv_query_device_ex.3     |  6 ++++--
+ src/cmd.c                     | 21 +++++++++++++++++++++
+ 5 files changed, 39 insertions(+), 2 deletions(-)
 
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index a8de982..0af8c3b 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -339,6 +339,16 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		printf("\tlocal_ca_ack_delay:\t\t%d\n", device_attr.orig_attr.local_ca_ack_delay);
+ 
+ 		print_odp_caps(&device_attr.odp_caps);
++		if (device_attr.completion_timestamp_mask)
++			printf("\tcompletion timestamp_mask:\t\t\t0x%016lx\n",
++			       device_attr.completion_timestamp_mask);
++		else
++			printf("\tcompletion_timestamp_mask not supported\n");
++
++		if (device_attr.hca_core_clock)
++			printf("\thca_core_clock:\t\t\t%lukHZ\n", device_attr.hca_core_clock);
++		else
++			printf("\tcore clock not supported\n");
+ 	}
+ 
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 36a2c8c..a2c0c46 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -271,6 +271,8 @@ struct ibv_query_device_resp_ex {
+ 	__u32 comp_mask;
+ 	__u32 response_length;
+ 	struct ibv_odp_caps_resp odp_caps;
++	__u64 timestamp_mask;
++	__u64 hca_core_clock;
+ };
+ 
+ struct ibv_query_port {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index f7ed069..f254d18 100644
+index 014b395..1987260 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -1188,7 +1188,13 @@ struct ibv_context {
- };
- 
- enum ibv_cq_init_attr_mask {
--	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 0 << 1
-+	IBV_CQ_INIT_ATTR_MASK_FLAGS	= 1 << 0,
-+	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 1 << 1
-+};
-+
-+enum ibv_create_cq_attr_flags {
-+	IBV_CREATE_CQ_ATTR_SINGLE_THREADED = 1 << 0,
-+	IBV_CREATE_CQ_ATTR_RESERVED = 1 << 1,
- };
- 
- struct ibv_cq_init_attr_ex {
-@@ -1210,6 +1216,10 @@ struct ibv_cq_init_attr_ex {
- 	 * enum ibv_cq_init_attr_mask
- 	 */
+@@ -207,6 +207,8 @@ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
  	uint32_t		comp_mask;
-+	/* create cq attr flags - one or more flags from
-+	 * enum ibv_create_cq_attr_flags
-+	 */
-+	uint32_t		flags;
+ 	struct ibv_odp_caps	odp_caps;
++	uint64_t		completion_timestamp_mask;
++	uint64_t		hca_core_clock;
  };
  
- enum verbs_context_mask {
-diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index 3e97fd0..1862ebe 100644
---- a/man/ibv_create_cq_ex.3
-+++ b/man/ibv_create_cq_ex.3
-@@ -42,6 +42,14 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 8,  /* Require completion timestamp in WC /*
+ enum ibv_mtu {
+diff --git a/man/ibv_query_device_ex.3 b/man/ibv_query_device_ex.3
+index 1f483d2..db12c2b 100644
+--- a/man/ibv_query_device_ex.3
++++ b/man/ibv_query_device_ex.3
+@@ -22,8 +22,10 @@ is a pointer to an ibv_device_attr_ex struct, as defined in <infiniband/verbs.h>
+ struct ibv_device_attr_ex {
+ .in +8
+ struct ibv_device_attr orig_attr;
+-uint32_t               comp_mask;              /* Compatibility mask that defines which of the following variables are valid */
+-struct ibv_odp_caps    odp_caps;               /* On-Demand Paging capabilities */
++uint32_t               comp_mask;                  /* Compatibility mask that defines which of the following variables are valid */
++struct ibv_odp_caps    odp_caps;                   /* On-Demand Paging capabilities */
++uint64_t               completion_timestamp_mask;  /* Completion timestamp mask (0 = unsupported) */
++uint64_t               hca_core_clock;             /* The frequency (in kHZ) of the HCA (0 = unsupported) */
+ .in -8
  };
- 
-+enum ibv_cq_init_attr_mask {
-+        IBV_CQ_INIT_ATTR_MASK_FLAGS             = 1 << 0,
-+};
-+
-+enum ibv_create_cq_attr_flags {
-+        IBV_CREATE_CQ_ATTR_SINGLE_THREADED      = 1 << 0, /* This CQ is used from a single threaded, thus no locking is required */
-+};
-+
- .SH "Polling an extended CQ"
- In order to poll an extended CQ efficiently, a user could use the following functions.
  
 diff --git a/src/cmd.c b/src/cmd.c
-index 647fbbb..5cd3e78 100644
+index d292452..777fded 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -486,6 +486,10 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
- 
- 	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
- 	    sizeof(cmd->flags)) {
-+		if ((cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS) &&
-+		    (cq_attr->flags & ~(IBV_CREATE_CQ_ATTR_RESERVED - 1)))
-+			return EOPNOTSUPP;
-+
- 		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
- 			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
+@@ -189,6 +189,27 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 		}
  	}
+ 
++	if (attr_size >= offsetof(struct ibv_device_attr_ex,
++				  completion_timestamp_mask) +
++			 sizeof(attr->completion_timestamp_mask)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, timestamp_mask) +
++		    sizeof(resp->timestamp_mask))
++			attr->completion_timestamp_mask = resp->timestamp_mask;
++		else
++			attr->completion_timestamp_mask = 0;
++	}
++
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, hca_core_clock) +
++			 sizeof(attr->hca_core_clock)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, hca_core_clock) +
++		    sizeof(resp->hca_core_clock))
++			attr->hca_core_clock = resp->hca_core_clock;
++		else
++			attr->hca_core_clock = 0;
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 1.8.3.1
 
