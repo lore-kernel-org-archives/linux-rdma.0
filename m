@@ -1,83 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC] rdma/uverbs: Sketch for an ioctl framework
-Date: Tue, 24 May 2016 17:13:59 -0600
-Message-ID: <20160524231359.GA10664@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
- <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
- <20160524214137.GA6760@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0502ED@ORSMSX109.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V6 for-next 0/4] Support SendOnlyFullMember join
+Date: Wed, 25 May 2016 11:40:18 +0300
+Message-ID: <1464165622-1540-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0502ED-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 24, 2016 at 10:38:58PM +0000, Hefty, Sean wrote:
+There are four types of multicast join: FullMember, NonMember,
+SendOnlyNonMember and SendOnlyFullMember.
 
-> > I'm starting to think the basic thrust of the Mellanox series (provide
-> > an easy compatability with our userspace) is a sane approach. The
-> > other options look like far too much work to use as a starting point.
-> 
-> What matters is whether the work needs to be done anyway, and how
-> can we get to the end design.  I don?t see a time crunch to force
-> switching to ioctls.
+This patch-set introduces the ability to send multicast join requests of
+type SendOnlyFullMember (until now only the first three types were
+supported).
+Host that sends such join request, does not require a multicast
+subscription and will still send properly, and in addition will not get
+other multicast packets from that group.
 
-Well, it doesn't need to be done, the verbs calls we've already coded
-do not *need* to be recoded - except due to the security problem.
+It adds a new SA query (for classport_info) to check that the sm
+supports sending such requests and it modifies multicast processing in
+the IB/core module to handle SendOnlyFullMember multicast join requests.
 
-> > You are the only person I've heard who wants to restructure the
-> > libibverbs interface at the same time..
-> > 
-> > When I kicked off this process at the OFA meeting the discussions
-> > revolved around some very clear goals:
-> >  1) Comprehensively close the security issue
-> >  2) Provide 100% support for existing libibverbs users on the current
-> >     libibverbs API
-> >  3) Restructure obvious known weaknesses (eg IB specific areas)
-> >  4) Add additional extension points
-> 
-> I still don't think we even have agreement on what this interface
-> should be.  There is not a single user space library that's being
-> targeted here.
+In addition, the patch set modifies IPoIB so that if the sm does support
+SendOnlyFullMember join requests, IPoIB will send such a request when
+joining a sendonly multicast group.
 
-As I outlined, the genesis to do this was to migrate libibverbs to an
-ioctl interface and in the process set a better stage for all the
-other things people want to do. That includes better supporting
-non-libibverbs libraries (dpdk, libfabric, whatever)
+Changes from V0:
+PORTCLASSINFO_REC_FIELD changed to CLASSPORTINFO_REC_FIELD
+2 fields in ib_class_port_info instead of one
+"sa" changed to SA
+"sa" in the headline changed to SA agent
+No need to indicates NUM_JOIN_MEMBERSHIP_TYPES = 4
+Change the place the ipoib driver calls the new sa_query, does it once after the broadcast is joined.
 
-The purpose of the object/method style framework was to better set the
-stage for the core code to provide that kind of wider interface for
-the drivers.
+Changes from V1:
+1. add define to sendonly_full_member join state, instead of "8"
+2. change commit message to introduce the capmask2
+3. number name instead of digit in commit message
+4. SA agent instead of SA in commit message header.
 
-A major family of objects/methods is going to be the libibverbs 1.0
-support layer which is mandatory to port libibverbs to this interface.
+Changes from V2:
+1. returned back to one field in ib_class_port_info (as in V0).
 
-The driver specific and any future 'non-verbs' common objects/methods
-have little concrete to bring to the table right now. The cdev stuff
-in hfi1/qib is very small and easilly handled by the bypass-to-driver
-path that both patches include.
+Changes from V3:
+1. Add setter and getter for cap_mask2_resp_time and change accordingly.
+2. add relevant reviewd-by section
 
-> hardware specific structures to user space.  This is why you see
-> objections to putting this under uverbs.  Non-verbs use cases keep
-> getting completely overlooked in the conversation.
+Changes from V4:
+1. add defines for mask/offsets, and sync with the sm code (Thanks to Hal).
+2. add check in ipoib for rec is not NULL.
+3. Add reviewd-by section.
 
-I disagree, non-verbs is not a central topic of conversation because
-nothing beyond needing a bypass-to-driver channel has been brought up
-by that community. That need has clearly been met in both patch series.
 
-Further, the basic things presented by both series so far are still
-general enough to allow for new common uAPIs that are unrelated to the
-verbs family.
+Changes from V5:
+1. set msb in capmask2 in qib_mad.c as needed.
 
-I'm not sure what else can be done until the non-verbs universe makes
-a consensus on what common kernel support it needs???
+Erez Shitrit (4):
+  IB/core: Introduce capabilitymask2 field in ClassPortInfo mad
+  IB/SA Agent: Add support for SA agent get ClassPortInfo
+  IB/core: Support new type of join-state for multicast
+  IB/ipoib: Support SendOnlyFullMember MCG for SendOnly join
 
-Jason
+ drivers/infiniband/core/multicast.c            |  23 +++-
+ drivers/infiniband/core/sa_query.c             | 173 +++++++++++++++++++++++++
+ drivers/infiniband/hw/qib/qib_mad.c            |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   2 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  73 +++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  38 ++++--
+ drivers/infiniband/ulp/srpt/ib_srpt.c          |   2 +-
+ include/rdma/ib_mad.h                          |  58 ++++++++-
+ include/rdma/ib_sa.h                           |  12 ++
+ 9 files changed, 364 insertions(+), 23 deletions(-)
+
+-- 
+1.7.11.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
