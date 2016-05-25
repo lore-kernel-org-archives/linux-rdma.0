@@ -1,90 +1,270 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC] rdma/uverbs: Sketch for an ioctl framework
-Date: Wed, 25 May 2016 15:31:29 -0400
-Message-ID: <2fc6b394-ff39-4df5-7658-ed02272e7b1c@redhat.com>
-References: <1828884A29C6694DAF28B7E6B8A82373AB04FB7F@ORSMSX109.amr.corp.intel.com>
- <HE1PR05MB141819B27F9AAA360DCB420FB14F0@HE1PR05MB1418.eurprd05.prod.outlook.com>
- <11b6d9c1-0b20-f929-c896-ca084fe18192@redhat.com>
- <20160524214137.GA6760@obsidianresearch.com> <5745E9AE.6020700@redhat.com>
- <20160525190039.GA5525@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V7 for-next 2/4] IB/SA Agent: Add support for SA agent get
+ ClassPortInfo
+Date: Wed, 25 May 2016 15:40:48 -0400
+Message-ID: <1bbed407-3aa2-b7bf-bc67-20a1f77e0532@dev.mellanox.co.il>
+References: <1464202927-14979-1-git-send-email-erezsh@mellanox.com>
+ <1464202927-14979-3-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="33gXqjlgJA0TPBFUJiHvtr44VBBVlRMFo"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160525190039.GA5525-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1464202927-14979-3-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hefty Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---33gXqjlgJA0TPBFUJiHvtr44VBBVlRMFo
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On 5/25/2016 3:02 PM, Erez Shitrit wrote:
+> New SA query function to return the ClassPortInfo struct from the SA.
+> If the SM supports FullMemberSendOnly mode for MCG's, it sets a
+> capability bit in the capability_mask2 field of the response.
+> 
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On 05/25/2016 03:00 PM, Jason Gunthorpe wrote:
-> On Wed, May 25, 2016 at 02:06:38PM -0400, Doug Ledford wrote:
->=20
+Just a nit below:
 
-> To be very clear, an *API* break is not tolerable. The libibverbs 1.0
-> API must still be 100% functional on the new interface.
+> ---
+>  drivers/infiniband/core/sa_query.c | 173 +++++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_sa.h               |  12 +++
+>  2 files changed, 185 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+> index 3ebd108..5c37f2f 100644
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
+> @@ -119,6 +119,12 @@ struct ib_sa_guidinfo_query {
+>  	struct ib_sa_query sa_query;
+>  };
+>  
+> +struct ib_sa_classport_info_query {
+> +	void (*callback)(int, struct ib_class_port_info *, void *);
+> +	void *context;
+> +	struct ib_sa_query sa_query;
+> +};
+> +
+>  struct ib_sa_mcmember_query {
+>  	void (*callback)(int, struct ib_sa_mcmember_rec *, void *);
+>  	void *context;
+> @@ -392,6 +398,82 @@ static const struct ib_field service_rec_table[] = {
+>  	  .size_bits    = 2*64 },
+>  };
+>  
+> +#define CLASSPORTINFO_REC_FIELD(field) \
+> +	.struct_offset_bytes = offsetof(struct ib_class_port_info, field),	\
+> +	.struct_size_bytes   = sizeof((struct ib_class_port_info *)0)->field,	\
+> +	.field_name          = "ib_class_port_info:" #field
+> +
+> +static const struct ib_field classport_info_rec_table[] = {
+> +	{ CLASSPORTINFO_REC_FIELD(base_version),
+> +	  .offset_words = 0,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 8 },
+> +	{ CLASSPORTINFO_REC_FIELD(class_version),
+> +	  .offset_words = 0,
+> +	  .offset_bits  = 8,
+> +	  .size_bits    = 8 },
+> +	{ CLASSPORTINFO_REC_FIELD(capability_mask),
+> +	  .offset_words = 0,
+> +	  .offset_bits  = 16,
+> +	  .size_bits    = 16 },
+> +	{ CLASSPORTINFO_REC_FIELD(cap_mask2_resp_time),
+> +	  .offset_words = 1,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_gid),
+> +	  .offset_words = 2,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 128 },
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_tcslfl),
+> +	  .offset_words = 6,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_lid),
+> +	  .offset_words = 7,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 16 },
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_pkey),
+> +	  .offset_words = 7,
+> +	  .offset_bits  = 16,
+> +	  .size_bits    = 16 },
+> +
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_qp),
+> +	  .offset_words = 8,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +	{ CLASSPORTINFO_REC_FIELD(redirect_qkey),
+> +	  .offset_words = 9,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +
+> +	{ CLASSPORTINFO_REC_FIELD(trap_gid),
+> +	  .offset_words = 10,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 128 },
+> +	{ CLASSPORTINFO_REC_FIELD(trap_tcslfl),
+> +	  .offset_words = 14,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +
+> +	{ CLASSPORTINFO_REC_FIELD(trap_lid),
+> +	  .offset_words = 15,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 16 },
+> +	{ CLASSPORTINFO_REC_FIELD(trap_pkey),
+> +	  .offset_words = 15,
+> +	  .offset_bits  = 16,
+> +	  .size_bits    = 16 },
+> +
+> +	{ CLASSPORTINFO_REC_FIELD(trap_hlqp),
+> +	  .offset_words = 16,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +	{ CLASSPORTINFO_REC_FIELD(trap_qkey),
+> +	  .offset_words = 17,
+> +	  .offset_bits  = 0,
+> +	  .size_bits    = 32 },
+> +};
+> +
+>  #define GUIDINFO_REC_FIELD(field) \
+>  	.struct_offset_bytes = offsetof(struct ib_sa_guidinfo_rec, field),	\
+>  	.struct_size_bytes   = sizeof((struct ib_sa_guidinfo_rec *) 0)->field,	\
+> @@ -1645,6 +1727,97 @@ err1:
+>  }
+>  EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
+>  
+> +/* Support get SA ClassPortInfo */
+> +static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
+> +					      int status,
+> +					      struct ib_sa_mad *mad)
+> +{
+> +	struct ib_sa_classport_info_query *query =
+> +		container_of(sa_query, struct ib_sa_classport_info_query, sa_query);
+> +
+> +	if (mad) {
+> +		struct ib_class_port_info rec;
+> +
+> +		ib_unpack(classport_info_rec_table,
+> +			  ARRAY_SIZE(classport_info_rec_table),
+> +			  mad->data, &rec);
+> +		query->callback(status, &rec, query->context);
+> +	} else {
+> +		query->callback(status, NULL, query->context);
+> +	}
+> +}
+> +
+> +static void ib_sa_portclass_info_rec_release(struct ib_sa_query *sa_query)
+> +{
+> +	kfree(container_of(sa_query, struct ib_sa_classport_info_query,
+> +			   sa_query));
+> +}
+> +
 
-You're drawing a distinction that doesn't exist.  Libibverbs presents
-both an API and an ABI to user space applications, and the kernel
-presents both an API and ABI to libibverbs (or libfabric or whatever
-chooses to use it).  Changing from write to ioctl changes the kernel to
-verbs API, and creates a new ABI, and possibly removes an old ABI if we
-dropped the write interface.  The bare term API is not deterministic.
+Should there be comment block here describing the added routine below
+like the other query routines have ?
 
->> If we end up just doing a behind the scenes switch from write to ioctl=
+Other than that:
 
->> with no changing of data structures or command flow or anything else,
->> then we can ignore the end to end picture because it won't change
->> significantly.
->=20
-> You should describe what specific things you want to see.
->=20
-> It is time for the people who are hand waving about non-verbs, non-qp,
-> 'new data transfers' to sit down and specify what they want to see out
-> of the kernel uABI.
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is a fair point, but one I don't have time to respond to at the
-moment.  I've already spent more time on this topic this week than I
-should have given the other tasks I have at hand with the merge window
-closing in a few days.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
-
-
---33gXqjlgJA0TPBFUJiHvtr44VBBVlRMFo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXRf2RAAoJELgmozMOVy/dMgYP/Rm8gPLuCCNuocubJpxcOSTQ
-QzX2ACqxRPhpAQ1vBNHJuX2wbOBds5J0WOns39c1j/KhVjm7NqvgTiGDra/ELTw7
-7INHIjJqYx083kpIEUlYhxhUw/dT85Ty8fi7cQ4qvUV6cUYOQwMA0hqclXAyJ9iY
-AAUohAUzk49voLY2SFHqI2vkkwN4OjeVy5M7hUuDmzbU08npW7mFkU4dAxpfkX+I
-nKNTzf0K2bxvHXlHQ4FIruBag2s53v+5pAdkbr4vkp7bzJ4bBLuX4JmmL1FyBNBT
-j9zZU287JdU1eJfrfC2o3OpaSm8z8y72nww9aQmQHz0XTemipXDOgW8jXtWLCsYR
-FiSa9bJkqis1Gm3bALJGELMyYnJh0XLp5mezTUig7kRrymsuAc4GpH6VYOf12/ss
-EY8u2tThXOGbHqbXdi4+++oObXGnMVcbX2MgKJTFATToC8aT0dVW1i2OdWW3XODM
-vRkSU97PXZzOUZsjgEBBzsrN0Q2hEoVJPpu309CgKuvu7sGBdsmp2zJ4MoHufDxf
-y1+jwoDEuIC22t9k46HgNDfx7icqIXQL3mIVa0DSOBL/jLh4Bt3fBBRjHjwLlKK6
-W+cbVW7LkKY80LVIw7QEGh/VbG7c6p1xG6U77t4Jox5/iokVdNcTiwmoHXLYiIOL
-BVxg6Ueg3P7UfcH9X+WD
-=Jj9v
------END PGP SIGNATURE-----
-
---33gXqjlgJA0TPBFUJiHvtr44VBBVlRMFo--
+> +int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+> +				   struct ib_device *device, u8 port_num,
+> +				   int timeout_ms, gfp_t gfp_mask,
+> +				   void (*callback)(int status,
+> +						    struct ib_class_port_info *resp,
+> +						    void *context),
+> +				   void *context,
+> +				   struct ib_sa_query **sa_query)
+> +{
+> +	struct ib_sa_classport_info_query *query;
+> +	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
+> +	struct ib_sa_port *port;
+> +	struct ib_mad_agent *agent;
+> +	struct ib_sa_mad *mad;
+> +	int ret;
+> +
+> +	if (!sa_dev)
+> +		return -ENODEV;
+> +
+> +	port  = &sa_dev->port[port_num - sa_dev->start_port];
+> +	agent = port->agent;
+> +
+> +	query = kzalloc(sizeof(*query), gfp_mask);
+> +	if (!query)
+> +		return -ENOMEM;
+> +
+> +	query->sa_query.port = port;
+> +	ret = alloc_mad(&query->sa_query, gfp_mask);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	ib_sa_client_get(client);
+> +	query->sa_query.client = client;
+> +	query->callback        = callback;
+> +	query->context         = context;
+> +
+> +	mad = query->sa_query.mad_buf->mad;
+> +	init_mad(mad, agent);
+> +
+> +	query->sa_query.callback = callback ? ib_sa_classport_info_rec_callback : NULL;
+> +
+> +	query->sa_query.release  = ib_sa_portclass_info_rec_release;
+> +	/* support GET only */
+> +	mad->mad_hdr.method	 = IB_MGMT_METHOD_GET;
+> +	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_CLASS_PORTINFO);
+> +	mad->sa_hdr.comp_mask	 = 0;
+> +	*sa_query = &query->sa_query;
+> +
+> +	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
+> +	if (ret < 0)
+> +		goto err2;
+> +
+> +	return ret;
+> +
+> +err2:
+> +	*sa_query = NULL;
+> +	ib_sa_client_put(query->sa_query.client);
+> +	free_mad(&query->sa_query);
+> +
+> +err1:
+> +	kfree(query);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(ib_sa_classport_info_rec_query);
+> +
+>  static void send_handler(struct ib_mad_agent *agent,
+>  			 struct ib_mad_send_wc *mad_send_wc)
+>  {
+> diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+> index cdc1c81..3840416 100644
+> --- a/include/rdma/ib_sa.h
+> +++ b/include/rdma/ib_sa.h
+> @@ -94,6 +94,8 @@ enum ib_sa_selector {
+>  	IB_SA_BEST = 3
+>  };
+>  
+> +#define IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT	BIT(12)
+> +
+>  /*
+>   * Structures for SA records are named "struct ib_sa_xxx_rec."  No
+>   * attempt is made to pack structures to match the physical layout of
+> @@ -439,4 +441,14 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+>  			      void *context,
+>  			      struct ib_sa_query **sa_query);
+>  
+> +/* Support get SA ClassPortInfo */
+> +int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+> +				   struct ib_device *device, u8 port_num,
+> +				   int timeout_ms, gfp_t gfp_mask,
+> +				   void (*callback)(int status,
+> +						    struct ib_class_port_info *resp,
+> +						    void *context),
+> +				   void *context,
+> +				   struct ib_sa_query **sa_query);
+> +
+>  #endif /* IB_SA_H */
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
