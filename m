@@ -1,103 +1,142 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC ABI 8/8] IB/core: Implement device_create with the new ABI
-Date: Thu, 26 May 2016 16:24:06 +0300
-Message-ID: <CAAKD3BDVFs4rivq1qEih-Z5uOMSVp=OuwDaVroK=UjAhcj6wsg@mail.gmail.com>
-References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
-	<1464100526-31730-9-git-send-email-leonro@mellanox.com>
-	<20160524220720.GF7950@obsidianresearch.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V3 libibverbs 2/7] Add member functions to poll an
+ extended CQ
+Date: Thu, 26 May 2016 18:00:09 +0300
+Message-ID: <153e0a54-2ca6-f05a-d36a-05e736a348d7@mellanox.com>
+References: <1464181344-11987-1-git-send-email-yishaih@mellanox.com>
+ <1464181344-11987-3-git-send-email-yishaih@mellanox.com>
+ <20160525172624.GA4602@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160524220720.GF7950-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160525172624.GA4602-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 25, 2016 at 1:07 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Tue, May 24, 2016 at 05:35:26PM +0300, Leon Romanovsky wrote:
+On 25/05/2016 20:26, Jason Gunthorpe wrote:
+> On Wed, May 25, 2016 at 04:02:19PM +0300, Yishai Hadas wrote:
 >
->> +     ucontext->device = ib_dev;
->> +     INIT_LIST_HEAD(&ucontext->pd_list);
->> +     INIT_LIST_HEAD(&ucontext->mr_list);
->> +     INIT_LIST_HEAD(&ucontext->mw_list);
->> +     INIT_LIST_HEAD(&ucontext->cq_list);
->> +     INIT_LIST_HEAD(&ucontext->qp_list);
->> +     INIT_LIST_HEAD(&ucontext->srq_list);
->> +     INIT_LIST_HEAD(&ucontext->ah_list);
->> +     INIT_LIST_HEAD(&ucontext->xrcd_list);
->> +     INIT_LIST_HEAD(&ucontext->rule_list);
-> [..]
+>>  struct ibv_cq_ex {
+>>  	struct ibv_context     *context;
+>>  	struct ibv_comp_channel *channel;
+>> @@ -869,6 +873,23 @@ struct ibv_cq_ex {
+>>  	uint32_t		async_events_completed;
+>>
+>>  	uint32_t		comp_mask;
 >
-> Please don't cut and paste like this.
->
-> Considering your approach I'd suggest just go ahead and immediately
-> implement a compat wrapper for each replaced write() style call.
->
-> eg replace ib_uverbs_get_context with something that forms a
-> new-style-command and calls the netlink version directly.
+> I'd also suggest looking at the cacheline layout of this structure,
+> grouping related things together to minimize the foot print.
 >
 
-Of course, this is just the first step of the ABI. It's only intended
-to show some concepts regarding the new ABI and not as a final ABI
-conversion.
-I agree that we don't want code duplication and the old ABI handling
-code should just wrap the parameters and call the new code path.
+We need to keep the first part identical to ibv_cq in order to allow 
+ibv_cq_ex to be used in other APIs. In addition, the identical part is 
+already aligned and grouped.
+The new part will be aligned and grouped in the next re-spin.
 
-> This also then serves as the example on how to implement the user
-> space migration.
+> I also think this is not enough to deal with future extention needs.
 >
->> +             nla = ib_uverbs_nla_put(uresp, IBNL_RESPONSE_TYPE_VENDOR,
->> +                                     sizeof(vendor_len), &vendor_len);
+> This:
 >
-> Please don't use the word 'vendor' in any of this.
+> +       struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
+> +                                         struct ibv_cq_init_attr_ex *init_attr);
 >
-> There is only common and driver-specific.
+> Should take sizeof(ibv_cq_ex) as an argument and allocate and zero at least
+> enough memory to cover the caller's struct size. Have the
+> ibv_create_cq_ex inline do this
 >
-> Maybe call this IBNL_RESPONSE_DRIVER_UDATA
+> This ensures if we add new function pointers to the end then they are
+> null'd even if libibverbs is older, which is a little safer than
+> overflowing memory.
+>
+
+In order to use read_xxxx function, a user should allocate a suitable CQ 
+(with the correct flag). If a support for a flag is needed in 
+libibverbs, it should be checked in the create function.
+
+Currently, no explicit support is needed from libibverbs. The only 
+required support comes from the vendor's driver and it indeed checks 
+those attributes before creating a CQ. We can check comp_mask and 
+wc_flags validity in __lib_ibv_create_cq_ex that will ensure the running 
+libibverbs is familiar with all requested fields.
+
+> This stuff:
+>
+> +struct ibv_cq_init_attr_ex {
+> +       /* Minimum number of entries required for CQ */
+> +       int                     cqe;
+>
+> And other similar should use 'unsigned int' for values that cannot be negative.
 >
 
 Ok
 
->> +     nla = ib_uverbs_nla_put(uresp, IBNL_RESPONSE_TYPE_RESP,
->> +                             sizeof(resp), &resp);
+> These two don't seem well thought out:
 >
-> And this IBNL_RESPONSE_COMMON ?
+> +enum ibv_create_cq_wc_flags {
+> +       IBV_WC_EX_WITH_BYTE_LEN         = 1 << 0,
+> +       IBV_WC_EX_WITH_IMM              = 1 << 1,
 >
-
-Yeah
-
->> diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
->> index f5dc276..10c2412 100644
->> +++ b/drivers/infiniband/core/uverbs_main.c
+> +enum {
+> +       IBV_WC_STANDARD_FLAGS = IBV_WC_EX_WITH_BYTE_LEN         |
 >
->> +static const struct nla_policy ibnl_create_device_policy[] = {
 >
-> Why isn't this stuff in a _nl file?
+> Eg RC QP's do not have several of those fields.
 >
-
-All validators and function pointers should move into uverbs_cmd_nl file.
-
->> +enum ibnl_create_device {
->> +     IBNL_CREATE_DEVICE_CORE = IBNL_VENDOR_ATTRS_MAX,
->> +     IBNL_CREATE_DEVICE_MAX
->> +};
+> I expect that if the caller asks for (eg) IBV_WC_EX_WITH_SLID then it
+> must be available. This means it is an error to ask for it on QPs that
+> do not deliver that value, like RC.
 >
-> Whats all this about? Looks very strange.
+> Thus IBV_WC_STANDARD_FLAGS is misnamed and/or useless.
 >
 
-The first attribute ids of every command are reserved for the vendor part.
+It's useful when a CQ needs to support all legacy attribute and could be 
+attached to both RC and UD QPs.
+
+> You need to do a full audit of all the QP types and which fields they
+> can return and rethink these constants. Ensure the core code and/or
+> driver properly enforces the flags.
+>
+
+We could later expand the per-defined helper defines of 
+IBV_WC_RC_STANDARD_FLAGS, IBV_WC_UD_STANDARD_FLAGS.
+We introduced this define in order to ease migration of old poll_cq API 
+users.
+
+> The driver should also null fields accessor function pointers that it
+> cannot return.
+>
+
+We could have checked when creating a QP if the to-be attached CQ 
+doesn't support querying invalid attributes in respect of this QP (i.e 
+SLID in RC), but doing that you won't be able to attach the same CQ to 
+several QP types and get various QP-type specific attributes, as you can 
+today. Thus, we prefer the current approach.
+
+The fields that the user requested are guaranteed to be correct only 
+when querying a completion originated by a supporting QP - exactly like 
+today. We of course nullify function pointers the user didn't request.
+
+>> +	uint16_t (*read_slid)(struct ibv_cq_ex *current);
+>
+> Maybe make this uint32_t for OPA? Thoughts Intel?
+>
+
+No problems from our side regarding this.
+
+> You also need to post the driver side before this can be accepted...
+>
+
+Lets iron this API. We'll post libmlx5 implementation that matches this API.
 
 > Jason
+>
 
-Thanks for taking a look. The patches are still WIP and we'll fix the
-above issues.
+Regards,
+Yishai and Matan
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
