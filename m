@@ -1,54 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI 0/8] Netlink-based IOCTLs RDMA ABI
-Date: Thu, 26 May 2016 11:22:44 -0600
-Message-ID: <20160526172244.GC27115@obsidianresearch.com>
+Subject: Re: [RFC ABI 8/8] IB/core: Implement device_create with the new ABI
+Date: Thu, 26 May 2016 11:30:07 -0600
+Message-ID: <20160526173007.GD27115@obsidianresearch.com>
 References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05004F@ORSMSX109.amr.corp.intel.com>
- <20160524210132.GB7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0501E2@ORSMSX109.amr.corp.intel.com>
- <20160524214951.GC7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05023F@ORSMSX109.amr.corp.intel.com>
- <20160524223052.GI7950@obsidianresearch.com>
- <CAAKD3BA3fxgHwSXg__9LAPo7E4-7NY7h7Gea5+1GCg11ydn2kQ@mail.gmail.com>
+ <1464100526-31730-9-git-send-email-leonro@mellanox.com>
+ <20160524220720.GF7950@obsidianresearch.com>
+ <CAAKD3BDVFs4rivq1qEih-Z5uOMSVp=OuwDaVroK=UjAhcj6wsg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAAKD3BA3fxgHwSXg__9LAPo7E4-7NY7h7Gea5+1GCg11ydn2kQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAAKD3BDVFs4rivq1qEih-Z5uOMSVp=OuwDaVroK=UjAhcj6wsg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 26, 2016 at 06:18:02PM +0300, Matan Barak wrote:
-> The proposal treat every pointer as a typed pointer (which pretty much
-> resembles the netlink style of doing things, but instead of
-> serializing it into the buffer, we just scatter it to multiple
-> buffers).
+On Thu, May 26, 2016 at 04:24:06PM +0300, Matan Barak wrote:
 
-Yes
+> >> +enum ibnl_create_device {
+> >> +     IBNL_CREATE_DEVICE_CORE = IBNL_VENDOR_ATTRS_MAX,
+> >> +     IBNL_CREATE_DEVICE_MAX
+> >> +};
+> >
+> > Whats all this about? Looks very strange.
+> 
+> The first attribute ids of every command are reserved for the vendor part.
 
-> I'm not sure it makes the parsing and validations easier.
+I'd still like to see if we can be happy with globally unique
+attribute ID's. I would like to see each driver have it's own range of
+global IDs that it can use. Much like an ioctl number each attribute
+id should be associated with exactly one structure layout.
 
-It means less parsing work, you don't need to validate message
-structure for instance, the header can be copy'd without allocation,
-size validation can be deferred to the reader, we don't need alignment
-padding complexity.
-
-It also means less parsing work in user space because the reply
-message is already fully scattered where the caller wants it, so it
-doesn't need to parse netlink stuff in the reply either.
-
-The downside is that for the most part the reply structure must be
-known in advance
-
-> Actually, I was thinking about ditching the common response buffer and
-> just overwriting the command buffer.
-
-The sgl approach allows this by letting user-space set the in and out
-pointers to the same thing, without having problems with specifying
-the out length or requiring user space to parse netlink to find the
-reply.
+The obvious downside is how to index them as large ID's cannot be
+array'd anymore, but I wonder if that approach is overkill anyhow, if
+there is only going to be one or two arguments then a linear search
+is OK, or we can require them to be sorted by ID or something.
 
 Jason
 --
