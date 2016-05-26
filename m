@@ -1,63 +1,152 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 libibverbs 2/7] Add member functions to poll an
- extended CQ
-Date: Thu, 26 May 2016 11:07:23 -0600
-Message-ID: <20160526170723.GB27115@obsidianresearch.com>
-References: <1464181344-11987-1-git-send-email-yishaih@mellanox.com>
- <1464181344-11987-3-git-send-email-yishaih@mellanox.com>
- <20160525172624.GA4602@obsidianresearch.com>
- <153e0a54-2ca6-f05a-d36a-05e736a348d7@mellanox.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: RDMA Read: Local protection error
+Date: Thu, 26 May 2016 20:19:33 +0300
+Message-ID: <57473025.5020801@grimberg.me>
+References: <1A4F4C32-CE5A-44D9-9BFE-0E1F8D5DF44D@oracle.com>
+ <57238F8C.70505@sandisk.com>
+ <B72A389F-FFF1-498C-A946-8AA72B7769F8@oracle.com>
+ <57277B63.8030506@sandisk.com>
+ <6BBFD126-877C-4638-BB91-ABF715E29326@oracle.com>
+ <1AFD636B-09FC-4736-B1C5-D1D9FA0B97B0@oracle.com>
+ <8a3276bf-f716-3dca-9d54-369fc3bdcc39@dev.mellanox.co.il>
+ <aaa67d51-663a-0aba-fc54-a5ab5d947a55@sandisk.com>
+ <C0AE237D-5E5A-4F94-B717-F3A3B4B4D4A8@oracle.com>
+ <574728EC.9040802@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <153e0a54-2ca6-f05a-d36a-05e736a348d7-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <574728EC.9040802-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 26, 2016 at 06:00:09PM +0300, Matan Barak wrote:
 
-> >This ensures if we add new function pointers to the end then they are
-> >null'd even if libibverbs is older, which is a little safer than
-> >overflowing memory.
-> 
-> In order to use read_xxxx function, a user should allocate a suitable CQ
-> (with the correct flag). If a support for a flag is needed in libibverbs, it
-> should be checked in the create function.
+>>>>> When debugging is disabled, kzalloc returns page-aligned
+>>>>> addresses:
+>>>>
+>>>> Is it defined some where that regular kzalloc/kmalloc guaranties to
+>>>> return a page-aligned address as you see in your testing ? if so the
+>>>> debug mode should behave the same. Otherwise we can consider using any
+>>>> flag allocation that can force that if such exists.
+>>>> Let's get other people's input here.
+>>>
+>>> My understanding is that the fact that k[mz]alloc() returns a
+>>> page-aligned buffer if the allocation size is > PAGE_SIZE / 2 is a
+>>> side effect of the implementation and not something callers of that
+>>> function should rely on. I think the only assumption k[mz]alloc()
+>>> callers should rely on is that the allocated memory respects
+>>> ARCH_KMALLOC_MINALIGN.
+>>
+>> I agree. mlx4_alloc_priv_pages() is carefully designed to
+>> correct the alignment of the buffer, so it already assumes
+>> that it is not getting a page-aligned buffer.
+>>
+>> The alignment isn't the problem here, though. It's that
+>> the buffer contains a page-boundary. That is guaranteed
+>> to be the case for HCAs that support more than 512
+>> sges, so that will have to be addressed (at least in
+>> mlx5).
+>
+> rrr...
+>
+> I think we should make the pages allocations dma coherent
+> in order to fix that...
+>
+> Nice catch Chunk.
 
-The purpose is to make the API safer by ensuring null's are present in
-unsupported function pointers in case the user accidently calls
-them. Of course the user shouldn't call them.
+Does this untested patch help (if so, mlx5 will need an identical patch)?
 
-> >The driver should also null fields accessor function pointers that it
-> >cannot return.
-> 
-> We could have checked when creating a QP if the to-be attached CQ doesn't
-> support querying invalid attributes in respect of this QP (i.e SLID in RC),
-> but doing that you won't be able to attach the same CQ to several QP types
-> and get various QP-type specific attributes, as you can today. Thus, we
-> prefer the current approach.
+--
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h 
+b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index ba328177eae9..78e9b3addfea 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -139,7 +139,6 @@ struct mlx4_ib_mr {
+         u32                     max_pages;
+         struct mlx4_mr          mmr;
+         struct ib_umem         *umem;
+-       void                    *pages_alloc;
+  };
 
-Hum, this is an interesting point.
+  struct mlx4_ib_mw {
+diff --git a/drivers/infiniband/hw/mlx4/mr.c 
+b/drivers/infiniband/hw/mlx4/mr.c
+index b04f6238e7e2..becb4a65c755 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -278,30 +278,13 @@ mlx4_alloc_priv_pages(struct ib_device *device,
+                       int max_pages)
+  {
+         int size = max_pages * sizeof(u64);
+-       int add_size;
+-       int ret;
+-
+-       add_size = max_t(int, MLX4_MR_PAGES_ALIGN - 
+ARCH_KMALLOC_MINALIGN, 0);
 
-My inclination is to prefer safety over generality, a CQ should not be
-bound to a QP that cannot provide all the attributes the CQ is setup
-for.
+-       mr->pages_alloc = kzalloc(size + add_size, GFP_KERNEL);
+-       if (!mr->pages_alloc)
++       mr->pages = dma_alloc_coherent(device->dma_device, size,
++                               &mr->page_map, GFP_KERNEL);
++       if (!mr->pages)
+                 return -ENOMEM;
 
-Requiring an app to have a few CQs of different types does not seem
-like a significant burden, and directly prevents stupid mistakes on
-the part of the user.
+-       mr->pages = PTR_ALIGN(mr->pages_alloc, MLX4_MR_PAGES_ALIGN);
+-
+-       mr->page_map = dma_map_single(device->dma_device, mr->pages,
+-                                     size, DMA_TO_DEVICE);
+-
+-       if (dma_mapping_error(device->dma_device, mr->page_map)) {
+-               ret = -ENOMEM;
+-               goto err;
+-       }
+-
+         return 0;
+-err:
+-       kfree(mr->pages_alloc);
+-
+-       return ret;
+  }
 
-> The fields that the user requested are guaranteed to be correct only when
-> querying a completion originated by a supporting QP - exactly like today. We
-> of course nullify function pointers the user didn't request.
+  static void
+@@ -311,9 +294,8 @@ mlx4_free_priv_pages(struct mlx4_ib_mr *mr)
+                 struct ib_device *device = mr->ibmr.device;
+                 int size = mr->max_pages * sizeof(u64);
 
-I've always thought that was confusing and hard to use, to be
-honest...
+-               dma_unmap_single(device->dma_device, mr->page_map,
+-                                size, DMA_TO_DEVICE);
+-               kfree(mr->pages_alloc);
++               dma_free_coherent(device->dma_device, size,
++                               mr->pages, mr->page_map);
+                 mr->pages = NULL;
+         }
+  }
+@@ -532,19 +514,8 @@ int mlx4_ib_map_mr_sg(struct ib_mr *ibmr, struct 
+scatterlist *sg, int sg_nents,
+                 unsigned int sg_offset)
+  {
+         struct mlx4_ib_mr *mr = to_mmr(ibmr);
+-       int rc;
 
-Jason
+         mr->npages = 0;
+
+-       ib_dma_sync_single_for_cpu(ibmr->device, mr->page_map,
+-                                  sizeof(u64) * mr->max_pages,
+-                                  DMA_TO_DEVICE);
+-
+-       rc = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mlx4_set_page);
+-
+-       ib_dma_sync_single_for_device(ibmr->device, mr->page_map,
+-                                     sizeof(u64) * mr->max_pages,
+-                                     DMA_TO_DEVICE);
+-
+-       return rc;
++       return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, mlx4_set_page);
+  }
+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
