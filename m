@@ -1,59 +1,103 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC ABI 0/8] Netlink-based IOCTLs RDMA ABI
-Date: Fri, 27 May 2016 00:46:48 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB05BC0C@ORSMSX109.amr.corp.intel.com>
-References: <1464100526-31730-1-git-send-email-leonro@mellanox.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05004F@ORSMSX109.amr.corp.intel.com>
- <20160524210132.GB7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0501E2@ORSMSX109.amr.corp.intel.com>
- <20160524214951.GC7950@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05023F@ORSMSX109.amr.corp.intel.com>
- <20160524223052.GI7950@obsidianresearch.com>
- <CAAKD3BA3fxgHwSXg__9LAPo7E4-7NY7h7Gea5+1GCg11ydn2kQ@mail.gmail.com>
- <20160526172244.GC27115@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB05BB5D@ORSMSX109.amr.corp.intel.com>
- <20160526233612.GA4396@obsidianresearch.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Fwd: Re: [PATCH v8 07/22] IB/hns: Add event queue support
+Date: Fri, 27 May 2016 10:57:44 +0800
+Message-ID: <5747B7A8.4060500@huawei.com>
+References: <df14eb59-6005-4412-8e85-d613b104ab96@redhat.com>
+ <cafab3f2-e033-398c-563e-7f4ffcca1a61@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160526233612.GA4396-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <cafab3f2-e033-398c-563e-7f4ffcca1a61-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liudongdong3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangjukuo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> I would be very sad if our new API required allocations on every
-> ioctl.
 
-Are you referring to kernel or user space allocations?
+On 2016/5/26 4:34, Doug Ledford wrote:
+>
+>
+> -------- Forwarded Message --------
+> Subject: Re: [PATCH v8 07/22] IB/hns: Add event queue support
+> Date: Wed, 25 May 2016 15:22:05 -0400
+> From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Organization: Red Hat, Inc.
+> To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>
+> On 05/25/2016 11:05 AM, Lijun Ou wrote:
+>> This patch added event queue support for RoCE driver. It is used
+>> for RoCE interrupt. RoCE includes 32 synchronous event irqs, 1
+>> asynchronous event irq and 1 common overflow irq.
+>> +#define roce_writel(value, addr)     writel((value), (addr))
+>> +#define roce_readl(addr)            readl((addr))
+> These two defines are useless.  They just make the code width longer for
+> no real purpose.  Here's an example from my last email
+>
+>>> +				((u64)le32_to_cpu(roce_readl(hr_dev->reg_base +
+>>> +					     ROCEE_SYS_IMAGE_GUID_H_REG)) <<
+>>> +					     ADDR_SHIFT_32);
+> If you are going to do a #define for this, at least let the #define do
+> some work for you.  Something like:
+>
+> #define hns_readl(dev, reg) readl((dev)->reg_base + (reg))
+>
+> then the above can read more like this
+>
+>>> +				((u64)le32_to_cpu(hns_readl(hr_dev,
+>>> +					     ROCEE_SYS_IMAGE_GUID_H_REG)) <<
+>>> +					     ADDR_SHIFT_32);
+> You could do additional tricks to make the overall length of lines
+> shorter while loosing none of the readability if you altered your
+> register names a little.  And if all of your ROCEE registers have a
+> common prefix or postfix, you can embedd that in the #define to keep the
+> register names shorter in your file.  For instance, they appear to all
+> start with ROCEE and end with REG, so maybe something like this:
+>
+> #define hns_readl(dev, reg) readl((dev->)reg_base + ROCEE_##reg##_REG)
+>
+> so that the above starts to look like this:
+>
+>>> +				((u64)le32_to_cpu(hns_readl(hr_dev,
+>>> +					     SYS_IMAGE_GUID_H)) << 32);
+> which is much more readable in my opinion.
+>
+>
+>
+>> +/* Address shift 12bit with the special hardware address operation of RoCEE */
+>> +#define ADDR_SHIFT_12				12
+>> +
+> And this is the one that should talk about the register that requires
+> the address be shifted as though using a 4K page size even when you aren't.
+Yes, we use a 4K page, but we can't use PAGE_SHIFT in the code. 
+PAGE_SHIFT maybe is not equal 12.
+your meaning is that we use literal number 12, right?
 
-For the kernel, I declared a small amount of data on the stack, and allocate memory only if the ioctl length is larger.  We can probably adjust the stack size to support most operations.
+Regards
+Wei Hu
+>
+>>   /* Address shift 32bit with the special hardware address operation of RoCEE */
+>>   #define ADDR_SHIFT_32				32
+> I really don't know when you actually need a define for a 32 bit shift....
+>
+>> +/* Address shift 44bit with the special hardware address operation of RoCEE */
+>> +#define ADDR_SHIFT_44				44
+> This one, just like the 12 shift, needs an explanation of some sort.
+44 = 32 + 12
+When evaluating addr to hardware, shift 12 because of using 4K page,
+and shift more 32 because of caculating the high 32 bit value evaluated 
+to hardware.
+We prepare to delete the definition of macro ADDR_SHIFT_44, use literal 
+44 directly in code,
+add comments.
 
-For user space, do we have a guess wrt the common number of sgl entries that would be used as input data?  Knowing an expected number of objects also seems needed to come up with an optimal design here.
+Regards
+Wei HU
+>
+>
+>
 
-> The idea with a sgl is that the core would check it with access_ok,
-> just like we do today, and then the implementation would
-> copy_from_user directly to the stack, like how the header scheme vs
-> data scheme works today. The attraction is we can keep with an
-> attribute type model without having to copy the whole buffer to parse
-> the attribute structure.
-> 
-> The main problem with the current scheme is that it is hard to add
-> variable sized things like addresses without opencoding that
-> everywhere. It is also hard to express what the kernel supports, and
-> doesn't well support 'optional' things.
 
-If the sgl contained offsets from the start of the memory buffer, rather than pointers to different buffers, we could support variable sized attributes without needing to fetch multiple buffers.
-
-As it stands, I don't see how we get away from calling copy from user twice in most circumstances.  Keeping most ioctls to this requires some sort of trade off.  But I think we can keep enough flexibility to support everything we want.
-
-> This is where I see the attraction of the attribute id labeled buffer.
-
-I like the idea of an attribute id labeled buffer myself.  But I think the processing of the ioctl data is better handled by the kernel client, rather than the framework.  The framework just needs to know enough to copy the data efficiently into/out from the kernel, and I don't know what's the optimal design here.
-
-- Sean 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
