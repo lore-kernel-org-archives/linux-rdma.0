@@ -1,140 +1,133 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 libibverbs 0/7] Completion timestamping
-Date: Sun, 29 May 2016 17:51:08 +0300
-Message-ID: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 libibverbs 3/7] Add timestamp_mask and hca_core_clock to ibv_query_device_ex
+Date: Sun, 29 May 2016 17:51:11 +0300
+Message-ID: <1464533475-18949-4-git-send-email-yishaih@mellanox.com>
+References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1464533475-18949-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This V4 series addressed few notes that we got for V3,
-details below.
+The fields timestamp_mask and hca_core_clock were added
+to the extended version of ibv_query_device verb.
+timestamp_mask represents the supported mask of the timestamp.
+Users could infer the accuracy of the reported possible
+timestamp.
+hca_core_clock represents the frequency of the HCA (in kHZ).
 
-The kernel part was already accepted.
+Since timestamp is given in hardware cycles, knowing the frequency
+is mandatory in order to convert this number into seconds.
 
-The series was retested successfully with mlx5 driver (lib, kernel)
-and can be accessed also from my openfabrics GIT at:
-git://openfabrics.org/~yishaih/libibverbs.git
-branch: ts_v4.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ examples/devinfo.c            | 10 ++++++++++
+ include/infiniband/kern-abi.h |  2 ++
+ include/infiniband/verbs.h    |  2 ++
+ man/ibv_query_device_ex.3     |  6 ++++--
+ src/cmd.c                     | 21 +++++++++++++++++++++
+ 5 files changed, 39 insertions(+), 2 deletions(-)
 
-Thanks,
-Yishai
-
-In order to do so, we add an extensible poll cq mechanism.
-Former attempts of extending poll CQ were made. An attempt to solve this
-problem tried to split the WC into mandatory and optional fields.
-The user declared which optional fields each CQ should report and the
-WC was constructed in a dynamic way representing all requested fields.
-We got some comments regarding this complex approach and API. Furthermore,
-it resulted in degraded performance in some flows.
-
-The current approach is based on Jason's proposal. Instead of using a WC
-struct, we report completion fields by request. A new ibv_cq_ex is added.
-This new extended CQ contains accessor functions to the completion fields.
-Each vendor assigns these function pointers in order to provide the
-completion data efficiently. In order to create a suitable CQ and maintain
-backward and forward compatibility, the user declares which completion
-attributes he needs while creating the CQ. A successful creation of the CQ
-guarantees that all requested attributes can be queried using the accessor
-function pointers.
-
-This approach prevents copying the WC fields in cost of indirect function calls.
-However, as most applications don't use most completion fields anyway, the new
-approach fully makes sense.
-
-Benchmarks we ran in our test lab found that this new approach generally
-equals to current API but *not* worse than. As the new API enables
-extending the polled fields we can overall say that it's a better API than
-the legacy one.
-
-The user creates a CQ using ibv_create_cq_ex, stating which completion
-attributes could be queried later on from this CQ.
-In order to decrease per-completion polling overhead, as of updating indices in
-the hardware, we split the polling into batches.
-
-A batch is started when calling ibv_start_poll_ex. If a completion is
-successfully fetched, the user could query its attributes using accessor
-functions ibv_wc_read_xxx.  In order to fetch the next completion in the batch,
-the user uses ibv_next_poll_ex.  The same ibv_wc_read_xxx functions are used in
-order to query these completions as well. In order to end a batch, the user
-uses ibv_end_poll_ex.  Of course, starting a new batch incurs some overhead.
-
-Each batch could poll zero or more completions.
-Each completion polling starts with either ibv_start_poll_ex/ibv_next_poll_ex
-and ends with ibv_next_poll_ex/ibv_end_poll_ex.
-Completion attributes could only be queried between these calls.
-These attributes represents the values of the completion already fetched by
-the last ibv_start_poll_ex/ibv_next_poll_ex.
-
-The batching API is thread-safe (assuming the CQ wasn't created with
-SINGLE_THREADED attribute) and represents a series of completions the user
-would like to poll one after another.  The vendor user space driver should
-guarantee this.
-
-Completion timestamp is added on top of these extended ibv_create_cq_ex verb by
-using wc_flags field of init_cq_attr. The user could query the CQ's completion
-timestamp using ibv_wc_read_completion_ts. The timestamp mask (number of
-supported bits) and the HCA's frequency are given in ibv_query_device_ex verb.
-
-We also give the user an ability to read the HCA's current clock.
-This is done via ibv_query_rt_values_ex. This verb could be extended
-in the future for other interesting information.
-
-Changes from V3:
-Addressed Jason's notes as of below:
-- Reorder ibv_cq_ex fields to be memory aligned.
-- Add a check as part of __lib_ibv_create_cq_ex that libibverbs supports all in coming WC flags,
-  this should prevent future compatibility issues.
-- Change ibv_wc_read_slid to return uint32_t as of other vendor request.
-- Change ibv_cq_init_attr_ex to use uint32 instead of int for some fields.
-
-Changes from V2:
-Addressed Jason's notes as of below:
-- Remove the '_ex' notation where was no legacy one.
-- Use 'wr_id' and 'status' fields directly on ibv_cq_ex to improve
-  performance. We ran some benchmarking and verified that this change is
-  really useful.
-
-Changes from V1:
-- Moved to indirect function calls in order to poll a CQ.
-
-Changes from V0:
-- Split the series to small logical patches.
-- Align naming in some places to match other verbs.
-- Fix and improve the man pages.
-- Add an example code as part of rc_pingpong.
-
-Matan Barak (6):
-  Add support for extended creating CQ verb
-  Add member functions to poll an extended CQ
-  Add timestamp_mask and hca_core_clock to ibv_query_device_ex
-  Add completion timestamp to poll_cq
-  Create a single threaded CQ
-  Add a verb that queries real time values from the HCA
-
-Yishai Hadas (1):
-  Add timestamp support in rc_pingpong
-
- Makefile.am                   |   3 +-
- examples/devinfo.c            |  10 ++
- examples/rc_pingpong.c        | 278 ++++++++++++++++++++++++++++++++----------
- include/infiniband/driver.h   |   9 ++
- include/infiniband/kern-abi.h |  26 ++++
- include/infiniband/verbs.h    | 243 ++++++++++++++++++++++++++++++++++++
- man/ibv_create_cq_ex.3        | 150 +++++++++++++++++++++++
- man/ibv_query_device_ex.3     |   6 +-
- man/ibv_query_rt_values_ex.3  |  50 ++++++++
- src/cmd.c                     |  69 +++++++++++
- src/device.c                  |  49 ++++++++
- src/ibverbs.h                 |   5 +
- src/libibverbs.map            |   1 +
- 13 files changed, 833 insertions(+), 66 deletions(-)
- create mode 100644 man/ibv_create_cq_ex.3
- create mode 100644 man/ibv_query_rt_values_ex.3
-
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index a8de982..0af8c3b 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -339,6 +339,16 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		printf("\tlocal_ca_ack_delay:\t\t%d\n", device_attr.orig_attr.local_ca_ack_delay);
+ 
+ 		print_odp_caps(&device_attr.odp_caps);
++		if (device_attr.completion_timestamp_mask)
++			printf("\tcompletion timestamp_mask:\t\t\t0x%016lx\n",
++			       device_attr.completion_timestamp_mask);
++		else
++			printf("\tcompletion_timestamp_mask not supported\n");
++
++		if (device_attr.hca_core_clock)
++			printf("\thca_core_clock:\t\t\t%lukHZ\n", device_attr.hca_core_clock);
++		else
++			printf("\tcore clock not supported\n");
+ 	}
+ 
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 36a2c8c..a2c0c46 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -271,6 +271,8 @@ struct ibv_query_device_resp_ex {
+ 	__u32 comp_mask;
+ 	__u32 response_length;
+ 	struct ibv_odp_caps_resp odp_caps;
++	__u64 timestamp_mask;
++	__u64 hca_core_clock;
+ };
+ 
+ struct ibv_query_port {
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 76423c3..2c9cb08 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -207,6 +207,8 @@ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+ 	struct ibv_odp_caps	odp_caps;
++	uint64_t		completion_timestamp_mask;
++	uint64_t		hca_core_clock;
+ };
+ 
+ enum ibv_mtu {
+diff --git a/man/ibv_query_device_ex.3 b/man/ibv_query_device_ex.3
+index 1f483d2..db12c2b 100644
+--- a/man/ibv_query_device_ex.3
++++ b/man/ibv_query_device_ex.3
+@@ -22,8 +22,10 @@ is a pointer to an ibv_device_attr_ex struct, as defined in <infiniband/verbs.h>
+ struct ibv_device_attr_ex {
+ .in +8
+ struct ibv_device_attr orig_attr;
+-uint32_t               comp_mask;              /* Compatibility mask that defines which of the following variables are valid */
+-struct ibv_odp_caps    odp_caps;               /* On-Demand Paging capabilities */
++uint32_t               comp_mask;                  /* Compatibility mask that defines which of the following variables are valid */
++struct ibv_odp_caps    odp_caps;                   /* On-Demand Paging capabilities */
++uint64_t               completion_timestamp_mask;  /* Completion timestamp mask (0 = unsupported) */
++uint64_t               hca_core_clock;             /* The frequency (in kHZ) of the HCA (0 = unsupported) */
+ .in -8
+ };
+ 
+diff --git a/src/cmd.c b/src/cmd.c
+index d292452..777fded 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -189,6 +189,27 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 		}
+ 	}
+ 
++	if (attr_size >= offsetof(struct ibv_device_attr_ex,
++				  completion_timestamp_mask) +
++			 sizeof(attr->completion_timestamp_mask)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, timestamp_mask) +
++		    sizeof(resp->timestamp_mask))
++			attr->completion_timestamp_mask = resp->timestamp_mask;
++		else
++			attr->completion_timestamp_mask = 0;
++	}
++
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, hca_core_clock) +
++			 sizeof(attr->hca_core_clock)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, hca_core_clock) +
++		    sizeof(resp->hca_core_clock))
++			attr->hca_core_clock = resp->hca_core_clock;
++		else
++			attr->hca_core_clock = 0;
++	}
++
+ 	return 0;
+ }
+ 
 -- 
 1.8.3.1
 
