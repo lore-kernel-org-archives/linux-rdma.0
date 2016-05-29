@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 libibverbs 2/7] Add member functions to poll an extended CQ
-Date: Sun, 29 May 2016 17:51:10 +0300
-Message-ID: <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 libibverbs 4/7] Add completion timestamp to poll_cq
+Date: Sun, 29 May 2016 17:51:12 +0300
+Message-ID: <1464533475-18949-5-git-send-email-yishaih@mellanox.com>
 References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464533475-18949-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,238 +12,115 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently, ibv_poll_cq is one stop shop for polling all the
-completion's attribute. The current implementation has a few
-implications:
-1. The vendor's completion format is transformed to an agnostic IB
-   format (copying data which might has been used directly).
-2. Adding new completion attributes means wasting more time in copies.
-3. Extensible functions require wasting cycles on logic which
-   determines whether a function is known and implemented in the
-   provider.
-
-In order to solve these problems, we introduce a new poll_cq mechanism
-for extensible CQs. Polling is done in batches, where every batch
-could contain more than one completion. A batch is started with
-calling to start_poll function. This already fetches a completion
-that the user can now query using the various query functions.
-Advancing to the next completion is done using next_poll.
-After querying all completions (or when the user wants to stop
-fetching completions in the current batch), end_poll is called.
-
-As 'wr_id' and 'status' are mostly used, they can be accessed directly
-and there is no function call for.
+In order to report when a completion was created, we add a member
+function to the CQ which reads the completion timestamp from the
+current CQ. The time is given in raw format.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/verbs.h | 92 ++++++++++++++++++++++++++++++++++++++++++++++
- man/ibv_create_cq_ex.3     | 75 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 167 insertions(+)
+ include/infiniband/kern-abi.h |  4 ++++
+ include/infiniband/verbs.h    | 10 +++++++++-
+ man/ibv_create_cq_ex.3        |  4 ++++
+ src/cmd.c                     |  6 ++++++
+ 4 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index fb68c45..76423c3 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -860,6 +860,10 @@ struct ibv_cq {
- 	uint32_t		async_events_completed;
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index a2c0c46..f882cc9 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -447,6 +447,10 @@ struct ibv_create_cq_resp {
+ 	__u32 cqe;
  };
  
-+struct ibv_poll_cq_attr {
-+	uint32_t comp_mask;
++enum ibv_create_cq_ex_kernel_flags {
++	IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP = 1 << 0,
 +};
 +
- struct ibv_cq_ex {
- 	struct ibv_context     *context;
- 	struct ibv_comp_channel *channel;
-@@ -873,6 +877,23 @@ struct ibv_cq_ex {
- 	uint32_t		async_events_completed;
+ struct ibv_create_cq_ex {
+ 	struct ex_hdr	hdr;
+ 	__u64		user_handle;
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 2c9cb08..2bcc70d 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -371,6 +371,7 @@ enum ibv_create_cq_wc_flags {
+ 	IBV_WC_EX_WITH_SLID		= 1 << 5,
+ 	IBV_WC_EX_WITH_SL		= 1 << 6,
+ 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 7,
++	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 8,
+ };
  
- 	uint32_t		comp_mask;
-+	enum ibv_wc_status status;
-+	uint64_t wr_id;
-+	int (*start_poll)(struct ibv_cq_ex *current,
-+			     struct ibv_poll_cq_attr *attr);
-+	int (*next_poll)(struct ibv_cq_ex *current);
-+	void (*end_poll)(struct ibv_cq_ex *current);
-+	enum ibv_wc_opcode (*read_opcode)(struct ibv_cq_ex *current);
-+	uint32_t (*read_vendor_err)(struct ibv_cq_ex *current);
-+	uint32_t (*read_byte_len)(struct ibv_cq_ex *current);
-+	uint32_t (*read_imm_data)(struct ibv_cq_ex *current);
-+	uint32_t (*read_qp_num)(struct ibv_cq_ex *current);
-+	uint32_t (*read_src_qp)(struct ibv_cq_ex *current);
-+	int (*read_wc_flags)(struct ibv_cq_ex *current);
-+	uint16_t (*read_pkey_index)(struct ibv_cq_ex *current);
-+	uint32_t (*read_slid)(struct ibv_cq_ex *current);
-+	uint8_t (*read_sl)(struct ibv_cq_ex *current);
-+	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
+ enum {
+@@ -385,7 +386,8 @@ enum {
+ };
+ 
+ enum {
+-	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS
++	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
++				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
+ };
+ 
+ enum ibv_wc_flags {
+@@ -896,6 +898,7 @@ struct ibv_cq_ex {
+ 	uint32_t (*read_slid)(struct ibv_cq_ex *current);
+ 	uint8_t (*read_sl)(struct ibv_cq_ex *current);
+ 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
++	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
  };
  
  static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -880,6 +901,77 @@ static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
- 	return (struct ibv_cq *)cq;
+@@ -974,6 +977,11 @@ static inline uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex *cq)
+ 	return cq->read_dlid_path_bits(cq);
  }
  
-+static inline int ibv_start_poll(struct ibv_cq_ex *cq,
-+				    struct ibv_poll_cq_attr *attr)
++static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
 +{
-+	return cq->start_poll(cq, attr);
-+}
-+
-+static inline int ibv_next_poll(struct ibv_cq_ex *cq)
-+{
-+	return cq->next_poll(cq);
-+}
-+
-+static inline void ibv_end_poll(struct ibv_cq_ex *cq)
-+{
-+	cq->end_poll(cq);
-+}
-+
-+static inline enum ibv_wc_opcode ibv_wc_read_opcode(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_opcode(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_vendor_err(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_vendor_err(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_byte_len(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_byte_len(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_imm_data(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_qp_num(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_src_qp(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_src_qp(cq);
-+}
-+
-+static inline int ibv_wc_read_wc_flags(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_wc_flags(cq);
-+}
-+
-+static inline uint16_t ibv_wc_read_pkey_index(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_pkey_index(cq);
-+}
-+
-+static inline uint32_t ibv_wc_read_slid(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_slid(cq);
-+}
-+
-+static inline uint8_t ibv_wc_read_sl(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_sl(cq);
-+}
-+
-+static inline uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_dlid_path_bits(cq);
++	return cq->read_completion_ts(cq);
 +}
 +
  struct ibv_ah {
  	struct ibv_context     *context;
  	struct ibv_pd	       *pd;
 diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index cf43784..3a24632 100644
+index 3a24632..b0b5e2d 100644
 --- a/man/ibv_create_cq_ex.3
 +++ b/man/ibv_create_cq_ex.3
-@@ -41,6 +41,81 @@ enum ibv_wc_flags_ex {
+@@ -39,6 +39,7 @@ enum ibv_wc_flags_ex {
+         IBV_WC_EX_WITH_SLID                  = 1 << 5,  /* Require slid in WC */
+         IBV_WC_EX_WITH_SL                    = 1 << 6,  /* Require sl in WC */
          IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 7,  /* Require dlid path bits in WC */
++        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 8,  /* Require completion timestamp in WC /*
  };
  
-+.SH "Polling an extended CQ"
-+In order to poll an extended CQ efficiently, a user could use the following functions.
-+
-+.TP
-+.B Completion iterator functions
-+
-+.BI "int ibv_start_poll(struct ibv_cq_ex " "*cq" ", struct ibv_poll_cq_attr " "*attr")
-+.br
-+Start polling a batch of work completions.
-+.I attr
-+is given in order to make this function
-+easily extensible in the future. This function either returns 0 on success or an error code
-+otherwise. When no completions are available on the CQ, ENOENT is returned, but the CQ remains
-+in a valid state. On success, querying the completion's attribute could be done using the query
-+functions described below. If an error code is given, end_poll shouldn't be called.
-+
-+.BI "int ibv_next_poll(struct ibv_cq_ex " "*cq")
-+.br
-+This function is called in order to get the next work completion. It has to be called after
-+.I start_poll
-+and before
-+.I end_poll
-+are called. This function either returns 0 on success or an error code
-+otherwise. When no completions are available on the CQ, ENOENT is returned, but the CQ remains
-+in a valid state. On success, querying the completion's attribute could be done using the query
-+functions described below. If an error code is given, end_poll should still be called,
-+indicating this is the end of the polled batch.
-+
-+.BI "void ibv_end_poll(struct ibv_cq_ex " "*cq")
-+.br
-+This function indicates the end of polling batch of work completions. After calling this function, the user should start a new batch
-+by calling
-+.I start_poll.
-+
-+.TP
-+.B Polling fields in the completion
-+Below members and functions are used in order to poll the current completion. The current completion is the completion which the iterator points to (start_poll and next_poll advances this iterator). Only fields that the user requested via wc_flags in ibv_create_cq_ex could be queried. In addition, some fields are only valid in certain opcodes and status codes.
-+
-+.BI "uint64_t wr_id - Can be accessed directly from struct ibv_cq_ex".
-+
-+.BI "enum ibv_wc_status - Can be accessed directly from struct ibv_cq_ex".
-+
-+.BI "enum ibv_wc_opcode ibv_wc_read_opcode(struct ibv_cq_ex " "*cq"); \c
-+ Get the opcode from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_vendor_err(struct ibv_cq_ex " "*cq"); \c
-+ Get the vendor error from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_byte_len(struct ibv_cq_ex " "*cq"); \c
-+ Get the vendor error from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex " "*cq"); \c
-+ Get the immediate data field from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex " "*cq"); \c
-+ Get the QP number field from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_src_qp(struct ibv_cq_ex " "*cq"); \c
-+ Get the source QP number field from the current completion.
-+
-+.BI "int ibv_wc_read_wc_flags(struct ibv_cq_ex " "*cq"); \c
-+ Get the QP flags field from the current completion.
-+
-+.BI "uint16_t ibv_wc_read_pkey_index(struct ibv_cq_ex " "*cq"); \c
-+ Get the pkey index field from the current completion.
-+
-+.BI "uint32_t ibv_wc_read_slid(struct ibv_cq_ex " "*cq"); \c
-+ Get the slid field from the current completion.
-+
-+.BI "uint8_t ibv_wc_read_sl(struct ibv_cq_ex " "*cq"); \c
-+ Get the sl field from the current completion.
-+
-+.BI "uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex " "*cq"); \c
-+ Get the dlid_path_bits field from the current completion.
+ .SH "Polling an extended CQ"
+@@ -116,6 +117,9 @@ Below members and functions are used in order to poll the current completion. Th
+ .BI "uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex " "*cq"); \c
+  Get the dlid_path_bits field from the current completion.
+ 
++.BI "uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex " "*cq"); \c
++ Get the completion timestamp from the current completion.
 +
  .SH "RETURN VALUE"
  .B ibv_create_cq_ex()
  returns a pointer to the CQ, or NULL if the request fails.
+diff --git a/src/cmd.c b/src/cmd.c
+index 777fded..647fbbb 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -484,6 +484,12 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
+ 	cmd->comp_channel  = cq_attr->channel ? cq_attr->channel->fd : -1;
+ 	cmd->comp_mask = 0;
+ 
++	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
++	    sizeof(cmd->flags)) {
++		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
++			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
++	}
++
+ 	err = write(context->cmd_fd, cmd, cmd_size);
+ 	if (err != cmd_size)
+ 		return errno;
 -- 
 1.8.3.1
 
