@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 libibverbs 4/7] Add completion timestamp to poll_cq
-Date: Sun, 29 May 2016 17:51:12 +0300
-Message-ID: <1464533475-18949-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V4 libibverbs 5/7] Create a single threaded CQ
+Date: Sun, 29 May 2016 17:51:13 +0300
+Message-ID: <1464533475-18949-6-git-send-email-yishaih@mellanox.com>
 References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464533475-18949-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,115 +12,86 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to report when a completion was created, we add a member
-function to the CQ which reads the completion timestamp from the
-current CQ. The time is given in raw format.
+When a CQ is used only from one thread, there's no need to waste cycles
+on locking. Since this series introduces a mechanism which allows the
+vendor to introduce different polling functions per CQ, it allows the
+vendor to implement both locking and lockless CQs and assign them
+accordingly.
+
+Adding a new creation flag for this.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/kern-abi.h |  4 ++++
- include/infiniband/verbs.h    | 10 +++++++++-
- man/ibv_create_cq_ex.3        |  4 ++++
- src/cmd.c                     |  6 ++++++
- 4 files changed, 23 insertions(+), 1 deletion(-)
+ include/infiniband/verbs.h | 12 +++++++++++-
+ man/ibv_create_cq_ex.3     |  8 ++++++++
+ src/cmd.c                  |  4 ++++
+ 3 files changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index a2c0c46..f882cc9 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -447,6 +447,10 @@ struct ibv_create_cq_resp {
- 	__u32 cqe;
- };
- 
-+enum ibv_create_cq_ex_kernel_flags {
-+	IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP = 1 << 0,
-+};
-+
- struct ibv_create_cq_ex {
- 	struct ex_hdr	hdr;
- 	__u64		user_handle;
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 2c9cb08..2bcc70d 100644
+index 2bcc70d..6642336 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -371,6 +371,7 @@ enum ibv_create_cq_wc_flags {
- 	IBV_WC_EX_WITH_SLID		= 1 << 5,
- 	IBV_WC_EX_WITH_SL		= 1 << 6,
- 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 7,
-+	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 8,
+@@ -1193,7 +1193,13 @@ struct ibv_context {
  };
  
- enum {
-@@ -385,7 +386,8 @@ enum {
- };
- 
- enum {
--	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS
-+	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
-+				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
- };
- 
- enum ibv_wc_flags {
-@@ -896,6 +898,7 @@ struct ibv_cq_ex {
- 	uint32_t (*read_slid)(struct ibv_cq_ex *current);
- 	uint8_t (*read_sl)(struct ibv_cq_ex *current);
- 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
-+	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
- };
- 
- static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -974,6 +977,11 @@ static inline uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex *cq)
- 	return cq->read_dlid_path_bits(cq);
- }
- 
-+static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_completion_ts(cq);
-+}
+ enum ibv_cq_init_attr_mask {
+-	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 0 << 1
++	IBV_CQ_INIT_ATTR_MASK_FLAGS	= 1 << 0,
++	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 1 << 1
++};
 +
- struct ibv_ah {
- 	struct ibv_context     *context;
- 	struct ibv_pd	       *pd;
++enum ibv_create_cq_attr_flags {
++	IBV_CREATE_CQ_ATTR_SINGLE_THREADED = 1 << 0,
++	IBV_CREATE_CQ_ATTR_RESERVED = 1 << 1,
+ };
+ 
+ struct ibv_cq_init_attr_ex {
+@@ -1215,6 +1221,10 @@ struct ibv_cq_init_attr_ex {
+ 	 * enum ibv_cq_init_attr_mask
+ 	 */
+ 	uint32_t		comp_mask;
++	/* create cq attr flags - one or more flags from
++	 * enum ibv_create_cq_attr_flags
++	 */
++	uint32_t		flags;
+ };
+ 
+ enum verbs_context_mask {
 diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index 3a24632..b0b5e2d 100644
+index b0b5e2d..93a1a38 100644
 --- a/man/ibv_create_cq_ex.3
 +++ b/man/ibv_create_cq_ex.3
-@@ -39,6 +39,7 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_SLID                  = 1 << 5,  /* Require slid in WC */
-         IBV_WC_EX_WITH_SL                    = 1 << 6,  /* Require sl in WC */
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 7,  /* Require dlid path bits in WC */
-+        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 8,  /* Require completion timestamp in WC /*
+@@ -42,6 +42,14 @@ enum ibv_wc_flags_ex {
+         IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 8,  /* Require completion timestamp in WC /*
  };
  
- .SH "Polling an extended CQ"
-@@ -116,6 +117,9 @@ Below members and functions are used in order to poll the current completion. Th
- .BI "uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex " "*cq"); \c
-  Get the dlid_path_bits field from the current completion.
- 
-+.BI "uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex " "*cq"); \c
-+ Get the completion timestamp from the current completion.
++enum ibv_cq_init_attr_mask {
++        IBV_CQ_INIT_ATTR_MASK_FLAGS             = 1 << 0,
++};
 +
- .SH "RETURN VALUE"
- .B ibv_create_cq_ex()
- returns a pointer to the CQ, or NULL if the request fails.
++enum ibv_create_cq_attr_flags {
++        IBV_CREATE_CQ_ATTR_SINGLE_THREADED      = 1 << 0, /* This CQ is used from a single threaded, thus no locking is required */
++};
++
+ .SH "Polling an extended CQ"
+ In order to poll an extended CQ efficiently, a user could use the following functions.
+ 
 diff --git a/src/cmd.c b/src/cmd.c
-index 777fded..647fbbb 100644
+index 647fbbb..5cd3e78 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -484,6 +484,12 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
- 	cmd->comp_channel  = cq_attr->channel ? cq_attr->channel->fd : -1;
- 	cmd->comp_mask = 0;
+@@ -486,6 +486,10 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
  
-+	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
-+	    sizeof(cmd->flags)) {
-+		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
-+			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
-+	}
+ 	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
+ 	    sizeof(cmd->flags)) {
++		if ((cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS) &&
++		    (cq_attr->flags & ~(IBV_CREATE_CQ_ATTR_RESERVED - 1)))
++			return EOPNOTSUPP;
 +
- 	err = write(context->cmd_fd, cmd, cmd_size);
- 	if (err != cmd_size)
- 		return errno;
+ 		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
+ 			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
+ 	}
 -- 
 1.8.3.1
 
