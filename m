@@ -1,75 +1,142 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 08/10] IB/core: Extend create QP to get
- indirection table
-Date: Sun, 29 May 2016 16:55:43 +0300
-Message-ID: <d34f7f40-5e05-2eb9-4b81-649b2cb11174@dev.mellanox.co.il>
-References: <1464006056-19653-1-git-send-email-yishaih@mellanox.com>
- <1464006056-19653-9-git-send-email-yishaih@mellanox.com>
- <574AEA8D.2010909@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V4 libibverbs 0/7] Completion timestamping
+Date: Sun, 29 May 2016 17:51:08 +0300
+Message-ID: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <574AEA8D.2010909-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/29/2016 4:11 PM, Sagi Grimberg wrote:
->
->
-> On 23/05/16 15:20, Yishai Hadas wrote:
->> Extend create QP to get Receive Work Queue (WQ) indirection table.
->>
->> QP can be created with external Receive Work Queue indirection table,
->> in that case it is ready to receive immediately.
->>
->>
->> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>   drivers/infiniband/core/verbs.c | 19 +++++++++++++++++--
->>   include/rdma/ib_verbs.h         |  2 ++
->>   2 files changed, 19 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/verbs.c
->> b/drivers/infiniband/core/verbs.c
->> index 6b548d7..6916d5c 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -754,6 +754,12 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
->>       struct ib_qp *qp;
->>       int ret;
->>
->> +    if (qp_init_attr->rwq_ind_tbl &&
->> +        (qp_init_attr->recv_cq ||
->> +        qp_init_attr->srq || qp_init_attr->cap.max_recv_wr ||
->> +        qp_init_attr->cap.max_recv_sge))
->> +        return ERR_PTR(-EINVAL);
->> +
->
-> Yishai,
->
-> I understand that a qp cannot have indirection table with a srq or a
-> recv_cq, but can you explain the max_recv_[wr|sge] condition?
->
-> Would it make better sense to condition on the QP type?
->
-> Other then that,
->
-> Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Hi Doug,
 
-Thanks Sagi for your reviewing the series.
+This V4 series addressed few notes that we got for V3,
+details below.
 
-When a receive WQ indirection table is supplied as an input any other 
-receive side parameters are not playing/valid as they were already set 
-when the internal WQ(s) were created. Those checks on max_recv[wr|sge] 
-are coming to ensure that input is valid, same as done for srq and recv_cq.
+The kernel part was already accepted.
 
-Re QP type checking, the supported QP types are going to be part of RSS 
-capabilities and may be changed between vendors. Each vendor upon 
-creation may condition on. Please see cover letter as well.
+The series was retested successfully with mlx5 driver (lib, kernel)
+and can be accessed also from my openfabrics GIT at:
+git://openfabrics.org/~yishaih/libibverbs.git
+branch: ts_v4.
+
+Thanks,
+Yishai
+
+In order to do so, we add an extensible poll cq mechanism.
+Former attempts of extending poll CQ were made. An attempt to solve this
+problem tried to split the WC into mandatory and optional fields.
+The user declared which optional fields each CQ should report and the
+WC was constructed in a dynamic way representing all requested fields.
+We got some comments regarding this complex approach and API. Furthermore,
+it resulted in degraded performance in some flows.
+
+The current approach is based on Jason's proposal. Instead of using a WC
+struct, we report completion fields by request. A new ibv_cq_ex is added.
+This new extended CQ contains accessor functions to the completion fields.
+Each vendor assigns these function pointers in order to provide the
+completion data efficiently. In order to create a suitable CQ and maintain
+backward and forward compatibility, the user declares which completion
+attributes he needs while creating the CQ. A successful creation of the CQ
+guarantees that all requested attributes can be queried using the accessor
+function pointers.
+
+This approach prevents copying the WC fields in cost of indirect function calls.
+However, as most applications don't use most completion fields anyway, the new
+approach fully makes sense.
+
+Benchmarks we ran in our test lab found that this new approach generally
+equals to current API but *not* worse than. As the new API enables
+extending the polled fields we can overall say that it's a better API than
+the legacy one.
+
+The user creates a CQ using ibv_create_cq_ex, stating which completion
+attributes could be queried later on from this CQ.
+In order to decrease per-completion polling overhead, as of updating indices in
+the hardware, we split the polling into batches.
+
+A batch is started when calling ibv_start_poll_ex. If a completion is
+successfully fetched, the user could query its attributes using accessor
+functions ibv_wc_read_xxx.  In order to fetch the next completion in the batch,
+the user uses ibv_next_poll_ex.  The same ibv_wc_read_xxx functions are used in
+order to query these completions as well. In order to end a batch, the user
+uses ibv_end_poll_ex.  Of course, starting a new batch incurs some overhead.
+
+Each batch could poll zero or more completions.
+Each completion polling starts with either ibv_start_poll_ex/ibv_next_poll_ex
+and ends with ibv_next_poll_ex/ibv_end_poll_ex.
+Completion attributes could only be queried between these calls.
+These attributes represents the values of the completion already fetched by
+the last ibv_start_poll_ex/ibv_next_poll_ex.
+
+The batching API is thread-safe (assuming the CQ wasn't created with
+SINGLE_THREADED attribute) and represents a series of completions the user
+would like to poll one after another.  The vendor user space driver should
+guarantee this.
+
+Completion timestamp is added on top of these extended ibv_create_cq_ex verb by
+using wc_flags field of init_cq_attr. The user could query the CQ's completion
+timestamp using ibv_wc_read_completion_ts. The timestamp mask (number of
+supported bits) and the HCA's frequency are given in ibv_query_device_ex verb.
+
+We also give the user an ability to read the HCA's current clock.
+This is done via ibv_query_rt_values_ex. This verb could be extended
+in the future for other interesting information.
+
+Changes from V3:
+Addressed Jason's notes as of below:
+- Reorder ibv_cq_ex fields to be memory aligned.
+- Add a check as part of __lib_ibv_create_cq_ex that libibverbs supports all in coming WC flags,
+  this should prevent future compatibility issues.
+- Change ibv_wc_read_slid to return uint32_t as of other vendor request.
+- Change ibv_cq_init_attr_ex to use uint32 instead of int for some fields.
+
+Changes from V2:
+Addressed Jason's notes as of below:
+- Remove the '_ex' notation where was no legacy one.
+- Use 'wr_id' and 'status' fields directly on ibv_cq_ex to improve
+  performance. We ran some benchmarking and verified that this change is
+  really useful.
+
+Changes from V1:
+- Moved to indirect function calls in order to poll a CQ.
+
+Changes from V0:
+- Split the series to small logical patches.
+- Align naming in some places to match other verbs.
+- Fix and improve the man pages.
+- Add an example code as part of rc_pingpong.
+
+Matan Barak (6):
+  Add support for extended creating CQ verb
+  Add member functions to poll an extended CQ
+  Add timestamp_mask and hca_core_clock to ibv_query_device_ex
+  Add completion timestamp to poll_cq
+  Create a single threaded CQ
+  Add a verb that queries real time values from the HCA
+
+Yishai Hadas (1):
+  Add timestamp support in rc_pingpong
+
+ Makefile.am                   |   3 +-
+ examples/devinfo.c            |  10 ++
+ examples/rc_pingpong.c        | 278 ++++++++++++++++++++++++++++++++----------
+ include/infiniband/driver.h   |   9 ++
+ include/infiniband/kern-abi.h |  26 ++++
+ include/infiniband/verbs.h    | 243 ++++++++++++++++++++++++++++++++++++
+ man/ibv_create_cq_ex.3        | 150 +++++++++++++++++++++++
+ man/ibv_query_device_ex.3     |   6 +-
+ man/ibv_query_rt_values_ex.3  |  50 ++++++++
+ src/cmd.c                     |  69 +++++++++++
+ src/device.c                  |  49 ++++++++
+ src/ibverbs.h                 |   5 +
+ src/libibverbs.map            |   1 +
+ 13 files changed, 833 insertions(+), 66 deletions(-)
+ create mode 100644 man/ibv_create_cq_ex.3
+ create mode 100644 man/ibv_query_rt_values_ex.3
+
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
