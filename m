@@ -1,68 +1,44 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: MLX5 iSER issue on 4.6?
-Date: Sun, 29 May 2016 09:58:22 +0300
-Message-ID: <574A930E.6030507@grimberg.me>
-References: <CAANLjFpPoynQeBiQjZ=2RA1YHaNp3jZKtavZ5URWcsJu+x85vA@mail.gmail.com>
+Subject: Re: RDMA Read: Local protection error
+Date: Sun, 29 May 2016 10:02:53 +0300
+Message-ID: <574A941D.9050404@grimberg.me>
+References: <57238F8C.70505@sandisk.com>
+ <B72A389F-FFF1-498C-A946-8AA72B7769F8@oracle.com>
+ <57277B63.8030506@sandisk.com>
+ <6BBFD126-877C-4638-BB91-ABF715E29326@oracle.com>
+ <1AFD636B-09FC-4736-B1C5-D1D9FA0B97B0@oracle.com>
+ <8a3276bf-f716-3dca-9d54-369fc3bdcc39@dev.mellanox.co.il>
+ <aaa67d51-663a-0aba-fc54-a5ab5d947a55@sandisk.com>
+ <C0AE237D-5E5A-4F94-B717-F3A3B4B4D4A8@oracle.com>
+ <574728EC.9040802@grimberg.me> <57473025.5020801@grimberg.me>
+ <20160526192351.GV25500@leon.nu>
+ <alpine.DEB.2.20.1605261511230.8857@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFpPoynQeBiQjZ=2RA1YHaNp3jZKtavZ5URWcsJu+x85vA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1605261511230.8857-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-2ukJVAZIZ/Y@public.gmane.org" <leon-2ukJVAZIZ/Y@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joonsoo Kim <iamjoonsoo.kim-Hm3cg6mZ9cc@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> I've been running iSER on 4.1/4.4 with a Connect-IB and ConnectX-3 and
-> everything works fine. When running the 4.6 kernel, the Connect-IB
-> card aren't able to login to iSER even though the ConnectX-3 card does
-> just fine. Hopefully, someone here has an idea of what the issue may
-> be. For this test, we are making 12 sessions to the same host (three
-> ports on each host, four sessions per port). Only four sessions become
-> established which correlate to the ConnectX-3 card. It doesn't seem to
-> matter which kernel the target is on, only the initiator.
+>> Sagi,
+>> I'm wondering if allocation from ZONE_DMA is the right way to
+>> replace ZONE_NORMAL allocations.
+>>
+>> I don't remember if memory compaction works on ZONE_DMA and it makes
+>> me nervous to think about long and multiple alloc/dealloc MR scenario.
 >
-> 02:00.0 Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
-> 81:00.0 Infiniband controller: Mellanox Technologies MT27600 [Connect-IB]
+> ZONE_DMA is a 16M memory segment used for legacy devices of the PC/AT era
+> (such as floppy drivers). Please do not use it.
 
-Hi Robert, thanks for reporting.
+Really? It's used all over the stack...
 
-The difference in iSER in 4.6 is the arbitrary SG registration support
-which works with a capable device (IB_DEVICE_SG_GAPS_REG). The CIB does
-not support this feature but CX4 does, however, I wander if your CIB
-falsely reports it does support this feature.
-
-Can you share the output of ibv_devinfo -v on the CIB device? I'm
-specifically interested in knowing what the max_mw is? it should
-be 0, if its not I suspect this is a FW bug.
-
-CC'ing some mellanox folks.
-
->
-> # mstflint -d 02:00.0 q
-> Image type:      FS2
-> FW Version:      2.35.5100
-> Rom Info:        type=PXE version=3.4.648 devid=4099
-> Device ID:       4099
-> Description:     Node             Port1            Port2            Sys image
-> GUIDs:           0cc47affff4fea34 0cc47affff4fea35 0cc47affff4fea36
-> 0cc47affff4fea37
-> MACs:                                 0cc47a4fea35     0cc47a4fea36
-> VSD:             n/a
-> PSID:            SM_2221000001000
-> # mstflint -d 81:00.0 q
-> Image type:      FS3
-> FW Version:      10.0014.1100
-> FW Release Date: 31.1.2016
-> Product Version: rel-10_14_1100
-> Description:     UID                GuidsNumber  Step
-> Base GUID1:      e41d2d030000e010        8       1
-> Base GUID2:      e41d2d030000e018        8       1
-> Base MAC1:       0000e41d2d00e010        8       1
-> Base MAC2:       0000e41d2d00e018        8       1
-> Image VSD:
-> Device VSD:
-> PSID:            MT_1210110019
+So the suggestion is to restrict the allocation does not
+cross the page boundary (which can easily be done with making
+MLX4_MR_PAGES_ALIGN be PAGE_SIZE or larger than PAGE_SIZE/2)?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
