@@ -1,167 +1,136 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V4 libibverbs 2/7] Add member functions to poll an
- extended CQ
-Date: Mon, 30 May 2016 13:01:28 +0300
-Message-ID: <4bd67eab-dcc8-2550-0741-3939a2445276@dev.mellanox.co.il>
-References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
- <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
- <574B6F71.9060808@redhat.com> <20160529233009.GA12420@obsidianresearch.com>
- <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
- <4958edf4-7296-26c9-4cbe-8fab45be11a3@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4958edf4-7296-26c9-4cbe-8fab45be11a3-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH] IB/core: Fix different types mix in ib_device_cap_flags structure values
+Date: Mon, 30 May 2016 13:09:54 +0300
+Message-ID: <1464602994-21226-1-git-send-email-maxg@mellanox.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: matanb@mellanox.com, leon@leon.nu, sagi@grimberg.me, linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org, Max Gurtovoy <maxg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/30/2016 10:47 AM, Matan Barak wrote:
-> On 30/05/2016 02:47, Doug Ledford wrote:
->>
->>
->> Sent from my iPhone
->>
->>> On May 29, 2016, at 7:30 PM, Jason Gunthorpe
->>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->>>
->>>> On Sun, May 29, 2016 at 06:38:41PM -0400, Doug Ledford wrote:
->>>>
->>>> So I've been busy with kernel stuff, but I don't really like this
->>>> patch.
->>>> I'm not really enamored with the entire poll_ex API.
->>>
->>> You should really read the whole prior discussion
->>
->> If there's something in particular you'd like to point out, feel free.
->>
->>>> First, I don't like the start_poll/poll/end_poll setup.  I would rather
->>>> we do something like using refcounting on the WCs.  Maybe something
->>>> like
->>>> returning an array of pointers to WCs where each WC already has a
->>>> ref
->>>
->>> Refs? Yuk. That doesn't fit the typical use model, and refs
->>> involve more expensive locking per wc.
->>
->> It doesn't have to be refs. If I recall correctly, the libmlx4 driver
->> has to clear each cqe by changing the ownership status back to the
->> hardware or something like that. The release could just as easily be
->> setting that ownership on the cqe.
->>
->>>> When a cq is created by the driver, it is responsible for filling out
->>>> the offsets array (can be static if your driver only has one CQE
->>>> format,
->>>
->>> *shrug* Careful benchmarking would have to prove if this is better or
->>> not.
->>
->> Agreed.
->>
->>> Based on Yishai's comments I expect it is not better, since I
->>> expect an offsets array to perform worse than the original bitmask
->>> thing.
->>
->> The original bitmask version included a copy to an interim, variable
->> struct.  The idea here is that the cqe is an opaque pointer directly
->> to the hardware cqe. There would be no interim copies, just retrieving
->> the desired data directly from the cqe. Maybe I should have called it
->> a hcqe to be more clear.
->>
->>> Yishai's said this benchmarked better than the bitmask
->>
->> I would totally expect that. The bitmap version had both a data copy
->> and a variable struct requiring lots of branches.
->>
->
-> Incorrect, the driver part of the bitmap version was optimized as such
-> it had a specific poll function for every common variable struct - so
-> effectively you didn't (or almost didn't) have any branches.
-> The indirect function call + copying all required user fields to the
-> ibv_wc_ex struct and then back to the user killed it.
->
->>> and equal to
->>> or better than today's versions..
->>
->> Today's version has a data copy. What I'm suggesting here eliminates
->> that entirely and all of the branches can be optimized away at compile
->> time, leaving a load from a hot cache line of an offset value and then
->> a direct load from that offset in the hcqe. I would think that because
->> of the elimination of the data copy and the compile time elimination
->> of branches, this has the potential to meet or exceed today's
->> implementation. I would certainly like to see the numbers.
->>
->
-> Not necessarily, smart compiler could fetch the data straight from the
-> hardware's CQE and pass it through a register.
->
->>> This is a whole picture optimization and the user side is only one
->>> part of the equation - the function pointer scheme is also optimizing
->>> the driver path quite heavily, which is why it is showing positively
->>> in benchmarks.
->>
->> Passing an opaque hcqe pointer to the user and then only getting the
->> data they want out of it should similarly help optimize the driver's
->> path I would think.
->>
->
-> What if the driver's CQE format has a field which is split between two
-> different offsets?
-> We looked at storing offsets and masks before implementing this and
-> supplying inline functions to get the various fields, but IMHO, that's a
-> no go as it's not generic enough.
+ib_device_cap_flags 64-bit expansion caused a possible caps overlapping
+(depending on machine endianness) and made consumers read wrong device
+capabilities. For example IB_DEVICE_SG_GAPS_REG was falsely read by the
+iser driver causing it to use a non-existing capability. Fix this by
+casting ib_device_cap_flags enumerations to ULL.
 
-Correct, this approach is not generic enough and can't fit in the 
-general case to all current HW(s) (e.g. Time stamping in mlx4 is 
-composed from data that resides in two *non* contiguous offsets).
-In addition, there is *no* guarantee from future HWs' implementations to 
-fit to this model.
+Fixes: 45686f2d6535 ('IB/core: Add Raw Scatter FCS device capability')
+Fixes: 50174a7f2c24 ('IB/core: Add interfaces to control VF attributes')
+Fixes: f5aa9159a418 ('IB/core: Add arbitrary sg_list support')
+Fixes: fb532d6a79b9 ('IB/{core, ulp} Support above 32 possible device capability flags')
+Reported-by: Robert LeBlanc <robert@leblancnet.us>
+Cc: Stable <stable@vger.kernel.org> [v4.6+]
+Acked-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Signed-off-by: Matan Barak <matanb@mellanox.com>
+---
+ include/rdma/ib_verbs.h |   66 +++++++++++++++++++++++-----------------------
+ 1 files changed, 33 insertions(+), 33 deletions(-)
 
-In addition, there might be some extra MD/logic which may be vendor 
-specific. For example, validity of fields might depends on some device 
-capabilities (e.g. checksum is valid), endianness representation of data 
-in some cases, etc.
-
-As of that, we believe that the read_xxx model which lets the vendor who 
-is familiar with the internal semantics to do the work is the way to go.
-
-Re benchmark/performance,
-As was previously discussed on the list and approved to be useful by our 
-benchmark testing we moved wr_id & status fields which are mostly used 
-to reside on ibv_cq_ex with direct access, so there is no read_xxx calls 
-for.
-
-Other fields might not be used at all (e.g. opcode, when there is only 
-one operation, or there is a CQ per operation, wc_flags in many cases, 
-etc.) so there will be no usage for their read_xxx calls.
-
-We found that copying the data of other fields to ibv_cq_ex with the 
-chance that they won't be used has a penalty to performance in the 
-general case over the case that they will be read later on. As the API 
-is extensible if future benchmarking will justify supplying direct 
-access to other fields it can be done.
-
-Doug,
-This API was introduced and discussed for a while in both the list and 
-in some forums (OFAWG, last summit) and found to be clean and make sense 
-by the involved people, our benchmarking shows that as well.
-
-Please approve that you are fine with so that we can go forward and 
-finalize/send the libmlx5 code as some vendor usage of the API as Jason 
-already asked.
-
-Yishai
-
-
-
-
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 432bed5..8bb97dc 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -156,21 +156,21 @@ enum rdma_link_layer {
+ };
+ 
+ enum ib_device_cap_flags {
+-	IB_DEVICE_RESIZE_MAX_WR			= (1 << 0),
+-	IB_DEVICE_BAD_PKEY_CNTR			= (1 << 1),
+-	IB_DEVICE_BAD_QKEY_CNTR			= (1 << 2),
+-	IB_DEVICE_RAW_MULTI			= (1 << 3),
+-	IB_DEVICE_AUTO_PATH_MIG			= (1 << 4),
+-	IB_DEVICE_CHANGE_PHY_PORT		= (1 << 5),
+-	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
+-	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
+-	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
+-	IB_DEVICE_INIT_TYPE			= (1 << 9),
+-	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
+-	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
+-	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
+-	IB_DEVICE_SRQ_RESIZE			= (1 << 13),
+-	IB_DEVICE_N_NOTIFY_CQ			= (1 << 14),
++	IB_DEVICE_RESIZE_MAX_WR			= (1ULL << 0),
++	IB_DEVICE_BAD_PKEY_CNTR			= (1ULL << 1),
++	IB_DEVICE_BAD_QKEY_CNTR			= (1ULL << 2),
++	IB_DEVICE_RAW_MULTI			= (1ULL << 3),
++	IB_DEVICE_AUTO_PATH_MIG			= (1ULL << 4),
++	IB_DEVICE_CHANGE_PHY_PORT		= (1ULL << 5),
++	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1ULL << 6),
++	IB_DEVICE_CURR_QP_STATE_MOD		= (1ULL << 7),
++	IB_DEVICE_SHUTDOWN_PORT			= (1ULL << 8),
++	IB_DEVICE_INIT_TYPE			= (1ULL << 9),
++	IB_DEVICE_PORT_ACTIVE_EVENT		= (1ULL << 10),
++	IB_DEVICE_SYS_IMAGE_GUID		= (1ULL << 11),
++	IB_DEVICE_RC_RNR_NAK_GEN		= (1ULL << 12),
++	IB_DEVICE_SRQ_RESIZE			= (1ULL << 13),
++	IB_DEVICE_N_NOTIFY_CQ			= (1ULL << 14),
+ 
+ 	/*
+ 	 * This device supports a per-device lkey or stag that can be
+@@ -179,9 +179,9 @@ enum ib_device_cap_flags {
+ 	 * instead of use the local_dma_lkey flag in the ib_pd structure,
+ 	 * which will always contain a usable lkey.
+ 	 */
+-	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
+-	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1 << 16),
+-	IB_DEVICE_MEM_WINDOW			= (1 << 17),
++	IB_DEVICE_LOCAL_DMA_LKEY		= (1ULL << 15),
++	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1ULL << 16),
++	IB_DEVICE_MEM_WINDOW			= (1ULL << 17),
+ 	/*
+ 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
+ 	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
+@@ -189,9 +189,9 @@ enum ib_device_cap_flags {
+ 	 * incoming messages.  Setting this flag implies that the
+ 	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
+ 	 */
+-	IB_DEVICE_UD_IP_CSUM			= (1 << 18),
+-	IB_DEVICE_UD_TSO			= (1 << 19),
+-	IB_DEVICE_XRC				= (1 << 20),
++	IB_DEVICE_UD_IP_CSUM			= (1ULL << 18),
++	IB_DEVICE_UD_TSO			= (1ULL << 19),
++	IB_DEVICE_XRC				= (1ULL << 20),
+ 
+ 	/*
+ 	 * This device supports the IB "base memory management extension",
+@@ -202,25 +202,25 @@ enum ib_device_cap_flags {
+ 	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
+ 	 * stag.
+ 	 */
+-	IB_DEVICE_MEM_MGT_EXTENSIONS		= (1 << 21),
+-	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= (1 << 22),
+-	IB_DEVICE_MEM_WINDOW_TYPE_2A		= (1 << 23),
+-	IB_DEVICE_MEM_WINDOW_TYPE_2B		= (1 << 24),
+-	IB_DEVICE_RC_IP_CSUM			= (1 << 25),
+-	IB_DEVICE_RAW_IP_CSUM			= (1 << 26),
++	IB_DEVICE_MEM_MGT_EXTENSIONS		= (1ULL << 21),
++	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= (1ULL << 22),
++	IB_DEVICE_MEM_WINDOW_TYPE_2A		= (1ULL << 23),
++	IB_DEVICE_MEM_WINDOW_TYPE_2B		= (1ULL << 24),
++	IB_DEVICE_RC_IP_CSUM			= (1ULL << 25),
++	IB_DEVICE_RAW_IP_CSUM			= (1ULL << 26),
+ 	/*
+ 	 * Devices should set IB_DEVICE_CROSS_CHANNEL if they
+ 	 * support execution of WQEs that involve synchronization
+ 	 * of I/O operations with single completion queue managed
+ 	 * by hardware.
+ 	 */
+-	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
+-	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+-	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+-	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
++	IB_DEVICE_CROSS_CHANNEL		= (1ULL << 27),
++	IB_DEVICE_MANAGED_FLOW_STEERING		= (1ULL << 29),
++	IB_DEVICE_SIGNATURE_HANDOVER		= (1ULL << 30),
++	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+ 	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
+-	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 33),
+-	IB_DEVICE_RAW_SCATTER_FCS		= ((u64)1 << 34),
++	IB_DEVICE_VIRTUAL_FUNCTION		= (1ULL << 33),
++	IB_DEVICE_RAW_SCATTER_FCS		= (1ULL << 34),
+ };
+ 
+ enum ib_signature_prot_cap {
+-- 
+1.7.1
