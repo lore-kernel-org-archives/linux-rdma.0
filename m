@@ -1,70 +1,87 @@
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC v2 0/2] libibverbs memory barrier fixes
-Date: Mon, 30 May 2016 14:17:57 +0300
-Message-ID: <a10b354c-f9f5-04c8-260d-841273e25b7c@mellanox.com>
-References: <20160520200053.6983AE0B9D@smtp.ogc.us>
- <3ffd3089-ede9-aebf-4781-2e012bc65252@redhat.com>
- <00c801d1b694$f9d7f5b0$ed87e110$@opengridcomputing.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
+ resolution module into core
+Date: Mon, 30 May 2016 15:51:46 +0300
+Message-ID: <20160530125146.GB7477@leon.nu>
+References: <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
+ <VI1PR05MB1391B1C6DFE620C31A6474A0D2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <561a675d-89d2-e675-cf83-e86ecb7519b6@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E22EDE332@CRSMSX101.amr.corp.intel.com>
+ <20160523085809.GF25500@leon.nu>
+ <57430E34.3090501@redhat.com>
+ <VI1PR05MB13910E30E227D4DCDBC19033D24E0@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <1464586394.13055.426.camel@ifi.uio.no>
+ <20160530063349.GA7477@leon.nu>
+ <1464608255.20967.27.camel@oracle.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00c801d1b694$f9d7f5b0$ed87e110$@opengridcomputing.com>
+Content-Disposition: inline
+In-Reply-To: <1464608255.20967.27.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/25/2016 5:51 PM, Steve Wise wrote:
->> On 05/20/2016 03:43 PM, Steve Wise wrote:
->>> This is v2 of the ARM64 mb* support, plus an additional patch to fail
->>> compiles if there is no platform implementation of the memory barriers.
->>> I've included the 2nd patch because I think it is important to not
->>> assume any default barrier implementation.  Getting it wrong can result
->>> in data corruption.
->>>
->>> Changes since V1:
->>>
->>> Put the RFC tag back on because I want to retest this series.
->>>
->>> Implemented the ARM64 memory barrier macros from scratch using the AMD
->>> reference docs.
->>>
->>> Added 2nd patch to fail compiles if no mb* macros exist for the platform.
->>>
->>> Steve Wise (2):
->>>   libibverbs: add ARM64 memory barrier macros
->>>   Fail compiles if no platform specific memory barriers exist
->>>
->>>  include/infiniband/arch.h |   15 +++++++++------
->>>  1 files changed, 9 insertions(+), 6 deletions(-)
->>>
->> Please remember to use --thread=shallow when sending patch emails using
->> git send-email (which is what I assume you did).
->>
->> Let me know how the testing comes out.  The patches look fine to me
->> (thanks for adding the second one, it's the right thing to do).
->>
-> Hey Doug, the series tests good with cxgb4 on ARM64.  Do I need to repost a
-> final series, or can you merge v2? 
->
-> Hey Noa, have you all had a chance to test this series?
 
-We didn't encounter any issue so far that seems to be related to this patch.
-However, some extra functional / performance testing are needed to evaluate.
->From internal code review it seems that wmb() is quite strict in your patch and
-may have a performance penalty.
-Any reason not to use dsb instead of dmb for wmb()?
-#define wmb()asm volatile("dsb st" ::: "memory")
-#define wmb()asm volatile("dmb st" ::: "memory")
+--FkmkrVfFsRoUs1wW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Thanks,
->
-> Steve.
->
-Thanks,
-Noa
+On Mon, May 30, 2016 at 01:37:35PM +0200, Knut Omang wrote:
+> > > The separation feels natural, and it allows a more piecemeal approach=
+ -
+> > > a device can be loaded and tested with one WR at a time. Once ib_mad
+> > > gets loaded, a lot of "traffic" is created and just about the whole H=
+CA
+> > > under development needs to work to support it.
+> >=20
+> > Adding new device to IB is not an easy task and we clearly need to impr=
+ove in
+> > that area, however these merges are targeted to the end-user of IB stac=
+k which
+> > constantly needs to load all these modules.
+>=20
+> In a well configured system, this should all happen automatically -
+> this is why we have udev? End users should never have to struggle at
+> this level.
+>=20
+> > For the easy development, you can simply revert them in your tree.
+>=20
+> :-)
+> Development and debugging needs aside: Keeping separation between
+> layers is still a good idea IMHO.
 
+We tried it for the first version of IB router patches which required
+conversion ib_netlink to be a module and found ourselves with bazillion
+little modules for every file in IB core.
+
+--FkmkrVfFsRoUs1wW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXTDdiAAoJEORje4g2clindiMQAKUGfbDAkKpyMD24DfvauSTN
+lNXtBrZHx5isF1/1z2QL1zmFFqrY6AUxBTBe1iiqURzTxSu6TpLuHppsfkxQETQL
+6hREl6UIGE9LyXCbEpT6w7V9QhAzUmqgZTHWQg9pKFhxcVDtfSruMOSwnoE++H/B
+Ro6fHOZNFzzUb8z+VE1tXUh3j+sQK2haRURXlRSO14bhNapHwukNetivrJih772L
+b9yQH6zGa0dKATKlcDzQ+NANontcOO+C7XOub++mB5wTMnvH/sjw7rEr12JBcjm5
+LH3rHi3e/cDGbmqL8X5IwyaBP9nPA7Z01ZKA61U0j31DY3aLgb+r3oAPxpovfZCe
+oCGrnwAS6/DFSWiVixybYrCWtXbaTUouI7qTzv1pb8sdzLEZV5jukq0p/RC3OTwl
+omLbHbYPegyaeqzCA2l2Nv8W9Bf0QcVxEdeb4Sc9f5N77mtcn2d+idBI8ugtTEaD
+fie5XNF1opxKY28F/X/TUSW5W9FVuDx1TvZPZzaenlKBoeA7MwDylkkVD4AnAweW
+y6bXUNeqgdEwtIbKHfc1YWpS3i2tsv9nOQ0W6VId66QjCcEUzdSUibaMVwK1G6kx
+dxu4/BLy33P7u3ceK6shKDxXWxCQ9r5PrwWSltIUkYygkBDtrNb/ln3GWVpBDLLg
+wiL/X/ccmi3N+9w6YrYv
+=tGdN
+-----END PGP SIGNATURE-----
+
+--FkmkrVfFsRoUs1wW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
