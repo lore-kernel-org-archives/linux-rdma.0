@@ -1,87 +1,143 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 5/5] IB/core: Integrate IB address
- resolution module into core
-Date: Mon, 30 May 2016 15:51:46 +0300
-Message-ID: <20160530125146.GB7477@leon.nu>
-References: <fe88d9cc-3d03-030d-c4c9-360ef0ce7067@redhat.com>
- <VI1PR05MB1391B1C6DFE620C31A6474A0D2490@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <561a675d-89d2-e675-cf83-e86ecb7519b6@redhat.com>
- <2807E5FD2F6FDA4886F6618EAC48510E22EDE332@CRSMSX101.amr.corp.intel.com>
- <20160523085809.GF25500@leon.nu>
- <57430E34.3090501@redhat.com>
- <VI1PR05MB13910E30E227D4DCDBC19033D24E0@VI1PR05MB1391.eurprd05.prod.outlook.com>
- <1464586394.13055.426.camel@ifi.uio.no>
- <20160530063349.GA7477@leon.nu>
- <1464608255.20967.27.camel@oracle.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V4 libibverbs 2/7] Add member functions to poll an
+ extended CQ
+Date: Mon, 30 May 2016 09:50:07 -0400
+Message-ID: <8708a378-4c48-df98-86a4-d210bbe690b5@redhat.com>
+References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
+ <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
+ <574B6F71.9060808@redhat.com> <20160529233009.GA12420@obsidianresearch.com>
+ <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
+ <4958edf4-7296-26c9-4cbe-8fab45be11a3@mellanox.com>
+ <4e8befc4-aec5-a17d-24ce-40ff97d345da@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="lsUCREgJUPPcwoGjPiAW3HweBO8CT3uhj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1464608255.20967.27.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <4e8befc4-aec5-a17d-24ce-40ff97d345da-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--lsUCREgJUPPcwoGjPiAW3HweBO8CT3uhj
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 30, 2016 at 01:37:35PM +0200, Knut Omang wrote:
-> > > The separation feels natural, and it allows a more piecemeal approach=
- -
-> > > a device can be loaded and tested with one WR at a time. Once ib_mad
-> > > gets loaded, a lot of "traffic" is created and just about the whole H=
-CA
-> > > under development needs to work to support it.
-> >=20
-> > Adding new device to IB is not an easy task and we clearly need to impr=
-ove in
-> > that area, however these merges are targeted to the end-user of IB stac=
-k which
-> > constantly needs to load all these modules.
->=20
-> In a well configured system, this should all happen automatically -
-> this is why we have udev? End users should never have to struggle at
-> this level.
->=20
-> > For the easy development, you can simply revert them in your tree.
->=20
-> :-)
-> Development and debugging needs aside: Keeping separation between
-> layers is still a good idea IMHO.
+Resend because of my mailer...
 
-We tried it for the first version of IB router patches which required
-conversion ib_netlink to be a module and found ourselves with bazillion
-little modules for every file in IB core.
+On 05/30/2016 09:46 AM, Doug Ledford wrote:
+> On 05/30/2016 03:47 AM, Matan Barak wrote:
+>> On 30/05/2016 02:47, Doug Ledford wrote:
+>=20
+>>> Today's version has a data copy. What I'm suggesting here eliminates
+>>> that entirely and all of the branches can be optimized away at compil=
+e
+>>> time, leaving a load from a hot cache line of an offset value and the=
+n
+>>> a direct load from that offset in the hcqe. I would think that becaus=
+e
+>>> of the elimination of the data copy and the compile time elimination
+>>> of branches, this has the potential to meet or exceed today's
+>>> implementation. I would certainly like to see the numbers.
+>>>
+>>
+>> Not necessarily, smart compiler could fetch the data straight from the=
 
---FkmkrVfFsRoUs1wW
+>> hardware's CQE and pass it through a register.
+>=20
+> Not while still maintaining multi-device capability.  What I laid out
+> works without having to compile for a specific piece of hardware.
+>=20
+>>>> This is a whole picture optimization and the user side is only one
+>>>> part of the equation - the function pointer scheme is also optimizin=
+g
+>>>> the driver path quite heavily, which is why it is showing positively=
+
+>>>> in benchmarks.
+>>>
+>>> Passing an opaque hcqe pointer to the user and then only getting the
+>>> data they want out of it should similarly help optimize the driver's
+>>> path I would think.
+>>>
+>>
+>> What if the driver's CQE format has a field which is split between two=
+
+>> different offsets?
+>=20
+> I have an idea for that as well.
+>=20
+>> We looked at storing offsets and masks before implementing this and
+>> supplying inline functions to get the various fields, but IMHO, that's=
+ a
+>> no go as it's not generic enough.
+>>
+>> Anyway, if you really want to tie yourself to one vendor, maybe we cou=
+ld
+>> allow static linking with the user-space driver and by using lto you
+>> could get inline-like function behavior.
+>=20
+> No, what I'm outlining works with multi-vendor support.  It's opaque to=
+
+> the user application.
+>=20
+> Now, as to how to handle complex fields.
+>=20
+> I was thinking of making the wc_elements enum encode some complex
+> information.  Right now, it's just the offset number.  It would be
+> possible to set each particular element as either A) simple offset, B)
+> possibly complex (which means some vendors can do a simple offset and
+> others need a complex function), or C) all complex.  Then the #define
+> can be made smart enough to know the difference and on simple items
+> return the data, on possibly complex items you have an if statement and=
+
+> branch so we avoid this when possible but allows different hardware
+> types to be handled, and on always complex items we are able to optimiz=
+e
+> down to just the call in the compiler.  Although, I freely admit that i=
+f
+> you have more than just a handful of these complex items then it likely=
+
+> becomes cleaner to just do the "function call per wc element" way of
+> doing things like your patch has.  But I doubt there are that many
+> complex items in your CQE.  Do you have a count?
+>=20
+>=20
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+
+
+--lsUCREgJUPPcwoGjPiAW3HweBO8CT3uhj
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJXTDdiAAoJEORje4g2clindiMQAKUGfbDAkKpyMD24DfvauSTN
-lNXtBrZHx5isF1/1z2QL1zmFFqrY6AUxBTBe1iiqURzTxSu6TpLuHppsfkxQETQL
-6hREl6UIGE9LyXCbEpT6w7V9QhAzUmqgZTHWQg9pKFhxcVDtfSruMOSwnoE++H/B
-Ro6fHOZNFzzUb8z+VE1tXUh3j+sQK2haRURXlRSO14bhNapHwukNetivrJih772L
-b9yQH6zGa0dKATKlcDzQ+NANontcOO+C7XOub++mB5wTMnvH/sjw7rEr12JBcjm5
-LH3rHi3e/cDGbmqL8X5IwyaBP9nPA7Z01ZKA61U0j31DY3aLgb+r3oAPxpovfZCe
-oCGrnwAS6/DFSWiVixybYrCWtXbaTUouI7qTzv1pb8sdzLEZV5jukq0p/RC3OTwl
-omLbHbYPegyaeqzCA2l2Nv8W9Bf0QcVxEdeb4Sc9f5N77mtcn2d+idBI8ugtTEaD
-fie5XNF1opxKY28F/X/TUSW5W9FVuDx1TvZPZzaenlKBoeA7MwDylkkVD4AnAweW
-y6bXUNeqgdEwtIbKHfc1YWpS3i2tsv9nOQ0W6VId66QjCcEUzdSUibaMVwK1G6kx
-dxu4/BLy33P7u3ceK6shKDxXWxCQ9r5PrwWSltIUkYygkBDtrNb/ln3GWVpBDLLg
-wiL/X/ccmi3N+9w6YrYv
-=tGdN
+iQIcBAEBCAAGBQJXTEUPAAoJELgmozMOVy/doIIQAI1q0bhK4v2VjnOTNRBGvioL
+p9RfnCgYg50KNTrxtcstL1cKns8jc1m8HM1fE8LuKOA3M7SE8rdnRKOYSRTNznBH
+HfFf0GK8hYhCBH8jdlAK/Lc+hoAHSN/9ULP//SMt/mEJfJ73mIixY/OOALz7giHC
+hHTHHzfqPJtNCCuvAqkO3puIU6HOLKgvn/BaUXfddZL33+bLroFXz4WjHKQoIv1Q
+7VOCfSGmVy0yYCIl/wLVCB7tt2tcCPfjWgdoxEIuD9qaIbIUIER3QfAZL5fVZEvk
+tkmFhO/YtFFIKNgc029+bDp8oJzK4hfivkHIHQT9KO+m0YMYUwX2Mi6Vk/NtkpNQ
+Jcu7wcomm332KduDmHTbiVcZRjMIZCbsWhmt6MAfI/thWuJ9ge3NolcGiDI/hVPH
+sQhWq9u0B0414THW7bHEYa2n5vooJhvDb5+7dd9mojL+GPrwpQ5PsUCZzx72/fJJ
+AQupzKRtD+JlNt0si1YA9ko3EvPBEMbGx3B0DhCTZFxcQMkoIYFIfnVhByzSzTAO
+iAt/x9yrQVvYoTyCh4/AAqprNKgZWhtHpgqBEEO9G9AuLL1xC2Alwd/UU96pBVpF
+vWX1FBSlGOysCfGHHT8z/aaIcC9RiRd80fND/4n/cQMfUKrZY0PlSdElGQmyuYYw
+vySPcX7RUbrMQwHRnRRX
+=4uH3
 -----END PGP SIGNATURE-----
 
---FkmkrVfFsRoUs1wW--
+--lsUCREgJUPPcwoGjPiAW3HweBO8CT3uhj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
