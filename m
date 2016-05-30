@@ -1,74 +1,64 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V4 libibverbs 2/7] Add member functions to poll an extended CQ
-Date: Sun, 29 May 2016 19:47:54 -0400 (EDT)
-Message-ID: <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
-References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com> <1464533475-18949-3-git-send-email-yishaih@mellanox.com> <574B6F71.9060808@redhat.com> <20160529233009.GA12420@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V4 libibverbs 2/7] Add member functions to poll an
+ extended CQ
+Date: Sun, 29 May 2016 19:35:07 -0600
+Message-ID: <20160530013507.GA19230@obsidianresearch.com>
+References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
+ <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
+ <574B6F71.9060808@redhat.com>
+ <20160529233009.GA12420@obsidianresearch.com>
+ <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160529233009.GA12420-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8F7BC9E2-75EC-413B-BEBE-11450225AF06-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-Sent from my iPhone
-
-> On May 29, 2016, at 7:30 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Sun, May 29, 2016 at 07:47:54PM -0400, Doug Ledford wrote:
+> > You should really read the whole prior discussion
 > 
->> On Sun, May 29, 2016 at 06:38:41PM -0400, Doug Ledford wrote:
->> 
->> So I've been busy with kernel stuff, but I don't really like this patch.
->> I'm not really enamored with the entire poll_ex API.
-> 
-> You should really read the whole prior discussion
+> If there's something in particular you'd like to point out, feel free. 
 
-If there's something in particular you'd like to point out, feel free. 
+You can't ignore the mailing list and expect the rest of us to carry
+you along when you finally wake up..
 
->> First, I don't like the start_poll/poll/end_poll setup.  I would rather
->> we do something like using refcounting on the WCs.  Maybe something like
->> returning an array of pointers to WCs where each WC already has a
->> ref
-> 
-> Refs? Yuk. That doesn't fit the typical use model, and refs
-> involve more expensive locking per wc.
+> It doesn't have to be refs. If I recall correctly, the libmlx4
+> driver has to clear each cqe by changing the ownership status back
+> to the hardware or something like that. The release could just as
+> easily be setting that ownership on the cqe.
 
-It doesn't have to be refs. If I recall correctly, the libmlx4 driver has to clear each cqe by changing the ownership status back to the hardware or something like that. The release could just as easily be setting that ownership on the cqe.
+It also has to notify the hardware of the new ring head pointer which
+becomes more expensive with refs, especially on a lockable CQ.
 
->> When a cq is created by the driver, it is responsible for filling out
->> the offsets array (can be static if your driver only has one CQE
->> format,
-> 
-> *shrug* Careful benchmarking would have to prove if this is better or
-> not.
+> The original bitmask version included a copy to an interim, variable
+> struct.  The idea here is that the cqe is an opaque pointer directly
+> to the hardware cqe. There would be no interim copies, just
+> retrieving the desired data directly from the cqe. Maybe I should
+> have called it a hcqe to be more clear.
 
-Agreed.
+Unless I'm mistaken, something much more more complex than just a
+simple offsets is required to handle the usual hcqe format used by our
+various drivers.
 
-> Based on Yishai's comments I expect it is not better, since I
-> expect an offsets array to perform worse than the original bitmask
-> thing.
+I agree if you could describe the typical hcqe extractor in a format
+like offsets/mask/shift for all supported drivers then that might be
+better (unclear if an unaligned load/mask/shift is more expensive than
+a branch).  I believe I already explained that possibility earlier in
+the thread, and went further to suggest doing a direct HW optimized
+DIRECT option like libfabric has.
 
-The original bitmask version included a copy to an interim, variable struct.  The idea here is that the cqe is an opaque pointer directly to the hardware cqe. There would be no interim copies, just retrieving the desired data directly from the cqe. Maybe I should have called it a hcqe to be more clear. 
+However, getting this wrong limits the future hardware we can support,
+which is scary, and the branch option clearly doesn't have that
+problem.
 
-> Yishai's said this benchmarked better than the bitmask
+So the performance win would have to be substantial, IMHO.
 
-I would totally expect that. The bitmap version had both a data copy and a variable struct requiring lots of branches.
-
-> and equal to
-> or better than today's versions..
-
-Today's version has a data copy. What I'm suggesting here eliminates that entirely and all of the branches can be optimized away at compile time, leaving a load from a hot cache line of an offset value and then a direct load from that offset in the hcqe. I would think that because of the elimination of the data copy and the compile time elimination of branches, this has the potential to meet or exceed today's implementation. I would certainly like to see the numbers. 
-
-> This is a whole picture optimization and the user side is only one
-> part of the equation - the function pointer scheme is also optimizing
-> the driver path quite heavily, which is why it is showing positively
-> in benchmarks.
-
-Passing an opaque hcqe pointer to the user and then only getting the data they want out of it should similarly help optimize the driver's path I would think.--
+Jason
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
