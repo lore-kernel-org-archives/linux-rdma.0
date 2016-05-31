@@ -1,35 +1,37 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V4 libibverbs 2/7] Add member functions to poll an
- extended CQ
-Date: Tue, 31 May 2016 17:46:38 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB05CA6D@ORSMSX109.amr.corp.intel.com>
-References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
- <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
- <574B6F71.9060808@redhat.com> <20160529233009.GA12420@obsidianresearch.com>
- <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
- <20160530013507.GA19230@obsidianresearch.com>
+Subject: RE: [RFC ABI 0/8] Netlink-based IOCTLs RDMA ABI
+Date: Tue, 31 May 2016 17:56:29 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB05CA92@ORSMSX109.amr.corp.intel.com>
+References: <20160524214951.GC7950@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB05023F@ORSMSX109.amr.corp.intel.com>
+ <20160524223052.GI7950@obsidianresearch.com>
+ <CAAKD3BA3fxgHwSXg__9LAPo7E4-7NY7h7Gea5+1GCg11ydn2kQ@mail.gmail.com>
+ <20160526172244.GC27115@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB05BB5D@ORSMSX109.amr.corp.intel.com>
+ <20160526233612.GA4396@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB05BC0C@ORSMSX109.amr.corp.intel.com>
+ <20160527131956.GY25500@leon.nu>
+ <1828884A29C6694DAF28B7E6B8A82373AB05BD12@ORSMSX109.amr.corp.intel.com>
+ <20160529081646.GA25500@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160530013507.GA19230-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160529081646.GA25500-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> However, getting this wrong limits the future hardware we can support,
-> which is scary, and the branch option clearly doesn't have that
-> problem.
+> > I am referring to the creation of an ioctl handling framework that is suitable for use by the rdma
+> cm, ib cm (if kept), verb devices, and non-verbs drivers that do not plug into the kernel verbs
+> framework.  The kernel clients are the items I mentioned.  Having a common ioctl handling framework
+> will maximize code reuse.
 > 
-> So the performance win would have to be substantial, IMHO.
+> It looks too generic for RDMA subsystem. What does it make this IOCTL framework specific to RDMA?
 
-I agree that we need to be careful about exposing implementation specific details through the API, but we're already partially down that path.  I'm not sure about the best way to measure performance with any proposal.
- 
-These are more thoughts than questions:  If an app wants to support iWarp/RoCE/OPA, is it just going to have a branch around the calls anyway?  What data is actually needed by the apps?  Is there any relationship between the various calls?  For example, if an app calls read_slid, is it more likely than not to also call read_pkey_index and read_dlid_path_bits, etc.?  Is the app expected to retrieve addressing data piecemeal like this for every possible architecture?  Are 5 function calls better than one call that fills out a structure, when all fields are needed?  Basically, meaningful benchmarks of poll cq likely require including use of the data.
-
-The proposal is the equivalent of C++ accessor functions, which I admit I have never been a fan of, though the use seems simple enough.  And I don't have a better proposal offhand.
+I'm not sure how something can be too generic.  Everything I mentioned above exists as part of the RDMA subsystem.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
