@@ -1,102 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH] IB/core: Fix different types mix in ib_device_cap_flags
- structure values
-Date: Tue, 31 May 2016 13:39:56 -0600
-Message-ID: <20160531193956.GD21834@obsidianresearch.com>
-References: <1464602994-21226-1-git-send-email-maxg@mellanox.com>
- <08df9022-e575-da0d-c76d-a28185c9db2d@sandisk.com>
- <20160531171306.GA6618@obsidianresearch.com>
- <20160531173033.GC7477@leon.nu>
- <13f16fdf-e1d2-0baa-abe1-6423d2196b72@sandisk.com>
- <20160531181223.GE7477@leon.nu>
- <20160531182100.GC21834@obsidianresearch.com>
- <20160531185432.GF7477@leon.nu>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V4 libibverbs 2/7] Add member functions to poll an
+ extended CQ
+Date: Tue, 31 May 2016 19:48:09 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB05CB9F@ORSMSX109.amr.corp.intel.com>
+References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
+ <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
+ <574B6F71.9060808@redhat.com> <20160529233009.GA12420@obsidianresearch.com>
+ <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
+ <20160530013507.GA19230@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB05CA6D@ORSMSX109.amr.corp.intel.com>
+ <20160531180608.GA21834@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160531185432.GF7477@leon.nu>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>, Max Gurtovoy <maxg@mellanox.com>, matanb@mellanox.com, sagi@grimberg.me, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160531180608.GA21834-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 31, 2016 at 09:54:32PM +0300, Leon Romanovsky wrote:
-
-> > No, you quoted the relevant standard:
-> > 
-> > .. but shall be capable of representing the values of all the members
-> >   of the enumeration. ..
-> > 
-> > Truncation is not allowed.
+> > These are more thoughts than questions: If an app wants to support
+> > iWarp/RoCE/OPA, is it just going to have a branch around the calls
+> > anyway?
 > 
-> I'm not convinced that it talks about truncation.
+> This doesn't really change one way or the other, apps have to
+> understand what attributes are available on the CQ and do whatever
+> branching is needed to access them.
 > 
-> From the same document:
-> "The expression that defines the value of an enumeration constant shall
-> be an integer constant expression that has a value representable as an
-> int."
+> It is a good question if we should have different accessors, like
+> get_src_addr(buf,sizeof(buf)) or something that can handle the other
+> protocols with less hassle.
 
-Hmm.
+I agree.
 
-There are two things going on here.
+> But at the end of the day, the user will still have to cast the buf to
+> the right type...
 
-The quote above is refereing to the type of the constants. In C99 the
-type of the constants is not the type of the enum. (I did not know
-that, what a goofy obscure thing. C++11 gets it right) It would appear
-the constants are fixed at int by the standard.
+I think this depends on what the app is wanting or needing to do with this data.  If the app needs this in order to create an address handle, for example, this format of the data could be transparent to the app (assuming a new create ah API).
 
-However, gcc/clang both will upgrade the type of the constant values,
-on a value by value basis, to something larger:
+> > What data is actually needed by the apps?
+> 
+> The apps decide when they create the CQ what things the CQ is needed
+> to return. So apps are in control. Are you musing if some of these are
+> needed or not?
 
-This illustrates the concept:
+I was just musing which fields are needed by which apps and for what purpose.
 
-enum Foo
-{
-	FOO_VALUE1 = 1ULL,
-	FOO_VALUE2 = (uint32_t)UINT32_MAX,
-	FOO_VALUE3 = ((uint64_t)2) << 32,
-	FOO_VALUE4 = 1<<31,
-};
+> > Is there any relationship between the various calls?  For example,
+> > if an app calls read_slid, is it more likely than not to also call
+> > read_pkey_index and read_dlid_path_bits, etc.?
+> > Is the app expected to retrieve addressing data piecemeal like this
+> > for every possible architecture?  Are 5 function calls better than
+> > one call that fills out a structure, when all fields are needed?
+> 
+> There are certainly logical groups, eg the various path parameters are
+> almost always going to be needed together.
+> 
+> I was asking this same question.. I think the response was that
+> memcpying into a stack struct was more expensive than the branches..
+> 
+> I'm skeptical of that, but maybe if the C ABI doesn't use return value
+> optimization like C++ does it could get a bit costly....
+> 
+> Even so, it seems like an easier API for the end user...
 
-static void check_int(int *v)  { }
-static void check_long(long *v)  { }
-// Both work:
-//static void check_ull(uint64_t *v)  { }
-static void check_ull(enum Foo *v)  { }
+Personally, I would lean toward having a an easier to use API, at the cost of a few extra cycles.  I guess if you add the equivalent of FABRIC_DIRECT to libibverbs, the proposed model seems like it would be optimal.  This probably requires that all CQs have the same format.
 
-int main(int argc,const char *argv[])
-{
-	check_int((__typeof__(FOO_VALUE1) *)0);
-	check_long((__typeof__(FOO_VALUE2) *)0);
-	check_ull((__typeof__(FOO_VALUE3) *)0);
-	check_int((__typeof__(FOO_VALUE4) *)0);
-}				  
-
-The four constants have different types and the types are not
-necessarily what you'd expect (eg FOO_VALUE3 has been promoted to a
-64 bit signed long, FOO_VALUE1 has been demoted to an int)
-
-So the enum is safe, but having different types of the values is
-certainly unexpected.
-
-I still think the actual bug is only 1<<31 I pointed out earlier:
-
-enum Foo
-{
-	FOO_VALUE1 = 1,
-	FOO_VALUE2 = ((uint64_t)2) << 32,
-	FOO_VALUE3 = 1<<31,
-};
-uint64_t res = FOO_VALUE1 | FOO_VALUE2 | FOO_VALUE3;
-printf("%lx\n",res);
-==
-ffffffff80000001
-
-Which is clearly wrong. This is because signed int becomes sign
-extended when converted to uint64_t, corrupting the upper bits.
-
-Since adding the ULL's doesn't make the enum constants have uniform
-type I would not bother with the churn.
-
-Jason
+- Sean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
