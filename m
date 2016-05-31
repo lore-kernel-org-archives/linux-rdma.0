@@ -1,19 +1,19 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Subject: [PATCH 3.18-4.2] ipath: Restrict use of the write() interface
-Date: Tue, 31 May 2016 03:33:00 +0100
-Message-ID: <20160531023300.GH7555@decadent.org.uk>
+From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Subject: [PATCH 4.4] ipath: Restrict use of the write() interface
+Date: Tue, 31 May 2016 03:33:57 +0100
+Message-ID: <20160531023356.GI7555@decadent.org.uk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ed/6oDxOLijJh8b0"
-Return-path: <stable-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="OX2aLCKeO1apYW07"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---ed/6oDxOLijJh8b0
+--OX2aLCKeO1apYW07
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -24,12 +24,12 @@ implementations in the Infiniband subsystem.  In older kernel versions
 the ipath_write() function has the same problem and needs the same
 restriction.  (The ipath driver has been completely removed upstream.)
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
 ---
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-+++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -44,6 +44,8 @@
- #include <linux/cpu.h>
+--- a/drivers/staging/rdma/ipath/ipath_file_ops.c
++++ b/drivers/staging/rdma/ipath/ipath_file_ops.c
+@@ -45,6 +45,8 @@
+ #include <linux/uio.h>
  #include <asm/pgtable.h>
 =20
 +#include <rdma/ib.h>
@@ -37,7 +37,7 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  #include "ipath_kernel.h"
  #include "ipath_common.h"
  #include "ipath_user_sdma.h"
-@@ -2239,6 +2241,9 @@ static ssize_t ipath_write(struct file *
+@@ -2243,6 +2245,9 @@ static ssize_t ipath_write(struct file *
  	ssize_t ret =3D 0;
  	void *dest;
 =20
@@ -48,26 +48,30 @@ Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
  		ret =3D -EINVAL;
  		goto bail;
 
---ed/6oDxOLijJh8b0
+--OX2aLCKeO1apYW07
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIVAwUBV0z33Oe/yOyVhhEJAQrrIQ//cUHgM3/EdxsvmZSDceGqRbKlMcxQf7Z8
-e+KUE9bJTTtECH4AP4vT6FTDWuOF2eiVv0EZFokf1KTAOclTraqZwc7oh2icZhEt
-U9ljfBk0+opUYcdENBZVFqT4ZZJgvW/O/MRuqXeAQKJB4+CUgMFSXgyv7s6cJlgL
-+QfXevQDKmoslFz4cyCI00t9x3uCS6YIErX45rlTQL1aorcAI3E0zytx34oqPgCI
-Mt+U5VxzuWhRHT70k6BmE/hFTfhWXOEDLqvMfnFJs8V0uOM1kU9K4rE5qxHhqETb
-hkdZYQUXHfo9Woq+D+OFuuTPUWBWCAOdaQEs1GDWMlvLwaEQS1USxhU1z7ffbREN
-RzhfAWAa7O22V3NoKxT99NXqhnRYgo3g3HQ2iwF77hb6V9PkM4z+ltY44kTR76If
-s7Kmca7Nv6RgZzw7xRUhG93INYz4zfiIKkcg5PL+292BRIxcem/I4arqeqXAjhEF
-O/GJU5BMWU22yVdO2Pcx9+uRbp8duwy4iKLythLzT4h5AeJkHY4zdvrD312NBlCL
-AsXgtv3JGozRADXLfi5YfbVnATbaLvEMvYXbmXoq7CoeTszi8bU0b2pMX7nAsyhm
-nPBq2eWZ/1U0xMlROw9rbcsf8LWJvq4pP8IzyPl4bhHyo8k6kw4vx5ItnfcC1RNf
-1CHDdnMWyAo=
-=lfiK
+iQIVAwUBV0z4FOe/yOyVhhEJAQraKw//ZTYGahxp/UDg5oB5g9OYwJ5n4oHqt0bx
+l0M9EkCrcyDifFsdPQsYvHdpGaqfyI5L7KBgE5UdQ1+oEspIZMEHZxEdmf/XK8uo
+Ffqdt8MaMLCELDFDkpKq0+DxNJx/q9LG5GLyroqwVYjK4w5HkkLK1DK5p5qN84y9
+p6nh5IXCAex2bGs5H2VHUREdo2UAtOmoPoet/Mm4DLaaNSjSTwof5IXfs5xdWLxG
+XLfJTmwXNne5PYgXhOetxJI/hxsLpR4ven0GHZmkkAKKzRZDoDpmZKZQTYdPr0kM
+p1T9x1GPEqJsTMHl76HbkroUlAcwudTMiX2B0P2X/YW9XYNedHZ3ijFUg2Wvvpw/
+c/i+Ru9k2ZtRMS/TR65RTOccsi+cvt4T+d9jTeOSC3oIrr7bvBrQfNiAKqtxB+Uo
+xdfvb7m5Me7EgbaufRbElOJeI3xo4hJ2irBkLYTIU/o44K4BUbVcX+VvZp542qvH
+SJZf8QcRlGm5+b66HR7XOVldP1TJYpf1NjSWJl84Dcf9gDV4CkdxF8O+30m+eDYh
+7Dd+dp54Ft7UyiRoGmBmD7NZg71V+K+MvTjzGB+Xolfd8S+DefO4fGk9k3YD8RnZ
+D4VPuX67svVlKcgbM9+AVUFDasQlIyXAbzsJXBmpzsQ2Vln52t7iCHg4eO9t/+HU
++RXpwaxCXgY=
+=pdDl
 -----END PGP SIGNATURE-----
 
---ed/6oDxOLijJh8b0--
+--OX2aLCKeO1apYW07--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
