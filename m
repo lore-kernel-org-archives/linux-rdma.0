@@ -1,77 +1,73 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix different types mix in ib_device_cap_flags
- structure values
-Date: Tue, 31 May 2016 11:05:00 -0700
-Message-ID: <13f16fdf-e1d2-0baa-abe1-6423d2196b72@sandisk.com>
-References: <1464602994-21226-1-git-send-email-maxg@mellanox.com>
- <08df9022-e575-da0d-c76d-a28185c9db2d@sandisk.com>
- <20160531171306.GA6618@obsidianresearch.com> <20160531173033.GC7477@leon.nu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V4 libibverbs 2/7] Add member functions to poll an
+ extended CQ
+Date: Tue, 31 May 2016 12:06:08 -0600
+Message-ID: <20160531180608.GA21834@obsidianresearch.com>
+References: <1464533475-18949-1-git-send-email-yishaih@mellanox.com>
+ <1464533475-18949-3-git-send-email-yishaih@mellanox.com>
+ <574B6F71.9060808@redhat.com>
+ <20160529233009.GA12420@obsidianresearch.com>
+ <8F7BC9E2-75EC-413B-BEBE-11450225AF06@redhat.com>
+ <20160530013507.GA19230@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB05CA6D@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160531173033.GC7477-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB05CA6D-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/31/2016 10:30 AM, Leon Romanovsky wrote:
-> On Tue, May 31, 2016 at 11:13:06AM -0600, Jason Gunthorpe wrote:
->> On Tue, May 31, 2016 at 08:35:10AM -0700, Bart Van Assche wrote:
->>> On 05/30/16 03:09, Max Gurtovoy wrote:
->>>> ib_device_cap_flags 64-bit expansion caused a possible caps overlapping
->>>> (depending on machine endianness) and made consumers read wrong device
->>>> capabilities. For example IB_DEVICE_SG_GAPS_REG was falsely read by the
->>>> iser driver causing it to use a non-existing capability. Fix this by
->>>> casting ib_device_cap_flags enumerations to ULL.
->>>>
->>>> [ ... ]
->>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>>> [ ... ]
->>>> enum ib_device_cap_flags {
->>>>       [ ... ]
->>>> 	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
->>>>      [ ... ]
->>>> };
->>>
->>> How can this patch make a difference? The presence of any constant
->>> in an enum that does not fit in a 32-bit integer makes an enum 64
->>> bits wide. In other words, all the changes from "1" into "1ULL" in
->>> this patch do not have
->>
->> The expressions are evaluated before the enum type is decided, the
->> enum type has no impact on the type of the expressions.
->
-> It is machine/compiler dependent.
->
-> Bart,
-> Can you share your source of C-standard?
->
-> This link [1] states in chapter "6.7.2.2 Enumeration specifiers"
->
-> "Each enumerated type shall be compatible with char, a signed integer type,
-> or an unsigned integer type. The choice of type is implementation-defined (110),
-> but shall be capable of representing the values of all the members of the enumeration.
-> The enumerated type is incomplete until after the } that terminates the list of enumerator
-> declarations."
->
-> And the footnote (110):
-> "An implementation **may** delay the choice of which integer type until all enumeration
-> constants have been seen."
->
-> [1] http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
+On Tue, May 31, 2016 at 05:46:38PM +0000, Hefty, Sean wrote:
 
-Let me rephrase my question. Before and after this patch 
-IB_DEVICE_SG_GAPS_REG is defined as 1ULL << 32, so how can this patch 
-make a difference? And if the issue is that some compilers choose a 
-32-bit integer for ib_device_cap_flags and others a 64-bit integer, 
-shouldn't ib_device_cap_flags be converted from an enum into a series of 
-#defines? Or is the issue rather that some compilers choose the enum 
-size depending on the size of the first enumeration constant? Anyway, I 
-think the patch description needs to be clarified.
+> These are more thoughts than questions: If an app wants to support
+> iWarp/RoCE/OPA, is it just going to have a branch around the calls
+> anyway?
 
-Bart.
+This doesn't really change one way or the other, apps have to
+understand what attributes are available on the CQ and do whatever
+branching is needed to access them.
+
+It is a good question if we should have different accessors, like
+get_src_addr(buf,sizeof(buf)) or something that can handle the other
+protocols with less hassle.
+
+But at the end of the day, the user will still have to cast the buf to
+the right type...
+
+> What data is actually needed by the apps?
+
+The apps decide when they create the CQ what things the CQ is needed
+to return. So apps are in control. Are you musing if some of these are
+needed or not?
+
+Oh, that reminds me: Yishai, please purge pkey_index from the new
+API. It was a mistake in the old API, the standard says it is only
+valid for QP1, and we don't support QP1 in user space. Any app that
+uses pkey_index is broken. It was a mistake to ever expose this to
+userspace.
+
+> Is there any relationship between the various calls?  For example,
+> if an app calls read_slid, is it more likely than not to also call
+> read_pkey_index and read_dlid_path_bits, etc.?
+> Is the app expected to retrieve addressing data piecemeal like this
+> for every possible architecture?  Are 5 function calls better than
+> one call that fills out a structure, when all fields are needed?
+
+There are certainly logical groups, eg the various path parameters are
+almost always going to be needed together.
+
+I was asking this same question.. I think the response was that
+memcpying into a stack struct was more expensive than the branches..
+
+I'm skeptical of that, but maybe if the C ABI doesn't use return value
+optimization like C++ does it could get a bit costly....
+
+Even so, it seems like an easier API for the end user...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
