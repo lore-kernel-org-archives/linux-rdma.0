@@ -1,84 +1,129 @@
-From: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
-Subject: [stable 3.2-3.16] IB/security: Restrict use of the write() interface
-Date: Tue, 31 May 2016 03:40:50 +0100
-Message-ID: <20160531024050.GL7555@decadent.org.uk>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] IB/hfi1: Avoid large frame size warning
+Date: Tue, 31 May 2016 10:54:36 +0300
+Message-ID: <1464681276-6494-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="BjavXC7V3ilNTWHC"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+=46rom: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---BjavXC7V3ilNTWHC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+When CONFIG_FRAME_WARN is set to 1024 bytes, which is useful to find
+stack consumers, we get a warning in hfi1 driver.
 
-This commit should be included in all stable branches:
+drivers/infiniband/hw/hfi1/affinity.c: In function
+=E2=80=98hfi1_get_proc_affinity=E2=80=99:
+drivers/infiniband/hw/hfi1/affinity.c:415:1: warning: the frame size of
+1056 bytes is larger than 1024 bytes [-Wframe-larger-than=3D]
 
-commit e6bd18f57aad1a2d1ef40e646d03ed0f2515c9e3
-Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date:   Sun Apr 10 19:13:13 2016 -0600
+This change removes unneeded buf[1024] declaration and usage.
 
-    IB/security: Restrict use of the write() interface
-
-When backporting, please fold the following change to the ipath driver
-into the patch.
-
-Ben.
-
-Signed-off-by: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+=46ixes: f48ad614c100 ("IB/hfi1: Move driver out of staging")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-+++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -44,6 +44,8 @@
- #include <linux/cpu.h>
- #include <asm/pgtable.h>
+ drivers/infiniband/hw/hfi1/affinity.c | 31 ++++++++++++++-------------=
+----
+ 1 file changed, 14 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband=
+/hw/hfi1/affinity.c
+index 6e7050a..14d7eeb 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.c
++++ b/drivers/infiniband/hw/hfi1/affinity.c
+@@ -300,16 +300,15 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *d=
+d, int node)
+ 	const struct cpumask *node_mask,
+ 		*proc_mask =3D tsk_cpus_allowed(current);
+ 	struct cpu_mask_set *set =3D &dd->affinity->proc;
+-	char buf[1024];
 =20
-+#include <rdma/ib.h>
-+
- #include "ipath_kernel.h"
- #include "ipath_common.h"
- #include "ipath_user_sdma.h"
-@@ -2239,6 +2241,9 @@ static ssize_t ipath_write(struct file *
- 	ssize_t ret =3D 0;
- 	void *dest;
+ 	/*
+ 	 * check whether process/context affinity has already
+ 	 * been set
+ 	 */
+ 	if (cpumask_weight(proc_mask) =3D=3D 1) {
+-		scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(proc_mask));
+-		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %s",
+-			  current->pid, current->comm, buf);
++		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %*pbl",
++			  current->pid, current->comm,
++			  cpumask_pr_args(proc_mask));
+ 		/*
+ 		 * Mark the pre-set CPU as used. This is atomic so we don't
+ 		 * need the lock
+@@ -318,9 +317,9 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd,=
+ int node)
+ 		cpumask_set_cpu(cpu, &set->used);
+ 		goto done;
+ 	} else if (cpumask_weight(proc_mask) < cpumask_weight(&set->mask)) {
+-		scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(proc_mask));
+-		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %s",
+-			  current->pid, current->comm, buf);
++		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %*pbl",
++			  current->pid, current->comm,
++			  cpumask_pr_args(proc_mask));
+ 		goto done;
+ 	}
 =20
-+	if (WARN_ON_ONCE(!ib_safe_file_access(fp)))
-+		return -EACCES;
-+
- 	if (count < sizeof(cmd.type)) {
- 		ret =3D -EINVAL;
- 		goto bail;
+@@ -356,8 +355,8 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd,=
+ int node)
+ 	cpumask_or(intrs, intrs, (dd->affinity->rcv_intr.gen ?
+ 				  &dd->affinity->rcv_intr.mask :
+ 				  &dd->affinity->rcv_intr.used));
+-	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(intrs));
+-	hfi1_cdbg(PROC, "CPUs used by interrupts: %s", buf);
++	hfi1_cdbg(PROC, "CPUs used by interrupts: %*pbl",
++		  cpumask_pr_args(intrs));
+=20
+ 	/*
+ 	 * If we don't have a NUMA node requested, preference is towards
+@@ -366,18 +365,16 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *d=
+d, int node)
+ 	if (node =3D=3D -1)
+ 		node =3D dd->node;
+ 	node_mask =3D cpumask_of_node(node);
+-	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(node_mask));
+-	hfi1_cdbg(PROC, "device on NUMA %u, CPUs %s", node, buf);
++	hfi1_cdbg(PROC, "device on NUMA %u, CPUs %*pbl", node,
++		  cpumask_pr_args(node_mask));
+=20
+ 	/* diff will hold all unused cpus */
+ 	cpumask_andnot(diff, &set->mask, &set->used);
+-	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(diff));
+-	hfi1_cdbg(PROC, "unused CPUs (all) %s", buf);
++	hfi1_cdbg(PROC, "unused CPUs (all) %*pbl", cpumask_pr_args(diff));
+=20
+ 	/* get cpumask of available CPUs on preferred NUMA */
+ 	cpumask_and(mask, diff, node_mask);
+-	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(mask));
+-	hfi1_cdbg(PROC, "available cpus on NUMA %s", buf);
++	hfi1_cdbg(PROC, "available cpus on NUMA %*pbl", cpumask_pr_args(mask)=
+);
+=20
+ 	/*
+ 	 * At first, we don't want to place processes on the same
+@@ -395,8 +392,8 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd,=
+ int node)
+ 		cpumask_andnot(diff, &set->mask, &set->used);
+ 		cpumask_andnot(mask, diff, node_mask);
+ 	}
+-	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(mask));
+-	hfi1_cdbg(PROC, "possible CPUs for process %s", buf);
++	hfi1_cdbg(PROC, "possible CPUs for process %*pbl",
++		  cpumask_pr_args(mask));
+=20
+ 	cpu =3D cpumask_first(mask);
+ 	if (cpu >=3D nr_cpu_ids) /* empty */
+--=20
+2.1.4
 
---BjavXC7V3ilNTWHC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUBV0z5see/yOyVhhEJAQpSMA/6Ank/XMtY+z3M9uN3B1eB5/DFoEJzHXV8
-kfvO+R6lqZ7RJfG1jzBeRuanie8j+d3Uh1pu6uiPWyyF9YNCIcKsJ4nNNqcgCC7q
-/+fcDwyrFBH+QpOEC4zOQXQx3VHjbGCyPrMue0NE65UUXjoXjfTNaezDGkO9NAXz
-1yDkfAGf/r82eoYjiTjBAW5mfJbDgVWc5inRpMZOijMkzYbpngbXwwMTOcKgPd+H
-zci5pTSHipwi7S64ha6RqBn8a6/veKwm+Bs0gPC6i5kb5BwPlKu1FMeCwBaeFYcg
-YY6U7ZSJfJz91IZaDSqux4T7+2LXrtO/XK0onqjjnVJ9kLq1eYtx/W8HMgFdI8AG
-5MjBFJnMkOTjpAx3sqs3cUdQ5ZobgiWM2HWknFK8CjEMOjyn+2sMgeKf87okajz9
-U2ZH9HOLPTshZ6rvTblxyS2Z19i6rMIMbozpD5h8SrqqhcWhOvnrqFomDY0Viirc
-7oUsTMvPfjhGZ4ssndT/rpqKFd+4AmKZh3AQbps6zpKTiACdObKp+CGnsjmXKkJf
-S7AEmQZMAwTuafa7D/sS2R2cJVvUI5ed604gbFh/929GygUvtO57k0KVZUlOd8dG
-ohl6CuOfcUsO2/67FiBY6jX693YRFJOBDqNY+AvceRVXepKAE0Pvmd8/XZXI/9SN
-cbE7oH9WFSg=
-=5ojO
------END PGP SIGNATURE-----
-
---BjavXC7V3ilNTWHC--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
