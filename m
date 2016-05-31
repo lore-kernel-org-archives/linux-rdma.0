@@ -1,36 +1,51 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] IB/core: fix an error code in ib_core_init()
-Date: Tue, 31 May 2016 19:05:56 +0300
-Message-ID: <20160531160556.GA23959@mwanda>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V4 for-next 02/10] IB/core: Introduce Work Queue object
+ and its verbs
+Date: Tue, 31 May 2016 19:22:52 +0300
+Message-ID: <5caa687f-31c8-34c1-eeae-3cbdaca80133@dev.mellanox.co.il>
+References: <CAJ3xEMgVQaNdLhMZWQOaMcmgJ7WEWuL4C79r1eJ7f9ue9d6rGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAJ3xEMgVQaNdLhMZWQOaMcmgJ7WEWuL4C79r1eJ7f9ue9d6rGw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vainman <alexv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We should return the error code if ib_add_ibnl_clients() fails.  The
-current code returns success.
+On 5/30/2016 11:09 PM, Or Gerlitz wrote:
+> On Mon, May 23, 2016 at 3:20 PM, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>
+>> +int ib_destroy_wq(struct ib_wq *wq)
+>> +{
+>> +       int err;
+>> +       struct ib_cq *cq = wq->cq;
+>> +       struct ib_pd *pd = wq->pd;
+>> +
+>> +       if (atomic_read(&wq->usecnt))
+>> +               return -EBUSY;
+>> +
+>> +       err = wq->device->destroy_wq(wq);
+>> +       if (!err) {
+>> +               atomic_dec(&pd->usecnt);
+>> +               atomic_dec(&cq->usecnt);
+>> +       }
+>> +       return err;
+>
+> by the reverse unwinding principle
+>
+>> +               atomic_inc(&pd->usecnt);
+>> +               atomic_inc(&wq_attr->cq->usecnt);
+>
+> -->
+>
+>> +               atomic_dec(&cq->usecnt);
+>> +               atomic_dec(&pd->usecnt);
 
-Fixes: 735c631ae99d ('IB/core: Register SA ibnl client during ib_core initialization')
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5516fb0..8b8a8d9 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1024,7 +1024,8 @@ static int __init ib_core_init(void)
- 		goto err_mad;
- 	}
- 
--	if (ib_add_ibnl_clients()) {
-+	ret = ib_add_ibnl_clients();
-+	if (ret) {
- 		pr_warn("Couldn't register ibnl clients\n");
- 		goto err_sa;
- 	}
+The PD and the CQ are two unrelated objects, we are not dealing with 
+locking order so the reverse principle is not required. Look also at 
+ib_create/destroy QP for PD/CQ usage, behavior is the same.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
