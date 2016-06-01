@@ -1,109 +1,44 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Fix hard lockup due to not using save/restore
- spin lock
-Date: Wed, 1 Jun 2016 18:44:40 +0300
-Message-ID: <20160601154440.GH7477@leon.nu>
-References: <20160601143812.26872.85826.stgit@phlsvslse11.ph.intel.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH V5 libibverbs 0/7] Completion timestamping
+Date: Wed, 1 Jun 2016 10:49:41 -0500
+Message-ID: <006901d1bc1d$35c63270$a1529750$@opengridcomputing.com>
+References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RwGu8mu1E+uYXPWP"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160601143812.26872.85826.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---RwGu8mu1E+uYXPWP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 01, 2016 at 10:38:12AM -0400, Mike Marciniszyn wrote:
-> Upstream commit 7049de65c9e5 into 4.6.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Is it part of the commit message?
+<snip>
 
->=20
-> Commit b9b06cb6feda
-> ("IB/hfi1: Fix missing lock/unlock in verbs drain callback")
-> added a spin lock.
->=20
-> Unfortunately, the new lock code can be called from a base
-> level interrupt state, and an interrupt that can get stacked
-> will attempt to get the same lock.
->=20
-> Fix by using the flag save/restore spin lock variation.
->=20
-> Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/staging/rdma/hfi1/qp.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/staging/rdma/hfi1/qp.c b/drivers/staging/rdma/hfi1/q=
-p.c
-> index dc9119e..0401955 100644
-> --- a/drivers/staging/rdma/hfi1/qp.c
-> +++ b/drivers/staging/rdma/hfi1/qp.c
-> @@ -512,6 +512,7 @@ static void iowait_wakeup(struct iowait *wait, int re=
-ason)
->  static void iowait_sdma_drained(struct iowait *wait)
->  {
->  	struct rvt_qp *qp =3D iowait_to_qp(wait);
-> +	unsigned long flags;
-> =20
->  	/*
->  	 * This happens when the send engine notes
-> @@ -519,12 +520,12 @@ static void iowait_sdma_drained(struct iowait *wait)
->  	 * do the flush work until that QP's
->  	 * sdma work has finished.
->  	 */
-> -	spin_lock(&qp->s_lock);
-> +	spin_lock_irqsave(&qp->s_lock, flags);
->  	if (qp->s_flags & RVT_S_WAIT_DMA) {
->  		qp->s_flags &=3D ~RVT_S_WAIT_DMA;
->  		hfi1_schedule_send(qp);
->  	}
-> -	spin_unlock(&qp->s_lock);
-> +	spin_unlock_irqrestore(&qp->s_lock, flags);
->  }
-> =20
->  /**
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> The batching API is thread-safe (assuming the CQ wasn't created with
+> SINGLE_THREADED attribute) and represents a series of completions the user
+> would like to poll one after another.  The vendor user space driver should
+> guarantee this.
+>
 
---RwGu8mu1E+uYXPWP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Hey Yishai,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Can you please explain how multiple threads can use this API concurrently?  I
+don't understand how two threads can be in the middle of the next branch
+concurrently?  Is only one thread allowed in at a time for a
+start/next/next/.../end branch?
 
-iQIcBAEBAgAGBQJXTwLoAAoJEORje4g2clinNqMP/1xRpDUKTCauLpVhgw7a+wTc
-THog9SRsmq5klhAf5Belyjbg8s4DjWB4NzX9X6S81ddvC+H1dMwHY+w3UcVmRsyp
-+L5BrM2kLcQ4yw0unLnM1I/qvA9dp5sPrNqsTIPP4GQYVjPsGaGlwvkkuEq/KOh6
-fHqIJe6aky/ShvBWvS7G1i/uCZcPsMDPVZdX/C47g/dnYrFXU0RZZLiuJLOaca+/
-0kbYPoMkH/PbhPFZKK/3iO0djqvgw2ZSCt3JLjjc0o3WdQHvAhAT/hvnD4ILUuGS
-ScCBMpI8uerggNrDlAQWpFpKXwx3tn3WPYsypr8QXjqyTQPUqSHEC4PMDUXFq41k
-v9y15lBA3cRgGKsY0wGd8HzLgebhIir/PVJCH98me+IF3mOxC55jYLUDjSy6q+nJ
-JdvCAMHYYoA0Q6eb/R8bmtmVbEghPomZOuIFbu1/r8R7BWNUxCX1utlXg1VC7SFx
-KoFrPQ01sA/o9Qc35tH+ClvlAH4ARcjKyzgdTncsjjFuqWaXnXq37nPv4L46BmUK
-mAoHRmimWRTvX9YJZwzqFW/RCfGnRjuDYkPG+wXQVYENNuIOAhasbr/IH0LFJJnO
-3Hhrgvxd443NjzGnlILPvFR+e8kXIpjrGWKiuE9KRnf8YRP32dB3hTsVEnI9VHdS
-gxo+3uYDYmph3IjYMK02
-=oKgP
------END PGP SIGNATURE-----
+Thanks,
 
---RwGu8mu1E+uYXPWP--
+Steve.
+ 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
