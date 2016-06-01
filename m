@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V5 libibverbs 4/7] Add completion timestamp to poll_cq
-Date: Wed,  1 Jun 2016 16:05:37 +0300
-Message-ID: <1464786340-7630-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V5 libibverbs 6/7] Add a verb that queries real time values from the HCA
+Date: Wed,  1 Jun 2016 16:05:39 +0300
+Message-ID: <1464786340-7630-7-git-send-email-yishaih@mellanox.com>
 References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,115 +12,152 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to report when a completion was created, we add a member
-function to the CQ which reads the completion timestamp from the
-current CQ. The time is given in raw format.
+Add ibv_query_rt_values_ex, an extension verb to query certain real
+time values of a device. Currently, only IBV_VALUES_MASK_RAW_CLOCK is
+supported, but this verb could support other flags like
+IBV_VALUES_MASK_TEMP_SENSOR, IBV_VALUES_MASK_CORE_FREQ, etc.
+
+This extension verb only calls the provider.
+The provider has to query this value somehow and mark the queried
+values in comp_mask.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/infiniband/kern-abi.h |  4 ++++
- include/infiniband/verbs.h    | 10 +++++++++-
- man/ibv_create_cq_ex.3        |  4 ++++
- src/cmd.c                     |  6 ++++++
- 4 files changed, 23 insertions(+), 1 deletion(-)
+ Makefile.am                  |  3 ++-
+ include/infiniband/verbs.h   | 33 +++++++++++++++++++++++++++++
+ man/ibv_query_rt_values_ex.3 | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 85 insertions(+), 1 deletion(-)
+ create mode 100644 man/ibv_query_rt_values_ex.3
 
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index a2c0c46..f882cc9 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -447,6 +447,10 @@ struct ibv_create_cq_resp {
- 	__u32 cqe;
- };
+diff --git a/Makefile.am b/Makefile.am
+index a1c2122..16f838d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -65,7 +65,8 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
+     man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
+     man/ibv_get_srq_num.3 man/ibv_open_qp.3 man/ibv_query_device_ex.3	\
+     man/ibv_alloc_mw.3 man/ibv_bind_mw.3 man/ibv_inc_rkey.3		\
+-    man/ibv_rereg_mr.3 man/ibv_create_cq_ex.3
++    man/ibv_rereg_mr.3 man/ibv_create_cq_ex.3				\
++    man/ibv_query_rt_values_ex.3
  
-+enum ibv_create_cq_ex_kernel_flags {
-+	IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP = 1 << 0,
-+};
-+
- struct ibv_create_cq_ex {
- 	struct ex_hdr	hdr;
- 	__u64		user_handle;
+ DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
+     debian/ibverbs-utils.install debian/libibverbs1.install \
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index c40db16..cc9ad4a 100644
+index d4b48c0..095106f 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -370,6 +370,7 @@ enum ibv_create_cq_wc_flags {
- 	IBV_WC_EX_WITH_SLID		= 1 << 4,
- 	IBV_WC_EX_WITH_SL		= 1 << 5,
- 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 6,
-+	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 7,
+@@ -1219,6 +1219,16 @@ struct ibv_cq_init_attr_ex {
+ 	uint32_t		flags;
  };
  
- enum {
-@@ -383,7 +384,8 @@ enum {
- };
++enum ibv_values_mask {
++	IBV_VALUES_MASK_RAW_CLOCK	= 1 << 0,
++	IBV_VALUES_MASK_RESERVED	= 1 << 1
++};
++
++struct ibv_values_ex {
++	uint32_t	comp_mask;
++	struct timespec raw_clock;
++};
++
+ enum verbs_context_mask {
+ 	VERBS_CONTEXT_XRCD	= 1 << 0,
+ 	VERBS_CONTEXT_SRQ	= 1 << 1,
+@@ -1230,6 +1240,8 @@ enum verbs_context_mask {
  
- enum {
--	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS
-+	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
-+				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
- };
- 
- enum ibv_wc_flags {
-@@ -893,6 +895,7 @@ struct ibv_cq_ex {
- 	uint32_t (*read_slid)(struct ibv_cq_ex *current);
- 	uint8_t (*read_sl)(struct ibv_cq_ex *current);
- 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
-+	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
- };
- 
- static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -966,6 +969,11 @@ static inline uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex *cq)
- 	return cq->read_dlid_path_bits(cq);
+ struct verbs_context {
+ 	/*  "grows up" - new fields go here */
++	int (*query_rt_values)(struct ibv_context *context,
++			       struct ibv_values_ex *values);
+ 	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
+ 					  struct ibv_cq_init_attr_ex *init_attr);
+ 	struct verbs_ex_private *priv;
+@@ -1749,6 +1761,27 @@ ibv_create_qp_ex(struct ibv_context *context, struct ibv_qp_init_attr_ex *qp_ini
  }
  
-+static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
+ /**
++ * ibv_query_rt_values_ex - Get current real time @values of a device.
++ * @values - in/out - defines the attributes we need to query/queried.
++ * (Or's bits of enum ibv_values_mask on values->comp_mask field)
++ */
++static inline int
++ibv_query_rt_values_ex(struct ibv_context *context,
++		       struct ibv_values_ex *values)
 +{
-+	return cq->read_completion_ts(cq);
++	struct verbs_context *vctx;
++
++	vctx = verbs_get_ctx_op(context, query_rt_values);
++	if (!vctx)
++		return ENOSYS;
++
++	if (values->comp_mask & ~(IBV_VALUES_MASK_RESERVED - 1))
++		return EINVAL;
++
++	return vctx->query_rt_values(context, values);
 +}
 +
- struct ibv_ah {
- 	struct ibv_context     *context;
- 	struct ibv_pd	       *pd;
-diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-index 3e113b8..b6cc6f6 100644
---- a/man/ibv_create_cq_ex.3
-+++ b/man/ibv_create_cq_ex.3
-@@ -38,6 +38,7 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_SLID                  = 1 << 4,  /* Require slid in WC */
-         IBV_WC_EX_WITH_SL                    = 1 << 5,  /* Require sl in WC */
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 6,  /* Require dlid path bits in WC */
-+        IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 7,  /* Require completion timestamp in WC /*
- };
- 
- .SH "Polling an extended CQ"
-@@ -115,6 +116,9 @@ Below members and functions are used in order to poll the current completion. Th
- .BI "uint8_t ibv_wc_read_dlid_path_bits(struct ibv_cq_ex " "*cq"); \c
-  Get the dlid_path_bits field from the current completion.
- 
-+.BI "uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex " "*cq"); \c
-+ Get the completion timestamp from the current completion.
++/**
+  * ibv_query_device_ex - Get extended device properties
+  */
+ static inline int
+diff --git a/man/ibv_query_rt_values_ex.3 b/man/ibv_query_rt_values_ex.3
+new file mode 100644
+index 0000000..fcc460c
+--- /dev/null
++++ b/man/ibv_query_rt_values_ex.3
+@@ -0,0 +1,50 @@
++.\" -*- nroff -*-
++.\"
++.TH IBV_QUERY_RT_VALUES_EX 3 2016-2-20 libibverbs "Libibverbs Programmer's Manual"
++.SH "NAME"
++ibv_query_rt_values_ex \- query an RDMA device for some real time values
++.SH "SYNOPSIS"
++.nf
++.B #include <infiniband/verbs.h>
++.sp
++.BI "int ibv_query_rt_values_ex(struct ibv_context " "*context",
++.BI "                           struct ibv_values_ex " "*values" );
++.fi
++.SH "DESCRIPTION"
++.B ibv_query_rt_values_ex()
++returns certain real time values of a device
++.I context\fR.
++The argument
++.I attr
++is a pointer to an ibv_device_attr_ex struct, as defined in <infiniband/verbs.h>.
++.PP
++.nf
++struct ibv_values_ex {
++.in +8
++uint32_t             comp_mask;    /* Compatibility mask that defines the query/queried fields [in/out] */
++struct timespec      raw_clock;    /* HW raw clock */
++.in -8
++};
 +
- .SH "RETURN VALUE"
- .B ibv_create_cq_ex()
- returns a pointer to the CQ, or NULL if the request fails.
-diff --git a/src/cmd.c b/src/cmd.c
-index 777fded..647fbbb 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -484,6 +484,12 @@ int ibv_cmd_create_cq_ex(struct ibv_context *context,
- 	cmd->comp_channel  = cq_attr->channel ? cq_attr->channel->fd : -1;
- 	cmd->comp_mask = 0;
- 
-+	if (cmd_core_size >= offsetof(struct ibv_create_cq_ex, flags) +
-+	    sizeof(cmd->flags)) {
-+		if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
-+			cmd->flags |= IBV_CREATE_CQ_EX_KERNEL_FLAG_COMPLETION_TIMESTAMP;
-+	}
++enum ibv_values_mask {
++        IBV_VALUES_MASK_RAW_CLOCK = 1 << 0, /* HW raw clock */
++};
 +
- 	err = write(context->cmd_fd, cmd, cmd_size);
- 	if (err != cmd_size)
- 		return errno;
++.fi
++.SH "RETURN VALUE"
++.B ibv_query_rt_values_ex()
++returns 0 on success, or the value of errno on failure (which indicates the failure reason).
++.SH "NOTES"
++This extension verb only calls the provider, the provider has to query this value somehow and mark
++the queried values in the comp_mask field.
++.SH "SEE ALSO"
++.BR ibv_query_device (3),
++.BR ibv_open_device (3),
++.BR ibv_query_port (3),
++.BR ibv_query_pkey (3),
++.BR ibv_query_gid (3)
++.SH "AUTHORS"
++.TP
++Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++.TP
++Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 -- 
 1.8.3.1
 
