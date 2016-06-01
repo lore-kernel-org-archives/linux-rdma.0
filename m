@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V5 libibverbs 1/7] Add support for extended creating CQ verb
-Date: Wed,  1 Jun 2016 16:05:34 +0300
-Message-ID: <1464786340-7630-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V5 libibverbs 3/7] Add timestamp_mask and hca_core_clock to ibv_query_device_ex
+Date: Wed,  1 Jun 2016 16:05:36 +0300
+Message-ID: <1464786340-7630-4-git-send-email-yishaih@mellanox.com>
 References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,482 +12,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add ibv_create_cq_ex. This extended verb follows the extension verbs
-scheme and hence could be extendible in the future for more features.
-The new command requires the user to declare which fields are going
-to be polled. This is mandatory in order to maintain compatibility
-between new applications and old libraries.
-The user shall only read fields from the completion which he requested
-upon creating the CQ.
+The fields timestamp_mask and hca_core_clock were added
+to the extended version of ibv_query_device verb.
+timestamp_mask represents the supported mask of the timestamp.
+Users could infer the accuracy of the reported possible
+timestamp.
+hca_core_clock represents the frequency of the HCA (in kHZ).
+
+Since timestamp is given in hardware cycles, knowing the frequency
+is mandatory in order to convert this number into seconds.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- Makefile.am                   |  2 +-
- include/infiniband/driver.h   |  9 ++++
- include/infiniband/kern-abi.h | 20 +++++++++
- include/infiniband/verbs.h    | 96 +++++++++++++++++++++++++++++++++++++++++++
- man/ibv_create_cq_ex.3        | 62 ++++++++++++++++++++++++++++
- src/cmd.c                     | 38 +++++++++++++++++
- src/device.c                  | 49 ++++++++++++++++++++++
- src/ibverbs.h                 |  5 +++
- src/libibverbs.map            |  1 +
- 9 files changed, 281 insertions(+), 1 deletion(-)
- create mode 100644 man/ibv_create_cq_ex.3
+ examples/devinfo.c            | 10 ++++++++++
+ include/infiniband/kern-abi.h |  2 ++
+ include/infiniband/verbs.h    |  2 ++
+ man/ibv_query_device_ex.3     |  6 ++++--
+ src/cmd.c                     | 21 +++++++++++++++++++++
+ 5 files changed, 39 insertions(+), 2 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index cae80bb..a1c2122 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -65,7 +65,7 @@ man_MANS = man/ibv_asyncwatch.1 man/ibv_devices.1 man/ibv_devinfo.1	\
-     man/ibv_create_qp_ex.3 man/ibv_create_srq_ex.3 man/ibv_open_xrcd.3  \
-     man/ibv_get_srq_num.3 man/ibv_open_qp.3 man/ibv_query_device_ex.3	\
-     man/ibv_alloc_mw.3 man/ibv_bind_mw.3 man/ibv_inc_rkey.3		\
--    man/ibv_rereg_mr.3
-+    man/ibv_rereg_mr.3 man/ibv_create_cq_ex.3
+diff --git a/examples/devinfo.c b/examples/devinfo.c
+index a8de982..0af8c3b 100644
+--- a/examples/devinfo.c
++++ b/examples/devinfo.c
+@@ -339,6 +339,16 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		printf("\tlocal_ca_ack_delay:\t\t%d\n", device_attr.orig_attr.local_ca_ack_delay);
  
- DEBIAN = debian/changelog debian/compat debian/control debian/copyright \
-     debian/ibverbs-utils.install debian/libibverbs1.install \
-diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 053ad5f..65fa44f 100644
---- a/include/infiniband/driver.h
-+++ b/include/infiniband/driver.h
-@@ -155,6 +155,15 @@ int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
- 		      int comp_vector, struct ibv_cq *cq,
- 		      struct ibv_create_cq *cmd, size_t cmd_size,
- 		      struct ibv_create_cq_resp *resp, size_t resp_size);
-+int ibv_cmd_create_cq_ex(struct ibv_context *context,
-+			 struct ibv_cq_init_attr_ex *cq_attr,
-+			 struct ibv_cq_ex *cq,
-+			 struct ibv_create_cq_ex *cmd,
-+			 size_t cmd_core_size,
-+			 size_t cmd_size,
-+			 struct ibv_create_cq_resp_ex *resp,
-+			 size_t resp_core_size,
-+			 size_t resp_size);
- int ibv_cmd_poll_cq(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
- int ibv_cmd_req_notify_cq(struct ibv_cq *cq, int solicited_only);
- #define IBV_CMD_RESIZE_CQ_HAS_RESP_PARAMS
+ 		print_odp_caps(&device_attr.odp_caps);
++		if (device_attr.completion_timestamp_mask)
++			printf("\tcompletion timestamp_mask:\t\t\t0x%016lx\n",
++			       device_attr.completion_timestamp_mask);
++		else
++			printf("\tcompletion_timestamp_mask not supported\n");
++
++		if (device_attr.hca_core_clock)
++			printf("\thca_core_clock:\t\t\t%lukHZ\n", device_attr.hca_core_clock);
++		else
++			printf("\tcore clock not supported\n");
+ 	}
+ 
+ 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 31da4be..36a2c8c 100644
+index 36a2c8c..a2c0c46 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -112,6 +112,8 @@ enum {
- 					    IB_USER_VERBS_CMD_QUERY_DEVICE,
- 	IB_USER_VERBS_CMD_CREATE_QP_EX = IB_USER_VERBS_CMD_EXTENDED_MASK |
- 					 IB_USER_VERBS_CMD_CREATE_QP,
-+	IB_USER_VERBS_CMD_CREATE_CQ_EX = IB_USER_VERBS_CMD_EXTENDED_MASK |
-+						IB_USER_VERBS_CMD_CREATE_CQ,
- 	IB_USER_VERBS_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_EXTENDED_MASK +
- 					IB_USER_VERBS_CMD_THRESHOLD,
- 	IB_USER_VERBS_CMD_DESTROY_FLOW
-@@ -443,6 +445,23 @@ struct ibv_create_cq_resp {
- 	__u32 cqe;
+@@ -271,6 +271,8 @@ struct ibv_query_device_resp_ex {
+ 	__u32 comp_mask;
+ 	__u32 response_length;
+ 	struct ibv_odp_caps_resp odp_caps;
++	__u64 timestamp_mask;
++	__u64 hca_core_clock;
  };
  
-+struct ibv_create_cq_ex {
-+	struct ex_hdr	hdr;
-+	__u64		user_handle;
-+	__u32		cqe;
-+	__u32		comp_vector;
-+	__s32		comp_channel;
-+	__u32		comp_mask;
-+	__u32		flags;
-+	__u32		reserved;
-+};
-+
-+struct ibv_create_cq_resp_ex {
-+	struct ibv_create_cq_resp	base;
-+	__u32				comp_mask;
-+	__u32				response_length;
-+};
-+
- struct ibv_kern_wc {
- 	__u64  wr_id;
- 	__u32  status;
-@@ -1098,6 +1117,7 @@ enum {
- 	IB_USER_VERBS_CMD_DESTROY_FLOW_V2 = -1,
- 	IB_USER_VERBS_CMD_QUERY_DEVICE_EX_V2 = -1,
- 	IB_USER_VERBS_CMD_CREATE_QP_EX_V2 = -1,
-+	IB_USER_VERBS_CMD_CREATE_CQ_EX_V2 = -1,
- };
- 
- struct ibv_modify_srq_v3 {
+ struct ibv_query_port {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index bda31a8..d6df5f1 100644
+index 5f4dcbf..c40db16 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -360,6 +360,30 @@ enum {
- 	IBV_WC_IP_CSUM_OK_SHIFT	= 2
+@@ -207,6 +207,8 @@ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+ 	struct ibv_odp_caps	odp_caps;
++	uint64_t		completion_timestamp_mask;
++	uint64_t		hca_core_clock;
  };
  
-+enum ibv_create_cq_wc_flags {
-+	IBV_WC_EX_WITH_BYTE_LEN		= 1 << 0,
-+	IBV_WC_EX_WITH_IMM		= 1 << 1,
-+	IBV_WC_EX_WITH_QP_NUM		= 1 << 2,
-+	IBV_WC_EX_WITH_SRC_QP		= 1 << 3,
-+	IBV_WC_EX_WITH_SLID		= 1 << 4,
-+	IBV_WC_EX_WITH_SL		= 1 << 5,
-+	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 6,
-+};
-+
-+enum {
-+	IBV_WC_STANDARD_FLAGS = IBV_WC_EX_WITH_BYTE_LEN		|
-+				 IBV_WC_EX_WITH_IMM		|
-+				 IBV_WC_EX_WITH_QP_NUM		|
-+				 IBV_WC_EX_WITH_SRC_QP		|
-+				 IBV_WC_EX_WITH_SLID		|
-+				 IBV_WC_EX_WITH_SL		|
-+				 IBV_WC_EX_WITH_DLID_PATH_BITS
-+};
-+
-+enum {
-+	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS
-+};
-+
- enum ibv_wc_flags {
- 	IBV_WC_GRH		= 1 << 0,
- 	IBV_WC_WITH_IMM		= 1 << 1,
-@@ -834,6 +858,26 @@ struct ibv_cq {
- 	uint32_t		async_events_completed;
+ enum ibv_mtu {
+diff --git a/man/ibv_query_device_ex.3 b/man/ibv_query_device_ex.3
+index 1f483d2..db12c2b 100644
+--- a/man/ibv_query_device_ex.3
++++ b/man/ibv_query_device_ex.3
+@@ -22,8 +22,10 @@ is a pointer to an ibv_device_attr_ex struct, as defined in <infiniband/verbs.h>
+ struct ibv_device_attr_ex {
+ .in +8
+ struct ibv_device_attr orig_attr;
+-uint32_t               comp_mask;              /* Compatibility mask that defines which of the following variables are valid */
+-struct ibv_odp_caps    odp_caps;               /* On-Demand Paging capabilities */
++uint32_t               comp_mask;                  /* Compatibility mask that defines which of the following variables are valid */
++struct ibv_odp_caps    odp_caps;                   /* On-Demand Paging capabilities */
++uint64_t               completion_timestamp_mask;  /* Completion timestamp mask (0 = unsupported) */
++uint64_t               hca_core_clock;             /* The frequency (in kHZ) of the HCA (0 = unsupported) */
+ .in -8
  };
  
-+struct ibv_cq_ex {
-+	struct ibv_context     *context;
-+	struct ibv_comp_channel *channel;
-+	void		       *cq_context;
-+	uint32_t		handle;
-+	int			cqe;
-+
-+	pthread_mutex_t		mutex;
-+	pthread_cond_t		cond;
-+	uint32_t		comp_events_completed;
-+	uint32_t		async_events_completed;
-+
-+	uint32_t		comp_mask;
-+};
-+
-+static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-+{
-+	return (struct ibv_cq *)cq;
-+}
-+
- struct ibv_ah {
- 	struct ibv_context     *context;
- 	struct ibv_pd	       *pd;
-@@ -1044,6 +1088,31 @@ struct ibv_context {
- 	void		       *abi_compat;
- };
- 
-+enum ibv_cq_init_attr_mask {
-+	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 0 << 1
-+};
-+
-+struct ibv_cq_init_attr_ex {
-+	/* Minimum number of entries required for CQ */
-+	uint32_t			cqe;
-+	/* Consumer-supplied context returned for completion events */
-+	void			*cq_context;
-+	/* Completion channel where completion events will be queued.
-+	 * May be NULL if completion events will not be used.
-+	 */
-+	struct ibv_comp_channel *channel;
-+	/* Completion vector used to signal completion events.
-+	 *  Must be < context->num_comp_vectors.
-+	 */
-+	uint32_t			comp_vector;
-+	 /* Or'ed bit of enum ibv_create_cq_wc_flags. */
-+	uint64_t		wc_flags;
-+	/* compatibility mask (extended verb). Or'd flags of
-+	 * enum ibv_cq_init_attr_mask
-+	 */
-+	uint32_t		comp_mask;
-+};
-+
- enum verbs_context_mask {
- 	VERBS_CONTEXT_XRCD	= 1 << 0,
- 	VERBS_CONTEXT_SRQ	= 1 << 1,
-@@ -1055,6 +1124,9 @@ enum verbs_context_mask {
- 
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
-+					  struct ibv_cq_init_attr_ex *init_attr);
-+	struct verbs_ex_private *priv;
- 	int (*query_device_ex)(struct ibv_context *context,
- 			       const struct ibv_query_device_ex_input *input,
- 			       struct ibv_device_attr_ex *attr,
-@@ -1360,6 +1432,30 @@ struct ibv_cq *ibv_create_cq(struct ibv_context *context, int cqe,
- 			     int comp_vector);
- 
- /**
-+ * ibv_create_cq_ex - Create a completion queue
-+ * @context - Context CQ will be attached to
-+ * @cq_attr - Attributes to create the CQ with
-+ */
-+static inline
-+struct ibv_cq_ex *ibv_create_cq_ex(struct ibv_context *context,
-+				   struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx_op(context, create_cq_ex);
-+
-+	if (!vctx) {
-+		errno = ENOSYS;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & ~(IBV_CQ_INIT_ATTR_MASK_RESERVED - 1)) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	return vctx->create_cq_ex(context, cq_attr);
-+}
-+
-+/**
-  * ibv_resize_cq - Modifies the capacity of the CQ.
-  * @cq: The CQ to resize.
-  * @cqe: The minimum size of the CQ.
-diff --git a/man/ibv_create_cq_ex.3 b/man/ibv_create_cq_ex.3
-new file mode 100644
-index 0000000..e8e4eb8
---- /dev/null
-+++ b/man/ibv_create_cq_ex.3
-@@ -0,0 +1,62 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH IBV_CREATE_CQ_EX 3 2016-05-08 libibverbs "Libibverbs Programmer's Manual"
-+.SH "NAME"
-+ibv_create_cq_ex \- create a completion queue (CQ)
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/verbs.h>
-+.sp
-+.BI "struct ibv_cq_ex *ibv_create_cq_ex(struct ibv_context " "*context" ",
-+.BI "                                   struct ibv_create_cq_attr_ex " "*cq_attr" );
-+.fi
-+.SH "DESCRIPTION"
-+.B ibv_create_cq_ex()
-+creates a completion queue (CQ) for RDMA device context
-+.I context\fR.
-+The argument
-+.I cq_attr
-+is a pointer to struct ibv_create_cq_attr_ex as defined in <infiniband/verbs.h>.
-+.PP
-+.nf
-+struct ibv_create_cq_attr_ex {
-+.in +8
-+int                     cqe;               /* Minimum number of entries required for CQ */
-+void                    *cq_context;       /* Consumer-supplied context returned for completion events */
-+struct ibv_comp_channel *channel;          /* Completion channel where completion events will be queued. May be NULL if completion events will not be used. */
-+int                     comp_vector;       /* Completion vector used to signal completion events. Must be >= 0 and < context->num_comp_vectors. */
-+uint64_t                wc_flags;          /* The wc_flags that should be returned in ibv_poll_cq_ex. Or'ed bit of enum ibv_wc_flags_ex. */
-+uint32_t                comp_mask;         /* compatibility mask (extended verb). */
-+.in -8
-+};
-+
-+enum ibv_wc_flags_ex {
-+        IBV_WC_EX_WITH_BYTE_LEN              = 1 << 0,  /* Require byte len in WC */
-+        IBV_WC_EX_WITH_IMM                   = 1 << 1,  /* Require immediate in WC */
-+        IBV_WC_EX_WITH_QP_NUM                = 1 << 2,  /* Require QP number in WC */
-+        IBV_WC_EX_WITH_SRC_QP                = 1 << 3,  /* Require source QP in WC */
-+        IBV_WC_EX_WITH_SLID                  = 1 << 4,  /* Require slid in WC */
-+        IBV_WC_EX_WITH_SL                    = 1 << 5,  /* Require sl in WC */
-+        IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 6,  /* Require dlid path bits in WC */
-+};
-+
-+.SH "RETURN VALUE"
-+.B ibv_create_cq_ex()
-+returns a pointer to the CQ, or NULL if the request fails.
-+.SH "NOTES"
-+.B ibv_create_cq_ex()
-+may create a CQ with size greater than or equal to the requested
-+size. Check the cqe attribute in the returned CQ for the actual size.
-+.PP
-+CQ should be destroyed with ibv_destroy_cq.
-+.PP
-+.SH "SEE ALSO"
-+.BR ibv_create_cq (3),
-+.BR ibv_destroy_cq (3),
-+.BR ibv_resize_cq (3),
-+.BR ibv_req_notify_cq (3),
-+.BR ibv_ack_cq_events (3),
-+.BR ibv_create_qp (3)
-+.SH "AUTHORS"
-+.TP
-+Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 diff --git a/src/cmd.c b/src/cmd.c
-index b8c51ce..d292452 100644
+index d292452..777fded 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -438,6 +438,44 @@ int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
+@@ -189,6 +189,27 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 		}
+ 	}
+ 
++	if (attr_size >= offsetof(struct ibv_device_attr_ex,
++				  completion_timestamp_mask) +
++			 sizeof(attr->completion_timestamp_mask)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, timestamp_mask) +
++		    sizeof(resp->timestamp_mask))
++			attr->completion_timestamp_mask = resp->timestamp_mask;
++		else
++			attr->completion_timestamp_mask = 0;
++	}
++
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, hca_core_clock) +
++			 sizeof(attr->hca_core_clock)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, hca_core_clock) +
++		    sizeof(resp->hca_core_clock))
++			attr->hca_core_clock = resp->hca_core_clock;
++		else
++			attr->hca_core_clock = 0;
++	}
++
  	return 0;
  }
  
-+int ibv_cmd_create_cq_ex(struct ibv_context *context,
-+			 struct ibv_cq_init_attr_ex *cq_attr,
-+			 struct ibv_cq_ex *cq,
-+			 struct ibv_create_cq_ex *cmd,
-+			 size_t cmd_core_size,
-+			 size_t cmd_size,
-+			 struct ibv_create_cq_resp_ex *resp,
-+			 size_t resp_core_size,
-+			 size_t resp_size)
-+{
-+	int err;
-+
-+	memset(cmd, 0, cmd_core_size);
-+	IBV_INIT_CMD_RESP_EX_V(cmd, cmd_core_size, cmd_size, CREATE_CQ_EX, resp,
-+			       resp_core_size, resp_size);
-+
-+	if (cq_attr->comp_mask & ~(IBV_CQ_INIT_ATTR_MASK_RESERVED - 1))
-+		return EINVAL;
-+
-+	cmd->user_handle   = (uintptr_t)cq;
-+	cmd->cqe           = cq_attr->cqe;
-+	cmd->comp_vector   = cq_attr->comp_vector;
-+	cmd->comp_channel  = cq_attr->channel ? cq_attr->channel->fd : -1;
-+	cmd->comp_mask = 0;
-+
-+	err = write(context->cmd_fd, cmd, cmd_size);
-+	if (err != cmd_size)
-+		return errno;
-+
-+	(void)VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-+
-+	cq->handle  = resp->base.cq_handle;
-+	cq->cqe     = resp->base.cqe;
-+	cq->context = context;
-+
-+	return 0;
-+}
-+
- int ibv_cmd_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
- {
- 	struct ibv_poll_cq       cmd;
-diff --git a/src/device.c b/src/device.c
-index f2b889c..e520295 100644
---- a/src/device.c
-+++ b/src/device.c
-@@ -122,6 +122,38 @@ uint64_t __ibv_get_device_guid(struct ibv_device *device)
- }
- default_symver(__ibv_get_device_guid, ibv_get_device_guid);
- 
-+struct ibv_cq_ex *__lib_ibv_create_cq_ex(struct ibv_context *context,
-+					 struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+	struct verbs_context *vctx = verbs_get_ctx(context);
-+	struct ibv_cq_ex *cq;
-+
-+	if (cq_attr->wc_flags & ~IBV_CREATE_CQ_SUP_WC_FLAGS) {
-+		errno = EOPNOTSUPP;
-+		return NULL;
-+	}
-+
-+	pthread_mutex_lock(&context->mutex);
-+
-+	cq = vctx->priv->create_cq_ex(context, cq_attr);
-+
-+	if (cq) {
-+		cq->context		   = context;
-+		cq->channel		   = cq_attr->channel;
-+		if (cq->channel)
-+			++cq->channel->refcnt;
-+		cq->cq_context		   = cq_attr->cq_context;
-+		cq->comp_events_completed  = 0;
-+		cq->async_events_completed = 0;
-+		pthread_mutex_init(&cq->mutex, NULL);
-+		pthread_cond_init(&cq->cond, NULL);
-+	}
-+
-+	pthread_mutex_unlock(&context->mutex);
-+
-+	return cq;
-+}
-+
- struct ibv_context *__ibv_open_device(struct ibv_device *device)
- {
- 	struct verbs_device *verbs_device = verbs_get_device(device);
-@@ -148,6 +180,8 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
- 		if (!context)
- 			goto err;
- 	} else {
-+		struct verbs_ex_private *priv;
-+
- 		/* Library now allocates the context */
- 		context_ex = calloc(1, sizeof(*context_ex) +
- 				       verbs_device->size_of_context);
-@@ -156,6 +190,14 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
- 			goto err;
- 		}
- 
-+		priv = calloc(1, sizeof(*priv));
-+		if (!priv) {
-+			errno = ENOMEM;
-+			free(context_ex);
-+			goto err;
-+		}
-+
-+		context_ex->priv = priv;
- 		context_ex->context.abi_compat  = __VERBS_ABI_IS_EXTENDED;
- 		context_ex->sz = sizeof(*context_ex);
- 
-@@ -177,6 +219,11 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
- 		 */
- 		context_ex->ABI_placeholder1 = (void (*)(void)) context_ex->ibv_create_flow;
- 		context_ex->ABI_placeholder2 = (void (*)(void)) context_ex->ibv_destroy_flow;
-+
-+		if (context_ex->create_cq_ex) {
-+			priv->create_cq_ex = context_ex->create_cq_ex;
-+			context_ex->create_cq_ex = __lib_ibv_create_cq_ex;
-+		}
- 	}
- 
- 	context->device = device;
-@@ -186,6 +233,7 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
- 	return context;
- 
- verbs_err:
-+	free(context_ex->priv);
- 	free(context_ex);
- err:
- 	close(cmd_fd);
-@@ -204,6 +252,7 @@ int __ibv_close_device(struct ibv_context *context)
- 	if (context_ex) {
- 		struct verbs_device *verbs_device = verbs_get_device(context->device);
- 		verbs_device->uninit_context(verbs_device, context);
-+		free(context_ex->priv);
- 		free(context_ex);
- 	} else {
- 		context->device->ops.free_context(context);
-diff --git a/src/ibverbs.h b/src/ibverbs.h
-index ff206f9..062a490 100644
---- a/src/ibverbs.h
-+++ b/src/ibverbs.h
-@@ -81,6 +81,11 @@ extern HIDDEN int abi_ver;
- 
- HIDDEN int ibverbs_init(struct ibv_device ***list);
- 
-+struct verbs_ex_private {
-+	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
-+					  struct ibv_cq_init_attr_ex *init_attr);
-+};
-+
- #define IBV_INIT_CMD(cmd, size, opcode)					\
- 	do {								\
- 		if (abi_ver > 2)					\
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index a150416..5134bd9 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -47,6 +47,7 @@ IBVERBS_1.0 {
- 		ibv_cmd_reg_mr;
- 		ibv_cmd_dereg_mr;
- 		ibv_cmd_create_cq;
-+		ibv_cmd_create_cq_ex;
- 		ibv_cmd_poll_cq;
- 		ibv_cmd_req_notify_cq;
- 		ibv_cmd_resize_cq;
 -- 
 1.8.3.1
 
