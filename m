@@ -1,57 +1,67 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libmlx5 7/7] Use configuration symbol for always in-line
-Date: Wed, 1 Jun 2016 19:58:54 +0300
-Message-ID: <c72fdcf7-7dc3-2476-643b-84fae6c07b53@mellanox.com>
-References: <1464788882-1876-1-git-send-email-yishaih@mellanox.com>
- <1464788882-1876-8-git-send-email-yishaih@mellanox.com>
- <20160601161055.GA15186@obsidianresearch.com>
- <07a22f6a-eea9-201c-2c64-f51eb557a1d3@mellanox.com>
- <20160601162818.GC15186@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: [PATCH] IB/core: fix null pointer dereference and memory leak in error handling
+Date: Wed,  1 Jun 2016 19:06:36 +0100
+Message-ID: <1464804396-13936-1-git-send-email-colin.king@canonical.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160601162818.GC15186-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/06/2016 19:28, Jason Gunthorpe wrote:
-> On Wed, Jun 01, 2016 at 07:15:35PM +0300, Matan Barak (External) wrote:
->
->> It wasn't added by this series :)
->
-> No, but the autodetection of attributes was added. It doesn't make
-> sense to autodetect only one attribute. Don't do it at all or do it
-> properly, adding non-functional theoretical 'portability' crap is a
-> bad idea.
->
+From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
-Agree, there are 3 __attribute__ in code:
-1. hidden - not used in code, should be dropped. Cleaning unused code 
-isn't related to this patch.
-2. always_inline - used and checked, optional.
-3. constructor - if the compiler doesn't support it, nothing will be 
-able to allocate and populate the dev structure, so it's mandatory. It's 
-probably more correct to check that it's available in configure.ac.
+The current error handling in setup_hw_stats has a couple of issues.
+It is possible to generate a null pointer deference on the
+kfree of hsag->attrs[i] because two of the early error exit paths
+jump to the kfree when hsags NULL and not allocated. Fix this by
+moving the kfree on stats and jumping to that, avoiding the hsag
+freeing.
 
->> Actually, it isn't used in libmlx5 so it should be dropped.
->
-> Make sure that nm --dynamic on libmlx5.so shows the provider is only
-> definining the one or two entry point symbols.
+Secondly, there is a memory leak of stats if the hsag allocation
+fails; instead of returning, jump to the kfree on stats.
 
-No mlx5 symbols there. The registration is currently done through
-static __attribute__((constructor)) void mlx5_register_driver(void)
-{
-         verbs_register_driver("mlx5", mlx5_driver_init);
-}
+Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+---
+ drivers/infiniband/core/sysfs.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
->
-> Jason
->
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 5e573bb..ed04a7b 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -899,14 +899,14 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 		return;
+ 
+ 	if (!stats->names || stats->num_counters <= 0)
+-		goto err;
++		goto err_free_stats;
+ 
+ 	hsag = kzalloc(sizeof(*hsag) +
+ 		       // 1 extra for the lifespan config entry
+ 		       sizeof(void *) * (stats->num_counters + 1),
+ 		       GFP_KERNEL);
+ 	if (!hsag)
+-		return;
++		goto err_free_stats;
+ 
+ 	ret = device->get_hw_stats(device, stats, port_num,
+ 				   stats->num_counters);
+@@ -946,10 +946,11 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 	return;
+ 
+ err:
+-	kfree(stats);
+ 	for (; i >= 0; i--)
+ 		kfree(hsag->attrs[i]);
+ 	kfree(hsag);
++err_free_stats:
++	kfree(stats);
+ 	return;
+ }
+ 
+-- 
+2.8.1
 
-Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
