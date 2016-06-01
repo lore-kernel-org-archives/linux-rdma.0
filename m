@@ -1,63 +1,101 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V5 libibverbs 0/7] Completion timestamping
-Date: Wed, 1 Jun 2016 11:18:31 -0500
-Message-ID: <008301d1bc21$3d26a320$b773e960$@opengridcomputing.com>
-References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com> <006901d1bc1d$35c63270$a1529750$@opengridcomputing.com> <bc75ca98-5d67-a86b-5c65-2bb94ccf6063@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libmlx5 3/7] Add inline functions to read completion's
+ attributes
+Date: Wed, 1 Jun 2016 10:24:52 -0600
+Message-ID: <20160601162452.GB15186@obsidianresearch.com>
+References: <1464788882-1876-1-git-send-email-yishaih@mellanox.com>
+ <1464788882-1876-4-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bc75ca98-5d67-a86b-5c65-2bb94ccf6063-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1464788882-1876-4-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On 6/1/2016 6:49 PM, Steve Wise wrote:
-> >
-> >
-> > <snip>
-> >
-> >>
-> >> The batching API is thread-safe (assuming the CQ wasn't created with
-> >> SINGLE_THREADED attribute) and represents a series of completions the user
-> >> would like to poll one after another.  The vendor user space driver should
-> >> guarantee this.
-> >>
-> >
-> > Hey Yishai,
-> >
-> > Can you please explain how multiple threads can use this API concurrently?
-I
-> > don't understand how two threads can be in the middle of the next branch
-> > concurrently?  Is only one thread allowed in at a time for a
-> > start/next/next/.../end branch?
-> 
-> When a CQ is created with the new API the application states whether
-> it's going to be used by a single thread or not. The vendor (e.g.
-> libmlx5) based on that will hook its underlying functions for the
-> start/next/end for this CQ.
-> 
-> In case the CQ going to be used by multiple threads the vendor will take
-> a lock as part of the start and release it as part of the end,
-> preventing any other thread to run in the middle of this batch. This
-> logic for multi-threaded application is similar to what happened today
-> when ibv_poll_cq is called.
-> 
-> As mentioned, the new API gives an option to enjoy from stating that the
-> CQ will be used by one thread comparing current legacy API which has no
-> idea and always use lock/unlock per ibv_poll_cq call.
-> 
-> You can look in the libmlx5 implementation that I sent today and see the
-> above behavior.
+On Wed, Jun 01, 2016 at 04:47:58PM +0300, Yishai Hadas wrote:
+> Add inline functions in order to read various completion's
+> attributes. These functions will be assigned in the ibv_cq_ex
+> structure in order to allow the user to read the completion's
+> attributes.
 
-Thanks.  This makes sense. 
+Did you look at using for these?
 
-Steve.
+__attribute__((optimize("-fno-omit-frame-pointer")))
 
+To help get rid of the stack frame?
+
+> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>  src/cq.c | 121 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 121 insertions(+)
+> 
+> diff --git a/src/cq.c b/src/cq.c
+> index a056787..188b34e 100644
+> +++ b/src/cq.c
+> @@ -850,6 +850,127 @@ int mlx5_poll_cq_v1(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
+>  	return poll_cq(ibcq, ne, wc, 1);
+>  }
+>  
+> +static inline enum ibv_wc_opcode mlx5_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
+> +{
+> +	fprintf(stderr, "un-expected opcode in cqe\n");
+
+Something like this can be very expensive, depending on the version of
+gcc it may force a stack frame to be created for all callers. You
+should audit the assembly to be sure that gcc is not creating
+stack frames.
+
+> +static inline uint32_t mlx5_cq_read_wc_qp_num(struct ibv_cq_ex
+> *ibcq)
+
+You need to go through everything you've written and make sure it is
+const-correct.
+You should also annotate with restrict.
+
+Doing this properly can increase performance by allowing the caller to
+avoid reloads.
+
+> +{
+> +	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+
+You might want to look at having the caller pass in 'cq' from a member
+in ibv_cq_ex. That way the caller can hold the cq in a register
+instead of constantly reloading it like this - I'm assuming to_mcq is
+not just an container_of??
+
+> +static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
+> +{
+> +	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+> +	int wc_flags = 0;
+> +
+> +	if (cq->flags & MLX5_CQ_FLAGS_RX_CSUM_VALID)
+> +		wc_flags = (!!(cq->cqe64->hds_ip_ext & MLX5_CQE_L4_OK) &
+> +				 !!(cq->cqe64->hds_ip_ext & MLX5_CQE_L3_OK) &
+> +				 (get_cqe_l3_hdr_type(cq->cqe64) ==
+> +				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
+> +				IBV_WC_IP_CSUM_OK_SHIFT;
+> +
+> +	switch (cq->cqe64->op_own >> 4) {
+> +	case MLX5_CQE_RESP_WR_IMM:
+> +	case MLX5_CQE_RESP_SEND_IMM:
+> +		wc_flags	|= IBV_WC_WITH_IMM;
+> +		break;
+> +	}
+> +
+> +	wc_flags |= ((ntohl(cq->cqe64->flags_rqpn) >> 28) & 3) ? IBV_WC_GRH : 0;
+> +	return wc_flags;
+> +}
+
+There is a disappointing amount of branching here...
+
+Anyhow, if there was any doubt that we could use a generic inline
+scheme I think this patch puts it too rest, the work being done in
+most of the accessors is fairly complex.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
