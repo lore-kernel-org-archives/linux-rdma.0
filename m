@@ -1,38 +1,90 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix different types mix in ib_device_cap_flags
- structure values
-Date: Wed, 1 Jun 2016 18:35:56 +0300
-Message-ID: <574F00DC.5000002@grimberg.me>
-References: <1464602994-21226-1-git-send-email-maxg@mellanox.com>
- <08df9022-e575-da0d-c76d-a28185c9db2d@sandisk.com>
- <20160531171306.GA6618@obsidianresearch.com> <20160531173033.GC7477@leon.nu>
- <13f16fdf-e1d2-0baa-abe1-6423d2196b72@sandisk.com>
- <20160531181223.GE7477@leon.nu> <20160531182100.GC21834@obsidianresearch.com>
- <20160531185432.GF7477@leon.nu> <20160531193956.GD21834@obsidianresearch.com>
- <574ECF44.3070003@mellanox.com>
+From: Lijun Ou <oulijun@huawei.com>
+Subject: [PATCH v9 11/22] IB/hns: Add IB device registration
+Date: Wed, 1 Jun 2016 23:37:53 +0800
+Message-ID: <1464795484-77395-12-git-send-email-oulijun@huawei.com>
+References: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <574ECF44.3070003-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, oulijun@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
+This patch registered IB device when loaded, and unregistered
+IB device when removed.
 
->> Which is clearly wrong. This is because signed int becomes sign
->> extended when converted to uint64_t, corrupting the upper bits.
->>
->> Since adding the ULL's doesn't make the enum constants have uniform
->> type I would not bother with the churn.
->
-> tested this with single casting to IB_DEVICE_ON_DEMAND_PAGING (1 << 31)
-> to (1ULL << 31). works fine.
-> I'll send another patch today.
+Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_main.c | 46 +++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-Good to know, thanks Max.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 7fb0d34..f179a7f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -62,6 +62,41 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_icm.h"
+ 
++void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
++{
++	ib_unregister_device(&hr_dev->ib_dev);
++}
++
++int hns_roce_register_device(struct hns_roce_dev *hr_dev)
++{
++	int ret;
++	struct hns_roce_ib_iboe *iboe = NULL;
++	struct ib_device *ib_dev = NULL;
++	struct device *dev = &hr_dev->pdev->dev;
++
++	iboe = &hr_dev->iboe;
++
++	ib_dev = &hr_dev->ib_dev;
++	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
++
++	ib_dev->owner			= THIS_MODULE;
++	ib_dev->node_type		= RDMA_NODE_IB_CA;
++	ib_dev->dma_device		= dev;
++
++	ib_dev->phys_port_cnt		= hr_dev->caps.num_ports;
++	ib_dev->local_dma_lkey		= hr_dev->caps.reserved_lkey;
++	ib_dev->num_comp_vectors	= hr_dev->caps.num_comp_vectors;
++	ib_dev->uverbs_abi_ver		= 1;
++
++	ret = ib_register_device(ib_dev, NULL);
++	if (ret) {
++		dev_err(dev, "ib_register_device failed!\n");
++		return ret;
++	}
++
++	return 0;
++}
++
+ int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+ {
+ 	int i;
+@@ -363,6 +398,17 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 		goto error_failed_engine_init;
+ 	}
+ 
++	ret = hns_roce_register_device(hr_dev);
++	if (ret) {
++		dev_err(dev, "register_device failed!\n");
++		goto error_failed_register_device;
++	}
++
++	return 0;
++
++error_failed_register_device:
++	hns_roce_engine_exit(hr_dev);
++
+ error_failed_engine_init:
+ 	hns_roce_cleanup_bitmap(hr_dev);
+ 
+-- 
+1.9.1
