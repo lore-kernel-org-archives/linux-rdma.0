@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 13/29] IB/rxe: Address vector manipulation functions
-Date: Thu,  2 Jun 2016 19:57:21 +0300
-Message-ID: <1464886657-14258-14-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 06/29] IB/rxe: Add maintainer for rxe driver
+Date: Thu,  2 Jun 2016 19:57:14 +0300
+Message-ID: <1464886657-14258-7-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,121 +10,36 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate Address Vector.
+Update the MAINTAINERS file for Soft RoCE driver.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_av.c | 98 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_av.c
+ MAINTAINERS | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_av.c b/drivers/infiniband/hw/rxe/rxe_av.c
-new file mode 100644
-index 0000000..61e9cb9
---- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_av.c
-@@ -0,0 +1,98 @@
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
-+ *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
-+ *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 78afefe..7ebf763 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7182,6 +7182,15 @@ W:	http://www.mellanox.com
+ Q:	http://patchwork.ozlabs.org/project/netdev/list/
+ F:	drivers/net/ethernet/mellanox/mlxsw/
+ 
++SOFT-ROCE DRIVER (rxe)
++M:	Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++S:	Supported
++W:	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
++Q:	http://patchwork.kernel.org/project/linux-rdma/list/
++F:	drivers/infiniband/hw/rxe/
++F:	include/uapi/rdma/ib_rxe.h
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
-+
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
-+{
-+	struct rxe_port *port;
-+
-+	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
-+		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
-+		return -EINVAL;
-+	}
-+
-+	port = &rxe->port[attr->port_num - 1];
-+
-+	if (attr->ah_flags & IB_AH_GRH) {
-+		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
-+			pr_info("rxe: invalid sgid index = %d\n",
-+				attr->grh.sgid_index);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr)
-+{
-+	memset(av, 0, sizeof(*av));
-+	memcpy(&av->grh, &attr->grh, sizeof(attr->grh));
-+	av->port_num = port_num;
-+	return 0;
-+}
-+
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr)
-+{
-+	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
-+	attr->port_num = av->port_num;
-+	return 0;
-+}
-+
-+int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-+			struct rxe_av *av,
-+			struct ib_ah_attr *attr,
-+			struct ib_gid_attr *sgid_attr,
-+			union ib_gid *sgid)
-+{
-+	rdma_gid2ip(&av->sgid_addr._sockaddr, sgid);
-+	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
-+	av->network_type = ib_gid_to_network_type(sgid_attr->gid_type, sgid);
-+
-+	return 0;
-+}
-+
-+struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt)
-+{
-+	if (!pkt || !pkt->qp)
-+		return NULL;
-+
-+	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
-+		return &pkt->qp->pri_av;
-+
-+	return (pkt->wqe) ? &pkt->wqe->av : NULL;
-+}
+ MEMBARRIER SUPPORT
+ M:	Mathieu Desnoyers <mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>
+ M:	"Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 -- 
 1.8.3.1
 
