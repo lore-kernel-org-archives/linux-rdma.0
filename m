@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 25/29] IB/rxe: Module init hooks
-Date: Thu,  2 Jun 2016 19:57:33 +0300
-Message-ID: <1464886657-14258-26-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 26/29] IB/rxe: Interface to netdev stack
+Date: Thu,  2 Jun 2016 19:57:34 +0300
+Message-ID: <1464886657-14258-27-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,24 +10,24 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add initialization for Soft RoCE driver, pools constants etc.
+Linux netdev related code
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe.c | 455 ++++++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/rxe/rxe.h |   4 +
- 2 files changed, 459 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe.c
+ drivers/infiniband/hw/rxe/rxe_net.c | 753 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_net.h |  78 ++++
+ 2 files changed, 831 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe.c b/drivers/infiniband/hw/rxe/rxe.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_net.c b/drivers/infiniband/hw/rxe/rxe_net.c
 new file mode 100644
-index 0000000..b8e7042
+index 0000000..024a102
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe.c
-@@ -0,0 +1,455 @@
++++ b/drivers/infiniband/hw/rxe/rxe_net.c
+@@ -0,0 +1,753 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -61,451 +61,810 @@ index 0000000..b8e7042
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++#include <linux/if_arp.h>
++#include <linux/netdevice.h>
++#include <linux/if.h>
++#include <linux/if_vlan.h>
++#include <net/udp_tunnel.h>
++#include <net/sch_generic.h>
++#include <linux/netfilter.h>
++#include <rdma/ib_addr.h>
++
 +#include "rxe.h"
++#include "rxe_net.h"
 +#include "rxe_loc.h"
 +
-+MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves, Kamal Heib");
-+MODULE_DESCRIPTION("Soft RDMA transport");
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_VERSION("0.2");
-+
-+/* free resources for all ports on a device */
-+static void rxe_cleanup_ports(struct rxe_dev *rxe)
-+{
-+	unsigned int port_num;
-+	struct rxe_port *port;
-+
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
-+
-+		kfree(port->pkey_tbl);
-+		port->pkey_tbl = NULL;
-+	}
-+
-+	kfree(rxe->port);
-+	rxe->port = NULL;
-+}
-+
-+/* free resources for a rxe device all objects created for this device must
-+ * have been destroyed
++/*
++ * note: this table is a replacement for a protocol specific pointer
++ * in struct net_device which exists for other ethertypes
++ * this allows us to not have to patch that data structure
++ * eventually we want to get our own when we're famous
 + */
-+static void rxe_cleanup(struct rxe_dev *rxe)
-+{
-+	rxe_pool_cleanup(&rxe->uc_pool);
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+	rxe_pool_cleanup(&rxe->mc_elem_pool);
++struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++spinlock_t net_info_lock; /* spinlock for net_info array */
++struct rxe_recv_sockets recv_sockets;
 +
-+	rxe_cleanup_ports(rxe);
++static __be64 rxe_mac_to_eui64(struct net_device *ndev)
++{
++	unsigned char *mac_addr = ndev->dev_addr;
++	__be64 eui64;
++	unsigned char *dst = (unsigned char *)&eui64;
++
++	dst[0] = mac_addr[0] ^ 2;
++	dst[1] = mac_addr[1];
++	dst[2] = mac_addr[2];
++	dst[3] = 0xff;
++	dst[4] = 0xfe;
++	dst[5] = mac_addr[3];
++	dst[6] = mac_addr[4];
++	dst[7] = mac_addr[5];
++
++	return eui64;
 +}
 +
-+/* called when all references have been dropped */
-+void rxe_release(struct kref *kref)
++static __be64 node_guid(struct rxe_dev *rxe)
 +{
-+	struct rxe_dev *rxe = container_of(kref, struct rxe_dev, ref_cnt);
-+
-+	rxe_cleanup(rxe);
-+	ib_dealloc_device(&rxe->ib_dev);
++	return rxe_mac_to_eui64(rxe->ndev);
 +}
 +
-+void rxe_dev_put(struct rxe_dev *rxe)
++static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
 +{
-+	kref_put(&rxe->ref_cnt, rxe_release);
-+}
-+EXPORT_SYMBOL_GPL(rxe_dev_put);
-+
-+/* initialize rxe device parameters */
-+static int rxe_init_device_param(struct rxe_dev *rxe)
-+{
-+	rxe->num_ports				= RXE_NUM_PORT;
-+	rxe->max_inline_data			= RXE_MAX_INLINE_DATA;
-+
-+	rxe->attr.fw_ver			= RXE_FW_VER;
-+	rxe->attr.max_mr_size			= RXE_MAX_MR_SIZE;
-+	rxe->attr.page_size_cap			= RXE_PAGE_SIZE_CAP;
-+	rxe->attr.vendor_id			= RXE_VENDOR_ID;
-+	rxe->attr.vendor_part_id		= RXE_VENDOR_PART_ID;
-+	rxe->attr.hw_ver			= RXE_HW_VER;
-+	rxe->attr.max_qp			= RXE_MAX_QP;
-+	rxe->attr.max_qp_wr			= RXE_MAX_QP_WR;
-+	rxe->attr.device_cap_flags		= RXE_DEVICE_CAP_FLAGS;
-+	rxe->attr.max_sge			= RXE_MAX_SGE;
-+	rxe->attr.max_sge_rd			= RXE_MAX_SGE_RD;
-+	rxe->attr.max_cq			= RXE_MAX_CQ;
-+	rxe->attr.max_cqe			= (1 << RXE_MAX_LOG_CQE) - 1;
-+	rxe->attr.max_mr			= RXE_MAX_MR;
-+	rxe->attr.max_pd			= RXE_MAX_PD;
-+	rxe->attr.max_qp_rd_atom		= RXE_MAX_QP_RD_ATOM;
-+	rxe->attr.max_ee_rd_atom		= RXE_MAX_EE_RD_ATOM;
-+	rxe->attr.max_res_rd_atom		= RXE_MAX_RES_RD_ATOM;
-+	rxe->attr.max_qp_init_rd_atom		= RXE_MAX_QP_INIT_RD_ATOM;
-+	rxe->attr.max_ee_init_rd_atom		= RXE_MAX_EE_INIT_RD_ATOM;
-+	rxe->attr.atomic_cap			= RXE_ATOMIC_CAP;
-+	rxe->attr.max_ee			= RXE_MAX_EE;
-+	rxe->attr.max_rdd			= RXE_MAX_RDD;
-+	rxe->attr.max_mw			= RXE_MAX_MW;
-+	rxe->attr.max_raw_ipv6_qp		= RXE_MAX_RAW_IPV6_QP;
-+	rxe->attr.max_raw_ethy_qp		= RXE_MAX_RAW_ETHY_QP;
-+	rxe->attr.max_mcast_grp			= RXE_MAX_MCAST_GRP;
-+	rxe->attr.max_mcast_qp_attach		= RXE_MAX_MCAST_QP_ATTACH;
-+	rxe->attr.max_total_mcast_qp_attach	= RXE_MAX_TOT_MCAST_QP_ATTACH;
-+	rxe->attr.max_ah			= RXE_MAX_AH;
-+	rxe->attr.max_fmr			= RXE_MAX_FMR;
-+	rxe->attr.max_map_per_fmr		= RXE_MAX_MAP_PER_FMR;
-+	rxe->attr.max_srq			= RXE_MAX_SRQ;
-+	rxe->attr.max_srq_wr			= RXE_MAX_SRQ_WR;
-+	rxe->attr.max_srq_sge			= RXE_MAX_SRQ_SGE;
-+	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
-+	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
-+	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
-+
-+	rxe->max_ucontext			= RXE_MAX_UCONTEXT;
-+
-+	return 0;
++	return rxe_mac_to_eui64(rxe->ndev);
 +}
 +
-+/* initialize port attributes */
-+static int rxe_init_port_param(struct rxe_dev *rxe, unsigned int port_num)
++static struct device *dma_device(struct rxe_dev *rxe)
 +{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
++	struct net_device *ndev;
 +
-+	port->attr.state		= RXE_PORT_STATE;
-+	port->attr.max_mtu		= RXE_PORT_MAX_MTU;
-+	port->attr.active_mtu		= RXE_PORT_ACTIVE_MTU;
-+	port->attr.gid_tbl_len		= RXE_PORT_GID_TBL_LEN;
-+	port->attr.port_cap_flags	= RXE_PORT_PORT_CAP_FLAGS;
-+	port->attr.max_msg_sz		= RXE_PORT_MAX_MSG_SZ;
-+	port->attr.bad_pkey_cntr	= RXE_PORT_BAD_PKEY_CNTR;
-+	port->attr.qkey_viol_cntr	= RXE_PORT_QKEY_VIOL_CNTR;
-+	port->attr.pkey_tbl_len		= RXE_PORT_PKEY_TBL_LEN;
-+	port->attr.lid			= RXE_PORT_LID;
-+	port->attr.sm_lid		= RXE_PORT_SM_LID;
-+	port->attr.lmc			= RXE_PORT_LMC;
-+	port->attr.max_vl_num		= RXE_PORT_MAX_VL_NUM;
-+	port->attr.sm_sl		= RXE_PORT_SM_SL;
-+	port->attr.subnet_timeout	= RXE_PORT_SUBNET_TIMEOUT;
-+	port->attr.init_type_reply	= RXE_PORT_INIT_TYPE_REPLY;
-+	port->attr.active_width		= RXE_PORT_ACTIVE_WIDTH;
-+	port->attr.active_speed		= RXE_PORT_ACTIVE_SPEED;
-+	port->attr.phys_state		= RXE_PORT_PHYS_STATE;
-+	port->mtu_cap			=
-+				ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
-+	port->subnet_prefix		= cpu_to_be64(RXE_PORT_SUBNET_PREFIX);
++	ndev = rxe->ndev;
 +
-+	return 0;
++	if (ndev->priv_flags & IFF_802_1Q_VLAN)
++		ndev = vlan_dev_real_dev(ndev);
++
++	return ndev->dev.parent;
 +}
 +
-+/* initialize port state, note IB convention that HCA ports are always
-+ * numbered from 1
-+ */
-+static int rxe_init_ports(struct rxe_dev *rxe)
++static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
 +{
 +	int err;
-+	unsigned int port_num;
-+	struct rxe_port *port;
++	unsigned char ll_addr[ETH_ALEN];
 +
-+	rxe->port = kcalloc(rxe->num_ports, sizeof(struct rxe_port),
-+			    GFP_KERNEL);
-+	if (!rxe->port)
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_add(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
++{
++	int err;
++	unsigned char ll_addr[ETH_ALEN];
++
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_del(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static struct dst_entry *rxe_find_route4(struct net_device *ndev,
++				  struct in_addr *saddr,
++				  struct in_addr *daddr)
++{
++	struct rtable *rt;
++	struct flowi4 fl = { { 0 } };
++
++	memset(&fl, 0, sizeof(fl));
++	fl.flowi4_oif = ndev->ifindex;
++	memcpy(&fl.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl.daddr, daddr, sizeof(*daddr));
++	fl.flowi4_proto = IPPROTO_UDP;
++
++	rt = ip_route_output_key(&init_net, &fl);
++	if (IS_ERR(rt)) {
++		pr_err_ratelimited("no route to %pI4\n", &daddr->s_addr);
++		return NULL;
++	}
++
++	return &rt->dst;
++}
++
++#if IS_ENABLED(CONFIG_IPV6)
++static struct dst_entry *rxe_find_route6(struct net_device *ndev,
++					 struct in6_addr *saddr,
++					 struct in6_addr *daddr)
++{
++	struct dst_entry *ndst;
++	struct flowi6 fl6 = { { 0 } };
++
++	memset(&fl6, 0, sizeof(fl6));
++	fl6.flowi6_oif = ndev->ifindex;
++	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
++	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
++	fl6.flowi6_proto = IPPROTO_UDP;
++
++	if (unlikely(ipv6_stub->ipv6_dst_lookup(sock_net(recv_sockets.sk6->sk),
++						recv_sockets.sk6->sk, &ndst, &fl6))) {
++		pr_err_ratelimited("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	if (unlikely(ndst->error)) {
++		pr_err("no route to %pI6\n", daddr);
++		goto put;
++	}
++
++	return ndst;
++put:
++	dst_release(ndst);
++	return NULL;
++}
++
++#else
++
++static struct dst_entry *rxe_find_route6(struct net_device *ndev,
++					 struct in6_addr *saddr,
++					 struct in6_addr *daddr)
++{
++	return NULL;
++}
++
++#endif
++
++static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
++{
++	struct udphdr *udph;
++	struct net_device *ndev = skb->dev;
++	struct rxe_dev *rxe = net_to_rxe(ndev);
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++
++	if (!rxe)
++		goto drop;
++
++	if (skb_linearize(skb)) {
++		pr_err("skb_linearize failed\n");
++		goto drop;
++	}
++
++	udph = udp_hdr(skb);
++	pkt->rxe = rxe;
++	pkt->port_num = net_to_port(ndev);
++	pkt->hdr = (u8 *)(udph + 1);
++	pkt->mask = RXE_GRH_MASK;
++	pkt->paylen = be16_to_cpu(udph->len) - sizeof(*udph);
++
++	return rxe_rcv(skb);
++drop:
++	kfree_skb(skb);
++	return 0;
++}
++
++static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
++					   bool ipv6)
++{
++	int err;
++	struct socket *sock;
++	struct udp_port_cfg udp_cfg;
++	struct udp_tunnel_sock_cfg tnl_cfg;
++
++	memset(&udp_cfg, 0, sizeof(udp_cfg));
++
++	if (ipv6) {
++		udp_cfg.family = AF_INET6;
++		udp_cfg.ipv6_v6only = 1;
++	} else {
++		udp_cfg.family = AF_INET;
++	}
++
++	udp_cfg.local_udp_port = port;
++
++	/* Create UDP socket */
++	err = udp_sock_create(net, &udp_cfg, &sock);
++	if (err < 0) {
++		pr_err("failed to create udp socket. err = %d\n", err);
++		return ERR_PTR(err);
++	}
++
++	tnl_cfg.sk_user_data = NULL;
++	tnl_cfg.encap_type = 1;
++	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
++	tnl_cfg.encap_destroy = NULL;
++
++	/* Setup UDP tunnel */
++	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
++
++	return sock;
++}
++
++static void rxe_release_udp_tunnel(struct socket *sk)
++{
++	udp_tunnel_sock_release(sk);
++}
++
++static void prepare_udp_hdr(struct sk_buff *skb, __be16 src_port,
++			    __be16 dst_port)
++{
++	struct udphdr *udph;
++
++	__skb_push(skb, sizeof(*udph));
++	skb_reset_transport_header(skb);
++	udph = udp_hdr(skb);
++
++	udph->dest = dst_port;
++	udph->source = src_port;
++	udph->len = htons(skb->len);
++	udph->check = 0;
++}
++
++static void prepare_ipv4_hdr(struct dst_entry *dst, struct sk_buff *skb,
++			     __be32 saddr, __be32 daddr, __u8 proto,
++			     __u8 tos, __u8 ttl, __be16 df, bool xnet)
++{
++	struct iphdr *iph;
++
++	skb_scrub_packet(skb, xnet);
++
++	skb_clear_hash(skb);
++	skb_dst_set(skb, dst);
++	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
++
++	skb_push(skb, sizeof(struct iphdr));
++	skb_reset_network_header(skb);
++
++	iph = ip_hdr(skb);
++
++	iph->version	=	IPVERSION;
++	iph->ihl	=	sizeof(struct iphdr) >> 2;
++	iph->frag_off	=	df;
++	iph->protocol	=	proto;
++	iph->tos	=	tos;
++	iph->daddr	=	daddr;
++	iph->saddr	=	saddr;
++	iph->ttl	=	ttl;
++	__ip_select_ident(dev_net(dst->dev), iph,
++			  skb_shinfo(skb)->gso_segs ?: 1);
++	iph->tot_len = htons(skb->len);
++	ip_send_check(iph);
++}
++
++static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
++			     struct in6_addr *saddr, struct in6_addr *daddr,
++			     __u8 proto, __u8 prio, __u8 ttl)
++{
++	struct ipv6hdr *ip6h;
++
++	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
++	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
++			    | IPSKB_REROUTED);
++	skb_dst_set(skb, dst);
++
++	__skb_push(skb, sizeof(*ip6h));
++	skb_reset_network_header(skb);
++	ip6h		  = ipv6_hdr(skb);
++	ip6_flow_hdr(ip6h, prio, htonl(0));
++	ip6h->payload_len = htons(skb->len);
++	ip6h->nexthdr     = proto;
++	ip6h->hop_limit   = ttl;
++	ip6h->daddr	  = *daddr;
++	ip6h->saddr	  = *saddr;
++	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
++}
++
++static int prepare4(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
++{
++	struct dst_entry *dst;
++	bool xnet = false;
++	__be16 df = htons(IP_DF);
++	struct in_addr *saddr = &av->sgid_addr._sockaddr_in.sin_addr;
++	struct in_addr *daddr = &av->dgid_addr._sockaddr_in.sin_addr;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++
++	dst = rxe_find_route4(rxe->ndev, saddr, daddr);
++	if (!dst) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	if (!memcmp(saddr, daddr, sizeof(*daddr)))
++		pkt->mask |= RXE_LOOPBACK_MASK;
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv4_hdr(dst, skb, saddr->s_addr, daddr->s_addr, IPPROTO_UDP,
++			 av->grh.traffic_class, av->grh.hop_limit, df, xnet);
++	return 0;
++}
++
++static int prepare6(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
++{
++	struct dst_entry *dst;
++	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
++	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++
++	dst = rxe_find_route6(rxe->ndev, saddr, daddr);
++	if (!dst) {
++		pr_err("Host not reachable\n");
++		return -EHOSTUNREACH;
++	}
++
++	if (!memcmp(saddr, daddr, sizeof(*daddr)))
++		pkt->mask |= RXE_LOOPBACK_MASK;
++
++	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
++			htons(ROCE_V2_UDP_DPORT));
++
++	prepare_ipv6_hdr(dst, skb, saddr, daddr, IPPROTO_UDP,
++			 av->grh.traffic_class,
++			 av->grh.hop_limit);
++	return 0;
++}
++
++static int prepare(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		   struct sk_buff *skb, u32 *crc)
++{
++	int err = 0;
++	struct rxe_av *av = rxe_get_av(pkt);
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		err = prepare4(rxe, skb, av);
++	else if (av->network_type == RDMA_NETWORK_IPV6)
++		err = prepare6(rxe, skb, av);
++
++	*crc = rxe_icrc_hdr(pkt, skb);
++
++	return err;
++}
++
++static void rxe_skb_tx_dtor(struct sk_buff *skb)
++{
++	struct sock *sk = skb->sk;
++	struct rxe_qp *qp = sk->sk_user_data;
++	int skb_out = atomic_dec_return(&qp->skb_out);
++
++	if (unlikely(qp->need_req_skb &&
++		     skb_out < RXE_INFLIGHT_SKBS_PER_QP_LOW))
++		rxe_run_task(&qp->req.task, 1);
++}
++
++static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		struct sk_buff *skb)
++{
++	struct sk_buff *nskb;
++	struct rxe_av *av;
++	int err;
++
++	av = rxe_get_av(pkt);
++
++	nskb = skb_clone(skb, GFP_ATOMIC);
++	if (!nskb)
 +		return -ENOMEM;
 +
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
++	nskb->destructor = rxe_skb_tx_dtor;
++	nskb->sk = pkt->qp->sk->sk;
 +
-+		rxe_init_port_param(rxe, port_num);
-+
-+		if (!port->attr.pkey_tbl_len) {
-+			err = -EINVAL;
-+			goto err1;
-+		}
-+
-+		port->pkey_tbl = kcalloc(port->attr.pkey_tbl_len,
-+					 sizeof(*port->pkey_tbl), GFP_KERNEL);
-+		if (!port->pkey_tbl) {
-+			err = -ENOMEM;
-+			goto err1;
-+		}
-+
-+		port->pkey_tbl[0] = 0xffff;
-+
-+		if (!port->attr.gid_tbl_len) {
-+			kfree(port->pkey_tbl);
-+			err = -EINVAL;
-+			goto err1;
-+		}
-+
-+		port->port_guid = rxe->ifc_ops->port_guid(rxe, port_num);
-+
-+		spin_lock_init(&port->port_lock);
++	if (av->network_type == RDMA_NETWORK_IPV4) {
++		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++	} else if (av->network_type == RDMA_NETWORK_IPV6) {
++		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++	} else {
++		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
++		kfree_skb(nskb);
++		return -EINVAL;
 +	}
 +
-+	return 0;
-+
-+err1:
-+	while (--port_num >= 1) {
-+		port = &rxe->port[port_num - 1];
-+		kfree(port->pkey_tbl);
++	if (unlikely(net_xmit_eval(err))) {
++		pr_debug("error sending packet: %d\n", err);
++		return -EAGAIN;
 +	}
 +
-+	kfree(rxe->port);
-+	return err;
-+}
-+
-+/* init pools of managed objects */
-+static int rxe_init_pools(struct rxe_dev *rxe)
-+{
-+	int err;
-+
-+	err = rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC,
-+			    rxe->max_ucontext);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD,
-+			    rxe->attr.max_pd);
-+	if (err)
-+		goto err2;
-+
-+	err = rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH,
-+			    rxe->attr.max_ah);
-+	if (err)
-+		goto err3;
-+
-+	err = rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ,
-+			    rxe->attr.max_srq);
-+	if (err)
-+		goto err4;
-+
-+	err = rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP,
-+			    rxe->attr.max_qp);
-+	if (err)
-+		goto err5;
-+
-+	err = rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ,
-+			    rxe->attr.max_cq);
-+	if (err)
-+		goto err6;
-+
-+	err = rxe_pool_init(rxe, &rxe->mr_pool, RXE_TYPE_MR,
-+			    rxe->attr.max_mr);
-+	if (err)
-+		goto err7;
-+
-+	err = rxe_pool_init(rxe, &rxe->fmr_pool, RXE_TYPE_FMR,
-+			    rxe->attr.max_fmr);
-+	if (err)
-+		goto err8;
-+
-+	err = rxe_pool_init(rxe, &rxe->mw_pool, RXE_TYPE_MW,
-+			    rxe->attr.max_mw);
-+	if (err)
-+		goto err9;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_grp_pool, RXE_TYPE_MC_GRP,
-+			    rxe->attr.max_mcast_grp);
-+	if (err)
-+		goto err10;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_elem_pool, RXE_TYPE_MC_ELEM,
-+			    rxe->attr.max_total_mcast_qp_attach);
-+	if (err)
-+		goto err11;
-+
-+	return 0;
-+
-+err11:
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+err10:
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+err9:
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+err8:
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+err7:
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+err6:
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+err5:
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+err4:
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+err3:
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+err2:
-+	rxe_pool_cleanup(&rxe->uc_pool);
-+err1:
-+	return err;
-+}
-+
-+/* initialize rxe device state */
-+static int rxe_init(struct rxe_dev *rxe)
-+{
-+	int err;
-+
-+	/* init default device parameters */
-+	rxe_init_device_param(rxe);
-+
-+	err = rxe_init_ports(rxe);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_init_pools(rxe);
-+	if (err)
-+		goto err2;
-+
-+	/* init pending mmap list */
-+	spin_lock_init(&rxe->mmap_offset_lock);
-+	spin_lock_init(&rxe->pending_lock);
-+	INIT_LIST_HEAD(&rxe->pending_mmaps);
-+
-+	mutex_init(&rxe->usdev_lock);
-+
-+	return 0;
-+
-+err2:
-+	rxe_cleanup_ports(rxe);
-+err1:
-+	return err;
-+}
-+
-+int rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu,
-+		unsigned int port_num)
-+{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
-+	enum ib_mtu mtu;
-+
-+	mtu = eth_mtu_int_to_enum(ndev_mtu);
-+
-+	/* Make sure that new MTU in range */
-+	mtu = mtu ? min_t(enum ib_mtu, mtu, RXE_PORT_MAX_MTU) : IB_MTU_256;
-+
-+	port->attr.active_mtu = mtu;
-+	port->mtu_cap = ib_mtu_enum_to_int(mtu);
++	kfree_skb(skb);
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(rxe_set_mtu);
 +
-+/* called by ifc layer to create new rxe device.
-+ * The caller should allocate memory for rxe by calling ib_alloc_device.
++static int loopback(struct sk_buff *skb)
++{
++	return rxe_rcv(skb);
++}
++
++static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
++{
++	int port_num = 1;
++
++	return rxe->port[port_num - 1].port_guid
++			== av->grh.dgid.global.interface_id;
++}
++
++static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
++				   int paylen, struct rxe_pkt_info *pkt)
++{
++	unsigned int hdr_len;
++	struct sk_buff *skb;
++
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct iphdr);
++	else
++		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
++			sizeof(struct ipv6hdr);
++
++	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(rxe->ndev),
++			GFP_ATOMIC);
++	if (unlikely(!skb))
++		return NULL;
++
++	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
++
++	skb->dev	= rxe->ndev;
++	if (av->network_type == RDMA_NETWORK_IPV4)
++		skb->protocol = htons(ETH_P_IP);
++	else
++		skb->protocol = htons(ETH_P_IPV6);
++
++	pkt->rxe	= rxe;
++	pkt->port_num	= 1;
++	pkt->hdr	= skb_put(skb, paylen);
++	pkt->mask	|= RXE_GRH_MASK;
++
++	memset(pkt->hdr, 0, paylen);
++
++	return skb;
++}
++
++/*
++ * this is required by rxe_cfg to match rxe devices in
++ * /sys/class/infiniband up with their underlying ethernet devices
 + */
-+int rxe_add(struct rxe_dev *rxe, unsigned int mtu)
++static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return rxe->ndev->name;
++}
++
++static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
++				       unsigned int port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++static struct rxe_ifc_ops ifc_ops = {
++	.node_guid	= node_guid,
++	.port_guid	= port_guid,
++	.dma_device	= dma_device,
++	.mcast_add	= mcast_add,
++	.mcast_delete	= mcast_delete,
++	.prepare	= prepare,
++	.send		= send,
++	.loopback	= loopback,
++	.init_packet	= init_packet,
++	.parent_name	= parent_name,
++	.link_layer	= link_layer,
++};
++
++/* Caller must hold net_info_lock */
++int rxe_net_add(struct net_device *ndev)
 +{
 +	int err;
-+	unsigned port_num = 1;
++	struct rxe_dev *rxe;
++	unsigned port_num;
 +
-+	kref_init(&rxe->ref_cnt);
-+
-+	err = rxe_init(rxe);
-+	if (err)
++	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
++	if (!rxe) {
++		err = -ENOMEM;
 +		goto err1;
++	}
 +
-+	err = rxe_set_mtu(rxe, mtu, port_num);
++	/* for now we always assign port = 1 */
++	port_num = 1;
++
++	rxe->ifc_ops = &ifc_ops;
++
++	rxe->ndev = ndev;
++
++	err = rxe_add(rxe, ndev->mtu);
 +	if (err)
-+		goto err1;
++		goto err2;
 +
-+	err = rxe_register_device(rxe);
-+	if (err)
-+		goto err1;
++	pr_info("rxe: added %s to %s\n",
++		rxe->ib_dev.name, ndev->name);
 +
++	net_info[ndev->ifindex].rxe = rxe;
++	net_info[ndev->ifindex].port = port_num;
++	net_info[ndev->ifindex].ndev = ndev;
 +	return 0;
 +
++err2:
++	ib_dealloc_device(&rxe->ib_dev);
 +err1:
-+	rxe_dev_put(rxe);
 +	return err;
 +}
-+EXPORT_SYMBOL(rxe_add);
 +
-+/* called by the ifc layer to remove a device */
-+void rxe_remove(struct rxe_dev *rxe)
++static void rxe_port_event(struct rxe_dev *rxe,
++			   enum ib_event_type event)
 +{
-+	rxe_unregister_device(rxe);
++	struct ib_event ev;
 +
-+	rxe_dev_put(rxe);
++	ev.device = &rxe->ib_dev;
++	ev.element.port_num = 1;
++	ev.event = event;
++
++	ib_dispatch_event(&ev);
 +}
-+EXPORT_SYMBOL(rxe_remove);
 +
-+void rxe_remove_all(void)
++/* Caller must hold net_info_lock */
++void rxe_net_up(struct net_device *ndev)
 +{
-+	int i;
 +	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
 +
-+	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
-+		if (net_info[i].rxe) {
-+			spin_lock_bh(&net_info_lock);
-+			rxe = net_info[i].rxe;
-+			net_info[i].rxe = NULL;
-+			spin_unlock_bh(&net_info_lock);
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
 +
-+			rxe_remove(rxe);
-+		}
-+	}
++	net_info[ndev->ifindex].status = IB_PORT_ACTIVE;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_ACTIVE;
++	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
++
++	rxe_port_event(rxe, IB_EVENT_PORT_ACTIVE);
++	pr_info("rxe: set %s active for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
 +}
-+EXPORT_SYMBOL(rxe_remove_all);
 +
-+static int __init rxe_module_init(void)
++/* Caller must hold net_info_lock */
++void rxe_net_down(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_DOWN;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num - 1];
++	port->attr.state = IB_PORT_DOWN;
++	port->attr.phys_state = IB_PHYS_STATE_LINK_DOWN;
++
++	rxe_port_event(rxe, IB_EVENT_PORT_ERR);
++	pr_info("rxe: set %s down for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++static int can_support_rxe(struct net_device *ndev)
++{
++	int rc = 0;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX) {
++		pr_debug("%s index %d: too large for rxe ndev table\n",
++			 ndev->name, ndev->ifindex);
++		goto out;
++	}
++
++	/* Let's says we support all ethX devices */
++	if (ndev->type == ARPHRD_ETHER)
++		rc = 1;
++
++out:
++	return rc;
++}
++
++static int rxe_notify(struct notifier_block *not_blk,
++		      unsigned long event,
++		      void *arg)
++{
++	struct rxe_dev *rxe;
++	struct net_device *ndev = netdev_notifier_info_to_dev(arg);
++
++	if (!can_support_rxe(ndev))
++		goto out;
++
++	spin_lock_bh(&net_info_lock);
++	switch (event) {
++	case NETDEV_REGISTER:
++		/* Keep a record of this NIC. */
++		net_info[ndev->ifindex].status = IB_PORT_DOWN;
++		net_info[ndev->ifindex].rxe = NULL;
++		net_info[ndev->ifindex].port = 1;
++		net_info[ndev->ifindex].ndev = ndev;
++		break;
++
++	case NETDEV_UNREGISTER:
++		if (net_info[ndev->ifindex].rxe) {
++			rxe = net_info[ndev->ifindex].rxe;
++			net_info[ndev->ifindex].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++			rxe_remove(rxe);
++			spin_lock_bh(&net_info_lock);
++		}
++		net_info[ndev->ifindex].status = 0;
++		net_info[ndev->ifindex].port = 0;
++		net_info[ndev->ifindex].ndev = NULL;
++		break;
++
++	case NETDEV_UP:
++		rxe_net_up(ndev);
++		break;
++
++	case NETDEV_DOWN:
++		rxe_net_down(ndev);
++		break;
++
++	case NETDEV_CHANGEMTU:
++		rxe = net_to_rxe(ndev);
++		if (rxe) {
++			pr_info("rxe: %s changed mtu to %d\n",
++				ndev->name, ndev->mtu);
++			rxe_set_mtu(rxe, ndev->mtu, net_to_port(ndev));
++		}
++		break;
++
++	case NETDEV_REBOOT:
++	case NETDEV_CHANGE:
++	case NETDEV_GOING_DOWN:
++	case NETDEV_CHANGEADDR:
++	case NETDEV_CHANGENAME:
++	case NETDEV_FEAT_CHANGE:
++	default:
++		pr_info("rxe: ignoring netdev event = %ld for %s\n",
++			event, ndev->name);
++		break;
++	}
++	spin_unlock_bh(&net_info_lock);
++
++out:
++	return NOTIFY_OK;
++}
++
++static struct notifier_block rxe_net_notifier = {
++	.notifier_call = rxe_notify,
++};
++
++int rxe_net_init(void)
 +{
 +	int err;
 +
-+	/* initialize slab caches for managed objects */
-+	err = rxe_cache_init();
-+	if (err) {
-+		pr_err("rxe: unable to init object pools\n");
-+		return err;
++	spin_lock_init(&net_info_lock);
++
++	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
++			htons(ROCE_V2_UDP_DPORT), true);
++	if (IS_ERR(recv_sockets.sk6)) {
++		recv_sockets.sk6 = NULL;
++		pr_err("rxe: Failed to create IPv6 UDP tunnel\n");
++		return -1;
 +	}
 +
-+	err = rxe_net_init();
-+	if (err) {
-+		pr_err("rxe: unable to init\n");
-+		rxe_cache_exit();
-+		return err;
++	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
++			htons(ROCE_V2_UDP_DPORT), false);
++	if (IS_ERR(recv_sockets.sk4)) {
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++		recv_sockets.sk4 = NULL;
++		recv_sockets.sk6 = NULL;
++		pr_err("rxe: Failed to create IPv4 UDP tunnel\n");
++		return -1;
 +	}
-+	pr_info("rxe: loaded\n");
 +
-+	return 0;
++	err = register_netdevice_notifier(&rxe_net_notifier);
++	if (err) {
++		rxe_release_udp_tunnel(recv_sockets.sk6);
++		rxe_release_udp_tunnel(recv_sockets.sk4);
++		pr_err("rxe: Failed to rigister netdev notifier\n");
++	}
++
++	return err;
 +}
 +
-+static void __exit rxe_module_exit(void)
++void rxe_net_exit(void)
 +{
-+	rxe_remove_all();
-+	rxe_net_exit();
-+	rxe_cache_exit();
++	if (recv_sockets.sk6)
++		rxe_release_udp_tunnel(recv_sockets.sk6);
 +
-+	pr_info("rxe: unloaded\n");
++	if (recv_sockets.sk4)
++		rxe_release_udp_tunnel(recv_sockets.sk4);
++
++	unregister_netdevice_notifier(&rxe_net_notifier);
++}
+diff --git a/drivers/infiniband/hw/rxe/rxe_net.h b/drivers/infiniband/hw/rxe/rxe_net.h
+new file mode 100644
+index 0000000..6e62d60
+--- /dev/null
++++ b/drivers/infiniband/hw/rxe/rxe_net.h
+@@ -0,0 +1,78 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
++ *
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef RXE_NET_H
++#define RXE_NET_H
++
++#include <net/sock.h>
++#include <net/if_inet6.h>
++#include <linux/module.h>
++
++#define RXE_MAX_IF_INDEX	(384)
++
++struct rxe_net_info {
++	struct rxe_dev		*rxe;
++	u8			port;
++	struct net_device	*ndev;
++	int			status;
++};
++
++struct rxe_recv_sockets {
++	struct socket *sk4;
++	struct socket *sk6;
++};
++
++extern struct rxe_recv_sockets recv_sockets;
++extern struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++extern spinlock_t net_info_lock;
++
++/* caller must hold net_dev_lock */
++static inline struct rxe_dev *net_to_rxe(struct net_device *ndev)
++{
++	return (ndev->ifindex >= RXE_MAX_IF_INDEX) ?
++		NULL : net_info[ndev->ifindex].rxe;
 +}
 +
-+module_init(rxe_module_init);
-+module_exit(rxe_module_exit);
-diff --git a/drivers/infiniband/hw/rxe/rxe.h b/drivers/infiniband/hw/rxe/rxe.h
-index 7d05f31..e27c36e 100644
---- a/drivers/infiniband/hw/rxe/rxe.h
-+++ b/drivers/infiniband/hw/rxe/rxe.h
-@@ -55,6 +55,7 @@
- #define RXE_UVERBS_ABI_VERSION		(1)
- 
- #define IB_PHYS_STATE_LINK_UP		(5)
-+#define IB_PHYS_STATE_LINK_DOWN		(3)
- 
- #define RXE_ROCE_V2_SPORT		(0xc000)
- 
-@@ -64,7 +65,10 @@ int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu,
- int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
- 
- void rxe_remove(struct rxe_dev *rxe);
-+void rxe_remove_all(void);
- 
- int rxe_rcv(struct sk_buff *skb);
- 
-+void rxe_dev_put(struct rxe_dev *rxe);
++static inline u8 net_to_port(struct net_device *ndev)
++{
++	return net_info[ndev->ifindex].port;
++}
 +
- #endif /* RXE_H */
++int rxe_net_add(struct net_device *ndev);
++void rxe_net_up(struct net_device *ndev);
++void rxe_net_down(struct net_device *ndev);
++
++int rxe_net_init(void);
++void rxe_net_exit(void);
++
++#endif /* RXE_NET_H */
 -- 
 1.8.3.1
 
