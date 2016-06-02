@@ -1,65 +1,148 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix bit curruption in ib_device_cap_flags
- structure
-Date: Thu, 2 Jun 2016 09:52:38 -0700
-Message-ID: <20160602165238.GB30960@kroah.com>
-References: <1464859685-18666-1-git-send-email-maxg@mellanox.com>
- <20160602162426.GC26699@kroah.com>
- <575061A6.1060302@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-next 00/29] Soft RoCE driver
+Date: Thu,  2 Jun 2016 19:57:08 +0300
+Message-ID: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <575061A6.1060302-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-2ukJVAZIZ/Y@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 02, 2016 at 07:41:10PM +0300, Max Gurtovoy wrote:
-> 
-> 
-> On 6/2/2016 7:24 PM, Greg KH wrote:
-> > On Thu, Jun 02, 2016 at 12:28:05PM +0300, Max Gurtovoy wrote:
-> > > ib_device_cap_flags 64-bit expansion caused caps overlapping
-> > > and made consumers read wrong device capabilities. For example
-> > > IB_DEVICE_SG_GAPS_REG was falsely read by the iser driver causing
-> > > it to use a non-existing capability. This happened because signed
-> > > int becomes sign extended when converted it to u64. Fix this by
-> > > casting IB_DEVICE_ON_DEMAND_PAGING enumeration to ULL.
-> > > 
-> > > Fixes: fb532d6a79b9 ('IB/{core, ulp} Support above 32 possible device capability flags')
-> > > Reported-by: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-> > > Cc: Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #[v4.6+]
-> > > Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> > > Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > ---
-> > >   include/rdma/ib_verbs.h |    2 +-
-> > >   1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > index 432bed5..c97357b 100644
-> > > --- a/include/rdma/ib_verbs.h
-> > > +++ b/include/rdma/ib_verbs.h
-> > > @@ -217,7 +217,7 @@ enum ib_device_cap_flags {
-> > >   	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
-> > >   	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
-> > >   	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
-> > > -	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
-> > > +	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
-> > >   	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
-> > >   	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 33),
-> > >   	IB_DEVICE_RAW_SCATTER_FCS		= ((u64)1 << 34),
-> > 
-> > Why not just use the BIT() and BIT_ULL() macros instead of "open coding"
-> > these?
-> 
-> Good idea. do you think it will be a good idea to set all the elements in
-> this ib_device_cap_flags enum to BIT_ULL() in this patch ? to have 1 style
-> instead of many ?
+Hi Doug,
 
-Yes.
+Soft RoCE (RXE) - The software RoCE driver 
+
+ib_rxe implements the RDMA transport and registers to the RDMA core device as a
+kernel verbs provider. It also implements the packet IO layer. On the other hand
+ib_rxe registers to the Linux netdev stack as a udp encapsulating protocol, in
+that case RDMA, for sending and receiving packets over any Ethernet device.
+This yields a RDMA transport over the UDP/Ethernet network layer forming a RoCEv2
+compatible device.
+
+The configuration procedure of the Soft RoCE drivers requires binding to any existing
+Ethernet network device. This is done with /sys interface.
+
+A userspace Soft RoCE library (librxe) provides user applications the ability to run
+with Soft RoCE devices.  The use of rxe verbs in user space requires the inclusion of
+librxe as a device specific plug-in to libibverbs. librxe is packaged separately.
+
+Soft RoCE was previously pushed to drivers/infiniband/staging and now, after cleanups
+and bug fixes is pushed to the hardware provides section in the RDMA stack.
+
+Soft RoCE resources:
+
+[1] https://github.com/SoftRoCE/librxe-dev librxe - source code in Github
+
+[2] https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home - Soft RoCE Wiki page
+
+Moni Shoua (29):
+  IB/rxe: IBA header types and methods
+  IB/rxe: Bit mask and lengths declaration for different opcodes
+  IB/rxe: Default rxe device and port parameters
+  IB/rxe: External interface to lower level modules
+  IB/rxe: Misc local interfaces between files
+  IB/rxe: Add maintainer for rxe driver
+  IB/rxe: Work request's opcode information table
+  IB/rxe: User/kernel shared queues infrastructure
+  IB/rxe: Common user/kernel queue implementation
+  IB/rxe: Interface to ib_core
+  IB/rxe: Allocation pool for RDMA objects
+  IB/rxe: RXE tasks handling
+  IB/rxe: Address vector manipulation functions
+  IB/rxe: Shared Receive Queue (SRQ) manipulation functions
+  IB/rxe: Completion Queue (CQ) manipulation functions
+  IB/rxe: Queue Pair (QP) handling
+  IB/rxe: Memory Region (MR) manioulation
+  IB/rxe: Add multicast infrastructure
+  IB/rxe: Received packets handling
+  IB/rxe: Completion handling
+  IB/rxe: QP request handling
+  IB/rxe: QP response handling
+  IB/rxe: Dummy DMA callbacks for RXE device
+  IB/rxe: Invariant CRC implementation
+  IB/rxe: Module init hooks
+  IB/rxe: Interface to netdev stack
+  IB/rxe: sysfs interface to RXE
+  IB/rxe: Shared objects between user and kernel
+  IB/rxe: Add Soft-RoCE to kbuild and makefiles
+
+ MAINTAINERS                            |    9 +
+ drivers/infiniband/Kconfig             |    1 +
+ drivers/infiniband/hw/Makefile         |    1 +
+ drivers/infiniband/hw/rxe/Kconfig      |   23 +
+ drivers/infiniband/hw/rxe/Makefile     |   24 +
+ drivers/infiniband/hw/rxe/rxe.c        |  455 +++++++++++
+ drivers/infiniband/hw/rxe/rxe.h        |   74 ++
+ drivers/infiniband/hw/rxe/rxe_av.c     |   98 +++
+ drivers/infiniband/hw/rxe/rxe_comp.c   |  734 +++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_cq.c     |  165 ++++
+ drivers/infiniband/hw/rxe/rxe_dma.c    |  166 ++++
+ drivers/infiniband/hw/rxe/rxe_hdr.h    |  952 ++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_icrc.c   |   96 +++
+ drivers/infiniband/hw/rxe/rxe_loc.h    |  289 +++++++
+ drivers/infiniband/hw/rxe/rxe_mcast.c  |  190 +++++
+ drivers/infiniband/hw/rxe/rxe_mmap.c   |  173 ++++
+ drivers/infiniband/hw/rxe/rxe_mr.c     |  679 ++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_net.c    |  753 ++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_net.h    |   78 ++
+ drivers/infiniband/hw/rxe/rxe_opcode.c |  961 ++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_opcode.h |  128 +++
+ drivers/infiniband/hw/rxe/rxe_param.h  |  173 ++++
+ drivers/infiniband/hw/rxe/rxe_pool.c   |  510 ++++++++++++
+ drivers/infiniband/hw/rxe/rxe_pool.h   |  164 ++++
+ drivers/infiniband/hw/rxe/rxe_qp.c     |  851 ++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_queue.c  |  217 +++++
+ drivers/infiniband/hw/rxe/rxe_queue.h  |  178 +++++
+ drivers/infiniband/hw/rxe/rxe_recv.c   |  420 ++++++++++
+ drivers/infiniband/hw/rxe/rxe_req.c    |  675 ++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_resp.c   | 1364 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_srq.c    |  195 +++++
+ drivers/infiniband/hw/rxe/rxe_sysfs.c  |  151 ++++
+ drivers/infiniband/hw/rxe/rxe_task.c   |  154 ++++
+ drivers/infiniband/hw/rxe/rxe_task.h   |   95 +++
+ drivers/infiniband/hw/rxe/rxe_verbs.c  | 1352 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_verbs.h  |  486 ++++++++++++
+ include/uapi/rdma/Kbuild               |    1 +
+ include/uapi/rdma/ib_rxe.h             |  139 ++++
+ 38 files changed, 13174 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/Kconfig
+ create mode 100644 drivers/infiniband/hw/rxe/Makefile
+ create mode 100644 drivers/infiniband/hw/rxe/rxe.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_av.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_comp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_cq.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_dma.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_hdr.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_icrc.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_loc.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mcast.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mmap.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mr.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_opcode.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_opcode.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_param.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_qp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_queue.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_queue.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_recv.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_req.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_resp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_srq.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_sysfs.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_task.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_task.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.h
+ create mode 100644 include/uapi/rdma/ib_rxe.h
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
