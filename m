@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 19/29] IB/rxe: Received packets handling
-Date: Thu,  2 Jun 2016 19:57:27 +0300
-Message-ID: <1464886657-14258-20-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 21/29] IB/rxe: QP request handling
+Date: Thu,  2 Jun 2016 19:57:29 +0300
+Message-ID: <1464886657-14258-22-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,24 +10,22 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Handle receiving new packets which are sent to either request or
-response processing.
+Send queue (SQ) logic implementation.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_recv.c | 420 +++++++++++++++++++++++++++++++++++
- 1 file changed, 420 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_recv.c
+ drivers/infiniband/hw/rxe/rxe_req.c | 675 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 675 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_req.c
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_recv.c b/drivers/infiniband/hw/rxe/rxe_recv.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_req.c b/drivers/infiniband/hw/rxe/rxe_req.c
 new file mode 100644
-index 0000000..92ee31f
+index 0000000..7d113db
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_recv.c
-@@ -0,0 +1,420 @@
++++ b/drivers/infiniband/hw/rxe/rxe_req.c
+@@ -0,0 +1,675 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -65,389 +63,644 @@ index 0000000..92ee31f
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
-+static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+			    struct rxe_qp *qp)
++static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       unsigned opcode);
++
++static inline void retry_first_write_send(struct rxe_qp *qp,
++					  struct rxe_send_wqe *wqe,
++					  unsigned mask, int npsn)
 +{
-+	if (unlikely(!qp->valid))
-+		goto err1;
++	int i;
++
++	for (i = 0; i < npsn; i++) {
++		int to_send = (wqe->dma.resid > qp->mtu) ?
++				qp->mtu : wqe->dma.resid;
++
++		qp->req.opcode = next_opcode(qp, wqe,
++					     wqe->wr.opcode);
++
++		if (wqe->wr.send_flags & IB_SEND_INLINE) {
++			wqe->dma.resid -= to_send;
++			wqe->dma.sge_offset += to_send;
++		} else {
++			advance_dma_data(&wqe->dma, to_send);
++		}
++		if (mask & WR_WRITE_MASK)
++			wqe->iova += qp->mtu;
++	}
++}
++
++static void req_retry(struct rxe_qp *qp)
++{
++	struct rxe_send_wqe *wqe;
++	unsigned int wqe_index;
++	unsigned int mask;
++	int npsn;
++	int first = 1;
++
++	wqe = queue_head(qp->sq.queue);
++	npsn = (qp->comp.psn - wqe->first_psn) & BTH_PSN_MASK;
++
++	qp->req.wqe_index	= consumer_index(qp->sq.queue);
++	qp->req.psn		= qp->comp.psn;
++	qp->req.opcode		= -1;
++
++	for (wqe_index = consumer_index(qp->sq.queue);
++		wqe_index != producer_index(qp->sq.queue);
++		wqe_index = next_index(qp->sq.queue, wqe_index)) {
++		wqe = addr_from_index(qp->sq.queue, wqe_index);
++		mask = wr_opcode_mask(wqe->wr.opcode, qp);
++
++		if (wqe->state == wqe_state_posted)
++			break;
++
++		if (wqe->state == wqe_state_done)
++			continue;
++
++		wqe->iova = (mask & WR_ATOMIC_MASK) ?
++			     wqe->wr.wr.atomic.remote_addr :
++			     (mask & WR_READ_OR_WRITE_MASK) ?
++			     wqe->wr.wr.rdma.remote_addr :
++			     0;
++
++		if (!first || (mask & WR_READ_MASK) == 0) {
++			wqe->dma.resid = wqe->dma.length;
++			wqe->dma.cur_sge = 0;
++			wqe->dma.sge_offset = 0;
++		}
++
++		if (first) {
++			first = 0;
++
++			if (mask & WR_WRITE_OR_SEND_MASK)
++				retry_first_write_send(qp, wqe, mask, npsn);
++
++			if (mask & WR_READ_MASK)
++				wqe->iova += npsn * qp->mtu;
++		}
++
++		wqe->state = wqe_state_posted;
++	}
++}
++
++void rnr_nak_timer(unsigned long data)
++{
++	struct rxe_qp *qp = (struct rxe_qp *)data;
++
++	pr_debug("rnr nak timer fired\n");
++	rxe_run_task(&qp->req.task, 1);
++}
++
++static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
++{
++	struct rxe_send_wqe *wqe = queue_head(qp->sq.queue);
++	unsigned long flags;
++
++	if (unlikely(qp->req.state == QP_STATE_DRAIN)) {
++		/* check to see if we are drained;
++		 * state_lock used by requester and completer
++		 */
++		spin_lock_irqsave(&qp->state_lock, flags);
++		do {
++			if (qp->req.state != QP_STATE_DRAIN) {
++				/* comp just finished */
++				spin_unlock_irqrestore(&qp->state_lock,
++						       flags);
++				break;
++			}
++
++			if (wqe && ((qp->req.wqe_index !=
++				consumer_index(qp->sq.queue)) ||
++				(wqe->state != wqe_state_posted))) {
++				/* comp not done yet */
++				spin_unlock_irqrestore(&qp->state_lock,
++						       flags);
++				break;
++			}
++
++			qp->req.state = QP_STATE_DRAINED;
++			spin_unlock_irqrestore(&qp->state_lock, flags);
++
++			if (qp->ibqp.event_handler) {
++				struct ib_event ev;
++
++				ev.device = qp->ibqp.device;
++				ev.element.qp = &qp->ibqp;
++				ev.event = IB_EVENT_SQ_DRAINED;
++				qp->ibqp.event_handler(&ev,
++					qp->ibqp.qp_context);
++			}
++		} while (0);
++	}
++
++	if (qp->req.wqe_index == producer_index(qp->sq.queue))
++		return NULL;
++
++	wqe = addr_from_index(qp->sq.queue, qp->req.wqe_index);
++
++	if (unlikely((qp->req.state == QP_STATE_DRAIN ||
++		      qp->req.state == QP_STATE_DRAINED) &&
++		     (wqe->state != wqe_state_processing)))
++		return NULL;
++
++	if (unlikely((wqe->wr.send_flags & IB_SEND_FENCE) &&
++		     (qp->req.wqe_index != consumer_index(qp->sq.queue)))) {
++		qp->req.wait_fence = 1;
++		return NULL;
++	}
++
++	wqe->mask = wr_opcode_mask(wqe->wr.opcode, qp);
++	return wqe;
++}
++
++static int next_opcode_rc(struct rxe_qp *qp, unsigned opcode, int fits)
++{
++	switch (opcode) {
++	case IB_WR_RDMA_WRITE:
++		if (qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_LAST :
++				IB_OPCODE_RC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_ONLY :
++				IB_OPCODE_RC_RDMA_WRITE_FIRST;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_RC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_RC_RDMA_WRITE_FIRST;
++
++	case IB_WR_SEND:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_SEND_LAST :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_SEND_ONLY :
++				IB_OPCODE_RC_SEND_FIRST;
++
++	case IB_WR_SEND_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_SEND_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_RC_SEND_FIRST;
++
++	case IB_WR_RDMA_READ:
++		return IB_OPCODE_RC_RDMA_READ_REQUEST;
++
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++		return IB_OPCODE_RC_COMPARE_SWAP;
++
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		return IB_OPCODE_RC_FETCH_ADD;
++
++	case IB_WR_SEND_WITH_INV:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ? IB_OPCODE_RC_SEND_LAST_WITH_INVALIDATE :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ? IB_OPCODE_RC_SEND_ONLY_WITH_INVALIDATE :
++				IB_OPCODE_RC_SEND_FIRST;
++	}
++
++	return -EINVAL;
++}
++
++static int next_opcode_uc(struct rxe_qp *qp, unsigned opcode, int fits)
++{
++	switch (opcode) {
++	case IB_WR_RDMA_WRITE:
++		if (qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_LAST :
++				IB_OPCODE_UC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_ONLY :
++				IB_OPCODE_UC_RDMA_WRITE_FIRST;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_UC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_UC_RDMA_WRITE_FIRST;
++
++	case IB_WR_SEND:
++		if (qp->req.opcode == IB_OPCODE_UC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_SEND_LAST :
++				IB_OPCODE_UC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_SEND_ONLY :
++				IB_OPCODE_UC_SEND_FIRST;
++
++	case IB_WR_SEND_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_UC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_UC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_SEND_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_UC_SEND_FIRST;
++	}
++
++	return -EINVAL;
++}
++
++static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       unsigned opcode)
++{
++	int fits = (wqe->dma.resid <= qp->mtu);
 +
 +	switch (qp_type(qp)) {
 +	case IB_QPT_RC:
-+		if (unlikely((pkt->opcode & IB_OPCODE_RC) != 0)) {
-+			pr_warn_ratelimited("bad qp type\n");
-+			goto err1;
-+		}
-+		break;
++		return next_opcode_rc(qp, opcode, fits);
++
 +	case IB_QPT_UC:
-+		if (unlikely(!(pkt->opcode & IB_OPCODE_UC))) {
-+			pr_warn_ratelimited("bad qp type\n");
-+			goto err1;
-+		}
-+		break;
-+	case IB_QPT_UD:
++		return next_opcode_uc(qp, opcode, fits);
++
 +	case IB_QPT_SMI:
++	case IB_QPT_UD:
 +	case IB_QPT_GSI:
-+		if (unlikely(!(pkt->opcode & IB_OPCODE_UD))) {
-+			pr_warn_ratelimited("bad qp type\n");
-+			goto err1;
++		switch (opcode) {
++		case IB_WR_SEND:
++			return IB_OPCODE_UD_SEND_ONLY;
++
++		case IB_WR_SEND_WITH_IMM:
++			return IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
 +		}
 +		break;
++
 +	default:
-+		pr_warn_ratelimited("unsupported qp type\n");
-+		goto err1;
++		break;
 +	}
 +
-+	if (pkt->mask & RXE_REQ_MASK) {
-+		if (unlikely(qp->resp.state != QP_STATE_READY))
-+			goto err1;
-+	} else if (unlikely(qp->req.state < QP_STATE_READY ||
-+				qp->req.state > QP_STATE_DRAINED)) {
-+		goto err1;
-+	}
-+
-+	return 0;
-+
-+err1:
 +	return -EINVAL;
 +}
 +
-+static void set_bad_pkey_cntr(struct rxe_port *port)
++static inline int check_init_depth(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
 +{
-+	spin_lock_bh(&port->port_lock);
-+	port->attr.bad_pkey_cntr = min((u32)0xffff,
-+				       port->attr.bad_pkey_cntr + 1);
-+	spin_unlock_bh(&port->port_lock);
++	int depth;
++
++	if (wqe->has_rd_atomic)
++		return 0;
++
++	qp->req.need_rd_atomic = 1;
++	depth = atomic_dec_return(&qp->req.rd_atomic);
++
++	if (depth >= 0) {
++		qp->req.need_rd_atomic = 0;
++		wqe->has_rd_atomic = 1;
++		return 0;
++	}
++
++	atomic_inc(&qp->req.rd_atomic);
++	return -EAGAIN;
 +}
 +
-+static void set_qkey_viol_cntr(struct rxe_port *port)
++static inline int get_mtu(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
 +{
-+	spin_lock_bh(&port->port_lock);
-+	port->attr.qkey_viol_cntr = min((u32)0xffff,
-+					port->attr.qkey_viol_cntr + 1);
-+	spin_unlock_bh(&port->port_lock);
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_port *port;
++	struct rxe_av *av;
++
++	if ((qp_type(qp) == IB_QPT_RC) || (qp_type(qp) == IB_QPT_UC))
++		return qp->mtu;
++
++	av = &wqe->av;
++	port = &rxe->port[av->port_num - 1];
++
++	return port->mtu_cap;
 +}
 +
-+static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		      u32 qpn, struct rxe_qp *qp)
++static struct sk_buff *init_req_packet(struct rxe_qp *qp,
++				       struct rxe_send_wqe *wqe,
++				       int opcode, int payload,
++				       struct rxe_pkt_info *pkt)
 +{
-+	int i;
-+	int found_pkey = 0;
-+	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
-+	u16 pkey = bth_pkey(pkt);
++	struct rxe_dev		*rxe = to_rdev(qp->ibqp.device);
++	struct rxe_port		*port = &rxe->port[qp->attr.port_num - 1];
++	struct sk_buff		*skb;
++	struct rxe_send_wr	*ibwr = &wqe->wr;
++	struct rxe_av		*av;
++	int			pad = (-payload) & 0x3;
++	int			paylen;
++	int			solicited;
++	u16			pkey;
++	u32			qp_num;
++	int			ack_req;
 +
-+	pkt->pkey_index = 0;
++	/* length from start of bth to end of icrc */
++	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
 +
-+	if (qpn == 1) {
-+		for (i = 0; i < port->attr.pkey_tbl_len; i++) {
-+			if (pkey_match(pkey, port->pkey_tbl[i])) {
-+				pkt->pkey_index = i;
-+				found_pkey = 1;
-+				break;
-+			}
-+		}
++	/* pkt->hdr, rxe, port_num and mask are initialized in ifc
++	 * layer
++	 */
++	pkt->opcode	= opcode;
++	pkt->qp		= qp;
++	pkt->psn	= qp->req.psn;
++	pkt->mask	= rxe_opcode[opcode].mask;
++	pkt->paylen	= paylen;
++	pkt->offset	= 0;
++	pkt->wqe	= wqe;
 +
-+		if (!found_pkey) {
-+			pr_warn_ratelimited("bad pkey = 0x%x\n", pkey);
-+			set_bad_pkey_cntr(port);
-+			goto err1;
-+		}
-+	} else if (qpn != 0) {
-+		if (unlikely(!pkey_match(pkey,
-+					 port->pkey_tbl[qp->attr.pkey_index]
-+					))) {
-+			pr_warn_ratelimited("bad pkey = 0x%0x\n", pkey);
-+			set_bad_pkey_cntr(port);
-+			goto err1;
-+		}
-+		pkt->pkey_index = qp->attr.pkey_index;
++	/* init skb */
++	av = rxe_get_av(pkt);
++	skb = rxe->ifc_ops->init_packet(rxe, av, paylen, pkt);
++	if (unlikely(!skb))
++		return NULL;
++
++	/* init bth */
++	solicited = (ibwr->send_flags & IB_SEND_SOLICITED) &&
++			(pkt->mask & RXE_END_MASK) &&
++			((pkt->mask & (RXE_SEND_MASK)) ||
++			(pkt->mask & (RXE_WRITE_MASK | RXE_IMMDT_MASK)) ==
++			(RXE_WRITE_MASK | RXE_IMMDT_MASK));
++
++	pkey = (qp_type(qp) == IB_QPT_GSI) ?
++		 port->pkey_tbl[ibwr->wr.ud.pkey_index] :
++		 port->pkey_tbl[qp->attr.pkey_index];
++
++	qp_num = (pkt->mask & RXE_DETH_MASK) ? ibwr->wr.ud.remote_qpn :
++					 qp->attr.dest_qp_num;
++
++	ack_req = ((pkt->mask & RXE_END_MASK) ||
++		(qp->req.noack_pkts++ > RXE_MAX_PKT_PER_ACK));
++	if (ack_req)
++		qp->req.noack_pkts = 0;
++
++	bth_init(pkt, pkt->opcode, solicited, 0, pad, pkey, qp_num,
++		 ack_req, pkt->psn);
++
++	/* init optional headers */
++	if (pkt->mask & RXE_RETH_MASK) {
++		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
++		reth_set_va(pkt, wqe->iova);
++		reth_set_len(pkt, wqe->dma.length);
 +	}
 +
-+	if ((qp_type(qp) == IB_QPT_UD || qp_type(qp) == IB_QPT_GSI) &&
-+	    qpn != 0 && pkt->mask) {
-+		u32 qkey = (qpn == 1) ? GSI_QKEY : qp->attr.qkey;
++	if (pkt->mask & RXE_IMMDT_MASK)
++		immdt_set_imm(pkt, ibwr->ex.imm_data);
 +
-+		if (unlikely(deth_qkey(pkt) != qkey)) {
-+			pr_warn_ratelimited("bad qkey, got 0x%x expected 0x%x for qpn 0x%x\n",
-+					    deth_qkey(pkt), qkey, qpn);
-+			set_qkey_viol_cntr(port);
-+			goto err1;
++	if (pkt->mask & RXE_IETH_MASK)
++		ieth_set_rkey(pkt, ibwr->ex.invalidate_rkey);
++
++	if (pkt->mask & RXE_ATMETH_MASK) {
++		atmeth_set_va(pkt, wqe->iova);
++		if (opcode == IB_OPCODE_RC_COMPARE_SWAP ||
++		    opcode == IB_OPCODE_RD_COMPARE_SWAP) {
++			atmeth_set_swap_add(pkt, ibwr->wr.atomic.swap);
++			atmeth_set_comp(pkt, ibwr->wr.atomic.compare_add);
++		} else {
++			atmeth_set_swap_add(pkt, ibwr->wr.atomic.compare_add);
 +		}
++		atmeth_set_rkey(pkt, ibwr->wr.atomic.rkey);
 +	}
 +
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
-+}
-+
-+static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		      struct rxe_qp *qp)
-+{
-+	struct sk_buff *skb = PKT_TO_SKB(pkt);
-+
-+	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
-+		goto done;
-+
-+	if (unlikely(pkt->port_num != qp->attr.port_num)) {
-+		pr_warn_ratelimited("port %d != qp port %d\n",
-+				    pkt->port_num, qp->attr.port_num);
-+		goto err1;
-+	}
-+
-+	if (skb->protocol == htons(ETH_P_IP)) {
-+		struct in_addr *saddr =
-+			&qp->pri_av.sgid_addr._sockaddr_in.sin_addr;
-+		struct in_addr *daddr =
-+			&qp->pri_av.dgid_addr._sockaddr_in.sin_addr;
-+
-+		if (ip_hdr(skb)->daddr != saddr->s_addr) {
-+			pr_warn_ratelimited("dst addr %pI4 != qp source addr %pI4\n",
-+					    &ip_hdr(skb)->daddr,
-+					    &saddr->s_addr);
-+			goto err1;
-+		}
-+
-+		if (ip_hdr(skb)->saddr != daddr->s_addr) {
-+			pr_warn_ratelimited("source addr %pI4 != qp dst addr %pI4\n",
-+					    &ip_hdr(skb)->saddr,
-+					    &daddr->s_addr);
-+			goto err1;
-+		}
-+
-+	} else if (skb->protocol == htons(ETH_P_IPV6)) {
-+		struct in6_addr *saddr =
-+			&qp->pri_av.sgid_addr._sockaddr_in6.sin6_addr;
-+		struct in6_addr *daddr =
-+			&qp->pri_av.dgid_addr._sockaddr_in6.sin6_addr;
-+
-+		if (memcmp(&ipv6_hdr(skb)->daddr, saddr, sizeof(*saddr))) {
-+			pr_warn_ratelimited("dst addr %pI6 != qp source addr %pI6\n",
-+					    &ipv6_hdr(skb)->daddr, saddr);
-+			goto err1;
-+		}
-+
-+		if (memcmp(&ipv6_hdr(skb)->saddr, daddr, sizeof(*daddr))) {
-+			pr_warn_ratelimited("source addr %pI6 != qp dst addr %pI6\n",
-+					    &ipv6_hdr(skb)->saddr, daddr);
-+			goto err1;
-+		}
-+	}
-+
-+done:
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
-+}
-+
-+static int hdr_check(struct rxe_pkt_info *pkt)
-+{
-+	struct rxe_dev *rxe = pkt->rxe;
-+	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
-+	struct rxe_qp *qp = NULL;
-+	u32 qpn = bth_qpn(pkt);
-+	int index;
-+	int err;
-+
-+	if (unlikely(bth_tver(pkt) != BTH_TVER)) {
-+		pr_warn_ratelimited("bad tver\n");
-+		goto err1;
-+	}
-+
-+	if (qpn != IB_MULTICAST_QPN) {
-+		index = (qpn == 0) ? port->qp_smi_index :
-+			((qpn == 1) ? port->qp_gsi_index : qpn);
-+		qp = rxe_pool_get_index(&rxe->qp_pool, index);
-+		if (unlikely(!qp)) {
-+			pr_warn_ratelimited("no qp matches qpn 0x%x\n", qpn);
-+			goto err1;
-+		}
-+
-+		err = check_type_state(rxe, pkt, qp);
-+		if (unlikely(err))
-+			goto err2;
-+
-+		err = check_addr(rxe, pkt, qp);
-+		if (unlikely(err))
-+			goto err2;
-+
-+		err = check_keys(rxe, pkt, qpn, qp);
-+		if (unlikely(err))
-+			goto err2;
-+	} else {
-+		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
-+			pr_warn_ratelimited("no grh for mcast qpn\n");
-+			goto err1;
-+		}
-+	}
-+
-+	pkt->qp = qp;
-+	return 0;
-+
-+err2:
-+	if (qp)
-+		rxe_drop_ref(qp);
-+err1:
-+	return -EINVAL;
-+}
-+
-+static inline void rxe_rcv_pkt(struct rxe_dev *rxe,
-+			       struct rxe_pkt_info *pkt,
-+			       struct sk_buff *skb)
-+{
-+	if (pkt->mask & RXE_REQ_MASK)
-+		rxe_resp_queue_pkt(rxe, pkt->qp, skb);
-+	else
-+		rxe_comp_queue_pkt(rxe, pkt->qp, skb);
-+}
-+
-+static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
-+{
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_mc_grp *mcg;
-+	struct sk_buff *skb_copy;
-+	struct rxe_mc_elem *mce;
-+	struct rxe_qp *qp;
-+	union ib_gid dgid;
-+	int err;
-+
-+	if (skb->protocol == htons(ETH_P_IP))
-+		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
-+				       (struct in6_addr *)&dgid);
-+	else if (skb->protocol == htons(ETH_P_IPV6))
-+		memcpy(&dgid, &ipv6_hdr(skb)->daddr, sizeof(dgid));
-+
-+	/* lookup mcast group corresponding to mgid, takes a ref */
-+	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, &dgid);
-+	if (!mcg)
-+		goto err1;	/* mcast group not registered */
-+
-+	spin_lock_bh(&mcg->mcg_lock);
-+
-+	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
-+		qp = mce->qp;
-+		pkt = SKB_TO_PKT(skb);
-+
-+		/* validate qp for incoming packet */
-+		err = check_type_state(rxe, pkt, qp);
-+		if (err)
-+			continue;
-+
-+		err = check_keys(rxe, pkt, bth_qpn(pkt), qp);
-+		if (err)
-+			continue;
-+
-+		/* if *not* the last qp in the list
-+		 * make a copy of the skb to post to the next qp
-+		 */
-+		skb_copy = (mce->qp_list.next != &mcg->qp_list) ?
-+				skb_clone(skb, GFP_KERNEL) : NULL;
-+
-+		pkt->qp = qp;
-+		rxe_add_ref(qp);
-+		rxe_rcv_pkt(rxe, pkt, skb);
-+
-+		skb = skb_copy;
-+		if (!skb)
-+			break;
-+	}
-+
-+	spin_unlock_bh(&mcg->mcg_lock);
-+
-+	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
-+
-+err1:
-+	if (skb)
-+		kfree_skb(skb);
-+}
-+
-+static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
-+{
-+	union ib_gid dgid;
-+	union ib_gid *pdgid;
-+	u16 index;
-+
-+	if (skb->protocol == htons(ETH_P_IP)) {
-+		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
-+				       (struct in6_addr *)&dgid);
-+		pdgid = &dgid;
-+	} else {
-+		pdgid = (union ib_gid *)&ipv6_hdr(skb)->daddr;
-+	}
-+
-+	return ib_find_cached_gid_by_port(&rxe->ib_dev, pdgid,
-+					  IB_GID_TYPE_ROCE_UDP_ENCAP,
-+					  1, rxe->ndev, &index);
-+}
-+
-+/* rxe_rcv is called from the interface driver */
-+int rxe_rcv(struct sk_buff *skb)
-+{
-+	int err;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_dev *rxe = pkt->rxe;
-+	__be32 *icrcp;
-+	u32 calc_icrc, pack_icrc;
-+
-+	pkt->offset = 0;
-+
-+	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
-+		goto drop;
-+
-+	if (unlikely(rxe_match_dgid(rxe, skb) < 0)) {
-+		pr_warn_ratelimited("failed matching dgid\n");
-+		goto drop;
-+	}
-+
-+	pkt->opcode = bth_opcode(pkt);
-+	pkt->psn = bth_psn(pkt);
-+	pkt->qp = NULL;
-+	pkt->mask |= rxe_opcode[pkt->opcode].mask;
-+
-+	if (unlikely(skb->len < header_size(pkt)))
-+		goto drop;
-+
-+	err = hdr_check(pkt);
-+	if (unlikely(err))
-+		goto drop;
-+
-+	/* Verify ICRC */
-+	icrcp = (__be32 *)(pkt->hdr + pkt->paylen - RXE_ICRC_SIZE);
-+	pack_icrc = be32_to_cpu(*icrcp);
-+
-+	calc_icrc = rxe_icrc_hdr(pkt, skb);
-+	calc_icrc = crc32_le(calc_icrc, (u8 *)payload_addr(pkt), payload_size(pkt));
-+	calc_icrc = cpu_to_be32(~calc_icrc);
-+	if (unlikely(calc_icrc != pack_icrc)) {
-+		char saddr[sizeof(struct in6_addr)];
-+
-+		if (skb->protocol == htons(ETH_P_IPV6))
-+			sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
-+		else if (skb->protocol == htons(ETH_P_IP))
-+			sprintf(saddr, "%pI4", &ip_hdr(skb)->saddr);
++	if (pkt->mask & RXE_DETH_MASK) {
++		if (qp->ibqp.qp_num == 1)
++			deth_set_qkey(pkt, GSI_QKEY);
 +		else
-+			sprintf(saddr, "unknown");
-+
-+		pr_warn_ratelimited("bad ICRC from %s\n", saddr);
-+		goto drop;
++			deth_set_qkey(pkt, ibwr->wr.ud.remote_qkey);
++		deth_set_sqp(pkt, qp->ibqp.qp_num);
 +	}
 +
-+	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
-+		rxe_rcv_mcast_pkt(rxe, skb);
-+	else
-+		rxe_rcv_pkt(rxe, pkt, skb);
++	return skb;
++}
 +
-+	return 0;
++static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       struct rxe_pkt_info *pkt, struct sk_buff *skb,
++		       int paylen)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	u32 crc = 0;
++	u32 *p;
++	int err;
 +
-+drop:
-+	if (pkt->qp)
-+		rxe_drop_ref(pkt->qp);
++	err = rxe->ifc_ops->prepare(rxe, pkt, skb, &crc);
++	if (err)
++		return err;
 +
-+	kfree_skb(skb);
++	if (pkt->mask & RXE_WRITE_OR_SEND) {
++		if (wqe->wr.send_flags & IB_SEND_INLINE) {
++			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
++
++			crc = crc32_le(crc, tmp, paylen);
++
++			memcpy(payload_addr(pkt), tmp, paylen);
++
++			wqe->dma.resid -= paylen;
++			wqe->dma.sge_offset += paylen;
++		} else {
++			err = copy_data(rxe, qp->pd, 0, &wqe->dma,
++					payload_addr(pkt), paylen,
++					from_mem_obj,
++					&crc);
++			if (err)
++				return err;
++		}
++	}
++	p = payload_addr(pkt) + paylen + bth_pad(pkt);
++
++	*p = ~crc;
++
 +	return 0;
 +}
-+EXPORT_SYMBOL(rxe_rcv);
++
++static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++			 struct rxe_pkt_info *pkt, int payload)
++{
++	/* number of packets left to send including current one */
++	int num_pkt = (wqe->dma.resid + payload + qp->mtu - 1) / qp->mtu;
++
++	/* handle zero length packet case */
++	if (num_pkt == 0)
++		num_pkt = 1;
++
++	if (pkt->mask & RXE_START_MASK) {
++		wqe->first_psn = qp->req.psn;
++		wqe->last_psn = (qp->req.psn + num_pkt - 1) & BTH_PSN_MASK;
++	}
++
++	if (pkt->mask & RXE_READ_MASK)
++		qp->req.psn = (wqe->first_psn + num_pkt) & BTH_PSN_MASK;
++	else
++		qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
++
++	qp->req.opcode = pkt->opcode;
++
++	if (pkt->mask & RXE_END_MASK) {
++		if (qp_type(qp) == IB_QPT_RC)
++			wqe->state = wqe_state_pending;
++
++		qp->req.wqe_index = next_index(qp->sq.queue,
++						qp->req.wqe_index);
++	} else {
++		wqe->state = wqe_state_processing;
++	}
++
++	qp->need_req_skb = 0;
++
++	if (qp->qp_timeout_jiffies && !timer_pending(&qp->retrans_timer))
++		mod_timer(&qp->retrans_timer,
++			  jiffies + qp->qp_timeout_jiffies);
++}
++
++int rxe_requester(void *arg)
++{
++	struct rxe_qp *qp = (struct rxe_qp *)arg;
++	struct rxe_pkt_info pkt;
++	struct sk_buff *skb;
++	struct rxe_send_wqe *wqe;
++	unsigned mask;
++	int payload;
++	int mtu;
++	int opcode;
++	int ret;
++
++next_wqe:
++	if (unlikely(!qp->valid || qp->req.state == QP_STATE_ERROR))
++		goto exit;
++
++	if (unlikely(qp->req.state == QP_STATE_RESET)) {
++		qp->req.wqe_index = consumer_index(qp->sq.queue);
++		qp->req.opcode = -1;
++		qp->req.need_rd_atomic = 0;
++		qp->req.wait_psn = 0;
++		qp->req.need_retry = 0;
++		goto exit;
++	}
++
++	if (unlikely(qp->req.need_retry)) {
++		req_retry(qp);
++		qp->req.need_retry = 0;
++	}
++
++	wqe = req_next_wqe(qp);
++	if (unlikely(!wqe))
++		goto exit;
++
++	if (unlikely(qp_type(qp) == IB_QPT_RC &&
++		     qp->req.psn > (qp->comp.psn + RXE_MAX_UNACKED_PSNS))) {
++		qp->req.wait_psn = 1;
++		goto exit;
++	}
++
++	/* Limit the number of inflight SKBs per QP */
++	if (unlikely(atomic_read(&qp->skb_out) >
++		     RXE_INFLIGHT_SKBS_PER_QP_HIGH)) {
++		qp->need_req_skb = 1;
++		goto exit;
++	}
++
++	opcode = next_opcode(qp, wqe, wqe->wr.opcode);
++	if (unlikely(opcode < 0)) {
++		wqe->status = IB_WC_LOC_QP_OP_ERR;
++		goto exit;
++	}
++
++	mask = rxe_opcode[opcode].mask;
++	if (unlikely(mask & RXE_READ_OR_ATOMIC)) {
++		if (check_init_depth(qp, wqe))
++			goto exit;
++	}
++
++	mtu = get_mtu(qp, wqe);
++	payload = (mask & RXE_WRITE_OR_SEND) ? wqe->dma.resid : 0;
++	if (payload > mtu) {
++		if (qp_type(qp) == IB_QPT_UD) {
++			/* C10-93.1.1: If the total sum of all the buffer lengths specified for a
++			 * UD message exceeds the MTU of the port as returned by QueryHCA, the CI
++			 * shall not emit any packets for this message. Further, the CI shall not
++			 * generate an error due to this condition.
++			 */
++
++			/* fake a successful UD send */
++			wqe->first_psn = qp->req.psn;
++			wqe->last_psn = qp->req.psn;
++			qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
++			qp->req.opcode = IB_OPCODE_UD_SEND_ONLY;
++			qp->req.wqe_index = next_index(qp->sq.queue,
++						       qp->req.wqe_index);
++			wqe->state = wqe_state_done;
++			wqe->status = IB_WC_SUCCESS;
++			goto complete;
++		}
++		payload = mtu;
++	}
++
++	skb = init_req_packet(qp, wqe, opcode, payload, &pkt);
++	if (unlikely(!skb)) {
++		pr_err("Failed allocating skb\n");
++		goto err;
++	}
++
++	if (fill_packet(qp, wqe, &pkt, skb, payload)) {
++		pr_debug("Error during fill packet\n");
++		goto err;
++	}
++
++	ret = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp, &pkt, skb);
++	if (ret) {
++		qp->need_req_skb = 1;
++		kfree_skb(skb);
++
++		if (ret == -EAGAIN) {
++			rxe_run_task(&qp->req.task, 1);
++			goto exit;
++		}
++
++		goto err;
++	}
++
++	update_state(qp, wqe, &pkt, payload);
++
++	goto next_wqe;
++
++err:
++	kfree_skb(skb);
++	wqe->status = IB_WC_LOC_PROT_ERR;
++	wqe->state = wqe_state_error;
++
++complete:
++	if (qp_type(qp) != IB_QPT_RC) {
++		while (rxe_completer(qp) == 0)
++			;
++	}
++
++	return 0;
++
++exit:
++	return -EAGAIN;
++}
 -- 
 1.8.3.1
 
