@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 14/29] IB/rxe: Shared Receive Queue (SRQ) manipulation functions
-Date: Thu,  2 Jun 2016 19:57:22 +0300
-Message-ID: <1464886657-14258-15-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 17/29] IB/rxe: Memory Region (MR) manioulation
+Date: Thu,  2 Jun 2016 19:57:25 +0300
+Message-ID: <1464886657-14258-18-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,22 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate SRQ.
+Infrastructure for memory region handling in Soft RoCE.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_srq.c | 195 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 195 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_srq.c
+ drivers/infiniband/hw/rxe/rxe_mr.c | 679 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 679 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mr.c
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_srq.c b/drivers/infiniband/hw/rxe/rxe_srq.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_mr.c b/drivers/infiniband/hw/rxe/rxe_mr.c
 new file mode 100644
-index 0000000..22c57d1
+index 0000000..e533249
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_srq.c
-@@ -0,0 +1,195 @@
++++ b/drivers/infiniband/hw/rxe/rxe_mr.c
+@@ -0,0 +1,679 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -62,163 +61,647 @@ index 0000000..22c57d1
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
++/*
++ * lfsr (linear feedback shift register) with period 255
++ */
++static u8 rxe_get_key(void)
 +{
-+	if (srq && srq->error) {
-+		pr_warn("srq in error state\n");
-+		goto err1;
-+	}
++	static unsigned key = 1;
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		if (attr->max_wr > rxe->attr.max_srq_wr) {
-+			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+				attr->max_wr, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
++	key = key << 1;
 +
-+		if (attr->max_wr <= 0) {
-+			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+			goto err1;
-+		}
++	key |= (0 != (key & 0x100)) ^ (0 != (key & 0x10))
++		^ (0 != (key & 0x80)) ^ (0 != (key & 0x40));
 +
-+		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
-+			pr_warn("max_wr (%d) < srq->limit (%d)\n",
-+				attr->max_wr, srq->limit);
-+			goto err1;
-+		}
++	key &= 0xff;
 +
-+		if (attr->max_wr < RXE_MIN_SRQ_WR)
-+			attr->max_wr = RXE_MIN_SRQ_WR;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT) {
-+		if (attr->srq_limit > rxe->attr.max_srq_wr) {
-+			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
-+				attr->srq_limit, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
-+
-+		if (srq && (attr->srq_limit > srq->rq.queue->buf->index_mask)) {
-+			pr_warn("srq_limit (%d) > cur limit(%d)\n",
-+				attr->srq_limit,
-+				 srq->rq.queue->buf->index_mask);
-+			goto err1;
-+		}
-+	}
-+
-+	if (mask == IB_SRQ_INIT_MASK) {
-+		if (attr->max_sge > rxe->attr.max_srq_sge) {
-+			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
-+				attr->max_sge, rxe->attr.max_srq_sge);
-+			goto err1;
-+		}
-+
-+		if (attr->max_sge < RXE_MIN_SRQ_SGE)
-+			attr->max_sge = RXE_MIN_SRQ_SGE;
-+	}
-+
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
++	return key;
 +}
 +
-+int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata)
++int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length)
 +{
-+	int err;
-+	int srq_wqe_size;
-+	struct rxe_queue *q;
-+
-+	srq->ibsrq.event_handler	= init->event_handler;
-+	srq->ibsrq.srq_context		= init->srq_context;
-+	srq->limit		= init->attr.srq_limit;
-+	srq->srq_num		= srq->pelem.index;
-+	srq->rq.max_wr		= init->attr.max_wr;
-+	srq->rq.max_sge		= init->attr.max_sge;
-+
-+	srq_wqe_size		= rcv_wqe_size(srq->rq.max_sge);
-+
-+	spin_lock_init(&srq->rq.producer_lock);
-+	spin_lock_init(&srq->rq.consumer_lock);
-+
-+	q = rxe_queue_init(rxe, &srq->rq.max_wr,
-+			   srq_wqe_size);
-+	if (!q) {
-+		pr_warn("unable to allocate queue for srq\n");
-+		err = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	srq->rq.queue = q;
-+
-+	err = do_mmap_info(rxe, udata, false, context, q->buf,
-+			   q->buf_size, &q->ip);
-+	if (err)
-+		goto err1;
-+
-+	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
-+		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
-+			&srq->srq_num, sizeof(u32));
-+	else
++	switch (mem->type) {
++	case RXE_MEM_TYPE_DMA:
 +		return 0;
-+err1:
-+	return err;
++
++	case RXE_MEM_TYPE_MR:
++	case RXE_MEM_TYPE_FMR:
++		return ((iova < mem->iova) ||
++			((iova + length) > (mem->iova + mem->length))) ?
++			-EFAULT : 0;
++
++	default:
++		return -EFAULT;
++	}
 +}
 +
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata)
++#define IB_ACCESS_REMOTE	(IB_ACCESS_REMOTE_READ		\
++				| IB_ACCESS_REMOTE_WRITE	\
++				| IB_ACCESS_REMOTE_ATOMIC)
++
++static void rxe_mem_init(int access, struct rxe_mem *mem)
 +{
-+	int err;
-+	struct rxe_queue *q = srq->rq.queue;
-+	struct mminfo mi = { .offset = 1, .size = 0};
++	u32 lkey = mem->pelem.index << 8 | rxe_get_key();
++	u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		/* Check that we can write the mminfo struct to user space */
-+		if (udata && udata->inlen >= sizeof(__u64)) {
-+			__u64 mi_addr;
++	if (mem->pelem.pool->type == RXE_TYPE_MR) {
++		mem->ibmr.lkey		= lkey;
++		mem->ibmr.rkey		= rkey;
++	} else {
++		mem->ibfmr.lkey		= lkey;
++		mem->ibfmr.rkey		= rkey;
++	}
 +
-+			/* Get address of user space mminfo struct */
-+			err = ib_copy_from_udata(&mi_addr, udata,
-+						 sizeof(mi_addr));
-+			if (err)
-+				goto err1;
++	mem->lkey		= lkey;
++	mem->rkey		= rkey;
++	mem->state		= RXE_MEM_STATE_INVALID;
++	mem->type		= RXE_MEM_TYPE_NONE;
++	mem->map_shift		= ilog2(RXE_BUF_PER_MAP);
++}
 +
-+			udata->outbuf = (void __user *)(unsigned long)mi_addr;
-+			udata->outlen = sizeof(mi);
++void rxe_mem_cleanup(void *arg)
++{
++	struct rxe_mem *mem = arg;
++	int i;
 +
-+			if (!access_ok(VERIFY_WRITE,
-+				       (void __user *)udata->outbuf,
-+					udata->outlen)) {
-+				err = -EFAULT;
-+				goto err1;
-+			}
-+		}
++	if (mem->umem)
++		ib_umem_release(mem->umem);
 +
-+		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
-+				       rcv_wqe_size(srq->rq.max_sge),
-+				       srq->rq.queue->ip ?
-+						srq->rq.queue->ip->context :
-+						NULL,
-+				       udata, &srq->rq.producer_lock,
-+				       &srq->rq.consumer_lock);
-+		if (err)
++	if (mem->map) {
++		for (i = 0; i < mem->num_map; i++)
++			kfree(mem->map[i]);
++
++		kfree(mem->map);
++	}
++}
++
++static int rxe_mem_alloc(struct rxe_dev *rxe, struct rxe_mem *mem, int num_buf)
++{
++	int i;
++	int num_map;
++	struct rxe_map **map = mem->map;
++
++	num_map = (num_buf + RXE_BUF_PER_MAP - 1) / RXE_BUF_PER_MAP;
++
++	mem->map = kmalloc_array(num_map, sizeof(*map), GFP_KERNEL);
++	if (!mem->map)
++		goto err1;
++
++	for (i = 0; i < num_map; i++) {
++		mem->map[i] = kmalloc(sizeof(**map), GFP_KERNEL);
++		if (!mem->map[i])
 +			goto err2;
 +	}
 +
-+	if (mask & IB_SRQ_LIMIT)
-+		srq->limit = attr->srq_limit;
++	WARN_ON(!is_power_of_2(RXE_BUF_PER_MAP));
++
++	mem->map_shift	= ilog2(RXE_BUF_PER_MAP);
++	mem->map_mask	= RXE_BUF_PER_MAP - 1;
++
++	mem->num_buf = num_buf;
++	mem->num_map = num_map;
++	mem->max_buf = num_map * RXE_BUF_PER_MAP;
 +
 +	return 0;
 +
 +err2:
-+	rxe_queue_cleanup(q);
-+	srq->rq.queue = NULL;
++	for (i--; i >= 0; i--)
++		kfree(mem->map[i]);
++
++	kfree(mem->map);
++err1:
++	return -ENOMEM;
++}
++
++int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
++		     int access, struct rxe_mem *mem)
++{
++	rxe_mem_init(access, mem);
++
++	mem->pd			= pd;
++	mem->access		= access;
++	mem->state		= RXE_MEM_STATE_VALID;
++	mem->type		= RXE_MEM_TYPE_DMA;
++
++	return 0;
++}
++
++int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
++		      u64 length, u64 iova, int access, struct ib_udata *udata,
++		      struct rxe_mem *mem)
++{
++	int			entry;
++	struct rxe_map		**map;
++	struct rxe_phys_buf	*buf = NULL;
++	struct ib_umem		*umem;
++	struct scatterlist	*sg;
++	int			num_buf;
++	void			*vaddr;
++	int err;
++
++	umem = ib_umem_get(pd->ibpd.uobject->context, start, length, access, 0);
++	if (IS_ERR(umem)) {
++		pr_warn("err %d from rxe_umem_get\n",
++			(int)PTR_ERR(umem));
++		err = -EINVAL;
++		goto err1;
++	}
++
++	mem->umem = umem;
++	num_buf = umem->nmap;
++
++	rxe_mem_init(access, mem);
++
++	err = rxe_mem_alloc(rxe, mem, num_buf);
++	if (err) {
++		pr_warn("err %d from rxe_mem_alloc\n", err);
++		ib_umem_release(umem);
++		goto err1;
++	}
++
++	WARN_ON(!is_power_of_2(umem->page_size));
++
++	mem->page_shift		= ilog2(umem->page_size);
++	mem->page_mask		= umem->page_size - 1;
++
++	num_buf			= 0;
++	map			= mem->map;
++	if (length > 0) {
++		buf = map[0]->buf;
++
++		for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
++			vaddr = page_address(sg_page(sg));
++			if (!vaddr) {
++				pr_warn("null vaddr\n");
++				err = -ENOMEM;
++				goto err1;
++			}
++
++			buf->addr = (uintptr_t)vaddr;
++			buf->size = umem->page_size;
++			num_buf++;
++			buf++;
++
++			if (num_buf >= RXE_BUF_PER_MAP) {
++				map++;
++				buf = map[0]->buf;
++				num_buf = 0;
++			}
++		}
++	}
++
++	mem->pd			= pd;
++	mem->umem		= umem;
++	mem->access		= access;
++	mem->length		= length;
++	mem->iova		= iova;
++	mem->va			= start;
++	mem->offset		= ib_umem_offset(umem);
++	mem->state		= RXE_MEM_STATE_VALID;
++	mem->type		= RXE_MEM_TYPE_MR;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
++		      int max_pages, struct rxe_mem *mem)
++{
++	int err;
++
++	rxe_mem_init(0, mem);
++
++	err = rxe_mem_alloc(rxe, mem, max_pages);
++	if (err)
++		goto err1;
++
++	mem->pd			= pd;
++	mem->max_buf		= max_pages;
++	mem->state		= RXE_MEM_STATE_FREE;
++	mem->type		= RXE_MEM_TYPE_MR;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
++		     struct ib_fmr_attr *attr, struct rxe_mem *mem)
++{
++	int err;
++
++	if (attr->max_maps > rxe->attr.max_map_per_fmr) {
++		pr_warn("max_mmaps = %d too big, max_map_per_fmr = %d\n",
++			attr->max_maps, rxe->attr.max_map_per_fmr);
++		err = -EINVAL;
++		goto err1;
++	}
++
++	rxe_mem_init(access, mem);
++
++	err = rxe_mem_alloc(rxe, mem, attr->max_pages);
++	if (err)
++		goto err1;
++
++	mem->pd			= pd;
++	mem->access		= access;
++	mem->page_shift		 = attr->page_shift;
++	mem->page_mask		= (1 << attr->page_shift) - 1;
++	mem->max_buf		= attr->max_pages;
++	mem->state		= RXE_MEM_STATE_FREE;
++	mem->type		= RXE_MEM_TYPE_FMR;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++static void lookup_iova(
++	struct rxe_mem	*mem,
++	u64			iova,
++	int			*m_out,
++	int			*n_out,
++	size_t			*offset_out)
++{
++	size_t			offset = iova - mem->iova + mem->offset;
++	int			map_index;
++	int			buf_index;
++	u64			length;
++
++	if (likely(mem->page_shift)) {
++		*offset_out = offset & mem->page_mask;
++		offset >>= mem->page_shift;
++		*n_out = offset & mem->map_mask;
++		*m_out = offset >> mem->map_shift;
++	} else {
++		map_index = 0;
++		buf_index = 0;
++
++		length = mem->map[map_index]->buf[buf_index].size;
++
++		while (offset >= length) {
++			offset -= length;
++			buf_index++;
++
++			if (buf_index == RXE_BUF_PER_MAP) {
++				map_index++;
++				buf_index = 0;
++			}
++			length = mem->map[map_index]->buf[buf_index].size;
++		}
++
++		*m_out = map_index;
++		*n_out = buf_index;
++		*offset_out = offset;
++	}
++}
++
++void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length)
++{
++	size_t offset;
++	int m, n;
++	void *addr;
++
++	if (mem->state != RXE_MEM_STATE_VALID) {
++		pr_warn("mem not in valid state\n");
++		addr = NULL;
++		goto out;
++	}
++
++	if (!mem->map) {
++		addr = (void *)(uintptr_t)iova;
++		goto out;
++	}
++
++	if (mem_check_range(mem, iova, length)) {
++		pr_warn("range violation\n");
++		addr = NULL;
++		goto out;
++	}
++
++	lookup_iova(mem, iova, &m, &n, &offset);
++
++	if (offset + length > mem->map[m]->buf[n].size) {
++		pr_warn("crosses page boundary\n");
++		addr = NULL;
++		goto out;
++	}
++
++	addr = (void *)(uintptr_t)mem->map[m]->buf[n].addr + offset;
++
++out:
++	return addr;
++}
++
++/* copy data from a range (vaddr, vaddr+length-1) to or from
++ * a mem object starting at iova. Compute incremental value of
++ * crc32 if crcp is not zero. caller must hold a reference to mem
++ */
++int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
++		 enum copy_direction dir, u32 *crcp)
++{
++	int			err;
++	int			bytes;
++	u8			*va;
++	struct rxe_map		**map;
++	struct rxe_phys_buf	*buf;
++	int			m;
++	int			i;
++	size_t			offset;
++	u32			crc = crcp ? (*crcp) : 0;
++
++	if (mem->type == RXE_MEM_TYPE_DMA) {
++		u8 *src, *dest;
++
++		src  = (dir == to_mem_obj) ?
++			addr : ((void *)(uintptr_t)iova);
++
++		dest = (dir == to_mem_obj) ?
++			((void *)(uintptr_t)iova) : addr;
++
++		if (crcp)
++			*crcp = crc32_le(*crcp, src, length);
++
++		memcpy(dest, src, length);
++
++		return 0;
++	}
++
++	WARN_ON(!mem->map);
++
++	err = mem_check_range(mem, iova, length);
++	if (err) {
++		err = -EFAULT;
++		goto err1;
++	}
++
++	lookup_iova(mem, iova, &m, &i, &offset);
++
++	map	= mem->map + m;
++	buf	= map[0]->buf + i;
++
++	while (length > 0) {
++		u8 *src, *dest;
++
++		va	= (u8 *)(uintptr_t)buf->addr + offset;
++		src  = (dir == to_mem_obj) ? addr : va;
++		dest = (dir == to_mem_obj) ? va : addr;
++
++		bytes	= buf->size - offset;
++
++		if (bytes > length)
++			bytes = length;
++
++		if (crcp)
++			crc = crc32_le(crc, src, bytes);
++
++		memcpy(dest, src, bytes);
++
++		length	-= bytes;
++		addr	+= bytes;
++
++		offset	= 0;
++		buf++;
++		i++;
++
++		if (i == RXE_BUF_PER_MAP) {
++			i = 0;
++			map++;
++			buf = map[0]->buf;
++		}
++	}
++
++	if (crcp)
++		*crcp = crc;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++/* copy data in or out of a wqe, i.e. sg list
++ * under the control of a dma descriptor
++ */
++int copy_data(
++	struct rxe_dev		*rxe,
++	struct rxe_pd		*pd,
++	int			access,
++	struct rxe_dma_info	*dma,
++	void			*addr,
++	int			length,
++	enum copy_direction	dir,
++	u32			*crcp)
++{
++	int			bytes;
++	struct rxe_sge		*sge	= &dma->sge[dma->cur_sge];
++	int			offset	= dma->sge_offset;
++	int			resid	= dma->resid;
++	struct rxe_mem		*mem	= NULL;
++	u64			iova;
++	int			err;
++
++	if (length == 0)
++		return 0;
++
++	if (length > resid) {
++		err = -EINVAL;
++		goto err2;
++	}
++
++	if (sge->length && (offset < sge->length)) {
++		mem = lookup_mem(pd, access, sge->lkey, lookup_local);
++		if (!mem) {
++			err = -EINVAL;
++			goto err1;
++		}
++	}
++
++	while (length > 0) {
++		bytes = length;
++
++		if (offset >= sge->length) {
++			if (mem) {
++				rxe_drop_ref(mem);
++				mem = NULL;
++			}
++			sge++;
++			dma->cur_sge++;
++			offset = 0;
++
++			if (dma->cur_sge >= dma->num_sge) {
++				err = -ENOSPC;
++				goto err2;
++			}
++
++			if (sge->length) {
++				mem = lookup_mem(pd, access, sge->lkey,
++						 lookup_local);
++				if (!mem) {
++					err = -EINVAL;
++					goto err1;
++				}
++			} else {
++				continue;
++			}
++		}
++
++		if (bytes > sge->length - offset)
++			bytes = sge->length - offset;
++
++		if (bytes > 0) {
++			iova = sge->addr + offset;
++
++			err = rxe_mem_copy(mem, iova, addr, bytes, dir, crcp);
++			if (err)
++				goto err2;
++
++			offset	+= bytes;
++			resid	-= bytes;
++			length	-= bytes;
++			addr	+= bytes;
++		}
++	}
++
++	dma->sge_offset = offset;
++	dma->resid	= resid;
++
++	if (mem)
++		rxe_drop_ref(mem);
++
++	return 0;
++
++err2:
++	if (mem)
++		rxe_drop_ref(mem);
++err1:
++	return err;
++}
++
++int advance_dma_data(struct rxe_dma_info *dma, unsigned int length)
++{
++	struct rxe_sge		*sge	= &dma->sge[dma->cur_sge];
++	int			offset	= dma->sge_offset;
++	int			resid	= dma->resid;
++
++	while (length) {
++		unsigned int bytes;
++
++		if (offset >= sge->length) {
++			sge++;
++			dma->cur_sge++;
++			offset = 0;
++			if (dma->cur_sge >= dma->num_sge)
++				return -ENOSPC;
++		}
++
++		bytes = length;
++
++		if (bytes > sge->length - offset)
++			bytes = sge->length - offset;
++
++		offset	+= bytes;
++		resid	-= bytes;
++		length	-= bytes;
++	}
++
++	dma->sge_offset = offset;
++	dma->resid	= resid;
++
++	return 0;
++}
++
++/* (1) find the mem (mr, fmr or mw) corresponding to lkey/rkey
++ *     depending on lookup_type
++ * (2) verify that the (qp) pd matches the mem pd
++ * (3) verify that the mem can support the requested access
++ * (4) verify that mem state is valid
++ */
++struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
++			   enum lookup_type type)
++{
++	struct rxe_mem *mem;
++	struct rxe_dev *rxe = to_rdev(pd->ibpd.device);
++	int index = key >> 8;
++
++	if (index >= RXE_MIN_MR_INDEX && index <= RXE_MAX_MR_INDEX) {
++		mem = rxe_pool_get_index(&rxe->mr_pool, index);
++		if (!mem)
++			goto err1;
++	} else if (index >= RXE_MIN_FMR_INDEX && index <= RXE_MAX_FMR_INDEX) {
++		mem = rxe_pool_get_index(&rxe->fmr_pool, index);
++		if (!mem)
++			goto err1;
++	} else {
++		goto err1;
++	}
++
++	if ((type == lookup_local && mem->lkey != key) ||
++	    (type == lookup_remote && mem->rkey != key))
++		goto err2;
++
++	if (mem->pd != pd)
++		goto err2;
++
++	if (access && !(access & mem->access))
++		goto err2;
++
++	if (mem->state != RXE_MEM_STATE_VALID)
++		goto err2;
++
++	return mem;
++
++err2:
++	rxe_drop_ref(mem);
++err1:
++	return NULL;
++}
++
++int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
++		      u64 *page, int num_pages, u64 iova)
++{
++	int i;
++	int num_buf;
++	int err;
++	struct rxe_map **map;
++	struct rxe_phys_buf *buf;
++	int page_size;
++
++	if (num_pages > mem->max_buf) {
++		err = -EINVAL;
++		goto err1;
++	}
++
++	num_buf		= 0;
++	page_size	= 1 << mem->page_shift;
++	map		= mem->map;
++	buf		= map[0]->buf;
++
++	for (i = 0; i < num_pages; i++) {
++		buf->addr = *page++;
++		buf->size = page_size;
++		buf++;
++		num_buf++;
++
++		if (num_buf == RXE_BUF_PER_MAP) {
++			map++;
++			buf = map[0]->buf;
++			num_buf = 0;
++		}
++	}
++
++	mem->iova	= iova;
++	mem->va		= iova;
++	mem->length	= num_pages << mem->page_shift;
++	mem->state	= RXE_MEM_STATE_VALID;
++
++	return 0;
++
 +err1:
 +	return err;
 +}
