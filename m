@@ -1,42 +1,28 @@
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH] IB/usnic: Remove unused DMA attributes
-Date: Thu, 02 Jun 2016 11:45:01 +0200
-Message-ID: <1464860701-11376-1-git-send-email-k.kozlowski@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH] IB/core: Fix bit curruption in ib_device_cap_flags
+ structure
+Date: Thu, 2 Jun 2016 04:33:53 -0700
+Message-ID: <20160602113353.GA18494@infradead.org>
+References: <1464859685-18666-1-git-send-email-maxg@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1464859685-18666-1-git-send-email-maxg@mellanox.com>
+Sender: stable-owner@vger.kernel.org
+To: Max Gurtovoy <maxg@mellanox.com>
+Cc: matanb@mellanox.com, leon@leon.nu, sagi@grimberg.me, linux-rdma@vger.kernel.org, stable@vger.kernel.org, robert@leblancnet.us
 List-Id: linux-rdma@vger.kernel.org
 
-The DMA attributes are set but never used.
+>  	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
+>  	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+>  	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+> -	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
+> +	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+>  	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
+>  	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 33),
+>  	IB_DEVICE_RAW_SCATTER_FCS		= ((u64)1 << 34),
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/infiniband/hw/usnic/usnic_uiom.c | 5 -----
- 1 file changed, 5 deletions(-)
+So now we've got three different styles to define the constants.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 7209fbc03ccb..a0b6ebee4d8a 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -36,7 +36,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/sched.h>
- #include <linux/hugetlb.h>
--#include <linux/dma-attrs.h>
- #include <linux/iommu.h>
- #include <linux/workqueue.h>
- #include <linux/list.h>
-@@ -112,10 +111,6 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	int i;
- 	int flags;
- 	dma_addr_t pa;
--	DEFINE_DMA_ATTRS(attrs);
--
--	if (dmasync)
--		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
- 
- 	if (!can_do_mlock())
- 		return -EPERM;
--- 
-1.9.1
+I'd really prefer to move all of them over to the 1ULL << offset style.
