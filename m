@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 18/29] IB/rxe: Add multicast infrastructure
-Date: Thu,  2 Jun 2016 19:57:26 +0300
-Message-ID: <1464886657-14258-19-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 19/29] IB/rxe: Received packets handling
+Date: Thu,  2 Jun 2016 19:57:27 +0300
+Message-ID: <1464886657-14258-20-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,24 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions for use by the multicast attach and detach verbs.
+Handle receiving new packets which are sent to either request or
+response processing.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_mcast.c | 190 ++++++++++++++++++++++++++++++++++
- 1 file changed, 190 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_mcast.c
+ drivers/infiniband/hw/rxe/rxe_recv.c | 420 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 420 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_recv.c
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_mcast.c b/drivers/infiniband/hw/rxe/rxe_mcast.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_recv.c b/drivers/infiniband/hw/rxe/rxe_recv.c
 new file mode 100644
-index 0000000..fa95544
+index 0000000..92ee31f
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_mcast.c
-@@ -0,0 +1,190 @@
++++ b/drivers/infiniband/hw/rxe/rxe_recv.c
+@@ -0,0 +1,420 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -37,18 +38,18 @@ index 0000000..fa95544
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -60,163 +61,393 @@ index 0000000..fa95544
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +
-+int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
-+		      struct rxe_mc_grp **grp_p)
++static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++			    struct rxe_qp *qp)
 +{
-+	int err;
-+	struct rxe_mc_grp *grp;
++	if (unlikely(!qp->valid))
++		goto err1;
 +
-+	if (rxe->attr.max_mcast_qp_attach == 0) {
-+		err = -EINVAL;
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		if (unlikely((pkt->opcode & IB_OPCODE_RC) != 0)) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	case IB_QPT_UC:
++		if (unlikely(!(pkt->opcode & IB_OPCODE_UC))) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	case IB_QPT_UD:
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++		if (unlikely(!(pkt->opcode & IB_OPCODE_UD))) {
++			pr_warn_ratelimited("bad qp type\n");
++			goto err1;
++		}
++		break;
++	default:
++		pr_warn_ratelimited("unsupported qp type\n");
 +		goto err1;
 +	}
 +
-+	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
-+	if (grp)
-+		goto done;
-+
-+	grp = rxe_alloc(&rxe->mc_grp_pool);
-+	if (!grp) {
-+		err = -ENOMEM;
++	if (pkt->mask & RXE_REQ_MASK) {
++		if (unlikely(qp->resp.state != QP_STATE_READY))
++			goto err1;
++	} else if (unlikely(qp->req.state < QP_STATE_READY ||
++				qp->req.state > QP_STATE_DRAINED)) {
 +		goto err1;
 +	}
 +
-+	INIT_LIST_HEAD(&grp->qp_list);
-+	spin_lock_init(&grp->mcg_lock);
-+	grp->rxe = rxe;
-+
-+	rxe_add_key(grp, mgid);
-+
-+	err = rxe->ifc_ops->mcast_add(rxe, mgid);
-+	if (err)
-+		goto err2;
-+
-+done:
-+	*grp_p = grp;
 +	return 0;
 +
-+err2:
-+	rxe_drop_ref(grp);
-+err1:
-+	return err;
-+}
-+
-+int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct rxe_mc_grp *grp)
-+{
-+	int err;
-+	struct rxe_mc_elem *elem;
-+
-+	/* check to see of the qp is already a member of the group */
-+	spin_lock_bh(&qp->grp_lock);
-+	spin_lock_bh(&grp->mcg_lock);
-+	list_for_each_entry(elem, &grp->qp_list, qp_list) {
-+		if (elem->qp == qp) {
-+			err = 0;
-+			goto out;
-+		}
-+	}
-+
-+	if (grp->num_qp >= rxe->attr.max_mcast_qp_attach) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	elem = rxe_alloc(&rxe->mc_elem_pool);
-+	if (!elem) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	/* each qp holds a ref on the grp */
-+	rxe_add_ref(grp);
-+
-+	grp->num_qp++;
-+	elem->qp = qp;
-+	elem->grp = grp;
-+
-+	list_add(&elem->qp_list, &grp->qp_list);
-+	list_add(&elem->grp_list, &qp->grp_list);
-+
-+	err = 0;
-+out:
-+	spin_unlock_bh(&grp->mcg_lock);
-+	spin_unlock_bh(&qp->grp_lock);
-+	return err;
-+}
-+
-+int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			    union ib_gid *mgid)
-+{
-+	struct rxe_mc_grp *grp;
-+	struct rxe_mc_elem *elem, *tmp;
-+
-+	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
-+	if (!grp)
-+		goto err1;
-+
-+	spin_lock_bh(&qp->grp_lock);
-+	spin_lock_bh(&grp->mcg_lock);
-+
-+	list_for_each_entry_safe(elem, tmp, &grp->qp_list, qp_list) {
-+		if (elem->qp == qp) {
-+			list_del(&elem->qp_list);
-+			list_del(&elem->grp_list);
-+			grp->num_qp--;
-+
-+			spin_unlock_bh(&grp->mcg_lock);
-+			spin_unlock_bh(&qp->grp_lock);
-+			rxe_drop_ref(elem);
-+			rxe_drop_ref(grp);	/* ref held by QP */
-+			rxe_drop_ref(grp);	/* ref from get_key */
-+			return 0;
-+		}
-+	}
-+
-+	spin_unlock_bh(&grp->mcg_lock);
-+	spin_unlock_bh(&qp->grp_lock);
-+	rxe_drop_ref(grp);			/* ref from get_key */
 +err1:
 +	return -EINVAL;
 +}
 +
-+void rxe_drop_all_mcast_groups(struct rxe_qp *qp)
++static void set_bad_pkey_cntr(struct rxe_port *port)
 +{
-+	struct rxe_mc_grp *grp;
-+	struct rxe_mc_elem *elem;
++	spin_lock_bh(&port->port_lock);
++	port->attr.bad_pkey_cntr = min((u32)0xffff,
++				       port->attr.bad_pkey_cntr + 1);
++	spin_unlock_bh(&port->port_lock);
++}
 +
-+	while (1) {
-+		spin_lock_bh(&qp->grp_lock);
-+		if (list_empty(&qp->grp_list)) {
-+			spin_unlock_bh(&qp->grp_lock);
-+			break;
++static void set_qkey_viol_cntr(struct rxe_port *port)
++{
++	spin_lock_bh(&port->port_lock);
++	port->attr.qkey_viol_cntr = min((u32)0xffff,
++					port->attr.qkey_viol_cntr + 1);
++	spin_unlock_bh(&port->port_lock);
++}
++
++static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      u32 qpn, struct rxe_qp *qp)
++{
++	int i;
++	int found_pkey = 0;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	u16 pkey = bth_pkey(pkt);
++
++	pkt->pkey_index = 0;
++
++	if (qpn == 1) {
++		for (i = 0; i < port->attr.pkey_tbl_len; i++) {
++			if (pkey_match(pkey, port->pkey_tbl[i])) {
++				pkt->pkey_index = i;
++				found_pkey = 1;
++				break;
++			}
 +		}
-+		elem = list_first_entry(&qp->grp_list, struct rxe_mc_elem,
-+					grp_list);
-+		list_del(&elem->grp_list);
-+		spin_unlock_bh(&qp->grp_lock);
 +
-+		grp = elem->grp;
-+		spin_lock_bh(&grp->mcg_lock);
-+		list_del(&elem->qp_list);
-+		grp->num_qp--;
-+		spin_unlock_bh(&grp->mcg_lock);
-+		rxe_drop_ref(grp);
-+		rxe_drop_ref(elem);
++		if (!found_pkey) {
++			pr_warn_ratelimited("bad pkey = 0x%x\n", pkey);
++			set_bad_pkey_cntr(port);
++			goto err1;
++		}
++	} else if (qpn != 0) {
++		if (unlikely(!pkey_match(pkey,
++					 port->pkey_tbl[qp->attr.pkey_index]
++					))) {
++			pr_warn_ratelimited("bad pkey = 0x%0x\n", pkey);
++			set_bad_pkey_cntr(port);
++			goto err1;
++		}
++		pkt->pkey_index = qp->attr.pkey_index;
 +	}
++
++	if ((qp_type(qp) == IB_QPT_UD || qp_type(qp) == IB_QPT_GSI) &&
++	    qpn != 0 && pkt->mask) {
++		u32 qkey = (qpn == 1) ? GSI_QKEY : qp->attr.qkey;
++
++		if (unlikely(deth_qkey(pkt) != qkey)) {
++			pr_warn_ratelimited("bad qkey, got 0x%x expected 0x%x for qpn 0x%x\n",
++					    deth_qkey(pkt), qkey, qpn);
++			set_qkey_viol_cntr(port);
++			goto err1;
++		}
++	}
++
++	return 0;
++
++err1:
++	return -EINVAL;
 +}
 +
-+void rxe_mc_cleanup(void *arg)
++static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      struct rxe_qp *qp)
 +{
-+	struct rxe_mc_grp *grp = arg;
-+	struct rxe_dev *rxe = grp->rxe;
++	struct sk_buff *skb = PKT_TO_SKB(pkt);
 +
-+	rxe_drop_key(grp);
-+	rxe->ifc_ops->mcast_delete(rxe, &grp->mgid);
++	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
++		goto done;
++
++	if (unlikely(pkt->port_num != qp->attr.port_num)) {
++		pr_warn_ratelimited("port %d != qp port %d\n",
++				    pkt->port_num, qp->attr.port_num);
++		goto err1;
++	}
++
++	if (skb->protocol == htons(ETH_P_IP)) {
++		struct in_addr *saddr =
++			&qp->pri_av.sgid_addr._sockaddr_in.sin_addr;
++		struct in_addr *daddr =
++			&qp->pri_av.dgid_addr._sockaddr_in.sin_addr;
++
++		if (ip_hdr(skb)->daddr != saddr->s_addr) {
++			pr_warn_ratelimited("dst addr %pI4 != qp source addr %pI4\n",
++					    &ip_hdr(skb)->daddr,
++					    &saddr->s_addr);
++			goto err1;
++		}
++
++		if (ip_hdr(skb)->saddr != daddr->s_addr) {
++			pr_warn_ratelimited("source addr %pI4 != qp dst addr %pI4\n",
++					    &ip_hdr(skb)->saddr,
++					    &daddr->s_addr);
++			goto err1;
++		}
++
++	} else if (skb->protocol == htons(ETH_P_IPV6)) {
++		struct in6_addr *saddr =
++			&qp->pri_av.sgid_addr._sockaddr_in6.sin6_addr;
++		struct in6_addr *daddr =
++			&qp->pri_av.dgid_addr._sockaddr_in6.sin6_addr;
++
++		if (memcmp(&ipv6_hdr(skb)->daddr, saddr, sizeof(*saddr))) {
++			pr_warn_ratelimited("dst addr %pI6 != qp source addr %pI6\n",
++					    &ipv6_hdr(skb)->daddr, saddr);
++			goto err1;
++		}
++
++		if (memcmp(&ipv6_hdr(skb)->saddr, daddr, sizeof(*daddr))) {
++			pr_warn_ratelimited("source addr %pI6 != qp dst addr %pI6\n",
++					    &ipv6_hdr(skb)->saddr, daddr);
++			goto err1;
++		}
++	}
++
++done:
++	return 0;
++
++err1:
++	return -EINVAL;
 +}
++
++static int hdr_check(struct rxe_pkt_info *pkt)
++{
++	struct rxe_dev *rxe = pkt->rxe;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	struct rxe_qp *qp = NULL;
++	u32 qpn = bth_qpn(pkt);
++	int index;
++	int err;
++
++	if (unlikely(bth_tver(pkt) != BTH_TVER)) {
++		pr_warn_ratelimited("bad tver\n");
++		goto err1;
++	}
++
++	if (qpn != IB_MULTICAST_QPN) {
++		index = (qpn == 0) ? port->qp_smi_index :
++			((qpn == 1) ? port->qp_gsi_index : qpn);
++		qp = rxe_pool_get_index(&rxe->qp_pool, index);
++		if (unlikely(!qp)) {
++			pr_warn_ratelimited("no qp matches qpn 0x%x\n", qpn);
++			goto err1;
++		}
++
++		err = check_type_state(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
++
++		err = check_addr(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
++
++		err = check_keys(rxe, pkt, qpn, qp);
++		if (unlikely(err))
++			goto err2;
++	} else {
++		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
++			pr_warn_ratelimited("no grh for mcast qpn\n");
++			goto err1;
++		}
++	}
++
++	pkt->qp = qp;
++	return 0;
++
++err2:
++	if (qp)
++		rxe_drop_ref(qp);
++err1:
++	return -EINVAL;
++}
++
++static inline void rxe_rcv_pkt(struct rxe_dev *rxe,
++			       struct rxe_pkt_info *pkt,
++			       struct sk_buff *skb)
++{
++	if (pkt->mask & RXE_REQ_MASK)
++		rxe_resp_queue_pkt(rxe, pkt->qp, skb);
++	else
++		rxe_comp_queue_pkt(rxe, pkt->qp, skb);
++}
++
++static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
++{
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_mc_grp *mcg;
++	struct sk_buff *skb_copy;
++	struct rxe_mc_elem *mce;
++	struct rxe_qp *qp;
++	union ib_gid dgid;
++	int err;
++
++	if (skb->protocol == htons(ETH_P_IP))
++		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
++				       (struct in6_addr *)&dgid);
++	else if (skb->protocol == htons(ETH_P_IPV6))
++		memcpy(&dgid, &ipv6_hdr(skb)->daddr, sizeof(dgid));
++
++	/* lookup mcast group corresponding to mgid, takes a ref */
++	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, &dgid);
++	if (!mcg)
++		goto err1;	/* mcast group not registered */
++
++	spin_lock_bh(&mcg->mcg_lock);
++
++	list_for_each_entry(mce, &mcg->qp_list, qp_list) {
++		qp = mce->qp;
++		pkt = SKB_TO_PKT(skb);
++
++		/* validate qp for incoming packet */
++		err = check_type_state(rxe, pkt, qp);
++		if (err)
++			continue;
++
++		err = check_keys(rxe, pkt, bth_qpn(pkt), qp);
++		if (err)
++			continue;
++
++		/* if *not* the last qp in the list
++		 * make a copy of the skb to post to the next qp
++		 */
++		skb_copy = (mce->qp_list.next != &mcg->qp_list) ?
++				skb_clone(skb, GFP_KERNEL) : NULL;
++
++		pkt->qp = qp;
++		rxe_add_ref(qp);
++		rxe_rcv_pkt(rxe, pkt, skb);
++
++		skb = skb_copy;
++		if (!skb)
++			break;
++	}
++
++	spin_unlock_bh(&mcg->mcg_lock);
++
++	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
++
++err1:
++	if (skb)
++		kfree_skb(skb);
++}
++
++static int rxe_match_dgid(struct rxe_dev *rxe, struct sk_buff *skb)
++{
++	union ib_gid dgid;
++	union ib_gid *pdgid;
++	u16 index;
++
++	if (skb->protocol == htons(ETH_P_IP)) {
++		ipv6_addr_set_v4mapped(ip_hdr(skb)->daddr,
++				       (struct in6_addr *)&dgid);
++		pdgid = &dgid;
++	} else {
++		pdgid = (union ib_gid *)&ipv6_hdr(skb)->daddr;
++	}
++
++	return ib_find_cached_gid_by_port(&rxe->ib_dev, pdgid,
++					  IB_GID_TYPE_ROCE_UDP_ENCAP,
++					  1, rxe->ndev, &index);
++}
++
++/* rxe_rcv is called from the interface driver */
++int rxe_rcv(struct sk_buff *skb)
++{
++	int err;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_dev *rxe = pkt->rxe;
++	__be32 *icrcp;
++	u32 calc_icrc, pack_icrc;
++
++	pkt->offset = 0;
++
++	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
++		goto drop;
++
++	if (unlikely(rxe_match_dgid(rxe, skb) < 0)) {
++		pr_warn_ratelimited("failed matching dgid\n");
++		goto drop;
++	}
++
++	pkt->opcode = bth_opcode(pkt);
++	pkt->psn = bth_psn(pkt);
++	pkt->qp = NULL;
++	pkt->mask |= rxe_opcode[pkt->opcode].mask;
++
++	if (unlikely(skb->len < header_size(pkt)))
++		goto drop;
++
++	err = hdr_check(pkt);
++	if (unlikely(err))
++		goto drop;
++
++	/* Verify ICRC */
++	icrcp = (__be32 *)(pkt->hdr + pkt->paylen - RXE_ICRC_SIZE);
++	pack_icrc = be32_to_cpu(*icrcp);
++
++	calc_icrc = rxe_icrc_hdr(pkt, skb);
++	calc_icrc = crc32_le(calc_icrc, (u8 *)payload_addr(pkt), payload_size(pkt));
++	calc_icrc = cpu_to_be32(~calc_icrc);
++	if (unlikely(calc_icrc != pack_icrc)) {
++		char saddr[sizeof(struct in6_addr)];
++
++		if (skb->protocol == htons(ETH_P_IPV6))
++			sprintf(saddr, "%pI6", &ipv6_hdr(skb)->saddr);
++		else if (skb->protocol == htons(ETH_P_IP))
++			sprintf(saddr, "%pI4", &ip_hdr(skb)->saddr);
++		else
++			sprintf(saddr, "unknown");
++
++		pr_warn_ratelimited("bad ICRC from %s\n", saddr);
++		goto drop;
++	}
++
++	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
++		rxe_rcv_mcast_pkt(rxe, skb);
++	else
++		rxe_rcv_pkt(rxe, pkt, skb);
++
++	return 0;
++
++drop:
++	if (pkt->qp)
++		rxe_drop_ref(pkt->qp);
++
++	kfree_skb(skb);
++	return 0;
++}
++EXPORT_SYMBOL(rxe_rcv);
 -- 
 1.8.3.1
 
