@@ -1,47 +1,42 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/core: Fix bit curruption in ib_device_cap_flags structure
-Date: Thu,  2 Jun 2016 12:28:05 +0300
-Message-ID: <1464859685-18666-1-git-send-email-maxg@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-2ukJVAZIZ/Y@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH] IB/usnic: Remove unused DMA attributes
+Date: Thu, 02 Jun 2016 11:45:01 +0200
+Message-ID: <1464860701-11376-1-git-send-email-k.kozlowski@samsung.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 List-Id: linux-rdma@vger.kernel.org
 
-ib_device_cap_flags 64-bit expansion caused caps overlapping
-and made consumers read wrong device capabilities. For example
-IB_DEVICE_SG_GAPS_REG was falsely read by the iser driver causing
-it to use a non-existing capability. This happened because signed
-int becomes sign extended when converted it to u64. Fix this by
-casting IB_DEVICE_ON_DEMAND_PAGING enumeration to ULL.
+The DMA attributes are set but never used.
 
-Fixes: fb532d6a79b9 ('IB/{core, ulp} Support above 32 possible device capability flags')
-Reported-by: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #[v4.6+]
-Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 ---
- include/rdma/ib_verbs.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_uiom.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 432bed5..c97357b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -217,7 +217,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
--	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
-+	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
- 	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
- 	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 33),
- 	IB_DEVICE_RAW_SCATTER_FCS		= ((u64)1 << 34),
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index 7209fbc03ccb..a0b6ebee4d8a 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -36,7 +36,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/sched.h>
+ #include <linux/hugetlb.h>
+-#include <linux/dma-attrs.h>
+ #include <linux/iommu.h>
+ #include <linux/workqueue.h>
+ #include <linux/list.h>
+@@ -112,10 +111,6 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
+ 	int i;
+ 	int flags;
+ 	dma_addr_t pa;
+-	DEFINE_DMA_ATTRS(attrs);
+-
+-	if (dmasync)
+-		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
+ 
+ 	if (!can_do_mlock())
+ 		return -EPERM;
 -- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.9.1
