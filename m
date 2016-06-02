@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next 24/29] IB/rxe: Invariant CRC implementation
-Date: Thu,  2 Jun 2016 19:57:32 +0300
-Message-ID: <1464886657-14258-25-git-send-email-monis@mellanox.com>
+Subject: [PATCH rdma-next 28/29] IB/rxe: Shared objects between user and kernel
+Date: Thu,  2 Jun 2016 19:57:36 +0300
+Message-ID: <1464886657-14258-29-git-send-email-monis@mellanox.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,25 +10,37 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Compute and match ICRC as defined in spec for sent and received packets.
+User and kernel pass objects in shared memeory. For this both sides need
+to declare about the layout of each object in memory or in other words:
+agree about the ABI.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_icrc.c | 96 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_icrc.c
+ include/uapi/rdma/Kbuild   |   1 +
+ include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 140 insertions(+)
+ create mode 100644 include/uapi/rdma/ib_rxe.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_icrc.c b/drivers/infiniband/hw/rxe/rxe_icrc.c
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 231901b..94f9401 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -6,3 +6,4 @@ header-y += ib_user_verbs.h
+ header-y += rdma_netlink.h
+ header-y += rdma_user_cm.h
+ header-y += hfi/
++header-y += ib_rxe.h
+diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
 new file mode 100644
-index 0000000..413b56b
+index 0000000..eb8ff8c
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_icrc.c
-@@ -0,0 +1,96 @@
++++ b/include/uapi/rdma/ib_rxe.h
+@@ -0,0 +1,139 @@
 +/*
-+ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -59,69 +71,113 @@ index 0000000..413b56b
 + * SOFTWARE.
 + */
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
++#ifndef IB_RXE_H
++#define IB_RXE_H
 +
-+/* Compute a partial ICRC for all the IB transport headers. */
-+u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
-+{
-+	unsigned int bth_offset = 0;
-+	struct iphdr *ip4h = NULL;
-+	struct ipv6hdr *ip6h = NULL;
-+	struct udphdr *udph;
-+	struct rxe_bth *bth;
-+	int crc;
-+	int length;
-+	int hdr_size = sizeof(struct udphdr) +
-+		(skb->protocol == htons(ETH_P_IP) ?
-+		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
-+	/* pseudo header buffer size is calculate using ipv6 header size since
-+	 * it is bigger than ipv4
-+	 */
-+	u8 pshdr[sizeof(struct udphdr) +
-+		sizeof(struct ipv6hdr) +
-+		RXE_BTH_BYTES];
++#include <linux/types.h>
 +
-+	/* This seed is the result of computing a CRC with a seed of
-+	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
-+	 */
-+	crc = 0xdebb20e3;
++union rxe_gid {
++	__u8	raw[16];
++	struct {
++		__be64	subnet_prefix;
++		__be64	interface_id;
++	} global;
++};
 +
-+	if (skb->protocol == htons(ETH_P_IP)) { /* IPv4 */
-+		memcpy(pshdr, ip_hdr(skb), hdr_size);
-+		ip4h = (struct iphdr *)pshdr;
-+		udph = (struct udphdr *)(ip4h + 1);
++struct rxe_global_route {
++	union rxe_gid	dgid;
++	__u32		flow_label;
++	__u8		sgid_index;
++	__u8		hop_limit;
++	__u8		traffic_class;
++};
 +
-+		ip4h->ttl = 0xff;
-+		ip4h->check = CSUM_MANGLED_0;
-+		ip4h->tos = 0xff;
-+	} else {				/* IPv6 */
-+		memcpy(pshdr, ipv6_hdr(skb), hdr_size);
-+		ip6h = (struct ipv6hdr *)pshdr;
-+		udph = (struct udphdr *)(ip6h + 1);
++struct rxe_av {
++	__u8			port_num;
++	__u8			network_type;
++	struct rxe_global_route	grh;
++	union {
++		struct sockaddr		_sockaddr;
++		struct sockaddr_in	_sockaddr_in;
++		struct sockaddr_in6	_sockaddr_in6;
++	} sgid_addr, dgid_addr;
++};
 +
-+		memset(ip6h->flow_lbl, 0xff, sizeof(ip6h->flow_lbl));
-+		ip6h->priority = 0xf;
-+		ip6h->hop_limit = 0xff;
-+	}
-+	udph->check = CSUM_MANGLED_0;
++struct rxe_send_wr {
++	__u64			wr_id;
++	__u32			num_sge;
++	__u32			opcode;
++	__u32			send_flags;
++	union {
++		__be32		imm_data;
++		__u32		invalidate_rkey;
++	} ex;
++	union {
++		struct {
++			__u64	remote_addr;
++			__u32	rkey;
++		} rdma;
++		struct {
++			__u64	remote_addr;
++			__u64	compare_add;
++			__u64	swap;
++			__u32	rkey;
++		} atomic;
++		struct {
++			__u32	remote_qpn;
++			__u32	remote_qkey;
++			__u16	pkey_index;
++		} ud;
++	} wr;
++};
 +
-+	bth_offset += hdr_size;
++struct rxe_sge {
++	__u64	addr;
++	__u32	length;
++	__u32	lkey;
++};
 +
-+	memcpy(&pshdr[bth_offset], pkt->hdr, RXE_BTH_BYTES);
-+	bth = (struct rxe_bth *)&pshdr[bth_offset];
++struct mminfo {
++	__u64			offset;
++	__u32			size;
++	__u32			pad;
++};
 +
-+	/* exclude bth.resv8a */
-+	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
++struct rxe_dma_info {
++	__u32			length;
++	__u32			resid;
++	__u32			cur_sge;
++	__u32			num_sge;
++	__u32			sge_offset;
++	union {
++		__u8		inline_data[0];
++		struct rxe_sge	sge[0];
++	};
++};
 +
-+	length = hdr_size + RXE_BTH_BYTES;
-+	crc = crc32_le(crc, pshdr, length);
++struct rxe_send_wqe {
++	struct rxe_send_wr	wr;
++	struct rxe_av		av;
++	__u32			status;
++	__u32			state;
++	__u64			iova;
++	__u32			mask;
++	__u32			first_psn;
++	__u32			last_psn;
++	__u32			ack_length;
++	__u32			ssn;
++	__u32			has_rd_atomic;
++	struct rxe_dma_info	dma;
++};
 +
-+	/* And finish to compute the CRC on the remainder of the headers. */
-+	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
-+		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
-+	return crc;
-+}
++struct rxe_recv_wqe {
++	__u64			wr_id;
++	__u32			num_sge;
++	__u32			padding;
++	struct rxe_dma_info	dma;
++};
++
++#endif /* IB_RXE_H */
 -- 
 1.8.3.1
 
