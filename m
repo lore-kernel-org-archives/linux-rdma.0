@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 4/6] IB/hfi1: Fix indentation
-Date: Fri, 3 Jun 2016 12:09:56 -0700
-Message-ID: <54ad6b3b-4185-9345-26d0-ab3fd9ce36e4@sandisk.com>
+Subject: [PATCH 5/6] IB/hfi1: Use bit 0 instead of bit 1
+Date: Fri, 3 Jun 2016 12:10:37 -0700
+Message-ID: <ff26909c-8aff-392e-e5eb-927d69fa2573@sandisk.com>
 References: <86c06ca1-753c-6b45-3f65-f9a19f7693cf@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,54 +13,33 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Make the indentation of the source code consistent. Detected by
-smatch.
+The first argument of test_bit() and clear_bit() is a bit number and
+not a bitmask. Hence change that first argument from (1 << 0) into 0.
+This patch avoids that smatch reports the following warnings:
+
+user_sdma.c:1059: sdma_cache_evict() warn: test_bit() takes a bit number
+user_sdma.c:1590: sdma_rb_remove() warn: test_bit() takes a bit number
 
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 6 +++---
- drivers/infiniband/hw/hfi1/init.c | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 3b876da..81619fb 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -7832,8 +7832,8 @@ static void handle_dcc_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 			 * save first 2 flits in the packet that caused
- 			 * the error
- 			 */
--			 dd->err_info_rcvport.packet_flit1 = hdr0;
--			 dd->err_info_rcvport.packet_flit2 = hdr1;
-+			dd->err_info_rcvport.packet_flit1 = hdr0;
-+			dd->err_info_rcvport.packet_flit2 = hdr1;
- 		}
- 		switch (info) {
- 		case 1:
-@@ -11906,7 +11906,7 @@ static void update_synth_timer(unsigned long opaque)
- 		hfi1_cdbg(CNTR, "[%d] No update necessary", dd->unit);
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index 29f4795..2eca5b7 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -183,7 +183,7 @@ struct user_sdma_iovec {
+ 	struct sdma_mmu_node *node;
+ };
  
--mod_timer(&dd->synth_stats_timer, jiffies + HZ * SYNTH_CNT_TIME);
-+	mod_timer(&dd->synth_stats_timer, jiffies + HZ * SYNTH_CNT_TIME);
- }
+-#define SDMA_CACHE_NODE_EVICT BIT(0)
++#define SDMA_CACHE_NODE_EVICT 0
  
- #define C_MAX_NAME 13 /* 12 chars + one for /0 */
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 5cc492e..0d28a5a 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1337,7 +1337,7 @@ static void cleanup_device_data(struct hfi1_devdata *dd)
- 		dma_free_coherent(&dd->pcidev->dev, sizeof(u64),
- 				  (void *)dd->rcvhdrtail_dummy_kvaddr,
- 				  dd->rcvhdrtail_dummy_physaddr);
--				  dd->rcvhdrtail_dummy_kvaddr = NULL;
-+		dd->rcvhdrtail_dummy_kvaddr = NULL;
- 	}
- 
- 	for (ctxt = 0; tmp && ctxt < dd->num_rcv_contexts; ctxt++) {
+ struct sdma_mmu_node {
+ 	struct mmu_rb_node rb;
 -- 
 2.8.3
 
