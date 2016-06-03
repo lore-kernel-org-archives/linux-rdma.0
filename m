@@ -1,48 +1,41 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 5/6] IB/hfi1: Use bit 0 instead of bit 1
-Date: Fri, 3 Jun 2016 12:10:37 -0700
-Message-ID: <ff26909c-8aff-392e-e5eb-927d69fa2573@sandisk.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/6] IB/mad: Fix indentation
+Date: Fri, 3 Jun 2016 19:10:44 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22EF8421@CRSMSX101.amr.corp.intel.com>
 References: <86c06ca1-753c-6b45-3f65-f9a19f7693cf@sandisk.com>
+ <8eccc2e6-d33b-6130-2460-86a1d67159ae@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <86c06ca1-753c-6b45-3f65-f9a19f7693cf-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <8eccc2e6-d33b-6130-2460-86a1d67159ae-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The first argument of test_bit() and clear_bit() is a bit number and
-not a bitmask. Hence change that first argument from (1 << 0) into 0.
-This patch avoids that smatch reports the following warnings:
-
-user_sdma.c:1059: sdma_cache_evict() warn: test_bit() takes a bit number
-user_sdma.c:1590: sdma_rb_remove() warn: test_bit() takes a bit number
-
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/user_sdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 29f4795..2eca5b7 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -183,7 +183,7 @@ struct user_sdma_iovec {
- 	struct sdma_mmu_node *node;
- };
- 
--#define SDMA_CACHE_NODE_EVICT BIT(0)
-+#define SDMA_CACHE_NODE_EVICT 0
- 
- struct sdma_mmu_node {
- 	struct mmu_rb_node rb;
--- 
-2.8.3
-
+PiANCj4gTWFrZSBpbmRlbnRhdGlvbiBjb25zaXN0ZW50LiBEZXRlY3RlZCBieSBzbWF0Y2guDQo+
+IA0KPiBTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRp
+c2suY29tPg0KPiBDYzogSGFsIFJvc2Vuc3RvY2sgPGhhbEBtZWxsYW5veC5jb20+DQo+IENjOiBJ
+cmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQoNClJldmlld2VkLUJ5OiBJcmEgV2Vpbnkg
+PGlyYS53ZWlueUBpbnRlbC5jb20+DQoNCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29y
+ZS9tYWQuYyB8IDYgKysrLS0tDQo+ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAz
+IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3Jl
+L21hZC5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4gaW5kZXggODJmYjUxMS4u
+MmQ0OTIyOCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4g
+KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4gQEAgLTE2MzgsOSArMTYzOCw5
+IEBAIHN0YXRpYyB2b2lkIHJlbW92ZV9tYWRfcmVnX3JlcShzdHJ1Y3QNCj4gaWJfbWFkX2FnZW50
+X3ByaXZhdGUgKmFnZW50X3ByaXYpDQo+ICAJCS8qIE5vdywgY2hlY2sgdG8gc2VlIGlmIHRoZXJl
+IGFyZSBhbnkgbWV0aG9kcyBzdGlsbCBpbiB1c2UgKi8NCj4gIAkJaWYgKCFjaGVja19tZXRob2Rf
+dGFibGUobWV0aG9kKSkgew0KPiAgCQkJLyogSWYgbm90LCByZWxlYXNlIG1hbmFnZW1lbnQgbWV0
+aG9kIHRhYmxlICovDQo+IC0JCQkga2ZyZWUobWV0aG9kKTsNCj4gLQkJCSBjbGFzcy0+bWV0aG9k
+X3RhYmxlW21nbXRfY2xhc3NdID0gTlVMTDsNCj4gLQkJCSAvKiBBbnkgbWFuYWdlbWVudCBjbGFz
+c2VzIGxlZnQgPyAqLw0KPiArCQkJa2ZyZWUobWV0aG9kKTsNCj4gKwkJCWNsYXNzLT5tZXRob2Rf
+dGFibGVbbWdtdF9jbGFzc10gPSBOVUxMOw0KPiArCQkJLyogQW55IG1hbmFnZW1lbnQgY2xhc3Nl
+cyBsZWZ0ID8gKi8NCj4gIAkJCWlmICghY2hlY2tfY2xhc3NfdGFibGUoY2xhc3MpKSB7DQo+ICAJ
+CQkJLyogSWYgbm90LCByZWxlYXNlIG1hbmFnZW1lbnQgY2xhc3MgdGFibGUgKi8NCj4gIAkJCQlr
+ZnJlZShjbGFzcyk7DQo+IC0tDQo+IDIuOC4zDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
