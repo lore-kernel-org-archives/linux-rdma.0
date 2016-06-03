@@ -1,42 +1,82 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/6] IB/mad: Fix indentation
-Date: Fri, 3 Jun 2016 19:10:44 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22EF8421@CRSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 6/6] IB/hfi1: Suppress sparse warnings
+Date: Fri, 3 Jun 2016 12:11:16 -0700
+Message-ID: <a7bf3fc5-e703-192e-c7a6-bfef63c9a3d0@sandisk.com>
 References: <86c06ca1-753c-6b45-3f65-f9a19f7693cf@sandisk.com>
- <8eccc2e6-d33b-6130-2460-86a1d67159ae@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8eccc2e6-d33b-6130-2460-86a1d67159ae-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <86c06ca1-753c-6b45-3f65-f9a19f7693cf-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gTWFrZSBpbmRlbnRhdGlvbiBjb25zaXN0ZW50LiBEZXRlY3RlZCBieSBzbWF0Y2guDQo+
-IA0KPiBTaWduZWQtb2ZmLWJ5OiBCYXJ0IFZhbiBBc3NjaGUgPGJhcnQudmFuYXNzY2hlQHNhbmRp
-c2suY29tPg0KPiBDYzogSGFsIFJvc2Vuc3RvY2sgPGhhbEBtZWxsYW5veC5jb20+DQo+IENjOiBJ
-cmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQoNClJldmlld2VkLUJ5OiBJcmEgV2Vpbnkg
-PGlyYS53ZWlueUBpbnRlbC5jb20+DQoNCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29y
-ZS9tYWQuYyB8IDYgKysrLS0tDQo+ICAxIGZpbGUgY2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAz
-IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3Jl
-L21hZC5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4gaW5kZXggODJmYjUxMS4u
-MmQ0OTIyOCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4g
-KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4gQEAgLTE2MzgsOSArMTYzOCw5
-IEBAIHN0YXRpYyB2b2lkIHJlbW92ZV9tYWRfcmVnX3JlcShzdHJ1Y3QNCj4gaWJfbWFkX2FnZW50
-X3ByaXZhdGUgKmFnZW50X3ByaXYpDQo+ICAJCS8qIE5vdywgY2hlY2sgdG8gc2VlIGlmIHRoZXJl
-IGFyZSBhbnkgbWV0aG9kcyBzdGlsbCBpbiB1c2UgKi8NCj4gIAkJaWYgKCFjaGVja19tZXRob2Rf
-dGFibGUobWV0aG9kKSkgew0KPiAgCQkJLyogSWYgbm90LCByZWxlYXNlIG1hbmFnZW1lbnQgbWV0
-aG9kIHRhYmxlICovDQo+IC0JCQkga2ZyZWUobWV0aG9kKTsNCj4gLQkJCSBjbGFzcy0+bWV0aG9k
-X3RhYmxlW21nbXRfY2xhc3NdID0gTlVMTDsNCj4gLQkJCSAvKiBBbnkgbWFuYWdlbWVudCBjbGFz
-c2VzIGxlZnQgPyAqLw0KPiArCQkJa2ZyZWUobWV0aG9kKTsNCj4gKwkJCWNsYXNzLT5tZXRob2Rf
-dGFibGVbbWdtdF9jbGFzc10gPSBOVUxMOw0KPiArCQkJLyogQW55IG1hbmFnZW1lbnQgY2xhc3Nl
-cyBsZWZ0ID8gKi8NCj4gIAkJCWlmICghY2hlY2tfY2xhc3NfdGFibGUoY2xhc3MpKSB7DQo+ICAJ
-CQkJLyogSWYgbm90LCByZWxlYXNlIG1hbmFnZW1lbnQgY2xhc3MgdGFibGUgKi8NCj4gIAkJCQlr
-ZnJlZShjbGFzcyk7DQo+IC0tDQo+IDIuOC4zDQoNCg==
+Avoid that sparse reports the following warnings for the hfi1 driver:
+
+trace.c:217:13: warning: no previous prototype for =E2=80=98print_u64_a=
+rray=E2=80=99 [-Wmissing-prototypes]
+user_sdma.c:1361:17: warning: dubious: !x & y
+
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/hfi1/trace.c     | 13 -------------
+ drivers/infiniband/hw/hfi1/user_sdma.c |  4 ++--
+ 2 files changed, 2 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/trace.c b/drivers/infiniband/hw=
+/hfi1/trace.c
+index 79b2952..4cfb137 100644
+--- a/drivers/infiniband/hw/hfi1/trace.c
++++ b/drivers/infiniband/hw/hfi1/trace.c
+@@ -214,19 +214,6 @@ const char *print_u32_array(
+ 	return ret;
+ }
+=20
+-const char *print_u64_array(
+-	struct trace_seq *p,
+-	u64 *arr, int len)
+-{
+-	int i;
+-	const char *ret =3D trace_seq_buffer_ptr(p);
+-
+-	for (i =3D 0; i < len; i++)
+-		trace_seq_printf(p, "%s0x%016llx", i =3D=3D 0 ? "" : " ", arr[i]);
+-	trace_seq_putc(p, 0);
+-	return ret;
+-}
+-
+ __hfi1_trace_fn(PKT);
+ __hfi1_trace_fn(PROC);
+ __hfi1_trace_fn(SDMA);
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniban=
+d/hw/hfi1/user_sdma.c
+index 2eca5b7..47ffd27 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -1355,11 +1355,11 @@ static int set_txreq_header(struct user_sdma_re=
+quest *req,
+ 		 */
+ 		SDMA_DBG(req, "TID offset %ubytes %uunits om%u",
+ 			 req->tidoffset, req->tidoffset / req->omfactor,
+-			 !!(req->omfactor - KDETH_OM_SMALL));
++			 req->omfactor !=3D KDETH_OM_SMALL);
+ 		KDETH_SET(hdr->kdeth.ver_tid_offset, OFFSET,
+ 			  req->tidoffset / req->omfactor);
+ 		KDETH_SET(hdr->kdeth.ver_tid_offset, OM,
+-			  !!(req->omfactor - KDETH_OM_SMALL));
++			  req->omfactor !=3D KDETH_OM_SMALL);
+ 	}
+ done:
+ 	trace_hfi1_sdma_user_header(pq->dd, pq->ctxt, pq->subctxt,
+--=20
+2.8.3
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
