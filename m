@@ -1,42 +1,46 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 1/7] IB/core: Fix query port failure in RoCE
-Date: Sat,  4 Jun 2016 15:15:18 +0300
-Message-ID: <1465042524-25852-2-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
+Date: Sat,  4 Jun 2016 15:15:23 +0300
+Message-ID: <1465042524-25852-7-git-send-email-leon@kernel.org>
 References: <1465042524-25852-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465042524-25852-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently ib_query_port always attempts to to read the subnet prefix by
-calling ib_query_gid(). For RoCE there is no subnet manager and no
-subnet prefix. Fix this by querying GID[0] only for IB networks.
+In a attribute group struct, attrs should point to a NULL
+terminated list. Which means we need to allocate one more
+slot in the array.
 
-Fixes: fad61ad4e755 ('IB/core: Add subnet prefix to port info')
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: b40f4757daa1 ("IB/core: Make device counter infrastructure dynamic")
+Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/sysfs.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5516fb0..05e25a3 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -661,6 +661,9 @@ int ib_query_port(struct ib_device *device,
- 	if (err || port_attr->subnet_prefix)
- 		return err;
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 5e573bb..c68f132 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -902,8 +902,11 @@ static void setup_hw_stats(struct ib_device *device, struct ib_port *port,
+ 		goto err;
  
-+	if (rdma_port_get_link_layer(device, port_num) != IB_LINK_LAYER_INFINIBAND)
-+		return 0;
-+
- 	err = ib_query_gid(device, port_num, 0, &gid, NULL);
- 	if (err)
- 		return err;
+ 	hsag = kzalloc(sizeof(*hsag) +
+-		       // 1 extra for the lifespan config entry
+-		       sizeof(void *) * (stats->num_counters + 1),
++		       /* 1 extra for the lifespan config entry,
++			* and 1 more because attrs should be
++			* NULL terminated.
++			*/
++		       sizeof(void *) * (stats->num_counters + 2),
+ 		       GFP_KERNEL);
+ 	if (!hsag)
+ 		return;
 -- 
 2.1.4
 
