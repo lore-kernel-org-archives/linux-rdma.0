@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 07/10] IB/mlx5: Fix entries checks in mlx5_ib_create_cq
-Date: Sat,  4 Jun 2016 15:15:34 +0300
-Message-ID: <1465042537-26129-8-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 08/10] IB/mlx5: Fix entries check in mlx5_ib_resize_cq
+Date: Sat,  4 Jun 2016 15:15:35 +0300
+Message-ID: <1465042537-26129-9-git-send-email-leon@kernel.org>
 References: <1465042537-26129-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465042537-26129-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,32 +12,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Number of entries shouldn't be greater than the device's max
-capability. This should be checked before rounding the entries number
-to power of two.
+Verify that number of entries is less then device capability.
+Add an appropriate warning message for error flow.
 
-Fixes: 51ee86a4af639 ('IB/mlx5: Fix check of number of entries...')
+Fixes: bde51583f49b ('IB/mlx5: Add support for resize CQ')
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/cq.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index dabcc65..3984c68 100644
+index 3984c68..9c0e67b 100644
 --- a/drivers/infiniband/hw/mlx5/cq.c
 +++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -822,7 +822,8 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	int eqn;
- 	int err;
+@@ -1169,11 +1169,16 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+ 		return -ENOSYS;
+ 	}
  
--	if (entries < 0)
-+	if (entries < 0 ||
-+	    (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz))))
- 		return ERR_PTR(-EINVAL);
+-	if (entries < 1)
++	if (entries < 1 ||
++	    entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz))) {
++		mlx5_ib_warn(dev, "wrong entries number %d, max %d\n",
++			     entries,
++			     1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz));
+ 		return -EINVAL;
++	}
  
- 	if (check_cq_create_flags(attr->flags))
+ 	entries = roundup_pow_of_two(entries + 1);
+-	if (entries >  (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)) + 1)
++	if (entries > (1 << MLX5_CAP_GEN(dev->mdev, log_max_cq_sz)) + 1)
+ 		return -EINVAL;
+ 
+ 	if (entries == ibcq->cqe + 1)
 -- 
 2.1.4
 
