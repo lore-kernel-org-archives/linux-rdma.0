@@ -1,51 +1,40 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 01/10] IB/mlx5: Set flow steering capability bit
-Date: Sat,  4 Jun 2016 15:15:28 +0300
-Message-ID: <1465042537-26129-2-git-send-email-leon@kernel.org>
-References: <1465042537-26129-1-git-send-email-leon@kernel.org>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 27/29] IB/rxe: sysfs interface to RXE
+Date: Sun, 5 Jun 2016 12:34:36 +0300
+Message-ID: <CAG9sBKOLmtJL64N58XVs-=60GYcGLHnJUxWds0K1xEWp8jG2Jg@mail.gmail.com>
+References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
+ <1464886657-14258-28-git-send-email-monis@mellanox.com> <47f2db91-1d9a-148b-f57c-1b0a3e62d95b@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465042537-26129-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <47f2db91-1d9a-148b-f57c-1b0a3e62d95b-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I'll add to the next version
 
-Flow steering is supported by mlx5 device when the following
-features are supported by firmware:
+thanks
 
-1. NIC RX flow table.
-2. Device has enough flow steering levels.
-3. Atomic modification of flow table entry.
-4. Flow tables chaining.
-
-To check if flow steering is supported it's enough to check
-if the driver opened the mlx5 bypass namespace.
-
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index c72797c..83047ef 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -524,6 +524,9 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	    MLX5_CAP_ETH(dev->mdev, scatter_fcs))
- 		props->device_cap_flags |= IB_DEVICE_RAW_SCATTER_FCS;
- 
-+	if (mlx5_get_flow_namespace(dev->mdev, MLX5_FLOW_NAMESPACE_BYPASS))
-+		props->device_cap_flags |= IB_DEVICE_MANAGED_FLOW_STEERING;
-+
- 	props->vendor_part_id	   = mdev->pdev->device;
- 	props->hw_ver		   = mdev->pdev->revision;
- 
--- 
-2.1.4
-
+On Fri, Jun 3, 2016 at 9:00 AM, Bart Van Assche
+<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> On 06/02/16 09:57, Moni Shoua wrote:
+>>
+>> +module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
+>> +module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
+>
+>
+> Where is the documentation of these sysfs attributes?
+>
+> Thanks,
+>
+> Bart.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
