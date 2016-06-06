@@ -1,40 +1,59 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
- - 6/7/2016 at 11:00PDT
-Date: Mon, 6 Jun 2016 20:01:03 +0000
-Message-ID: <HE1PR05MB141831F2A3B00205BAB2A181B15C0@HE1PR05MB1418.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH v2] IB/core: remove dead code
+Date: Mon,  6 Jun 2016 22:15:06 +0100
+Message-ID: <1465247706-4418-1-git-send-email-sudipm.mukherjee@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Sudip Mukherjee <sudipm.mukherjee@gmail.com>, leon@kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda: follow up on ABI discussion from last week
---Liran
+prot_sg_cnt has been assigned with the value of ret which we have
+already checked to be non-zero so prot_sg_cnt can never be zero at this
+point of the code and hence the else part can never execute.
+And since we know prot_sg_cnt is non zero there is no use for the
+if condition also.
 
-Concall details
-===========
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+---
+ drivers/infiniband/core/rw.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
-
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
-
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 1eb9b12..a829a14 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -386,21 +386,17 @@ int rdma_rw_ctx_signature_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+ 	count += ret;
+ 	prev_wr = &ctx->sig->data.reg_wr.wr;
+ 
+-	if (prot_sg_cnt) {
+-		ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
+-				prot_sg, prot_sg_cnt, 0);
+-		if (ret < 0)
+-			goto out_destroy_data_mr;
+-		count += ret;
++	ret = rdma_rw_init_one_mr(qp, port_num, &ctx->sig->prot,
++				  prot_sg, prot_sg_cnt, 0);
++	if (ret < 0)
++		goto out_destroy_data_mr;
++	count += ret;
+ 
+-		if (ctx->sig->prot.inv_wr.next)
+-			prev_wr->next = &ctx->sig->prot.inv_wr;
+-		else
+-			prev_wr->next = &ctx->sig->prot.reg_wr.wr;
+-		prev_wr = &ctx->sig->prot.reg_wr.wr;
+-	} else {
+-		ctx->sig->prot.mr = NULL;
+-	}
++	if (ctx->sig->prot.inv_wr.next)
++		prev_wr->next = &ctx->sig->prot.inv_wr;
++	else
++		prev_wr->next = &ctx->sig->prot.reg_wr.wr;
++	prev_wr = &ctx->sig->prot.reg_wr.wr;
+ 
+ 	ctx->sig->sig_mr = ib_mr_pool_get(qp, &qp->sig_mrs);
+ 	if (!ctx->sig->sig_mr) {
+-- 
+1.9.1
