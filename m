@@ -1,80 +1,66 @@
-From: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
-Subject: Re: [RFC v3 07/45] avr32: dma-mapping: Use unsigned long for
- dma_attrs
-Date: Mon, 6 Jun 2016 08:43:57 +0200
-Message-ID: <20160606064357.GA7998@samfundet.no>
-References: <1464881987-13203-1-git-send-email-k.kozlowski@samsung.com>
- <1464881987-13203-8-git-send-email-k.kozlowski@samsung.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/srp: Always initialize use_fast_reg and use_fmr
+Date: Mon, 6 Jun 2016 10:17:06 +0300
+Message-ID: <20160606071706.GQ7477@leon.nu>
+References: <4b4cc34a-eebb-8534-3d76-1cfb3fe961f5@sandisk.com>
+ <4b1522b5-31a2-9c7e-6b20-4e859c009345@sandisk.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mips-bounce@linux-mips.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6tPipYVl+OcoAvSh"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1464881987-13203-8-git-send-email-k.kozlowski@samsung.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@synopsys.com>, Russell King <linux@armlinux.org.uk>, Stefano Stabellini <sstabellini@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Steven Miao <realmz6@gmail.com>, Mark Salter <msalter@redhat.com>, Aurelien Jacquiot <a-jacquiot@ti.com>, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Kuo <rkuo@codeaurora.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Geert
+In-Reply-To: <4b1522b5-31a2-9c7e-6b20-4e859c009345-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Around Thu 02 Jun 2016 17:39:09 +0200 or thereabout, Krzysztof Kozlowski wrote:
-> Split out subsystem specific changes for easier reviews. This will be
-> squashed with main commit.
-> 
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-Acked-by: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
+--6tPipYVl+OcoAvSh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  arch/avr32/mm/dma-coherent.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/avr32/mm/dma-coherent.c b/arch/avr32/mm/dma-coherent.c
-> index 92cf1fb2b3e6..fc51f4421933 100644
-> --- a/arch/avr32/mm/dma-coherent.c
-> +++ b/arch/avr32/mm/dma-coherent.c
-> @@ -99,7 +99,7 @@ static void __dma_free(struct device *dev, size_t size,
->  }
->  
->  static void *avr32_dma_alloc(struct device *dev, size_t size,
-> -		dma_addr_t *handle, gfp_t gfp, struct dma_attrs *attrs)
-> +		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
->  {
->  	struct page *page;
->  	dma_addr_t phys;
-> @@ -119,7 +119,7 @@ static void *avr32_dma_alloc(struct device *dev, size_t size,
->  }
->  
->  static void avr32_dma_free(struct device *dev, size_t size,
-> -		void *cpu_addr, dma_addr_t handle, struct dma_attrs *attrs)
-> +		void *cpu_addr, dma_addr_t handle, unsigned long attrs)
->  {
->  	struct page *page;
->  
-> @@ -142,7 +142,7 @@ static void avr32_dma_free(struct device *dev, size_t size,
->  
->  static dma_addr_t avr32_dma_map_page(struct device *dev, struct page *page,
->  		unsigned long offset, size_t size,
-> -		enum dma_data_direction direction, struct dma_attrs *attrs)
-> +		enum dma_data_direction direction, unsigned long attrs)
->  {
->  	void *cpu_addr = page_address(page) + offset;
->  
-> @@ -152,7 +152,7 @@ static dma_addr_t avr32_dma_map_page(struct device *dev, struct page *page,
->  
->  static int avr32_dma_map_sg(struct device *dev, struct scatterlist *sglist,
->  		int nents, enum dma_data_direction direction,
-> -		struct dma_attrs *attrs)
-> +		unsigned long attrs)
->  {
->  	int i;
->  	struct scatterlist *sg;
--- 
-mvh
-Hans-Christian Noren Egtvedt
+On Fri, Jun 03, 2016 at 11:39:35AM -0700, Bart Van Assche wrote:
+> Avoid that mapping fails due to use_fast_reg !=3D 0 or use_fmr !=3D 0
+> if both member variables should be zero (if never_register =3D=3D 1 or
+> if neither FMR nor FR is supported). Remove an initialization that
+> became superfluous due to changing a kmalloc() into a kzalloc()
+> call.
+>=20
+> Fixes: 509c5f33f4f6 ("IB/srp: Prevent mapping failures")
+> Cc: Sagi Grimberg <sai@grimberg.m>
+> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--6tPipYVl+OcoAvSh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXVSNyAAoJEORje4g2clinvzcQALekg0Lb5dkP/3OVT2uxeeS6
+WXfqOkOEFN0Lr9qFMhk94sUbm2UxG2vYh7ZWC7MeBudUotyPGpekCktpa4Jl8uF/
+7dXEBb7NLfCDpLBXB3XUnucHmIN4EaXk5KBUJZm4hYcYKBFT3E+M3i2s5auV/r3m
+oupjwct6kR5uHtJjDzkF3dwsVHeUlb3nscmszy8+QGPS+wd18Y4BahGQaqg9YgTt
+B7RyuB8b9lQOuYblhMaQwzvxv57BB7OjkRHCYjlXMP2qN2PA7wU1X6Mq9Jf7Pa8n
+aIgMPe/5AmlXSsomvDM1wCze91dnaak66Dw5kkkC1E1FoqMMk+NDDFrTSDuTgSG8
+amTMsk13hnoSae07XkkCrSauSJVJQLqmvbVggULst5WQ7Dwy2oZSShS1ZM3X5OP8
+Mf4WZ/z3Zob+7KZy2xeUnj3uMse+Om8rCEpWC2Udh/H96BzIQKXrDznpmAer+s8X
+/XVphVFRjN0wRgUPH9LeA2wLJfR1qV60Eh1LxKg1J8NMC6DUPlop4riP0qbkTSTp
+1EOK1Br0JEkFGw4v3hVXFyGP8xQdzIvTd/qlZxMWInWLbpYmgPbTB+Bn6jRXd/3O
+gg5gxNB6tZH6hVcOionYXLoOsyNYaFpB0kewm0jfkpDVb4XMgzWa+f2uOvunVwLV
+eyskINPMcEZhFIUcgbqc
+=z0Lw
+-----END PGP SIGNATURE-----
+
+--6tPipYVl+OcoAvSh--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
