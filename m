@@ -1,55 +1,66 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2] Add basic man page entry for
- ibv_xsrq_pingpong
-Date: Mon, 6 Jun 2016 19:13:42 -0400
-Message-ID: <579ac96b-eb3f-e1a1-7aab-415daa536ba6@redhat.com>
-References: <1464120403-39680-1-git-send-email-jarod@redhat.com>
- <1464122105-52462-1-git-send-email-jarod@redhat.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [patch] IB/hfi1: fix some indenting
+Date: Mon, 6 Jun 2016 19:15:25 -0400
+Message-ID: <68978678-a002-3a9f-dcde-a0617941248f@redhat.com>
+References: <20160528050120.GB4107@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+ boundary="FHnOf75CPCqgXfGJqOsPCmiJWQxDLAoSA"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160528050120.GB4107@mwanda>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ
-Content-Type: multipart/mixed; boundary="pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Message-ID: <579ac96b-eb3f-e1a1-7aab-415daa536ba6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs v2] Add basic man page entry for
- ibv_xsrq_pingpong
-References: <1464120403-39680-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+--FHnOf75CPCqgXfGJqOsPCmiJWQxDLAoSA
+Content-Type: multipart/mixed; boundary="dtT6oIAlkmP3IKsW3xxhPCLBq61t31nFD"
+From: Doug Ledford <dledford@redhat.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+ Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>,
+ Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock
+ <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Message-ID: <68978678-a002-3a9f-dcde-a0617941248f@redhat.com>
+Subject: Re: [patch] IB/hfi1: fix some indenting
+References: <20160528050120.GB4107@mwanda>
+In-Reply-To: <20160528050120.GB4107@mwanda>
 
---pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm
+--dtT6oIAlkmP3IKsW3xxhPCLBq61t31nFD
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 5/24/2016 4:35 PM, Jarod Wilson wrote:
-> We have internal tools that complain about any binaries that are missin=
-g
-> corresponding man pages, and all the other examples have 'em.
+On 5/28/2016 1:01 AM, Dan Carpenter wrote:
+> That extra tabs are misleading.
 >=20
-> Shamelessly ripped off from ibv_srq_pingpong's man page.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 >=20
-> CC: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
+> diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/=
+hfi1/init.c
+> index 5cc492e..0d28a5a 100644
+> --- a/drivers/infiniband/hw/hfi1/init.c
+> +++ b/drivers/infiniband/hw/hfi1/init.c
+> @@ -1337,7 +1337,7 @@ static void cleanup_device_data(struct hfi1_devda=
+ta *dd)
+>  		dma_free_coherent(&dd->pcidev->dev, sizeof(u64),
+>  				  (void *)dd->rcvhdrtail_dummy_kvaddr,
+>  				  dd->rcvhdrtail_dummy_physaddr);
+> -				  dd->rcvhdrtail_dummy_kvaddr =3D NULL;
+> +		dd->rcvhdrtail_dummy_kvaddr =3D NULL;
+>  	}
+> =20
+>  	for (ctxt =3D 0; tmp && ctxt < dd->num_rcv_contexts; ctxt++) {
+>=20
 
-Thanks Jarod, applied.
+Thanks, applied.
 
 
---pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm--
+--dtT6oIAlkmP3IKsW3xxhPCLBq61t31nFD--
 
---1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ
+--FHnOf75CPCqgXfGJqOsPCmiJWQxDLAoSA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -58,23 +69,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVgOmAAoJELgmozMOVy/d6+gQALCNm/+gJyp0xbzZxihNWuMM
-e7tT06ts3fv+6T5E9t3A80WWFSIL8V/KrUueJcHuXUq9jQIrLECWX1ICSLCVrPq9
-51K4pzJpVry5HD5h7GAi2kwUGKubvXKeXSgqqILb/laygTQn1gt0Mw6sZwuZ58wO
-k4SNVyZ2Qrv/6BdnVaH2fWRfAPXvuTRL4CgrdnlurPfy69M5+ITogP21DPnWvzwK
-VnQlSuIGGku+ZLiILnWYLtOilf6XiqYGK4ZqZTQ7chJBkwsUH+Tz+K0PYgGkuIXn
-7tEbJ7LKXOOmcSPZww/Xnb5vsJUBDQwQtSEIeTLxDpDtL0wHXNiJ6GhPEXugDnOj
-9Q0p7d+Pfntx7PaNvg5oM2ep8iAw84XAvZxn/R73uJhgWoc5im6f3YOhVvNffkfz
-X1XeFyKIOsLNCMZqcoE0R611d+2yRLnCFbSAYcsgNvdRd56QpUfczc7jr4CVOY08
-GEcZNNGvvXA4CT0DWcKEKW+YP6vsCUnjMRWbiAmrFiVj2Et7j5WEe1FhneJKGkNi
-Co+YjeC6JdFoEsHxazdsKaipoKGUTyA0uIzc9m8UH/Da2Qc1xQXFZ9CAeYfI6f7U
-0cROd/m+1UlvnII13PeLI6QBd+wjgMM8J4E+Q7jbr5VbneVhi8p5pwj7Zf0j2TUs
-6s8LNe51atQaXksEOLGD
-=rN2t
+iQIcBAEBCAAGBQJXVgQNAAoJELgmozMOVy/dZAwP/0V9vLCtRLhUtG3CldmsIoid
+WwjUPcCxoMBkT68eieTwS+0sJD8HLDBmHf97VzKAxEdGMvkeSZdL6mKiSiulhT4y
+RDcgb/gM9H46wP3XlWIZnesoUg39E3xvfGdO20GYJmnVxoojGSTe+OKWXgylhce8
+V1rdiy8plnnJZvW2DCuQLlzRznziMPapqVx/GKtAGZutjsPcAzlbFdrRn+8RbssW
+++CN4bvYqYc1Sa+KGi2VnPvvWBcsIuG5BUUBV5l0i06DpXREGmSxJ+Axre6gx7im
+X5wt8Y1QYhf9t1UnZ1F0EkpmQMnSZc8fWdtrfv24+VPQbaZCQqeZ++s9r2+qMB5T
+DFT2utKxTo/wiDhzpa2mR5rIvzQODPAQT3tDcgpalW+JLViyZW3sePS8AsR1CA2u
+9KP3D6U97dHWceeKPCamd3jEPD1JeswQIkZQSvI1GoSiHEuQy4UofkZdBSSYi1gX
+znrDj8mx9Xgi60swoJbnf1pQFa9IhPlqT0oo6sdxkD5l4u0Darrsh86wFDaFEZF+
+n8BcoVvl3K9baV6lm5Qpx+/SD6zAi+T/QXFWjs6X6XYq+Aaay9KqGOXcQGgrauVK
+m02+GLFnSJzUezXXMmXdKgGdAiHcYPncV0vUxeOUP+QQxvIUdopfsisG3vtcKQXG
+9GuTJbhp5boI4Ieq9wNd
+=3bsN
 -----END PGP SIGNATURE-----
 
---1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--FHnOf75CPCqgXfGJqOsPCmiJWQxDLAoSA--
