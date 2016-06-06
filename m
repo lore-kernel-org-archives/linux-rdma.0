@@ -1,48 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V5 libibverbs 0/7] Completion timestamping
-Date: Mon, 6 Jun 2016 19:02:34 -0400
-Message-ID: <1b0ea11b-3762-2335-28dd-eb3ac243104e@redhat.com>
-References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH libibverbs v2] Add basic man page entry for
+ ibv_xsrq_pingpong
+Date: Mon, 6 Jun 2016 19:13:42 -0400
+Message-ID: <579ac96b-eb3f-e1a1-7aab-415daa536ba6@redhat.com>
+References: <1464120403-39680-1-git-send-email-jarod@redhat.com>
+ <1464122105-52462-1-git-send-email-jarod@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="SuSTBtrwDKB5KmQFI0spiX2c9q76u04o0"
+ boundary="1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---SuSTBtrwDKB5KmQFI0spiX2c9q76u04o0
-Content-Type: multipart/mixed; boundary="EaWkWqa9uMRjfdQnqwi4vFWVwvPwlABAM"
+--1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ
+Content-Type: multipart/mixed; boundary="pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
- talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Message-ID: <1b0ea11b-3762-2335-28dd-eb3ac243104e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V5 libibverbs 0/7] Completion timestamping
-References: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1464786340-7630-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Message-ID: <579ac96b-eb3f-e1a1-7aab-415daa536ba6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH libibverbs v2] Add basic man page entry for
+ ibv_xsrq_pingpong
+References: <1464120403-39680-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1464122105-52462-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
---EaWkWqa9uMRjfdQnqwi4vFWVwvPwlABAM
+--pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 6/1/2016 9:05 AM, Yishai Hadas wrote:
-> Hi Doug,
+On 5/24/2016 4:35 PM, Jarod Wilson wrote:
+> We have internal tools that complain about any binaries that are missin=
+g
+> corresponding man pages, and all the other examples have 'em.
 >=20
-> This V5 series addressed one note that we got for V4,
-> details below.
+> Shamelessly ripped off from ibv_srq_pingpong's man page.
+>=20
+> CC: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
 
-Thanks, the v5 series was applied.
+Thanks Jarod, applied.
 
 
+--pb0qE7XkmIkVtbQeGUlR7dEGrCJbbn8nm--
 
---EaWkWqa9uMRjfdQnqwi4vFWVwvPwlABAM--
-
---SuSTBtrwDKB5KmQFI0spiX2c9q76u04o0
+--1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -51,22 +58,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVgEKAAoJELgmozMOVy/dDaoQAMHboDQK3GbW5Y5ITt1lMkUI
-2NVluJcwdGZ+sXz5cR4juD1Jo83uwcvhvTz7UJVOLbWK0dq59rvUlyl1LHvk6fD1
-dkZwpbRx46jbPpNWXKveiaiGbYLTzSPqJKyfm/PYBucPI4CSEIpmm+w5GzhU3XuV
-50Ijx9uzrDJfBt9VBqPx8gn2rRVVMaFvZA55XrUQQeKbgKkj/encJLyS7m4dHcH4
-rshxFwdwZaywvmH/1e3+gpcGMkNd4DNszWTH2ePjPLnw9JHkdfE5pBwxJI2fhbS1
-ShEwVmJB5eJfSVU4Mhxt8mC3WQ1X38mew7EceqGEODdxcivHmIxv2fEIjioajUKv
-79mljgIM+qp9/20kCCWmitXt9TwM9bRGfszKimMY6b8kfinlDtcSxCiu6NL6YUC9
-vEWdY9XAyD0ag9qTGjSrpOpM5jQbxL20mpTVkYNeSOSAgkH3qTcg3QIR/bW+G5rg
-6y9Mx1PBJI8y1vuIxZrXAABe8QRnddtlK+tk1OPa3lv/8F9mbId0mVHyGsL6rO0p
-SEedvy+gTaHbjC5xDp9RySmcfsriB4BKuBgve3WIIQ/n0bFNa7A8VKDmS5qbxiQc
-bhOpnK2GQdq3eT6wpOQfh4m/UeLCgd6vbNE4VlD7LpSUVk/xl7SGK6eofPAP3oll
-VlUzzOsytn08xh9s3dJg
-=3ah/
+iQIcBAEBCAAGBQJXVgOmAAoJELgmozMOVy/d6+gQALCNm/+gJyp0xbzZxihNWuMM
+e7tT06ts3fv+6T5E9t3A80WWFSIL8V/KrUueJcHuXUq9jQIrLECWX1ICSLCVrPq9
+51K4pzJpVry5HD5h7GAi2kwUGKubvXKeXSgqqILb/laygTQn1gt0Mw6sZwuZ58wO
+k4SNVyZ2Qrv/6BdnVaH2fWRfAPXvuTRL4CgrdnlurPfy69M5+ITogP21DPnWvzwK
+VnQlSuIGGku+ZLiILnWYLtOilf6XiqYGK4ZqZTQ7chJBkwsUH+Tz+K0PYgGkuIXn
+7tEbJ7LKXOOmcSPZww/Xnb5vsJUBDQwQtSEIeTLxDpDtL0wHXNiJ6GhPEXugDnOj
+9Q0p7d+Pfntx7PaNvg5oM2ep8iAw84XAvZxn/R73uJhgWoc5im6f3YOhVvNffkfz
+X1XeFyKIOsLNCMZqcoE0R611d+2yRLnCFbSAYcsgNvdRd56QpUfczc7jr4CVOY08
+GEcZNNGvvXA4CT0DWcKEKW+YP6vsCUnjMRWbiAmrFiVj2Et7j5WEe1FhneJKGkNi
+Co+YjeC6JdFoEsHxazdsKaipoKGUTyA0uIzc9m8UH/Da2Qc1xQXFZ9CAeYfI6f7U
+0cROd/m+1UlvnII13PeLI6QBd+wjgMM8J4E+Q7jbr5VbneVhi8p5pwj7Zf0j2TUs
+6s8LNe51atQaXksEOLGD
+=rN2t
 -----END PGP SIGNATURE-----
 
---SuSTBtrwDKB5KmQFI0spiX2c9q76u04o0--
+--1dmMjuDBRSNCXOh2KEggctdBRvUVK8waQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
