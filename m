@@ -1,35 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Hang in ipoib_mcast_stop_thread
-Date: Mon, 6 Jun 2016 10:57:42 -0600
-Message-ID: <20160606165741.GA6413@obsidianresearch.com>
-References: <57553DE7.2060009@kyup.com>
- <CAAk-MO_6GMm1AHay4uQ4yZ8HHcH_Dk=Ls5gKSVZUCejexDahLQ@mail.gmail.com>
- <57556866.8040703@kyup.com>
- <CAAk-MO-T_9J2jtX+gtJQXeMVTW6bxbRUrq3mHRepVPatbHFO9g@mail.gmail.com>
- <575575B5.9010504@kyup.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] IB/core: Fix bit curruption in
+ ib_device_cap_flags structure
+Date: Mon, 6 Jun 2016 10:03:50 -0700
+Message-ID: <20160606170350.GA28622@infradead.org>
+References: <1465230880-25953-1-git-send-email-maxg@mellanox.com>
+ <1465230880-25953-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <575575B5.9010504-6AxghH7DbtA@public.gmane.org>
+In-Reply-To: <1465230880-25953-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-2ukJVAZIZ/Y@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 06, 2016 at 04:08:05PM +0300, Nikolay Borisov wrote:
+On Mon, Jun 06, 2016 at 07:34:39PM +0300, Max Gurtovoy wrote:
+> ib_device_cap_flags 64-bit expansion caused caps overlapping
+> and made consumers read wrong device capabilities. For example
+> IB_DEVICE_SG_GAPS_REG was falsely read by the iser driver causing
+> it to use a non-existing capability. This happened because signed
+> int becomes sign extended when converted it to u64. Fix this by
+> casting IB_DEVICE_ON_DEMAND_PAGING enumeration to ULL.
 
-> Be that as it may, but the queue seems to never be unlocked by the
-> driver. Even after restart I still continue to get such messages. One of
-> the network admins told me this could happen since the infiniband switch
-> port has to be reset after an outage. I find it hard to believe that
-> even after physical restart of the server the ib interface cannot connect.
+Looks good,
 
-I've also randomly seen apparently hung VL0 credit that could only be
-solved by a switch reset. I also was never able to pin down a root
-cause. VL15 would work fine..
-
-Jason
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
