@@ -1,60 +1,44 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-rc 1/7] IB/core: Fix query port failure in RoCE
-Date: Mon, 6 Jun 2016 10:43:24 -0500
-Message-ID: <018701d1c00a$29507640$7bf162c0$@opengridcomputing.com>
-References: <1465042524-25852-1-git-send-email-leon@kernel.org> <1465042524-25852-2-git-send-email-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465042524-25852-2-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH v3 1/2] IB/core: Fix bit curruption in ib_device_cap_flags structure
+Date: Mon,  6 Jun 2016 19:34:39 +0300
+Message-ID: <1465230880-25953-2-git-send-email-maxg@mellanox.com>
+References: <1465230880-25953-1-git-send-email-maxg@mellanox.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1465230880-25953-1-git-send-email-maxg@mellanox.com>
+Sender: stable-owner@vger.kernel.org
+To: robert@leblancnet.us, matanb@mellanox.com, leon@leon.nu, sagi@grimberg.me, linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org, Max Gurtovoy <maxg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Currently ib_query_port always attempts to to read the subnet prefix by
-> calling ib_query_gid(). For RoCE there is no subnet manager and no
-> subnet prefix. Fix this by querying GID[0] only for IB networks.
-> 
-> Fixes: fad61ad4e755 ('IB/core: Add subnet prefix to port info')
-> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/device.c
-b/drivers/infiniband/core/device.c
-> index 5516fb0..05e25a3 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -661,6 +661,9 @@ int ib_query_port(struct ib_device *device,
->  	if (err || port_attr->subnet_prefix)
->  		return err;
-> 
-> +	if (rdma_port_get_link_layer(device, port_num) !=
-> IB_LINK_LAYER_INFINIBAND)
-> +		return 0;
-> +
->  	err = ib_query_gid(device, port_num, 0, &gid, NULL);
->  	if (err)
->  		return err;
+ib_device_cap_flags 64-bit expansion caused caps overlapping
+and made consumers read wrong device capabilities. For example
+IB_DEVICE_SG_GAPS_REG was falsely read by the iser driver causing
+it to use a non-existing capability. This happened because signed
+int becomes sign extended when converted it to u64. Fix this by
+casting IB_DEVICE_ON_DEMAND_PAGING enumeration to ULL.
 
-This change assumes IB_LINK_LAYER_ETHERNET == RoCE, which isn't true for iWARP
-devices.  Still, the change is good for iWARP too, but the comment should
-perhaps reflect this.
+Fixes: f5aa9159a418 ('IB/core: Add arbitrary sg_list support')
+Reported-by: Robert LeBlanc <robert@leblancnet.us>
+Cc: Stable <stable@vger.kernel.org> #[v4.6+]
+Acked-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+Signed-off-by: Matan Barak <matanb@mellanox.com>
+---
+ include/rdma/ib_verbs.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-Steve.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 432bed5..c97357b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -217,7 +217,7 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
+ 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+ 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+-	IB_DEVICE_ON_DEMAND_PAGING		= (1 << 31),
++	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+ 	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
+ 	IB_DEVICE_VIRTUAL_FUNCTION		= ((u64)1 << 33),
+ 	IB_DEVICE_RAW_SCATTER_FCS		= ((u64)1 << 34),
+-- 
+1.7.1
