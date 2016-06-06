@@ -1,79 +1,75 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Remove unused DMA attributes
-Date: Mon, 6 Jun 2016 19:28:14 -0400
-Message-ID: <d533cca2-94e1-182a-4ea7-06e02f68104b@redhat.com>
-References: <1464860701-11376-1-git-send-email-k.kozlowski@samsung.com>
+Subject: Re: [PATCH] IB/mlx4: Fix device managed flow steering support test
+Date: Mon, 6 Jun 2016 19:32:02 -0400
+Message-ID: <85919659-75e9-284d-22de-7fc9843640c1@redhat.com>
+References: <33c3370d-3568-a9aa-906f-683b0e1b1a5f@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="gQr06Oh1kLItHs7BmVvgTUOKMv6wbpvSe"
+ boundary="mDWaqS1ErflIEfI6bWglKLE6n7wc3wEeM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464860701-11376-1-git-send-email-k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <33c3370d-3568-a9aa-906f-683b0e1b1a5f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gQr06Oh1kLItHs7BmVvgTUOKMv6wbpvSe
-Content-Type: multipart/mixed; boundary="HP36B5Iwi1Sn3Of7hpbtdtROP0h1pL95I"
+--mDWaqS1ErflIEfI6bWglKLE6n7wc3wEeM
+Content-Type: multipart/mixed; boundary="JU2XRavtLIx0MejtcgVmC0J58RhhUujfi"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>,
- Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>,
- Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock
- <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Message-ID: <d533cca2-94e1-182a-4ea7-06e02f68104b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Remove unused DMA attributes
-References: <1464860701-11376-1-git-send-email-k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-In-Reply-To: <1464860701-11376-1-git-send-email-k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <85919659-75e9-284d-22de-7fc9843640c1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Fix device managed flow steering support test
+References: <33c3370d-3568-a9aa-906f-683b0e1b1a5f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <33c3370d-3568-a9aa-906f-683b0e1b1a5f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 
---HP36B5Iwi1Sn3Of7hpbtdtROP0h1pL95I
-Content-Type: text/plain; charset=windows-1252
+--JU2XRavtLIx0MejtcgVmC0J58RhhUujfi
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 6/2/2016 5:45 AM, Krzysztof Kozlowski wrote:
-> The DMA attributes are set but never used.
+On 6/3/2016 10:58 AM, Bart Van Assche wrote:
+> Perform the test for device managed flow steering support even if
+> memory windows are not supported. I noticed this because smatch
+> reported inconsistent indentation for the device managed flow
+> steering support test.
 >=20
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/usnic/usnic_uiom.c | 5 -----
->  1 file changed, 5 deletions(-)
+>  drivers/infiniband/hw/mlx4/main.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infinib=
-and/hw/usnic/usnic_uiom.c
-> index 7209fbc03ccb..a0b6ebee4d8a 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-> @@ -36,7 +36,6 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/sched.h>
->  #include <linux/hugetlb.h>
-> -#include <linux/dma-attrs.h>
->  #include <linux/iommu.h>
->  #include <linux/workqueue.h>
->  #include <linux/list.h>
-> @@ -112,10 +111,6 @@ static int usnic_uiom_get_pages(unsigned long addr=
-, size_t size, int writable,
->  	int i;
->  	int flags;
->  	dma_addr_t pa;
-> -	DEFINE_DMA_ATTRS(attrs);
-> -
-> -	if (dmasync)
-> -		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
+> diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/=
+mlx4/main.c
+> index b01ef6e..0eb09e1 100644
+> --- a/drivers/infiniband/hw/mlx4/main.c
+> +++ b/drivers/infiniband/hw/mlx4/main.c
+> @@ -505,9 +505,9 @@ static int mlx4_ib_query_device(struct ib_device *i=
+bdev,
+>  			props->device_cap_flags |=3D IB_DEVICE_MEM_WINDOW_TYPE_2B;
+>  		else
+>  			props->device_cap_flags |=3D IB_DEVICE_MEM_WINDOW_TYPE_2A;
+> -	if (dev->steering_support =3D=3D  MLX4_STEERING_MODE_DEVICE_MANAGED)
+> -		props->device_cap_flags |=3D IB_DEVICE_MANAGED_FLOW_STEERING;
+>  	}
+> +	if (dev->steering_support =3D=3D MLX4_STEERING_MODE_DEVICE_MANAGED)
+> +		props->device_cap_flags |=3D IB_DEVICE_MANAGED_FLOW_STEERING;
 > =20
->  	if (!can_do_mlock())
->  		return -EPERM;
+>  	props->device_cap_flags |=3D IB_DEVICE_RAW_IP_CSUM;
+> =20
 >=20
 
-Thanks, applied.
+Thanks Bart, applied.
 
 
---HP36B5Iwi1Sn3Of7hpbtdtROP0h1pL95I--
+--JU2XRavtLIx0MejtcgVmC0J58RhhUujfi--
 
---gQr06Oh1kLItHs7BmVvgTUOKMv6wbpvSe
+--mDWaqS1ErflIEfI6bWglKLE6n7wc3wEeM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -82,22 +78,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVgcOAAoJELgmozMOVy/d3YQP/RnzAKiXwk37qcaBEB6IgCN5
-CewTpvhS3lYXMTlbxSKP13olV4vIMXXzsG4276oZZej+xkC/VxKfL0QbLElbSNH9
-f2C9lGKZnOWKGeOvmUkY7Jrih84HpXdrsjH3wfQLqxN1Dimp0CwTNK9e/qYtuLcv
-NJeQnf1BIQuHfk0fhU74s+uAFlg6G8LeD+H0Zitgi+AazvNDfUKGg+gBT0NCkB7g
-zW2IG1oa7Of0UVX1V658N2MrQLwaN8z9orQKDkR3JJXvWoLWF8Yrcvjh8ilkEBjO
-7lAvMz1dXwIh/499YEGgO0rIWIFDZQHuOlb5vN4f93tXXQN5JH7FnSxSnsuNh3c7
-tR9hqzsBIUFAa+03FNJKc33LdaeGOuUIAXKFwhUWoMZevzKlHdfyPtwY76a3+sBJ
-mHgfBV9TDXM3IyawjQhlUlaKjwlsGQPMBZRwnRWG6DsThbpmyisCyeYAWYNSVGN5
-rWA9x+872QmQi6LzOr3byJfBqOC+dmAYwO/N/tF7aja13gAfdwNU0aCqQzPjBDoz
-Pcbsrzv3y7JGdpPs6/F5+JZi1aG5/C9lNlhThR2LFb1k5I20OjcpXEm/hxWYNzwj
-cIuvp8djtWRuFm+v5LyCrA2nlMGIBktMRPf0BF6ZYQiHjiREI6A7Ga5i9f+ltYXZ
-bn9btCXlHcFenX+W+Q+Z
-=0MJJ
+iQIcBAEBCAAGBQJXVgfyAAoJELgmozMOVy/dgn8P/1D2bB/UTLptM47jN4fwNg1w
+n9gKyEva0PACV+e8nySE6L1YkaPjiI6r5YsaZXI0oxM0P1INQwFluJikIhW8n+Nm
+M9Nm0yudeB5dKbbiD5GSO0pqjikbpSt4HQXVW0P1jmstdD8u8oUP7SirVvFso24k
+ktHcApXZK/yrsHe49Twzts+XJby/nEtVCoH/dQLIbltkfJC0GtAzch5zSJcW6UpJ
+bQIle2/ut+S1B206WG9z9dkXWPV5pN4NFO7bu5BN000nZ9n1x1oafi+DcdMd7c8L
+uIWOpVoLsmhP3idlyCDXnVcVWZrvO2fIbdbtb8tmPVm3XCTevaOsWblP0hWuhlrq
+Q+kDXrWKaKU16eEYLlF38P4XHryWVR6vBf6WKqwajHAU9+khoWqbEBvzbCZ9HVhk
+lFGKjiV6nSyogiylLtjUUbtbklPNzb51cvcbFgC2spEAVUJLApZUxENr4vAuBxlG
+i6PfBRSa81G5RVlbx4cq4wumPiOTivjgT/TI7MNhdTrhlna/t8XO0Lt3/VGS2PYJ
+08hlTrcfvC/rbCECFxBNPNEaCXTP9aLAFb7au1BL7c5v/4z4J4dxC/zdpfDYA7az
+ty2SZi5ZnGuRoFVoeRned0+GHb0eGtdkekVD9FzxdQ3kStUga/cHEP5hkCuPo/ag
+vsryJ/gQjcJ+dC7ek15B
+=w3PZ
 -----END PGP SIGNATURE-----
 
---gQr06Oh1kLItHs7BmVvgTUOKMv6wbpvSe--
+--mDWaqS1ErflIEfI6bWglKLE6n7wc3wEeM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
