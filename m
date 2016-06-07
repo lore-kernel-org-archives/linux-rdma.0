@@ -1,42 +1,47 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [RFC] IB/srp: Remove create_workqueue
-Date: Tue, 7 Jun 2016 14:21:06 -0500
-Message-ID: <20160607192106.GY31708@htj.duckdns.org>
-References: <20160607181617.GA6556@Karyakshetra>
- <f3d26daf-1805-7046-f45b-b8965156d83f@sandisk.com>
+From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDS: IB: Remove deprecated create_workqueue
+Date: Wed, 8 Jun 2016 01:03:45 +0530
+Message-ID: <20160607193345.GA10562@Karyakshetra>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f3d26daf-1805-7046-f45b-b8965156d83f@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 07, 2016 at 11:32:42AM -0700, Bart Van Assche wrote:
-> On 06/07/2016 11:16 AM, Bhaktipriya Shridhar wrote:
-> > alloc_workqueue replaces deprecated create_workqueue().
-> > 
-> > A dedicated workqueue has been used since the workqueue srp_remove_wq with
-> > workitem &target->remove_work, is a work queue for the SRP target removal.
-> > WQ_MEM_RECLAIM has been set to ensure forward progress under memory
-> > pressure.
-> > Since there are only a fixed number of work items, explicit
-> > concurrency limit is unnecessary here.
-> > 
-> > Is the workqueue being used on a memory reclaim path?
-> > Does it require WQ_MEM_RECLAIM?
-> 
-> Hello Bhaktipriya,
-> 
-> srp_remove_wq is used for SRP target port removal work only. This work is
-> neither queued from inside a shrinker nor by the page writeback code so I
-> think it is safe to drop WQ_MEM_RECLAIM.
+alloc_workqueue replaces deprecated create_workqueue().
 
-It should be able to use system_wq then.
+Since the driver is infiniband which can be used as block device and the
+workqueue seems involved in regular operation of the device, so a
+dedicated workqueue has been used  with WQ_MEM_RECLAIM set to guarantee
+forward progress under memory pressure.
+Since there are only a fixed number of work items, explicit concurrency
+limit is unnecessary here.
 
-Thanks for the explanation!
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ net/rds/ib_rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-tejun
+diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+index f7164ac..a0f21b6 100644
+--- a/net/rds/ib_rdma.c
++++ b/net/rds/ib_rdma.c
+@@ -618,7 +618,7 @@ struct rds_ib_mr_pool *rds_ib_create_mr_pool(struct rds_ib_device *rds_ibdev,
+
+ int rds_ib_mr_init(void)
+ {
+-	rds_ib_mr_wq = create_workqueue("rds_mr_flushd");
++	rds_ib_mr_wq = alloc_workqueue("rds_mr_flushd", WQ_MEM_RECLAIM, 0);
+ 	if (!rds_ib_mr_wq)
+ 		return -ENOMEM;
+ 	return 0;
+--
+2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
