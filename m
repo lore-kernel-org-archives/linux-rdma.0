@@ -1,70 +1,104 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
-Date: Tue, 7 Jun 2016 10:16:21 +0300
-Message-ID: <20160607071621.GB3663@leon.nu>
+Subject: Re: [PATCH rdma-rc 0/7] IPoIB and IB core fixes for 4.7
+Date: Tue, 7 Jun 2016 10:18:31 +0300
+Message-ID: <20160607071831.GC3663@leon.nu>
 References: <1465042524-25852-1-git-send-email-leon@kernel.org>
- <1465042524-25852-7-git-send-email-leon@kernel.org>
- <85e56121-5911-37f4-2ac3-a1af561d5a7a@redhat.com>
+ <302ea695-7b9f-7c94-4930-acdb77ae8649@redhat.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
+	protocol="application/pgp-signature"; boundary="8X7/QrJGcKSMr1RN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <85e56121-5911-37f4-2ac3-a1af561d5a7a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <302ea695-7b9f-7c94-4930-acdb77ae8649-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---kXdP64Ggrk/fb43R
+--8X7/QrJGcKSMr1RN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 06, 2016 at 07:53:43PM -0400, Doug Ledford wrote:
+On Mon, Jun 06, 2016 at 08:02:15PM -0400, Doug Ledford wrote:
 > On 6/4/2016 8:15 AM, Leon Romanovsky wrote:
-> > From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Hi Doug,
 > >=20
-> > In a attribute group struct, attrs should point to a NULL
-> > terminated list. Which means we need to allocate one more
-> > slot in the array.
+> > Please find below the patches with fixes for IPoIB and IB core.
+> >=20
+> > This patchset is generated against Linus's v4.7-rc1 tag.
+> >=20
+> > Available in the "topic/fixes-ib" topic branch of this git repo:
+> > git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> >=20
+> > Or for browsing:
+> > https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=
+=3Dtopic/fixes-ib
+> >=20
+> > Thanks
+> >=20
+> > Aviv Heller (1):
+> >   IB/core: Fix removal of default GID cache entry
+> >=20
+> > Eli Cohen (1):
+> >   IB/core: Fix query port failure in RoCE
+> >=20
+> > Erez Shitrit (2):
+> >   IB/IPoIB: Don't update neigh validity for unresolved entries
+> >   IB/IPoIB: Fix race between ipoib_remove_one to sysfs functions
+> >=20
+> > Mark Bloch (3):
+> >   IB/IPoIB: Disable bottom half when dealing with device address
+> >   IB/core: Fix incorrect array allocation
+> >   IB/core: Initialize sysfs attributes before sysfs create group
+> >=20
+> >  drivers/infiniband/core/cache.c                | 10 ++++++++--
+> >  drivers/infiniband/core/device.c               |  3 +++
+> >  drivers/infiniband/core/sysfs.c                | 10 ++++++++--
+> >  drivers/infiniband/ulp/ipoib/ipoib.h           |  1 +
+> >  drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  4 ++++
+> >  drivers/infiniband/ulp/ipoib/ipoib_ib.c        |  8 ++++----
+> >  drivers/infiniband/ulp/ipoib/ipoib_main.c      | 15 ++++++++++-----
+> >  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  6 +++---
+> >  drivers/infiniband/ulp/ipoib/ipoib_vlan.c      |  6 ++++++
+> >  9 files changed, 47 insertions(+), 16 deletions(-)
+> >=20
 >=20
-> This patch is both right and wrong.  You're right with the intent (that
-> there should be a total of 2 extra entries in the array size, one for
-> the NULL termination and one for the lifespan entry), but wrong with the
-> mechanics (unless I've missed something).  We already have two extra
-> entries because sizeof(*hsag) includes our first counter, so just
-> num_counters is actually enough to NULL terminate the list, and + 1
-> gives us lifespan plus a NULL terminate spot.  The comment could be
-> cleaned up to make this more clear though, so I'll do that.
+> Thanks Leon, I applied 5 of the 7 (the two rejected patches were replied
+> to individually).
 
 Thanks Doug.
 
---kXdP64Ggrk/fb43R
+>=20
+
+
+
+
+--8X7/QrJGcKSMr1RN
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXVnTFAAoJEORje4g2clinBvoP/ieEmcHF12nV/Om8Vc1ikyPH
-xpXk+vSId1uzeKDgfvtfm328T/UVaSri6ltDIbbKGWh1Vjdl17dD2Xdob532CuI7
-QDRH7EQRg+snSxSUlixHK5Ky0p251CFOvWbobQExel3TFcPD8IFbp+2M/oRFxaFU
-yP2gHBnK8TydAZ5EUNa1zlLejDk4HBRUY2OEvyCojOVX4foNTNkZUfWTsCzEfyUR
-qeIG5jUzfiZhqxbDR9k9DM9jgwT3gl7AFFO7Zw3MmV08bFOeBBEBpV9GRQml01u/
-zG7/Ui+osrrnC1K/JMc/v6lQ0x/luWfPIXLLQQuCkhM1G5ux2+taFcwl1dFkyjAe
-2eJaoWRatdDIbO13NT2ucQPUxZjvAm81zbYeW+WZ0pqp0H7rcSnU0mQ+kC6V/KoQ
-fu/QlTkfexy7Ggcl2FIl7+siNTWm3Gliphoa7irsokX9X0zuFKB7JiKTK8FBd8El
-1wwYypY9vMtonVqh7fRsB9gI9W446c7bm+wxIUkBCPEQ7o8LlxhvxwaHbiFG6hnw
-wUQEJcJFyrnAJ3VcyLfVONkqEMGGTbI4I5Kjgjjr+at2ex5fAUn8ch/mNdOpSLHM
-XevoBcZidfnjr3Afw+Su0adicCSrarkwMv8hoCRYsY0XxY2goRgdp4UBK0xWVDqz
-r0co7QqG3rko7BPHKKrB
-=lXQ3
+iQIcBAEBAgAGBQJXVnVHAAoJEORje4g2clinxyQP/1C0kBLDGKIfANJ1yCKjtfcJ
+lTlGiMATYvy49T4N5LfrjzyJYBMFXCiNJia/ZHWPwwOt/D02FCN1gMd2ZOjha/yV
+yZkSyUWe6xqRRW4ocYi0HAdcaMMEstvPEJNPkZOUhexORxpyB847PMr6r6EPTQDK
+AIrX8Wsew8gf8ulBwjuHWsUwZe89d3fQwpApN+SPZycGxD71uAgiL2Ua6cAwb31d
+4b4LCk39BpDORwc5OyLE6Bn+yZIRUOIA6HbfnBXwsEJWvfzqI8rDMd1c/RGlToDU
+k8lGIiyxtb90ikdFq3eXyZT1PwIEtT7FrJSM84bWU+9RAX0W9hhWCwIdRXC0NOaj
+0PNiS3jd7ybdOBz0I2ADP8EWFAFedlG7oY2+G9ZHASoP7k8ZZ4CDuozan6MlIxCD
+KGGtNHZDvDvtnKsFrndK9kTJF6brQj3fSe4MfNi07n87SizM4wCuPXBMfKkPpqw3
+P0h5yMv6aGSJ1VUS0El+gywhNkwWoUfIYROIQ/enQlDk2p7wf1/RhW984SfTnt+l
+w/BysA+lwws06CgfMZEBbpphkNHPrt+njwDTFsJrCQlOPj/C/wkbUwa44K4BK9RC
+81ZD1N6EmSQAe3t6CaZbzDkzuI6HIhVd4iC8X1OOPP189VBKhaBaY6fq+SYwfIAG
+j8iGZgrxRaFznAr6ziu8
+=05vT
 -----END PGP SIGNATURE-----
 
---kXdP64Ggrk/fb43R--
+--8X7/QrJGcKSMr1RN--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
