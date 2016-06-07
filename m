@@ -1,47 +1,37 @@
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: Re: [RFC] IB/srp: Remove create_workqueue
-Date: Tue, 7 Jun 2016 13:00:13 -0700
-Message-ID: <dcee0161-3210-0cfb-c0e6-bba7259ad639@sandisk.com>
-References: <20160607181617.GA6556@Karyakshetra>
- <f3d26daf-1805-7046-f45b-b8965156d83f@sandisk.com>
- <20160607192106.GY31708@htj.duckdns.org>
- <bdf2c634-a765-eb97-5ca1-583d833b07c7@sandisk.com>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: NVMe over Fabrics RDMA transport drivers
+Date: Tue, 7 Jun 2016 15:14:22 -0500
+Message-ID: <6ed161c3-d7d2-909f-6f17-7d75c36ed5b2@opengridcomputing.com>
+References: <1465248215-18186-1-git-send-email-hch@lst.de>
+ <5756B695.5020305@grimberg.me>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DDCB23D@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bdf2c634-a765-eb97-5ca1-583d833b07c7@sandisk.com>
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDCB23D@ORSMSX115.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Woodruff, Robert J" <robert.j.woodruff@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Christoph Hellwig <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "Busch, Keith" <keith.busch@intel.com>
+Cc: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/07/2016 12:56 PM, Bart Van Assche wrote:
-> On 06/07/2016 12:21 PM, Tejun Heo wrote:
->> On Tue, Jun 07, 2016 at 11:32:42AM -0700, Bart Van Assche wrote:
->>> On 06/07/2016 11:16 AM, Bhaktipriya Shridhar wrote:
->>>> alloc_workqueue replaces deprecated create_workqueue().
->>>>
->>>> A dedicated workqueue has been used since the workqueue srp_remove_wq with
->>>> workitem &target->remove_work, is a work queue for the SRP target removal.
->>>> WQ_MEM_RECLAIM has been set to ensure forward progress under memory
->>>> pressure.
->>>> Since there are only a fixed number of work items, explicit
->>>> concurrency limit is unnecessary here.
->>>>
->>>> Is the workqueue being used on a memory reclaim path?
->>>> Does it require WQ_MEM_RECLAIM?
->>>
->>> Hello Bhaktipriya,
->>>
->>> srp_remove_wq is used for SRP target port removal work only. This work is
->>> neither queued from inside a shrinker nor by the page writeback code so I
->>> think it is safe to drop WQ_MEM_RECLAIM.
->>
->> It should be able to use system_wq then.
+On 6/7/2016 9:55 AM, Woodruff, Robert J wrote:
+> Sagi Grimberg wrote,
 >
-> No. I have tried that but that resulted in a deadlock.
+>> We forgot to CC Linux-rdma, CC'ing...
+> Are you planning on sending the patch set to the linux-rdma list for comments as well ?
+> It might be good to do so if you want review from the rdma subsystem experts, as many of them do not subscribe to the other
+> lists.
 
-See also commit bcc059103591 for the details.
+It would be great to make sure and CC linux-rdma on v2 of all 4 series, 
+so interested folks can review and/or test out the whole enchilada.
 
-Bart.
+Anyway, today I used the github tree at 
+git://git.infradead.org/nvme-fabrics.git, branch nvmf-all for testing 
+NVME/Fabrics over RDMA.  I used nvme-cli from 
+https://github.com/linux-nvme/nvme-cli.git, and nvmetcli from 
+git://git.infradead.org/users/hch/nvmetcli.git for configuring.  I ran 
+some xfs, fio and iozone tests over both iw_cxgb4 and mlx4, using ram 
+disks and an NVME ssd.  Checks out good so far!
+
+Tested-by: Steve Wise <swise@opengridcomputing.com>
