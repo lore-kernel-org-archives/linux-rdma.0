@@ -1,182 +1,48 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
-Date: Tue, 7 Jun 2016 10:48:34 -0600
-Message-ID: <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
-References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
- <5756B7D2.5040009@mellanox.com>
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Subject: [RFC] IB/core: Remove create_workqueue
+Date: Tue, 7 Jun 2016 23:40:06 +0530
+Message-ID: <20160607181005.GA6233@Karyakshetra>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5756B7D2.5040009-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Or Gerlitz <ogerlitz@mellanox.com>, Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: Tejun Heo <tj@kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The target is LIO (same kernel) with a 200 GB RAM disk and I'm running
-fio as follows:
+alloc_workqueue replaces deprecated create_workqueue().
 
-fio --rw=read --bs=4K --size=2G --numjobs=40 --name=worker.matt
---group_reporting --minimal |  cut -d';' -f7,8,9
+A dedicated workqueue has been used since cm.wq has workitem
+&cm_id_priv->timewait_info->work.work (maps to cm_work_handler) is
+involved in normal device operation. When a cm mad is received, it is
+queued to a cm workqueue for processing. The queued work item references
+the port and device on which the mad was received. WQ_MEM_RECLAIM has been
+set to ensure forward progress under memory pressure.
+Since there are only a fixed number of work
+items, explicit concurrency limit is unnecessary here.
 
-All of the paths are set the same with noop and nomerges to either 1
-or 2 (doesn't make a big difference).
+Is the workqueue being used on a memory reclaim path?
+Does it require WQ_MEM_RECLAIM?
 
-I started looking into this when the 4.6 kernel wasn't performing as
-well as we were able to get the 4.4 kernel to work. I went back to the
-4.4 kernel and I could not replicate the 4+ million IOPs. So I started
-breaking down the problem to smaller pieces and found this anomaly.
-Since there hasn't been any suggestions up to this point, I'll check
-other kernel version to see if it is specific to certain kernels. If
-you need more information, please let me know.
+Thanks.
 
-Thanks,
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+---
 
+ drivers/infiniband/core/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tue, Jun 7, 2016 at 6:02 AM, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->
->
-> On 6/7/2016 1:36 AM, Robert LeBlanc wrote:
->>
->> I'm trying to understand why our Connect-IB card is not performing as
->> well as our ConnectX-3 card. There are 3 ports between the two cards
->> and 12 paths to the iSER target which is a RAM disk.
->
->
-> <snip>
->
->>
->> When I run fio against each path individually, I get:
->
->
-> What is the scenario (bs, numjobs, iodepth) for each run ?
-> Which target do you use ? backing store ?
->
->
->>
->> disk;target IP;bandwidth,IOPs,Execution time
->> sdn;10.218.128.17;5053682;1263420;16599
->> sde;10.218.202.17;5032158;1258039;16670
->> sdh;10.218.203.17;4993516;1248379;16799
->> sdk;10.218.204.17;5081848;1270462;16507
->> sdc;10.219.128.17;3750942;937735;22364
->> sdf;10.219.202.17;3746921;936730;22388
->> sdi;10.219.203.17;3873929;968482;21654
->> sdl;10.219.204.17;3841465;960366;21837
->> sdd;10.220.128.17;3760358;940089;22308
->> sdg;10.220.202.17;3866252;966563;21697
->> sdj;10.220.203.17;3757495;939373;22325
->> sdm;10.220.204.17;4064051;1016012;20641
->>
->> However, running ib_send_bw, I get:
->>
->> # ib_send_bw -d mlx4_0 -i 1 10.218.128.17 -F --report_gbits
->>
->> ---------------------------------------------------------------------------------------
->>                     Send BW Test
->> Dual-port       : OFF          Device         : mlx4_0
->> Number of qps   : 1            Transport type : IB
->> Connection type : RC           Using SRQ      : OFF
->> TX depth        : 128
->> CQ Moderation   : 100
->> Mtu             : 2048[B]
->> Link type       : IB
->> Max inline data : 0[B]
->> rdma_cm QPs     : OFF
->> Data ex. method : Ethernet
->>
->> ---------------------------------------------------------------------------------------
->> local address: LID 0x3f QPN 0x02b5 PSN 0x87274e
->> remote address: LID 0x22 QPN 0x0213 PSN 0xaf9232
->>
->> ---------------------------------------------------------------------------------------
->> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
->> MsgRate[Mpps]
->> Conflicting CPU frequency values detected: 3219.835000 != 3063.531000
->> Test integrity may be harmed !
->> Warning: measured timestamp frequency 2599.95 differs from nominal 3219.84
->> MHz
->> 65536      1000             50.57              50.57              0.096461
->>
->> ---------------------------------------------------------------------------------------
->> # ib_send_bw -d mlx5_0 -i 1 10.219.128.17 -F --report_gbits
->>
->> ---------------------------------------------------------------------------------------
->>                     Send BW Test
->> Dual-port       : OFF          Device         : mlx5_0
->> Number of qps   : 1            Transport type : IB
->> Connection type : RC           Using SRQ      : OFF
->> TX depth        : 128
->> CQ Moderation   : 100
->> Mtu             : 4096[B]
->> Link type       : IB
->> Max inline data : 0[B]
->> rdma_cm QPs     : OFF
->> Data ex. method : Ethernet
->>
->> ---------------------------------------------------------------------------------------
->> local address: LID 0x12 QPN 0x003e PSN 0x75f1a0
->> remote address: LID 0x1d QPN 0x003e PSN 0x7f7f71
->>
->> ---------------------------------------------------------------------------------------
->> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
->> MsgRate[Mpps]
->> Conflicting CPU frequency values detected: 3399.906000 != 2747.773000
->> Test integrity may be harmed !
->> Warning: measured timestamp frequency 2599.98 differs from nominal 3399.91
->> MHz
->> 65536      1000             52.12              52.12              0.099414
->>
->> ---------------------------------------------------------------------------------------
->> # ib_send_bw -d mlx5_0 -i 2 10.220.128.17 -F --report_gbits
->>
->> ---------------------------------------------------------------------------------------
->>                     Send BW Test
->> Dual-port       : OFF          Device         : mlx5_0
->> Number of qps   : 1            Transport type : IB
->> Connection type : RC           Using SRQ      : OFF
->> TX depth        : 128
->> CQ Moderation   : 100
->> Mtu             : 4096[B]
->> Link type       : IB
->> Max inline data : 0[B]
->> rdma_cm QPs     : OFF
->> Data ex. method : Ethernet
->>
->> ---------------------------------------------------------------------------------------
->> local address: LID 0x0f QPN 0x0041 PSN 0xb7203d
->> remote address: LID 0x1c QPN 0x0041 PSN 0xf8b80a
->>
->> ---------------------------------------------------------------------------------------
->> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
->> MsgRate[Mpps]
->> Conflicting CPU frequency values detected: 3327.796000 != 1771.046000
->> Test integrity may be harmed !
->> Warning: measured timestamp frequency 2599.97 differs from nominal 3327.8
->> MHz
->> 65536      1000             52.14              52.14              0.099441
->>
->> ---------------------------------------------------------------------------------------
->>
->> Here I see that the ConnectX-3 cards with iSER is matching the
->> performance of the ib_send_bw. However, the Connect-IB performs better
->> than the mlx4 with ib_send_bw, but performs much worse with iSER.
->>
->> This is running the 4.4.4 kernel. Is there some ideas of what I can do
->> to get the iSER performance out of the Connect-IB cards?
->
->
-> did you see this regression in different kernel ?
->
->
->>
->> ----------------
->> Robert LeBlanc
->> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 1d92e09..e335d0b 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -4004,7 +4004,7 @@ static int __init ib_cm_init(void)
+ 		goto error1;
+ 	}
+
+-	cm.wq = create_workqueue("ib_cm");
++	cm.wq = alloc_workqueue("ib_cm", WQ_MEM_RECLAIM, 0);
+ 	if (!cm.wq) {
+ 		ret = -ENOMEM;
+ 		goto error2;
