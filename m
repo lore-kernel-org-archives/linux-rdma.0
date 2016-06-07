@@ -1,36 +1,56 @@
-From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDS: IB: Remove deprecated create_workqueue
-Date: Tue, 7 Jun 2016 13:31:30 -0700
-Message-ID: <2a32db91-441d-7536-0c45-dc26c486d9fe@oracle.com>
-References: <20160607193345.GA10562@Karyakshetra>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v1 09/20] xprtrdma: Limit the number of rpcrdma_mws
+Date: Tue, 7 Jun 2016 14:49:41 -0600
+Message-ID: <20160607204941.GA7991@obsidianresearch.com>
+References: <20160607194001.18401.88592.stgit@manet.1015granger.net>
+ <20160607194732.18401.71941.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160607193345.GA10562@Karyakshetra>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160607194732.18401.71941.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Tue, Jun 07, 2016 at 03:47:32PM -0400, Chuck Lever wrote:
+> The fixed part of an R_key is 24 bits, but the variant part is only
+> 8 bits, allowing 256 unique R_keys concurrenly in flight on one QP.
+> 
+> Thus an rpcrdma_xprt cannot use more than 256 rpcrdma_mws at a time.
+> 
+> Capping the number of rpcrdma_mws should prevent ro_map from
+> re-using an R_key, which could change the MR co-ordinates or access
+> settings while an RPC is still in progress. It also reduces the
+> number of pre-allocated FRMRs per transport, allowing more
+> transports per device.
+> 
+> To get more R_keys in flight at once, additional QPs will be
+> necessary.
 
-On 6/7/2016 12:33 PM, Bhaktipriya Shridhar wrote:
-> alloc_workqueue replaces deprecated create_workqueue().
->
-> Since the driver is infiniband which can be used as block device and the
-> workqueue seems involved in regular operation of the device, so a
-> dedicated workqueue has been used  with WQ_MEM_RECLAIM set to guarantee
-> forward progress under memory pressure.
+??
 
-> Since there are only a fixed number of work items, explicit concurrency
-> limit is unnecessary here.
->
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-Looks fine.
-Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+The 24 bit / 8 bit thing doesn't create new MRs, it just disambiguates
+the life cycle of a single MR. Further, the MR is connected to a PD,
+not a QP, there is no such thing as '256 unique R_keys concurrenly in
+flight on one QP' ???
+
+This is why no ULP has ever needed this constant before:
+
+> +enum {
+> +	RPCRDMA_RKEYS_PER_QP	= 256
+> +};
+
+Because you never need to care when working with FRMRs.
+
+Either the number in queue is limited by the invalidation
+synchronization point to 2, or in the case of iwarp read, it doesn't
+matter since everything executes serially in order and the value can
+safely wrap.
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
