@@ -1,107 +1,104 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
-Date: Tue, 7 Jun 2016 09:46:20 -0400
-Message-ID: <14b30d87-6f70-a7bb-14ea-e5152ce545bf@redhat.com>
+Subject: Re: [PATCH rdma-rc 2/7] IB/IPoIB: Don't update neigh validity for
+ unresolved entries
+Date: Tue, 7 Jun 2016 09:48:29 -0400
+Message-ID: <27852e30-765c-012a-b54b-f5ba096121d4@redhat.com>
 References: <1465042524-25852-1-git-send-email-leon@kernel.org>
- <1465042524-25852-7-git-send-email-leon@kernel.org>
- <85e56121-5911-37f4-2ac3-a1af561d5a7a@redhat.com>
- <VI1PR05MB1391BC017005F864E1DAE3C0D25D0@VI1PR05MB1391.eurprd05.prod.outlook.com>
+ <1465042524-25852-3-git-send-email-leon@kernel.org>
+ <CAJ3xEMgYKnVh4JECrCSBUYmyCr4s-zxWhMywMVTQPZswLvF61A@mail.gmail.com>
+ <42668994-5666-f5b3-8d38-4c452f0cc70f@redhat.com>
+ <CAAk-MO9gUtqZHKq+7xaHLkJRM_T-DgF0wOCFuykre9=0VUBbQw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w"
+ boundary="TTTFPaV9BgVoJuEHUjIIXjsAoXdTMDGow"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <CAAk-MO9gUtqZHKq+7xaHLkJRM_T-DgF0wOCFuykre9=0VUBbQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w
-Content-Type: multipart/mixed; boundary="3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET"
+--TTTFPaV9BgVoJuEHUjIIXjsAoXdTMDGow
+Content-Type: multipart/mixed; boundary="m86uVA61dLBdKtni5VOXjETfB2QNuOngv"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <14b30d87-6f70-a7bb-14ea-e5152ce545bf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <27852e30-765c-012a-b54b-f5ba096121d4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 2/7] IB/IPoIB: Don't update neigh validity for
+ unresolved entries
 References: <1465042524-25852-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1465042524-25852-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <85e56121-5911-37f4-2ac3-a1af561d5a7a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-In-Reply-To: <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+ <1465042524-25852-3-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <CAJ3xEMgYKnVh4JECrCSBUYmyCr4s-zxWhMywMVTQPZswLvF61A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <42668994-5666-f5b3-8d38-4c452f0cc70f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <CAAk-MO9gUtqZHKq+7xaHLkJRM_T-DgF0wOCFuykre9=0VUBbQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAAk-MO9gUtqZHKq+7xaHLkJRM_T-DgF0wOCFuykre9=0VUBbQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
---3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET
-Content-Type: text/plain; charset=windows-1252
+--m86uVA61dLBdKtni5VOXjETfB2QNuOngv
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 6/7/2016 4:26 AM, Mark Bloch wrote:
->=20
->=20
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
->> Sent: Tuesday, June 07, 2016 2:54 AM
->> To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocati=
-on
+On 6/7/2016 2:01 AM, Erez Shitrit wrote:
+> On Tue, Jun 7, 2016 at 2:59 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrot=
+e:
+>> On 6/5/2016 5:10 PM, Or Gerlitz wrote:
 >>
->> This patch is both right and wrong.  You're right with the intent (tha=
-t
->> there should be a total of 2 extra entries in the array size, one for
->> the NULL termination and one for the lifespan entry), but wrong with t=
-he
->> mechanics (unless I've missed something).  We already have two extra
->> entries because sizeof(*hsag) includes our first counter, so just
->> num_counters is actually enough to NULL terminate the list, and + 1
->> gives us lifespan plus a NULL terminate spot.  The comment could be
->> cleaned up to make this more clear though, so I'll do that.
+>>>> -                       neigh->alive =3D jiffies;
+>>>> +
+>>>> +                       if (likely(skb_queue_len(&neigh->queue) < IP=
+OIB_MAX_PATH_REC_QUEUE))
+>>>> +                               neigh->alive =3D jiffies;
+>>>
+>>> why testing the queue len makes things right?
+>>
+>> I'm with Or on this one.  This test doesn't make sense unless you assu=
+me
+>> that the neighbor is being hit with a steady stream of packets.  If
+>> someone just runs ping -c 1 to a dead neighbor, this test will fail.
+>> The idea of the patch is OK, but the test needs to be reworked for
+>> situations other than a blasting stream of data.
+>>
 >=20
-> Hi doug,
-> I might be missing something, but:
+> I will try to explain the idea behind that test, and why it works (I
+> hope I'll make it clear this time :))
 >=20
-> hsag =3D kzalloc(sizeof(*hsag) +
-> 		sizeof(void *) * (stats->num_counters + 1)
->                        	GFP_KERNEL);
->=20
-> So now we have hsag and after it num_counters + 1 slots.
-> Now we need attrs to point to a memory location, so we do:
->=20
-> hsag->attrs =3D (void *)hsag + sizeof(*hsag);
->=20
-> which means hsag->attrs is now pointing to a memory location right
-> after hsag (remember we have num_counters + 1) slots there.
->=20
-> for (i =3D 0; i < stats->num_counters; i++) {
->                 hsag->attrs[i] =3D alloc_hsa(i, port_num, stats->names[=
-i]);
->                 if (!hsag->attrs[i])
->                         goto err;
->                 sysfs_attr_init(hsag->attrs[i]);
-> }
->=20
-> /* treat an error here as non-fatal */
->  hsag->attrs[i] =3D alloc_hsa_lifespan("lifespan", port_num);
->=20
-> The for loop fills num_counters slots, and after that alloc_hsa_lifespa=
-n uses another one.
-> Which means we used all our slots and we are missing one as the NULL sl=
-ot.
->=20
-> Of course I might be wrong/missing something, it wouldn't be the first =
-time :)
->=20
-> Mark
->=20
+> there are 2 objects that are taking place here, the garbage-collector
+> that removes neigh if was not used for defined time, and the
+> path-query for each neigh.
+> if the path-query failed the packets for specific neigh are kept in
+> the neigh queue, but only if there are no more than
+> IPOIB_MAX_PATH_REC_QUEUE, and the neigh is still kept for ever (let's
+> assume CM connected that was stopped without any notification with
+> DREQ etc.)
+> The only way to know that there is an unresolved neigh is by checking
+> its queue, if it is full we can assume that this is an unresolved
+> neigh otherwise it is resolved.
 
-Nope, you're right.  It's fixed now though.  with num_counters + 2 and
-kzalloc, the final NULL terminator is in place.
+That's not true.  Reread what I wrote above (I was specific when I
+picked that command).  Ping -c 1 will only send one ping.  It will not
+trip this test.  As I said, your test relies on a stream of packets, a
+single packet to a gone neighbor will never cause it to get deleted.
+You need a timeout on the queue and then if the packet in the queue
+times out, regardless of whether the queue is full or not, then you mark
+the neighbor for garbage collection and drop the packet(s).
+
+> So, the test doesn't take any assumption on the shape of the traffic,
+> even in a ping requests once a second it will failed after 3 times the
+> request was sent, and the neigh time will not be updated which will
+> leave it to the garbage-collector to delete it, that gives the driver
+> the possibility to recreate the neigh and to update its ah/pr,
+> otherwise the driver will try over and over to resend to that
+> unresolved neigh.
+>=20
+>>
 
 
---3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET--
 
---aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w
+--m86uVA61dLBdKtni5VOXjETfB2QNuOngv--
+
+--TTTFPaV9BgVoJuEHUjIIXjsAoXdTMDGow
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -110,22 +107,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVtAsAAoJELgmozMOVy/d7TQP/0NCxko+FOZufam6TGOp6w6l
-1//dmDizDKWNxYIHdGTqZ/7EgUM/UO9Vn7h/w29svrSEb1rIUP3NGv1pxPK1rZcI
-Li9MChjzbeWbD+Snf86tMKzZ+QAvxkTij8AwZwmKOaapkjjYZEq70rHCX76trYbH
-Qc1mS+P7pikydQmM38buQzMCWZICYvQxhOsuYuhGoqCfQlEkCcktBTQrCceYZ6BR
-y8YLidqip+qP9kbhr8LIrxv28Xp99Sb7HU1wry5fCsni4ZHMIBHMfiiyBBXDUiKO
-u53yyBUPYl1oxa7JcS0apz1o+J3wXyhnMw6t5RoWxudXQGtPuNYi33XBjYOCAKej
-0Ei2j1QqO9+JifhIwVf5Vv9hYHMnbgv3YqhdWlOERCTH6qhHWu6MI7XR5rymN2AT
-81WGOhISKBa4FNuHF6hdrQXkykAcA8ON2tFOHKgVKuANEhAB5Gff7f1gPf+G2CDe
-CNBXtmSXo39am3FOe7yXEszYUJYN5pKx/0IZ6MsS8PLmjnAUIme9Sg4fsVMPQVl8
-LWxEMM+FWtFmNxLqWUSxzltJUbzkJUZbePoFDxFGVbFykwErkfeNT34icednUdCk
-JoU2mHEMJOuCyCluDWPSKEwWkhmCbXrOFG4G8TDLHlOnQ0KkomPiQ+Wz0wkJmykt
-iy7WUYr5bX9N/c2LSpBh
-=bfVL
+iQIcBAEBCAAGBQJXVtCtAAoJELgmozMOVy/dTnEP/jKnFfb/wFPSiQlqPrWEa/5l
+97dZSYFKvZURs3DM8419KyxDV++yG3gXABvyxulqGuzMJGG6kiB/GYc4GfSeSYA8
+P1C8QwGMdjgHqLlE7u/ieeSS+TethNiUFgFRWw+nsGywMcRCOH7nnNlYeDjbLP5y
+/DtvYJozlpKNbBuM7/fMM7jNlVK6FcvtWkMp9+tj7RIUFXdFqQVgFiNZu4ntyhin
+/bbH4b2eIlldtJkYmIBrxrbvqbCGxksJVCg4j/QEu9hOOTynsz94zxyfb2RS6lS1
+NWCR0+GvGIAO8chj/GsQigisiK/qIu9mkvcwznOVkrqlGR20tDeAGsXRgWfCOAJK
+pbXf8HyjZ6cUbv/GQ+GqTe3xJ1Bn5RlnbCw9g24okxmEUZz2aQMezHEl+zMvgkGR
+dM8CDvD7qpRXEnbgGl32HGzQQ3u6MQtocMQaprCXsIJ2if4Zv6g4K/FFUqUBV66I
+7zfJfaUf8D7BPKo+HE0uUkzkRBtRX2Ju8kAi/X48Y8CfrVysJJX2nry2Sir8P/Jv
+D4E0UFfh36Fi+wx4p0OJqG6oWVvmKAZju4mrlKf4H/kMOGg7UILr+tmkFshj+Wen
+YOPXoVeYGUvO+q+tXHJGZtus1Ed2/284D+Bchobn0tvvKoHn1W0ADPcwUsj98TpX
+2Bt0qg/wqgyH/Da10e6t
+=yNpI
 -----END PGP SIGNATURE-----
 
---aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w--
+--TTTFPaV9BgVoJuEHUjIIXjsAoXdTMDGow--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
