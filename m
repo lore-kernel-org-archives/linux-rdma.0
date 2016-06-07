@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libmlx5 5/7] Add support for creating an extended CQ
-Date: Tue,  7 Jun 2016 15:11:37 +0300
-Message-ID: <1465301499-21234-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 libmlx5 4/7] Add ability to poll CQs through iterator's style API
+Date: Tue,  7 Jun 2016 15:11:36 +0300
+Message-ID: <1465301499-21234-5-git-send-email-yishaih@mellanox.com>
 References: <1465301499-21234-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465301499-21234-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,289 +10,303 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The new poll CQ API is based on an iterator's style API.
+The user calls start_poll_cq and next_poll_cq, query whatever valid
+and initialized (initialized attributes are attributes which were
+stated when the CQ was created) attributes and call end_poll_cq at
+the end.
 
-This patch adds the support for creating an extended CQ.
-This means we support:
-- The new polling mechanism.
-- A CQ which is single threaded and by thus doesn't waste CPU cycles on locking.
-- Getting completion timestamp from the CQ.
+This patch implements this methodology in mlx5 user space vendor
+driver. In order to make start and end efficient, we use specialized
+functions for every case - locked, adapttive- stall and their
+combination. This spares if conditions in the data path.
 
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cq.c    | 74 +++++++++++++++++++++++++++++++++++++++++++++++++
- src/mlx5.c  |  1 +
- src/mlx5.h  |  5 ++++
- src/verbs.c | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++-----------
- 4 files changed, 155 insertions(+), 16 deletions(-)
+ src/cq.c   | 255 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/mlx5.h |   2 +
+ 2 files changed, 257 insertions(+)
 
 diff --git a/src/cq.c b/src/cq.c
-index bf2bbed..96f3a03 100644
+index d3bd006..bf2bbed 100644
 --- a/src/cq.c
 +++ b/src/cq.c
-@@ -1223,6 +1223,80 @@ static inline uint64_t mlx5_cq_read_wc_completion_ts(struct ibv_cq_ex *ibcq)
- 	return ntohll(cq->cqe64->timestamp);
+@@ -831,6 +831,261 @@ static inline int poll_cq(struct ibv_cq *ibcq, int ne,
+ 	return err == CQ_POLL_ERR ? err : npolled;
  }
  
-+#define BIT(i) (1UL << (i))
-+
-+#define SINGLE_THREADED BIT(0)
-+#define STALL BIT(1)
-+#define V1 BIT(2)
-+#define ADAPTIVE BIT(3)
-+
-+#define mlx5_start_poll_name(cqe_ver, lock, stall, adaptive) \
-+	mlx5_start_poll##adaptive##stall##cqe_ver##lock
-+#define mlx5_next_poll_name(cqe_ver, adaptive) \
-+	mlx5_next_poll##adaptive##cqe_ver
-+#define mlx5_end_poll_name(lock, stall, adaptive) \
-+	mlx5_end_poll##adaptive##stall##lock
-+
-+#define POLL_FN_ENTRY(cqe_ver, lock, stall, adaptive) { \
-+		.start_poll = &mlx5_start_poll_name(cqe_ver, lock, stall, adaptive), \
-+		.next_poll = &mlx5_next_poll_name(cqe_ver, adaptive), \
-+		.end_poll = &mlx5_end_poll_name(lock, stall, adaptive), \
-+	}
-+
-+static const struct op
-+{
-+	int (*start_poll)(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr);
-+	int (*next_poll)(struct ibv_cq_ex *ibcq);
-+	void (*end_poll)(struct ibv_cq_ex *ibcq);
-+} ops[ADAPTIVE + V1 + STALL + SINGLE_THREADED + 1] = {
-+	[V1] =  POLL_FN_ENTRY(_v1, _lock, , ),
-+	[0] =  POLL_FN_ENTRY(_v0, _lock, , ),
-+	[V1 | SINGLE_THREADED] =  POLL_FN_ENTRY(_v1, , , ),
-+	[SINGLE_THREADED] =  POLL_FN_ENTRY(_v0, , , ),
-+	[V1 | STALL] =  POLL_FN_ENTRY(_v1, _lock, _stall, ),
-+	[STALL] =  POLL_FN_ENTRY(_v0, _lock, _stall, ),
-+	[V1 | SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v1, , _stall, ),
-+	[SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v0, , _stall, ),
-+	[V1 | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, _lock, _stall, _adaptive),
-+	[STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, _lock, _stall, _adaptive),
-+	[V1 | SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, , _stall, _adaptive),
-+	[SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, , _stall, _adaptive),
++enum  polling_mode {
++	POLLING_MODE_NO_STALL,
++	POLLING_MODE_STALL,
++	POLLING_MODE_STALL_ADAPTIVE
 +};
 +
-+void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr)
++static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
++				  int lock, enum polling_mode stall)
++				  __attribute__((always_inline));
++static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
++				  int lock, enum polling_mode stall)
 +{
-+	struct mlx5_context *mctx = to_mctx(ibv_cq_ex_to_cq(&cq->ibv_cq)->context);
-+	const struct op *poll_ops = &ops[((cq->stall_enable && cq->stall_adaptive_enable) ? ADAPTIVE : 0) |
-+					 (mctx->cqe_version ? V1 : 0) |
-+					 (cq->flags & MLX5_CQ_FLAGS_SINGLE_THREADED ?
-+						      SINGLE_THREADED : 0) |
-+					 (cq->stall_enable ? STALL : 0)];
++	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
 +
-+	cq->ibv_cq.start_poll = poll_ops->start_poll;
-+	cq->ibv_cq.next_poll = poll_ops->next_poll;
-+	cq->ibv_cq.end_poll = poll_ops->end_poll;
++	update_cons_index(cq);
 +
-+	cq->ibv_cq.read_opcode = mlx5_cq_read_wc_opcode;
-+	cq->ibv_cq.read_vendor_err = mlx5_cq_read_wc_vendor_err;
-+	cq->ibv_cq.read_wc_flags = mlx5_cq_read_wc_flags;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
-+		cq->ibv_cq.read_byte_len = mlx5_cq_read_wc_byte_len;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_IMM)
-+		cq->ibv_cq.read_imm_data = mlx5_cq_read_wc_imm_data;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_QP_NUM)
-+		cq->ibv_cq.read_qp_num = mlx5_cq_read_wc_qp_num;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SRC_QP)
-+		cq->ibv_cq.read_src_qp = mlx5_cq_read_wc_src_qp;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SLID)
-+		cq->ibv_cq.read_slid = mlx5_cq_read_wc_slid;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SL)
-+		cq->ibv_cq.read_sl = mlx5_cq_read_wc_sl;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS)
-+		cq->ibv_cq.read_dlid_path_bits = mlx5_cq_read_wc_dlid_path_bits;
-+	if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
-+		cq->ibv_cq.read_completion_ts = mlx5_cq_read_wc_completion_ts;
++	if (lock)
++		mlx5_spin_unlock(&cq->lock);
++
++	if (stall) {
++		if (stall == POLLING_MODE_STALL_ADAPTIVE) {
++			if (!(cq->flags & MLX5_CQ_FLAGS_FOUND_CQES)) {
++				cq->stall_cycles = max(cq->stall_cycles - mlx5_stall_cq_dec_step,
++						       mlx5_stall_cq_poll_min);
++				mlx5_get_cycles(&cq->stall_last_count);
++			} else if (cq->flags & MLX5_CQ_FLAGS_EMPTY_DURING_POLL) {
++				cq->stall_cycles = min(cq->stall_cycles + mlx5_stall_cq_inc_step,
++						       mlx5_stall_cq_poll_max);
++				mlx5_get_cycles(&cq->stall_last_count);
++			} else {
++				cq->stall_cycles = max(cq->stall_cycles - mlx5_stall_cq_dec_step,
++						       mlx5_stall_cq_poll_min);
++				cq->stall_last_count = 0;
++			}
++		} else if (!(cq->flags & MLX5_CQ_FLAGS_FOUND_CQES)) {
++			cq->stall_next_poll = 1;
++		}
++
++		cq->flags &= ~(MLX5_CQ_FLAGS_FOUND_CQES | MLX5_CQ_FLAGS_EMPTY_DURING_POLL);
++	}
 +}
 +
- int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
++static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
++				  int lock, enum polling_mode stall, int cqe_version)
++				  __attribute__((always_inline));
++static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
++				  int lock, enum polling_mode stall, int cqe_version)
++{
++	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++	struct mlx5_cqe64 *cqe64;
++	void *cqe;
++	int err;
++
++	if (unlikely(attr->comp_mask))
++		return EINVAL;
++
++	if (stall) {
++		if (stall == POLLING_MODE_STALL_ADAPTIVE) {
++			if (cq->stall_last_count)
++				mlx5_stall_cycles_poll_cq(cq->stall_last_count + cq->stall_cycles);
++		} else if (cq->stall_next_poll) {
++			cq->stall_next_poll = 0;
++			mlx5_stall_poll_cq();
++		}
++	}
++
++	if (lock)
++		mlx5_spin_lock(&cq->lock);
++
++	cq->cur_rsc = NULL;
++	cq->cur_srq = NULL;
++
++	err = mlx5_get_next_cqe(cq, &cqe64, &cqe);
++	if (err == CQ_EMPTY) {
++		if (lock)
++			mlx5_spin_unlock(&cq->lock);
++
++		if (stall) {
++			if (stall == POLLING_MODE_STALL_ADAPTIVE) {
++				cq->stall_cycles = max(cq->stall_cycles - mlx5_stall_cq_dec_step,
++						mlx5_stall_cq_poll_min);
++				mlx5_get_cycles(&cq->stall_last_count);
++			} else {
++				cq->stall_next_poll = 1;
++			}
++		}
++
++		return ENOENT;
++	}
++
++	if (stall)
++		cq->flags |= MLX5_CQ_FLAGS_FOUND_CQES;
++
++	err = mlx5_parse_lazy_cqe(cq, cqe64, cqe, cqe_version);
++	if (lock && err)
++		mlx5_spin_unlock(&cq->lock);
++
++	if (stall && err) {
++		if (stall == POLLING_MODE_STALL_ADAPTIVE) {
++			cq->stall_cycles = max(cq->stall_cycles - mlx5_stall_cq_dec_step,
++						mlx5_stall_cq_poll_min);
++			cq->stall_last_count = 0;
++		}
++
++		cq->flags &= ~(MLX5_CQ_FLAGS_FOUND_CQES);
++	}
++
++	return err;
++}
++
++static inline int mlx5_next_poll(struct ibv_cq_ex *ibcq,
++				 enum polling_mode stall, int cqe_version)
++				 __attribute__((always_inline));
++static inline int mlx5_next_poll(struct ibv_cq_ex *ibcq,
++				 enum polling_mode stall,
++				 int cqe_version)
++{
++	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
++	struct mlx5_cqe64 *cqe64;
++	void *cqe;
++	int err;
++
++	err = mlx5_get_next_cqe(cq, &cqe64, &cqe);
++	if (err == CQ_EMPTY) {
++		if (stall == POLLING_MODE_STALL_ADAPTIVE)
++			cq->flags |= MLX5_CQ_FLAGS_EMPTY_DURING_POLL;
++
++		return ENOENT;
++	}
++
++	return mlx5_parse_lazy_cqe(cq, cqe64, cqe, cqe_version);
++}
++
++static inline int mlx5_next_poll_adaptive_v0(struct ibv_cq_ex *ibcq)
++{
++	return mlx5_next_poll(ibcq, POLLING_MODE_STALL_ADAPTIVE, 0);
++}
++
++static inline int mlx5_next_poll_adaptive_v1(struct ibv_cq_ex *ibcq)
++{
++	return mlx5_next_poll(ibcq, POLLING_MODE_STALL_ADAPTIVE, 1);
++}
++
++static inline int mlx5_next_poll_v0(struct ibv_cq_ex *ibcq)
++{
++	return mlx5_next_poll(ibcq, 0, 0);
++}
++
++static inline int mlx5_next_poll_v1(struct ibv_cq_ex *ibcq)
++{
++	return mlx5_next_poll(ibcq, 0, 1);
++}
++
++static inline int mlx5_start_poll_v0(struct ibv_cq_ex *ibcq,
++				     struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, 0, 0);
++}
++
++static inline int mlx5_start_poll_v1(struct ibv_cq_ex *ibcq,
++				     struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, 0, 1);
++}
++
++static inline int mlx5_start_poll_v0_lock(struct ibv_cq_ex *ibcq,
++					  struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, 0, 0);
++}
++
++static inline int mlx5_start_poll_v1_lock(struct ibv_cq_ex *ibcq,
++					  struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, 0, 1);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v0_lock(struct ibv_cq_ex *ibcq,
++							 struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 0);
++}
++
++static inline int mlx5_start_poll_stall_v0_lock(struct ibv_cq_ex *ibcq,
++						struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 0);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v1_lock(struct ibv_cq_ex *ibcq,
++							 struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL_ADAPTIVE, 1);
++}
++
++static inline int mlx5_start_poll_stall_v1_lock(struct ibv_cq_ex *ibcq,
++						struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 1, POLLING_MODE_STALL, 1);
++}
++
++static inline int mlx5_start_poll_stall_v0(struct ibv_cq_ex *ibcq,
++					   struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 0);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v0(struct ibv_cq_ex *ibcq,
++						    struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 0);
++}
++
++static inline int mlx5_start_poll_adaptive_stall_v1(struct ibv_cq_ex *ibcq,
++						    struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL_ADAPTIVE, 1);
++}
++
++static inline int mlx5_start_poll_stall_v1(struct ibv_cq_ex *ibcq,
++					   struct ibv_poll_cq_attr *attr)
++{
++	return mlx5_start_poll(ibcq, attr, 0, POLLING_MODE_STALL, 1);
++}
++
++static inline void mlx5_end_poll_adaptive_stall_lock(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 1, POLLING_MODE_STALL_ADAPTIVE);
++}
++
++static inline void mlx5_end_poll_stall_lock(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 1, POLLING_MODE_STALL);
++}
++
++static inline void mlx5_end_poll_adaptive_stall(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 0, POLLING_MODE_STALL_ADAPTIVE);
++}
++
++static inline void mlx5_end_poll_stall(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 0, POLLING_MODE_STALL);
++}
++
++static inline void mlx5_end_poll(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 0, 0);
++}
++
++static inline void mlx5_end_poll_lock(struct ibv_cq_ex *ibcq)
++{
++	_mlx5_end_poll(ibcq, 1, 0);
++}
++
+ int mlx5_poll_cq(struct ibv_cq *ibcq, int ne, struct ibv_wc *wc)
  {
- 	struct mlx5_cq *cq = to_mcq(ibvcq);
-diff --git a/src/mlx5.c b/src/mlx5.c
-index 7bd01bd..d7a6a8f 100644
---- a/src/mlx5.c
-+++ b/src/mlx5.c
-@@ -702,6 +702,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
- 	verbs_set_ctx_op(v_ctx, ibv_create_flow, ibv_cmd_create_flow);
- 	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
-+	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
- 
- 	memset(&device_attr, 0, sizeof(device_attr));
- 	if (!mlx5_query_device(ctx, &device_attr)) {
+ 	return poll_cq(ibcq, ne, wc, 0);
 diff --git a/src/mlx5.h b/src/mlx5.h
-index 15510cf..506ec0a 100644
+index 99bee10..15510cf 100644
 --- a/src/mlx5.h
 +++ b/src/mlx5.h
-@@ -368,6 +368,8 @@ enum {
+@@ -366,6 +366,8 @@ enum {
+ 
+ enum {
  	MLX5_CQ_FLAGS_RX_CSUM_VALID = 1 << 0,
- 	MLX5_CQ_FLAGS_EMPTY_DURING_POLL = 1 << 1,
- 	MLX5_CQ_FLAGS_FOUND_CQES = 1 << 2,
-+	MLX5_CQ_FLAGS_EXTENDED = 1 << 3,
-+	MLX5_CQ_FLAGS_SINGLE_THREADED = 1 << 4,
++	MLX5_CQ_FLAGS_EMPTY_DURING_POLL = 1 << 1,
++	MLX5_CQ_FLAGS_FOUND_CQES = 1 << 2,
  };
  
  struct mlx5_cq {
-@@ -635,6 +637,9 @@ int mlx5_dereg_mr(struct ibv_mr *mr);
- struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 			       struct ibv_comp_channel *channel,
- 			       int comp_vector);
-+struct ibv_cq_ex *mlx5_create_cq_ex(struct ibv_context *context,
-+				    struct ibv_cq_init_attr_ex *cq_attr);
-+void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr);
- int mlx5_alloc_cq_buf(struct mlx5_context *mctx, struct mlx5_cq *cq,
- 		      struct mlx5_buf *buf, int nent, int cqe_sz);
- int mlx5_free_cq_buf(struct mlx5_context *ctx, struct mlx5_buf *buf);
-diff --git a/src/verbs.c b/src/verbs.c
-index e78d2a5..6f2ef00 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -254,9 +254,22 @@ static int qp_sig_enabled(void)
- 	return 0;
- }
- 
--struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
--			      struct ibv_comp_channel *channel,
--			      int comp_vector)
-+enum {
-+	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
-+				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
-+};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CQ_INIT_ATTR_MASK_FLAGS
-+};
-+
-+enum {
-+	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_SINGLE_THREADED
-+};
-+
-+static struct ibv_cq_ex *create_cq(struct ibv_context *context,
-+				   const struct ibv_cq_init_attr_ex *cq_attr,
-+				   int cq_alloc_flags)
- {
- 	struct mlx5_create_cq		cmd;
- 	struct mlx5_create_cq_resp	resp;
-@@ -268,12 +281,33 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	FILE *fp = to_mctx(context)->dbg_fp;
- #endif
- 
--	if (!cqe) {
--		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-+	if (!cq_attr->cqe) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ, "CQE invalid\n");
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ,
-+			 "Unsupported comp_mask for create_cq\n");
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
-+	    cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ,
-+			 "Unsupported creation flags requested for create_cq\n");
- 		errno = EINVAL;
- 		return NULL;
- 	}
- 
-+	if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS) {
-+		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-+		errno = ENOTSUP;
-+		return NULL;
-+	}
-+
- 	cq =  calloc(1, sizeof *cq);
- 	if (!cq) {
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
-@@ -286,15 +320,8 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	if (mlx5_spinlock_init(&cq->lock))
- 		goto err;
- 
--	/* The additional entry is required for resize CQ */
--	if (cqe <= 0) {
--		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
--		errno = EINVAL;
--		goto err_spl;
--	}
--
--	ncqe = align_queue_size(cqe + 1);
--	if ((ncqe > (1 << 24)) || (ncqe < (cqe + 1))) {
-+	ncqe = align_queue_size(cq_attr->cqe + 1);
-+	if ((ncqe > (1 << 24)) || (ncqe < (cq_attr->cqe + 1))) {
- 		mlx5_dbg(fp, MLX5_DBG_CQ, "ncqe %d\n", ncqe);
- 		errno = EINVAL;
- 		goto err_spl;
-@@ -322,12 +349,17 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	cq->dbrec[MLX5_CQ_ARM_DB]	= 0;
- 	cq->arm_sn			= 0;
- 	cq->cqe_sz			= cqe_sz;
-+	cq->flags			= cq_alloc_flags;
- 
-+	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
-+	    cq_attr->flags & IBV_CREATE_CQ_ATTR_SINGLE_THREADED)
-+		cq->flags |= MLX5_CQ_FLAGS_SINGLE_THREADED;
- 	cmd.buf_addr = (uintptr_t) cq->buf_a.buf;
- 	cmd.db_addr  = (uintptr_t) cq->dbrec;
- 	cmd.cqe_size = cqe_sz;
- 
--	ret = ibv_cmd_create_cq(context, ncqe - 1, channel, comp_vector,
-+	ret = ibv_cmd_create_cq(context, ncqe - 1, cq_attr->channel,
-+				cq_attr->comp_vector,
- 				ibv_cq_ex_to_cq(&cq->ibv_cq), &cmd.ibv_cmd,
- 				sizeof(cmd), &resp.ibv_resp, sizeof(resp));
- 	if (ret) {
-@@ -342,7 +374,10 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
- 	cq->stall_adaptive_enable = to_mctx(context)->stall_adaptive_enable;
- 	cq->stall_cycles = to_mctx(context)->stall_cycles;
- 
--	return ibv_cq_ex_to_cq(&cq->ibv_cq);
-+	if (cq_alloc_flags & MLX5_CQ_FLAGS_EXTENDED)
-+		mlx5_cq_fill_pfns(cq, cq_attr);
-+
-+	return &cq->ibv_cq;
- 
- err_db:
- 	mlx5_free_db(to_mctx(context), cq->dbrec);
-@@ -359,6 +394,30 @@ err:
- 	return NULL;
- }
- 
-+struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
-+			      struct ibv_comp_channel *channel,
-+			      int comp_vector)
-+{
-+	struct ibv_cq_ex *cq;
-+	struct ibv_cq_init_attr_ex cq_attr = {.cqe = cqe, .channel = channel,
-+						.comp_vector = comp_vector,
-+						.wc_flags = IBV_WC_STANDARD_FLAGS};
-+
-+	if (cqe <= 0) {
-+		errno = EINVAL;
-+		return NULL;
-+	}
-+
-+	cq = create_cq(context, &cq_attr, 0);
-+	return cq ? ibv_cq_ex_to_cq(cq) : NULL;
-+}
-+
-+struct ibv_cq_ex *mlx5_create_cq_ex(struct ibv_context *context,
-+				    struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+	return create_cq(context, cq_attr, MLX5_CQ_FLAGS_EXTENDED);
-+}
-+
- int mlx5_resize_cq(struct ibv_cq *ibcq, int cqe)
- {
- 	struct mlx5_cq *cq = to_mcq(ibcq);
 -- 
 1.8.3.1
 
