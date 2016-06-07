@@ -1,132 +1,221 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
-Date: Tue, 7 Jun 2016 15:02:26 +0300
-Message-ID: <5756B7D2.5040009@mellanox.com>
-References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 libmlx5 1/7] Refactor mlx5_poll_one
+Date: Tue,  7 Jun 2016 15:11:33 +0300
+Message-ID: <1465301499-21234-2-git-send-email-yishaih@mellanox.com>
+References: <1465301499-21234-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1465301499-21234-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Since downstream patches aim to provide lazy CQE polling, which
+let the user poll the CQE's attribute via inline function, we
+refactor poll_one:
+* Return status instead of writing directly to the wc as part of
+  handle_error_cqe.
+* Introduce mlx5_get_next_cqe which will be used to advance the
+  CQE iterator.
 
-On 6/7/2016 1:36 AM, Robert LeBlanc wrote:
-> I'm trying to understand why our Connect-IB card is not performing as
-> well as our ConnectX-3 card. There are 3 ports between the two cards
-> and 12 paths to the iSER target which is a RAM disk.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/cq.c | 127 +++++++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 67 insertions(+), 60 deletions(-)
 
-<snip>
+diff --git a/src/cq.c b/src/cq.c
+index ce18ac9..e962dd9 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -297,55 +297,38 @@ static void dump_cqe(FILE *fp, void *buf)
+ 			ntohl(p[i + 2]), ntohl(p[i + 3]));
+ }
+ 
+-static void mlx5_handle_error_cqe(struct mlx5_err_cqe *cqe,
+-				  struct ibv_wc *wc)
++static enum ibv_wc_status mlx5_handle_error_cqe(struct mlx5_err_cqe *cqe)
+ {
+ 	switch (cqe->syndrome) {
+ 	case MLX5_CQE_SYNDROME_LOCAL_LENGTH_ERR:
+-		wc->status = IBV_WC_LOC_LEN_ERR;
+-		break;
++		return IBV_WC_LOC_LEN_ERR;
+ 	case MLX5_CQE_SYNDROME_LOCAL_QP_OP_ERR:
+-		wc->status = IBV_WC_LOC_QP_OP_ERR;
+-		break;
++		return IBV_WC_LOC_QP_OP_ERR;
+ 	case MLX5_CQE_SYNDROME_LOCAL_PROT_ERR:
+-		wc->status = IBV_WC_LOC_PROT_ERR;
+-		break;
++		return IBV_WC_LOC_PROT_ERR;
+ 	case MLX5_CQE_SYNDROME_WR_FLUSH_ERR:
+-		wc->status = IBV_WC_WR_FLUSH_ERR;
+-		break;
++		return IBV_WC_WR_FLUSH_ERR;
+ 	case MLX5_CQE_SYNDROME_MW_BIND_ERR:
+-		wc->status = IBV_WC_MW_BIND_ERR;
+-		break;
++		return IBV_WC_MW_BIND_ERR;
+ 	case MLX5_CQE_SYNDROME_BAD_RESP_ERR:
+-		wc->status = IBV_WC_BAD_RESP_ERR;
+-		break;
++		return IBV_WC_BAD_RESP_ERR;
+ 	case MLX5_CQE_SYNDROME_LOCAL_ACCESS_ERR:
+-		wc->status = IBV_WC_LOC_ACCESS_ERR;
+-		break;
++		return IBV_WC_LOC_ACCESS_ERR;
+ 	case MLX5_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR:
+-		wc->status = IBV_WC_REM_INV_REQ_ERR;
+-		break;
++		return IBV_WC_REM_INV_REQ_ERR;
+ 	case MLX5_CQE_SYNDROME_REMOTE_ACCESS_ERR:
+-		wc->status = IBV_WC_REM_ACCESS_ERR;
+-		break;
++		return IBV_WC_REM_ACCESS_ERR;
+ 	case MLX5_CQE_SYNDROME_REMOTE_OP_ERR:
+-		wc->status = IBV_WC_REM_OP_ERR;
+-		break;
++		return IBV_WC_REM_OP_ERR;
+ 	case MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR:
+-		wc->status = IBV_WC_RETRY_EXC_ERR;
+-		break;
++		return IBV_WC_RETRY_EXC_ERR;
+ 	case MLX5_CQE_SYNDROME_RNR_RETRY_EXC_ERR:
+-		wc->status = IBV_WC_RNR_RETRY_EXC_ERR;
+-		break;
++		return IBV_WC_RNR_RETRY_EXC_ERR;
+ 	case MLX5_CQE_SYNDROME_REMOTE_ABORTED_ERR:
+-		wc->status = IBV_WC_REM_ABORT_ERR;
+-		break;
++		return IBV_WC_REM_ABORT_ERR;
+ 	default:
+-		wc->status = IBV_WC_GENERAL_ERR;
+-		break;
++		return IBV_WC_GENERAL_ERR;
+ 	}
+-
+-	wc->vendor_err = cqe->vendor_err_synd;
+ }
+ 
+ #if defined(__x86_64__) || defined (__i386__)
+@@ -504,36 +487,21 @@ static inline int get_cur_rsc(struct mlx5_context *mctx,
+ 
+ }
+ 
+-static inline int mlx5_poll_one(struct mlx5_cq *cq,
+-			 struct mlx5_resource **cur_rsc,
+-			 struct mlx5_srq **cur_srq,
+-			 struct ibv_wc *wc, int cqe_ver)
+-			 __attribute__((always_inline));
+-static inline int mlx5_poll_one(struct mlx5_cq *cq,
+-			 struct mlx5_resource **cur_rsc,
+-			 struct mlx5_srq **cur_srq,
+-			 struct ibv_wc *wc, int cqe_ver)
++static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
++				    struct mlx5_cqe64 **pcqe64,
++				    void **pcqe)
++				    __attribute__((always_inline));
++static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
++				    struct mlx5_cqe64 **pcqe64,
++				    void **pcqe)
+ {
+-	struct mlx5_cqe64 *cqe64;
+-	struct mlx5_wq *wq;
+-	uint16_t wqe_ctr;
+ 	void *cqe;
+-	uint32_t qpn;
+-	uint32_t srqn_uidx;
+-	int idx;
+-	uint8_t opcode;
+-	struct mlx5_err_cqe *ecqe;
+-	int err;
+-	struct mlx5_qp *mqp;
+-	struct mlx5_context *mctx;
+-	uint8_t is_srq = 0;
++	struct mlx5_cqe64 *cqe64;
+ 
+ 	cqe = next_cqe_sw(cq);
+ 	if (!cqe)
+ 		return CQ_EMPTY;
+ 
+-	mctx = to_mctx(cq->ibv_cq.context);
+-
+ 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
+ 
+ 	++cq->cons_index;
+@@ -547,14 +515,52 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
+ 	rmb();
+ 
+ #ifdef MLX5_DEBUG
+-	if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
+-		FILE *fp = mctx->dbg_fp;
++	{
++		struct mlx5_context *mctx = to_mctx(cq->ibv_cq.context);
++
++		if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
++			FILE *fp = mctx->dbg_fp;
+ 
+-		mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
+-		dump_cqe(fp, cqe64);
++			mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
++			dump_cqe(fp, cqe64);
++		}
+ 	}
+ #endif
++	*pcqe64 = cqe64;
++	*pcqe = cqe;
+ 
++	return CQ_OK;
++}
++
++static inline int mlx5_poll_one(struct mlx5_cq *cq,
++				struct mlx5_resource **cur_rsc,
++				struct mlx5_srq **cur_srq,
++				struct ibv_wc *wc, int cqe_ver)
++				__attribute__((always_inline));
++static inline int mlx5_poll_one(struct mlx5_cq *cq,
++				struct mlx5_resource **cur_rsc,
++				struct mlx5_srq **cur_srq,
++				struct ibv_wc *wc, int cqe_ver)
++{
++	struct mlx5_cqe64 *cqe64;
++	struct mlx5_wq *wq;
++	uint16_t wqe_ctr;
++	void *cqe;
++	uint32_t qpn;
++	uint32_t srqn_uidx;
++	int idx;
++	uint8_t opcode;
++	struct mlx5_err_cqe *ecqe;
++	int err;
++	struct mlx5_qp *mqp;
++	struct mlx5_context *mctx;
++	uint8_t is_srq = 0;
++
++	err = mlx5_get_next_cqe(cq, &cqe64, &cqe);
++	if (err == CQ_EMPTY)
++		return err;
++
++	mctx = to_mctx(cq->ibv_cq.context);
+ 	qpn = ntohl(cqe64->sop_drop_qpn) & 0xffffff;
+ 	wc->wc_flags = 0;
+ 	wc->qp_num = qpn;
+@@ -602,7 +608,8 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
+ 	case MLX5_CQE_RESP_ERR:
+ 		srqn_uidx = ntohl(cqe64->srqn_uidx) & 0xffffff;
+ 		ecqe = (struct mlx5_err_cqe *)cqe64;
+-		mlx5_handle_error_cqe(ecqe, wc);
++		wc->status = mlx5_handle_error_cqe(ecqe);
++		wc->vendor_err = ecqe->vendor_err_synd;
+ 		if (unlikely(ecqe->syndrome != MLX5_CQE_SYNDROME_WR_FLUSH_ERR &&
+ 			     ecqe->syndrome != MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR)) {
+ 			FILE *fp = mctx->dbg_fp;
+-- 
+1.8.3.1
 
->
-> When I run fio against each path individually, I get:
-
-What is the scenario (bs, numjobs, iodepth) for each run ?
-Which target do you use ? backing store ?
-
->
-> disk;target IP;bandwidth,IOPs,Execution time
-> sdn;10.218.128.17;5053682;1263420;16599
-> sde;10.218.202.17;5032158;1258039;16670
-> sdh;10.218.203.17;4993516;1248379;16799
-> sdk;10.218.204.17;5081848;1270462;16507
-> sdc;10.219.128.17;3750942;937735;22364
-> sdf;10.219.202.17;3746921;936730;22388
-> sdi;10.219.203.17;3873929;968482;21654
-> sdl;10.219.204.17;3841465;960366;21837
-> sdd;10.220.128.17;3760358;940089;22308
-> sdg;10.220.202.17;3866252;966563;21697
-> sdj;10.220.203.17;3757495;939373;22325
-> sdm;10.220.204.17;4064051;1016012;20641
->
-> However, running ib_send_bw, I get:
->
-> # ib_send_bw -d mlx4_0 -i 1 10.218.128.17 -F --report_gbits
-> ---------------------------------------------------------------------------------------
->                     Send BW Test
-> Dual-port       : OFF          Device         : mlx4_0
-> Number of qps   : 1            Transport type : IB
-> Connection type : RC           Using SRQ      : OFF
-> TX depth        : 128
-> CQ Moderation   : 100
-> Mtu             : 2048[B]
-> Link type       : IB
-> Max inline data : 0[B]
-> rdma_cm QPs     : OFF
-> Data ex. method : Ethernet
-> ---------------------------------------------------------------------------------------
-> local address: LID 0x3f QPN 0x02b5 PSN 0x87274e
-> remote address: LID 0x22 QPN 0x0213 PSN 0xaf9232
-> ---------------------------------------------------------------------------------------
-> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]   MsgRate[Mpps]
-> Conflicting CPU frequency values detected: 3219.835000 != 3063.531000
-> Test integrity may be harmed !
-> Warning: measured timestamp frequency 2599.95 differs from nominal 3219.84 MHz
-> 65536      1000             50.57              50.57              0.096461
-> ---------------------------------------------------------------------------------------
-> # ib_send_bw -d mlx5_0 -i 1 10.219.128.17 -F --report_gbits
-> ---------------------------------------------------------------------------------------
->                     Send BW Test
-> Dual-port       : OFF          Device         : mlx5_0
-> Number of qps   : 1            Transport type : IB
-> Connection type : RC           Using SRQ      : OFF
-> TX depth        : 128
-> CQ Moderation   : 100
-> Mtu             : 4096[B]
-> Link type       : IB
-> Max inline data : 0[B]
-> rdma_cm QPs     : OFF
-> Data ex. method : Ethernet
-> ---------------------------------------------------------------------------------------
-> local address: LID 0x12 QPN 0x003e PSN 0x75f1a0
-> remote address: LID 0x1d QPN 0x003e PSN 0x7f7f71
-> ---------------------------------------------------------------------------------------
-> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]   MsgRate[Mpps]
-> Conflicting CPU frequency values detected: 3399.906000 != 2747.773000
-> Test integrity may be harmed !
-> Warning: measured timestamp frequency 2599.98 differs from nominal 3399.91 MHz
-> 65536      1000             52.12              52.12              0.099414
-> ---------------------------------------------------------------------------------------
-> # ib_send_bw -d mlx5_0 -i 2 10.220.128.17 -F --report_gbits
-> ---------------------------------------------------------------------------------------
->                     Send BW Test
-> Dual-port       : OFF          Device         : mlx5_0
-> Number of qps   : 1            Transport type : IB
-> Connection type : RC           Using SRQ      : OFF
-> TX depth        : 128
-> CQ Moderation   : 100
-> Mtu             : 4096[B]
-> Link type       : IB
-> Max inline data : 0[B]
-> rdma_cm QPs     : OFF
-> Data ex. method : Ethernet
-> ---------------------------------------------------------------------------------------
-> local address: LID 0x0f QPN 0x0041 PSN 0xb7203d
-> remote address: LID 0x1c QPN 0x0041 PSN 0xf8b80a
-> ---------------------------------------------------------------------------------------
-> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]   MsgRate[Mpps]
-> Conflicting CPU frequency values detected: 3327.796000 != 1771.046000
-> Test integrity may be harmed !
-> Warning: measured timestamp frequency 2599.97 differs from nominal 3327.8 MHz
-> 65536      1000             52.14              52.14              0.099441
-> ---------------------------------------------------------------------------------------
->
-> Here I see that the ConnectX-3 cards with iSER is matching the
-> performance of the ib_send_bw. However, the Connect-IB performs better
-> than the mlx4 with ib_send_bw, but performs much worse with iSER.
->
-> This is running the 4.4.4 kernel. Is there some ideas of what I can do
-> to get the iSER performance out of the Connect-IB cards?
-
-did you see this regression in different kernel ?
-
->
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
