@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 18/20] xprtrdma: Eliminate rpcrdma_receive_worker()
-Date: Tue, 07 Jun 2016 15:48:46 -0400
-Message-ID: <20160607194846.18401.84542.stgit@manet.1015granger.net>
+Subject: [PATCH v1 19/20] xprtrdma: Eliminate INLINE_THRESHOLD macros
+Date: Tue, 07 Jun 2016 15:48:54 -0400
+Message-ID: <20160607194854.18401.67203.stgit@manet.1015granger.net>
 References: <20160607194001.18401.88592.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,73 +12,94 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: the extra layer of indirection doesn't add value.
+Clean up: Use a more efficient way to get the inline threshold
+values.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c  |    4 +++-
- net/sunrpc/xprtrdma/verbs.c     |   11 +----------
- net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ net/sunrpc/xprtrdma/backchannel.c |    4 ++--
+ net/sunrpc/xprtrdma/rpc_rdma.c    |    2 +-
+ net/sunrpc/xprtrdma/transport.c   |    6 +++---
+ net/sunrpc/xprtrdma/xprt_rdma.h   |    9 ---------
+ 4 files changed, 6 insertions(+), 15 deletions(-)
 
+diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
+index 87762d9..5f60ab2 100644
+--- a/net/sunrpc/xprtrdma/backchannel.c
++++ b/net/sunrpc/xprtrdma/backchannel.c
+@@ -46,13 +46,13 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
+ 		return PTR_ERR(req);
+ 	req->rl_backchannel = true;
+ 
+-	size = RPCRDMA_INLINE_WRITE_THRESHOLD(rqst);
++	size = r_xprt->rx_data.inline_wsize;
+ 	rb = rpcrdma_alloc_regbuf(ia, size, GFP_KERNEL);
+ 	if (IS_ERR(rb))
+ 		goto out_fail;
+ 	req->rl_rdmabuf = rb;
+ 
+-	size += RPCRDMA_INLINE_READ_THRESHOLD(rqst);
++	size += r_xprt->rx_data.inline_rsize;
+ 	rb = rpcrdma_alloc_regbuf(ia, size, GFP_KERNEL);
+ 	if (IS_ERR(rb))
+ 		goto out_fail;
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index aa7951a..41f7bf7 100644
+index 41f7bf7..48a8dc9 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -919,8 +919,10 @@ rpcrdma_conn_func(struct rpcrdma_ep *ep)
-  * allowed to timeout, to discover the errors at that time.
-  */
- void
--rpcrdma_reply_handler(struct rpcrdma_rep *rep)
-+rpcrdma_reply_handler(struct work_struct *work)
- {
-+	struct rpcrdma_rep *rep =
-+			container_of(work, struct rpcrdma_rep, rr_work);
- 	struct rpcrdma_msg *headerp;
- 	struct rpcrdma_req *req;
- 	struct rpc_rqst *rqst;
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index e016b9c..d9d8aa0 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -128,15 +128,6 @@ rpcrdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
- 		       wc->status, wc->vendor_err);
- }
+@@ -673,7 +673,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 		goto out_unmap;
+ 	hdrlen = (unsigned char *)iptr - (unsigned char *)headerp;
  
--static void
--rpcrdma_receive_worker(struct work_struct *work)
--{
--	struct rpcrdma_rep *rep =
--			container_of(work, struct rpcrdma_rep, rr_work);
--
--	rpcrdma_reply_handler(rep);
--}
--
- /* Perform basic sanity checking to avoid using garbage
-  * to update the credit grant value.
-  */
-@@ -840,7 +831,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
- 	rep->rr_device = ia->ri_device;
- 	rep->rr_cqe.done = rpcrdma_receive_wc;
- 	rep->rr_rxprt = r_xprt;
--	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
-+	INIT_WORK(&rep->rr_work, rpcrdma_reply_handler);
- 	return rep;
+-	if (hdrlen + rpclen > RPCRDMA_INLINE_WRITE_THRESHOLD(rqst))
++	if (hdrlen + rpclen > r_xprt->rx_data.inline_wsize)
+ 		goto out_overflow;
  
- out_free:
+ 	dprintk("RPC: %5u %s: %s/%s: hdrlen %zd rpclen %zd\n",
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index 549486d..970f102 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -518,7 +518,7 @@ out:
+ 	return req->rl_sendbuf->rg_base;
+ 
+ out_rdmabuf:
+-	min_size = RPCRDMA_INLINE_WRITE_THRESHOLD(task->tk_rqstp);
++	min_size = r_xprt->rx_data.inline_wsize;
+ 	rb = rpcrdma_alloc_regbuf(&r_xprt->rx_ia, min_size, flags);
+ 	if (IS_ERR(rb))
+ 		goto out_fail;
+@@ -541,8 +541,8 @@ out_sendbuf:
+ 	 * reply will be large, but slush is provided here to allow
+ 	 * flexibility when marshaling.
+ 	 */
+-	min_size = RPCRDMA_INLINE_READ_THRESHOLD(task->tk_rqstp);
+-	min_size += RPCRDMA_INLINE_WRITE_THRESHOLD(task->tk_rqstp);
++	min_size = r_xprt->rx_data.inline_rsize;
++	min_size += r_xprt->rx_data.inline_wsize;
+ 	if (size < min_size)
+ 		size = min_size;
+ 
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 33a1b48..3bd47f1 100644
+index 3bd47f1..63d59f1 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -507,7 +507,7 @@ rpcrdma_data_dir(bool writing)
-  */
- void rpcrdma_connect_worker(struct work_struct *);
- void rpcrdma_conn_func(struct rpcrdma_ep *);
--void rpcrdma_reply_handler(struct rpcrdma_rep *);
-+void rpcrdma_reply_handler(struct work_struct *);
+@@ -362,15 +362,6 @@ struct rpcrdma_create_data_internal {
+ 	unsigned int	padding;	/* non-rdma write header padding */
+ };
  
+-#define RPCRDMA_INLINE_READ_THRESHOLD(rq) \
+-	(rpcx_to_rdmad(rq->rq_xprt).inline_rsize)
+-
+-#define RPCRDMA_INLINE_WRITE_THRESHOLD(rq)\
+-	(rpcx_to_rdmad(rq->rq_xprt).inline_wsize)
+-
+-#define RPCRDMA_INLINE_PAD_VALUE(rq)\
+-	rpcx_to_rdmad(rq->rq_xprt).padding
+-
  /*
-  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
+  * Statistics for RPCRDMA
+  */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
