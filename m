@@ -1,40 +1,219 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v1 09/20] xprtrdma: Limit the number of rpcrdma_mws
-Date: Tue, 7 Jun 2016 16:01:07 -0600
-Message-ID: <20160607220107.GA9982@obsidianresearch.com>
-References: <20160607194001.18401.88592.stgit@manet.1015granger.net>
- <20160607194732.18401.71941.stgit@manet.1015granger.net>
- <20160607204941.GA7991@obsidianresearch.com>
- <F1820E16-A2BF-4529-A5C9-59C9AD57369A@oracle.com>
- <20160607212831.GA9192@obsidianresearch.com>
- <D90190F5-ACCB-45D8-B08D-B75023ED6240@oracle.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
+Date: Tue, 7 Jun 2016 16:37:38 -0600
+Message-ID: <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
+References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
+ <5756B7D2.5040009@mellanox.com> <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <D90190F5-ACCB-45D8-B08D-B75023ED6240-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 07, 2016 at 05:51:04PM -0400, Chuck Lever wrote:
+On the 4.1.15 kernel:
+sdc;10.218.128.17;3971878;992969;21120
+sdd;10.218.202.17;3967745;991936;21142
+sdg;10.218.203.17;3938128;984532;21301
+sdk;10.218.204.17;3952602;988150;21223
+sdn;10.219.128.17;4615719;1153929;18174
+sdf;10.219.202.17;4622331;1155582;18148
+sdi;10.219.203.17;4602297;1150574;18227
+sdl;10.219.204.17;4565477;1141369;18374
+sde;10.220.128.17;4594986;1148746;18256
+sdh;10.220.202.17;4590209;1147552;18275
+sdj;10.220.203.17;4599017;1149754;18240
+sdm;10.220.204.17;4610898;1152724;18193
 
-> There is a practical number of MRs that can be allocated
-> per device, I thought. And each MR consumes some amount
-> of host memory.
- 
-> xprtrdma is happy to allocate thousands of MRs per QP/PD
-> pair, but that isn't practical as you start adding more
-> transports/connections.
+On the 4.6.0 kernel:
+sdc;10.218.128.17;3239219;809804;25897
+sdf;10.218.202.17;3321300;830325;25257
+sdm;10.218.203.17;3339015;834753;25123
+sdk;10.218.204.17;3637573;909393;23061
+sde;10.219.128.17;3325777;831444;25223
+sdl;10.219.202.17;3305464;826366;25378
+sdg;10.219.203.17;3304032;826008;25389
+sdn;10.219.204.17;3330001;832500;25191
+sdd;10.220.128.17;4624370;1156092;18140
+sdi;10.220.202.17;4619277;1154819;18160
+sdj;10.220.203.17;4610138;1152534;18196
+sdh;10.220.204.17;4586445;1146611;18290
 
-Yes, this is all sane and valid.
+It seems that there is a lot of changes between the kernels. I had
+these kernels already on the box and I can bisect them if you think it
+would help. It is really odd that port 2 on the Connect-IB card did
+better than port 1 on the 4.6.0 kernel.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
-Typically you'd target a concurrency limit per QP and allocate
-everything (# MRs, sq,rq,cq depth, etc) in accordance with that goal,
-I'd also suggest that target concurrency is probably a user tunable..
 
-Jason
+On Tue, Jun 7, 2016 at 10:48 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> The target is LIO (same kernel) with a 200 GB RAM disk and I'm running
+> fio as follows:
+>
+> fio --rw=read --bs=4K --size=2G --numjobs=40 --name=worker.matt
+> --group_reporting --minimal |  cut -d';' -f7,8,9
+>
+> All of the paths are set the same with noop and nomerges to either 1
+> or 2 (doesn't make a big difference).
+>
+> I started looking into this when the 4.6 kernel wasn't performing as
+> well as we were able to get the 4.4 kernel to work. I went back to the
+> 4.4 kernel and I could not replicate the 4+ million IOPs. So I started
+> breaking down the problem to smaller pieces and found this anomaly.
+> Since there hasn't been any suggestions up to this point, I'll check
+> other kernel version to see if it is specific to certain kernels. If
+> you need more information, please let me know.
+>
+> Thanks,
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>
+>
+> On Tue, Jun 7, 2016 at 6:02 AM, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>
+>>
+>> On 6/7/2016 1:36 AM, Robert LeBlanc wrote:
+>>>
+>>> I'm trying to understand why our Connect-IB card is not performing as
+>>> well as our ConnectX-3 card. There are 3 ports between the two cards
+>>> and 12 paths to the iSER target which is a RAM disk.
+>>
+>>
+>> <snip>
+>>
+>>>
+>>> When I run fio against each path individually, I get:
+>>
+>>
+>> What is the scenario (bs, numjobs, iodepth) for each run ?
+>> Which target do you use ? backing store ?
+>>
+>>
+>>>
+>>> disk;target IP;bandwidth,IOPs,Execution time
+>>> sdn;10.218.128.17;5053682;1263420;16599
+>>> sde;10.218.202.17;5032158;1258039;16670
+>>> sdh;10.218.203.17;4993516;1248379;16799
+>>> sdk;10.218.204.17;5081848;1270462;16507
+>>> sdc;10.219.128.17;3750942;937735;22364
+>>> sdf;10.219.202.17;3746921;936730;22388
+>>> sdi;10.219.203.17;3873929;968482;21654
+>>> sdl;10.219.204.17;3841465;960366;21837
+>>> sdd;10.220.128.17;3760358;940089;22308
+>>> sdg;10.220.202.17;3866252;966563;21697
+>>> sdj;10.220.203.17;3757495;939373;22325
+>>> sdm;10.220.204.17;4064051;1016012;20641
+>>>
+>>> However, running ib_send_bw, I get:
+>>>
+>>> # ib_send_bw -d mlx4_0 -i 1 10.218.128.17 -F --report_gbits
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>>                     Send BW Test
+>>> Dual-port       : OFF          Device         : mlx4_0
+>>> Number of qps   : 1            Transport type : IB
+>>> Connection type : RC           Using SRQ      : OFF
+>>> TX depth        : 128
+>>> CQ Moderation   : 100
+>>> Mtu             : 2048[B]
+>>> Link type       : IB
+>>> Max inline data : 0[B]
+>>> rdma_cm QPs     : OFF
+>>> Data ex. method : Ethernet
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> local address: LID 0x3f QPN 0x02b5 PSN 0x87274e
+>>> remote address: LID 0x22 QPN 0x0213 PSN 0xaf9232
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
+>>> MsgRate[Mpps]
+>>> Conflicting CPU frequency values detected: 3219.835000 != 3063.531000
+>>> Test integrity may be harmed !
+>>> Warning: measured timestamp frequency 2599.95 differs from nominal 3219.84
+>>> MHz
+>>> 65536      1000             50.57              50.57              0.096461
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> # ib_send_bw -d mlx5_0 -i 1 10.219.128.17 -F --report_gbits
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>>                     Send BW Test
+>>> Dual-port       : OFF          Device         : mlx5_0
+>>> Number of qps   : 1            Transport type : IB
+>>> Connection type : RC           Using SRQ      : OFF
+>>> TX depth        : 128
+>>> CQ Moderation   : 100
+>>> Mtu             : 4096[B]
+>>> Link type       : IB
+>>> Max inline data : 0[B]
+>>> rdma_cm QPs     : OFF
+>>> Data ex. method : Ethernet
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> local address: LID 0x12 QPN 0x003e PSN 0x75f1a0
+>>> remote address: LID 0x1d QPN 0x003e PSN 0x7f7f71
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
+>>> MsgRate[Mpps]
+>>> Conflicting CPU frequency values detected: 3399.906000 != 2747.773000
+>>> Test integrity may be harmed !
+>>> Warning: measured timestamp frequency 2599.98 differs from nominal 3399.91
+>>> MHz
+>>> 65536      1000             52.12              52.12              0.099414
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> # ib_send_bw -d mlx5_0 -i 2 10.220.128.17 -F --report_gbits
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>>                     Send BW Test
+>>> Dual-port       : OFF          Device         : mlx5_0
+>>> Number of qps   : 1            Transport type : IB
+>>> Connection type : RC           Using SRQ      : OFF
+>>> TX depth        : 128
+>>> CQ Moderation   : 100
+>>> Mtu             : 4096[B]
+>>> Link type       : IB
+>>> Max inline data : 0[B]
+>>> rdma_cm QPs     : OFF
+>>> Data ex. method : Ethernet
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> local address: LID 0x0f QPN 0x0041 PSN 0xb7203d
+>>> remote address: LID 0x1c QPN 0x0041 PSN 0xf8b80a
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>> #bytes     #iterations    BW peak[Gb/sec]    BW average[Gb/sec]
+>>> MsgRate[Mpps]
+>>> Conflicting CPU frequency values detected: 3327.796000 != 1771.046000
+>>> Test integrity may be harmed !
+>>> Warning: measured timestamp frequency 2599.97 differs from nominal 3327.8
+>>> MHz
+>>> 65536      1000             52.14              52.14              0.099441
+>>>
+>>> ---------------------------------------------------------------------------------------
+>>>
+>>> Here I see that the ConnectX-3 cards with iSER is matching the
+>>> performance of the ib_send_bw. However, the Connect-IB performs better
+>>> than the mlx4 with ib_send_bw, but performs much worse with iSER.
+>>>
+>>> This is running the 4.4.4 kernel. Is there some ideas of what I can do
+>>> to get the iSER performance out of the Connect-IB cards?
+>>
+>>
+>> did you see this regression in different kernel ?
+>>
+>>
+>>>
+>>> ----------------
+>>> Robert LeBlanc
+>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
