@@ -1,74 +1,110 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 13/20] xprtrdma: Update only specific fields in private
- receive buffer
-Date: Tue, 07 Jun 2016 15:48:05 -0400
-Message-ID: <20160607194805.18401.3274.stgit@manet.1015granger.net>
+Subject: [PATCH v1 14/20] xprtrdma: Clean up fixup_copy_count accounting
+Date: Tue, 07 Jun 2016 15:48:13 -0400
+Message-ID: <20160607194813.18401.34276.stgit@manet.1015granger.net>
 References: <20160607194001.18401.88592.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160607194001.18401.88592.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now that rpcrdma_inline_fixup() updates only two fields in
-rq_rcv_buf, a full memcpy of that structure to rq_private_buf is
-unwarranted. Updating rq_private_buf fields only where needed also
-better documents what is going on.
+fixup_copy_count should count only the number of bytes copied to the
+page list. The head and tail are now always handled without a data
+copy.
+
+And the debugging at the end of rpcrdma_inline_fixup() is also no
+longer necessary, since copy_len will be non-zero when there is reply
+data in the tail (a normal and valid case).
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index be70f22a..b763f49 100644
+index b763f49..34a5df9 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -753,6 +753,11 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, int wrchunk, __be32 **iptrp)
-  * The upper layer has set the maximum number of bytes it can
-  * receive in each component of rq_rcv_buf. These values are set in
-  * the head.iov_len, page_len, tail.iov_len, and buflen fields.
+@@ -758,11 +758,14 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, int wrchunk, __be32 **iptrp)
+  * many cases this function simply updates iov_base pointers in
+  * rq_rcv_buf to point directly to the received reply data, to
+  * avoid copying reply data.
 + *
-+ * Unlike the TCP equivalent (xdr_partial_copy_from_skb), in
-+ * many cases this function simply updates iov_base pointers in
-+ * rq_rcv_buf to point directly to the received reply data, to
-+ * avoid copying reply data.
++ * Returns the count of bytes which had to be memcopied.
   */
- static void
+-static void
++static unsigned long
  rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
-@@ -766,6 +771,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 	 * in the receive buffer, to avoid a memcopy.
- 	 */
- 	rqst->rq_rcv_buf.head[0].iov_base = srcp;
-+	rqst->rq_private_buf.head[0].iov_base = srcp;
+ {
+-	int i, npages, curlen, olen;
++	unsigned long fixup_copy_count;
++	int i, npages, curlen;
+ 	char *destp;
+ 	struct page **ppages;
+ 	int page_base;
+@@ -784,13 +787,10 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 	srcp += curlen;
+ 	copy_len -= curlen;
  
- 	/* The contents of the receive buffer that follow
- 	 * head.iov_len bytes are copied into the page list.
-@@ -825,16 +831,15 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 	/* The tail iovec is redirected to the remaining data
- 	 * in the receive buffer, to avoid a memcopy.
- 	 */
--	if (copy_len || pad)
-+	if (copy_len || pad) {
- 		rqst->rq_rcv_buf.tail[0].iov_base = srcp;
-+		rqst->rq_private_buf.tail[0].iov_base = srcp;
-+	}
- 
- 	if (copy_len)
- 		dprintk("RPC:       %s: %d bytes in"
- 			" %d extra segments (%d lost)\n",
- 			__func__, olen, i, copy_len);
+-	olen = copy_len;
+-	i = 0;
+-	rpcx_to_rdmax(rqst->rq_xprt)->rx_stats.fixup_copy_count += olen;
+ 	page_base = rqst->rq_rcv_buf.page_base;
+ 	ppages = rqst->rq_rcv_buf.pages + (page_base >> PAGE_SHIFT);
+ 	page_base &= ~PAGE_MASK;
 -
--	/* TBD avoid a warning from call_decode() */
--	rqst->rq_private_buf = rqst->rq_rcv_buf;
++	fixup_copy_count = 0;
+ 	if (copy_len && rqst->rq_rcv_buf.page_len) {
+ 		int pagelist_len;
+ 
+@@ -798,7 +798,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 		if (pagelist_len > copy_len)
+ 			pagelist_len = copy_len;
+ 		npages = PAGE_ALIGN(page_base + pagelist_len) >> PAGE_SHIFT;
+-		for (; i < npages; i++) {
++		for (i = 0; i < npages; i++) {
+ 			curlen = PAGE_SIZE - page_base;
+ 			if (curlen > pagelist_len)
+ 				curlen = pagelist_len;
+@@ -812,6 +812,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 			kunmap_atomic(destp);
+ 			srcp += curlen;
+ 			copy_len -= curlen;
++			fixup_copy_count += curlen;
+ 			pagelist_len -= curlen;
+ 			if (!pagelist_len)
+ 				break;
+@@ -836,10 +837,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 		rqst->rq_private_buf.tail[0].iov_base = srcp;
+ 	}
+ 
+-	if (copy_len)
+-		dprintk("RPC:       %s: %d bytes in"
+-			" %d extra segments (%d lost)\n",
+-			__func__, olen, i, copy_len);
++	return fixup_copy_count;
  }
  
  void
+@@ -1002,8 +1000,10 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 			rep->rr_len -= RPCRDMA_HDRLEN_MIN;
+ 			status = rep->rr_len;
+ 		}
+-		/* Fix up the rpc results for upper layer */
+-		rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len, rdmalen);
++
++		r_xprt->rx_stats.fixup_copy_count +=
++			rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len,
++					     rdmalen);
+ 		break;
+ 
+ 	case rdma_nomsg:
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
