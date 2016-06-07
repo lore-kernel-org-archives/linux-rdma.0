@@ -1,37 +1,42 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: NVMe over Fabrics RDMA transport drivers
-Date: Tue, 7 Jun 2016 15:14:22 -0500
-Message-ID: <6ed161c3-d7d2-909f-6f17-7d75c36ed5b2@opengridcomputing.com>
-References: <1465248215-18186-1-git-send-email-hch@lst.de>
- <5756B695.5020305@grimberg.me>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DDCB23D@ORSMSX115.amr.corp.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 3/7] IB/IPoIB: Fix race between ipoib_remove_one
+ to sysfs functions
+Date: Tue, 7 Jun 2016 23:22:48 +0300
+Message-ID: <CAJ3xEMj-5Aet518M6N=3fGRT06YXWPSm-vDVL5iqRbiiRTbH-Q@mail.gmail.com>
+References: <1465042524-25852-1-git-send-email-leon@kernel.org>
+ <1465042524-25852-4-git-send-email-leon@kernel.org> <CAJ3xEMh_Pg2Kkp6yHx2OUJMokn0HX8Jd9Q0bcsB50KfTAcP1Gw@mail.gmail.com>
+ <CAAk-MO_9P2vVJS_RXrqUPx224Re9sjifug+hfxVGN4Ze5tYhSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7DDCB23D@ORSMSX115.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Woodruff, Robert J" <robert.j.woodruff@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Christoph Hellwig <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "Busch, Keith" <keith.busch@intel.com>
-Cc: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAk-MO_9P2vVJS_RXrqUPx224Re9sjifug+hfxVGN4Ze5tYhSg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/7/2016 9:55 AM, Woodruff, Robert J wrote:
-> Sagi Grimberg wrote,
+On Tue, Jun 7, 2016 at 1:45 PM, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Tue, Jun 7, 2016 at 10:31 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> On Sat, Jun 4, 2016 at 3:15 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>
+>>> Fixes: 862096a8bbf8 ("IB/ipoib: Add more rtnl_link_ops callbacks")
+>>> Fixes: 9baa0b036410 ("IB/ipoib: Add rtnl_link_ops support")
+>>
+>> These two commits go back to 3.7-rc1 / Oct 2012 -- so I wonder how come we never
+>> got reports on this ABBA deadlock happens in real life - any idea, did
+>> you see the deadlock in
 >
->> We forgot to CC Linux-rdma, CC'ing...
-> Are you planning on sending the patch set to the linux-rdma list for comments as well ?
-> It might be good to do so if you want review from the rdma subsystem experts, as many of them do not subscribe to the other
-> lists.
+> Sure, it is from the real life, you can see the stack that i added to
+> the commit message.
 
-It would be great to make sure and CC linux-rdma on v2 of all 4 series, 
-so interested folks can review and/or test out the whole enchilada.
+yes, but the bug you're pointing on is out there for whole four years
+and no one complained including you, can you explain that?
 
-Anyway, today I used the github tree at 
-git://git.infradead.org/nvme-fabrics.git, branch nvmf-all for testing 
-NVME/Fabrics over RDMA.  I used nvme-cli from 
-https://github.com/linux-nvme/nvme-cli.git, and nvmetcli from 
-git://git.infradead.org/users/hch/nvmetcli.git for configuring.  I ran 
-some xfs, fio and iozone tests over both iw_cxgb4 and mlx4, using ram 
-disks and an NVME ssd.  Checks out good so far!
+> If you want to simulate that just add sleep in the remove_one while
+> trying to change mode/add-child etc.
 
-Tested-by: Steve Wise <swise@opengridcomputing.com>
+so why need to simulate? is that impossible to get it on non simulated env?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
