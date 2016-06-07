@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libmlx5 1/7] Refactor mlx5_poll_one
-Date: Tue,  7 Jun 2016 15:11:33 +0300
-Message-ID: <1465301499-21234-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 libmlx5 5/7] Add support for creating an extended CQ
+Date: Tue,  7 Jun 2016 15:11:37 +0300
+Message-ID: <1465301499-21234-6-git-send-email-yishaih@mellanox.com>
 References: <1465301499-21234-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465301499-21234-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,207 +12,287 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Since downstream patches aim to provide lazy CQE polling, which
-let the user poll the CQE's attribute via inline function, we
-refactor poll_one:
-* Return status instead of writing directly to the wc as part of
-  handle_error_cqe.
-* Introduce mlx5_get_next_cqe which will be used to advance the
-  CQE iterator.
+This patch adds the support for creating an extended CQ.
+This means we support:
+- The new polling mechanism.
+- A CQ which is single threaded and by thus doesn't waste CPU cycles on locking.
+- Getting completion timestamp from the CQ.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cq.c | 127 +++++++++++++++++++++++++++++++++------------------------------
- 1 file changed, 67 insertions(+), 60 deletions(-)
+ src/cq.c    | 74 +++++++++++++++++++++++++++++++++++++++++++++++++
+ src/mlx5.c  |  1 +
+ src/mlx5.h  |  5 ++++
+ src/verbs.c | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 4 files changed, 155 insertions(+), 16 deletions(-)
 
 diff --git a/src/cq.c b/src/cq.c
-index ce18ac9..e962dd9 100644
+index bf2bbed..96f3a03 100644
 --- a/src/cq.c
 +++ b/src/cq.c
-@@ -297,55 +297,38 @@ static void dump_cqe(FILE *fp, void *buf)
- 			ntohl(p[i + 2]), ntohl(p[i + 3]));
+@@ -1223,6 +1223,80 @@ static inline uint64_t mlx5_cq_read_wc_completion_ts(struct ibv_cq_ex *ibcq)
+ 	return ntohll(cq->cqe64->timestamp);
  }
  
--static void mlx5_handle_error_cqe(struct mlx5_err_cqe *cqe,
--				  struct ibv_wc *wc)
-+static enum ibv_wc_status mlx5_handle_error_cqe(struct mlx5_err_cqe *cqe)
- {
- 	switch (cqe->syndrome) {
- 	case MLX5_CQE_SYNDROME_LOCAL_LENGTH_ERR:
--		wc->status = IBV_WC_LOC_LEN_ERR;
--		break;
-+		return IBV_WC_LOC_LEN_ERR;
- 	case MLX5_CQE_SYNDROME_LOCAL_QP_OP_ERR:
--		wc->status = IBV_WC_LOC_QP_OP_ERR;
--		break;
-+		return IBV_WC_LOC_QP_OP_ERR;
- 	case MLX5_CQE_SYNDROME_LOCAL_PROT_ERR:
--		wc->status = IBV_WC_LOC_PROT_ERR;
--		break;
-+		return IBV_WC_LOC_PROT_ERR;
- 	case MLX5_CQE_SYNDROME_WR_FLUSH_ERR:
--		wc->status = IBV_WC_WR_FLUSH_ERR;
--		break;
-+		return IBV_WC_WR_FLUSH_ERR;
- 	case MLX5_CQE_SYNDROME_MW_BIND_ERR:
--		wc->status = IBV_WC_MW_BIND_ERR;
--		break;
-+		return IBV_WC_MW_BIND_ERR;
- 	case MLX5_CQE_SYNDROME_BAD_RESP_ERR:
--		wc->status = IBV_WC_BAD_RESP_ERR;
--		break;
-+		return IBV_WC_BAD_RESP_ERR;
- 	case MLX5_CQE_SYNDROME_LOCAL_ACCESS_ERR:
--		wc->status = IBV_WC_LOC_ACCESS_ERR;
--		break;
-+		return IBV_WC_LOC_ACCESS_ERR;
- 	case MLX5_CQE_SYNDROME_REMOTE_INVAL_REQ_ERR:
--		wc->status = IBV_WC_REM_INV_REQ_ERR;
--		break;
-+		return IBV_WC_REM_INV_REQ_ERR;
- 	case MLX5_CQE_SYNDROME_REMOTE_ACCESS_ERR:
--		wc->status = IBV_WC_REM_ACCESS_ERR;
--		break;
-+		return IBV_WC_REM_ACCESS_ERR;
- 	case MLX5_CQE_SYNDROME_REMOTE_OP_ERR:
--		wc->status = IBV_WC_REM_OP_ERR;
--		break;
-+		return IBV_WC_REM_OP_ERR;
- 	case MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RETRY_EXC_ERR;
- 	case MLX5_CQE_SYNDROME_RNR_RETRY_EXC_ERR:
--		wc->status = IBV_WC_RNR_RETRY_EXC_ERR;
--		break;
-+		return IBV_WC_RNR_RETRY_EXC_ERR;
- 	case MLX5_CQE_SYNDROME_REMOTE_ABORTED_ERR:
--		wc->status = IBV_WC_REM_ABORT_ERR;
--		break;
-+		return IBV_WC_REM_ABORT_ERR;
- 	default:
--		wc->status = IBV_WC_GENERAL_ERR;
--		break;
-+		return IBV_WC_GENERAL_ERR;
- 	}
--
--	wc->vendor_err = cqe->vendor_err_synd;
- }
- 
- #if defined(__x86_64__) || defined (__i386__)
-@@ -504,36 +487,21 @@ static inline int get_cur_rsc(struct mlx5_context *mctx,
- 
- }
- 
--static inline int mlx5_poll_one(struct mlx5_cq *cq,
--			 struct mlx5_resource **cur_rsc,
--			 struct mlx5_srq **cur_srq,
--			 struct ibv_wc *wc, int cqe_ver)
--			 __attribute__((always_inline));
--static inline int mlx5_poll_one(struct mlx5_cq *cq,
--			 struct mlx5_resource **cur_rsc,
--			 struct mlx5_srq **cur_srq,
--			 struct ibv_wc *wc, int cqe_ver)
-+static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
-+				    struct mlx5_cqe64 **pcqe64,
-+				    void **pcqe)
-+				    __attribute__((always_inline));
-+static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
-+				    struct mlx5_cqe64 **pcqe64,
-+				    void **pcqe)
- {
--	struct mlx5_cqe64 *cqe64;
--	struct mlx5_wq *wq;
--	uint16_t wqe_ctr;
- 	void *cqe;
--	uint32_t qpn;
--	uint32_t srqn_uidx;
--	int idx;
--	uint8_t opcode;
--	struct mlx5_err_cqe *ecqe;
--	int err;
--	struct mlx5_qp *mqp;
--	struct mlx5_context *mctx;
--	uint8_t is_srq = 0;
-+	struct mlx5_cqe64 *cqe64;
- 
- 	cqe = next_cqe_sw(cq);
- 	if (!cqe)
- 		return CQ_EMPTY;
- 
--	mctx = to_mctx(cq->ibv_cq.context);
--
- 	cqe64 = (cq->cqe_sz == 64) ? cqe : cqe + 64;
- 
- 	++cq->cons_index;
-@@ -547,14 +515,52 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
- 	rmb();
- 
- #ifdef MLX5_DEBUG
--	if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
--		FILE *fp = mctx->dbg_fp;
-+	{
-+		struct mlx5_context *mctx = to_mctx(cq->ibv_cq.context);
++#define BIT(i) (1UL << (i))
 +
-+		if (mlx5_debug_mask & MLX5_DBG_CQ_CQE) {
-+			FILE *fp = mctx->dbg_fp;
- 
--		mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
--		dump_cqe(fp, cqe64);
-+			mlx5_dbg(fp, MLX5_DBG_CQ_CQE, "dump cqe for cqn 0x%x:\n", cq->cqn);
-+			dump_cqe(fp, cqe64);
-+		}
- 	}
- #endif
-+	*pcqe64 = cqe64;
-+	*pcqe = cqe;
- 
-+	return CQ_OK;
++#define SINGLE_THREADED BIT(0)
++#define STALL BIT(1)
++#define V1 BIT(2)
++#define ADAPTIVE BIT(3)
++
++#define mlx5_start_poll_name(cqe_ver, lock, stall, adaptive) \
++	mlx5_start_poll##adaptive##stall##cqe_ver##lock
++#define mlx5_next_poll_name(cqe_ver, adaptive) \
++	mlx5_next_poll##adaptive##cqe_ver
++#define mlx5_end_poll_name(lock, stall, adaptive) \
++	mlx5_end_poll##adaptive##stall##lock
++
++#define POLL_FN_ENTRY(cqe_ver, lock, stall, adaptive) { \
++		.start_poll = &mlx5_start_poll_name(cqe_ver, lock, stall, adaptive), \
++		.next_poll = &mlx5_next_poll_name(cqe_ver, adaptive), \
++		.end_poll = &mlx5_end_poll_name(lock, stall, adaptive), \
++	}
++
++static const struct op
++{
++	int (*start_poll)(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr);
++	int (*next_poll)(struct ibv_cq_ex *ibcq);
++	void (*end_poll)(struct ibv_cq_ex *ibcq);
++} ops[ADAPTIVE + V1 + STALL + SINGLE_THREADED + 1] = {
++	[V1] =  POLL_FN_ENTRY(_v1, _lock, , ),
++	[0] =  POLL_FN_ENTRY(_v0, _lock, , ),
++	[V1 | SINGLE_THREADED] =  POLL_FN_ENTRY(_v1, , , ),
++	[SINGLE_THREADED] =  POLL_FN_ENTRY(_v0, , , ),
++	[V1 | STALL] =  POLL_FN_ENTRY(_v1, _lock, _stall, ),
++	[STALL] =  POLL_FN_ENTRY(_v0, _lock, _stall, ),
++	[V1 | SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v1, , _stall, ),
++	[SINGLE_THREADED | STALL] =  POLL_FN_ENTRY(_v0, , _stall, ),
++	[V1 | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, _lock, _stall, _adaptive),
++	[STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, _lock, _stall, _adaptive),
++	[V1 | SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v1, , _stall, _adaptive),
++	[SINGLE_THREADED | STALL | ADAPTIVE] =  POLL_FN_ENTRY(_v0, , _stall, _adaptive),
++};
++
++void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr)
++{
++	struct mlx5_context *mctx = to_mctx(ibv_cq_ex_to_cq(&cq->ibv_cq)->context);
++	const struct op *poll_ops = &ops[((cq->stall_enable && cq->stall_adaptive_enable) ? ADAPTIVE : 0) |
++					 (mctx->cqe_version ? V1 : 0) |
++					 (cq->flags & MLX5_CQ_FLAGS_SINGLE_THREADED ?
++						      SINGLE_THREADED : 0) |
++					 (cq->stall_enable ? STALL : 0)];
++
++	cq->ibv_cq.start_poll = poll_ops->start_poll;
++	cq->ibv_cq.next_poll = poll_ops->next_poll;
++	cq->ibv_cq.end_poll = poll_ops->end_poll;
++
++	cq->ibv_cq.read_opcode = mlx5_cq_read_wc_opcode;
++	cq->ibv_cq.read_vendor_err = mlx5_cq_read_wc_vendor_err;
++	cq->ibv_cq.read_wc_flags = mlx5_cq_read_wc_flags;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_BYTE_LEN)
++		cq->ibv_cq.read_byte_len = mlx5_cq_read_wc_byte_len;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_IMM)
++		cq->ibv_cq.read_imm_data = mlx5_cq_read_wc_imm_data;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_QP_NUM)
++		cq->ibv_cq.read_qp_num = mlx5_cq_read_wc_qp_num;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SRC_QP)
++		cq->ibv_cq.read_src_qp = mlx5_cq_read_wc_src_qp;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SLID)
++		cq->ibv_cq.read_slid = mlx5_cq_read_wc_slid;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_SL)
++		cq->ibv_cq.read_sl = mlx5_cq_read_wc_sl;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_DLID_PATH_BITS)
++		cq->ibv_cq.read_dlid_path_bits = mlx5_cq_read_wc_dlid_path_bits;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
++		cq->ibv_cq.read_completion_ts = mlx5_cq_read_wc_completion_ts;
 +}
 +
-+static inline int mlx5_poll_one(struct mlx5_cq *cq,
-+				struct mlx5_resource **cur_rsc,
-+				struct mlx5_srq **cur_srq,
-+				struct ibv_wc *wc, int cqe_ver)
-+				__attribute__((always_inline));
-+static inline int mlx5_poll_one(struct mlx5_cq *cq,
-+				struct mlx5_resource **cur_rsc,
-+				struct mlx5_srq **cur_srq,
-+				struct ibv_wc *wc, int cqe_ver)
+ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibvcq);
+diff --git a/src/mlx5.c b/src/mlx5.c
+index 7bd01bd..d7a6a8f 100644
+--- a/src/mlx5.c
++++ b/src/mlx5.c
+@@ -702,6 +702,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
+ 	verbs_set_ctx_op(v_ctx, ibv_create_flow, ibv_cmd_create_flow);
+ 	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
++	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
+ 
+ 	memset(&device_attr, 0, sizeof(device_attr));
+ 	if (!mlx5_query_device(ctx, &device_attr)) {
+diff --git a/src/mlx5.h b/src/mlx5.h
+index 15510cf..506ec0a 100644
+--- a/src/mlx5.h
++++ b/src/mlx5.h
+@@ -368,6 +368,8 @@ enum {
+ 	MLX5_CQ_FLAGS_RX_CSUM_VALID = 1 << 0,
+ 	MLX5_CQ_FLAGS_EMPTY_DURING_POLL = 1 << 1,
+ 	MLX5_CQ_FLAGS_FOUND_CQES = 1 << 2,
++	MLX5_CQ_FLAGS_EXTENDED = 1 << 3,
++	MLX5_CQ_FLAGS_SINGLE_THREADED = 1 << 4,
+ };
+ 
+ struct mlx5_cq {
+@@ -635,6 +637,9 @@ int mlx5_dereg_mr(struct ibv_mr *mr);
+ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 			       struct ibv_comp_channel *channel,
+ 			       int comp_vector);
++struct ibv_cq_ex *mlx5_create_cq_ex(struct ibv_context *context,
++				    struct ibv_cq_init_attr_ex *cq_attr);
++void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_attr);
+ int mlx5_alloc_cq_buf(struct mlx5_context *mctx, struct mlx5_cq *cq,
+ 		      struct mlx5_buf *buf, int nent, int cqe_sz);
+ int mlx5_free_cq_buf(struct mlx5_context *ctx, struct mlx5_buf *buf);
+diff --git a/src/verbs.c b/src/verbs.c
+index e78d2a5..6f2ef00 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -254,9 +254,22 @@ static int qp_sig_enabled(void)
+ 	return 0;
+ }
+ 
+-struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+-			      struct ibv_comp_channel *channel,
+-			      int comp_vector)
++enum {
++	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
++				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
++};
++
++enum {
++	CREATE_CQ_SUPPORTED_COMP_MASK = IBV_CQ_INIT_ATTR_MASK_FLAGS
++};
++
++enum {
++	CREATE_CQ_SUPPORTED_FLAGS = IBV_CREATE_CQ_ATTR_SINGLE_THREADED
++};
++
++static struct ibv_cq_ex *create_cq(struct ibv_context *context,
++				   const struct ibv_cq_init_attr_ex *cq_attr,
++				   int cq_alloc_flags)
+ {
+ 	struct mlx5_create_cq		cmd;
+ 	struct mlx5_create_cq_resp	resp;
+@@ -268,12 +281,33 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 	FILE *fp = to_mctx(context)->dbg_fp;
+ #endif
+ 
+-	if (!cqe) {
+-		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
++	if (!cq_attr->cqe) {
++		mlx5_dbg(fp, MLX5_DBG_CQ, "CQE invalid\n");
++		errno = EINVAL;
++		return NULL;
++	}
++
++	if (cq_attr->comp_mask & ~CREATE_CQ_SUPPORTED_COMP_MASK) {
++		mlx5_dbg(fp, MLX5_DBG_CQ,
++			 "Unsupported comp_mask for create_cq\n");
++		errno = EINVAL;
++		return NULL;
++	}
++
++	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
++	    cq_attr->flags & ~CREATE_CQ_SUPPORTED_FLAGS) {
++		mlx5_dbg(fp, MLX5_DBG_CQ,
++			 "Unsupported creation flags requested for create_cq\n");
+ 		errno = EINVAL;
+ 		return NULL;
+ 	}
+ 
++	if (cq_attr->wc_flags & ~CREATE_CQ_SUPPORTED_WC_FLAGS) {
++		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
++		errno = ENOTSUP;
++		return NULL;
++	}
++
+ 	cq =  calloc(1, sizeof *cq);
+ 	if (!cq) {
+ 		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
+@@ -286,15 +320,8 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 	if (mlx5_spinlock_init(&cq->lock))
+ 		goto err;
+ 
+-	/* The additional entry is required for resize CQ */
+-	if (cqe <= 0) {
+-		mlx5_dbg(fp, MLX5_DBG_CQ, "\n");
+-		errno = EINVAL;
+-		goto err_spl;
+-	}
+-
+-	ncqe = align_queue_size(cqe + 1);
+-	if ((ncqe > (1 << 24)) || (ncqe < (cqe + 1))) {
++	ncqe = align_queue_size(cq_attr->cqe + 1);
++	if ((ncqe > (1 << 24)) || (ncqe < (cq_attr->cqe + 1))) {
+ 		mlx5_dbg(fp, MLX5_DBG_CQ, "ncqe %d\n", ncqe);
+ 		errno = EINVAL;
+ 		goto err_spl;
+@@ -322,12 +349,17 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 	cq->dbrec[MLX5_CQ_ARM_DB]	= 0;
+ 	cq->arm_sn			= 0;
+ 	cq->cqe_sz			= cqe_sz;
++	cq->flags			= cq_alloc_flags;
+ 
++	if (cq_attr->comp_mask & IBV_CQ_INIT_ATTR_MASK_FLAGS &&
++	    cq_attr->flags & IBV_CREATE_CQ_ATTR_SINGLE_THREADED)
++		cq->flags |= MLX5_CQ_FLAGS_SINGLE_THREADED;
+ 	cmd.buf_addr = (uintptr_t) cq->buf_a.buf;
+ 	cmd.db_addr  = (uintptr_t) cq->dbrec;
+ 	cmd.cqe_size = cqe_sz;
+ 
+-	ret = ibv_cmd_create_cq(context, ncqe - 1, channel, comp_vector,
++	ret = ibv_cmd_create_cq(context, ncqe - 1, cq_attr->channel,
++				cq_attr->comp_vector,
+ 				ibv_cq_ex_to_cq(&cq->ibv_cq), &cmd.ibv_cmd,
+ 				sizeof(cmd), &resp.ibv_resp, sizeof(resp));
+ 	if (ret) {
+@@ -342,7 +374,10 @@ struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
+ 	cq->stall_adaptive_enable = to_mctx(context)->stall_adaptive_enable;
+ 	cq->stall_cycles = to_mctx(context)->stall_cycles;
+ 
+-	return ibv_cq_ex_to_cq(&cq->ibv_cq);
++	if (cq_alloc_flags & MLX5_CQ_FLAGS_EXTENDED)
++		mlx5_cq_fill_pfns(cq, cq_attr);
++
++	return &cq->ibv_cq;
+ 
+ err_db:
+ 	mlx5_free_db(to_mctx(context), cq->dbrec);
+@@ -359,6 +394,30 @@ err:
+ 	return NULL;
+ }
+ 
++struct ibv_cq *mlx5_create_cq(struct ibv_context *context, int cqe,
++			      struct ibv_comp_channel *channel,
++			      int comp_vector)
 +{
-+	struct mlx5_cqe64 *cqe64;
-+	struct mlx5_wq *wq;
-+	uint16_t wqe_ctr;
-+	void *cqe;
-+	uint32_t qpn;
-+	uint32_t srqn_uidx;
-+	int idx;
-+	uint8_t opcode;
-+	struct mlx5_err_cqe *ecqe;
-+	int err;
-+	struct mlx5_qp *mqp;
-+	struct mlx5_context *mctx;
-+	uint8_t is_srq = 0;
++	struct ibv_cq_ex *cq;
++	struct ibv_cq_init_attr_ex cq_attr = {.cqe = cqe, .channel = channel,
++						.comp_vector = comp_vector,
++						.wc_flags = IBV_WC_STANDARD_FLAGS};
 +
-+	err = mlx5_get_next_cqe(cq, &cqe64, &cqe);
-+	if (err == CQ_EMPTY)
-+		return err;
++	if (cqe <= 0) {
++		errno = EINVAL;
++		return NULL;
++	}
 +
-+	mctx = to_mctx(cq->ibv_cq.context);
- 	qpn = ntohl(cqe64->sop_drop_qpn) & 0xffffff;
- 	wc->wc_flags = 0;
- 	wc->qp_num = qpn;
-@@ -602,7 +608,8 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
- 	case MLX5_CQE_RESP_ERR:
- 		srqn_uidx = ntohl(cqe64->srqn_uidx) & 0xffffff;
- 		ecqe = (struct mlx5_err_cqe *)cqe64;
--		mlx5_handle_error_cqe(ecqe, wc);
-+		wc->status = mlx5_handle_error_cqe(ecqe);
-+		wc->vendor_err = ecqe->vendor_err_synd;
- 		if (unlikely(ecqe->syndrome != MLX5_CQE_SYNDROME_WR_FLUSH_ERR &&
- 			     ecqe->syndrome != MLX5_CQE_SYNDROME_TRANSPORT_RETRY_EXC_ERR)) {
- 			FILE *fp = mctx->dbg_fp;
++	cq = create_cq(context, &cq_attr, 0);
++	return cq ? ibv_cq_ex_to_cq(cq) : NULL;
++}
++
++struct ibv_cq_ex *mlx5_create_cq_ex(struct ibv_context *context,
++				    struct ibv_cq_init_attr_ex *cq_attr)
++{
++	return create_cq(context, cq_attr, MLX5_CQ_FLAGS_EXTENDED);
++}
++
+ int mlx5_resize_cq(struct ibv_cq *ibcq, int cqe)
+ {
+ 	struct mlx5_cq *cq = to_mcq(ibcq);
 -- 
 1.8.3.1
 
