@@ -1,61 +1,70 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 2/7] IB/IPoIB: Don't update neigh validity for
- unresolved entries
-Date: Tue, 7 Jun 2016 09:01:38 +0300
-Message-ID: <CAAk-MO9gUtqZHKq+7xaHLkJRM_T-DgF0wOCFuykre9=0VUBbQw@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
+Date: Tue, 7 Jun 2016 10:16:21 +0300
+Message-ID: <20160607071621.GB3663@leon.nu>
 References: <1465042524-25852-1-git-send-email-leon@kernel.org>
-	<1465042524-25852-3-git-send-email-leon@kernel.org>
-	<CAJ3xEMgYKnVh4JECrCSBUYmyCr4s-zxWhMywMVTQPZswLvF61A@mail.gmail.com>
-	<42668994-5666-f5b3-8d38-4c452f0cc70f@redhat.com>
+ <1465042524-25852-7-git-send-email-leon@kernel.org>
+ <85e56121-5911-37f4-2ac3-a1af561d5a7a@redhat.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <42668994-5666-f5b3-8d38-4c452f0cc70f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <85e56121-5911-37f4-2ac3-a1af561d5a7a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 7, 2016 at 2:59 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On 6/5/2016 5:10 PM, Or Gerlitz wrote:
->
->>> -                       neigh->alive = jiffies;
->>> +
->>> +                       if (likely(skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE))
->>> +                               neigh->alive = jiffies;
->>
->> why testing the queue len makes things right?
->
-> I'm with Or on this one.  This test doesn't make sense unless you assume
-> that the neighbor is being hit with a steady stream of packets.  If
-> someone just runs ping -c 1 to a dead neighbor, this test will fail.
-> The idea of the patch is OK, but the test needs to be reworked for
-> situations other than a blasting stream of data.
->
 
-I will try to explain the idea behind that test, and why it works (I
-hope I'll make it clear this time :))
+--kXdP64Ggrk/fb43R
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-there are 2 objects that are taking place here, the garbage-collector
-that removes neigh if was not used for defined time, and the
-path-query for each neigh.
-if the path-query failed the packets for specific neigh are kept in
-the neigh queue, but only if there are no more than
-IPOIB_MAX_PATH_REC_QUEUE, and the neigh is still kept for ever (let's
-assume CM connected that was stopped without any notification with
-DREQ etc.)
-The only way to know that there is an unresolved neigh is by checking
-its queue, if it is full we can assume that this is an unresolved
-neigh otherwise it is resolved.
-So, the test doesn't take any assumption on the shape of the traffic,
-even in a ping requests once a second it will failed after 3 times the
-request was sent, and the neigh time will not be updated which will
-leave it to the garbage-collector to delete it, that gives the driver
-the possibility to recreate the neigh and to update its ah/pr,
-otherwise the driver will try over and over to resend to that
-unresolved neigh.
+On Mon, Jun 06, 2016 at 07:53:43PM -0400, Doug Ledford wrote:
+> On 6/4/2016 8:15 AM, Leon Romanovsky wrote:
+> > From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >=20
+> > In a attribute group struct, attrs should point to a NULL
+> > terminated list. Which means we need to allocate one more
+> > slot in the array.
+>=20
+> This patch is both right and wrong.  You're right with the intent (that
+> there should be a total of 2 extra entries in the array size, one for
+> the NULL termination and one for the lifespan entry), but wrong with the
+> mechanics (unless I've missed something).  We already have two extra
+> entries because sizeof(*hsag) includes our first counter, so just
+> num_counters is actually enough to NULL terminate the list, and + 1
+> gives us lifespan plus a NULL terminate spot.  The comment could be
+> cleaned up to make this more clear though, so I'll do that.
 
->
+Thanks Doug.
+
+--kXdP64Ggrk/fb43R
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXVnTFAAoJEORje4g2clinBvoP/ieEmcHF12nV/Om8Vc1ikyPH
+xpXk+vSId1uzeKDgfvtfm328T/UVaSri6ltDIbbKGWh1Vjdl17dD2Xdob532CuI7
+QDRH7EQRg+snSxSUlixHK5Ky0p251CFOvWbobQExel3TFcPD8IFbp+2M/oRFxaFU
+yP2gHBnK8TydAZ5EUNa1zlLejDk4HBRUY2OEvyCojOVX4foNTNkZUfWTsCzEfyUR
+qeIG5jUzfiZhqxbDR9k9DM9jgwT3gl7AFFO7Zw3MmV08bFOeBBEBpV9GRQml01u/
+zG7/Ui+osrrnC1K/JMc/v6lQ0x/luWfPIXLLQQuCkhM1G5ux2+taFcwl1dFkyjAe
+2eJaoWRatdDIbO13NT2ucQPUxZjvAm81zbYeW+WZ0pqp0H7rcSnU0mQ+kC6V/KoQ
+fu/QlTkfexy7Ggcl2FIl7+siNTWm3Gliphoa7irsokX9X0zuFKB7JiKTK8FBd8El
+1wwYypY9vMtonVqh7fRsB9gI9W446c7bm+wxIUkBCPEQ7o8LlxhvxwaHbiFG6hnw
+wUQEJcJFyrnAJ3VcyLfVONkqEMGGTbI4I5Kjgjjr+at2ex5fAUn8ch/mNdOpSLHM
+XevoBcZidfnjr3Afw+Su0adicCSrarkwMv8hoCRYsY0XxY2goRgdp4UBK0xWVDqz
+r0co7QqG3rko7BPHKKrB
+=lXQ3
+-----END PGP SIGNATURE-----
+
+--kXdP64Ggrk/fb43R--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
