@@ -1,47 +1,50 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 3/7] IB/IPoIB: Fix race between ipoib_remove_one
- to sysfs functions
-Date: Tue, 7 Jun 2016 13:45:20 +0300
-Message-ID: <CAAk-MO_9P2vVJS_RXrqUPx224Re9sjifug+hfxVGN4Ze5tYhSg@mail.gmail.com>
-References: <1465042524-25852-1-git-send-email-leon@kernel.org>
-	<1465042524-25852-4-git-send-email-leon@kernel.org>
-	<CAJ3xEMh_Pg2Kkp6yHx2OUJMokn0HX8Jd9Q0bcsB50KfTAcP1Gw@mail.gmail.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V5 libibverbs 0/7] Completion timestamping
+Date: Tue, 7 Jun 2016 14:26:41 +0300
+Message-ID: <e3023ed9-4104-74e1-1c82-213195dd83d3@dev.mellanox.co.il>
+References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
+ <1b0ea11b-3762-2335-28dd-eb3ac243104e@redhat.com>
+ <20160606233325.GA28769@obsidianresearch.com>
+ <bd0b54e6-70ae-27b3-fe1e-8ee729e20479@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMh_Pg2Kkp6yHx2OUJMokn0HX8Jd9Q0bcsB50KfTAcP1Gw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <bd0b54e6-70ae-27b3-fe1e-8ee729e20479-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 7, 2016 at 10:31 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Sat, Jun 4, 2016 at 3:15 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On 6/7/2016 5:20 AM, Doug Ledford wrote:
+> On 6/6/2016 7:33 PM, Jason Gunthorpe wrote:
+>> On Mon, Jun 06, 2016 at 07:02:34PM -0400, Doug Ledford wrote:
+>>> On 6/1/2016 9:05 AM, Yishai Hadas wrote:
+>>>> Hi Doug,
+>>>>
+>>>> This V5 series addressed one note that we got for V4,
+>>>> details below.
+>>>
+>>> Thanks, the v5 series was applied.
+>>
+>> Erm, I sure had a lot of unaddressed comments for this series.
 >
->> Fixes: 862096a8bbf8 ("IB/ipoib: Add more rtnl_link_ops callbacks")
->> Fixes: 9baa0b036410 ("IB/ipoib: Add rtnl_link_ops support")
+> Judging by the way yours and mines conversation went in v4 it seemed you
+> were pretty much in favor of it.  If you have specific objections,
+> please raise them, we can do incremental fixes.
 >
-> These two commits go back to 3.7-rc1 / Oct 2012 -- so I wonder how come we never
-> got reports on this ABBA deadlock happens in real life - any idea, did
-> you see the deadlock in
-
-Sure, it is from the real life, you can see the stack that i added to
-the commit message.
-If you want to simulate that just add sleep in the remove_one while
-trying to change mode/add-child etc.
-
-> action, ever? We did had lockdep warnings and thanks you Erez for
-
-welcome.
-
-> finally getting there to fix after me... I will look on your patch.
-
 >
-> Or.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+The matching libmlx5 series was merged to my public GIT at 
+git://openfabrics.org/~yishaih/libmlx5.git.
+
+The merged libmlx5 series addressed few comments on V0 that we found to 
+be useful and we confirmed in the list. Will send it shortly inline as well.
+
+Till a formal build, if we'll agree on some API fixes we should do it in 
+an incremental way in both libibverbs/libmlx5. After a formal build, the 
+API can be extended without any dependency between the libraries by 
+using the extended mechanism.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
