@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libmlx5 7/7] Use configuration symbol for always in-line
-Date: Tue,  7 Jun 2016 15:11:39 +0300
-Message-ID: <1465301499-21234-8-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 libmlx5 6/7] Add ibv_query_rt_values support
+Date: Tue,  7 Jun 2016 15:11:38 +0300
+Message-ID: <1465301499-21234-7-git-send-email-yishaih@mellanox.com>
 References: <1465301499-21234-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465301499-21234-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,409 +12,207 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to be compiler agnostic, we add the required checks to the
-autoconf script.
+In order to query the current HCA's core clock, libmlx5 should
+support ibv_query_rt_values verb. Querying the hardware's cycles
+register is done by mmaping this register to user-space.
+Therefore, when libmlx5 initializes we mmap the cycles register.
+This assumes the machine's architecture places the PCI and memory in
+the same address space.
+The page offset is passed through init_context vendor's data.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- Makefile.am                 |   1 +
- configure.ac                |   3 +
- m4/ax_gcc_func_attribute.m4 | 223 ++++++++++++++++++++++++++++++++++++++++++++
- src/cq.c                    |  24 ++---
- src/mlx5.h                  |   6 ++
- 5 files changed, 245 insertions(+), 12 deletions(-)
- create mode 100644 m4/ax_gcc_func_attribute.m4
+ src/mlx5-abi.h |  5 +++++
+ src/mlx5.c     | 37 +++++++++++++++++++++++++++++++++++++
+ src/mlx5.h     | 10 +++++++++-
+ src/verbs.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 97 insertions(+), 1 deletion(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index d44a4bc..39ca65d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,4 +1,5 @@
- AM_CFLAGS = -g -Wall -D_GNU_SOURCE
-+ACLOCAL_AMFLAGS = -I m4
+diff --git a/src/mlx5-abi.h b/src/mlx5-abi.h
+index e2815c0..b57fd55 100644
+--- a/src/mlx5-abi.h
++++ b/src/mlx5-abi.h
+@@ -62,6 +62,10 @@ struct mlx5_alloc_ucontext {
+ 	__u32				reserved2;
+ };
  
- mlx5_version_script = @MLX5_VERSION_SCRIPT@
++enum mlx5_ib_alloc_ucontext_resp_mask {
++	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
++};
++
+ struct mlx5_alloc_ucontext_resp {
+ 	struct ibv_get_context_resp	ibv_resp;
+ 	__u32				qp_tab_size;
+@@ -80,6 +84,7 @@ struct mlx5_alloc_ucontext_resp {
+ 	__u8				cqe_version;
+ 	__u8				reserved2;
+ 	__u16				reserved3;
++	__u64				hca_core_clock_offset;
+ };
  
-diff --git a/configure.ac b/configure.ac
-index fca0b46..8ece649 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -6,6 +6,7 @@ AC_CONFIG_SRCDIR([src/mlx5.h])
- AC_CONFIG_AUX_DIR(config)
- AC_CONFIG_HEADER(config.h)
- AM_INIT_AUTOMAKE([foreign])
-+AC_CONFIG_MACRO_DIR([m4])
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ struct mlx5_alloc_pd_resp {
+diff --git a/src/mlx5.c b/src/mlx5.c
+index d7a6a8f..2d3f9d9 100644
+--- a/src/mlx5.c
++++ b/src/mlx5.c
+@@ -555,6 +555,30 @@ static int mlx5_cmd_get_context(struct mlx5_context *context,
+ 				   &resp->ibv_resp, resp_len);
+ }
  
- AC_PROG_LIBTOOL
-@@ -84,6 +85,8 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
-         ac_cv_version_script=no
-     fi])
- 
-+AX_GCC_FUNC_ATTRIBUTE([always_inline])
++static int mlx5_map_internal_clock(struct mlx5_device *mdev,
++				   struct ibv_context *ibv_ctx)
++{
++	struct mlx5_context *context = to_mctx(ibv_ctx);
++	void *hca_clock_page;
++	off_t offset = 0;
 +
- if test $ac_cv_version_script = yes; then
-     MLX5_VERSION_SCRIPT='-Wl,--version-script=$(srcdir)/src/mlx5.map'
- else
-diff --git a/m4/ax_gcc_func_attribute.m4 b/m4/ax_gcc_func_attribute.m4
-new file mode 100644
-index 0000000..c788ca9
---- /dev/null
-+++ b/m4/ax_gcc_func_attribute.m4
-@@ -0,0 +1,223 @@
-+# ===========================================================================
-+#   http://www.gnu.org/software/autoconf-archive/ax_gcc_func_attribute.html
-+# ===========================================================================
-+#
-+# SYNOPSIS
-+#
-+#   AX_GCC_FUNC_ATTRIBUTE(ATTRIBUTE)
-+#
-+# DESCRIPTION
-+#
-+#   This macro checks if the compiler supports one of GCC's function
-+#   attributes; many other compilers also provide function attributes with
-+#   the same syntax. Compiler warnings are used to detect supported
-+#   attributes as unsupported ones are ignored by default so quieting
-+#   warnings when using this macro will yield false positives.
-+#
-+#   The ATTRIBUTE parameter holds the name of the attribute to be checked.
-+#
-+#   If ATTRIBUTE is supported define HAVE_FUNC_ATTRIBUTE_<ATTRIBUTE>.
-+#
-+#   The macro caches its result in the ax_cv_have_func_attribute_<attribute>
-+#   variable.
-+#
-+#   The macro currently supports the following function attributes:
-+#
-+#    alias
-+#    aligned
-+#    alloc_size
-+#    always_inline
-+#    artificial
-+#    cold
-+#    const
-+#    constructor
-+#    constructor_priority for constructor attribute with priority
-+#    deprecated
-+#    destructor
-+#    dllexport
-+#    dllimport
-+#    error
-+#    externally_visible
-+#    flatten
-+#    format
-+#    format_arg
-+#    gnu_inline
-+#    hot
-+#    ifunc
-+#    leaf
-+#    malloc
-+#    noclone
-+#    noinline
-+#    nonnull
-+#    noreturn
-+#    nothrow
-+#    optimize
-+#    pure
-+#    unused
-+#    used
-+#    visibility
-+#    warning
-+#    warn_unused_result
-+#    weak
-+#    weakref
-+#
-+#   Unsuppored function attributes will be tested with a prototype returning
-+#   an int and not accepting any arguments and the result of the check might
-+#   be wrong or meaningless so use with care.
-+#
-+# LICENSE
-+#
-+#   Copyright (c) 2013 Gabriele Svelto <gabriele.svelto-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-+#
-+#   Copying and distribution of this file, with or without modification, are
-+#   permitted in any medium without royalty provided the copyright notice
-+#   and this notice are preserved.  This file is offered as-is, without any
-+#   warranty.
++	set_command(MLX5_MMAP_GET_CORE_CLOCK_CMD, &offset);
++	hca_clock_page = mmap(NULL, mdev->page_size,
++			      PROT_READ, MAP_SHARED, ibv_ctx->cmd_fd,
++			      mdev->page_size * offset);
 +
-+#serial 3
++	if (hca_clock_page == MAP_FAILED) {
++		fprintf(stderr, PFX
++			"Warning: Timestamp available,\n"
++			"but failed to mmap() hca core clock page.\n");
++		return -1;
++	}
 +
-+AC_DEFUN([AX_GCC_FUNC_ATTRIBUTE], [
-+    AS_VAR_PUSHDEF([ac_var], [ax_cv_have_func_attribute_$1])
++	context->hca_core_clock = hca_clock_page +
++		(context->core_clock.offset & (mdev->page_size - 1));
++	return 0;
++}
 +
-+    AC_CACHE_CHECK([for __attribute__(($1))], [ac_var], [
-+        AC_LINK_IFELSE([AC_LANG_PROGRAM([
-+            m4_case([$1],
-+                [alias], [
-+                    int foo( void ) { return 0; }
-+                    int bar( void ) __attribute__(($1("foo")));
-+                ],
-+                [aligned], [
-+                    int foo( void ) __attribute__(($1(32)));
-+                ],
-+                [alloc_size], [
-+                    void *foo(int a) __attribute__(($1(1)));
-+                ],
-+                [always_inline], [
-+                    inline __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [artificial], [
-+                    inline __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [cold], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [const], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [constructor_priority], [
-+                    int foo( void ) __attribute__((__constructor__(65535/2)));
-+                ],
-+                [constructor], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [deprecated], [
-+                    int foo( void ) __attribute__(($1("")));
-+                ],
-+                [destructor], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [dllexport], [
-+                    __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [dllimport], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [error], [
-+                    int foo( void ) __attribute__(($1("")));
-+                ],
-+                [externally_visible], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [flatten], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [format], [
-+                    int foo(const char *p, ...) __attribute__(($1(printf, 1, 2)));
-+                ],
-+                [format_arg], [
-+                    char *foo(const char *p) __attribute__(($1(1)));
-+                ],
-+                [gnu_inline], [
-+                    inline __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [hot], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [ifunc], [
-+                    int my_foo( void ) { return 0; }
-+                    static int (*resolve_foo(void))(void) { return my_foo; }
-+                    int foo( void ) __attribute__(($1("resolve_foo")));
-+                ],
-+                [leaf], [
-+                    __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [malloc], [
-+                    void *foo( void ) __attribute__(($1));
-+                ],
-+                [noclone], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [noinline], [
-+                    __attribute__(($1)) int foo( void ) { return 0; }
-+                ],
-+                [nonnull], [
-+                    int foo(char *p) __attribute__(($1(1)));
-+                ],
-+                [noreturn], [
-+                    void foo( void ) __attribute__(($1));
-+                ],
-+                [nothrow], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [optimize], [
-+                    __attribute__(($1(3))) int foo( void ) { return 0; }
-+                ],
-+                [pure], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [unused], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [used], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [visibility], [
-+                    int foo_def( void ) __attribute__(($1("default")));
-+                    int foo_hid( void ) __attribute__(($1("hidden")));
-+                    int foo_int( void ) __attribute__(($1("internal")));
-+                    int foo_pro( void ) __attribute__(($1("protected")));
-+                ],
-+                [warning], [
-+                    int foo( void ) __attribute__(($1("")));
-+                ],
-+                [warn_unused_result], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [weak], [
-+                    int foo( void ) __attribute__(($1));
-+                ],
-+                [weakref], [
-+                    static int foo( void ) { return 0; }
-+                    static int bar( void ) __attribute__(($1("foo")));
-+                ],
-+                [
-+                 m4_warn([syntax], [Unsupported attribute $1, the test may fail])
-+                 int foo( void ) __attribute__(($1));
-+                ]
-+            )], [])
-+            ],
-+            dnl GCC doesn't exit with an error if an unknown attribute is
-+            dnl provided but only outputs a warning, so accept the attribute
-+            dnl only if no warning were issued.
-+            [AS_IF([test -s conftest.err],
-+                [AS_VAR_SET([ac_var], [no])],
-+                [AS_VAR_SET([ac_var], [yes])])],
-+            [AS_VAR_SET([ac_var], [no])])
-+    ])
-+
-+    AS_IF([test yes = AS_VAR_GET([ac_var])],
-+        [AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_FUNC_ATTRIBUTE_$1), 1,
-+            [Define to 1 if the system has the `$1' function attribute])], [])
-+
-+    AS_VAR_POPDEF([ac_var])
-+])
-diff --git a/src/cq.c b/src/cq.c
-index 96f3a03..5f8cee7 100644
---- a/src/cq.c
-+++ b/src/cq.c
-@@ -421,7 +421,7 @@ static void mlx5_get_cycles(uint64_t *cycles)
- static inline struct mlx5_qp *get_req_context(struct mlx5_context *mctx,
- 					      struct mlx5_resource **cur_rsc,
- 					      uint32_t rsn, int cqe_ver)
--					      __attribute__((always_inline));
-+					      ALWAYS_INLINE;
- static inline struct mlx5_qp *get_req_context(struct mlx5_context *mctx,
- 					      struct mlx5_resource **cur_rsc,
- 					      uint32_t rsn, int cqe_ver)
-@@ -437,7 +437,7 @@ static inline int get_resp_ctx_v1(struct mlx5_context *mctx,
- 				  struct mlx5_resource **cur_rsc,
- 				  struct mlx5_srq **cur_srq,
- 				  uint32_t uidx, uint8_t *is_srq)
--				  __attribute__((always_inline));
-+				  ALWAYS_INLINE;
- static inline int get_resp_ctx_v1(struct mlx5_context *mctx,
- 				  struct mlx5_resource **cur_rsc,
- 				  struct mlx5_srq **cur_srq,
-@@ -473,7 +473,7 @@ static inline int get_resp_ctx_v1(struct mlx5_context *mctx,
- static inline int get_qp_ctx(struct mlx5_context *mctx,
- 			     struct mlx5_resource **cur_rsc,
- 			     uint32_t qpn)
--			       __attribute__((always_inline));
-+			     ALWAYS_INLINE;
- static inline int get_qp_ctx(struct mlx5_context *mctx,
- 			     struct mlx5_resource **cur_rsc,
- 			     uint32_t qpn)
-@@ -495,7 +495,7 @@ static inline int get_qp_ctx(struct mlx5_context *mctx,
- static inline int get_srq_ctx(struct mlx5_context *mctx,
- 			      struct mlx5_srq **cur_srq,
- 			      uint32_t srqn_uidx)
--			      __attribute__((always_inline));
-+			      ALWAYS_INLINE;
- static inline int get_srq_ctx(struct mlx5_context *mctx,
- 			      struct mlx5_srq **cur_srq,
- 			      uint32_t srqn)
-@@ -538,7 +538,7 @@ static inline int get_cur_rsc(struct mlx5_context *mctx,
- static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
- 				    struct mlx5_cqe64 **pcqe64,
- 				    void **pcqe)
--				    __attribute__((always_inline));
-+				    ALWAYS_INLINE;
- static inline int mlx5_get_next_cqe(struct mlx5_cq *cq,
- 				    struct mlx5_cqe64 **pcqe64,
- 				    void **pcqe)
-@@ -587,7 +587,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 				 struct mlx5_srq **cur_srq,
- 				 struct ibv_wc *wc,
- 				 int cqe_ver, int lazy)
--				 __attribute__((always_inline));
-+				 ALWAYS_INLINE;
- static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- 				 struct mlx5_cqe64 *cqe64,
- 				 void *cqe,
-@@ -745,7 +745,7 @@ static inline int mlx5_parse_cqe(struct mlx5_cq *cq,
- static inline int mlx5_parse_lazy_cqe(struct mlx5_cq *cq,
- 				      struct mlx5_cqe64 *cqe64,
- 				      void *cqe, int cqe_ver)
--				      __attribute__((always_inline));
-+				      ALWAYS_INLINE;
- static inline int mlx5_parse_lazy_cqe(struct mlx5_cq *cq,
- 				      struct mlx5_cqe64 *cqe64,
- 				      void *cqe, int cqe_ver)
-@@ -757,7 +757,7 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
- 				struct mlx5_resource **cur_rsc,
- 				struct mlx5_srq **cur_srq,
- 				struct ibv_wc *wc, int cqe_ver)
--				__attribute__((always_inline));
-+				ALWAYS_INLINE;
- static inline int mlx5_poll_one(struct mlx5_cq *cq,
- 				struct mlx5_resource **cur_rsc,
- 				struct mlx5_srq **cur_srq,
-@@ -776,7 +776,7 @@ static inline int mlx5_poll_one(struct mlx5_cq *cq,
- 
- static inline int poll_cq(struct ibv_cq *ibcq, int ne,
- 		      struct ibv_wc *wc, int cqe_ver)
--		      __attribute__((always_inline));
-+		      ALWAYS_INLINE;
- static inline int poll_cq(struct ibv_cq *ibcq, int ne,
- 		      struct ibv_wc *wc, int cqe_ver)
+ static int mlx5_init_context(struct verbs_device *vdev,
+ 			     struct ibv_context *ctx, int cmd_fd)
  {
-@@ -839,7 +839,7 @@ enum  polling_mode {
+@@ -683,6 +707,15 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 		context->bfs[j].uuarn = j;
+ 	}
  
- static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
- 				  int lock, enum polling_mode stall)
--				  __attribute__((always_inline));
-+				  ALWAYS_INLINE;
- static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
- 				  int lock, enum polling_mode stall)
- {
-@@ -875,7 +875,7 @@ static inline void _mlx5_end_poll(struct ibv_cq_ex *ibcq,
++	context->hca_core_clock = NULL;
++	if (resp.response_length + sizeof(resp.ibv_resp) >=
++	    offsetof(struct mlx5_alloc_ucontext_resp, hca_core_clock_offset) +
++	    sizeof(resp.hca_core_clock_offset) &&
++	    resp.comp_mask & MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET) {
++		context->core_clock.offset = resp.hca_core_clock_offset;
++		mlx5_map_internal_clock(mdev, ctx);
++	}
++
+ 	mlx5_spinlock_init(&context->lock32);
  
- static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
- 				  int lock, enum polling_mode stall, int cqe_version)
--				  __attribute__((always_inline));
-+				  ALWAYS_INLINE;
- static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_attr *attr,
- 				  int lock, enum polling_mode stall, int cqe_version)
- {
-@@ -943,7 +943,7 @@ static inline int mlx5_start_poll(struct ibv_cq_ex *ibcq, struct ibv_poll_cq_att
+ 	context->prefer_bf = get_always_bf();
+@@ -700,6 +733,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	verbs_set_ctx_op(v_ctx, create_srq_ex, mlx5_create_srq_ex);
+ 	verbs_set_ctx_op(v_ctx, get_srq_num, mlx5_get_srq_num);
+ 	verbs_set_ctx_op(v_ctx, query_device_ex, mlx5_query_device_ex);
++	verbs_set_ctx_op(v_ctx, query_rt_values, mlx5_query_rt_values);
+ 	verbs_set_ctx_op(v_ctx, ibv_create_flow, ibv_cmd_create_flow);
+ 	verbs_set_ctx_op(v_ctx, ibv_destroy_flow, ibv_cmd_destroy_flow);
+ 	verbs_set_ctx_op(v_ctx, create_cq_ex, mlx5_create_cq_ex);
+@@ -742,6 +776,9 @@ static void mlx5_cleanup_context(struct verbs_device *device,
+ 		if (context->uar[i])
+ 			munmap(context->uar[i], page_size);
+ 	}
++	if (context->hca_core_clock)
++		munmap(context->hca_core_clock - context->core_clock.offset,
++		       page_size);
+ 	close_debug_file(context);
+ }
  
- static inline int mlx5_next_poll(struct ibv_cq_ex *ibcq,
- 				 enum polling_mode stall, int cqe_version)
--				 __attribute__((always_inline));
-+				 ALWAYS_INLINE;
- static inline int mlx5_next_poll(struct ibv_cq_ex *ibcq,
- 				 enum polling_mode stall,
- 				 int cqe_version)
 diff --git a/src/mlx5.h b/src/mlx5.h
-index 78357d3..124c8fe 100644
+index 506ec0a..78357d3 100644
 --- a/src/mlx5.h
 +++ b/src/mlx5.h
-@@ -107,6 +107,12 @@
+@@ -117,7 +117,8 @@ enum {
  
- #define HIDDEN		__attribute__((visibility("hidden")))
+ enum {
+ 	MLX5_MMAP_GET_REGULAR_PAGES_CMD    = 0,
+-	MLX5_MMAP_GET_CONTIGUOUS_PAGES_CMD = 1
++	MLX5_MMAP_GET_CONTIGUOUS_PAGES_CMD = 1,
++	MLX5_MMAP_GET_CORE_CLOCK_CMD    = 5
+ };
  
-+#ifdef HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE
-+#define ALWAYS_INLINE __attribute__((always_inline))
-+#else
-+#define ALWAYS_INLINE
-+#endif
+ enum {
+@@ -328,6 +329,11 @@ struct mlx5_context {
+ 	uint8_t				cached_link_layer[MLX5_MAX_PORTS_NUM];
+ 	int				cached_device_cap_flags;
+ 	enum ibv_atomic_cap		atomic_cap;
++	struct {
++		uint64_t                offset;
++		uint64_t                mask;
++	} core_clock;
++	void			       *hca_core_clock;
+ };
+ 
+ struct mlx5_bitmap {
+@@ -620,6 +626,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 			 const struct ibv_query_device_ex_input *input,
+ 			 struct ibv_device_attr_ex *attr,
+ 			 size_t attr_size);
++int mlx5_query_rt_values(struct ibv_context *context,
++			 struct ibv_values_ex *values);
+ struct ibv_qp *mlx5_create_qp_ex(struct ibv_context *context,
+ 				 struct ibv_qp_init_attr_ex *attr);
+ int mlx5_query_port(struct ibv_context *context, uint8_t port,
+diff --git a/src/verbs.c b/src/verbs.c
+index 6f2ef00..e8873da 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -79,6 +79,52 @@ int mlx5_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
+ 	return 0;
+ }
+ 
++#define READL(ptr) (*((uint32_t *)(ptr)))
++static int mlx5_read_clock(struct ibv_context *context, uint64_t *cycles)
++{
++	unsigned int clockhi, clocklo, clockhi1;
++	int i;
++	struct mlx5_context *ctx = to_mctx(context);
 +
- #define PFX		"mlx5: "
- 
- 
++	if (!ctx->hca_core_clock)
++		return -EOPNOTSUPP;
++
++	/* Handle wraparound */
++	for (i = 0; i < 2; i++) {
++		clockhi = ntohl(READL(ctx->hca_core_clock));
++		clocklo = ntohl(READL(ctx->hca_core_clock + 4));
++		clockhi1 = ntohl(READL(ctx->hca_core_clock));
++		if (clockhi == clockhi1)
++			break;
++	}
++
++	*cycles = (uint64_t)clockhi << 32 | (uint64_t)clocklo;
++
++	return 0;
++}
++
++int mlx5_query_rt_values(struct ibv_context *context,
++			 struct ibv_values_ex *values)
++{
++	uint32_t comp_mask = 0;
++	int err = 0;
++
++	if (values->comp_mask & IBV_VALUES_MASK_RAW_CLOCK) {
++		uint64_t cycles;
++
++		err = mlx5_read_clock(context, &cycles);
++		if (!err) {
++			values->raw_clock.tv_sec = 0;
++			values->raw_clock.tv_nsec = cycles;
++			comp_mask |= IBV_VALUES_MASK_RAW_CLOCK;
++		}
++	}
++
++	values->comp_mask = comp_mask;
++
++	return err;
++}
++
+ int mlx5_query_port(struct ibv_context *context, uint8_t port,
+ 		     struct ibv_port_attr *attr)
+ {
 -- 
 1.8.3.1
 
