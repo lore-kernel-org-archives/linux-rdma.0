@@ -1,42 +1,40 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 1/2] IB/sysfs: fix NULL dereference
-Date: Tue, 7 Jun 2016 07:48:03 -0400
-Message-ID: <ac81a57f-c8ba-bcf8-b986-f852c01e34b2@redhat.com>
+Subject: Re: [PATCH 2/2] IB/sysfs: fix memory leak
+Date: Tue, 7 Jun 2016 07:50:01 -0400
+Message-ID: <f0d31d00-4ec5-efac-408a-d539dd7bffac@redhat.com>
 References: <1465157636-10120-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <1465157636-10120-2-git-send-email-sudipm.mukherjee@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="UIVmFtkphPSSfeNkqHN2DTPVH3cpjc0PF"
+ boundary="MRogIhTehVmamjbeA70DLhF5kKnChnT6A"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465157636-10120-1-git-send-email-sudipm.mukherjee@gmail.com>
+In-Reply-To: <1465157636-10120-2-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---UIVmFtkphPSSfeNkqHN2DTPVH3cpjc0PF
-Content-Type: multipart/mixed; boundary="1A00flpvg6xJfLIFSW8MG1B3rpn5Bg4rr"
+--MRogIhTehVmamjbeA70DLhF5kKnChnT6A
+Content-Type: multipart/mixed; boundary="1OFrPxdOObQiWB9KDCKVwx0abaXNAoCVU"
 From: Doug Ledford <dledford@redhat.com>
 To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
  Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Message-ID: <ac81a57f-c8ba-bcf8-b986-f852c01e34b2@redhat.com>
-Subject: Re: [PATCH 1/2] IB/sysfs: fix NULL dereference
+Message-ID: <f0d31d00-4ec5-efac-408a-d539dd7bffac@redhat.com>
+Subject: Re: [PATCH 2/2] IB/sysfs: fix memory leak
 References: <1465157636-10120-1-git-send-email-sudipm.mukherjee@gmail.com>
-In-Reply-To: <1465157636-10120-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <1465157636-10120-2-git-send-email-sudipm.mukherjee@gmail.com>
+In-Reply-To: <1465157636-10120-2-git-send-email-sudipm.mukherjee@gmail.com>
 
---1A00flpvg6xJfLIFSW8MG1B3rpn5Bg4rr
+--1OFrPxdOObQiWB9KDCKVwx0abaXNAoCVU
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
 On 6/5/2016 4:13 PM, Sudip Mukherjee wrote:
-> If stats->names is NULL or stats->num_counters <=3D 0 we are jumping to=
-
-> the error path where the for loop is freeing hsag->attrs[i]. But as i
-> is initialized to 0 so i >=3D 0 will be true and the loop will execute
-> once trying to free hsag->attrs[0]. But hsag is NULL still now leading
-> to a NULL pointer dereference.
+> If the allocation of hsag fails we were just returning but stats was
+> not released.
 >=20
 > Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 > ---
@@ -45,28 +43,28 @@ On 6/5/2016 4:13 PM, Sudip Mukherjee wrote:
 >=20
 > diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/=
 sysfs.c
-> index 5e573bb..fcf6f9c 100644
+> index fcf6f9c..8d8732c 100644
 > --- a/drivers/infiniband/core/sysfs.c
 > +++ b/drivers/infiniband/core/sysfs.c
-> @@ -891,7 +891,7 @@ static void setup_hw_stats(struct ib_device *device=
+> @@ -906,7 +906,7 @@ static void setup_hw_stats(struct ib_device *device=
 , struct ib_port *port,
->  {
->  	struct attribute_group *hsag =3D NULL;
->  	struct rdma_hw_stats *stats;
-> -	int i =3D 0, ret;
-> +	int i =3D -1, ret;
+>  		       sizeof(void *) * (stats->num_counters + 1),
+>  		       GFP_KERNEL);
+>  	if (!hsag)
+> -		return;
+> +		goto err;
 > =20
->  	stats =3D device->alloc_hw_stats(device, port_num);
-> =20
+>  	ret =3D device->get_hw_stats(device, stats, port_num,
+>  				   stats->num_counters);
 >=20
 
-This issue was fixed in a different way and this patch is no longer
+This issue was previously fixed by another patch and is no longer
 applicable.
 
 
---1A00flpvg6xJfLIFSW8MG1B3rpn5Bg4rr--
+--1OFrPxdOObQiWB9KDCKVwx0abaXNAoCVU--
 
---UIVmFtkphPSSfeNkqHN2DTPVH3cpjc0PF
+--MRogIhTehVmamjbeA70DLhF5kKnChnT6A
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -75,19 +73,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVrRzAAoJELgmozMOVy/dwA8QALjJFF31Ilpb4uFn6pQwJnxf
-CTKzNIGLkhccAWgOrhz1NNPR4QrC7eEL5EtDTVJzo5t0q7ZJHlavE5di967PLNth
-1nA2vwWRe5KbyhmbM4GebjHxh7vFDarI87mULFgcJYmxbvpYqRO2T/haEsC6kdPw
-8SNwVfGdjeEvLrNIBxUnJqwwF8zwUOgc69zfF6JlMKd6rWIH/vhh3/iPWHyT3amR
-rumU+zfexRGv0IjUHL9pmGCBPs7EI9JC0or0flt2dOyBQa6XnDdGwiZkbQBmg28V
-BvIjZph6katTTu91Y5I9TUvDIT5JxQ7FtV8lGpMz60zSmyECCAWaqm7HddWLCikJ
-K/eOCmc97jJb1SteJcr8PuJqsOO5sVnxQfRFVZkTvZUTQwBL5K8h+OXDz5T0mUsV
-tejtSzT35XZ56nHlpK3kmvV2tj4FaFPDehl9U3lNWfASFY2nroRLlVuZxBpZ5TFZ
-WA17uIqxB2HUxVKIBBxsfyymx606uw/bT1s3SmHyFUkMibL8bfPliAjRDHdVIAVc
-5GrJoXt+sVmGcE0aYmys/ljUfj5ayHOhrciA8TqUj3cqSZWtkM/gBaeA+aPUBie0
-Wnn041NFMtEoaBgCO0dBn1jEstYFce5X91kZpTdYEZCpXB5XZZXWmt9n/rCULeCz
-KytusBqj59K/Y7cDMBbT
-=EF1d
+iQIcBAEBCAAGBQJXVrTpAAoJELgmozMOVy/duikQAIfeQQEAjmJsTv3j7KhQdWrK
+yKqHM6kuWTimyuM8h684Ukffz+Ui9H7t4bQqxKmliXkgAb17M1/uWe6vLYK2jr1d
+m2xS2/J6zZItONY1GfjYM3ntX3JBL/DRy3dt0NCf75q7gALtLqw8N7MpBVy57pJO
+Rl32IWCvPYOilhwHCwhZMzmBIIue2M0683VMyyOIpguzo8g2PDP2SEWrXlFQu/b/
+R0QojqI+QkwwcFKYEgmGMlXcP0iOj5NXdp3KicJQwIzMSUSiHpva1NWaTqTTveMk
+99q+whRcP8Sbi31tjyTrg2JQ6mSNkJo8EoNBYwwfPU4CyQzbcl9D6jsrJm5s8kNH
+UyoE/Hi4baqj4CRWEhqa2RA5WDSH6aPffRNiZQR0bemVPUp6IK4Kn1ghxUowQb7t
+QJw/kzxBE+RhKrAMsC1z73GnXhqO8mwJWTPDX60Z6ZIN7D3PzMOc8uf6J2CAlXOQ
+klRnZvDG8JvZ4FrDRBLJ1uNGAdO0Ogr0JXuJAEZKi3ZzCt0Rr9tFbiftXQtPT+9/
+GbMT0bbDJimWPVaAa11RS2HD87WLCcLAvKOIcPM5OwWeuwMWAUhqhaWyk25MfiuR
+8zY46U38v48yqS3jW9kxB5PCxha3Y2WqL1MTLzMA2kklpMSWrpT2tD2+DvgaNpud
+6tZsvxzN939evrTqM1py
+=BGQb
 -----END PGP SIGNATURE-----
 
---UIVmFtkphPSSfeNkqHN2DTPVH3cpjc0PF--
+--MRogIhTehVmamjbeA70DLhF5kKnChnT6A--
