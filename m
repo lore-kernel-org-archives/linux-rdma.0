@@ -1,46 +1,63 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/2] Fail compiles if no platform specific memory barriers exist
-Date: Tue, 7 Jun 2016 07:42:47 -0700
-Message-ID: <8dde3b93ddc1251c3487438331590acb099c6360.1465310573.git.root@r9.asicdesigners.com>
-References: <cover.1465310573.git.root@r9.asicdesigners.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Rebase notice
+Date: Tue, 7 Jun 2016 11:55:38 -0400
+Message-ID: <4f8649f7-839c-a6a9-f713-bd8fdda83c20@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="wQ7quqfjDMTfQWiexEpdfhHDRGgmpbbR5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1465310573.git.root-6HSsQxwzXLRrcEM49+0neVaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently there is a "generic" implementation for the memory barrier
-macros in arch.h.  These turned out to be insuffient for ARM64 causing
-memory corruption problems when doing RDMA operations.  So going forward,
-fail a compile on a platform w/o platform-specific memory barrier macros.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--wQ7quqfjDMTfQWiexEpdfhHDRGgmpbbR5
+Content-Type: multipart/mixed; boundary="OduOCfe7L9bV7RLlWue0cu7R2NQ8eKocj"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <4f8649f7-839c-a6a9-f713-bd8fdda83c20-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Rebase notice
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- include/infiniband/arch.h |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+--OduOCfe7L9bV7RLlWue0cu7R2NQ8eKocj
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/infiniband/arch.h b/include/infiniband/arch.h
-index c31dd0a..e35ecf0 100644
---- a/include/infiniband/arch.h
-+++ b/include/infiniband/arch.h
-@@ -132,12 +132,7 @@ static inline uint64_t ntohll(uint64_t x) { return x; }
- 
- #else
- 
--#warning No architecture specific defines found.  Using generic implementation.
--
--#define mb()	 asm volatile("" ::: "memory")
--#define rmb()	 mb()
--#define wmb()	 mb()
--#define wc_wmb() wmb()
-+#error No architecture specific memory barrier defines found!
- 
- #endif
- 
--- 
-1.7.1
+My k.o trees are intended not to be rebased.  However, a bad patch made
+its way in last night (I probably should have waited to push my work
+last night until today, after all it was late when I quit).  I ended up
+rebasing the k.o/for-4.7-rc branch today.  This is just a friendly
+heads-up in case anyone's normal pull mechanism for that branch will get
+tripped up by a rebase.
 
+
+--OduOCfe7L9bV7RLlWue0cu7R2NQ8eKocj--
+
+--wQ7quqfjDMTfQWiexEpdfhHDRGgmpbbR5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXVu56AAoJELgmozMOVy/d/ZYP/jMeA3tInx5Xsuz2xDFHB/Lf
+/9a8kColE9sT++Jd9jaSkiD8gp0uzSYMbnZCp/EzihXvEhyj2cXkCFSIbI2qzhUp
+HOpVX5LiekLmjdC/onFgblyrD6wQMZIYsAqMKsberN5KiqkNtShFtNS/DYr3sHzq
+bRf9KOf6h5gZJgXTlndsGDj97NxsVcqiDMZoPREXjssxwza9cHriDgP3FeC11Bpb
+eug3efGn0VXUsivmaTys7HxJ/B/lamb3vb3GvfhwaiuTgaJm8tccuUeuUT/TNsEU
+aotHCZWJQaZWLSBzc9N/wr+Vrf/Hhl8ZI+8XcyIZ/6FzqjjtBwA8qmmpFEaLYSqD
+wvq5WR10aGF9gRpl7IsAYG4DdLS4+B9jxJkFg84UBaggnoOBQNlHniykycvy+JTq
+AGhtwWMdF6tIzK1ULfAR4ED/MTFQQsdsuzUs46/NunMXiBHZKuuKbMp4uBC04BB7
+/53XBe7F8chjujRx9R1lvl233khcKeJ+sTYLKNBzKS8WemEF2bUpz7PY5KD7BQoC
+ChFsGlIYQi7tLUGxyp9EAA+/aBlif2+Y5XrGnswQVb0rm9BRZoMCrLMsdqCOUVXz
+ZCqFkzfm7BmOEr/Zr5nYZf/RFpN4r9u21QDokE28LpRm2zvgHodxF7XLx8/1ETh0
+hOhmsv+3UaD5EZGabyAH
+=CR64
+-----END PGP SIGNATURE-----
+
+--wQ7quqfjDMTfQWiexEpdfhHDRGgmpbbR5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
