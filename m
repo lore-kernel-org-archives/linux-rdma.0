@@ -1,48 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
-Date: Tue, 7 Jun 2016 09:43:29 -0400
-Message-ID: <97ef54ca-d3c4-f294-4bb7-4422ae25dde4@redhat.com>
+Date: Tue, 7 Jun 2016 09:46:20 -0400
+Message-ID: <14b30d87-6f70-a7bb-14ea-e5152ce545bf@redhat.com>
 References: <1465042524-25852-1-git-send-email-leon@kernel.org>
  <1465042524-25852-7-git-send-email-leon@kernel.org>
  <85e56121-5911-37f4-2ac3-a1af561d5a7a@redhat.com>
- <20160607071621.GB3663@leon.nu>
+ <VI1PR05MB1391BC017005F864E1DAE3C0D25D0@VI1PR05MB1391.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="KeMamBpqRBVJGeFPOsTswGDxmuGgs3J87"
+ boundary="aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160607071621.GB3663-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---KeMamBpqRBVJGeFPOsTswGDxmuGgs3J87
-Content-Type: multipart/mixed; boundary="2u7KlLd49iQ5ho8NwXD91dGSlnPKv74i7"
+--aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w
+Content-Type: multipart/mixed; boundary="3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <97ef54ca-d3c4-f294-4bb7-4422ae25dde4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <14b30d87-6f70-a7bb-14ea-e5152ce545bf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocation
 References: <1465042524-25852-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
  <1465042524-25852-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
  <85e56121-5911-37f4-2ac3-a1af561d5a7a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20160607071621.GB3663-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160607071621.GB3663-2ukJVAZIZ/Y@public.gmane.org>
+ <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <VI1PR05MB1391BC017005F864E1DAE3C0D25D0-79XLn2atqDP8GeyK7vyn2tqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 
---2u7KlLd49iQ5ho8NwXD91dGSlnPKv74i7
+--3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 6/7/2016 3:16 AM, Leon Romanovsky wrote:
-> On Mon, Jun 06, 2016 at 07:53:43PM -0400, Doug Ledford wrote:
->> On 6/4/2016 8:15 AM, Leon Romanovsky wrote:
->>> From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>
->>> In a attribute group struct, attrs should point to a NULL
->>> terminated list. Which means we need to allocate one more
->>> slot in the array.
+On 6/7/2016 4:26 AM, Mark Bloch wrote:
+>=20
+>=20
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Doug Ledford
+>> Sent: Tuesday, June 07, 2016 2:54 AM
+>> To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Subject: Re: [PATCH rdma-rc 6/7] IB/core: Fix incorrect array allocati=
+on
 >>
 >> This patch is both right and wrong.  You're right with the intent (tha=
 t
@@ -55,20 +58,50 @@ he
 >> gives us lifespan plus a NULL terminate spot.  The comment could be
 >> cleaned up to make this more clear though, so I'll do that.
 >=20
-> Thanks Doug.
+> Hi doug,
+> I might be missing something, but:
+>=20
+> hsag =3D kzalloc(sizeof(*hsag) +
+> 		sizeof(void *) * (stats->num_counters + 1)
+>                        	GFP_KERNEL);
+>=20
+> So now we have hsag and after it num_counters + 1 slots.
+> Now we need attrs to point to a memory location, so we do:
+>=20
+> hsag->attrs =3D (void *)hsag + sizeof(*hsag);
+>=20
+> which means hsag->attrs is now pointing to a memory location right
+> after hsag (remember we have num_counters + 1) slots there.
+>=20
+> for (i =3D 0; i < stats->num_counters; i++) {
+>                 hsag->attrs[i] =3D alloc_hsa(i, port_num, stats->names[=
+i]);
+>                 if (!hsag->attrs[i])
+>                         goto err;
+>                 sysfs_attr_init(hsag->attrs[i]);
+> }
+>=20
+> /* treat an error here as non-fatal */
+>  hsag->attrs[i] =3D alloc_hsa_lifespan("lifespan", port_num);
+>=20
+> The for loop fills num_counters slots, and after that alloc_hsa_lifespa=
+n uses another one.
+> Which means we used all our slots and we are missing one as the NULL sl=
+ot.
+>=20
+> Of course I might be wrong/missing something, it wouldn't be the first =
+time :)
+>=20
+> Mark
 >=20
 
-I was wrong with this BTW (I tested to make sure).  Even though the
-struct includes the name for the array, because it's 0 length, it
-reserves 0 space.  I thought it would reserve one u64.  In any case, I
-ended up writing a fix of my own since I had already marked your patch
-as not needed in patchworks.  I listed Mark as the reporter in that patch=
-=2E
+Nope, you're right.  It's fixed now though.  with num_counters + 2 and
+kzalloc, the final NULL terminator is in place.
 
 
---2u7KlLd49iQ5ho8NwXD91dGSlnPKv74i7--
+--3NR1Wbl3T5X7Hpccljt3G6KknsUTOr7ET--
 
---KeMamBpqRBVJGeFPOsTswGDxmuGgs3J87
+--aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,22 +110,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXVs+BAAoJELgmozMOVy/dpRUP/jaV1s9/DswRSw4r9/2ekTFh
-RFfCaa1FOrp3er5LEWfDeDEscTbmwNU+W8rF8Jhz6rEXO5XXcp4hHLRvWxNnhY5p
-tgOkYjgTrRWtd59L8Wd0fwWFrABONVJAAlKaDTJFDDFFGu3s5hq+5vCf7ttmzClk
-e7BZCwEBxyb+G5wxDdcX2phki5XxqY9Wor8dOv0B+oXmIzxNsMnUZwW7KsgwjGhR
-eOm1McxW/Gy7yjRboHQTqGeflknEAhL8MuONSsjaqmZXIrlHl6KsM1VhtsDYg0nL
-MK3LuN0239bCN7N7fEhoMwo+WRJdOH8Up6TFFePTwgs2ewggCoqqLezfequwgVDF
-+/j/Mu2mOCTBHoph6yfIHv4gQQMgCs+QIy+4w52l7Q3HE8qAAYmA35IrM49B49vf
-KZUbrdTZjCZ8Ncq8Z4Po8XTZcnT+AStiicUZSXWGIJNPx6P6KdCdTaRje8csBKWO
-RRg7qG4eKh4D4NW/j4/2uDopVhnD0hNvyfY8tdUB9EPrp4VPlba5pyaMi7eFzeCb
-4tx+StQ8/RGnVXGsk+oTGICJS1RAsdVVGa/h2n7g4B7l0oJAtBCaUpwfT7fMnG7J
-8X0+XVmPZb7Ate5jfiy06mwdukSQDdsJOpI3Btw2oxc3WHM8EF0GGgDUH7DCL94W
-5CqUevlOFyYip6qiGkRO
-=ujuU
+iQIcBAEBCAAGBQJXVtAsAAoJELgmozMOVy/d7TQP/0NCxko+FOZufam6TGOp6w6l
+1//dmDizDKWNxYIHdGTqZ/7EgUM/UO9Vn7h/w29svrSEb1rIUP3NGv1pxPK1rZcI
+Li9MChjzbeWbD+Snf86tMKzZ+QAvxkTij8AwZwmKOaapkjjYZEq70rHCX76trYbH
+Qc1mS+P7pikydQmM38buQzMCWZICYvQxhOsuYuhGoqCfQlEkCcktBTQrCceYZ6BR
+y8YLidqip+qP9kbhr8LIrxv28Xp99Sb7HU1wry5fCsni4ZHMIBHMfiiyBBXDUiKO
+u53yyBUPYl1oxa7JcS0apz1o+J3wXyhnMw6t5RoWxudXQGtPuNYi33XBjYOCAKej
+0Ei2j1QqO9+JifhIwVf5Vv9hYHMnbgv3YqhdWlOERCTH6qhHWu6MI7XR5rymN2AT
+81WGOhISKBa4FNuHF6hdrQXkykAcA8ON2tFOHKgVKuANEhAB5Gff7f1gPf+G2CDe
+CNBXtmSXo39am3FOe7yXEszYUJYN5pKx/0IZ6MsS8PLmjnAUIme9Sg4fsVMPQVl8
+LWxEMM+FWtFmNxLqWUSxzltJUbzkJUZbePoFDxFGVbFykwErkfeNT34icednUdCk
+JoU2mHEMJOuCyCluDWPSKEwWkhmCbXrOFG4G8TDLHlOnQ0KkomPiQ+Wz0wkJmykt
+iy7WUYr5bX9N/c2LSpBh
+=bfVL
 -----END PGP SIGNATURE-----
 
---KeMamBpqRBVJGeFPOsTswGDxmuGgs3J87--
+--aXUXwBuOxgJeERRUQGJnrws2RElL1Px1w--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
