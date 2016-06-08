@@ -1,46 +1,23 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH rdma-next 00/29] Soft RoCE driver
-Date: Wed, 8 Jun 2016 11:51:40 -0500
-Message-ID: <00ef01d1c1a6$07784730$1668d590$@opengridcomputing.com>
+Date: Wed, 8 Jun 2016 17:25:40 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB060375@ORSMSX109.amr.corp.intel.com>
 References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
+ <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1464886657-14258-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Soft RoCE resources:
-> 
-> [1] https://github.com/SoftRoCE/librxe-dev librxe - source code in Github
-> 
-> [2] https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home - Soft RoCE Wiki
-page
+> I wonder if rxe can utilize the rdmavt library?
 
-Hey Moni,
-
-I'm trying to build librxe and it cannot find <rdma/ib_rxe.h>  Where does this
-file come from?
-
-[root@stevo1 librxe-dev]# make
-make  all-am
-make[1]: Entering directory `/usr/local/src/librxe-dev'
-/bin/sh ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.    -g -Wall
--D_GNU_SOURCE -g -O2 -MT rxe.lo -MD -MP -MF .deps/rxe.Tpo -c -o rxe.lo `test -f
-'src/rxe.c' || echo './'`src/rxe.c
-libtool: compile:  gcc -DHAVE_CONFIG_H -I. -g -Wall -D_GNU_SOURCE -g -O2 -MT
-rxe.lo -MD -MP -MF .deps/rxe.Tpo -c src/rxe.c  -fPIC -DPIC -o .libs/rxe.o
-src/rxe.c:61:25: error: rdma/ib_rxe.h: No such file or directory
-
-Thanks,
-
-Steve.
-
+I didn't notice a response to this.  Why is this not using rdmavt?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
