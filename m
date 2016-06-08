@@ -1,38 +1,52 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V5 libibverbs 0/7] Completion timestamping
-Date: Wed, 8 Jun 2016 13:14:12 -0600
-Message-ID: <20160608191412.GA27089@obsidianresearch.com>
-References: <1464786340-7630-1-git-send-email-yishaih@mellanox.com>
- <1b0ea11b-3762-2335-28dd-eb3ac243104e@redhat.com>
- <20160606233325.GA28769@obsidianresearch.com>
- <bd0b54e6-70ae-27b3-fe1e-8ee729e20479@redhat.com>
+Subject: [PATCH] IB/mlx4: Properly initialize GRH TClass and FlowLabel in AHs
+Date: Wed, 8 Jun 2016 17:28:29 -0600
+Message-ID: <20160608232829.GA27363@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <bd0b54e6-70ae-27b3-fe1e-8ee729e20479-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 06, 2016 at 10:20:12PM -0400, Doug Ledford wrote:
+When this code was reworked for IBoE support the order of assignments
+for the sl_tclass_flowlabel got flipped around resulting in
+TClass & FlowLabel being permanently set to 0 in the packet headers.
 
-> Judging by the way yours and mines conversation went in v4 it seemed you
-> were pretty much in favor of it.  If you have specific objections,
-> please raise them, we can do incremental fixes.
+This breaks IB routers that rely on these headers, but only affects
+kernel users - libmlx4 does this properly for user space.
 
-In favor of the general approach, there were still lots of details to
-be delt with, including what QPs can be joined, the exact set of
-accessors and enablement flags, the compat layer, minor coding issues
-and micro optimizations. Fruther, there hasn't seen sign off from any
-other vendors which we said we wanted for these sorts of things.
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Fixes: fa417f7b520e ("IB/mlx4: Add support for IBoE")
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/ah.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-All of these have been raised on the mailing list, but you killed the
-discussion when you said you didn't like the series, so many issues
-never reached a closure.
+diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
+index 105246fba2e7..5fc623362731 100644
+--- a/drivers/infiniband/hw/mlx4/ah.c
++++ b/drivers/infiniband/hw/mlx4/ah.c
+@@ -47,6 +47,7 @@ static struct ib_ah *create_ib_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
+ 
+ 	ah->av.ib.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+ 	ah->av.ib.g_slid  = ah_attr->src_path_bits;
++	ah->av.ib.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 28);
+ 	if (ah_attr->ah_flags & IB_AH_GRH) {
+ 		ah->av.ib.g_slid   |= 0x80;
+ 		ah->av.ib.gid_index = ah_attr->grh.sgid_index;
+@@ -64,7 +65,6 @@ static struct ib_ah *create_ib_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
+ 		       !(1 << ah->av.ib.stat_rate & dev->caps.stat_rate_support))
+ 			--ah->av.ib.stat_rate;
+ 	}
+-	ah->av.ib.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 28);
+ 
+ 	return &ah->ibah;
+ }
+-- 
+2.1.4
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
