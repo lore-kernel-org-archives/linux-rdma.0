@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 01/13] IB/core: Add get FW version string to the core
-Date: Thu,  9 Jun 2016 17:53:56 -0400
-Message-ID: <1465509248-11324-2-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 05/13] IB/mlx4: Support device FW version string
+Date: Thu,  9 Jun 2016 17:54:00 -0400
+Message-ID: <1465509248-11324-6-git-send-email-ira.weiny@intel.com>
 References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,68 +12,75 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Allow for a common core function to get firmware version strings
-from the individual devices.
-
-In later patches this format can then then be used to pass a
-properly formated version string through the IPoIB layer.
-
-The problem with the current code in the IPoIB layer is that it is
-specific to certain hardware types.
-
-Furthermore, this gives us a common function through which the core
-can provide a common sysfs entry.  Eventually we may want to
-remove the sysfs export but this provides for user space backwards
-compatibility.
+And remove the sysfs in favor of common core version.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/device.c | 9 +++++++++
- include/rdma/ib_verbs.h          | 3 +++
- 2 files changed, 12 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5516fb070344..3ec3c8306e14 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -311,6 +311,15 @@ static int read_port_immutable(struct ib_device *device)
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index b01ef6eee6e8..f972cc3966d5 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2022,16 +2022,6 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 	return sprintf(buf, "MT%d\n", dev->dev->persist->pdev->device);
+ }
+ 
+-static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+-			   char *buf)
+-{
+-	struct mlx4_ib_dev *dev =
+-		container_of(device, struct mlx4_ib_dev, ib_dev.dev);
+-	return sprintf(buf, "%d.%d.%d\n", (int) (dev->dev->caps.fw_ver >> 32),
+-		       (int) (dev->dev->caps.fw_ver >> 16) & 0xffff,
+-		       (int) dev->dev->caps.fw_ver & 0xffff);
+-}
+-
+ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+ 			char *buf)
+ {
+@@ -2050,13 +2040,11 @@ static ssize_t show_board(struct device *device, struct device_attribute *attr,
+ }
+ 
+ static DEVICE_ATTR(hw_rev,   S_IRUGO, show_rev,    NULL);
+-static DEVICE_ATTR(fw_ver,   S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca,    NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board,  NULL);
+ 
+ static struct device_attribute *mlx4_class_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_ver,
+ 	&dev_attr_hca_type,
+ 	&dev_attr_board_id
+ };
+@@ -2277,6 +2265,17 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
++static void get_fw_ver_str(struct ib_device *device, char *str,
++			   size_t str_len)
 +{
-+	if (dev->get_dev_fw_str)
-+		dev->get_dev_fw_str(dev, str, str_len);
-+	else
-+		snprintf(str, str_len, "%s", "");
++	struct mlx4_ib_dev *dev =
++		container_of(device, struct mlx4_ib_dev, ib_dev);
++	snprintf(str, str_len, "%d.%d.%d",
++		 (int) (dev->dev->caps.fw_ver >> 32),
++		 (int) (dev->dev->caps.fw_ver >> 16) & 0xffff,
++		 (int) dev->dev->caps.fw_ver & 0xffff);
 +}
-+EXPORT_SYMBOL(ib_get_device_fw_str);
 +
- /**
-  * ib_register_device - Register an IB device with IB core
-  * @device:Device to register
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 432bed510369..e013668d2483 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1956,6 +1956,7 @@ struct ib_device {
- 	 * in fast paths.
- 	 */
- 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
-+	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
- };
+ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_ib_dev *ibdev;
+@@ -2410,6 +2409,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
+ 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
+ 	ibdev->ib_dev.get_port_immutable = mlx4_port_immutable;
++	ibdev->ib_dev.get_dev_fw_str    = get_fw_ver_str;
+ 	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
  
- struct ib_client {
-@@ -1991,6 +1992,8 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
- 
-+void ib_get_device_fw_str(struct ib_device *device, char *, size_t);
-+
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
- 					    u8, struct kobject *));
+ 	if (!mlx4_is_slave(ibdev->dev)) {
 -- 
 1.8.2
 
