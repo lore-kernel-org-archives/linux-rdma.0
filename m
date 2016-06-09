@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 04/13] IB/i40iw: Support device FW version string
-Date: Thu,  9 Jun 2016 17:53:59 -0400
-Message-ID: <1465509248-11324-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 12/13] IB/core: Export a common fw_ver sysfs entry
+Date: Thu,  9 Jun 2016 17:54:07 -0400
+Message-ID: <1465509248-11324-13-git-send-email-ira.weiny@intel.com>
 References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,75 +12,61 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-And remove sysfs support in favor of the core version.
+Now that all the devices have stopped exporting their own sysfs
+entry points we can have the core export this on their behalf.
+
+Eventually this may be removed but this provides for backwards
+compatibility.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/sysfs.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 02a735b64208..39096a246863 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -1973,18 +1973,6 @@ static ssize_t i40iw_show_rev(struct device *dev,
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 5e573bb18660..462dbb64d71d 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -38,6 +38,7 @@
+ #include <linux/stat.h>
+ #include <linux/string.h>
+ #include <linux/netdevice.h>
++#include <linux/ethtool.h>
+ 
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_pma.h>
+@@ -1188,16 +1189,29 @@ static ssize_t set_node_desc(struct device *device,
+ 	return count;
  }
  
- /**
-- * i40iw_show_fw_ver
-- */
--static ssize_t i40iw_show_fw_ver(struct device *dev,
--				 struct device_attribute *attr, char *buf)
--{
--	u32 firmware_version = I40IW_FW_VERSION;
--
--	return sprintf(buf, "%u.%u\n", firmware_version,
--		       (firmware_version & 0x000000ff));
--}
--
--/**
-  * i40iw_show_hca
-  */
- static ssize_t i40iw_show_hca(struct device *dev,
-@@ -2004,13 +1992,11 @@ static ssize_t i40iw_show_board(struct device *dev,
- }
- 
- static DEVICE_ATTR(hw_rev, S_IRUGO, i40iw_show_rev, NULL);
--static DEVICE_ATTR(fw_ver, S_IRUGO, i40iw_show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, S_IRUGO, i40iw_show_hca, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, i40iw_show_board, NULL);
- 
- static struct device_attribute *i40iw_dev_attributes[] = {
- 	&dev_attr_hw_rev,
--	&dev_attr_fw_ver,
- 	&dev_attr_hca_type,
- 	&dev_attr_board_id
- };
-@@ -2427,6 +2413,15 @@ static const char * const i40iw_hw_stat_names[] = {
- 		"iwRdmaInv"
- };
- 
-+static void i40iw_get_dev_fw_str(struct ib_device *dev, char *str,
-+				 size_t str_len)
++static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
++			   char *buf)
 +{
-+	u32 firmware_version = I40IW_FW_VERSION;
++	char tmp[ETHTOOL_FWVERS_LEN];
++	struct ib_device *dev = container_of(device, struct ib_device, dev);
 +
-+	snprintf(str, str_len, "%u.%u", firmware_version,
-+		       (firmware_version & 0x000000ff));
++	ib_get_device_fw_str(dev, tmp, sizeof(tmp));
++
++	return scnprintf(buf, PAGE_SIZE, "%s\n", tmp);
 +}
 +
- /**
-  * i40iw_alloc_hw_stats - Allocate a hw stats structure
-  * @ibdev: device pointer from stack
-@@ -2650,6 +2645,7 @@ static struct i40iw_ib_device *i40iw_init_rdma_device(struct i40iw_device *iwdev
- 	memcpy(iwibdev->ibdev.iwcm->ifname, netdev->name,
- 	       sizeof(iwibdev->ibdev.iwcm->ifname));
- 	iwibdev->ibdev.get_port_immutable   = i40iw_port_immutable;
-+	iwibdev->ibdev.get_dev_fw_str       = i40iw_get_dev_fw_str;
- 	iwibdev->ibdev.poll_cq = i40iw_poll_cq;
- 	iwibdev->ibdev.req_notify_cq = i40iw_req_notify_cq;
- 	iwibdev->ibdev.post_send = i40iw_post_send;
+ static DEVICE_ATTR(node_type, S_IRUGO, show_node_type, NULL);
+ static DEVICE_ATTR(sys_image_guid, S_IRUGO, show_sys_image_guid, NULL);
+ static DEVICE_ATTR(node_guid, S_IRUGO, show_node_guid, NULL);
+ static DEVICE_ATTR(node_desc, S_IRUGO | S_IWUSR, show_node_desc, set_node_desc);
++static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
+ 
+ static struct device_attribute *ib_class_attributes[] = {
+ 	&dev_attr_node_type,
+ 	&dev_attr_sys_image_guid,
+ 	&dev_attr_node_guid,
+-	&dev_attr_node_desc
++	&dev_attr_node_desc,
++	&dev_attr_fw_ver
+ };
+ 
+ static void free_port_list_attributes(struct ib_device *device)
 -- 
 1.8.2
 
