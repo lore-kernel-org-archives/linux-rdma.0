@@ -1,70 +1,66 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 04/21] fs: Replace CURRENT_TIME with current_fs_time() for
- inode timestamps
-Date: Thu, 9 Jun 2016 12:08:04 -0700
-Message-ID: <CA+55aFzceGREzGEJda8qt6gv6=iE_yDbM+mO2dJJa0wbu-o-Ww@mail.gmail.com>
-References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com> <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/29] Soft RoCE driver
+Date: Thu, 9 Jun 2016 22:16:08 +0300
+Message-ID: <20160609191608.GA5408@leon.nu>
+References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
+ <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com>
+ <CAG9sBKPa0qQ4uuhoWLfZaXP9E+DnLrkOcU-2yNXbdZFQKppN8w@mail.gmail.com>
+ <20160609144554.GA14212@phlsvsds.ph.intel.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Al Viro <viro@zeniv.linux.org.uk>, y2038@lists.linaro.org, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, samba-technical@lists.samba.org, Joern Engel <joern@logfs.org>, Prasad Joshi <prasadjoshi.linux@gmail.com>, logfs@logfs.org, Andrew Morton <akpm@linux-foundation.org>, Julia Lawall <Julia.Lawall@lip6.fr>, David Howells <dhowells@redhat.com>, Firo Yang <firogm@gmail.com>, Jaegeuk Kim <jaegeuk@kernel.org>, Changman Lee <cm224.lee@samsung.com>, Chao Yu <chao2.yu@samsung.com>, "Linux F2FS DEV, Mailing List" <linux-f2fs-devel@lists.sourceforge.net>, Michal Hocko <mhocko@suse.com>, Konstantin Khlebnikov <koct9i@gmail.com>, Naoya Horiguchi <n-horiguch>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160609144554.GA14212-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 8, 2016 at 10:04 PM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> CURRENT_TIME macro is not appropriate for filesystems as it
-> doesn't use the right granularity for filesystem timestamps.
-> Use current_fs_time() instead.
 
-Again - using the inode instead fo the syuperblock in tghis patch
-would have made the patch much more obvious (it could have been 99%
-generated with the sed-script I sent out a week or two ago), and it
-would have made it unnecessary to add these kinds of things:
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> diff --git a/drivers/usb/core/devio.c b/drivers/usb/core/devio.c
-> index e9f5043..85c12f0 100644
-> --- a/drivers/usb/core/devio.c
-> +++ b/drivers/usb/core/devio.c
-> @@ -2359,6 +2359,7 @@ static long usbdev_do_ioctl(struct file *file, unsigned int cmd,
->  {
->         struct usb_dev_state *ps = file->private_data;
->         struct inode *inode = file_inode(file);
-> +       struct super_block *sb = inode->i_sb;
->         struct usb_device *dev = ps->dev;
->         int ret = -ENOTTY;
+On Thu, Jun 09, 2016 at 10:45:55AM -0400, Dennis Dalessandro wrote:
+> On Thu, Jun 09, 2016 at 04:17:15PM +0300, Moni Shoua wrote:
+> >2.  Trying to force SoftRoCE on this model will end up with rxe driver
+> >registers to rvt with all ib_device hooks implemented. This makes the
+> >reason to use rvt irrelevant in this case.
+>=20
+> Everything? What about AH, MR, PD? Aren't those pretty generic constructs.
+> In fact you folks submitted the change for AH.
+>=20
 
-where we add a new variable just because the calling convention was wrong.
+Despite the fact that I submitted change to hfi1, it doesn't make me
+stake holder of that driver.
 
-It's not even 100% obvious that a filesystem has to have one single
-time representation, so making the time function about the entity
-whose time is set is also conceptually a much better model, never mind
-that it is just what every single user seems to want anyway.
+--BXVAT5kNtrzKuDFl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-So I'd *much* rather see
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-+       inode->i_atime = inode->i_mtime = inode->i_ctime =
-current_fs_time(inode);
+iQIcBAEBAgAGBQJXWcB4AAoJEORje4g2clinQuIQAJ4fye5fvZ3hM5pK8qfYtmso
+FPEZ1CFos68yc2q06lXyeByVikD5D9vZqgcvB4Zxq2ecg4gv8Jjg5Ob7tvjRZyUp
+ysSr7N4lQ3AR/E5LYxSsUOk3fodl0nKLwT4gMcHxAqBoxCv2o08WJhDwPOmhgDHS
+00Yi/PEphdUAShBmzMWa6UHCceY6PJw7Ul/gINQHMWCdovr9VncvqCuKp8UcFu3A
++AeVS1rkHSjx6LmtdWGix9awvewio2vmmPuH5SCWqYQewdLuakiXIj7RX/HEsYrT
+FD/fGP1chINU6lj6QV2QJgM1i/pRUlVjT2DPxWzMjwFT2ukPo35a9jXAfmpeYi/R
+MZmyAW8vtLuXUJcWydzbCEYT0qTSSanQOHTnXwSFblj6Q8JbTwqcuLJ1vrjJp29L
+SpqedDkr5Ti6rQqeiTe443wmkFRev4IZw+pbRzB29Ah7NXcI8WsQM014SL5RSqbr
+sCtvYN1wjuSKOt/FB1aQpvgFKS2UaeeGkfHGn5LMkZWDj632JBl2fMswtYFdExHw
+dVpEXGEtmqIUyvJbxvVW1xvaxoW8m23B79KTTlcqeos0ZfSnYvG4I9SrhadqJ3Xi
+SKyE0vLfhegfwR8cogl15qsLhRL1FiGSbpdAc18CLB8FVqdA6WEgY/yTp1maK36T
+vkKzj1GdAgbPl1Rovnsy
+=v/qU
+-----END PGP SIGNATURE-----
 
-over seeing either of these two variants::
-
-+       inode->i_atime = inode->i_mtime = inode->i_ctime =
-current_fs_time(inode->i_sb);
-+       ret->i_atime = ret->i_mtime = ret->i_ctime = current_fs_time(sb);
-
-because the first of those variants (grep for current_fs_time() in the
-current git tree, and notice that it's the common one) we have the
-pointless "let's chase a pointer in every caller"
-
-And while it's true that the second variant is natural for *some*
-situations, I've yet to find one where it wasn't equally sane to just
-pass in the inode instead.
-
-                     Linus
-
+--BXVAT5kNtrzKuDFl--
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
