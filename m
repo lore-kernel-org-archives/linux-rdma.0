@@ -1,48 +1,54 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 12/13] IB/core: Export a common fw_ver sysfs entry
-Date: Thu, 9 Jun 2016 16:40:38 -0600
-Message-ID: <20160609224038.GB13366@obsidianresearch.com>
-References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
- <1465509248-11324-13-git-send-email-ira.weiny@intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 4/5] nvmet-rdma: add a NVMe over Fabrics RDMA target driver
+Date: Thu, 9 Jun 2016 18:03:51 -0500
+Message-ID: <057a01d1c2a3$3082eec0$9188cc40$@opengridcomputing.com>
+References: <1465248215-18186-1-git-send-email-hch@lst.de> <1465248215-18186-5-git-send-email-hch@lst.de> <5756B75C.9000409@lightbits.io>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1465509248-11324-13-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <5756B75C.9000409-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: 'Sagi Grimberg' <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Armen Baloyan' <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jay Freyensee' <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ming Lin' <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 09, 2016 at 05:54:07PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
->  
-> +static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
-> +			   char *buf)
-> +{
-> +	char tmp[ETHTOOL_FWVERS_LEN];
-> +	struct ib_device *dev = container_of(device, struct ib_device, dev);
-> +
-> +	ib_get_device_fw_str(dev, tmp, sizeof(tmp));
-> +
-> +	return scnprintf(buf, PAGE_SIZE, "%s\n", tmp);
+<snip>
 
-No need to use the stack:
+> > +
+> > +static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
+> > +		struct rdma_cm_event *event)
+> > +{
+> > +	struct nvmet_rdma_queue *queue = NULL;
+> > +	int ret = 0;
+> > +
+> > +	if (cm_id->qp)
+> > +		queue = cm_id->qp->qp_context;
+> > +
+> > +	pr_debug("%s (%d): status %d id %p\n",
+> > +		rdma_event_msg(event->event), event->event,
+> > +		event->status, cm_id);
+> > +
+> > +	switch (event->event) {
+> > +	case RDMA_CM_EVENT_CONNECT_REQUEST:
+> > +		ret = nvmet_rdma_queue_connect(cm_id, event);
 
-ib_get_device_fw_str(dev, buf, PAGE_SIZE);
-strlcat(buf, "", PAGE_SIZE);
-return strlen(buf);
+The above nvmet cm event handler, nvmet_rdma_cm_handler(), calls
+nvmet_rdma_queue_connect() for CONNECT_REQUEST events, which calls
+nvmet_rdma_alloc_queue (), which, if it encounters a failure (like creating
+the qp), calls nvmet_rdma_cm_reject () which calls rdma_reject().  The
+non-zero error, however, gets returned back here and this function returns
+the error to the RDMA_CM which will also reject the connection as well as
+destroy the cm_id.  So there are two rejects happening, I think.  Either
+nvmet should reject and destroy the cm_id, or it should do neither and
+return non-zero to the RDMA_CM to reject/destroy.
 
->  	&dev_attr_node_guid,
-> -	&dev_attr_node_desc
-> +	&dev_attr_node_desc,
-> +	&dev_attr_fw_ver
+Steve.
 
-Should be 
- +	&dev_attr_fw_ver,
 
-Note trailing comma. Avoids git churn like the above on append.
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
