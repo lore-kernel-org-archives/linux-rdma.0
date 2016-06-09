@@ -1,93 +1,146 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 28/29] IB/rxe: Shared objects between user and
- kernel
-Date: Thu, 9 Jun 2016 09:09:31 +0300
-Message-ID: <20160609060931.GM3663@leon.nu>
-References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
- <1464886657-14258-29-git-send-email-monis@mellanox.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v9 11/22] IB/hns: Add IB device registration
+Date: Thu, 9 Jun 2016 09:26:31 +0300
+Message-ID: <20160609062631.GN3663@leon.nu>
+References: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
+ <1464795484-77395-12-git-send-email-oulijun@huawei.com>
+Reply-To: leon@kernel.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="g6DVDhPhk1bqxDrC"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="Y4VYWfdFdHwFhC6D"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1464886657-14258-29-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1464795484-77395-12-git-send-email-oulijun@huawei.com>
+Sender: netdev-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---g6DVDhPhk1bqxDrC
+--Y4VYWfdFdHwFhC6D
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 02, 2016 at 07:57:36PM +0300, Moni Shoua wrote:
-> User and kernel pass objects in shared memeory. For this both sides need
-> to declare about the layout of each object in memory or in other words:
-> agree about the ABI.
+On Wed, Jun 01, 2016 at 11:37:53PM +0800, Lijun Ou wrote:
+> This patch registered IB device when loaded, and unregistered
+> IB device when removed.
 >=20
-> Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+> Signed-off-by: Lijun Ou <oulijun@huawei.com>
 > ---
->  include/uapi/rdma/Kbuild   |   1 +
->  include/uapi/rdma/ib_rxe.h | 139 +++++++++++++++++++++++++++++++++++++++=
+>  drivers/infiniband/hw/hns/hns_roce_main.c | 46 +++++++++++++++++++++++++=
 ++++++
->  2 files changed, 140 insertions(+)
->  create mode 100644 include/uapi/rdma/ib_rxe.h
+>  1 file changed, 46 insertions(+)
 >=20
-> diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-> index 231901b..94f9401 100644
-> --- a/include/uapi/rdma/Kbuild
-> +++ b/include/uapi/rdma/Kbuild
-> @@ -6,3 +6,4 @@ header-y +=3D ib_user_verbs.h
->  header-y +=3D rdma_netlink.h
->  header-y +=3D rdma_user_cm.h
->  header-y +=3D hfi/
-> +header-y +=3D ib_rxe.h
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniba=
+nd/hw/hns/hns_roce_main.c
+> index 7fb0d34..f179a7f 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+> @@ -62,6 +62,41 @@
+>  #include "hns_roce_device.h"
+>  #include "hns_roce_icm.h"
+> =20
+> +void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
 
-IMHO, it needs to be called ib_user_rxe.h and not ib_rxe.h
-It looks like rdma_netlink.h is exclusion from that convention.
+You are not calling to this function in this patch.
 
-> diff --git a/include/uapi/rdma/ib_rxe.h b/include/uapi/rdma/ib_rxe.h
-> new file mode 100644
-> index 0000000..eb8ff8c
-> --- /dev/null
-> +++ b/include/uapi/rdma/ib_rxe.h
-> @@ -0,0 +1,139 @@
-> +/*
-> + * Copyright (c) 2015 Mellanox Technologies Ltd. All rights reserved.
+> +{
+> +	ib_unregister_device(&hr_dev->ib_dev);
+> +}
+> +
+> +int hns_roce_register_device(struct hns_roce_dev *hr_dev)
 
-Small nitpick - need to update Copyright.
+This function should be static.
 
+> +{
+> +	int ret;
+> +	struct hns_roce_ib_iboe *iboe =3D NULL;
+> +	struct ib_device *ib_dev =3D NULL;
+> +	struct device *dev =3D &hr_dev->pdev->dev;
+> +
+> +	iboe =3D &hr_dev->iboe;
+> +
+> +	ib_dev =3D &hr_dev->ib_dev;
+> +	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
+> +
+> +	ib_dev->owner			=3D THIS_MODULE;
+> +	ib_dev->node_type		=3D RDMA_NODE_IB_CA;
+> +	ib_dev->dma_device		=3D dev;
+> +
+> +	ib_dev->phys_port_cnt		=3D hr_dev->caps.num_ports;
+> +	ib_dev->local_dma_lkey		=3D hr_dev->caps.reserved_lkey;
+> +	ib_dev->num_comp_vectors	=3D hr_dev->caps.num_comp_vectors;
+> +	ib_dev->uverbs_abi_ver		=3D 1;
+> +
+> +	ret =3D ib_register_device(ib_dev, NULL);
+> +	if (ret) {
+> +		dev_err(dev, "ib_register_device failed!\n");
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+>  {
+>  	int i;
+> @@ -363,6 +398,17 @@ static int hns_roce_probe(struct platform_device *pd=
+ev)
+>  		goto error_failed_engine_init;
+>  	}
+> =20
+> +	ret =3D hns_roce_register_device(hr_dev);
+> +	if (ret) {
+> +		dev_err(dev, "register_device failed!\n");
 
---g6DVDhPhk1bqxDrC
+According to the current code, you will print this error together with
+error line in hns_roce_register_device for the same failure.
+
+"ib_register_device failed!"
+"register_device failed!"
+
+> +		goto error_failed_register_device;
+> +	}
+> +
+> +	return 0;
+> +
+> +error_failed_register_device:
+> +	hns_roce_engine_exit(hr_dev);
+> +
+>  error_failed_engine_init:
+>  	hns_roce_cleanup_bitmap(hr_dev);
+> =20
+> --=20
+> 1.9.1
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--Y4VYWfdFdHwFhC6D
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXWQgbAAoJEORje4g2clinCF4P/2hzAp2KSvSkLMm4858C2TwL
-xePYHhVyoH9yC0Rz16m5jv73wvDMQoqD/jsQzDcsBfeYm/myqvxh0i9pwKNGwbZ7
-lR7XjcDNiCFMbqgP4aaNVWcQCIGM4fgP0lC2Z1xe42HXsXxBWWfzfp50fJJ+WByL
-EQDvBQwUDfplBpALksty6ru+B4TsAej41BnwonNiLWgP9JhMj/W/kjwIYxXeSth7
-Kq/a2yJtUTGgoxnClJspQZzMHKB9+IfvJab+8sXjKTZsnW/CVfcUmjAzaPc8cFhc
-ZaMutMBPp26AZaPQJRTNxtlkYoxL48TcjSrUZsns3DvAV3YQOGdrLR8aERLkL9gV
-zry3dmEYhodKiYaq+CJMYAo6qWx5uukI1NWl/hI/FBSWFw1EFdz7a5kADaLsAr/f
-7jNcZc6DXG8ikoR5ebJaxIG73vh2Mc9I+jfHbVhzC8KExLplUbgUrd0G1eec4Lk3
-Ny4dA1MhDhAetNS3LLuTTKMx4bP142VUl52ld8FqFyA5l6OGb8D4Bf9AboDuJ1EB
-yqLZqL9uDv4HwLaKiczy17VPxb7GJ7d+1N94ss+AQi6KmhRv0rMFo58zdVyRtRf+
-aId5Uar1A3pkTmRrQj9urT95yXEZqCghm/HHhi8xpihn8nJHd1lJz79/YivCqAb5
-7RSH5nEDZl4JstYmC5Rc
-=7TPc
+iQIcBAEBAgAGBQJXWQwXAAoJEORje4g2clin7vEP/1rLiLZjbw7DUSlFZIjKMCGj
+PDyZEf+JOn+WAzePp+DLCmdLxYng9lyLfGzamXXjl/ynGG0VJ30PVftKu984ohyr
+h4zTwDRnsZLq0dYCXodjOdtc4LmvidTrqp04bPff/A1vAQpLth+kbw+wvLYSXiuv
+W0d2MndeWhxbLmF83ueonTw+bubBTI9bzSAHRoKlzZjBaKlig59Ai7NlfMZ257dt
+49VEDj89OtPL+u/fwC2RZ0nHVJkEjytWmnPI0aZcd5nITVbXSoFmXa7hEJte+SzK
+AfyIAl6EGANyxcsaylh2110UjPXqvTBnO2hAlRnLf96ZJGv32xfz2YD8E2aJTVqV
+3zJ2bBA3Db4xAXJykS8cVzduUyizOC2Weg7VNk/y/zjitQgdK3Jil3bWII4Ln+OQ
+VQL4f8vYm0EkubmadK8FzSwDEeSIt5Xz+6TGGNs7Cj2yV5Zv1Rv7OM8DF2ROQ7sh
+sv6pd/AsbgngP3gF0mSTBcrC9g0GGGo9wjH6cphr0XYs5oYVLMn9/ZHx1YTbDWxG
+V6BLFCxFZcORQQe1Cm6uvk/K9j/woXqtTdD566WGmFdE/RB+lCz4RsoFttBBxq7H
+3PskdV8Q6NDCE1oPn2e7fh/+vU5WnDeFo6Vg+vkwYIljeEeQgJdExEZNI6jKgMOF
+bsT0dG+eJXsJdIwZj6nz
+=hPeh
 -----END PGP SIGNATURE-----
 
---g6DVDhPhk1bqxDrC--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Y4VYWfdFdHwFhC6D--
