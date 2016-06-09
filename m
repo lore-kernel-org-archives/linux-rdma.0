@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 10/13] IB/usnic: Support device FW version string
-Date: Thu,  9 Jun 2016 17:54:05 -0400
-Message-ID: <1465509248-11324-11-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 06/13] IB/mlx5: Support device FW version string
+Date: Thu,  9 Jun 2016 17:54:01 -0400
+Message-ID: <1465509248-11324-7-git-send-email-ira.weiny@intel.com>
 References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,91 +12,74 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-And remove sysfs file in favor of the common core.
+And remove sysfs entry in favor of the common code.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c  | 16 ++++++++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 17 -----------------
- 2 files changed, 16 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 565c881a44ba..c229b9f4a52d 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -331,6 +331,21 @@ static int usnic_port_immutable(struct ib_device *ibdev, u8 port_num,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c72797cd9e4f..792038d019a3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1793,15 +1793,6 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 	return sprintf(buf, "MT%d\n", dev->mdev->pdev->device);
+ }
+ 
+-static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+-			   char *buf)
+-{
+-	struct mlx5_ib_dev *dev =
+-		container_of(device, struct mlx5_ib_dev, ib_dev.dev);
+-	return sprintf(buf, "%d.%d.%d\n", fw_rev_maj(dev->mdev),
+-		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
+-}
+-
+ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+ 			char *buf)
+ {
+@@ -1820,7 +1811,6 @@ static ssize_t show_board(struct device *device, struct device_attribute *attr,
+ }
+ 
+ static DEVICE_ATTR(hw_rev,   S_IRUGO, show_rev,    NULL);
+-static DEVICE_ATTR(fw_ver,   S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca,    NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board,  NULL);
+ static DEVICE_ATTR(fw_pages, S_IRUGO, show_fw_pages, NULL);
+@@ -1828,7 +1818,6 @@ static DEVICE_ATTR(reg_pages, S_IRUGO, show_reg_pages, NULL);
+ 
+ static struct device_attribute *mlx5_class_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_ver,
+ 	&dev_attr_hca_type,
+ 	&dev_attr_board_id,
+ 	&dev_attr_fw_pages,
+@@ -2267,6 +2256,15 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+static void usnic_get_dev_fw_str(struct ib_device *device,
-+				 char *str,
-+				 size_t str_len)
++static void get_dev_fw_str(struct ib_device *ibdev, char *str,
++			   size_t str_len)
 +{
-+	struct usnic_ib_dev *us_ibdev =
-+		container_of(device, struct usnic_ib_dev, ib_dev);
-+	struct ethtool_drvinfo info;
-+
-+	mutex_lock(&us_ibdev->usdev_lock);
-+	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
-+	mutex_unlock(&us_ibdev->usdev_lock);
-+
-+	snprintf(str, str_len, "%s", info.fw_version);
++	struct mlx5_ib_dev *dev =
++		container_of(ibdev, struct mlx5_ib_dev, ib_dev);
++	snprintf(str, str_len, "%d.%d.%d", fw_rev_maj(dev->mdev),
++		 fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
 +}
 +
- /* Start of PF discovery section */
- static void *usnic_ib_device_add(struct pci_dev *dev)
+ static int mlx5_enable_roce(struct mlx5_ib_dev *dev)
  {
-@@ -414,6 +429,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	us_ibdev->ib_dev.req_notify_cq = usnic_ib_req_notify_cq;
- 	us_ibdev->ib_dev.get_dma_mr = usnic_ib_get_dma_mr;
- 	us_ibdev->ib_dev.get_port_immutable = usnic_port_immutable;
-+	us_ibdev->ib_dev.get_dev_fw_str     = usnic_get_dev_fw_str;
- 
- 
- 	if (ib_register_device(&us_ibdev->ib_dev, NULL))
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-index 3412ea06116e..80ef3f8998c8 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
-@@ -45,21 +45,6 @@
- #include "usnic_ib_verbs.h"
- #include "usnic_log.h"
- 
--static ssize_t usnic_ib_show_fw_ver(struct device *device,
--					struct device_attribute *attr,
--					char *buf)
--{
--	struct usnic_ib_dev *us_ibdev =
--		container_of(device, struct usnic_ib_dev, ib_dev.dev);
--	struct ethtool_drvinfo info;
--
--	mutex_lock(&us_ibdev->usdev_lock);
--	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
--	mutex_unlock(&us_ibdev->usdev_lock);
--
--	return scnprintf(buf, PAGE_SIZE, "%s\n", info.fw_version);
--}
--
- static ssize_t usnic_ib_show_board(struct device *device,
- 					struct device_attribute *attr,
- 					char *buf)
-@@ -192,7 +177,6 @@ usnic_ib_show_cq_per_vf(struct device *device, struct device_attribute *attr,
- 			us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_CQ]);
- }
- 
--static DEVICE_ATTR(fw_ver, S_IRUGO, usnic_ib_show_fw_ver, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, usnic_ib_show_board, NULL);
- static DEVICE_ATTR(config, S_IRUGO, usnic_ib_show_config, NULL);
- static DEVICE_ATTR(iface, S_IRUGO, usnic_ib_show_iface, NULL);
-@@ -201,7 +185,6 @@ static DEVICE_ATTR(qp_per_vf, S_IRUGO, usnic_ib_show_qp_per_vf, NULL);
- static DEVICE_ATTR(cq_per_vf, S_IRUGO, usnic_ib_show_cq_per_vf, NULL);
- 
- static struct device_attribute *usnic_class_attributes[] = {
--	&dev_attr_fw_ver,
- 	&dev_attr_board_id,
- 	&dev_attr_config,
- 	&dev_attr_iface,
+ 	int err;
+@@ -2413,6 +2411,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.map_mr_sg		= mlx5_ib_map_mr_sg;
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
++	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
+ 	if (mlx5_core_is_pf(mdev)) {
+ 		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
+ 		dev->ib_dev.set_vf_link_state	= mlx5_ib_set_vf_link_state;
 -- 
 1.8.2
 
