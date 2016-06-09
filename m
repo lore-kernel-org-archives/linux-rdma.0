@@ -1,115 +1,88 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 4/5] nvmet-rdma: add a NVMe over Fabrics RDMA target driver
-Date: Thu, 9 Jun 2016 16:42:11 -0500
-Message-ID: <051801d1c297$c7d8a7d0$5789f770$@opengridcomputing.com>
-References: <1465248215-18186-1-git-send-email-hch@lst.de> <1465248215-18186-5-git-send-email-hch@lst.de> <5756B75C.9000409@lightbits.io>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 07/13] IB/mthca: Supprot device FW version string
+Date: Thu,  9 Jun 2016 17:54:02 -0400
+Message-ID: <1465509248-11324-8-git-send-email-ira.weiny@intel.com>
+References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5756B75C.9000409-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Armen Baloyan' <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jay Freyensee' <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ming Lin' <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-<snip>
+And remove the sysfs entry in favor of the core support.
 
-> > +
-> > +static struct nvmet_rdma_queue *
-> > +nvmet_rdma_alloc_queue(struct nvmet_rdma_device *ndev,
-> > +		struct rdma_cm_id *cm_id,
-> > +		struct rdma_cm_event *event)
-> > +{
-> > +	struct nvmet_rdma_queue *queue;
-> > +	int ret;
-> > +
-> > +	queue = kzalloc(sizeof(*queue), GFP_KERNEL);
-> > +	if (!queue) {
-> > +		ret = NVME_RDMA_CM_NO_RSC;
-> > +		goto out_reject;
-> > +	}
-> > +
-> > +	ret = nvmet_sq_init(&queue->nvme_sq);
-> > +	if (ret)
-> > +		goto out_free_queue;
-> > +
-> > +	ret = nvmet_rdma_parse_cm_connect_req(&event->param.conn,
-> queue);
-> > +	if (ret)
-> > +		goto out_destroy_sq;
-> > +
-> > +	/*
-> > +	 * Schedules the actual release because calling rdma_destroy_id from
-> > +	 * inside a CM callback would trigger a deadlock. (great API
-design..)
-> > +	 */
-> > +	INIT_WORK(&queue->release_work,
-> nvmet_rdma_release_queue_work);
-> > +	queue->dev = ndev;
-> > +	queue->cm_id = cm_id;
-> > +
-> > +	spin_lock_init(&queue->state_lock);
-> > +	queue->state = NVMET_RDMA_Q_CONNECTING;
-> > +	INIT_LIST_HEAD(&queue->rsp_wait_list);
-> > +	INIT_LIST_HEAD(&queue->rsp_wr_wait_list);
-> > +	spin_lock_init(&queue->rsp_wr_wait_lock);
-> > +	INIT_LIST_HEAD(&queue->free_rsps);
-> > +	spin_lock_init(&queue->rsps_lock);
-> > +
-> > +	queue->idx = ida_simple_get(&nvmet_rdma_queue_ida, 0, 0,
-> GFP_KERNEL);
-> > +	if (queue->idx < 0) {
-> > +		ret = NVME_RDMA_CM_NO_RSC;
-> > +		goto out_free_queue;
-> > +	}
-> > +
-> > +	ret = nvmet_rdma_alloc_rsps(queue);
-> > +	if (ret) {
-> > +		ret = NVME_RDMA_CM_NO_RSC;
-> > +		goto out_ida_remove;
-> > +	}
-> > +
-> > +	if (!ndev->srq) {
-> > +		queue->cmds = nvmet_rdma_alloc_cmds(ndev,
-> > +				queue->recv_queue_size,
-> > +				!queue->host_qid);
-> > +		if (IS_ERR(queue->cmds)) {
-> > +			ret = NVME_RDMA_CM_NO_RSC;
-> > +			goto out_free_cmds;
-> > +		}
-> > +	}
-> > +
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/mthca/mthca_provider.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-Should the above error path actually goto a block that frees the rsps?  Like
-this?
-
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index c184ee5..8aaa36f 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1053,7 +1053,7 @@ nvmet_rdma_alloc_queue(struct nvmet_rdma_device *ndev,
-                                !queue->host_qid);
-                if (IS_ERR(queue->cmds)) {
-                        ret = NVME_RDMA_CM_NO_RSC;
--                       goto out_free_cmds;
-+                       goto out_free_responses;
-                }
-        }
-
-@@ -1073,6 +1073,8 @@ out_free_cmds:
-                                queue->recv_queue_size,
-                                !queue->host_qid);
-        }
-+out_free_responses:
-+        nvmet_rdma_free_rsps(queue);
- out_ida_remove:
-        ida_simple_remove(&nvmet_rdma_queue_ida, queue->idx);
- out_destroy_sq:
-
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 9866c35cc977..da2335f7f7c3 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -1081,16 +1081,6 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
+ 	return sprintf(buf, "%x\n", dev->rev_id);
+ }
+ 
+-static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+-			   char *buf)
+-{
+-	struct mthca_dev *dev =
+-		container_of(device, struct mthca_dev, ib_dev.dev);
+-	return sprintf(buf, "%d.%d.%d\n", (int) (dev->fw_ver >> 32),
+-		       (int) (dev->fw_ver >> 16) & 0xffff,
+-		       (int) dev->fw_ver & 0xffff);
+-}
+-
+ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 			char *buf)
+ {
+@@ -1120,13 +1110,11 @@ static ssize_t show_board(struct device *device, struct device_attribute *attr,
+ }
+ 
+ static DEVICE_ATTR(hw_rev,   S_IRUGO, show_rev,    NULL);
+-static DEVICE_ATTR(fw_ver,   S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca,    NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board,  NULL);
+ 
+ static struct device_attribute *mthca_dev_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_ver,
+ 	&dev_attr_hca_type,
+ 	&dev_attr_board_id
+ };
+@@ -1187,6 +1175,17 @@ static int mthca_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	return 0;
+ }
+ 
++static void get_dev_fw_str(struct ib_device *device, char *str,
++			   size_t str_len)
++{
++	struct mthca_dev *dev =
++		container_of(device, struct mthca_dev, ib_dev);
++	snprintf(str, str_len, "%d.%d.%d",
++		 (int) (dev->fw_ver >> 32),
++		 (int) (dev->fw_ver >> 16) & 0xffff,
++		 (int) dev->fw_ver & 0xffff);
++}
++
+ int mthca_register_device(struct mthca_dev *dev)
+ {
+ 	int ret;
+@@ -1266,6 +1265,7 @@ int mthca_register_device(struct mthca_dev *dev)
+ 	dev->ib_dev.reg_user_mr          = mthca_reg_user_mr;
+ 	dev->ib_dev.dereg_mr             = mthca_dereg_mr;
+ 	dev->ib_dev.get_port_immutable   = mthca_port_immutable;
++	dev->ib_dev.get_dev_fw_str       = get_dev_fw_str;
+ 
+ 	if (dev->mthca_flags & MTHCA_FLAG_FMR) {
+ 		dev->ib_dev.alloc_fmr            = mthca_alloc_fmr;
+-- 
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
