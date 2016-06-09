@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 12/13] IB/core: Export a common fw_ver sysfs entry
-Date: Thu,  9 Jun 2016 17:54:07 -0400
-Message-ID: <1465509248-11324-13-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 08/13] IB/nes: Support device FW version string
+Date: Thu,  9 Jun 2016 17:54:03 -0400
+Message-ID: <1465509248-11324-9-git-send-email-ira.weiny@intel.com>
 References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,61 +12,84 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Now that all the devices have stopped exporting their own sysfs
-entry points we can have the core export this on their behalf.
-
-Eventually this may be removed but this provides for backwards
-compatibility.
+And remove the sysfs in favor of the core version.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/nes/nes_verbs.c | 33 ++++++++++++++-------------------
+ 1 file changed, 14 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 5e573bb18660..462dbb64d71d 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -38,6 +38,7 @@
- #include <linux/stat.h>
- #include <linux/string.h>
- #include <linux/netdevice.h>
-+#include <linux/ethtool.h>
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 464d6da5fe91..bd69125731c1 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2606,23 +2606,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
  
- #include <rdma/ib_mad.h>
- #include <rdma/ib_pma.h>
-@@ -1188,16 +1189,29 @@ static ssize_t set_node_desc(struct device *device,
- 	return count;
+ 
+ /**
+- * show_fw_ver
+- */
+-static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
+-			   char *buf)
+-{
+-	struct nes_ib_device *nesibdev =
+-			container_of(dev, struct nes_ib_device, ibdev.dev);
+-	struct nes_vnic *nesvnic = nesibdev->nesvnic;
+-
+-	nes_debug(NES_DBG_INIT, "\n");
+-	return sprintf(buf, "%u.%u\n",
+-		(nesvnic->nesdev->nesadapter->firmware_version >> 16),
+-		(nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
+-}
+-
+-
+-/**
+  * show_hca
+  */
+ static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
+@@ -2645,13 +2628,11 @@ static ssize_t show_board(struct device *dev, struct device_attribute *attr,
+ 
+ 
+ static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
+-static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
+ 
+ static struct device_attribute *nes_dev_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_ver,
+ 	&dev_attr_hca_type,
+ 	&dev_attr_board_id
+ };
+@@ -3703,6 +3684,19 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 	return 0;
  }
  
-+static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
-+			   char *buf)
++static void get_dev_fw_str(struct ib_device *dev, char *str,
++			   size_t str_len)
 +{
-+	char tmp[ETHTOOL_FWVERS_LEN];
-+	struct ib_device *dev = container_of(device, struct ib_device, dev);
++	struct nes_ib_device *nesibdev =
++			container_of(dev, struct nes_ib_device, ibdev);
++	struct nes_vnic *nesvnic = nesibdev->nesvnic;
 +
-+	ib_get_device_fw_str(dev, tmp, sizeof(tmp));
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", tmp);
++	nes_debug(NES_DBG_INIT, "\n");
++	snprintf(str, str_len, "%u.%u",
++		 (nesvnic->nesdev->nesadapter->firmware_version >> 16),
++		 (nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
 +}
 +
- static DEVICE_ATTR(node_type, S_IRUGO, show_node_type, NULL);
- static DEVICE_ATTR(sys_image_guid, S_IRUGO, show_sys_image_guid, NULL);
- static DEVICE_ATTR(node_guid, S_IRUGO, show_node_guid, NULL);
- static DEVICE_ATTR(node_desc, S_IRUGO | S_IWUSR, show_node_desc, set_node_desc);
-+static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
+ /**
+  * nes_init_ofa_device
+  */
+@@ -3802,6 +3796,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	nesibdev->ibdev.iwcm->create_listen = nes_create_listen;
+ 	nesibdev->ibdev.iwcm->destroy_listen = nes_destroy_listen;
+ 	nesibdev->ibdev.get_port_immutable   = nes_port_immutable;
++	nesibdev->ibdev.get_dev_fw_str   = get_dev_fw_str;
+ 	memcpy(nesibdev->ibdev.iwcm->ifname, netdev->name,
+ 	       sizeof(nesibdev->ibdev.iwcm->ifname));
  
- static struct device_attribute *ib_class_attributes[] = {
- 	&dev_attr_node_type,
- 	&dev_attr_sys_image_guid,
- 	&dev_attr_node_guid,
--	&dev_attr_node_desc
-+	&dev_attr_node_desc,
-+	&dev_attr_fw_ver
- };
- 
- static void free_port_list_attributes(struct ib_device *device)
 -- 
 1.8.2
 
