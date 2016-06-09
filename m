@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/10] IB/rdmavt: Correct required callback functions for
- MODIFY_QP
-Date: Thu, 09 Jun 2016 07:51:14 -0700
-Message-ID: <20160609145113.12702.95515.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 01/10] IB/hfi1: Fix credit return threshold adjustment
+Date: Thu, 09 Jun 2016 07:51:08 -0700
+Message-ID: <20160609145106.12702.49804.stgit@scvm10.sc.intel.com>
 References: <20160609144644.12702.4832.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,35 +10,101 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160609144644.12702.4832.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Functions required for MODIFY_PORT were incorrectly being
-required for MODIFY_QP.
+The credit return threshold adjustment on mtu change algorithm does not
+take into account all the kernel send contexts that are assigned per VL.
+Use the pio send context map to adjust the credit return thresholds for
+all the allocated and assigned kernel send contexts based on the MTU
+adjustment per VL.
+
+The pio send context map can be changed dynamically based on the actual
+number of operational vls which is set by the fabric manager. When this
+happens update the credit return threshold values for all the remapped
+kernel send contexts.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/vt.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    7 +++++--
+ drivers/infiniband/hw/hfi1/pio.c  |   24 ++++++++++++++++++++++--
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index e1cc2cc..30c4fda 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -501,9 +501,7 @@ static noinline int check_support(struct rvt_dev_info *rdi, int verb)
- 			    !rdi->driver_f.quiesce_qp ||
- 			    !rdi->driver_f.notify_error_qp ||
- 			    !rdi->driver_f.mtu_from_qp ||
--			    !rdi->driver_f.mtu_to_path_mtu ||
--			    !rdi->driver_f.shut_down_port ||
--			    !rdi->driver_f.cap_mask_chg)
-+			    !rdi->driver_f.mtu_to_path_mtu)
- 				return -EINVAL;
- 		break;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 81619fb..c533d44 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -9777,7 +9777,7 @@ static void set_send_length(struct hfi1_pportdata *ppd)
+ 	u64 len1 = 0, len2 = (((dd->vld[15].mtu + max_hb) >> 2)
+ 			      & SEND_LEN_CHECK1_LEN_VL15_MASK) <<
+ 		SEND_LEN_CHECK1_LEN_VL15_SHIFT;
+-	int i;
++	int i, j;
+ 	u32 thres;
  
+ 	for (i = 0; i < ppd->vls_supported; i++) {
+@@ -9801,7 +9801,10 @@ static void set_send_length(struct hfi1_pportdata *ppd)
+ 			    sc_mtu_to_threshold(dd->vld[i].sc,
+ 						dd->vld[i].mtu,
+ 						dd->rcd[0]->rcvhdrqentsize));
+-		sc_set_cr_threshold(dd->vld[i].sc, thres);
++		for (j = 0; j < INIT_SC_PER_VL; j++)
++			sc_set_cr_threshold(
++					pio_select_send_context_vl(dd, j, i),
++					    thres);
+ 	}
+ 	thres = min(sc_percent_to_threshold(dd->vld[15].sc, 50),
+ 		    sc_mtu_to_threshold(dd->vld[15].sc,
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index d5edb1a..e0e1ff2 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -1798,6 +1798,21 @@ static void pio_map_rcu_callback(struct rcu_head *list)
+ }
+ 
+ /*
++ * Set credit return threshold for the kernel send context
++ */
++static void set_threshold(struct hfi1_devdata *dd, int scontext, int i)
++{
++	u32 thres;
++
++	thres = min(sc_percent_to_threshold(dd->kernel_send_context[scontext],
++					    50),
++		    sc_mtu_to_threshold(dd->kernel_send_context[scontext],
++					dd->vld[i].mtu,
++					dd->rcd[0]->rcvhdrqentsize));
++	sc_set_cr_threshold(dd->kernel_send_context[scontext], thres);
++}
++
++/*
+  * pio_map_init - called when #vls change
+  * @dd: hfi1_devdata
+  * @port: port number
+@@ -1872,11 +1887,16 @@ int pio_map_init(struct hfi1_devdata *dd, u8 port, u8 num_vls, u8 *vl_scontexts)
+ 			if (!newmap->map[i])
+ 				goto bail;
+ 			newmap->map[i]->mask = (1 << ilog2(sz)) - 1;
+-			/* assign send contexts */
++			/*
++			 * assign send contexts and
++			 * adjust credit return threshold
++			 */
+ 			for (j = 0; j < sz; j++) {
+-				if (dd->kernel_send_context[scontext])
++				if (dd->kernel_send_context[scontext]) {
+ 					newmap->map[i]->ksc[j] =
+ 					dd->kernel_send_context[scontext];
++					set_threshold(dd, scontext, i);
++				}
+ 				if (++scontext >= first_scontext +
+ 						  vl_scontexts[i])
+ 					/* wrap back to first send context */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
