@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 08/13] IB/nes: Support device FW version string
-Date: Thu,  9 Jun 2016 17:54:03 -0400
-Message-ID: <1465509248-11324-9-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 01/13] IB/core: Add get FW version string to the core
+Date: Thu,  9 Jun 2016 17:53:56 -0400
+Message-ID: <1465509248-11324-2-git-send-email-ira.weiny@intel.com>
 References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465509248-11324-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,84 +12,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-And remove the sysfs in favor of the core version.
+Allow for a common core function to get firmware version strings
+from the individual devices.
+
+In later patches this format can then then be used to pass a
+properly formated version string through the IPoIB layer.
+
+The problem with the current code in the IPoIB layer is that it is
+specific to certain hardware types.
+
+Furthermore, this gives us a common function through which the core
+can provide a common sysfs entry.  Eventually we may want to
+remove the sysfs export but this provides for user space backwards
+compatibility.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_verbs.c | 33 ++++++++++++++-------------------
- 1 file changed, 14 insertions(+), 19 deletions(-)
+ drivers/infiniband/core/device.c | 9 +++++++++
+ include/rdma/ib_verbs.h          | 3 +++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 464d6da5fe91..bd69125731c1 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2606,23 +2606,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 
- 
- /**
-- * show_fw_ver
-- */
--static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
--			   char *buf)
--{
--	struct nes_ib_device *nesibdev =
--			container_of(dev, struct nes_ib_device, ibdev.dev);
--	struct nes_vnic *nesvnic = nesibdev->nesvnic;
--
--	nes_debug(NES_DBG_INIT, "\n");
--	return sprintf(buf, "%u.%u\n",
--		(nesvnic->nesdev->nesadapter->firmware_version >> 16),
--		(nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
--}
--
--
--/**
-  * show_hca
-  */
- static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
-@@ -2645,13 +2628,11 @@ static ssize_t show_board(struct device *dev, struct device_attribute *attr,
- 
- 
- static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
--static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
- 
- static struct device_attribute *nes_dev_attributes[] = {
- 	&dev_attr_hw_rev,
--	&dev_attr_fw_ver,
- 	&dev_attr_hca_type,
- 	&dev_attr_board_id
- };
-@@ -3703,6 +3684,19 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5516fb070344..3ec3c8306e14 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -311,6 +311,15 @@ static int read_port_immutable(struct ib_device *device)
  	return 0;
  }
  
-+static void get_dev_fw_str(struct ib_device *dev, char *str,
-+			   size_t str_len)
++void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
 +{
-+	struct nes_ib_device *nesibdev =
-+			container_of(dev, struct nes_ib_device, ibdev);
-+	struct nes_vnic *nesvnic = nesibdev->nesvnic;
-+
-+	nes_debug(NES_DBG_INIT, "\n");
-+	snprintf(str, str_len, "%u.%u",
-+		 (nesvnic->nesdev->nesadapter->firmware_version >> 16),
-+		 (nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
++	if (dev->get_dev_fw_str)
++		dev->get_dev_fw_str(dev, str, str_len);
++	else
++		snprintf(str, str_len, "%s", "");
 +}
++EXPORT_SYMBOL(ib_get_device_fw_str);
 +
  /**
-  * nes_init_ofa_device
-  */
-@@ -3802,6 +3796,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
- 	nesibdev->ibdev.iwcm->create_listen = nes_create_listen;
- 	nesibdev->ibdev.iwcm->destroy_listen = nes_destroy_listen;
- 	nesibdev->ibdev.get_port_immutable   = nes_port_immutable;
-+	nesibdev->ibdev.get_dev_fw_str   = get_dev_fw_str;
- 	memcpy(nesibdev->ibdev.iwcm->ifname, netdev->name,
- 	       sizeof(nesibdev->ibdev.iwcm->ifname));
+  * ib_register_device - Register an IB device with IB core
+  * @device:Device to register
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 432bed510369..e013668d2483 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1956,6 +1956,7 @@ struct ib_device {
+ 	 * in fast paths.
+ 	 */
+ 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
++	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
+ };
  
+ struct ib_client {
+@@ -1991,6 +1992,8 @@ struct ib_client {
+ struct ib_device *ib_alloc_device(size_t size);
+ void ib_dealloc_device(struct ib_device *device);
+ 
++void ib_get_device_fw_str(struct ib_device *device, char *, size_t);
++
+ int ib_register_device(struct ib_device *device,
+ 		       int (*port_callback)(struct ib_device *,
+ 					    u8, struct kobject *));
 -- 
 1.8.2
 
