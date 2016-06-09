@@ -1,81 +1,54 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v9 09/22] IB/hns: Add hca support
-Date: Thu, 9 Jun 2016 10:10:14 +0300
-Message-ID: <20160609071014.GR3663@leon.nu>
-References: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
- <1464795484-77395-10-git-send-email-oulijun@huawei.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 00/21] Delete CURRENT_TIME and CURRENT_TIME_SEC macros
+Date: Thu, 09 Jun 2016 10:51:31 +0300
+Message-ID: <87twh294vw.fsf@linux.intel.com>
+References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4NNqsQ/a67jpuySk"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1464795484-77395-10-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465448705-25055-1-git-send-email-deepa.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Deepa Dinamani <deepa.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Anton Vorontsov <anton-9xeibp6oKSgdnm+yROfE0A@public.gmane.org>, Benny Halevy <bhalevy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Boaz Harrosh <ooo-rh7Tgz9RNieUD9Wbbkgo/g@public.gmane.org>, Changman Lee <cm224.lee-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Chris Mason <clm-b10kYP2dOMg@public.gmane.org>, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>, Dave Kleikamp <shaggy-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, David Sterba <dsterba-IBi9RG/b67k@public.gmane.org>, Eric Van Hensbergen <ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, Jaegeuk Kim <jaegeuk-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Joern Engel <joern-PCqxUs/MD9bYtjvyW6yDsg@public.gmane.org>, Josef Bacik <jbacik-b10kYP2dOMg@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Latchesar Ionkov <lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Matthew Garrett <matthew.gar>
 List-Id: linux-rdma@vger.kernel.org
 
-
---4NNqsQ/a67jpuySk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-=-=
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 01, 2016 at 11:37:51PM +0800, Lijun Ou wrote:
-> This patch mainly setup hca for RoCE. It will do a series of
-> initial works, as follows:
->     1. init uar table, allocate uar resource
->     2. init pd table
->     3. init cq table
->     4. init mr table
->     5. init qp table
->=20
-> Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
 
-<...>
+Hi,
 
-> +
-> +	ret =3D hns_roce_bitmap_init(&cq_table->bitmap, hr_dev->caps.num_cqs,
-> +				   hr_dev->caps.num_cqs - 1,
-> +				   hr_dev->caps.reserved_cqs, 0);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return 0;
+Deepa Dinamani <deepa.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+>  drivers/usb/gadget/function/f_fs.c                 |  2 +-
+>  drivers/usb/gadget/legacy/inode.c                  |  2 +-
 
-You can return directly ret, instead last 4 lines.
+for drivers/usb/gadget:
 
-> +}
-> +
+Acked-by: Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---4NNqsQ/a67jpuySk
+=2D-=20
+balbi
+
+--=-=-=
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJXWRZWAAoJEORje4g2clinNc4P/3Y4W91zCrYR7O0KTWUezW3B
-NVlwX0Ow0qpFdgqANW+Rx3YqrbuF12oFwNkBEajP0eGlpkdZN2oUqHPu0eA7mV80
-TeDQWeGjtrJHjB9fYSBGn8cTG8d+cO3jHzW1HwYbdtEy9+qesnibKmemkCHuJdSA
-ZNufLVvLSTPwNaq3DBg4RzFnMPFF6f8GoJxX/dn2P0DQScSN1qZJuyZ1/EVkRIRV
-+Eh1fywiHHCU6+FplbbpHHE/x+Hx+HFGMRPi/78ilu2vttdUC6Wjbbgr00dfHMi+
-aXferVP7upjI8+iRDVb8pBErEqJAUCMFvwregBX4AX5gQrcOjU+/sDBMwMiD5b+U
-F68yI8R/NfBA8P6lfiZfJ7J9Wy3I1g6/1Uikl0nseQRPaqnYeAFfmf6pByXMdktL
-W+55mV56TXn3nKQrD72rqajfw0k+X+66BboWlWFFTcGOatxoQPBf+7Cm4ztqDA+i
-IQGiTTt6BD6YMeJgmMi4PhqZtrSmX1iN7i3u7ENkWpv3DwiqZDy1+AboE8hdfv8G
-/b73s46eDkTECZf6iYNdZm1/KwSNnpQSpciFBJO2fJU4LuskgEyTmXmhlVvLIlpv
-xgvEML2jSnuSAOE2OhHB+UYpT+T/ggQsk2EmteJmyETf8L0M7CCvnlnUX3jhKlqG
-zd8xfZcN4uGu6ajV6/wO
-=ov7W
+iQIcBAEBCAAGBQJXWSADAAoJEIaOsuA1yqRE3xkP/iQ1fuTIybbV6wTI8KcBipLN
+RYE+b6JJVPFMIpj76aDznk/eZG+CSnwRUAPoPGWs1o7xVqnVGqfLDMWyHLp3pU5C
+NQyphaTDahzkV3cbTbAjbLpcluDKmCmRb++9YyfSyEcFP4HnlpgmIVFM7SinMADk
+OXGwum3/L0HpAs+91j4FORMHiKma5fa5CXmE5aHsM3TSWONWldycLywu9jlF/AyU
+lY83J4AjvL2qii9hWdlxX81+zFZ92Vh9v5vvms8ErPB2w3a75PbM70gaoVM2VOxQ
+kMeLZUiGywrnDv+/RKC+9WX3KiwDsAlTk1rbuDBePE7PbjQmRW/hfRtXcpECXAyG
+LrV9HskF1UIIv8aVyWoR/GwQdO0cdxoW8uBuw+/l7pSHTvfpvl3/sb+VNBH3j2lQ
+aosxpF7QlU08QxWzpPHgrQ7TNbZ0o9zl5aZ8HAhAPt9FZDu1KKHy/EEJ0aI5d25y
+p7aTdxvf2SxMGVo6K1ozZUq/EeXOW061oeOUmDLT1NZWS69g19lGBx/XSWLpqf1b
+V6SK0hpP3QqHajNOsTFfHLuP13zygCZsSQJU1Z4MO3RyawyMsgjCqAKrEHCoF0zL
+rCfYHY+r6PMRmrirPoBdPwdoWB8/i1INydBfU4OqjO/7dRgjhl2iPSUvSOPrhVlu
+g2HkIFwp1Wj8eyUm+JYM
+=tfo4
 -----END PGP SIGNATURE-----
-
---4NNqsQ/a67jpuySk--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-=-=--
