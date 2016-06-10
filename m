@@ -1,177 +1,224 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] opensm 3.3.20 release
-Date: Fri, 10 Jun 2016 05:26:57 -0400
-Message-ID: <ffeb4750-0951-b75d-84ff-3bce680654e5@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH v4 00/44] dma-mapping: Use unsigned long for dma_attrs
+Date: Fri, 10 Jun 2016 12:11:17 +0200
+Message-ID: <1465553521-27303-1-git-send-email-k.kozlowski@samsung.com>
+Return-path: <linux-m68k-owner@vger.kernel.org>
+Sender: linux-m68k-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: hch@infradead.org, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, linux-xtensa@linux-xtensa.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new 3.3.20 release of opensm.
+Hi,
 
-Tarball is available in:
-http://www.openfabrics.org/downloads/management/
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
-	
-md5sum:
-ed615b4681e94ef2e13a5de773ab89a3  opensm-3.3.20.tar.gz
 
-Changes since 3.3.19:
-Quasi Fat Tree indexing support in fat tree routing (an alternative indexing policy for ftree routing in quasi-ftree topologies that can improve shift-pattern support)
-Partition Manager support for PKey index 0 (block 0) configuration
-Additional SA MCMemberRecord validation for join and IPoIB group creation
-Internal improvements and bug fixes as noted below and in release notes
+This is fourth approach for replacing struct dma_attrs with unsigned
+long.
 
-All component versions are from recent master branch. Full list of changes is below.
+The main patch (1/44) doing the change is split into many subpatches
+for easier review (2-42).  They should be squashed together when
+applying.
 
-Albert Chu (4):
-      osm_subnet.c: Correct output error with congestion control table entries
-      osm_congestion_control.c: Add additional header status check in cc_rcv_mad
-      osm_congestion_control.c: Consistently set cc_unavailable_flag
-      osm_congestion_control.c: Reset cc_timeout_count when count threshold passed
 
-Alex Netes (4):
-      Add cleanup of SA cache after handover
-      osm_mcast_mgr.c: Add check for physp validity to create_mgrp_switch_map
-      Add more checks for physp validity
-      osm_subnet.c: Add guid_routing_order_no_scatter option to opensm.conf
+*Important:* Patchset is tested on my ARM platforms and *only* build
+tested on allyesconfigs: ARM, ARM64, i386, x86_64 and powerpc.
+Please kindly provide reviewes and tests for other platforms.
 
-Daniel Klein (25):
-      Add separate dispatcher for SA set and delete requests
-      osm_ucast_mgr.c: Force unicast routing to fail when lft allocations fail
-      osm_state_mgr.c: Remove new_lft buffers cleanup
-      Use routing engine calculated LFT for SA queries
-      osm_ucast_cache.c: Rewrite p_sw->lft allocation in osm_ucast_cache_process
-      osm_ucast_mgr.c: Select exit ports for lid offset > 0 using new_lft
-      Revert "osm_ucast_mgr.c: Force unicast routing to fail when lft allocations fail" patch
-      osm_opensm.c: Call cl_disp_shutdown for SA SET dispatcher
-      osm_sa_mcmember_record.c: Extend P_Pkey validation on MCMemberRecord(Join)
-      osm_console.c: Fix display of negative counters in console
-      osm_opensm.c: Fix race condition between traps handling and SA shutdown
-      osm_state_mgr.c: Mark port as undiscovered when removed by drop_mgr
-      osm_port_info_rcv.c: Sending MEPI(Get) to local switch ports on hop 0
-      osmtest/osmt_multicast.c: Fix MC join with unrealistic rate test
-      osm_sa_mcmember_record.c: Validate port's neighbor_mtu when joining MC group
-      osm_ucast_ftree.c: Mark HCA ports connected to unranked switches
-      osm_ucast_ftree.c: Remove no longer needed code in remove_depended_hca
-      osm_ucast_ftree.c: Fail routing if max rank is 0 and more than one root
-      osm_sa.c: Fix osm_db_file_dump
-      osm_sa_path_record.c: Refactored PR [D/S] GID and LID validation
-      osm_inform.c: Cosmetic code refactoring in match_inf_rec
-      osm_sa_guidinfo_record.c: Fix memory leak in set_guidinfo
-      osm_multicast.c: Fix not dumping empty predefined mc groups
-      osm_multicast.c: Dump sa after deleting well known mc group
-      osm_service.c: Fix missing endian conversion in log message
+Rebased on next-20160607.
 
-Hal Rosenstock (55):
-      osm_ucast_mgr.c: Cosmetic formatting change
-      osm_subnet.c: Add more supported device IDs
-      osm_sa_mcmember_record.c: Cosmetic formatting change
-      osm_prtn_config.c: Cosmetic formatting change
-      osm_sa_mcmember_record.c: Removed redundancy in comment
-      osm_node.h: Fix commentary typo
-      osm_port_info_rcv.c: In pi_rcv_process_switch_port0, determine mkey
-      osm_req.c: Cosmetic formatting change
-      osm_port_info_rcv.c: In pi_rcv_process_switch_port0, store port 0's PortInfo before querying switch external ports
-      osm_subnet.c: Improved m_key_lookup description in generated conf file
-      osm_sa_mcmember_record.c: Change to log messages for PKey consistency
-      man/osmtest.8: Minor tweaks to inventory option description
-      osm_subnet.c: Minor clarification to SwitchCongestionSetting Control Map description in generated option file
-      doc/QoS_management_in_OpenSM.txt: Cosmetic changes
-      libvendor/osm_vendor_ibumad_sa.c: Cosmetic formatting changes to osmv_query_sa
-      osm_sa_path_record.c: Handle path query by DGID and SLID
-      osm_sa_path_record.c: When both [D S] GID and LID are supplied, validate that underlying ports are the same
-      libvendor/osm_vendor_ibumad_sa.c: Cosmetic formatting change to ERR 5501 log message
-      osm_state_mgr.c: Cosmetic formatting changes
-      osm_ucast_ftree.c: Cosmetic formatting change
-      osm_sa_path_record.c: Cosmetic formatting change
-      osm_ucast_ftree.c: Cosmetic variable name changes in ftree_port_group_t struct
-      osm_ucast_ftree.c: Cosmetic formatting change
-      iba/ib_types.h: Fix commentary typo
-      osm_ucast_ftree.c: Cosmetic formatting changes in fabric_construct_hca_ports
-      Updated Mellanox copyrights in some recently changed files
-      osm_sa_mcmember_record.c: When joining MC group and MC group already exists, validate other components if supplied
-      osm_sa_mcmember_record.c: Add error logging for mismatches to validate_other_comp_fields
-      osm_drop_mgr.c: Eliminated redundant check for switch node type
-      osmtest/osmt_multicast.c: Cosmetic changes
-      ib_types.h: Cosmetic formatting change
-      Use SM trap defines from ib_types.h rather than hard coded values
-      Set Type field in Notice attribute using IB_NOTICE_TYPE_SUBN_MGMT define
-      Updated some Mellanox copyrights
-      osm_ucast_mgr.c: Cosmetic formatting change
-      osm_ucast_dfsssp.c: Fix some commentary typos
-      osm_ucast_dfsssp.c: In dfsssp_do_mcast_routing, update adj_list first
-      osm_sa_mcmember_record.c: Validate IPoIB non broadcast group parameters on group creation
-      osm_sa_mcmember_record.c: Conditionalize multicast join parameter validation on new mcgroup_join_validation option
-      osm_prtn.c: Cosmetic formatting change
-      osm_mcast_mgr.c: Cosmetic formatting change in create_mgrp_switch_map
-      osm_prtn_config.c: Updated Mellanox copyright years
-      osm_prtn_config.c: Cosmetic formatting changes in manage_membership_change
-      osm_sa_mcmember_record.c: Cosmetic formatting change to mcmr_rcv_create_new_mgrp
-      osm_sa_mcmember_record.c: Updated Mellanox copyright years
-      opensm/osm_pkey_mgr.c: Fix pkey index wraparound/reuse
-      ib_types.h: Cosmetic commentary fix
-      doc/current-routing.txt: Fix typo
-      man/opensm.8.in: Fix typo (missing close parenthesis)
-      ib_types.h: Cosmetic formatting changes
-      ib_types.h: Comment change to indicate 1.3.1 rather than 1.2 IBA spec
-      osm_state_mgr.c: Update comment in state_mgr_check_tbl_consistency
-      Update (internal) shared library versions
-      Update package number for OpenSM to 3.3.20 for release
-      Update opensm_release_notes-3.3.txt
+For easier testing the patchset is available here:
+repo:   https://github.com/krzk/linux
+branch: for-next/dma-attrs-const-v4
 
-Ilya Nelkenbaum (2):
-      osmeventplugin.c: Modify osm_event_plugin_t initialization
-      osm_mcast_tbl.c: Wrong assert placement in osm_mcast_tbl_get_block
 
-Jens Domke (5):
-      Fix documentation on ignore-guids command line option
-      osm_subnet.[h c]: Fix wrong function documentation and parameter list
-      osm_ucast_dfsssp.c: Fix dangling pointer when dfsssp used with ucast cache
-      osm_ucast_dfsssp.c: Minor change to setting dropped when switch exists
-      osm_ucast_mgr.c: LFT update breaks if IB_SMP_DATA_SIZE changes
+Changes since v3
+================
+1. Collect some acks.
+2. Drop wrong patch 1/45 ("powerpc: dma-mapping: Don't hard-code
+   the value of DMA_ATTR_WEAK_ORDERING").
+3. Minor fix pointed out by Michael Ellerman.
 
-Rafi Wiener (2):
-      osm_sa.c: Fix race condition when writing SA DB file
-      osm_state_mgr.c: Fix uninitialized area of SMInfo SET mad
 
-Shlomi Nimrodi (10):
-      partition_config.txt: Small correction in doc file
-      osm_pkey.h: Fix osm_physp_has_pkey method description
-      osm_prtn_config.c: Handle valgrind warning in osm_prtn_config_parse_file
-      osm_base.h: Fix OSM_CAP2_IS_PORT_INFO_CAPMASK2_MATCH_SUPPORTED definition
-      osm_pkey.[h c], osm_prtn.c: Create method to set pkey at indx0
-      osm_sa_mcmember_record.c: Prevent log errors swamp in MC query scenario
-      osm_subnet.c: Add support for Switch-IB2 in is_mlnx_ext_port_info_supported
-      osm_sm_mad_ctrl.c: Add ':' to "ERR 3120" error message
-      osm_state_mgr.c: Fix bug in handling of PortInfo Set timeout
-      Fix various coverity issues
+Changes since v2
+================
+1. Follow Christoph Hellwig's comments (don't use BIT add
+   documentation, remove dma_get_attr).
 
-Tomer Cohen (3):
-      osm_drop_mgr.c: Do not set SM port discovery count to 0 when switch remote port is nonresponsive
-      Support configuration for index 0 in pkey table
-      Change precedence in pkey manager with indx0 feature
 
-Vangelis Tasoulas (3):
-      osm_switch.c: Fix wrong assertion failed in osm_switch_get_lft_block()
-      osm_ucast_ftree.c: Removed *p_ftree parameter from sw_create function
-      osm_ucast_ftree.c: Removed *p_ftree parameter from sw_destroy function
+Rationale
+=========
+The dma-mapping core and the implementations do not change the
+DMA attributes passed by pointer.  Thus the pointer can point to const
+data.  However the attributes do not have to be a bitfield. Instead
+unsigned long will do fine:
 
-Vladimir Koushnir (9):
-      osm_ucast_mgr.c: Support diverse paths for LMC > 0 when scatter_ports is enabled
-      osm_subnet.c: Remove support for changing allow_both_pkeys on the fly
-      Support another new MLNX OUI
-      osm_prtn_config.c: Fix wrong pkey table calculation in allow_both_pkeys mode
-      osm_port_info_rcv.c: Fix calculation of minimum data VLs
-      osm_ucast_ftree.c: ftree calculates wrong number of compute nodes per leaf
-      osm_ucast_ftree.c: Fix wrong handling of dual port HCA
-      osm_ucast_ftree.c: Fix wrong is_io assignment to the second HCA port
-      ftree: Additional ftree indexing algorithm
+1. This is just simpler.  Both in terms of reading the code and setting
+   attributes.  Instead of initializing local attributes on the stack
+   and passing pointer to it to dma_set_attr(), just set the bits.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. It brings safeness and checking for const correctness because the
+   attributes are passed by value.
+
+
+Best regards,
+Krzysztof
+
+
+Krzysztof Kozlowski (44):
+  dma-mapping: Use unsigned long for dma_attrs
+  alpha: dma-mapping: Use unsigned long for dma_attrs
+  arc: dma-mapping: Use unsigned long for dma_attrs
+  ARM: dma-mapping: Use unsigned long for dma_attrs
+  arm64: dma-mapping: Use unsigned long for dma_attrs
+  avr32: dma-mapping: Use unsigned long for dma_attrs
+  blackfin: dma-mapping: Use unsigned long for dma_attrs
+  c6x: dma-mapping: Use unsigned long for dma_attrs
+  cris: dma-mapping: Use unsigned long for dma_attrs
+  frv: dma-mapping: Use unsigned long for dma_attrs
+  drm/exynos: dma-mapping: Use unsigned long for dma_attrs
+  drm/mediatek: dma-mapping: Use unsigned long for dma_attrs
+  drm/msm: dma-mapping: Use unsigned long for dma_attrs
+  drm/nouveau: dma-mapping: Use unsigned long for dma_attrs
+  drm/rockship: dma-mapping: Use unsigned long for dma_attrs
+  infiniband: dma-mapping: Use unsigned long for dma_attrs
+  iommu: dma-mapping: Use unsigned long for dma_attrs
+  [media] dma-mapping: Use unsigned long for dma_attrs
+  xen: dma-mapping: Use unsigned long for dma_attrs
+  swiotlb: dma-mapping: Use unsigned long for dma_attrs
+  powerpc: dma-mapping: Use unsigned long for dma_attrs
+  video: dma-mapping: Use unsigned long for dma_attrs
+  x86: dma-mapping: Use unsigned long for dma_attrs
+  iommu: intel: dma-mapping: Use unsigned long for dma_attrs
+  h8300: dma-mapping: Use unsigned long for dma_attrs
+  hexagon: dma-mapping: Use unsigned long for dma_attrs
+  ia64: dma-mapping: Use unsigned long for dma_attrs
+  m68k: dma-mapping: Use unsigned long for dma_attrs
+  metag: dma-mapping: Use unsigned long for dma_attrs
+  microblaze: dma-mapping: Use unsigned long for dma_attrs
+  mips: dma-mapping: Use unsigned long for dma_attrs
+  mn10300: dma-mapping: Use unsigned long for dma_attrs
+  nios2: dma-mapping: Use unsigned long for dma_attrs
+  openrisc: dma-mapping: Use unsigned long for dma_attrs
+  parisc: dma-mapping: Use unsigned long for dma_attrs
+  misc: mic: dma-mapping: Use unsigned long for dma_attrs
+  s390: dma-mapping: Use unsigned long for dma_attrs
+  sh: dma-mapping: Use unsigned long for dma_attrs
+  sparc: dma-mapping: Use unsigned long for dma_attrs
+  tile: dma-mapping: Use unsigned long for dma_attrs
+  unicore32: dma-mapping: Use unsigned long for dma_attrs
+  xtensa: dma-mapping: Use unsigned long for dma_attrs
+  dma-mapping: Remove dma_get_attr
+  dma-mapping: Document the DMA attributes next to the declaration
+
+ Documentation/DMA-API.txt                          |  33 +++---
+ Documentation/DMA-attributes.txt                   |   2 +-
+ arch/alpha/include/asm/dma-mapping.h               |   2 -
+ arch/alpha/kernel/pci-noop.c                       |   2 +-
+ arch/alpha/kernel/pci_iommu.c                      |  12 +-
+ arch/arc/mm/dma.c                                  |  12 +-
+ arch/arm/common/dmabounce.c                        |   4 +-
+ arch/arm/include/asm/dma-mapping.h                 |  13 +--
+ arch/arm/include/asm/xen/page-coherent.h           |  16 +--
+ arch/arm/mm/dma-mapping.c                          | 121 ++++++++++---------
+ arch/arm/xen/mm.c                                  |   8 +-
+ arch/arm64/mm/dma-mapping.c                        |  67 +++++------
+ arch/avr32/mm/dma-coherent.c                       |  12 +-
+ arch/blackfin/kernel/dma-mapping.c                 |   8 +-
+ arch/c6x/include/asm/dma-mapping.h                 |   4 +-
+ arch/c6x/kernel/dma.c                              |   9 +-
+ arch/c6x/mm/dma-coherent.c                         |   4 +-
+ arch/cris/arch-v32/drivers/pci/dma.c               |   9 +-
+ arch/frv/mb93090-mb00/pci-dma-nommu.c              |   8 +-
+ arch/frv/mb93090-mb00/pci-dma.c                    |   9 +-
+ arch/h8300/kernel/dma.c                            |   8 +-
+ arch/hexagon/include/asm/dma-mapping.h             |   1 -
+ arch/hexagon/kernel/dma.c                          |   8 +-
+ arch/ia64/hp/common/sba_iommu.c                    |  22 ++--
+ arch/ia64/include/asm/machvec.h                    |   1 -
+ arch/ia64/kernel/pci-swiotlb.c                     |   4 +-
+ arch/ia64/sn/pci/pci_dma.c                         |  22 ++--
+ arch/m68k/kernel/dma.c                             |  12 +-
+ arch/metag/kernel/dma.c                            |  16 +--
+ arch/microblaze/include/asm/dma-mapping.h          |   1 -
+ arch/microblaze/kernel/dma.c                       |  12 +-
+ arch/mips/cavium-octeon/dma-octeon.c               |   8 +-
+ arch/mips/loongson64/common/dma-swiotlb.c          |  10 +-
+ arch/mips/mm/dma-default.c                         |  20 ++--
+ arch/mips/netlogic/common/nlm-dma.c                |   4 +-
+ arch/mn10300/mm/dma-alloc.c                        |   8 +-
+ arch/nios2/mm/dma-mapping.c                        |  12 +-
+ arch/openrisc/kernel/dma.c                         |  21 ++--
+ arch/parisc/kernel/pci-dma.c                       |  18 +--
+ arch/powerpc/include/asm/dma-mapping.h             |   7 +-
+ arch/powerpc/include/asm/iommu.h                   |  10 +-
+ arch/powerpc/kernel/dma-iommu.c                    |  12 +-
+ arch/powerpc/kernel/dma.c                          |  18 +--
+ arch/powerpc/kernel/ibmebus.c                      |  12 +-
+ arch/powerpc/kernel/iommu.c                        |  12 +-
+ arch/powerpc/kernel/vio.c                          |  12 +-
+ arch/powerpc/platforms/cell/iommu.c                |  28 ++---
+ arch/powerpc/platforms/pasemi/iommu.c              |   2 +-
+ arch/powerpc/platforms/powernv/npu-dma.c           |   8 +-
+ arch/powerpc/platforms/powernv/pci-ioda.c          |   4 +-
+ arch/powerpc/platforms/powernv/pci.c               |   2 +-
+ arch/powerpc/platforms/powernv/pci.h               |   2 +-
+ arch/powerpc/platforms/ps3/system-bus.c            |  18 +--
+ arch/powerpc/platforms/pseries/iommu.c             |   6 +-
+ arch/powerpc/sysdev/dart_iommu.c                   |   2 +-
+ arch/s390/include/asm/dma-mapping.h                |   1 -
+ arch/s390/pci/pci_dma.c                            |  23 ++--
+ arch/sh/include/asm/dma-mapping.h                  |   4 +-
+ arch/sh/kernel/dma-nommu.c                         |   4 +-
+ arch/sh/mm/consistent.c                            |   4 +-
+ arch/sparc/kernel/iommu.c                          |  12 +-
+ arch/sparc/kernel/ioport.c                         |  24 ++--
+ arch/sparc/kernel/pci_sun4v.c                      |  12 +-
+ arch/tile/kernel/pci-dma.c                         |  28 ++---
+ arch/unicore32/mm/dma-swiotlb.c                    |   4 +-
+ arch/x86/include/asm/dma-mapping.h                 |   5 +-
+ arch/x86/include/asm/swiotlb.h                     |   4 +-
+ arch/x86/include/asm/xen/page-coherent.h           |   9 +-
+ arch/x86/kernel/amd_gart_64.c                      |  20 ++--
+ arch/x86/kernel/pci-calgary_64.c                   |  14 +--
+ arch/x86/kernel/pci-dma.c                          |   4 +-
+ arch/x86/kernel/pci-nommu.c                        |   4 +-
+ arch/x86/kernel/pci-swiotlb.c                      |   4 +-
+ arch/x86/pci/sta2x11-fixup.c                       |   2 +-
+ arch/x86/pci/vmd.c                                 |  16 +--
+ arch/xtensa/kernel/pci-dma.c                       |  12 +-
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c          |   2 +-
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  12 +-
+ drivers/gpu/drm/exynos/exynos_drm_gem.c            |  20 ++--
+ drivers/gpu/drm/exynos/exynos_drm_gem.h            |   2 +-
+ drivers/gpu/drm/mediatek/mtk_drm_gem.c             |  13 +--
+ drivers/gpu/drm/mediatek/mtk_drm_gem.h             |   2 +-
+ drivers/gpu/drm/msm/msm_drv.c                      |  13 +--
+ .../gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c    |  13 +--
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c        |  17 ++-
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.h        |   2 +-
+ drivers/infiniband/core/umem.c                     |   7 +-
+ drivers/iommu/amd_iommu.c                          |  12 +-
+ drivers/iommu/dma-iommu.c                          |   8 +-
+ drivers/iommu/intel-iommu.c                        |  12 +-
+ drivers/media/platform/sti/bdisp/bdisp-hw.c        |  26 ++---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c     |  30 ++---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         |  19 +--
+ drivers/misc/mic/host/mic_boot.c                   |  20 ++--
+ drivers/parisc/ccio-dma.c                          |  16 +--
+ drivers/parisc/sba_iommu.c                         |  16 +--
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c     |  12 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb.h          |   3 +-
+ drivers/xen/swiotlb-xen.c                          |  14 +--
+ include/linux/dma-attrs.h                          |  72 ------------
+ include/linux/dma-iommu.h                          |   6 +-
+ include/linux/dma-mapping.h                        | 128 ++++++++++++++-------
+ include/linux/swiotlb.h                            |  10 +-
+ include/media/videobuf2-dma-contig.h               |   7 +-
+ include/rdma/ib_verbs.h                            |   8 +-
+ include/xen/swiotlb-xen.h                          |  12 +-
+ lib/dma-noop.c                                     |   9 +-
+ lib/swiotlb.c                                      |  13 ++-
+ 108 files changed, 691 insertions(+), 793 deletions(-)
+ delete mode 100644 include/linux/dma-attrs.h
+
+-- 
+1.9.1
