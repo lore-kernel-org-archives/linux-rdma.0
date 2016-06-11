@@ -1,62 +1,34 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 04/21] fs: Replace CURRENT_TIME with
-	current_fs_time() for inode timestamps
-Date: Sat, 11 Jun 2016 00:23:39 +0200
-Message-ID: <3828814.bejVmX1kJo@wuerfel>
-References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com>
-	<1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] RDS: IB: Remove deprecated create_workqueue
+Date: Fri, 10 Jun 2016 22:52:40 -0700 (PDT)
+Message-ID: <20160610.225240.262740153012374516.davem@davemloft.net>
+References: <20160607193345.GA10562@Karyakshetra>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <cluster-devel-bounces@redhat.com>
-In-Reply-To: <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
-To: Deepa Dinamani <deepa.kernel@gmail.com>, Mike Marshall <hubcap@omnibond.com>, Nadia Yvette Chambers <nyc@holomorphy.com>, Chao Yu <chao2.yu@samsung.com>, linux-nilfs@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Michal Hocko <mhocko@suse.com>, Matt Fleming <matt@codeblueprint.co.uk>, Firo Yang <firogm@gmail.com>, Trond Myklebust <trond.myklebust@primarydata.com>, Alexei Starovoitov <ast@kernel.org>, David Howells <dhowells@redhat.com>, linux-efi@vger.kernel.org, selinux@tycho.nsa.gov, Eric Paris <eparis@parisplace.org>, Matthew Garrett <matthew.garrett@nebula.com>, Jeff Layton <jlayton@poochiereds.net>, linux-f2fs-devel@lists.sourceforge.net, Sean Hefty <sean.hefty@intel.com>, Ian Kent <raven@themaw.net>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, "David S. Miller" <davem@davemloft.net>, y2038@lists.linaro.org, Anton Vorontsov <anton@enomsg.org>, Hugh Dickins <hu>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160607193345.GA10562@Karyakshetra>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday, June 8, 2016 10:04:48 PM CEST Deepa Dinamani wrote:
+From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Wed, 8 Jun 2016 01:03:45 +0530
+
+> alloc_workqueue replaces deprecated create_workqueue().
 > 
-> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> Cc: Steve French <sfrench@samba.org>
-> Cc: linux-cifs@vger.kernel.org
-> Cc: samba-technical@lists.samba.org
-> Cc: Joern Engel <joern@logfs.org>
-> Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
-> Cc: logfs@logfs.org
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Julia Lawall <Julia.Lawall@lip6.fr>
-> Cc: David Howells <dhowells@redhat.com>
-> Cc: Firo Yang <firogm@gmail.com>
-> Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-> Cc: Changman Lee <cm224.lee@samsung.com>
-> ...
+> Since the driver is infiniband which can be used as block device and the
+> workqueue seems involved in regular operation of the device, so a
+> dedicated workqueue has been used  with WQ_MEM_RECLAIM set to guarantee
+> forward progress under memory pressure.
+> Since there are only a fixed number of work items, explicit concurrency
+> limit is unnecessary here.
+> 
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-
-Hi Deepa,
-
-
-Just FYI, the vger.kernel.org list server and some others
-intentionally reject mails with more than 1024 characters in the
-Cc header, to stop people from cross-posting to too many folks.
-
-I realize that you merged the patch after Linus' comment about
-doing things in fewer steps for the simple conversion, which is
-fine, but then the patch should be obvious enough that you
-don't need to Cc every single maintainer and mailing list.
-
-I've had some cases like this, and I usually remove the people
-that are less likely to reply, leaving one per subsystem.
-Leaving out the cleartext names is another trick you can use
-if you think that you really need to Cc more people than
-allowed ;-)
-
-	Arnd
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
