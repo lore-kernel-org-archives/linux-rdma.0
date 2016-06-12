@@ -1,151 +1,81 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH v9 11/22] IB/hns: Add IB device registration
-Date: Sun, 12 Jun 2016 17:41:06 +0800
-Message-ID: <575D2E32.8030109@huawei.com>
-References: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
- <1464795484-77395-12-git-send-email-oulijun@huawei.com>
- <20160609062631.GN3663@leon.nu>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 00/29] Soft RoCE driver
+Date: Sun, 12 Jun 2016 12:51:16 +0300
+Message-ID: <CAG9sBKN3+Yf7dUG0ORNFNG=j+AgR1eq5mvPQxx6jZEXEGRpk3w@mail.gmail.com>
+References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
+ <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com> <CAG9sBKPa0qQ4uuhoWLfZaXP9E+DnLrkOcU-2yNXbdZFQKppN8w@mail.gmail.com>
+ <20160609144554.GA14212@phlsvsds.ph.intel.com> <20160609191608.GA5408@leon.nu>
+ <20160609194758.GA9017@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160609062631.GN3663@leon.nu>
-Sender: netdev-owner@vger.kernel.org
-To: leon@kernel.org, Lijun Ou <oulijun@huawei.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160609194758.GA9017-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2016/6/9 14:26, Leon Romanovsky wrote:
-> On Wed, Jun 01, 2016 at 11:37:53PM +0800, Lijun Ou wrote:
->> This patch registered IB device when loaded, and unregistered
->> IB device when removed.
+On Thu, Jun 9, 2016 at 10:47 PM, Dennis Dalessandro
+<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Thu, Jun 09, 2016 at 10:16:08PM +0300, Leon Romanovsky wrote:
 >>
->> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
->> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
->> Signed-off-by: Lijun Ou <oulijun@huawei.com>
->> ---
->>   drivers/infiniband/hw/hns/hns_roce_main.c | 46 +++++++++++++++++++++++++++++++
->>   1 file changed, 46 insertions(+)
+>> On Thu, Jun 09, 2016 at 10:45:55AM -0400, Dennis Dalessandro wrote:
+>>>
+>>> On Thu, Jun 09, 2016 at 04:17:15PM +0300, Moni Shoua wrote:
+>>> >2.  Trying to force SoftRoCE on this model will end up with rxe driver
+>>> >registers to rvt with all ib_device hooks implemented. This makes the
+>>> >reason to use rvt irrelevant in this case.
+>>>
+>>> Everything? What about AH, MR, PD? Aren't those pretty generic
+>>> constructs.
+>>> In fact you folks submitted the change for AH.
+>>>
 >>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
->> index 7fb0d34..f179a7f 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
->> @@ -62,6 +62,41 @@
->>   #include "hns_roce_device.h"
->>   #include "hns_roce_icm.h"
->>   
->> +void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
-> You are not calling to this function in this patch.
+>> Despite the fact that I submitted change to hfi1, it doesn't make me
+>> stake holder of that driver.
 >
->> +{
->> +	ib_unregister_device(&hr_dev->ib_dev);
->> +}
->> +
->> +int hns_roce_register_device(struct hns_roce_dev *hr_dev)
-> This function should be static.
 >
->> +{
->> +	int ret;
->> +	struct hns_roce_ib_iboe *iboe = NULL;
->> +	struct ib_device *ib_dev = NULL;
->> +	struct device *dev = &hr_dev->pdev->dev;
->> +
->> +	iboe = &hr_dev->iboe;
->> +
->> +	ib_dev = &hr_dev->ib_dev;
->> +	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
->> +
->> +	ib_dev->owner			= THIS_MODULE;
->> +	ib_dev->node_type		= RDMA_NODE_IB_CA;
->> +	ib_dev->dma_device		= dev;
->> +
->> +	ib_dev->phys_port_cnt		= hr_dev->caps.num_ports;
->> +	ib_dev->local_dma_lkey		= hr_dev->caps.reserved_lkey;
->> +	ib_dev->num_comp_vectors	= hr_dev->caps.num_comp_vectors;
->> +	ib_dev->uverbs_abi_ver		= 1;
->> +
->> +	ret = ib_register_device(ib_dev, NULL);
->> +	if (ret) {
->> +		dev_err(dev, "ib_register_device failed!\n");
->> +		return ret;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->>   int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
->>   {
->>   	int i;
->> @@ -363,6 +398,17 @@ static int hns_roce_probe(struct platform_device *pdev)
->>   		goto error_failed_engine_init;
->>   	}
->>   
->> +	ret = hns_roce_register_device(hr_dev);
->> +	if (ret) {
->> +		dev_err(dev, "register_device failed!\n");
-> According to the current code, you will print this error together with
-> error line in hns_roce_register_device for the same failure.
+> Let me be more clear. My point is that AH was generic enough for someone at
+> Mellanox who was working on soft roce to write a patch for in the first
+> place. Now it's somehow not generic enough and would need it's own driver
+> specific hook?
 >
-> "ib_register_device failed!"
-> "register_device failed!"
-Hi, leon
-     In this patch [PATCH v9 11/22], there is only one error branch in 
-funtion named hns_roce_register_device.
-     In the following patch [PATCH v9 13/22], we add more operation, 
-there are more
-         than two error branch in this function as below.
+You are right on this Denny. AH structure suits SoftRoCE but as you
+say below this is not enough to justify using rdmavt for SoftRoCE
 
-  @@ -212,8 +402,27 @@ int hns_roce_register_device(struct hns_roce_dev *hr_dev)
-  		goto error_failed_setup_mtu_gids;
-  	}
-  
-	spin_lock_init(&iboe->lock);
+> Is just being able to use rdmavt's AH functionality enough to justify using
+> it?  Probably not, but I see MR, PD, even CQ as being totally generic, is
+> that enough? Maybe, maybe not. QP, I think may have some difficulties, maybe
+> that's the deal breaker? Bottom line is you can't say _all_ rdmavt functions
+> would need overridden.
+I'm sorry if I gave the impression that I think everything is not
+generic but this doesn't change the fact that there are deal breakers
+in rdmavt.
+I'd like to explain myself again, rdmavt was designed for a specific
+use: to avoid code duplications in Intel drivers. But like no one
+asked before to unify Intel HW driver with another HW vendor driver
+there is no reason to ask unifying it now (SoftRoCE is considered a
+virtual HW driver). Each vendor has it's own logic and technology for
+resource usage, acceleration, abstraction and so on and before you
+start building a generic SW driver you need to find an abstract HW
+model first. This kind of work has never been done AFAIK. Sure, there
+are some blocks that I would take from rdmavt to this SW driver but
+that's it.
+To be clear, for what is was designed for, rdmavt is well designed.
+There was no criticism on this. All I was saying is that SoftRoCe has
+different needs
+> So perhaps a statement as to what high level blocks of rdmavt could not be
+> used would help put the matter to rest?
 
-	iboe->nb.notifier_call = hns_roce_netdev_event;
-	ret = register_netdevice_notifier(&iboe->nb);
-	if (ret) {
-		dev_err(dev, "register_netdevice_notifier failed!\n");
-		goto error_failed_setup_mtu_gids;
-	}
-
-	iboe->nb_inet.notifier_call = hns_roce_inet_event;
-	ret = register_inetaddr_notifier(&iboe->nb_inet);
-	if (ret) {
-		dev_err(dev, "register inet addr notifier failed!\n");
-		goto error_failed_register_inetaddr_notifier;
-	}
-
-  	return 0;
-  
-  error_failed_register_inetaddr_notifier:
-	unregister_netdevice_notifier(&iboe->nb);
-
-  error_failed_setup_mtu_gids:
-  	ib_unregister_device(ib_dev);
-
-
-
-     Regards
-Wei Hu
 >
->> +		goto error_failed_register_device;
->> +	}
->> +
->> +	return 0;
->> +
->> +error_failed_register_device:
->> +	hns_roce_engine_exit(hr_dev);
->> +
->>   error_failed_engine_init:
->>   	hns_roce_cleanup_bitmap(hr_dev);
->>   
->> -- 
->> 1.9.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> -Denny
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
