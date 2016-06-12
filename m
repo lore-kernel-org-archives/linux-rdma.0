@@ -1,80 +1,99 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/29] Soft RoCE driver
-Date: Sun, 12 Jun 2016 12:51:16 +0300
-Message-ID: <CAG9sBKN3+Yf7dUG0ORNFNG=j+AgR1eq5mvPQxx6jZEXEGRpk3w@mail.gmail.com>
-References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
- <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com> <CAG9sBKPa0qQ4uuhoWLfZaXP9E+DnLrkOcU-2yNXbdZFQKppN8w@mail.gmail.com>
- <20160609144554.GA14212@phlsvsds.ph.intel.com> <20160609191608.GA5408@leon.nu>
- <20160609194758.GA9017@phlsvsds.ph.intel.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: multipath IB/srp fail-over testing lands up in dump stack in
+ swiotlb_alloc_coherent()
+Date: Sun, 12 Jun 2016 18:40:27 -0400 (EDT)
+Message-ID: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com>
+References: <1217453008.41876448.1465770498545.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160609194758.GA9017-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1217453008.41876448.1465770498545.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 9, 2016 at 10:47 PM, Dennis Dalessandro
-<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, Jun 09, 2016 at 10:16:08PM +0300, Leon Romanovsky wrote:
->>
->> On Thu, Jun 09, 2016 at 10:45:55AM -0400, Dennis Dalessandro wrote:
->>>
->>> On Thu, Jun 09, 2016 at 04:17:15PM +0300, Moni Shoua wrote:
->>> >2.  Trying to force SoftRoCE on this model will end up with rxe driver
->>> >registers to rvt with all ib_device hooks implemented. This makes the
->>> >reason to use rvt irrelevant in this case.
->>>
->>> Everything? What about AH, MR, PD? Aren't those pretty generic
->>> constructs.
->>> In fact you folks submitted the change for AH.
->>>
->>
->> Despite the fact that I submitted change to hfi1, it doesn't make me
->> stake holder of that driver.
->
->
-> Let me be more clear. My point is that AH was generic enough for someone at
-> Mellanox who was working on soft roce to write a patch for in the first
-> place. Now it's somehow not generic enough and would need it's own driver
-> specific hook?
->
-You are right on this Denny. AH structure suits SoftRoCE but as you
-say below this is not enough to justify using rdmavt for SoftRoCE
+Hello
 
-> Is just being able to use rdmavt's AH functionality enough to justify using
-> it?  Probably not, but I see MR, PD, even CQ as being totally generic, is
-> that enough? Maybe, maybe not. QP, I think may have some difficulties, maybe
-> that's the deal breaker? Bottom line is you can't say _all_ rdmavt functions
-> would need overridden.
-I'm sorry if I gave the impression that I think everything is not
-generic but this doesn't change the fact that there are deal breakers
-in rdmavt.
-I'd like to explain myself again, rdmavt was designed for a specific
-use: to avoid code duplications in Intel drivers. But like no one
-asked before to unify Intel HW driver with another HW vendor driver
-there is no reason to ask unifying it now (SoftRoCE is considered a
-virtual HW driver). Each vendor has it's own logic and technology for
-resource usage, acceleration, abstraction and so on and before you
-start building a generic SW driver you need to find an abstract HW
-model first. This kind of work has never been done AFAIK. Sure, there
-are some blocks that I would take from rdmavt to this SW driver but
-that's it.
-To be clear, for what is was designed for, rdmavt is well designed.
-There was no criticism on this. All I was saying is that SoftRoCe has
-different needs
-> So perhaps a statement as to what high level blocks of rdmavt could not be
-> used would help put the matter to rest?
+Phase 2 of the testing for EDR100 and IB/srp means testing multipath fail-over and recovery during controller reboots.
+Running 40 parallel tasks to 40 mpath devices will consistently land up in a stack dump when calling swiotlb_alloc_coherent, during reconnect attempts waiting for the controller to return.
 
->
->
-> -Denny
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Most of the time the system will recover paths when the controller returns but will flood the logs during the reconnects.
+
+I am wondering we should disable this as its supposed to be a warning so looking for opinions here.
+
+Notes
+-----
+This is initiated from mlx5_core
+
+The dump stack seems to have been pulled in with this commit - e2172d8fd500a51a3845bc2294cdf4feaa388dab
+
+Specifically 
+  swiotlb: Warn on allocation failure in swiotlb_alloc_coherent()
+
+From: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+
+Print a warning when all allocation tries have been failed
+and the function is about to return NULL. This prepares for
+calling the function with __GFP_NOWARN to suppress
+allocation failure warnings before all fall-backs have
+failed.
+
+Looking at the code here:
+
+We call __get_free_pages(flags, order) and we cannot DMA to the ConnectX-4 and we land up in 
+
+err_warn:
+        pr_warn("swiotlb: coherent allocation failed for device %s size=%zu\n",
+                dev_name(hwdev), size);
+        dump_stack();
+
+        return NULL;
+}
+
+
+
+
+Jun  8 10:12:52 jumpclient kernel: device-mapper: multipath: Failing path 68:240.
+Jun  8 10:12:52 jumpclient kernel: device-mapper: multipath: Failing path 69:16.
+Jun  8 10:12:52 jumpclient kernel: device-mapper: multipath: Failing path 68:160.
+Jun  8 10:12:52 jumpclient kernel: device-mapper: multipath: Failing path 68:224.
+Jun  8 10:12:52 jumpclient kernel: mlx5_core 0000:08:00.1: swiotlb buffer is full (sz: 266240 bytes)
+Jun  8 10:12:52 jumpclient kernel: swiotlb: coherent allocation failed for device 0000:08:00.1 size=266240
+Jun  8 10:12:52 jumpclient kernel: CPU: 4 PID: 22125 Comm: kworker/4:1 Tainted: G          I     4.7.0-rc1.bart+ #1
+Jun  8 10:12:52 jumpclient kernel: Hardware name: HP ProLiant DL380 G7, BIOS P67 08/16/2015
+Jun  8 10:12:52 jumpclient kernel: Workqueue: events_long srp_reconnect_work [scsi_transport_srp]
+Jun  8 10:12:52 jumpclient kernel: 0000000000000286 000000009fe8136d ffff8801027ffa10 ffffffff8134514f
+Jun  8 10:12:52 jumpclient kernel: 0000000000041000 ffff88060ba1f0a0 ffff8801027ffa50 ffffffff8136eab9
+Jun  8 10:12:52 jumpclient kernel: ffffffff00000007 00000000024082c0 ffff88060ba1f0a0 0000000000041000
+Jun  8 10:12:52 jumpclient kernel: Call Trace:
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff8134514f>] dump_stack+0x63/0x84
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff8136eab9>] swiotlb_alloc_coherent+0x149/0x160
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810655e3>] x86_swiotlb_alloc_coherent+0x43/0x50
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa01e5874>] mlx5_dma_zalloc_coherent_node+0xa4/0x100 [mlx5_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa01e5bdd>] mlx5_buf_alloc_node+0x4d/0xc0 [mlx5_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa01e5c64>] mlx5_buf_alloc+0x14/0x20 [mlx5_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0187db5>] create_kernel_qp.isra.46+0x285/0x7a0 [mlx5_ib]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa018934b>] ? mlx5_ib_create_qp+0xdb/0x490 [mlx5_ib]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0188ede>] create_qp_common+0xc0e/0xdc0 [mlx5_ib]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa018934b>] ? mlx5_ib_create_qp+0xdb/0x490 [mlx5_ib]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff811f32a8>] ? kmem_cache_alloc_trace+0x1f8/0x210
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0189373>] mlx5_ib_create_qp+0x103/0x490 [mlx5_ib]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0425cf9>] ? ib_alloc_cq+0x89/0x160 [ib_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0425cf9>] ? ib_alloc_cq+0x89/0x160 [ib_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa042583f>] ib_create_qp+0x3f/0x240 [ib_core]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa06650e3>] srp_create_ch_ib+0x133/0x530 [ib_srp]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0662833>] ? srp_finish_req+0x93/0xb0 [ib_srp]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa06669aa>] srp_rport_reconnect+0xea/0x1d0 [ib_srp]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa06272a3>] srp_reconnect_rport+0xc3/0x230 [scsi_transport_srp]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffffa0627454>] srp_reconnect_work+0x44/0xd4 [scsi_transport_srp]
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810a2e82>] process_one_work+0x152/0x400
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810a3775>] worker_thread+0x125/0x4b0
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810a3650>] ? rescuer_thread+0x380/0x380
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810a92b8>] kthread+0xd8/0xf0
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff816c43bf>] ret_from_fork+0x1f/0x40
+Jun  8 10:12:52 jumpclient kernel: [<ffffffff810a91e0>] ? kthread_park+0x60/0x60
+Jun  8 10:12:52 jumpclient kernel: scsi host2: reconnect attempt 2 failed (-12)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
