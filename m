@@ -1,64 +1,57 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [patch] IB/rxe: fix error code in rxe_srq_from_init()
-Date: Mon, 13 Jun 2016 16:20:30 +0300
-Message-ID: <20160613132030.GK5408@leon.nu>
-References: <20160613065341.GA5993@mwanda>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
+ swiotlb_alloc_coherent()
+Date: Mon, 13 Jun 2016 09:23:04 -0400 (EDT)
+Message-ID: <413325551.41981776.1465824184380.JavaMail.zimbra@redhat.com>
+References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com> <2d316ddf-9a2a-3aba-cf2d-fcdaafbaa848@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Xsn3knLL3qrmRbVI"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160613065341.GA5993@mwanda>
+In-Reply-To: <2d316ddf-9a2a-3aba-cf2d-fcdaafbaa848-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Xsn3knLL3qrmRbVI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 13, 2016 at 09:53:41AM +0300, Dan Carpenter wrote:
-> If copy_to_user() fails then it returns the number of bytes not copied.
-> It would be between 1-4 here.  Later the callers dereference it leading
-> to an Oops.
->=20
-> It was sort of hard to fix this without making the code confusing so I
-> did a little cleanup.
->=20
-> Fixes: 443c15d23220 ('IB/rxe: Shared Receive Queue (SRQ) manipulation fun=
-ctions')
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+----- Original Message -----
+> From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> To: "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Monday, June 13, 2016 2:32:53 AM
+> Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in swiotlb_alloc_coherent()
+> 
+> On 06/12/2016 03:40 PM, Laurence Oberman wrote:
+> > Jun  8 10:12:52 jumpclient kernel: mlx5_core 0000:08:00.1: swiotlb buffer
+> > is full (sz: 266240 bytes)
+> > Jun  8 10:12:52 jumpclient kernel: swiotlb: coherent allocation failed for
+> > device 0000:08:00.1 size=266240
+> 
+> Hello,
+> 
+> I think the above means that the coherent memory allocation succeeded
+> but that the test dev_addr + size - 1 <= DMA_BIT_MASK(32) failed. Can
+> someone from Mellanox tell us whether or not it would be safe to set
+> coherent_dma_mask to DMA_BIT_MASK(64) for the mlx4 and mlx5 drivers?
+> 
+> Thanks,
+> 
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Thanks Dan,
-I applied it on topic/rxe.
+Hello Leon
 
---Xsn3knLL3qrmRbVI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Are you able to answer Bart's question here re the possibility of using DMA_BIT_MASK(64)
+For now I have disabled this warning and dump stack while I continue to test.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXXrMeAAoJEORje4g2clindlYP/1yBKrOwu5jlK6GL6Gml/IKZ
-S28sHMwG9tXWfGu3dGnwuRJUm/E5ORZLQx3qoUSiw7J/NX2kaywi1oKeAPiwYU16
-zB8zHlPVLp+P7de0AWsHVaKa+9zDugaVWH1KjQe0prNTvOVVupnu3AhEAba8MEJs
-imOla3X4VYqRM4BXV0sWh1bOI0+zasULWT1BRH5YdYqGYgMTljZXGcZEyDs2+COx
-IPilQJaAZzOVaketY98mf6YIg6DI2rWhhGpyrJTpOABYiR5+/gY/nXwNX5KpsqJd
-+M4Qes1lb4aXRvxyujKfUsLGdembHbpcpB5z/biHz8E8xRAWgb6rWSe39IfRUNQg
-rbd57tyr09SJyz5enewj/jSb/W4OLaWH8GFLeMyjfmMRZ70qqmepOuSabUAUmlna
-LTj0cXgBrSa0ZbRnAdRUu8UCElQUjN+M0syuCX+EKwJWqRkZLvhRRozbD/UWGv3q
-LgkzSfYgTAoX872iaf+ycQRjTbZxwde61FR3HG3hkvKv8gEbS0U7elE+cJe6Yx3q
-calSoiENXljptGTjbcoymUnNUn4VGIaPbQFo5GvEcuA1dekcxj+qYBvq+WsyBXQW
-DGP6v5ZUOGfW7DqyCbOK6nDpHro0WsQ8jJV1ZZ+ROHMECbw6o7ssMws4htUa5/nL
-tpSrbX0AuvqzRKHv5iUA
-=1/De
------END PGP SIGNATURE-----
-
---Xsn3knLL3qrmRbVI--
+Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
