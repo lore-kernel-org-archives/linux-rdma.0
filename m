@@ -1,34 +1,60 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
- swiotlb_alloc_coherent()
-Date: Sun, 12 Jun 2016 23:32:53 -0700
-Message-ID: <2d316ddf-9a2a-3aba-cf2d-fcdaafbaa848@sandisk.com>
-References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] IB/rxe: fix error code in rxe_srq_from_init()
+Date: Mon, 13 Jun 2016 09:53:41 +0300
+Message-ID: <20160613065341.GA5993@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19156300.41876496.1465771227395.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Moni Shoua <monis@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/12/2016 03:40 PM, Laurence Oberman wrote:
-> Jun  8 10:12:52 jumpclient kernel: mlx5_core 0000:08:00.1: swiotlb buffer is full (sz: 266240 bytes)
-> Jun  8 10:12:52 jumpclient kernel: swiotlb: coherent allocation failed for device 0000:08:00.1 size=266240
+If copy_to_user() fails then it returns the number of bytes not copied.
+It would be between 1-4 here.  Later the callers dereference it leading
+to an Oops.
 
-Hello,
+It was sort of hard to fix this without making the code confusing so I
+did a little cleanup.
 
-I think the above means that the coherent memory allocation succeeded 
-but that the test dev_addr + size - 1 <= DMA_BIT_MASK(32) failed. Can 
-someone from Mellanox tell us whether or not it would be safe to set 
-coherent_dma_mask to DMA_BIT_MASK(64) for the mlx4 and mlx5 drivers?
+Fixes: 443c15d23220 ('IB/rxe: Shared Receive Queue (SRQ) manipulation functions')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thanks,
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/rxe/rxe_srq.c b/drivers/infiniband/hw/rxe/rxe_srq.c
+index 22c57d1..2a6e3cd 100644
+--- a/drivers/infiniband/hw/rxe/rxe_srq.c
++++ b/drivers/infiniband/hw/rxe/rxe_srq.c
+@@ -121,8 +121,7 @@ int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
+ 			   srq_wqe_size);
+ 	if (!q) {
+ 		pr_warn("unable to allocate queue for srq\n");
+-		err = -ENOMEM;
+-		goto err1;
++		return -ENOMEM;
+ 	}
+ 
+ 	srq->rq.queue = q;
+@@ -130,15 +129,14 @@ int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
+ 	err = do_mmap_info(rxe, udata, false, context, q->buf,
+ 			   q->buf_size, &q->ip);
+ 	if (err)
+-		goto err1;
++		return err;
+ 
+-	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
+-		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
+-			&srq->srq_num, sizeof(u32));
+-	else
+-		return 0;
+-err1:
+-	return err;
++	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32)) {
++		if (copy_to_user(udata->outbuf + sizeof(struct mminfo),
++				 &srq->srq_num, sizeof(u32)))
++			return -EFAULT;
++	}
++	return 0;
+ }
+ 
+ int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
