@@ -1,485 +1,78 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 1/1] {net,IB}/mlx5: mlx5_ifc updates
-Date: Tue, 14 Jun 2016 13:35:00 +0300
-Message-ID: <1465900500-1578-2-git-send-email-leonro@mellanox.com>
-References: <1465900500-1578-1-git-send-email-leonro@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
+ swiotlb_alloc_coherent()
+Date: Tue, 14 Jun 2016 15:08:33 +0300
+Message-ID: <20160614120833.GO5408@leon.nu>
+References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com>
+ <2d316ddf-9a2a-3aba-cf2d-fcdaafbaa848@sandisk.com>
+ <20160613140747.GL5408@leon.nu>
+ <946373818.41993264.1465827597452.JavaMail.zimbra@redhat.com>
+ <887623939.42004497.1465831339845.JavaMail.zimbra@redhat.com>
+ <450384210.42057823.1465857004662.JavaMail.zimbra@redhat.com>
+ <1964187258.42093298.1465869387551.JavaMail.zimbra@redhat.com>
+ <11e680c4-84b3-1cd6-133c-36f71bd853d0@sandisk.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Sr6hGnsCY8KeifOY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465900500-1578-1-git-send-email-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <11e680c4-84b3-1cd6-133c-36f71bd853d0-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introducing mlx5_ifc updates for upcoming ConnectX-4 features.
+--Sr6hGnsCY8KeifOY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Needed bits and hardware structures for mlx5e netdev:
-	- MLX5_CQ_PERIOD_NUM_MODES for adaptive moderation
-	  support
-	- QoS rate limiting
-	- SQ context rate limiting
-	- Auto negotiation fields in PTYS register
-	- Source SQN field in flow table entry match structure
-	- DCBX parameters
+On Tue, Jun 14, 2016 at 11:24:28AM +0200, Bart Van Assche wrote:
+> On 06/14/2016 03:56 AM, Laurence Oberman wrote:
+> >Tracing [ ... ]
+>=20
+> Hello Laurence,
+>=20
+> Can you try to set the kernel command line parameter swiotlb to a value t=
+hat
+> is a multiple of its default (64MB), reboot and see whether that helps? S=
+ee
+> also Documentation/kernel-parameters.txt in the kernel tree.
 
-Needed bits and hardware structures for IB:
-	- New XRQ opcodes, commands and capabilities layout
-	- Extend q counters definition to support IB.
+Do you think that 64MB is not enough for this scenario?
 
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- include/linux/mlx5/mlx5_ifc.h | 275 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 263 insertions(+), 12 deletions(-)
+>=20
+> Thanks,
+>=20
+> Bart.
+>=20
+>=20
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 9a05cd7..209add9 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -123,6 +123,10 @@ enum {
- 	MLX5_CMD_OP_DRAIN_DCT                     = 0x712,
- 	MLX5_CMD_OP_QUERY_DCT                     = 0x713,
- 	MLX5_CMD_OP_ARM_DCT_FOR_KEY_VIOLATION     = 0x714,
-+	MLX5_CMD_OP_CREATE_XRQ                    = 0x717,
-+	MLX5_CMD_OP_DESTROY_XRQ                   = 0x718,
-+	MLX5_CMD_OP_QUERY_XRQ                     = 0x719,
-+	MLX5_CMD_OP_ARM_XRQ                       = 0x71a,
- 	MLX5_CMD_OP_QUERY_VPORT_STATE             = 0x750,
- 	MLX5_CMD_OP_MODIFY_VPORT_STATE            = 0x751,
- 	MLX5_CMD_OP_QUERY_ESW_VPORT_CONTEXT       = 0x752,
-@@ -139,6 +143,8 @@ enum {
- 	MLX5_CMD_OP_ALLOC_Q_COUNTER               = 0x771,
- 	MLX5_CMD_OP_DEALLOC_Q_COUNTER             = 0x772,
- 	MLX5_CMD_OP_QUERY_Q_COUNTER               = 0x773,
-+	MLX5_CMD_OP_SET_RATE_LIMIT                = 0x780,
-+	MLX5_CMD_OP_QUERY_RATE_LIMIT              = 0x781,
- 	MLX5_CMD_OP_ALLOC_PD                      = 0x800,
- 	MLX5_CMD_OP_DEALLOC_PD                    = 0x801,
- 	MLX5_CMD_OP_ALLOC_UAR                     = 0x802,
-@@ -361,7 +367,8 @@ struct mlx5_ifc_fte_match_set_lyr_2_4_bits {
- };
- 
- struct mlx5_ifc_fte_match_set_misc_bits {
--	u8         reserved_at_0[0x20];
-+	u8         reserved_at_0[0x8];
-+	u8         source_sqn[0x18];
- 
- 	u8         reserved_at_20[0x10];
- 	u8         source_port[0x10];
-@@ -505,6 +512,17 @@ struct mlx5_ifc_e_switch_cap_bits {
- 	u8         reserved_at_20[0x7e0];
- };
- 
-+struct mlx5_ifc_qos_cap_bits {
-+	u8         packet_pacing[0x1];
-+	u8         reserved_0[0x1f];
-+	u8         reserved_1[0x20];
-+	u8         packet_pacing_max_rate[0x20];
-+	u8         packet_pacing_min_rate[0x20];
-+	u8         reserved_2[0x10];
-+	u8         packet_pacing_rate_table_size[0x10];
-+	u8         reserved_3[0x760];
-+};
-+
- struct mlx5_ifc_per_protocol_networking_offload_caps_bits {
- 	u8         csum_cap[0x1];
- 	u8         vlan_cap[0x1];
-@@ -744,7 +762,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 
- 	u8         out_of_seq_cnt[0x1];
- 	u8         vport_counters[0x1];
--	u8         reserved_at_182[0x4];
-+	u8         retransmission_q_counters[0x1];
-+	u8         reserved_at_183[0x3];
- 	u8         max_qp_cnt[0xa];
- 	u8         pkey_table_size[0x10];
- 
-@@ -771,7 +790,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         log_max_msg[0x5];
- 	u8         reserved_at_1c8[0x4];
- 	u8         max_tc[0x4];
--	u8         reserved_at_1d0[0x6];
-+	u8         reserved_at_1d0[0x1];
-+	u8         dcbx[0x1];
-+	u8         reserved_at_1d2[0x4];
- 	u8         rol_s[0x1];
- 	u8         rol_g[0x1];
- 	u8         reserved_at_1d8[0x1];
-@@ -803,7 +824,7 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         tph[0x1];
- 	u8         rf[0x1];
- 	u8         dct[0x1];
--	u8         reserved_at_21b[0x1];
-+	u8         qos[0x1];
- 	u8         eth_net_offloads[0x1];
- 	u8         roce[0x1];
- 	u8         atomic[0x1];
-@@ -929,7 +950,15 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         cqe_compression_timeout[0x10];
- 	u8         cqe_compression_max_num[0x10];
- 
--	u8         reserved_at_5e0[0x220];
-+	u8         reserved_at_5e0[0x10];
-+	u8         tag_matching[0x1];
-+	u8         rndv_offload_rc[0x1];
-+	u8         rndv_offload_dc[0x1];
-+	u8         log_tag_matching_list_sz[0x5];
-+	u8         reserved_at_5e8[0x3];
-+	u8         log_max_xrq[0x5];
-+
-+	u8         reserved_at_5f0[0x200];
- };
- 
- enum mlx5_flow_destination_type {
-@@ -1967,7 +1996,7 @@ struct mlx5_ifc_qpc_bits {
- 
- 	u8         reserved_at_560[0x5];
- 	u8         rq_type[0x3];
--	u8         srqn_rmpn[0x18];
-+	u8         srqn_rmpn_xrqn[0x18];
- 
- 	u8         reserved_at_580[0x8];
- 	u8         rmsn[0x18];
-@@ -2018,6 +2047,7 @@ union mlx5_ifc_hca_cap_union_bits {
- 	struct mlx5_ifc_flow_table_eswitch_cap_bits flow_table_eswitch_cap;
- 	struct mlx5_ifc_e_switch_cap_bits e_switch_cap;
- 	struct mlx5_ifc_vector_calc_cap_bits vector_calc_cap;
-+	struct mlx5_ifc_qos_cap_bits qos_cap;
- 	u8         reserved_at_0[0x8000];
- };
- 
-@@ -2244,8 +2274,9 @@ struct mlx5_ifc_sqc_bits {
- 	u8         reserved_at_40[0x8];
- 	u8         cqn[0x18];
- 
--	u8         reserved_at_60[0xa0];
-+	u8         reserved_at_60[0x90];
- 
-+	u8         packet_pacing_rate_limit_index[0x10];
- 	u8         tis_lst_sz[0x10];
- 	u8         reserved_at_110[0x10];
- 
-@@ -2593,7 +2624,7 @@ struct mlx5_ifc_dctc_bits {
- 	u8         reserved_at_98[0x8];
- 
- 	u8         reserved_at_a0[0x8];
--	u8         srqn[0x18];
-+	u8         srqn_xrqn[0x18];
- 
- 	u8         reserved_at_c0[0x8];
- 	u8         pd[0x18];
-@@ -2645,6 +2676,7 @@ enum {
- enum {
- 	MLX5_CQ_PERIOD_MODE_START_FROM_EQE = 0x0,
- 	MLX5_CQ_PERIOD_MODE_START_FROM_CQE = 0x1,
-+	MLX5_CQ_PERIOD_NUM_MODES
- };
- 
- struct mlx5_ifc_cqc_bits {
-@@ -2722,6 +2754,54 @@ struct mlx5_ifc_query_adapter_param_block_bits {
- 	u8         vsd_contd_psid[16][0x8];
- };
- 
-+enum {
-+	MLX5_XRQC_STATE_GOOD   = 0x0,
-+	MLX5_XRQC_STATE_ERROR  = 0x1,
-+};
-+
-+enum {
-+	MLX5_XRQC_TOPOLOGY_NO_SPECIAL_TOPOLOGY = 0x0,
-+	MLX5_XRQC_TOPOLOGY_TAG_MATCHING        = 0x1,
-+};
-+
-+enum {
-+	MLX5_XRQC_OFFLOAD_RNDV = 0x1,
-+};
-+
-+struct mlx5_ifc_tag_matching_topology_context_bits {
-+	u8         log_matching_list_sz[0x4];
-+	u8         reserved_at_4[0xc];
-+	u8         append_next_index[0x10];
-+
-+	u8         sw_phase_cnt[0x10];
-+	u8         hw_phase_cnt[0x10];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
-+struct mlx5_ifc_xrqc_bits {
-+	u8         state[0x4];
-+	u8         rlkey[0x1];
-+	u8         reserved_at_5[0xf];
-+	u8         topology[0x4];
-+	u8         reserved_at_18[0x4];
-+	u8         offload[0x4];
-+
-+	u8         reserved_at_20[0x8];
-+	u8         user_index[0x18];
-+
-+	u8         reserved_at_40[0x8];
-+	u8         cqn[0x18];
-+
-+	u8         reserved_at_60[0xa0];
-+
-+	struct mlx5_ifc_tag_matching_topology_context_bits tag_matching_topology_context;
-+
-+	u8         reserved_at_180[0x180];
-+
-+	struct mlx5_ifc_wq_bits wq;
-+};
-+
- union mlx5_ifc_modify_field_select_resize_field_select_auto_bits {
- 	struct mlx5_ifc_modify_field_select_bits modify_field_select;
- 	struct mlx5_ifc_resize_field_select_bits resize_field_select;
-@@ -3144,6 +3224,30 @@ struct mlx5_ifc_rst2init_qp_in_bits {
- 	u8         reserved_at_800[0x80];
- };
- 
-+struct mlx5_ifc_query_xrq_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+
-+	struct mlx5_ifc_xrqc_bits xrq_context;
-+};
-+
-+struct mlx5_ifc_query_xrq_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x8];
-+	u8         xrqn[0x18];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
- struct mlx5_ifc_query_xrc_srq_out_bits {
- 	u8         status[0x8];
- 	u8         reserved_at_8[0x18];
-@@ -3547,7 +3651,27 @@ struct mlx5_ifc_query_q_counter_out_bits {
- 
- 	u8         out_of_sequence[0x20];
- 
--	u8         reserved_at_1e0[0x620];
-+	u8         reserved_at_1e0[0x20];
-+
-+	u8         duplicate_request[0x20];
-+
-+	u8         reserved_at_220[0x20];
-+
-+	u8         rnr_nak_retry_err[0x20];
-+
-+	u8         reserved_at_260[0x20];
-+
-+	u8         packet_seq_err[0x20];
-+
-+	u8         reserved_at_2a0[0x20];
-+
-+	u8         implied_nak_seq_err[0x20];
-+
-+	u8         reserved_at_2e0[0x20];
-+
-+	u8         local_ack_timeout_err[0x20];
-+
-+	u8         reserved_at_320[0x4e0];
- };
- 
- struct mlx5_ifc_query_q_counter_in_bits {
-@@ -4998,6 +5122,28 @@ struct mlx5_ifc_detach_from_mcg_in_bits {
- 	u8         multicast_gid[16][0x8];
- };
- 
-+struct mlx5_ifc_destroy_xrq_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
-+struct mlx5_ifc_destroy_xrq_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x8];
-+	u8         xrqn[0x18];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
- struct mlx5_ifc_destroy_xrc_srq_out_bits {
- 	u8         status[0x8];
- 	u8         reserved_at_8[0x18];
-@@ -5583,6 +5729,30 @@ struct mlx5_ifc_dealloc_flow_counter_in_bits {
- 	u8         reserved_at_60[0x20];
- };
- 
-+struct mlx5_ifc_create_xrq_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x8];
-+	u8         xrqn[0x18];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
-+struct mlx5_ifc_create_xrq_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x40];
-+
-+	struct mlx5_ifc_xrqc_bits xrq_context;
-+};
-+
- struct mlx5_ifc_create_xrc_srq_out_bits {
- 	u8         status[0x8];
- 	u8         reserved_at_8[0x18];
-@@ -6124,6 +6294,29 @@ struct mlx5_ifc_attach_to_mcg_in_bits {
- 	u8         multicast_gid[16][0x8];
- };
- 
-+struct mlx5_ifc_arm_xrq_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
-+struct mlx5_ifc_arm_xrq_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x8];
-+	u8         xrqn[0x18];
-+
-+	u8         reserved_at_60[0x10];
-+	u8         lwm[0x10];
-+};
-+
- struct mlx5_ifc_arm_xrc_srq_out_bits {
- 	u8         status[0x8];
- 	u8         reserved_at_8[0x18];
-@@ -6161,7 +6354,8 @@ struct mlx5_ifc_arm_rq_out_bits {
- };
- 
- enum {
--	MLX5_ARM_RQ_IN_OP_MOD_SRQ_  = 0x1,
-+	MLX5_ARM_RQ_IN_OP_MOD_SRQ = 0x1,
-+	MLX5_ARM_RQ_IN_OP_MOD_XRQ = 0x2,
- };
- 
- struct mlx5_ifc_arm_rq_in_bits {
-@@ -6354,6 +6548,30 @@ struct mlx5_ifc_add_vxlan_udp_dport_in_bits {
- 	u8         vxlan_udp_port[0x10];
- };
- 
-+struct mlx5_ifc_set_rate_limit_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
-+struct mlx5_ifc_set_rate_limit_in_bits {
-+	u8         opcode[0x10];
-+	u8         reserved_at_10[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x10];
-+	u8         rate_limit_index[0x10];
-+
-+	u8         reserved_at_60[0x20];
-+
-+	u8         rate_limit[0x20];
-+};
-+
- struct mlx5_ifc_access_register_out_bits {
- 	u8         status[0x8];
- 	u8         reserved_at_8[0x18];
-@@ -6478,12 +6696,15 @@ struct mlx5_ifc_pude_reg_bits {
- };
- 
- struct mlx5_ifc_ptys_reg_bits {
--	u8         reserved_at_0[0x8];
-+	u8         an_disable_cap[0x1];
-+	u8         an_disable_admin[0x1];
-+	u8         reserved_at_2[0x6];
- 	u8         local_port[0x8];
- 	u8         reserved_at_10[0xd];
- 	u8         proto_mask[0x3];
- 
--	u8         reserved_at_20[0x40];
-+	u8         an_status[0x4];
-+	u8         reserved_at_24[0x3c];
- 
- 	u8         eth_proto_capability[0x20];
- 
-@@ -7444,4 +7665,34 @@ struct mlx5_ifc_mcia_reg_bits {
- 	u8         dword_11[0x20];
- };
- 
-+struct mlx5_ifc_dcbx_param_bits {
-+	u8         dcbx_cee_cap[0x1];
-+	u8         dcbx_ieee_cap[0x1];
-+	u8         dcbx_standby_cap[0x1];
-+	u8         reserved_at_0[0x5];
-+	u8         port_number[0x8];
-+	u8         reserved_at_10[0xa];
-+	u8         max_application_table_size[6];
-+	u8         reserved_at_20[0x15];
-+	u8         version_oper[0x3];
-+	u8         reserved_at_38[5];
-+	u8         version_admin[0x3];
-+	u8         willing_admin[0x1];
-+	u8         reserved_at_41[0x3];
-+	u8         pfc_cap_oper[0x4];
-+	u8         reserved_at_48[0x4];
-+	u8         pfc_cap_admin[0x4];
-+	u8         reserved_at_50[0x4];
-+	u8         num_of_tc_oper[0x4];
-+	u8         reserved_at_58[0x4];
-+	u8         num_of_tc_admin[0x4];
-+	u8         remote_willing[0x1];
-+	u8         reserved_at_61[3];
-+	u8         remote_pfc_cap[4];
-+	u8         reserved_at_68[0x14];
-+	u8         remote_num_of_tc[0x4];
-+	u8         reserved_at_80[0x18];
-+	u8         error[0x8];
-+	u8         reserved_at_a0[0x160];
-+};
- #endif /* MLX5_IFC_H */
--- 
-2.1.4
+--Sr6hGnsCY8KeifOY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXX/PBAAoJEORje4g2clinQtYP/1g3RoO1pcRNQpyXipPBdGz6
+qC6fqh6TEsLmeCbpubiPUqPDBfR8ZpNTMqPJNQ0dprzjtvijoLU0egz29N2aN2EW
+soal1MENXU+vvGw3EDJrxVArvwOgkQ7etgU8hbWjvrD62io+oFdV13Qvmc+/O7h4
+ZkCNbsGmgwJYa6Cx39hXPRei8vKS6s8jzIN0VmYCbZBRWJMIwuZWv0oVg+vQCmQK
+Hnxn4Hiq6w2ZYdio26dIoYDl+sPYBxHHEKr+kernIOdMVhOzEIpA4JMVZmeV75d5
+iZZv/+3GoSC+0vwu9+oHaND0mlIY6ltGJOnXbPnWWZQUwxMvVhOZP35dqcqypyjX
+Em1J2yz5fCFY3ZAajOauYCCq4ESh5SPV5HvmzbPHt6BEws7dJvFbDtPGOlcc2j1i
+5bJpojPw+9oeYhNaLDfGGBKbrx/w8ZA62uHqTV96IrlLPCiQ76iZoJ6IzBaIZrL+
+gIWoMDuC4CqI+TqylkJgruLmJQbkQtkzXkJ34Y8LrWwP4gW0HxOIKfi0ZakBwjy8
+4Au2rlksbFUSdUQ2F47TXLALXf2UQvWlQNvMFVcMz0G0vVkUpW2X4uzZ07OFLvBh
+5sQCabziBUl40nCjAG4k9l8p9luYu7ooRn0+q0DGii+UGF95FZhxCSv9hFoaXbGu
+dM8C9dKUSeCOWic++uk0
+=4jr7
+-----END PGP SIGNATURE-----
+
+--Sr6hGnsCY8KeifOY--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
