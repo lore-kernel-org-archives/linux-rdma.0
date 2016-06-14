@@ -1,55 +1,59 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 01/13] IB/core: Add get FW version string to the core
-Date: Mon, 13 Jun 2016 22:45:54 -0400
-Message-ID: <20160614024552.GA25688@phlsvsds.ph.intel.com>
-References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com> <1465509248-11324-2-git-send-email-ira.weiny@intel.com> <20160609222919.GA13366@obsidianresearch.com>
+Subject: Re: [PATCH 12/13] IB/core: Export a common fw_ver sysfs entry
+Date: Mon, 13 Jun 2016 22:54:44 -0400
+Message-ID: <20160614025443.GB25688@phlsvsds.ph.intel.com>
+References: <1465509248-11324-1-git-send-email-ira.weiny@intel.com> <1465509248-11324-13-git-send-email-ira.weiny@intel.com> <20160609224038.GB13366@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160609222919.GA13366-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160609224038.GB13366-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 09, 2016 at 04:29:19PM -0600, Jason Gunthorpe wrote:
-> On Thu, Jun 09, 2016 at 05:53:56PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > +void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
-> > +{
-> > +	if (dev->get_dev_fw_str)
-> > +		dev->get_dev_fw_str(dev, str, str_len);
-> > +	else
-> > +		snprintf(str, str_len, "%s", "");
-> 
-> That is the strangest way to write str[0] = 0;
-
-I find it to be very explicit without any performance requirements.
-
-How about?
-
-str[0] = '\0';
-
-> 
-> >  void ib_dealloc_device(struct ib_device *device);
+On Thu, Jun 09, 2016 at 04:40:38PM -0600, Jason Gunthorpe wrote:
+> On Thu, Jun 09, 2016 at 05:54:07PM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
 > >  
-> > +void ib_get_device_fw_str(struct ib_device *device, char *, size_t);
+> > +static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+> > +			   char *buf)
+> > +{
+> > +	char tmp[ETHTOOL_FWVERS_LEN];
+> > +	struct ib_device *dev = container_of(device, struct ib_device, dev);
+> > +
+> > +	ib_get_device_fw_str(dev, tmp, sizeof(tmp));
+> > +
+> > +	return scnprintf(buf, PAGE_SIZE, "%s\n", tmp);
 > 
-> It is not common in the kernel to drop the parameter names from the
-> prototype, please don't add more.
+> No need to use the stack:
+> 
+> ib_get_device_fw_str(dev, buf, PAGE_SIZE);
+> strlcat(buf, "", PAGE_SIZE);
+> return strlen(buf);
 
-Good catch sorry about that.
+That works.  Fixes Leon's comment as well.
 
-Fixed.
+Done.
+
+> 
+> >  	&dev_attr_node_guid,
+> > -	&dev_attr_node_desc
+> > +	&dev_attr_node_desc,
+> > +	&dev_attr_fw_ver
+> 
+> Should be 
+>  +	&dev_attr_fw_ver,
+> 
+> Note trailing comma. Avoids git churn like the above on append.
+
+Done.
 
 Ira
 
+
 > 
 > Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
