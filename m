@@ -1,39 +1,101 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 4/5] nvmet-rdma: add a NVMe over Fabrics RDMA target
- driver
-Date: Tue, 14 Jun 2016 16:47:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB061E1B@ORSMSX109.amr.corp.intel.com>
-References: <1465248215-18186-1-git-send-email-hch@lst.de>
- <1465248215-18186-5-git-send-email-hch@lst.de>
- <5756B75C.9000409@lightbits.io>
- <057a01d1c2a3$3082eec0$9188cc40$@opengridcomputing.com>
- <00f501d1c657$483a74e0$d8af5ea0$@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [GIT PULL] Please Pull Mellanox Shared Code
+Date: Tue, 14 Jun 2016 13:16:50 -0400
+Message-ID: <e88d3000-f137-181e-4ea2-cd33101dd57c@redhat.com>
+References: <20160613120301.GF5408@leon.nu> <20160614063548.GN5408@leon.nu>
+ <20160614.030229.1431969399873476358.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="f0vkxEIU8jUnPsKJpElnO6n7wHgA7XScj"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00f501d1c657$483a74e0$d8af5ea0$@opengridcomputing.com>
-Content-Language: en-US
+In-Reply-To: <20160614.030229.1431969399873476358.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Busch, Keith" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Baloyan, ArmenX" <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Freyensee, James P" <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ming Lin' <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Am I correct here?  IE: Is it ok for the rdma application to
-> rdma_reject()
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--f0vkxEIU8jUnPsKJpElnO6n7wHgA7XScj
+Content-Type: multipart/mixed; boundary="bC57oR1sREKlGMDFvoW86r3RBnHDvbrIv"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
+ saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Message-ID: <e88d3000-f137-181e-4ea2-cd33101dd57c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [GIT PULL] Please Pull Mellanox Shared Code
+References: <20160613120301.GF5408-2ukJVAZIZ/Y@public.gmane.org> <20160614063548.GN5408-2ukJVAZIZ/Y@public.gmane.org>
+ <20160614.030229.1431969399873476358.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+In-Reply-To: <20160614.030229.1431969399873476358.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 
-yes
+--bC57oR1sREKlGMDFvoW86r3RBnHDvbrIv
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> rmda_destroy_id() the CONNECT_REQUEST cm_id _inside_ its event handler
+On 6/14/2016 3:02 AM, David Miller wrote:
+>=20
+> Please, just stop right now.
+>=20
+> We're not asking for the a huge patch covering the entire pull
+> request.
+>=20
+> We're asking for you to post a patch series, one per commit, and as
+> numbered, fresh, new mailing list patch postings.  As if you were
+> submitting these changes for the very first time to the list.
+>=20
+> Please ask a colleague for how to do this properly before you spam the
+> list again with more unnecessary and improperly formatted submissions.
 
-no
+Dave,
 
-> as long
-> as it returns 0?
+He's doing what Linus requested from Mellanox.  They were instructed to
+identify all of the coming changes in the next release where patches
+sent through your tree and patches sent through my tree would have
+conflicts.  They were then instructed to make git commits that merged
+those changes and have both you and I pull them (please note "pull", not
+git am patches) so that we have the exact same commit hashes in our
+trees and git will do the right thing when your tree and my tree are
+merged in the next merge window.  As it turns out the conflicts are
+mainly in this firmware offset definition file.  They just put all of
+the needed changes in there in one commit.  I doubt they have individual
+patches here.  This was a custom made patch who's sole purpose is to
+combine all the otherwise possibly conflicting changes in one place.
+I'm sure they could split it out into different commits, but they
+wouldn't be full commits, just the portion that applies to this firmware
+file.
 
-The user can return a non-zero value from the cm handler to destroy the id.
+--
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+	GPG Key ID: 0E572FDD
 
-- Sean
+
+--bC57oR1sREKlGMDFvoW86r3RBnHDvbrIv--
+
+--f0vkxEIU8jUnPsKJpElnO6n7wHgA7XScj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXYDwCAAoJELgmozMOVy/d7TEP/AlqcQ5wrR1HfuH4etIazZa/
+pPLGzOCxMvgi/YNGI6tLCdRvyAZ17sGCO/arxFyPt6+Pu7/KLQSSWKQ3kwlyGT68
+XT7RmpS3eNhc/TGahW+vlPm0gyNZoJ+G+jjMzM97j73XkXc/e8BK1lVlLvx+Xodw
+5TrNB8UFNAJTSJRGCwarwOlWvvmSjfkCVeo7bDXg8ry8frOqcSw6SZgQsvAv2QuI
+9PghWI9H+I8OtGe5xqZVQjCViTt7O+Zw4Rrm8UbxevZtf3khqIUMl9xLY7IVfES4
+rbwbb1c3RrEICzGu1yufyZZwZotSpMdvqVbYBvf6SAhOFB69MRRz3kWkUHNhpLnO
+JuOLp2rR3jCYH6rF2IBdK0Wr5bKRWJAdMob9JLw3knW4BsAZ3IMXtn24NaPXB+JK
+SN0PhTZiEVFUvS1bMEnOn+2L8ZgUdxy8mEOUUSZQxtGppzA5O2IziRUjsghiE3Am
+Hle+glWuwXGIrRjk8qiFe9VoGLwQQ2WZGBErna4OqcR1UN/f5r6/+3Fvv/L5O1N3
+Wg5HCXdjBulJ+1SL6ICzdZpFi8iWB8DYhmIOB+zfpULvI+xYokEYLyK6CvfHdJ7z
+3doXqg0yRZeLgZGxod7R4mgfFpnR81TV8h5O0aHj8TxfjviieR8wX2qmsn54zQZE
+sy88oNawvLmuBfgLuhUO
+=GiOj
+-----END PGP SIGNATURE-----
+
+--f0vkxEIU8jUnPsKJpElnO6n7wHgA7XScj--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
