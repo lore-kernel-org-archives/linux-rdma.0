@@ -1,48 +1,128 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [GIT PULL] Please Pull Mellanox Shared Code
-Date: Tue, 14 Jun 2016 20:34:19 +0300
-Message-ID: <CAJ3xEMi3jgkzXMZ52Vu=6JAS=HbVXWPiNJUWrkjJdpqQ2hAKqg@mail.gmail.com>
-References: <20160613120301.GF5408@leon.nu> <20160614063548.GN5408@leon.nu>
- <20160614.030229.1431969399873476358.davem@davemloft.net> <e88d3000-f137-181e-4ea2-cd33101dd57c@redhat.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
+ swiotlb_alloc_coherent()
+Date: Tue, 14 Jun 2016 13:40:35 -0400 (EDT)
+Message-ID: <1296246237.42197305.1465926035162.JavaMail.zimbra@redhat.com>
+References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com> <450384210.42057823.1465857004662.JavaMail.zimbra@redhat.com> <1964187258.42093298.1465869387551.JavaMail.zimbra@redhat.com> <11e680c4-84b3-1cd6-133c-36f71bd853d0@sandisk.com> <20160614120833.GO5408@leon.nu> <fe7c9713-2864-7b6c-53ec-f5d1364d65d8@sandisk.com> <20160614131552.GP5408@leon.nu> <1531921470.42169965.1465912634165.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <e88d3000-f137-181e-4ea2-cd33101dd57c@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: David Miller <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1531921470.42169965.1465912634165.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 14, 2016 at 8:16 PM, Doug Ledford <dledford@redhat.com> wrote:
 
-> Dave,
->
-> He's doing what Linus requested from Mellanox.  They were instructed to
-> identify all of the coming changes in the next release where patches
-> sent through your tree and patches sent through my tree would have
-> conflicts.  They were then instructed to make git commits that merged
-> those changes and have both you and I pull them (please note "pull", not
-> git am patches) so that we have the exact same commit hashes in our
-> trees and git will do the right thing when your tree and my tree are
-> merged in the next merge window.  As it turns out the conflicts are
-> mainly in this firmware offset definition file.  They just put all of
-> the needed changes in there in one commit.  I doubt they have individual
-> patches here.
 
-Doug,
+----- Original Message -----
+> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Tuesday, June 14, 2016 9:57:14 AM
+> Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in swiotlb_alloc_coherent()
+> 
+> 
+> 
+> ----- Original Message -----
+> > From: "Leon Romanovsky" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> > Cc: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Yishai Hadas"
+> > <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Sent: Tuesday, June 14, 2016 9:15:52 AM
+> > Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
+> > swiotlb_alloc_coherent()
+> > 
+> > On Tue, Jun 14, 2016 at 02:25:15PM +0200, Bart Van Assche wrote:
+> > > On 06/14/2016 02:08 PM, Leon Romanovsky wrote:
+> > > >On Tue, Jun 14, 2016 at 11:24:28AM +0200, Bart Van Assche wrote:
+> > > >>On 06/14/2016 03:56 AM, Laurence Oberman wrote:
+> > > >>>Tracing [ ... ]
+> > > >>
+> > > >>Can you try to set the kernel command line parameter swiotlb to a value
+> > > >>that
+> > > >>is a multiple of its default (64MB), reboot and see whether that helps?
+> > > >>See
+> > > >>also Documentation/kernel-parameters.txt in the kernel tree.
+> > > >
+> > > >Do you think that 64MB is not enough for this scenario?
+> > > 
+> > > Hello Leon,
+> > > 
+> > > Does this mean that you think that the "swiotlb buffer is full" messages
+> > > reported by Laurence could be caused by something else than hitting the
+> > > swiotlb limit?
+> > 
+> > I don't have enough knowledge in that area to answer if message "swiotlb
+> > buffer is full" is correctly explain current situation and I will be
+> > glad to get input from you about it.
+> > 
+> > Thanks.
+> > 
+> > > 
+> > > Bart.
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> Hello Bart and Leon
+> 
+> Set to swiotlb=4, I no longer have the swiotlb issue.
+> Its no longer taking the error path so I confirm that increasing the swiotlb
+> slab count solves this issue.
+> 
+> BOOT_IMAGE=/vmlinuz-4.7.0-rc1.bart.swiotlb+ root=/dev/mapper/rhel-root ro
+> crashkernel=auto rd.lvm.lv=rhel/root rd.lvm.lv=rhel/swap
+> console=ttyS1,115200n8 scsi_mod.use_blk_mq=1 swiotlb=4
+> 
+> I am in the process of preparing a Doc patch for IB/srp and IB/srpt where I
+> have captured all the tuning work I have done with Bart.
+> I will add this to the Doc patch priot to sending it.
+> 
+> Many Thanks
+> Laurence
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-The main comment was that the submission lacked posting of the actual
-changes inline as patch/es along with a cover letter that gives the
-background plus the URL for git pulling of this. In this case (4.8
-shared code), the submission only touches the mlx5_ifc.c FW file and
-indeed it makes sense to have only one patch that covers it all, in
-prev/future cases we had/would have that in multiple patches.
+Seems I may have spoken too soon here. :(
 
-Leon re-submitted that later today in the proper way
+I increased the ib_srp params to max values and I see it again
+options ib_srp cmd_sg_entries=256 indirect_sg_entries=2048
 
-Or.
+[ 1344.111449] sd 2:0:0:27: rejecting I/O to offline device
+[ 1345.815918] scsi host2: reconnect attempt 3 failed (-12)
+[ 1363.744587] mlx5_core 0000:08:00.1: swiotlb buffer is full (sz: 266240 bytes)
+[ 1363.781476] RHDEBUG: wrap=56 index=56
+[ 1363.802643] RHDEBUG: SWIOTLB_MAP_ERROR ffffffffffffffff
+[ 1365.361446] scsi host2: reconnect attempt 4 failed (-12)
+[ 1375.468042] mlx5_core 0000:08:00.1: swiotlb buffer is full (sz: 266240 bytes)
+[ 1375.506694] RHDEBUG: wrap=56 index=56
+[ 1375.526821] RHDEBUG: SWIOTLB_MAP_ERROR ffffffffffffffff
+[ 1375.820655] mlx5_core 0000:08:00.1: swiotlb buffer is full (sz: 266240 bytes)
+[ 1375.857679] RHDEBUG: wrap=56 index=56
+[ 1375.877973] RHDEBUG: SWIOTLB_MAP_ERROR ffffffffffffffff
+[ 1384.729797] scsi host2: reconnect attempt 5 failed (-24)
+[ 1406.100966] scsi host2: ib_srp: Got failed path rec status -110
+[ 1406.133565] scsi host2: ib_srp: Path record query failed
+[ 1406.163410] scsi host2: reconnect attempt 6 failed (-110)
+[ 1424.229937] scsi host2:   REJ reason 0x8
+[ 1424.251503] scsi host2: reconnect attempt 7 failed (-104)
+[ 1443.257233] scsi host2:   REJ reason 0x8
+[ 1443.280298] scsi host2: reconnect attempt 8 failed (-104)
+[ 1466.691538] scsi host2:   REJ reason 0x8
+[ 1466.712377] scsi host2: reconnect attempt 9 failed (-104)
 
-> This was a custom made patch who's sole purpose is to
-> combine all the otherwise possibly conflicting changes in one place.
-> I'm sure they could split it out into different commits, but they
-> wouldn't be full commits, just the portion that applies to this firmware file
+I will increase the swiotlb to 8 from 4 and see what happens, but maybe I just got lucky prior.
+Will update the thread when its consistent either way.
+
+Thanks
+Laurence
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
