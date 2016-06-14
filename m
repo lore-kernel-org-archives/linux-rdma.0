@@ -1,33 +1,44 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 00/29] Soft RoCE driver
-Date: Tue, 14 Jun 2016 18:31:53 +0300
-Message-ID: <CAG9sBKOa2-HkwjSNRcSvxSfH8HQj-1ZQZNiF5cuBoUd+ZT15Tw@mail.gmail.com>
-References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
- <021601d1bcf9$63dbe8d0$2b93ba70$@opengridcomputing.com> <CAG9sBKPa0qQ4uuhoWLfZaXP9E+DnLrkOcU-2yNXbdZFQKppN8w@mail.gmail.com>
- <20160609144554.GA14212@phlsvsds.ph.intel.com> <20160609191608.GA5408@leon.nu>
- <20160609194758.GA9017@phlsvsds.ph.intel.com> <CAG9sBKN3+Yf7dUG0ORNFNG=j+AgR1eq5mvPQxx6jZEXEGRpk3w@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0617C2@ORSMSX109.amr.corp.intel.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 4/5] nvmet-rdma: add a NVMe over Fabrics RDMA target driver
+Date: Tue, 14 Jun 2016 11:10:34 -0500
+Message-ID: <00f501d1c657$483a74e0$d8af5ea0$@opengridcomputing.com>
+References: <1465248215-18186-1-git-send-email-hch@lst.de> <1465248215-18186-5-git-send-email-hch@lst.de> <5756B75C.9000409@lightbits.io> <057a01d1c2a3$3082eec0$9188cc40$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0617C2-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <057a01d1c2a3$3082eec0$9188cc40$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leon-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Armen Baloyan' <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jay Freyensee' <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ming Lin' <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Ipath, qib, hfi1, and rxe all need to do a fully software implementation of IB transport.  How could they possibly share any code?
+> 
+> The above nvmet cm event handler, nvmet_rdma_cm_handler(), calls
+> nvmet_rdma_queue_connect() for CONNECT_REQUEST events, which calls
+> nvmet_rdma_alloc_queue (), which, if it encounters a failure (like creating
+> the qp), calls nvmet_rdma_cm_reject () which calls rdma_reject().  The
+> non-zero error, however, gets returned back here and this function returns
+> the error to the RDMA_CM which will also reject the connection as well as
+> destroy the cm_id.  So there are two rejects happening, I think.  Either
+> nvmet should reject and destroy the cm_id, or it should do neither and
+> return non-zero to the RDMA_CM to reject/destroy.
+> 
+> Steve.
+> 
 
-I didn't say they couldn't. I only said that rdmavt is too tied to
-hfi1 and qib (or to be more accurate to the way they were built). This
-in fact matches the first goal of rdmavt: avoid code duplication
-between hfi1 and qib.
+Hey Sean, 
 
-BTW, true that all examples drivers you gave implement IB transport
-but only RXE does RoCE.
+Am I correct here?  IE: Is it ok for the rdma application to rdma_reject() and
+rmda_destroy_id() the CONNECT_REQUEST cm_id _inside_ its event handler as long
+as it returns 0? 
 
-Anyway, I don't rule out a common generic SW driver that connects to a
-thin HW driver but we need to agree on the interfaces first.
+Thanks,
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
