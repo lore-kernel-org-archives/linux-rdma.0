@@ -1,38 +1,56 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
- swiotlb_alloc_coherent()
-Date: Tue, 14 Jun 2016 11:24:28 +0200
-Message-ID: <11e680c4-84b3-1cd6-133c-36f71bd853d0@sandisk.com>
-References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com>
- <2d316ddf-9a2a-3aba-cf2d-fcdaafbaa848@sandisk.com>
- <20160613140747.GL5408@leon.nu>
- <946373818.41993264.1465827597452.JavaMail.zimbra@redhat.com>
- <887623939.42004497.1465831339845.JavaMail.zimbra@redhat.com>
- <450384210.42057823.1465857004662.JavaMail.zimbra@redhat.com>
- <1964187258.42093298.1465869387551.JavaMail.zimbra@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [for-next 0/1] [pull request] Mellanox ConnectX-4 Shared Code
+Date: Tue, 14 Jun 2016 13:29:11 +0300
+Message-ID: <1465900152-32049-1-git-send-email-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1964187258.42093298.1465869387551.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/14/2016 03:56 AM, Laurence Oberman wrote:
-> Tracing [ ... ]
+Hi Doug and Dave,
 
-Hello Laurence,
+This is Mellanox mlx5_core shared code for both net-next and RDMA
+trees for 4.8 kernel cycle.
 
-Can you try to set the kernel command line parameter swiotlb to a value 
-that is a multiple of its default (64MB), reboot and see whether that 
-helps? See also Documentation/kernel-parameters.txt in the kernel tree.
+This mlx5_ifc update introduces following ConnectX-4 features.
 
-Thanks,
+* netdev part:
+ - MLX5_CQ_PERIOD_NUM_MODES for adaptive moderation support
+ - QoS rate limiting
+ - SQ context rate limiting
+ - Auto negotiation fields in PTYS register
+ - Source SQN field in flow table entry match structure
+ - DCBX parameters
 
-Bart.
+* RDMA part:
+ - New XRQ opcodes, commands and capabilities layout
+ - Extend Q counters definition to support IB.
 
+Thank you,
+  Saeed and Leon.
+
+The following changes since commit af8c34ce6ae32addda3788d54a7e340cad22516b:
+
+  Linux 4.7-rc2 (2016-06-05 14:31:26 -0700)
+
+are available in the git repository at:
+
+  git-OoYKEaZ2EDaWaY/ihj7yzEB+6BGkLq7r@public.gmane.org:pub/scm/linux/kernel/git/leon/linux-rdma tags/shared
+
+for you to fetch changes up to 7486216b3a0bd26375b17b2cc168a311106cea70:
+
+  {net,IB}/mlx5: mlx5_ifc updates (2016-06-10 13:29:14 +0300)
+
+Saeed Mahameed (1):
+  {net,IB}/mlx5: mlx5_ifc updates
+
+ Makefile                      |   2 +-
+ include/linux/mlx5/mlx5_ifc.h | 275 ++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 264 insertions(+), 13 deletions(-)
+
+-- 
+2.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
