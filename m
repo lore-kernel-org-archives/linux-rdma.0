@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 11/13] IB/ipoib: Use new device FW version string
-Date: Wed, 15 Jun 2016 02:22:06 -0400
-Message-ID: <1465971728-24104-12-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH V1 12/13] IB/core: Export a common fw_ver sysfs entry
+Date: Wed, 15 Jun 2016 02:22:07 -0400
+Message-ID: <1465971728-24104-13-git-send-email-ira.weiny@intel.com>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,32 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Using this allows for devices to specify the format of their
-firmware version rather than forcing a format.
+Now that all the devices have stopped exporting their own sysfs
+entry points we can have the core export this on their behalf.
+
+Eventually this may be removed but this provides for backwards
+compatibility.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index 1502199c8e56..7b6d40ff1acf 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -62,10 +62,8 @@ static void ipoib_get_drvinfo(struct net_device *netdev,
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(netdev);
+---
+Changes from V0:
+	Remove the use of the temp stack variable.
+	Add trailing comma in attribute list
+
+ drivers/infiniband/core/sysfs.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index a5793c8f1590..0d1ab73f8186 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -38,6 +38,7 @@
+ #include <linux/stat.h>
+ #include <linux/string.h>
+ #include <linux/netdevice.h>
++#include <linux/ethtool.h>
  
--	snprintf(drvinfo->fw_version, sizeof(drvinfo->fw_version),
--		 "%d.%d.%d", (int)(priv->ca->attrs.fw_ver >> 32),
--		 (int)(priv->ca->attrs.fw_ver >> 16) & 0xffff,
--		 (int)priv->ca->attrs.fw_ver & 0xffff);
-+	ib_get_device_fw_str(priv->ca, drvinfo->fw_version,
-+			     sizeof(drvinfo->fw_version));
+ #include <rdma/ib_mad.h>
+ #include <rdma/ib_pma.h>
+@@ -1196,16 +1197,28 @@ static ssize_t set_node_desc(struct device *device,
+ 	return count;
+ }
  
- 	strlcpy(drvinfo->bus_info, dev_name(priv->ca->dma_device),
- 		sizeof(drvinfo->bus_info));
++static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
++			   char *buf)
++{
++	struct ib_device *dev = container_of(device, struct ib_device, dev);
++
++	ib_get_device_fw_str(dev, buf, PAGE_SIZE);
++	strlcat(buf, "\n", PAGE_SIZE);
++	return strlen(buf);
++}
++
+ static DEVICE_ATTR(node_type, S_IRUGO, show_node_type, NULL);
+ static DEVICE_ATTR(sys_image_guid, S_IRUGO, show_sys_image_guid, NULL);
+ static DEVICE_ATTR(node_guid, S_IRUGO, show_node_guid, NULL);
+ static DEVICE_ATTR(node_desc, S_IRUGO | S_IWUSR, show_node_desc, set_node_desc);
++static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
+ 
+ static struct device_attribute *ib_class_attributes[] = {
+ 	&dev_attr_node_type,
+ 	&dev_attr_sys_image_guid,
+ 	&dev_attr_node_guid,
+-	&dev_attr_node_desc
++	&dev_attr_node_desc,
++	&dev_attr_fw_ver,
+ };
+ 
+ static void free_port_list_attributes(struct ib_device *device)
 -- 
 1.8.2
 
