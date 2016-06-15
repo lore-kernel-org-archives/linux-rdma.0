@@ -1,72 +1,63 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 24/24] NFS: Don't drop CB requests with invalid principals
-Date: Tue, 14 Jun 2016 23:18:32 -0400
-Message-ID: <20160615031832.14794.3103.stgit@manet.1015granger.net>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
+Date: Wed, 15 Jun 2016 07:28:49 +0300
+Message-ID: <20160615042849.GR5408@leon.nu>
 References: <20160615030626.14794.43805.stgit@manet.1015granger.net>
+ <20160615031525.14794.69066.stgit@manet.1015granger.net>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qOEfHYdX8LquYLAx"
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160615030626.14794.43805.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160615031525.14794.69066.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Before commit 778be232a207 ("NFS do not find client in NFSv4
-pg_authenticate"), the Linux callback server replied with
-RPC_AUTH_ERROR / RPC_AUTH_BADCRED, instead of dropping the CB
-request. Let's restore that behavior so the server has a chance to
-do something useful about it, and provide a warning that helps
-admins correct the problem.
 
-Fixes: 778be232a207 ("NFS do not find client in NFSv4 ...")
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- fs/nfs/callback_xdr.c |    6 +++++-
- net/sunrpc/svc.c      |    5 +++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+--qOEfHYdX8LquYLAx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/fs/nfs/callback_xdr.c b/fs/nfs/callback_xdr.c
-index d81f96a..656f68f 100644
---- a/fs/nfs/callback_xdr.c
-+++ b/fs/nfs/callback_xdr.c
-@@ -925,7 +925,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
- 	if (hdr_arg.minorversion == 0) {
- 		cps.clp = nfs4_find_client_ident(SVC_NET(rqstp), hdr_arg.cb_ident);
- 		if (!cps.clp || !check_gss_callback_principal(cps.clp, rqstp))
--			return rpc_drop_reply;
-+			goto out_invalidcred;
- 	}
- 
- 	cps.minorversion = hdr_arg.minorversion;
-@@ -953,6 +953,10 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
- 	nfs_put_client(cps.clp);
- 	dprintk("%s: done, status = %u\n", __func__, ntohl(status));
- 	return rpc_success;
-+
-+out_invalidcred:
-+	pr_warn_ratelimited("NFS: NFSv4 callback contains invalid cred\n");
-+	return rpc_autherr_badcred;
- }
- 
- /*
-diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-index 87290a5..c5b0cb4 100644
---- a/net/sunrpc/svc.c
-+++ b/net/sunrpc/svc.c
-@@ -1194,6 +1194,11 @@ svc_process_common(struct svc_rqst *rqstp, struct kvec *argv, struct kvec *resv)
- 				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
- 			goto dropit;
- 		}
-+		if (*statp == rpc_autherr_badcred) {
-+			if (procp->pc_release)
-+				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
-+			goto err_bad_auth;
-+		}
- 		if (*statp == rpc_success &&
- 		    (xdr = procp->pc_encode) &&
- 		    !xdr(rqstp, resv->iov_base+resv->iov_len, rqstp->rq_resp)) {
+On Tue, Jun 14, 2016 at 11:15:25PM -0400, Chuck Lever wrote:
+> From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>=20
+> kmalloc doesn't guarantee the returned memory is all on one page.
 
+IMHO, the patch posted by Christoph at that thread is best way to go,
+because you changed streaming DMA mappings to be coherent DMA mappings [1].
+
+"The kernel developers recommend the use of streaming mappings over
+coherent mappings whenever possible" [1].
+
+[1] http://www.makelinux.net/ldd3/chp-15-sect-4
+
+--qOEfHYdX8LquYLAx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXYNmBAAoJEORje4g2clinvU4P/RA9KppEE+uFz/T5WPW9qp7M
+WAXxrSgK7Clp4YjvPszCBlzRutP8e9vFcst5QIAGZCKpp9FdQ5apHJxgBoPanIIE
+0Hn9A+l82hwprXDpfWEu73lFxIXeY4BbK9uKvoiQm8XaFoL9hYazmYcVUI7snEEV
+Oz7WmkRkZnpIbkR5agidS7fDmZ1CNHLqWw3fX//LNtX+bACrRl+13ACyZhCNPuO3
+Wju1Rxl0+g+eSJ4yW9wCwG3IUvTHItI0gPyKzbH+nvtc+al3nPgoWAWAbEb2EfIm
+hmJs8NBKHpJ9+Nq6EUoZ6xhg+Kk/6VYNe8y5p2bIhM3T1mlp/iyvBri9iOm0cDG8
+vTxpOsmfj+848L4KBl5xndx8h5G8kgOFQ71jX47AWuAzNQMwxxJKSNvEg0QoEwGQ
+SbLUOS/Be8uATBu7xayen3R0Z0c81vouq4wLV9slDG39cjzZ/K6whgZpkBVua/uf
+78FSVJZn3CK0OPxirktc/bZL+iVpIwEvCAiwQkhHuicj+m8uBacqwIT4zMdbFT6A
+qCzEcxLURauZqhU2DEzlE86GAVcIpcrlBdyXEr5bL2MPA0zpTDzupBnmIqt45Ea0
+vzpnZklXw+VX8uiYIxQV9T4hV9KeX5ueyG+4E8OQP7vNsZBlF+E7kzUcPbGiUQTO
+tCz1oVpseDJ9g5GEGdeh
+=WY9o
+-----END PGP SIGNATURE-----
+
+--qOEfHYdX8LquYLAx--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
