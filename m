@@ -1,43 +1,36 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH V1 02/13] IB/cxgb3: Support device FW version string
-Date: Wed, 15 Jun 2016 14:25:18 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22F0EF6C@CRSMSX101.amr.corp.intel.com>
-References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
- <1465971728-24104-3-git-send-email-ira.weiny@intel.com>
- <004401d1c711$3054a480$90fded80$@opengridcomputing.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 3.18-2-rc3 release is available
+Date: Wed, 15 Jun 2016 17:59:21 +0300
+Message-ID: <57616D49.6050007@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <004401d1c711$3054a480$90fded80$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org" <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org" <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I saw your response to cxgb4.  I was not sure if you meant for both or not.
-
-Sorry I will add this too.
-
-Ira
-
-> -----Original Message-----
-> From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> Sent: Wednesday, June 15, 2016 7:21 AM
-> To: Weiny, Ira <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org;
-> devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org; Latif, Faisal <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>;
-> matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-> Subject: RE: [PATCH V1 02/13] IB/cxgb3: Support device FW version string
-> 
-> I reviewed this previously...
-> 
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> 
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGksCk9GRUQtMy4xOC0yLXJjMyBpcyBhdmFpbGFibGUgYXQ6Cmh0dHBzOi8vb3BlbmZhYnJpY3Mu
+b3JnL2Rvd25sb2Fkcy9PRkVEL29mZWQtMy4xOC0yL09GRUQtMy4xOC0yLXJjMy50Z3oKClBsZWFz
+ZSByZXBvcnQgYW55IGlzc3VlcyBpbiBidWd6aWxsYQpodHRwOi8vYnVncy5vcGVuZmFicmljcy5v
+cmcvZW50ZXJfYnVnLmNnaT9wcm9kdWN0PU9wZW5GYWJyaWNzJTIwTGludXggCmZvciBPRkVEIDMu
+MTgtMgoKUmVsZWFzZSBub3RlczoKaHR0cHM6Ly9vcGVuZmFicmljcy5vcmcvZG93bmxvYWRzL09G
+RUQvcmVsZWFzZV9ub3Rlcy9PRkVEXzMuMTgtMi1yYzNfcmVsZWFzZV9ub3RlcwoKCk9GRUQtMy4x
+OC0yLXJjMyBNYWluIENoYW5nZXMgZnJvbSBPRkVEIDMuMTgtMi1yYzIKLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLQoxLiBVcGRhdGVkIHBhY2thZ2VzOgogICAtIGlic2ltLTAuNy50YXIuZ3oKICAgLSBt
+c3RmbGludC00LjQuMAogICAtIG9wZW5zbS0zLjMuMjAKICAgLSBwZXJmdGVzdC0zLjAtMC4yMS5n
+MjFkYzM0NAogICAtIHJkcy10b29scy0yLjAuNwoyLiBjb21wYXQtcmRtYSBjaGFuZ2VzCiAgIC0g
+eGVvbi1waGk6IGFkZCBkZXBlbmRlbmN5IGZvciBzY2lmLnN5bXZlcnMgZm9yIGlic2NpZgoKClJl
+Z2FyZHMsClZsYWRpbWlyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmV3ZyBtYWlsaW5nIGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwOi8v
+bGlzdHMub3BlbmZhYnJpY3Mub3JnL21haWxtYW4vbGlzdGluZm8vZXdn
