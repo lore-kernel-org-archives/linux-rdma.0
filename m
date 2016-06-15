@@ -1,82 +1,85 @@
-From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 09/13] IB/ocrdma: Support device FW version string
-Date: Wed, 15 Jun 2016 02:22:04 -0400
-Message-ID: <1465971728-24104-10-git-send-email-ira.weiny@intel.com>
-References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
+ swiotlb_alloc_coherent()
+Date: Wed, 15 Jun 2016 09:40:23 +0200
+Message-ID: <a524c577-cfb1-4072-da12-01d0d9ab9c38@sandisk.com>
+References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com>
+ <1964187258.42093298.1465869387551.JavaMail.zimbra@redhat.com>
+ <11e680c4-84b3-1cd6-133c-36f71bd853d0@sandisk.com>
+ <20160614120833.GO5408@leon.nu>
+ <fe7c9713-2864-7b6c-53ec-f5d1364d65d8@sandisk.com>
+ <20160614131552.GP5408@leon.nu>
+ <1531921470.42169965.1465912634165.JavaMail.zimbra@redhat.com>
+ <1296246237.42197305.1465926035162.JavaMail.zimbra@redhat.com>
+ <1167916510.42202925.1465929678588.JavaMail.zimbra@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1167916510.42202925.1465929678588.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 06/14/2016 08:41 PM, Laurence Oberman wrote:
+> This may be a data point here
+> After each change I have rebooted the host as its required.
+> I am at swiotlb=16 and after the first reboot with maxed out tuning I had no alerts.
+> On the second controller restart without a system reboot I got them again.
+>
+> Again, I never see these other than when I am in  the reconnect loop, and they seem to be non-intrusive as each time I recover fully.
+>
+> When I first changed to 4 and had not increased the ib_srp paramaters I had two restarts with no messages so that was what led me to report that this seems to have worked.
+> I can see now that this was not the case and already mentioned, the claim that the change fixed this was wrong.
+> Apologies for that.
+>
+> I am continuing to research and debug now.
 
-And remove sysfs in favor of the core support.
+Hello Laurence,
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+In the kernel source tree I found the following:
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 3d75f65ce87e..07d0c6c5b046 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -107,6 +107,14 @@ static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
-+static void get_dev_fw_str(struct ib_device *device, char *str,
-+			   size_t str_len)
-+{
-+	struct ocrdma_dev *dev = get_ocrdma_dev(device);
-+
-+	snprintf(str, str_len, "%s", &dev->attr.fw_ver[0]);
-+}
-+
- static int ocrdma_register_device(struct ocrdma_dev *dev)
- {
- 	strlcpy(dev->ibdev.name, "ocrdma%d", IB_DEVICE_NAME_MAX);
-@@ -193,6 +201,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
- 
- 	dev->ibdev.process_mad = ocrdma_process_mad;
- 	dev->ibdev.get_port_immutable = ocrdma_port_immutable;
-+	dev->ibdev.get_dev_fw_str     = get_dev_fw_str;
- 
- 	if (ocrdma_get_asic_type(dev) == OCRDMA_ASIC_GEN_SKH_R) {
- 		dev->ibdev.uverbs_cmd_mask |=
-@@ -262,14 +271,6 @@ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
- 	return scnprintf(buf, PAGE_SIZE, "0x%x\n", dev->nic_info.pdev->vendor);
- }
- 
--static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
--			char *buf)
--{
--	struct ocrdma_dev *dev = dev_get_drvdata(device);
--
--	return scnprintf(buf, PAGE_SIZE, "%s\n", &dev->attr.fw_ver[0]);
--}
--
- static ssize_t show_hca_type(struct device *device,
- 			     struct device_attribute *attr, char *buf)
- {
-@@ -279,12 +280,10 @@ static ssize_t show_hca_type(struct device *device,
- }
- 
- static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
--static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, S_IRUGO, show_hca_type, NULL);
- 
- static struct device_attribute *ocrdma_attributes[] = {
- 	&dev_attr_hw_rev,
--	&dev_attr_fw_ver,
- 	&dev_attr_hca_type
- };
- 
--- 
-1.8.2
+ From include/linux/swiotlb.h:
+
+#define IO_TLB_SHIFT 11
+
+ From lib/swiotlb.c:
+
+#define IO_TLB_MIN_SLABS ((1<<20) >> IO_TLB_SHIFT)
+[ ... ]
+#define IO_TLB_DEFAULT_SIZE (64UL<<20)
+[ ... ]
+static int __init
+setup_io_tlb_npages(char *str)
+{
+	if (isdigit(*str)) {
+		io_tlb_nslabs = simple_strtoul(str, &str, 0);
+		/* avoid tail segment of size < IO_TLB_SEGSIZE */
+		io_tlb_nslabs = ALIGN(io_tlb_nslabs, IO_TLB_SEGSIZE);
+	}
+         [ ... ]
+}
+early_param("swiotlb", setup_io_tlb_npages);
+[ ... ]
+void  __init
+swiotlb_init(int verbose)
+{
+	size_t default_size = IO_TLB_DEFAULT_SIZE;
+	[ ... ]
+
+	if (!io_tlb_nslabs) {
+		io_tlb_nslabs = (default_size >> IO_TLB_SHIFT);
+		io_tlb_nslabs = ALIGN(io_tlb_nslabs, IO_TLB_SEGSIZE);
+	}
+	[ ... ]
+}
+
+I think this means that the swiotlb parameter has to be set to a value 
+above 32768 to increase the number of swiotlb buffers above the default.
+
+Bart.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
