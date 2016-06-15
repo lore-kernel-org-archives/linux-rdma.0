@@ -1,51 +1,42 @@
-From: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: generic NVMe over Fabrics library support V2
-Date: Wed, 15 Jun 2016 15:54:01 -0400
-Message-ID: <20160615195401.GA7637@localhost.localdomain>
-References: <1465829128-22993-1-git-send-email-hch@lst.de>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 1/2] mlx5: only register devlink when ethernet is available
+Date: Wed, 15 Jun 2016 22:50:37 +0200
+Message-ID: <6330398.ySWGKSmLdn@wuerfel>
+References: <20160615152816.2800830-1-arnd@arndb.de> <CALzJLG_CkvbrCehMjMht5KfMK6r-FbvPzzYUEhpA40YHymsh+Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1465829128-22993-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <CALzJLG_CkvbrCehMjMht5KfMK6r-FbvPzzYUEhpA40YHymsh+Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 13, 2016 at 04:45:20PM +0200, Christoph Hellwig wrote:
-> This patch set adds the necessary infrastructure for the NVMe over
-> Fabrics functionality and the NVMe over Fabrics library itself.
+On Wednesday, June 15, 2016 7:04:54 PM CEST Saeed Mahameed wrote:
 > 
-> First we add some needed parameters to NVMe request allocation such as flags
-> (for reserved commands - connect and keep-alive), also support tag
-> allocation of a given queue ID (for connect to be executed per-queue)
-> and allow request to be queued at the head of the request queue (so
-> reconnects can pass in flight I/O).
+> Hi Arnd,
 > 
-> Second, we add support for additional sysfs attributes that are needed
-> or useful for the Fabrics driver.
+> We already took care of those issues, they only apply to Leon's tree
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/,
+> this tree is meant to maintain MLX5 Shared code between netdev and
+> linux-rdma trees prior to submission to both trees.
 > 
-> Third we add the NVMe over Fabrics related header definitions and the
-> Fabrics library itself which is transport independent and handles
-> Fabrics specific commands and variables.
-> 
-> Last, we add support for periodic keep-alive mechanism which is mandatory
-> for Fabrics.
-> 
-> Changes from V1:
->  - don't directly free host->opts on connect failure (Sagi)
->  - blk_mq_alloc_request_hctx improvements (Ming and me)
->  - keep alive should not use blk_mq_alloc_request_hctx (me)
+> This patch is a non-shared code and it only exists in
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/net-next-mlx5.
+> It is yet to be submitted to Dave's net/net-next tree. later on, this
+> patch and all the others will go through the normal submission
+> process.
 
-I only had the one comment, and Sagi says you guys already considered
-it but was more complicated than it was worth. Looking at the patches
-that follow, I tend to agree.
+Ok, I see. It would be nice if the process had a way to avoid build regressions
+in linux-next, in particular if you already have a fix by the time a patch
+that introduces a problem gets added.
 
-The rest looks great, and passes all the sanity tests I can run. This
-time with correct email spelling:
+Can you check if the fix for the second problem correctly removes the
+unnecessary 64-bit division (as opposed to adding a call to div_s64()
+or do_div()), and if it removes all traces of 'struct timespec' again?
 
-Reviewed-by: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+	Arnd
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
