@@ -1,64 +1,88 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Wed, 15 Jun 2016 07:28:49 +0300
-Message-ID: <20160615042849.GR5408@leon.nu>
-References: <20160615030626.14794.43805.stgit@manet.1015granger.net>
- <20160615031525.14794.69066.stgit@manet.1015granger.net>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qOEfHYdX8LquYLAx"
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160615031525.14794.69066.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH V1 01/13] IB/core: Add get FW version string to the core
+Date: Wed, 15 Jun 2016 02:21:56 -0400
+Message-ID: <1465971728-24104-2-git-send-email-ira.weiny@intel.com>
+References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---qOEfHYdX8LquYLAx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Allow for a common core function to get firmware version strings
+from the individual devices.
 
-On Tue, Jun 14, 2016 at 11:15:25PM -0400, Chuck Lever wrote:
-> From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->=20
-> kmalloc doesn't guarantee the returned memory is all on one page.
+In later patches this format can then then be used to pass a
+properly formated version string through the IPoIB layer.
 
-IMHO, the patch posted by Christoph at that thread is best way to go,
-because you changed streaming DMA mappings to be coherent DMA mappings [1].
+The problem with the current code in the IPoIB layer is that it is
+specific to certain hardware types.
 
-"The kernel developers recommend the use of streaming mappings over
-coherent mappings whenever possible" [1].
+Furthermore, this gives us a common function through which the core
+can provide a common sysfs entry.  Eventually we may want to
+remove the sysfs export but this provides for user space backwards
+compatibility.
 
-[1] http://www.makelinux.net/ldd3/chp-15-sect-4
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---qOEfHYdX8LquYLAx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+---
+Changes from V0:
+	Add parameter names to function signature
+	change default string assignment
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+ drivers/infiniband/core/device.c | 9 +++++++++
+ include/rdma/ib_verbs.h          | 3 +++
+ 2 files changed, 12 insertions(+)
 
-iQIcBAEBAgAGBQJXYNmBAAoJEORje4g2clinvU4P/RA9KppEE+uFz/T5WPW9qp7M
-WAXxrSgK7Clp4YjvPszCBlzRutP8e9vFcst5QIAGZCKpp9FdQ5apHJxgBoPanIIE
-0Hn9A+l82hwprXDpfWEu73lFxIXeY4BbK9uKvoiQm8XaFoL9hYazmYcVUI7snEEV
-Oz7WmkRkZnpIbkR5agidS7fDmZ1CNHLqWw3fX//LNtX+bACrRl+13ACyZhCNPuO3
-Wju1Rxl0+g+eSJ4yW9wCwG3IUvTHItI0gPyKzbH+nvtc+al3nPgoWAWAbEb2EfIm
-hmJs8NBKHpJ9+Nq6EUoZ6xhg+Kk/6VYNe8y5p2bIhM3T1mlp/iyvBri9iOm0cDG8
-vTxpOsmfj+848L4KBl5xndx8h5G8kgOFQ71jX47AWuAzNQMwxxJKSNvEg0QoEwGQ
-SbLUOS/Be8uATBu7xayen3R0Z0c81vouq4wLV9slDG39cjzZ/K6whgZpkBVua/uf
-78FSVJZn3CK0OPxirktc/bZL+iVpIwEvCAiwQkhHuicj+m8uBacqwIT4zMdbFT6A
-qCzEcxLURauZqhU2DEzlE86GAVcIpcrlBdyXEr5bL2MPA0zpTDzupBnmIqt45Ea0
-vzpnZklXw+VX8uiYIxQV9T4hV9KeX5ueyG+4E8OQP7vNsZBlF+E7kzUcPbGiUQTO
-tCz1oVpseDJ9g5GEGdeh
-=WY9o
------END PGP SIGNATURE-----
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5c155fa91eec..760ef603a468 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -311,6 +311,15 @@ static int read_port_immutable(struct ib_device *device)
+ 	return 0;
+ }
+ 
++void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
++{
++	if (dev->get_dev_fw_str)
++		dev->get_dev_fw_str(dev, str, str_len);
++	else
++		str[0] = '\0';
++}
++EXPORT_SYMBOL(ib_get_device_fw_str);
++
+ /**
+  * ib_register_device - Register an IB device with IB core
+  * @device:Device to register
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 7e440d41487a..1dc3d0d90202 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1956,6 +1956,7 @@ struct ib_device {
+ 	 * in fast paths.
+ 	 */
+ 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
++	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
+ };
+ 
+ struct ib_client {
+@@ -1991,6 +1992,8 @@ struct ib_client {
+ struct ib_device *ib_alloc_device(size_t size);
+ void ib_dealloc_device(struct ib_device *device);
+ 
++void ib_get_device_fw_str(struct ib_device *device, char *str, size_t str_len);
++
+ int ib_register_device(struct ib_device *device,
+ 		       int (*port_callback)(struct ib_device *,
+ 					    u8, struct kobject *));
+-- 
+1.8.2
 
---qOEfHYdX8LquYLAx--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
