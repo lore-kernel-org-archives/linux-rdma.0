@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 01/13] IB/core: Add get FW version string to the core
-Date: Wed, 15 Jun 2016 02:21:56 -0400
-Message-ID: <1465971728-24104-2-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH V1 03/13] IB/cxgb4: Support device FW version string
+Date: Wed, 15 Jun 2016 02:21:58 -0400
+Message-ID: <1465971728-24104-4-git-send-email-ira.weiny@intel.com>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,73 +12,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Allow for a common core function to get firmware version strings
-from the individual devices.
+And remove sysfs fw_ver in favor of the core.
 
-In later patches this format can then then be used to pass a
-properly formated version string through the IPoIB layer.
-
-The problem with the current code in the IPoIB layer is that it is
-specific to certain hardware types.
-
-Furthermore, this gives us a common function through which the core
-can provide a common sysfs entry.  Eventually we may want to
-remove the sysfs export but this provides for user space backwards
-compatibility.
-
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ---
 Changes from V0:
-	Add parameter names to function signature
-	change default string assignment
+	Add tag Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
- drivers/infiniband/core/device.c | 9 +++++++++
- include/rdma/ib_verbs.h          | 3 +++
- 2 files changed, 12 insertions(+)
+ drivers/infiniband/hw/cxgb4/provider.c | 31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5c155fa91eec..760ef603a468 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -311,6 +311,15 @@ static int read_port_immutable(struct ib_device *device)
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
+index dd8a86b726d2..df127ce6b6ec 100644
+--- a/drivers/infiniband/hw/cxgb4/provider.c
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -409,20 +409,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
+ 		       CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
+ }
+ 
+-static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
+-			   char *buf)
+-{
+-	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
+-						 ibdev.dev);
+-	PDBG("%s dev 0x%p\n", __func__, dev);
+-
+-	return sprintf(buf, "%u.%u.%u.%u\n",
+-			FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
+-			FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
+-			FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
+-			FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
+-}
+-
+ static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
+ 			char *buf)
+ {
+@@ -502,13 +488,11 @@ static int c4iw_get_mib(struct ib_device *ibdev,
+ }
+ 
+ static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
+-static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
+ 
+ static struct device_attribute *c4iw_class_attributes[] = {
+ 	&dev_attr_hw_rev,
+-	&dev_attr_fw_ver,
+ 	&dev_attr_hca_type,
+ 	&dev_attr_board_id,
+ };
+@@ -530,6 +514,20 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
++static void get_dev_fw_str(struct ib_device *dev, char *str,
++			   size_t str_len)
 +{
-+	if (dev->get_dev_fw_str)
-+		dev->get_dev_fw_str(dev, str, str_len);
-+	else
-+		str[0] = '\0';
++	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
++						 ibdev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
++
++	snprintf(str, str_len, "%u.%u.%u.%u",
++		 FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
++		 FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
++		 FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
++		 FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
 +}
-+EXPORT_SYMBOL(ib_get_device_fw_str);
 +
- /**
-  * ib_register_device - Register an IB device with IB core
-  * @device:Device to register
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 7e440d41487a..1dc3d0d90202 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1956,6 +1956,7 @@ struct ib_device {
- 	 * in fast paths.
- 	 */
- 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
-+	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
- };
+ int c4iw_register_device(struct c4iw_dev *dev)
+ {
+ 	int ret;
+@@ -605,6 +603,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
+ 	dev->ibdev.get_hw_stats = c4iw_get_mib;
+ 	dev->ibdev.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION;
+ 	dev->ibdev.get_port_immutable = c4iw_port_immutable;
++	dev->ibdev.get_dev_fw_str = get_dev_fw_str;
+ 	dev->ibdev.drain_sq = c4iw_drain_sq;
+ 	dev->ibdev.drain_rq = c4iw_drain_rq;
  
- struct ib_client {
-@@ -1991,6 +1992,8 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
- 
-+void ib_get_device_fw_str(struct ib_device *device, char *str, size_t str_len);
-+
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
- 					    u8, struct kobject *));
 -- 
 1.8.2
 
