@@ -1,127 +1,56 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
- swiotlb_alloc_coherent()
-Date: Wed, 15 Jun 2016 19:05:40 -0400 (EDT)
-Message-ID: <1525975255.42437742.1466031940651.JavaMail.zimbra@redhat.com>
-References: <19156300.41876496.1465771227395.JavaMail.zimbra@redhat.com> <1167916510.42202925.1465929678588.JavaMail.zimbra@redhat.com> <a524c577-cfb1-4072-da12-01d0d9ab9c38@sandisk.com> <109658870.42286330.1465988279277.JavaMail.zimbra@redhat.com> <794983323.42297890.1465992133003.JavaMail.zimbra@redhat.com> <cb6f8f42-1f4f-cf9d-42d0-12ba5e90ab86@sandisk.com> <1925675172.42312868.1465996772507.JavaMail.zimbra@redhat.com> <868111008.42313561.1465997038399.JavaMail.zimbra@redhat.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 01/13] IB/core: Add get FW version string to the core
+Date: Wed, 15 Jun 2016 19:26:03 -0400
+Message-ID: <20160615232602.GA4034@phlsvsds.ph.intel.com>
+References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com> <1465971728-24104-2-git-send-email-ira.weiny@intel.com> <20160615064008.GS5408@leon.nu> <20160615152048.GB8690@phlsvsds.ph.intel.com> <20160615165106.GA10256@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <868111008.42313561.1465997038399.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160615165106.GA10256-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jun 15, 2016 at 10:51:06AM -0600, Jason Gunthorpe wrote:
+> On Wed, Jun 15, 2016 at 11:20:49AM -0400, ira.weiny wrote:
+> > The default here is that a device does not provide a firmware string.  In that
+> > case the assumption is that there is no firmware.  Hence the empty string.  I
+> > don't think that reporting 0's or F's are appropriate if a device does not have
+> > firmware.
+> > 
+> > In the cases you speak of I would expect the device to supply the firmware
+> > function and report all 0s or all Fs for whatever version that may represent.
+> > (I'm assuming that would be some sort of debug or unreleased firmware...)
+> > 
+> > I could just as well done something like.
+> > 
+> > snprintf(str, str_len, "<none>");
+> 
+> Just don't provide a 'fw' sysfs file at all if the driver cannot
+> support it.
 
+This function is supporting both sysfs and ethtool.
 
------ Original Message -----
-> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Sent: Wednesday, June 15, 2016 9:23:58 AM
-> Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in swiotlb_alloc_coherent()
-> 
-> 
-> 
-> ----- Original Message -----
-> > From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > To: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-> > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Sent: Wednesday, June 15, 2016 9:19:32 AM
-> > Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
-> > swiotlb_alloc_coherent()
-> > 
-> > 
-> > 
-> > ----- Original Message -----
-> > > From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > > To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-> > > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Sent: Wednesday, June 15, 2016 8:51:18 AM
-> > > Subject: Re: multipath IB/srp fail-over testing lands up in dump stack in
-> > > swiotlb_alloc_coherent()
-> > > 
-> > > On 06/15/2016 02:02 PM, Laurence Oberman wrote:
-> > > > We are missing something here
-> > > 
-> > > The source code excerpts in my previous e-mail came from the latest
-> > > Linux kernel (v4.7-rc3). Maybe older kernels behave in a different way.
-> > > 
-> > > BTW, did you run into the "swiotlb buffer is full" error messages while
-> > > testing 4MB I/O? Have you already considered to reduce the memory that
-> > > is needed for RDMA queues by reducing the queue depth? I ran my SRP
-> > > tests with default swiotlb buffer size and with the following in
-> > > srp_daemon.conf:
-> > > 
-> > > a queue_size=32,max_cmd_per_lun=32,max_sect=8192
-> > > 
-> > > Bart.
-> > > 
-> > 
-> > Hi Bart
-> > 
-> > All my testing here has been 4MB I/O while restarting controllers.
-> > This is a customer requirement to be doing large sequential 4MB, buffered
-> > and
-> > O_DIRECT.
-> > 
-> > I have 128, but will reduce to 32 and test it.
-> > 
-> > My config is as follows per customer requirements.
-> > 
-> > [root@jumptest1 ~]# cat /etc/ddn/srp_daemon.conf
-> > a      queue_size=128,max_cmd_per_lun=128,max_sect=8192
-> > 
-> > Interestingly, I have absolutely no issue with ib_srp and testing all types
-> > of I/O on this very large array.
-> > Its rock solid upstream now since all the fixes we have now in ib_srp.
-> > 
-> > The swiotlb seems, as already mentioned, to be only in reconnects and does
-> > NOT affect behavior of regular I/O.
-> > 
-> > I will make this observation in the patch I will be sending for ib_srp*
-> > Documentation
-> > 
-> > Thanks!!
-> > Laurence
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> Hi Bart,
-> 
-> I should add that it does not even affect the reconnects, they increment each
-> time until the SM sees the controller come back and the controller is ready
-> to receive the reconnects.
-> All paths are successfully recovered.
-> 
-> I am thinking we should remove the dump_stack and leave the message in as a
-> warning
-> Customers seeing messages as warnings will be less concerend than seeing
-> kernel stack dumps.
-> 
-> Let me know if you want me to submit a patch for that.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ethtool_drvinfo->fw_version is normally up to the device.  I've just provided a
+default.
 
-Hello Bart
+For example I see "N/A", "n/a", and "none" all used in the network stack.
 
-Confirming reducing queue_depth max to 32 prevents the swiotlb errors.
+./ethernet/freescale/gianfar_ethtool.c: strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
 
-I will document this
+./rionet.c:     strlcpy(info->fw_version, "n/a", sizeof(info->fw_version));
 
-Thanks
-Laurence
+./fjes/fjes_ethtool.c:  strlcpy(drvinfo->fw_version, "none", sizeof(drvinfo->fw_version));
+
+I really think we are in the weeds here and are fine to leave it blank.
+
+But if you wish, I can force all drivers to provide the string and then they can
+put something in like the above.
+
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
