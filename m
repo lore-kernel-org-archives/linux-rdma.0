@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 02/13] IB/cxgb3: Support device FW version string
-Date: Wed, 15 Jun 2016 02:21:57 -0400
-Message-ID: <1465971728-24104-3-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH V1 05/13] IB/mlx4: Support device FW version string
+Date: Wed, 15 Jun 2016 02:22:00 -0400
+Message-ID: <1465971728-24104-6-git-send-email-ira.weiny@intel.com>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,78 +12,75 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Also remove fw_ver sysfs to be replaced by the common core one.
+And remove the sysfs in favor of common core version.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/iwch_provider.c | 27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index bb1a839d4d6d..3edb80644b53 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1183,18 +1183,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 	return sprintf(buf, "%d\n", iwch_dev->rdev.t3cdev_p->type);
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 0eb09e104542..1cbd075ce7e4 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2022,16 +2022,6 @@ static ssize_t show_hca(struct device *device, struct device_attribute *attr,
+ 	return sprintf(buf, "MT%d\n", dev->dev->persist->pdev->device);
  }
  
--static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr, char *buf)
+-static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
+-			   char *buf)
 -{
--	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
--						 ibdev.dev);
--	struct ethtool_drvinfo info;
--	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
--
--	PDBG("%s dev 0x%p\n", __func__, dev);
--	lldev->ethtool_ops->get_drvinfo(lldev, &info);
--	return sprintf(buf, "%s\n", info.fw_version);
+-	struct mlx4_ib_dev *dev =
+-		container_of(device, struct mlx4_ib_dev, ib_dev.dev);
+-	return sprintf(buf, "%d.%d.%d\n", (int) (dev->dev->caps.fw_ver >> 32),
+-		       (int) (dev->dev->caps.fw_ver >> 16) & 0xffff,
+-		       (int) dev->dev->caps.fw_ver & 0xffff);
 -}
 -
- static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
+ static ssize_t show_rev(struct device *device, struct device_attribute *attr,
  			char *buf)
  {
-@@ -1334,13 +1322,11 @@ static int iwch_get_mib(struct ib_device *ibdev, struct rdma_hw_stats *stats,
+@@ -2050,13 +2040,11 @@ static ssize_t show_board(struct device *device, struct device_attribute *attr,
  }
  
- static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
--static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
+ static DEVICE_ATTR(hw_rev,   S_IRUGO, show_rev,    NULL);
+-static DEVICE_ATTR(fw_ver,   S_IRUGO, show_fw_ver, NULL);
+ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca,    NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, show_board,  NULL);
  
- static struct device_attribute *iwch_class_attributes[] = {
+ static struct device_attribute *mlx4_class_attributes[] = {
  	&dev_attr_hw_rev,
 -	&dev_attr_fw_ver,
  	&dev_attr_hca_type,
- 	&dev_attr_board_id,
+ 	&dev_attr_board_id
  };
-@@ -1362,6 +1348,18 @@ static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
+@@ -2277,6 +2265,17 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+static void get_dev_fw_ver_str(struct ib_device *ibdev, char *str,
-+			       size_t str_len)
++static void get_fw_ver_str(struct ib_device *device, char *str,
++			   size_t str_len)
 +{
-+	struct iwch_dev *iwch_dev = to_iwch_dev(ibdev);
-+	struct ethtool_drvinfo info;
-+	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
-+
-+	PDBG("%s dev 0x%p\n", __func__, iwch_dev);
-+	lldev->ethtool_ops->get_drvinfo(lldev, &info);
-+	snprintf(str, str_len, "%s", info.fw_version);
++	struct mlx4_ib_dev *dev =
++		container_of(device, struct mlx4_ib_dev, ib_dev);
++	snprintf(str, str_len, "%d.%d.%d",
++		 (int) (dev->dev->caps.fw_ver >> 32),
++		 (int) (dev->dev->caps.fw_ver >> 16) & 0xffff,
++		 (int) dev->dev->caps.fw_ver & 0xffff);
 +}
 +
- int iwch_register_device(struct iwch_dev *dev)
+ static void *mlx4_ib_add(struct mlx4_dev *dev)
  {
- 	int ret;
-@@ -1437,6 +1435,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.get_hw_stats = iwch_get_mib;
- 	dev->ibdev.uverbs_abi_ver = IWCH_UVERBS_ABI_VERSION;
- 	dev->ibdev.get_port_immutable = iwch_port_immutable;
-+	dev->ibdev.get_dev_fw_str = get_dev_fw_ver_str;
+ 	struct mlx4_ib_dev *ibdev;
+@@ -2410,6 +2409,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	ibdev->ib_dev.detach_mcast	= mlx4_ib_mcg_detach;
+ 	ibdev->ib_dev.process_mad	= mlx4_ib_process_mad;
+ 	ibdev->ib_dev.get_port_immutable = mlx4_port_immutable;
++	ibdev->ib_dev.get_dev_fw_str    = get_fw_ver_str;
+ 	ibdev->ib_dev.disassociate_ucontext = mlx4_ib_disassociate_ucontext;
  
- 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
- 	if (!dev->ibdev.iwcm)
+ 	if (!mlx4_is_slave(ibdev->dev)) {
 -- 
 1.8.2
 
