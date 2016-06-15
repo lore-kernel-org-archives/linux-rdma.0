@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 08/13] IB/nes: Support device FW version string
-Date: Wed, 15 Jun 2016 02:22:03 -0400
-Message-ID: <1465971728-24104-9-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH V1 10/13] IB/usnic: Support device FW version string
+Date: Wed, 15 Jun 2016 02:22:05 -0400
+Message-ID: <1465971728-24104-11-git-send-email-ira.weiny@intel.com>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,84 +12,91 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-And remove the sysfs in favor of the core version.
+And remove sysfs file in favor of the common core.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_verbs.c | 33 ++++++++++++++-------------------
- 1 file changed, 14 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_ib_main.c  | 16 ++++++++++++++++
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 17 -----------------
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 464d6da5fe91..bd69125731c1 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2606,23 +2606,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 
- 
- /**
-- * show_fw_ver
-- */
--static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
--			   char *buf)
--{
--	struct nes_ib_device *nesibdev =
--			container_of(dev, struct nes_ib_device, ibdev.dev);
--	struct nes_vnic *nesvnic = nesibdev->nesvnic;
--
--	nes_debug(NES_DBG_INIT, "\n");
--	return sprintf(buf, "%u.%u\n",
--		(nesvnic->nesdev->nesadapter->firmware_version >> 16),
--		(nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
--}
--
--
--/**
-  * show_hca
-  */
- static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
-@@ -2645,13 +2628,11 @@ static ssize_t show_board(struct device *dev, struct device_attribute *attr,
- 
- 
- static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
--static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
- static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
- 
- static struct device_attribute *nes_dev_attributes[] = {
- 	&dev_attr_hw_rev,
--	&dev_attr_fw_ver,
- 	&dev_attr_hca_type,
- 	&dev_attr_board_id
- };
-@@ -3703,6 +3684,19 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index 565c881a44ba..c229b9f4a52d 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -331,6 +331,21 @@ static int usnic_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+static void get_dev_fw_str(struct ib_device *dev, char *str,
-+			   size_t str_len)
++static void usnic_get_dev_fw_str(struct ib_device *device,
++				 char *str,
++				 size_t str_len)
 +{
-+	struct nes_ib_device *nesibdev =
-+			container_of(dev, struct nes_ib_device, ibdev);
-+	struct nes_vnic *nesvnic = nesibdev->nesvnic;
++	struct usnic_ib_dev *us_ibdev =
++		container_of(device, struct usnic_ib_dev, ib_dev);
++	struct ethtool_drvinfo info;
 +
-+	nes_debug(NES_DBG_INIT, "\n");
-+	snprintf(str, str_len, "%u.%u",
-+		 (nesvnic->nesdev->nesadapter->firmware_version >> 16),
-+		 (nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
++	mutex_lock(&us_ibdev->usdev_lock);
++	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
++	mutex_unlock(&us_ibdev->usdev_lock);
++
++	snprintf(str, str_len, "%s", info.fw_version);
 +}
 +
- /**
-  * nes_init_ofa_device
-  */
-@@ -3802,6 +3796,7 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
- 	nesibdev->ibdev.iwcm->create_listen = nes_create_listen;
- 	nesibdev->ibdev.iwcm->destroy_listen = nes_destroy_listen;
- 	nesibdev->ibdev.get_port_immutable   = nes_port_immutable;
-+	nesibdev->ibdev.get_dev_fw_str   = get_dev_fw_str;
- 	memcpy(nesibdev->ibdev.iwcm->ifname, netdev->name,
- 	       sizeof(nesibdev->ibdev.iwcm->ifname));
+ /* Start of PF discovery section */
+ static void *usnic_ib_device_add(struct pci_dev *dev)
+ {
+@@ -414,6 +429,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 	us_ibdev->ib_dev.req_notify_cq = usnic_ib_req_notify_cq;
+ 	us_ibdev->ib_dev.get_dma_mr = usnic_ib_get_dma_mr;
+ 	us_ibdev->ib_dev.get_port_immutable = usnic_port_immutable;
++	us_ibdev->ib_dev.get_dev_fw_str     = usnic_get_dev_fw_str;
  
+ 
+ 	if (ib_register_device(&us_ibdev->ib_dev, NULL))
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+index 3412ea06116e..80ef3f8998c8 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_sysfs.c
+@@ -45,21 +45,6 @@
+ #include "usnic_ib_verbs.h"
+ #include "usnic_log.h"
+ 
+-static ssize_t usnic_ib_show_fw_ver(struct device *device,
+-					struct device_attribute *attr,
+-					char *buf)
+-{
+-	struct usnic_ib_dev *us_ibdev =
+-		container_of(device, struct usnic_ib_dev, ib_dev.dev);
+-	struct ethtool_drvinfo info;
+-
+-	mutex_lock(&us_ibdev->usdev_lock);
+-	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
+-	mutex_unlock(&us_ibdev->usdev_lock);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%s\n", info.fw_version);
+-}
+-
+ static ssize_t usnic_ib_show_board(struct device *device,
+ 					struct device_attribute *attr,
+ 					char *buf)
+@@ -192,7 +177,6 @@ usnic_ib_show_cq_per_vf(struct device *device, struct device_attribute *attr,
+ 			us_ibdev->vf_res_cnt[USNIC_VNIC_RES_TYPE_CQ]);
+ }
+ 
+-static DEVICE_ATTR(fw_ver, S_IRUGO, usnic_ib_show_fw_ver, NULL);
+ static DEVICE_ATTR(board_id, S_IRUGO, usnic_ib_show_board, NULL);
+ static DEVICE_ATTR(config, S_IRUGO, usnic_ib_show_config, NULL);
+ static DEVICE_ATTR(iface, S_IRUGO, usnic_ib_show_iface, NULL);
+@@ -201,7 +185,6 @@ static DEVICE_ATTR(qp_per_vf, S_IRUGO, usnic_ib_show_qp_per_vf, NULL);
+ static DEVICE_ATTR(cq_per_vf, S_IRUGO, usnic_ib_show_cq_per_vf, NULL);
+ 
+ static struct device_attribute *usnic_class_attributes[] = {
+-	&dev_attr_fw_ver,
+ 	&dev_attr_board_id,
+ 	&dev_attr_config,
+ 	&dev_attr_iface,
 -- 
 1.8.2
 
