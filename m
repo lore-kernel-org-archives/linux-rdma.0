@@ -1,36 +1,46 @@
-From: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] nvmet-rdma: add a NVMe over Fabrics RDMA target
- driver
-Date: Wed, 15 Jun 2016 21:32:30 +0300
-Message-ID: <57619F3E.6070903@gmail.com>
-References: <1465248215-18186-1-git-send-email-hch@lst.de>
- <1465248215-18186-5-git-send-email-hch@lst.de>
- <5756B75C.9000409@lightbits.io>
- <057a01d1c2a3$3082eec0$9188cc40$@opengridcomputing.com>
- <00f501d1c657$483a74e0$d8af5ea0$@opengridcomputing.com>
- <00f701d1c658$efd720d0$cf856270$@opengridcomputing.com>
+From: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 6/8] nvme-fabrics: add a generic NVMe over Fabrics library
+Date: Wed, 15 Jun 2016 15:16:03 -0400
+Message-ID: <20160615191603.GC1919@localhost.localdomain>
+References: <1465829128-22993-1-git-send-email-hch@lst.de>
+ <1465829128-22993-7-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00f701d1c658$efd720d0$cf856270$@opengridcomputing.com>
+Content-Disposition: inline
+In-Reply-To: <1465829128-22993-7-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Armen Baloyan' <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jay Freyensee' <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ming Lin' <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Armen Baloyan <armenx.baloyan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jay Freyensee <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jun 13, 2016 at 04:45:26PM +0200, Christoph Hellwig wrote:
+> @@ -107,10 +108,19 @@ struct nvme_ctrl {
+>  	u8 event_limit;
+>  	u8 vwc;
+>  	u32 vs;
+> +	u32 sgls;
+>  	bool subsystem;
+>  	unsigned long quirks;
+>  	struct work_struct scan_work;
+>  	struct work_struct async_event_work;
+> +
+> +	/* Fabrics only */
+> +	u16 sqsize;
+> +	u32 ioccsz;
+> +	u32 iorcsz;
+> +	u16 icdoff;
+> +	u16 maxcmd;
+> +	struct nvmf_ctrl_options *opts;
+>  };
 
-> Looking at rdma_destroy_id(), I think it is invalid to call it from the event
-> handler:
+The pci only stuff goes in 'struct nvme_dev' and embeds 'struct
+nvme_ctrl', but fabrics gets to use nvme_ctrl directly?
 
-...
-
->
-> So I withdraw my comment about nvmet.  I think the code is fine as-is.  The 2nd
-> reject results in a no-op since the connection request was rejected by nvmet.
-
-I was just catching up on this after a short vacation, just what I was
-about to comment, thanks Steve :)
+If we need transport specifics for anything, like you have during
+nvme_init_identify, I think we should add function callbacks to
+nvme_ctrl_ops to set up those specifics, then we don't need 'is_fabrics'
+checks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
