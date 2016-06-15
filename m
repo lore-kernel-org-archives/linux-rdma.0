@@ -1,323 +1,226 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 04/24] xprtrdma: Move init and release helpers
-Date: Tue, 14 Jun 2016 23:15:50 -0400
-Message-ID: <20160615031550.14794.40447.stgit@manet.1015granger.net>
+Subject: [PATCH v2 06/24] xprtrdma: Use scatterlist for DMA mapping and
+ unmapping under FMR
+Date: Tue, 14 Jun 2016 23:16:06 -0400
+Message-ID: <20160615031606.14794.46888.stgit@manet.1015granger.net>
 References: <20160615030626.14794.43805.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160615030626.14794.43805.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: Moving these helpers in a separate patch makes later
-patches more readable.
+The use of a scatterlist for handling DMA mapping and unmapping
+was recently introduced in frwr_ops.c in commit 4143f34e01e9
+("xprtrdma: Port to new memory registration API"). That commit did
+not make a similar update to xprtrdma's FMR support because the
+core ib_map_phys_fmr() and ib_unmap_fmr() APIs have not been changed
+to take a scatterlist argument.
 
+However, FMR still needs to do DMA mapping and unmapping. It appears
+that RDS, for example, uses a scatterlist for this, then builds the
+DMA addr array for the ib_map_phys_fmr call separately. I see that
+SRP also utilizes a scatterlist for DMA mapping. xprtrdma can do
+something similar.
+
+This modernization is used immediately to properly defer DMA
+unmapping during fmr_unmap_safe (a FIXME). It separates the DMA
+unmapping coordinates from the rl_segments array. This array, being
+part of an rpcrdma_req, is always re-used immediately when an RPC
+exits. A scatterlist is allocated in memory independent of the
+rl_segments array, so it can be preserved indefinitely (ie, until
+the MR invalidation and DMA unmapping can actually be done by a
+worker thread).
+
+The FRWR and FMR DMA mapping code are slightly different from each
+other now, and will diverge further when the "Check for holes" logic
+can be removed from FRWR (support for SG_GAP MRs). So I chose not to
+create helpers for the common-looking code.
+
+Fixes: ead3f26e359e ("xprtrdma: Add ro_unmap_safe memreg method")
+Suggested-by: Sagi Grimberg <sagi-ImC7XgPzLAfvYQKSrp0J2Q@public.gmane.org>
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c  |  120 +++++++++++++++++++++++++---------------
- net/sunrpc/xprtrdma/frwr_ops.c |   90 +++++++++++++++---------------
- 2 files changed, 120 insertions(+), 90 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c |   96 ++++++++++++++++++++++++-----------------
+ 1 file changed, 57 insertions(+), 39 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 958c792..b3f8699 100644
+index a6a67b4..3044593 100644
 --- a/net/sunrpc/xprtrdma/fmr_ops.c
 +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -35,6 +35,12 @@
- /* Maximum scatter/gather per FMR */
- #define RPCRDMA_MAX_FMR_SGES	(64)
- 
-+/* Access mode of externally registered pages */
-+enum {
-+	RPCRDMA_FMR_ACCESS_FLAGS	= IB_ACCESS_REMOTE_WRITE |
-+					  IB_ACCESS_REMOTE_READ,
-+};
-+
- static struct workqueue_struct *fmr_recovery_wq;
- 
- #define FMR_RECOVERY_WQ_FLAGS		(WQ_UNBOUND)
-@@ -60,6 +66,45 @@ fmr_destroy_recovery_wq(void)
+@@ -117,13 +117,28 @@ __fmr_unmap(struct rpcrdma_mw *mw)
  }
  
- static int
-+__fmr_init(struct rpcrdma_mw *mw, struct ib_pd *pd)
-+{
-+	static struct ib_fmr_attr fmr_attr = {
-+		.max_pages	= RPCRDMA_MAX_FMR_SGES,
-+		.max_maps	= 1,
-+		.page_shift	= PAGE_SHIFT
-+	};
-+
-+	mw->fmr.physaddrs = kcalloc(RPCRDMA_MAX_FMR_SGES,
-+				    sizeof(u64), GFP_KERNEL);
-+	if (!mw->fmr.physaddrs)
-+		goto out_free;
-+
-+	mw->mw_sg = kcalloc(RPCRDMA_MAX_FMR_SGES,
-+			    sizeof(*mw->mw_sg), GFP_KERNEL);
-+	if (!mw->mw_sg)
-+		goto out_free;
-+
-+	sg_init_table(mw->mw_sg, RPCRDMA_MAX_FMR_SGES);
-+
-+	mw->fmr.fmr = ib_alloc_fmr(pd, RPCRDMA_FMR_ACCESS_FLAGS,
-+				   &fmr_attr);
-+	if (IS_ERR(mw->fmr.fmr))
-+		goto out_fmr_err;
-+
-+	INIT_LIST_HEAD(&mw->fmr.fmr->list);
-+	return 0;
-+
-+out_fmr_err:
-+	dprintk("RPC:       %s: ib_alloc_fmr returned %ld\n", __func__,
-+		PTR_ERR(mw->fmr.fmr));
-+
-+out_free:
-+	kfree(mw->mw_sg);
-+	kfree(mw->fmr.physaddrs);
-+	return -ENOMEM;
-+}
-+
-+static int
- __fmr_unmap(struct rpcrdma_mw *mw)
- {
- 	LIST_HEAD(l);
-@@ -71,6 +116,30 @@ __fmr_unmap(struct rpcrdma_mw *mw)
- 	return rc;
- }
- 
-+static void
-+__fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
-+{
-+	struct ib_device *device = r_xprt->rx_ia.ri_device;
-+	int nsegs = seg->mr_nsegs;
-+
-+	while (nsegs--)
-+		rpcrdma_unmap_one(device, seg++);
-+}
-+
-+static void
-+__fmr_release(struct rpcrdma_mw *r)
-+{
-+	int rc;
-+
-+	kfree(r->fmr.physaddrs);
-+	kfree(r->mw_sg);
-+
-+	rc = ib_dealloc_fmr(r->fmr.fmr);
-+	if (rc)
-+		pr_err("rpcrdma: final ib_dealloc_fmr for %p returned %i\n",
-+		       r, rc);
-+}
-+
- /* Deferred reset of a single FMR. Generate a fresh rkey by
-  * replacing the MR. There's no recovery if this fails.
-  */
-@@ -119,12 +188,6 @@ static int
- fmr_op_init(struct rpcrdma_xprt *r_xprt)
- {
- 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
--	int mr_access_flags = IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ;
--	struct ib_fmr_attr fmr_attr = {
--		.max_pages	= RPCRDMA_MAX_FMR_SGES,
--		.max_maps	= 1,
--		.page_shift	= PAGE_SHIFT
--	};
- 	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
- 	struct rpcrdma_mw *r;
- 	int i, rc;
-@@ -138,36 +201,22 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
- 	i *= buf->rb_max_requests;	/* one set for each RPC slot */
- 	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
- 
--	rc = -ENOMEM;
- 	while (i--) {
- 		r = kzalloc(sizeof(*r), GFP_KERNEL);
- 		if (!r)
--			goto out;
--
--		r->fmr.physaddrs = kmalloc(RPCRDMA_MAX_FMR_SGES *
--					   sizeof(u64), GFP_KERNEL);
--		if (!r->fmr.physaddrs)
--			goto out_free;
-+			return -ENOMEM;
- 
--		r->fmr.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
--		if (IS_ERR(r->fmr.fmr))
--			goto out_fmr_err;
--		INIT_LIST_HEAD(&r->fmr.fmr->list);
-+		rc = __fmr_init(r, pd);
-+		if (rc) {
-+			kfree(r);
-+			return rc;
-+		}
- 
- 		r->mw_xprt = r_xprt;
- 		list_add(&r->mw_list, &buf->rb_mws);
- 		list_add(&r->mw_all, &buf->rb_all);
- 	}
- 	return 0;
--
--out_fmr_err:
--	rc = PTR_ERR(r->fmr.fmr);
--	dprintk("RPC:       %s: ib_alloc_fmr status %i\n", __func__, rc);
--	kfree(r->fmr.physaddrs);
--out_free:
--	kfree(r);
--out:
--	return rc;
- }
- 
- /* Use the ib_map_phys_fmr() verb to register a memory region
-@@ -236,16 +285,6 @@ out_maperr:
- 	return rc;
- }
- 
--static void
+ static void
 -__fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
--{
++__fmr_dma_unmap(struct rpcrdma_mw *mw)
+ {
 -	struct ib_device *device = r_xprt->rx_ia.ri_device;
 -	int nsegs = seg->mr_nsegs;
--
++	struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
+ 
 -	while (nsegs--)
 -		rpcrdma_unmap_one(device, seg++);
--}
--
- /* Invalidate all memory regions that were registered for "req".
-  *
-  * Sleeps until it is safe for the host CPU to access the
-@@ -338,18 +377,11 @@ static void
- fmr_op_destroy(struct rpcrdma_buffer *buf)
- {
- 	struct rpcrdma_mw *r;
--	int rc;
- 
- 	while (!list_empty(&buf->rb_all)) {
- 		r = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
- 		list_del(&r->mw_all);
--		kfree(r->fmr.physaddrs);
--
--		rc = ib_dealloc_fmr(r->fmr.fmr);
--		if (rc)
--			dprintk("RPC:       %s: ib_dealloc_fmr failed %i\n",
--				__func__, rc);
--
-+		__fmr_release(r);
- 		kfree(r);
- 	}
- }
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index f02ab80..9cd60bf0 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -99,6 +99,50 @@ frwr_destroy_recovery_wq(void)
- }
- 
- static int
-+__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, unsigned int depth)
-+{
-+	struct rpcrdma_frmr *f = &r->frmr;
-+	int rc;
-+
-+	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
-+	if (IS_ERR(f->fr_mr))
-+		goto out_mr_err;
-+
-+	r->mw_sg = kcalloc(depth, sizeof(*r->mw_sg), GFP_KERNEL);
-+	if (!r->mw_sg)
-+		goto out_list_err;
-+
-+	sg_init_table(r->mw_sg, depth);
-+	init_completion(&f->fr_linv_done);
-+	return 0;
-+
-+out_mr_err:
-+	rc = PTR_ERR(f->fr_mr);
-+	dprintk("RPC:       %s: ib_alloc_mr status %i\n",
-+		__func__, rc);
-+	return rc;
-+
-+out_list_err:
-+	rc = -ENOMEM;
-+	dprintk("RPC:       %s: sg allocation failure\n",
-+		__func__);
-+	ib_dereg_mr(f->fr_mr);
-+	return rc;
++	ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
++			mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	rpcrdma_put_mw(r_xprt, mw);
 +}
 +
 +static void
-+__frwr_release(struct rpcrdma_mw *r)
++__fmr_reset_and_unmap(struct rpcrdma_mw *mw)
 +{
 +	int rc;
 +
-+	rc = ib_dereg_mr(r->frmr.fr_mr);
-+	if (rc)
-+		pr_err("rpcrdma: final ib_dereg_mr for %p returned %i\n",
-+		       r, rc);
-+	kfree(r->mw_sg);
-+}
-+
-+static int
- __frwr_reset_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *r)
- {
- 	struct rpcrdma_frmr *f = &r->frmr;
-@@ -165,52 +209,6 @@ __frwr_queue_recovery(struct rpcrdma_mw *r)
++	/* ORDER */
++	rc = __fmr_unmap(mw);
++	if (rc) {
++		pr_warn("rpcrdma: ib_unmap_fmr status %d, fmr %p orphaned\n",
++			rc, mw);
++		return;
++	}
++	__fmr_dma_unmap(mw);
  }
  
- static int
--__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, unsigned int depth)
--{
--	struct rpcrdma_frmr *f = &r->frmr;
--	int rc;
--
--	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
--	if (IS_ERR(f->fr_mr))
--		goto out_mr_err;
--
--	r->mw_sg = kcalloc(depth, sizeof(*r->mw_sg), GFP_KERNEL);
--	if (!r->mw_sg)
--		goto out_list_err;
--
--	sg_init_table(r->mw_sg, depth);
--
--	init_completion(&f->fr_linv_done);
--
--	return 0;
--
--out_mr_err:
--	rc = PTR_ERR(f->fr_mr);
--	dprintk("RPC:       %s: ib_alloc_mr status %i\n",
--		__func__, rc);
--	return rc;
--
--out_list_err:
--	rc = -ENOMEM;
--	dprintk("RPC:       %s: sg allocation failure\n",
--		__func__);
--	ib_dereg_mr(f->fr_mr);
--	return rc;
--}
--
--static void
--__frwr_release(struct rpcrdma_mw *r)
--{
--	int rc;
--
--	rc = ib_dereg_mr(r->frmr.fr_mr);
--	if (rc)
--		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
--			__func__, rc);
--	kfree(r->mw_sg);
--}
--
--static int
- frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
- 	     struct rpcrdma_create_data_internal *cdata)
+ static void
+@@ -147,11 +162,9 @@ static void
+ __fmr_recovery_worker(struct work_struct *work)
  {
+ 	struct rpcrdma_mw *mw = container_of(work, struct rpcrdma_mw,
+-					    mw_work);
+-	struct rpcrdma_xprt *r_xprt = mw->mw_xprt;
++					     mw_work);
+ 
+-	__fmr_unmap(mw);
+-	rpcrdma_put_mw(r_xprt, mw);
++	__fmr_reset_and_unmap(mw);
+ 	return;
+ }
+ 
+@@ -226,12 +239,10 @@ static int
+ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	   int nsegs, bool writing)
+ {
+-	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+-	struct ib_device *device = ia->ri_device;
+-	enum dma_data_direction direction = rpcrdma_data_dir(writing);
+ 	struct rpcrdma_mr_seg *seg1 = seg;
+ 	int len, pageoff, i, rc;
+ 	struct rpcrdma_mw *mw;
++	u64 *dma_pages;
+ 
+ 	mw = seg1->rl_mw;
+ 	seg1->rl_mw = NULL;
+@@ -253,8 +264,14 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	if (nsegs > RPCRDMA_MAX_FMR_SGES)
+ 		nsegs = RPCRDMA_MAX_FMR_SGES;
+ 	for (i = 0; i < nsegs;) {
+-		rpcrdma_map_one(device, seg, direction);
+-		mw->fmr.fm_physaddrs[i] = seg->mr_dma;
++		if (seg->mr_page)
++			sg_set_page(&mw->mw_sg[i],
++				    seg->mr_page,
++				    seg->mr_len,
++				    offset_in_page(seg->mr_offset));
++		else
++			sg_set_buf(&mw->mw_sg[i], seg->mr_offset,
++				   seg->mr_len);
+ 		len += seg->mr_len;
+ 		++seg;
+ 		++i;
+@@ -263,25 +280,37 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+ 			break;
+ 	}
++	mw->mw_nents = i;
++	mw->mw_dir = rpcrdma_data_dir(writing);
++
++	if (!ib_dma_map_sg(r_xprt->rx_ia.ri_device,
++			   mw->mw_sg, mw->mw_nents, mw->mw_dir))
++		goto out_dmamap_err;
+ 
+-	rc = ib_map_phys_fmr(mw->fmr.fm_mr, mw->fmr.fm_physaddrs,
+-			     i, seg1->mr_dma);
++	for (i = 0, dma_pages = mw->fmr.fm_physaddrs; i < mw->mw_nents; i++)
++		dma_pages[i] = sg_dma_address(&mw->mw_sg[i]);
++	rc = ib_map_phys_fmr(mw->fmr.fm_mr, dma_pages, mw->mw_nents,
++			     dma_pages[0]);
+ 	if (rc)
+ 		goto out_maperr;
+ 
+ 	seg1->rl_mw = mw;
+ 	seg1->mr_rkey = mw->fmr.fm_mr->rkey;
+-	seg1->mr_base = seg1->mr_dma + pageoff;
+-	seg1->mr_nsegs = i;
++	seg1->mr_base = dma_pages[0] + pageoff;
++	seg1->mr_nsegs = mw->mw_nents;
+ 	seg1->mr_len = len;
+-	return i;
++	return mw->mw_nents;
++
++out_dmamap_err:
++	pr_err("rpcrdma: failed to dma map sg %p sg_nents %u\n",
++	       mw->mw_sg, mw->mw_nents);
++	return -ENOMEM;
+ 
+ out_maperr:
+-	dprintk("RPC:       %s: ib_map_phys_fmr %u@0x%llx+%i (%d) status %i\n",
+-		__func__, len, (unsigned long long)seg1->mr_dma,
+-		pageoff, i, rc);
+-	while (i--)
+-		rpcrdma_unmap_one(device, --seg);
++	pr_err("rpcrdma: ib_map_phys_fmr %u@0x%llx+%i (%d) status %i\n",
++	       len, (unsigned long long)dma_pages[0],
++	       pageoff, mw->mw_nents, rc);
++	__fmr_dma_unmap(mw);
+ 	return rc;
+ }
+ 
+@@ -326,8 +355,7 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 		mw = seg->rl_mw;
+ 
+ 		list_del_init(&mw->fmr.fm_mr->list);
+-		__fmr_dma_unmap(r_xprt, seg);
+-		rpcrdma_put_mw(r_xprt, seg->rl_mw);
++		__fmr_dma_unmap(mw);
+ 
+ 		i += seg->mr_nsegs;
+ 		seg->mr_nsegs = 0;
+@@ -339,11 +367,6 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ 
+ /* Use a slow, safe mechanism to invalidate all memory regions
+  * that were registered for "req".
+- *
+- * In the asynchronous case, DMA unmapping occurs first here
+- * because the rpcrdma_mr_seg is released immediately after this
+- * call. It's contents won't be available in __fmr_dma_unmap later.
+- * FIXME.
+  */
+ static void
+ fmr_op_unmap_safe(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+@@ -357,15 +380,10 @@ fmr_op_unmap_safe(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 		seg = &req->rl_segments[i];
+ 		mw = seg->rl_mw;
+ 
+-		if (sync) {
+-			/* ORDER */
+-			__fmr_unmap(mw);
+-			__fmr_dma_unmap(r_xprt, seg);
+-			rpcrdma_put_mw(r_xprt, mw);
+-		} else {
+-			__fmr_dma_unmap(r_xprt, seg);
++		if (sync)
++			__fmr_reset_and_unmap(mw);
++		else
+ 			__fmr_queue_recovery(mw);
+-		}
+ 
+ 		i += seg->mr_nsegs;
+ 		seg->mr_nsegs = 0;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
