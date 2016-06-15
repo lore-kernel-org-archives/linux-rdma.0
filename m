@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH V1 03/13] IB/cxgb4: Support device FW version string
-Date: Wed, 15 Jun 2016 02:21:58 -0400
-Message-ID: <1465971728-24104-4-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH V1 02/13] IB/cxgb3: Support device FW version string
+Date: Wed, 15 Jun 2016 02:21:57 -0400
+Message-ID: <1465971728-24104-3-git-send-email-ira.weiny@intel.com>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,45 +12,38 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-And remove sysfs fw_ver in favor of the core.
+Also remove fw_ver sysfs to be replaced by the common core one.
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
 ---
-Changes from V0:
-	Add tag Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+ drivers/infiniband/hw/cxgb3/iwch_provider.c | 27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
- drivers/infiniband/hw/cxgb4/provider.c | 31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index dd8a86b726d2..df127ce6b6ec 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -409,20 +409,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
- 		       CHELSIO_CHIP_RELEASE(c4iw_dev->rdev.lldi.adapter_type));
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index bb1a839d4d6d..3edb80644b53 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1183,18 +1183,6 @@ static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%d\n", iwch_dev->rdev.t3cdev_p->type);
  }
  
--static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
--			   char *buf)
+-static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr, char *buf)
 -{
--	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
+-	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
 -						 ibdev.dev);
--	PDBG("%s dev 0x%p\n", __func__, dev);
+-	struct ethtool_drvinfo info;
+-	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
 -
--	return sprintf(buf, "%u.%u.%u.%u\n",
--			FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
--			FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
--			FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
--			FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
+-	PDBG("%s dev 0x%p\n", __func__, dev);
+-	lldev->ethtool_ops->get_drvinfo(lldev, &info);
+-	return sprintf(buf, "%s\n", info.fw_version);
 -}
 -
  static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
  			char *buf)
  {
-@@ -502,13 +488,11 @@ static int c4iw_get_mib(struct ib_device *ibdev,
+@@ -1334,13 +1322,11 @@ static int iwch_get_mib(struct ib_device *ibdev, struct rdma_hw_stats *stats,
  }
  
  static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
@@ -58,41 +51,39 @@ index dd8a86b726d2..df127ce6b6ec 100644
  static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
  static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
  
- static struct device_attribute *c4iw_class_attributes[] = {
+ static struct device_attribute *iwch_class_attributes[] = {
  	&dev_attr_hw_rev,
 -	&dev_attr_fw_ver,
  	&dev_attr_hca_type,
  	&dev_attr_board_id,
  };
-@@ -530,6 +514,20 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
+@@ -1362,6 +1348,18 @@ static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
  	return 0;
  }
  
-+static void get_dev_fw_str(struct ib_device *dev, char *str,
-+			   size_t str_len)
++static void get_dev_fw_ver_str(struct ib_device *ibdev, char *str,
++			       size_t str_len)
 +{
-+	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
-+						 ibdev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
++	struct iwch_dev *iwch_dev = to_iwch_dev(ibdev);
++	struct ethtool_drvinfo info;
++	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
 +
-+	snprintf(str, str_len, "%u.%u.%u.%u",
-+		 FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
-+		 FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
-+		 FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
-+		 FW_HDR_FW_VER_BUILD_G(c4iw_dev->rdev.lldi.fw_vers));
++	PDBG("%s dev 0x%p\n", __func__, iwch_dev);
++	lldev->ethtool_ops->get_drvinfo(lldev, &info);
++	snprintf(str, str_len, "%s", info.fw_version);
 +}
 +
- int c4iw_register_device(struct c4iw_dev *dev)
+ int iwch_register_device(struct iwch_dev *dev)
  {
  	int ret;
-@@ -605,6 +603,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	dev->ibdev.get_hw_stats = c4iw_get_mib;
- 	dev->ibdev.uverbs_abi_ver = C4IW_UVERBS_ABI_VERSION;
- 	dev->ibdev.get_port_immutable = c4iw_port_immutable;
-+	dev->ibdev.get_dev_fw_str = get_dev_fw_str;
- 	dev->ibdev.drain_sq = c4iw_drain_sq;
- 	dev->ibdev.drain_rq = c4iw_drain_rq;
+@@ -1437,6 +1435,7 @@ int iwch_register_device(struct iwch_dev *dev)
+ 	dev->ibdev.get_hw_stats = iwch_get_mib;
+ 	dev->ibdev.uverbs_abi_ver = IWCH_UVERBS_ABI_VERSION;
+ 	dev->ibdev.get_port_immutable = iwch_port_immutable;
++	dev->ibdev.get_dev_fw_str = get_dev_fw_ver_str;
  
+ 	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
+ 	if (!dev->ibdev.iwcm)
 -- 
 1.8.2
 
