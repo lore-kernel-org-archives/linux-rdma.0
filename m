@@ -1,905 +1,320 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH v2 1/2] rdma/ucm: Sketch for an ioctl framework
-Date: Wed, 15 Jun 2016 17:11:17 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB062505@ORSMSX109.amr.corp.intel.com>
+Subject: [RFC] [PATCH v2 2/2] rdma/ucma: Integrate rdma cm into ioctl
+ framework
+Date: Wed, 15 Jun 2016 17:14:50 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB062523@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following is version 2 of an outline for an ioctl framework.
-This framework targets the rdma cm, but is intended to be expanded
-to include verbs and other rdma devices, such as usnic, qib, and hfi1.
-This series includes a patch that ports the rdma cm create id
-command to use the ioctl framework as an example.
+This provides an example of integrating the rdma cm into the
+generic ioctl framework, along with porting the command used
+to create an id.
 
-The purpose of the patch is to drive discussion and feedback on
-various design decisions, so that a single merged solution can be
-developed.  The code is entirely untested and will not work without
-completing the port of the existing write interface to ioctls.  I
-wanted to get these concepts out for broader review, but moving
-forward, I believe the two approaches are converging and we can begin
-to focus development efforts.
-
-The general architecture behind the implementation is described below.
-I will respond to this email to highlight specific areas in the code
-where further discussion will be useful.
-
-Ioctls are logically grouped into name spaces.  Each name
-space defines a set of ioctl handlers.  Ioctls are routed through the
-framework, to a specific name space, and from there to handler routines
-for that ioctl.  A name space may be associated with a specific kernel
-driver, a hardware device, or a set of hardware resources on a device.
-This series defines 2 name spaces:
-
-- A name space manager, which is used to retrieve data about the
-  name spaces that are available.
-- The rdma ucm, which exports the rdma cm interfaces to user space.
-
-(Note: I selected the term name space to correspond to programming
-name spaces.  However, since Linux uses the same term for a different
-purpose, the name should probably change.)
-
-
-A name space is identified in the kernel by a structure with the
-following fields:
-
-uda_ns
-======
-id	Name space manager assigned identifier.  Note that the name
-	space manager is always at id 0.
-flags	Currently used to indicate when a name space has been closed and
-	the underlying implementation (i.e. driver or device) is
-	no longer available.  Once a name space has been closed, the
-	only operations user space may perform is to release kernel
-	resources.
-
-idr	Used to map kernel resources back to user space.
-lock	Protects access to the idr
-ioctl_base
-	Name spaces have unique opcode values.  Each name space has a
-	hard coded limit of 128 opcodes.  The ioctl_base is the value
-	of the starting opcode.  A name space that requires more than
-	128 opcodes will need to span 2 'name spaces'.
-num_ioctls
-	Total number of function handlers supported by the name space
-[get_]ioctl_desc()
-	Handler that takes as input an ioctl, verifies that the
-	ioctl is properly formatted, including all arguments are
-	valid, and returns a descriptor that describes how to
-	process the ioctl.
-close()	Generic close routine to release any underlying resources
-	associated with an object.  This is invoked by the framework
-	to cleanup resources when the user space process exits.
-name	Name spaces are identified by a character string.
-
-
-A primary goal of a name space is to associate an ioctl with a
-descriptor.  The descriptor tells the framework how to process the
-ioctl.  A descriptor is a simple structure with these fields:
-
-flags	Specifies if the operation creates a new object, destroys
-	an object, and the type of access required (shared or
-	exclusive) of the object.
-func()	Function handler to invoke that is specific to the ioctl.
-name	Debug character string
-
-
-Ioctl format:
-All ioctls start with the same basic header, followed by the same
-data layout.
-
-uda_ioctl
-=========
-ns_id	Identifies the name space which is the target of this ioctl.
-	The name space manager is always at id 0.
-length	Total size of the ioctl.  Note that additional input/output
-	buffers may be provided as arguments, which would not be
-	included as part of this length.
-op	The actual operation to perform.  For debugging purposes,
-	op values are not shared between name spaces.  The op
-	is used as a simple index into a name space's descriptor table.
-flags	Any flags associated with the operation.
-obj_cnt	Kernel allocated objects follow the ioctl header.  This
-	specifies the number of objects.
-arg_cnt	A number of input/output arguments following any objects.
-data	Ioctl data, including objects and arguments follow the
-	header.  Notable data include the uda_obj_id and uda_arg
-	structures.  The obj_cnt indicates the number of uda_obj_id
-	structures, and arg_cnt specifies the number of uda_arg
-	structures.
-
-
-
-uda_obj_id
-==========
-instance_id
-	An index into an idr, which represents a kernel object.
-obj_type
-	Identifies the type of object represented by the instance_id.
-	The framework validates the obj_type against that stored by
-	the kernel.
-data	Object specific information (padding)
-
-uda_arg
-=======
-offset	Byte offset from the start of the ioctl where the argument
-	data begins.  In general, ioctl data is included as part of a
-	single ioctl buffer.
-
-attr_id	A unique identifier for the ioctl data.  The attribute id
-	typically corresponds to a data structure.  Similar to
-	opcodes, the attribute id's are unique, with some attributes
-	shared between name spaces.  A reply email will call out a
-	couple of important attributes.
-
-length	Size of the argument data
-data	Attribute specific information (padding)
-
-
-This is the general flow of ioctl processing through the framework.
-
-1. Copy ioctl header from user space.
-2. Verify length of ioctl, including arg sizes.
-3. Select target name space.
-4. Name space verifies ioctl and returns descriptor.
-5. Copy ioctl argument data from user space.
-6. Verify and convert user space object identifiers to kernel
-   objects.
-7. Invoke ioctl handler
-8. Return control to user space.
-
-There are some kinks to work out of this, but I think it provides a
-generic enough framework to support current and anticipated needs,
-and seems to align with the work being presented in the ofvwg.  A
-generic attribute validation scheme could easily fit into this
-under the [get_]ioctl_desc() callback.  (I almost have the start of
-one if you examine the patch details.)  Alternatively, by
-defining a 'compat' attribute id, the existing write interface could
-probably be ported almost as-is, though I'm not recommending this.
-
-The event interface needs to be defined.  But if each device is
-treated as a new name space, I think this will allow a single fd to
-issue commands to any rdma device.
+A real solution would require porting all of the commands,
+most of which would be straightforward.  The difficulty is
+adopting the existing event interface to support events from
+other name spaces.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/Makefile |    2 +-
- drivers/infiniband/core/ucma.c   |    4 +-
- drivers/infiniband/core/urdma.c  |  396 ++++++++++++++++++++++++++++++++++++++
- include/rdma/rdma_uapi.h         |  131 +++++++++++++
- include/uapi/rdma/rdma_ioctl.h   |  148 ++++++++++++++
- 5 files changed, 678 insertions(+), 3 deletions(-)
- create mode 100644 drivers/infiniband/core/urdma.c
- create mode 100644 include/rdma/rdma_uapi.h
- create mode 100644 include/uapi/rdma/rdma_ioctl.h
+ drivers/infiniband/core/ucma.c   |  124 ++++++++++++++++++++++++++++++--------
+ include/uapi/rdma/rdma_ioctl.h   |    2 +
+ include/uapi/rdma/rdma_user_cm.h |   15 ++++-
+ 3 files changed, 112 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
-index f818538..43af0a8 100644
---- a/drivers/infiniband/core/Makefile
-+++ b/drivers/infiniband/core/Makefile
-@@ -26,7 +26,7 @@ rdma_cm-y :=			cma.o
- 
- rdma_cm-$(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS) += cma_configfs.o
- 
--rdma_ucm-y :=			ucma.o
-+rdma_ucm-y :=			ucma.o urdma.o
- 
- ib_addr-y :=			addr.o
- 
 diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index dd3bcce..b289ce0 100644
+index b289ce0..340d35b 100644
 --- a/drivers/infiniband/core/ucma.c
 +++ b/drivers/infiniband/core/ucma.c
-@@ -491,9 +491,9 @@ static ssize_t ucma_create_id(struct ucma_file *file, const char __user *inbuf,
+@@ -45,6 +45,7 @@
+ #include <linux/nsproxy.h>
+ 
+ #include <rdma/rdma_user_cm.h>
++#include <rdma/rdma_uapi.h>
+ #include <rdma/ib_marshall.h>
+ #include <rdma/rdma_cm.h>
+ #include <rdma/rdma_cm_ib.h>
+@@ -208,6 +209,22 @@ error:
+ 	return NULL;
+ }
+ 
++static struct ucma_context *ucma_alloc_ctx2(struct uda_obj *obj)
++{
++	struct ucma_context *ctx;
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return NULL;
++
++	INIT_WORK(&ctx->close_work, ucma_close_id);
++	atomic_set(&ctx->ref, 1);
++	init_completion(&ctx->comp);
++	INIT_LIST_HEAD(&ctx->mc_list);
++	obj->kcontext = ctx;
++	return ctx;
++}
++
+ static struct ucma_multicast* ucma_alloc_multicast(struct ucma_context *ctx)
+ {
+ 	struct ucma_multicast *mc;
+@@ -429,9 +446,9 @@ done:
+ 	return ret;
+ }
+ 
+-static int ucma_get_qp_type(struct rdma_ucm_create_id *cmd, enum ib_qp_type *qp_type)
++static int ucma_get_qp_type(struct rdma_ucm_id_attr *attr, enum ib_qp_type *qp_type)
+ {
+-	switch (cmd->ps) {
++	switch (attr->ps) {
+ 	case RDMA_PS_TCP:
+ 		*qp_type = IB_QPT_RC;
+ 		return 0;
+@@ -440,49 +457,44 @@ static int ucma_get_qp_type(struct rdma_ucm_create_id *cmd, enum ib_qp_type *qp_
+ 		*qp_type = IB_QPT_UD;
+ 		return 0;
+ 	case RDMA_PS_IB:
+-		*qp_type = cmd->qp_type;
++		*qp_type = attr->qp_type;
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
+ 	}
+ }
+ 
+-static ssize_t ucma_create_id(struct ucma_file *file, const char __user *inbuf,
+-			      int in_len, int out_len)
++static long ucma_create_id(struct uda_ns *ns, void *data)
+ {
+-	struct rdma_ucm_create_id cmd;
+-	struct rdma_ucm_create_id_resp resp;
++	struct rdma_ucm_id_attr *attr;
++	struct uda_iovec *resp;
+ 	struct ucma_context *ctx;
+ 	enum ib_qp_type qp_type;
++	struct uda_ioctl *ioctl = data;
++	struct uda_obj *obj;
+ 	int ret;
+ 
+-	if (out_len < sizeof(resp))
+-		return -ENOSPC;
+-
+-	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+-		return -EFAULT;
++	obj = ioctl->u.obj[0];
++	attr = UDA_ARG_DATA(ioctl, 0);
+ 
+-	ret = ucma_get_qp_type(&cmd, &qp_type);
++	ret = ucma_get_qp_type(attr, &qp_type);
+ 	if (ret)
+ 		return ret;
+ 
+-	mutex_lock(&file->mut);
+-	ctx = ucma_alloc_ctx(file);
+-	mutex_unlock(&file->mut);
++	ctx = ucma_alloc_ctx2(obj);
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 
+-	ctx->uid = cmd.uid;
+ 	ctx->cm_id = rdma_create_id(current->nsproxy->net_ns,
+-				    ucma_event_handler, ctx, cmd.ps, qp_type);
++				    ucma_event_handler, ctx, attr->ps, qp_type);
+ 	if (IS_ERR(ctx->cm_id)) {
+ 		ret = PTR_ERR(ctx->cm_id);
+ 		goto err1;
+ 	}
+ 
+-	resp.id = ctx->id;
+-	if (copy_to_user((void __user *)(unsigned long)cmd.response,
+-			 &resp, sizeof(resp))) {
++	resp = UDA_ARG_DATA(ioctl, 1);
++	if (copy_to_user((void __user *)(unsigned long) resp->addr,
++			 &obj->instance_id, sizeof(obj->instance_id))) {
+ 		ret = -EFAULT;
+ 		goto err2;
+ 	}
+@@ -491,9 +503,6 @@ static ssize_t ucma_create_id(struct ucma_file *file, const char __user *inbuf,
  err2:
  	rdma_destroy_id(ctx->cm_id);
  err1:
--	mutex_lock(&mut);
-+	mutex_lock(&file->mut);
- 	idr_remove(&ctx_idr, ctx->id);
--	mutex_unlock(&mut);
-+	mutex_unlock(&file->mut);
+-	mutex_lock(&file->mut);
+-	idr_remove(&ctx_idr, ctx->id);
+-	mutex_unlock(&file->mut);
  	kfree(ctx);
  	return ret;
  }
-diff --git a/drivers/infiniband/core/urdma.c b/drivers/infiniband/core/urdma.c
-new file mode 100644
-index 0000000..428e75d
---- /dev/null
-+++ b/drivers/infiniband/core/urdma.c
-@@ -0,0 +1,396 @@
-+/*
-+ * Copyright (c) 2016 Intel Corporation, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/bitops.h>
-+#include <linux/rwsem.h>
-+#include <linux/slab.h>
-+#include <linux/fs.h>
-+#include <asm/uaccess.h>
-+
-+#include <uapi/rdma/rdma_ioctl.h>
-+#include <rdma/rdma_uapi.h>
-+
-+
-+static DECLARE_RWSEM(rw_lock);
-+static u16 max_ns;
-+static struct uda_ns *ns_array[64];
-+
-+
-+static struct uda_obj * uda_get_obj(struct uda_file *file, struct uda_ns *ns,
-+				    struct uda_obj_id *id, bool excl)
+@@ -1539,10 +1548,65 @@ file_put:
+ 	return ret;
+ }
+ 
++static long ucma_check_create_id(struct uda_ioctl *ioctl)
 +{
-+	struct uda_obj *obj;
-+
-+	if (id->data)
-+		return ERR_PTR(-EINVAL);
-+
-+	obj = idr_find(&ns->idr, id->instance_id);
-+	if (!obj || obj->obj_type != id->obj_type || obj->file != file)
-+		return ERR_PTR(-ENOENT);
-+	else if (obj->flags & UDA_EXCL || (excl && atomic_read(&obj->use_cnt)))
-+		return ERR_PTR(-EBUSY);
-+
-+	if (excl)
-+		obj->flags |= UDA_EXCL;
-+	atomic_inc(&obj->use_cnt);
-+	return obj;
-+}
-+
-+static void uda_put_obj(struct uda_obj *obj)
-+{
-+	if (obj->flags & UDA_EXCL)
-+		obj->flags &= ~UDA_EXCL;
-+	atomic_dec(&obj->use_cnt);
-+}
-+
-+static void uda_unmap_obj(struct uda_ioctl *ioctl, int index)
-+{
-+	struct uda_obj *obj;
-+
-+	obj = ioctl->u.obj[index];
-+	ioctl->u.obj_id[index].instance_id = obj->instance_id;
-+	ioctl->u.obj_id[index].obj_type = obj->obj_type;
-+	ioctl->u.obj_id[index].data = 0;
-+	uda_put_obj(obj);
-+}
-+
-+static void uda_unmap_objs(struct uda_ioctl *ioctl)
-+{
-+	int i;
-+
-+	for (i = 0; i < ioctl->obj_cnt; i++)
-+		uda_unmap_obj(ioctl, i);
-+}
-+
-+static long uda_map_objs(struct uda_file *file, struct uda_ns *ns,
-+			 struct uda_ioctl *ioctl, bool excl)
-+{
-+	struct uda_obj *obj;
-+	int i;
-+
-+	mutex_lock(&ns->lock);
-+	for (i = 0; i < ioctl->obj_cnt; i++) {
-+		obj = uda_get_obj(file, ns, &ioctl->u.obj_id[i], excl && i == 0);
-+		if (IS_ERR(obj))
-+			goto err;
-+
-+		ioctl->u.obj[i] = obj;
-+	}
-+	mutex_unlock(&ns->lock);
-+	return 0;
-+
-+err:
-+	while (i--)
-+		uda_unmap_obj(ioctl, i);
-+	mutex_unlock(&ns->lock);
-+	return PTR_ERR(obj);
-+}
-+
-+static void uda_post_close(struct uda_ns *ns, struct uda_ioctl *ioctl,
-+			   struct uda_ioctl_desc *desc)
-+{
-+	struct uda_obj *obj;
-+
-+	obj = ioctl->u.obj[0];
-+	ioctl->u.obj[0] = NULL;
-+
-+	mutex_lock(&ns->lock);
-+	idr_remove(&ns->idr, obj->instance_id);
-+	list_del(&obj->entry);
-+	mutex_unlock(&ns->lock);
-+	kfree(obj);
-+}
-+
-+static void uda_post_common(struct uda_ns *ns, struct uda_ioctl *ioctl,
-+			    struct uda_ioctl_desc *desc)
-+{
-+	if (desc->flags & UDA_CLOSED)
-+		uda_post_close(ns, ioctl, desc);
-+	else
-+		uda_unmap_objs(ioctl);
-+}
-+
-+static long uda_pre_open(struct uda_file *file, struct uda_ns *ns,
-+			 struct uda_ioctl *ioctl, struct uda_ioctl_desc *desc)
-+{
-+	struct uda_obj *obj;
-+	struct uda_arg *arg;
-+	u16 index = ioctl->obj_cnt;
 +	long ret;
 +
-+	if (!ioctl->arg_cnt)
++	if (ioctl->flags || ioctl->obj_cnt || ioctl->arg_cnt != 3)
 +		return -EINVAL;
 +
-+	/* arg[0] = identifier of object to open, data = object id */
-+	ret = uda_check_arg(ioctl, index, UDA_UCONTEXT, sizeof(u64));
++	ret = uda_check_arg(ioctl, 1, RDMA_UCM_ID_ATTR,
++			    sizeof(struct rdma_ucm_id_attr));
 +	if (ret)
 +		return ret;
 +
-+	obj = kzalloc(sizeof *obj, GFP_KERNEL);
-+	if (!obj)
-+		return -ENOMEM;
-+
-+	arg = &ioctl->u.arg[index];
-+	obj->file = file;
-+	obj->flags = UDA_EXCL;
-+	obj->obj_type = arg->data;
-+	obj->ucontext = *(u64 *) UDA_ARG_DATA(ioctl, index);
-+	atomic_set(&obj->use_cnt, 1);
-+
-+	mutex_lock(&ns->lock);
-+	obj->instance_id = idr_alloc(&ns->idr, obj, 0, 0, GFP_KERNEL);
-+	if (obj->instance_id >= 0)
-+		list_add(&obj->entry, &file->obj_list);
-+	mutex_unlock(&ns->lock);
-+
-+	if (obj->instance_id < 0) {
-+		kfree(obj);
-+		return -ENOMEM;
-+	}
-+
-+	/* new object added after object array */
-+	ioctl->u.obj[ioctl->obj_cnt++] = obj;
-+	ioctl->arg_cnt--;
-+	return 0;
-+}
-+
-+static long uda_check_args(struct uda_ioctl *ioctl)
-+{
-+	struct uda_arg *arg;
-+	u16 i;
-+
-+	for (i = 0; i < ioctl->arg_cnt; i++) {
-+		arg = &ioctl->u.arg[i + ioctl->obj_cnt];
-+		if (arg->offset + arg->length > ioctl->length)
-+			return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static long uda_pre_common(struct uda_file *file, struct uda_ns *ns,
-+			   struct uda_ioctl *ioctl, struct uda_ioctl_desc *desc)
-+{
-+	long ret;
-+
-+	if (desc->flags & UDA_CLOSED) {
-+		/* Limit of one object closed at a time */
-+		if (ioctl->obj_cnt != 1)
-+			return -EINVAL;
-+	} else {
-+		/* If name space has closed, we can only close objects */
-+		if (ns->flags & UDA_CLOSED)
-+			return -ENODEV;
-+	}
-+
-+	ret = uda_map_objs(file, ns, ioctl, desc->flags & UDA_EXCL);
-+	if (ret)
-+		return ret;
-+
-+	if (desc->flags & UDA_OPEN) {
-+		ret = uda_pre_open(file, ns, ioctl, desc);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	ret = uda_check_args(ioctl);
-+	return ret;
-+err:
-+	uda_unmap_objs(ioctl);
-+	return ret;
-+}
-+
-+long uda_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+	struct uda_file *file = filp->private_data;
-+	struct uda_ns *ns;
-+	struct uda_ioctl hdr, *data = NULL;
-+	struct uda_ioctl_desc *desc;
-+	char stack_data[128];
-+	long ret;
-+
-+	if (_IOC_NR(cmd) & UDA_RAW_OP)
-+		return -ENOSYS;	/* TODO: write me */
-+
-+	if (_IOC_NR(cmd) != UDA_UBER_OP || _IOC_SIZE(cmd) < sizeof(hdr))
-+		return -EINVAL;
-+
-+	if (copy_from_user(&hdr, (void __user *) arg, sizeof(hdr)))
-+		return -EFAULT;
-+
-+	if (((hdr.obj_cnt + hdr.arg_cnt) * sizeof(hdr.u) + sizeof(hdr) >
-+	    hdr.length) || hdr.resv)
-+		ret = -EINVAL;
-+
-+	down_read(&rw_lock);
-+	if (hdr.ns_id > max_ns || !ns_array[hdr.ns_id]) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	ns = ns_array[hdr.ns_id];
-+	if (hdr.op < ns->ioctl_base ||
-+	    hdr.op >= (ns->ioctl_base + ns->num_ioctls)) {
-+		ret = -ENOSYS;
-+		goto out;
-+	}
-+
-+	desc = ns->ioctl_desc(&hdr);
-+	if (IS_ERR(desc)) {
-+		ret = PTR_ERR(desc);
-+		goto out;
-+	}
-+
-+	if (hdr.length > sizeof(stack_data)) {
-+		data = kmalloc(hdr.length, GFP_KERNEL);
-+		if (!data) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+	} else {
-+		data = (struct uda_ioctl *) stack_data;
-+	}
-+
-+	if (copy_from_user(data, (void __user *) arg, hdr.length)) {
-+		ret = -EFAULT;
-+		goto out;
-+	}
-+
-+	ret = uda_pre_common(file, ns, data, desc);
-+	if (ret)
-+		goto out;
-+
-+	ret = desc->func(ns, data);
-+	uda_post_common(ns, data, desc);
-+out:
-+	up_read(&rw_lock);
-+	if (data != (struct uda_ioctl *) stack_data)
-+		kfree(data);
-+	return ret;
-+}
-+
-+/* TODO: make this less suckish, update remove call when doing so */
-+int uda_add_ns(struct uda_ns *ns)
-+{
-+	u16 i;
-+
-+	if (max_ns >= 64)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < max_ns; i++) {
-+		if (!ns_array[i])
-+			break;
-+	}
-+	ns_array[i] = ns;
-+	ns->id = i;
-+	if (i == max_ns)
-+		max_ns++;
-+	return 0; 
-+}
-+
-+void uda_remove_ns(struct uda_ns *ns)
-+{
-+	//struct uda_obj *obj;
-+
-+	down_write(&rw_lock);
-+	ns->flags |= UDA_CLOSED;
-+
-+	/* for each opened file
-+	 *     for each object
-+	 *         if object belongs to name space
-+	 *             ns->close(ns, obj);
-+	 */
-+	ns_array[ns->id] = NULL;
-+
-+	while (!ns_array[max_ns - 1])
-+		max_ns--;
-+	up_write(&rw_lock);
-+}
-+
-+
-+/*
-+ * Name space manager
-+ */
-+static long uda_check_query(struct uda_ioctl *ioctl)
-+{
-+	long ret;
-+
-+	if (ioctl->flags || ioctl->obj_cnt || ioctl->arg_cnt != 1)
-+		return -EINVAL;
-+
-+	ret = uda_check_arg(ioctl, 0, UDA_IOVEC, sizeof(struct uda_iovec));
++	ret = uda_check_arg(ioctl, 2, UDA_IOVEC,
++			    sizeof(struct uda_iovec));
 +	if (ret)
 +		return ret;
 +
 +	return 0;
 +}
 +
-+static long uda_query_ns(struct uda_ns *ns, void *data)
-+{
-+//	struct uda_ioctl *ioctl = data;
-+
-+	/* TODO: for each name space, write out uda_ns_attr details */
-+	return -ENOSYS;
-+}
-+
-+static uda_ioctl_handler_t ns_mgr_check_ops[] = {
-+	[UDA_NS_MGR_QUERY] = uda_check_query,
++static uda_ioctl_handler_t ucma_check_ops[] = {
++	[RDMA_USER_CM_CMD_CREATE_ID] = ucma_check_create_id,
 +};
 +
-+static struct uda_ioctl_desc ns_mgr_ops[] = {
-+	UDA_DESC(NS_MGR, QUERY, uda_query_ns, 0),
++#define RDMA_UCM_DESC(_OP, _func, _flags)	\
++	[RDMA_USER_CM_CMD_ ## _OP] = {		\
++		.flags = _flags,		\
++		.func = _func,			\
++		.name = "RDMA_UCM_" #_OP	\
++	}
++
++static struct uda_ioctl_desc ucma_ops[] = {
++	RDMA_UCM_DESC(CREATE_ID, ucma_create_id, UDA_OPEN | UDA_EVENT),
 +};
 +
-+static struct uda_ioctl_desc *ns_mgr_get_desc(struct uda_ioctl *ioctl)
++static struct uda_ioctl_desc *ucma_get_desc(struct uda_ioctl *ioctl)
 +{
 +	u32 op;
 +
-+	op = ioctl->op - UDA_NS_MGR_BASE;
-+	if (ns_mgr_check_ops[op](ioctl))
++	op = ioctl->op - RDMA_UCM_BASE;
++	if (ucma_check_ops[op](ioctl))
 +		return NULL;
 +
-+	return &ns_mgr_ops[op];
++	return &ucma_ops[op];
 +}
 +
-+static struct uda_ns ns_mgr = {
-+	.idr = IDR_INIT(ns_mgr.idr),
-+	.lock = __MUTEX_INITIALIZER(ns_mgr.lock),
-+	.ioctl_base = UDA_NS_MGR_BASE,
-+	.num_ioctls = UDA_NS_MGR_IOCTLS, /* use array length */
-+	.ioctl_desc = ns_mgr_get_desc,
-+	.name = "urdma ioctl name space manager"
++static struct uda_ns ucma_ns = {
++	.idr = IDR_INIT(ucma_ns.idr),
++	.lock = __MUTEX_INITIALIZER(ucma_ns.lock),
++	.ioctl_base = RDMA_UCM_BASE,
++	.num_ioctls = 1,
++	.ioctl_desc = ucma_get_desc,
++	.name = "rdma cm"
 +};
 +
-+void uda_init(void)
-+{
-+	uda_add_ns(&ns_mgr);
-+}
-diff --git a/include/rdma/rdma_uapi.h b/include/rdma/rdma_uapi.h
-new file mode 100644
-index 0000000..2eef240
---- /dev/null
-+++ b/include/rdma/rdma_uapi.h
-@@ -0,0 +1,131 @@
-+/*
-+ * Copyright (c) 2016 Intel Corporation, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
+ 				   const char __user *inbuf,
+ 				   int in_len, int out_len) = {
+-	[RDMA_USER_CM_CMD_CREATE_ID] 	 = ucma_create_id,
++	[RDMA_USER_CM_CMD_CREATE_ID] 	 = NULL,
+ 	[RDMA_USER_CM_CMD_DESTROY_ID]	 = ucma_destroy_id,
+ 	[RDMA_USER_CM_CMD_BIND_IP]	 = ucma_bind_ip,
+ 	[RDMA_USER_CM_CMD_RESOLVE_IP]	 = ucma_resolve_ip,
+@@ -1686,6 +1750,7 @@ static const struct file_operations ucma_fops = {
+ 	.open 	 = ucma_open,
+ 	.release = ucma_close,
+ 	.write	 = ucma_write,
++	.unlocked_ioctl = uda_ioctl,
+ 	.poll    = ucma_poll,
+ 	.llseek	 = no_llseek,
+ };
+@@ -1720,13 +1785,19 @@ static int __init ucma_init(void)
+ 		goto err1;
+ 	}
+ 
++	ret = uda_add_ns(&ucma_ns);
++	if (ret)
++		goto err2;
 +
-+#ifndef RDMA_UAPI_H
-+#define RDMA_UAPI_H
-+
-+#include <linux/types.h>
-+#include <linux/mutex.h>
-+#include <linux/idr.h>
-+#include <linux/list.h>
-+
-+#include <uapi/rdma/rdma_ioctl.h>
-+
-+
-+/* Object and control flags */
-+/* Indicates operation will allocate a new kernel object. */
-+#define UDA_OPEN		(1 << 0)
-+/* Indicates operation will destroy a kernel object */
-+#define UDA_CLOSED		(1 << 1)
-+/* Operation on object requires exclusive access */
-+#define UDA_EXCL		(1 << 2)
-+/* Events may be generated for the given object */
-+#define UDA_EVENT		(1 << 3)
-+
-+struct uda_ns;
-+struct uda_obj;
-+
-+typedef long (*uda_handler_t)(struct uda_ns *ns, void *data);
-+typedef long (*uda_ioctl_handler_t)(struct uda_ioctl *ioctl);
-+
-+/* ioctl descriptor */
-+struct uda_ioctl_desc {
-+	u32			flags;
-+	uda_handler_t		func;
-+	const char		*name;
-+};
-+
-+#define UDA_DESC(_NS, _OP, _func, _flags)	\
-+	[UDA_ ## _NS ## _ ## _OP] = {		\
-+		.flags = _flags,		\
-+		.func = _func,			\
-+		.name = #_NS "_" #_OP		\
-+	}
-+
-+/* ioctl function namespace dispatcher */
-+struct uda_ns {
-+	int			id;
-+	int			flags;
-+	struct idr		idr;
-+	struct mutex		lock;
-+
-+	uint64_t		ioctl_base;
-+	int			num_ioctls;
-+	struct uda_ioctl_desc	*(*ioctl_desc)(struct uda_ioctl *ioctl);
-+
-+	/* generic close routine to cleanup any object */
-+	void			(*close)(struct uda_ns *ns,
-+					 struct uda_obj *obj);
-+	const char		*name;
-+};
-+
-+/* instance of an opened rdma file */
-+struct uda_file {
-+	struct file		*filp;
-+	struct list_head	obj_list;
-+	struct list_head	event_list;
-+	wait_queue_head_t	poll_wait;
-+	// struct workqueue_struct	*close_wq;
-+};
-+	
-+/* uda will protect against destroying an object that is in use,
-+ * but all locking is pushed down to the drivers.
-+ * Keep this structure as small as possible to minimize per object footprint
-+ */
-+struct uda_obj {
-+	u64			ucontext;
-+	void			*kcontext;
-+	struct uda_file		*file;
-+	u32			instance_id;	/* idr index */
-+	u16			obj_type;
-+	u16			flags;
-+	struct list_head	entry;
-+	atomic_t		use_cnt;
-+};
-+
-+
-+void uda_init(void);
-+int uda_add_ns(struct uda_ns *ns);
-+void uda_remove_ns(struct uda_ns *ns);
-+long uda_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
-+
-+static inline long uda_check_arg(struct uda_ioctl *ioctl, int index,
-+				 u16 attr_id, u16 length)
-+{
-+	struct uda_arg *arg;
-+	arg = &ioctl->u.arg[index];
-+	return (arg->attr_id != attr_id || arg->length != length) ?
-+		-EINVAL : 0;
-+}
-+
-+#endif /* RDMA_UAPI_H */
-+
+ 	ucma_ctl_table_hdr = register_net_sysctl(&init_net, "net/rdma_ucm", ucma_ctl_table);
+ 	if (!ucma_ctl_table_hdr) {
+ 		pr_err("rdma_ucm: couldn't register sysctl paths\n");
+ 		ret = -ENOMEM;
+-		goto err2;
++		goto err3;
+ 	}
+ 	return 0;
++err3:
++	uda_remove_ns(&ucma_ns);
+ err2:
+ 	device_remove_file(ucma_misc.this_device, &dev_attr_abi_version);
+ err1:
+@@ -1737,6 +1808,7 @@ err1:
+ static void __exit ucma_cleanup(void)
+ {
+ 	unregister_net_sysctl_table(ucma_ctl_table_hdr);
++	uda_remove_ns(&ucma_ns);
+ 	device_remove_file(ucma_misc.this_device, &dev_attr_abi_version);
+ 	misc_deregister(&ucma_misc);
+ 	idr_destroy(&ctx_idr);
 diff --git a/include/uapi/rdma/rdma_ioctl.h b/include/uapi/rdma/rdma_ioctl.h
-new file mode 100644
-index 0000000..6839044
---- /dev/null
+index 6839044..f422a03 100644
+--- a/include/uapi/rdma/rdma_ioctl.h
 +++ b/include/uapi/rdma/rdma_ioctl.h
-@@ -0,0 +1,148 @@
-+/*
-+ * Copyright (c) 2016 Intel Corporation, Inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef RDMA_IOCTL_H
-+#define RDMA_IOCTL_H
-+
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+
-+
-+#define UDA_OP_MASK			0x7F
-+#define UDA_OP(nr)			(_IOC_NR(nr) & UDA_OP_MASK)
-+
-+/* unstructured ioctls set the high-order op bit */
-+#define UDA_RAW_OP			(0x80)
-+
-+/* size to u64 */
-+struct uda_obj_id {
-+	u32	instance_id;
-+	u16	obj_type;
-+	u16	data;		/* object specific */
+@@ -106,6 +106,7 @@ struct uda_raw_ioctl {
+ /* name spaces */
+ enum {
+ 	UDA_NS_MGR,
++	RDMA_UCM,
+ };
+ 
+ #define UDA_NS_BASE(NS)		(NS * UDA_OP_RANGE)
+@@ -126,6 +127,7 @@ enum {
+ 	UDA_OBJ_ID,
+ 	UDA_UCONTEXT,
+ 	UDA_NS_ATTR,
++	RDMA_UCM_ID_ATTR
+ };
+ 
+ struct uda_iovec {
+diff --git a/include/uapi/rdma/rdma_user_cm.h b/include/uapi/rdma/rdma_user_cm.h
+index 3066718..75dbec6 100644
+--- a/include/uapi/rdma/rdma_user_cm.h
++++ b/include/uapi/rdma/rdma_user_cm.h
+@@ -38,8 +38,10 @@
+ #include <linux/in6.h>
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_user_sa.h>
++#include <rdma/rdma_ioctl.h>
+ 
+-#define RDMA_USER_CM_ABI_VERSION	4
++#define RDMA_USER_CM_ABI_VERSION	5
++#define RDMA_UCM_BASE			UDA_NS_BASE(RDMA_UCM)
+ 
+ #define RDMA_MAX_PRIVATE_DATA		256
+ 
+@@ -66,7 +68,8 @@ enum {
+ 	RDMA_USER_CM_CMD_QUERY,
+ 	RDMA_USER_CM_CMD_BIND,
+ 	RDMA_USER_CM_CMD_RESOLVE_ADDR,
+-	RDMA_USER_CM_CMD_JOIN_MCAST
++	RDMA_USER_CM_CMD_JOIN_MCAST,
++	RDMA_USER_CM_MAX_CMD
+ };
+ 
+ /*
+@@ -82,8 +85,14 @@ struct rdma_ucm_create_id {
+ 	__u64 uid;
+ 	__u64 response;
+ 	__u16 ps;
++	__u8 qp_type;
++	__u8 resv[5];
 +};
 +
-+/* size to u64 */
-+struct uda_arg {
-+	u16	offset;
-+	u16	attr_id;
-+	u16	length;
-+	u16	data;		/* attribute specific */
-+};
-+
-+struct uda_ioctl {
-+	u16	ns_id;
-+	u16	length;		/* total length of ioctl with data */
-+	u32	op;
-+	u32	flags;
-+	/* data ordered as objects, in args, out args, other data */
-+	u8	obj_cnt;
-+	u8	arg_cnt;
-+	u16	resv;
-+	union {
-+		struct uda_obj_id	obj_id[0];
-+		struct uda_arg		arg[0];
-+		u64			data[0];
-+#ifdef __KERNEL__
-+
-+		void			*obj[0];
-+#endif
-+	}	u;
-+};
-+
-+#define UDA_ARG_DATA(ioctl, argi) (((void *) ioctl) + (ioctl)->u.arg[argi].offset)
-+
-+/* must align with uda_ioctl */
-+struct uda_raw_ioctl {
-+	u16	ns_id;
-+	u16	length;
-+	u32	op;
-+	u64	data[0];
-+};
-+
-+#define UDA_TYPE		0x1b
-+#define UDA_IOW(op, type)	_IOW(UDA_TYPE, op, type)
-+#define UDA_IOWR(op, type)	_IOWR(UDA_TYPE, op, type)
-+
-+#define UDA_RAW_CMD(op)		(op | UDA_RAW_OP)
-+#define UDA_RAW_IOW(op)		UDA_IOW(UDA_RAW_CMD(op), struct uda_raw_ioctl)
-+#define UDA_RAW_IOWR(op)	UDA_IOWR(UDA_RAW_CMD(op), struct uda_raw_ioctl)
-+
-+#define UDA_UBER_OP		3	/* TODO: verify this */
-+#define UDA_IOCTL(op)		UDA_IOWR(UDA_UBER_OP, struct uda_ioctl)
-+
-+#define UDA_MAX_NAME		64
-+#define UDA_OP_RANGE		128
-+
-+
-+/* name spaces */
-+enum {
-+	UDA_NS_MGR,
-+};
-+
-+#define UDA_NS_BASE(NS)		(NS * UDA_OP_RANGE)
-+#define UDA_NS_MGR_BASE		UDA_NS_BASE(UDA_NS_MGR)
-+
-+enum {
-+	UDA_NS_MGR_QUERY,
-+	UDA_NS_MGR_IOCTLS
-+};
-+
-+enum {
-+	UDA_NS_MGR_VERSION = 0,
-+};
-+
-+enum {
-+	UDA_RAW_ATTR,		/* provider specific attribute */
-+	UDA_IOVEC,
-+	UDA_OBJ_ID,
-+	UDA_UCONTEXT,
-+	UDA_NS_ATTR,
-+};
-+
-+struct uda_iovec {
-+	u64	addr;
-+	u64	length;
-+};
-+
-+struct uda_ns_attr {
-+	char	name[UDA_MAX_NAME];
-+	u32	op;
-+	u32	flags;
-+	u16	attr;
-+	u16	id;
-+	u16	version;
-+	u16	resv;
-+};
-+
-+
-+#endif /* RDMA_IOCTL_H */
-+
++struct rdma_ucm_id_attr {
++	__u16 ps;
+ 	__u8  qp_type;
+-	__u8  reserved[5];
++	__u8  resv[5];
+ };
+ 
+ struct rdma_ucm_create_id_resp {
 -- 
 1.7.1
 
