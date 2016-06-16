@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 01/29] IB/rxe: IBA header types and methods
-Date: Thu, 16 Jun 2016 16:45:23 +0300
-Message-ID: <1466084751-29901-2-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 05/29] IB/rxe: Misc local interfaces between files
+Date: Thu, 16 Jun 2016 16:45:27 +0300
+Message-ID: <1466084751-29901-6-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,24 +10,23 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add declarations for data structures used to hold per opcode
-and per work request opcode tables.
+Interfaces for various RXE objects to be used internally.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_hdr.h | 952 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 952 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_hdr.h
+ drivers/infiniband/hw/rxe/rxe_loc.h | 289 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 289 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_loc.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_hdr.h b/drivers/infiniband/hw/rxe/rxe_hdr.h
+diff --git a/drivers/infiniband/hw/rxe/rxe_loc.h b/drivers/infiniband/hw/rxe/rxe_loc.h
 new file mode 100644
-index 0000000..d57b5e9
+index 0000000..34ac568
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_hdr.h
-@@ -0,0 +1,952 @@
++++ b/drivers/infiniband/hw/rxe/rxe_loc.h
+@@ -0,0 +1,289 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -61,925 +60,262 @@ index 0000000..d57b5e9
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_HDR_H
-+#define RXE_HDR_H
++#ifndef RXE_LOC_H
++#define RXE_LOC_H
 +
-+/* extracted information about a packet carried in an sk_buff struct fits in
-+ * the skbuff cb array. Must be at most 48 bytes. stored in control block of
-+ * sk_buff for received packets.
-+ */
-+struct rxe_pkt_info {
-+	struct rxe_dev		*rxe;		/* device that owns packet */
-+	struct rxe_qp		*qp;		/* qp that owns packet */
-+	struct rxe_send_wqe	*wqe;		/* send wqe */
-+	u8			*hdr;		/* points to bth */
-+	u32			mask;		/* useful info about pkt */
-+	u32			psn;		/* bth psn of packet */
-+	u16			pkey_index;	/* partition of pkt */
-+	u16			paylen;		/* length of bth - icrc */
-+	u8			port_num;	/* port pkt received on */
-+	u8			opcode;		/* bth opcode of packet */
-+	u8			offset;		/* bth offset from pkt->hdr */
++/* rxe_av.c */
++
++int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr);
++
++int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
++		     struct rxe_av *av, struct ib_ah_attr *attr);
++
++int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
++		   struct ib_ah_attr *attr);
++
++int rxe_av_fill_ip_info(struct rxe_dev *rxe,
++			struct rxe_av *av,
++			struct ib_ah_attr *attr,
++			struct ib_gid_attr *sgid_attr,
++			union ib_gid *sgid);
++
++struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt);
++
++/* rxe_cq.c */
++int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
++		    int cqe, int comp_vector, struct ib_udata *udata);
++
++int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
++		     int comp_vector, struct ib_ucontext *context,
++		     struct ib_udata *udata);
++
++int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
++
++int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
++
++void rxe_cq_cleanup(void *arg);
++
++/* rxe_mcast.c */
++int rxe_mcast_get_grp(struct rxe_dev *rxe, union ib_gid *mgid,
++		      struct rxe_mc_grp **grp_p);
++
++int rxe_mcast_add_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			   struct rxe_mc_grp *grp);
++
++int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
++			    union ib_gid *mgid);
++
++void rxe_drop_all_mcast_groups(struct rxe_qp *qp);
++
++void rxe_mc_cleanup(void *arg);
++
++/* rxe_mmap.c */
++struct rxe_mmap_info {
++	struct list_head	pending_mmaps;
++	struct ib_ucontext	*context;
++	struct kref		ref;
++	void			*obj;
++
++	struct mminfo info;
 +};
 +
-+/* Macros should be used only for received skb */
-+#define SKB_TO_PKT(skb) ((struct rxe_pkt_info *)(skb)->cb)
-+#define PKT_TO_SKB(pkt) container_of((void *)(pkt), struct sk_buff, cb)
++void rxe_mmap_release(struct kref *ref);
 +
-+/*
-+ * IBA header types and methods
-+ *
-+ * Some of these are for reference and completeness only since
-+ * rxe does not currently support RD transport
-+ * most of this could be moved into IB core. ib_pack.h has
-+ * part of this but is incomplete
-+ *
-+ * Header specific routines to insert/extract values to/from headers
-+ * the routines that are named __hhh_(set_)fff() take a pointer to a
-+ * hhh header and get(set) the fff field. The routines named
-+ * hhh_(set_)fff take a packet info struct and find the
-+ * header and field based on the opcode in the packet.
-+ * Conversion to/from network byte order from cpu order is also done.
-+ */
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj);
 +
-+#define RXE_ICRC_SIZE		(4)
-+#define RXE_MAX_HDR_LENGTH	(80)
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
 +
-+/******************************************************************************
-+ * Base Transport Header
-+ ******************************************************************************/
-+struct rxe_bth {
-+	u8			opcode;
-+	u8			flags;
-+	__be16			pkey;
-+	__be32			qpn;
-+	__be32			apsn;
++/* rxe_mr.c */
++enum copy_direction {
++	to_mem_obj,
++	from_mem_obj,
 +};
 +
-+#define BTH_TVER		(0)
-+#define BTH_DEF_PKEY		(0xffff)
++int rxe_mem_init_dma(struct rxe_dev *rxe, struct rxe_pd *pd,
++		     int access, struct rxe_mem *mem);
 +
-+#define BTH_SE_MASK		(0x80)
-+#define BTH_MIG_MASK		(0x40)
-+#define BTH_PAD_MASK		(0x30)
-+#define BTH_TVER_MASK		(0x0f)
-+#define BTH_FECN_MASK		(0x80000000)
-+#define BTH_BECN_MASK		(0x40000000)
-+#define BTH_RESV6A_MASK		(0x3f000000)
-+#define BTH_QPN_MASK		(0x00ffffff)
-+#define BTH_ACK_MASK		(0x80000000)
-+#define BTH_RESV7_MASK		(0x7f000000)
-+#define BTH_PSN_MASK		(0x00ffffff)
++int rxe_mem_init_user(struct rxe_dev *rxe, struct rxe_pd *pd, u64 start,
++		      u64 length, u64 iova, int access, struct ib_udata *udata,
++		      struct rxe_mem *mr);
 +
-+static inline u8 __bth_opcode(void *arg)
++int rxe_mem_init_fast(struct rxe_dev *rxe, struct rxe_pd *pd,
++		      int max_pages, struct rxe_mem *mem);
++
++int rxe_mem_init_fmr(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
++		     struct ib_fmr_attr *attr, struct rxe_mem *fmr);
++
++int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr,
++		 int length, enum copy_direction dir, u32 *crcp);
++
++int copy_data(struct rxe_dev *rxe, struct rxe_pd *pd, int access,
++	      struct rxe_dma_info *dma, void *addr, int length,
++	      enum copy_direction dir, u32 *crcp);
++
++void *iova_to_vaddr(struct rxe_mem *mem, u64 iova, int length);
++
++enum lookup_type {
++	lookup_local,
++	lookup_remote,
++};
++
++struct rxe_mem *lookup_mem(struct rxe_pd *pd, int access, u32 key,
++			   enum lookup_type type);
++
++int mem_check_range(struct rxe_mem *mem, u64 iova, size_t length);
++
++int rxe_mem_map_pages(struct rxe_dev *rxe, struct rxe_mem *mem,
++		      u64 *page, int num_pages, u64 iova);
++
++void rxe_mem_cleanup(void *arg);
++
++int advance_dma_data(struct rxe_dma_info *dma, unsigned int length);
++
++/* rxe_qp.c */
++int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
++
++int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
++		     struct ib_qp_init_attr *init, struct ib_udata *udata,
++		     struct ib_pd *ibpd);
++
++int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
++
++int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
++		    struct ib_qp_attr *attr, int mask);
++
++int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
++		     int mask, struct ib_udata *udata);
++
++int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
++
++void rxe_qp_error(struct rxe_qp *qp);
++
++void rxe_qp_destroy(struct rxe_qp *qp);
++
++void rxe_qp_cleanup(void *arg);
++
++static inline int qp_num(struct rxe_qp *qp)
 +{
-+	struct rxe_bth *bth = arg;
-+
-+	return bth->opcode;
++	return qp->ibqp.qp_num;
 +}
 +
-+static inline void __bth_set_opcode(void *arg, u8 opcode)
++static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
 +{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->opcode = opcode;
++	return qp->ibqp.qp_type;
 +}
 +
-+static inline u8 __bth_se(void *arg)
++static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
 +{
-+	struct rxe_bth *bth = arg;
-+
-+	return 0 != (BTH_SE_MASK & bth->flags);
++	return qp->attr.qp_state;
 +}
 +
-+static inline void __bth_set_se(void *arg, int se)
++static inline int qp_mtu(struct rxe_qp *qp)
 +{
-+	struct rxe_bth *bth = arg;
-+
-+	if (se)
-+		bth->flags |= BTH_SE_MASK;
++	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
++		return qp->attr.path_mtu;
 +	else
-+		bth->flags &= ~BTH_SE_MASK;
++		return RXE_PORT_MAX_MTU;
 +}
 +
-+static inline u8 __bth_mig(void *arg)
++static inline int rcv_wqe_size(int max_sge)
 +{
-+	struct rxe_bth *bth = arg;
-+
-+	return 0 != (BTH_MIG_MASK & bth->flags);
-+}
-+
-+static inline void __bth_set_mig(void *arg, u8 mig)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	if (mig)
-+		bth->flags |= BTH_MIG_MASK;
-+	else
-+		bth->flags &= ~BTH_MIG_MASK;
-+}
-+
-+static inline u8 __bth_pad(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return (BTH_PAD_MASK & bth->flags) >> 4;
-+}
-+
-+static inline void __bth_set_pad(void *arg, u8 pad)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->flags = (BTH_PAD_MASK & (pad << 4)) |
-+			(~BTH_PAD_MASK & bth->flags);
-+}
-+
-+static inline u8 __bth_tver(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return BTH_TVER_MASK & bth->flags;
-+}
-+
-+static inline void __bth_set_tver(void *arg, u8 tver)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->flags = (BTH_TVER_MASK & tver) |
-+			(~BTH_TVER_MASK & bth->flags);
-+}
-+
-+static inline u16 __bth_pkey(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return be16_to_cpu(bth->pkey);
-+}
-+
-+static inline void __bth_set_pkey(void *arg, u16 pkey)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->pkey = cpu_to_be16(pkey);
-+}
-+
-+static inline u32 __bth_qpn(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return BTH_QPN_MASK & be32_to_cpu(bth->qpn);
-+}
-+
-+static inline void __bth_set_qpn(void *arg, u32 qpn)
-+{
-+	struct rxe_bth *bth = arg;
-+	u32 resvqpn = be32_to_cpu(bth->qpn);
-+
-+	bth->qpn = cpu_to_be32((BTH_QPN_MASK & qpn) |
-+			       (~BTH_QPN_MASK & resvqpn));
-+}
-+
-+static inline int __bth_fecn(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return 0 != (cpu_to_be32(BTH_FECN_MASK) & bth->qpn);
-+}
-+
-+static inline void __bth_set_fecn(void *arg, int fecn)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	if (fecn)
-+		bth->qpn |= cpu_to_be32(BTH_FECN_MASK);
-+	else
-+		bth->qpn &= ~cpu_to_be32(BTH_FECN_MASK);
-+}
-+
-+static inline int __bth_becn(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return 0 != (cpu_to_be32(BTH_BECN_MASK) & bth->qpn);
-+}
-+
-+static inline void __bth_set_becn(void *arg, int becn)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	if (becn)
-+		bth->qpn |= cpu_to_be32(BTH_BECN_MASK);
-+	else
-+		bth->qpn &= ~cpu_to_be32(BTH_BECN_MASK);
-+}
-+
-+static inline u8 __bth_resv6a(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return (BTH_RESV6A_MASK & be32_to_cpu(bth->qpn)) >> 24;
-+}
-+
-+static inline void __bth_set_resv6a(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->qpn = cpu_to_be32(~BTH_RESV6A_MASK);
-+}
-+
-+static inline int __bth_ack(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return 0 != (cpu_to_be32(BTH_ACK_MASK) & bth->apsn);
-+}
-+
-+static inline void __bth_set_ack(void *arg, int ack)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	if (ack)
-+		bth->apsn |= cpu_to_be32(BTH_ACK_MASK);
-+	else
-+		bth->apsn &= ~cpu_to_be32(BTH_ACK_MASK);
-+}
-+
-+static inline void __bth_set_resv7(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	bth->apsn &= ~cpu_to_be32(BTH_RESV7_MASK);
-+}
-+
-+static inline u32 __bth_psn(void *arg)
-+{
-+	struct rxe_bth *bth = arg;
-+
-+	return BTH_PSN_MASK & be32_to_cpu(bth->apsn);
-+}
-+
-+static inline void __bth_set_psn(void *arg, u32 psn)
-+{
-+	struct rxe_bth *bth = arg;
-+	u32 apsn = be32_to_cpu(bth->apsn);
-+
-+	bth->apsn = cpu_to_be32((BTH_PSN_MASK & psn) |
-+			(~BTH_PSN_MASK & apsn));
-+}
-+
-+static inline u8 bth_opcode(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_opcode(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_opcode(struct rxe_pkt_info *pkt, u8 opcode)
-+{
-+	__bth_set_opcode(pkt->hdr + pkt->offset, opcode);
-+}
-+
-+static inline u8 bth_se(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_se(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_se(struct rxe_pkt_info *pkt, int se)
-+{
-+	__bth_set_se(pkt->hdr + pkt->offset, se);
-+}
-+
-+static inline u8 bth_mig(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_mig(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_mig(struct rxe_pkt_info *pkt, u8 mig)
-+{
-+	__bth_set_mig(pkt->hdr + pkt->offset, mig);
-+}
-+
-+static inline u8 bth_pad(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_pad(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_pad(struct rxe_pkt_info *pkt, u8 pad)
-+{
-+	__bth_set_pad(pkt->hdr + pkt->offset, pad);
-+}
-+
-+static inline u8 bth_tver(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_tver(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_tver(struct rxe_pkt_info *pkt, u8 tver)
-+{
-+	__bth_set_tver(pkt->hdr + pkt->offset, tver);
-+}
-+
-+static inline u16 bth_pkey(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_pkey(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_pkey(struct rxe_pkt_info *pkt, u16 pkey)
-+{
-+	__bth_set_pkey(pkt->hdr + pkt->offset, pkey);
-+}
-+
-+static inline u32 bth_qpn(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_qpn(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_qpn(struct rxe_pkt_info *pkt, u32 qpn)
-+{
-+	__bth_set_qpn(pkt->hdr + pkt->offset, qpn);
-+}
-+
-+static inline int bth_fecn(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_fecn(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_fecn(struct rxe_pkt_info *pkt, int fecn)
-+{
-+	__bth_set_fecn(pkt->hdr + pkt->offset, fecn);
-+}
-+
-+static inline int bth_becn(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_becn(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_becn(struct rxe_pkt_info *pkt, int becn)
-+{
-+	__bth_set_becn(pkt->hdr + pkt->offset, becn);
-+}
-+
-+static inline u8 bth_resv6a(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_resv6a(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_resv6a(struct rxe_pkt_info *pkt)
-+{
-+	__bth_set_resv6a(pkt->hdr + pkt->offset);
-+}
-+
-+static inline int bth_ack(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_ack(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_ack(struct rxe_pkt_info *pkt, int ack)
-+{
-+	__bth_set_ack(pkt->hdr + pkt->offset, ack);
-+}
-+
-+static inline void bth_set_resv7(struct rxe_pkt_info *pkt)
-+{
-+	__bth_set_resv7(pkt->hdr + pkt->offset);
-+}
-+
-+static inline u32 bth_psn(struct rxe_pkt_info *pkt)
-+{
-+	return __bth_psn(pkt->hdr + pkt->offset);
-+}
-+
-+static inline void bth_set_psn(struct rxe_pkt_info *pkt, u32 psn)
-+{
-+	__bth_set_psn(pkt->hdr + pkt->offset, psn);
-+}
-+
-+static inline void bth_init(struct rxe_pkt_info *pkt, u8 opcode, int se,
-+			    int mig, int pad, u16 pkey, u32 qpn, int ack_req,
-+			    u32 psn)
-+{
-+	struct rxe_bth *bth = (struct rxe_bth *)(pkt->hdr + pkt->offset);
-+
-+	bth->opcode = opcode;
-+	bth->flags = (pad << 4) & BTH_PAD_MASK;
-+	if (se)
-+		bth->flags |= BTH_SE_MASK;
-+	if (mig)
-+		bth->flags |= BTH_MIG_MASK;
-+	bth->pkey = cpu_to_be16(pkey);
-+	bth->qpn = cpu_to_be32(qpn & BTH_QPN_MASK);
-+	psn &= BTH_PSN_MASK;
-+	if (ack_req)
-+		psn |= BTH_ACK_MASK;
-+	bth->apsn = cpu_to_be32(psn);
-+}
-+
-+/******************************************************************************
-+ * Reliable Datagram Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_rdeth {
-+	__be32			een;
-+};
-+
-+#define RDETH_EEN_MASK		(0x00ffffff)
-+
-+static inline u8 __rdeth_een(void *arg)
-+{
-+	struct rxe_rdeth *rdeth = arg;
-+
-+	return RDETH_EEN_MASK & be32_to_cpu(rdeth->een);
-+}
-+
-+static inline void __rdeth_set_een(void *arg, u32 een)
-+{
-+	struct rxe_rdeth *rdeth = arg;
-+
-+	rdeth->een = cpu_to_be32(RDETH_EEN_MASK & een);
-+}
-+
-+static inline u8 rdeth_een(struct rxe_pkt_info *pkt)
-+{
-+	return __rdeth_een(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RDETH]);
-+}
-+
-+static inline void rdeth_set_een(struct rxe_pkt_info *pkt, u32 een)
-+{
-+	__rdeth_set_een(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RDETH], een);
-+}
-+
-+/******************************************************************************
-+ * Datagram Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_deth {
-+	__be32			qkey;
-+	__be32			sqp;
-+};
-+
-+#define GSI_QKEY		(0x80010000)
-+#define DETH_SQP_MASK		(0x00ffffff)
-+
-+static inline u32 __deth_qkey(void *arg)
-+{
-+	struct rxe_deth *deth = arg;
-+
-+	return be32_to_cpu(deth->qkey);
-+}
-+
-+static inline void __deth_set_qkey(void *arg, u32 qkey)
-+{
-+	struct rxe_deth *deth = arg;
-+
-+	deth->qkey = cpu_to_be32(qkey);
-+}
-+
-+static inline u32 __deth_sqp(void *arg)
-+{
-+	struct rxe_deth *deth = arg;
-+
-+	return DETH_SQP_MASK & be32_to_cpu(deth->sqp);
-+}
-+
-+static inline void __deth_set_sqp(void *arg, u32 sqp)
-+{
-+	struct rxe_deth *deth = arg;
-+
-+	deth->sqp = cpu_to_be32(DETH_SQP_MASK & sqp);
-+}
-+
-+static inline u32 deth_qkey(struct rxe_pkt_info *pkt)
-+{
-+	return __deth_qkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_DETH]);
-+}
-+
-+static inline void deth_set_qkey(struct rxe_pkt_info *pkt, u32 qkey)
-+{
-+	__deth_set_qkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_DETH], qkey);
-+}
-+
-+static inline u32 deth_sqp(struct rxe_pkt_info *pkt)
-+{
-+	return __deth_sqp(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_DETH]);
-+}
-+
-+static inline void deth_set_sqp(struct rxe_pkt_info *pkt, u32 sqp)
-+{
-+	__deth_set_sqp(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_DETH], sqp);
-+}
-+
-+/******************************************************************************
-+ * RDMA Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_reth {
-+	__be64			va;
-+	__be32			rkey;
-+	__be32			len;
-+};
-+
-+static inline u64 __reth_va(void *arg)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	return be64_to_cpu(reth->va);
-+}
-+
-+static inline void __reth_set_va(void *arg, u64 va)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	reth->va = cpu_to_be64(va);
-+}
-+
-+static inline u32 __reth_rkey(void *arg)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	return be32_to_cpu(reth->rkey);
-+}
-+
-+static inline void __reth_set_rkey(void *arg, u32 rkey)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	reth->rkey = cpu_to_be32(rkey);
-+}
-+
-+static inline u32 __reth_len(void *arg)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	return be32_to_cpu(reth->len);
-+}
-+
-+static inline void __reth_set_len(void *arg, u32 len)
-+{
-+	struct rxe_reth *reth = arg;
-+
-+	reth->len = cpu_to_be32(len);
-+}
-+
-+static inline u64 reth_va(struct rxe_pkt_info *pkt)
-+{
-+	return __reth_va(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
-+}
-+
-+static inline void reth_set_va(struct rxe_pkt_info *pkt, u64 va)
-+{
-+	__reth_set_va(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], va);
-+}
-+
-+static inline u32 reth_rkey(struct rxe_pkt_info *pkt)
-+{
-+	return __reth_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
-+}
-+
-+static inline void reth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
-+{
-+	__reth_set_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], rkey);
-+}
-+
-+static inline u32 reth_len(struct rxe_pkt_info *pkt)
-+{
-+	return __reth_len(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH]);
-+}
-+
-+static inline void reth_set_len(struct rxe_pkt_info *pkt, u32 len)
-+{
-+	__reth_set_len(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_RETH], len);
-+}
-+
-+/******************************************************************************
-+ * Atomic Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_atmeth {
-+	__be64			va;
-+	__be32			rkey;
-+	__be64			swap_add;
-+	__be64			comp;
-+} __attribute__((__packed__));
-+
-+static inline u64 __atmeth_va(void *arg)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	return be64_to_cpu(atmeth->va);
-+}
-+
-+static inline void __atmeth_set_va(void *arg, u64 va)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	atmeth->va = cpu_to_be64(va);
-+}
-+
-+static inline u32 __atmeth_rkey(void *arg)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	return be32_to_cpu(atmeth->rkey);
-+}
-+
-+static inline void __atmeth_set_rkey(void *arg, u32 rkey)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	atmeth->rkey = cpu_to_be32(rkey);
-+}
-+
-+static inline u64 __atmeth_swap_add(void *arg)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	return be64_to_cpu(atmeth->swap_add);
-+}
-+
-+static inline void __atmeth_set_swap_add(void *arg, u64 swap_add)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	atmeth->swap_add = cpu_to_be64(swap_add);
-+}
-+
-+static inline u64 __atmeth_comp(void *arg)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	return be64_to_cpu(atmeth->comp);
-+}
-+
-+static inline void __atmeth_set_comp(void *arg, u64 comp)
-+{
-+	struct rxe_atmeth *atmeth = arg;
-+
-+	atmeth->comp = cpu_to_be64(comp);
-+}
-+
-+static inline u64 atmeth_va(struct rxe_pkt_info *pkt)
-+{
-+	return __atmeth_va(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
-+}
-+
-+static inline void atmeth_set_va(struct rxe_pkt_info *pkt, u64 va)
-+{
-+	__atmeth_set_va(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], va);
-+}
-+
-+static inline u32 atmeth_rkey(struct rxe_pkt_info *pkt)
-+{
-+	return __atmeth_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
-+}
-+
-+static inline void atmeth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
-+{
-+	__atmeth_set_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], rkey);
-+}
-+
-+static inline u64 atmeth_swap_add(struct rxe_pkt_info *pkt)
-+{
-+	return __atmeth_swap_add(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
-+}
-+
-+static inline void atmeth_set_swap_add(struct rxe_pkt_info *pkt, u64 swap_add)
-+{
-+	__atmeth_set_swap_add(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], swap_add);
-+}
-+
-+static inline u64 atmeth_comp(struct rxe_pkt_info *pkt)
-+{
-+	return __atmeth_comp(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH]);
-+}
-+
-+static inline void atmeth_set_comp(struct rxe_pkt_info *pkt, u64 comp)
-+{
-+	__atmeth_set_comp(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMETH], comp);
-+}
-+
-+/******************************************************************************
-+ * Ack Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_aeth {
-+	__be32			smsn;
-+};
-+
-+#define AETH_SYN_MASK		(0xff000000)
-+#define AETH_MSN_MASK		(0x00ffffff)
-+
-+enum aeth_syndrome {
-+	AETH_TYPE_MASK		= 0xe0,
-+	AETH_ACK		= 0x00,
-+	AETH_RNR_NAK		= 0x20,
-+	AETH_RSVD		= 0x40,
-+	AETH_NAK		= 0x60,
-+	AETH_ACK_UNLIMITED	= 0x1f,
-+	AETH_NAK_PSN_SEQ_ERROR	= 0x60,
-+	AETH_NAK_INVALID_REQ	= 0x61,
-+	AETH_NAK_REM_ACC_ERR	= 0x62,
-+	AETH_NAK_REM_OP_ERR	= 0x63,
-+	AETH_NAK_INV_RD_REQ	= 0x64,
-+};
-+
-+static inline u8 __aeth_syn(void *arg)
-+{
-+	struct rxe_aeth *aeth = arg;
-+
-+	return (AETH_SYN_MASK & be32_to_cpu(aeth->smsn)) >> 24;
-+}
-+
-+static inline void __aeth_set_syn(void *arg, u8 syn)
-+{
-+	struct rxe_aeth *aeth = arg;
-+	u32 smsn = be32_to_cpu(aeth->smsn);
-+
-+	aeth->smsn = cpu_to_be32((AETH_SYN_MASK & (syn << 24)) |
-+			 (~AETH_SYN_MASK & smsn));
++	return sizeof(struct rxe_recv_wqe) +
++		max_sge * sizeof(struct ib_sge);
 +}
 +
-+static inline u32 __aeth_msn(void *arg)
-+{
-+	struct rxe_aeth *aeth = arg;
-+
-+	return AETH_MSN_MASK & be32_to_cpu(aeth->smsn);
-+}
-+
-+static inline void __aeth_set_msn(void *arg, u32 msn)
-+{
-+	struct rxe_aeth *aeth = arg;
-+	u32 smsn = be32_to_cpu(aeth->smsn);
-+
-+	aeth->smsn = cpu_to_be32((AETH_MSN_MASK & msn) |
-+			 (~AETH_MSN_MASK & smsn));
-+}
-+
-+static inline u8 aeth_syn(struct rxe_pkt_info *pkt)
-+{
-+	return __aeth_syn(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_AETH]);
-+}
-+
-+static inline void aeth_set_syn(struct rxe_pkt_info *pkt, u8 syn)
-+{
-+	__aeth_set_syn(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_AETH], syn);
-+}
-+
-+static inline u32 aeth_msn(struct rxe_pkt_info *pkt)
-+{
-+	return __aeth_msn(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_AETH]);
-+}
-+
-+static inline void aeth_set_msn(struct rxe_pkt_info *pkt, u32 msn)
-+{
-+	__aeth_set_msn(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_AETH], msn);
-+}
-+
-+/******************************************************************************
-+ * Atomic Ack Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_atmack {
-+	__be64			orig;
-+};
++void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
 +
-+static inline u64 __atmack_orig(void *arg)
++static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
 +{
-+	struct rxe_atmack *atmack = arg;
-+
-+	return be64_to_cpu(atmack->orig);
++	qp->resp.res_head++;
++	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
++		qp->resp.res_head = 0;
 +}
 +
-+static inline void __atmack_set_orig(void *arg, u64 orig)
-+{
-+	struct rxe_atmack *atmack = arg;
++void retransmit_timer(unsigned long data);
++void rnr_nak_timer(unsigned long data);
 +
-+	atmack->orig = cpu_to_be64(orig);
-+}
++void dump_qp(struct rxe_qp *qp);
 +
-+static inline u64 atmack_orig(struct rxe_pkt_info *pkt)
-+{
-+	return __atmack_orig(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMACK]);
-+}
++/* rxe_srq.c */
++#define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
 +
-+static inline void atmack_set_orig(struct rxe_pkt_info *pkt, u64 orig)
-+{
-+	__atmack_set_orig(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_ATMACK], orig);
-+}
++int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
 +
-+/******************************************************************************
-+ * Immediate Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_immdt {
-+	__be32			imm;
-+};
++int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_init_attr *init,
++		      struct ib_ucontext *context, struct ib_udata *udata);
 +
-+static inline __be32 __immdt_imm(void *arg)
-+{
-+	struct rxe_immdt *immdt = arg;
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata);
 +
-+	return immdt->imm;
-+}
++extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
 +
-+static inline void __immdt_set_imm(void *arg, __be32 imm)
-+{
-+	struct rxe_immdt *immdt = arg;
++void rxe_release(struct kref *kref);
 +
-+	immdt->imm = imm;
-+}
++int rxe_completer(void *arg);
++int rxe_requester(void *arg);
++int rxe_responder(void *arg);
 +
-+static inline __be32 immdt_imm(struct rxe_pkt_info *pkt)
-+{
-+	return __immdt_imm(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_IMMDT]);
-+}
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb);
 +
-+static inline void immdt_set_imm(struct rxe_pkt_info *pkt, __be32 imm)
-+{
-+	__immdt_set_imm(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_IMMDT], imm);
-+}
++void rxe_resp_queue_pkt(struct rxe_dev *rxe,
++			struct rxe_qp *qp, struct sk_buff *skb);
 +
-+/******************************************************************************
-+ * Invalidate Extended Transport Header
-+ ******************************************************************************/
-+struct rxe_ieth {
-+	__be32			rkey;
-+};
++void rxe_comp_queue_pkt(struct rxe_dev *rxe,
++			struct rxe_qp *qp, struct sk_buff *skb);
 +
-+static inline u32 __ieth_rkey(void *arg)
++static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
 +{
-+	struct rxe_ieth *ieth = arg;
-+
-+	return be32_to_cpu(ieth->rkey);
++	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
 +}
 +
-+static inline void __ieth_set_rkey(void *arg, u32 rkey)
++static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
++				  struct rxe_pkt_info *pkt, struct sk_buff *skb)
 +{
-+	struct rxe_ieth *ieth = arg;
++	int err;
++	int is_request = pkt->mask & RXE_REQ_MASK;
 +
-+	ieth->rkey = cpu_to_be32(rkey);
-+}
++	if ((is_request && (qp->req.state != QP_STATE_READY)) ||
++	    (!is_request && (qp->resp.state != QP_STATE_READY))) {
++		pr_info("Packet dropped. QP is not in ready state\n");
++		goto drop;
++	}
 +
-+static inline u32 ieth_rkey(struct rxe_pkt_info *pkt)
-+{
-+	return __ieth_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_IETH]);
-+}
++	if (pkt->mask & RXE_LOOPBACK_MASK) {
++		memcpy(SKB_TO_PKT(skb), pkt, sizeof(*pkt));
++		err = rxe->ifc_ops->loopback(skb);
++	} else {
++		err = rxe->ifc_ops->send(rxe, pkt, skb);
++	}
 +
-+static inline void ieth_set_rkey(struct rxe_pkt_info *pkt, u32 rkey)
-+{
-+	__ieth_set_rkey(pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_IETH], rkey);
-+}
++	if (err) {
++		rxe->xmit_errors++;
++		return err;
++	}
 +
-+enum rxe_hdr_length {
-+	RXE_BTH_BYTES		= sizeof(struct rxe_bth),
-+	RXE_DETH_BYTES		= sizeof(struct rxe_deth),
-+	RXE_IMMDT_BYTES		= sizeof(struct rxe_immdt),
-+	RXE_RETH_BYTES		= sizeof(struct rxe_reth),
-+	RXE_AETH_BYTES		= sizeof(struct rxe_aeth),
-+	RXE_ATMACK_BYTES	= sizeof(struct rxe_atmack),
-+	RXE_ATMETH_BYTES	= sizeof(struct rxe_atmeth),
-+	RXE_IETH_BYTES		= sizeof(struct rxe_ieth),
-+	RXE_RDETH_BYTES		= sizeof(struct rxe_rdeth),
-+};
++	atomic_inc(&qp->skb_out);
 +
-+static inline size_t header_size(struct rxe_pkt_info *pkt)
-+{
-+	return pkt->offset + rxe_opcode[pkt->opcode].length;
-+}
++	if ((qp_type(qp) != IB_QPT_RC) &&
++	    (pkt->mask & RXE_END_MASK)) {
++		pkt->wqe->state = wqe_state_done;
++		rxe_run_task(&qp->comp.task, 1);
++	}
 +
-+static inline void *payload_addr(struct rxe_pkt_info *pkt)
-+{
-+	return pkt->hdr + pkt->offset
-+		+ rxe_opcode[pkt->opcode].offset[RXE_PAYLOAD];
-+}
++	goto done;
 +
-+static inline size_t payload_size(struct rxe_pkt_info *pkt)
-+{
-+	return pkt->paylen - rxe_opcode[pkt->opcode].offset[RXE_PAYLOAD]
-+		- bth_pad(pkt) - RXE_ICRC_SIZE;
++drop:
++	kfree_skb(skb);
++	err = 0;
++done:
++	return err;
 +}
 +
-+#endif /* RXE_HDR_H */
++#endif /* RXE_LOC_H */
 -- 
 1.8.3.1
 
