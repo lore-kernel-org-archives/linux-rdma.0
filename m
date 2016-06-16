@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 13/29] IB/rxe: Address vector manipulation functions
-Date: Thu, 16 Jun 2016 16:45:35 +0300
-Message-ID: <1466084751-29901-14-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 04/29] IB/rxe: External interface to lower level modules
+Date: Thu, 16 Jun 2016 16:45:26 +0300
+Message-ID: <1466084751-29901-5-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,23 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate Address Vector.
+Functions to be called by the networking layer.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_av.c | 98 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_av.c
+ drivers/infiniband/hw/rxe/rxe.h | 70 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_av.c b/drivers/infiniband/hw/rxe/rxe_av.c
+diff --git a/drivers/infiniband/hw/rxe/rxe.h b/drivers/infiniband/hw/rxe/rxe.h
 new file mode 100644
-index 0000000..5c94742
+index 0000000..7d05f31
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_av.c
-@@ -0,0 +1,98 @@
++++ b/drivers/infiniband/hw/rxe/rxe.h
+@@ -0,0 +1,70 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -37,18 +37,18 @@ index 0000000..5c94742
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -60,71 +60,43 @@ index 0000000..5c94742
 + * SOFTWARE.
 + */
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
++#ifndef RXE_H
++#define RXE_H
 +
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
-+{
-+	struct rxe_port *port;
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/crc32.h>
 +
-+	if (attr->port_num != 1) {
-+		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
-+		return -EINVAL;
-+	}
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/ib_pack.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_cache.h>
++#include <rdma/ib_addr.h>
 +
-+	port = &rxe->port;
++#include "rxe_net.h"
++#include "rxe_opcode.h"
++#include "rxe_hdr.h"
++#include "rxe_param.h"
++#include "rxe_verbs.h"
 +
-+	if (attr->ah_flags & IB_AH_GRH) {
-+		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
-+			pr_info("rxe: invalid sgid index = %d\n",
-+				attr->grh.sgid_index);
-+			return -EINVAL;
-+		}
-+	}
++#define RXE_UVERBS_ABI_VERSION		(1)
 +
-+	return 0;
-+}
++#define IB_PHYS_STATE_LINK_UP		(5)
 +
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr)
-+{
-+	memset(av, 0, sizeof(*av));
-+	memcpy(&av->grh, &attr->grh, sizeof(attr->grh));
-+	av->port_num = port_num;
-+	return 0;
-+}
++#define RXE_ROCE_V2_SPORT		(0xc000)
 +
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr)
-+{
-+	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
-+	attr->port_num = av->port_num;
-+	return 0;
-+}
++int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu,
++		unsigned int port_num);
 +
-+int rxe_av_fill_ip_info(struct rxe_dev *rxe,
-+			struct rxe_av *av,
-+			struct ib_ah_attr *attr,
-+			struct ib_gid_attr *sgid_attr,
-+			union ib_gid *sgid)
-+{
-+	rdma_gid2ip(&av->sgid_addr._sockaddr, sgid);
-+	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
-+	av->network_type = ib_gid_to_network_type(sgid_attr->gid_type, sgid);
++int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
 +
-+	return 0;
-+}
++void rxe_remove(struct rxe_dev *rxe);
 +
-+struct rxe_av *rxe_get_av(struct rxe_pkt_info *pkt)
-+{
-+	if (!pkt || !pkt->qp)
-+		return NULL;
++int rxe_rcv(struct sk_buff *skb);
 +
-+	if (qp_type(pkt->qp) == IB_QPT_RC || qp_type(pkt->qp) == IB_QPT_UC)
-+		return &pkt->qp->pri_av;
-+
-+	return (pkt->wqe) ? &pkt->wqe->av : NULL;
-+}
++#endif /* RXE_H */
 -- 
 1.8.3.1
 
