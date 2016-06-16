@@ -1,57 +1,26 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V1 01/13] IB/core: Add get FW version string to the core
-Date: Wed, 15 Jun 2016 19:26:03 -0400
-Message-ID: <20160615232602.GA4034@phlsvsds.ph.intel.com>
-References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com> <1465971728-24104-2-git-send-email-ira.weiny@intel.com> <20160615064008.GS5408@leon.nu> <20160615152048.GB8690@phlsvsds.ph.intel.com> <20160615165106.GA10256@obsidianresearch.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [for-next 0/1] [pull request] Mellanox ConnectX-4 Shared Code
+Date: Wed, 15 Jun 2016 21:37:24 -0700 (PDT)
+Message-ID: <20160615.213724.761419504231088993.davem@davemloft.net>
+References: <1465900152-32049-1-git-send-email-leonro@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160615165106.GA10256-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1465900152-32049-1-git-send-email-leonro@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: leonro@mellanox.com
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 15, 2016 at 10:51:06AM -0600, Jason Gunthorpe wrote:
-> On Wed, Jun 15, 2016 at 11:20:49AM -0400, ira.weiny wrote:
-> > The default here is that a device does not provide a firmware string.  In that
-> > case the assumption is that there is no firmware.  Hence the empty string.  I
-> > don't think that reporting 0's or F's are appropriate if a device does not have
-> > firmware.
-> > 
-> > In the cases you speak of I would expect the device to supply the firmware
-> > function and report all 0s or all Fs for whatever version that may represent.
-> > (I'm assuming that would be some sort of debug or unreleased firmware...)
-> > 
-> > I could just as well done something like.
-> > 
-> > snprintf(str, str_len, "<none>");
+From: Leon Romanovsky <leonro@mellanox.com>
+Date: Tue, 14 Jun 2016 13:29:11 +0300
+
+> are available in the git repository at:
 > 
-> Just don't provide a 'fw' sysfs file at all if the driver cannot
-> support it.
+>   git@gitolite.kernel.org:pub/scm/linux/kernel/git/leon/linux-rdma tags/shared
 
-This function is supporting both sysfs and ethtool.
+You need to learn how to publish a public URL of your tree.  That's your
+private one that only you can access.
 
-ethtool_drvinfo->fw_version is normally up to the device.  I've just provided a
-default.
-
-For example I see "N/A", "n/a", and "none" all used in the network stack.
-
-./ethernet/freescale/gianfar_ethtool.c: strlcpy(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
-
-./rionet.c:     strlcpy(info->fw_version, "n/a", sizeof(info->fw_version));
-
-./fjes/fjes_ethtool.c:  strlcpy(drvinfo->fw_version, "none", sizeof(drvinfo->fw_version));
-
-I really think we are in the weeds here and are fine to leave it blank.
-
-But if you wish, I can force all drivers to provide the string and then they can
-put something in like the above.
-
-Ira
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Anyways, I pulled the correct URL into net-next.
