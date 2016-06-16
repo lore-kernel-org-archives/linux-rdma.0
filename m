@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 27/29] IB/rxe: sysfs interface to RXE
-Date: Thu, 16 Jun 2016 16:45:49 +0300
-Message-ID: <1466084751-29901-28-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 29/29] IB/rxe: Add Soft-RoCE to kbuild and makefiles
+Date: Thu, 16 Jun 2016 16:45:51 +0300
+Message-ID: <1466084751-29901-30-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,181 +10,102 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add sysfs interface for Soft RoCE, mainly for binding the Soft RoCE
-driver with an Ethernet net device.
+Kconfig and Makefiles for Soft RoCE driver.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_sysfs.c | 157 ++++++++++++++++++++++++++++++++++
- 1 file changed, 157 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_sysfs.c
+ drivers/infiniband/Kconfig         |  1 +
+ drivers/infiniband/hw/Makefile     |  1 +
+ drivers/infiniband/hw/rxe/Kconfig  | 24 ++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/Makefile | 24 ++++++++++++++++++++++++
+ 4 files changed, 50 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/Kconfig
+ create mode 100644 drivers/infiniband/hw/rxe/Makefile
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_sysfs.c b/drivers/infiniband/hw/rxe/rxe_sysfs.c
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 2137adf..f942ec1 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -74,6 +74,7 @@ source "drivers/infiniband/hw/mlx5/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
+ source "drivers/infiniband/hw/ocrdma/Kconfig"
+ source "drivers/infiniband/hw/usnic/Kconfig"
++source "drivers/infiniband/hw/rxe/Kconfig"
+ 
+ source "drivers/infiniband/ulp/ipoib/Kconfig"
+ 
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index c0c7cf8..739e5c1 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_INFINIBAND_NES)		+= nes/
+ obj-$(CONFIG_INFINIBAND_OCRDMA)		+= ocrdma/
+ obj-$(CONFIG_INFINIBAND_USNIC)		+= usnic/
+ obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
++obj-$(CONFIG_INFINIBAND_RXE)		+= rxe/
+diff --git a/drivers/infiniband/hw/rxe/Kconfig b/drivers/infiniband/hw/rxe/Kconfig
 new file mode 100644
-index 0000000..cf8e778
+index 0000000..a199d0d
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_sysfs.c
-@@ -0,0 +1,157 @@
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
-+ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
++++ b/drivers/infiniband/hw/rxe/Kconfig
+@@ -0,0 +1,24 @@
++config INFINIBAND_RXE
++	tristate "Software RDMA over Ethernet (RoCE) driver"
++	depends on INET && PCI && INFINIBAND
++	depends on NET_UDP_TUNNEL
++	---help---
++	This driver implements the InfiniBand RDMA transport over
++	the Linux network stack. It enables a system with a
++	standard Ethernet adapter to interoperate with a RoCE
++	adapter or with another system running the RXE driver.
++	Documentation on InfiniBand and RoCE can be downloaded at
++	www.infinibandta.org and www.openfabrics.org. (See also
++	siw which is a similar software driver for iWARP.)
 +
-+#include "rxe.h"
-+#include "rxe_net.h"
++	The driver is split into two layers, one interfaces with the
++	Linux RDMA stack and implements a kernel or user space
++	verbs API. The user space verbs API requires a support
++	library named librxe which is loaded by the generic user
++	space verbs API, libibverbs. The other layer interfaces
++	with the Linux network stack at layer 3.
 +
-+/* Copy argument and remove trailing CR. Return the new length. */
-+static int sanitize_arg(const char *val, char *intf, int intf_len)
-+{
-+	int len;
++	To configure and work with soft-RoCE driver please use the
++	following wiki page under "configure Soft-RoCE (RXE)" section:
 +
-+	if (!val)
-+		return 0;
++	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
+diff --git a/drivers/infiniband/hw/rxe/Makefile b/drivers/infiniband/hw/rxe/Makefile
+new file mode 100644
+index 0000000..7cf7774
+--- /dev/null
++++ b/drivers/infiniband/hw/rxe/Makefile
+@@ -0,0 +1,24 @@
++obj-$(CONFIG_INFINIBAND_RXE) += ib_rxe.o
 +
-+	/* Remove newline. */
-+	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
-+		intf[len] = val[len];
-+	intf[len] = 0;
-+
-+	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
-+		return 0;
-+
-+	return len;
-+}
-+
-+static void rxe_set_port_state(struct net_device *ndev)
-+{
-+	struct rxe_dev *rxe = net_to_rxe(ndev);
-+	bool is_up = netif_running(ndev) && netif_carrier_ok(ndev);
-+
-+	if (!rxe)
-+		goto out;
-+
-+	if (is_up)
-+		rxe_port_up(rxe);
-+	else
-+		rxe_port_down(rxe); /* down for unknown state */
-+out:
-+	return;
-+}
-+
-+static int rxe_param_set_add(const char *val, const struct kernel_param *kp)
-+{
-+	int len;
-+	int err = 0;
-+	char intf[32];
-+	struct net_device *ndev = NULL;
-+	struct rxe_dev *rxe;
-+
-+	len = sanitize_arg(val, intf, sizeof(intf));
-+	if (!len) {
-+		pr_err("rxe: add: invalid interface name\n");
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	ndev = dev_get_by_name(&init_net, intf);
-+	if (!ndev) {
-+		pr_err("interface %s not found\n", intf);
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	if (net_to_rxe(ndev)) {
-+		pr_err("rxe: already configured on %s\n", intf);
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	rxe = rxe_net_add(ndev);
-+	if (!rxe) {
-+		pr_err("rxe: failed to add %s\n", intf);
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	rxe_set_port_state(ndev);
-+	pr_info("rxe: added %s to %s\n", rxe->ib_dev.name, intf);
-+err:
-+	if (ndev)
-+		dev_put(ndev);
-+	return err;
-+}
-+
-+static int rxe_param_set_remove(const char *val, const struct kernel_param *kp)
-+{
-+	int len;
-+	char intf[32];
-+	struct rxe_dev *rxe;
-+
-+	len = sanitize_arg(val, intf, sizeof(intf));
-+	if (!len) {
-+		pr_err("rxe: add: invalid interface name\n");
-+		return -EINVAL;
-+	}
-+
-+	if (strncmp("all", intf, len) == 0) {
-+		pr_info("rxe_sys: remove all");
-+		rxe_remove_all();
-+		return 0;
-+	}
-+
-+	rxe = get_rxe_by_name(intf);
-+
-+	if (!rxe) {
-+		pr_err("rxe: not configured on %s\n", intf);
-+		return -EINVAL;
-+	}
-+
-+	list_del(&rxe->list);
-+	rxe_remove(rxe);
-+
-+	return 0;
-+}
-+
-+static const struct kernel_param_ops rxe_add_ops = {
-+	.set = rxe_param_set_add,
-+};
-+
-+static const struct kernel_param_ops rxe_remove_ops = {
-+	.set = rxe_param_set_remove,
-+};
-+
-+module_param_cb(add, &rxe_add_ops, NULL, 0200);
-+MODULE_PARM_DESC(add, "Create RXE device over network interface");
-+module_param_cb(remove, &rxe_remove_ops, NULL, 0200);
-+MODULE_PARM_DESC(remove, "Remove RXE device over network interface");
++ib_rxe-y := \
++	rxe.o \
++	rxe_comp.o \
++	rxe_req.o \
++	rxe_resp.o \
++	rxe_recv.o \
++	rxe_pool.o \
++	rxe_queue.o \
++	rxe_verbs.o \
++	rxe_av.o \
++	rxe_srq.o \
++	rxe_qp.o \
++	rxe_cq.o \
++	rxe_mr.o \
++	rxe_dma.o \
++	rxe_opcode.o \
++	rxe_mmap.o \
++	rxe_icrc.o \
++	rxe_mcast.o \
++	rxe_task.o \
++	rxe_net.o \
++	rxe_sysfs.o
 -- 
 1.8.3.1
 
