@@ -1,149 +1,108 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 00/13] Create device FW version call back
-Date: Wed, 15 Jun 2016 13:55:17 +0300
-Message-ID: <20160615105517.GT5408@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V1 01/13] IB/core: Add get FW version string to the core
+Date: Thu, 16 Jun 2016 12:46:31 +0300
+Message-ID: <20160616094631.GV5408@leon.nu>
 References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
+ <1465971728-24104-2-git-send-email-ira.weiny@intel.com>
+ <20160615064008.GS5408@leon.nu>
+ <20160615152048.GB8690@phlsvsds.ph.intel.com>
+ <20160615165106.GA10256@obsidianresearch.com>
+ <20160615232602.GA4034@phlsvsds.ph.intel.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Lh1tzOZp3jg2TtWy"
+	protocol="application/pgp-signature"; boundary="XQSDX3NWE02rtiZq"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1465971728-24104-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160615232602.GA4034-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Lh1tzOZp3jg2TtWy
+--XQSDX3NWE02rtiZq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 15, 2016 at 02:21:55AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Wed, Jun 15, 2016 at 07:26:03PM -0400, ira.weiny wrote:
+> On Wed, Jun 15, 2016 at 10:51:06AM -0600, Jason Gunthorpe wrote:
+> > On Wed, Jun 15, 2016 at 11:20:49AM -0400, ira.weiny wrote:
+> > > The default here is that a device does not provide a firmware string.=
+  In that
+> > > case the assumption is that there is no firmware.  Hence the empty st=
+ring.  I
+> > > don't think that reporting 0's or F's are appropriate if a device doe=
+s not have
+> > > firmware.
+> > >=20
+> > > In the cases you speak of I would expect the device to supply the fir=
+mware
+> > > function and report all 0s or all Fs for whatever version that may re=
+present.
+> > > (I'm assuming that would be some sort of debug or unreleased firmware=
+=2E..)
+> > >=20
+> > > I could just as well done something like.
+> > >=20
+> > > snprintf(str, str_len, "<none>");
+> >=20
+> > Just don't provide a 'fw' sysfs file at all if the driver cannot
+> > support it.
 >=20
-> Currently there are 3 ways to get the firmware version for an
-> RDMA device.
+> This function is supporting both sysfs and ethtool.
 >=20
-> 1) verbs query device
-> 2) ethtool
-> 3) sysfs entry
+> ethtool_drvinfo->fw_version is normally up to the device.  I've just prov=
+ided a
+> default.
 >=20
-> Both 1 and 2 are expecting a 64bit field which is vendor specific
-> and encodes a 3 number version.  Some hardware, like OPA, only
-> has 2 numbers in it's version, while other hardware like cxgb4
-> has 4.
+> For example I see "N/A", "n/a", and "none" all used in the network stack.
 >=20
-> Support for the sysfs entry was left to the devices but generally
-> done in a "common" way.
+> ./ethernet/freescale/gianfar_ethtool.c: strlcpy(drvinfo->fw_version, "N/A=
+", sizeof(drvinfo->fw_version));
 >=20
-> This series moves to unify firmware version reporting by creating
-> the ib_get_device_fw_str method within the ib_device.  With this
-> we can then do 3 things.
+> ./rionet.c:     strlcpy(info->fw_version, "n/a", sizeof(info->fw_version)=
+);
 >=20
-> 1) Support device dependent formats of version strings with
->    ethtool (IPoIB)
+> ./fjes/fjes_ethtool.c:  strlcpy(drvinfo->fw_version, "none", sizeof(drvin=
+fo->fw_version));
 >=20
-> 2) Support a common sysfs entry in the core for backwards
->    compatibility which can either be changed to a common
->    FW version string with the new verbs interface or simply
->    removed in favor of using ethtool.
->=20
-> 3) Eventually drop the sysfs entry once we can get user space
->    tools off of it.  If we decide not to have an interface
->    through verbs (require the use of ethtool via IPoIB) iWarp
->    and RoCE devices don't even have to have this support at
->    all and the code can be eliminated for those devices.
->=20
-> 1 and 2 are done with this patch series.  3 needs to be decided
-> by the community if, and when, sysfs support can be dropped.
->=20
-> NOTE: I have tested these patches with mlx4, qib, and hfi1.
-> Other drivers were compile tested only.
->=20
-> ---
-> Changes from V0:
-> 	Address comments by Jason and Leon
-> 	Rebase to upstream
-> 	Add Reviewed-by for cxgb4
->=20
->=20
-> Ira Weiny (13):
->   IB/core: Add get FW version string to the core
->   IB/cxgb3: Support device FW version string
->   IB/cxgb4: Support device FW version string
->   IB/i40iw: Support device FW version string
->   IB/mlx4: Support device FW version string
->   IB/mlx5: Support device FW version string
->   IB/mthca: Supprot device FW version string
->   IB/nes: Support device FW version string
->   IB/ocrdma: Support device FW version string
->   IB/usnic: Support device FW version string
->   IB/ipoib: Use new device FW version string
->   IB/core: Export a common fw_ver sysfs entry
->   IB/hfi1: Add device FW version string
->=20
->  drivers/infiniband/core/device.c             |  9 ++++++++
->  drivers/infiniband/core/sysfs.c              | 15 ++++++++++++-
->  drivers/infiniband/hw/cxgb3/iwch_provider.c  | 27 +++++++++++------------
->  drivers/infiniband/hw/cxgb4/provider.c       | 31 +++++++++++++---------=
-----
->  drivers/infiniband/hw/hfi1/hfi.h             |  2 ++
->  drivers/infiniband/hw/hfi1/verbs.c           | 15 +++++++++++++
->  drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 24 +++++++++-----------
->  drivers/infiniband/hw/mlx4/main.c            | 24 ++++++++++----------
->  drivers/infiniband/hw/mlx5/main.c            | 21 +++++++++---------
->  drivers/infiniband/hw/mthca/mthca_provider.c | 24 ++++++++++----------
->  drivers/infiniband/hw/nes/nes_verbs.c        | 33 ++++++++++++----------=
-------
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c   | 19 ++++++++--------
->  drivers/infiniband/hw/usnic/usnic_ib_main.c  | 16 ++++++++++++++
->  drivers/infiniband/hw/usnic/usnic_ib_sysfs.c | 17 --------------
->  drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |  6 ++---
->  include/rdma/ib_verbs.h                      |  3 +++
->  16 files changed, 156 insertions(+), 130 deletions(-)
+> I really think we are in the weeds here and are fine to leave it blank.
 
-Such statistic (more insertions than deletions) doesn't look good for
-common code.
-
-Anyway, I'm fine with it, for mlx5/mlx4 and core:
-
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+I'm fine with that.
 
 >=20
-> --=20
-> 1.8.2
+> But if you wish, I can force all drivers to provide the string and then t=
+hey can
+> put something in like the above.
 >=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Ira
+>=20
 
---Lh1tzOZp3jg2TtWy
+--XQSDX3NWE02rtiZq
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXYTQVAAoJEORje4g2clin3bgP/0Bzi3eyvZub40yY4kdpG+v1
-NjE64Groni2Vmu6IP8+pZH9Cy0jPNE/NqyVaDA6KkNHZ4Oo+kMtSw6UUAgU0azzk
-9tXMrx0GP0WKbxRu7AHeLGRwzkPdXFeyRRKuO4sWneSjoCE8+G5AZCgSjSXhN9R3
-kgMDAstI6GkwcjwF+/4WUBAzC1Xnv27ubyh5FXJJ91JhaKimeXTvScnfXARO9GML
-gVaVwzv/13OdcYqv0EGOrQCtfQij+GS7oeaUX+kp+EAsU6vWkKrb2CpAH+nafs1m
-TlvxaATs5fxfIJttDeVXXl8F/lhYkqgD8NxhyhSct9x3BdmIpKlaxSMxpNnT2hYg
-Wm6iUAI8qVyacxZDfmOBKn3GVqcRoBtmisl0ez98sWhw8n0K4lxq51lelmxPb2hW
-9kCHUWGyZe9aaWcoWGxU6qg6sKOZHvKqtYMeaLmRQgX8pHgubvaIK45PEK1oNpo3
-kXu1lP9re3MWMkeofmnWhU0rEKDc5pwQh7lBh5g8ewLywvekaKP3rxqdvSiDspRA
-vrU+/lzM7ghkuy9/uA3psHYRz8lBEJce5hO3k2XiPNhMOKuUHfX60QNbP+IQCC8m
-xCnw9Cv1nyMVpzfjYiljAtqpV8M0jXunhc/4iuXhFqxYto9JRjIU+dy2DzPggSV9
-cHAUdOVV0/Ujb6b7xaUr
-=+8GE
+iQIcBAEBAgAGBQJXYnV3AAoJEORje4g2clinJnAQAL2MfPKRRMx2xE4qDEBITU8a
+2e9yXj1JnVMNSJIVhkS7TbpJYFbzDaAQNkfYJiJfFXwgqVSkrGoxzCyKdlaBtu8Y
+4D8DbjgCREe9O7KykGjVL3WXjduO/AqFKvuSPYr2jPVr+9vYDypHYYi2/YWHJkag
+3htat4uiXnrHZTrjn/nA2SQsEu/prsMOi5jhxt4NaZ0V3q9m2Q4D/xivct3dxmuy
+KV4LOEWrR8Kg2ccgldgAiOYUwqMiB/qTFKa1Aax8AzE+sBFeR2+20Bp1FOzgr+US
+20z1IsD/nDhAT7KuLCrLpufwiN20ZbSet5vlUYAdQVSyNeKzS9qSmFnk7ttHeOaC
+xOdbRl+dd4SpWtFASDjU+DQLIPBleZpDfove4zfHmLF8qnWm4pyKyFOjVNvU1aWo
+/WXNc9RVHrX0jgE8N8bjflDuo0LFB9btXPjNScsKhzINmPn+iWIvjZd9XyehWLuL
++WTloDeKM5y85kXtpevNfT2Et6aWfCrXaoNi5V9zOWBVl9LK07GFXjRWsSDDF39K
+HWPnLSpEZWQPCxAGt0v7UQ0XkrPhrMxZKKAt3yQtb3kfrE80n0PIoCCUrIExlOZz
+6/8Ex5/pinRI/tmfT7TsixeODlasjQBqPr25wt7TvH2A4bI2SmNsMuQI1EY9xR8j
+abWiRk7kpiQQHIvdXxJ+
+=yTOV
 -----END PGP SIGNATURE-----
 
---Lh1tzOZp3jg2TtWy--
+--XQSDX3NWE02rtiZq--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
