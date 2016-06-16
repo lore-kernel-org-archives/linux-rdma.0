@@ -1,65 +1,68 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: hfi1 use of PCI internals
-Date: Thu, 16 Jun 2016 15:08:17 -0500
-Message-ID: <20160616200817.GA17778@localhost>
-References: <20160616162052.GA2144@localhost>
- <tnm1toa71hsw1.fsf@phwtpriv05.ph.intel.com>
+From: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
+Date: Fri, 17 Jun 2016 00:10:33 +0300
+Message-ID: <576315C9.30002@gmail.com>
+References: <20160615030626.14794.43805.stgit@manet.1015granger.net>
+ <20160615031525.14794.69066.stgit@manet.1015granger.net>
+ <20160615042849.GR5408@leon.nu>
+ <68F7CD80-0092-4B55-9FAD-4C54D284BCA3@oracle.com>
+ <20160616143518.GX5408@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <tnm1toa71hsw1.fsf@phwtpriv05.ph.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ashutosh Dixit <ashutosh.dixit@intel.com>
-Cc: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160616143518.GX5408-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 16, 2016 at 02:48:30PM -0400, Ashutosh Dixit wrote:
-> On Thu, Jun 16 2016 at 12:20:52 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > I noticed drivers/infiniband/hw/hfi1 got moved from staging to
-> > drivers/ for v4.7.  It does a bunch of grubbing around in PCIe ASPM
-> > configuration, e.g., see drivers/infiniband/hw/hfi1/aspm.h.
-> >
-> > I know there have been lots of ASPM issues, both hardware problems and
-> > Linux kernel problems, but it is *supposed* to be manageable by the
-> > core, without special driver support.  What's the justification for
-> > having to do this in the hfi1 driver?
-> 
-> The description for commit affa48de84 "staging/rdma/hfi1: Add support
-> for enabling/disabling PCIe ASPM" anticipates this question and
-> describes why this was done in the hfi1 driver:
-> 
->     Finally, the kernel ASPM API is not used in this patch. This is
->     because this patch does several non-standard things as SW
->     workarounds for HW issues. As mentioned above, it enables ASPM even
->     when advertised actual latencies are greater than acceptable
->     latencies. Also, whereas the kernel API only allows drivers to
->     disable ASPM from driver probe, this patch enables/disables ASPM
->     directly from interrupt context. Due to these reasons the kernel
->     ASPM API was not used.
 
-That's a good start, but leads to more questions.  For example, it
-doesn't answer the obvious question of why the driver needs to
-enable/disable ASPM from interrupt context.
+>>> On Jun 15, 2016, at 12:28 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>>
+>>> On Tue, Jun 14, 2016 at 11:15:25PM -0400, Chuck Lever wrote:
+>>>> From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>>>
+>>>> kmalloc doesn't guarantee the returned memory is all on one page.
+>>>
+>>> IMHO, the patch posted by Christoph at that thread is best way to go,
+>>> because you changed streaming DMA mappings to be coherent DMA mappings [1].
+>>>
+>>> "The kernel developers recommend the use of streaming mappings over
+>>> coherent mappings whenever possible" [1].
+>>>
+>>> [1] http://www.makelinux.net/ldd3/chp-15-sect-4
+>>
+>> Hi Leon-
+>>
+>> I'll happily drop this patch from my 4.8 series as soon
+>> as an official mlx4/mlx5 fix is merged.
+>>
+>> Meanwhile, I notice some unexplained instability (driver
+>> resets, list corruption, and so on) when I test NFS/RDMA
+>> without this patch included. So it is attached to the
+>> series for anyone with mlx4 who wants to pull my topic
+>> branch and try it out.
+>
+> hi Chuck,
+>
+> We plan to send attached patch during our second round of fixes for
+> mlx4/mlx5 and would be grateful to you if you could provide your
+> Tested-by tag before.
 
-Disabling ASPM should only require writing the device's Link Control
-register.  The PCI core could probably provide an interface to do that
-in interrupt context.
+First of all, IIRC the patch author was Christoph wasn't he.
 
-Enabling ASPM is not latency-critical and could probably be done from
-a work queue outside interrupt context, although conceptually there
-shouldn't be much required here either, and possibly the PCI core
-interface could be improved.
+Plus, you do realize that this patch makes the pages allocation
+in granularity of pages. In systems with a large page size this
+is completely redundant, it might even be harmful as the storage
+ULPs need lots of MRs.
 
-It's possible the latency problem could be handled by some sort of
-quirk that overrides the acceptable latency.
+Also, I don't see how that solves the issue, I'm not sure I even
+understand the issue. Do you? Were you able to reproduce it?
 
-It's hard enough to get ASPM support in the PCI core correct without
-having to worry about drivers doing their own thing behind the back of
-the core.
-
-As far as I can tell, none of these PCI questions were raised on
-linux-pci, so we never even had a chance to have a conversation about
-them.
-
-Bjorn
+IFF the pages buffer end not being aligned to a cacheline is problematic
+then why not extent it to end in a cacheline? Why in the next full page?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
