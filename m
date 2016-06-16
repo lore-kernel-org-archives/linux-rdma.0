@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 26/29] IB/rxe: Interface to netdev stack
-Date: Thu, 16 Jun 2016 16:45:48 +0300
-Message-ID: <1466084751-29901-27-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 10/29] IB/rxe: Interface to ib_core
+Date: Thu, 16 Jun 2016 16:45:32 +0300
+Message-ID: <1466084751-29901-11-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,52 +10,26 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linux netdev related code
+Implementation of verbs interface as declared in InfiniBand core device
+(struct ib_device).
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe.h     |   9 +-
- drivers/infiniband/hw/rxe/rxe_net.c | 708 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/rxe/rxe_net.h |  53 +++
- 3 files changed, 767 insertions(+), 3 deletions(-)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_net.c
- create mode 100644 drivers/infiniband/hw/rxe/rxe_net.h
+ drivers/infiniband/hw/rxe/rxe_verbs.c | 1352 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_verbs.h |  486 ++++++++++++
+ 2 files changed, 1838 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe.h b/drivers/infiniband/hw/rxe/rxe.h
-index e27c36e..12c71c5 100644
---- a/drivers/infiniband/hw/rxe/rxe.h
-+++ b/drivers/infiniband/hw/rxe/rxe.h
-@@ -59,16 +59,19 @@
- 
- #define RXE_ROCE_V2_SPORT		(0xc000)
- 
--int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu,
--		unsigned int port_num);
-+int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu);
- 
- int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
--
- void rxe_remove(struct rxe_dev *rxe);
- void rxe_remove_all(void);
- 
- int rxe_rcv(struct sk_buff *skb);
- 
- void rxe_dev_put(struct rxe_dev *rxe);
-+struct rxe_dev *net_to_rxe(struct net_device *ndev);
-+struct rxe_dev *get_rxe_by_name(const char* name);
-+
-+void rxe_port_up(struct rxe_dev *rxe);
-+void rxe_port_down(struct rxe_dev *rxe);
- 
- #endif /* RXE_H */
-diff --git a/drivers/infiniband/hw/rxe/rxe_net.c b/drivers/infiniband/hw/rxe/rxe_net.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_verbs.c b/drivers/infiniband/hw/rxe/rxe_verbs.c
 new file mode 100644
-index 0000000..0b8d2ea
+index 0000000..898b3bb
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_net.c
-@@ -0,0 +1,708 @@
++++ b/drivers/infiniband/hw/rxe/rxe_verbs.c
+@@ -0,0 +1,1352 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -89,687 +63,1331 @@ index 0000000..0b8d2ea
 + * SOFTWARE.
 + */
 +
-+#include <linux/skbuff.h>
-+#include <linux/if_arp.h>
-+#include <linux/netdevice.h>
-+#include <linux/if.h>
-+#include <linux/if_vlan.h>
-+#include <net/udp_tunnel.h>
-+#include <net/sch_generic.h>
-+#include <linux/netfilter.h>
-+#include <rdma/ib_addr.h>
-+
 +#include "rxe.h"
-+#include "rxe_net.h"
 +#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
-+static LIST_HEAD(rxe_dev_list);
-+static spinlock_t dev_list_lock; /* spinlock for device list */
-+
-+struct rxe_dev *net_to_rxe(struct net_device *ndev)
++static int rxe_query_device(struct ib_device *dev,
++			    struct ib_device_attr *attr,
++			    struct ib_udata *uhw)
 +{
-+	struct rxe_dev *rxe;
-+	struct rxe_dev *found = NULL;
++	struct rxe_dev *rxe = to_rdev(dev);
 +
-+	spin_lock_bh(&dev_list_lock);
-+	list_for_each_entry(rxe, &rxe_dev_list, list) {
-+		if (rxe->ndev == ndev) {
-+			found = rxe;
-+			break;
-+		}
-+	}
-+	spin_unlock_bh(&dev_list_lock);
++	if (uhw->inlen || uhw->outlen)
++		return -EINVAL;
 +
-+	return found;
-+}
-+
-+struct rxe_dev *get_rxe_by_name(const char* name)
-+{
-+	struct rxe_dev *rxe;
-+	struct rxe_dev *found = NULL;
-+
-+	spin_lock_bh(&dev_list_lock);
-+	list_for_each_entry(rxe, &rxe_dev_list, list) {
-+		if (!strcmp(name, rxe->ib_dev.name)) {
-+			found = rxe;
-+			break;
-+		}
-+	}
-+	spin_unlock_bh(&dev_list_lock);
-+	return found;
-+}
-+
-+
-+struct rxe_recv_sockets recv_sockets;
-+
-+static __be64 rxe_mac_to_eui64(struct net_device *ndev)
-+{
-+	unsigned char *mac_addr = ndev->dev_addr;
-+	__be64 eui64;
-+	unsigned char *dst = (unsigned char *)&eui64;
-+
-+	dst[0] = mac_addr[0] ^ 2;
-+	dst[1] = mac_addr[1];
-+	dst[2] = mac_addr[2];
-+	dst[3] = 0xff;
-+	dst[4] = 0xfe;
-+	dst[5] = mac_addr[3];
-+	dst[6] = mac_addr[4];
-+	dst[7] = mac_addr[5];
-+
-+	return eui64;
-+}
-+
-+static __be64 node_guid(struct rxe_dev *rxe)
-+{
-+	return rxe_mac_to_eui64(rxe->ndev);
-+}
-+
-+static __be64 port_guid(struct rxe_dev *rxe)
-+{
-+	return rxe_mac_to_eui64(rxe->ndev);
-+}
-+
-+static struct device *dma_device(struct rxe_dev *rxe)
-+{
-+	struct net_device *ndev;
-+
-+	ndev = rxe->ndev;
-+
-+	if (ndev->priv_flags & IFF_802_1Q_VLAN)
-+		ndev = vlan_dev_real_dev(ndev);
-+
-+	return ndev->dev.parent;
-+}
-+
-+static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	int err;
-+	unsigned char ll_addr[ETH_ALEN];
-+
-+	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-+	err = dev_mc_add(rxe->ndev, ll_addr);
-+
-+	return err;
-+}
-+
-+static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	int err;
-+	unsigned char ll_addr[ETH_ALEN];
-+
-+	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-+	err = dev_mc_del(rxe->ndev, ll_addr);
-+
-+	return err;
-+}
-+
-+static struct dst_entry *rxe_find_route4(struct net_device *ndev,
-+				  struct in_addr *saddr,
-+				  struct in_addr *daddr)
-+{
-+	struct rtable *rt;
-+	struct flowi4 fl = { { 0 } };
-+
-+	memset(&fl, 0, sizeof(fl));
-+	fl.flowi4_oif = ndev->ifindex;
-+	memcpy(&fl.saddr, saddr, sizeof(*saddr));
-+	memcpy(&fl.daddr, daddr, sizeof(*daddr));
-+	fl.flowi4_proto = IPPROTO_UDP;
-+
-+	rt = ip_route_output_key(&init_net, &fl);
-+	if (IS_ERR(rt)) {
-+		pr_err_ratelimited("no route to %pI4\n", &daddr->s_addr);
-+		return NULL;
-+	}
-+
-+	return &rt->dst;
-+}
-+
-+#if IS_ENABLED(CONFIG_IPV6)
-+static struct dst_entry *rxe_find_route6(struct net_device *ndev,
-+					 struct in6_addr *saddr,
-+					 struct in6_addr *daddr)
-+{
-+	struct dst_entry *ndst;
-+	struct flowi6 fl6 = { { 0 } };
-+
-+	memset(&fl6, 0, sizeof(fl6));
-+	fl6.flowi6_oif = ndev->ifindex;
-+	memcpy(&fl6.saddr, saddr, sizeof(*saddr));
-+	memcpy(&fl6.daddr, daddr, sizeof(*daddr));
-+	fl6.flowi6_proto = IPPROTO_UDP;
-+
-+	if (unlikely(ipv6_stub->ipv6_dst_lookup(sock_net(recv_sockets.sk6->sk),
-+						recv_sockets.sk6->sk, &ndst, &fl6))) {
-+		pr_err_ratelimited("no route to %pI6\n", daddr);
-+		goto put;
-+	}
-+
-+	if (unlikely(ndst->error)) {
-+		pr_err("no route to %pI6\n", daddr);
-+		goto put;
-+	}
-+
-+	return ndst;
-+put:
-+	dst_release(ndst);
-+	return NULL;
-+}
-+
-+#else
-+
-+static struct dst_entry *rxe_find_route6(struct net_device *ndev,
-+					 struct in6_addr *saddr,
-+					 struct in6_addr *daddr)
-+{
-+	return NULL;
-+}
-+
-+#endif
-+
-+static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
-+{
-+	struct udphdr *udph;
-+	struct net_device *ndev = skb->dev;
-+	struct rxe_dev *rxe = net_to_rxe(ndev);
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+
-+	if (!rxe)
-+		goto drop;
-+
-+	if (skb_linearize(skb)) {
-+		pr_err("skb_linearize failed\n");
-+		goto drop;
-+	}
-+
-+	udph = udp_hdr(skb);
-+	pkt->rxe = rxe;
-+	pkt->port_num = 1;
-+	pkt->hdr = (u8 *)(udph + 1);
-+	pkt->mask = RXE_GRH_MASK;
-+	pkt->paylen = be16_to_cpu(udph->len) - sizeof(*udph);
-+
-+	return rxe_rcv(skb);
-+drop:
-+	kfree_skb(skb);
++	*attr = rxe->attr;
 +	return 0;
 +}
 +
-+static struct socket *rxe_setup_udp_tunnel(struct net *net, __be16 port,
-+					   bool ipv6)
++static void rxe_eth_speed_to_ib_speed(int speed, u8 *active_speed,
++				      u8 *active_width)
 +{
-+	int err;
-+	struct socket *sock;
-+	struct udp_port_cfg udp_cfg;
-+	struct udp_tunnel_sock_cfg tnl_cfg;
-+
-+	memset(&udp_cfg, 0, sizeof(udp_cfg));
-+
-+	if (ipv6) {
-+		udp_cfg.family = AF_INET6;
-+		udp_cfg.ipv6_v6only = 1;
++	if (speed <= 1000) {
++		*active_width = IB_WIDTH_1X;
++		*active_speed = IB_SPEED_SDR;
++	} else if (speed <= 10000) {
++		*active_width = IB_WIDTH_1X;
++		*active_speed = IB_SPEED_FDR10;
++	} else if (speed <= 20000) {
++		*active_width = IB_WIDTH_4X;
++		*active_speed = IB_SPEED_DDR;
++	} else if (speed <= 30000) {
++		*active_width = IB_WIDTH_4X;
++		*active_speed = IB_SPEED_QDR;
++	} else if (speed <= 40000) {
++		*active_width = IB_WIDTH_4X;
++		*active_speed = IB_SPEED_FDR10;
 +	} else {
-+		udp_cfg.family = AF_INET;
++		*active_width = IB_WIDTH_4X;
++		*active_speed = IB_SPEED_EDR;
++	}
++}
++
++static int rxe_query_port(struct ib_device *dev,
++			  u8 port_num, struct ib_port_attr *attr)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_port *port;
++	u32 speed;
++
++	if (unlikely(port_num != 1)) {
++		pr_warn("invalid port_number %d\n", port_num);
++		goto err1;
 +	}
 +
-+	udp_cfg.local_udp_port = port;
++	port = &rxe->port;
 +
-+	/* Create UDP socket */
-+	err = udp_sock_create(net, &udp_cfg, &sock);
-+	if (err < 0) {
-+		pr_err("failed to create udp socket. err = %d\n", err);
-+		return ERR_PTR(err);
++	*attr = port->attr;
++
++	mutex_lock(&rxe->usdev_lock);
++	if (rxe->ndev->ethtool_ops->get_link_ksettings) {
++		struct ethtool_link_ksettings ks;
++
++		rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
++		speed = ks.base.speed;
++	} else if (rxe->ndev->ethtool_ops->get_settings) {
++		struct ethtool_cmd cmd;
++
++		rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
++		speed = cmd.speed;
++	} else {
++		pr_warn("%s speed is unknown, defaulting to 1000\n", rxe->ndev->name);
++		speed = 1000;
++	}
++	rxe_eth_speed_to_ib_speed(speed, &attr->active_speed, &attr->active_width);
++	mutex_unlock(&rxe->usdev_lock);
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static int rxe_query_gid(struct ib_device *device,
++			 u8 port_num, int index, union ib_gid *gid)
++{
++	int ret;
++
++	if (index > RXE_PORT_GID_TBL_LEN)
++		return -EINVAL;
++
++	ret = ib_get_cached_gid(device, port_num, index, gid, NULL);
++	if (ret == -EAGAIN) {
++		memcpy(gid, &zgid, sizeof(*gid));
++		return 0;
 +	}
 +
-+	tnl_cfg.sk_user_data = NULL;
-+	tnl_cfg.encap_type = 1;
-+	tnl_cfg.encap_rcv = rxe_udp_encap_recv;
-+	tnl_cfg.encap_destroy = NULL;
-+
-+	/* Setup UDP tunnel */
-+	setup_udp_tunnel_sock(net, sock, &tnl_cfg);
-+
-+	return sock;
++	return ret;
 +}
 +
-+static void rxe_release_udp_tunnel(struct socket *sk)
++static int rxe_add_gid(struct ib_device *device, u8 port_num, unsigned int
++		       index, const union ib_gid *gid,
++		       const struct ib_gid_attr *attr, void **context)
 +{
-+	udp_tunnel_sock_release(sk);
-+}
-+
-+static void prepare_udp_hdr(struct sk_buff *skb, __be16 src_port,
-+			    __be16 dst_port)
-+{
-+	struct udphdr *udph;
-+
-+	__skb_push(skb, sizeof(*udph));
-+	skb_reset_transport_header(skb);
-+	udph = udp_hdr(skb);
-+
-+	udph->dest = dst_port;
-+	udph->source = src_port;
-+	udph->len = htons(skb->len);
-+	udph->check = 0;
-+}
-+
-+static void prepare_ipv4_hdr(struct dst_entry *dst, struct sk_buff *skb,
-+			     __be32 saddr, __be32 daddr, __u8 proto,
-+			     __u8 tos, __u8 ttl, __be16 df, bool xnet)
-+{
-+	struct iphdr *iph;
-+
-+	skb_scrub_packet(skb, xnet);
-+
-+	skb_clear_hash(skb);
-+	skb_dst_set(skb, dst);
-+	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
-+
-+	skb_push(skb, sizeof(struct iphdr));
-+	skb_reset_network_header(skb);
-+
-+	iph = ip_hdr(skb);
-+
-+	iph->version	=	IPVERSION;
-+	iph->ihl	=	sizeof(struct iphdr) >> 2;
-+	iph->frag_off	=	df;
-+	iph->protocol	=	proto;
-+	iph->tos	=	tos;
-+	iph->daddr	=	daddr;
-+	iph->saddr	=	saddr;
-+	iph->ttl	=	ttl;
-+	__ip_select_ident(dev_net(dst->dev), iph,
-+			  skb_shinfo(skb)->gso_segs ?: 1);
-+	iph->tot_len = htons(skb->len);
-+	ip_send_check(iph);
-+}
-+
-+static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
-+			     struct in6_addr *saddr, struct in6_addr *daddr,
-+			     __u8 proto, __u8 prio, __u8 ttl)
-+{
-+	struct ipv6hdr *ip6h;
-+
-+	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
-+	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
-+			    | IPSKB_REROUTED);
-+	skb_dst_set(skb, dst);
-+
-+	__skb_push(skb, sizeof(*ip6h));
-+	skb_reset_network_header(skb);
-+	ip6h		  = ipv6_hdr(skb);
-+	ip6_flow_hdr(ip6h, prio, htonl(0));
-+	ip6h->payload_len = htons(skb->len);
-+	ip6h->nexthdr     = proto;
-+	ip6h->hop_limit   = ttl;
-+	ip6h->daddr	  = *daddr;
-+	ip6h->saddr	  = *saddr;
-+	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
-+}
-+
-+static int prepare4(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
-+{
-+	struct dst_entry *dst;
-+	bool xnet = false;
-+	__be16 df = htons(IP_DF);
-+	struct in_addr *saddr = &av->sgid_addr._sockaddr_in.sin_addr;
-+	struct in_addr *daddr = &av->dgid_addr._sockaddr_in.sin_addr;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+
-+	dst = rxe_find_route4(rxe->ndev, saddr, daddr);
-+	if (!dst) {
-+		pr_err("Host not reachable\n");
-+		return -EHOSTUNREACH;
-+	}
-+
-+	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-+		pkt->mask |= RXE_LOOPBACK_MASK;
-+
-+	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-+			htons(ROCE_V2_UDP_DPORT));
-+
-+	prepare_ipv4_hdr(dst, skb, saddr->s_addr, daddr->s_addr, IPPROTO_UDP,
-+			 av->grh.traffic_class, av->grh.hop_limit, df, xnet);
++	if (index >= RXE_PORT_GID_TBL_LEN)
++		return -EINVAL;
 +	return 0;
 +}
 +
-+static int prepare6(struct rxe_dev *rxe, struct sk_buff *skb, struct rxe_av *av)
++static int rxe_del_gid(struct ib_device *device, u8 port_num, unsigned int
++		       index, void **context)
 +{
-+	struct dst_entry *dst;
-+	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
-+	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+
-+	dst = rxe_find_route6(rxe->ndev, saddr, daddr);
-+	if (!dst) {
-+		pr_err("Host not reachable\n");
-+		return -EHOSTUNREACH;
-+	}
-+
-+	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-+		pkt->mask |= RXE_LOOPBACK_MASK;
-+
-+	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-+			htons(ROCE_V2_UDP_DPORT));
-+
-+	prepare_ipv6_hdr(dst, skb, saddr, daddr, IPPROTO_UDP,
-+			 av->grh.traffic_class,
-+			 av->grh.hop_limit);
++	if (index >= RXE_PORT_GID_TBL_LEN)
++		return -EINVAL;
 +	return 0;
 +}
 +
-+static int prepare(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		   struct sk_buff *skb, u32 *crc)
++static struct net_device *rxe_get_netdev(struct ib_device *device,
++					 u8 port_num)
++{
++	struct rxe_dev *rxe = to_rdev(device);
++
++	if (rxe->ndev) {
++		dev_hold(rxe->ndev);
++		return rxe->ndev;
++	}
++
++	return NULL;
++}
++
++static int rxe_query_pkey(struct ib_device *device,
++			  u8 port_num, u16 index, u16 *pkey)
++{
++	struct rxe_dev *rxe = to_rdev(device);
++	struct rxe_port *port;
++
++	if (unlikely(port_num != 1)) {
++		dev_warn(device->dma_device, "invalid port_num = %d\n",
++			 port_num);
++		goto err1;
++	}
++
++	port = &rxe->port;
++
++	if (unlikely(index >= port->attr.pkey_tbl_len)) {
++		dev_warn(device->dma_device, "invalid index = %d\n",
++			 index);
++		goto err1;
++	}
++
++	*pkey = port->pkey_tbl[index];
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static int rxe_modify_device(struct ib_device *dev,
++			     int mask, struct ib_device_modify *attr)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++
++	if (mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID)
++		rxe->attr.sys_image_guid = cpu_to_be64(attr->sys_image_guid);
++
++	if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
++		memcpy(rxe->ib_dev.node_desc,
++		       attr->node_desc, sizeof(rxe->ib_dev.node_desc));
++	}
++
++	return 0;
++}
++
++static int rxe_modify_port(struct ib_device *dev,
++			   u8 port_num, int mask, struct ib_port_modify *attr)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_port *port;
++
++	if (unlikely(port_num != 1)) {
++		pr_warn("invalid port_num = %d\n", port_num);
++		goto err1;
++	}
++
++	port = &rxe->port;
++
++	port->attr.port_cap_flags |= attr->set_port_cap_mask;
++	port->attr.port_cap_flags &= ~attr->clr_port_cap_mask;
++
++	if (mask & IB_PORT_RESET_QKEY_CNTR)
++		port->attr.qkey_viol_cntr = 0;
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static enum rdma_link_layer rxe_get_link_layer(struct ib_device *dev,
++					       u8 port_num)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++
++	return rxe->ifc_ops->link_layer(rxe, port_num);
++}
++
++static struct ib_ucontext *rxe_alloc_ucontext(struct ib_device *dev,
++					      struct ib_udata *udata)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_ucontext *uc;
++
++	uc = rxe_alloc(&rxe->uc_pool);
++	return uc ? &uc->ibuc : ERR_PTR(-ENOMEM);
++}
++
++static int rxe_dealloc_ucontext(struct ib_ucontext *ibuc)
++{
++	struct rxe_ucontext *uc = to_ruc(ibuc);
++
++	rxe_drop_ref(uc);
++	return 0;
++}
++
++static int rxe_port_immutable(struct ib_device *dev, u8 port_num,
++			      struct ib_port_immutable *immutable)
++{
++	int err;
++	struct ib_port_attr attr;
++
++	err = rxe_query_port(dev, port_num, &attr);
++	if (err)
++		return err;
++
++	immutable->pkey_tbl_len = attr.pkey_tbl_len;
++	immutable->gid_tbl_len = attr.gid_tbl_len;
++	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
++	immutable->max_mad_size = IB_MGMT_MAD_SIZE;
++
++	return 0;
++}
++
++static struct ib_pd *rxe_alloc_pd(struct ib_device *dev,
++				  struct ib_ucontext *context,
++				  struct ib_udata *udata)
++{
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_pd *pd;
++
++	pd = rxe_alloc(&rxe->pd_pool);
++	return pd ? &pd->ibpd : ERR_PTR(-ENOMEM);
++}
++
++static int rxe_dealloc_pd(struct ib_pd *ibpd)
++{
++	struct rxe_pd *pd = to_rpd(ibpd);
++
++	rxe_drop_ref(pd);
++	return 0;
++}
++
++static int rxe_init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
++		       struct rxe_av *av)
++{
++	int err;
++	union ib_gid sgid;
++	struct ib_gid_attr sgid_attr;
++
++	err = ib_get_cached_gid(&rxe->ib_dev, attr->port_num,
++				attr->grh.sgid_index, &sgid,
++				&sgid_attr);
++	if (err) {
++		pr_err("Failed to query sgid. err = %d\n", err);
++		return err;
++	}
++
++	err = rxe_av_from_attr(rxe, attr->port_num, av, attr);
++	if (!err)
++		err = rxe_av_fill_ip_info(rxe, av, attr, &sgid_attr, &sgid);
++
++	if (sgid_attr.ndev)
++		dev_put(sgid_attr.ndev);
++	return err;
++}
++
++static struct ib_ah *rxe_create_ah(struct ib_pd *ibpd, struct ib_ah_attr *attr)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_ah *ah;
++
++	err = rxe_av_chk_attr(rxe, attr);
++	if (err)
++		goto err1;
++
++	ah = rxe_alloc(&rxe->ah_pool);
++	if (!ah) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	rxe_add_ref(pd);
++	ah->pd = pd;
++
++	err = rxe_init_av(rxe, attr, &ah->av);
++	if (err)
++		goto err2;
++
++	return &ah->ibah;
++
++err2:
++	rxe_drop_ref(pd);
++	rxe_drop_ref(ah);
++err1:
++	return ERR_PTR(err);
++}
++
++static int rxe_modify_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibah->device);
++	struct rxe_ah *ah = to_rah(ibah);
++
++	err = rxe_av_chk_attr(rxe, attr);
++	if (err)
++		return err;
++
++	err = rxe_init_av(rxe, attr, &ah->av);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++static int rxe_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
++{
++	struct rxe_dev *rxe = to_rdev(ibah->device);
++	struct rxe_ah *ah = to_rah(ibah);
++
++	rxe_av_to_attr(rxe, &ah->av, attr);
++	return 0;
++}
++
++static int rxe_destroy_ah(struct ib_ah *ibah)
++{
++	struct rxe_ah *ah = to_rah(ibah);
++
++	rxe_drop_ref(ah->pd);
++	rxe_drop_ref(ah);
++	return 0;
++}
++
++static int post_one_recv(struct rxe_rq *rq, struct ib_recv_wr *ibwr)
++{
++	int err;
++	int i;
++	u32 length;
++	struct rxe_recv_wqe *recv_wqe;
++	int num_sge = ibwr->num_sge;
++
++	if (unlikely(queue_full(rq->queue))) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	if (unlikely(num_sge > rq->max_sge)) {
++		err = -EINVAL;
++		goto err1;
++	}
++
++	length = 0;
++	for (i = 0; i < num_sge; i++)
++		length += ibwr->sg_list[i].length;
++
++	recv_wqe = producer_addr(rq->queue);
++	recv_wqe->wr_id = ibwr->wr_id;
++	recv_wqe->num_sge = num_sge;
++
++	memcpy(recv_wqe->dma.sge, ibwr->sg_list,
++	       num_sge * sizeof(struct ib_sge));
++
++	recv_wqe->dma.length		= length;
++	recv_wqe->dma.resid		= length;
++	recv_wqe->dma.num_sge		= num_sge;
++	recv_wqe->dma.cur_sge		= 0;
++	recv_wqe->dma.sge_offset	= 0;
++
++	/* make sure all changes to the work queue are written before we
++	 * update the producer pointer
++	 */
++	smp_wmb();
++
++	advance_producer(rq->queue);
++	return 0;
++
++err1:
++	return err;
++}
++
++static struct ib_srq *rxe_create_srq(struct ib_pd *ibpd,
++				     struct ib_srq_init_attr *init,
++				     struct ib_udata *udata)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_srq *srq;
++	struct ib_ucontext *context = udata ? ibpd->uobject->context : NULL;
++
++	err = rxe_srq_chk_attr(rxe, NULL, &init->attr, IB_SRQ_INIT_MASK);
++	if (err)
++		goto err1;
++
++	srq = rxe_alloc(&rxe->srq_pool);
++	if (!srq) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	rxe_add_index(srq);
++	rxe_add_ref(pd);
++	srq->pd = pd;
++
++	err = rxe_srq_from_init(rxe, srq, init, context, udata);
++	if (err)
++		goto err2;
++
++	return &srq->ibsrq;
++
++err2:
++	rxe_drop_ref(pd);
++	rxe_drop_index(srq);
++	rxe_drop_ref(srq);
++err1:
++	return ERR_PTR(err);
++}
++
++static int rxe_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++			  enum ib_srq_attr_mask mask,
++			  struct ib_udata *udata)
++{
++	int err;
++	struct rxe_srq *srq = to_rsrq(ibsrq);
++	struct rxe_dev *rxe = to_rdev(ibsrq->device);
++
++	err = rxe_srq_chk_attr(rxe, srq, attr, mask);
++	if (err)
++		goto err1;
++
++	err = rxe_srq_from_attr(rxe, srq, attr, mask, udata);
++	if (err)
++		goto err1;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++static int rxe_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
++{
++	struct rxe_srq *srq = to_rsrq(ibsrq);
++
++	if (srq->error)
++		return -EINVAL;
++
++	attr->max_wr = srq->rq.queue->buf->index_mask;
++	attr->max_sge = srq->rq.max_sge;
++	attr->srq_limit = srq->limit;
++	return 0;
++}
++
++static int rxe_destroy_srq(struct ib_srq *ibsrq)
++{
++	struct rxe_srq *srq = to_rsrq(ibsrq);
++
++	if (srq->rq.queue)
++		rxe_queue_cleanup(srq->rq.queue);
++
++	rxe_drop_ref(srq->pd);
++	rxe_drop_index(srq);
++	rxe_drop_ref(srq);
++
++	return 0;
++}
++
++static int rxe_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++			     struct ib_recv_wr **bad_wr)
 +{
 +	int err = 0;
-+	struct rxe_av *av = rxe_get_av(pkt);
++	unsigned long flags;
++	struct rxe_srq *srq = to_rsrq(ibsrq);
 +
-+	if (av->network_type == RDMA_NETWORK_IPV4)
-+		err = prepare4(rxe, skb, av);
-+	else if (av->network_type == RDMA_NETWORK_IPV6)
-+		err = prepare6(rxe, skb, av);
++	spin_lock_irqsave(&srq->rq.producer_lock, flags);
 +
-+	*crc = rxe_icrc_hdr(pkt, skb);
++	while (wr) {
++		err = post_one_recv(&srq->rq, wr);
++		if (unlikely(err))
++			break;
++		wr = wr->next;
++	}
++
++	spin_unlock_irqrestore(&srq->rq.producer_lock, flags);
++
++	if (err)
++		*bad_wr = wr;
 +
 +	return err;
 +}
 +
-+static void rxe_skb_tx_dtor(struct sk_buff *skb)
++static struct ib_qp *rxe_create_qp(struct ib_pd *ibpd,
++				   struct ib_qp_init_attr *init,
++				   struct ib_udata *udata)
 +{
-+	struct sock *sk = skb->sk;
-+	struct rxe_qp *qp = sk->sk_user_data;
-+	int skb_out = atomic_dec_return(&qp->skb_out);
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_qp *qp;
 +
-+	if (unlikely(qp->need_req_skb &&
-+		     skb_out < RXE_INFLIGHT_SKBS_PER_QP_LOW))
-+		rxe_run_task(&qp->req.task, 1);
++	err = rxe_qp_chk_init(rxe, init);
++	if (err)
++		goto err1;
++
++	qp = rxe_alloc(&rxe->qp_pool);
++	if (!qp) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	if (udata) {
++		if (udata->inlen) {
++			err = -EINVAL;
++			goto err1;
++		}
++		qp->is_user = 1;
++	}
++
++	rxe_add_index(qp);
++
++	err = rxe_qp_from_init(rxe, qp, pd, init, udata, ibpd);
++	if (err)
++		goto err2;
++
++	return &qp->ibqp;
++
++err2:
++	rxe_drop_index(qp);
++	rxe_drop_ref(qp);
++err1:
++	return ERR_PTR(err);
 +}
 +
-+static int send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		struct sk_buff *skb)
++static int rxe_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			 int mask, struct ib_udata *udata)
 +{
-+	struct sk_buff *nskb;
-+	struct rxe_av *av;
 +	int err;
++	struct rxe_dev *rxe = to_rdev(ibqp->device);
++	struct rxe_qp *qp = to_rqp(ibqp);
 +
-+	av = rxe_get_av(pkt);
++	err = rxe_qp_chk_attr(rxe, qp, attr, mask);
++	if (err)
++		goto err1;
 +
-+	nskb = skb_clone(skb, GFP_ATOMIC);
-+	if (!nskb)
-+		return -ENOMEM;
++	err = rxe_qp_from_attr(qp, attr, mask, udata);
++	if (err)
++		goto err1;
 +
-+	nskb->destructor = rxe_skb_tx_dtor;
-+	nskb->sk = pkt->qp->sk->sk;
++	return 0;
 +
-+	if (av->network_type == RDMA_NETWORK_IPV4) {
-+		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
-+	} else if (av->network_type == RDMA_NETWORK_IPV6) {
-+		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
++err1:
++	return err;
++}
++
++static int rxe_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++			int mask, struct ib_qp_init_attr *init)
++{
++	struct rxe_qp *qp = to_rqp(ibqp);
++
++	rxe_qp_to_init(qp, init);
++	rxe_qp_to_attr(qp, attr, mask);
++
++	return 0;
++}
++
++static int rxe_destroy_qp(struct ib_qp *ibqp)
++{
++	struct rxe_qp *qp = to_rqp(ibqp);
++
++	rxe_qp_destroy(qp);
++	rxe_drop_index(qp);
++	rxe_drop_ref(qp);
++	return 0;
++}
++
++static int validate_send_wr(struct rxe_qp *qp, struct ib_send_wr *ibwr,
++			    unsigned int mask, unsigned int length)
++{
++	int num_sge = ibwr->num_sge;
++	struct rxe_sq *sq = &qp->sq;
++
++	if (unlikely(num_sge > sq->max_sge))
++		goto err1;
++
++	if (unlikely(mask & WR_ATOMIC_MASK)) {
++		if (length < 8)
++			goto err1;
++
++		if (atomic_wr(ibwr)->remote_addr & 0x7)
++			goto err1;
++	}
++
++	if (unlikely((ibwr->send_flags & IB_SEND_INLINE) &&
++		     (length > sq->max_inline)))
++		goto err1;
++
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
++			 struct ib_send_wr *ibwr)
++{
++	wr->wr_id = ibwr->wr_id;
++	wr->num_sge = ibwr->num_sge;
++	wr->opcode = ibwr->opcode;
++	wr->send_flags = ibwr->send_flags;
++
++	if (qp_type(qp) == IB_QPT_UD ||
++	    qp_type(qp) == IB_QPT_SMI ||
++	    qp_type(qp) == IB_QPT_GSI) {
++		wr->wr.ud.remote_qpn = ud_wr(ibwr)->remote_qpn;
++		wr->wr.ud.remote_qkey = ud_wr(ibwr)->remote_qkey;
++		if (qp_type(qp) == IB_QPT_GSI)
++			wr->wr.ud.pkey_index = ud_wr(ibwr)->pkey_index;
++		if (wr->opcode == IB_WR_SEND_WITH_IMM)
++			wr->ex.imm_data = ibwr->ex.imm_data;
 +	} else {
-+		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
-+		kfree_skb(nskb);
++		switch (wr->opcode) {
++		case IB_WR_RDMA_WRITE_WITH_IMM:
++			wr->ex.imm_data = ibwr->ex.imm_data;
++		case IB_WR_RDMA_READ:
++		case IB_WR_RDMA_WRITE:
++			wr->wr.rdma.remote_addr = rdma_wr(ibwr)->remote_addr;
++			wr->wr.rdma.rkey	= rdma_wr(ibwr)->rkey;
++			break;
++		case IB_WR_SEND_WITH_IMM:
++			wr->ex.imm_data = ibwr->ex.imm_data;
++			break;
++		case IB_WR_SEND_WITH_INV:
++			wr->ex.invalidate_rkey = ibwr->ex.invalidate_rkey;
++			break;
++		case IB_WR_ATOMIC_CMP_AND_SWP:
++		case IB_WR_ATOMIC_FETCH_AND_ADD:
++			wr->wr.atomic.remote_addr =
++				atomic_wr(ibwr)->remote_addr;
++			wr->wr.atomic.compare_add =
++				atomic_wr(ibwr)->compare_add;
++			wr->wr.atomic.swap = atomic_wr(ibwr)->swap;
++			wr->wr.atomic.rkey = atomic_wr(ibwr)->rkey;
++			break;
++		default:
++			break;
++		}
++	}
++}
++
++static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
++			 unsigned int mask, unsigned int length,
++			 struct rxe_send_wqe *wqe)
++{
++	int num_sge = ibwr->num_sge;
++	struct ib_sge *sge;
++	int i;
++	u8 *p;
++
++	init_send_wr(qp, &wqe->wr, ibwr);
++
++	if (qp_type(qp) == IB_QPT_UD ||
++	    qp_type(qp) == IB_QPT_SMI ||
++	    qp_type(qp) == IB_QPT_GSI)
++		memcpy(&wqe->av, &to_rah(ud_wr(ibwr)->ah)->av, sizeof(wqe->av));
++
++	if (unlikely(ibwr->send_flags & IB_SEND_INLINE)) {
++		p = wqe->dma.inline_data;
++
++		sge = ibwr->sg_list;
++		for (i = 0; i < num_sge; i++, sge++) {
++			if (qp->is_user && copy_from_user(p, (__user void *)
++					    (uintptr_t)sge->addr, sge->length))
++				return -EFAULT;
++
++			else if (!qp->is_user)
++				memcpy(p, (void *)(uintptr_t)sge->addr,
++				       sge->length);
++
++			p += sge->length;
++		}
++	} else
++		memcpy(wqe->dma.sge, ibwr->sg_list,
++		       num_sge * sizeof(struct ib_sge));
++
++	wqe->iova		= (mask & WR_ATOMIC_MASK) ?
++					atomic_wr(ibwr)->remote_addr :
++					rdma_wr(ibwr)->remote_addr;
++	wqe->mask		= mask;
++	wqe->dma.length		= length;
++	wqe->dma.resid		= length;
++	wqe->dma.num_sge	= num_sge;
++	wqe->dma.cur_sge	= 0;
++	wqe->dma.sge_offset	= 0;
++	wqe->state		= wqe_state_posted;
++	wqe->ssn		= atomic_add_return(1, &qp->ssn);
++
++	return 0;
++}
++
++static int post_one_send(struct rxe_qp *qp, struct ib_send_wr *ibwr,
++			 unsigned mask, u32 length)
++{
++	int err;
++	struct rxe_sq *sq = &qp->sq;
++	struct rxe_send_wqe *send_wqe;
++	unsigned long flags;
++
++	err = validate_send_wr(qp, ibwr, mask, length);
++	if (err)
++		return err;
++
++	spin_lock_irqsave(&qp->sq.sq_lock, flags);
++
++	if (unlikely(queue_full(sq->queue))) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	send_wqe = producer_addr(sq->queue);
++
++	err = init_send_wqe(qp, ibwr, mask, length, send_wqe);
++	if (unlikely(err))
++		goto err1;
++
++	/*
++	 * make sure all changes to the work queue are
++	 * written before we update the producer pointer
++	 */
++	smp_wmb();
++
++	advance_producer(sq->queue);
++	spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
++
++	return 0;
++
++err1:
++	spin_unlock_irqrestore(&qp->sq.sq_lock, flags);
++	return err;
++}
++
++static int rxe_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
++			 struct ib_send_wr **bad_wr)
++{
++	int err = 0;
++	struct rxe_qp *qp = to_rqp(ibqp);
++	unsigned int mask;
++	unsigned int length = 0;
++	int i;
++	int must_sched;
++
++	if (unlikely(!qp->valid)) {
++		*bad_wr = wr;
 +		return -EINVAL;
 +	}
 +
-+	if (unlikely(net_xmit_eval(err))) {
-+		pr_debug("error sending packet: %d\n", err);
-+		return -EAGAIN;
++	if (unlikely(qp->req.state < QP_STATE_READY)) {
++		*bad_wr = wr;
++		return -EINVAL;
 +	}
 +
-+	kfree_skb(skb);
++	while (wr) {
++		mask = wr_opcode_mask(wr->opcode, qp);
++		if (unlikely(!mask)) {
++			err = -EINVAL;
++			*bad_wr = wr;
++			break;
++		}
 +
-+	return 0;
-+}
++		if (unlikely((wr->send_flags & IB_SEND_INLINE) &&
++			     !(mask & WR_INLINE_MASK))) {
++			err = -EINVAL;
++			*bad_wr = wr;
++			break;
++		}
 +
-+static int loopback(struct sk_buff *skb)
-+{
-+	return rxe_rcv(skb);
-+}
++		length = 0;
++		for (i = 0; i < wr->num_sge; i++)
++			length += wr->sg_list[i].length;
 +
-+static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
-+{
-+	return rxe->port.port_guid == av->grh.dgid.global.interface_id;
-+}
++		err = post_one_send(qp, wr, mask, length);
 +
-+static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-+				   int paylen, struct rxe_pkt_info *pkt)
-+{
-+	unsigned int hdr_len;
-+	struct sk_buff *skb;
-+
-+	if (av->network_type == RDMA_NETWORK_IPV4)
-+		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
-+			sizeof(struct iphdr);
-+	else
-+		hdr_len = ETH_HLEN + sizeof(struct udphdr) +
-+			sizeof(struct ipv6hdr);
-+
-+	skb = alloc_skb(paylen + hdr_len + LL_RESERVED_SPACE(rxe->ndev),
-+			GFP_ATOMIC);
-+	if (unlikely(!skb))
-+		return NULL;
-+
-+	skb_reserve(skb, hdr_len + LL_RESERVED_SPACE(rxe->ndev));
-+
-+	skb->dev	= rxe->ndev;
-+	if (av->network_type == RDMA_NETWORK_IPV4)
-+		skb->protocol = htons(ETH_P_IP);
-+	else
-+		skb->protocol = htons(ETH_P_IPV6);
-+
-+	pkt->rxe	= rxe;
-+	pkt->port_num	= 1;
-+	pkt->hdr	= skb_put(skb, paylen);
-+	pkt->mask	|= RXE_GRH_MASK;
-+
-+	memset(pkt->hdr, 0, paylen);
-+
-+	return skb;
-+}
-+
-+/*
-+ * this is required by rxe_cfg to match rxe devices in
-+ * /sys/class/infiniband up with their underlying ethernet devices
-+ */
-+static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
-+{
-+	return rxe->ndev->name;
-+}
-+
-+static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
-+				       unsigned int port_num)
-+{
-+	return IB_LINK_LAYER_ETHERNET;
-+}
-+
-+static struct rxe_ifc_ops ifc_ops = {
-+	.node_guid	= node_guid,
-+	.port_guid	= port_guid,
-+	.dma_device	= dma_device,
-+	.mcast_add	= mcast_add,
-+	.mcast_delete	= mcast_delete,
-+	.prepare	= prepare,
-+	.send		= send,
-+	.loopback	= loopback,
-+	.init_packet	= init_packet,
-+	.parent_name	= parent_name,
-+	.link_layer	= link_layer,
-+};
-+
-+struct rxe_dev *rxe_net_add(struct net_device *ndev)
-+{
-+	int err;
-+	struct rxe_dev *rxe = NULL;
-+
-+	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
-+	if (!rxe)
-+		return NULL;
-+
-+	rxe->ifc_ops = &ifc_ops;
-+	rxe->ndev = ndev;
-+
-+	err = rxe_add(rxe, ndev->mtu);
-+	if (err) {
-+		ib_dealloc_device(&rxe->ib_dev);
-+		return NULL;
++		if (err) {
++			*bad_wr = wr;
++			break;
++		}
++		wr = wr->next;
 +	}
 +
-+	spin_lock_bh(&dev_list_lock);
-+	list_add_tail(&rxe_dev_list, &rxe->list);
-+	spin_unlock_bh(&dev_list_lock);
-+	return rxe;
-+}
++	/*
++	 * Must sched in case of GSI QP because ib_send_mad() hold irq lock,
++	 * and the requester call ip_local_out_sk() that takes spin_lock_bh.
++	 */
++	must_sched = (qp_type(qp) == IB_QPT_GSI) ||
++			(queue_count(qp->sq.queue) > 1);
 +
-+void rxe_remove_all(void)
-+{
-+	spin_lock_bh(&dev_list_lock);
-+	while (!list_empty(&rxe_dev_list)) {
-+		struct rxe_dev *rxe =
-+			list_first_entry(&rxe_dev_list, struct rxe_dev, list);
-+
-+		list_del(&rxe->list);
-+		spin_unlock_bh(&dev_list_lock);
-+		rxe_remove(rxe);
-+		spin_lock_bh(&dev_list_lock);
-+	}
-+	spin_unlock_bh(&dev_list_lock);
-+}
-+EXPORT_SYMBOL(rxe_remove_all);
-+
-+static void rxe_port_event(struct rxe_dev *rxe,
-+			   enum ib_event_type event)
-+{
-+	struct ib_event ev;
-+
-+	ev.device = &rxe->ib_dev;
-+	ev.element.port_num = 1;
-+	ev.event = event;
-+
-+	ib_dispatch_event(&ev);
-+}
-+
-+/* Caller must hold net_info_lock */
-+void rxe_port_up(struct rxe_dev *rxe)
-+{
-+	struct rxe_port *port;
-+
-+	port = &rxe->port;
-+	port->attr.state = IB_PORT_ACTIVE;
-+	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
-+
-+	rxe_port_event(rxe, IB_EVENT_PORT_ACTIVE);
-+	pr_info("rxe: set %s active\n", rxe->ib_dev.name);
-+	return;
-+}
-+
-+/* Caller must hold net_info_lock */
-+void rxe_port_down(struct rxe_dev *rxe)
-+{
-+	struct rxe_port *port;
-+
-+	port = &rxe->port;
-+	port->attr.state = IB_PORT_DOWN;
-+	port->attr.phys_state = IB_PHYS_STATE_LINK_DOWN;
-+
-+	rxe_port_event(rxe, IB_EVENT_PORT_ERR);
-+	pr_info("rxe: set %s down\n", rxe->ib_dev.name);
-+	return;
-+}
-+
-+static int rxe_notify(struct notifier_block *not_blk,
-+		      unsigned long event,
-+		      void *arg)
-+{
-+	struct net_device *ndev = netdev_notifier_info_to_dev(arg);
-+	struct rxe_dev *rxe = net_to_rxe(ndev);
-+
-+	if (!rxe)
-+		goto out;
-+
-+	switch (event) {
-+	case NETDEV_UNREGISTER:
-+		list_del(&rxe->list);
-+		rxe_remove(rxe);
-+		break;
-+	case NETDEV_UP:
-+		rxe_port_up(rxe);
-+		break;
-+	case NETDEV_DOWN:
-+		rxe_port_down(rxe);
-+		break;
-+	case NETDEV_CHANGEMTU:
-+		pr_info("rxe: %s changed mtu to %d\n", ndev->name, ndev->mtu);
-+		rxe_set_mtu(rxe, ndev->mtu);
-+		break;
-+	case NETDEV_REBOOT:
-+	case NETDEV_CHANGE:
-+	case NETDEV_GOING_DOWN:
-+	case NETDEV_CHANGEADDR:
-+	case NETDEV_CHANGENAME:
-+	case NETDEV_FEAT_CHANGE:
-+	default:
-+		pr_info("rxe: ignoring netdev event = %ld for %s\n",
-+			event, ndev->name);
-+		break;
-+	}
-+out:
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block rxe_net_notifier = {
-+	.notifier_call = rxe_notify,
-+};
-+
-+int rxe_net_init(void)
-+{
-+	int err;
-+
-+	spin_lock_init(&dev_list_lock);
-+
-+	recv_sockets.sk6 = rxe_setup_udp_tunnel(&init_net,
-+			htons(ROCE_V2_UDP_DPORT), true);
-+	if (IS_ERR(recv_sockets.sk6)) {
-+		recv_sockets.sk6 = NULL;
-+		pr_err("rxe: Failed to create IPv6 UDP tunnel\n");
-+		return -1;
-+	}
-+
-+	recv_sockets.sk4 = rxe_setup_udp_tunnel(&init_net,
-+			htons(ROCE_V2_UDP_DPORT), false);
-+	if (IS_ERR(recv_sockets.sk4)) {
-+		rxe_release_udp_tunnel(recv_sockets.sk6);
-+		recv_sockets.sk4 = NULL;
-+		recv_sockets.sk6 = NULL;
-+		pr_err("rxe: Failed to create IPv4 UDP tunnel\n");
-+		return -1;
-+	}
-+
-+	err = register_netdevice_notifier(&rxe_net_notifier);
-+	if (err) {
-+		rxe_release_udp_tunnel(recv_sockets.sk6);
-+		rxe_release_udp_tunnel(recv_sockets.sk4);
-+		pr_err("rxe: Failed to rigister netdev notifier\n");
-+	}
++	rxe_run_task(&qp->req.task, must_sched);
 +
 +	return err;
 +}
 +
-+void rxe_net_exit(void)
++static int rxe_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
++			 struct ib_recv_wr **bad_wr)
 +{
-+	if (recv_sockets.sk6)
-+		rxe_release_udp_tunnel(recv_sockets.sk6);
++	int err = 0;
++	struct rxe_qp *qp = to_rqp(ibqp);
++	struct rxe_rq *rq = &qp->rq;
++	unsigned long flags;
 +
-+	if (recv_sockets.sk4)
-+		rxe_release_udp_tunnel(recv_sockets.sk4);
++	if (unlikely((qp_state(qp) < IB_QPS_INIT) || !qp->valid)) {
++		*bad_wr = wr;
++		err = -EINVAL;
++		goto err1;
++	}
 +
-+	unregister_netdevice_notifier(&rxe_net_notifier);
++	if (unlikely(qp->srq)) {
++		*bad_wr = wr;
++		err = -EINVAL;
++		goto err1;
++	}
++
++	spin_lock_irqsave(&rq->producer_lock, flags);
++
++	while (wr) {
++		err = post_one_recv(rq, wr);
++		if (unlikely(err)) {
++			*bad_wr = wr;
++			break;
++		}
++		wr = wr->next;
++	}
++
++	spin_unlock_irqrestore(&rq->producer_lock, flags);
++
++err1:
++	return err;
 +}
-diff --git a/drivers/infiniband/hw/rxe/rxe_net.h b/drivers/infiniband/hw/rxe/rxe_net.h
++
++static struct ib_cq *rxe_create_cq(struct ib_device *dev,
++				   const struct ib_cq_init_attr *attr,
++				   struct ib_ucontext *context,
++				   struct ib_udata *udata)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(dev);
++	struct rxe_cq *cq;
++
++	if (attr->flags)
++		return ERR_PTR(-EINVAL);
++
++	err = rxe_cq_chk_attr(rxe, NULL, attr->cqe, attr->comp_vector, udata);
++	if (err)
++		goto err1;
++
++	cq = rxe_alloc(&rxe->cq_pool);
++	if (!cq) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	err = rxe_cq_from_init(rxe, cq, attr->cqe, attr->comp_vector,
++			       context, udata);
++	if (err)
++		goto err2;
++
++	return &cq->ibcq;
++
++err2:
++	rxe_drop_ref(cq);
++err1:
++	return ERR_PTR(err);
++}
++
++static int rxe_destroy_cq(struct ib_cq *ibcq)
++{
++	struct rxe_cq *cq = to_rcq(ibcq);
++
++	rxe_drop_ref(cq);
++	return 0;
++}
++
++static int rxe_resize_cq(struct ib_cq *ibcq, int cqe, struct ib_udata *udata)
++{
++	int err;
++	struct rxe_cq *cq = to_rcq(ibcq);
++	struct rxe_dev *rxe = to_rdev(ibcq->device);
++
++	err = rxe_cq_chk_attr(rxe, cq, cqe, 0, udata);
++	if (err)
++		goto err1;
++
++	err = rxe_cq_resize_queue(cq, cqe, udata);
++	if (err)
++		goto err1;
++
++	return 0;
++
++err1:
++	return err;
++}
++
++static int rxe_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
++{
++	int i;
++	struct rxe_cq *cq = to_rcq(ibcq);
++	struct rxe_cqe *cqe;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cq->cq_lock, flags);
++	for (i = 0; i < num_entries; i++) {
++		cqe = queue_head(cq->queue);
++		if (!cqe)
++			break;
++
++		memcpy(wc++, &cqe->ibwc, sizeof(*wc));
++		advance_consumer(cq->queue);
++	}
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	return i;
++}
++
++static int rxe_peek_cq(struct ib_cq *ibcq, int wc_cnt)
++{
++	struct rxe_cq *cq = to_rcq(ibcq);
++	int count = queue_count(cq->queue);
++
++	return (count > wc_cnt) ? wc_cnt : count;
++}
++
++static int rxe_req_notify_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
++{
++	struct rxe_cq *cq = to_rcq(ibcq);
++
++	if (cq->notify != IB_CQ_NEXT_COMP)
++		cq->notify = flags & IB_CQ_SOLICITED_MASK;
++
++	return 0;
++}
++
++static struct ib_mr *rxe_get_dma_mr(struct ib_pd *ibpd, int access)
++{
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_mem *mr;
++	int err;
++
++	mr = rxe_alloc(&rxe->mr_pool);
++	if (!mr) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	rxe_add_index(mr);
++
++	rxe_add_ref(pd);
++
++	err = rxe_mem_init_dma(rxe, pd, access, mr);
++	if (err)
++		goto err2;
++
++	return &mr->ibmr;
++
++err2:
++	rxe_drop_ref(pd);
++	rxe_drop_index(mr);
++	rxe_drop_ref(mr);
++err1:
++	return ERR_PTR(err);
++}
++
++static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
++				     u64 start,
++				     u64 length,
++				     u64 iova,
++				     int access, struct ib_udata *udata)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_mem *mr;
++
++	mr = rxe_alloc(&rxe->mr_pool);
++	if (!mr) {
++		err = -ENOMEM;
++		goto err2;
++	}
++
++	rxe_add_index(mr);
++
++	rxe_add_ref(pd);
++
++	err = rxe_mem_init_user(rxe, pd, start, length, iova,
++				access, udata, mr);
++	if (err)
++		goto err3;
++
++	return &mr->ibmr;
++
++err3:
++	rxe_drop_ref(pd);
++	rxe_drop_index(mr);
++	rxe_drop_ref(mr);
++err2:
++	return ERR_PTR(err);
++}
++
++static int rxe_dereg_mr(struct ib_mr *ibmr)
++{
++	struct rxe_mem *mr = to_rmr(ibmr);
++
++	mr->state = RXE_MEM_STATE_ZOMBIE;
++	rxe_drop_ref(mr->pd);
++	rxe_drop_index(mr);
++	rxe_drop_ref(mr);
++	return 0;
++}
++
++static struct ib_mr *rxe_alloc_mr(struct ib_pd *ibpd,
++				  enum ib_mr_type mr_type,
++				  u32 max_num_sg)
++{
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_mem *mr;
++	int err;
++
++	if (mr_type != IB_MR_TYPE_MEM_REG)
++		return ERR_PTR(-EINVAL);
++
++	mr = rxe_alloc(&rxe->mr_pool);
++	if (!mr) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	rxe_add_index(mr);
++
++	rxe_add_ref(pd);
++
++	err = rxe_mem_init_fast(rxe, pd, max_num_sg, mr);
++	if (err)
++		goto err2;
++
++	return &mr->ibmr;
++
++err2:
++	rxe_drop_ref(pd);
++	rxe_drop_index(mr);
++	rxe_drop_ref(mr);
++err1:
++	return ERR_PTR(err);
++}
++
++static struct ib_fmr *rxe_alloc_fmr(struct ib_pd *ibpd,
++				    int access, struct ib_fmr_attr *attr)
++{
++	struct rxe_dev *rxe = to_rdev(ibpd->device);
++	struct rxe_pd *pd = to_rpd(ibpd);
++	struct rxe_mem *fmr;
++	int err;
++
++	fmr = rxe_alloc(&rxe->fmr_pool);
++	if (!fmr) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	rxe_add_index(fmr);
++
++	rxe_add_ref(pd);
++
++	err = rxe_mem_init_fmr(rxe, pd, access, attr, fmr);
++	if (err)
++		goto err2;
++
++	return &fmr->ibfmr;
++
++err2:
++	rxe_drop_ref(pd);
++	rxe_drop_index(fmr);
++	rxe_drop_ref(fmr);
++err1:
++	return ERR_PTR(err);
++}
++
++static int rxe_map_phys_fmr(struct ib_fmr *ibfmr,
++			    u64 *page_list, int list_length, u64 iova)
++{
++	struct rxe_mem *fmr = to_rfmr(ibfmr);
++	struct rxe_dev *rxe = to_rdev(ibfmr->device);
++
++	return rxe_mem_map_pages(rxe, fmr, page_list, list_length, iova);
++}
++
++static int rxe_unmap_fmr(struct list_head *fmr_list)
++{
++	struct rxe_mem *fmr;
++
++	list_for_each_entry(fmr, fmr_list, ibfmr.list) {
++		if (fmr->state != RXE_MEM_STATE_VALID)
++			continue;
++
++		fmr->va = 0;
++		fmr->iova = 0;
++		fmr->length = 0;
++		fmr->num_buf = 0;
++		fmr->state = RXE_MEM_STATE_FREE;
++	}
++
++	return 0;
++}
++
++static int rxe_dealloc_fmr(struct ib_fmr *ibfmr)
++{
++	struct rxe_mem *fmr = to_rfmr(ibfmr);
++
++	fmr->state = RXE_MEM_STATE_ZOMBIE;
++	rxe_drop_ref(fmr->pd);
++	rxe_drop_index(fmr);
++	rxe_drop_ref(fmr);
++	return 0;
++}
++
++static int rxe_attach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(ibqp->device);
++	struct rxe_qp *qp = to_rqp(ibqp);
++	struct rxe_mc_grp *grp;
++
++	/* takes a ref on grp if successful */
++	err = rxe_mcast_get_grp(rxe, mgid, &grp);
++	if (err)
++		return err;
++
++	err = rxe_mcast_add_grp_elem(rxe, qp, grp);
++
++	rxe_drop_ref(grp);
++	return err;
++}
++
++static int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
++{
++	struct rxe_dev *rxe = to_rdev(ibqp->device);
++	struct rxe_qp *qp = to_rqp(ibqp);
++
++	return rxe_mcast_drop_grp_elem(rxe, qp, mgid);
++}
++
++static ssize_t rxe_show_parent(struct device *device,
++			       struct device_attribute *attr, char *buf)
++{
++	struct rxe_dev *rxe = container_of(device, struct rxe_dev,
++					   ib_dev.dev);
++	char *name;
++
++	name = rxe->ifc_ops->parent_name(rxe, 1);
++	return snprintf(buf, 16, "%s\n", name);
++}
++
++static DEVICE_ATTR(parent, S_IRUGO, rxe_show_parent, NULL);
++
++static struct device_attribute *rxe_dev_attributes[] = {
++	&dev_attr_parent,
++};
++
++int rxe_register_device(struct rxe_dev *rxe)
++{
++	int err;
++	int i;
++	struct ib_device *dev = &rxe->ib_dev;
++
++	strlcpy(dev->name, "rxe%d", IB_DEVICE_NAME_MAX);
++	strlcpy(dev->node_desc, "rxe", sizeof(dev->node_desc));
++
++	dev->owner = THIS_MODULE;
++	dev->node_type = RDMA_NODE_IB_CA;
++	dev->phys_port_cnt = 1;
++	dev->num_comp_vectors = RXE_NUM_COMP_VECTORS;
++	dev->dma_device = rxe->ifc_ops->dma_device(rxe);
++	dev->local_dma_lkey = 0;
++	dev->node_guid = rxe->ifc_ops->node_guid(rxe);
++	dev->dma_ops = &rxe_dma_mapping_ops;
++
++	dev->uverbs_abi_ver = RXE_UVERBS_ABI_VERSION;
++	dev->uverbs_cmd_mask = BIT_ULL(IB_USER_VERBS_CMD_GET_CONTEXT)
++	    | BIT_ULL(IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL)
++	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_DEVICE)
++	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_PORT)
++	    | BIT_ULL(IB_USER_VERBS_CMD_ALLOC_PD)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DEALLOC_PD)
++	    | BIT_ULL(IB_USER_VERBS_CMD_CREATE_SRQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_MODIFY_SRQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_SRQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_SRQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_POST_SRQ_RECV)
++	    | BIT_ULL(IB_USER_VERBS_CMD_CREATE_QP)
++	    | BIT_ULL(IB_USER_VERBS_CMD_MODIFY_QP)
++	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_QP)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_QP)
++	    | BIT_ULL(IB_USER_VERBS_CMD_POST_SEND)
++	    | BIT_ULL(IB_USER_VERBS_CMD_POST_RECV)
++	    | BIT_ULL(IB_USER_VERBS_CMD_CREATE_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_RESIZE_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_POLL_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_PEEK_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_REQ_NOTIFY_CQ)
++	    | BIT_ULL(IB_USER_VERBS_CMD_REG_MR)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DEREG_MR)
++	    | BIT_ULL(IB_USER_VERBS_CMD_CREATE_AH)
++	    | BIT_ULL(IB_USER_VERBS_CMD_MODIFY_AH)
++	    | BIT_ULL(IB_USER_VERBS_CMD_QUERY_AH)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DESTROY_AH)
++	    | BIT_ULL(IB_USER_VERBS_CMD_ATTACH_MCAST)
++	    | BIT_ULL(IB_USER_VERBS_CMD_DETACH_MCAST)
++	    ;
++
++	dev->query_device = rxe_query_device;
++	dev->modify_device = rxe_modify_device;
++	dev->query_port = rxe_query_port;
++	dev->modify_port = rxe_modify_port;
++	dev->get_link_layer = rxe_get_link_layer;
++	dev->query_gid = rxe_query_gid;
++	dev->get_netdev = rxe_get_netdev;
++	dev->add_gid = rxe_add_gid;
++	dev->del_gid = rxe_del_gid;
++	dev->query_pkey = rxe_query_pkey;
++	dev->alloc_ucontext = rxe_alloc_ucontext;
++	dev->dealloc_ucontext = rxe_dealloc_ucontext;
++	dev->mmap = rxe_mmap;
++	dev->get_port_immutable = rxe_port_immutable;
++	dev->alloc_pd = rxe_alloc_pd;
++	dev->dealloc_pd = rxe_dealloc_pd;
++	dev->create_ah = rxe_create_ah;
++	dev->modify_ah = rxe_modify_ah;
++	dev->query_ah = rxe_query_ah;
++	dev->destroy_ah = rxe_destroy_ah;
++	dev->create_srq = rxe_create_srq;
++	dev->modify_srq = rxe_modify_srq;
++	dev->query_srq = rxe_query_srq;
++	dev->destroy_srq = rxe_destroy_srq;
++	dev->post_srq_recv = rxe_post_srq_recv;
++	dev->create_qp = rxe_create_qp;
++	dev->modify_qp = rxe_modify_qp;
++	dev->query_qp = rxe_query_qp;
++	dev->destroy_qp = rxe_destroy_qp;
++	dev->post_send = rxe_post_send;
++	dev->post_recv = rxe_post_recv;
++	dev->create_cq = rxe_create_cq;
++	dev->destroy_cq = rxe_destroy_cq;
++	dev->resize_cq = rxe_resize_cq;
++	dev->poll_cq = rxe_poll_cq;
++	dev->peek_cq = rxe_peek_cq;
++	dev->req_notify_cq = rxe_req_notify_cq;
++	dev->get_dma_mr = rxe_get_dma_mr;
++	dev->reg_user_mr = rxe_reg_user_mr;
++	dev->dereg_mr = rxe_dereg_mr;
++	dev->alloc_mr = rxe_alloc_mr;
++	dev->alloc_fmr = rxe_alloc_fmr;
++	dev->map_phys_fmr = rxe_map_phys_fmr;
++	dev->unmap_fmr = rxe_unmap_fmr;
++	dev->dealloc_fmr = rxe_dealloc_fmr;
++	dev->attach_mcast = rxe_attach_mcast;
++	dev->detach_mcast = rxe_detach_mcast;
++
++	err = ib_register_device(dev, NULL);
++	if (err) {
++		pr_warn("rxe_register_device failed, err = %d\n", err);
++		goto err1;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(rxe_dev_attributes); ++i) {
++		err = device_create_file(&dev->dev, rxe_dev_attributes[i]);
++		if (err) {
++			pr_warn("device_create_file failed, i = %d, err = %d\n",
++				i, err);
++			goto err2;
++		}
++	}
++
++	return 0;
++
++err2:
++	ib_unregister_device(dev);
++err1:
++	return err;
++}
++
++int rxe_unregister_device(struct rxe_dev *rxe)
++{
++	int i;
++	struct ib_device *dev = &rxe->ib_dev;
++
++	for (i = 0; i < ARRAY_SIZE(rxe_dev_attributes); ++i)
++		device_remove_file(&dev->dev, rxe_dev_attributes[i]);
++
++	ib_unregister_device(dev);
++
++	return 0;
++}
+diff --git a/drivers/infiniband/hw/rxe/rxe_verbs.h b/drivers/infiniband/hw/rxe/rxe_verbs.h
 new file mode 100644
-index 0000000..7b06f76
+index 0000000..ef73edb
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_net.h
-@@ -0,0 +1,53 @@
++++ b/drivers/infiniband/hw/rxe/rxe_verbs.h
+@@ -0,0 +1,486 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -780,9 +1398,9 @@ index 0000000..7b06f76
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -803,26 +1421,459 @@ index 0000000..7b06f76
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_NET_H
-+#define RXE_NET_H
++#ifndef RXE_VERBS_H
++#define RXE_VERBS_H
 +
-+#include <net/sock.h>
-+#include <net/if_inet6.h>
-+#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <rdma/ib_user_rxe.h>
++#include "rxe_pool.h"
++#include "rxe_task.h"
 +
-+struct rxe_recv_sockets {
-+	struct socket *sk4;
-+	struct socket *sk6;
++static inline int pkey_match(u16 key1, u16 key2)
++{
++	return (((key1 & 0x7fff) != 0) &&
++		((key1 & 0x7fff) == (key2 & 0x7fff)) &&
++		((key1 & 0x8000) || (key2 & 0x8000))) ? 1 : 0;
++}
++
++/* Return >0 if psn_a > psn_b
++ *	   0 if psn_a == psn_b
++ *	  <0 if psn_a < psn_b
++ */
++static inline int psn_compare(u32 psn_a, u32 psn_b)
++{
++	s32 diff;
++
++	diff = (psn_a - psn_b) << 8;
++	return diff;
++}
++
++struct rxe_ucontext {
++	struct rxe_pool_entry	pelem;
++	struct ib_ucontext	ibuc;
 +};
 +
-+extern struct rxe_recv_sockets recv_sockets;
++struct rxe_pd {
++	struct rxe_pool_entry	pelem;
++	struct ib_pd		ibpd;
++};
 +
-+struct rxe_dev *rxe_net_add(struct net_device *ndev);
++struct rxe_ah {
++	struct rxe_pool_entry	pelem;
++	struct ib_ah		ibah;
++	struct rxe_pd		*pd;
++	struct rxe_av		av;
++};
 +
-+int rxe_net_init(void);
-+void rxe_net_exit(void);
++struct rxe_cqe {
++	union {
++		struct ib_wc		ibwc;
++		struct ib_uverbs_wc	uibwc;
++	};
++};
 +
-+#endif /* RXE_NET_H */
++struct rxe_cq {
++	struct rxe_pool_entry	pelem;
++	struct ib_cq		ibcq;
++	struct rxe_queue	*queue;
++	spinlock_t		cq_lock;
++	u8			notify;
++	int			is_user;
++	struct tasklet_struct	comp_task;
++};
++
++enum wqe_state {
++	wqe_state_posted,
++	wqe_state_processing,
++	wqe_state_pending,
++	wqe_state_done,
++	wqe_state_error,
++};
++
++struct rxe_sq {
++	int			max_wr;
++	int			max_sge;
++	int			max_inline;
++	spinlock_t		sq_lock; /* guard queue */
++	struct rxe_queue	*queue;
++};
++
++struct rxe_rq {
++	int			max_wr;
++	int			max_sge;
++	spinlock_t		producer_lock; /* guard queue producer */
++	spinlock_t		consumer_lock; /* guard queue consumer */
++	struct rxe_queue	*queue;
++};
++
++struct rxe_srq {
++	struct rxe_pool_entry	pelem;
++	struct ib_srq		ibsrq;
++	struct rxe_pd		*pd;
++	struct rxe_rq		rq;
++	u32			srq_num;
++
++	int			limit;
++	int			error;
++};
++
++enum rxe_qp_state {
++	QP_STATE_RESET,
++	QP_STATE_INIT,
++	QP_STATE_READY,
++	QP_STATE_DRAIN,		/* req only */
++	QP_STATE_DRAINED,	/* req only */
++	QP_STATE_ERROR
++};
++
++extern char *rxe_qp_state_name[];
++
++struct rxe_req_info {
++	enum rxe_qp_state	state;
++	int			wqe_index;
++	u32			psn;
++	int			opcode;
++	atomic_t		rd_atomic;
++	int			wait_fence;
++	int			need_rd_atomic;
++	int			wait_psn;
++	int			need_retry;
++	int			noack_pkts;
++	struct rxe_task		task;
++};
++
++struct rxe_comp_info {
++	u32			psn;
++	int			opcode;
++	int			timeout;
++	int			timeout_retry;
++	u32			retry_cnt;
++	u32			rnr_retry;
++	struct rxe_task		task;
++};
++
++enum rdatm_res_state {
++	rdatm_res_state_next,
++	rdatm_res_state_new,
++	rdatm_res_state_replay,
++};
++
++struct resp_res {
++	int			type;
++	u32			first_psn;
++	u32			last_psn;
++	u32			cur_psn;
++	enum rdatm_res_state	state;
++
++	union {
++		struct {
++			struct sk_buff	*skb;
++		} atomic;
++		struct {
++			struct rxe_mem	*mr;
++			u64		va_org;
++			u32		rkey;
++			u32		length;
++			u64		va;
++			u32		resid;
++		} read;
++	};
++};
++
++struct rxe_resp_info {
++	enum rxe_qp_state	state;
++	u32			msn;
++	u32			psn;
++	int			opcode;
++	int			drop_msg;
++	int			goto_error;
++	int			sent_psn_nak;
++	enum ib_wc_status	status;
++	u8			aeth_syndrome;
++
++	/* Receive only */
++	struct rxe_recv_wqe	*wqe;
++
++	/* RDMA read / atomic only */
++	u64			va;
++	struct rxe_mem		*mr;
++	u32			resid;
++	u32			rkey;
++	u64			atomic_orig;
++
++	/* SRQ only */
++	struct {
++		struct rxe_recv_wqe	wqe;
++		struct ib_sge		sge[RXE_MAX_SGE];
++	} srq_wqe;
++
++	/* Responder resources. It's a circular list where the oldest
++	 * resource is dropped first.
++	 */
++	struct resp_res		*resources;
++	unsigned int		res_head;
++	unsigned int		res_tail;
++	struct resp_res		*res;
++	struct rxe_task		task;
++};
++
++struct rxe_qp {
++	struct rxe_pool_entry	pelem;
++	struct ib_qp		ibqp;
++	struct ib_qp_attr	attr;
++	unsigned int		valid;
++	unsigned int		mtu;
++	int			is_user;
++
++	struct rxe_pd		*pd;
++	struct rxe_srq		*srq;
++	struct rxe_cq		*scq;
++	struct rxe_cq		*rcq;
++
++	enum ib_sig_type	sq_sig_type;
++
++	struct rxe_sq		sq;
++	struct rxe_rq		rq;
++
++	struct socket		*sk;
++
++	struct rxe_av		pri_av;
++	struct rxe_av		alt_av;
++
++	/* list of mcast groups qp has joined (for cleanup) */
++	struct list_head	grp_list;
++	spinlock_t		grp_lock; /* guard grp_list */
++
++	struct sk_buff_head	req_pkts;
++	struct sk_buff_head	resp_pkts;
++	struct sk_buff_head	send_pkts;
++
++	struct rxe_req_info	req;
++	struct rxe_comp_info	comp;
++	struct rxe_resp_info	resp;
++
++	atomic_t		ssn;
++	atomic_t		skb_out;
++	int			need_req_skb;
++
++	/* Timer for retranmitting packet when ACKs have been lost. RC
++	 * only. The requester sets it when it is not already
++	 * started. The responder resets it whenever an ack is
++	 * received.
++	 */
++	struct timer_list retrans_timer;
++	u64 qp_timeout_jiffies;
++
++	/* Timer for handling RNR NAKS. */
++	struct timer_list rnr_nak_timer;
++
++	spinlock_t		state_lock; /* guard requester and completer */
++};
++
++enum rxe_mem_state {
++	RXE_MEM_STATE_ZOMBIE,
++	RXE_MEM_STATE_INVALID,
++	RXE_MEM_STATE_FREE,
++	RXE_MEM_STATE_VALID,
++};
++
++enum rxe_mem_type {
++	RXE_MEM_TYPE_NONE,
++	RXE_MEM_TYPE_DMA,
++	RXE_MEM_TYPE_MR,
++	RXE_MEM_TYPE_FMR,
++	RXE_MEM_TYPE_MW,
++};
++
++#define RXE_BUF_PER_MAP		(PAGE_SIZE / sizeof(struct rxe_phys_buf))
++
++struct rxe_phys_buf {
++	u64      addr;
++	u64      size;
++};
++
++struct rxe_map {
++	struct rxe_phys_buf	buf[RXE_BUF_PER_MAP];
++};
++
++struct rxe_mem {
++	struct rxe_pool_entry	pelem;
++	union {
++		struct ib_mr		ibmr;
++		struct ib_fmr		ibfmr;
++		struct ib_mw		ibmw;
++	};
++
++	struct rxe_pd		*pd;
++	struct ib_umem		*umem;
++
++	u32			lkey;
++	u32			rkey;
++
++	enum rxe_mem_state	state;
++	enum rxe_mem_type	type;
++	u64			va;
++	u64			iova;
++	size_t			length;
++	u32			offset;
++	int			access;
++
++	int			page_shift;
++	int			page_mask;
++	int			map_shift;
++	int			map_mask;
++
++	u32			num_buf;
++
++	u32			max_buf;
++	u32			num_map;
++
++	struct rxe_map		**map;
++};
++
++struct rxe_mc_grp {
++	struct rxe_pool_entry	pelem;
++	spinlock_t		mcg_lock; /* guard group */
++	struct rxe_dev		*rxe;
++	struct list_head	qp_list;
++	union ib_gid		mgid;
++	int			num_qp;
++	u32			qkey;
++	u16			pkey;
++};
++
++struct rxe_mc_elem {
++	struct rxe_pool_entry	pelem;
++	struct list_head	qp_list;
++	struct list_head	grp_list;
++	struct rxe_qp		*qp;
++	struct rxe_mc_grp	*grp;
++};
++
++struct rxe_port {
++	struct ib_port_attr	attr;
++	u16			*pkey_tbl;
++	__be64			port_guid;
++	__be64			subnet_prefix;
++	spinlock_t		port_lock; /* guard port */
++	unsigned int		mtu_cap;
++	/* special QPs */
++	u32			qp_smi_index;
++	u32			qp_gsi_index;
++};
++
++/* callbacks from ib_rxe to network interface layer */
++struct rxe_ifc_ops {
++	void (*release)(struct rxe_dev *rxe);
++	__be64 (*node_guid)(struct rxe_dev *rxe);
++	__be64 (*port_guid)(struct rxe_dev *rxe);
++	struct device *(*dma_device)(struct rxe_dev *rxe);
++	int (*mcast_add)(struct rxe_dev *rxe, union ib_gid *mgid);
++	int (*mcast_delete)(struct rxe_dev *rxe, union ib_gid *mgid);
++	int (*prepare)(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		       struct sk_buff *skb, u32 *crc);
++	int (*send)(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		    struct sk_buff *skb);
++	int (*loopback)(struct sk_buff *skb);
++	struct sk_buff *(*init_packet)(struct rxe_dev *rxe, struct rxe_av *av,
++				       int paylen, struct rxe_pkt_info *pkt);
++	char *(*parent_name)(struct rxe_dev *rxe, unsigned int port_num);
++	enum rdma_link_layer (*link_layer)(struct rxe_dev *rxe,
++					   unsigned int port_num);
++};
++
++struct rxe_dev {
++	struct ib_device	ib_dev;
++	struct ib_device_attr	attr;
++	int			max_ucontext;
++	int			max_inline_data;
++	struct kref		ref_cnt;
++	struct mutex	usdev_lock;
++
++	struct rxe_ifc_ops	*ifc_ops;
++
++	struct net_device	*ndev;
++
++	int			xmit_errors;
++
++	struct rxe_pool		uc_pool;
++	struct rxe_pool		pd_pool;
++	struct rxe_pool		ah_pool;
++	struct rxe_pool		srq_pool;
++	struct rxe_pool		qp_pool;
++	struct rxe_pool		cq_pool;
++	struct rxe_pool		mr_pool;
++	struct rxe_pool		mw_pool;
++	struct rxe_pool		fmr_pool;
++	struct rxe_pool		mc_grp_pool;
++	struct rxe_pool		mc_elem_pool;
++
++	spinlock_t		pending_lock; /* guard pending_mmaps */
++	struct list_head	pending_mmaps;
++
++	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
++	int			mmap_offset;
++
++	struct rxe_port		port;
++	struct list_head	list;
++};
++
++static inline struct rxe_dev *to_rdev(struct ib_device *dev)
++{
++	return dev ? container_of(dev, struct rxe_dev, ib_dev) : NULL;
++}
++
++static inline struct rxe_ucontext *to_ruc(struct ib_ucontext *uc)
++{
++	return uc ? container_of(uc, struct rxe_ucontext, ibuc) : NULL;
++}
++
++static inline struct rxe_pd *to_rpd(struct ib_pd *pd)
++{
++	return pd ? container_of(pd, struct rxe_pd, ibpd) : NULL;
++}
++
++static inline struct rxe_ah *to_rah(struct ib_ah *ah)
++{
++	return ah ? container_of(ah, struct rxe_ah, ibah) : NULL;
++}
++
++static inline struct rxe_srq *to_rsrq(struct ib_srq *srq)
++{
++	return srq ? container_of(srq, struct rxe_srq, ibsrq) : NULL;
++}
++
++static inline struct rxe_qp *to_rqp(struct ib_qp *qp)
++{
++	return qp ? container_of(qp, struct rxe_qp, ibqp) : NULL;
++}
++
++static inline struct rxe_cq *to_rcq(struct ib_cq *cq)
++{
++	return cq ? container_of(cq, struct rxe_cq, ibcq) : NULL;
++}
++
++static inline struct rxe_mem *to_rmr(struct ib_mr *mr)
++{
++	return mr ? container_of(mr, struct rxe_mem, ibmr) : NULL;
++}
++
++static inline struct rxe_mem *to_rfmr(struct ib_fmr *fmr)
++{
++	return fmr ? container_of(fmr, struct rxe_mem, ibfmr) : NULL;
++}
++
++static inline struct rxe_mem *to_rmw(struct ib_mw *mw)
++{
++	return mw ? container_of(mw, struct rxe_mem, ibmw) : NULL;
++}
++
++int rxe_register_device(struct rxe_dev *rxe);
++int rxe_unregister_device(struct rxe_dev *rxe);
++
++void rxe_mc_cleanup(void *arg);
++
++#endif /* RXE_VERBS_H */
 -- 
 1.8.3.1
 
