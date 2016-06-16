@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 15/29] IB/rxe: Completion Queue (CQ) manipulation functions
-Date: Thu, 16 Jun 2016 16:45:37 +0300
-Message-ID: <1466084751-29901-16-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 24/29] IB/rxe: Invariant CRC implementation
+Date: Thu, 16 Jun 2016 16:45:46 +0300
+Message-ID: <1466084751-29901-25-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,22 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Implementation of completion queue logic in Soft RoCE.
+Compute and match ICRC as defined in spec for sent and received packets.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_cq.c | 165 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 165 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_cq.c
+ drivers/infiniband/hw/rxe/rxe_icrc.c | 96 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_icrc.c
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_cq.c b/drivers/infiniband/hw/rxe/rxe_cq.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_icrc.c b/drivers/infiniband/hw/rxe/rxe_icrc.c
 new file mode 100644
-index 0000000..e5e6a5e
+index 0000000..413b56b
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_cq.c
-@@ -0,0 +1,165 @@
++++ b/drivers/infiniband/hw/rxe/rxe_icrc.c
+@@ -0,0 +1,96 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -37,9 +36,9 @@ index 0000000..e5e6a5e
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -62,135 +61,66 @@ index 0000000..e5e6a5e
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata)
++/* Compute a partial ICRC for all the IB transport headers. */
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
 +{
-+	int count;
-+
-+	if (cqe <= 0) {
-+		pr_warn("cqe(%d) <= 0\n", cqe);
-+		goto err1;
-+	}
-+
-+	if (cqe > rxe->attr.max_cqe) {
-+		pr_warn("cqe(%d) > max_cqe(%d)\n",
-+			cqe, rxe->attr.max_cqe);
-+		goto err1;
-+	}
-+
-+	if (cq) {
-+		count = queue_count(cq->queue);
-+		if (cqe < count) {
-+			pr_warn("cqe(%d) < current # elements in queue (%d)",
-+				cqe, count);
-+			goto err1;
-+		}
-+	}
-+
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
-+}
-+
-+static void rxe_send_complete(unsigned long data)
-+{
-+	struct rxe_cq *cq = (struct rxe_cq *)data;
-+
-+	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+}
-+
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata)
-+{
-+	int err;
-+
-+	cq->queue = rxe_queue_init(rxe, &cqe,
-+				   sizeof(struct rxe_cqe));
-+	if (!cq->queue) {
-+		pr_warn("unable to create cq\n");
-+		return -ENOMEM;
-+	}
-+
-+	err = do_mmap_info(rxe, udata, false, context, cq->queue->buf,
-+			   cq->queue->buf_size, &cq->queue->ip);
-+	if (err) {
-+		kvfree(cq->queue->buf);
-+		kfree(cq->queue);
-+		return err;
-+	}
-+
-+	if (udata)
-+		cq->is_user = 1;
-+
-+	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
-+
-+	spin_lock_init(&cq->cq_lock);
-+	cq->ibcq.cqe = cqe;
-+	return 0;
-+}
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
-+{
-+	int err;
-+
-+	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-+			       sizeof(struct rxe_cqe),
-+			       cq->queue->ip ? cq->queue->ip->context : NULL,
-+			       udata, NULL, &cq->cq_lock);
-+	if (!err)
-+		cq->ibcq.cqe = cqe;
-+
-+	return err;
-+}
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
-+{
-+	struct ib_event ev;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+
-+	if (unlikely(queue_full(cq->queue))) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
-+		}
-+
-+		return -EBUSY;
-+	}
-+
-+	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
-+
-+	/* make sure all changes to the CQ are written before we update the
-+	 * producer pointer
++	unsigned int bth_offset = 0;
++	struct iphdr *ip4h = NULL;
++	struct ipv6hdr *ip6h = NULL;
++	struct udphdr *udph;
++	struct rxe_bth *bth;
++	int crc;
++	int length;
++	int hdr_size = sizeof(struct udphdr) +
++		(skb->protocol == htons(ETH_P_IP) ?
++		sizeof(struct iphdr) : sizeof(struct ipv6hdr));
++	/* pseudo header buffer size is calculate using ipv6 header size since
++	 * it is bigger than ipv4
 +	 */
-+	smp_wmb();
++	u8 pshdr[sizeof(struct udphdr) +
++		sizeof(struct ipv6hdr) +
++		RXE_BTH_BYTES];
 +
-+	advance_producer(cq->queue);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH.
++	 */
++	crc = 0xdebb20e3;
 +
-+	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-+	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
-+		cq->notify = 0;
-+		tasklet_schedule(&cq->comp_task);
++	if (skb->protocol == htons(ETH_P_IP)) { /* IPv4 */
++		memcpy(pshdr, ip_hdr(skb), hdr_size);
++		ip4h = (struct iphdr *)pshdr;
++		udph = (struct udphdr *)(ip4h + 1);
++
++		ip4h->ttl = 0xff;
++		ip4h->check = CSUM_MANGLED_0;
++		ip4h->tos = 0xff;
++	} else {				/* IPv6 */
++		memcpy(pshdr, ipv6_hdr(skb), hdr_size);
++		ip6h = (struct ipv6hdr *)pshdr;
++		udph = (struct udphdr *)(ip6h + 1);
++
++		memset(ip6h->flow_lbl, 0xff, sizeof(ip6h->flow_lbl));
++		ip6h->priority = 0xf;
++		ip6h->hop_limit = 0xff;
 +	}
++	udph->check = CSUM_MANGLED_0;
 +
-+	return 0;
-+}
++	bth_offset += hdr_size;
 +
-+void rxe_cq_cleanup(void *arg)
-+{
-+	struct rxe_cq *cq = arg;
++	memcpy(&pshdr[bth_offset], pkt->hdr, RXE_BTH_BYTES);
++	bth = (struct rxe_bth *)&pshdr[bth_offset];
 +
-+	if (cq->queue)
-+		rxe_queue_cleanup(cq->queue);
++	/* exclude bth.resv8a */
++	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
++
++	length = hdr_size + RXE_BTH_BYTES;
++	crc = crc32_le(crc, pshdr, length);
++
++	/* And finish to compute the CRC on the remainder of the headers. */
++	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
++		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
++	return crc;
 +}
 -- 
 1.8.3.1
