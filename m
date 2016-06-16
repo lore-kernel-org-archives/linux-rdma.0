@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 14/29] IB/rxe: Shared Receive Queue (SRQ) manipulation functions
-Date: Thu, 16 Jun 2016 16:45:36 +0300
-Message-ID: <1466084751-29901-15-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 11/29] IB/rxe: Allocation pool for RDMA objects
+Date: Thu, 16 Jun 2016 16:45:33 +0300
+Message-ID: <1466084751-29901-12-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,23 +10,28 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions to manipulate SRQ.
+Manage and allocate pool of objects with given limit on number of
+elements.  Gets parameters from rxe_type_info. Pool elements are
+allocated out of a slab cache.  Objects that are using this facility
+are: PD, QP, SRQ, CQ, MR, FMR, MW, etc.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_srq.c | 193 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 193 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_srq.c
+ drivers/infiniband/hw/rxe/rxe_pool.c | 510 +++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_pool.h | 164 +++++++++++
+ 2 files changed, 674 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.h
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_srq.c b/drivers/infiniband/hw/rxe/rxe_srq.c
+diff --git a/drivers/infiniband/hw/rxe/rxe_pool.c b/drivers/infiniband/hw/rxe/rxe_pool.c
 new file mode 100644
-index 0000000..2a6e3cd
+index 0000000..cd37d4f
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_srq.c
-@@ -0,0 +1,193 @@
++++ b/drivers/infiniband/hw/rxe/rxe_pool.c
+@@ -0,0 +1,510 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -37,18 +42,18 @@ index 0000000..2a6e3cd
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
 + *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -62,164 +67,651 @@ index 0000000..2a6e3cd
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
 +
-+int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
++/* info about object pools
++ * note that mr, fmr and mw share a single index space
++ * so that one can map an lkey to the correct type of object
++ */
++struct rxe_type_info rxe_type_info[RXE_NUM_TYPES] = {
++	[RXE_TYPE_UC] = {
++		.name		= "rxe-uc",
++		.size		= sizeof(struct rxe_ucontext),
++	},
++	[RXE_TYPE_PD] = {
++		.name		= "rxe-pd",
++		.size		= sizeof(struct rxe_pd),
++	},
++	[RXE_TYPE_AH] = {
++		.name		= "rxe-ah",
++		.size		= sizeof(struct rxe_ah),
++		.flags		= RXE_POOL_ATOMIC,
++	},
++	[RXE_TYPE_SRQ] = {
++		.name		= "rxe-srq",
++		.size		= sizeof(struct rxe_srq),
++		.flags		= RXE_POOL_INDEX,
++		.min_index	= RXE_MIN_SRQ_INDEX,
++		.max_index	= RXE_MAX_SRQ_INDEX,
++	},
++	[RXE_TYPE_QP] = {
++		.name		= "rxe-qp",
++		.size		= sizeof(struct rxe_qp),
++		.cleanup	= rxe_qp_cleanup,
++		.flags		= RXE_POOL_INDEX,
++		.min_index	= RXE_MIN_QP_INDEX,
++		.max_index	= RXE_MAX_QP_INDEX,
++	},
++	[RXE_TYPE_CQ] = {
++		.name		= "rxe-cq",
++		.size		= sizeof(struct rxe_cq),
++		.cleanup	= rxe_cq_cleanup,
++	},
++	[RXE_TYPE_MR] = {
++		.name		= "rxe-mr",
++		.size		= sizeof(struct rxe_mem),
++		.cleanup	= rxe_mem_cleanup,
++		.flags		= RXE_POOL_INDEX,
++		.max_index	= RXE_MAX_MR_INDEX,
++		.min_index	= RXE_MIN_MR_INDEX,
++	},
++	[RXE_TYPE_FMR] = {
++		.name		= "rxe-fmr",
++		.size		= sizeof(struct rxe_mem),
++		.cleanup	= rxe_mem_cleanup,
++		.flags		= RXE_POOL_INDEX,
++		.max_index	= RXE_MAX_FMR_INDEX,
++		.min_index	= RXE_MIN_FMR_INDEX,
++	},
++	[RXE_TYPE_MW] = {
++		.name		= "rxe-mw",
++		.size		= sizeof(struct rxe_mem),
++		.flags		= RXE_POOL_INDEX,
++		.max_index	= RXE_MAX_MW_INDEX,
++		.min_index	= RXE_MIN_MW_INDEX,
++	},
++	[RXE_TYPE_MC_GRP] = {
++		.name		= "rxe-mc_grp",
++		.size		= sizeof(struct rxe_mc_grp),
++		.cleanup	= rxe_mc_cleanup,
++		.flags		= RXE_POOL_KEY,
++		.key_offset	= offsetof(struct rxe_mc_grp, mgid),
++		.key_size	= sizeof(union ib_gid),
++	},
++	[RXE_TYPE_MC_ELEM] = {
++		.name		= "rxe-mc_elem",
++		.size		= sizeof(struct rxe_mc_elem),
++		.flags		= RXE_POOL_ATOMIC,
++	},
++};
++
++static inline char *pool_name(struct rxe_pool *pool)
 +{
-+	if (srq && srq->error) {
-+		pr_warn("srq in error state\n");
-+		goto err1;
-+	}
++	return rxe_type_info[pool->type].name;
++}
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		if (attr->max_wr > rxe->attr.max_srq_wr) {
-+			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+				attr->max_wr, rxe->attr.max_srq_wr);
++static inline struct kmem_cache *pool_cache(struct rxe_pool *pool)
++{
++	return rxe_type_info[pool->type].cache;
++}
++
++static inline enum rxe_elem_type rxe_type(void *arg)
++{
++	struct rxe_pool_entry *elem = arg;
++
++	return elem->pool->type;
++}
++
++int rxe_cache_init(void)
++{
++	int err;
++	int i;
++	size_t size;
++	struct rxe_type_info *type;
++
++	for (i = 0; i < RXE_NUM_TYPES; i++) {
++		type = &rxe_type_info[i];
++		size = ALIGN(type->size, RXE_POOL_ALIGN);
++		type->cache = kmem_cache_create(type->name, size,
++				RXE_POOL_ALIGN,
++				RXE_POOL_CACHE_FLAGS, NULL);
++		if (!type->cache) {
++			pr_err("Unable to init kmem cache for %s\n",
++			       type->name);
++			err = -ENOMEM;
 +			goto err1;
 +		}
-+
-+		if (attr->max_wr <= 0) {
-+			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+			goto err1;
-+		}
-+
-+		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
-+			pr_warn("max_wr (%d) < srq->limit (%d)\n",
-+				attr->max_wr, srq->limit);
-+			goto err1;
-+		}
-+
-+		if (attr->max_wr < RXE_MIN_SRQ_WR)
-+			attr->max_wr = RXE_MIN_SRQ_WR;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT) {
-+		if (attr->srq_limit > rxe->attr.max_srq_wr) {
-+			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
-+				attr->srq_limit, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
-+
-+		if (srq && (attr->srq_limit > srq->rq.queue->buf->index_mask)) {
-+			pr_warn("srq_limit (%d) > cur limit(%d)\n",
-+				attr->srq_limit,
-+				 srq->rq.queue->buf->index_mask);
-+			goto err1;
-+		}
-+	}
-+
-+	if (mask == IB_SRQ_INIT_MASK) {
-+		if (attr->max_sge > rxe->attr.max_srq_sge) {
-+			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
-+				attr->max_sge, rxe->attr.max_srq_sge);
-+			goto err1;
-+		}
-+
-+		if (attr->max_sge < RXE_MIN_SRQ_SGE)
-+			attr->max_sge = RXE_MIN_SRQ_SGE;
 +	}
 +
 +	return 0;
 +
 +err1:
-+	return -EINVAL;
-+}
-+
-+int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata)
-+{
-+	int err;
-+	int srq_wqe_size;
-+	struct rxe_queue *q;
-+
-+	srq->ibsrq.event_handler	= init->event_handler;
-+	srq->ibsrq.srq_context		= init->srq_context;
-+	srq->limit		= init->attr.srq_limit;
-+	srq->srq_num		= srq->pelem.index;
-+	srq->rq.max_wr		= init->attr.max_wr;
-+	srq->rq.max_sge		= init->attr.max_sge;
-+
-+	srq_wqe_size		= rcv_wqe_size(srq->rq.max_sge);
-+
-+	spin_lock_init(&srq->rq.producer_lock);
-+	spin_lock_init(&srq->rq.consumer_lock);
-+
-+	q = rxe_queue_init(rxe, &srq->rq.max_wr,
-+			   srq_wqe_size);
-+	if (!q) {
-+		pr_warn("unable to allocate queue for srq\n");
-+		return -ENOMEM;
++	while (--i >= 0) {
++		kmem_cache_destroy(type->cache);
++		type->cache = NULL;
 +	}
 +
-+	srq->rq.queue = q;
-+
-+	err = do_mmap_info(rxe, udata, false, context, q->buf,
-+			   q->buf_size, &q->ip);
-+	if (err)
-+		return err;
-+
-+	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32)) {
-+		if (copy_to_user(udata->outbuf + sizeof(struct mminfo),
-+				 &srq->srq_num, sizeof(u32)))
-+			return -EFAULT;
-+	}
-+	return 0;
-+}
-+
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata)
-+{
-+	int err;
-+	struct rxe_queue *q = srq->rq.queue;
-+	struct mminfo mi = { .offset = 1, .size = 0};
-+
-+	if (mask & IB_SRQ_MAX_WR) {
-+		/* Check that we can write the mminfo struct to user space */
-+		if (udata && udata->inlen >= sizeof(__u64)) {
-+			__u64 mi_addr;
-+
-+			/* Get address of user space mminfo struct */
-+			err = ib_copy_from_udata(&mi_addr, udata,
-+						 sizeof(mi_addr));
-+			if (err)
-+				goto err1;
-+
-+			udata->outbuf = (void __user *)(unsigned long)mi_addr;
-+			udata->outlen = sizeof(mi);
-+
-+			if (!access_ok(VERIFY_WRITE,
-+				       (void __user *)udata->outbuf,
-+					udata->outlen)) {
-+				err = -EFAULT;
-+				goto err1;
-+			}
-+		}
-+
-+		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
-+				       rcv_wqe_size(srq->rq.max_sge),
-+				       srq->rq.queue->ip ?
-+						srq->rq.queue->ip->context :
-+						NULL,
-+				       udata, &srq->rq.producer_lock,
-+				       &srq->rq.consumer_lock);
-+		if (err)
-+			goto err2;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT)
-+		srq->limit = attr->srq_limit;
-+
-+	return 0;
-+
-+err2:
-+	rxe_queue_cleanup(q);
-+	srq->rq.queue = NULL;
-+err1:
 +	return err;
 +}
++
++void rxe_cache_exit(void)
++{
++	int i;
++	struct rxe_type_info *type;
++
++	for (i = 0; i < RXE_NUM_TYPES; i++) {
++		type = &rxe_type_info[i];
++		kmem_cache_destroy(type->cache);
++		type->cache = NULL;
++	}
++}
++
++static int rxe_pool_init_index(struct rxe_pool *pool, u32 max, u32 min)
++{
++	int err = 0;
++	size_t size;
++
++	if ((max - min + 1) < pool->max_elem) {
++		pr_warn("not enough indices for max_elem\n");
++		err = -EINVAL;
++		goto out;
++	}
++
++	pool->max_index = max;
++	pool->min_index = min;
++
++	size = BITS_TO_LONGS(max - min + 1) * sizeof(long);
++	pool->table = kmalloc(size, GFP_KERNEL);
++	if (!pool->table) {
++		pr_warn("no memory for bit table\n");
++		err = -ENOMEM;
++		goto out;
++	}
++
++	pool->table_size = size;
++	bitmap_zero(pool->table, max - min + 1);
++
++out:
++	return err;
++}
++
++int rxe_pool_init(
++	struct rxe_dev		*rxe,
++	struct rxe_pool		*pool,
++	enum rxe_elem_type	type,
++	unsigned		max_elem)
++{
++	int			err = 0;
++	size_t			size = rxe_type_info[type].size;
++
++	memset(pool, 0, sizeof(*pool));
++
++	pool->rxe		= rxe;
++	pool->type		= type;
++	pool->max_elem		= max_elem;
++	pool->elem_size		= ALIGN(size, RXE_POOL_ALIGN);
++	pool->flags		= rxe_type_info[type].flags;
++	pool->tree		= RB_ROOT;
++	pool->cleanup		= rxe_type_info[type].cleanup;
++
++	atomic_set(&pool->num_elem, 0);
++
++	kref_init(&pool->ref_cnt);
++
++	spin_lock_init(&pool->pool_lock);
++
++	if (rxe_type_info[type].flags & RXE_POOL_INDEX) {
++		err = rxe_pool_init_index(pool,
++					  rxe_type_info[type].max_index,
++					  rxe_type_info[type].min_index);
++		if (err)
++			goto out;
++	}
++
++	if (rxe_type_info[type].flags & RXE_POOL_KEY) {
++		pool->key_offset = rxe_type_info[type].key_offset;
++		pool->key_size = rxe_type_info[type].key_size;
++	}
++
++	pool->state = rxe_pool_valid;
++
++out:
++	return err;
++}
++
++static void rxe_pool_release(struct kref *kref)
++{
++	struct rxe_pool *pool = container_of(kref, struct rxe_pool, ref_cnt);
++
++	pool->state = rxe_pool_invalid;
++	kfree(pool->table);
++}
++
++static void rxe_pool_put(struct rxe_pool *pool)
++{
++	kref_put(&pool->ref_cnt, rxe_pool_release);
++}
++
++int rxe_pool_cleanup(struct rxe_pool *pool)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	pool->state = rxe_pool_invalid;
++	if (atomic_read(&pool->num_elem) > 0)
++		pr_warn("%s pool destroyed with unfree'd elem\n",
++			pool_name(pool));
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++
++	rxe_pool_put(pool);
++
++	return 0;
++}
++
++static u32 alloc_index(struct rxe_pool *pool)
++{
++	u32 index;
++	u32 range = pool->max_index - pool->min_index + 1;
++
++	index = find_next_zero_bit(pool->table, range, pool->last);
++	if (index >= range)
++		index = find_first_zero_bit(pool->table, range);
++
++	set_bit(index, pool->table);
++	pool->last = index;
++	return index + pool->min_index;
++}
++
++static void insert_index(struct rxe_pool *pool, struct rxe_pool_entry *new)
++{
++	struct rb_node **link = &pool->tree.rb_node;
++	struct rb_node *parent = NULL;
++	struct rxe_pool_entry *elem;
++
++	while (*link) {
++		parent = *link;
++		elem = rb_entry(parent, struct rxe_pool_entry, node);
++
++		if (elem->index == new->index) {
++			pr_warn("element already exists!\n");
++			goto out;
++		}
++
++		if (elem->index > new->index)
++			link = &(*link)->rb_left;
++		else
++			link = &(*link)->rb_right;
++	}
++
++	rb_link_node(&new->node, parent, link);
++	rb_insert_color(&new->node, &pool->tree);
++out:
++	return;
++}
++
++static void insert_key(struct rxe_pool *pool, struct rxe_pool_entry *new)
++{
++	struct rb_node **link = &pool->tree.rb_node;
++	struct rb_node *parent = NULL;
++	struct rxe_pool_entry *elem;
++	int cmp;
++
++	while (*link) {
++		parent = *link;
++		elem = rb_entry(parent, struct rxe_pool_entry, node);
++
++		cmp = memcmp((u8 *)elem + pool->key_offset,
++			     (u8 *)new + pool->key_offset, pool->key_size);
++
++		if (cmp == 0) {
++			pr_warn("key already exists!\n");
++			goto out;
++		}
++
++		if (cmp > 0)
++			link = &(*link)->rb_left;
++		else
++			link = &(*link)->rb_right;
++	}
++
++	rb_link_node(&new->node, parent, link);
++	rb_insert_color(&new->node, &pool->tree);
++out:
++	return;
++}
++
++void rxe_add_key(void *arg, void *key)
++{
++	struct rxe_pool_entry *elem = arg;
++	struct rxe_pool *pool = elem->pool;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	memcpy((u8 *)elem + pool->key_offset, key, pool->key_size);
++	insert_key(pool, elem);
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++}
++
++void rxe_drop_key(void *arg)
++{
++	struct rxe_pool_entry *elem = arg;
++	struct rxe_pool *pool = elem->pool;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	rb_erase(&elem->node, &pool->tree);
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++}
++
++void rxe_add_index(void *arg)
++{
++	struct rxe_pool_entry *elem = arg;
++	struct rxe_pool *pool = elem->pool;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	elem->index = alloc_index(pool);
++	insert_index(pool, elem);
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++}
++
++void rxe_drop_index(void *arg)
++{
++	struct rxe_pool_entry *elem = arg;
++	struct rxe_pool *pool = elem->pool;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	clear_bit(elem->index - pool->min_index, pool->table);
++	rb_erase(&elem->node, &pool->tree);
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++}
++
++void *rxe_alloc(struct rxe_pool *pool)
++{
++	struct rxe_pool_entry *elem;
++	unsigned long flags;
++
++	might_sleep_if(!(pool->flags & RXE_POOL_ATOMIC));
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++	if (pool->state != rxe_pool_valid) {
++		spin_unlock_irqrestore(&pool->pool_lock, flags);
++		return NULL;
++	}
++	kref_get(&pool->ref_cnt);
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++
++	kref_get(&pool->rxe->ref_cnt);
++
++	if (atomic_inc_return(&pool->num_elem) > pool->max_elem) {
++		atomic_dec(&pool->num_elem);
++		rxe_dev_put(pool->rxe);
++		rxe_pool_put(pool);
++		return NULL;
++	}
++
++	elem = kmem_cache_zalloc(pool_cache(pool),
++				 (pool->flags & RXE_POOL_ATOMIC) ?
++				 GFP_ATOMIC : GFP_KERNEL);
++
++	elem->pool = pool;
++	kref_init(&elem->ref_cnt);
++
++	return elem;
++}
++
++void rxe_elem_release(struct kref *kref)
++{
++	struct rxe_pool_entry *elem =
++		container_of(kref, struct rxe_pool_entry, ref_cnt);
++	struct rxe_pool *pool = elem->pool;
++
++	if (pool->cleanup)
++		pool->cleanup(elem);
++
++	kmem_cache_free(pool_cache(pool), elem);
++	atomic_dec(&pool->num_elem);
++	rxe_dev_put(pool->rxe);
++	rxe_pool_put(pool);
++}
++
++void *rxe_pool_get_index(struct rxe_pool *pool, u32 index)
++{
++	struct rb_node *node = NULL;
++	struct rxe_pool_entry *elem = NULL;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++
++	if (pool->state != rxe_pool_valid)
++		goto out;
++
++	node = pool->tree.rb_node;
++
++	while (node) {
++		elem = rb_entry(node, struct rxe_pool_entry, node);
++
++		if (elem->index > index)
++			node = node->rb_left;
++		else if (elem->index < index)
++			node = node->rb_right;
++		else
++			break;
++	}
++
++	if (node)
++		kref_get(&elem->ref_cnt);
++
++out:
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++	return node ? (void *)elem : NULL;
++}
++
++void *rxe_pool_get_key(struct rxe_pool *pool, void *key)
++{
++	struct rb_node *node = NULL;
++	struct rxe_pool_entry *elem = NULL;
++	int cmp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pool->pool_lock, flags);
++
++	if (pool->state != rxe_pool_valid)
++		goto out;
++
++	node = pool->tree.rb_node;
++
++	while (node) {
++		elem = rb_entry(node, struct rxe_pool_entry, node);
++
++		cmp = memcmp((u8 *)elem + pool->key_offset,
++			     key, pool->key_size);
++
++		if (cmp > 0)
++			node = node->rb_left;
++		else if (cmp < 0)
++			node = node->rb_right;
++		else
++			break;
++	}
++
++	if (node)
++		kref_get(&elem->ref_cnt);
++
++out:
++	spin_unlock_irqrestore(&pool->pool_lock, flags);
++	return node ? ((void *)elem) : NULL;
++}
+diff --git a/drivers/infiniband/hw/rxe/rxe_pool.h b/drivers/infiniband/hw/rxe/rxe_pool.h
+new file mode 100644
+index 0000000..43476b5
+--- /dev/null
++++ b/drivers/infiniband/hw/rxe/rxe_pool.h
+@@ -0,0 +1,164 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
++ * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
++ *
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
++ *
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef RXE_POOL_H
++#define RXE_POOL_H
++
++#define RXE_POOL_ALIGN		(16)
++#define RXE_POOL_CACHE_FLAGS	(0)
++
++enum rxe_pool_flags {
++	RXE_POOL_ATOMIC		= BIT(0),
++	RXE_POOL_INDEX		= BIT(1),
++	RXE_POOL_KEY		= BIT(2),
++};
++
++enum rxe_elem_type {
++	RXE_TYPE_UC,
++	RXE_TYPE_PD,
++	RXE_TYPE_AH,
++	RXE_TYPE_SRQ,
++	RXE_TYPE_QP,
++	RXE_TYPE_CQ,
++	RXE_TYPE_MR,
++	RXE_TYPE_MW,
++	RXE_TYPE_FMR,
++	RXE_TYPE_MC_GRP,
++	RXE_TYPE_MC_ELEM,
++	RXE_NUM_TYPES,		/* keep me last */
++};
++
++struct rxe_type_info {
++	char			*name;
++	size_t			size;
++	void			(*cleanup)(void *obj);
++	enum rxe_pool_flags	flags;
++	u32			max_index;
++	u32			min_index;
++	size_t			key_offset;
++	size_t			key_size;
++	struct kmem_cache	*cache;
++};
++
++extern struct rxe_type_info rxe_type_info[];
++
++enum rxe_pool_state {
++	rxe_pool_invalid,
++	rxe_pool_valid,
++};
++
++struct rxe_pool_entry {
++	struct rxe_pool		*pool;
++	struct kref		ref_cnt;
++	struct list_head	list;
++
++	/* only used if indexed or keyed */
++	struct rb_node		node;
++	u32			index;
++};
++
++struct rxe_pool {
++	struct rxe_dev		*rxe;
++	spinlock_t              pool_lock; /* pool spinlock */
++	size_t			elem_size;
++	struct kref		ref_cnt;
++	void			(*cleanup)(void *obj);
++	enum rxe_pool_state	state;
++	enum rxe_pool_flags	flags;
++	enum rxe_elem_type	type;
++
++	unsigned int		max_elem;
++	atomic_t		num_elem;
++
++	/* only used if indexed or keyed */
++	struct rb_root		tree;
++	unsigned long		*table;
++	size_t			table_size;
++	u32			max_index;
++	u32			min_index;
++	u32			last;
++	size_t			key_offset;
++	size_t			key_size;
++};
++
++/* initialize slab caches for managed objects */
++int rxe_cache_init(void);
++
++/* cleanup slab caches for managed objects */
++void rxe_cache_exit(void);
++
++/* initialize a pool of objects with given limit on
++ * number of elements. gets parameters from rxe_type_info
++ * pool elements will be allocated out of a slab cache
++ */
++int rxe_pool_init(struct rxe_dev *rxe, struct rxe_pool *pool,
++		  enum rxe_elem_type type, u32 max_elem);
++
++/* free resources from object pool */
++int rxe_pool_cleanup(struct rxe_pool *pool);
++
++/* allocate an object from pool */
++void *rxe_alloc(struct rxe_pool *pool);
++
++/* assign an index to an indexed object and insert object into
++ *  pool's rb tree
++ */
++void rxe_add_index(void *elem);
++
++/* drop an index and remove object from rb tree */
++void rxe_drop_index(void *elem);
++
++/* assign a key to a keyed object and insert object into
++ *  pool's rb tree
++ */
++void rxe_add_key(void *elem, void *key);
++
++/* remove elem from rb tree */
++void rxe_drop_key(void *elem);
++
++/* lookup an indexed object from index. takes a reference on object */
++void *rxe_pool_get_index(struct rxe_pool *pool, u32 index);
++
++/* lookup keyed object from key. takes a reference on the object */
++void *rxe_pool_get_key(struct rxe_pool *pool, void *key);
++
++/* cleanup an object when all references are dropped */
++void rxe_elem_release(struct kref *kref);
++
++/* take a reference on an object */
++#define rxe_add_ref(elem) kref_get(&(elem)->pelem.ref_cnt)
++
++/* drop a reference on an object */
++#define rxe_drop_ref(elem) kref_put(&(elem)->pelem.ref_cnt, rxe_elem_release)
++
++#endif /* RXE_POOL_H */
 -- 
 1.8.3.1
 
