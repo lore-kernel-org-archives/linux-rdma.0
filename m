@@ -1,108 +1,218 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V1 01/13] IB/core: Add get FW version string to the core
-Date: Thu, 16 Jun 2016 12:46:31 +0300
-Message-ID: <20160616094631.GV5408@leon.nu>
-References: <1465971728-24104-1-git-send-email-ira.weiny@intel.com>
- <1465971728-24104-2-git-send-email-ira.weiny@intel.com>
- <20160615064008.GS5408@leon.nu>
- <20160615152048.GB8690@phlsvsds.ph.intel.com>
- <20160615165106.GA10256@obsidianresearch.com>
- <20160615232602.GA4034@phlsvsds.ph.intel.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XQSDX3NWE02rtiZq"
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2 rdma-next 00/29] Soft RoCE driver
+Date: Thu, 16 Jun 2016 16:45:22 +0300
+Message-ID: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160615232602.GA4034-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug
 
---XQSDX3NWE02rtiZq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Soft RoCE (RXE) - The software RoCE driver
 
-On Wed, Jun 15, 2016 at 07:26:03PM -0400, ira.weiny wrote:
-> On Wed, Jun 15, 2016 at 10:51:06AM -0600, Jason Gunthorpe wrote:
-> > On Wed, Jun 15, 2016 at 11:20:49AM -0400, ira.weiny wrote:
-> > > The default here is that a device does not provide a firmware string.=
-  In that
-> > > case the assumption is that there is no firmware.  Hence the empty st=
-ring.  I
-> > > don't think that reporting 0's or F's are appropriate if a device doe=
-s not have
-> > > firmware.
-> > >=20
-> > > In the cases you speak of I would expect the device to supply the fir=
-mware
-> > > function and report all 0s or all Fs for whatever version that may re=
-present.
-> > > (I'm assuming that would be some sort of debug or unreleased firmware=
-=2E..)
-> > >=20
-> > > I could just as well done something like.
-> > >=20
-> > > snprintf(str, str_len, "<none>");
-> >=20
-> > Just don't provide a 'fw' sysfs file at all if the driver cannot
-> > support it.
->=20
-> This function is supporting both sysfs and ethtool.
->=20
-> ethtool_drvinfo->fw_version is normally up to the device.  I've just prov=
-ided a
-> default.
->=20
-> For example I see "N/A", "n/a", and "none" all used in the network stack.
->=20
-> ./ethernet/freescale/gianfar_ethtool.c: strlcpy(drvinfo->fw_version, "N/A=
-", sizeof(drvinfo->fw_version));
->=20
-> ./rionet.c:     strlcpy(info->fw_version, "n/a", sizeof(info->fw_version)=
-);
->=20
-> ./fjes/fjes_ethtool.c:  strlcpy(drvinfo->fw_version, "none", sizeof(drvin=
-fo->fw_version));
->=20
-> I really think we are in the weeds here and are fine to leave it blank.
+ib_rxe implements the RDMA transport and registers to the RDMA core device as a
+kernel verbs provider. It also implements the packet IO layer. On the other hand
+ib_rxe registers to the Linux netdev stack as a udp encapsulating protocol, in
+that case RDMA, for sending and receiving packets over any Ethernet device.
+This yields a RDMA transport over the UDP/Ethernet network layer forming a RoCEv2
+compatible device.
 
-I'm fine with that.
+The configuration procedure of the Soft RoCE drivers requires binding to any existing
+Ethernet network device. This is done with /sys interface.
 
->=20
-> But if you wish, I can force all drivers to provide the string and then t=
-hey can
-> put something in like the above.
->=20
-> Ira
->=20
+A userspace Soft RoCE library (librxe) provides user applications the ability to run
+with Soft RoCE devices.  The use of rxe verbs in user space requires the inclusion of
+librxe as a device specific plug-in to libibverbs. librxe is packaged separately.
 
---XQSDX3NWE02rtiZq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Architecture:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXYnV3AAoJEORje4g2clinJnAQAL2MfPKRRMx2xE4qDEBITU8a
-2e9yXj1JnVMNSJIVhkS7TbpJYFbzDaAQNkfYJiJfFXwgqVSkrGoxzCyKdlaBtu8Y
-4D8DbjgCREe9O7KykGjVL3WXjduO/AqFKvuSPYr2jPVr+9vYDypHYYi2/YWHJkag
-3htat4uiXnrHZTrjn/nA2SQsEu/prsMOi5jhxt4NaZ0V3q9m2Q4D/xivct3dxmuy
-KV4LOEWrR8Kg2ccgldgAiOYUwqMiB/qTFKa1Aax8AzE+sBFeR2+20Bp1FOzgr+US
-20z1IsD/nDhAT7KuLCrLpufwiN20ZbSet5vlUYAdQVSyNeKzS9qSmFnk7ttHeOaC
-xOdbRl+dd4SpWtFASDjU+DQLIPBleZpDfove4zfHmLF8qnWm4pyKyFOjVNvU1aWo
-/WXNc9RVHrX0jgE8N8bjflDuo0LFB9btXPjNScsKhzINmPn+iWIvjZd9XyehWLuL
-+WTloDeKM5y85kXtpevNfT2Et6aWfCrXaoNi5V9zOWBVl9LK07GFXjRWsSDDF39K
-HWPnLSpEZWQPCxAGt0v7UQ0XkrPhrMxZKKAt3yQtb3kfrE80n0PIoCCUrIExlOZz
-6/8Ex5/pinRI/tmfT7TsixeODlasjQBqPr25wt7TvH2A4bI2SmNsMuQI1EY9xR8j
-abWiRk7kpiQQHIvdXxJ+
-=yTOV
------END PGP SIGNATURE-----
+     +-----------------------------------------------------------+
+     |                          Application                      |
+     +-----------------------------------------------------------+
+                            +-----------------------------------+
+                            |             libibverbs            |
+User                        +-----------------------------------+
+                            +----------------+ +----------------+
+                            | librxe         | | HW RoCE lib    |
+                            +----------------+ +----------------+
++---------------------------------------------------------------+
+     +--------------+                           +------------+
+     | Sockets      |                           | RDMA ULP   |
+     +--------------+                           +------------+
+     +--------------+                  +---------------------+
+     | TCP/IP       |                  | ib_core             |
+     +--------------+                  +---------------------+
+                             +------------+ +----------------+
+Kernel                       | ib_rxe     | | HW RoCE driver |
+                             +------------+ +----------------+
+     +------------------------------------+
+     | NIC driver                         |
+     +------------------------------------+
 
---XQSDX3NWE02rtiZq--
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     +-----------------------------------------------------------+
+     |                          Application                      |
+     +-----------------------------------------------------------+
+                            +-----------------------------------+
+                            |             libibverbs            |
+User                        +-----------------------------------+
+                            +----------------+ +----------------+
+                            | librxe         | | HW RoCE lib    |
+                            +----------------+ +----------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     +--------------+                           +------------+
+     | Sockets      |                           | RDMA ULP   |
+     +--------------+                           +------------+
+     +--------------+                  +---------------------+
+     | TCP/IP       |                  | ib_core             |
+     +--------------+                  +---------------------+
+                             +------------+ +----------------+
+Kernel                       | ib_rxe     | | HW RoCE driver |
+                             +------------+ +----------------+
+     +------------------------------------+
+     | NIC driver                         |
+     +------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Soft RoCE was previously pushed to drivers/infiniband/staging and now, after cleanups
+and bug fixes is pushed to the hardware provides section in the RDMA stack.
+
+Soft RoCE resources:
+
+[1[ https://github.com/SoftRoCE/librxe-dev librxe - source code in Github
+[2] https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home - Soft RoCE Wiki page
+[3] https://github.com/SoftRoCE/librxe-dev - Soft RoCE userspace library
+
+Changes from V1
+===============================================================================
+- Rebase to kernel 4.7-rc2
+- Fix error code in rxe_srq_from_init() (from Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>)
+- Fix 32-bit build warnings (from Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>)
+- Add UDP_TUNNEL dependency (from Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>)
+- Avoid 64-bit division (from Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>)
+- Changed deprecated module_param_call() to module_param_cb()
+- Add description to module params 'add' and 'remove'
+- Hold list of RXE devices in list instead of array
+- Fix race when received before wqe state update
+- Add prefix "rxe" to memory cache names
+- Rename ib_rxe.h to ib_user_rxe.h (comes with same change in librxe).
+- Fix copyright date issue
+
+Note: The FMR interface is left in until the fast memory registration interface
+will be added so iSER can still work with Soft RoCE.
+
+Note
+Moni Shoua (29):
+  IB/rxe: IBA header types and methods
+  IB/rxe: Bit mask and lengths declaration for different opcodes
+  IB/rxe: Default rxe device and port parameters
+  IB/rxe: External interface to lower level modules
+  IB/rxe: Misc local interfaces between files
+  IB/rxe: Add maintainer for rxe driver
+  IB/rxe: Work request's opcode information table
+  IB/rxe: User/kernel shared queues infrastructure
+  IB/rxe: Common user/kernel queue implementation
+  IB/rxe: Interface to ib_core
+  IB/rxe: Allocation pool for RDMA objects
+  IB/rxe: RXE tasks handling
+  IB/rxe: Address vector manipulation functions
+  IB/rxe: Shared Receive Queue (SRQ) manipulation functions
+  IB/rxe: Completion Queue (CQ) manipulation functions
+  IB/rxe: Queue Pair (QP) handling
+  IB/rxe: Memory Region (MR) manioulation
+  IB/rxe: Add multicast infrastructure
+  IB/rxe: Received packets handling
+  IB/rxe: Completion handling
+  IB/rxe: QP request handling
+  IB/rxe: QP response handling
+  IB/rxe: Dummy DMA callbacks for RXE device
+  IB/rxe: Invariant CRC implementation
+  IB/rxe: Module init hooks
+  IB/rxe: Interface to netdev stack
+  IB/rxe: sysfs interface to RXE
+  IB/rxe: Shared objects between user and kernel
+  IB/rxe: Add Soft-RoCE to kbuild and makefiles
+
+ MAINTAINERS                            |    9 +
+ drivers/infiniband/Kconfig             |    1 +
+ drivers/infiniband/hw/Makefile         |    1 +
+ drivers/infiniband/hw/rxe/Kconfig      |   24 +
+ drivers/infiniband/hw/rxe/Makefile     |   24 +
+ drivers/infiniband/hw/rxe/rxe.c        |  411 ++++++++++
+ drivers/infiniband/hw/rxe/rxe.h        |   77 ++
+ drivers/infiniband/hw/rxe/rxe_av.c     |   98 +++
+ drivers/infiniband/hw/rxe/rxe_comp.c   |  734 +++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_cq.c     |  165 ++++
+ drivers/infiniband/hw/rxe/rxe_dma.c    |  166 ++++
+ drivers/infiniband/hw/rxe/rxe_hdr.h    |  952 ++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_icrc.c   |   96 +++
+ drivers/infiniband/hw/rxe/rxe_loc.h    |  289 +++++++
+ drivers/infiniband/hw/rxe/rxe_mcast.c  |  190 +++++
+ drivers/infiniband/hw/rxe/rxe_mmap.c   |  173 ++++
+ drivers/infiniband/hw/rxe/rxe_mr.c     |  679 ++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_net.c    |  708 +++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_net.h    |   53 ++
+ drivers/infiniband/hw/rxe/rxe_opcode.c |  961 ++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_opcode.h |  128 +++
+ drivers/infiniband/hw/rxe/rxe_param.h  |  173 ++++
+ drivers/infiniband/hw/rxe/rxe_pool.c   |  510 ++++++++++++
+ drivers/infiniband/hw/rxe/rxe_pool.h   |  164 ++++
+ drivers/infiniband/hw/rxe/rxe_qp.c     |  851 ++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_queue.c  |  217 +++++
+ drivers/infiniband/hw/rxe/rxe_queue.h  |  178 +++++
+ drivers/infiniband/hw/rxe/rxe_recv.c   |  420 ++++++++++
+ drivers/infiniband/hw/rxe/rxe_req.c    |  692 ++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_resp.c   | 1364 ++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_srq.c    |  193 +++++
+ drivers/infiniband/hw/rxe/rxe_sysfs.c  |  157 ++++
+ drivers/infiniband/hw/rxe/rxe_task.c   |  154 ++++
+ drivers/infiniband/hw/rxe/rxe_task.h   |   95 +++
+ drivers/infiniband/hw/rxe/rxe_verbs.c  | 1352 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/rxe/rxe_verbs.h  |  486 ++++++++++++
+ include/uapi/rdma/Kbuild               |    1 +
+ include/uapi/rdma/ib_user_rxe.h        |  139 ++++
+ 38 files changed, 13085 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/Kconfig
+ create mode 100644 drivers/infiniband/hw/rxe/Makefile
+ create mode 100644 drivers/infiniband/hw/rxe/rxe.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_av.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_comp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_cq.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_dma.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_hdr.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_icrc.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_loc.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mcast.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mmap.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mr.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_net.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_opcode.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_opcode.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_param.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_pool.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_qp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_queue.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_queue.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_recv.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_req.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_resp.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_srq.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_sysfs.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_task.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_task.h
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.c
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_verbs.h
+ create mode 100644 include/uapi/rdma/ib_user_rxe.h
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
