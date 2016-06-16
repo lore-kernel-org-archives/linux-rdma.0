@@ -1,7 +1,7 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 02/29] IB/rxe: Bit mask and lengths declaration for different opcodes
-Date: Thu, 16 Jun 2016 16:45:24 +0300
-Message-ID: <1466084751-29901-3-git-send-email-monis@mellanox.com>
+Subject: [PATCH v2 rdma-next 08/29] IB/rxe: User/kernel shared queues infrastructure
+Date: Thu, 16 Jun 2016 16:45:30 +0300
+Message-ID: <1466084751-29901-9-git-send-email-monis@mellanox.com>
 References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,24 +10,25 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-header bit mask definitions and header lengths declaration of the
-rxe_opcode_info struct and rxe_wr_opcode_info struct.
+Functions and structures for kernel and user shared objects (QP, CQ, etc).
+Memory sharing helps to save data copies from kernel to user and vice
+versa.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/rxe/rxe_opcode.h | 128 +++++++++++++++++++++++++++++++++
- 1 file changed, 128 insertions(+)
- create mode 100644 drivers/infiniband/hw/rxe/rxe_opcode.h
+ drivers/infiniband/hw/rxe/rxe_mmap.c | 173 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 173 insertions(+)
+ create mode 100644 drivers/infiniband/hw/rxe/rxe_mmap.c
 
-diff --git a/drivers/infiniband/hw/rxe/rxe_opcode.h b/drivers/infiniband/hw/rxe/rxe_opcode.h
+diff --git a/drivers/infiniband/hw/rxe/rxe_mmap.c b/drivers/infiniband/hw/rxe/rxe_mmap.c
 new file mode 100644
-index 0000000..0c5f979
+index 0000000..54b3c7c
 --- /dev/null
-+++ b/drivers/infiniband/hw/rxe/rxe_opcode.h
-@@ -0,0 +1,128 @@
++++ b/drivers/infiniband/hw/rxe/rxe_mmap.c
+@@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2016 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2015 System Fabric Works, Inc. All rights reserved.
@@ -61,101 +62,146 @@ index 0000000..0c5f979
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_OPCODE_H
-+#define RXE_OPCODE_H
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
++
++#include "rxe.h"
++#include "rxe_loc.h"
++#include "rxe_queue.h"
++
++void rxe_mmap_release(struct kref *ref)
++{
++	struct rxe_mmap_info *ip = container_of(ref,
++					struct rxe_mmap_info, ref);
++	struct rxe_dev *rxe = to_rdev(ip->context->device);
++
++	spin_lock_bh(&rxe->pending_lock);
++
++	if (!list_empty(&ip->pending_mmaps))
++		list_del(&ip->pending_mmaps);
++
++	spin_unlock_bh(&rxe->pending_lock);
++
++	vfree(ip->obj);		/* buf */
++	kfree(ip);
++}
 +
 +/*
-+ * contains header bit mask definitions and header lengths
-+ * declaration of the rxe_opcode_info struct and
-+ * rxe_wr_opcode_info struct
++ * open and close keep track of how many times the memory region is mapped,
++ * to avoid releasing it.
 + */
++static void rxe_vma_open(struct vm_area_struct *vma)
++{
++	struct rxe_mmap_info *ip = vma->vm_private_data;
 +
-+enum rxe_wr_mask {
-+	WR_INLINE_MASK			= BIT(0),
-+	WR_ATOMIC_MASK			= BIT(1),
-+	WR_SEND_MASK			= BIT(2),
-+	WR_READ_MASK			= BIT(3),
-+	WR_WRITE_MASK			= BIT(4),
-+	WR_LOCAL_MASK			= BIT(5),
++	kref_get(&ip->ref);
++}
 +
-+	WR_READ_OR_WRITE_MASK		= WR_READ_MASK | WR_WRITE_MASK,
-+	WR_READ_WRITE_OR_SEND_MASK	= WR_READ_OR_WRITE_MASK | WR_SEND_MASK,
-+	WR_WRITE_OR_SEND_MASK		= WR_WRITE_MASK | WR_SEND_MASK,
-+	WR_ATOMIC_OR_READ_MASK		= WR_ATOMIC_MASK | WR_READ_MASK,
++static void rxe_vma_close(struct vm_area_struct *vma)
++{
++	struct rxe_mmap_info *ip = vma->vm_private_data;
++
++	kref_put(&ip->ref, rxe_mmap_release);
++}
++
++static struct vm_operations_struct rxe_vm_ops = {
++	.open = rxe_vma_open,
++	.close = rxe_vma_close,
 +};
 +
-+#define WR_MAX_QPT		(8)
++/**
++ * rxe_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
++ */
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct rxe_dev *rxe = to_rdev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct rxe_mmap_info *ip, *pp;
++	int ret;
 +
-+struct rxe_wr_opcode_info {
-+	char			*name;
-+	enum rxe_wr_mask	mask[WR_MAX_QPT];
-+};
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 */
++	spin_lock_bh(&rxe->pending_lock);
++	list_for_each_entry_safe(ip, pp, &rxe->pending_mmaps, pending_mmaps) {
++		if (context != ip->context || (__u64)offset != ip->info.offset)
++			continue;
 +
-+extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->info.size) {
++			pr_err("mmap region is larger than the object!\n");
++			spin_unlock_bh(&rxe->pending_lock);
++			ret = -EINVAL;
++			goto done;
++		}
 +
-+enum rxe_hdr_type {
-+	RXE_LRH,
-+	RXE_GRH,
-+	RXE_BTH,
-+	RXE_RETH,
-+	RXE_AETH,
-+	RXE_ATMETH,
-+	RXE_ATMACK,
-+	RXE_IETH,
-+	RXE_RDETH,
-+	RXE_DETH,
-+	RXE_IMMDT,
-+	RXE_PAYLOAD,
-+	NUM_HDR_TYPES
-+};
++		goto found_it;
++	}
++	pr_warn("unable to find pending mmap info\n");
++	spin_unlock_bh(&rxe->pending_lock);
++	ret = -EINVAL;
++	goto done;
 +
-+enum rxe_hdr_mask {
-+	RXE_LRH_MASK		= BIT(RXE_LRH),
-+	RXE_GRH_MASK		= BIT(RXE_GRH),
-+	RXE_BTH_MASK		= BIT(RXE_BTH),
-+	RXE_IMMDT_MASK		= BIT(RXE_IMMDT),
-+	RXE_RETH_MASK		= BIT(RXE_RETH),
-+	RXE_AETH_MASK		= BIT(RXE_AETH),
-+	RXE_ATMETH_MASK		= BIT(RXE_ATMETH),
-+	RXE_ATMACK_MASK		= BIT(RXE_ATMACK),
-+	RXE_IETH_MASK		= BIT(RXE_IETH),
-+	RXE_RDETH_MASK		= BIT(RXE_RDETH),
-+	RXE_DETH_MASK		= BIT(RXE_DETH),
-+	RXE_PAYLOAD_MASK	= BIT(RXE_PAYLOAD),
++found_it:
++	list_del_init(&ip->pending_mmaps);
++	spin_unlock_bh(&rxe->pending_lock);
 +
-+	RXE_REQ_MASK		= BIT(NUM_HDR_TYPES + 0),
-+	RXE_ACK_MASK		= BIT(NUM_HDR_TYPES + 1),
-+	RXE_SEND_MASK		= BIT(NUM_HDR_TYPES + 2),
-+	RXE_WRITE_MASK		= BIT(NUM_HDR_TYPES + 3),
-+	RXE_READ_MASK		= BIT(NUM_HDR_TYPES + 4),
-+	RXE_ATOMIC_MASK		= BIT(NUM_HDR_TYPES + 5),
++	ret = remap_vmalloc_range(vma, ip->obj, 0);
++	if (ret) {
++		pr_err("rxe: err %d from remap_vmalloc_range\n", ret);
++		goto done;
++	}
 +
-+	RXE_RWR_MASK		= BIT(NUM_HDR_TYPES + 6),
-+	RXE_COMP_MASK		= BIT(NUM_HDR_TYPES + 7),
++	vma->vm_ops = &rxe_vm_ops;
++	vma->vm_private_data = ip;
++	rxe_vma_open(vma);
++done:
++	return ret;
++}
 +
-+	RXE_START_MASK		= BIT(NUM_HDR_TYPES + 8),
-+	RXE_MIDDLE_MASK		= BIT(NUM_HDR_TYPES + 9),
-+	RXE_END_MASK		= BIT(NUM_HDR_TYPES + 10),
++/*
++ * Allocate information for rxe_mmap
++ */
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj)
++{
++	struct rxe_mmap_info *ip;
 +
-+	RXE_LOOPBACK_MASK	= BIT(NUM_HDR_TYPES + 12),
++	ip = kmalloc(sizeof(*ip), GFP_KERNEL);
++	if (!ip)
++		return NULL;
 +
-+	RXE_READ_OR_ATOMIC	= (RXE_READ_MASK | RXE_ATOMIC_MASK),
-+	RXE_WRITE_OR_SEND	= (RXE_WRITE_MASK | RXE_SEND_MASK),
-+};
++	size = PAGE_ALIGN(size);
 +
-+#define OPCODE_NONE		(-1)
-+#define RXE_NUM_OPCODE		256
++	spin_lock_bh(&rxe->mmap_offset_lock);
 +
-+struct rxe_opcode_info {
-+	char			*name;
-+	enum rxe_hdr_mask	mask;
-+	int			length;
-+	int			offset[NUM_HDR_TYPES];
-+};
++	if (rxe->mmap_offset == 0)
++		rxe->mmap_offset = PAGE_SIZE;
 +
-+extern struct rxe_opcode_info rxe_opcode[RXE_NUM_OPCODE];
++	ip->info.offset = rxe->mmap_offset;
++	rxe->mmap_offset += size;
 +
-+#endif /* RXE_OPCODE_H */
++	spin_unlock_bh(&rxe->mmap_offset_lock);
++
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->info.size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
++
++	return ip;
++}
 -- 
 1.8.3.1
 
