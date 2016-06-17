@@ -1,112 +1,255 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v10 08/22] IB/hns: Add icm support
-Date: Fri, 17 Jun 2016 12:58:34 +0300
-Message-ID: <20160617095834.GA5408@leon.nu>
-References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
- <1466087730-54856-9-git-send-email-oulijun@huawei.com>
-Reply-To: leon@kernel.org
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VmlJMtejgecKmNHY"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1466087730-54856-9-git-send-email-oulijun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] IB/mlx5: Implements disassociate_ucontext API
+Date: Fri, 17 Jun 2016 14:56:44 +0300
+Message-ID: <1466164604-30273-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---VmlJMtejgecKmNHY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Implements the IB core disassociate_ucontext API.
+The driver detaches the HW resources for a given user context to
+prevent a dependency between application termination and device
+disconnect. This is done by managing the VMAs that were mapped
+to the HW bars such as doorbell and blueflame. When need to detach,
+remap them to an arbitrary kernel page returned by the zap API.
 
-On Thu, Jun 16, 2016 at 10:35:16PM +0800, Lijun Ou wrote:
-> This patch mainly added icm support for RoCE. It initializes icm
-> which managers the relative memory blocks for RoCE. The data
-> structures of RoCE will be located in it. For example, CQ table,
-> QP table and MTPT table so on.
->=20
-> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
-> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
-> Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> ---
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c    | 133 +++++++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 ++
+ 2 files changed, 135 insertions(+), 4 deletions(-)
 
-<...>
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c72797c..5d12b1f 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -42,11 +42,13 @@
+ #include <asm/pat.h>
+ #endif
+ #include <linux/sched.h>
++#include <linux/delay.h>
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_cache.h>
+ #include <linux/mlx5/port.h>
+ #include <linux/mlx5/vport.h>
++#include <linux/list.h>
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_umem.h>
+ #include <linux/in.h>
+@@ -979,6 +981,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 			goto out_uars;
+ 	}
+ 
++	INIT_LIST_HEAD(&context->vma_private_list);
+ 	INIT_LIST_HEAD(&context->db_page_list);
+ 	mutex_init(&context->db_page_mutex);
+ 
+@@ -1075,6 +1078,125 @@ static int get_index(unsigned long offset)
+ 	return get_arg(offset);
+ }
+ 
++static void  mlx5_ib_vma_open(struct vm_area_struct *area)
++{
++	/* vma_open is called when a new VMA is created on top of our VMA.  This
++	 * is done through either mremap flow or split_vma (usually due to
++	 * mlock, madvise, munmap, etc.) We do not support a clone of the VMA,
++	 * as this VMA is strongly hardware related.  Therefore we set the
++	 * vm_ops of the newly created/cloned VMA to NULL, to prevent it from
++	 * calling us again and trying to do incorrect actions.  We assume that
++	 * the original VMA size is exactly a single page, and therefore all
++	 * "splitting" operation will not happen to it.
++	 */
++	area->vm_ops = NULL;
++}
++
++static void  mlx5_ib_vma_close(struct vm_area_struct *area)
++{
++	struct mlx5_ib_vma_private_data *mlx5_ib_vma_priv_data;
++
++	/* It's guaranteed that all VMAs opened on a FD are closed before the
++	 * file itself is closed, therefore no sync is needed with the regular
++	 * closing flow. (e.g. mlx5 ib_dealloc_ucontext)
++	 * However need a sync with accessing the vma as part of
++	 * mlx5_ib_disassociate_ucontext.
++	 * The close operation is usually called under mm->mmap_sem except when
++	 * process is exiting.
++	 * The exiting case is handled explicitly as part of
++	 * mlx5_ib_disassociate_ucontext.
++	 */
++	mlx5_ib_vma_priv_data = (struct mlx5_ib_vma_private_data *)area->vm_private_data;
++
++	/* setting the vma context pointer to null in the mlx5_ib driver's
++	 * private data, to protect a race condition in
++	 * mlx5_ib_disassociate_ucontext().
++	 */
++	mlx5_ib_vma_priv_data->vma = NULL;
++	list_del(&mlx5_ib_vma_priv_data->list);
++	kfree(mlx5_ib_vma_priv_data);
++}
++
++static const struct vm_operations_struct mlx5_ib_vm_ops = {
++	.open = mlx5_ib_vma_open,
++	.close = mlx5_ib_vma_close
++};
++
++static int mlx5_ib_set_vma_data(struct vm_area_struct *vma,
++				struct mlx5_ib_ucontext *ctx)
++{
++	struct mlx5_ib_vma_private_data *vma_prv;
++	struct list_head *vma_head = &ctx->vma_private_list;
++
++	vma_prv = kzalloc(sizeof(*vma_prv), GFP_KERNEL);
++	if (!vma_prv)
++		return -ENOMEM;
++
++	vma_prv->vma = vma;
++	vma->vm_private_data = vma_prv;
++	vma->vm_ops =  &mlx5_ib_vm_ops;
++
++	list_add(&vma_prv->list, vma_head);
++
++	return 0;
++}
++
++static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
++{
++	int ret;
++	struct vm_area_struct *vma;
++	struct mlx5_ib_vma_private_data *vma_private, *n;
++	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
++	struct task_struct *owning_process  = NULL;
++	struct mm_struct   *owning_mm       = NULL;
++
++	owning_process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
++	if (!owning_process)
++		return;
++
++	owning_mm = get_task_mm(owning_process);
++	if (!owning_mm) {
++		pr_info("no mm, disassociate ucontext is pending task termination\n");
++		while (1) {
++			put_task_struct(owning_process);
++			usleep_range(1000, 2000);
++			owning_process = get_pid_task(ibcontext->tgid,
++						      PIDTYPE_PID);
++			if (!owning_process ||
++			    owning_process->state == TASK_DEAD) {
++				pr_info("disassociate ucontext done, task was terminated\n");
++				/* in case task was dead need to release the
++				 * task struct.
++				 */
++				if (owning_process)
++					put_task_struct(owning_process);
++				return;
++			}
++		}
++	}
++
++	/* need to protect from a race on closing the vma as part of
++	 * mlx5_ib_vma_close.
++	 */
++	down_read(&owning_mm->mmap_sem);
++	list_for_each_entry_safe(vma_private, n, &context->vma_private_list,
++				 list) {
++		vma = vma_private->vma;
++		ret = zap_vma_ptes(vma, vma->vm_start,
++				   PAGE_SIZE);
++		WARN_ONCE(ret, "%s: zap_vma_ptes failed", __func__);
++		/* context going to be destroyed, should
++		 * not access ops any more.
++		 */
++		vma->vm_ops = NULL;
++		list_del(&vma_private->list);
++		kfree(vma_private);
++	}
++	up_read(&owning_mm->mmap_sem);
++	mmput(owning_mm);
++	put_task_struct(owning_process);
++}
++
+ static inline char *mmap_cmd2str(enum mlx5_ib_mmap_cmd cmd)
+ {
+ 	switch (cmd) {
+@@ -1090,8 +1212,10 @@ static inline char *mmap_cmd2str(enum mlx5_ib_mmap_cmd cmd)
+ }
+ 
+ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
+-		    struct vm_area_struct *vma, struct mlx5_uuar_info *uuari)
++		    struct vm_area_struct *vma,
++		    struct mlx5_ib_ucontext *context)
+ {
++	struct mlx5_uuar_info *uuari = &context->uuari;
+ 	int err;
+ 	unsigned long idx;
+ 	phys_addr_t pfn, pa;
+@@ -1141,14 +1265,13 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
+ 	mlx5_ib_dbg(dev, "mapped %s at 0x%lx, PA %pa\n", mmap_cmd2str(cmd),
+ 		    vma->vm_start, &pa);
+ 
+-	return 0;
++	return mlx5_ib_set_vma_data(vma, context);
+ }
+ 
+ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
+ {
+ 	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
+ 	struct mlx5_ib_dev *dev = to_mdev(ibcontext->device);
+-	struct mlx5_uuar_info *uuari = &context->uuari;
+ 	unsigned long command;
+ 	phys_addr_t pfn;
+ 
+@@ -1157,7 +1280,7 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
+ 	case MLX5_IB_MMAP_WC_PAGE:
+ 	case MLX5_IB_MMAP_NC_PAGE:
+ 	case MLX5_IB_MMAP_REGULAR_PAGE:
+-		return uar_mmap(dev, command, vma, uuari);
++		return uar_mmap(dev, command, vma, context);
+ 
+ 	case MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES:
+ 		return -ENOSYS;
+@@ -2420,6 +2543,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 		dev->ib_dev.set_vf_guid		= mlx5_ib_set_vf_guid;
+ 	}
+ 
++	dev->ib_dev.disassociate_ucontext = mlx5_ib_disassociate_ucontext;
++
+ 	mlx5_ib_internal_fill_odp_caps(dev);
+ 
+ 	if (MLX5_CAP_GEN(mdev, imaicl)) {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index c4a9825..bef10ef 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -105,6 +105,11 @@ enum {
+ 	MLX5_CQE_VERSION_V1,
+ };
+ 
++struct mlx5_ib_vma_private_data {
++	struct list_head list;
++	struct vm_area_struct *vma;
++};
++
+ struct mlx5_ib_ucontext {
+ 	struct ib_ucontext	ibucontext;
+ 	struct list_head	db_page_list;
+@@ -116,6 +121,7 @@ struct mlx5_ib_ucontext {
+ 	u8			cqe_version;
+ 	/* Transport Domain number */
+ 	u32			tdn;
++	struct list_head	vma_private_list;
+ };
+ 
+ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibucontext)
+-- 
+2.1.4
 
-> +
-> +static int hns_roce_alloc_icm_pages(struct scatterlist *mem, int order,
-> +				    gfp_t gfp_mask)
-> +{
-> +	struct page *page;
-> +
-> +	page =3D alloc_pages(gfp_mask, order);
-> +	if (!page)
-> +		return -ENOMEM;
-> +
-> +	sg_set_page(mem, page, PAGE_SIZE << order, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +static int hns_roce_alloc_icm_coherent(struct device *dev,
-> +				       struct scatterlist *mem, int order,
-> +				       gfp_t gfp_mask)
-> +{
-> +	void *buf =3D dma_alloc_coherent(dev, PAGE_SIZE << order,
-> +				       &sg_dma_address(mem), gfp_mask);
-> +	if (!buf)
-> +		return -ENOMEM;
-> +
-> +	sg_set_buf(mem, buf, PAGE_SIZE << order);
-> +	WARN_ON(mem->offset);
-> +	sg_dma_len(mem) =3D PAGE_SIZE << order;
-> +	return 0;
-> +}
-> +
-
-<...>
-
-> +
-> +static void hns_roce_free_icm_pages(struct hns_roce_dev *hr_dev,
-> +				    struct hns_roce_icm_chunk *chunk)
-> +{
-> +	int i;
-> +
-> +	if (chunk->nsg > 0)
-> +		dma_unmap_sg(&hr_dev->pdev->dev, chunk->mem, chunk->npages,
-> +			     DMA_BIDIRECTIONAL);
-> +
-> +	for (i =3D 0; i < chunk->npages; ++i)
-> +		__free_pages(sg_page(&chunk->mem[i]),
-> +			     get_order(chunk->mem[i].length));
-
-You used alloc_pages for this allocation, so why are you using
-__free_pages instead of free_pages?
-
-
-
---VmlJMtejgecKmNHY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXY8nKAAoJEORje4g2clinTrYP/1D9P0PVZOKdEzZAhaDZF81C
-E3i3x/LsVKjNejab7ny5uOfX5DOL495+2gs3/dwpypajfywqSlbdUyedWvD8WY2N
-lTml1ETBME41VHLgnJ9VVUOebrpk/FQMOH3WPYFzJoSCs1afgbl9sP9tLdbTqZak
-CL7pEOcUZWwSZVvZ3hZfdsuWUWdZwQj2Z+f5kYirvsCRqeR7gyD4UYreEnR7b3KD
-ODVPkgJnidrAnvB4Fyau/kuOi2vXZRO7sPiNkvhscalAKvt2b10oLEbZf62AxbvV
-qJ1stHYvRPVlFR21hl1MJAfKdVzIyHxsmQV6Xd0d7AnIXPyMoTfy6w+/7lgzRFVq
-0CGoQsjeBtTAEteQNJvA+y6tBfQX+giHqLuZch+H9ledAz8tqjeZ9JsDZlArOcy1
-/e93S2GayTZaT4exWyIlTcmT/181cAPkKF73HgltP3LBoRJ+db0rUgikUfVRLE9+
-viIpHCvGFI6uhE1B9JJh+V+pvAbLzbnHg2q0lrEdvjSMUTHkqfkFMQepcSZEdUFT
-Zld/wMHMjVvGAw90FbkIbg16IjPrDSvUpnnyztHBZxdLlIT0ZD+6iU0z0QGpHmTw
-VljKY2WkkLOC1hV3V5aeUyoAzhUJSnLoG/zqrao9Dq+EVUM3eb5a8jZJanwMJKam
-IhcbyRm3rBlwQWtwbiVK
-=4teu
------END PGP SIGNATURE-----
-
---VmlJMtejgecKmNHY--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
