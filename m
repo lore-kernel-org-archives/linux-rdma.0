@@ -1,29 +1,148 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH -next] RDS: TCP: Fix non static symbol warnings
-Date: Fri, 17 Jun 2016 11:33:56 -0700
-Message-ID: <8135b60a-1dac-17fc-db4d-bb6586350388@oracle.com>
-References: <1466187166-2549-1-git-send-email-weiyj_lk@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
+Date: Fri, 17 Jun 2016 15:55:56 -0400
+Message-ID: <4D23496A-FE01-4693-B125-82CD03B8F2D4@oracle.com>
+References: <20160615030626.14794.43805.stgit@manet.1015granger.net> <20160615031525.14794.69066.stgit@manet.1015granger.net> <20160615042849.GR5408@leon.nu> <68F7CD80-0092-4B55-9FAD-4C54D284BCA3@oracle.com> <20160616143518.GX5408@leon.nu> <576315C9.30002@gmail.com> <652EBA09-2978-414C-8606-38A96C63365A@oracle.com> <20160617092018.GZ5408@leon.nu>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1466187166-2549-1-git-send-email-weiyj_lk@163.com>
-Sender: netdev-owner@vger.kernel.org
-To: weiyj_lk@163.com, "David S. Miller" <davem@davemloft.net>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160617092018.GZ5408-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/17/2016 11:12 AM, weiyj_lk@163.com wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> Fixes the following sparse warnings:
->
-> net/rds/tcp.c:59:5: warning:
->  symbol 'rds_tcp_min_sndbuf' was not declared. Should it be static?
-> net/rds/tcp.c:60:5: warning:
->  symbol 'rds_tcp_min_rcvbuf' was not declared. Should it be static?
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
-Look ok.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+
+> On Jun 17, 2016, at 5:20 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> 
+> On Thu, Jun 16, 2016 at 05:58:29PM -0400, Chuck Lever wrote:
+>> 
+>>> On Jun 16, 2016, at 5:10 PM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> 
+>>> First of all, IIRC the patch author was Christoph wasn't he.
+>>> 
+>>> Plus, you do realize that this patch makes the pages allocation
+>>> in granularity of pages. In systems with a large page size this
+>>> is completely redundant, it might even be harmful as the storage
+>>> ULPs need lots of MRs.
+>> 
+>> I agree that the official fix should take a conservative
+>> approach to allocating this resource; there will be lots
+>> of MRs in an active system. This fix doesn't seem too
+>> careful.
+> 
+> In mlx5 system, we always added 2048 bytes to such allocations, for
+> reasons unknown to me. And it doesn't seem as a conservative approach
+> either.
+
+The mlx5 approach is much better than allocating a whole
+page, when you consider platforms with 64KB pages.
+
+A 1MB payload (for NFS) on such a platform comprises just
+16 pages. So xprtrdma will allocate MRs with support for
+16 pages. That's a priv pages array of 128 bytes, and you
+just put it in a 64KB page all by itself.
+
+So maybe adding 2048 bytes is not optimal either. But I
+think sticking with kmalloc here is a more optimal choice.
+
+
+>>> Also, I don't see how that solves the issue, I'm not sure I even
+>>> understand the issue. Do you? Were you able to reproduce it?
+>> 
+>> The issue is that dma_map_single() does not seem to DMA map
+>> portions of a memory region that are past the end of the first
+>> page of that region. Maybe that's a bug?
+> 
+> No, I didn't find support for that. Function dma_map_single expects
+> contiguous memory aligned to cache line, there is no limitation to be
+> page bounded.
+
+There certainly isn't, but that doesn't mean there can't
+be a bug somewhere ;-) and maybe not in dma_map_single.
+It could be that the "array on one page only" limitation
+is somewhere else in the mlx4 driver, or even in the HCA
+firmware.
+
+
+>> This patch works around that behavior by guaranteeing that
+>> 
+>> a) the memory region starts at the beginning of a page, and
+>> b) the memory region is never larger than a page
+> 
+> b) the memory region ends on cache line.
+
+I think we demonstrated pretty clearly that the issue
+occurs only when the end of the priv pages array crosses
+into a new page.
+
+We didn't see any problem otherwise.
+
+
+>> This patch is not sufficient to repair mlx5, because b)
+>> cannot be satisfied in that case; the array of __be64's can
+>> be larger than 512 entries.
+>> 
+>> 
+>>> IFF the pages buffer end not being aligned to a cacheline is problematic
+>>> then why not extent it to end in a cacheline? Why in the next full page?
+>> 
+>> I think the patch description justifies the choice of
+>> solution, but does not describe the original issue at
+>> all. The original issue had nothing to do with cacheline
+>> alignment.
+> 
+> I disagree, kmalloc with supplied flags will return contiguous memory
+> which is enough for dma_map_single. It is cache line alignment.
+
+The reason I find this hard to believe is that there is
+no end alignment guarantee at all in this code, but it
+works without issue when SLUB debugging is not enabled.
+
+xprtrdma allocates 256 elements in this array on x86.
+The code makes the array start on an 0x40 byte boundary.
+I'm pretty sure that means the end of that array will
+also be on at least an 0x40 byte boundary, and thus
+aligned to the DMA cacheline, whether or not SLUB
+debugging is enabled.
+
+Notice that in the current code, if the consumer requests
+an odd number of SGs, that array can't possibly end on
+an alignment boundary. But we've never had a complaint.
+
+SLUB debugging changes the alignment of lots of things,
+but mlx4_alloc_priv_pages is the only breakage that has
+been reported.
+
+DMA-API.txt says:
+
+> [T]he mapped region must begin exactly on a cache line
+> boundary and end exactly on one (to prevent two separately
+> mapped regions from sharing a single cache line)
+
+The way I read this, cacheline alignment shouldn't be
+an issue at all, as long as DMA cachelines aren't
+shared between mappings.
+
+If I simply increase the memory allocation size a little
+and ensure the end of the mapping is aligned, that should
+be enough to prevent DMA cacheline sharing with another
+memory allocation on the same page. But I still see Local
+Protection Errors when SLUB debugging is enabled, on my
+system (with patches to allocate more pages per MR).
+
+I'm not convinced this has anything to do with DMA
+cacheline alignment. The reason your patch fixes this
+issue is because it keeps the entire array on one page.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
