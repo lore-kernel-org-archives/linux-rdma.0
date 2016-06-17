@@ -1,164 +1,24 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 2/2] IB/mlx5: Add port protocol stats
-Date: Fri, 17 Jun 2016 15:10:56 +0300
-Message-ID: <1466165456-31857-3-git-send-email-leon@kernel.org>
-References: <1466165456-31857-1-git-send-email-leon@kernel.org>
+Subject: [PATCH 0/2] ConnectX-4/Connect-IB Port Counters
+Date: Fri, 17 Jun 2016 15:10:54 +0300
+Message-ID: <1466165456-31857-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466165456-31857-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This is supplementary part of mlx5 driver to generic IB counters infrastructure.
 
-Expose new counters using the get protocol stats callback.
-We expose the following counters:
+Mark Bloch (2):
+  IB/mlx5: Add per port counters
+  IB/mlx5: Add port protocol stats
 
-|------------------------------------------------------------------------|
-|      Name           | IB | EN |           Description                  |
-|------------------------------------------------------------------------|
-|rx_write_requests    | +  | -  | Number of received WRITE requests for  |
-|                     |    |    | the associated QP.                     |
-|------------------------------------------------------------------------|
-|rx_read_requests     | +  | -  | Number of received READ requests for   |
-|                     |    |    | the associated QP.                     |
-|------------------------------------------------------------------------|
-|rx_atomic_requests   | +  | -  | Number of received ATOMIC requests for |
-|                     |    |    | the associated QP.                     |
-|------------------------------------------------------------------------|
-|out_of_buffer        | +  | +  | Number of drops occurred due to lack   |
-|                     |    |    | of WQE for the associated QPs/RQs.     |
-|------------------------------------------------------------------------|
-|out_of_sequence      | +  | -  | Number of errors in the packet         |
-|                     |    |    | transport sequence number              |
-|------------------------------------------------------------------------|
-|duplicate_request    | +  | +  | Number of received duplicated packets. |
-|                     |    |    | A request that previously executed is  |
-|                     |    |    | named duplicated.                      |
-|------------------------------------------------------------------------|
-|rnr_nak_retry_err    | +  | +  | Number of received RNR NAC packets.    |
-|                     |    |    | The QP retry limit did not exceed.     |
-|------------------------------------------------------------------------|
-|packet_seq_err       | +  | +  | Number of received NAK - sequence error|
-|                     |    |    | packets. The QP retry limit did not    |
-|                     |    |    | exceed.                                |
-|------------------------------------------------------------------------|
-|implied_nak_err      | +  | +  | Number of times the requester detected |
-|                     |    |    | an ACK with a PSN larger than expected |
-|                     |    |    | PSN for RDMA READ or ATOMIC response   |
-|                     |    |    | The QP retry limit did not exceed.     |
-|------------------------------------------------------------------------|
-|local_ack_timeout_err| +  | -  | Number of NO ACK responses from        |
-|                     |    |    | responder within timer interval.       |
-|                     |    |    | The QP retry limit did not exceed.     |
-|------------------------------------------------------------------------|
+ drivers/infiniband/hw/mlx5/main.c    | 134 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 ++
+ drivers/infiniband/hw/mlx5/qp.c      |   9 +++
+ 3 files changed, 147 insertions(+), 2 deletions(-)
 
-Counters are available if all of them are supported.
-
-Signed-off-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 78 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index e525891..c392f08 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2328,6 +2328,78 @@ dealloc_counters:
- 	return ret;
- }
- 
-+static const char const *names[] = {
-+	"rx_write_requests",
-+	"rx_read_requests",
-+	"rx_atomic_requests",
-+	"out_of_buffer",
-+	"out_of_sequence",
-+	"duplicate_request",
-+	"rnr_nak_retry_err",
-+	"packet_seq_err",
-+	"implied_nak_seq_err",
-+	"local_ack_timeout_err",
-+};
-+
-+static const size_t stats_offsets[] = {
-+	MLX5_BYTE_OFF(query_q_counter_out, rx_write_requests),
-+	MLX5_BYTE_OFF(query_q_counter_out, rx_read_requests),
-+	MLX5_BYTE_OFF(query_q_counter_out, rx_atomic_requests),
-+	MLX5_BYTE_OFF(query_q_counter_out, out_of_buffer),
-+	MLX5_BYTE_OFF(query_q_counter_out, out_of_sequence),
-+	MLX5_BYTE_OFF(query_q_counter_out, duplicate_request),
-+	MLX5_BYTE_OFF(query_q_counter_out, rnr_nak_retry_err),
-+	MLX5_BYTE_OFF(query_q_counter_out, packet_seq_err),
-+	MLX5_BYTE_OFF(query_q_counter_out, implied_nak_seq_err),
-+	MLX5_BYTE_OFF(query_q_counter_out, local_ack_timeout_err),
-+};
-+
-+static struct rdma_hw_stats *mlx5_ib_alloc_hw_stats(struct ib_device *ibdev,
-+						    u8 port_num)
-+{
-+	BUILD_BUG_ON(ARRAY_SIZE(names) != ARRAY_SIZE(stats_offsets));
-+
-+	/* We support only per port stats */
-+	if (port_num == 0)
-+		return NULL;
-+
-+	return rdma_alloc_hw_stats_struct(names, ARRAY_SIZE(names),
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
-+
-+static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
-+				struct rdma_hw_stats *stats,
-+				u8 port, int index)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	int outlen = MLX5_ST_SZ_BYTES(query_q_counter_out);
-+	void *out;
-+	__be32 val;
-+	int ret;
-+	int i;
-+
-+	if (!port || !stats)
-+		return -ENOSYS;
-+
-+	out = mlx5_vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	ret = mlx5_core_query_q_counter(dev->mdev,
-+					dev->port[port - 1].q_cnt_id, 0,
-+					out, outlen);
-+	if (ret)
-+		goto free;
-+
-+	for (i = 0; i < ARRAY_SIZE(names); i++) {
-+		val = *(__be32 *)(out + stats_offsets[i]);
-+		stats->value[i] = (u64)be32_to_cpu(val);
-+	}
-+free:
-+	kvfree(out);
-+	return ARRAY_SIZE(names);
-+}
-+
- static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- {
- 	struct mlx5_ib_dev *dev;
-@@ -2470,6 +2542,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 			(1ull << IB_USER_VERBS_CMD_DEALLOC_MW);
- 	}
- 
-+	if (MLX5_CAP_GEN(dev->mdev, out_of_seq_cnt) &&
-+	    MLX5_CAP_GEN(dev->mdev, retransmission_q_counters)) {
-+		dev->ib_dev.get_hw_stats	= mlx5_ib_get_hw_stats;
-+		dev->ib_dev.alloc_hw_stats	= mlx5_ib_alloc_hw_stats;
-+	}
-+
- 	if (MLX5_CAP_GEN(mdev, xrc)) {
- 		dev->ib_dev.alloc_xrcd = mlx5_ib_alloc_xrcd;
- 		dev->ib_dev.dealloc_xrcd = mlx5_ib_dealloc_xrcd;
 -- 
 2.1.4
 
