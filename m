@@ -1,105 +1,109 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Thu, 16 Jun 2016 17:58:29 -0400
-Message-ID: <652EBA09-2978-414C-8606-38A96C63365A@oracle.com>
-References: <20160615030626.14794.43805.stgit@manet.1015granger.net> <20160615031525.14794.69066.stgit@manet.1015granger.net> <20160615042849.GR5408@leon.nu> <68F7CD80-0092-4B55-9FAD-4C54D284BCA3@oracle.com> <20160616143518.GX5408@leon.nu> <576315C9.30002@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <576315C9.30002-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH v9 11/22] IB/hns: Add IB device registration
+Date: Fri, 17 Jun 2016 09:25:44 +0800
+Message-ID: <57635198.2070208@huawei.com>
+References: <1464795484-77395-1-git-send-email-oulijun@huawei.com>
+ <1464795484-77395-12-git-send-email-oulijun@huawei.com>
+ <20160609062631.GN3663@leon.nu> <575D2E32.8030109@huawei.com>
+ <20160613124638.GG5408@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160613124638.GG5408@leon.nu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: leon@kernel.org
+Cc: Lijun Ou <oulijun@huawei.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
-> On Jun 16, 2016, at 5:10 PM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> 
->>>> On Jun 15, 2016, at 12:28 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>>> 
->>>> On Tue, Jun 14, 2016 at 11:15:25PM -0400, Chuck Lever wrote:
->>>>> From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->>>>> 
->>>>> kmalloc doesn't guarantee the returned memory is all on one page.
->>>> 
->>>> IMHO, the patch posted by Christoph at that thread is best way to go,
->>>> because you changed streaming DMA mappings to be coherent DMA mappings [1].
->>>> 
->>>> "The kernel developers recommend the use of streaming mappings over
->>>> coherent mappings whenever possible" [1].
->>>> 
->>>> [1] http://www.makelinux.net/ldd3/chp-15-sect-4
->>> 
->>> Hi Leon-
->>> 
->>> I'll happily drop this patch from my 4.8 series as soon
->>> as an official mlx4/mlx5 fix is merged.
->>> 
->>> Meanwhile, I notice some unexplained instability (driver
->>> resets, list corruption, and so on) when I test NFS/RDMA
->>> without this patch included. So it is attached to the
->>> series for anyone with mlx4 who wants to pull my topic
->>> branch and try it out.
->> 
->> hi Chuck,
->> 
->> We plan to send attached patch during our second round of fixes for
->> mlx4/mlx5 and would be grateful to you if you could provide your
->> Tested-by tag before.
 
-Fwiw, Tested-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On 2016/6/13 20:46, Leon Romanovsky wrote:
+> On Sun, Jun 12, 2016 at 05:41:06PM +0800, Wei Hu (Xavier) wrote:
+>>
+>> On 2016/6/9 14:26, Leon Romanovsky wrote:
+>>> On Wed, Jun 01, 2016 at 11:37:53PM +0800, Lijun Ou wrote:
+>>>> This patch registered IB device when loaded, and unregistered
+>>>> IB device when removed.
+>>>>
+>>>> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+>>>> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+>>>> Signed-off-by: Lijun Ou <oulijun@huawei.com>
+>>>> ---
+>>>>   drivers/infiniband/hw/hns/hns_roce_main.c | 46 +++++++++++++++++++++++++++++++
+>>>>   1 file changed, 46 insertions(+)
+>>>>
+>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+>>>> index 7fb0d34..f179a7f 100644
+>>>> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
+>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+>>>> @@ -62,6 +62,41 @@
+>>>>   #include "hns_roce_device.h"
+>>>>   #include "hns_roce_icm.h"
+>>>> +void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
+>>> You are not calling to this function in this patch.
+>>>
+>>>> +{
+>>>> +	ib_unregister_device(&hr_dev->ib_dev);
+>>>> +}
+>>>> +
+>>>> +int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+>>> This function should be static.
+>>>
+>>>> +{
+>>>> +	int ret;
+>>>> +	struct hns_roce_ib_iboe *iboe = NULL;
+>>>> +	struct ib_device *ib_dev = NULL;
+>>>> +	struct device *dev = &hr_dev->pdev->dev;
+>>>> +
+>>>> +	iboe = &hr_dev->iboe;
+>>>> +
+>>>> +	ib_dev = &hr_dev->ib_dev;
+>>>> +	strlcpy(ib_dev->name, "hisi_%d", IB_DEVICE_NAME_MAX);
+>>>> +
+>>>> +	ib_dev->owner			= THIS_MODULE;
+>>>> +	ib_dev->node_type		= RDMA_NODE_IB_CA;
+>>>> +	ib_dev->dma_device		= dev;
+>>>> +
+>>>> +	ib_dev->phys_port_cnt		= hr_dev->caps.num_ports;
+>>>> +	ib_dev->local_dma_lkey		= hr_dev->caps.reserved_lkey;
+>>>> +	ib_dev->num_comp_vectors	= hr_dev->caps.num_comp_vectors;
+>>>> +	ib_dev->uverbs_abi_ver		= 1;
+>>>> +
+>>>> +	ret = ib_register_device(ib_dev, NULL);
+>>>> +	if (ret) {
+>>>> +		dev_err(dev, "ib_register_device failed!\n");
+>>>> +		return ret;
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>>   int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+>>>>   {
+>>>>   	int i;
+>>>> @@ -363,6 +398,17 @@ static int hns_roce_probe(struct platform_device *pdev)
+>>>>   		goto error_failed_engine_init;
+>>>>   	}
+>>>> +	ret = hns_roce_register_device(hr_dev);
+>>>> +	if (ret) {
+>>>> +		dev_err(dev, "register_device failed!\n");
+>>> According to the current code, you will print this error together with
+>>> error line in hns_roce_register_device for the same failure.
+>>>
+>>> "ib_register_device failed!"
+>>> "register_device failed!"
+>> Hi, leon
+>>      In this patch [PATCH v9 11/22], there is only one error branch in
+>> funtion named hns_roce_register_device.
+>>      In the following patch [PATCH v9 13/22], we add more operation, there
+>> are more
+>>          than two error branch in this function as below.
+> Yes, and in all these error flows you already printed debug messages, your
+> "register_device failed" print is useless.
+Hi, leon
+     We have fixed it.
+     And Oulijun have sent PATCH V10. Thanks
 
-
-> First of all, IIRC the patch author was Christoph wasn't he.
-> 
-> Plus, you do realize that this patch makes the pages allocation
-> in granularity of pages. In systems with a large page size this
-> is completely redundant, it might even be harmful as the storage
-> ULPs need lots of MRs.
-
-I agree that the official fix should take a conservative
-approach to allocating this resource; there will be lots
-of MRs in an active system. This fix doesn't seem too
-careful.
-
-
-> Also, I don't see how that solves the issue, I'm not sure I even
-> understand the issue. Do you? Were you able to reproduce it?
-
-The issue is that dma_map_single() does not seem to DMA map
-portions of a memory region that are past the end of the first
-page of that region. Maybe that's a bug?
-
-This patch works around that behavior by guaranteeing that
-
-a) the memory region starts at the beginning of a page, and
-b) the memory region is never larger than a page
-
-This patch is not sufficient to repair mlx5, because b)
-cannot be satisfied in that case; the array of __be64's can
-be larger than 512 entries.
-
-
-> IFF the pages buffer end not being aligned to a cacheline is problematic
-> then why not extent it to end in a cacheline? Why in the next full page?
-
-I think the patch description justifies the choice of
-solution, but does not describe the original issue at
-all. The original issue had nothing to do with cacheline
-alignment.
-
-Lastly, this patch should remove the definition of
-MLX4_MR_PAGES_ALIGN.
-
-
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Wei Hu
