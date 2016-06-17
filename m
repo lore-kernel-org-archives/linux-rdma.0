@@ -1,605 +1,174 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] IB/mlx5: Reset flow support for IB kernel ULPs
-Date: Fri, 17 Jun 2016 15:01:38 +0300
-Message-ID: <1466164898-31060-1-git-send-email-leon@kernel.org>
+Subject: [PATCH] IB/mlx5: Report mlx5 TSO capabilities when querying device
+Date: Fri, 17 Jun 2016 15:02:20 +0300
+Message-ID: <1466164940-31400-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The driver exposes interfaces that directly relate to HW state.
-Upon fatal error, consumers of these interfaces (ULPs) that rely
-on completion of all their posted work-request could hang, thereby
-introducing dependencies in shutdown order. To prevent this from
-happening, we manage the relevant resources (CQs, QPs) that are used
-by the device. Upon a fatal error, we now generate simulated
-completions for outstanding WQEs that were not completed at the
-time the HW was reset.
+Enable mlx5 based hardware to report TCP segmentation offload (TSO)
+capabilities from kernel to user space. A TSO enabled NIC will accept
+big chunks of data with sizes greater than MTU for TCP traffic.  The TSO
+engine will break the data into separate packets and will insert headers
+automatically.
 
-It includes invoking the completion event handler for all involved
-CQs so that the ULPs will poll those CQs. When polled we return
-simulated CQEs with IB_WC_WR_FLUSH_ERR return code enabling ULPs
-to clean up their  resources and not wait forever for completions
-upon receiving remove_one.
+The capabilities are exposed to user space through query_device by uhw
+directly. The following capabilities are reported:
 
-The above change requires an extra check in the data path to make
-sure that when device is in error state, the simulated CQEs will
-be returned and no further WQEs will be posted.
+1. The maximum payload size in bytes supported for segmentation by TSO
+   engine.
+2. Bitmap showing which QP types are supported by TSO operation. The bitmap
+   is built by members from 'enmu ib_qp_type'. For example, similar code
+   should be performed if UD QP is supported:
+	supported_qpts |= 1 << IB_QPT_UD;
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To make user-space library aware of whether kernel supports uhw or not, a
+new flag: cmds_supp_uhw will be returned back to user-space through
+alloc_ucontext.
+
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/cq.c      | 87 +++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx5/main.c    | 62 +++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  8 +++
- drivers/infiniband/hw/mlx5/mr.c      |  4 ++
- drivers/infiniband/hw/mlx5/qp.c      | 98 +++++++++++++++++++++++++++++-------
- drivers/infiniband/hw/mlx5/srq.c     | 10 +++-
- include/linux/mlx5/cq.h              |  2 +
- 7 files changed, 250 insertions(+), 21 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 41 ++++++++++++++++++++++++++++++++++-----
+ drivers/infiniband/hw/mlx5/user.h | 24 +++++++++++++++++++++--
+ 2 files changed, 58 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index dabcc65..e29579d 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -424,6 +424,83 @@ static void get_sig_err_item(struct mlx5_sig_err_cqe *cqe,
- 	item->key = be32_to_cpu(cqe->mkey);
- }
- 
-+static void sw_send_comp(struct mlx5_ib_qp *qp, int num_entries,
-+			 struct ib_wc *wc, int *npolled)
-+{
-+	struct mlx5_ib_wq *wq;
-+	unsigned int cur;
-+	unsigned int idx;
-+	int np;
-+	int i;
-+
-+	wq = &qp->sq;
-+	cur = wq->head - wq->tail;
-+	np = *npolled;
-+
-+	if (cur == 0)
-+		return;
-+
-+	for (i = 0;  i < cur && np < num_entries; i++) {
-+		idx = wq->last_poll & (wq->wqe_cnt - 1);
-+		wc->wr_id = wq->wrid[idx];
-+		wc->status = IB_WC_WR_FLUSH_ERR;
-+		wc->vendor_err = MLX5_CQE_SYNDROME_WR_FLUSH_ERR;
-+		wq->tail++;
-+		np++;
-+		wc->qp = &qp->ibqp;
-+		wc++;
-+		wq->last_poll = wq->w_list[idx].next;
-+	}
-+	*npolled = np;
-+}
-+
-+static void sw_recv_comp(struct mlx5_ib_qp *qp, int num_entries,
-+			 struct ib_wc *wc, int *npolled)
-+{
-+	struct mlx5_ib_wq *wq;
-+	unsigned int cur;
-+	int np;
-+	int i;
-+
-+	wq = &qp->rq;
-+	cur = wq->head - wq->tail;
-+	np = *npolled;
-+
-+	if (cur == 0)
-+		return;
-+
-+	for (i = 0;  i < cur && np < num_entries; i++) {
-+		wc->wr_id = wq->wrid[wq->tail & (wq->wqe_cnt - 1)];
-+		wc->status = IB_WC_WR_FLUSH_ERR;
-+		wc->vendor_err = MLX5_CQE_SYNDROME_WR_FLUSH_ERR;
-+		wq->tail++;
-+		np++;
-+		wc->qp = &qp->ibqp;
-+		wc++;
-+	}
-+	*npolled = np;
-+}
-+
-+static void mlx5_ib_poll_sw_comp(struct mlx5_ib_cq *cq, int num_entries,
-+				 struct ib_wc *wc, int *npolled)
-+{
-+	struct mlx5_ib_qp *qp;
-+
-+	*npolled = 0;
-+	/* Find uncompleted WQEs belonging to that cq and retrun mmics ones */
-+	list_for_each_entry(qp, &cq->list_send_qp, cq_send_list) {
-+		sw_send_comp(qp, num_entries, wc + *npolled, npolled);
-+		if (*npolled >= num_entries)
-+			return;
-+	}
-+
-+	list_for_each_entry(qp, &cq->list_recv_qp, cq_recv_list) {
-+		sw_recv_comp(qp, num_entries, wc + *npolled, npolled);
-+		if (*npolled >= num_entries)
-+			return;
-+	}
-+}
-+
- static int mlx5_poll_one(struct mlx5_ib_cq *cq,
- 			 struct mlx5_ib_qp **cur_qp,
- 			 struct ib_wc *wc)
-@@ -594,12 +671,18 @@ int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
- {
- 	struct mlx5_ib_cq *cq = to_mcq(ibcq);
- 	struct mlx5_ib_qp *cur_qp = NULL;
-+	struct mlx5_ib_dev *dev = to_mdev(cq->ibcq.device);
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	unsigned long flags;
- 	int soft_polled = 0;
- 	int npolled;
- 	int err = 0;
- 
- 	spin_lock_irqsave(&cq->lock, flags);
-+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
-+		mlx5_ib_poll_sw_comp(cq, num_entries, wc, &npolled);
-+		goto out;
-+	}
- 
- 	if (unlikely(!list_empty(&cq->wc_list)))
- 		soft_polled = poll_soft_wc(cq, num_entries, wc);
-@@ -612,7 +695,7 @@ int mlx5_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
- 
- 	if (npolled)
- 		mlx5_cq_set_ci(&cq->mcq);
--
-+out:
- 	spin_unlock_irqrestore(&cq->lock, flags);
- 
- 	if (err == 0 || err == -EAGAIN)
-@@ -842,6 +925,8 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
- 	cq->resize_buf = NULL;
- 	cq->resize_umem = NULL;
- 	cq->create_flags = attr->flags;
-+	INIT_LIST_HEAD(&cq->list_send_qp);
-+	INIT_LIST_HEAD(&cq->list_recv_qp);
- 
- 	if (context) {
- 		err = create_cq_user(dev, udata, context, cq, entries,
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index c72797c..1703898 100644
+index c72797c..b6edb1f 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1846,6 +1846,65 @@ static void pkey_change_handler(struct work_struct *work)
- 	mutex_unlock(&ports->devr->mutex);
- }
+@@ -457,8 +457,17 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	int max_rq_sg;
+ 	int max_sq_sg;
+ 	u64 min_page_size = 1ull << MLX5_CAP_GEN(mdev, log_pg_sz);
++	struct mlx5_ib_query_device_resp resp = {};
++	size_t resp_len;
++	u64 max_tso;
  
-+static void mlx5_ib_handle_internal_error(struct mlx5_ib_dev *ibdev)
-+{
-+	struct mlx5_ib_qp *mqp;
-+	struct mlx5_ib_cq *send_mcq, *recv_mcq;
-+	struct mlx5_core_cq *mcq;
-+	struct list_head cq_armed_list;
-+	unsigned long flags_qp;
-+	unsigned long flags_cq;
-+	unsigned long flags;
+-	if (uhw->inlen || uhw->outlen)
++	resp_len = sizeof(resp.comp_mask) + sizeof(resp.response_length);
++	if (uhw->outlen && uhw->outlen < resp_len)
++		return -EINVAL;
++	else
++		resp.response_length = resp_len;
 +
-+	INIT_LIST_HEAD(&cq_armed_list);
-+
-+	/* Go over qp list reside on that ibdev, sync with create/destroy qp.*/
-+	spin_lock_irqsave(&ibdev->reset_flow_resource_lock, flags);
-+	list_for_each_entry(mqp, &ibdev->qp_list, qps_list) {
-+		spin_lock_irqsave(&mqp->sq.lock, flags_qp);
-+		if (mqp->sq.tail != mqp->sq.head) {
-+			send_mcq = to_mcq(mqp->ibqp.send_cq);
-+			spin_lock_irqsave(&send_mcq->lock, flags_cq);
-+			if (send_mcq->mcq.comp &&
-+			    mqp->ibqp.send_cq->comp_handler) {
-+				if (!send_mcq->mcq.reset_notify_added) {
-+					send_mcq->mcq.reset_notify_added = 1;
-+					list_add_tail(&send_mcq->mcq.reset_notify,
-+						      &cq_armed_list);
-+				}
-+			}
-+			spin_unlock_irqrestore(&send_mcq->lock, flags_cq);
-+		}
-+		spin_unlock_irqrestore(&mqp->sq.lock, flags_qp);
-+		spin_lock_irqsave(&mqp->rq.lock, flags_qp);
-+		/* no handling is needed for SRQ */
-+		if (!mqp->ibqp.srq) {
-+			if (mqp->rq.tail != mqp->rq.head) {
-+				recv_mcq = to_mcq(mqp->ibqp.recv_cq);
-+				spin_lock_irqsave(&recv_mcq->lock, flags_cq);
-+				if (recv_mcq->mcq.comp &&
-+				    mqp->ibqp.recv_cq->comp_handler) {
-+					if (!recv_mcq->mcq.reset_notify_added) {
-+						recv_mcq->mcq.reset_notify_added = 1;
-+						list_add_tail(&recv_mcq->mcq.reset_notify,
-+							      &cq_armed_list);
-+					}
-+				}
-+				spin_unlock_irqrestore(&recv_mcq->lock,
-+						       flags_cq);
++	if (uhw->inlen && !ib_is_udata_cleared(uhw, 0, uhw->inlen))
+ 		return -EINVAL;
+ 
+ 	memset(props, 0, sizeof(*props));
+@@ -511,10 +520,21 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (MLX5_CAP_GEN(mdev, block_lb_mc))
+ 		props->device_cap_flags |= IB_DEVICE_BLOCK_MULTICAST_LOOPBACK;
+ 
+-	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+-	    (MLX5_CAP_ETH(dev->mdev, csum_cap)))
++	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads)) {
++		if (MLX5_CAP_ETH(mdev, csum_cap))
+ 			props->device_cap_flags |= IB_DEVICE_RAW_IP_CSUM;
+ 
++		if (field_avail(typeof(resp), tso_caps, uhw->outlen)) {
++			max_tso = MLX5_CAP_ETH(mdev, max_lso_cap);
++			if (max_tso) {
++				resp.tso_caps.max_tso = 1 << max_tso;
++				resp.tso_caps.supported_qpts |=
++					1 << IB_QPT_RAW_PACKET;
++				resp.response_length += sizeof(resp.tso_caps);
 +			}
 +		}
-+		spin_unlock_irqrestore(&mqp->rq.lock, flags_qp);
 +	}
-+	/*At that point all inflight post send were put to be executed as of we
-+	 * lock/unlock above locks Now need to arm all involved CQs.
-+	 */
-+	list_for_each_entry(mcq, &cq_armed_list, reset_notify) {
-+		mcq->comp(mcq);
++
+ 	if (MLX5_CAP_GEN(mdev, ipoib_basic_offloads)) {
+ 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
+ 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
+@@ -573,6 +593,13 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (!mlx5_core_is_pf(mdev))
+ 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
+ 
++	if (uhw->outlen) {
++		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
++
++		if (err)
++			return err;
 +	}
-+	spin_unlock_irqrestore(&ibdev->reset_flow_resource_lock, flags);
-+}
-+
- static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 			  enum mlx5_dev_event event, unsigned long param)
- {
-@@ -1858,6 +1917,7 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
- 	case MLX5_DEV_EVENT_SYS_ERROR:
- 		ibdev->ib_active = false;
- 		ibev.event = IB_EVENT_DEVICE_FATAL;
-+		mlx5_ib_handle_internal_error(ibdev);
- 		break;
- 
- 	case MLX5_DEV_EVENT_PORT_UP:
-@@ -2452,6 +2512,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 
- 	mutex_init(&dev->flow_db.lock);
- 	mutex_init(&dev->cap_mask_mutex);
-+	INIT_LIST_HEAD(&dev->qp_list);
-+	spin_lock_init(&dev->reset_flow_resource_lock);
- 
- 	if (ll == IB_LINK_LAYER_ETHERNET) {
- 		err = mlx5_enable_roce(dev);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index c4a9825..78e99cc 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -340,6 +340,9 @@ struct mlx5_ib_qp {
- 	spinlock_t              disable_page_faults_lock;
- 	struct mlx5_ib_pfault	pagefaults[MLX5_IB_PAGEFAULT_CONTEXTS];
- #endif
-+	struct list_head	qps_list;
-+	struct list_head	cq_recv_list;
-+	struct list_head	cq_send_list;
- };
- 
- struct mlx5_ib_cq_buf {
-@@ -401,6 +404,8 @@ struct mlx5_ib_cq {
- 	struct mlx5_ib_cq_buf  *resize_buf;
- 	struct ib_umem	       *resize_umem;
- 	int			cqe_size;
-+	struct list_head	list_send_qp;
-+	struct list_head	list_recv_qp;
- 	u32			create_flags;
- 	struct list_head	wc_list;
- 	enum ib_cq_notify_flags notify_flags;
-@@ -581,6 +586,9 @@ struct mlx5_ib_dev {
- 	struct srcu_struct      mr_srcu;
- #endif
- 	struct mlx5_ib_flow_db	flow_db;
-+	/* protect resources needed as part of reset flow */
-+	spinlock_t		reset_flow_resource_lock;
-+	struct list_head	qp_list;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 8cf2ce5..4b02130 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1193,12 +1193,16 @@ error:
- 
- static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
- {
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct umr_common *umrc = &dev->umrc;
- 	struct mlx5_ib_umr_context umr_context;
- 	struct mlx5_umr_wr umrwr = {};
- 	struct ib_send_wr *bad;
- 	int err;
- 
-+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR)
-+		return 0;
-+
- 	mlx5_ib_init_umr_context(&umr_context);
- 
- 	umrwr.wr.wr_cqe = &umr_context.cqe;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5041176..474770e 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -77,6 +77,10 @@ struct mlx5_wqe_eth_pad {
- 	u8 rsvd0[16];
- };
- 
-+static void get_cqs(enum ib_qp_type qp_type,
-+		    struct ib_cq *ib_send_cq, struct ib_cq *ib_recv_cq,
-+		    struct mlx5_ib_cq **send_cq, struct mlx5_ib_cq **recv_cq);
-+
- static int is_qp0(enum ib_qp_type qp_type)
- {
- 	return qp_type == IB_QPT_SMI;
-@@ -607,6 +611,11 @@ static int to_mlx5_st(enum ib_qp_type type)
- 	}
- }
- 
-+static void mlx5_ib_lock_cqs(struct mlx5_ib_cq *send_cq,
-+			     struct mlx5_ib_cq *recv_cq);
-+static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq,
-+			       struct mlx5_ib_cq *recv_cq);
-+
- static int uuarn_to_uar_index(struct mlx5_uuar_info *uuari, int uuarn)
- {
- 	return uuari->uars[uuarn / MLX5_BF_REGS_PER_PAGE].index;
-@@ -1209,6 +1218,9 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	struct mlx5_ib_create_qp_resp resp;
- 	struct mlx5_create_qp_mbox_in *in;
- 	struct mlx5_ib_create_qp ucmd;
-+	struct mlx5_ib_cq *send_cq;
-+	struct mlx5_ib_cq *recv_cq;
-+	unsigned long flags;
- 	int inlen = sizeof(*in);
- 	int err;
- 	u32 uidx = MLX5_IB_DEFAULT_UIDX;
-@@ -1458,6 +1470,23 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	base->container_mibqp = qp;
- 	base->mqp.event = mlx5_ib_qp_event;
- 
-+	get_cqs(init_attr->qp_type, init_attr->send_cq, init_attr->recv_cq,
-+		&send_cq, &recv_cq);
-+	spin_lock_irqsave(&dev->reset_flow_resource_lock, flags);
-+	mlx5_ib_lock_cqs(send_cq, recv_cq);
-+	/* Maintain device to QPs access, needed for further handling via reset
-+	 * flow
-+	 */
-+	list_add_tail(&qp->qps_list, &dev->qp_list);
-+	/* Maintain CQ to QPs access, needed for further handling via reset flow
-+	 */
-+	if (send_cq)
-+		list_add_tail(&qp->cq_send_list, &send_cq->list_send_qp);
-+	if (recv_cq)
-+		list_add_tail(&qp->cq_recv_list, &recv_cq->list_recv_qp);
-+	mlx5_ib_unlock_cqs(send_cq, recv_cq);
-+	spin_unlock_irqrestore(&dev->reset_flow_resource_lock, flags);
 +
  	return 0;
- 
- err_create:
-@@ -1476,23 +1505,23 @@ static void mlx5_ib_lock_cqs(struct mlx5_ib_cq *send_cq, struct mlx5_ib_cq *recv
- 	if (send_cq) {
- 		if (recv_cq) {
- 			if (send_cq->mcq.cqn < recv_cq->mcq.cqn)  {
--				spin_lock_irq(&send_cq->lock);
-+				spin_lock(&send_cq->lock);
- 				spin_lock_nested(&recv_cq->lock,
- 						 SINGLE_DEPTH_NESTING);
- 			} else if (send_cq->mcq.cqn == recv_cq->mcq.cqn) {
--				spin_lock_irq(&send_cq->lock);
-+				spin_lock(&send_cq->lock);
- 				__acquire(&recv_cq->lock);
- 			} else {
--				spin_lock_irq(&recv_cq->lock);
-+				spin_lock(&recv_cq->lock);
- 				spin_lock_nested(&send_cq->lock,
- 						 SINGLE_DEPTH_NESTING);
- 			}
- 		} else {
--			spin_lock_irq(&send_cq->lock);
-+			spin_lock(&send_cq->lock);
- 			__acquire(&recv_cq->lock);
- 		}
- 	} else if (recv_cq) {
--		spin_lock_irq(&recv_cq->lock);
-+		spin_lock(&recv_cq->lock);
- 		__acquire(&send_cq->lock);
- 	} else {
- 		__acquire(&send_cq->lock);
-@@ -1507,21 +1536,21 @@ static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq, struct mlx5_ib_cq *re
- 		if (recv_cq) {
- 			if (send_cq->mcq.cqn < recv_cq->mcq.cqn)  {
- 				spin_unlock(&recv_cq->lock);
--				spin_unlock_irq(&send_cq->lock);
-+				spin_unlock(&send_cq->lock);
- 			} else if (send_cq->mcq.cqn == recv_cq->mcq.cqn) {
- 				__release(&recv_cq->lock);
--				spin_unlock_irq(&send_cq->lock);
-+				spin_unlock(&send_cq->lock);
- 			} else {
- 				spin_unlock(&send_cq->lock);
--				spin_unlock_irq(&recv_cq->lock);
-+				spin_unlock(&recv_cq->lock);
- 			}
- 		} else {
- 			__release(&recv_cq->lock);
--			spin_unlock_irq(&send_cq->lock);
-+			spin_unlock(&send_cq->lock);
- 		}
- 	} else if (recv_cq) {
- 		__release(&send_cq->lock);
--		spin_unlock_irq(&recv_cq->lock);
-+		spin_unlock(&recv_cq->lock);
- 	} else {
- 		__release(&recv_cq->lock);
- 		__release(&send_cq->lock);
-@@ -1533,17 +1562,18 @@ static struct mlx5_ib_pd *get_pd(struct mlx5_ib_qp *qp)
- 	return to_mpd(qp->ibqp.pd);
  }
  
--static void get_cqs(struct mlx5_ib_qp *qp,
-+static void get_cqs(enum ib_qp_type qp_type,
-+		    struct ib_cq *ib_send_cq, struct ib_cq *ib_recv_cq,
- 		    struct mlx5_ib_cq **send_cq, struct mlx5_ib_cq **recv_cq)
- {
--	switch (qp->ibqp.qp_type) {
-+	switch (qp_type) {
- 	case IB_QPT_XRC_TGT:
- 		*send_cq = NULL;
- 		*recv_cq = NULL;
- 		break;
- 	case MLX5_IB_QPT_REG_UMR:
- 	case IB_QPT_XRC_INI:
--		*send_cq = to_mcq(qp->ibqp.send_cq);
-+		*send_cq = ib_send_cq ? to_mcq(ib_send_cq) : NULL;
- 		*recv_cq = NULL;
- 		break;
+@@ -988,6 +1015,11 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	if (field_avail(typeof(resp), cqe_version, udata->outlen))
+ 		resp.response_length += sizeof(resp.cqe_version);
  
-@@ -1555,8 +1585,8 @@ static void get_cqs(struct mlx5_ib_qp *qp,
- 	case IB_QPT_RAW_IPV6:
- 	case IB_QPT_RAW_ETHERTYPE:
- 	case IB_QPT_RAW_PACKET:
--		*send_cq = to_mcq(qp->ibqp.send_cq);
--		*recv_cq = to_mcq(qp->ibqp.recv_cq);
-+		*send_cq = ib_send_cq ? to_mcq(ib_send_cq) : NULL;
-+		*recv_cq = ib_recv_cq ? to_mcq(ib_recv_cq) : NULL;
- 		break;
- 
- 	case IB_QPT_MAX:
-@@ -1575,6 +1605,7 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
- 	struct mlx5_ib_cq *send_cq, *recv_cq;
- 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
- 	struct mlx5_modify_qp_mbox_in *in;
-+	unsigned long flags;
- 	int err;
- 
- 	base = qp->ibqp.qp_type == IB_QPT_RAW_PACKET ?
-@@ -1600,17 +1631,28 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
- 				     base->mqp.qpn);
- 	}
- 
--	get_cqs(qp, &send_cq, &recv_cq);
-+	get_cqs(qp->ibqp.qp_type, qp->ibqp.send_cq, qp->ibqp.recv_cq,
-+		&send_cq, &recv_cq);
-+
-+	spin_lock_irqsave(&dev->reset_flow_resource_lock, flags);
-+	mlx5_ib_lock_cqs(send_cq, recv_cq);
-+	/* del from lists under both locks above to protect reset flow paths */
-+	list_del(&qp->qps_list);
-+	if (send_cq)
-+		list_del(&qp->cq_send_list);
-+
-+	if (recv_cq)
-+		list_del(&qp->cq_recv_list);
- 
- 	if (qp->create_type == MLX5_QP_KERNEL) {
--		mlx5_ib_lock_cqs(send_cq, recv_cq);
- 		__mlx5_ib_cq_clean(recv_cq, base->mqp.qpn,
- 				   qp->ibqp.srq ? to_msrq(qp->ibqp.srq) : NULL);
- 		if (send_cq != recv_cq)
- 			__mlx5_ib_cq_clean(send_cq, base->mqp.qpn,
- 					   NULL);
--		mlx5_ib_unlock_cqs(send_cq, recv_cq);
- 	}
-+	mlx5_ib_unlock_cqs(send_cq, recv_cq);
-+	spin_unlock_irqrestore(&dev->reset_flow_resource_lock, flags);
- 
- 	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET) {
- 		destroy_raw_packet_qp(dev, qp);
-@@ -2294,7 +2336,8 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	}
- 
- 	pd = get_pd(qp);
--	get_cqs(qp, &send_cq, &recv_cq);
-+	get_cqs(qp->ibqp.qp_type, qp->ibqp.send_cq, qp->ibqp.recv_cq,
-+		&send_cq, &recv_cq);
- 
- 	context->flags_pd = cpu_to_be32(pd ? pd->pdn : to_mpd(dev->devr.p0)->pdn);
- 	context->cqn_send = send_cq ? cpu_to_be32(send_cq->mcq.cqn) : 0;
-@@ -3390,6 +3433,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- {
- 	struct mlx5_wqe_ctrl_seg *ctrl = NULL;  /* compiler warning */
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	struct mlx5_ib_qp *qp;
- 	struct mlx5_ib_mr *mr;
- 	struct mlx5_wqe_data_seg *dpseg;
-@@ -3417,6 +3461,13 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 
- 	spin_lock_irqsave(&qp->sq.lock, flags);
- 
-+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
-+		err = -EIO;
-+		*bad_wr = wr;
-+		nreq = 0;
-+		goto out;
++	if (field_avail(typeof(resp), cmds_supp_uhw, udata->outlen)) {
++		resp.cmds_supp_uhw |= MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE;
++		resp.response_length += sizeof(resp.cmds_supp_uhw);
 +	}
 +
- 	for (nreq = 0; wr; nreq++, wr = wr->next) {
- 		if (unlikely(wr->opcode >= ARRAY_SIZE(mlx5_ib_opcode))) {
- 			mlx5_ib_warn(dev, "\n");
-@@ -3718,6 +3769,8 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	struct mlx5_ib_qp *qp = to_mqp(ibqp);
- 	struct mlx5_wqe_data_seg *scat;
- 	struct mlx5_rwqe_sig *sig;
-+	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	unsigned long flags;
- 	int err = 0;
- 	int nreq;
-@@ -3729,6 +3782,13 @@ int mlx5_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 
- 	spin_lock_irqsave(&qp->rq.lock, flags);
- 
-+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
-+		err = -EIO;
-+		*bad_wr = wr;
-+		nreq = 0;
-+		goto out;
-+	}
-+
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
- 
- 	for (nreq = 0; wr; nreq++, wr = wr->next) {
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 3b2ddd6..55efb34 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -458,6 +458,8 @@ int mlx5_ib_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
- 	struct mlx5_ib_srq *srq = to_msrq(ibsrq);
- 	struct mlx5_wqe_srq_next_seg *next;
- 	struct mlx5_wqe_data_seg *scat;
-+	struct mlx5_ib_dev *dev = to_mdev(ibsrq->device);
-+	struct mlx5_core_dev *mdev = dev->mdev;
- 	unsigned long flags;
- 	int err = 0;
- 	int nreq;
-@@ -465,6 +467,12 @@ int mlx5_ib_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
- 
- 	spin_lock_irqsave(&srq->lock, flags);
- 
-+	if (mdev->state == MLX5_DEVICE_STATE_INTERNAL_ERROR) {
-+		err = -EIO;
-+		*bad_wr = wr;
-+		goto out;
-+	}
-+
- 	for (nreq = 0; wr; nreq++, wr = wr->next) {
- 		if (unlikely(wr->num_sge > srq->msrq.max_gs)) {
- 			err = -EINVAL;
-@@ -507,7 +515,7 @@ int mlx5_ib_post_srq_recv(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
- 
- 		*srq->db.db = cpu_to_be32(srq->wqe_ctr);
+ 	if (field_avail(typeof(resp), hca_core_clock_offset, udata->outlen)) {
+ 		resp.comp_mask |=
+ 			MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET;
+@@ -995,8 +1027,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 			offsetof(struct mlx5_init_seg, internal_timer_h) %
+ 			PAGE_SIZE;
+ 		resp.response_length += sizeof(resp.hca_core_clock_offset) +
+-					sizeof(resp.reserved2) +
+-					sizeof(resp.reserved3);
++					sizeof(resp.reserved2);
  	}
--
-+out:
- 	spin_unlock_irqrestore(&srq->lock, flags);
  
- 	return err;
-diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
-index 2be976d..2566f6d 100644
---- a/include/linux/mlx5/cq.h
-+++ b/include/linux/mlx5/cq.h
-@@ -58,6 +58,8 @@ struct mlx5_core_cq {
- 		void (*comp)(struct mlx5_core_cq *);
- 		void		*priv;
- 	} tasklet_ctx;
-+	int			reset_notify_added;
-+	struct list_head	reset_notify;
+ 	err = ib_copy_to_udata(udata, &resp, resp.response_length);
+diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
+index 61bc308..03615e3 100644
+--- a/drivers/infiniband/hw/mlx5/user.h
++++ b/drivers/infiniband/hw/mlx5/user.h
+@@ -79,6 +79,10 @@ enum mlx5_ib_alloc_ucontext_resp_mask {
+ 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
  };
  
++enum mlx5_user_cmds_supp_uhw {
++	MLX5_USER_CMDS_SUPP_UHW_QUERY_DEVICE = 1 << 0,
++};
++
+ struct mlx5_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ 	__u32	bf_reg_size;
+@@ -94,8 +98,8 @@ struct mlx5_ib_alloc_ucontext_resp {
+ 	__u32	comp_mask;
+ 	__u32	response_length;
+ 	__u8	cqe_version;
+-	__u8	reserved2;
+-	__u16	reserved3;
++	__u8	cmds_supp_uhw;
++	__u16	reserved2;
+ 	__u64	hca_core_clock_offset;
+ };
  
+@@ -103,6 +107,22 @@ struct mlx5_ib_alloc_pd_resp {
+ 	__u32	pdn;
+ };
+ 
++struct mlx5_ib_tso_caps {
++	__u32 max_tso; /* Maximum tso payload size in bytes */
++
++	/* Corresponding bit will be set if qp type from
++	 * 'enum ib_qp_type' is supported, e.g.
++	 * supported_qpts |= 1 << IB_QPT_UD
++	 */
++	__u32 supported_qpts;
++};
++
++struct mlx5_ib_query_device_resp {
++	__u32	comp_mask;
++	__u32	response_length;
++	struct	mlx5_ib_tso_caps tso_caps;
++};
++
+ struct mlx5_ib_create_cq {
+ 	__u64	buf_addr;
+ 	__u64	db_addr;
 -- 
 2.1.4
 
