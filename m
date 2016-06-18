@@ -1,58 +1,92 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Properly initialize GRH TClass and FlowLabel in
- AHs
-Date: Fri, 17 Jun 2016 19:41:38 -0400
-Message-ID: <8aa210ca-6d29-b400-9260-d2453ce6f6c8@redhat.com>
-References: <20160608232829.GA27363@obsidianresearch.com>
+Subject: Re: [PATCH 00/10] IB/hfi1,qib,rdmavt: Fixes for 4.7 rc
+Date: Fri, 17 Jun 2016 20:11:16 -0400
+Message-ID: <d0c3831c-c6b1-a285-254e-ffb6a70bb3f0@redhat.com>
+References: <20160609144644.12702.4832.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="coExpuftloP7OMDOdHj6eALCVlvdAUu8f"
+ boundary="QpO7AFKkMFq1Qpt5L9Fg1L3BkddWQONug"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160608232829.GA27363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160609144644.12702.4832.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---coExpuftloP7OMDOdHj6eALCVlvdAUu8f
-Content-Type: multipart/mixed; boundary="BEgdAmTKMbOQ5M42OWU1EmKL7ciSEmVTL"
+--QpO7AFKkMFq1Qpt5L9Fg1L3BkddWQONug
+Content-Type: multipart/mixed; boundary="HQgg7o2GDtcJEL6qWhEDtmQw560eNNjwn"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <8aa210ca-6d29-b400-9260-d2453ce6f6c8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Properly initialize GRH TClass and FlowLabel in
- AHs
-References: <20160608232829.GA27363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20160608232829.GA27363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <d0c3831c-c6b1-a285-254e-ffb6a70bb3f0-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/10] IB/hfi1,qib,rdmavt: Fixes for 4.7 rc
+References: <20160609144644.12702.4832.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160609144644.12702.4832.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
---BEgdAmTKMbOQ5M42OWU1EmKL7ciSEmVTL
-Content-Type: text/plain; charset=windows-1252
+--HQgg7o2GDtcJEL6qWhEDtmQw560eNNjwn
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 6/8/2016 7:28 PM, Jason Gunthorpe wrote:
-> When this code was reworked for IBoE support the order of assignments
-> for the sl_tclass_flowlabel got flipped around resulting in
-> TClass & FlowLabel being permanently set to 0 in the packet headers.
+On 6/9/2016 10:51 AM, Dennis Dalessandro wrote:
+> Doug, here are some fixes which we would like to land in 4.7 RC. These =
+are
+> bug fixes. Some more serious than others.
 >=20
-> This breaks IB routers that rely on these headers, but only affects
-> kernel users - libmlx4 does this properly for user space.
+> Patches apply on your k.o/for-4.7-rc tree.
 >=20
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Fixes: fa417f7b520e ("IB/mlx4: Add support for IBoE")
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Patches can also be viewed in my repo and have passed 0day builds:
+> https://github.com/ddalessa/kernel/tree/for-4.7
+>=20
+> ---
+>=20
+> Brian Welty (2):
+>       IB/rdmavt: Correct required callback functions for MODIFY_QP
+>       IB/rdmavt: Correct warning during QPN allocation
+>=20
+> Ira Weiny (2):
+>       IB/hfi1: Prevent context loss
+>       IB/qib: Prevent context loss
+>=20
+> Jubin John (2):
+>       IB/hfi1: Fix credit return threshold adjustment
+>       IB/hfi1: Increase packet egress timeout
+>=20
+> Sebastian Sanchez (2):
+>       IB/hfi1: Remove FULL_MGMT_P_KEY from pkey table at link up
+>       IB/hfi1: Send a pkey change event on driver pkey update
+>=20
+> Tadeusz Struk (2):
+>       IB/hfi1: Fix potential NULL ptr dereference
+>       IB/hfi1: Fix potential buffer overflow
+>=20
+>=20
+>  drivers/infiniband/hw/hfi1/chip.c        |   28 ++++++++++++++++++++--=
+------
+>  drivers/infiniband/hw/hfi1/file_ops.c    |    3 +++
+>  drivers/infiniband/hw/hfi1/init.c        |    2 +-
+>  drivers/infiniband/hw/hfi1/mad.c         |   19 ++++++++++++-------
+>  drivers/infiniband/hw/hfi1/mad.h         |    2 ++
+>  drivers/infiniband/hw/hfi1/pio.c         |   26 ++++++++++++++++++++++=
++---
+>  drivers/infiniband/hw/hfi1/qsfp.c        |    3 ++-
+>  drivers/infiniband/hw/qib/qib_file_ops.c |    5 +++++
+>  drivers/infiniband/sw/rdmavt/qp.c        |    4 ++--
+>  drivers/infiniband/sw/rdmavt/vt.c        |    4 +---
+>  10 files changed, 71 insertions(+), 25 deletions(-)
+>=20
 
-Thanks, applied.
-
+Thanks, series applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---BEgdAmTKMbOQ5M42OWU1EmKL7ciSEmVTL--
+--HQgg7o2GDtcJEL6qWhEDtmQw560eNNjwn--
 
---coExpuftloP7OMDOdHj6eALCVlvdAUu8f
+--QpO7AFKkMFq1Qpt5L9Fg1L3BkddWQONug
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,22 +95,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXZIqzAAoJELgmozMOVy/dGzAP/2skKGTBPopZgHMNp+QJf7ba
-L6SXYzQFnzb57yjoEvIEy85cFfD2el/Uxb4zBgnAhboeuY30TbQaMN8MEjUiD6qj
-GBerPH4hjwDyekGijc+NyAtQiWqh7iSaR5lxIJnFeInM750Z1LSfQ0INROb0sh4s
-FejwCtMF8QTxh0uQy1OIshfpExXzmiwBInFuvJWzbsEsP8Vn7o84ykiQUkscD+ic
-Sz6GFE/3uDpOzg+vV/N4kfYT0BhmP4ouUUBCHRQWYV34eMWtLJudn3PTLlp6tacD
-D8wsJkNJeY6vwOJqE3XMZ/voZUJwLKm5akv9A2eQ/sSp9z+OMzgTu2rIHE4TIgnh
-iMzIzf19u7veU5boxIRiDBQ4vqRIEh3EknKT4ll5Zh8A+GbguO433axKPCpkb8iI
-44u8sojBAErpQZoX1VKKyH7RswwMGiSbFhckbC4QkfdYpJbJAWK1jZ9Ms7sVNy8N
-wy2/X3SEOQh9SUBWqIdlSnJM1fUMd+Y8Gd9zJLPfErTnZFoYYvUmBQnmblsN+5CF
-38JFvc7qa2VYDsWat9GVPLSqbx4bjttK4S6U97qAcLMGVQBCsehJdsYikbA/SJsp
-r9GmbQzlAIy3vEgmUBtIYwgpbNNfzlQohCOcRJ13TDLzSEVrAQlUJX68Lmkn9XlY
-w7HQBCG9BmW3P5rvxkEy
-=dDPx
+iQIcBAEBCAAGBQJXZJGkAAoJELgmozMOVy/dkz8QAJ1LiEUQ5owPx0OF3/whGTTL
+s+VCAI+s5LV4l3+Y6rXe702iYZIBUwprVgXB3HtJWt6oqCsuID9ifRaARxmbR+CJ
++TXgvqQEzEY8MlGJpgFw6qh6EF47YDDz+eMNX89pKl6mD+m2zXulNTSAnRG802ja
++rRN56i9JwPQeJLcoGRnvD7D6QD5B70soV11Cnj5N8sN7OSc6MX0ofrLRv8dBdC8
+MkEmqj7hwppaWfzGCsd/qU9B5A9uNZIs/USozYHHqKwg074rmtc6iwueU4ba0vzZ
+wkvs8UwJAQbYIyf15lMXz01DrDuUKrhdjfFF+r3sP2Y23WT5YdE/YXDcGuj1ruMA
+q0IFCTpmIOvWAQJYPs3jRMZpjHLvQlTYJ8o5QxQYVJ81SQX08JSB7wdCpuCuDwFf
+C2qUeaTXYTWm3mhAcm7dkBCJhZxtoXf01tiUpXv/TUW77FJTIrZYAFO054yovNM9
+UqYe7OdvUDQfkiAeeM6VpfFZ2azeKLibZFtPmqSXLP/ghp5sLRkR8hYLUdQSwoNf
+vTMUFQx/ZO55FW+cdtcMW3RIfmlvdq+nc+XHK/Y9PZE4EfocDECJ5Ej0EcHdETKZ
+p/fuhHOZKzYfti3pPXUuOEjcpTu1kj/m7jJwzzt7g+Eu4qTAj1fK8Ke6uOXWqqxv
+pel6n/FoHvKf9MFEfSvx
+=W4nV
 -----END PGP SIGNATURE-----
 
---coExpuftloP7OMDOdHj6eALCVlvdAUu8f--
+--QpO7AFKkMFq1Qpt5L9Fg1L3BkddWQONug--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
