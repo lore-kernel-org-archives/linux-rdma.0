@@ -1,48 +1,50 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Sun, 19 Jun 2016 22:38:53 +0300
-Message-ID: <CAJ3xEMha=i5SaM+fV5XP15Fx6pymrYnvk=a8w+3h1cbBeuVX0A@mail.gmail.com>
-References: <20160615030626.14794.43805.stgit@manet.1015granger.net>
- <20160615031525.14794.69066.stgit@manet.1015granger.net> <20160615042849.GR5408@leon.nu>
- <68F7CD80-0092-4B55-9FAD-4C54D284BCA3@oracle.com> <20160616143518.GX5408@leon.nu>
- <576315C9.30002@gmail.com> <652EBA09-2978-414C-8606-38A96C63365A@oracle.com>
- <20160617092018.GZ5408@leon.nu> <4D23496A-FE01-4693-B125-82CD03B8F2D4@oracle.com>
- <20160618105650.GD5408@leon.nu> <5D0A6B47-CB71-42DA-AE76-164B6A660ECC@oracle.com>
- <57666E14.2070802@gmail.com>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 11/29] IB/rxe: Allocation pool for RDMA objects
+Date: Sun, 19 Jun 2016 18:01:54 +0300
+Message-ID: <8806657f-7aaa-03a3-8cb4-d04ad03a4822@mellanox.com>
+References: <1464886657-14258-1-git-send-email-monis@mellanox.com>
+ <1464886657-14258-12-git-send-email-monis@mellanox.com>
+ <011101d1c721$5c22d590$146880b0$@opengridcomputing.com>
+ <015c01d1c725$622feb40$268fc1c0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57666E14.2070802-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <015c01d1c725$622feb40$268fc1c0$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, 'Kamal Heib' <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Amir Vadai' <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 19, 2016 at 1:04 PM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-
->> I am able to reproduce the Local Protection Errors with
->> this patch applied and SLUB debugging disabled.
-
-> Thanks Chuck for proving that the dma alignment is not the issue here.
+On 6/15/2016 7:45 PM, Steve Wise wrote:
+>> Also when using rxe with nvmf (among other bugs I'm chasing down), when you
+>> unload ib_rxe, there are allocated cq objects left in the the slab cache:
+>>
 >
-> I suggest that we go with my dma coherent patch for now until Leon and
-> the Mellanox team can debug this one with the HW/FW folks and find out
-> what is going on.
+> I see the same thing running iser over rxe.  So I think somehow cq objects are
+> getting leaked in rxe...
 >
-> Leon, I had my share of debugging this area on mlx4/mlx5 areas. If you
-> want I can help with debugging this one.
 
-Hi Sagi, Leon and Co,
+Hello Steve,
+can you please supply the test you used over iser to reproduce this ?
+ive tried :
+fio --rw=randread --bs=64k --numjobs=4 --iodepth=8 --runtime=30 
+--time_based --loops=1 --ioengine=libaio --direct=1 --invalidate=1 
+--fsync_on_close=1 --randrepeat=1 --norandommap --exitall --name task1 
+--filename=/dev/sdb
+but failed to reproduce.
+thanks, yonatan.
 
->From quick reading of the patch I got the impression that some scheme
-which used to work is now broken, did we get a bisection result
-pointing to the upstream commit which introduce the regression? I
-didn't see such note along the thread, basically, I think this is
-where we should be starting, thoughts? I also added the mlx4 core/IB
-maintainer.
+> Steve.
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
