@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 15/25] xprtrdma: Release orphaned MRs immediately
-Date: Mon, 20 Jun 2016 12:10:38 -0400
-Message-ID: <20160620161038.10809.47684.stgit@manet.1015granger.net>
+Subject: [PATCH v3 22/25] xprtrdma: No direct data placement with krb5i and
+ krb5p
+Date: Mon, 20 Jun 2016 12:11:35 -0400
+Message-ID: <20160620161135.10809.55145.stgit@manet.1015granger.net>
 References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,82 +13,163 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of leaving orphaned MRs to be released when the transport
-is destroyed, release them immediately. The MR free list can now be
-replenished if it becomes exhausted.
+Direct data placement is not allowed when using flavors that
+guarantee integrity or privacy. When such security flavors are in
+effect, don't allow the use of Read and Write chunks for moving
+individual data items. All messages larger than the inline threshold
+are sent via Long Call or Long Reply.
+
+On my systems (CX-3 Pro on FDR), for small I/O operations, the use
+of Long messages adds only around 5 usecs of latency in each
+direction.
+
+Note that when integrity or encryption is used, the host CPU touches
+every byte in these messages. Even if it could be used, data
+movement offload doesn't buy much in this case.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c  |   19 +++++++++++++------
- net/sunrpc/xprtrdma/frwr_ops.c |   19 +++++++++++++------
- 2 files changed, 26 insertions(+), 12 deletions(-)
+ include/linux/sunrpc/auth.h           |    3 +++
+ include/linux/sunrpc/gss_api.h        |    2 ++
+ net/sunrpc/auth_gss/auth_gss.c        |    2 ++
+ net/sunrpc/auth_gss/gss_krb5_mech.c   |    2 ++
+ net/sunrpc/auth_gss/gss_mech_switch.c |   12 ++++++++++++
+ net/sunrpc/xprtrdma/rpc_rdma.c        |   12 ++++++++++--
+ 6 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 6802b8f..828ba46 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -135,15 +135,22 @@ fmr_op_recover_mr(struct rpcrdma_mw *mw)
- 	/* ORDER: then DMA unmap */
- 	ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
- 			mw->mw_sg, mw->mw_nents, mw->mw_dir);
--	if (rc) {
--		pr_err("rpcrdma: FMR reset status %d, %p orphaned\n",
--		       rc, mw);
--		r_xprt->rx_stats.mrs_orphaned++;
--		return;
--	}
-+	if (rc)
-+		goto out_release;
+diff --git a/include/linux/sunrpc/auth.h b/include/linux/sunrpc/auth.h
+index 8997915..3a40287 100644
+--- a/include/linux/sunrpc/auth.h
++++ b/include/linux/sunrpc/auth.h
+@@ -107,6 +107,9 @@ struct rpc_auth {
+ 	/* per-flavor data */
+ };
  
- 	rpcrdma_put_mw(r_xprt, mw);
- 	r_xprt->rx_stats.mrs_recovered++;
-+	return;
++/* rpc_auth au_flags */
++#define RPCAUTH_AUTH_DATATOUCH	0x00000002
 +
-+out_release:
-+	pr_err("rpcrdma: FMR reset failed (%d), %p released\n", rc, mw);
-+	r_xprt->rx_stats.mrs_orphaned++;
-+
-+	spin_lock(&r_xprt->rx_buf.rb_mwlock);
-+	list_del(&mw->mw_all);
-+	spin_unlock(&r_xprt->rx_buf.rb_mwlock);
-+
-+	fmr_op_release_mr(mw);
+ struct rpc_auth_create_args {
+ 	rpc_authflavor_t pseudoflavor;
+ 	const char *target_name;
+diff --git a/include/linux/sunrpc/gss_api.h b/include/linux/sunrpc/gss_api.h
+index 1f911cc..68ec78c 100644
+--- a/include/linux/sunrpc/gss_api.h
++++ b/include/linux/sunrpc/gss_api.h
+@@ -73,6 +73,7 @@ u32 gss_delete_sec_context(
+ rpc_authflavor_t gss_svc_to_pseudoflavor(struct gss_api_mech *, u32 qop,
+ 					u32 service);
+ u32 gss_pseudoflavor_to_service(struct gss_api_mech *, u32 pseudoflavor);
++bool gss_pseudoflavor_to_datatouch(struct gss_api_mech *, u32 pseudoflavor);
+ char *gss_service_to_auth_domain_name(struct gss_api_mech *, u32 service);
+ 
+ struct pf_desc {
+@@ -81,6 +82,7 @@ struct pf_desc {
+ 	u32	service;
+ 	char	*name;
+ 	char	*auth_domain_name;
++	bool	datatouch;
+ };
+ 
+ /* Different mechanisms (e.g., krb5 or spkm3) may implement gss-api, and
+diff --git a/net/sunrpc/auth_gss/auth_gss.c b/net/sunrpc/auth_gss/auth_gss.c
+index e64ae93..bca3537 100644
+--- a/net/sunrpc/auth_gss/auth_gss.c
++++ b/net/sunrpc/auth_gss/auth_gss.c
+@@ -1017,6 +1017,8 @@ gss_create_new(struct rpc_auth_create_args *args, struct rpc_clnt *clnt)
+ 	auth->au_rslack = GSS_VERF_SLACK >> 2;
+ 	auth->au_ops = &authgss_ops;
+ 	auth->au_flavor = flavor;
++	if (gss_pseudoflavor_to_datatouch(gss_auth->mech, flavor))
++		auth->au_flags |= RPCAUTH_AUTH_DATATOUCH;
+ 	atomic_set(&auth->au_count, 1);
+ 	kref_init(&gss_auth->kref);
+ 
+diff --git a/net/sunrpc/auth_gss/gss_krb5_mech.c b/net/sunrpc/auth_gss/gss_krb5_mech.c
+index 6542749..6059583 100644
+--- a/net/sunrpc/auth_gss/gss_krb5_mech.c
++++ b/net/sunrpc/auth_gss/gss_krb5_mech.c
+@@ -745,12 +745,14 @@ static struct pf_desc gss_kerberos_pfs[] = {
+ 		.qop = GSS_C_QOP_DEFAULT,
+ 		.service = RPC_GSS_SVC_INTEGRITY,
+ 		.name = "krb5i",
++		.datatouch = true,
+ 	},
+ 	[2] = {
+ 		.pseudoflavor = RPC_AUTH_GSS_KRB5P,
+ 		.qop = GSS_C_QOP_DEFAULT,
+ 		.service = RPC_GSS_SVC_PRIVACY,
+ 		.name = "krb5p",
++		.datatouch = true,
+ 	},
+ };
+ 
+diff --git a/net/sunrpc/auth_gss/gss_mech_switch.c b/net/sunrpc/auth_gss/gss_mech_switch.c
+index 7063d85..5fec3ab 100644
+--- a/net/sunrpc/auth_gss/gss_mech_switch.c
++++ b/net/sunrpc/auth_gss/gss_mech_switch.c
+@@ -361,6 +361,18 @@ gss_pseudoflavor_to_service(struct gss_api_mech *gm, u32 pseudoflavor)
  }
+ EXPORT_SYMBOL(gss_pseudoflavor_to_service);
  
- static int
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index e77776b..f4c06c8 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -177,15 +177,22 @@ frwr_op_recover_mr(struct rpcrdma_mw *mw)
- 
- 	rc = __frwr_reset_mr(ia, mw);
- 	ib_dma_unmap_sg(ia->ri_device, mw->mw_sg, mw->mw_nents, mw->mw_dir);
--	if (rc) {
--		pr_err("rpcrdma: FRMR reset status %d, %p orphaned\n",
--		       rc, mw);
--		r_xprt->rx_stats.mrs_orphaned++;
--		return;
--	}
-+	if (rc)
-+		goto out_release;
- 
- 	rpcrdma_put_mw(r_xprt, mw);
- 	r_xprt->rx_stats.mrs_recovered++;
-+	return;
++bool
++gss_pseudoflavor_to_datatouch(struct gss_api_mech *gm, u32 pseudoflavor)
++{
++	int i;
 +
-+out_release:
-+	pr_err("rpcrdma: FRMR reset failed %d, %p release\n", rc, mw);
-+	r_xprt->rx_stats.mrs_orphaned++;
++	for (i = 0; i < gm->gm_pf_num; i++) {
++		if (gm->gm_pfs[i].pseudoflavor == pseudoflavor)
++			return gm->gm_pfs[i].datatouch;
++	}
++	return false;
++}
 +
-+	spin_lock(&r_xprt->rx_buf.rb_mwlock);
-+	list_del(&mw->mw_all);
-+	spin_unlock(&r_xprt->rx_buf.rb_mwlock);
-+
-+	frwr_op_release_mr(mw);
- }
+ char *
+ gss_service_to_auth_domain_name(struct gss_api_mech *gm, u32 service)
+ {
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index dac2990..a47f170 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -570,6 +570,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	struct rpcrdma_req *req = rpcr_to_rdmar(rqst);
+ 	enum rpcrdma_chunktype rtype, wtype;
+ 	struct rpcrdma_msg *headerp;
++	bool ddp_allowed;
+ 	ssize_t hdrlen;
+ 	size_t rpclen;
+ 	__be32 *iptr;
+@@ -586,6 +587,13 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	headerp->rm_credit = cpu_to_be32(r_xprt->rx_buf.rb_max_requests);
+ 	headerp->rm_type = rdma_msg;
  
- static int
++	/* When the ULP employs a GSS flavor that guarantees integrity
++	 * or privacy, direct data placement of individual data items
++	 * is not allowed.
++	 */
++	ddp_allowed = !(rqst->rq_cred->cr_auth->au_flags &
++						RPCAUTH_AUTH_DATATOUCH);
++
+ 	/*
+ 	 * Chunks needed for results?
+ 	 *
+@@ -597,7 +605,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 	 */
+ 	if (rpcrdma_results_inline(r_xprt, rqst))
+ 		wtype = rpcrdma_noch;
+-	else if (rqst->rq_rcv_buf.flags & XDRBUF_READ)
++	else if (ddp_allowed && rqst->rq_rcv_buf.flags & XDRBUF_READ)
+ 		wtype = rpcrdma_writech;
+ 	else
+ 		wtype = rpcrdma_replych;
+@@ -620,7 +628,7 @@ rpcrdma_marshal_req(struct rpc_rqst *rqst)
+ 		rtype = rpcrdma_noch;
+ 		rpcrdma_inline_pullup(rqst);
+ 		rpclen = rqst->rq_svec[0].iov_len;
+-	} else if (rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
++	} else if (ddp_allowed && rqst->rq_snd_buf.flags & XDRBUF_WRITE) {
+ 		rtype = rpcrdma_readch;
+ 		rpclen = rqst->rq_svec[0].iov_len;
+ 		rpclen += rpcrdma_tail_pullup(&rqst->rq_snd_buf);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
