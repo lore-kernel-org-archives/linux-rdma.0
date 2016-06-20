@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 11/25] xprtrdma: Reply buffer exhaustion can be
- catastrophic
-Date: Mon, 20 Jun 2016 12:10:04 -0400
-Message-ID: <20160620161004.10809.31226.stgit@manet.1015granger.net>
+Subject: [PATCH v3 21/25] xprtrdma: Clean up fixup_copy_count accounting
+Date: Mon, 20 Jun 2016 12:11:27 -0400
+Message-ID: <20160620161127.10809.14506.stgit@manet.1015granger.net>
 References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,51 +12,97 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Not having an rpcrdma_rep at call_allocate time can be a problem.
-It means that send_request can't post a receive buffer to catch
-the RPC's reply. Possible consequences are RPC timeouts or even
-transport deadlock.
+fixup_copy_count should count only the number of bytes copied to the
+page list. The head and tail are now always handled without a data
+copy.
 
-Instead of allowing an RPC to proceed if an rpcrdma_rep is
-not available, return NULL to force call_allocate to wait and
-try again.
+And the debugging at the end of rpcrdma_inline_fixup() is also no
+longer necessary, since copy_len will be non-zero when there is reply
+data in the tail (a normal and valid case).
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index dbed9ba..e21c5ac 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -997,8 +997,6 @@ rpcrdma_put_mw(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mw *mw)
- 
- /*
-  * Get a set of request/reply buffers.
-- *
-- * Reply buffer (if available) is attached to send buffer upon return.
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index a0e811d..dac2990 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -755,11 +755,14 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, int wrchunk, __be32 **iptrp)
+  * many cases this function simply updates iov_base pointers in
+  * rq_rcv_buf to point directly to the received reply data, to
+  * avoid copying reply data.
++ *
++ * Returns the count of bytes which had to be memcopied.
   */
- struct rpcrdma_req *
- rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
-@@ -1017,13 +1015,13 @@ rpcrdma_buffer_get(struct rpcrdma_buffer *buffers)
+-static void
++static unsigned long
+ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ {
+-	int i, npages, curlen, olen;
++	unsigned long fixup_copy_count;
++	int i, npages, curlen;
+ 	char *destp;
+ 	struct page **ppages;
+ 	int page_base;
+@@ -781,13 +784,10 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 	srcp += curlen;
+ 	copy_len -= curlen;
  
- out_reqbuf:
- 	spin_unlock(&buffers->rb_lock);
--	pr_warn("RPC:       %s: out of request buffers\n", __func__);
-+	pr_warn("rpcrdma: out of request buffers (%p)\n", buffers);
- 	return NULL;
- out_repbuf:
-+	list_add(&req->rl_free, &buffers->rb_send_bufs);
- 	spin_unlock(&buffers->rb_lock);
--	pr_warn("RPC:       %s: out of reply buffers\n", __func__);
--	req->rl_reply = NULL;
--	return req;
-+	pr_warn("rpcrdma: out of reply buffers (%p)\n", buffers);
-+	return NULL;
+-	olen = copy_len;
+-	i = 0;
+-	rpcx_to_rdmax(rqst->rq_xprt)->rx_stats.fixup_copy_count += olen;
+ 	page_base = rqst->rq_rcv_buf.page_base;
+ 	ppages = rqst->rq_rcv_buf.pages + (page_base >> PAGE_SHIFT);
+ 	page_base &= ~PAGE_MASK;
+-
++	fixup_copy_count = 0;
+ 	if (copy_len && rqst->rq_rcv_buf.page_len) {
+ 		int pagelist_len;
+ 
+@@ -795,7 +795,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 		if (pagelist_len > copy_len)
+ 			pagelist_len = copy_len;
+ 		npages = PAGE_ALIGN(page_base + pagelist_len) >> PAGE_SHIFT;
+-		for (; i < npages; i++) {
++		for (i = 0; i < npages; i++) {
+ 			curlen = PAGE_SIZE - page_base;
+ 			if (curlen > pagelist_len)
+ 				curlen = pagelist_len;
+@@ -809,6 +809,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 			kunmap_atomic(destp);
+ 			srcp += curlen;
+ 			copy_len -= curlen;
++			fixup_copy_count += curlen;
+ 			pagelist_len -= curlen;
+ 			if (!pagelist_len)
+ 				break;
+@@ -833,10 +834,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
+ 		rqst->rq_private_buf.tail[0].iov_base = srcp;
+ 	}
+ 
+-	if (copy_len)
+-		dprintk("RPC:       %s: %d bytes in"
+-			" %d extra segments (%d lost)\n",
+-			__func__, olen, i, copy_len);
++	return fixup_copy_count;
  }
  
- /*
+ void
+@@ -999,8 +997,10 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
+ 			rep->rr_len -= RPCRDMA_HDRLEN_MIN;
+ 			status = rep->rr_len;
+ 		}
+-		/* Fix up the rpc results for upper layer */
+-		rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len, rdmalen);
++
++		r_xprt->rx_stats.fixup_copy_count +=
++			rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len,
++					     rdmalen);
+ 		break;
+ 
+ 	case rdma_nomsg:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
