@@ -1,89 +1,59 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Mon, 20 Jun 2016 08:44:53 +0300
-Message-ID: <20160620054453.GA1172@leon.nu>
-References: <20160616143518.GX5408@leon.nu>
- <576315C9.30002@gmail.com>
- <652EBA09-2978-414C-8606-38A96C63365A@oracle.com>
- <20160617092018.GZ5408@leon.nu>
- <4D23496A-FE01-4693-B125-82CD03B8F2D4@oracle.com>
- <20160618105650.GD5408@leon.nu>
- <5D0A6B47-CB71-42DA-AE76-164B6A660ECC@oracle.com>
- <57666E14.2070802@gmail.com>
- <CAJ3xEMha=i5SaM+fV5XP15Fx6pymrYnvk=a8w+3h1cbBeuVX0A@mail.gmail.com>
- <B62EEE84-454D-4D55-9C7E-653F564DF381@oracle.com>
+Subject: Re: warning from IB core RoCE cache, please send the pending fix
+Date: Mon, 20 Jun 2016 08:49:01 +0300
+Message-ID: <20160620054901.GB1172@leon.nu>
+References: <be3f3905-75dc-9c6f-8771-c59c773d503d@mellanox.com>
 Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="zx4FCpZtqtKETZ7O"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <B62EEE84-454D-4D55-9C7E-653F564DF381-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <be3f3905-75dc-9c6f-8771-c59c773d503d-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---ew6BAiZeqk4r7MaW
+--zx4FCpZtqtKETZ7O
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jun 19, 2016 at 04:02:23PM -0400, Chuck Lever wrote:
+On Sun, Jun 19, 2016 at 03:40:14PM +0300, Or Gerlitz wrote:
+> I get this trace while playing with my mlx5 setup, few times per hour.
 >=20
+> I understand there's a fix underway from Talat, can you please submit it =
+up?
 
-Thanks Chuck and Sagi for the help.
+We are targeting new round of fixes to be sent this week after it will
+pass verification.
 
-<...>
-
->=20
-> > I
-> > didn't see such note along the thread, basically, I think this is
-> > where we should be starting, thoughts? I also added the mlx4 core/IB
-> > maintainer.
->=20
-> Yishai was notified about this issue on May 25:
->=20
-> http://marc.info/?l=3Dlinux-rdma&m=3D146419192913960&w=3D2
-
-Yishai and me follow this thread closely and we work on finding the
-root cause of this issue.
-
-Thanks
-
->=20
->=20
-> --
-> Chuck Lever
->=20
->=20
->=20
-
---ew6BAiZeqk4r7MaW
+--zx4FCpZtqtKETZ7O
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXZ4LVAAoJEORje4g2clinX2MQALc5XUJL6yV70MznegmDYPXd
-jjiO+3YD/Of9IVzX4wRYiV24F/4Q3lgFutP5NQx6kowF8GL4oiPjpJb3F19KdW0n
-zfRTmXnZUDs+JpSGVb6pzGSXxxk1PIeVtvV3KUM2oaCzxvdg9acvzLiKBZnFNDFw
-00VbB1WKRuKOqe+9FCavJXnNxq1bgyxZ14zEOtZD3qpQjMCttRfLE0VRnQuKaLD+
-9JbJWivg+MEgona4iObZJHOIahJkseMVNO4wxSnbCPAoByLdEk8Xu+wImy5xW6zM
-SO5+ArYqb5vMRh37FqC2mCOczwckZAtzT4Zrs3CI/ypGeUzoROEi6eCSBfqjPsiO
-Q3KzUo3mKw9WljV2UgATAQ1VoKaxze/GPIKVOZalLFdU268XHwp1hA0bjX/8vV9+
-TO6sJqLZ9NZVi2IVMnfDSjCfio7ZABm07GvwaZ8V56CvtvyuKcr8mjeZ90y2PhpQ
-Njoyu0tMFIJgK+fRcL0WF5aKinFuQREUb2/UN3Zd7V3KbxxTWGmzwmYGFmczL8Ev
-hWzUjd1/PzCe8/7dMi/RwNcI3yQgaXnQSeuwo6gaZkdR2Du2glKHpKOUgj2pc7Dk
-xYdBxQYWpRsvkLeHLHLUY94cBnnn3nLc/ukmLhyFvNwkSotoIWMpha1wUiYPQ7mi
-l0WNLlBjwxU1JeW7POx4
-=R5VF
+iQIcBAEBAgAGBQJXZ4PMAAoJEORje4g2clinzTUP/iuuvQK+N9DMrziT786zNb/M
+PV6NBD+r4TvNv9zUbCzKrNygW6Vx3C9uEOif4op3bwsQaKizOCRakinGxgoeIlye
+hVswpTp6ITVmM62sS4fMXNZD6GmM4Zm0/vXkn4BaKS/GdRQ5gX6Sxqc1hWPi3+6G
+OepuCOOjde0W4CMJE/GTN5Ni0HN88UAC6drZwsVO85LoEDlPbmxnVq+rGonThzdL
+3NGwqjOpfZ20FulWTHQ4rUxJ6hl7+9MOrI8ufiX8JmFvoXhDz9wVBkCMoL01ylCI
+2mlPMW15RtDpn5/bunvyI/RVQbVZkb/63FLMx52WaD/+nfIpBxUmtQRmC/igBTJT
+Vh+vA+V2nkVOdidPimYU/wBa5AwCf+kid1Avg+6xfHrbMXMrOIikbRdoeKPFrPbm
+f2KxWEkB7Wh7RLcrXgM7waPXYN2UWPYSPMGjWEcAaXB3VSoSqMAKTOSGY4lXfwfI
+9YVsfXN+9KbA6i+RlnE3KPrH9pbDF/nznQ1i8HQ34qG1OgRzTRiVdkuPzhvWm69y
+BJ7ykPCEmdae/up3HJM3iEVs6D58nuEXYaCNRpNPHCKBc6A2+4qbpd7exq94CQYD
+8UTDougvpwe/fOUSsBOGILUBqHBE6DO9A/2yGbiYJ0BXlwiE9Th83ok5jxQbT1K9
+hlqqD5rIItJRVjjWBFpD
+=LNHh
 -----END PGP SIGNATURE-----
 
---ew6BAiZeqk4r7MaW--
+--zx4FCpZtqtKETZ7O--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
