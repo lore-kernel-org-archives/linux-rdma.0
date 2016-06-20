@@ -1,91 +1,67 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v10 06/22] IB/hns: Add initial cmd operation
-Date: Mon, 20 Jun 2016 16:33:10 +0300
-Message-ID: <20160620133310.GB4526@leon.nu>
-References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
- <1466087730-54856-7-git-send-email-oulijun@huawei.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
+Date: Mon, 20 Jun 2016 16:41:35 +0300
+Message-ID: <12ee28bb-b838-ed4c-5f84-0cb8f1760d63@dev.mellanox.co.il>
+References: <20160616143518.GX5408@leon.nu> <576315C9.30002@gmail.com>
+ <652EBA09-2978-414C-8606-38A96C63365A@oracle.com>
+ <20160617092018.GZ5408@leon.nu>
+ <4D23496A-FE01-4693-B125-82CD03B8F2D4@oracle.com>
+ <20160618105650.GD5408@leon.nu>
+ <5D0A6B47-CB71-42DA-AE76-164B6A660ECC@oracle.com>
+ <57666E14.2070802@gmail.com>
+ <CAJ3xEMha=i5SaM+fV5XP15Fx6pymrYnvk=a8w+3h1cbBeuVX0A@mail.gmail.com>
+ <B62EEE84-454D-4D55-9C7E-653F564DF381@oracle.com>
+ <20160620054453.GA1172@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1466087730-54856-7-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160620054453.GA1172-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 6/20/2016 8:44 AM, Leon Romanovsky wrote:
+> On Sun, Jun 19, 2016 at 04:02:23PM -0400, Chuck Lever wrote:
+>>
+>
+> Thanks Chuck and Sagi for the help.
+>
+> <...>
+>
+>>
+>>> I
+>>> didn't see such note along the thread, basically, I think this is
+>>> where we should be starting, thoughts? I also added the mlx4 core/IB
+>>> maintainer.
+>>
+>> Yishai was notified about this issue on May 25:
+>>
+>> http://marc.info/?l=linux-rdma&m=146419192913960&w=2
+>
+> Yishai and me follow this thread closely and we work on finding the
+> root cause of this issue.
+>
 
---CdrF4e02JqNVZeln
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Just found the root cause of the problem, it was found to be a hardware 
+limitation that is described as part of the PRM. The driver code had to 
+be written accordingly, confirmed that internally with the relevant people.
 
-On Thu, Jun 16, 2016 at 10:35:14PM +0800, Lijun Ou wrote:
-> This patch added the operation for cmd, and added some functions
-> for initializing eq table and selecting cmd mode.
->=20
-> Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
-> PATCH v9/v8/v7/v6:
-> - No change over the PATCH v5
->=20
-> PATCH v5:
-> - The initial patch which was redesigned based on the second patch
->   in PATCH v4
-> ---
+ From PRM:
+"The PBL should be physically contiguous, must reside in a 
+64-byte-aligned address, and must not include the last 8 bytes of a page."
 
-<...>
+The last sentence pointed that only one page can be used as the last 8 
+bytes should not be included. That's why there is a hard limit in the 
+code for 511 entries.
 
-> +#define CMD_MAX_NUM		32
-> +
-> +int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
-> +{
-> +	struct device *dev =3D &hr_dev->pdev->dev;
-> +
-> +	mutex_init(&hr_dev->cmd.hcr_mutex);
-> +	sema_init(&hr_dev->cmd.poll_sem, 1);
-> +	hr_dev->cmd.use_events =3D 0;
-> +	hr_dev->cmd.toggle =3D 1;
-> +	hr_dev->cmd.max_cmds =3D CMD_MAX_NUM;
+Re the candidate fix that you sent, from initial review it makes sense, 
+we'll formally confirm it soon after finalizing the regression testing 
+in our side.
 
-<...>
-
-> +	for (hr_cmd->token_mask =3D 1; hr_cmd->token_mask < hr_cmd->max_cmds;
-> +	     hr_cmd->token_mask <<=3D 1)
-> +		;
-> +	--hr_cmd->token_mask;
-
-It doesn't look that you dynamically change max_cmds supported.
-Why do you need to calculate token_mask dynamically?
-
---CdrF4e02JqNVZeln
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXZ/CWAAoJEORje4g2clin6fYP/3irrJtA/mvfhiD+6U3rDRoN
-9p5rvft5GKojFbqPNLaG7XrlKDpTgRhVVuyzjlxWSk0/P+XmdXBiRaUPESfeRf5d
-fPaqJQ5LP1tyo1i24c9lla7ZIUFPvdd7kKWZrP2CdqlJAgqJ2ZNuuqoP3k2gq8OT
-VE8zMH5INdwBoq3av5iUdJKGLSlV0YlOFOdJALjjkYelCIsy9WWVA7rJ6YXqzscG
-3V/D5T6JmHP4EoD7kbaExF7SknE9kOzESjMWH1BpG00hCl0yicaPy4Ftk3vu0IU+
-pyYf+moyhExcBwlNpXWejuXzfFtgygTs5+vbXu20bvHY9xhjOa3GI+Qbotk7GdHV
-3KNfjsjttsoFozd8jKV6RqvywnY2f6iT1E9xNtiDJZ2g00EWrm+CdAYbz8jzbSpm
-UsLkzZ/5Lqv2NzW4fcP1PQNadjefowcZV6DL5mmsfSKt1if9SKIE6K9n/hUr8iy3
-vC+hV7iNSSr5skDrzQ++6+OOKA28xse8cV6eeuv0uxgh1xeF1c8ZHp175AC636fW
-Ti0C2AFZA6c/j2oSLz+2s13t5PVTZOPh3Z3voGQRDnzD95u9AEVb2VasGD0Ko95E
-sb6yoqSpE3PNiNA7Ga7gK72b3JUG/Bc2jhT0zaN46Bbmaue0a52Zq2dmvbPSi6OK
-lYd6HEGV4qjptp4UP3kI
-=yDFm
------END PGP SIGNATURE-----
-
---CdrF4e02JqNVZeln--
+Thanks Chuck and Sagi for evaluating and working on a solution.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
