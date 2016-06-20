@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 23/25] svc: Avoid garbage replies when pc_func() returns
- rpc_drop_reply
-Date: Mon, 20 Jun 2016 12:11:43 -0400
-Message-ID: <20160620161143.10809.2958.stgit@manet.1015granger.net>
+Subject: [PATCH v3 13/25] xprtrdma: Chunk list encoders must not return zero
+Date: Mon, 20 Jun 2016 12:10:21 -0400
+Message-ID: <20160620161021.10809.75135.stgit@manet.1015granger.net>
 References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,31 +12,74 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If an RPC program does not set vs_dispatch and pc_func() returns
-rpc_drop_reply, the server sends a reply anyway containing a single
-word containing the value RPC_DROP_REPLY (in network byte-order, of
-course). This is a nonsense RPC message.
+Clean up, based on code audit: Remove the possibility that the
+chunk list XDR encoders can return zero, which would be interpreted
+as a NULL.
 
-Fixes: 9e701c610923 ("svcrpc: simpler request dropping")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/svc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/fmr_ops.c  |    2 ++
+ net/sunrpc/xprtrdma/frwr_ops.c |    2 ++
+ net/sunrpc/xprtrdma/rpc_rdma.c |    6 +++---
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
-index cc98528..87290a5 100644
---- a/net/sunrpc/svc.c
-+++ b/net/sunrpc/svc.c
-@@ -1188,7 +1188,8 @@ svc_process_common(struct svc_rqst *rqstp, struct kvec *argv, struct kvec *resv)
- 		*statp = procp->pc_func(rqstp, rqstp->rq_argp, rqstp->rq_resp);
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index add58b6..2f3fff1 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -247,6 +247,8 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	}
+ 	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
++	if (i == 0)
++		goto out_dmamap_err;
  
- 		/* Encode reply */
--		if (test_bit(RQ_DROPME, &rqstp->rq_flags)) {
-+		if (*statp == rpc_drop_reply ||
-+		    test_bit(RQ_DROPME, &rqstp->rq_flags)) {
- 			if (procp->pc_release)
- 				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
- 			goto dropit;
+ 	if (!ib_dma_map_sg(r_xprt->rx_ia.ri_device,
+ 			   mw->mw_sg, mw->mw_nents, mw->mw_dir))
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index d7613db9..f3a06fa 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -411,6 +411,8 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	}
+ 	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
++	if (i == 0)
++		goto out_dmamap_err;
+ 
+ 	dma_nents = ib_dma_map_sg(ia->ri_device,
+ 				  mw->mw_sg, mw->mw_nents, mw->mw_dir);
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 77e002f..8fde0ab 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -329,7 +329,7 @@ rpcrdma_encode_read_list(struct rpcrdma_xprt *r_xprt,
+ 
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, false);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
+ 
+ 		*iptr++ = xdr_one;	/* item present */
+@@ -397,7 +397,7 @@ rpcrdma_encode_write_list(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 	nchunks = 0;
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
+ 
+ 		iptr = xdr_encode_rdma_segment(iptr, seg);
+@@ -462,7 +462,7 @@ rpcrdma_encode_reply_chunk(struct rpcrdma_xprt *r_xprt,
+ 	nchunks = 0;
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
+ 
+ 		iptr = xdr_encode_rdma_segment(iptr, seg);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
