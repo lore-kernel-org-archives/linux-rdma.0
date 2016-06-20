@@ -1,38 +1,97 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Mon, 20 Jun 2016 11:35:44 +0300
-Message-ID: <5767AAE0.1030001@grimberg.me>
-References: <652EBA09-2978-414C-8606-38A96C63365A@oracle.com>
- <20160617092018.GZ5408@leon.nu>
- <4D23496A-FE01-4693-B125-82CD03B8F2D4@oracle.com>
- <20160618105650.GD5408@leon.nu>
- <5D0A6B47-CB71-42DA-AE76-164B6A660ECC@oracle.com>
- <57666E14.2070802@gmail.com>
- <CAJ3xEMha=i5SaM+fV5XP15Fx6pymrYnvk=a8w+3h1cbBeuVX0A@mail.gmail.com>
- <B62EEE84-454D-4D55-9C7E-653F564DF381@oracle.com>
- <20160620054453.GA1172@leon.nu> <57678E74.1070308@grimberg.me>
- <20160620070141.GD1172@leon.nu>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v10 08/22] IB/hns: Add icm support
+Date: Mon, 20 Jun 2016 12:27:19 +0300
+Message-ID: <20160620092719.GE1172@leon.nu>
+References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
+ <1466087730-54856-9-git-send-email-oulijun@huawei.com>
+ <20160617095834.GA5408@leon.nu>
+ <57677314.70909@huawei.com>
+ <20160620060614.GC1172@leon.nu>
+ <5767A004.4060808@huawei.com>
+Reply-To: leon@kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160620070141.GD1172-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6e7ZaeXHKrTJCxdu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5767A004.4060808@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: Lijun Ou <oulijun@huawei.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
-> We will do our best to meet our fixes submission target, which is
-> planned to be this week.
->
-> And for sure we will submit one of two: your's proposed patch
-> or Yishai's fix if any.
->
-> Right now, your's patch is running in our verification.
+--6e7ZaeXHKrTJCxdu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Sure, thanks Leon.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Jun 20, 2016 at 03:49:24PM +0800, Wei Hu (Xavier) wrote:
+>=20
+>=20
+> On 2016/6/20 14:06, Leon Romanovsky wrote:
+> >On Mon, Jun 20, 2016 at 12:37:40PM +0800, Wei Hu (Xavier) wrote:
+> >>
+> >>On 2016/6/17 17:58, Leon Romanovsky wrote:
+> >>>On Thu, Jun 16, 2016 at 10:35:16PM +0800, Lijun Ou wrote:
+> >>>>This patch mainly added icm support for RoCE. It initializes icm
+> >>>>which managers the relative memory blocks for RoCE. The data
+> >>>>structures of RoCE will be located in it. For example, CQ table,
+> >>>>QP table and MTPT table so on.
+> >>>>
+> >>>>Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+> >>>>Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+> >>>>Signed-off-by: Lijun Ou <oulijun@huawei.com>
+> >>>>---
+> >>><...>
+> >>>
+> >>>>+
+> >Another question which you didn't answer [1].
+> >
+> >"I wonder if you have the same needs for ICM as it is in mlx4 device.
+> >Do you have firmware?"
+> >
+> >[1] http://marc.info/?l=3Dlinux-rdma&m=3D146545553104913&w=3D2
+> Hi, Leon
+>     Now we haven't firmware.
+>     But hardware still need memory for QPC\CQC\MTPT\mtt etc.
+
+ICM stands for InfiniHost (Interconnect) Context Memory is a specific
+memory place to share between host <-> FW and host <-> HW if HW is
+aware of specific structures.
+
+I assume that in your case, it is enough to allocate memory region and
+supply it to HW. Am I right?
+
+>=20
+> Thanks
+> Wei Hu
+> >>Regards
+> >>Wei Hu
+> >>
+>=20
+>=20
+
+--6e7ZaeXHKrTJCxdu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXZ7b3AAoJEORje4g2clincEoQAI+ddKVx36/HBsHieA0QGvIR
+dyscLKRyeqn6i6NQ5I2KrOEWizX/d2euYLeTlBo/O+PWqN48t40G6WwZq6uwENo9
+boufluvoO8ppSGaah/d4SN8+q+h7mmrgQMIQFEYY7HCSUsrnrQjV3OjY7T9Dkx/+
+ZA60s9asATlDG3dKjnkAlrWV+psh9F9UgqTjystyoun/VFyx4ZzMegkaslLt+R+q
+LIpXv/FhJxMP4CVmi3PsTT2FYmPd1G4pLNnwYGAVXlRo5Exkavjk19I72JClE+IQ
+8rNZLfBxENkjAWqz6TDzy0MPWI+xj+3tKsZC5G3vZGe2LXQo3jSqjoWSZCw72Mbk
+CQvWky8PF3sP6EyHwsbtoRHXUAfJ50V4FlrAbHkE5oHvBU0VWJIWGLUfO0KdWj0w
+gKPA2gg5lDKhFfxg8gF+Bvc4zoPEekMsFP+fMYkrAIK9nSMQkbtzIFI/Piijsb94
+/wi3rWwvw5ecffZPVchLpyYgjxadckKYOfnOuCgpQq819t4KjIEJ37U8uUuKMxxP
+2Pn/FCGIrzYB6/0znvFzJaL8s/IaTC6ftTJDgMM5+zReQvzKs7atYFcXL7x84Qe4
+DMrzV7GSlHFQeRjGDG5yZSTFeRQdy67uhpfS2cdVV4Sk9T7iDBrec0wNT9CQnr6q
+R4J1VcFmKmhyyWoD0FWS
+=UXpm
+-----END PGP SIGNATURE-----
+
+--6e7ZaeXHKrTJCxdu--
