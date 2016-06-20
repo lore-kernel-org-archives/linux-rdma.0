@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 21/25] xprtrdma: Clean up fixup_copy_count accounting
-Date: Mon, 20 Jun 2016 12:11:27 -0400
-Message-ID: <20160620161127.10809.14506.stgit@manet.1015granger.net>
+Subject: [PATCH v3 24/25] NFS: Don't drop CB requests with invalid principals
+Date: Mon, 20 Jun 2016 12:11:52 -0400
+Message-ID: <20160620161152.10809.29988.stgit@manet.1015granger.net>
 References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,97 +12,60 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-fixup_copy_count should count only the number of bytes copied to the
-page list. The head and tail are now always handled without a data
-copy.
+Before commit 778be232a207 ("NFS do not find client in NFSv4
+pg_authenticate"), the Linux callback server replied with
+RPC_AUTH_ERROR / RPC_AUTH_BADCRED, instead of dropping the CB
+request. Let's restore that behavior so the server has a chance to
+do something useful about it, and provide a warning that helps
+admins correct the problem.
 
-And the debugging at the end of rpcrdma_inline_fixup() is also no
-longer necessary, since copy_len will be non-zero when there is reply
-data in the tail (a normal and valid case).
-
+Fixes: 778be232a207 ("NFS do not find client in NFSv4 ...")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ fs/nfs/callback_xdr.c |    6 +++++-
+ net/sunrpc/svc.c      |    5 +++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index a0e811d..dac2990 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -755,11 +755,14 @@ rpcrdma_count_chunks(struct rpcrdma_rep *rep, int wrchunk, __be32 **iptrp)
-  * many cases this function simply updates iov_base pointers in
-  * rq_rcv_buf to point directly to the received reply data, to
-  * avoid copying reply data.
-+ *
-+ * Returns the count of bytes which had to be memcopied.
-  */
--static void
-+static unsigned long
- rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- {
--	int i, npages, curlen, olen;
-+	unsigned long fixup_copy_count;
-+	int i, npages, curlen;
- 	char *destp;
- 	struct page **ppages;
- 	int page_base;
-@@ -781,13 +784,10 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 	srcp += curlen;
- 	copy_len -= curlen;
- 
--	olen = copy_len;
--	i = 0;
--	rpcx_to_rdmax(rqst->rq_xprt)->rx_stats.fixup_copy_count += olen;
- 	page_base = rqst->rq_rcv_buf.page_base;
- 	ppages = rqst->rq_rcv_buf.pages + (page_base >> PAGE_SHIFT);
- 	page_base &= ~PAGE_MASK;
--
-+	fixup_copy_count = 0;
- 	if (copy_len && rqst->rq_rcv_buf.page_len) {
- 		int pagelist_len;
- 
-@@ -795,7 +795,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 		if (pagelist_len > copy_len)
- 			pagelist_len = copy_len;
- 		npages = PAGE_ALIGN(page_base + pagelist_len) >> PAGE_SHIFT;
--		for (; i < npages; i++) {
-+		for (i = 0; i < npages; i++) {
- 			curlen = PAGE_SIZE - page_base;
- 			if (curlen > pagelist_len)
- 				curlen = pagelist_len;
-@@ -809,6 +809,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 			kunmap_atomic(destp);
- 			srcp += curlen;
- 			copy_len -= curlen;
-+			fixup_copy_count += curlen;
- 			pagelist_len -= curlen;
- 			if (!pagelist_len)
- 				break;
-@@ -833,10 +834,7 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 		rqst->rq_private_buf.tail[0].iov_base = srcp;
+diff --git a/fs/nfs/callback_xdr.c b/fs/nfs/callback_xdr.c
+index d81f96a..656f68f 100644
+--- a/fs/nfs/callback_xdr.c
++++ b/fs/nfs/callback_xdr.c
+@@ -925,7 +925,7 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
+ 	if (hdr_arg.minorversion == 0) {
+ 		cps.clp = nfs4_find_client_ident(SVC_NET(rqstp), hdr_arg.cb_ident);
+ 		if (!cps.clp || !check_gss_callback_principal(cps.clp, rqstp))
+-			return rpc_drop_reply;
++			goto out_invalidcred;
  	}
  
--	if (copy_len)
--		dprintk("RPC:       %s: %d bytes in"
--			" %d extra segments (%d lost)\n",
--			__func__, olen, i, copy_len);
-+	return fixup_copy_count;
+ 	cps.minorversion = hdr_arg.minorversion;
+@@ -953,6 +953,10 @@ static __be32 nfs4_callback_compound(struct svc_rqst *rqstp, void *argp, void *r
+ 	nfs_put_client(cps.clp);
+ 	dprintk("%s: done, status = %u\n", __func__, ntohl(status));
+ 	return rpc_success;
++
++out_invalidcred:
++	pr_warn_ratelimited("NFS: NFSv4 callback contains invalid cred\n");
++	return rpc_autherr_badcred;
  }
  
- void
-@@ -999,8 +997,10 @@ rpcrdma_reply_handler(struct rpcrdma_rep *rep)
- 			rep->rr_len -= RPCRDMA_HDRLEN_MIN;
- 			status = rep->rr_len;
+ /*
+diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
+index 87290a5..c5b0cb4 100644
+--- a/net/sunrpc/svc.c
++++ b/net/sunrpc/svc.c
+@@ -1194,6 +1194,11 @@ svc_process_common(struct svc_rqst *rqstp, struct kvec *argv, struct kvec *resv)
+ 				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
+ 			goto dropit;
  		}
--		/* Fix up the rpc results for upper layer */
--		rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len, rdmalen);
-+
-+		r_xprt->rx_stats.fixup_copy_count +=
-+			rpcrdma_inline_fixup(rqst, (char *)iptr, rep->rr_len,
-+					     rdmalen);
- 		break;
- 
- 	case rdma_nomsg:
++		if (*statp == rpc_autherr_badcred) {
++			if (procp->pc_release)
++				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
++			goto err_bad_auth;
++		}
+ 		if (*statp == rpc_success &&
+ 		    (xdr = procp->pc_encode) &&
+ 		    !xdr(rqstp, resv->iov_base+resv->iov_len, rqstp->rq_resp)) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
