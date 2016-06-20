@@ -1,120 +1,322 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 00/25] NFS/RDMA client patches proposed for v4.8
-Date: Mon, 20 Jun 2016 12:08:33 -0400
-Message-ID: <20160620155751.10809.22262.stgit@manet.1015granger.net>
+Subject: [PATCH v3 03/25] xprtrdma: Move init and release helpers
+Date: Mon, 20 Jun 2016 12:08:59 -0400
+Message-ID: <20160620160859.10809.91014.stgit@manet.1015granger.net>
+References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160620155751.10809.22262.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series implements the following:
+Clean up: Moving these helpers in a separate patch makes later
+patches more readable.
 
-- Fixes to FMR disconnect recovery
-- Removal of the insecure ALLPHYSICAL memory registration mode
-- Significant reductions in per-transport memory consumption
-- Support for sec=krb5, sec=krb5i, and sec=krb5p with NFS/RDMA
-   (with no performance impact on sec=sys)
-- Pre-requisites for device removal support
-
-Kerberos with NFS/RDMA is useful mainly for secure authentication of
-each RPC transaction (sec=krb5). The Kerberos integrity and privacy
-services are also available, providing feature parity with TCP in
-environments where the use of sec=krb5i or sec=krb5p is mandated by
-IT policy.
-
-No changes to the Linux server are needed to use Kerberos with
-NFS/RDMA.
-
-The mlx4_alloc_priv_pages workaround has been re-fashioned, and is
-again included here to facilitate testing of this patch series. It
-will be dropped once an official fix is merged.
-
-Otherwise, there are only a few minor updates to the series, listed
-below.
-
-
-Available in the "nfs-rdma-for-4.8" topic branch of this git repo:
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.8
-
-
-Changes since v2:
-- Rebased on v4.7-rc4
-- Reworked the mlx4_alloc_priv_pages patch
-- Refactored registration mode checking
-- Allocate 32 MRs at a time
-
-
-Changes since v1:
-- Rebased on v4.7-rc3
-- Re-ordered series so FMR fixes come first
-- Fix ib_unmap_fmr list handling
-- Replaced the bogus 256-MRs-per-QP patch with dynamic MR allocation
-- Add performance counters to expose MR allocation and recovery behavior
-- Included Sagi's proposed mlx4 priv pages fix
-- Make it easier to merge my datatouch patch with Scott's bug fix
-- Split some patches for readability
-- Dropped some clean-up patches to keep the series patch count down
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/fmr_ops.c  |  120 +++++++++++++++++++++++++---------------
+ net/sunrpc/xprtrdma/frwr_ops.c |   90 +++++++++++++++---------------
+ 2 files changed, 120 insertions(+), 90 deletions(-)
 
-Chuck Lever (25):
-      xprtrdma: Remove FMRs from the unmap list after unmapping
-      xprtrdma: Create common scatterlist fields in rpcrdma_mw
-      xprtrdma: Move init and release helpers
-      xprtrdma: Rename fields in rpcrdma_fmr
-      xprtrdma: Use scatterlist for DMA mapping and unmapping under FMR
-      xprtrdma: Refactor MR recovery work queues
-      xprtrdma: Do not leak an MW during a DMA map failure
-      xprtrdma: Remove ALLPHYSICAL memory registration mode
-      xprtrdma: Remove rpcrdma_map_one() and friends
-      xprtrdma: Clean up device capability detection
-      xprtrdma: Reply buffer exhaustion can be catastrophic
-      xprtrdma: Honor ->send_request API contract
-      xprtrdma: Chunk list encoders must not return zero
-      xprtrdma: Allocate MRs on demand
-      xprtrdma: Release orphaned MRs immediately
-      xprtrdma: Place registered MWs on a per-req list
-      xprtrdma: Chunk list encoders no longer share one rl_segments array
-      xprtrdma: rpcrdma_inline_fixup() overruns the receive page list
-      xprtrdma: Do not update {head,tail}.iov_len in rpcrdma_inline_fixup()
-      xprtrdma: Update only specific fields in private receive buffer
-      xprtrdma: Clean up fixup_copy_count accounting
-      xprtrdma: No direct data placement with krb5i and krb5p
-      svc: Avoid garbage replies when pc_func() returns rpc_drop_reply
-      NFS: Don't drop CB requests with invalid principals
-      IB/mlx4: Workaround for mlx4_alloc_priv_pages() array allocator
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 958c792..b3f8699 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -35,6 +35,12 @@
+ /* Maximum scatter/gather per FMR */
+ #define RPCRDMA_MAX_FMR_SGES	(64)
+ 
++/* Access mode of externally registered pages */
++enum {
++	RPCRDMA_FMR_ACCESS_FLAGS	= IB_ACCESS_REMOTE_WRITE |
++					  IB_ACCESS_REMOTE_READ,
++};
++
+ static struct workqueue_struct *fmr_recovery_wq;
+ 
+ #define FMR_RECOVERY_WQ_FLAGS		(WQ_UNBOUND)
+@@ -60,6 +66,45 @@ fmr_destroy_recovery_wq(void)
+ }
+ 
+ static int
++__fmr_init(struct rpcrdma_mw *mw, struct ib_pd *pd)
++{
++	static struct ib_fmr_attr fmr_attr = {
++		.max_pages	= RPCRDMA_MAX_FMR_SGES,
++		.max_maps	= 1,
++		.page_shift	= PAGE_SHIFT
++	};
++
++	mw->fmr.physaddrs = kcalloc(RPCRDMA_MAX_FMR_SGES,
++				    sizeof(u64), GFP_KERNEL);
++	if (!mw->fmr.physaddrs)
++		goto out_free;
++
++	mw->mw_sg = kcalloc(RPCRDMA_MAX_FMR_SGES,
++			    sizeof(*mw->mw_sg), GFP_KERNEL);
++	if (!mw->mw_sg)
++		goto out_free;
++
++	sg_init_table(mw->mw_sg, RPCRDMA_MAX_FMR_SGES);
++
++	mw->fmr.fmr = ib_alloc_fmr(pd, RPCRDMA_FMR_ACCESS_FLAGS,
++				   &fmr_attr);
++	if (IS_ERR(mw->fmr.fmr))
++		goto out_fmr_err;
++
++	INIT_LIST_HEAD(&mw->fmr.fmr->list);
++	return 0;
++
++out_fmr_err:
++	dprintk("RPC:       %s: ib_alloc_fmr returned %ld\n", __func__,
++		PTR_ERR(mw->fmr.fmr));
++
++out_free:
++	kfree(mw->mw_sg);
++	kfree(mw->fmr.physaddrs);
++	return -ENOMEM;
++}
++
++static int
+ __fmr_unmap(struct rpcrdma_mw *mw)
+ {
+ 	LIST_HEAD(l);
+@@ -71,6 +116,30 @@ __fmr_unmap(struct rpcrdma_mw *mw)
+ 	return rc;
+ }
+ 
++static void
++__fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
++{
++	struct ib_device *device = r_xprt->rx_ia.ri_device;
++	int nsegs = seg->mr_nsegs;
++
++	while (nsegs--)
++		rpcrdma_unmap_one(device, seg++);
++}
++
++static void
++__fmr_release(struct rpcrdma_mw *r)
++{
++	int rc;
++
++	kfree(r->fmr.physaddrs);
++	kfree(r->mw_sg);
++
++	rc = ib_dealloc_fmr(r->fmr.fmr);
++	if (rc)
++		pr_err("rpcrdma: final ib_dealloc_fmr for %p returned %i\n",
++		       r, rc);
++}
++
+ /* Deferred reset of a single FMR. Generate a fresh rkey by
+  * replacing the MR. There's no recovery if this fails.
+  */
+@@ -119,12 +188,6 @@ static int
+ fmr_op_init(struct rpcrdma_xprt *r_xprt)
+ {
+ 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	int mr_access_flags = IB_ACCESS_REMOTE_WRITE | IB_ACCESS_REMOTE_READ;
+-	struct ib_fmr_attr fmr_attr = {
+-		.max_pages	= RPCRDMA_MAX_FMR_SGES,
+-		.max_maps	= 1,
+-		.page_shift	= PAGE_SHIFT
+-	};
+ 	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
+ 	struct rpcrdma_mw *r;
+ 	int i, rc;
+@@ -138,36 +201,22 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
+ 	i *= buf->rb_max_requests;	/* one set for each RPC slot */
+ 	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
+ 
+-	rc = -ENOMEM;
+ 	while (i--) {
+ 		r = kzalloc(sizeof(*r), GFP_KERNEL);
+ 		if (!r)
+-			goto out;
+-
+-		r->fmr.physaddrs = kmalloc(RPCRDMA_MAX_FMR_SGES *
+-					   sizeof(u64), GFP_KERNEL);
+-		if (!r->fmr.physaddrs)
+-			goto out_free;
++			return -ENOMEM;
+ 
+-		r->fmr.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
+-		if (IS_ERR(r->fmr.fmr))
+-			goto out_fmr_err;
+-		INIT_LIST_HEAD(&r->fmr.fmr->list);
++		rc = __fmr_init(r, pd);
++		if (rc) {
++			kfree(r);
++			return rc;
++		}
+ 
+ 		r->mw_xprt = r_xprt;
+ 		list_add(&r->mw_list, &buf->rb_mws);
+ 		list_add(&r->mw_all, &buf->rb_all);
+ 	}
+ 	return 0;
+-
+-out_fmr_err:
+-	rc = PTR_ERR(r->fmr.fmr);
+-	dprintk("RPC:       %s: ib_alloc_fmr status %i\n", __func__, rc);
+-	kfree(r->fmr.physaddrs);
+-out_free:
+-	kfree(r);
+-out:
+-	return rc;
+ }
+ 
+ /* Use the ib_map_phys_fmr() verb to register a memory region
+@@ -236,16 +285,6 @@ out_maperr:
+ 	return rc;
+ }
+ 
+-static void
+-__fmr_dma_unmap(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg)
+-{
+-	struct ib_device *device = r_xprt->rx_ia.ri_device;
+-	int nsegs = seg->mr_nsegs;
+-
+-	while (nsegs--)
+-		rpcrdma_unmap_one(device, seg++);
+-}
+-
+ /* Invalidate all memory regions that were registered for "req".
+  *
+  * Sleeps until it is safe for the host CPU to access the
+@@ -338,18 +377,11 @@ static void
+ fmr_op_destroy(struct rpcrdma_buffer *buf)
+ {
+ 	struct rpcrdma_mw *r;
+-	int rc;
+ 
+ 	while (!list_empty(&buf->rb_all)) {
+ 		r = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
+ 		list_del(&r->mw_all);
+-		kfree(r->fmr.physaddrs);
+-
+-		rc = ib_dealloc_fmr(r->fmr.fmr);
+-		if (rc)
+-			dprintk("RPC:       %s: ib_dealloc_fmr failed %i\n",
+-				__func__, rc);
+-
++		__fmr_release(r);
+ 		kfree(r);
+ 	}
+ }
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index f02ab80..9cd60bf0 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -99,6 +99,50 @@ frwr_destroy_recovery_wq(void)
+ }
+ 
+ static int
++__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, unsigned int depth)
++{
++	struct rpcrdma_frmr *f = &r->frmr;
++	int rc;
++
++	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
++	if (IS_ERR(f->fr_mr))
++		goto out_mr_err;
++
++	r->mw_sg = kcalloc(depth, sizeof(*r->mw_sg), GFP_KERNEL);
++	if (!r->mw_sg)
++		goto out_list_err;
++
++	sg_init_table(r->mw_sg, depth);
++	init_completion(&f->fr_linv_done);
++	return 0;
++
++out_mr_err:
++	rc = PTR_ERR(f->fr_mr);
++	dprintk("RPC:       %s: ib_alloc_mr status %i\n",
++		__func__, rc);
++	return rc;
++
++out_list_err:
++	rc = -ENOMEM;
++	dprintk("RPC:       %s: sg allocation failure\n",
++		__func__);
++	ib_dereg_mr(f->fr_mr);
++	return rc;
++}
++
++static void
++__frwr_release(struct rpcrdma_mw *r)
++{
++	int rc;
++
++	rc = ib_dereg_mr(r->frmr.fr_mr);
++	if (rc)
++		pr_err("rpcrdma: final ib_dereg_mr for %p returned %i\n",
++		       r, rc);
++	kfree(r->mw_sg);
++}
++
++static int
+ __frwr_reset_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *r)
+ {
+ 	struct rpcrdma_frmr *f = &r->frmr;
+@@ -165,52 +209,6 @@ __frwr_queue_recovery(struct rpcrdma_mw *r)
+ }
+ 
+ static int
+-__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, unsigned int depth)
+-{
+-	struct rpcrdma_frmr *f = &r->frmr;
+-	int rc;
+-
+-	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
+-	if (IS_ERR(f->fr_mr))
+-		goto out_mr_err;
+-
+-	r->mw_sg = kcalloc(depth, sizeof(*r->mw_sg), GFP_KERNEL);
+-	if (!r->mw_sg)
+-		goto out_list_err;
+-
+-	sg_init_table(r->mw_sg, depth);
+-
+-	init_completion(&f->fr_linv_done);
+-
+-	return 0;
+-
+-out_mr_err:
+-	rc = PTR_ERR(f->fr_mr);
+-	dprintk("RPC:       %s: ib_alloc_mr status %i\n",
+-		__func__, rc);
+-	return rc;
+-
+-out_list_err:
+-	rc = -ENOMEM;
+-	dprintk("RPC:       %s: sg allocation failure\n",
+-		__func__);
+-	ib_dereg_mr(f->fr_mr);
+-	return rc;
+-}
+-
+-static void
+-__frwr_release(struct rpcrdma_mw *r)
+-{
+-	int rc;
+-
+-	rc = ib_dereg_mr(r->frmr.fr_mr);
+-	if (rc)
+-		dprintk("RPC:       %s: ib_dereg_mr status %i\n",
+-			__func__, rc);
+-	kfree(r->mw_sg);
+-}
+-
+-static int
+ frwr_op_open(struct rpcrdma_ia *ia, struct rpcrdma_ep *ep,
+ 	     struct rpcrdma_create_data_internal *cdata)
+ {
 
-
- drivers/infiniband/hw/mlx4/mlx4_ib.h  |    2 
- drivers/infiniband/hw/mlx4/mr.c       |   40 ++-
- fs/nfs/callback_xdr.c                 |    6 -
- include/linux/sunrpc/auth.h           |    3 
- include/linux/sunrpc/gss_api.h        |    2 
- net/sunrpc/auth_gss/auth_gss.c        |    2 
- net/sunrpc/auth_gss/gss_krb5_mech.c   |    2 
- net/sunrpc/auth_gss/gss_mech_switch.c |   12 +
- net/sunrpc/svc.c                      |    8 +
- net/sunrpc/xprtrdma/Makefile          |    2 
- net/sunrpc/xprtrdma/fmr_ops.c         |  379 +++++++++++++++------------------
- net/sunrpc/xprtrdma/frwr_ops.c        |  369 ++++++++++++--------------------
- net/sunrpc/xprtrdma/physical_ops.c    |  122 -----------
- net/sunrpc/xprtrdma/rpc_rdma.c        |  274 +++++++++++++-----------
- net/sunrpc/xprtrdma/transport.c       |   40 ++-
- net/sunrpc/xprtrdma/verbs.c           |  199 +++++++++++++----
- net/sunrpc/xprtrdma/xprt_rdma.h       |  118 ++++------
- 17 files changed, 730 insertions(+), 850 deletions(-)
- delete mode 100644 net/sunrpc/xprtrdma/physical_ops.c
-
---
-Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
