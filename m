@@ -1,127 +1,111 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v10 08/22] IB/hns: Add icm support
-Date: Tue, 21 Jun 2016 14:55:54 +0300
-Message-ID: <20160621115554.GB9762@leon.nu>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH v10 06/22] IB/hns: Add initial cmd operation
+Date: Tue, 21 Jun 2016 21:01:57 +0800
+Message-ID: <57693AC4.1070306@huawei.com>
 References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
- <1466087730-54856-9-git-send-email-oulijun@huawei.com>
- <20160617095834.GA5408@leon.nu>
- <57677314.70909@huawei.com>
- <20160620060614.GC1172@leon.nu>
- <5767A004.4060808@huawei.com>
- <20160620092719.GE1172@leon.nu>
- <5767BBDF.6010309@huawei.com>
- <20160620130422.GA4526@leon.nu>
- <5768C493.6000300@huawei.com>
-Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+ <1466087730-54856-7-git-send-email-oulijun@huawei.com>
+ <20160620133310.GB4526@leon.nu> <57691C0B.8090509@huawei.com>
+ <20160621112808.GA9762@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5768C493.6000300-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160621112808.GA9762@leon.nu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: leon@kernel.org
+Cc: Lijun Ou <oulijun@huawei.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---Bn2rw/3z4jIqBvZU
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 21, 2016 at 12:37:39PM +0800, Wei Hu (Xavier) wrote:
->=20
->=20
-> On 2016/6/20 21:04, Leon Romanovsky wrote:
-> >On Mon, Jun 20, 2016 at 05:48:15PM +0800, Wei Hu (Xavier) wrote:
-> >>
-> >>On 2016/6/20 17:27, Leon Romanovsky wrote:
-> >>>On Mon, Jun 20, 2016 at 03:49:24PM +0800, Wei Hu (Xavier) wrote:
-> >>>>On 2016/6/20 14:06, Leon Romanovsky wrote:
-> >>>>>On Mon, Jun 20, 2016 at 12:37:40PM +0800, Wei Hu (Xavier) wrote:
-> >>>>>>On 2016/6/17 17:58, Leon Romanovsky wrote:
-> >>>>>>>On Thu, Jun 16, 2016 at 10:35:16PM +0800, Lijun Ou wrote:
-> >>>>>>>>This patch mainly added icm support for RoCE. It initializes icm
-> >>>>>>>>which managers the relative memory blocks for RoCE. The data
-> >>>>>>>>structures of RoCE will be located in it. For example, CQ table,
-> >>>>>>>>QP table and MTPT table so on.
-> >>>>>>>>
-> >>>>>>>>Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >>>>>>>>Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> >>>>>>>>Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> >>>>>>>>---
-> >>>>>>><...>
-> >>>>>>>
-> >>>>>>>>+
-> >>>>>Another question which you didn't answer [1].
-> >>>>>
-> >>>>>"I wonder if you have the same needs for ICM as it is in mlx4 device.
-> >>>>>Do you have firmware?"
-> >>>>>
-> >>>>>[1] http://marc.info/?l=3Dlinux-rdma&m=3D146545553104913&w=3D2
-> >>>>Hi, Leon
-> >>>>     Now we haven't firmware.
-> >>>>     But hardware still need memory for QPC\CQC\MTPT\mtt etc.
-> >>>ICM stands for InfiniHost (Interconnect) Context Memory is a specific
-> >>>memory place to share between host <-> FW and host <-> HW if HW is
-> >>>aware of specific structures.
-> >>>
-> >>>I assume that in your case, it is enough to allocate memory region and
-> >>>supply it to HW. Am I right?
-> >>For Our hardware,
-> >>1. ICM has a memory management method, It's very good for QPC\CQC\MTPT\=
-mtt
-> >>etc. we need it.
-> >You need special HW to leverage its. AFAIK it is Mellanox specific.
-> For our hardware, we use ICM to memory management, the memory shared with
-> host and HW.
-> QPC\CQC\MTPT\mtt has specific memory requirement.
-> QPC\CQC\MTPT need continuous memory. we use ICM to management the block of
-> memory. It's very good=EF=BC=81
+On 2016/6/21 19:28, Leon Romanovsky wrote:
+> On Tue, Jun 21, 2016 at 06:50:51PM +0800, Wei Hu (Xavier) wrote:
+>>
+>> On 2016/6/20 21:33, Leon Romanovsky wrote:
+>>> On Thu, Jun 16, 2016 at 10:35:14PM +0800, Lijun Ou wrote:
+>>>> This patch added the operation for cmd, and added some functions
+>>>> for initializing eq table and selecting cmd mode.
+>>>>
+>>>> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
+>>>> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
+>>>> Signed-off-by: Lijun Ou <oulijun@huawei.com>
+>>>> ---
+>>>> PATCH v9/v8/v7/v6:
+>>>> - No change over the PATCH v5
+>>>>
+>>>> PATCH v5:
+>>>> - The initial patch which was redesigned based on the second patch
+>>>>    in PATCH v4
+>>>> ---
+>>> <...>
+>>>
+>>>> +#define CMD_MAX_NUM		32
+>>>> +
+>>>> +int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
+>>>> +{
+>>>> +	struct device *dev = &hr_dev->pdev->dev;
+>>>> +
+>>>> +	mutex_init(&hr_dev->cmd.hcr_mutex);
+>>>> +	sema_init(&hr_dev->cmd.poll_sem, 1);
+>>>> +	hr_dev->cmd.use_events = 0;
+>>>> +	hr_dev->cmd.toggle = 1;
+>>>> +	hr_dev->cmd.max_cmds = CMD_MAX_NUM;
+>>> <...>
+>>>
+>>>> +	for (hr_cmd->token_mask = 1; hr_cmd->token_mask < hr_cmd->max_cmds;
+>>>> +	     hr_cmd->token_mask <<= 1)
+>>>> +		;
+>>>> +	--hr_cmd->token_mask;
+>>> It doesn't look that you dynamically change max_cmds supported.
+>>> Why do you need to calculate token_mask dynamically?
+>> Hi, Leon
+>>
+>>      1. The four lines above are in the function named
+>> hns_roce_cmd_use_events.
+>>           and now this function is only called once in hns_roce_probe.
+>>      2. In hns_roce_cmd_use_events,
+>>          we use these 4 lines to achieve the value of hr_cmd->token_mask
+>> according to hr_cmd->max_cmds dynamically,
+>>          then we only define one marco for hr_cmd->max_cmds as below:
+>>
+>> 	#define CMD_MAX_NUM		32
+>>
+>>         And it looks more flexible.
+> It is called over engineering.
+> I would recommend to you to remove it.
+>
+> We don't need over complicated code which is executed
+> once with need to maintain with zero benefit.
+>
+> The other places need such simplification too.
+Hi, Leon
 
-I wasn't convinced why do you need to copy whole ICM logic which is
-specific to Mellanox. Your requirements can be implemented by standard CMA
-and/or DMA.
+         We will modify this place as below:
+         In hns_roce_hw_v1.c(for hip06 soc) file:
 
-> >>2. The meomry for QPC\CQC\MTPT\mtt only used for RoCE hardware and driv=
-er,
-> >>we don't want use MR.
-> >I didn't mean Infiniband MR, but memory region returned from standard
-> >allocation functions (kmalloc, ...).
-> >
-> >>3. Now we haven't firmware, maybe we need it next version.
-> >You are always invited to add support once it will be needed, no need to
-> >add it in advance.
-> >
-> >Thanks
->=20
->=20
+             void hns_roce_v1_profile(struct hns_roce_dev *hr_dev)
+             {
+                 <snip>
+                 caps->max_cmds = 32;
+                 <snip>
+             }
 
---Bn2rw/3z4jIqBvZU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+         In hns_roce_cmd.c file:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+   	  int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
+	  {
+	     <snip>
+	     hr_dev->cmd.max_cmds = hr_dev->caps->max_cmds;
+      		<snip>
+           }
 
-iQIcBAEBAgAGBQJXaStKAAoJEORje4g2clinZKQP/2w6OPnlEhhNCVXWLIW9J9sH
-Uy4+JdzDQJwFx6IuGTFrJ7gnA/gXImwrA5zmFYF3hiL8vkkFhZPKw2jM5eKzVc1/
-wSVpYKrwOeE5mu3gWzvL9NWGz2qdUZd/InGVzxN9NAyT1GiJo57B9RqDyXE87fnS
-yBph7dKlugbioEX/EF4m6GsEtbSNJlZmNF/CB7nsukTrglAAudN/dZD9D9AVFXVH
-Hduj/dxo+iuvgujchtfbXBvUvDaNOkFcA2CDPfmk2P0of1DvGhkhtzWTyXHf6MjX
-wNHy8viqqq0LINAwndPYq8siSaCzCVxV2E1HKQwJmvpArGmhuBeaWO5zNdZ2sL/V
-/08OPrp3ayUloJw3tYup5cOaycWELN9rhAqg+I4dZMSFBHnwdScSZktclnCLeJLM
-Z+5MmqeMs0ro/4DvKD6D2wFLVkqLUHvSewvItN0cUj1Is+H1tsKF36CH8QsX5zB+
-BZ0s120rkjqvno9eL0NXK7lOiyyigQeg6C+/HWBNA7xotXOL3TerFlCTZup+DH7v
-MwmA3HJK29fQPUYlKUEfOc+daak7op3EbwwRnLt16H3weha64/YMtqZjQLBU/IN8
-v8Tl2q/rStZAG5PjKAl5KIUACs00O8q1cu2p85HsstHUnE2lYKbpgnKPxm3cWPWx
-wN9UPIh8YPUHQZtXMAaY
-=MxMy
------END PGP SIGNATURE-----
+        Can you give more suggestions?
 
---Bn2rw/3z4jIqBvZU--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards
+Wei Hu
+>> Regards
+>> Wei Hu
+>>
+>>
+>>
