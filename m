@@ -1,65 +1,100 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-Date: Tue, 21 Jun 2016 10:35:06 -0400 (EDT)
-Message-ID: <264684354.344357.1466519706695.JavaMail.zimbra@redhat.com>
-References: <20160616143518.GX5408@leon.nu> <5D0A6B47-CB71-42DA-AE76-164B6A660ECC@oracle.com> <57666E14.2070802@gmail.com> <CAJ3xEMha=i5SaM+fV5XP15Fx6pymrYnvk=a8w+3h1cbBeuVX0A@mail.gmail.com> <B62EEE84-454D-4D55-9C7E-653F564DF381@oracle.com> <20160620054453.GA1172@leon.nu> <12ee28bb-b838-ed4c-5f84-0cb8f1760d63@dev.mellanox.co.il> <5769479C.8070605@gmail.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
+Date: Tue, 21 Jun 2016 08:50:04 -0600
+Message-ID: <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA@mail.gmail.com>
+References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
+ <5756B7D2.5040009@mellanox.com> <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
+ <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
+ <57582336.10407@mellanox.com> <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
+ <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
+ <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com> <57693C6A.3020805@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5769479C.8070605-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <57693C6A.3020805-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Sagi,
+
+I'm working to implement SRP (I think I got it all working) to test
+some of the commits. I can try TGT afterwards and the commit you
+mention. I haven't been watching the CPU lately, but before when I was
+doing a lot of testing, there wasn't any one thread that was at 100%.
+There are several threads that have high utilization, but none 100%
+and there is plenty of CPU capacity available (32 cores). I can
+capture some of that data if it is helpful. I did test 4.7_rc3 on
+Friday, but it didn't change much, is that "new" enough?
+
+4.7.0_rc3_5edb5649
+sdc;10.218.128.17;3260244;815061;25730
+sdg;10.218.202.17;3405988;851497;24629
+sdh;10.218.203.17;3307419;826854;25363
+sdm;10.218.204.17;3430502;857625;24453
+sdi;10.219.128.17;3544282;886070;23668
+sdj;10.219.202.17;3412083;853020;24585
+sdk;10.219.203.17;3422385;855596;24511
+sdl;10.219.204.17;3444164;861041;24356
+sdb;10.220.128.17;4803646;1200911;17463
+sdd;10.220.202.17;4832982;1208245;17357
+sde;10.220.203.17;4809430;1202357;17442
+sdf;10.220.204.17;4808878;1202219;17444
+
+Thanks for the suggestions, I'll work to get some of the requested
+data back to you guys quickly.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
 
------ Original Message -----
-> From: "Sagi Grimberg" <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> To: "Yishai Hadas" <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Chuck Lever" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Or Gerlitz" <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Yishai Hadas" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma"
-> <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Linux NFS Mailing List" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Majd Dibbiny"
-> <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Sent: Tuesday, June 21, 2016 9:56:44 AM
-> Subject: Re: [PATCH v2 01/24] mlx4-ib: Use coherent memory for priv pages
-> 
-> 
-> > Just found the root cause of the problem, it was found to be a hardware
-> > limitation that is described as part of the PRM. The driver code had to
-> > be written accordingly, confirmed that internally with the relevant people.
-> >
-> >  From PRM:
-> > "The PBL should be physically contiguous, must reside in a
-> > 64-byte-aligned address, and must not include the last 8 bytes of a page."
-> >
-> > The last sentence pointed that only one page can be used as the last 8
-> > bytes should not be included. That's why there is a hard limit in the
-> > code for 511 entries.
-> >
-> > Re the candidate fix that you sent, from initial review it makes sense,
-> > we'll formally confirm it soon after finalizing the regression testing
-> > in our side.
-> >
-> > Thanks Chuck and Sagi for evaluating and working on a solution.
-> 
-> Thanks Yishai,
-> 
-> That clears up the root-cause.
-> 
-> Does the same holds for mlx5? or we can leave it alone?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-Also wondering about mlx5 because the default is coherent and increasing the allowed queue depth got me into the swiotlb error situation.
-Backing the queue depth down per Bart's suggestion to 32 avoids the swiotlb errors.
-Likley 128 is too high anyway, but the weird part of my testing as already mentioned was that its only seen during reconnect activity.
-
-Thanks
-Laurence
+On Tue, Jun 21, 2016 at 7:08 AM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Hey Robert,
+>
+>> I narrowed the performance degradation to this series
+>> 7861728..5e47f19, but while trying to bisect it, the changes were
+>> erratic between each commit that I could not figure out exactly which
+>> introduced the issue. If someone could give me some pointers on what
+>> to do, I can keep trying to dig through this.
+>
+>
+> This bisection brings suspects:
+>
+> e3416ab2d156 iser-target: Kill the ->isert_cmd back pointer in struct
+> iser_tx_desc
+> d1ca2ed7dcf8 iser-target: Kill struct isert_rdma_wr
+> 9679cc51eb13 iser-target: Convert to new CQ API
+> 5adabdd122e4 iser-target: Split and properly type the login buffer
+> ed1083b251f0 iser-target: Remove ISER_RECV_DATA_SEG_LEN
+> 26c7b673db57 iser-target: Remove impossible condition from isert_wait_conn
+> 69c48846f1c7 iser-target: Remove redundant wait in release_conn
+> 6d1fba0c2cc7 iser-target: Rework connection termination
+> f81bf458208e iser-target: Separate flows for np listeners and connections
+> cma events
+> aea92980601f iser-target: Add new state ISER_CONN_BOUND to isert_conn
+> b89a7c25462b iser-target: Fix identification of login rx descriptor type
+>
+> However I don't really see performance implications in these patches,
+> not to mention something that would affect on ConnectIB...
+>
+> Given that your bisection brings up target side patches, I have
+> a couple questions:
+>
+> 1. Are the CPU usage in the target side at 100%, or the initiator side
+> is the bottleneck?
+>
+> 2. Would it be possible to use another target implementation? TGT maybe?
+>
+> 3. Can you try testing right before 9679cc51eb13? This is a patch that
+> involves data-plane.
+>
+> 4. Can you try the latest upstream kernel? The iser target code uses
+> a generic data-transfer library and I'm interested in knowing what is
+> the status there.
+>
+> Cheers,
+> Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
