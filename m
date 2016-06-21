@@ -1,100 +1,78 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
-Date: Tue, 21 Jun 2016 08:50:04 -0600
-Message-ID: <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA@mail.gmail.com>
-References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
- <5756B7D2.5040009@mellanox.com> <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
- <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
- <57582336.10407@mellanox.com> <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
- <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
- <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com> <57693C6A.3020805@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: NVMe over Fabrics target implementation V2
+Date: Tue, 21 Jun 2016 18:04:18 +0200
+Message-ID: <1466525061-3686-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57693C6A.3020805-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sagi,
+This patch set adds a generic NVMe over Fabrics target. The
+implementation conforms to the NVMe 1.2b specification (which
+includes Fabrics) and provides the NVMe over Fabrics access
+to Linux block devices.
 
-I'm working to implement SRP (I think I got it all working) to test
-some of the commits. I can try TGT afterwards and the commit you
-mention. I haven't been watching the CPU lately, but before when I was
-doing a lot of testing, there wasn't any one thread that was at 100%.
-There are several threads that have high utilization, but none 100%
-and there is plenty of CPU capacity available (32 cores). I can
-capture some of that data if it is helpful. I did test 4.7_rc3 on
-Friday, but it didn't change much, is that "new" enough?
+The target implementation consists of several elements:
 
-4.7.0_rc3_5edb5649
-sdc;10.218.128.17;3260244;815061;25730
-sdg;10.218.202.17;3405988;851497;24629
-sdh;10.218.203.17;3307419;826854;25363
-sdm;10.218.204.17;3430502;857625;24453
-sdi;10.219.128.17;3544282;886070;23668
-sdj;10.219.202.17;3412083;853020;24585
-sdk;10.219.203.17;3422385;855596;24511
-sdl;10.219.204.17;3444164;861041;24356
-sdb;10.220.128.17;4803646;1200911;17463
-sdd;10.220.202.17;4832982;1208245;17357
-sde;10.220.203.17;4809430;1202357;17442
-sdf;10.220.204.17;4808878;1202219;17444
+- NVMe target core: defines and manages the NVMe entities (subsystems,
+  controllers, namespaces, ...) and their allocation, responsible
+  for initial commands processing and correct orchestration of
+  the stack setup and tear down.
 
-Thanks for the suggestions, I'll work to get some of the requested
-data back to you guys quickly.
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+- NVMe admin command implementation: responsible for parsing and
+  servicing admin commands such as controller identify, set features,
+  keep-alive, log page, ...).
 
+- NVMe I/O command implementation: responsible for performing the actual
+  I/O (Read, Write, Flush, Deallocate (aka Discard).  It is a very thin
+  layer on top of the block layer and implements no logic of it's own.
+  To support exporting file systems please use the loopback block driver
+  in direct I/O mode, which gives very good performance.
 
-On Tue, Jun 21, 2016 at 7:08 AM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hey Robert,
->
->> I narrowed the performance degradation to this series
->> 7861728..5e47f19, but while trying to bisect it, the changes were
->> erratic between each commit that I could not figure out exactly which
->> introduced the issue. If someone could give me some pointers on what
->> to do, I can keep trying to dig through this.
->
->
-> This bisection brings suspects:
->
-> e3416ab2d156 iser-target: Kill the ->isert_cmd back pointer in struct
-> iser_tx_desc
-> d1ca2ed7dcf8 iser-target: Kill struct isert_rdma_wr
-> 9679cc51eb13 iser-target: Convert to new CQ API
-> 5adabdd122e4 iser-target: Split and properly type the login buffer
-> ed1083b251f0 iser-target: Remove ISER_RECV_DATA_SEG_LEN
-> 26c7b673db57 iser-target: Remove impossible condition from isert_wait_conn
-> 69c48846f1c7 iser-target: Remove redundant wait in release_conn
-> 6d1fba0c2cc7 iser-target: Rework connection termination
-> f81bf458208e iser-target: Separate flows for np listeners and connections
-> cma events
-> aea92980601f iser-target: Add new state ISER_CONN_BOUND to isert_conn
-> b89a7c25462b iser-target: Fix identification of login rx descriptor type
->
-> However I don't really see performance implications in these patches,
-> not to mention something that would affect on ConnectIB...
->
-> Given that your bisection brings up target side patches, I have
-> a couple questions:
->
-> 1. Are the CPU usage in the target side at 100%, or the initiator side
-> is the bottleneck?
->
-> 2. Would it be possible to use another target implementation? TGT maybe?
->
-> 3. Can you try testing right before 9679cc51eb13? This is a patch that
-> involves data-plane.
->
-> 4. Can you try the latest upstream kernel? The iser target code uses
-> a generic data-transfer library and I'm interested in knowing what is
-> the status there.
->
-> Cheers,
-> Sagi.
+- NVMe over Fabrics support: responsible for servicing Fabrics commands
+  (connect, property get/set).
+
+- NVMe over Fabrics discovery service: responsible to serve the Discovery
+  log page through a special cut down Discovery controller.
+
+The target is configured using configfs, and configurable entities are:
+
+ - NVMe subsystems and namespaces
+ - NVMe over Fabrics ports and referrals
+ - Host ACLs for primitive access control - NVMe over Fabrics access
+   control is still work in progress at the specification level and
+   will be implemented once that work has finished.
+
+To configure the target use the nvmetcli tool from
+http://git.infradead.org/users/hch/nvmetcli.git, which includes detailed
+setup documentation.
+
+In addition to the Fabrics target implementation we provide a loopback
+driver which also conforms the NVMe over Fabrics specification and allows
+evaluation of the target stack with local access without requiring a real
+fabric.
+
+Various test cases are provided for this implementation: nvmetcli
+contains a python testsuite that mostly stresses the configfs interface
+of the target, and we have various integration tests prepared for the
+kernel host and target which are available at:
+
+	git://git.infradead.org/nvme-fabrics.git nvmf-submit.2
+
+Gitweb:
+
+	http://git.infradead.org/nvme-fabrics.git/shortlog/refs/heads/nvmf-submit.2
+
+This series depends on the "generic NVMe over Fabrics library support V2"
+series submitted last week.
+
+Changes since V1:
+ - rebased to the req_op changes in the block tree (me)
+ - fix a 64-bit division (me)
+ - properly set the SGL flag for AER requests in nvme-loop (me)
+ - fix use of ERR_PTR (buildbot)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
