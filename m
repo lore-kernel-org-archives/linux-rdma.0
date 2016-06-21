@@ -1,111 +1,70 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH v10 06/22] IB/hns: Add initial cmd operation
-Date: Tue, 21 Jun 2016 21:01:57 +0800
-Message-ID: <57693AC4.1070306@huawei.com>
-References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
- <1466087730-54856-7-git-send-email-oulijun@huawei.com>
- <20160620133310.GB4526@leon.nu> <57691C0B.8090509@huawei.com>
- <20160621112808.GA9762@leon.nu>
+From: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
+Date: Tue, 21 Jun 2016 16:08:58 +0300
+Message-ID: <57693C6A.3020805@gmail.com>
+References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
+ <5756B7D2.5040009@mellanox.com>
+ <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
+ <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
+ <57582336.10407@mellanox.com>
+ <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
+ <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
+ <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160621112808.GA9762@leon.nu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: leon@kernel.org
-Cc: Lijun Ou <oulijun@huawei.com>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hey Robert,
 
+> I narrowed the performance degradation to this series
+> 7861728..5e47f19, but while trying to bisect it, the changes were
+> erratic between each commit that I could not figure out exactly which
+> introduced the issue. If someone could give me some pointers on what
+> to do, I can keep trying to dig through this.
 
-On 2016/6/21 19:28, Leon Romanovsky wrote:
-> On Tue, Jun 21, 2016 at 06:50:51PM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2016/6/20 21:33, Leon Romanovsky wrote:
->>> On Thu, Jun 16, 2016 at 10:35:14PM +0800, Lijun Ou wrote:
->>>> This patch added the operation for cmd, and added some functions
->>>> for initializing eq table and selecting cmd mode.
->>>>
->>>> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
->>>> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
->>>> Signed-off-by: Lijun Ou <oulijun@huawei.com>
->>>> ---
->>>> PATCH v9/v8/v7/v6:
->>>> - No change over the PATCH v5
->>>>
->>>> PATCH v5:
->>>> - The initial patch which was redesigned based on the second patch
->>>>    in PATCH v4
->>>> ---
->>> <...>
->>>
->>>> +#define CMD_MAX_NUM		32
->>>> +
->>>> +int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
->>>> +{
->>>> +	struct device *dev = &hr_dev->pdev->dev;
->>>> +
->>>> +	mutex_init(&hr_dev->cmd.hcr_mutex);
->>>> +	sema_init(&hr_dev->cmd.poll_sem, 1);
->>>> +	hr_dev->cmd.use_events = 0;
->>>> +	hr_dev->cmd.toggle = 1;
->>>> +	hr_dev->cmd.max_cmds = CMD_MAX_NUM;
->>> <...>
->>>
->>>> +	for (hr_cmd->token_mask = 1; hr_cmd->token_mask < hr_cmd->max_cmds;
->>>> +	     hr_cmd->token_mask <<= 1)
->>>> +		;
->>>> +	--hr_cmd->token_mask;
->>> It doesn't look that you dynamically change max_cmds supported.
->>> Why do you need to calculate token_mask dynamically?
->> Hi, Leon
->>
->>      1. The four lines above are in the function named
->> hns_roce_cmd_use_events.
->>           and now this function is only called once in hns_roce_probe.
->>      2. In hns_roce_cmd_use_events,
->>          we use these 4 lines to achieve the value of hr_cmd->token_mask
->> according to hr_cmd->max_cmds dynamically,
->>          then we only define one marco for hr_cmd->max_cmds as below:
->>
->> 	#define CMD_MAX_NUM		32
->>
->>         And it looks more flexible.
-> It is called over engineering.
-> I would recommend to you to remove it.
->
-> We don't need over complicated code which is executed
-> once with need to maintain with zero benefit.
->
-> The other places need such simplification too.
-Hi, Leon
+This bisection brings suspects:
 
-         We will modify this place as below:
-         In hns_roce_hw_v1.c(for hip06 soc) file:
+e3416ab2d156 iser-target: Kill the ->isert_cmd back pointer in struct 
+iser_tx_desc
+d1ca2ed7dcf8 iser-target: Kill struct isert_rdma_wr
+9679cc51eb13 iser-target: Convert to new CQ API
+5adabdd122e4 iser-target: Split and properly type the login buffer
+ed1083b251f0 iser-target: Remove ISER_RECV_DATA_SEG_LEN
+26c7b673db57 iser-target: Remove impossible condition from isert_wait_conn
+69c48846f1c7 iser-target: Remove redundant wait in release_conn
+6d1fba0c2cc7 iser-target: Rework connection termination
+f81bf458208e iser-target: Separate flows for np listeners and 
+connections cma events
+aea92980601f iser-target: Add new state ISER_CONN_BOUND to isert_conn
+b89a7c25462b iser-target: Fix identification of login rx descriptor type
 
-             void hns_roce_v1_profile(struct hns_roce_dev *hr_dev)
-             {
-                 <snip>
-                 caps->max_cmds = 32;
-                 <snip>
-             }
+However I don't really see performance implications in these patches,
+not to mention something that would affect on ConnectIB...
 
-         In hns_roce_cmd.c file:
+Given that your bisection brings up target side patches, I have
+a couple questions:
 
-   	  int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
-	  {
-	     <snip>
-	     hr_dev->cmd.max_cmds = hr_dev->caps->max_cmds;
-      		<snip>
-           }
+1. Are the CPU usage in the target side at 100%, or the initiator side
+is the bottleneck?
 
-        Can you give more suggestions?
+2. Would it be possible to use another target implementation? TGT maybe?
 
+3. Can you try testing right before 9679cc51eb13? This is a patch that
+involves data-plane.
 
-Regards
-Wei Hu
->> Regards
->> Wei Hu
->>
->>
->>
+4. Can you try the latest upstream kernel? The iser target code uses
+a generic data-transfer library and I'm interested in knowing what is
+the status there.
+
+Cheers,
+Sagi.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
