@@ -1,832 +1,311 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 3/3] nvme-loop: add a NVMe loopback host driver
-Date: Tue, 21 Jun 2016 18:04:21 +0200
-Message-ID: <1466525061-3686-4-git-send-email-hch@lst.de>
-References: <1466525061-3686-1-git-send-email-hch@lst.de>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
+Date: Tue, 21 Jun 2016 14:26:15 -0600
+Message-ID: <CAANLjFpeL0AkuGW-q5Bmm-dff0UqFOM_sAOaG7=vyqmwnOoTcQ@mail.gmail.com>
+References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
+ <5756B7D2.5040009@mellanox.com> <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
+ <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
+ <57582336.10407@mellanox.com> <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
+ <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
+ <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com>
+ <57693C6A.3020805@gmail.com> <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466525061-3686-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jay Freyensee <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch implements adds nvme-loop which allows to access local devices
-exported as NVMe over Fabrics namespaces. This module can be useful for
-easy evaluation, testing and also feature experimentation.
+Sagi & Max,
 
-To createa nvme-loop device you need to configure the NVMe target to
-export a loop port (see the nvmetcli documentaton for that) and then
-connect to it using
+Here is the results of SRP using the same ramdisk backstore that I was
+using from iSER (as same as can be between reboots and restoring
+targetcli config). I also tested the commit before 9679cc51eb13
+(5adabdd122e471fe978d49471624bab08b5373a7) which is included here. I'm
+not seeing a correlation between iSER and SRP that would lead me to
+believe that the changes are happening in both implementations.
 
-	nvme connect-all -t loop
+Does this provide enough information for you, or do you think TGT will
+be needed?
 
-which requires the very latest nvme-cli version with Fabrics support.
+4.4 (afd2ff9) vanilla default config
+sdb;10.218.128.17;5150176;1287544;16288
+sdd;10.218.202.17;5092337;1273084;16473
+sdh;10.218.203.17;5129078;1282269;16355
+sdk;10.218.204.17;5129078;1282269;16355
+sdg;10.219.128.17;5155874;1288968;16270
+sdf;10.219.202.17;5131588;1282897;16347
+sdi;10.219.203.17;5165399;1291349;16240
+sdl;10.219.204.17;5157459;1289364;16265
+sdc;10.220.128.17;3684223;921055;22769
+sde;10.220.202.17;3692169;923042;22720
+sdj;10.220.203.17;3699170;924792;22677
+Sdm;10.220.204.17;3697865;924466;22685
 
-Signed-off-by: Jay Freyensee <james.p.freyensee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
----
- drivers/nvme/target/Kconfig  |  10 +
- drivers/nvme/target/Makefile |   2 +
- drivers/nvme/target/loop.c   | 754 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 766 insertions(+)
- create mode 100644 drivers/nvme/target/loop.c
+mlx5_0;sde;2968368;742092;28260
+mlx4_0;sdd;3325645;831411;25224
+mlx5_0;sdc;3023466;755866;27745
 
-diff --git a/drivers/nvme/target/Kconfig b/drivers/nvme/target/Kconfig
-index acf0c07..b77ce43 100644
---- a/drivers/nvme/target/Kconfig
-+++ b/drivers/nvme/target/Kconfig
-@@ -13,4 +13,14 @@ config NVME_TARGET
- 	  To configure the NVMe target you probably want to use the nvmetcli
- 	  tool from http://git.infradead.org/users/hch/nvmetcli.git.
- 
-+config NVME_TARGET_LOOP
-+	tristate "NVMe loopback device support"
-+	depends on BLK_DEV_NVME
-+	select NVME_TARGET
-+	select NVME_FABRICS
-+	select SG_POOL
-+	help
-+	  This enables the NVMe loopback device support, which can be useful
-+	  to test NVMe host and target side features.
-+
- 	  If unsure, say N.
-diff --git a/drivers/nvme/target/Makefile b/drivers/nvme/target/Makefile
-index b4600b6..e49ba60 100644
---- a/drivers/nvme/target/Makefile
-+++ b/drivers/nvme/target/Makefile
-@@ -1,5 +1,7 @@
- 
- obj-$(CONFIG_NVME_TARGET)		+= nvmet.o
-+obj-$(CONFIG_NVME_TARGET_LOOP)		+= nvme-loop.o
- 
- nvmet-y		+= core.o configfs.o admin-cmd.o io-cmd.o fabrics-cmd.o \
- 			discovery.o
-+nvme-loop-y	+= loop.o
-diff --git a/drivers/nvme/target/loop.c b/drivers/nvme/target/loop.c
-new file mode 100644
-index 0000000..94e7829
---- /dev/null
-+++ b/drivers/nvme/target/loop.c
-@@ -0,0 +1,754 @@
-+/*
-+ * NVMe over Fabrics loopback device.
-+ * Copyright (c) 2015-2016 HGST, a Western Digital Company.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/scatterlist.h>
-+#include <linux/delay.h>
-+#include <linux/blk-mq.h>
-+#include <linux/nvme.h>
-+#include <linux/module.h>
-+#include <linux/parser.h>
-+#include <linux/t10-pi.h>
-+#include "nvmet.h"
-+#include "../host/nvme.h"
-+#include "../host/fabrics.h"
-+
-+#define NVME_LOOP_AQ_DEPTH		256
-+
-+#define NVME_LOOP_MAX_SEGMENTS		256
-+
-+/*
-+ * We handle AEN commands ourselves and don't even let the
-+ * block layer know about them.
-+ */
-+#define NVME_LOOP_NR_AEN_COMMANDS	1
-+#define NVME_LOOP_AQ_BLKMQ_DEPTH	\
-+	(NVME_LOOP_AQ_DEPTH - NVME_LOOP_NR_AEN_COMMANDS)
-+
-+struct nvme_loop_iod {
-+	struct nvme_command	cmd;
-+	struct nvme_completion	rsp;
-+	struct nvmet_req	req;
-+	struct nvme_loop_queue	*queue;
-+	struct work_struct	work;
-+	struct sg_table		sg_table;
-+	struct scatterlist	first_sgl[];
-+};
-+
-+struct nvme_loop_ctrl {
-+	spinlock_t		lock;
-+	struct nvme_loop_queue	*queues;
-+	u32			queue_count;
-+
-+	struct blk_mq_tag_set	admin_tag_set;
-+
-+	struct list_head	list;
-+	u64			cap;
-+	struct blk_mq_tag_set	tag_set;
-+	struct nvme_loop_iod	async_event_iod;
-+	struct nvme_ctrl	ctrl;
-+
-+	struct nvmet_ctrl	*target_ctrl;
-+	struct work_struct	delete_work;
-+	struct work_struct	reset_work;
-+};
-+
-+static inline struct nvme_loop_ctrl *to_loop_ctrl(struct nvme_ctrl *ctrl)
-+{
-+	return container_of(ctrl, struct nvme_loop_ctrl, ctrl);
-+}
-+
-+struct nvme_loop_queue {
-+	struct nvmet_cq		nvme_cq;
-+	struct nvmet_sq		nvme_sq;
-+	struct nvme_loop_ctrl	*ctrl;
-+};
-+
-+static struct nvmet_port *nvmet_loop_port;
-+
-+static LIST_HEAD(nvme_loop_ctrl_list);
-+static DEFINE_MUTEX(nvme_loop_ctrl_mutex);
-+
-+static void nvme_loop_queue_response(struct nvmet_req *nvme_req);
-+static void nvme_loop_delete_ctrl(struct nvmet_ctrl *ctrl);
-+
-+static struct nvmet_fabrics_ops nvme_loop_ops;
-+
-+static inline int nvme_loop_queue_idx(struct nvme_loop_queue *queue)
-+{
-+	return queue - queue->ctrl->queues;
-+}
-+
-+static void nvme_loop_complete_rq(struct request *req)
-+{
-+	struct nvme_loop_iod *iod = blk_mq_rq_to_pdu(req);
-+	int error = 0;
-+
-+	nvme_cleanup_cmd(req);
-+	sg_free_table_chained(&iod->sg_table, true);
-+
-+	if (unlikely(req->errors)) {
-+		if (nvme_req_needs_retry(req, req->errors)) {
-+			nvme_requeue_req(req);
-+			return;
-+		}
-+
-+		if (req->cmd_type == REQ_TYPE_DRV_PRIV)
-+			error = req->errors;
-+		else
-+			error = nvme_error_status(req->errors);
-+	}
-+
-+	blk_mq_end_request(req, error);
-+}
-+
-+static void nvme_loop_queue_response(struct nvmet_req *nvme_req)
-+{
-+	struct nvme_loop_iod *iod =
-+		container_of(nvme_req, struct nvme_loop_iod, req);
-+	struct nvme_completion *cqe = &iod->rsp;
-+
-+	/*
-+	 * AEN requests are special as they don't time out and can
-+	 * survive any kind of queue freeze and often don't respond to
-+	 * aborts.  We don't even bother to allocate a struct request
-+	 * for them but rather special case them here.
-+	 */
-+	if (unlikely(nvme_loop_queue_idx(iod->queue) == 0 &&
-+			cqe->command_id >= NVME_LOOP_AQ_BLKMQ_DEPTH)) {
-+		nvme_complete_async_event(&iod->queue->ctrl->ctrl, cqe);
-+	} else {
-+		struct request *req = blk_mq_rq_from_pdu(iod);
-+
-+		if (req->cmd_type == REQ_TYPE_DRV_PRIV && req->special)
-+			memcpy(req->special, cqe, sizeof(*cqe));
-+		blk_mq_complete_request(req, le16_to_cpu(cqe->status) >> 1);
-+	}
-+}
-+
-+static void nvme_loop_execute_work(struct work_struct *work)
-+{
-+	struct nvme_loop_iod *iod =
-+		container_of(work, struct nvme_loop_iod, work);
-+
-+	iod->req.execute(&iod->req);
-+}
-+
-+static enum blk_eh_timer_return
-+nvme_loop_timeout(struct request *rq, bool reserved)
-+{
-+	struct nvme_loop_iod *iod = blk_mq_rq_to_pdu(rq);
-+
-+	/* queue error recovery */
-+	schedule_work(&iod->queue->ctrl->reset_work);
-+
-+	/* fail with DNR on admin cmd timeout */
-+	rq->errors = NVME_SC_ABORT_REQ | NVME_SC_DNR;
-+
-+	return BLK_EH_HANDLED;
-+}
-+
-+static int nvme_loop_queue_rq(struct blk_mq_hw_ctx *hctx,
-+		const struct blk_mq_queue_data *bd)
-+{
-+	struct nvme_ns *ns = hctx->queue->queuedata;
-+	struct nvme_loop_queue *queue = hctx->driver_data;
-+	struct request *req = bd->rq;
-+	struct nvme_loop_iod *iod = blk_mq_rq_to_pdu(req);
-+	int ret;
-+
-+	ret = nvme_setup_cmd(ns, req, &iod->cmd);
-+	if (ret)
-+		return ret;
-+
-+	iod->cmd.common.flags |= NVME_CMD_SGL_METABUF;
-+	iod->req.port = nvmet_loop_port;
-+	if (!nvmet_req_init(&iod->req, &queue->nvme_cq,
-+			&queue->nvme_sq, &nvme_loop_ops)) {
-+		nvme_cleanup_cmd(req);
-+		blk_mq_start_request(req);
-+		nvme_loop_queue_response(&iod->req);
-+		return 0;
-+	}
-+
-+	if (blk_rq_bytes(req)) {
-+		iod->sg_table.sgl = iod->first_sgl;
-+		ret = sg_alloc_table_chained(&iod->sg_table,
-+			req->nr_phys_segments, iod->sg_table.sgl);
-+		if (ret)
-+			return BLK_MQ_RQ_QUEUE_BUSY;
-+
-+		iod->req.sg = iod->sg_table.sgl;
-+		iod->req.sg_cnt = blk_rq_map_sg(req->q, req, iod->sg_table.sgl);
-+		BUG_ON(iod->req.sg_cnt > req->nr_phys_segments);
-+	}
-+
-+	iod->cmd.common.command_id = req->tag;
-+	blk_mq_start_request(req);
-+
-+	schedule_work(&iod->work);
-+	return 0;
-+}
-+
-+static void nvme_loop_submit_async_event(struct nvme_ctrl *arg, int aer_idx)
-+{
-+	struct nvme_loop_ctrl *ctrl = to_loop_ctrl(arg);
-+	struct nvme_loop_queue *queue = &ctrl->queues[0];
-+	struct nvme_loop_iod *iod = &ctrl->async_event_iod;
-+
-+	memset(&iod->cmd, 0, sizeof(iod->cmd));
-+	iod->cmd.common.opcode = nvme_admin_async_event;
-+	iod->cmd.common.command_id = NVME_LOOP_AQ_BLKMQ_DEPTH;
-+	iod->cmd.common.flags |= NVME_CMD_SGL_METABUF;
-+
-+	if (!nvmet_req_init(&iod->req, &queue->nvme_cq, &queue->nvme_sq,
-+			&nvme_loop_ops)) {
-+		dev_err(ctrl->ctrl.device, "failed async event work\n");
-+		return;
-+	}
-+
-+	schedule_work(&iod->work);
-+}
-+
-+static int nvme_loop_init_iod(struct nvme_loop_ctrl *ctrl,
-+		struct nvme_loop_iod *iod, unsigned int queue_idx)
-+{
-+	BUG_ON(queue_idx >= ctrl->queue_count);
-+
-+	iod->req.cmd = &iod->cmd;
-+	iod->req.rsp = &iod->rsp;
-+	iod->queue = &ctrl->queues[queue_idx];
-+	INIT_WORK(&iod->work, nvme_loop_execute_work);
-+	return 0;
-+}
-+
-+static int nvme_loop_init_request(void *data, struct request *req,
-+				unsigned int hctx_idx, unsigned int rq_idx,
-+				unsigned int numa_node)
-+{
-+	return nvme_loop_init_iod(data, blk_mq_rq_to_pdu(req), hctx_idx + 1);
-+}
-+
-+static int nvme_loop_init_admin_request(void *data, struct request *req,
-+				unsigned int hctx_idx, unsigned int rq_idx,
-+				unsigned int numa_node)
-+{
-+	return nvme_loop_init_iod(data, blk_mq_rq_to_pdu(req), 0);
-+}
-+
-+static int nvme_loop_init_hctx(struct blk_mq_hw_ctx *hctx, void *data,
-+		unsigned int hctx_idx)
-+{
-+	struct nvme_loop_ctrl *ctrl = data;
-+	struct nvme_loop_queue *queue = &ctrl->queues[hctx_idx + 1];
-+
-+	BUG_ON(hctx_idx >= ctrl->queue_count);
-+
-+	hctx->driver_data = queue;
-+	return 0;
-+}
-+
-+static int nvme_loop_init_admin_hctx(struct blk_mq_hw_ctx *hctx, void *data,
-+		unsigned int hctx_idx)
-+{
-+	struct nvme_loop_ctrl *ctrl = data;
-+	struct nvme_loop_queue *queue = &ctrl->queues[0];
-+
-+	BUG_ON(hctx_idx != 0);
-+
-+	hctx->driver_data = queue;
-+	return 0;
-+}
-+
-+static struct blk_mq_ops nvme_loop_mq_ops = {
-+	.queue_rq	= nvme_loop_queue_rq,
-+	.complete	= nvme_loop_complete_rq,
-+	.map_queue	= blk_mq_map_queue,
-+	.init_request	= nvme_loop_init_request,
-+	.init_hctx	= nvme_loop_init_hctx,
-+	.timeout	= nvme_loop_timeout,
-+};
-+
-+static struct blk_mq_ops nvme_loop_admin_mq_ops = {
-+	.queue_rq	= nvme_loop_queue_rq,
-+	.complete	= nvme_loop_complete_rq,
-+	.map_queue	= blk_mq_map_queue,
-+	.init_request	= nvme_loop_init_admin_request,
-+	.init_hctx	= nvme_loop_init_admin_hctx,
-+	.timeout	= nvme_loop_timeout,
-+};
-+
-+static void nvme_loop_destroy_admin_queue(struct nvme_loop_ctrl *ctrl)
-+{
-+	blk_cleanup_queue(ctrl->ctrl.admin_q);
-+	blk_mq_free_tag_set(&ctrl->admin_tag_set);
-+	nvmet_sq_destroy(&ctrl->queues[0].nvme_sq);
-+}
-+
-+static void nvme_loop_free_ctrl(struct nvme_ctrl *nctrl)
-+{
-+	struct nvme_loop_ctrl *ctrl = to_loop_ctrl(nctrl);
-+
-+	if (list_empty(&ctrl->list))
-+		goto free_ctrl;
-+
-+	mutex_lock(&nvme_loop_ctrl_mutex);
-+	list_del(&ctrl->list);
-+	mutex_unlock(&nvme_loop_ctrl_mutex);
-+
-+	if (nctrl->tagset) {
-+		blk_cleanup_queue(ctrl->ctrl.connect_q);
-+		blk_mq_free_tag_set(&ctrl->tag_set);
-+	}
-+	kfree(ctrl->queues);
-+	nvmf_free_options(nctrl->opts);
-+free_ctrl:
-+	kfree(ctrl);
-+}
-+
-+static int nvme_loop_configure_admin_queue(struct nvme_loop_ctrl *ctrl)
-+{
-+	int error;
-+
-+	memset(&ctrl->admin_tag_set, 0, sizeof(ctrl->admin_tag_set));
-+	ctrl->admin_tag_set.ops = &nvme_loop_admin_mq_ops;
-+	ctrl->admin_tag_set.queue_depth = NVME_LOOP_AQ_BLKMQ_DEPTH;
-+	ctrl->admin_tag_set.reserved_tags = 2; /* connect + keep-alive */
-+	ctrl->admin_tag_set.numa_node = NUMA_NO_NODE;
-+	ctrl->admin_tag_set.cmd_size = sizeof(struct nvme_loop_iod) +
-+		SG_CHUNK_SIZE * sizeof(struct scatterlist);
-+	ctrl->admin_tag_set.driver_data = ctrl;
-+	ctrl->admin_tag_set.nr_hw_queues = 1;
-+	ctrl->admin_tag_set.timeout = ADMIN_TIMEOUT;
-+
-+	ctrl->queues[0].ctrl = ctrl;
-+	error = nvmet_sq_init(&ctrl->queues[0].nvme_sq);
-+	if (error)
-+		return error;
-+	ctrl->queue_count = 1;
-+
-+	error = blk_mq_alloc_tag_set(&ctrl->admin_tag_set);
-+	if (error)
-+		goto out_free_sq;
-+
-+	ctrl->ctrl.admin_q = blk_mq_init_queue(&ctrl->admin_tag_set);
-+	if (IS_ERR(ctrl->ctrl.admin_q)) {
-+		error = PTR_ERR(ctrl->ctrl.admin_q);
-+		goto out_free_tagset;
-+	}
-+
-+	error = nvmf_connect_admin_queue(&ctrl->ctrl);
-+	if (error)
-+		goto out_cleanup_queue;
-+
-+	error = nvmf_reg_read64(&ctrl->ctrl, NVME_REG_CAP, &ctrl->cap);
-+	if (error) {
-+		dev_err(ctrl->ctrl.device,
-+			"prop_get NVME_REG_CAP failed\n");
-+		goto out_cleanup_queue;
-+	}
-+
-+	ctrl->ctrl.sqsize =
-+		min_t(int, NVME_CAP_MQES(ctrl->cap) + 1, ctrl->ctrl.sqsize);
-+
-+	error = nvme_enable_ctrl(&ctrl->ctrl, ctrl->cap);
-+	if (error)
-+		goto out_cleanup_queue;
-+
-+	ctrl->ctrl.max_hw_sectors =
-+		(NVME_LOOP_MAX_SEGMENTS - 1) << (PAGE_SHIFT - 9);
-+
-+	error = nvme_init_identify(&ctrl->ctrl);
-+	if (error)
-+		goto out_cleanup_queue;
-+
-+	nvme_start_keep_alive(&ctrl->ctrl);
-+
-+	return 0;
-+
-+out_cleanup_queue:
-+	blk_cleanup_queue(ctrl->ctrl.admin_q);
-+out_free_tagset:
-+	blk_mq_free_tag_set(&ctrl->admin_tag_set);
-+out_free_sq:
-+	nvmet_sq_destroy(&ctrl->queues[0].nvme_sq);
-+	return error;
-+}
-+
-+static void nvme_loop_shutdown_ctrl(struct nvme_loop_ctrl *ctrl)
-+{
-+	int i;
-+
-+	nvme_stop_keep_alive(&ctrl->ctrl);
-+
-+	if (ctrl->queue_count > 1) {
-+		nvme_stop_queues(&ctrl->ctrl);
-+		blk_mq_tagset_busy_iter(&ctrl->tag_set,
-+					nvme_cancel_request, &ctrl->ctrl);
-+
-+		for (i = 1; i < ctrl->queue_count; i++)
-+			nvmet_sq_destroy(&ctrl->queues[i].nvme_sq);
-+	}
-+
-+	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
-+		nvme_shutdown_ctrl(&ctrl->ctrl);
-+
-+	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
-+	blk_mq_tagset_busy_iter(&ctrl->admin_tag_set,
-+				nvme_cancel_request, &ctrl->ctrl);
-+	nvme_loop_destroy_admin_queue(ctrl);
-+}
-+
-+static void nvme_loop_del_ctrl_work(struct work_struct *work)
-+{
-+	struct nvme_loop_ctrl *ctrl = container_of(work,
-+				struct nvme_loop_ctrl, delete_work);
-+
-+	nvme_remove_namespaces(&ctrl->ctrl);
-+	nvme_loop_shutdown_ctrl(ctrl);
-+	nvme_uninit_ctrl(&ctrl->ctrl);
-+	nvme_put_ctrl(&ctrl->ctrl);
-+}
-+
-+static int __nvme_loop_del_ctrl(struct nvme_loop_ctrl *ctrl)
-+{
-+	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_DELETING))
-+		return -EBUSY;
-+
-+	if (!schedule_work(&ctrl->delete_work))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+static int nvme_loop_del_ctrl(struct nvme_ctrl *nctrl)
-+{
-+	struct nvme_loop_ctrl *ctrl = to_loop_ctrl(nctrl);
-+	int ret;
-+
-+	ret = __nvme_loop_del_ctrl(ctrl);
-+	if (ret)
-+		return ret;
-+
-+	flush_work(&ctrl->delete_work);
-+
-+	return 0;
-+}
-+
-+static void nvme_loop_delete_ctrl(struct nvmet_ctrl *nctrl)
-+{
-+	struct nvme_loop_ctrl *ctrl;
-+
-+	mutex_lock(&nvme_loop_ctrl_mutex);
-+	list_for_each_entry(ctrl, &nvme_loop_ctrl_list, list) {
-+		if (ctrl->ctrl.cntlid == nctrl->cntlid)
-+			__nvme_loop_del_ctrl(ctrl);
-+	}
-+	mutex_unlock(&nvme_loop_ctrl_mutex);
-+}
-+
-+static void nvme_loop_reset_ctrl_work(struct work_struct *work)
-+{
-+	struct nvme_loop_ctrl *ctrl = container_of(work,
-+					struct nvme_loop_ctrl, reset_work);
-+	bool changed;
-+	int i, ret;
-+
-+	nvme_loop_shutdown_ctrl(ctrl);
-+
-+	ret = nvme_loop_configure_admin_queue(ctrl);
-+	if (ret)
-+		goto out_disable;
-+
-+	for (i = 1; i <= ctrl->ctrl.opts->nr_io_queues; i++) {
-+		ctrl->queues[i].ctrl = ctrl;
-+		ret = nvmet_sq_init(&ctrl->queues[i].nvme_sq);
-+		if (ret)
-+			goto out_free_queues;
-+
-+		ctrl->queue_count++;
-+	}
-+
-+	for (i = 1; i <= ctrl->ctrl.opts->nr_io_queues; i++) {
-+		ret = nvmf_connect_io_queue(&ctrl->ctrl, i);
-+		if (ret)
-+			goto out_free_queues;
-+	}
-+
-+	changed = nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_LIVE);
-+	WARN_ON_ONCE(!changed);
-+
-+	nvme_queue_scan(&ctrl->ctrl);
-+	nvme_queue_async_events(&ctrl->ctrl);
-+
-+	nvme_start_queues(&ctrl->ctrl);
-+
-+	return;
-+
-+out_free_queues:
-+	for (i = 1; i < ctrl->queue_count; i++)
-+		nvmet_sq_destroy(&ctrl->queues[i].nvme_sq);
-+	nvme_loop_destroy_admin_queue(ctrl);
-+out_disable:
-+	dev_warn(ctrl->ctrl.device, "Removing after reset failure\n");
-+	nvme_remove_namespaces(&ctrl->ctrl);
-+	nvme_uninit_ctrl(&ctrl->ctrl);
-+	nvme_put_ctrl(&ctrl->ctrl);
-+}
-+
-+static int nvme_loop_reset_ctrl(struct nvme_ctrl *nctrl)
-+{
-+	struct nvme_loop_ctrl *ctrl = to_loop_ctrl(nctrl);
-+
-+	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_RESETTING))
-+		return -EBUSY;
-+
-+	if (!schedule_work(&ctrl->reset_work))
-+		return -EBUSY;
-+
-+	flush_work(&ctrl->reset_work);
-+
-+	return 0;
-+}
-+
-+static const struct nvme_ctrl_ops nvme_loop_ctrl_ops = {
-+	.name			= "loop",
-+	.module			= THIS_MODULE,
-+	.is_fabrics		= true,
-+	.reg_read32		= nvmf_reg_read32,
-+	.reg_read64		= nvmf_reg_read64,
-+	.reg_write32		= nvmf_reg_write32,
-+	.reset_ctrl		= nvme_loop_reset_ctrl,
-+	.free_ctrl		= nvme_loop_free_ctrl,
-+	.submit_async_event	= nvme_loop_submit_async_event,
-+	.delete_ctrl		= nvme_loop_del_ctrl,
-+	.get_subsysnqn		= nvmf_get_subsysnqn,
-+};
-+
-+static int nvme_loop_create_io_queues(struct nvme_loop_ctrl *ctrl)
-+{
-+	struct nvmf_ctrl_options *opts = ctrl->ctrl.opts;
-+	int ret, i;
-+
-+	ret = nvme_set_queue_count(&ctrl->ctrl, &opts->nr_io_queues);
-+	if (ret || !opts->nr_io_queues)
-+		return ret;
-+
-+	dev_info(ctrl->ctrl.device, "creating %d I/O queues.\n",
-+		opts->nr_io_queues);
-+
-+	for (i = 1; i <= opts->nr_io_queues; i++) {
-+		ctrl->queues[i].ctrl = ctrl;
-+		ret = nvmet_sq_init(&ctrl->queues[i].nvme_sq);
-+		if (ret)
-+			goto out_destroy_queues;
-+
-+		ctrl->queue_count++;
-+	}
-+
-+	memset(&ctrl->tag_set, 0, sizeof(ctrl->tag_set));
-+	ctrl->tag_set.ops = &nvme_loop_mq_ops;
-+	ctrl->tag_set.queue_depth = ctrl->ctrl.sqsize;
-+	ctrl->tag_set.reserved_tags = 1; /* fabric connect */
-+	ctrl->tag_set.numa_node = NUMA_NO_NODE;
-+	ctrl->tag_set.flags = BLK_MQ_F_SHOULD_MERGE;
-+	ctrl->tag_set.cmd_size = sizeof(struct nvme_loop_iod) +
-+		SG_CHUNK_SIZE * sizeof(struct scatterlist);
-+	ctrl->tag_set.driver_data = ctrl;
-+	ctrl->tag_set.nr_hw_queues = ctrl->queue_count - 1;
-+	ctrl->tag_set.timeout = NVME_IO_TIMEOUT;
-+	ctrl->ctrl.tagset = &ctrl->tag_set;
-+
-+	ret = blk_mq_alloc_tag_set(&ctrl->tag_set);
-+	if (ret)
-+		goto out_destroy_queues;
-+
-+	ctrl->ctrl.connect_q = blk_mq_init_queue(&ctrl->tag_set);
-+	if (IS_ERR(ctrl->ctrl.connect_q)) {
-+		ret = PTR_ERR(ctrl->ctrl.connect_q);
-+		goto out_free_tagset;
-+	}
-+
-+	for (i = 1; i <= opts->nr_io_queues; i++) {
-+		ret = nvmf_connect_io_queue(&ctrl->ctrl, i);
-+		if (ret)
-+			goto out_cleanup_connect_q;
-+	}
-+
-+	return 0;
-+
-+out_cleanup_connect_q:
-+	blk_cleanup_queue(ctrl->ctrl.connect_q);
-+out_free_tagset:
-+	blk_mq_free_tag_set(&ctrl->tag_set);
-+out_destroy_queues:
-+	for (i = 1; i < ctrl->queue_count; i++)
-+		nvmet_sq_destroy(&ctrl->queues[i].nvme_sq);
-+	return ret;
-+}
-+
-+static struct nvme_ctrl *nvme_loop_create_ctrl(struct device *dev,
-+		struct nvmf_ctrl_options *opts)
-+{
-+	struct nvme_loop_ctrl *ctrl;
-+	bool changed;
-+	int ret;
-+
-+	ctrl = kzalloc(sizeof(*ctrl), GFP_KERNEL);
-+	if (!ctrl)
-+		return ERR_PTR(-ENOMEM);
-+	ctrl->ctrl.opts = opts;
-+	INIT_LIST_HEAD(&ctrl->list);
-+
-+	INIT_WORK(&ctrl->delete_work, nvme_loop_del_ctrl_work);
-+	INIT_WORK(&ctrl->reset_work, nvme_loop_reset_ctrl_work);
-+
-+	ret = nvme_init_ctrl(&ctrl->ctrl, dev, &nvme_loop_ctrl_ops,
-+				0 /* no quirks, we're perfect! */);
-+	if (ret)
-+		goto out_put_ctrl;
-+
-+	spin_lock_init(&ctrl->lock);
-+
-+	ret = -ENOMEM;
-+
-+	ctrl->ctrl.sqsize = opts->queue_size;
-+	ctrl->ctrl.kato = opts->kato;
-+
-+	ctrl->queues = kcalloc(opts->nr_io_queues + 1, sizeof(*ctrl->queues),
-+			GFP_KERNEL);
-+	if (!ctrl->queues)
-+		goto out_uninit_ctrl;
-+
-+	ret = nvme_loop_configure_admin_queue(ctrl);
-+	if (ret)
-+		goto out_free_queues;
-+
-+	if (opts->queue_size > ctrl->ctrl.maxcmd) {
-+		/* warn if maxcmd is lower than queue_size */
-+		dev_warn(ctrl->ctrl.device,
-+			"queue_size %zu > ctrl maxcmd %u, clamping down\n",
-+			opts->queue_size, ctrl->ctrl.maxcmd);
-+		opts->queue_size = ctrl->ctrl.maxcmd;
-+	}
-+
-+	if (opts->nr_io_queues) {
-+		ret = nvme_loop_create_io_queues(ctrl);
-+		if (ret)
-+			goto out_remove_admin_queue;
-+	}
-+
-+	nvme_loop_init_iod(ctrl, &ctrl->async_event_iod, 0);
-+
-+	dev_info(ctrl->ctrl.device,
-+		 "new ctrl: \"%s\"\n", ctrl->ctrl.opts->subsysnqn);
-+
-+	kref_get(&ctrl->ctrl.kref);
-+
-+	changed = nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_LIVE);
-+	WARN_ON_ONCE(!changed);
-+
-+	mutex_lock(&nvme_loop_ctrl_mutex);
-+	list_add_tail(&ctrl->list, &nvme_loop_ctrl_list);
-+	mutex_unlock(&nvme_loop_ctrl_mutex);
-+
-+	if (opts->nr_io_queues) {
-+		nvme_queue_scan(&ctrl->ctrl);
-+		nvme_queue_async_events(&ctrl->ctrl);
-+	}
-+
-+	return &ctrl->ctrl;
-+
-+out_remove_admin_queue:
-+	nvme_loop_destroy_admin_queue(ctrl);
-+out_free_queues:
-+	kfree(ctrl->queues);
-+out_uninit_ctrl:
-+	nvme_uninit_ctrl(&ctrl->ctrl);
-+out_put_ctrl:
-+	nvme_put_ctrl(&ctrl->ctrl);
-+	if (ret > 0)
-+		ret = -EIO;
-+	return ERR_PTR(ret);
-+}
-+
-+static int nvme_loop_add_port(struct nvmet_port *port)
-+{
-+	/*
-+	 * XXX: disalow adding more than one port so
-+	 * there is no connection rejections when a
-+	 * a subsystem is assigned to a port for which
-+	 * loop doesn't have a pointer.
-+	 * This scenario would be possible if we allowed
-+	 * more than one port to be added and a subsystem
-+	 * was assigned to a port other than nvmet_loop_port.
-+	 */
-+
-+	if (nvmet_loop_port)
-+		return -EPERM;
-+
-+	nvmet_loop_port = port;
-+	return 0;
-+}
-+
-+static void nvme_loop_remove_port(struct nvmet_port *port)
-+{
-+	if (port == nvmet_loop_port)
-+		nvmet_loop_port = NULL;
-+}
-+
-+static struct nvmet_fabrics_ops nvme_loop_ops = {
-+	.owner		= THIS_MODULE,
-+	.type		= NVMF_TRTYPE_LOOP,
-+	.add_port	= nvme_loop_add_port,
-+	.remove_port	= nvme_loop_remove_port,
-+	.queue_response = nvme_loop_queue_response,
-+	.delete_ctrl	= nvme_loop_delete_ctrl,
-+};
-+
-+static struct nvmf_transport_ops nvme_loop_transport = {
-+	.name		= "loop",
-+	.create_ctrl	= nvme_loop_create_ctrl,
-+};
-+
-+static int __init nvme_loop_init_module(void)
-+{
-+	int ret;
-+
-+	ret = nvmet_register_transport(&nvme_loop_ops);
-+	if (ret)
-+		return ret;
-+	nvmf_register_transport(&nvme_loop_transport);
-+	return 0;
-+}
-+
-+static void __exit nvme_loop_cleanup_module(void)
-+{
-+	struct nvme_loop_ctrl *ctrl, *next;
-+
-+	nvmf_unregister_transport(&nvme_loop_transport);
-+	nvmet_unregister_transport(&nvme_loop_ops);
-+
-+	mutex_lock(&nvme_loop_ctrl_mutex);
-+	list_for_each_entry_safe(ctrl, next, &nvme_loop_ctrl_list, list)
-+		__nvme_loop_del_ctrl(ctrl);
-+	mutex_unlock(&nvme_loop_ctrl_mutex);
-+
-+	flush_scheduled_work();
-+}
-+
-+module_init(nvme_loop_init_module);
-+module_exit(nvme_loop_cleanup_module);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("nvmet-transport-254"); /* 254 == NVMF_TRTYPE_LOOP */
--- 
-2.1.4
+4.4.0_rc2_3e27c920
+sdc;10.218.128.17;5291495;1322873;15853
+sde;10.218.202.17;4966024;1241506;16892
+sdh;10.218.203.17;4980471;1245117;16843
+sdk;10.218.204.17;4966612;1241653;16890
+sdd;10.219.128.17;5060084;1265021;16578
+sdf;10.219.202.17;5065278;1266319;16561
+sdi;10.219.203.17;5047600;1261900;16619
+sdl;10.219.204.17;5036992;1259248;16654
+sdn;10.220.128.17;3775081;943770;22221
+sdg;10.220.202.17;3758336;939584;22320
+sdj;10.220.203.17;3792832;948208;22117
+Sdm;10.220.204.17;3771516;942879;22242
 
+Mlx4_0;sde;4648715;1162178;18045  ~73% cpu ib_srpt_compl
+Mlx5_0;sdd;3476566;869141;24129 ~80% cpu ib_srpt_compl
+mlx5_0;sdc;3492343;873085;24020
+
+4.4.0_rc2_ab46db0a
+sdc;10.218.128.17;3792146;948036;22121
+sdf;10.218.202.17;3738405;934601;22439
+sdj;10.218.203.17;3764239;941059;22285
+sdl;10.218.204.17;3785302;946325;22161
+sdd;10.219.128.17;3762382;940595;22296
+sdg;10.219.202.17;3765760;941440;22276
+sdi;10.219.203.17;3873751;968437;21655
+sdm;10.219.204.17;3769483;942370;22254
+sde;10.220.128.17;5022517;1255629;16702
+sdh;10.220.202.17;5018911;1254727;16714
+sdk;10.220.203.17;5037295;1259323;16653
+Sdn;10.220.204.17;5033064;1258266;16667
+
+mlx4_0;sde;4635358;1158839;18097
+mlx5_0;sdd;3459077;864769;24251
+mlx5_0;sdc;3465650;866412;24205
+
+4.5.0_rc3_1aaa57f5_00399
+
+sdc;10.218.128.17;4627942;1156985;18126
+sdf;10.218.202.17;4590963;1147740;18272
+sdk;10.218.203.17;4564980;1141245;18376
+sdn;10.218.204.17;4571946;1142986;18348
+sdd;10.219.128.17;4591717;1147929;18269
+sdi;10.219.202.17;4505644;1126411;18618
+sdg;10.219.203.17;4562001;1140500;18388
+sdl;10.219.204.17;4583187;1145796;18303
+sde;10.220.128.17;5511568;1377892;15220
+sdh;10.220.202.17;5515555;1378888;15209
+sdj;10.220.203.17;5609983;1402495;14953
+sdm;10.220.204.17;5509035;1377258;15227
+
+Mlx5_0;sde;3593013;898253;23347 100% CPU kworker/u69:2
+Mlx5_0;sdd;3588555;897138;23376 100% CPU kworker/u69:2
+Mlx4_0;sdc;3525662;881415;23793 100% CPU kworker/u68:0
+
+4.5.0_rc5_7861728d_00001
+sdc;10.218.128.17;3747591;936897;22384
+sdf;10.218.202.17;3750607;937651;22366
+sdh;10.218.203.17;3750439;937609;22367
+sdn;10.218.204.17;3771008;942752;22245
+sde;10.219.128.17;3867678;966919;21689
+sdg;10.219.202.17;3781889;945472;22181
+sdk;10.219.203.17;3791804;947951;22123
+sdl;10.219.204.17;3795406;948851;22102
+sdd;10.220.128.17;5039110;1259777;16647
+sdi;10.220.202.17;4992921;1248230;16801
+sdj;10.220.203.17;5015610;1253902;16725
+Sdm;10.220.204.17;5087087;1271771;16490
+
+Mlx5_0;sde;2930722;732680;28623 ~98% CPU kworker/u69:0
+Mlx5_0;sdd;2910891;727722;28818 ~98% CPU kworker/u69:0
+Mlx4_0;sdc;3263668;815917;25703 ~98% CPU kworker/u68:0
+
+4.5.0_rc5_f81bf458_00018
+sdb;10.218.128.17;5023720;1255930;16698
+sde;10.218.202.17;5016809;1254202;16721
+sdj;10.218.203.17;5021915;1255478;16704
+sdk;10.218.204.17;5021314;1255328;16706
+sdc;10.219.128.17;4984318;1246079;16830
+sdf;10.219.202.17;4986096;1246524;16824
+sdh;10.219.203.17;5043958;1260989;16631
+sdm;10.219.204.17;5032460;1258115;16669
+sdd;10.220.128.17;3736740;934185;22449
+sdg;10.220.202.17;3728767;932191;22497
+sdi;10.220.203.17;3752117;938029;22357
+Sdl;10.220.204.17;3763901;940975;22287
+
+Srpt keeps crashing couldn't test
+
+4.5.0_rc5_5adabdd1_00023
+Sdc;10.218.128.17;3726448;931612;22511 ~97% CPU kworker/u69:4
+sdf;10.218.202.17;3750271;937567;22368
+sdi;10.218.203.17;3749266;937316;22374
+sdj;10.218.204.17;3798844;949711;22082
+sde;10.219.128.17;3759852;939963;22311 ~97% CPU kworker/u69:4
+sdg;10.219.202.17;3772534;943133;22236
+sdl;10.219.203.17;3769483;942370;22254
+sdn;10.219.204.17;3790604;947651;22130
+sdd;10.220.128.17;5171130;1292782;16222 ~96% CPU kworker/u68:3
+sdh;10.220.202.17;5105354;1276338;16431
+sdk;10.220.203.17;4995300;1248825;16793
+sdm;10.220.204.17;4959564;1239891;16914
+
+Srpt crashes
+
+4.5.0_rc5_07b63196_00027
+sdb;10.218.128.17;3606142;901535;23262
+sdg;10.218.202.17;3570988;892747;23491
+sdf;10.218.203.17;3576011;894002;23458
+sdk;10.218.204.17;3558113;889528;23576
+sdc;10.219.128.17;3577384;894346;23449
+sde;10.219.202.17;3575401;893850;23462
+sdj;10.219.203.17;3567798;891949;23512
+sdl;10.219.204.17;3584262;896065;23404
+sdd;10.220.128.17;4430680;1107670;18933
+sdh;10.220.202.17;4488286;1122071;18690
+sdi;10.220.203.17;4487326;1121831;18694
+sdm;10.220.204.17;4441236;1110309;18888
+
+Srpt crashes
+
+4.5.0_rc5_5e47f198_00036
+sdb;10.218.128.17;3519597;879899;23834
+sdi;10.218.202.17;3512229;878057;23884
+sdh;10.218.203.17;3518563;879640;23841
+sdk;10.218.204.17;3582119;895529;23418
+sdd;10.219.128.17;3550883;887720;23624
+sdj;10.219.202.17;3558415;889603;23574
+sde;10.219.203.17;3552086;888021;23616
+sdl;10.219.204.17;3579521;894880;23435
+sdc;10.220.128.17;4532912;1133228;18506
+sdf;10.220.202.17;4558035;1139508;18404
+sdg;10.220.203.17;4601035;1150258;18232
+sdm;10.220.204.17;4548150;1137037;18444
+
+srpt crashes
+
+4.6.2 vanilla default config
+sde;10.218.128.17;3431063;857765;24449
+sdf;10.218.202.17;3360685;840171;24961
+sdi;10.218.203.17;3355174;838793;25002
+sdm;10.218.204.17;3360955;840238;24959
+sdd;10.219.128.17;3337288;834322;25136
+sdh;10.219.202.17;3327492;831873;25210
+sdj;10.219.203.17;3380867;845216;24812
+sdk;10.219.204.17;3418340;854585;24540
+sdc;10.220.128.17;4668377;1167094;17969
+sdg;10.220.202.17;4716675;1179168;17785
+sdl;10.220.203.17;4675663;1168915;17941
+sdn;10.220.204.17;4631519;1157879;18112
+
+Mlx5_0;sde;3390021;847505;24745 ~98% CPU kworker/u69:3
+Mlx5_0;sdd;3207512;801878;26153 ~98% CPU kworker/u69:3
+Mlx4_0;sdc;2998072;749518;27980 ~98% CPU kworker/u68:0
+
+4.7.0_rc3_5edb5649
+sdc;10.218.128.17;3260244;815061;25730
+sdg;10.218.202.17;3405988;851497;24629
+sdh;10.218.203.17;3307419;826854;25363
+sdm;10.218.204.17;3430502;857625;24453
+sdi;10.219.128.17;3544282;886070;23668
+sdj;10.219.202.17;3412083;853020;24585
+sdk;10.219.203.17;3422385;855596;24511
+sdl;10.219.204.17;3444164;861041;24356
+sdb;10.220.128.17;4803646;1200911;17463
+sdd;10.220.202.17;4832982;1208245;17357
+sde;10.220.203.17;4809430;1202357;17442
+sdf;10.220.204.17;4808878;1202219;17444
+
+mlx5_0;sdd;2986864;746716;28085
+mlx5_0;sdc;2963648;740912;28305
+mlx4_0;sdb;3317228;829307;25288
+
+Thanks,
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+
+
+On Tue, Jun 21, 2016 at 8:50 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> Sagi,
+>
+> I'm working to implement SRP (I think I got it all working) to test
+> some of the commits. I can try TGT afterwards and the commit you
+> mention. I haven't been watching the CPU lately, but before when I was
+> doing a lot of testing, there wasn't any one thread that was at 100%.
+> There are several threads that have high utilization, but none 100%
+> and there is plenty of CPU capacity available (32 cores). I can
+> capture some of that data if it is helpful. I did test 4.7_rc3 on
+> Friday, but it didn't change much, is that "new" enough?
+>
+> 4.7.0_rc3_5edb5649
+> sdc;10.218.128.17;3260244;815061;25730
+> sdg;10.218.202.17;3405988;851497;24629
+> sdh;10.218.203.17;3307419;826854;25363
+> sdm;10.218.204.17;3430502;857625;24453
+> sdi;10.219.128.17;3544282;886070;23668
+> sdj;10.219.202.17;3412083;853020;24585
+> sdk;10.219.203.17;3422385;855596;24511
+> sdl;10.219.204.17;3444164;861041;24356
+> sdb;10.220.128.17;4803646;1200911;17463
+> sdd;10.220.202.17;4832982;1208245;17357
+> sde;10.220.203.17;4809430;1202357;17442
+> sdf;10.220.204.17;4808878;1202219;17444
+>
+> Thanks for the suggestions, I'll work to get some of the requested
+> data back to you guys quickly.
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>
+>
+> On Tue, Jun 21, 2016 at 7:08 AM, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Hey Robert,
+>>
+>>> I narrowed the performance degradation to this series
+>>> 7861728..5e47f19, but while trying to bisect it, the changes were
+>>> erratic between each commit that I could not figure out exactly which
+>>> introduced the issue. If someone could give me some pointers on what
+>>> to do, I can keep trying to dig through this.
+>>
+>>
+>> This bisection brings suspects:
+>>
+>> e3416ab2d156 iser-target: Kill the ->isert_cmd back pointer in struct
+>> iser_tx_desc
+>> d1ca2ed7dcf8 iser-target: Kill struct isert_rdma_wr
+>> 9679cc51eb13 iser-target: Convert to new CQ API
+>> 5adabdd122e4 iser-target: Split and properly type the login buffer
+>> ed1083b251f0 iser-target: Remove ISER_RECV_DATA_SEG_LEN
+>> 26c7b673db57 iser-target: Remove impossible condition from isert_wait_conn
+>> 69c48846f1c7 iser-target: Remove redundant wait in release_conn
+>> 6d1fba0c2cc7 iser-target: Rework connection termination
+>> f81bf458208e iser-target: Separate flows for np listeners and connections
+>> cma events
+>> aea92980601f iser-target: Add new state ISER_CONN_BOUND to isert_conn
+>> b89a7c25462b iser-target: Fix identification of login rx descriptor type
+>>
+>> However I don't really see performance implications in these patches,
+>> not to mention something that would affect on ConnectIB...
+>>
+>> Given that your bisection brings up target side patches, I have
+>> a couple questions:
+>>
+>> 1. Are the CPU usage in the target side at 100%, or the initiator side
+>> is the bottleneck?
+>>
+>> 2. Would it be possible to use another target implementation? TGT maybe?
+>>
+>> 3. Can you try testing right before 9679cc51eb13? This is a patch that
+>> involves data-plane.
+>>
+>> 4. Can you try the latest upstream kernel? The iser target code uses
+>> a generic data-transfer library and I'm interested in knowing what is
+>> the status there.
+>>
+>> Cheers,
+>> Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
