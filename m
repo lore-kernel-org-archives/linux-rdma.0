@@ -1,69 +1,41 @@
-From: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
-Date: Tue, 21 Jun 2016 16:08:58 +0300
-Message-ID: <57693C6A.3020805@gmail.com>
-References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
- <5756B7D2.5040009@mellanox.com>
- <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
- <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
- <57582336.10407@mellanox.com>
- <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
- <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
- <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH v2 rdma-next 00/29] Soft RoCE driver
+Date: Tue, 21 Jun 2016 08:52:49 -0500
+Message-ID: <004301d1cbc4$32acd0b0$98067210$@opengridcomputing.com>
+References: <1466084751-29901-1-git-send-email-monis@mellanox.com> <030701d1cb27$6a968ef0$3fc3acd0$@opengridcomputing.com> <CAG9sBKPOxXMb=cFQTqiujRmRBz=HwK5yAZROvjsCeLXN_OT0EA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+	charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAG9sBKPOxXMb=cFQTqiujRmRBz=HwK5yAZROvjsCeLXN_OT0EA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Tal Alon' <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Robert,
+> On Mon, Jun 20, 2016 at 10:10 PM, Steve Wise
+> <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> >>
+> >> Soft RoCE resources:
+> >>
+> >> [1[ https://github.com/SoftRoCE/librxe-dev librxe - source code in Github
+> >> [2] https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home - Soft RoCE Wiki
+> > page
+> >> [3] https://github.com/SoftRoCE/librxe-dev - Soft RoCE userspace library
+> >>
+> >
+> > Hey Moni, is there a branch in [2] that matches this submission?
+> >
+> >
+> Hi Steve
+> branch rxe_submission_v16 matches series 2.
+> Please note that you need to fetch also librxe (no change in branch
+> there) as name of the shared user/kerenl file was changed
 
-> I narrowed the performance degradation to this series
-> 7861728..5e47f19, but while trying to bisect it, the changes were
-> erratic between each commit that I could not figure out exactly which
-> introduced the issue. If someone could give me some pointers on what
-> to do, I can keep trying to dig through this.
+Thanks.  
 
-This bisection brings suspects:
-
-e3416ab2d156 iser-target: Kill the ->isert_cmd back pointer in struct 
-iser_tx_desc
-d1ca2ed7dcf8 iser-target: Kill struct isert_rdma_wr
-9679cc51eb13 iser-target: Convert to new CQ API
-5adabdd122e4 iser-target: Split and properly type the login buffer
-ed1083b251f0 iser-target: Remove ISER_RECV_DATA_SEG_LEN
-26c7b673db57 iser-target: Remove impossible condition from isert_wait_conn
-69c48846f1c7 iser-target: Remove redundant wait in release_conn
-6d1fba0c2cc7 iser-target: Rework connection termination
-f81bf458208e iser-target: Separate flows for np listeners and 
-connections cma events
-aea92980601f iser-target: Add new state ISER_CONN_BOUND to isert_conn
-b89a7c25462b iser-target: Fix identification of login rx descriptor type
-
-However I don't really see performance implications in these patches,
-not to mention something that would affect on ConnectIB...
-
-Given that your bisection brings up target side patches, I have
-a couple questions:
-
-1. Are the CPU usage in the target side at 100%, or the initiator side
-is the bottleneck?
-
-2. Would it be possible to use another target implementation? TGT maybe?
-
-3. Can you try testing right before 9679cc51eb13? This is a patch that
-involves data-plane.
-
-4. Can you try the latest upstream kernel? The iser target code uses
-a generic data-transfer library and I'm interested in knowing what is
-the status there.
-
-Cheers,
-Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
