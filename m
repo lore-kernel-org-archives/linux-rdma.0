@@ -1,79 +1,117 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
-Date: Wed, 22 Jun 2016 09:45:06 -0600
-Message-ID: <CAANLjFq7b27WQM4H9Oujongyxp=gmJO5nG0RrzgYMzm-b81jYQ@mail.gmail.com>
-References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
- <5756B7D2.5040009@mellanox.com> <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
- <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
- <57582336.10407@mellanox.com> <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
- <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
- <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com>
- <57693C6A.3020805@gmail.com> <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA@mail.gmail.com>
- <CAANLjFpeL0AkuGW-q5Bmm-dff0UqFOM_sAOaG7=vyqmwnOoTcQ@mail.gmail.com> <86d4404a-fa6a-72de-8e83-827072c308b5@sandisk.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 25/25] IB/mlx4: Workaround for mlx4_alloc_priv_pages()
+ array allocator
+Date: Wed, 22 Jun 2016 18:50:03 +0300
+Message-ID: <20160622155003.GI9762@leon.nu>
+References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
+ <20160620161200.10809.45762.stgit@manet.1015granger.net>
+ <576A9AE6.4070500@grimberg.me>
+ <A9F49204-8E84-4B58-BAA4-5B4B360FD22F@oracle.com>
+Reply-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <86d4404a-fa6a-72de-8e83-827072c308b5-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4LwthZj+AV2mq5CX"
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <A9F49204-8E84-4B58-BAA4-5B4B360FD22F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is no need to be concerned about srpt crashing in the latest
-kernel. Srpt only crashed when I was testing kernels in that change
-set (7861728..5e47f19) that I identified the 10-15% performance drop
-in iSER between the 4.5 and 4.6 kernel. My tests from the 4.6 to
-4.7rc3 didn't have a problem with srpt crashing.
 
-The format of the output is as follows:
+--4LwthZj+AV2mq5CX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Kernel_tag_commit
-iSER tests with results in this format
-<dev>;<target IP>;<bandwidth KB/s>;<IOPs>;<execution time ms> (last
-three fields are fields 7,8,9 from fio)
-i.e. sdc;10.218.128.17;3260244;815061;25730
-SRP LIO tests
-<IB driver>;<dev>;<bandwidth KB/s>;<IOPs>;<execution time ms>
-i.e. mlx5_0;sdd;2986864;746716;28085
+On Wed, Jun 22, 2016 at 10:47:27AM -0400, Chuck Lever wrote:
+>=20
+> > On Jun 22, 2016, at 10:04 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> >=20
+> >=20
+> >> +    /* This is overkill, but hardware requires that the
+> >> +     * PBL array begins at a properly aligned address and
+> >> +     * never occupies the last 8 bytes of a page.
+> >> +     */
+> >> +    mr->pages =3D (__be64 *)get_zeroed_page(GFP_KERNEL);
+> >> +    if (!mr->pages)
+> >>          return -ENOMEM;
+> >=20
+> > Again, I'm not convinced that this is a better choice then allocating
+> > the exact needed size as dma coherent, but given that the dma coherent
+> > allocations are always page aligned I wander if it's not the same
+> > effect...
+>=20
+> My concerns with DMA coherent were:
+>=20
+> 1. That pool may be a somewhat limited resource?
+>=20
+> 2. IMO DMA-API.txt suggests DMA coherent will perform less
+> well in some cases. Macro benchmarks I ran seemed to show
+> there was a slight performance hit with that approach, though
+> it was nearly in the noise.
+>=20
+> I agree that the over-allocation in the streaming solution is a
+> concern. But as you say, there may be little we can do about it.
 
-This is repeated for each kernel tested. On some tests I also
-documented the observed CPU utilization of some of the target
-processes. In some cases I was lazy and if the information was the
-same for both mlx5 targets, I didn't duplicate it. For iSER, there are
-four aliases on each adapter to provide four paths for each IB port
-(this is a remnant of some previous multipathing tests, and now only
-serves as providing additional data points to know how repeatable the
-tests are). 10.218.*.17 and 10.219.*.17 are generally on the mlx5
-ports while 19.220.*.17 are on the mlx4 port (some tests had the
-adapters swapped, but none of these did and it is easy to identify
-them by the grouping).
+According to [1] dma_alloc_coherent doesn't allocate from pool, but
+calls to the __get_free_page().
 
-This test was performed against each path individually. I created an
-ext4 filesystem on the device (no partitions), then would mount the
-file system on one path, run the test, umount the path, mount the next
-path, run the test, etc so that there is no multipathing confusing the
-tests. I also am _NOT_ running the tests on all paths at the same time
-using fio.
+"A DMA pool is an allocation mechanism for small, coherent DMA mappings.
+Mappings obtained from dma_alloc_coherent may have a minimum size of one
+page."
 
-The fio command I'm using is: fio --rw=read --bs=4K --size=2G
---numjobs=40 --name=worker.matt --group_reporting --minimal |  cut
--d';' -f7,8,9
+>=20
+> Wrt to Or's comment, the device's maximum page list depth
+> is advertised to consumers via the device's attributes. However,
+> it would be defensive if there was a sanity check added in
+> mlx4_alloc_priv_pages to ensure that the max_pages argument
+> is a reasonable value (ie, that the calculated array size does
+> indeed fit into a page).
+>=20
+> > In any event, we can move forward with this for now:
+> >=20
+> > Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>=20
+> Thanks, I'll add that! Though as before, I'm happy to drop this
+> patch if there is a different preferred official fix.
 
-I hope that clears up the confusion, if not, please ask for more clarification.
+We submitted your version of patch with minor changes in
+comments and commit message together with Sagi's ROB tag [2].
 
-On Jun 22, 2016 2:18 AM, "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
->
-> On 06/21/2016 10:26 PM, Robert LeBlanc wrote:
->>
->> Srpt keeps crashing couldn't test
->
->
-> If this is reproducible with the latest rc kernel or with any of the stable kernels please report this in a separate e-mail, together with the crash call stack and information about how to reproduce this.
->
-> Thanks,
->
-> Bart.
+[1] http://www.makelinux.net/ldd3/chp-15-sect-4
+[2] https://patchwork.kernel.org/patch/9193075/
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--4LwthZj+AV2mq5CX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXarOrAAoJEORje4g2clingvAP/jVdQGqSZBq7YP+BcQ35obVW
+LFSXgub8Cf39/9yMHJQpR/NkiTTl3BuBUwK1DylCKxuce8F/bONWJCnTvUmEC6xK
+UK5K31uYa9yPcw7LlR/5zHD/H1ChWyVIMr5tciQIwoLRkPXJeTLsBxNBr/yli6uc
+L2U5bbHv+wJQXgaRLT4Nk6iVS4UQlI17dh9vD+QKLtnjlauSbajaJPBHBNPvtqZd
+MBuiTkA9nr1aQUU5MplWigOSehruWs8MJmf4Y3nqgDpsIge4+Yyq1H+00mptTQJw
+8pGp8hIWt0lWw0dSzNETN/BEikFBfAxiE9RGVVEFN93oFrcTBF00RA9D+pvyhY0F
+USvDq0WHi1hBTGmHq8Fojd8Ad7HMVCTrAReqTZi48BjOCmWpcoU91aEKHFcNmnIW
+yn+JcZ8VhGpC/98kZ3Lk7Z7t+wEds9zXxjFVmBdkgbVNci8TVjIABwpg3ECIHXpU
+fj8wW9s+O+RzEeqrJXXZCbQUrnr2OdNnABwe62R3K3MaxK/Dw431jME6VdlcRkx4
+DwVEJnp8R34TPkyHxAHH28Z/yinGASzygDlPma1wWASPJu6qR1lWUdYVEqfGTcvh
+yaBEhxD0iyASIrVb3Do2xFuvDnKdDSyRVhqflBXLPkZ+d/JC8eGDEyWtWgDrF9s3
+0ECihmYxd4hYYsgtai64
+=fWQu
+-----END PGP SIGNATURE-----
+
+--4LwthZj+AV2mq5CX--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
