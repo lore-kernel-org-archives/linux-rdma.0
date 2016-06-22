@@ -1,79 +1,39 @@
-From: Wang Sheng-Hui <shhuiw@foxmail.com>
-Subject: [PATCH] net/mlx5: use mlx5_buf_alloc_node insteaf of mlx5_buf_alloc in mlx5_wq_ll_create
-Date: Wed, 22 Jun 2016 16:06:38 +0800
-Message-ID: <1466582798-41187-1-git-send-email-shhuiw@foxmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com, amirv@mellanox.com
-Cc: matanb@mellanox.com, leonro@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Connect-IB not performing as well as ConnectX-3 with iSER
+Date: Wed, 22 Jun 2016 10:18:31 +0200
+Message-ID: <86d4404a-fa6a-72de-8e83-827072c308b5@sandisk.com>
+References: <CAANLjFoL5zow4f4RXP5t8LM7wsWN1OQ-hD2mtPUBTLkJ7UZ5kA@mail.gmail.com>
+ <5756B7D2.5040009@mellanox.com>
+ <CAANLjFq4CoOSbng=aPHiSsFB=1HMSwAhhLiCjt+88dzz24OT9w@mail.gmail.com>
+ <CAANLjFoLJNQWtHHqjHmhc0iBq14NAV_GgkbyQabjzyeN56t+Ow@mail.gmail.com>
+ <57582336.10407@mellanox.com>
+ <CAANLjFrLK-ZVP5XX3TnkAMz+7_pd6qc+c88mbF4vF9DQ+F5U=A@mail.gmail.com>
+ <CAANLjFrv-0VArTEkgqbrhzFjn1fg_egpCJuQZnAurVrHjbL_qA@mail.gmail.com>
+ <CAANLjFqoV-5HK0c+LdEbuxd81Vm=g=WE3cQgp47dH-yfYjZjGw@mail.gmail.com>
+ <57693C6A.3020805@gmail.com>
+ <CAANLjFpUyAYB+ZzMwFKBpa4yLmALPzcRGJX1kExVrLARZmZRkA@mail.gmail.com>
+ <CAANLjFpeL0AkuGW-q5Bmm-dff0UqFOM_sAOaG7=vyqmwnOoTcQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFpeL0AkuGW-q5Bmm-dff0UqFOM_sAOaG7=vyqmwnOoTcQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sagi Grimberg <sagigrim-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch introduces 2 changes:
-	* use mlx5_buf_alloc_node() insteaf of mlx5_buf_alloc() in
-	  mlx5_wq_ll_create
-	* Update the failure warn messages with _node postfix for mlx5_*_alloc
-          function names
+On 06/21/2016 10:26 PM, Robert LeBlanc wrote:
+> Srpt keeps crashing couldn't test
 
-Signed-off-by: Wang Sheng-Hui <shhuiw@foxmail.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/wq.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+If this is reproducible with the latest rc kernel or with any of the 
+stable kernels please report this in a separate e-mail, together with 
+the crash call stack and information about how to reproduce this.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-index ce21ee5..821a087 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-@@ -75,14 +75,14 @@ int mlx5_wq_cyc_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_wq_cyc_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -111,14 +111,14 @@ int mlx5_cqwq_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_cqwq_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -148,13 +148,14 @@ int mlx5_wq_ll_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
--	err = mlx5_buf_alloc(mdev, mlx5_wq_ll_get_byte_size(wq), &wq_ctrl->buf);
-+	err = mlx5_buf_alloc_node(mdev, mlx5_wq_ll_get_byte_size(wq),
-+				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
--- 
-2.7.4
+Thanks,
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
