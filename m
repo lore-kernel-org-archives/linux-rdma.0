@@ -1,80 +1,113 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 11/11] IB/mlx4: Prevent cross page boundary allocation
-Date: Wed, 22 Jun 2016 19:00:58 +0300
-Message-ID: <20160622160058.GJ9762@leon.nu>
-References: <1466605652-24798-1-git-send-email-leonro@mellanox.com>
- <1466605652-24798-12-git-send-email-leonro@mellanox.com>
- <20160622150141.GA25806@phlsvsds.ph.intel.com>
-Reply-To: <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] mellanox: mlx5: Use logging functions to reduce text ~10k/5%
+Date: Wed, 22 Jun 2016 11:23:59 -0700
+Message-ID: <1466619839.13093.4.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SBT+cnFS/G3NVgv4"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160622150141.GA25806-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---SBT+cnFS/G3NVgv4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The logging macros create a bit of duplicated code/text.
 
-On Wed, Jun 22, 2016 at 11:01:42AM -0400, Dennis Dalessandro wrote:
-> On Wed, Jun 22, 2016 at 05:27:32PM +0300, Leon Romanovsky wrote:
-> >From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >
-> >Prevent cross page boundary allocation by allocating
-> >new page, this is required to be aligned with ConnectX-3 HW
-> >requirements.
-> >
-> >Not doing that might cause to "RDMA read local protection" error.
-> >
-> >Fixes: 1b2cd0fc673c ('IB/mlx4: Support the new memory registration API')
-> >Suggested-by: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-> >Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> >Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->=20
-> Hi Leon, why sign-off twice with different addresses?
+Use specialized functions to reduce the duplication.
 
-First SOB is added because I changed this patch and did it as a Mellanox
-employee. Second SOB is added as a sign of my external git tree, and
-comes instead of my ROB tag for other patches.
+(defconfig/x86-64)
+$ size drivers/net/ethernet/mellanox/mlx5/core/built-in.o*
+=A0=A0=A0text	=A0=A0=A0data	=A0=A0=A0=A0bss	=A0=A0=A0=A0dec	=A0=A0=A0=A0=
+hex	filename
+=A0178634	=A0=A0=A02059	=A0=A0=A0=A0=A016	=A0180709	=A0=A02c1e5	drivers=
+/net/ethernet/mellanox/mlx5/core/built-in.o.new
+=A0188679	=A0=A0=A02059	=A0=A0=A0=A0=A016	=A0190754	=A0=A02e922	drivers=
+/net/ethernet/mellanox/mlx5/core/built-in.o.old
 
-This allows to visualize my external/internal work.
+The output changes now do not include line #,
+but do include the function offset.
 
->=20
-> -Denny
+Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+---
+=A0drivers/net/ethernet/mellanox/mlx5/core/main.c=A0=A0=A0=A0=A0| 34 ++=
+++++++++++++++++++++
+=A0.../net/ethernet/mellanox/mlx5/core/mlx5_core.h=A0=A0=A0=A0| 13 +++-=
+-----
+=A02 files changed, 38 insertions(+), 9 deletions(-)
 
---SBT+cnFS/G3NVgv4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/n=
+et/ethernet/mellanox/mlx5/core/main.c
+index a19b593..34cbaf0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1557,3 +1557,37 @@ static void __exit cleanup(void)
+=A0
+=A0module_init(init);
+=A0module_exit(cleanup);
++
++void mlx5_core_err(struct mlx5_core_dev *dev, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++
++	va_start(args, fmt);
++
++	vaf.fmt =3D fmt;
++	vaf.va =3D &args;
++
++	dev_err(&dev->pdev->dev, "%s:%pS:(pid %d): %pV",
++		dev->priv.name, __builtin_return_address(0), current->pid,
++		&vaf);
++
++	va_end(args);
++}
++
++void mlx5_core_warn(struct mlx5_core_dev *dev, const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++
++	va_start(args, fmt);
++
++	vaf.fmt =3D fmt;
++	vaf.va =3D &args;
++
++	dev_warn(&dev->pdev->dev, "%s:%pS:(pid %d): %pV",
++		=A0dev->priv.name, __builtin_return_address(0), current->pid,
++		=A0&vaf);
++
++	va_end(args);
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/driv=
+ers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index 2f86ec6..31430a7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -57,15 +57,10 @@ do {									\
+=A0		mlx5_core_dbg(__dev, format, ##__VA_ARGS__);		\
+=A0} while (0)
+=A0
+-#define mlx5_core_err(__dev, format, ...)				\
+-	dev_err(&(__dev)->pdev->dev, "%s:%s:%d:(pid %d): " format,	\
+-	=A0=A0=A0=A0=A0=A0=A0(__dev)->priv.name, __func__, __LINE__, current-=
+>pid,	\
+-	=A0=A0=A0=A0=A0=A0=A0##__VA_ARGS__)
+-
+-#define mlx5_core_warn(__dev, format, ...)				\
+-	dev_warn(&(__dev)->pdev->dev, "%s:%s:%d:(pid %d): " format,	\
+-		(__dev)->priv.name, __func__, __LINE__, current->pid,	\
+-		##__VA_ARGS__)
++__printf(2, 3)
++void mlx5_core_err(struct mlx5_core_dev *dev, const char *fmt, ...);
++__printf(2, 3)
++void mlx5_core_warn(struct mlx5_core_dev *dev, const char *fmt, ...);
+=A0
+=A0#define mlx5_core_info(__dev, format, ...)				\
+=A0	dev_info(&(__dev)->pdev->dev, format, ##__VA_ARGS__)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXarY6AAoJEORje4g2clinCCUP/RFdim/RhIGfE9E42ygLKFLC
-Vf5yxfQFt5TDIawQZpoXDMJ2KPhj0dClqH1snXIhMZEz7ler42ib1gYTO4k4qXwU
-r6SRWvPrxXdk2jSPeefS5cCNJQe6pfw5Hr9mV9dih4n73Q6xWl45xXccusY+aPe6
-7NRbNdHgKEtY0MxbWz7GWJGVuCKkTrBSNEDAkKP3mZsI7XG+LCS8pMWs0J3Ny4IW
-YeJI11bRZzt0/Nq/JGkVUAF1KwSVSK9LiUv5w4UkmO3sTfAPfACaxiymUJ1vbTBT
-OWuILccHqKqCyr8aHg9KMrP7UK/EnQwbOrv/u4Z2TUmMUnOfL1znbL7likbOq0fj
-n3mC/4emNg+gEd5MTzyoxnf8SgdWCIY+h293FpeeE+bXc8yYOS9kyDQGLk3ZMXEv
-hGREhAWtbybB4uRzkJGk7gbMSywWi8vxVDgZGNQ/IlWX/H/G0V/3DlEyqluEhFXZ
-XKgZz3P+NDUJm86TmuBmON2vduR158uehBGHh3VyUHuW7Hl1QQx/nqANGyQkuSIU
-GM1gH+JyP9WOKHjyZDPfd9HjFY8+8GlGF2/TpN0SRhkZIRUrd1SCQz9lTvZDoa8p
-VW3eqtADr93Sc/GXnTOyos2dGKdlIKSn2gr8hmObQWZLFeSHsbIJp3kgPUE5bvmN
-nwIPTT5wO0MC5xd+fOYA
-=5eql
------END PGP SIGNATURE-----
-
---SBT+cnFS/G3NVgv4--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
