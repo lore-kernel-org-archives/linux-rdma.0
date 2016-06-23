@@ -1,83 +1,69 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 12/12] IB/core: Implement the Infiniband flush callback
-Date: Thu, 23 Jun 2016 22:52:58 +0300
-Message-ID: <1466711578-64398-13-git-send-email-danielj@mellanox.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 07/12] selinux: Add a cache for quicker retreival of PKey
+ SIDs
+Date: Fri, 24 Jun 2016 05:59:39 +0800
+Message-ID: <201606240536.klEWaPLA%fengguang.wu@intel.com>
+References: <1466711578-64398-8-git-send-email-danielj@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466711578-64398-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1466711578-64398-8-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi,
 
-Register the callback at init and unregister it at cleanup.
+[auto build test WARNING on rdma/master]
+[also build test WARNING on v4.7-rc4]
+[cannot apply to pcmoore-selinux/next next-20160623]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-When called walk the device list and call ib_security_cache_change for
-each port on each device.
+url:    https://github.com/0day-ci/linux/commits/Dan-Jurgens/SELinux-support-for-Infiniband-RDMA/20160624-035944
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+sparse warnings: (new ones prefixed by >>)
+
+   include/linux/compiler.h:232:8: sparse: attribute 'no_sanitize_address': unknown attribute
+>> security/selinux/pkey.c:116:24: sparse: incompatible types in comparison expression (different address spaces)
+
+vim +116 security/selinux/pkey.c
+
+   100	 * Description:
+   101	 * Add a new pkey record to the hash table.
+   102	 *
+   103	 */
+   104	static void sel_pkey_insert(struct sel_pkey *pkey)
+   105	{
+   106		unsigned int idx;
+   107	
+   108		/* we need to impose a limit on the growth of the hash table so check
+   109		 * this bucket to make sure it is within the specified bounds
+   110		 */
+   111		idx = sel_pkey_hashfn(pkey->psec.pkey);
+   112		list_add_rcu(&pkey->list, &sel_pkey_hash[idx].list);
+   113		if (sel_pkey_hash[idx].size == SEL_PKEY_HASH_BKT_LIMIT) {
+   114			struct sel_pkey *tail;
+   115	
+ > 116			tail = list_entry(
+   117				rcu_dereference_protected(
+   118					sel_pkey_hash[idx].list.prev,
+   119					lockdep_is_held(&sel_pkey_lock)),
+   120				struct sel_pkey, list);
+   121			list_del_rcu(&tail->list);
+   122			kfree_rcu(tail, rcu);
+   123		} else {
+   124			sel_pkey_hash[idx].size++;
+
 ---
- drivers/infiniband/core/device.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 63deb5c..5060a7f 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -335,6 +335,29 @@ static int setup_port_pkey_list(struct ib_device *device)
- 	return 0;
- }
- 
-+static void ib_security_flush(void)
-+{
-+	struct ib_device *dev;
-+
-+	down_read(&lists_rwsem);
-+	list_for_each_entry(dev, &device_list, core_list) {
-+		int i;
-+
-+		for (i = rdma_start_port(dev); i <= rdma_end_port(dev); i++) {
-+			u64 sp;
-+			int ret = ib_get_cached_subnet_prefix(dev,
-+							      i,
-+							      &sp);
-+
-+			WARN_ONCE(ret,
-+				  "ib_get_cached_subnet_prefix err: %d, this should never happen here\n",
-+				  ret);
-+			ib_security_cache_change(dev, i, sp);
-+		}
-+	}
-+	up_read(&lists_rwsem);
-+}
-+
- /**
-  * ib_register_device - Register an IB device with IB core
-  * @device:Device to register
-@@ -1062,6 +1085,8 @@ static int __init ib_core_init(void)
- 		goto err_sa;
- 	}
- 
-+	security_register_ib_flush_callback(&ib_security_flush);
-+
- 	ib_cache_setup();
- 
- 	return 0;
-@@ -1085,6 +1110,7 @@ err:
- 
- static void __exit ib_core_cleanup(void)
- {
-+	security_unregister_ib_flush_callback();
- 	ib_cache_cleanup();
- 	ib_remove_ibnl_clients();
- 	ib_sa_cleanup();
--- 
-1.8.3.1
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
