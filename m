@@ -1,70 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/7] RDMA/iw_cxgb4: Misc. fixes cleanup and low
- resource fixes
-Date: Thu, 23 Jun 2016 10:41:36 -0400
-Message-ID: <e18e4f0e-e70c-d974-92f2-aba516772f3d@redhat.com>
-References: <1465500917-18491-1-git-send-email-hariprasad@chelsio.com>
+Subject: Re: [PATCH REPOST v3 0/2] libibverbs memory barrier fixes
+Date: Thu, 23 Jun 2016 10:53:28 -0400
+Message-ID: <8a33aeb7-5b76-d21b-7b7b-b5f9ceac11be@redhat.com>
+References: <cover.1465310573.git.root@r9.asicdesigners.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="TkrcrhK2Oqhei6B8nJPLRlLNl3wiFCCQn"
+ boundary="kgIkmJ3Q6ajdvlWqvfuSU7G5N7r8AhbI4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1465500917-18491-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <cover.1465310573.git.root-6HSsQxwzXLRrcEM49+0neVaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---TkrcrhK2Oqhei6B8nJPLRlLNl3wiFCCQn
+--kgIkmJ3Q6ajdvlWqvfuSU7G5N7r8AhbI4
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 06/09/2016 03:35 PM, Hariprasad Shenai wrote:
-> Hi
->=20
-> This patch series add low resource fixes for connection management,
-> memory registration and for completion queue teardown. Cleans up
-> c4iw_reject_cr function, allocates enough space for debugfs qps dump so=
+On 06/07/2016 10:42 AM, Steve Wise wrote:
+> This series implements ARM64 memory barrier support, and fails compiles=
 
-> IPv6 address doesn't get truncated, also adds missing error codes for
-> active open CPL command. Atlast read module parameter markers_enabled,
-> should be read only only once, so that the value remains the same
-> throughout MPA negotiaion.
+> if there is no platform implementation of the memory barriers.
 >=20
-> This patch series has been created against Doug Ledford's linux tree,
-> "for-4.7-topics/cxgb4-2" branch and includes patches on iw_cxgb4 driver=
-=2E
+> Changes since V3:
 >=20
-> We have included all the maintainers of respective drivers. Kindly revi=
-ew
-> the change and let us know in case of any review comments.
+> white noise fix
 >=20
-> Thanks
+> parens around asm macros (checkpatch recommendation)
 >=20
-> Hariprasad Shenai (7):
->   RDMA/iw_cxgb4: markers_enabled module parameter should be read only
->     once
->   RDMA/iw_cxgb4: allocate enough space for debugfs "qps" dump
->   RDMA/iw_cxgb4: clean up c4iw_reject_cr()
->   RDMA/iw_cxgb4: Add missing error codes for act open cmd
->   RDMA/iw_cxgb4: Low resource fixes for connection manager
->   RDMA/iw_cxgb4: Low resource fixes for Memory registration
->   RDMA/iw_cxgb4: Low resource fixes for Completion queue
+> remove RFC tag
 >=20
->  drivers/infiniband/hw/cxgb4/cm.c            | 187 ++++++++++++++++++--=
---------
->  drivers/infiniband/hw/cxgb4/cq.c            |  42 ++++---
->  drivers/infiniband/hw/cxgb4/device.c        |   2 +-
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |  22 ++++
->  drivers/infiniband/hw/cxgb4/mem.c           | 107 ++++++++++------
->  drivers/infiniband/hw/cxgb4/qp.c            |  12 +-
->  drivers/net/ethernet/chelsio/cxgb4/t4_msg.h |   2 +
->  7 files changed, 250 insertions(+), 124 deletions(-)
+> Changes since V2:
+>=20
+> Implement the mb* macros from scratch
+>=20
+> Retested changes on ARM64
+>=20
+> Steve Wise (2):
+>   libibverbs: add ARM64 memory barrier macros
+>   Fail compiles if no platform specific memory barriers exist
+>=20
+>  include/infiniband/arch.h |   15 +++++++++------
+>  1 files changed, 9 insertions(+), 6 deletions(-)
 >=20
 
-Series applied.  Although, was a bit confusing that the patches all said
-net-next in their header.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -72,7 +54,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---TkrcrhK2Oqhei6B8nJPLRlLNl3wiFCCQn
+--kgIkmJ3Q6ajdvlWqvfuSU7G5N7r8AhbI4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -81,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXa/UgAAoJELgmozMOVy/dSXAQALsywlext1OmyyYLdOkAC+S7
-UzYGAoLy8H76lD9QgS0XEInf+ScLPfV5BGZKghRr2YhsLZffD7O2WgYgSuL2CA6P
-K7IUE8JYI78vPaej5OerR/OzhklQlLKusZ+UbdJgmJ56zlmqbSrWVktUEjStrdGn
-QksVFmrzbqcGxumFts/obBLPVPVAngA2s5cZgCsjdrxBcnXa+cw3eikgZfhVHrsS
-8U7kGD4rju03sH0Onnhy6dyaN7iiJQGIYDK0448fwqR8uVDEpQlNeSbPJBxZajMi
-PL9URLZ+Dyb3Jqlr/7a+D1ZEJW+fhbW9rE6QDOhizoi6b9axdBag3AEvDs/H38un
-SdI2umHaEbVFn6cMPwsAqvktmTwwIeTOqibwllbP4WDKwIt+pj5Pv14QDLoOjA/3
-MsXUzmvbXeb+PuyQJx5zt2MnFejS/C/jRk+6KmKS8EmIPr/BqOcu8IhSpY8U7aKN
-wFjxL/W1+An7gtOaxX2hKgH0TaVAZ1qHEDxhPfifRq4sajguXCMBAX8oC8/+ZZUR
-TAQxpACPDwduaeULRBPrbor6uouvM0k2or0fJYWKwJ9DNI6KDi1r4um+BOgbcgy4
-930+xPah7goOds8OY0ZiUn+f8UUT42K6FhEuo2yHOOjgdC81aAcvoQ4KBU3nrYcb
-B4oN3CrmeGHObMNbzomZ
-=6M9J
+iQIcBAEBCAAGBQJXa/fpAAoJELgmozMOVy/dNBcP/00v7W2c6pqIfHxpj194GJ2L
+g37AklOIZaQO8rl8YKpGiWCP1xmyRRXhy7vOQoXDZi8MoLMDhRHwvMiNjELLxMSb
+cB1xUWw7H6mx4aTkB+uFrkAYgSWy0TKVCh65Yem1cWS+T3u0/Tk4F2iiAt6JsvUd
+JoO8JTOHye/aYsFQDc0QCMhKZWwHz0OKMMiVMQr+/OsCY5PHD6PrRnOdH2RdSUbL
+/iCG+i3oxTdT+vYOUtZ1DoZCz0sSycgNPmb/SOMZhc1h9sfosXGJqWWBvaoS0CVW
+TtFaS9aSxMFLU+fmnNA4djiv5scvCGAtZl9VCg97sSi17G2IwZUfiyQAFQfYSatg
+dBM8rUHfwlw14+6I0GgflGaYB7pGkJGDeDxgWuTnzwPcWx5CbBQhMzHmi3EVXQgy
+k28XV3VL981E/8o3fRqHltqbwsnHCxdB4pIKtKcTziD54uKyHLLwkeNuN1Dmp7Lj
+zanKRqHN+11d3GB6YpWgqefGgkHqknr4ACBoJIZRApnOywG4vD3ce8OhMk7DBxYd
+H9dnVOV+AV62JG/2VXguveTs/bEOltUGBnTyJnaH5MssrTQaWSY81KAS2Lx2IfC3
+/vw6noSPJg2ez1S5gDd+yNkZG4hadPmFo0ZuiVg9yhUIc6i6vnEMEvhMTdFlKsXe
+pU9XGgNTwFL9UjtGs06D
+=O1JW
 -----END PGP SIGNATURE-----
 
---TkrcrhK2Oqhei6B8nJPLRlLNl3wiFCCQn--
+--kgIkmJ3Q6ajdvlWqvfuSU7G5N7r8AhbI4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
