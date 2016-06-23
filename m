@@ -1,55 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] IB/hfi1: More fixes for 4.7 rc
-Date: Thu, 23 Jun 2016 10:16:49 -0400
-Message-ID: <7fb7f1f5-a3f7-5d59-3665-7a50d0c6b021@redhat.com>
-References: <20160618021550.31540.57897.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH] IB/cma: Make the code easier to verify
+Date: Thu, 23 Jun 2016 10:20:27 -0400
+Message-ID: <5fa171f6-b7e6-3b43-d614-6cf062733043@redhat.com>
+References: <25a76a5c-dc56-3a75-cdf8-096f89b8e2df@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="9LQHvxdqmxXEhblUf8iUGohRmoalv5d1t"
+ boundary="I45cNOPaBVaVSbwABGT0nQc1hn7xDsDvh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160618021550.31540.57897.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <25a76a5c-dc56-3a75-cdf8-096f89b8e2df-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---9LQHvxdqmxXEhblUf8iUGohRmoalv5d1t
+--I45cNOPaBVaVSbwABGT0nQc1hn7xDsDvh
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 06/17/2016 10:17 PM, Dennis Dalessandro wrote:
-> Doug, here are two more RC fixes that we would like to see landed in 4.=
-7
-> if possible, including one which is marked as stable.
+On 06/10/2016 02:08 PM, Bart Van Assche wrote:
+> Static source code analysis tools like smatch cannot handle functions
+> that lock or not lock a mutex depending on the value of the arguments.
+> Hence inline the function cma_disable_callback(). Additionally, this
+> patch realizes a small performance optimization by reducing the number =
+of
+> mutex_lock() and mutex_unlock() calls in the modified functions. With
+> this patch applied smatch no longer complains about source file cma.c.
+> Without this patch smatch reports the following for this source file:
 >=20
-> Patches apply on your k.o/for-4.7-rc tree ontop of the last batch of RC=
- fixes
-> which you just picked up.
+> drivers/infiniband/core/cma.c:1959: cma_req_handler() warn: inconsisten=
+t returns 'mutex:&listen_id->handler_mutex'.
+>   Locked on:   line 1880
+>                line 1959
+>   Unlocked on: line 1941
+> drivers/infiniband/core/cma.c:2112: iw_conn_req_handler() warn: inconsi=
+stent returns 'mutex:&listen_id->handler_mutex'.
+>   Locked on:   line 2048
+>   Unlocked on: line 2112
 >=20
-> Patches can also be viewed in my repo and have passed 0day builds:
-> https://github.com/ddalessa/kernel/tree/for-4.7
->=20
-> ---
->=20
-> Ashutosh Dixit (1):
->       IB/hfi1: Don't zero out qp->s_ack_queue in rvt_reset_qp
->=20
-> Mike Marciniszyn (1):
->       IB/hfi1: Fix deadlock with txreq allocation slow path
->=20
->=20
->  drivers/infiniband/hw/hfi1/verbs_txreq.c |    4 +---
->  drivers/infiniband/hw/hfi1/verbs_txreq.h |    1 +
->  drivers/infiniband/sw/rdmavt/qp.c        |    6 ------
->  3 files changed, 2 insertions(+), 9 deletions(-)
->=20
-> --
-> -Denny
->=20
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi Dennis, this series has been applied, thanks.
+Thanks, applied.
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -57,7 +53,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---9LQHvxdqmxXEhblUf8iUGohRmoalv5d1t
+--I45cNOPaBVaVSbwABGT0nQc1hn7xDsDvh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -66,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXa+9RAAoJELgmozMOVy/dsVYQAIfEm2RvFm3zaPlDjwlbAUeG
-o6oUp+SaUw0Zl9BJLIP1oKREskSvduDUNVCc82MULL0SszTH+nd+XhXSuBFwrlSw
-m87HrCNw7kqYKK1vBY92Tjiyb4TuZaGTkkviMqMV5htKiUN1RjCuhQS0UNe2EqIU
-0pJE+Nie2yho7RsUQ9z1NJY6oDL2TYYVqYh+8C1AxGKypb45BqZfj98g1BpqYkfe
-CRT6Kp08aL7xi9sCwJ/7p4rl6jzL7M6Tj3HNRRMYFAm8jX3/X6j4KMT1XgUfgpZ9
-eR1KQkQDaLDrKbHWqOTYGmFaaGLcB9W0UgybqoIUJj9FCYa9m22Ce3O3YOgXt7cD
-2YdHQbzvVu42teTIoCagaPRcS96rldGpQt+nGZ/Rp71QGDtC0FnTSeCSpZIyUJLG
-A4Wj7H0SQnm7V7jxlcc0c5IvAKgjEzuO1a5vqhG3hMYuXX5xSvqgBhRAlQxNFdcf
-dp5PnCf9ZK9sotf/qVmpo253pKiRC6SZJSfYcuAF37IBrH5p72DayCyTFAHnJSsy
-30peaTmYR63JsYCOK/hL/hOcmF+b/wLn5vysOuQeW5YXb+jttAI8/0ThJvtb5ltc
-QIgW3IP6IrBg1fCiQOdosStE2cc/IZvmn2Ox8f8zvIzWPwPpHLF3DpJozgiNCsEW
-753XnGX38NYVUEHFfQCU
-=DcIB
+iQIcBAEBCAAGBQJXa/ArAAoJELgmozMOVy/dSmMP/2x8sXSmsGj8oBSEv2wsT98X
+1BSWwitUUcd/nKsWVKGLExiJ4SPRkS5RvmVrz8kz0KSlCbQtOUqsSp5EHL3XvE7C
+ObJKMhc1h+AtKRdbC5ix8dxsBe5lexzGoUzVjkto7RNh9XtfFg3kOXp69+G1GDG6
+x0dwwcFSsxYaU5GAIG4qyJzEqw2Fk9Tp3E81/4ZIBUbj0d8EY0WFqixo/viq+Nyv
++8MRLrhpOPEf+Od0sLntlFXZvHIKGXGUD5UGF9RytWIlD5CoS2Xu9U96p+9nMCcW
+/4jECah75E085ZOfy4HjsITQ2+eWAZoSfcJgELP2e6FZ3mKm9J8UYeg2VX7tH7wH
+Lak5+9KcjIYeRiBUYFK+/2y8sZI7+NF+IeTO5M9wpvsEpqYFxuNU+XlEwY3FWwuY
+dKAGBgOT4HxqezFv9EMe3k3vORltCNTayrg9T7zWuJ+wUzMg4vX7FsUAwI14aqPl
+OfLQad4sAJ/6R9smySdU8bfVfokDFsFjHpnpg2bBIXwCI6Xz1FTKnnnYpFc+JwME
+7Kp2/LzwrIlNrehdWmbmdAyHv4+hm3J7uA2Ho4sv7vodhOTNp3Yy83wi7tX73Uce
+VLkAh7nNPmnG8N/Hnn8HUjh7RunROrF5Xkqr2Kmn/TunaK1p0RcPnQFjAOr874BR
+y4pDaEusa4ym+RHnEgt1
+=ur9y
 -----END PGP SIGNATURE-----
 
---9LQHvxdqmxXEhblUf8iUGohRmoalv5d1t--
+--I45cNOPaBVaVSbwABGT0nQc1hn7xDsDvh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
