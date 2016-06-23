@@ -1,71 +1,45 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/rdmavt: Correct qp_priv_alloc() return value test
-Date: Thu, 23 Jun 2016 11:50:07 -0400
-Message-ID: <0544617c-ca0e-8056-21a8-4bcad980ccb8@redhat.com>
-References: <20160622202933.16853.56199.stgit@scvm10.sc.intel.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 0/1] Fix for nvme-rdma host crash in nvmf-all.3
+Date: Thu, 23 Jun 2016 18:50:31 +0300
+Message-ID: <576C0547.4060403@grimberg.me>
+References: <cover.1466626499.git.swise@opengridcomputing.com>
+ <576B8FB7.5000305@grimberg.me>
+ <004f01d1cd57$85fc0530$91f40f90$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="kneDGv9BUO7kV3JVKpMfUjHCUorEXH0iM"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160622202933.16853.56199.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <004f01d1cd57$85fc0530$91f40f90$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---kneDGv9BUO7kV3JVKpMfUjHCUorEXH0iM
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 
-On 06/22/2016 04:29 PM, Dennis Dalessandro wrote:
-> From: Mike Marciniszyn <mike.marciniszyn@intel.com>
->=20
-> The current drivers return errors from this calldown
-> wrapped in an ERR_PTR().
->=20
-> The rdmavt code incorrectly tests for NULL.
->=20
-> The code is fixed to use IS_ERR() and change ret according
-> to the driver return value.
->=20
-> Cc: Stable <stable@vger.kernel.org> # 4.6+
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+>>> This patch fixes a touch-after-free bug I discovered.  It is against
+>>> nvmf-all.3 branch of git://git.infradead.org/nvme-fabrics.git.  The patch
+>>> is kind of ugly, so any ideas on a cleaner solution are welcome.
+>>
+>> Hey Steve, I don't see how this bug fixes the root-cause. Not exactly
+>> sure we understand the root-cause. Is it possible that this is a chelsio
+>> specific issue with send completion signaling (like we saw before)? Did
+>> this happen with a non-chelsio device?
+>
+> Due to the stack trace, I believe this is a similar issue we saw before.  It is
+> probably chelsio-specific.  I don't see it on mlx4.
+>
+> The fix for the previous occurrence of this crash was to signal all FLUSH
+> commands.  Do you recall why that fixed it?  Perhaps this failure path needs
+> some other signaled command to force the pending unsignaled WRs to be marked
+> "complete" by the driver?
 
-Thanks, applied.
-
-
---=20
-Doug Ledford <dledford@redhat.com>
-              GPG KeyID: 0E572FDD
-
-
-
---kneDGv9BUO7kV3JVKpMfUjHCUorEXH0iM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXbAUvAAoJELgmozMOVy/dXyMP/j/CqoxW7dOolZUtMAk/PKhB
-uDABlM+X6pql9cxGRHJinNX9RhXocUyirkRGcJbAV6FO32Kjc2s4Rrfet2oxzkIz
-OQYoqOglGr1fZdN70gLrsoJZ40Ih7gf0DGjRfzbVpOA5DmIylHXR6IRjzRY4CddR
-v33EXOQuQJHNm3JMQ9gGosazkyVujyVWO2473tHy4FeDT6nR79ie+NQh80BerVPC
-vWhj0/WNIhnTXWaCrP5bwkr0zVfB0OzSWdc/XU938It1qIempAjSafqs9BXXr2Zz
-0qRb+QK7hnxkADNHkt2Euo5b/JU8juY5ps9G8M+zAIovtzD788vepcR8zsIY+9lG
-uII6pvxOu80ZU0cYBefNluR1HX5Cd4bKdd4v0gWAWpUhwSo+GIweR5dsdQeWVAYA
-v2CEl4VWN1xNEF8dgoNi/eY64FnkxRupC0WYk8KmaMU90J7oI0r+m6rT5Y1GQoXR
-q1AajsxSRCMcTJcC2Tn4Ba1x4HZMRY5SKBZK1wyjfu2Ew/VqUisWA0MfEJHvijVm
-ZM3/vHUXI040/XB7rLBtiQULf7cEiAhU8ATEjWSQz97s51kMX1qKDXggGkaN4LZP
-LcbeJW6EF9HwuVePtS9NcfwUmlKCnUHVi/9P7/cVHGM41OETDdnZ2wQz3c8k78zc
-pIuG+Pt3v25Xk9PSZfRF
-=1WmA
------END PGP SIGNATURE-----
-
---kneDGv9BUO7kV3JVKpMfUjHCUorEXH0iM--
+OK, so as discussed off-list signaling connect sends resolves the issue.
+My recollection was that when the Chelsio queue-pair transitions to
+error/drain state, the cxgb4 driver does not know which sends were
+completed without the completion signal causing it to complete it again
+and the wr_cqe might have been already freed. I assume the same is going
+on here as we free the tag set before draining the qp...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
