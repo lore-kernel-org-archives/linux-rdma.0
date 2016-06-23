@@ -1,34 +1,61 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-next 00/29] Soft RoCE driver
-Date: Thu, 23 Jun 2016 12:18:24 -0400
-Message-ID: <c233fabc-7779-db30-b983-13cf61094716@redhat.com>
-References: <1466084751-29901-1-git-send-email-monis@mellanox.com>
+Subject: Re: [PATCH 0/2] ConnectX-4/Connect-IB Port Counters
+Date: Thu, 23 Jun 2016 12:21:23 -0400
+Message-ID: <09e6e3c1-5eba-df8b-7d0f-2c2572ed83c9@redhat.com>
+References: <1466165456-31857-1-git-send-email-leon@kernel.org>
+ <b4dc9bd0-a84c-201a-475a-a9afd9bffb44@redhat.com>
+ <20160623161748.GB23995@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="D52bSh8CdR502c8oUIef5V70SW0tN7t7o"
+ boundary="3egNWMkw7xX4snIjRAhgiwfvXPGUHAVFb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466084751-29901-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160623161748.GB23995-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---D52bSh8CdR502c8oUIef5V70SW0tN7t7o
+--3egNWMkw7xX4snIjRAhgiwfvXPGUHAVFb
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 06/16/2016 09:45 AM, Moni Shoua wrote:
-> Hi Doug
+On 06/23/2016 12:17 PM, Leon Romanovsky wrote:
+> On Thu, Jun 23, 2016 at 11:41:11AM -0400, Doug Ledford wrote:
+>> On 06/17/2016 08:10 AM, Leon Romanovsky wrote:
+>>> This is supplementary part of mlx5 driver to generic IB counters infr=
+astructure.
+>>>
+>>> Mark Bloch (2):
+>>>   IB/mlx5: Add per port counters
+>>>   IB/mlx5: Add port protocol stats
+>>>
+>>>  drivers/infiniband/hw/mlx5/main.c    | 134 +++++++++++++++++++++++++=
++++++++++-
+>>>  drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 ++
+>>>  drivers/infiniband/hw/mlx5/qp.c      |   9 +++
+>>>  3 files changed, 147 insertions(+), 2 deletions(-)
+>>>
+>>
+>> Took a little work to make it apply, but series applied for 4.8, thank=
+s.
 >=20
-> Soft RoCE (RXE) - The software RoCE driver
+> Thanks Doug,
+>=20
+> I'm limited in my ability to predict the order of applies, and for
+> example this patchset applied cleanly for me.
+>=20
+> For your reference, I have reference branch (testing/rdma-next) with al=
+l
+> topics in it.
+>=20
+> Do you want to see it organized differently?
 
-I've pulled v2 into my tree for 4.8.  Please make any remaining fixes
-between now and then incremental patches.  Although I've pulled this in,
-I want to remove the FMR interface prior to submission to Linus, so
-please prioritize getting the driver updated in that regard.
-
+No, I'm just making you aware of the fact that I had to fix things up so
+that if you want to double check how I did the fix up, you can.  It
+would be bad if I merged something and broke things subtly and no one
+knew until much later.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -36,7 +63,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---D52bSh8CdR502c8oUIef5V70SW0tN7t7o
+--3egNWMkw7xX4snIjRAhgiwfvXPGUHAVFb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -45,22 +72,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXbAvQAAoJELgmozMOVy/dor0P/1+EXa8B8C8/zd0HBsA/c5Y3
-q+2vsxlZAto1QSkAS/mj24GQYAJJZgyuk3H2UvZPPDHi0zPaDmYAkjcnCEdtvsXl
-sM6MgyaQcuBJxXeubJmJK/TZOPtJGWUpZ3LXkpD16OFKwKAh/ZbU1q/aHCNrTzqn
-+djeH8UGRSr5wJNW2c22T2PtbL35H1U3KCd5fC1qrA5esFiZWXlyKuxYDnuOE0UG
-sTop+8t3gx8gUcd1uY+Cl0dazDCk757sX3lxmV9LWgzMmSCQRJnmYw4T4SHn9t4g
-QHupxO10sAEyTrXsSRAImagku+BZusKE+0RGatpYM2G6bL9Mi9/mXcGw83PW8IWJ
-fGoP/+luEOoCiw/Zlk7s40I7ddolKUP7k3lHelsRD/t+RgCWHWPHL392wPOjBEXH
-OjnQUEcZqoON2Egtly2G5NygKXps9lfVz4GXyX9+vf/CvvIM4nVLboD8v2zmc2EQ
-MByOITxie8pomF0ZOHCKVvbxGvVRo0aYLTbFXekz5Axa7gfbX7XWYBVcmwZ61tkp
-2Vzi6sWAiklFEy5PGKRSLDNn2QRa5/Y51nuZmXHS80ZN2VwQ9SlMLmJ0MUWlNvFj
-lQLZ9cUK3nI6I7bu35HHCyvWWIYoPIcTxU6akgFoVjn7QuUuLQoE4zXpc+FXKkFg
-oUNNmoeUoSwUIuMOC3Rq
-=BoPZ
+iQIcBAEBCAAGBQJXbAyDAAoJELgmozMOVy/denEQAJV/uk+m0Tqy2gObw//wMiVr
+VGLQbCCjpac9yIQDqYZuFQwmmDvJnpD4dzmcvSBI9W8kaWIRWJfO7YPszOLIU/AA
++tPT4jVMyW1Ixp7A+BLeqs+8J7mhrRIFlOlt6Nrv0ZGK1qq1NUhbzyjfa5wnH8Im
+zd0QheXw5MnaMCl+whtNsd9mfGXLESeDQbvJ22FgeAVTR11q2sijTqEC3mwC7QWG
+K1MyRseFuRlRhHj7EesK8tcmL2xMdmTK6kzIFJK6IieqQeJRAyjymgtIZC4rB3Ze
+MAo/ryLUTIKi5D/zSpDtCXXWq+re/sU2JJnJlNFpRa8L3yNTDmwTZWdoncybV6nN
+Sn2lG8JgZxj9mM1PinCh0uzDAtuqJvf0/JOREoFb1mwQyhk1137Z8NU3S0Wf8G7h
+PiWLLZr+w/1QcbVqhY17WDg+pEKDKYZBDvTffMWQwpb/8rv/dyPRRmOAsugAsuk4
+xGaUJHrKIqLQpgYpG5KuJIhRsAdzL1VOApU9YiZv753ueBq2ovhBiffRdgc2xfjr
+RaE5/+ogL5qzbi+UGDNxhuZM6FCheaGZ/KtCszchLruS+HBBqcFD/rTV0Wy1ZWuo
++bTPaUN/iWgJgHzNyqmkPg8sDFt474PkW8Eyb3p1ttf4ejyqHBVeLvV87qrc+z86
+jpNubnoVdRePM6toNBDM
+=0AhJ
 -----END PGP SIGNATURE-----
 
---D52bSh8CdR502c8oUIef5V70SW0tN7t7o--
+--3egNWMkw7xX4snIjRAhgiwfvXPGUHAVFb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
