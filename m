@@ -1,38 +1,50 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: Implements disassociate_ucontext API
-Date: Thu, 23 Jun 2016 09:56:54 -0400
-Message-ID: <34b6fb63-a3e3-f0c2-6f91-c995030f13ea@redhat.com>
-References: <1466164604-30273-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH] IB/mlx5: Reset flow support for IB kernel ULPs
+Date: Thu, 23 Jun 2016 09:59:04 -0400
+Message-ID: <6b87cbef-b123-cd0d-61cd-c55600c067a7@redhat.com>
+References: <1466164898-31060-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="LHUpERvKhVjdLKRCHOWx5edT8lXmwLdQN"
+ boundary="1Sgij3sSjAqsgejnrUtAwCaAFFFLqMPDT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466164604-30273-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1466164898-31060-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LHUpERvKhVjdLKRCHOWx5edT8lXmwLdQN
+--1Sgij3sSjAqsgejnrUtAwCaAFFFLqMPDT
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 06/17/2016 07:56 AM, Leon Romanovsky wrote:
+On 06/17/2016 08:01 AM, Leon Romanovsky wrote:
 > From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> Implements the IB core disassociate_ucontext API.
-> The driver detaches the HW resources for a given user context to
-> prevent a dependency between application termination and device
-> disconnect. This is done by managing the VMAs that were mapped
-> to the HW bars such as doorbell and blueflame. When need to detach,
-> remap them to an arbitrary kernel page returned by the zap API.
+> The driver exposes interfaces that directly relate to HW state.
+> Upon fatal error, consumers of these interfaces (ULPs) that rely
+> on completion of all their posted work-request could hang, thereby
+> introducing dependencies in shutdown order. To prevent this from
+> happening, we manage the relevant resources (CQs, QPs) that are used
+> by the device. Upon a fatal error, we now generate simulated
+> completions for outstanding WQEs that were not completed at the
+> time the HW was reset.
+>=20
+> It includes invoking the completion event handler for all involved
+> CQs so that the ULPs will poll those CQs. When polled we return
+> simulated CQEs with IB_WC_WR_FLUSH_ERR return code enabling ULPs
+> to clean up their  resources and not wait forever for completions
+> upon receiving remove_one.
+>=20
+> The above change requires an extra check in the data path to make
+> sure that when device is in error state, the simulated CQEs will
+> be returned and no further WQEs will be posted.
 >=20
 > Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-This has been accepted for 4.8, thanks.
+Thanks, this has been accepted for 4.8.
 
 
 --=20
@@ -41,7 +53,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---LHUpERvKhVjdLKRCHOWx5edT8lXmwLdQN
+--1Sgij3sSjAqsgejnrUtAwCaAFFFLqMPDT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -50,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXa+qtAAoJELgmozMOVy/drHoP/1hfz55G1xdlED1aGMFUQx3b
-iSdOtJ3vJzs0HclUCFnOLlURZuW0KvHh6CKbwOEqVIk5entKEJKpxVRRxzpI6XeW
-5lx8DMufLDH1YgrMzbQR2AdaJKaw2k5TSPA52/6RR9Jtf/yjGo3p8EnK9q0oB40P
-sJ7S902Xyf1e+8tNHbmDzhHQyx+HuMp7Czh2PJBBtPO/eOPrbt6hDbf3qxndAKav
-394/31P3pRBJl67a+G1ZL0l+Pw9QFGL1iWMmuFaA26P2E4CPob/CCbtLMPujpGV8
-QuhbKj0g0R+N02ByxDYQNGISUGSpC5A8/3+Igo/QDS5cyiNbsL+YY7txofAU8V+q
-5C41kNXla482S/fPPitONR7QBaD/D2ZHsWzUuLHxSdFNrGfJgo9SxWpJIu/7vYoZ
-SdHGntJmEPLMTLt3jqGwIcBUqfm21DOtqVMk0lCMq6RS+8z1xbJ6wTaa9mtZjdus
-Q+lbv1ujSgIL3zQq1ov2jruggoE8y1VP++OknmTxoGcnym2eG2MMpDk3TWinPguA
-r8Um7WS/tgPJRO9gu5t+zEVjqXm7l7LGBktP7hZljof6adBs1q9qB5jUT9ygpxru
-fMGUcWva6VLydfoIkeo78TdzNz5fAib8opZTQsjOkaswQQAZelZNKWFyeAkGJIqh
-RuMgnd8UEHezMVX+BrjC
-=ruBc
+iQIcBAEBCAAGBQJXa+soAAoJELgmozMOVy/deHEQAKYTEGU6oBDfVGceFnhZ+6eZ
+Fp4gUEhAp8H1vxOI5m3693+bKlZLw1ouXpZY0+KiXwiCXVnmVSYqvMCEdU7RMzwY
+IMZYuuGOFONYwu7LdsiVZEUgDTL707YBe68nft6eeWxW1TxbpEtR8QCUd+IwXHU9
+GCag/U3cW/cF/79WaSDoV71BbBakI5Z9681SeZKA80mO9qkO4a0wbidS21bxLsvp
+qK27WGbiMoWIr2JV4n+uE0fNaZZLkNzUVtkhEkfyQiYGnuKyzA0sLN0Wc62xt5yc
+uGRyEUSTi9C23aIlA5SQrO8H2BlVd+sjNm6/CD3iV4rhbNUC8KaTeZPPC8/XQB1B
+28Nww+J/rs1Uvyi9Mzi6SEwiQdqFoQ2xA+pbRi9Ukb5qT5aBdokeGztxcHFYC2HT
+M+ITN6t6hLtg5383Fqk7cHZLVjc6SsJ6ZWaiDDP+0oTTydNATF0ldQlD8xdBeIBs
+Rs4s5SLQrE+CRkK/H1mAfRR75C5lNDgLhQK2u2s3WVmj1e2CRaGvUhqB1oRpc9LJ
+R9NE/oMPovfXZ0BZAF7+PssopJyv5KBKsSR88ZHVVPJb2gkDUMrZ2fO0F0pWUljZ
+rB5KKn9UqnPwjfvHOLS01VzG26eb/BcArV4t0AgrmlCJWCMSaAPCj/qGinB9hdaW
+oil/Lz+YAya3pT6zYpfh
+=tDWu
 -----END PGP SIGNATURE-----
 
---LHUpERvKhVjdLKRCHOWx5edT8lXmwLdQN--
+--1Sgij3sSjAqsgejnrUtAwCaAFFFLqMPDT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
