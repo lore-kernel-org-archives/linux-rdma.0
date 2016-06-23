@@ -1,56 +1,40 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/2] Small fix and code refactoring for mlx5
-Date: Thu, 23 Jun 2016 11:21:08 -0400
-Message-ID: <e0dd0d52-c26d-4444-2d06-d3f8a4565f5c@redhat.com>
-References: <1466166812-730-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH 0/2] ConnectX-4/Connect-IB Port Counters
+Date: Thu, 23 Jun 2016 11:41:11 -0400
+Message-ID: <b4dc9bd0-a84c-201a-475a-a9afd9bffb44@redhat.com>
+References: <1466165456-31857-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="OExFUA4cojMjXoPaoE3U3UsOwCs4rK1Po"
+ boundary="oJf3f2wjH1QGLpJsgssVEAV3omQWJEDQi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466166812-730-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1466165456-31857-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---OExFUA4cojMjXoPaoE3U3UsOwCs4rK1Po
+--oJf3f2wjH1QGLpJsgssVEAV3omQWJEDQi
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 06/17/2016 08:33 AM, Leon Romanovsky wrote:
-> Hi Doug,
+On 06/17/2016 08:10 AM, Leon Romanovsky wrote:
+> This is supplementary part of mlx5 driver to generic IB counters infras=
+tructure.
 >=20
-> These two patches are intended for rdna-next and related
-> to mlx5 only.
+> Mark Bloch (2):
+>   IB/mlx5: Add per port counters
+>   IB/mlx5: Add port protocol stats
 >=20
-> Despite the fact that these patches were tested and found
-> that no merge conflict is expected between IB and net parts
-> of mlx5 driver, we would like to ask you to take into your
-> tree this refactored code.
->=20
-> Such move will give us enough time to respond in case other
-> developers (non-Mellanox) will send patches in that area and
-> will cause to merge conflicts during Linus's merge window.
->=20
-> Thanks
->=20
-> Artemy Kovalyov (2):
->   IB/mlx5: Fix MODIFY_QP command input structure
->   {net, IB}/mlx5: Refactor internal SRQ API
->=20
->  drivers/infiniband/hw/mlx5/srq.c              | 102 ++++------
->  drivers/net/ethernet/mellanox/mlx5/core/srq.c | 265 ++++++++++++++----=
---------
->  include/linux/mlx5/driver.h                   |   6 +-
->  include/linux/mlx5/qp.h                       |   5 +-
->  include/linux/mlx5/srq.h                      |  25 +++
->  5 files changed, 218 insertions(+), 185 deletions(-)
+>  drivers/infiniband/hw/mlx5/main.c    | 134 +++++++++++++++++++++++++++=
++++++++-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 ++
+>  drivers/infiniband/hw/mlx5/qp.c      |   9 +++
+>  3 files changed, 147 insertions(+), 2 deletions(-)
 >=20
 
-I had to fix up the fist patch to apply, but the second worked fine.
-Series applied for 4.8, thanks.
+Took a little work to make it apply, but series applied for 4.8, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -58,7 +42,7 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
 
---OExFUA4cojMjXoPaoE3U3UsOwCs4rK1Po
+--oJf3f2wjH1QGLpJsgssVEAV3omQWJEDQi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -67,22 +51,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXa/5kAAoJELgmozMOVy/dIccP/3omAYKvWVBekaTWzl0Ck3qB
-LC/VsNid2KsPBLf7JxUbRUjobl3IKpfQEOKS1JHgnIEUvKtJQ8KO+BrOjgKUr7sF
-Olj3CiI2IfIkLPm6EY0ZXvuMSK7l3C/iQeE2gqCw7OZ9Gm/SjC84CIB4vtCJCwPj
-v6+FDQpZJl2ILg/XotO4QAlnHIVXSnaS1s/q2eM/o9FaUs+iqBLo/nPewEsjkQ6l
-wWZY/Ir+DJ4NADZ7GdR5tlbGdfvQuPEMnAiN8aIioeEXX4riPNKe/S3TIUFTXHhf
-et3FOjHVzg6IGHhCfNHLYr92cK+XBhdzvxnoyhjUjbvd++Q1bZhZprsm6KQsitzH
-w6K3wZTA6VlIRnVNxf54AGtzZpu5ESu2/GprM7RRpyxaTBzUNVYVdg2MU3LTkPIQ
-vlQcd77Kj2iqaJTCaWqChoMyRy1fOivNudZ0ksb7FZP/cNKqG8NQjTa7ntOctE5I
-pt2hYCO4PVnNR1S7Upw5z+pqAMtp8kAx7EmQ30cGmb32q2GOFCYwVLgNi7Qh7HUY
-MkF3sF0aePz9WbgAAcfnmaij+9xyFFuHcGGOUag9mW8DS/x2qmcb21PjoKsuNr+c
-lMvrgJZTVagXZG4G89Ztxg6lk01GyByJGJkflvGsr/r70mcvle3ODsyuek7NE+4n
-nr1G4f2WiHxzndBQRjRG
-=3HVA
+iQIcBAEBCAAGBQJXbAMXAAoJELgmozMOVy/duLcP/AzGUeufaGPqGtW+ci8ebnYB
+fN1pzKtZK/wVPTSMzH3NL2kr6J2COSiS+EnYI52CZvW1pnoLy0Qou0Upnd1GME4H
+UpBoTGH5GYa3Ty7VxcExRR1oyCEn8DuH3AAwlcKABxIwRiVEsQ0zuqwF+NZo4w1o
+cmWxNssTb3MgXooNMoH/cFfVItnZphJlTtd/mmK32a6ra83ZkglI22mzqkLalvY+
++S1Nonm7JDXbe/aTzs6u2WHB35UjGKWBtIr9gILbknj4ycBxb6c35YK6deGH9+IJ
+jmLwhh/9qIsFRrmtXM0ytTJ8+iIefZ93TDTDQB8TKAPhiYQBg3XZcIAfKyllqRkk
+pCmO8hWF+6MjsqMlTUBGhww6zaql2/4S+HxiGlStqSsEI5tbTLyMjLsb2FqXJAFj
+GPgH9YREE6RvGRkarHHIMO7Dsr21s7Z6lk9bZMdeNYG/aSL5yRRtLQIAJzo068Dv
+b7ez/x91ziWUNKCNOJ3eTy3RlkB1g655Zq1vKtBofSpPOasLuikC9+ifKatotoYz
+lp1q8h5cglues+mpcH45tx73HrIuMCWTuy6a6W2k2sYx8a7Eiop9fN8zCPTeepYU
+LwhBOr/aFQtJiQQ7drK64Bmuh3a5TH6e3ii1KqfzJzlsV8v6ZnreephfKS4EW/3z
+gNWhicwsdpfNrqbZNozG
+=EWVW
 -----END PGP SIGNATURE-----
 
---OExFUA4cojMjXoPaoE3U3UsOwCs4rK1Po--
+--oJf3f2wjH1QGLpJsgssVEAV3omQWJEDQi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
