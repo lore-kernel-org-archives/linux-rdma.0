@@ -1,73 +1,41 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add IPv6 support to flow steering
-Date: Thu, 23 Jun 2016 09:59:49 -0400
-Message-ID: <510472ec-da1f-d159-4e89-d3769a51b49b@redhat.com>
-References: <1466165691-32538-1-git-send-email-leon@kernel.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 0/1] Fix for nvme-rdma host crash in nvmf-all.3
+Date: Thu, 23 Jun 2016 08:59:56 -0500
+Message-ID: <004f01d1cd57$85fc0530$91f40f90$@opengridcomputing.com>
+References: <cover.1466626499.git.swise@opengridcomputing.com> <576B8FB7.5000305@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="H9oWk5GX9V5rF3hT6QB0DrOsJAbCr8Out"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1466165691-32538-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <576B8FB7.5000305-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---H9oWk5GX9V5rF3hT6QB0DrOsJAbCr8Out
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
 
-On 06/17/2016 08:14 AM, Leon Romanovsky wrote:
-> The following two patches add and enable IPv6 support to flow
-> steering.
->=20
-> Maor Gottlieb (2):
->   IB/core: Add IPv6 support to flow steering
->   IB/mlx5: Enable flow steering for IPv6 traffic
->=20
->  drivers/infiniband/core/uverbs.h     |  1 +
->  drivers/infiniband/core/uverbs_cmd.c |  9 +++++++++
->  drivers/infiniband/hw/mlx5/main.c    | 26 ++++++++++++++++++++++++++
->  include/rdma/ib_verbs.h              | 14 ++++++++++++++
->  include/uapi/rdma/ib_user_verbs.h    | 18 ++++++++++++++++++
->  5 files changed, 68 insertions(+)
->=20
+> 
+> > This patch fixes a touch-after-free bug I discovered.  It is against
+> > nvmf-all.3 branch of git://git.infradead.org/nvme-fabrics.git.  The patch
+> > is kind of ugly, so any ideas on a cleaner solution are welcome.
+> 
+> Hey Steve, I don't see how this bug fixes the root-cause. Not exactly
+> sure we understand the root-cause. Is it possible that this is a chelsio
+> specific issue with send completion signaling (like we saw before)? Did
+> this happen with a non-chelsio device?
 
-This series has been accepted for 4.8, thanks.
+Due to the stack trace, I believe this is a similar issue we saw before.  It is
+probably chelsio-specific.  I don't see it on mlx4.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
+The fix for the previous occurrence of this crash was to signal all FLUSH
+commands.  Do you recall why that fixed it?  Perhaps this failure path needs
+some other signaled command to force the pending unsignaled WRs to be marked
+"complete" by the driver?
 
+Steve.
 
-
---H9oWk5GX9V5rF3hT6QB0DrOsJAbCr8Out
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXa+tWAAoJELgmozMOVy/dcAwQAIm62oRobdFkB9ZpgffK1aad
-twcubbS4Om/b1fNajhrgjnCIgPPvxlBWtZlKJaRQ80aK5wWEzyVbhdO55t+hGotf
-pr+F7DS+F86WIQtr49lHpPEKrEywwAesDkP2yMuWHLg9zbPApjhBc50EpQ82oIvj
-xF/2U6BewLxZ5BazhC4ORi3WI7aT7IbB+ZnjxUBb3iRBYA7T21dvs92Vmm+EHl0c
-GFFez3EbO2UZNz2jqcrt16o4j+p9MIUl0Fip3B7LqoscLQ+YbWCDGlJDcWDktm6I
-N9WqWStdqr/6qifLrzR3NvhGSjHq2XTSvHPgBaiWUlbP7VsP5lRKHU5/ICJtfn/B
-boy684YfnNQSaddNEo1hfaRyOLexo+6Vr2NtjuC0mcddzjEjsHFmN8H4btkqbtSg
-94UxuTA7vZdwrxIFwDnF4tqkUBJwJTZswgas0U5fGi2Gxr+mawFNV8axYW2L5tlr
-VWrQS6P3iy5GsBDuqk0tWnAZL5Lu/3Mr1fTDWk0LXqBVbQSiuonGOpeztXWnDrZS
-smD3u/ihOYYSzU1V9m8rft7ocJRWrmbShJPbXF6CKvuUDjmJV0YFnX455ksghdaz
-nuOmS/+lupHkWHQIE8J5xBTH5gShk2LQ1qLsk1URYROgUkzs0pAvmj65VdoEKDSa
-v4uHidZ54A/nvlOmznAR
-=XeDh
------END PGP SIGNATURE-----
-
---H9oWk5GX9V5rF3hT6QB0DrOsJAbCr8Out--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
