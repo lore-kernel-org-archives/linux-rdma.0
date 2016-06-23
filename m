@@ -1,141 +1,376 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 00/12] SELinux support for Infiniband RDMA
-Date: Thu, 23 Jun 2016 22:52:46 +0300
-Message-ID: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Dan Jurgens <danielj@mellanox.com>
+Subject: [PATCH 01/12] security: Add LSM hooks for Infiniband security
+Date: Thu, 23 Jun 2016 22:52:47 +0300
+Message-ID: <1466711578-64398-2-git-send-email-danielj@mellanox.com>
+References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Daniel Jurgens <danielj@mellanox.com>
 
-This patch series was submitted previously as an RFC.  The 3rd version was
-posted on 19 Apr 2016 with the subject "[RFC PATCH v3 NN/MM] SELinux support
-for Infiniband RDMA".
+Add nine new hooks
+ 1. Allocate security contexts for Infiniband QPs.
+ 2. Free security contexts for Infiniband QPs.
+ 3. Allocate security contexts for Infiniband MAD agents.
+ 4. Free security contexts for Infiniband MAD agents.
+ 5. Enforce QP access to Pkeys
+ 6. Enforce MAD agent access to Pkeys
+ 7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
+    Management Packets (SMP)
+ 8. A hook to register a callback to receive notifications of
+    security policy or enforcement changes.  Restricting a QPs access to
+    a pkey will be done during setup and not on a per packet basis
+    access must be enforced again.
+ 9. A hook to unregister the callback.
 
-Currently there is no way to provide granular access control to an Infiniband
-fabric.  By providing an ability to restrict user access to specific virtual
-subfabrics administrators can limit access to bandwidth and isolate users on
-the fabric.
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+Reviewed-by: Eli Cohen <eli@mellanox.com>
+---
+ include/linux/lsm_hooks.h | 71 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/security.h  | 63 +++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h   |  4 +++
+ security/Kconfig          |  9 +++++
+ security/security.c       | 83 +++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 230 insertions(+)
 
-The approach for controlling access for Infiniband is to control access to
-partitions.  A partition is similar in concept to a VLAN where each data packet
-carries the partition key (PKey) in its header and isolation is enforced by
-the hardware.  The partition key is not a cryptographic key, it's a 16 bit
-number identifying the partition.  By controlling access to PKeys users can be
-isolated on the fabric.
-
-All Infiniband fabrics must have a subnet manager.  The subnet manager
-provisions the partitions and configures the end nodes.  Each end port has a
-PKey table containing all the partitions it can access.  In order to enforce
-access to partitions the subnet management interface (SMI) must also be
-controlled to prevent unauthorized changes to the fabric configuration. 
-
-In order to support this there must be a capability to provide security
-contexts for two new types of objects - PKeys and SMIs.
-
-A PKey label consists of a subnet prefix and a range of PKey values and is
-similar to the labeling mechanism for netports.  Infiniband end port can
-reside on a different subnet, labeling the PKey values for specific subnet
-prefixes provides the user maximum flexibility. There is a single access
-vector for PKeys, called "access".
-
-An Infiniband end port (ib_end_port) is labeled by name and port number. There
-is a single access vector for ib_end_ports as well, called "smp".
-
-Because RDMA allows for kernel bypass all enforcement must be done during
-connection setup.  To communicate over RDMA requires a send and receive queue
-called a queue pair (QP).  During the creation of a QP it is initialized
-before it can be used to send or receive data.  During initialization the user
-must provide the PKey and port the QP will use, at this time access can be
-enforced.
-
-Because there is a possibility that the enforcement settings or security
-policy can change, a means of notifying the ib_core module of such changes is
-required.  To facilitate this two LSM hooks are provided, ib_core will
-register and unregister a callback function at init and cleanup respectively.
-SELinux will call the callback as appropriate if it has been registered.
-When the callback is called ib_core will recheck the PKey access for all
-existing QPs.
-
-Because frequent accesses to the same PKey's SID is expected a cache is
-implemented which is very similar to the netport cache.
-
-In order to properly enforce security when changes to the PKey table or
-security policy or enforcement occur ib_core must track which QPs are using
-each port, pkey index, and alternate path for every IB device.  This makes
-operations that used to be atomic transactional.
-
-When modifying a QP ib_core must associate it with the PKey index, port,
-and alternate path specified.  If the QP was already associated with different
-settings the QP is added to the new list prior to the modify attempt.  If
-the modify succeeds then the old listing is removed.  If the modify fails
-the new listing is removed and the old listing remains unchanged.
-
-When destroying a QP the ib_qp structure is freed by the hardware driver
-if the destroy is successful.  This requires storing security related
-information in a separate structure. When a destroy request is in process
-the ib_qp structure is in an undefined state so if there are changes to the
-security policy or PKey table the security checks cannot reset the QP if it
-doesn't have permission for the new setting.  If the destroy fails security
-for that QP must be enforced again, and its status in the list restored. 
-If the destroy succeeds the security info can be cleaned up and freed.
-
-There are a number of locks required to protect the QP security structure and
-the QP to device/port/pkey index lists.  If multiple locks are required the
-safe locking order is qp security structure mutex first, followed by any list
-locks needed, which are sorted first by port followed by pkey index.
-
-Daniel Jurgens (12):
-  security: Add LSM hooks for Infiniband security
-  selinux: Create policydb version for Infiniband support
-  selinux: Implement Infiniband flush callback
-  selinux: Allocate and free infiniband security hooks
-  selinux: Implement Infiniband PKey "Access" access vector
-  selinux: Add IB End Port SMP access vector
-  selinux: Add a cache for quicker retreival of PKey SIDs
-  IB/core: IB cache enhancements to support Infiniband security
-  IB/core: Enforce PKey security on QPs
-  IB/core: Enforce PKey security on management datagrams
-  IB/core: Enforce Infiniband device SMI security
-  IB/core: Implement the Infiniband flush callback.
-
- drivers/infiniband/core/Makefile                 |   3 +-
- drivers/infiniband/core/cache.c                  |  56 +-
- drivers/infiniband/core/core_priv.h              |  93 ++++
- drivers/infiniband/core/device.c                 |  59 +++
- drivers/infiniband/core/mad.c                    | 105 +++-
- drivers/infiniband/core/security.c               | 641 +++++++++++++++++++++++
- drivers/infiniband/core/uverbs_cmd.c             |  20 +-
- drivers/infiniband/core/verbs.c                  |  29 +-
- include/linux/lsm_audit.h                        |  37 +-
- include/linux/lsm_hooks.h                        |  71 +++
- include/linux/security.h                         |  63 +++
- include/rdma/ib_mad.h                            |   1 +
- include/rdma/ib_verbs.h                          |  49 ++
- security/Kconfig                                 |   9 +
- security/security.c                              |  83 +++
- security/selinux/Makefile                        |   2 +-
- security/selinux/hooks.c                         | 160 +++++-
- security/selinux/include/classmap.h              |   4 +
- security/selinux/include/initial_sid_to_string.h |   2 +
- security/selinux/include/objsec.h                |  11 +
- security/selinux/include/pkey.h                  |  31 ++
- security/selinux/include/security.h              |   7 +-
- security/selinux/pkey.c                          | 243 +++++++++
- security/selinux/ss/policydb.c                   | 129 ++++-
- security/selinux/ss/policydb.h                   |  27 +-
- security/selinux/ss/services.c                   |  84 +++
- 26 files changed, 1963 insertions(+), 56 deletions(-)
- create mode 100644 drivers/infiniband/core/security.c
- create mode 100644 security/selinux/include/pkey.h
- create mode 100644 security/selinux/pkey.c
-
+diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+index 7ae3976..6b47c8d 100644
+--- a/include/linux/lsm_hooks.h
++++ b/include/linux/lsm_hooks.h
+@@ -8,6 +8,7 @@
+  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
+  * Copyright (C) 2015 Intel Corporation.
+  * Copyright (C) 2015 Casey Schaufler <casey@schaufler-ca.com>
++ * Copyright (C) 2016 Mellanox Techonologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -876,6 +877,50 @@
+  *	associated with the TUN device's security structure.
+  *	@security pointer to the TUN devices's security structure.
+  *
++ * Security hooks for Infiniband
++ *
++ * @ib_qp_pkey_access:
++ *	Check permission to access a pkey when modifing a QP.
++ *	@subnet_prefix the subnet prefix of the port being used.
++ *	@pkey the pkey to be accessed.
++ *	@qp_sec pointer to the ib_qp_security structure.
++ * @ib_mad_agent_pkey_access:
++ *	Check permission to access a pkey when transmiting and receiving MADS.
++ *	@subnet_prefix the subnet prefix of the port being used.
++ *	@pkey the pkey to be accessed.
++ *	@mad_agent pointer to the ib_mad_agent structure.
++ * @ib_end_port_smp:
++ *	Check permissions to send and receive SMPs on a end port.
++ *	@dev_name the IB device name (i.e. mlx4_0).
++ *	@port_num the port number.
++ *	@mad_agent pointer to the ib_mad_agent structure.
++ * @ib_qp_alloc_security:
++ *	Allocate and attach a security structure to the qp_sec->q_security
++ *	field. The q_security field is initialized to NULL when the structure
++ *	is allocated.  A separate QP security structure is used instead of the
++ *	QP structure because when a QP is destroyed the memory is freed by the
++ *	hardware driver.  That operation can fail so the security info must be
++ *	maintained until the destroy completes successfully.
++ *	@qp_sec contains the ib_qp_security structure to be modified.
++ *	Return 0 if operation was successful.
++ * @ib_mad_agent_alloc_security:
++ *	Allocate and attach a security structure to the mad_agent->m_security
++ *	field. The m_security field is initialized to NULL when the structure
++ *	is allocated.
++ *	@mad_agent contains the ib_mad_agent structure to be modified.
++ *	Return 0 if operation was successful.
++ * @ib_qp_free_security:
++ *	Deallocate and clear the qp_sec->q_security field.
++ *	@qp_sec contains the ib_qp_security structure to be modified.
++ * @ib_mad_agent_free_security:
++ *	Deallocate and clear the mad_agent->m_security field.
++ *	@mad_agent contains the ib_mad_agent structure to be modified.
++ * @register_ib_flush_callback:
++ *	Provide a way for security modules to notify ib_core of policy changes.
++ *	@callback function pointer to call when policy changes.
++ * @unregister_ib_flush_callback:
++ *	Unregister the callback function.
++ *
+  * Security hooks for XFRM operations.
+  *
+  * @xfrm_policy_alloc_security:
+@@ -1579,6 +1624,21 @@ union security_list_options {
+ 	int (*tun_dev_open)(void *security);
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++	int (*ib_qp_pkey_access)(u64 subnet_prefix, u16 pkey,
++				 struct ib_qp_security *qp_sec);
++	int (*ib_mad_agent_pkey_access)(u64 subnet_prefix, u16 pkey,
++					struct ib_mad_agent *mad_agent);
++	int (*ib_end_port_smp)(const char *dev_name, u8 port,
++			       struct ib_mad_agent *mad_agent);
++	int (*ib_qp_alloc_security)(struct ib_qp_security *qp_sec);
++	int (*ib_mad_agent_alloc_security)(struct ib_mad_agent *mad_agent);
++	void (*ib_qp_free_security)(struct ib_qp_security *qp_sec);
++	void (*ib_mad_agent_free_security)(struct ib_mad_agent *mad_agent);
++	void (*register_ib_flush_callback)(void (*callback)(void));
++	void (*unregister_ib_flush_callback)(void);
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	int (*xfrm_policy_alloc_security)(struct xfrm_sec_ctx **ctxp,
+ 					  struct xfrm_user_sec_ctx *sec_ctx,
+@@ -1806,6 +1866,17 @@ struct security_hook_heads {
+ 	struct list_head tun_dev_attach;
+ 	struct list_head tun_dev_open;
+ #endif	/* CONFIG_SECURITY_NETWORK */
++#ifdef CONFIG_SECURITY_INFINIBAND
++	struct list_head ib_qp_pkey_access;
++	struct list_head ib_mad_agent_pkey_access;
++	struct list_head ib_end_port_smp;
++	struct list_head ib_qp_alloc_security;
++	struct list_head ib_qp_free_security;
++	struct list_head ib_mad_agent_alloc_security;
++	struct list_head ib_mad_agent_free_security;
++	struct list_head register_ib_flush_callback;
++	struct list_head unregister_ib_flush_callback;
++#endif	/* CONFIG_SECURITY_INFINIBAND */
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	struct list_head xfrm_policy_alloc_security;
+ 	struct list_head xfrm_policy_clone_security;
+diff --git a/include/linux/security.h b/include/linux/security.h
+index 14df373..a75d3e6 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -6,6 +6,7 @@
+  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley@nai.com>
+  * Copyright (C) 2001 James Morris <jmorris@intercode.com.au>
+  * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
++ * Copyright (C) 2016 Mellanox Techonologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -55,6 +56,8 @@ struct msg_queue;
+ struct xattr;
+ struct xfrm_sec_ctx;
+ struct mm_struct;
++struct ib_qp_security;
++struct ib_mad_agent;
+ 
+ /* If capable should audit the security request */
+ #define SECURITY_CAP_NOAUDIT 0
+@@ -1370,6 +1373,66 @@ static inline int security_tun_dev_open(void *security)
+ }
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
++			       struct ib_qp_security *qp_sec);
++int security_ib_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
++				      struct ib_mad_agent *mad_agent);
++int security_ib_end_port_smp(const char *name, u8 port,
++			     struct ib_mad_agent *mad_agent);
++int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec);
++void security_ib_qp_free_security(struct ib_qp_security *qp_sec);
++int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent);
++void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent);
++void security_register_ib_flush_callback(void (*callback)(void));
++void security_unregister_ib_flush_callback(void);
++#else	/* CONFIG_SECURITY_INFINIBAND */
++static inline int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
++					     struct ib_qp_security *qp_sec)
++{
++	return 0;
++}
++
++static inline int security_ib_mad_agent_pkey_access(u64 subnet_prefix,
++						    u16 pkey,
++						    struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline int security_ib_end_port_smp(const char *dev_name, u8 port,
++					   struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
++{
++	return 0;
++}
++
++static inline void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
++{
++}
++
++static inline int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
++{
++	return 0;
++}
++
++static inline void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
++{
++}
++
++static inline void security_register_ib_flush_callback(void (*callback)(void))
++{
++}
++
++static inline void security_unregister_ib_flush_callback(void)
++{
++}
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 
+ int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 432bed5..3f6780b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1428,6 +1428,10 @@ struct ib_srq {
+ 	} ext;
+ };
+ 
++struct ib_qp_security {
++	void *q_security;
++};
++
+ struct ib_qp {
+ 	struct ib_device       *device;
+ 	struct ib_pd	       *pd;
+diff --git a/security/Kconfig b/security/Kconfig
+index 176758c..ce965c6 100644
+--- a/security/Kconfig
++++ b/security/Kconfig
+@@ -49,6 +49,15 @@ config SECURITY_NETWORK
+ 	  implement socket and networking access controls.
+ 	  If you are unsure how to answer this question, answer N.
+ 
++config SECURITY_INFINIBAND
++	bool "Infiniband Security Hooks"
++	depends on SECURITY && INFINIBAND
++	help
++	  This enables the Infiniband security hooks.
++	  If enabled, a security module can use these hooks to
++	  implement Infiniband access controls.
++	  If you are unsure how to answer this question, answer N.
++
+ config SECURITY_NETWORK_XFRM
+ 	bool "XFRM (IPSec) Networking Security Hooks"
+ 	depends on XFRM && SECURITY_NETWORK
+diff --git a/security/security.c b/security/security.c
+index 7095693..d75a0e9 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2001 WireX Communications, Inc <chris@wirex.com>
+  * Copyright (C) 2001-2002 Greg Kroah-Hartman <greg@kroah.com>
+  * Copyright (C) 2001 Networks Associates Technology, Inc <ssmalley@nai.com>
++ * Copyright (C) 2016 Mellanox Technologies
+  *
+  *	This program is free software; you can redistribute it and/or modify
+  *	it under the terms of the GNU General Public License as published by
+@@ -1399,6 +1400,67 @@ EXPORT_SYMBOL(security_tun_dev_open);
+ 
+ #endif	/* CONFIG_SECURITY_NETWORK */
+ 
++#ifdef CONFIG_SECURITY_INFINIBAND
++
++int security_ib_qp_pkey_access(u64 subnet_prefix, u16 pkey,
++			       struct ib_qp_security *qp_sec)
++{
++	return call_int_hook(ib_qp_pkey_access, 0, subnet_prefix, pkey, qp_sec);
++}
++EXPORT_SYMBOL(security_ib_qp_pkey_access);
++
++int security_ib_mad_agent_pkey_access(u64 subnet_prefix, u16 pkey,
++				      struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(ib_mad_agent_pkey_access, 0, subnet_prefix, pkey, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_mad_agent_pkey_access);
++
++int security_ib_end_port_smp(const char *dev_name, u8 port,
++			     struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(ib_end_port_smp, 0, dev_name, port, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_end_port_smp);
++
++int security_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
++{
++	return call_int_hook(ib_qp_alloc_security, 0, qp_sec);
++}
++EXPORT_SYMBOL(security_ib_qp_alloc_security);
++
++void security_ib_qp_free_security(struct ib_qp_security *qp_sec)
++{
++	call_void_hook(ib_qp_free_security, qp_sec);
++}
++EXPORT_SYMBOL(security_ib_qp_free_security);
++
++int security_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
++{
++	return call_int_hook(ib_mad_agent_alloc_security, 0, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_mad_agent_alloc_security);
++
++void security_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
++{
++	call_void_hook(ib_mad_agent_free_security, mad_agent);
++}
++EXPORT_SYMBOL(security_ib_mad_agent_free_security);
++
++void security_register_ib_flush_callback(void (*callback)(void))
++{
++	call_void_hook(register_ib_flush_callback, callback);
++}
++EXPORT_SYMBOL(security_register_ib_flush_callback);
++
++void security_unregister_ib_flush_callback(void)
++{
++	call_void_hook(unregister_ib_flush_callback);
++}
++EXPORT_SYMBOL(security_unregister_ib_flush_callback);
++
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 
+ int security_xfrm_policy_alloc(struct xfrm_sec_ctx **ctxp,
+@@ -1850,6 +1912,27 @@ struct security_hook_heads security_hook_heads = {
+ 		LIST_HEAD_INIT(security_hook_heads.tun_dev_attach),
+ 	.tun_dev_open =	LIST_HEAD_INIT(security_hook_heads.tun_dev_open),
+ #endif	/* CONFIG_SECURITY_NETWORK */
++
++#ifdef CONFIG_SECURITY_INFINIBAND
++	.ib_qp_pkey_access =
++		LIST_HEAD_INIT(security_hook_heads.ib_qp_pkey_access),
++	.ib_mad_agent_pkey_access =
++		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_pkey_access),
++	.ib_end_port_smp = LIST_HEAD_INIT(security_hook_heads.ib_end_port_smp),
++	.ib_qp_alloc_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_qp_alloc_security),
++	.ib_qp_free_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_qp_free_security),
++	.ib_mad_agent_alloc_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_alloc_security),
++	.ib_mad_agent_free_security =
++		LIST_HEAD_INIT(security_hook_heads.ib_mad_agent_free_security),
++	.register_ib_flush_callback =
++		LIST_HEAD_INIT(security_hook_heads.register_ib_flush_callback),
++	.unregister_ib_flush_callback =
++		LIST_HEAD_INIT(security_hook_heads.unregister_ib_flush_callback),
++#endif	/* CONFIG_SECURITY_INFINIBAND */
++
+ #ifdef CONFIG_SECURITY_NETWORK_XFRM
+ 	.xfrm_policy_alloc_security =
+ 		LIST_HEAD_INIT(security_hook_heads.xfrm_policy_alloc_security),
 -- 
 1.8.3.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
