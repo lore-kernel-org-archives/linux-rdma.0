@@ -1,28 +1,49 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 0/1] Fix for nvme-rdma host crash in nvmf-all.3
-Date: Thu, 23 Jun 2016 10:28:55 +0300
-Message-ID: <576B8FB7.5000305@grimberg.me>
-References: <cover.1466626499.git.swise@opengridcomputing.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH v2] net/mlx5: use mlx5_buf_alloc_node instead of
+ mlx5_buf_alloc in mlx5_wq_ll_create
+Date: Thu, 23 Jun 2016 10:34:11 +0300
+Message-ID: <CALzJLG87Pcp=S90rLe=6r5D83HqeeTk9ZritjgrGA3kT0KQ8kA@mail.gmail.com>
+References: <1466643847-42411-1-git-send-email-shhuiw@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1466626499.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1466643847-42411-1-git-send-email-shhuiw@foxmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Wang Sheng-Hui <shhuiw@foxmail.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Amir Vadai <amirv@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jun 23, 2016 at 4:04 AM, Wang Sheng-Hui <shhuiw@foxmail.com> wrote:
+> Fixes: 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on
+> reader NUMA node")
+>
 
-> This patch fixes a touch-after-free bug I discovered.  It is against
-> nvmf-all.3 branch of git://git.infradead.org/nvme-fabrics.git.  The patch
-> is kind of ugly, so any ideas on a cleaner solution are welcome.
+Hi Wang,
 
-Hey Steve, I don't see how this bug fixes the root-cause. Not exactly
-sure we understand the root-cause. Is it possible that this is a chelsio
-specific issue with send completion signaling (like we saw before)? Did
-this happen with a non-chelsio device?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am sorry for the nitpicking, but the commit message needs to be improved.
+
+I prefer putting the "Fixes" line only after the bug description
+(commit message) just before the Signed-of-by line. you can find some
+examples in the commit log history.
+
+>
+> Change since V1:
+>         * Add Fixes line in commit log
+>
+
+This should come only after the "---" below so it won't appear in the
+commit log.
+
+http://kernelnewbies.org/FirstKernelPatch#head-5c81b3c517a1d0bbc24f92594cb734e155fcbbcb
+
+> Signed-off-by: Wang Sheng-Hui <shhuiw@foxmail.com>
+> ---
+
+["Changes since" goes here]
+
+>  drivers/net/ethernet/mellanox/mlx5/core/wq.c | 15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+>
+
+Thanks,
+Saeed
