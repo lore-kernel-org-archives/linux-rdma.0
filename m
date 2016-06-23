@@ -1,111 +1,139 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH] nvmet-rdma: Invoke fatal error on error completion
-Date: Thu, 23 Jun 2016 20:01:30 +0300
-Message-ID: <1466701290-10356-1-git-send-email-sagi@grimberg.me>
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 00/12] SELinux support for Infiniband RDMA
+Date: Thu, 23 Jun 2016 22:52:46 +0300
+Message-ID: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In case we got an error completion the rdma queue pair
-is in error state, teardown the entire controller. Note
-that in recv or read error completion we might not have
-a controller yet, so check for the controller exsistence.
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/target/rdma.c | 45 +++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+This patch series was submitted previously as an RFC.  The 3rd version was
+posted on 19 Apr 2016 with the subject "[RFC PATCH v3 NN/MM] SELinux support
+for Infiniband RDMA".
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index b1c6e5bb0b70..f5986a7b776e 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -134,6 +134,7 @@ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc);
- static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
- static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc);
- static void nvmet_rdma_qp_event(struct ib_event *event, void *priv);
-+static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue);
- 
- static struct nvmet_fabrics_ops nvmet_rdma_ops;
- 
-@@ -486,12 +487,32 @@ static void nvmet_rdma_release_rsp(struct nvmet_rdma_rsp *rsp)
- 	nvmet_rdma_put_rsp(rsp);
- }
- 
-+static void nvmet_rdma_error_comp(struct nvmet_rdma_queue *queue)
-+{
-+	if (queue->nvme_sq.ctrl)
-+		nvmet_ctrl_fatal_error(queue->nvme_sq.ctrl);
-+	else
-+		/*
-+		 * we didn't setup the controller yet in case
-+		 * of admin connect error, just disconnect and
-+		 * cleanup the queue
-+		 */
-+		nvmet_rdma_queue_disconnect(queue);
-+}
-+
- static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
- {
- 	struct nvmet_rdma_rsp *rsp =
- 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, send_cqe);
- 
- 	nvmet_rdma_release_rsp(rsp);
-+
-+	if (unlikely(wc->status != IB_WC_SUCCESS &&
-+		wc->status != IB_WC_WR_FLUSH_ERR)) {
-+		pr_err("SEND for CQE 0x%p failed with status %s (%d).\n",
-+			wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
-+		nvmet_rdma_error_comp(rsp->queue);
-+	}
- }
- 
- static void nvmet_rdma_queue_response(struct nvmet_req *req)
-@@ -534,11 +555,13 @@ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc)
- 			rsp->req.sg_cnt, nvmet_data_dir(&rsp->req));
- 	rsp->n_rdma = 0;
- 
--	if (unlikely(wc->status != IB_WC_SUCCESS &&
--		wc->status != IB_WC_WR_FLUSH_ERR)) {
--		pr_info("RDMA READ for CQE 0x%p failed with status %s (%d).\n",
--			wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
--		nvmet_req_complete(&rsp->req, NVME_SC_DATA_XFER_ERROR);
-+	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-+		nvmet_rdma_release_rsp(rsp);
-+		if (wc->status != IB_WC_WR_FLUSH_ERR) {
-+			pr_info("RDMA READ for CQE 0x%p failed with status %s (%d).\n",
-+				wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
-+			nvmet_rdma_error_comp(queue);
-+		}
- 		return;
- 	}
- 
-@@ -705,13 +728,19 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 	struct nvmet_rdma_queue *queue = cq->cq_context;
- 	struct nvmet_rdma_rsp *rsp;
- 
--	if (unlikely(wc->status != IB_WC_SUCCESS))
-+	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-+		if (wc->status != IB_WC_WR_FLUSH_ERR) {
-+			pr_err("RECV for CQE 0x%p failed with status %s (%d)\n",
-+				wc->wr_cqe, ib_wc_status_msg(wc->status),
-+				wc->status);
-+			nvmet_rdma_error_comp(queue);
-+		}
- 		return;
-+	}
- 
- 	if (unlikely(wc->byte_len < sizeof(struct nvme_command))) {
- 		pr_err("Ctrl Fatal Error: capsule size less than 64 bytes\n");
--		if (queue->nvme_sq.ctrl)
--			nvmet_ctrl_fatal_error(queue->nvme_sq.ctrl);
-+		nvmet_rdma_error_comp(queue);
- 		return;
- 	}
- 
+Currently there is no way to provide granular access control to an Infiniband
+fabric.  By providing an ability to restrict user access to specific virtual
+subfabrics administrators can limit access to bandwidth and isolate users on
+the fabric.
+
+The approach for controlling access for Infiniband is to control access to
+partitions.  A partition is similar in concept to a VLAN where each data packet
+carries the partition key (PKey) in its header and isolation is enforced by
+the hardware.  The partition key is not a cryptographic key, it's a 16 bit
+number identifying the partition.  By controlling access to PKeys users can be
+isolated on the fabric.
+
+All Infiniband fabrics must have a subnet manager.  The subnet manager
+provisions the partitions and configures the end nodes.  Each end port has a
+PKey table containing all the partitions it can access.  In order to enforce
+access to partitions the subnet management interface (SMI) must also be
+controlled to prevent unauthorized changes to the fabric configuration. 
+
+In order to support this there must be a capability to provide security
+contexts for two new types of objects - PKeys and SMIs.
+
+A PKey label consists of a subnet prefix and a range of PKey values and is
+similar to the labeling mechanism for netports.  Infiniband end port can
+reside on a different subnet, labeling the PKey values for specific subnet
+prefixes provides the user maximum flexibility. There is a single access
+vector for PKeys, called "access".
+
+An Infiniband end port (ib_end_port) is labeled by name and port number. There
+is a single access vector for ib_end_ports as well, called "smp".
+
+Because RDMA allows for kernel bypass all enforcement must be done during
+connection setup.  To communicate over RDMA requires a send and receive queue
+called a queue pair (QP).  During the creation of a QP it is initialized
+before it can be used to send or receive data.  During initialization the user
+must provide the PKey and port the QP will use, at this time access can be
+enforced.
+
+Because there is a possibility that the enforcement settings or security
+policy can change, a means of notifying the ib_core module of such changes is
+required.  To facilitate this two LSM hooks are provided, ib_core will
+register and unregister a callback function at init and cleanup respectively.
+SELinux will call the callback as appropriate if it has been registered.
+When the callback is called ib_core will recheck the PKey access for all
+existing QPs.
+
+Because frequent accesses to the same PKey's SID is expected a cache is
+implemented which is very similar to the netport cache.
+
+In order to properly enforce security when changes to the PKey table or
+security policy or enforcement occur ib_core must track which QPs are using
+each port, pkey index, and alternate path for every IB device.  This makes
+operations that used to be atomic transactional.
+
+When modifying a QP ib_core must associate it with the PKey index, port,
+and alternate path specified.  If the QP was already associated with different
+settings the QP is added to the new list prior to the modify attempt.  If
+the modify succeeds then the old listing is removed.  If the modify fails
+the new listing is removed and the old listing remains unchanged.
+
+When destroying a QP the ib_qp structure is freed by the hardware driver
+if the destroy is successful.  This requires storing security related
+information in a separate structure. When a destroy request is in process
+the ib_qp structure is in an undefined state so if there are changes to the
+security policy or PKey table the security checks cannot reset the QP if it
+doesn't have permission for the new setting.  If the destroy fails security
+for that QP must be enforced again, and its status in the list restored. 
+If the destroy succeeds the security info can be cleaned up and freed.
+
+There are a number of locks required to protect the QP security structure and
+the QP to device/port/pkey index lists.  If multiple locks are required the
+safe locking order is qp security structure mutex first, followed by any list
+locks needed, which are sorted first by port followed by pkey index.
+
+Daniel Jurgens (12):
+  security: Add LSM hooks for Infiniband security
+  selinux: Create policydb version for Infiniband support
+  selinux: Implement Infiniband flush callback
+  selinux: Allocate and free infiniband security hooks
+  selinux: Implement Infiniband PKey "Access" access vector
+  selinux: Add IB End Port SMP access vector
+  selinux: Add a cache for quicker retreival of PKey SIDs
+  IB/core: IB cache enhancements to support Infiniband security
+  IB/core: Enforce PKey security on QPs
+  IB/core: Enforce PKey security on management datagrams
+  IB/core: Enforce Infiniband device SMI security
+  IB/core: Implement the Infiniband flush callback.
+
+ drivers/infiniband/core/Makefile                 |   3 +-
+ drivers/infiniband/core/cache.c                  |  56 +-
+ drivers/infiniband/core/core_priv.h              |  93 ++++
+ drivers/infiniband/core/device.c                 |  59 +++
+ drivers/infiniband/core/mad.c                    | 105 +++-
+ drivers/infiniband/core/security.c               | 641 +++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c             |  20 +-
+ drivers/infiniband/core/verbs.c                  |  29 +-
+ include/linux/lsm_audit.h                        |  37 +-
+ include/linux/lsm_hooks.h                        |  71 +++
+ include/linux/security.h                         |  63 +++
+ include/rdma/ib_mad.h                            |   1 +
+ include/rdma/ib_verbs.h                          |  49 ++
+ security/Kconfig                                 |   9 +
+ security/security.c                              |  83 +++
+ security/selinux/Makefile                        |   2 +-
+ security/selinux/hooks.c                         | 160 +++++-
+ security/selinux/include/classmap.h              |   4 +
+ security/selinux/include/initial_sid_to_string.h |   2 +
+ security/selinux/include/objsec.h                |  11 +
+ security/selinux/include/pkey.h                  |  31 ++
+ security/selinux/include/security.h              |   7 +-
+ security/selinux/pkey.c                          | 243 +++++++++
+ security/selinux/ss/policydb.c                   | 129 ++++-
+ security/selinux/ss/policydb.h                   |  27 +-
+ security/selinux/ss/services.c                   |  84 +++
+ 26 files changed, 1963 insertions(+), 56 deletions(-)
+ create mode 100644 drivers/infiniband/core/security.c
+ create mode 100644 security/selinux/include/pkey.h
+ create mode 100644 security/selinux/pkey.c
+
 -- 
-1.9.1
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
