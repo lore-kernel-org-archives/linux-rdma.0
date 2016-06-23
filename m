@@ -1,87 +1,78 @@
-From: Wang Sheng-Hui <shhuiw@foxmail.com>
-Subject: [PATCH v2] net/mlx5: use mlx5_buf_alloc_node instead of mlx5_buf_alloc in mlx5_wq_ll_create
-Date: Thu, 23 Jun 2016 09:04:07 +0800
-Message-ID: <1466643847-42411-1-git-send-email-shhuiw@foxmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: saeedm@mellanox.com, amirv@mellanox.com
-Cc: matanb@mellanox.com, leonro@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] mellanox: mlx5: Use logging functions to reduce text
+ ~10k/5%
+Date: Thu, 23 Jun 2016 08:27:01 +0300
+Message-ID: <20160623052701.GB30933@leon.nu>
+References: <1466619839.13093.4.camel@perches.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xgyAXRrhYN0wYx8y"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1466619839.13093.4.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on
-reader NUMA node")
+--xgyAXRrhYN0wYx8y
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Commit 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on
-reader NUMA node") introduced mlx5_*_alloc_node() but missed changing
-some calling and warn messages. This patch introduces 2 changes:
-	* Use mlx5_buf_alloc_node() instead of mlx5_buf_alloc() in
-	  mlx5_wq_ll_create()
-	* Update the failure warn messages with _node postfix for
-	  mlx5_*_alloc function names
+On Wed, Jun 22, 2016 at 11:23:59AM -0700, Joe Perches wrote:
+> The logging macros create a bit of duplicated code/text.
+>=20
+> Use specialized functions to reduce the duplication.
+>=20
+> (defconfig/x86-64)
+> $ size drivers/net/ethernet/mellanox/mlx5/core/built-in.o*
+> =A0=A0=A0text	=A0=A0=A0data	=A0=A0=A0=A0bss	=A0=A0=A0=A0dec	=A0=A0=A0=A0h=
+ex	filename
+> =A0178634	=A0=A0=A02059	=A0=A0=A0=A0=A016	=A0180709	=A0=A02c1e5	drivers/n=
+et/ethernet/mellanox/mlx5/core/built-in.o.new
+> =A0188679	=A0=A0=A02059	=A0=A0=A0=A0=A016	=A0190754	=A0=A02e922	drivers/n=
+et/ethernet/mellanox/mlx5/core/built-in.o.old
+>=20
+> The output changes now do not include line #,
+> but do include the function offset.
+>=20
+> Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 
-Change since V1:
-	* Add Fixes line in commit log
+As far as I see all these functions are used in error paths, so no
+implication on performance is expected.
 
-Signed-off-by: Wang Sheng-Hui <shhuiw@foxmail.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/wq.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+And I'm fine with function offsets.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-index ce21ee5..821a087 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-@@ -75,14 +75,14 @@ int mlx5_wq_cyc_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_wq_cyc_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -111,14 +111,14 @@ int mlx5_cqwq_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_cqwq_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -148,13 +148,14 @@ int mlx5_wq_ll_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
--	err = mlx5_buf_alloc(mdev, mlx5_wq_ll_get_byte_size(wq), &wq_ctrl->buf);
-+	err = mlx5_buf_alloc_node(mdev, mlx5_wq_ll_get_byte_size(wq),
-+				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
--- 
-2.7.4
+Saeed,
+What do you think?
+
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--xgyAXRrhYN0wYx8y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXa3MlAAoJEORje4g2clincPIP/00hmu0VdtvzuFc/N8mYISVr
+LD2HYxKcqqa4Z1ARBrx/JS/37DFwIgKs1VIsQ58P8Ckb+oIwfSH/slLrXVdVtqDS
+mOR9WXTjHuwLKIlvaNp8+8LTA83pjKyQBSZoWzRUr600TK7OPV7TUkx5cMdjPc3r
+sksPSKIWYR30mIrEI5zfp35WaBucmaSZpb3EHJvuJwF3gFvE3Zm+gIlRHFEk+fv8
+dxkNrNfBzOO6bkv8Os1j1tyMeGoLsmdFgrxMRUbu23YQwTTmkPj9EQVNu6ZrOVRs
+OHxChcql+nkleUh7X8WP/2hBXcy3PgTND5pHTUaBurJCymweAApoY0l0y6JoHJjL
+GKtiCvf0410UwE741+1x92XphJQAIJP7K+02amd+zO5u3JZW08x1go07GpKGIZh4
+oOY51Aqy77Z8T7De+sMG0uKAaSYi+gX7Iz8yR0bhsmwZGTUS8ecHQW9u/OZyrhxm
+gPwLg/ZVCREbYs2Xkt6O5ymgoiV6NCw5jrD1LGGK3huDwwKcwqEkZmhSju6q+krL
+XHluelhO0TTtgVPYn58viKrRK4oy/K3gOijomEIYZmJHaElGrd9HWB+9d2WY69uE
+0VLCW/porVyIVddyhm8RMCYVHELlCT6yLNrPgTr+INC7ULFixuLxoZKOXn+dIPWI
+LMCq3H5TWx25NleIHB1f
+=xIYj
+-----END PGP SIGNATURE-----
+
+--xgyAXRrhYN0wYx8y--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
