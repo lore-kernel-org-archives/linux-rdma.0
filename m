@@ -1,89 +1,34 @@
-From: Wang Sheng-Hui <shhuiw@foxmail.com>
-Subject: [PATCH v3] net/mlx5: use mlx5_buf_alloc_node instead of mlx5_buf_alloc in mlx5_wq_ll_create
-Date: Fri, 24 Jun 2016 08:52:11 +0800
-Message-ID: <1466729531-45481-1-git-send-email-shhuiw@foxmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: saeedm@mellanox.com, amirv@mellanox.com
-Cc: matanb@mellanox.com, leonro@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for v4.7] IB/srpt: Reduce QP buffer size
+Date: Fri, 24 Jun 2016 09:28:50 +0530
+Message-ID: <CAG53R5X_J+ygz_Hrt8w44rQ1EPH55KLLGj0t3apXcFeHLf=M8w@mail.gmail.com>
+References: <20160623073548.9883-1-bart.vanassche@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160623073548.9883-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on
-reader NUMA node") introduced mlx5_*_alloc_node() but missed changing
-some calling and warn messages. This patch introduces 2 changes:
-	* Use mlx5_buf_alloc_node() instead of mlx5_buf_alloc() in
-	  mlx5_wq_ll_create()
-	* Update the failure warn messages with _node postfix for
-	  mlx5_*_alloc function names
+Hi Bart,
 
-Fixes: 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on reader NUMA node")
-Signed-off-by: Wang Sheng-Hui <shhuiw@foxmail.com>
----
+On Thu, Jun 23, 2016 at 1:05 PM, Bart Van Assche
+<bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> -       qp_init->cap.max_send_sge = max(sdev->device->attrs.max_sge_rd,
+> -                                       sdev->device->attrs.max_sge);
+> +       qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
+>         qp_init->port_num = ch->sport->port;
 
-Changes since v2:
-	* Reformat the commit log
+Instead of static value, you might want to do
 
-Changes since v1:
-	* Add Fixes line in commit log
+max_send_sge = min(max_sge_rd, max_sge, SRPT_DEF_SG_PER_WQE)
 
- drivers/net/ethernet/mellanox/mlx5/core/wq.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/wq.c b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-index ce21ee5..821a087 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/wq.c
-@@ -75,14 +75,14 @@ int mlx5_wq_cyc_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_wq_cyc_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -111,14 +111,14 @@ int mlx5_cqwq_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
- 	err = mlx5_buf_alloc_node(mdev, mlx5_cqwq_get_byte_size(wq),
- 				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
-@@ -148,13 +148,14 @@ int mlx5_wq_ll_create(struct mlx5_core_dev *mdev, struct mlx5_wq_param *param,
- 
- 	err = mlx5_db_alloc_node(mdev, &wq_ctrl->db, param->db_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_db_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_db_alloc_node() failed, %d\n", err);
- 		return err;
- 	}
- 
--	err = mlx5_buf_alloc(mdev, mlx5_wq_ll_get_byte_size(wq), &wq_ctrl->buf);
-+	err = mlx5_buf_alloc_node(mdev, mlx5_wq_ll_get_byte_size(wq),
-+				  &wq_ctrl->buf, param->buf_numa_node);
- 	if (err) {
--		mlx5_core_warn(mdev, "mlx5_buf_alloc() failed, %d\n", err);
-+		mlx5_core_warn(mdev, "mlx5_buf_alloc_node() failed, %d\n", err);
- 		goto err_db_free;
- 	}
- 
--- 
-2.7.4
+So that it can still remain functional (if not as high performance)
+for hw and software devices with SGE of 8 or 12 also?
+Otherwise QP creation itself might fail for values lower than 16.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
