@@ -1,56 +1,118 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] nvmet-rdma: Invoke fatal error on error completion
-Date: Sun, 26 Jun 2016 18:57:14 +0300
-Message-ID: <576FFB5A.7070709@grimberg.me>
-References: <1466701290-10356-1-git-send-email-sagi@grimberg.me>
- <20160624071101.GC4252@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v1] nvmet-rdma: Invoke fatal error on error completion
+Date: Sun, 26 Jun 2016 19:01:57 +0300
+Message-ID: <1466956917-6469-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160624071101.GC4252-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In case we got an error completion the rdma queue pair
+is in error state, teardown the entire controller. Note
+that in recv or read error completion we might not have
+a controller yet, so check for the controller existence.
 
->> +static void nvmet_rdma_error_comp(struct nvmet_rdma_queue *queue)
->> +{
->> +	if (queue->nvme_sq.ctrl)
->> +		nvmet_ctrl_fatal_error(queue->nvme_sq.ctrl);
->> +	else
->> +		/*
->> +		 * we didn't setup the controller yet in case
->> +		 * of admin connect error, just disconnect and
->> +		 * cleanup the queue
->> +		 */
->> +		nvmet_rdma_queue_disconnect(queue);
->> +}
->
-> With such a long comment I'd prefer to have curly braces just to make
-> the else visually more obvious
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+Changes from v0:
+- Added curly braces to nvmet_rdma_error_comp conditionals
+- aligned multi-line if condition indentation
 
-Sure.
+ drivers/nvme/target/rdma.c | 46 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 38 insertions(+), 8 deletions(-)
 
->> +
->> +	if (unlikely(wc->status != IB_WC_SUCCESS &&
->> +		wc->status != IB_WC_WR_FLUSH_ERR)) {
->
-> Indenting the second line of a condition by a single tab is always wrong,
-> either indent it with two tabs, or so that it aligns with first line.
-> The second is probably nicer here:
->
-> 	if (unlikely(wc->status != IB_WC_SUCCESS &&
-> 		     wc->status != IB_WC_WR_FLUSH_ERR)) {
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index b1c6e5bb0b70..5005cda9fdcc 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -134,6 +134,7 @@ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc);
+ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
+ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc);
+ static void nvmet_rdma_qp_event(struct ib_event *event, void *priv);
++static void nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue);
+ 
+ static struct nvmet_fabrics_ops nvmet_rdma_ops;
+ 
+@@ -486,12 +487,33 @@ static void nvmet_rdma_release_rsp(struct nvmet_rdma_rsp *rsp)
+ 	nvmet_rdma_put_rsp(rsp);
+ }
+ 
++static void nvmet_rdma_error_comp(struct nvmet_rdma_queue *queue)
++{
++	if (queue->nvme_sq.ctrl) {
++		nvmet_ctrl_fatal_error(queue->nvme_sq.ctrl);
++	} else {
++		/*
++		 * we didn't setup the controller yet in case
++		 * of admin connect error, just disconnect and
++		 * cleanup the queue
++		 */
++		nvmet_rdma_queue_disconnect(queue);
++	}
++}
++
+ static void nvmet_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct nvmet_rdma_rsp *rsp =
+ 		container_of(wc->wr_cqe, struct nvmet_rdma_rsp, send_cqe);
+ 
+ 	nvmet_rdma_release_rsp(rsp);
++
++	if (unlikely(wc->status != IB_WC_SUCCESS &&
++		     wc->status != IB_WC_WR_FLUSH_ERR)) {
++		pr_err("SEND for CQE 0x%p failed with status %s (%d).\n",
++			wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
++		nvmet_rdma_error_comp(rsp->queue);
++	}
+ }
+ 
+ static void nvmet_rdma_queue_response(struct nvmet_req *req)
+@@ -534,11 +556,13 @@ static void nvmet_rdma_read_data_done(struct ib_cq *cq, struct ib_wc *wc)
+ 			rsp->req.sg_cnt, nvmet_data_dir(&rsp->req));
+ 	rsp->n_rdma = 0;
+ 
+-	if (unlikely(wc->status != IB_WC_SUCCESS &&
+-		wc->status != IB_WC_WR_FLUSH_ERR)) {
+-		pr_info("RDMA READ for CQE 0x%p failed with status %s (%d).\n",
+-			wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
+-		nvmet_req_complete(&rsp->req, NVME_SC_DATA_XFER_ERROR);
++	if (unlikely(wc->status != IB_WC_SUCCESS)) {
++		nvmet_rdma_release_rsp(rsp);
++		if (wc->status != IB_WC_WR_FLUSH_ERR) {
++			pr_info("RDMA READ for CQE 0x%p failed with status %s (%d).\n",
++				wc->wr_cqe, ib_wc_status_msg(wc->status), wc->status);
++			nvmet_rdma_error_comp(queue);
++		}
+ 		return;
+ 	}
+ 
+@@ -705,13 +729,19 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ 	struct nvmet_rdma_queue *queue = cq->cq_context;
+ 	struct nvmet_rdma_rsp *rsp;
+ 
+-	if (unlikely(wc->status != IB_WC_SUCCESS))
++	if (unlikely(wc->status != IB_WC_SUCCESS)) {
++		if (wc->status != IB_WC_WR_FLUSH_ERR) {
++			pr_err("RECV for CQE 0x%p failed with status %s (%d)\n",
++				wc->wr_cqe, ib_wc_status_msg(wc->status),
++				wc->status);
++			nvmet_rdma_error_comp(queue);
++		}
+ 		return;
++	}
+ 
+ 	if (unlikely(wc->byte_len < sizeof(struct nvme_command))) {
+ 		pr_err("Ctrl Fatal Error: capsule size less than 64 bytes\n");
+-		if (queue->nvme_sq.ctrl)
+-			nvmet_ctrl_fatal_error(queue->nvme_sq.ctrl);
++		nvmet_rdma_error_comp(queue);
+ 		return;
+ 	}
+ 
+-- 
+1.9.1
 
-OK, I'll do that.
-
-> Given how many !success not !flush_err conditionals we have in various
-> drivers I wonder if we should have a helper in the RDMA core, though.
-
-They don't always come together. But I can take a look at it. Given that
-it might bring some slight logic shifts, let's do it incrementally.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
