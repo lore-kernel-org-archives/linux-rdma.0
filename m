@@ -1,41 +1,100 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: re: IB/hfi1: add driver files
-Date: Mon, 27 Jun 2016 16:19:29 +0300
-Message-ID: <20160627131928.GA28678@mwanda>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 01/25] xprtrdma: Remove FMRs from the unmap list after
+ unmapping
+Date: Mon, 27 Jun 2016 13:47:04 -0400
+Message-ID: <bf577252-3786-9ee8-be3b-036922eb0507@Netapp.com>
+References: <20160620155751.10809.22262.stgit@manet.1015granger.net>
+ <20160620160843.10809.96379.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20160620160843.10809.96379.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Mike Marciniszyn,
+Hi Chuck,
 
-The patch 7724105686e7: "IB/hfi1: add driver files" from Jul 30,
-2015, leads to the following static checker warning:
+On 06/20/2016 12:08 PM, Chuck Lever wrote:
+> ib_unmap_fmr() takes a list of FMRs to unmap. However, it does not
+> remove the FMRs from this list as it processes them. Other
+> ib_unmap_fmr() call sites are careful to remove FMRs from the list
+> after ib_unmap_fmr() returns.
+> 
+> Since commit 7c7a5390dc6c8 ("xprtrdma: Add ro_unmap_sync method for FMR")
+> fmr_op_unmap_sync passes more than one FMR to ib_unmap_fmr(), but
+> it didn't bother to remove the FMRs from that list once the call was
+> complete.
+> 
+> I've noticed some instability that could be related to list
+> tangling by the new fmr_op_unmap_sync() logic. In an abundance
+> of caution, add some defensive logic to clean up properly after
+> ib_unmap_fmr().
+> 
+> Fixes: 7c7a5390dc6c8 ("xprtrdma: Add ro_unmap_sync method for FMR")
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/sunrpc/xprtrdma/fmr_ops.c |   10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+> index 6326ebe..958c792 100644
+> --- a/net/sunrpc/xprtrdma/fmr_ops.c
+> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
+> @@ -63,9 +63,12 @@ static int
+>  __fmr_unmap(struct rpcrdma_mw *mw)
+>  {
+>  	LIST_HEAD(l);
+> +	int rc;
+>  
+>  	list_add(&mw->fmr.fmr->list, &l);
+> -	return ib_unmap_fmr(&l);
+> +	rc = ib_unmap_fmr(&l);
+> +	list_del_init(&mw->fmr.fmr->list);
+> +	return rc;
+>  }
+>  
+>  /* Deferred reset of a single FMR. Generate a fresh rkey by
+> @@ -149,6 +152,7 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
+>  		r->fmr.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
+>  		if (IS_ERR(r->fmr.fmr))
+>  			goto out_fmr_err;
+> +		INIT_LIST_HEAD(&r->fmr.fmr->list);
 
-	drivers/infiniband/hw/hfi1/user_sdma.c:1438 set_txreq_header_ahg()
-	warn: mask and shift to zero
+I'm a little surprised to see that ib_alloc_fmr() isn't initializing this list.  Do you know of any plans to add the INIT_LIST_HEAD() into the infiniband code, that way it's always initialized when an ib_fmr is allocated?
 
-drivers/infiniband/hw/hfi1/user_sdma.c
-  1436                  /* Clear KDETH.SH on last packet */
-  1437                  if (unlikely(tx->flags & TXREQ_FLAGS_REQ_LAST_PKT)) {
-  1438                          val |= cpu_to_le16(KDETH_GET(hdr->kdeth.ver_tid_offset,
-  1439                                                                  INTR) >> 16);
+Anna
 
-The >> 16 should probably be deleted.  My guess is that it's left over
-from an open coded byte swap?
+>  
+>  		r->mw_xprt = r_xprt;
+>  		list_add(&r->mw_list, &buf->rb_mws);
+> @@ -267,7 +271,7 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+>  		seg = &req->rl_segments[i];
+>  		mw = seg->rl_mw;
+>  
+> -		list_add(&mw->fmr.fmr->list, &unmap_list);
+> +		list_add_tail(&mw->fmr.fmr->list, &unmap_list);
+>  
+>  		i += seg->mr_nsegs;
+>  	}
+> @@ -280,7 +284,9 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+>  	 */
+>  	for (i = 0, nchunks = req->rl_nchunks; nchunks; nchunks--) {
+>  		seg = &req->rl_segments[i];
+> +		mw = seg->rl_mw;
+>  
+> +		list_del_init(&mw->fmr.fmr->list);
+>  		__fmr_dma_unmap(r_xprt, seg);
+>  		rpcrdma_put_mw(r_xprt, seg->rl_mw);
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-  1440                          val &= cpu_to_le16(~(1U << 13));
-  1441                          AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
-  1442                  } else {
-  1443                          AHG_HEADER_SET(req->ahg, diff, 7, 16, 12, val);
-  1444                  }
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
