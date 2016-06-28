@@ -1,77 +1,231 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Upcoming libibverbs release
-Date: Tue, 28 Jun 2016 08:02:46 +0300
-Message-ID: <20160628050246.GB3584@leon.nu>
-References: <3b89c411-72be-ddc5-5ebf-009eeee29692@redhat.com>
- <4ec1d8e6-a908-bb49-a137-415856ec6faa@dev.mellanox.co.il>
- <20160627181758.GD23540@obsidianresearch.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v10 04/22] IB/hns: Add RoCE engine reset function
+Date: Tue, 28 Jun 2016 14:31:41 +0800
+Message-ID: <577219CD.2000604@huawei.com>
+References: <1466087730-54856-1-git-send-email-oulijun@huawei.com>
+ <1466087730-54856-5-git-send-email-oulijun@huawei.com>
+ <20160624145938.GE23995@leon.nu> <576E5C21.5030904@huawei.com>
+ <20160627080122.GA3584@leon.nu> <5770E465.1070702@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160627181758.GD23540-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <5770E465.1070702-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 27, 2016 at 12:17:58PM -0600, Jason Gunthorpe wrote:
-> Doug and I have both stated we don't want to see so many
-> single-provider APIs and churn in libibverbs. This was designed to be
-> a generic API that all providers can implement.
->=20
-> The responsibility falls on you to make sure that it works
-> universally. Compat is one option.
->=20
-> This is also why it is necessary to get the other provider authors to
-> say this works on their hardware, because they *all* ultimately have
-> to implement it.
->=20
-> I don't think many people realize this yet.
->=20
+On 2016/6/27 16:31, oulijun wrote:
+> Hi, Leon
+> =E5=9C=A8 2016/6/27 16:01, Leon Romanovsky =E5=86=99=E9=81=93:
+>> On Sat, Jun 25, 2016 at 06:25:37PM +0800, Wei Hu (Xavier) wrote:
+>>>
+>>> On 2016/6/24 22:59, Leon Romanovsky wrote:
+>>>> On Thu, Jun 16, 2016 at 10:35:12PM +0800, Lijun Ou wrote:
+>>>>> This patch mainly added reset flow of RoCE engine in RoCE
+>>>>> driver. It is necessary when RoCE is loaded and removed.
+>>>>>
+>>>>> Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>> Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+>>>>> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+>>>>> ---
+>> ...
+>>
+>>>>> +
+>>>>> +#define SLEEP_TIME_INTERVAL				20
+>>>>> +
+>>>>> +extern int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode=
+, bool enable);
+>>>> Why did you add this extern?
+>>>> You already exported this function.
+>>>> drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c:EXPORT_SYMBOL(h=
+ns_dsaf_roce_reset);
+>>> Hi, Leon
+>>>
+>>>          The function named hns_dsaf_roce_reset is defined in hns_d=
+saf_main.c
+>>>          It exists in hns_dsaf.ko(ethernet driver)
+>>>
+>>>          RoCE driver will call this function.
+>>>
+>>>          Your suggestion is that delete "extern" as below:
+>>>              In /drivers/infiniband/hw/hns/hns_roce_hw_v1.h:
+>>>
+>>>            int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnod=
+e, bool
+>>> enable);
+>>>
+>>> Right? or other soultion?
+>> You placed it in header file.
+>> Please move it to your hns_roce_hw_v1.c file.
+>>
+>   You suggest to do as follows, right?
+>   in hns_roce_hw_v1.c
+>     int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, bool e=
+nable);
+>
+>   and delete the keyword extern
+>
+>   Bcause reserve the extern in hns_roce_hw_v1.c, the checkpatch is no=
+t pass.
+Hi, Leon & Doug Ledford
 
-Jason,
-You are over-estimating the number of other providers who are
-interesting in libibverbs in 2014-2016.
+     If we move it to hns_roce_hw_v1.c file as below:
+         int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, boo=
+l=20
+enable);
+     The result of checkpatch is warning.
 
-According to git log [1] in these years, I see only one major
-contributor to this library.
+     We prepare to add a head file for this function as below:
+         In the directory of include\linux,  mkdir hns.
+         add hns_driver.h in include\linux\hns.
+         In the file of hns_driver.h, the declaration:
+                int hns_dsaf_roce_reset(struct fwnode_handle=20
+*dsaf_fwnode, bool enable);
+     What do you think about?
 
-[1] https://git.kernel.org/cgit/libs/infiniband/libibverbs.git/log/
 
-Thanks
+Regards
+Wei Hu
+>>>
+>>> Regards
+>>> Wei Hu
+>>>>> +
+>>>>> +#endif
+>>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/=
+infiniband/hw/hns/hns_roce_main.c
+>>>>> index 8924ce3..d5ccce2 100644
+>>>>> --- a/drivers/infiniband/hw/hns/hns_roce_main.c
+>>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+>>>>> @@ -71,7 +71,9 @@ static int hns_roce_get_cfg(struct hns_roce_dev=
+ *hr_dev)
+>>>>>   	struct platform_device *pdev =3D NULL;
+>>>>>   	struct resource *res;
+>>>>> -	if (!of_device_is_compatible(np, "hisilicon,hns-roce-v1")) {
+>>>>> +	if (of_device_is_compatible(np, "hisilicon,hns-roce-v1")) {
+>>>>> +		hr_dev->hw =3D &hns_roce_hw_v1;
+>>>>> +	} else {
+>>>>>   		dev_err(dev, "device no compatible!\n");
+>>>>>   		return -EINVAL;
+>>>>>   	}
+>>>>> @@ -118,6 +120,11 @@ static int hns_roce_get_cfg(struct hns_roce_=
+dev *hr_dev)
+>>>>>   	return 0;
+>>>>>   }
+>>>>> +static int hns_roce_engine_reset(struct hns_roce_dev *hr_dev, bo=
+ol enable)
+>>>>> +{
+>>>>> +	return hr_dev->hw->reset(hr_dev, enable);
+>>>>> +}
+>>>>> +
+>>>>>   /**
+>>>>>   * hns_roce_probe - RoCE driver entrance
+>>>>>   * @pdev: pointer to platform device
+>>>>> @@ -156,6 +163,12 @@ static int hns_roce_probe(struct platform_de=
+vice *pdev)
+>>>>>   		goto error_failed_get_cfg;
+>>>>>   	}
+>>>>> +	ret =3D hns_roce_engine_reset(hr_dev, true);
+>>>> Do you have better solution to sense device without doing full res=
+et of
+>>>> your hardware?
+>>> Hi, Leon
+>>>
+>>>      In this place, we need reset RoCEE engine to ensure that RoCE =
+engine can
+>>> work correctly.
+>>>      Hip06 Soc only support full reset RoCEE engine.
+>>>
+>>> Regards
+>>> Wei Hu
+>>>
+>>>>> +	if (ret) {
+>>>>> +		dev_err(dev, "Reset roce engine failed!\n");
+>>>>> +		goto error_failed_get_cfg;
+>>>>> +	}
+>>>>> +
+>>>>>   error_failed_get_cfg:
+>>>>>   	ib_dealloc_device(&hr_dev->ib_dev);
+>>>>> @@ -170,6 +183,8 @@ static int hns_roce_remove(struct platform_de=
+vice *pdev)
+>>>>>   {
+>>>>>   	struct hns_roce_dev *hr_dev =3D platform_get_drvdata(pdev);
+>>>>> +	(void)hns_roce_engine_reset(hr_dev, false);
+>>>> Any reason to do explicit casting?
+>>> Hi, Leon
+>>>
+>>> /**
+>>>   * hns_roce_engine_reset - reset roce
+>>>   * @hr_dev: roce device struct pointer
+>>>   * @enable: true -- drop reset, false -- reset
+>>>   * return 0 - success , negative --fail
+>>>   */
+>>> static int hns_roce_engine_reset(struct hns_roce_dev *hr_dev, bool =
+enable);
+>>>
+>>> hns_roce_engine_reset->hns_roce_v1_reset->hns_dsaf_roce_reset
+>>>
+>>> The err branch of hns_roce_engine_reset as below=EF=BC=9A
+>>> int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, bool ena=
+ble)
+>>> {
+>>>      <...>
+>>>      if (!is_of_node(dsaf_fwnode)) {
+>>>          pr_err("hisi_dsaf: Only support DT node!\n");
+>>>          return -EINVAL;
+>>>      }
+>>>
+>>>      pdev =3D of_find_device_by_node(to_of_node(dsaf_fwnode));
+>>>      dsaf_dev =3D dev_get_drvdata(&pdev->dev);
+>>>      if (AE_IS_VER1(dsaf_dev->dsaf_ver)) {
+>>>          dev_err(dsaf_dev->dev, "%s v1 chip do not support roce!\n"=
+,
+>>>              dsaf_dev->ae_dev.name);
+>>>          return -ENODEV;
+>>>      }
+>>>      <...>
+>>> }
+>>>
+>>>     When the cpu is processing hns_roce_engine_reset(hr_dev, false)=
+,
+>>> hns_roce_engine_reset(hr_dev, true)  have been alomost processed
+>>> sucessfully.
+>>>     From the err branch of hns_roce_engine_reset, we found at this =
+time
+>>> hns_roce_engine_reset(hr_dev, true) could not return err.
+>>>
+>>> In hns_roce_remove function, we call hns_roce_engine_reset(hr_dev, =
+false),
+>>> and doesn't need to judge the return value.
+>> Do you see any compilation warning for this part of code?
+>>
+>>      struct hns_roce_dev *hr_dev =3D platform_get_drvdata(pdev);
+>> +   hns_roce_engine_reset(hr_dev, false);
+>>
+>> instead of
+>>
+>>      struct hns_roce_dev *hr_dev =3D platform_get_drvdata(pdev);
+>> +   (void)hns_roce_engine_reset(hr_dev, false);
+>>
+> No warning.
+> However, the result of PClint checking is error, because the hns_roce=
+_engine_reset have return value.
+>
+> thanks
+> Lijun Ou
+>
+>
+>
+> .
+>
 
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXcgT1AAoJEORje4g2clinjfEQAIv/zPpt2HFdwyS3PhHWAn9t
-E06qDiWd2DYnso3r1Cqo7AyfxIfzkWgnJx4UAR8On6CaK2mt3wLbW+Z9lcFwhQlY
-ViO/XyBxTc13ddYEoIyXDACp6vOk3arpesrt1ApSnQQ0/VW3dTUnfi2iSBOlwZLA
-cBPSOiHmcjPkXRUgAMm7LDbo9M8Dvz/guOYDqC9F39TI8sOERWq3wvBMxTso7KFf
-kz1QoUJBzteeqIVhwwHBWpyA2nbr87XtkjSCXoqWsMo9xsTDomEBSb2kSkI/PakE
-YBVPNEDcB8o850Ig3XX2MQL49HG8Q83062aBeDxqoxnvMn1pWgRsPX+sfmRHg7MR
-vE4Gd/XKHeT+COV2lzynJ89EsiVudnaFz0y9ZRvgbpK9rmHy60Pvy6cqTs3AvyJb
-Jd746RGgZG9JyLfJVNIo44YIzHY5eH2Z4wcndw6Rv2GlWUJIHGR8nL9FSn8XrEhI
-pmz5wxEuQn02FSYPiAcKEeAqaHjOrvKvchwdKGhQssnD0gNFkVMMtSKm/MN4pii9
-k5oq5VRabfCHB22yrQrLpogXlgcT1QpOGl4OyBwlEh8qsfDWk5yRYhhrLdZ9QtiG
-Qcjr1ZJaC1Y+7vl+VoShGgAKzrYlYHXa0VaPX+vBXWXF/25jYzfb+UwxlcBAQtFl
-svl+88nPBddbibLYoIRZ
-=EX+0
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
