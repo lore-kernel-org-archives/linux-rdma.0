@@ -1,107 +1,25 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 1/5] IB/core: Make rdma_rw_ctx_init() initialize all
-	used fields
-Date: Tue, 28 Jun 2016 13:51:05 +0200
-Message-ID: <20160628115105.GA28113@lst.de>
-References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com> <91e53f7b-fdb6-bd66-ada6-982c641c2048@sandisk.com>
+Subject: Re: [PATCH 2/5] IB/core: Add max_sge argument to rdma_rw_ctx_init()
+Date: Tue, 28 Jun 2016 13:52:06 +0200
+Message-ID: <20160628115206.GB28113@lst.de>
+References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com> <ce96b1f4-e9b9-31e2-f9d2-77e71f8bbcd1@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <91e53f7b-fdb6-bd66-ada6-982c641c2048-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <ce96b1f4-e9b9-31e2-f9d2-77e71f8bbcd1-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 28, 2016 at 01:25:15PM +0200, Bart Van Assche wrote:
-> Some but not all callers of rdma_rw_ctx_init() zero-initialize
-> struct rdma_rw_ctx. Hence make rdma_rw_ctx_init() initialize all
-> work request fields that will be read by ib_post_send().
-> 
-> Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #v4.7+
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-> Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/core/rw.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-> index 1eb9b12..13d4067 100644
-> --- a/drivers/infiniband/core/rw.c
-> +++ b/drivers/infiniband/core/rw.c
-> @@ -99,6 +99,7 @@ static int rdma_rw_init_one_mr(struct ib_qp *qp, u8 port_num,
->  	}
->  
->  	reg->reg_wr.wr.opcode = IB_WR_REG_MR;
-> +	reg->reg_wr.wr.next = NULL;
+On Tue, Jun 28, 2016 at 01:26:03PM +0200, Bart Van Assche wrote:
+> The SGE limit for a queue pair is typically lower than what is
+> defined by the HCA limits. Hence make max_sge an argument.
 
-This one is always set up by the callers of the function.
-
-> @@ -114,6 +115,7 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
->  		u8 port_num, struct scatterlist *sg, u32 sg_cnt, u32 offset,
->  		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
->  {
-> +	struct rdma_rw_reg_ctx *prev = NULL;
->  	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
->  	int i, j, ret = 0, count = 0;
->  
-> @@ -125,7 +127,6 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
->  	}
->  
->  	for (i = 0; i < ctx->nr_ops; i++) {
-> -		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
->  		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
->  		u32 nents = min(sg_cnt, pages_per_mr);
->  
-> @@ -162,9 +163,13 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
->  		sg_cnt -= nents;
->  		for (j = 0; j < nents; j++)
->  			sg = sg_next(sg);
-> +		prev = reg;
->  		offset = 0;
->  	}
->  
-> +	if (prev)
-> +		prev->wr.wr.next = NULL;
-> +
->  	ctx->type = RDMA_RW_MR;
->  	return count;
-
-I think the right fix here is to set last_wr->next to NULL for
-the !chain_wr case in rdma_rw_ctx_wrs, or in fact maybe just simplify
-the end of rdma_rw_ctx_wrs to:
-
-	last_wr->next = chain_wr;
-	if (!chain_wr) {
-		last_wr->wr_cqe = cqe;
-		last_wr->send_flags |= IB_SEND_SIGNALED;
-	}
-
-> @@ -205,11 +210,10 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
->  			rdma_wr->wr.opcode = IB_WR_RDMA_READ;
->  		rdma_wr->remote_addr = remote_addr + total_len;
->  		rdma_wr->rkey = rkey;
-> +		rdma_wr->wr.num_sge = nr_sge;
->  		rdma_wr->wr.sg_list = sge;
->  
->  		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
-> -			rdma_wr->wr.num_sge++;
-> -
-
-This parts looks fine.
-
-> -		if (i + 1 < ctx->nr_ops)
-> -			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
-> +		rdma_wr->wr.next = i + 1 < ctx->nr_ops ?
-> +			&ctx->map.wrs[i + 1].wr : NULL;
-
-I think the rdma_rw_ctx_wrs should take care of this as well.
+I don't think this is the right way to approach any limit.  I'd rather
+have a current limit in the ib_qp structure than having to pass it
+explicitly and growing driver specific policy once again.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
