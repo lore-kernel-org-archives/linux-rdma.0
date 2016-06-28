@@ -1,36 +1,34 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/5] IB/isert: Limit the number of SG elements per work
- request
-Date: Tue, 28 Jun 2016 20:41:08 +0200
-Message-ID: <9e8c6a52-3bf9-6b3f-1f36-d77205cb3ee0@sandisk.com>
-References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com>
- <885f39a6-9d75-9999-d582-e403f072bec1@sandisk.com>
- <006d01d1d14a$0574f0b0$105ed210$@opengridcomputing.com>
- <6e513522-6b06-d942-bddd-cc00f9a32f44@sandisk.com>
- <01ca01d1d14f$0ae47160$20ad5420$@opengridcomputing.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: NVMe over Fabrics target implementation V2
+Date: Tue, 28 Jun 2016 14:02:56 -0500
+Message-ID: <01fb01d1d16f$ae47ef60$0ad7ce20$@opengridcomputing.com>
+References: <1466525061-3686-1-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01ca01d1d14f$0ae47160$20ad5420$@opengridcomputing.com>
+In-Reply-To: <1466525061-3686-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "'Nicholas A. Bellinger'" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, 'Parav Pandit' <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Laurence Oberman' <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/28/2016 05:09 PM, Steve Wise wrote:
-> I'll let you know as I gather more data.  For now I'm retrying with patches 1-3 of this series to see if it alleviates the problem.
 
-Hi Steve,
+> Subject: NVMe over Fabrics target implementation V2
+> 
+> This patch set adds a generic NVMe over Fabrics target. The
+> implementation conforms to the NVMe 1.2b specification (which
+> includes Fabrics) and provides the NVMe over Fabrics access
+> to Linux block devices.
+> 
 
-Can you use the code from the for-next branch in the following 
-repository for your tests: https://github.com/bvanassche/linux.
+Series looks good to me.
 
-I will post these patches tomorrow.
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Thanks,
 
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
