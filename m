@@ -1,116 +1,42 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 01/25] xprtrdma: Remove FMRs from the unmap list after unmapping
-Date: Tue, 28 Jun 2016 16:53:28 -0400
-Message-ID: <406CAA3A-1C5A-4761-956F-C17CE1CA34F9@oracle.com>
-References: <20160620155751.10809.22262.stgit@manet.1015granger.net> <20160620160843.10809.96379.stgit@manet.1015granger.net> <bf577252-3786-9ee8-be3b-036922eb0507@Netapp.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Upcoming libibverbs release
+Date: Tue, 28 Jun 2016 15:14:41 -0600
+Message-ID: <20160628211441.GA5786@obsidianresearch.com>
+References: <3b89c411-72be-ddc5-5ebf-009eeee29692@redhat.com>
+ <4ec1d8e6-a908-bb49-a137-415856ec6faa@dev.mellanox.co.il>
+ <20160627181758.GD23540@obsidianresearch.com>
+ <20160628050246.GB3584@leon.nu>
+ <20160628162028.GA27518@obsidianresearch.com>
+ <20160628170549.GE3584@leon.nu>
+ <022001d1d170$fda2c3e0$f8e84ba0$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bf577252-3786-9ee8-be3b-036922eb0507-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <022001d1d170$fda2c3e0$f8e84ba0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jun 28, 2016 at 02:12:19PM -0500, Steve Wise wrote:
 
-> On Jun 27, 2016, at 1:47 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Hi Chuck,
-> 
->> On 06/20/2016 12:08 PM, Chuck Lever wrote:
->> ib_unmap_fmr() takes a list of FMRs to unmap. However, it does not
->> remove the FMRs from this list as it processes them. Other
->> ib_unmap_fmr() call sites are careful to remove FMRs from the list
->> after ib_unmap_fmr() returns.
->> 
->> Since commit 7c7a5390dc6c8 ("xprtrdma: Add ro_unmap_sync method for FMR")
->> fmr_op_unmap_sync passes more than one FMR to ib_unmap_fmr(), but
->> it didn't bother to remove the FMRs from that list once the call was
->> complete.
->> 
->> I've noticed some instability that could be related to list
->> tangling by the new fmr_op_unmap_sync() logic. In an abundance
->> of caution, add some defensive logic to clean up properly after
->> ib_unmap_fmr().
->> 
->> Fixes: 7c7a5390dc6c8 ("xprtrdma: Add ro_unmap_sync method for FMR")
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/fmr_ops.c |   10 ++++++++--
->> 1 file changed, 8 insertions(+), 2 deletions(-)
->> 
->> diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
->> index 6326ebe..958c792 100644
->> --- a/net/sunrpc/xprtrdma/fmr_ops.c
->> +++ b/net/sunrpc/xprtrdma/fmr_ops.c
->> @@ -63,9 +63,12 @@ static int
->> __fmr_unmap(struct rpcrdma_mw *mw)
->> {
->>    LIST_HEAD(l);
->> +    int rc;
->> 
->>    list_add(&mw->fmr.fmr->list, &l);
->> -    return ib_unmap_fmr(&l);
->> +    rc = ib_unmap_fmr(&l);
->> +    list_del_init(&mw->fmr.fmr->list);
->> +    return rc;
->> }
->> 
->> /* Deferred reset of a single FMR. Generate a fresh rkey by
->> @@ -149,6 +152,7 @@ fmr_op_init(struct rpcrdma_xprt *r_xprt)
->>        r->fmr.fmr = ib_alloc_fmr(pd, mr_access_flags, &fmr_attr);
->>        if (IS_ERR(r->fmr.fmr))
->>            goto out_fmr_err;
->> +        INIT_LIST_HEAD(&r->fmr.fmr->list);
-> 
-> I'm a little surprised to see that ib_alloc_fmr() isn't initializing this list.  Do you know of any plans to add the INIT_LIST_HEAD() into the infiniband code, that way it's always initialized when an ib_fmr is allocated?
+> I haven't been following this (long) thread closely enough, but I hope any new
+> functionality is not _breaking_ existing applications from using _currently
+> supported_ providers?  I thought all this CQ accessor cruft was backwards
+> compatible.  Perhaps I'm wrong?
 
-I don't know of any plans to change the ib_alloc_fmr() API.
-AFAICT, the list field is a consumer-visible part of the FMR,
-so it is the consumer's responsibility to manage that field
-properly.
+As merged, the new API simply does not work without provider support.
 
-I suspect that INIT_LIST_HEAD is unnecessary anyway
-and could be dropped from this patch.
+The old API keeps working of course.
 
+The fundamental question is if it is acceptable for libibverbs to ship
+a new core provider agnostic API (cq polling) that is optional
+depending on provider.
 
-> Anna
-> 
->> 
->>        r->mw_xprt = r_xprt;
->>        list_add(&r->mw_list, &buf->rb_mws);
->> @@ -267,7 +271,7 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
->>        seg = &req->rl_segments[i];
->>        mw = seg->rl_mw;
->> 
->> -        list_add(&mw->fmr.fmr->list, &unmap_list);
->> +        list_add_tail(&mw->fmr.fmr->list, &unmap_list);
->> 
->>        i += seg->mr_nsegs;
->>    }
->> @@ -280,7 +284,9 @@ fmr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
->>     */
->>    for (i = 0, nchunks = req->rl_nchunks; nchunks; nchunks--) {
->>        seg = &req->rl_segments[i];
->> +        mw = seg->rl_mw;
->> 
->> +        list_del_init(&mw->fmr.fmr->list);
->>        __fmr_dma_unmap(r_xprt, seg);
->>        rpcrdma_put_mw(r_xprt, seg->rl_mw);
->> 
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I say no, that is not acceptable.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
