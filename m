@@ -1,39 +1,36 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 2/5] IB/core: Add max_sge argument to rdma_rw_ctx_init()
-Date: Tue, 28 Jun 2016 14:37:29 +0200
-Message-ID: <7fbd81ae-4b0d-4f8b-18ac-7efcf0dd4d61@sandisk.com>
+Subject: Re: [PATCH 1/5] IB/core: Make rdma_rw_ctx_init() initialize all used
+ fields
+Date: Tue, 28 Jun 2016 15:04:48 +0200
+Message-ID: <a5ce1e23-e04e-029c-d698-5aa07e88bbaa@sandisk.com>
 References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com>
- <ce96b1f4-e9b9-31e2-f9d2-77e71f8bbcd1@sandisk.com>
- <20160628115206.GB28113@lst.de>
+ <91e53f7b-fdb6-bd66-ada6-982c641c2048@sandisk.com>
+ <20160628115105.GA28113@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160628115206.GB28113-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20160628115105.GA28113-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/28/2016 01:52 PM, Christoph Hellwig wrote:
-> On Tue, Jun 28, 2016 at 01:26:03PM +0200, Bart Van Assche wrote:
->> The SGE limit for a queue pair is typically lower than what is
->> defined by the HCA limits. Hence make max_sge an argument.
+On 06/28/2016 01:51 PM, Christoph Hellwig wrote:
+> On Tue, Jun 28, 2016 at 01:25:15PM +0200, Bart Van Assche wrote:
+>> -		if (i + 1 < ctx->nr_ops)
+>> -			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
+>> +		rdma_wr->wr.next = i + 1 < ctx->nr_ops ?
+>> +			&ctx->map.wrs[i + 1].wr : NULL;
 >
-> I don't think this is the right way to approach any limit.  I'd rather
-> have a current limit in the ib_qp structure than having to pass it
-> explicitly and growing driver specific policy once again.
+> I think the rdma_rw_ctx_wrs should take care of this as well.
 
-Hello Christoph,
-
-The memory needed for QP buffers strongly depends on max_send_sge and 
-max_recv_sge. Using a large value for max_send_sge and/or max_recv_sge 
-for all drivers would increase the memory consumption for drivers that 
-only submit RDMA requests with a low number of SG elements. Using a 
-small value for max_send_sge and/or max_recv_sge would result in a 
-performance decrease for drivers that benefit from large max_send_sge 
-and/or max_recv_sge values. This is why I think that drivers should have 
-the freedom to chose the max_send_sge and max_recv_sge values.
+I agree that it is possible to let rdma_rw_ctx_wrs() initialize wr.next 
+of the last WR. But if we chose that approach then drivers that call 
+rdma_rw_ctx_init() but not rdma_rw_ctx_wrs(), e.g. ib_isert, can end up 
+with a last wr.next field that has not been initialized. Hence my 
+preference for performing that initialization in rdma_rw_init_mr_wrs() 
+and rdma_rw_init_map_wrs().
 
 Bart.
 
