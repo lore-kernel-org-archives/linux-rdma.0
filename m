@@ -1,21 +1,34 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v1] nvmet-rdma: Invoke fatal error on error completion
-Date: Tue, 28 Jun 2016 10:37:21 +0200
-Message-ID: <20160628083721.GA13061@lst.de>
-References: <1466956917-6469-1-git-send-email-sagi@grimberg.me>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH v3] net/mlx5: use mlx5_buf_alloc_node instead of
+ mlx5_buf_alloc in mlx5_wq_ll_create
+Date: Tue, 28 Jun 2016 05:17:50 -0400 (EDT)
+Message-ID: <20160628.051750.163695606512731630.davem@davemloft.net>
+References: <1466729531-45481-1-git-send-email-shhuiw@foxmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1466956917-6469-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1466729531-45481-1-git-send-email-shhuiw-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: shhuiw-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org
+Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks,
+From: Wang Sheng-Hui <shhuiw-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>
+Date: Fri, 24 Jun 2016 08:52:11 +0800
 
-applied to nvmet-all.3.
+> Commit 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on
+> reader NUMA node") introduced mlx5_*_alloc_node() but missed changing
+> some calling and warn messages. This patch introduces 2 changes:
+> 	* Use mlx5_buf_alloc_node() instead of mlx5_buf_alloc() in
+> 	  mlx5_wq_ll_create()
+> 	* Update the failure warn messages with _node postfix for
+> 	  mlx5_*_alloc function names
+> 
+> Fixes: 311c7c71c9bb ("net/mlx5e: Allocate DMA coherent memory on reader NUMA node")
+> Signed-off-by: Wang Sheng-Hui <shhuiw-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>
+
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
