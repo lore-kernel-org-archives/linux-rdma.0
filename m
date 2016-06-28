@@ -1,12 +1,12 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: RE: [PATCH 3/5] IB/isert: Limit the number of SG elements per work request
-Date: Tue, 28 Jun 2016 09:28:23 -0500
-Message-ID: <006b01d1d149$53d41200$fb7c3600$@opengridcomputing.com>
+Date: Tue, 28 Jun 2016 09:33:21 -0500
+Message-ID: <006d01d1d14a$0574f0b0$105ed210$@opengridcomputing.com>
 References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com> <885f39a6-9d75-9999-d582-e403f072bec1@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <885f39a6-9d75-9999-d582-e403f072bec1-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-us
@@ -16,21 +16,43 @@ Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sagi Grimberg' <sag
 List-Id: linux-rdma@vger.kernel.org
 
 
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bart Van Assche
+> Sent: Tuesday, June 28, 2016 6:27 AM
+> To: Doug Ledford
+> Cc: Christoph Hellwig; Sagi Grimberg; Nicholas A. Bellinger; Parav Pandit; Laurence
+> Oberman; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH 3/5] IB/isert: Limit the number of SG elements per work request
 > 
 > Limit the number of SG elements per work request to what the queue
 > pair supports.
 > 
-> Fixes: b99f8e4d7bcd ("IB/srpt: convert to the generic RDMA READ/WRITE API")
 
-I think the above is the wrong commit.  Maybe this one?
+Hey Bart, do you think this patch fixes this error we're seeing?
 
-commit 38a2d0d429f1d87315c55d9139b8bdf66d51c4f4
-Author: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Date:   Tue May 3 18:01:13 2016 +0200
-
-    IB/isert: convert to the generic RDMA READ/WRITE API
-
-
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f30eb0278 failed to post RDMA res
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f30e85ef8 failed to post RDMA res
+ABORT_TASK: Found referenced iSCSI task_tag: 14
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 14
+ABORT_TASK: Found referenced iSCSI task_tag: 40
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 40
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f311519f0 failed to post RDMA res
+ABORT_TASK: Found referenced iSCSI task_tag: 70
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 70
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f311720a0 failed to post RDMA res
+ABORT_TASK: Found referenced iSCSI task_tag: 86
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 86
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f31160528 failed to post RDMA res
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f30ead238 failed to post RDMA res
+isert: isert_rdma_rw_ctx_post: Cmd: ffff880f30ea8fe0 failed to post RDMA res
+ABORT_TASK: Found referenced iSCSI task_tag: 124
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 124
+ABORT_TASK: Found referenced iSCSI task_tag: 120
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 120
+ABORT_TASK: Found referenced iSCSI task_tag: 111
+ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 111
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
