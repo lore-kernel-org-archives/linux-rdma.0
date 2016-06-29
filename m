@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 18/24] xprtrdma: rpcrdma_inline_fixup() overruns the
- receive page list
-Date: Wed, 29 Jun 2016 13:54:33 -0400
-Message-ID: <20160629175433.15094.37962.stgit@manet.1015granger.net>
+Subject: [PATCH v4 23/24] svc: Avoid garbage replies when pc_func() returns
+ rpc_drop_reply
+Date: Wed, 29 Jun 2016 13:55:14 -0400
+Message-ID: <20160629175514.15094.83711.stgit@manet.1015granger.net>
 References: <20160629173231.15094.52660.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,52 +14,32 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the remaining length of an incoming reply is longer than the
-XDR buf's page_len, switch over to the tail iovec instead of
-copying more than page_len bytes into the page list.
+If an RPC program does not set vs_dispatch and pc_func() returns
+rpc_drop_reply, the server sends a reply anyway containing a single
+word containing the value RPC_DROP_REPLY (in network byte-order, of
+course). This is a nonsense RPC message.
 
+Fixes: 9e701c610923 ("svcrpc: simpler request dropping")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ net/sunrpc/svc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index f60d229..e3560c2 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -773,12 +773,17 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 	page_base &= ~PAGE_MASK;
+diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
+index cc98528..87290a5 100644
+--- a/net/sunrpc/svc.c
++++ b/net/sunrpc/svc.c
+@@ -1188,7 +1188,8 @@ svc_process_common(struct svc_rqst *rqstp, struct kvec *argv, struct kvec *resv)
+ 		*statp = procp->pc_func(rqstp, rqstp->rq_argp, rqstp->rq_resp);
  
- 	if (copy_len && rqst->rq_rcv_buf.page_len) {
--		npages = PAGE_ALIGN(page_base +
--			rqst->rq_rcv_buf.page_len) >> PAGE_SHIFT;
-+		int pagelist_len;
-+
-+		pagelist_len = rqst->rq_rcv_buf.page_len;
-+		if (pagelist_len > copy_len)
-+			pagelist_len = copy_len;
-+		npages = PAGE_ALIGN(page_base + pagelist_len) >> PAGE_SHIFT;
- 		for (; i < npages; i++) {
- 			curlen = PAGE_SIZE - page_base;
--			if (curlen > copy_len)
--				curlen = copy_len;
-+			if (curlen > pagelist_len)
-+				curlen = pagelist_len;
-+
- 			dprintk("RPC:       %s: page %d"
- 				" srcp 0x%p len %d curlen %d\n",
- 				__func__, i, srcp, copy_len, curlen);
-@@ -788,7 +793,8 @@ rpcrdma_inline_fixup(struct rpc_rqst *rqst, char *srcp, int copy_len, int pad)
- 			kunmap_atomic(destp);
- 			srcp += curlen;
- 			copy_len -= curlen;
--			if (copy_len == 0)
-+			pagelist_len -= curlen;
-+			if (!pagelist_len)
- 				break;
- 			page_base = 0;
- 		}
+ 		/* Encode reply */
+-		if (test_bit(RQ_DROPME, &rqstp->rq_flags)) {
++		if (*statp == rpc_drop_reply ||
++		    test_bit(RQ_DROPME, &rqstp->rq_flags)) {
+ 			if (procp->pc_release)
+ 				procp->pc_release(rqstp, NULL, rqstp->rq_resp);
+ 			goto dropit;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
