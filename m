@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 15/24] xprtrdma: Release orphaned MRs immediately
-Date: Wed, 29 Jun 2016 13:54:08 -0400
-Message-ID: <20160629175408.15094.97803.stgit@manet.1015granger.net>
+Subject: [PATCH v4 13/24] xprtrdma: Chunk list encoders must not return zero
+Date: Wed, 29 Jun 2016 13:53:52 -0400
+Message-ID: <20160629175352.15094.15885.stgit@manet.1015granger.net>
 References: <20160629173231.15094.52660.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,83 +13,75 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of leaving orphaned MRs to be released when the transport
-is destroyed, release them immediately. The MR free list can now be
-replenished if it becomes exhausted.
+Clean up, based on code audit: Remove the possibility that the
+chunk list XDR encoders can return zero, which would be interpreted
+as a NULL.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c  |   19 +++++++++++++------
- net/sunrpc/xprtrdma/frwr_ops.c |   19 +++++++++++++------
- 2 files changed, 26 insertions(+), 12 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c  |    2 ++
+ net/sunrpc/xprtrdma/frwr_ops.c |    2 ++
+ net/sunrpc/xprtrdma/rpc_rdma.c |    6 +++---
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 758cd1a..6521dce 100644
+index aae4c37..bc5f4a1 100644
 --- a/net/sunrpc/xprtrdma/fmr_ops.c
 +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -134,15 +134,22 @@ fmr_op_recover_mr(struct rpcrdma_mw *mw)
- 	/* ORDER: then DMA unmap */
- 	ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
- 			mw->mw_sg, mw->mw_nents, mw->mw_dir);
--	if (rc) {
--		pr_err("rpcrdma: FMR reset status %d, %p orphaned\n",
--		       rc, mw);
--		r_xprt->rx_stats.mrs_orphaned++;
--		return;
--	}
-+	if (rc)
-+		goto out_release;
+@@ -246,6 +246,8 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	}
+ 	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
++	if (i == 0)
++		goto out_dmamap_err;
  
- 	rpcrdma_put_mw(r_xprt, mw);
- 	r_xprt->rx_stats.mrs_recovered++;
-+	return;
-+
-+out_release:
-+	pr_err("rpcrdma: FMR reset failed (%d), %p released\n", rc, mw);
-+	r_xprt->rx_stats.mrs_orphaned++;
-+
-+	spin_lock(&r_xprt->rx_buf.rb_mwlock);
-+	list_del(&mw->mw_all);
-+	spin_unlock(&r_xprt->rx_buf.rb_mwlock);
-+
-+	fmr_op_release_mr(mw);
- }
- 
- static int
+ 	if (!ib_dma_map_sg(r_xprt->rx_ia.ri_device,
+ 			   mw->mw_sg, mw->mw_nents, mw->mw_dir))
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index e77776b..f4c06c8 100644
+index d7613db9..f3a06fa 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -177,15 +177,22 @@ frwr_op_recover_mr(struct rpcrdma_mw *mw)
+@@ -411,6 +411,8 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
+ 	}
+ 	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
++	if (i == 0)
++		goto out_dmamap_err;
  
- 	rc = __frwr_reset_mr(ia, mw);
- 	ib_dma_unmap_sg(ia->ri_device, mw->mw_sg, mw->mw_nents, mw->mw_dir);
--	if (rc) {
--		pr_err("rpcrdma: FRMR reset status %d, %p orphaned\n",
--		       rc, mw);
--		r_xprt->rx_stats.mrs_orphaned++;
--		return;
--	}
-+	if (rc)
-+		goto out_release;
+ 	dma_nents = ib_dma_map_sg(ia->ri_device,
+ 				  mw->mw_sg, mw->mw_nents, mw->mw_dir);
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 77e002f..8fde0ab 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -329,7 +329,7 @@ rpcrdma_encode_read_list(struct rpcrdma_xprt *r_xprt,
  
- 	rpcrdma_put_mw(r_xprt, mw);
- 	r_xprt->rx_stats.mrs_recovered++;
-+	return;
-+
-+out_release:
-+	pr_err("rpcrdma: FRMR reset failed %d, %p release\n", rc, mw);
-+	r_xprt->rx_stats.mrs_orphaned++;
-+
-+	spin_lock(&r_xprt->rx_buf.rb_mwlock);
-+	list_del(&mw->mw_all);
-+	spin_unlock(&r_xprt->rx_buf.rb_mwlock);
-+
-+	frwr_op_release_mr(mw);
- }
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, false);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
  
- static int
+ 		*iptr++ = xdr_one;	/* item present */
+@@ -397,7 +397,7 @@ rpcrdma_encode_write_list(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 	nchunks = 0;
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
+ 
+ 		iptr = xdr_encode_rdma_segment(iptr, seg);
+@@ -462,7 +462,7 @@ rpcrdma_encode_reply_chunk(struct rpcrdma_xprt *r_xprt,
+ 	nchunks = 0;
+ 	do {
+ 		n = r_xprt->rx_ia.ri_ops->ro_map(r_xprt, seg, nsegs, true);
+-		if (n <= 0)
++		if (n < 0)
+ 			return ERR_PTR(n);
+ 
+ 		iptr = xdr_encode_rdma_segment(iptr, seg);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
