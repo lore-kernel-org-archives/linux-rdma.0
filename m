@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 12/24] xprtrdma: Honor ->send_request API contract
-Date: Wed, 29 Jun 2016 13:53:43 -0400
-Message-ID: <20160629175343.15094.69342.stgit@manet.1015granger.net>
+Subject: [PATCH v4 14/24] xprtrdma: Allocate MRs on demand
+Date: Wed, 29 Jun 2016 13:54:00 -0400
+Message-ID: <20160629175400.15094.33360.stgit@manet.1015granger.net>
 References: <20160629173231.15094.52660.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,224 +13,465 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit c93c62231cf5 ("xprtrdma: Disconnect on registration failure")
-added a disconnect for some RPC marshaling failures. This is needed
-only in a handful of cases, but it was triggering for simple stuff
-like temporary resource shortages. Try to straighten this out.
+Frequent MR list exhaustion can impact I/O throughput, so enough MRs
+are always created during transport set-up to prevent running out.
+This means more MRs are created than most workloads need.
 
-Fix up the lower layers so they don't return -ENOMEM or other error
-codes that the RPC client's FSM doesn't explicitly recognize.
+Commit 94f58c58c0b4 ("xprtrdma: Allow Read list and Reply chunk
+simultaneously") introduced support for sending two chunk lists per
+RPC, which consumes more MRs per RPC.
 
-Also fix up the places in the send_request path that do want a
-disconnect. For example, when ib_post_send or ib_post_recv fail,
-this is a sign that there is a send or receive queue resource
-miscalculation. That should be rare, and is a sign of a software
-bug. But xprtrdma can recover: disconnect to reset the transport and
-start over.
+Instead of trying to provision more MRs, introduce a mechanism for
+allocating MRs on demand. A few MRs are allocated during transport
+set-up to kick things off.
+
+This significantly reduces the average number of MRs per transport
+while allowing the MR count to grow for workloads or devices that
+need more MRs.
+
+FRWR with mlx4 allocated almost 400 MRs per transport before this
+patch. Now it starts with 32.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c   |    6 +++---
- net/sunrpc/xprtrdma/frwr_ops.c  |   13 +++++++------
- net/sunrpc/xprtrdma/rpc_rdma.c  |    2 +-
- net/sunrpc/xprtrdma/transport.c |   20 +++++++++++++++-----
- net/sunrpc/xprtrdma/verbs.c     |   22 +++++++++++++---------
- 5 files changed, 39 insertions(+), 24 deletions(-)
+ net/sunrpc/xprtrdma/fmr_ops.c   |   64 +++----------------------
+ net/sunrpc/xprtrdma/frwr_ops.c  |   64 +++----------------------
+ net/sunrpc/xprtrdma/transport.c |    5 +-
+ net/sunrpc/xprtrdma/verbs.c     |   98 +++++++++++++++++++++++++++++++++++++--
+ net/sunrpc/xprtrdma/xprt_rdma.h |    7 ++-
+ 5 files changed, 114 insertions(+), 124 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 8b6ce8e..aae4c37 100644
+index bc5f4a1..758cd1a 100644
 --- a/net/sunrpc/xprtrdma/fmr_ops.c
 +++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -219,7 +219,7 @@ fmr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 		rpcrdma_defer_mr_recovery(mw);
- 	mw = rpcrdma_get_mw(r_xprt);
- 	if (!mw)
--		return -ENOMEM;
-+		return -ENOBUFS;
- 
- 	pageoff = offset_in_page(seg1->mr_offset);
- 	seg1->mr_offset -= pageoff;	/* start of page */
-@@ -269,14 +269,14 @@ out_dmamap_err:
- 	pr_err("rpcrdma: failed to dma map sg %p sg_nents %u\n",
- 	       mw->mw_sg, mw->mw_nents);
- 	rpcrdma_defer_mr_recovery(mw);
--	return -ENOMEM;
-+	return -EIO;
- 
- out_maperr:
- 	pr_err("rpcrdma: ib_map_phys_fmr %u@0x%llx+%i (%d) status %i\n",
- 	       len, (unsigned long long)dma_pages[0],
- 	       pageoff, mw->mw_nents, rc);
- 	rpcrdma_defer_mr_recovery(mw);
--	return rc;
-+	return -EIO;
+@@ -46,7 +46,7 @@ fmr_is_supported(struct rpcrdma_ia *ia)
  }
  
- /* Invalidate all memory regions that were registered for "req".
+ static int
+-__fmr_init(struct rpcrdma_mw *mw, struct ib_pd *pd)
++fmr_op_init_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *mw)
+ {
+ 	static struct ib_fmr_attr fmr_attr = {
+ 		.max_pages	= RPCRDMA_MAX_FMR_SGES,
+@@ -66,7 +66,7 @@ __fmr_init(struct rpcrdma_mw *mw, struct ib_pd *pd)
+ 
+ 	sg_init_table(mw->mw_sg, RPCRDMA_MAX_FMR_SGES);
+ 
+-	mw->fmr.fm_mr = ib_alloc_fmr(pd, RPCRDMA_FMR_ACCESS_FLAGS,
++	mw->fmr.fm_mr = ib_alloc_fmr(ia->ri_pd, RPCRDMA_FMR_ACCESS_FLAGS,
+ 				     &fmr_attr);
+ 	if (IS_ERR(mw->fmr.fm_mr))
+ 		goto out_fmr_err;
+@@ -96,7 +96,7 @@ __fmr_unmap(struct rpcrdma_mw *mw)
+ }
+ 
+ static void
+-__fmr_release(struct rpcrdma_mw *r)
++fmr_op_release_mr(struct rpcrdma_mw *r)
+ {
+ 	LIST_HEAD(unmap_list);
+ 	int rc;
+@@ -116,13 +116,11 @@ __fmr_release(struct rpcrdma_mw *r)
+ 	if (rc)
+ 		pr_err("rpcrdma: final ib_dealloc_fmr for %p returned %i\n",
+ 		       r, rc);
++
++	kfree(r);
+ }
+ 
+ /* Reset of a single FMR.
+- *
+- * There's no recovery if this fails. The FMR is abandoned, but
+- * remains in rb_all. It will be cleaned up when the transport is
+- * destroyed.
+  */
+ static void
+ fmr_op_recover_mr(struct rpcrdma_mw *mw)
+@@ -166,41 +164,6 @@ fmr_op_maxpages(struct rpcrdma_xprt *r_xprt)
+ 		     RPCRDMA_MAX_HDR_SEGS * RPCRDMA_MAX_FMR_SGES);
+ }
+ 
+-static int
+-fmr_op_init(struct rpcrdma_xprt *r_xprt)
+-{
+-	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
+-	struct rpcrdma_mw *r;
+-	int i, rc;
+-
+-	spin_lock_init(&buf->rb_mwlock);
+-	INIT_LIST_HEAD(&buf->rb_mws);
+-	INIT_LIST_HEAD(&buf->rb_all);
+-
+-	i = max_t(int, RPCRDMA_MAX_DATA_SEGS / RPCRDMA_MAX_FMR_SGES, 1);
+-	i += 2;				/* head + tail */
+-	i *= buf->rb_max_requests;	/* one set for each RPC slot */
+-	dprintk("RPC:       %s: initalizing %d FMRs\n", __func__, i);
+-
+-	while (i--) {
+-		r = kzalloc(sizeof(*r), GFP_KERNEL);
+-		if (!r)
+-			return -ENOMEM;
+-
+-		rc = __fmr_init(r, pd);
+-		if (rc) {
+-			kfree(r);
+-			return rc;
+-		}
+-
+-		r->mw_xprt = r_xprt;
+-		list_add(&r->mw_list, &buf->rb_mws);
+-		list_add(&r->mw_all, &buf->rb_all);
+-	}
+-	return 0;
+-}
+-
+ /* Use the ib_map_phys_fmr() verb to register a memory region
+  * for remote access via RDMA READ or RDMA WRITE.
+  */
+@@ -374,19 +337,6 @@ fmr_op_unmap_safe(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 	}
+ }
+ 
+-static void
+-fmr_op_destroy(struct rpcrdma_buffer *buf)
+-{
+-	struct rpcrdma_mw *r;
+-
+-	while (!list_empty(&buf->rb_all)) {
+-		r = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
+-		list_del(&r->mw_all);
+-		__fmr_release(r);
+-		kfree(r);
+-	}
+-}
+-
+ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+ 	.ro_map				= fmr_op_map,
+ 	.ro_unmap_sync			= fmr_op_unmap_sync,
+@@ -394,7 +344,7 @@ const struct rpcrdma_memreg_ops rpcrdma_fmr_memreg_ops = {
+ 	.ro_recover_mr			= fmr_op_recover_mr,
+ 	.ro_open			= fmr_op_open,
+ 	.ro_maxpages			= fmr_op_maxpages,
+-	.ro_init			= fmr_op_init,
+-	.ro_destroy			= fmr_op_destroy,
++	.ro_init_mr			= fmr_op_init_mr,
++	.ro_release_mr			= fmr_op_release_mr,
+ 	.ro_displayname			= "fmr",
+ };
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index fc2826b..d7613db9 100644
+index f3a06fa..e77776b 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -382,7 +382,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
- 			rpcrdma_defer_mr_recovery(mw);
- 		mw = rpcrdma_get_mw(r_xprt);
- 		if (!mw)
--			return -ENOMEM;
-+			return -ENOBUFS;
- 	} while (mw->frmr.fr_state != FRMR_IS_INVALID);
- 	frmr = &mw->frmr;
- 	frmr->fr_state = FRMR_IS_VALID;
-@@ -456,18 +456,18 @@ out_dmamap_err:
- 	pr_err("rpcrdma: failed to dma map sg %p sg_nents %u\n",
- 	       mw->mw_sg, mw->mw_nents);
- 	rpcrdma_defer_mr_recovery(mw);
--	return -ENOMEM;
-+	return -EIO;
- 
- out_mapmr_err:
- 	pr_err("rpcrdma: failed to map mr %p (%u/%u)\n",
- 	       frmr->fr_mr, n, mw->mw_nents);
--	rc = n < 0 ? n : -EIO;
- 	rpcrdma_defer_mr_recovery(mw);
--	return rc;
-+	return -EIO;
- 
- out_senderr:
-+	pr_err("rpcrdma: FRMR registration ib_post_send returned %i\n", rc);
- 	rpcrdma_defer_mr_recovery(mw);
--	return rc;
-+	return -ENOTCONN;
+@@ -91,12 +91,13 @@ out_not_supported:
  }
  
- static struct ib_send_wr *
-@@ -569,7 +569,8 @@ unmap:
- 	return;
+ static int
+-__frwr_init(struct rpcrdma_mw *r, struct ib_pd *pd, unsigned int depth)
++frwr_op_init_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *r)
+ {
++	unsigned int depth = ia->ri_max_frmr_depth;
+ 	struct rpcrdma_frmr *f = &r->frmr;
+ 	int rc;
  
- reset_mrs:
--	pr_warn("%s: ib_post_send failed %i\n", __func__, rc);
-+	pr_err("rpcrdma: FRMR invalidate ib_post_send returned %i\n", rc);
-+	rdma_disconnect(ia->ri_id);
+-	f->fr_mr = ib_alloc_mr(pd, IB_MR_TYPE_MEM_REG, depth);
++	f->fr_mr = ib_alloc_mr(ia->ri_pd, IB_MR_TYPE_MEM_REG, depth);
+ 	if (IS_ERR(f->fr_mr))
+ 		goto out_mr_err;
  
- 	/* Find and reset the MRs in the LOCAL_INV WRs that did not
- 	 * get posted. This is synchronous, and slow.
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 35a8109..77e002f 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -251,7 +251,7 @@ rpcrdma_convert_iovs(struct xdr_buf *xdrbuf, unsigned int pos,
- 			/* alloc the pagelist for receiving buffer */
- 			ppages[p] = alloc_page(GFP_ATOMIC);
- 			if (!ppages[p])
--				return -ENOMEM;
-+				return -EAGAIN;
- 		}
- 		seg[n].mr_page = ppages[p];
- 		seg[n].mr_offset = (void *)(unsigned long) page_base;
+@@ -123,7 +124,7 @@ out_list_err:
+ }
+ 
+ static void
+-__frwr_release(struct rpcrdma_mw *r)
++frwr_op_release_mr(struct rpcrdma_mw *r)
+ {
+ 	int rc;
+ 
+@@ -132,6 +133,7 @@ __frwr_release(struct rpcrdma_mw *r)
+ 		pr_err("rpcrdma: final ib_dereg_mr for %p returned %i\n",
+ 		       r, rc);
+ 	kfree(r->mw_sg);
++	kfree(r);
+ }
+ 
+ static int
+@@ -319,45 +321,6 @@ frwr_wc_localinv_wake(struct ib_cq *cq, struct ib_wc *wc)
+ 	complete_all(&frmr->fr_linv_done);
+ }
+ 
+-static int
+-frwr_op_init(struct rpcrdma_xprt *r_xprt)
+-{
+-	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	unsigned int depth = r_xprt->rx_ia.ri_max_frmr_depth;
+-	struct ib_pd *pd = r_xprt->rx_ia.ri_pd;
+-	int i;
+-
+-	spin_lock_init(&buf->rb_mwlock);
+-	INIT_LIST_HEAD(&buf->rb_mws);
+-	INIT_LIST_HEAD(&buf->rb_all);
+-
+-	i = max_t(int, RPCRDMA_MAX_DATA_SEGS / depth, 1);
+-	i += 2;				/* head + tail */
+-	i *= buf->rb_max_requests;	/* one set for each RPC slot */
+-	dprintk("RPC:       %s: initalizing %d FRMRs\n", __func__, i);
+-
+-	while (i--) {
+-		struct rpcrdma_mw *r;
+-		int rc;
+-
+-		r = kzalloc(sizeof(*r), GFP_KERNEL);
+-		if (!r)
+-			return -ENOMEM;
+-
+-		rc = __frwr_init(r, pd, depth);
+-		if (rc) {
+-			kfree(r);
+-			return rc;
+-		}
+-
+-		r->mw_xprt = r_xprt;
+-		list_add(&r->mw_list, &buf->rb_mws);
+-		list_add(&r->mw_all, &buf->rb_all);
+-	}
+-
+-	return 0;
+-}
+-
+ /* Post a REG_MR Work Request to register a memory region
+  * for remote access via RDMA READ or RDMA WRITE.
+  */
+@@ -618,19 +581,6 @@ frwr_op_unmap_safe(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req,
+ 	}
+ }
+ 
+-static void
+-frwr_op_destroy(struct rpcrdma_buffer *buf)
+-{
+-	struct rpcrdma_mw *r;
+-
+-	while (!list_empty(&buf->rb_all)) {
+-		r = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
+-		list_del(&r->mw_all);
+-		__frwr_release(r);
+-		kfree(r);
+-	}
+-}
+-
+ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ 	.ro_map				= frwr_op_map,
+ 	.ro_unmap_sync			= frwr_op_unmap_sync,
+@@ -638,7 +588,7 @@ const struct rpcrdma_memreg_ops rpcrdma_frwr_memreg_ops = {
+ 	.ro_recover_mr			= frwr_op_recover_mr,
+ 	.ro_open			= frwr_op_open,
+ 	.ro_maxpages			= frwr_op_maxpages,
+-	.ro_init			= frwr_op_init,
+-	.ro_destroy			= frwr_op_destroy,
++	.ro_init_mr			= frwr_op_init_mr,
++	.ro_release_mr			= frwr_op_release_mr,
+ 	.ro_displayname			= "frwr",
+ };
 diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 4c8e7f1..be4dd2c 100644
+index be4dd2c..b1dd42a 100644
 --- a/net/sunrpc/xprtrdma/transport.c
 +++ b/net/sunrpc/xprtrdma/transport.c
-@@ -558,7 +558,6 @@ out_sendbuf:
- 
- out_fail:
- 	rpcrdma_buffer_put(req);
--	r_xprt->rx_stats.failed_marshal_count++;
- 	return NULL;
+@@ -682,9 +682,10 @@ void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
+ 		   r_xprt->rx_stats.failed_marshal_count,
+ 		   r_xprt->rx_stats.bad_reply_count,
+ 		   r_xprt->rx_stats.nomsg_call_count);
+-	seq_printf(seq, "%lu %lu\n",
++	seq_printf(seq, "%lu %lu %lu\n",
+ 		   r_xprt->rx_stats.mrs_recovered,
+-		   r_xprt->rx_stats.mrs_orphaned);
++		   r_xprt->rx_stats.mrs_orphaned,
++		   r_xprt->rx_stats.mrs_allocated);
  }
  
-@@ -590,8 +589,19 @@ xprt_rdma_free(void *buffer)
- 	rpcrdma_buffer_put(req);
- }
- 
--/*
-+/**
-+ * xprt_rdma_send_request - marshal and send an RPC request
-+ * @task: RPC task with an RPC message in rq_snd_buf
-+ *
-+ * Return values:
-+ *        0:	The request has been sent
-+ * ENOTCONN:	Caller needs to invoke connect logic then call again
-+ *  ENOBUFS:	Call again later to send the request
-+ *      EIO:	A permanent error occurred. The request was not sent,
-+ *		and don't try it again
-+ *
-  * send_request invokes the meat of RPC RDMA. It must do the following:
-+ *
-  *  1.  Marshal the RPC request into an RPC RDMA request, which means
-  *	putting a header in front of data, and creating IOVs for RDMA
-  *	from those in the request.
-@@ -600,7 +610,6 @@ xprt_rdma_free(void *buffer)
-  *	the request (rpcrdma_ep_post).
-  *  4.  No partial sends are possible in the RPC-RDMA protocol (as in UDP).
-  */
--
  static int
- xprt_rdma_send_request(struct rpc_task *task)
- {
-@@ -630,11 +639,12 @@ xprt_rdma_send_request(struct rpc_task *task)
- 	return 0;
- 
- failed_marshal:
--	r_xprt->rx_stats.failed_marshal_count++;
- 	dprintk("RPC:       %s: rpcrdma_marshal_req failed, status %i\n",
- 		__func__, rc);
- 	if (rc == -EIO)
--		return -EIO;
-+		r_xprt->rx_stats.failed_marshal_count++;
-+	if (rc != -ENOTCONN)
-+		return rc;
- drop_connection:
- 	xprt_disconnect_done(xprt);
- 	return -ENOTCONN;	/* implies disconnect */
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 6fb73ff..db935ed 100644
+index db935ed..e8677ea 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1151,7 +1151,7 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
- 	if (rep) {
- 		rc = rpcrdma_ep_post_recv(ia, ep, rep);
- 		if (rc)
--			goto out;
-+			return rc;
- 		req->rl_reply = NULL;
- 	}
- 
-@@ -1176,10 +1176,12 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
- 
- 	rc = ib_post_send(ia->ri_id->qp, &send_wr, &send_wr_fail);
- 	if (rc)
--		dprintk("RPC:       %s: ib_post_send returned %i\n", __func__,
--			rc);
--out:
--	return rc;
-+		goto out_postsend_err;
-+	return 0;
-+
-+out_postsend_err:
-+	pr_err("rpcrdma: RDMA Send ib_post_send returned %i\n", rc);
-+	return -ENOTCONN;
+@@ -782,6 +782,55 @@ rpcrdma_defer_mr_recovery(struct rpcrdma_mw *mw)
+ 	schedule_delayed_work(&buf->rb_recovery_worker, 0);
  }
+ 
++static void
++rpcrdma_create_mrs(struct rpcrdma_xprt *r_xprt)
++{
++	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
++	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
++	unsigned int count;
++	LIST_HEAD(free);
++	LIST_HEAD(all);
++
++	for (count = 0; count < 32; count++) {
++		struct rpcrdma_mw *mw;
++		int rc;
++
++		mw = kzalloc(sizeof(*mw), GFP_KERNEL);
++		if (!mw)
++			break;
++
++		rc = ia->ri_ops->ro_init_mr(ia, mw);
++		if (rc) {
++			kfree(mw);
++			break;
++		}
++
++		mw->mw_xprt = r_xprt;
++
++		list_add(&mw->mw_list, &free);
++		list_add(&mw->mw_all, &all);
++	}
++
++	spin_lock(&buf->rb_mwlock);
++	list_splice(&free, &buf->rb_mws);
++	list_splice(&all, &buf->rb_all);
++	r_xprt->rx_stats.mrs_allocated += count;
++	spin_unlock(&buf->rb_mwlock);
++
++	dprintk("RPC:       %s: created %u MRs\n", __func__, count);
++}
++
++static void
++rpcrdma_mr_refresh_worker(struct work_struct *work)
++{
++	struct rpcrdma_buffer *buf = container_of(work, struct rpcrdma_buffer,
++						  rb_refresh_worker.work);
++	struct rpcrdma_xprt *r_xprt = container_of(buf, struct rpcrdma_xprt,
++						   rx_buf);
++
++	rpcrdma_create_mrs(r_xprt);
++}
++
+ struct rpcrdma_req *
+ rpcrdma_create_req(struct rpcrdma_xprt *r_xprt)
+ {
+@@ -837,21 +886,23 @@ int
+ rpcrdma_buffer_create(struct rpcrdma_xprt *r_xprt)
+ {
+ 	struct rpcrdma_buffer *buf = &r_xprt->rx_buf;
+-	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	int i, rc;
+ 
+ 	buf->rb_max_requests = r_xprt->rx_data.max_requests;
+ 	buf->rb_bc_srv_max_requests = 0;
+ 	atomic_set(&buf->rb_credits, 1);
++	spin_lock_init(&buf->rb_mwlock);
+ 	spin_lock_init(&buf->rb_lock);
+ 	spin_lock_init(&buf->rb_recovery_lock);
++	INIT_LIST_HEAD(&buf->rb_mws);
++	INIT_LIST_HEAD(&buf->rb_all);
+ 	INIT_LIST_HEAD(&buf->rb_stale_mrs);
++	INIT_DELAYED_WORK(&buf->rb_refresh_worker,
++			  rpcrdma_mr_refresh_worker);
+ 	INIT_DELAYED_WORK(&buf->rb_recovery_worker,
+ 			  rpcrdma_mr_recovery_worker);
+ 
+-	rc = ia->ri_ops->ro_init(r_xprt);
+-	if (rc)
+-		goto out;
++	rpcrdma_create_mrs(r_xprt);
+ 
+ 	INIT_LIST_HEAD(&buf->rb_send_bufs);
+ 	INIT_LIST_HEAD(&buf->rb_allreqs);
+@@ -927,6 +978,32 @@ rpcrdma_destroy_req(struct rpcrdma_ia *ia, struct rpcrdma_req *req)
+ 	kfree(req);
+ }
+ 
++static void
++rpcrdma_destroy_mrs(struct rpcrdma_buffer *buf)
++{
++	struct rpcrdma_xprt *r_xprt = container_of(buf, struct rpcrdma_xprt,
++						   rx_buf);
++	struct rpcrdma_ia *ia = rdmab_to_ia(buf);
++	struct rpcrdma_mw *mw;
++	unsigned int count;
++
++	count = 0;
++	spin_lock(&buf->rb_mwlock);
++	while (!list_empty(&buf->rb_all)) {
++		mw = list_entry(buf->rb_all.next, struct rpcrdma_mw, mw_all);
++		list_del(&mw->mw_all);
++
++		spin_unlock(&buf->rb_mwlock);
++		ia->ri_ops->ro_release_mr(mw);
++		count++;
++		spin_lock(&buf->rb_mwlock);
++	}
++	spin_unlock(&buf->rb_mwlock);
++	r_xprt->rx_stats.mrs_allocated = 0;
++
++	dprintk("RPC:       %s: released %u MRs\n", __func__, count);
++}
++
+ void
+ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+ {
+@@ -955,7 +1032,7 @@ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+ 	}
+ 	spin_unlock(&buf->rb_reqslock);
+ 
+-	ia->ri_ops->ro_destroy(buf);
++	rpcrdma_destroy_mrs(buf);
+ }
+ 
+ struct rpcrdma_mw *
+@@ -973,8 +1050,17 @@ rpcrdma_get_mw(struct rpcrdma_xprt *r_xprt)
+ 	spin_unlock(&buf->rb_mwlock);
+ 
+ 	if (!mw)
+-		pr_err("RPC:       %s: no MWs available\n", __func__);
++		goto out_nomws;
+ 	return mw;
++
++out_nomws:
++	dprintk("RPC:       %s: no MWs available\n", __func__);
++	schedule_delayed_work(&buf->rb_refresh_worker, 0);
++
++	/* Allow the reply handler and refresh worker to run */
++	cond_resched();
++
++	return NULL;
+ }
+ 
+ void
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 08d441d..649d01d 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -339,6 +339,7 @@ struct rpcrdma_buffer {
+ 	spinlock_t		rb_recovery_lock; /* protect rb_stale_mrs */
+ 	struct list_head	rb_stale_mrs;
+ 	struct delayed_work	rb_recovery_worker;
++	struct delayed_work	rb_refresh_worker;
+ };
+ #define rdmab_to_ia(b) (&container_of((b), struct rpcrdma_xprt, rx_buf)->rx_ia)
+ 
+@@ -387,6 +388,7 @@ struct rpcrdma_stats {
+ 	unsigned long		bcall_count;
+ 	unsigned long		mrs_recovered;
+ 	unsigned long		mrs_orphaned;
++	unsigned long		mrs_allocated;
+ };
  
  /*
-@@ -1204,11 +1206,13 @@ rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
- 				   DMA_BIDIRECTIONAL);
+@@ -405,8 +407,9 @@ struct rpcrdma_memreg_ops {
+ 				   struct rpcrdma_ep *,
+ 				   struct rpcrdma_create_data_internal *);
+ 	size_t		(*ro_maxpages)(struct rpcrdma_xprt *);
+-	int		(*ro_init)(struct rpcrdma_xprt *);
+-	void		(*ro_destroy)(struct rpcrdma_buffer *);
++	int		(*ro_init_mr)(struct rpcrdma_ia *,
++				      struct rpcrdma_mw *);
++	void		(*ro_release_mr)(struct rpcrdma_mw *);
+ 	const char	*ro_displayname;
+ };
  
- 	rc = ib_post_recv(ia->ri_id->qp, &recv_wr, &recv_wr_fail);
--
- 	if (rc)
--		dprintk("RPC:       %s: ib_post_recv returned %i\n", __func__,
--			rc);
--	return rc;
-+		goto out_postrecv;
-+	return 0;
-+
-+out_postrecv:
-+	pr_err("rpcrdma: ib_post_recv returned %i\n", rc);
-+	return -ENOTCONN;
- }
- 
- /**
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
