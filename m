@@ -1,79 +1,130 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH 00/12] SELinux support for Infiniband RDMA
-Date: Wed, 29 Jun 2016 13:33:44 -0400
-Message-ID: <CAHC9VhRKFmZ+thwqbq8JnGbj04+Uex4JM0CS=umjfUQB90k0VQ@mail.gmail.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 00/24] NFS/RDMA client patches proposed for v4.8
+Date: Wed, 29 Jun 2016 13:52:03 -0400
+Message-ID: <20160629173231.15094.52660.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Dan Jurgens <danielj@mellanox.com>, Stephen Smalley <sds@tycho.nsa.gov>
-Cc: chrisw@sous-sol.org, Eric Paris <eparis@parisplace.org>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj@mellanox.com> wrote:
-> From: Daniel Jurgens <danielj@mellanox.com>
->
-> This patch series was submitted previously as an RFC.  The 3rd version was
-> posted on 19 Apr 2016 with the subject "[RFC PATCH v3 NN/MM] SELinux support
-> for Infiniband RDMA".
+This series implements the following:
 
-Hi Dan,
+- Fixes to FMR disconnect recovery
+- Removal of the insecure ALLPHYSICAL memory registration mode
+- Significant reductions in per-transport memory consumption
+- Support for sec=krb5, sec=krb5i, and sec=krb5p with NFS/RDMA
+  (with no performance impact on sec=sys)
+- Pre-requisites for device removal support
 
-Thanks for sticking with this patchset, I'm working through it right
-now and I have a question on the overall design (below).
+Kerberos with NFS/RDMA is useful mainly for secure authentication of
+each RPC transaction (sec=krb5). The Kerberos integrity and privacy
+services are also available, providing feature parity with TCP in
+environments where the use of sec=krb5i or sec=krb5p is mandated by
+IT policy.
 
-> Because RDMA allows for kernel bypass all enforcement must be done during
-> connection setup.  To communicate over RDMA requires a send and receive queue
-> called a queue pair (QP).  During the creation of a QP it is initialized
-> before it can be used to send or receive data.  During initialization the user
-> must provide the PKey and port the QP will use, at this time access can be
-> enforced.
->
-> Because there is a possibility that the enforcement settings or security
-> policy can change, a means of notifying the ib_core module of such changes is
-> required.  To facilitate this two LSM hooks are provided, ib_core will
-> register and unregister a callback function at init and cleanup respectively.
-> SELinux will call the callback as appropriate if it has been registered.
-> When the callback is called ib_core will recheck the PKey access for all
-> existing QPs.
+No changes to the Linux server are needed to use Kerberos with
+NFS/RDMA.
 
-...
+The mlx4_alloc_priv_pages workaround has been dropped, as it was
+merged into v4.7-rc5.
 
-> In order to properly enforce security when changes to the PKey table or
-> security policy or enforcement occur ib_core must track which QPs are using
-> each port, pkey index, and alternate path for every IB device.  This makes
-> operations that used to be atomic transactional.
->
-> When modifying a QP ib_core must associate it with the PKey index, port,
-> and alternate path specified.  If the QP was already associated with different
-> settings the QP is added to the new list prior to the modify attempt.  If
-> the modify succeeds then the old listing is removed.  If the modify fails
-> the new listing is removed and the old listing remains unchanged.
->
-> When destroying a QP the ib_qp structure is freed by the hardware driver
-> if the destroy is successful.  This requires storing security related
-> information in a separate structure. When a destroy request is in process
-> the ib_qp structure is in an undefined state so if there are changes to the
-> security policy or PKey table the security checks cannot reset the QP if it
-> doesn't have permission for the new setting.  If the destroy fails security
-> for that QP must be enforced again, and its status in the list restored.
-> If the destroy succeeds the security info can be cleaned up and freed.
+Otherwise, there are only a few minor clean-ups to the series,
+listed below. Anna, these are ready for you to pop into linux-next
+and then consider for the 4.8 merge window.
 
-Perhaps I'll end up answering this for myself as I work my way through
-the patches, but hopefully you are handling the case where a destroy
-operation fails and the QP needs to be revalidated?
 
-I'm also wondering if QP revalidation on a security policy change is
-worth the trouble; we've historically not been able to provide any
-revoke guarantees so I'm not sure if it is worth a lot of added
-complexity to gain this functionality just for Infiniband.  That said,
-it would be *nice* to have revalidation/revocation working, even if
-only for IB.  It may be that we need similar code to handle the
-various corner cases, so we may be stuck with the complexity anyway, I
-just thought it was worth bringing up as a topic of discussion.
+Available in the "nfs-rdma-for-4.8" topic branch of this git repo:
 
--- 
-paul moore
-www.paul-moore.com
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.8
+
+
+Changes since v3:
+- Rebased on v4.7-rc5
+- Dropped mlx4_alloc_priv_pages fix, was merged into v4.7-rc5
+- Added Tested-by: Steve Wise
+- Factored destroy_mrs helper out of buffer_destroy
+- More clean-up in rpcrdma_ia_open
+- Remove arbitrary "+ 2" from loop that allocates receive buffers
+- Removed unneeded INIT_LIST_HEAD in fmr_op_init
+
+
+Changes since v2:
+- Rebased on v4.7-rc4
+- Reworked the mlx4_alloc_priv_pages patch
+- Refactored registration mode checking
+- Allocate 32 MRs at a time
+
+
+Changes since v1:
+- Rebased on v4.7-rc3
+- Re-ordered series so FMR fixes come first
+- Fix ib_unmap_fmr list handling
+- Replaced the bogus 256-MRs-per-QP patch with dynamic MR allocation
+- Add performance counters to expose MR allocation and recovery behavior
+- Included Sagi's proposed mlx4 priv pages fix
+- Make it easier to merge my datatouch patch with Scott's bug fix
+- Split some patches for readability
+- Dropped some clean-up patches to keep the series patch count down
+
+---
+
+Chuck Lever (24):
+      xprtrdma: Remove FMRs from the unmap list after unmapping
+      xprtrdma: Create common scatterlist fields in rpcrdma_mw
+      xprtrdma: Move init and release helpers
+      xprtrdma: Rename fields in rpcrdma_fmr
+      xprtrdma: Use scatterlist for DMA mapping and unmapping under FMR
+      xprtrdma: Refactor MR recovery work queues
+      xprtrdma: Do not leak an MW during a DMA map failure
+      xprtrdma: Remove ALLPHYSICAL memory registration mode
+      xprtrdma: Remove rpcrdma_map_one() and friends
+      xprtrdma: Clean up device capability detection
+      xprtrdma: Reply buffer exhaustion can be catastrophic
+      xprtrdma: Honor ->send_request API contract
+      xprtrdma: Chunk list encoders must not return zero
+      xprtrdma: Allocate MRs on demand
+      xprtrdma: Release orphaned MRs immediately
+      xprtrdma: Place registered MWs on a per-req list
+      xprtrdma: Chunk list encoders no longer share one rl_segments array
+      xprtrdma: rpcrdma_inline_fixup() overruns the receive page list
+      xprtrdma: Do not update {head,tail}.iov_len in rpcrdma_inline_fixup()
+      xprtrdma: Update only specific fields in private receive buffer
+      xprtrdma: Clean up fixup_copy_count accounting
+      xprtrdma: No direct data placement with krb5i and krb5p
+      svc: Avoid garbage replies when pc_func() returns rpc_drop_reply
+      NFS: Don't drop CB requests with invalid principals
+
+
+ fs/nfs/callback_xdr.c                 |    6 -
+ include/linux/sunrpc/auth.h           |    3 
+ include/linux/sunrpc/gss_api.h        |    2 
+ net/sunrpc/auth_gss/auth_gss.c        |    2 
+ net/sunrpc/auth_gss/gss_krb5_mech.c   |    2 
+ net/sunrpc/auth_gss/gss_mech_switch.c |   12 +
+ net/sunrpc/svc.c                      |    8 +
+ net/sunrpc/xprtrdma/Makefile          |    2 
+ net/sunrpc/xprtrdma/fmr_ops.c         |  378 +++++++++++++++------------------
+ net/sunrpc/xprtrdma/frwr_ops.c        |  369 ++++++++++++--------------------
+ net/sunrpc/xprtrdma/physical_ops.c    |  122 -----------
+ net/sunrpc/xprtrdma/rpc_rdma.c        |  274 +++++++++++++-----------
+ net/sunrpc/xprtrdma/transport.c       |   40 ++-
+ net/sunrpc/xprtrdma/verbs.c           |  242 +++++++++++++++------
+ net/sunrpc/xprtrdma/xprt_rdma.h       |  118 ++++------
+ 15 files changed, 728 insertions(+), 852 deletions(-)
+ delete mode 100644 net/sunrpc/xprtrdma/physical_ops.c
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
