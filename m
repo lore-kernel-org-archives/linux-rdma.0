@@ -1,65 +1,112 @@
 From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 03/12] selinux: Implement Infiniband flush callback
-Date: Thu, 30 Jun 2016 16:24:25 -0400
-Message-ID: <CAGH-Kgs=YrCWegD9H8r4WjCPMZpaqVRDiWAFP2C0bFegS7vgbA@mail.gmail.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-4-git-send-email-danielj@mellanox.com> <20160630151005.GC22107@yuval-lap.uk.oracle.com>
- <AM4PR0501MB22578AA5FF8B4062F650C581C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
- <CAGH-Kgtn0EFxYc+UOvVQk-0Bco0oOG=STZA+aGYza4TmbNXq3A@mail.gmail.com> <13cf2b8b-1d4e-e61f-80fe-110af2a719cf@schaufler-ca.com>
+Subject: Re: [PATCH 01/12] security: Add LSM hooks for Infiniband security
+Date: Thu, 30 Jun 2016 16:27:58 -0400
+Message-ID: <CAGH-KgtVpX-y+r+pA0_0Hg-Yqx6YWpuc6ud-rk_pHQCtOEFGag@mail.gmail.com>
+References: <1466711578-64398-1-git-send-email-danielj@mellanox.com> <1466711578-64398-2-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13cf2b8b-1d4e-e61f-80fe-110af2a719cf-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>
+In-Reply-To: <1466711578-64398-2-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>
-Cc: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 30, 2016 at 4:16 PM, Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org> wrote:
-> On 6/30/2016 12:52 PM, Paul Moore wrote:
->> On Thu, Jun 30, 2016 at 11:44 AM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>> On 6/30/2016 10:10 AM, Yuval Shaia wrote:
->>>> On Thu, Jun 23, 2016 at 10:52:49PM +0300, Dan Jurgens wrote:
->>>>
->>>>> +static void (*ib_flush_callback)(void);
->>>> Do we really want to have such ib_ prefix in security/ directory?
->>>>
->>>>> +            if (ib_flush_callback)
->>>>> +                    ib_flush_callback();
->>>> How about some generic mechanism (such as a list) in case more
->>>> modules/drivers would like to register callbacks?
->>>> ( assuming this is no longer RFC :) )
->>>>
->>> Paul Moore and I were having a higher level discussion about this in the 00/12 thread.  I think your suggestion makes sense, perhaps Paul will weigh in when he reaches this patch.
->> I'm still working on understanding IB, but my current thinking is very
->> similar to Yuval's suggestions.  There is a risk of creating a general
->> purpose mechanism to solve a specific, isolated problem, but adding a
->> LSM notification mechanism does seem like a reasonable thing to do.
->>
->> My current thinking is to have the LSM framework itself, e.g.
->> security/security.c, maintain a list of callbacks (BTW, please make it
->> a RCU protected list) with other non-LSM subsystems registering
->> callbacks, and specific LSMs making notification calls into the LSM
->> framework itself which would handle iterating through the registered
->> callbacks.  Since we're going down the general purpose solution route,
->> I might add an event field and a void pointer to the callback, for
->> example:
->>
->>   void lsm_notifier_callback(unsigned int event, void *ptr);
->>
->> ... I would expect at first we would only have a POLICY_CHANGE event
->> (ptr set to NULL), but we may want/need to add other events in the
->> future.
->>
->> Make sense?
+On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Hmm. Do you think that we'd want to rewhack the audit code
-> so that it used this new, general mechanism for its callbacks?
+> Add nine new hooks
+>  1. Allocate security contexts for Infiniband QPs.
+>  2. Free security contexts for Infiniband QPs.
+>  3. Allocate security contexts for Infiniband MAD agents.
+>  4. Free security contexts for Infiniband MAD agents.
+>  5. Enforce QP access to Pkeys
+>  6. Enforce MAD agent access to Pkeys
+>  7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
+>     Management Packets (SMP)
+>  8. A hook to register a callback to receive notifications of
+>     security policy or enforcement changes.  Restricting a QPs access to
+>     a pkey will be done during setup and not on a per packet basis
+>     access must be enforced again.
+>  9. A hook to unregister the callback.
+>
+> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  include/linux/lsm_hooks.h | 71 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/security.h  | 63 +++++++++++++++++++++++++++++++++++
+>  include/rdma/ib_verbs.h   |  4 +++
+>  security/Kconfig          |  9 +++++
+>  security/security.c       | 83 +++++++++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 230 insertions(+)
 
-You aren't talking about the callbacks in common_lsm_audit() are you?
-I think that's a completely different beast from a LSM notifier
-callback.  I'm not opposed to changes to common_lsm_audit(), but I
-think that's a different topic and a different thread.
+I'd recommend putting the IB hook calls into this patch as well, it
+helps make the hooks a bit more concrete as you can see where, and how
+they are called.
+
+> diff --git a/include/linux/lsm_hooks.h b/include/linux/lsm_hooks.h
+> index 7ae3976..6b47c8d 100644
+> --- a/include/linux/lsm_hooks.h
+> +++ b/include/linux/lsm_hooks.h
+> @@ -8,6 +8,7 @@
+>   * Copyright (C) 2001 Silicon Graphics, Inc. (Trust Technology Group)
+>   * Copyright (C) 2015 Intel Corporation.
+>   * Copyright (C) 2015 Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>
+> + * Copyright (C) 2016 Mellanox Techonologies
+>   *
+>   *     This program is free software; you can redistribute it and/or modify
+>   *     it under the terms of the GNU General Public License as published by
+> @@ -876,6 +877,50 @@
+>   *     associated with the TUN device's security structure.
+>   *     @security pointer to the TUN devices's security structure.
+>   *
+> + * Security hooks for Infiniband
+> + *
+> + * @ib_qp_pkey_access:
+> + *     Check permission to access a pkey when modifing a QP.
+> + *     @subnet_prefix the subnet prefix of the port being used.
+> + *     @pkey the pkey to be accessed.
+> + *     @qp_sec pointer to the ib_qp_security structure.
+> + * @ib_mad_agent_pkey_access:
+> + *     Check permission to access a pkey when transmiting and receiving MADS.
+> + *     @subnet_prefix the subnet prefix of the port being used.
+> + *     @pkey the pkey to be accessed.
+> + *     @mad_agent pointer to the ib_mad_agent structure.
+> + * @ib_end_port_smp:
+> + *     Check permissions to send and receive SMPs on a end port.
+> + *     @dev_name the IB device name (i.e. mlx4_0).
+> + *     @port_num the port number.
+> + *     @mad_agent pointer to the ib_mad_agent structure.
+> + * @ib_qp_alloc_security:
+> + *     Allocate and attach a security structure to the qp_sec->q_security
+> + *     field. The q_security field is initialized to NULL when the structure
+> + *     is allocated.  A separate QP security structure is used instead of the
+> + *     QP structure because when a QP is destroyed the memory is freed by the
+> + *     hardware driver.  That operation can fail so the security info must be
+> + *     maintained until the destroy completes successfully.
+> + *     @qp_sec contains the ib_qp_security structure to be modified.
+> + *     Return 0 if operation was successful.
+> + * @ib_mad_agent_alloc_security:
+> + *     Allocate and attach a security structure to the mad_agent->m_security
+> + *     field. The m_security field is initialized to NULL when the structure
+> + *     is allocated.
+> + *     @mad_agent contains the ib_mad_agent structure to be modified.
+> + *     Return 0 if operation was successful.
+> + * @ib_qp_free_security:
+> + *     Deallocate and clear the qp_sec->q_security field.
+> + *     @qp_sec contains the ib_qp_security structure to be modified.
+> + * @ib_mad_agent_free_security:
+> + *     Deallocate and clear the mad_agent->m_security field.
+> + *     @mad_agent contains the ib_mad_agent structure to be modified.
+> + * @register_ib_flush_callback:
+> + *     Provide a way for security modules to notify ib_core of policy changes.
+> + *     @callback function pointer to call when policy changes.
+> + * @unregister_ib_flush_callback:
+> + *     Unregister the callback function.
+> + *
+>   * Security hooks for XFRM operations.
+>   *
+>   * @xfrm_policy_alloc_security:
 
 -- 
 paul moore
