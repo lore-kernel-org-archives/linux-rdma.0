@@ -1,73 +1,48 @@
-From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 01/12] security: Add LSM hooks for Infiniband security
-Date: Thu, 30 Jun 2016 16:33:56 -0400
-Message-ID: <CAGH-KgtcpKPciy-1-KhQDw2xA5-35t_W9TKCf3z9tj=Vg_hjsg@mail.gmail.com>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 03/12] selinux: Implement Infiniband flush callback
+Date: Thu, 30 Jun 2016 20:39:34 +0000
+Message-ID: <AM4PR0501MB225711F81F1E2904ABD5142CC4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
 References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-2-git-send-email-danielj@mellanox.com>
+ <1466711578-64398-4-git-send-email-danielj@mellanox.com>
+ <20160630151005.GC22107@yuval-lap.uk.oracle.com>
+ <AM4PR0501MB22578AA5FF8B4062F650C581C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
+ <CAGH-Kgtn0EFxYc+UOvVQk-0Bco0oOG=STZA+aGYza4TmbNXq3A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-In-Reply-To: <1466711578-64398-2-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 6/30/2016 2:52 PM, Paul Moore wrote:
+> I'm still working on understanding IB, but my current thinking is very
+> similar to Yuval's suggestions.  There is a risk of creating a general
+> purpose mechanism to solve a specific, isolated problem, but adding a
+> LSM notification mechanism does seem like a reasonable thing to do.
 >
-> Add nine new hooks
->  1. Allocate security contexts for Infiniband QPs.
->  2. Free security contexts for Infiniband QPs.
->  3. Allocate security contexts for Infiniband MAD agents.
->  4. Free security contexts for Infiniband MAD agents.
->  5. Enforce QP access to Pkeys
->  6. Enforce MAD agent access to Pkeys
->  7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
->     Management Packets (SMP)
->  8. A hook to register a callback to receive notifications of
->     security policy or enforcement changes.  Restricting a QPs access to
->     a pkey will be done during setup and not on a per packet basis
->     access must be enforced again.
->  9. A hook to unregister the callback.
+> My current thinking is to have the LSM framework itself, e.g.
+> security/security.c, maintain a list of callbacks (BTW, please make it
+> a RCU protected list) with other non-LSM subsystems registering
+> callbacks, and specific LSMs making notification calls into the LSM
+> framework itself which would handle iterating through the registered
+> callbacks.  Since we're going down the general purpose solution route,
+> I might add an event field and a void pointer to the callback, for
+> example:
 >
-> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  include/linux/lsm_hooks.h | 71 ++++++++++++++++++++++++++++++++++++++++
->  include/linux/security.h  | 63 +++++++++++++++++++++++++++++++++++
->  include/rdma/ib_verbs.h   |  4 +++
->  security/Kconfig          |  9 +++++
->  security/security.c       | 83 +++++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 230 insertions(+)
-
-...
-
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 432bed5..3f6780b 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1428,6 +1428,10 @@ struct ib_srq {
->         } ext;
->  };
+>   void lsm_notifier_callback(unsigned int event, void *ptr);
 >
-> +struct ib_qp_security {
-> +       void *q_security;
-> +};
+> ... I would expect at first we would only have a POLICY_CHANGE event
+> (ptr set to NULL), but we may want/need to add other events in the
+> future.
+>
+> Make sense?
 
-Sorry, I missed this earlier and didn't realize it until I was going
-through 4/12 ... why both with ib_qp_security?  Why not just use a
-straight void pointer?
+Yes, I think so.  I'll make this change.
 
--- 
-paul moore
-security @ redhat
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
