@@ -1,10 +1,11 @@
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 03/12] selinux: Implement Infiniband flush callback
-Date: Thu, 30 Jun 2016 15:44:45 +0000
-Message-ID: <AM4PR0501MB22578AA5FF8B4062F650C581C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH 05/12] selinux: Implement Infiniband PKey "Access" access
+ vector
+Date: Thu, 30 Jun 2016 15:35:40 +0000
+Message-ID: <AM4PR0501MB2257829BD6F13305957CB9B7C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
 References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-4-git-send-email-danielj@mellanox.com>
- <20160630151005.GC22107@yuval-lap.uk.oracle.com>
+ <1466711578-64398-6-git-send-email-danielj@mellanox.com>
+ <20160630152343.GE22107@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,19 +19,35 @@ To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/30/2016 10:10 AM, Yuval Shaia wrote:
-> On Thu, Jun 23, 2016 at 10:52:49PM +0300, Dan Jurgens wrote:
+On 6/30/2016 10:24 AM, Yuval Shaia wrote:
+> On Thu, Jun 23, 2016 at 10:52:51PM +0300, Dan Jurgens wrote:
+>> +	if (c) {
+>> +		if (!c->sid[0]) {
+>> +			rc = sidtab_context_to_sid(&sidtab,
+>> +						   &c->context[0],
+>> +						   &c->sid[0]);
+>> +			if (rc)
+>> +				goto out;
+>> +		}
+>> +		*out_sid = c->sid[0];
+>> +	} else {
+>> +		*out_sid = SECINITSID_PKEY;
+>> +	}
+> Curly brackets are not needed
 >
->> +static void (*ib_flush_callback)(void);
-> Do we really want to have such ib_ prefix in security/ directory?
->
->> +		if (ib_flush_callback)
->> +			ib_flush_callback();
-> How about some generic mechanism (such as a list) in case more
-> modules/drivers would like to register callbacks?
-> ( assuming this is no longer RFC :) )
->
-Paul Moore and I were having a higher level discussion about this in the 00/12 thread.  I think your suggestion makes sense, perhaps Paul will weigh in when he reaches this patch.
+According to the coding style guide if either branch requires brackets both should use them:
+
+This does not apply if only one branch of a conditional statement is a single
+statement; in the latter case use braces in both branches:
+
+	if (condition) {
+		do_this();
+		do_that();
+	} else {
+		otherwise();
+	}
+
+
 
 _______________________________________________
 Selinux mailing list
