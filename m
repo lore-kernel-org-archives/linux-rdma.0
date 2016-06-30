@@ -1,57 +1,34 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 5/5] IB/isert: Remove an unused member variable
-Date: Thu, 30 Jun 2016 15:51:48 +0200
-Message-ID: <1adf8679-33d8-ef72-7f11-23b4a889d669@sandisk.com>
-References: <c9a58bf1-b230-5990-a2b3-4e6aa729cd8f@sandisk.com>
+Subject: Re: [PATCH 3/5] IB/isert: Limit the number of SG elements per work
+ request
+Date: Thu, 30 Jun 2016 15:47:38 +0200
+Message-ID: <df3c31c2-a16c-5aca-a5b7-cfac4951a918@sandisk.com>
+References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com>
+ <885f39a6-9d75-9999-d582-e403f072bec1@sandisk.com>
+ <006d01d1d14a$0574f0b0$105ed210$@opengridcomputing.com>
+ <6e513522-6b06-d942-bddd-cc00f9a32f44@sandisk.com>
+ <01ca01d1d14f$0ae47160$20ad5420$@opengridcomputing.com>
+ <9e8c6a52-3bf9-6b3f-1f36-d77205cb3ee0@sandisk.com>
+ <022501d1d171$2acf8dd0$806ea970$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c9a58bf1-b230-5990-a2b3-4e6aa729cd8f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <022501d1d171$2acf8dd0$806ea970$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "'Nicholas A. Bellinger'" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, 'Parav Pandit' <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Laurence Oberman' <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 2 --
- drivers/infiniband/ulp/isert/ib_isert.h | 1 -
- 2 files changed, 3 deletions(-)
+On 06/28/2016 09:13 PM, Steve Wise wrote:
+>> Can you use the code from the for-next branch in the following
+>> repository for your tests: https://github.com/bvanassche/linux.
+>
+> Which branch?
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index a990c04..ba6be06 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -137,8 +137,6 @@ isert_create_qp(struct isert_conn *isert_conn,
- 	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX;
- 	attr.cap.max_send_sge = device->ib_device->attrs.max_sge;
--	isert_conn->max_sge = min(device->ib_device->attrs.max_sge,
--				  device->ib_device->attrs.max_sge_rd);
- 	attr.cap.max_recv_sge = 1;
- 	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
- 	attr.qp_type = IB_QPT_RC;
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index e512ba9..fc791ef 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -138,7 +138,6 @@ struct isert_conn {
- 	u32			responder_resources;
- 	u32			initiator_depth;
- 	bool			pi_support;
--	u32			max_sge;
- 	struct iser_rx_desc	*login_req_buf;
- 	char			*login_rsp_buf;
- 	u64			login_req_dma;
--- 
-2.8.4
+The for-next branch. I thought I had mentioned this in my previous message?
 
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
