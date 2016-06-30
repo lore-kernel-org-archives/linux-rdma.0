@@ -1,34 +1,60 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 3/5] IB/isert: Limit the number of SG elements per work
- request
-Date: Thu, 30 Jun 2016 15:47:38 +0200
-Message-ID: <df3c31c2-a16c-5aca-a5b7-cfac4951a918@sandisk.com>
-References: <419391ba-0c39-11ce-f249-84b428dc73d5@sandisk.com>
- <885f39a6-9d75-9999-d582-e403f072bec1@sandisk.com>
- <006d01d1d14a$0574f0b0$105ed210$@opengridcomputing.com>
- <6e513522-6b06-d942-bddd-cc00f9a32f44@sandisk.com>
- <01ca01d1d14f$0ae47160$20ad5420$@opengridcomputing.com>
- <9e8c6a52-3bf9-6b3f-1f36-d77205cb3ee0@sandisk.com>
- <022501d1d171$2acf8dd0$806ea970$@opengridcomputing.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/5] Reduce RDMA RW API SGE limit
+Date: Thu, 30 Jun 2016 09:54:38 -0400 (EDT)
+Message-ID: <1995455969.2271399.1467294878655.JavaMail.zimbra@redhat.com>
+References: <c9a58bf1-b230-5990-a2b3-4e6aa729cd8f@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <022501d1d171$2acf8dd0$806ea970$@opengridcomputing.com>
+In-Reply-To: <c9a58bf1-b230-5990-a2b3-4e6aa729cd8f-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "'Nicholas A. Bellinger'" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, 'Parav Pandit' <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Laurence Oberman' <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/28/2016 09:13 PM, Steve Wise wrote:
->> Can you use the code from the for-next branch in the following
->> repository for your tests: https://github.com/bvanassche/linux.
->
-> Which branch?
 
-The for-next branch. I thought I had mentioned this in my previous message?
 
-Bart.
+----- Original Message -----
+> From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> To: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Nicholas A. Bellinger"
+> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "Parav Pandit" <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Steve
+> Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Thursday, June 30, 2016 9:46:06 AM
+> Subject: [PATCH v2 0/5] Reduce RDMA RW API SGE limit
+> 
+> Hello Doug,
+> 
+> The five patches in this series modify the RDMA RW API slightly. This is
+> needed to avoid that the SRP and iSER target drivers submit RDMA
+> requests with an SGE list that exceeds the queue pair limits. The
+> ib_srpt changes in this series have been tested but the ib_isert changes
+> not yet.
+> 
+> The changes compared to v1 of this patch series are:
+> * max_send_sge is now stored in struct ib_qp. This greatly simplifies
+>    this patch series.
+> * An unneeded initialization that I had added to rdma_rw_init_one_mr()
+>    has been left out again.
+> * Corrected "Fixes" tag in the patch description where needed.
+> 
+> The individual patches in this series are:
+> 
+> 0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
+> 0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
+> 0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
+> 0004-IB-srpt-Simplify-srpt_queue_response.patch
+> 0005-IB-isert-Remove-an-unused-member-variable.patch
+> 
+> Thanks,
+> 
+> Bart.
+> 
+
+Hell Bart
+Thanks
+Pulling and testing
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
