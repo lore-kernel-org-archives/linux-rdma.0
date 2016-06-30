@@ -1,57 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Upcoming libibverbs release
-Date: Thu, 30 Jun 2016 13:07:57 -0600
-Message-ID: <20160630190757.GA6985@obsidianresearch.com>
-References: <20160627181758.GD23540@obsidianresearch.com>
- <20160628050246.GB3584@leon.nu>
- <20160628162028.GA27518@obsidianresearch.com>
- <20160628170549.GE3584@leon.nu>
- <022001d1d170$fda2c3e0$f8e84ba0$@opengridcomputing.com>
- <20160628211441.GA5786@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0663DA@ORSMSX109.amr.corp.intel.com>
- <20160629051956.GG3584@leon.nu>
- <20160629183042.GC17031@obsidianresearch.com>
- <HE1PR05MB14189E07EE8EE458E0CCD4DAB1240@HE1PR05MB1418.eurprd05.prod.outlook.com>
+From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 03/12] selinux: Implement Infiniband flush callback
+Date: Thu, 30 Jun 2016 15:52:47 -0400
+Message-ID: <CAGH-Kgtn0EFxYc+UOvVQk-0Bco0oOG=STZA+aGYza4TmbNXq3A@mail.gmail.com>
+References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+ <1466711578-64398-4-git-send-email-danielj@mellanox.com> <20160630151005.GC22107@yuval-lap.uk.oracle.com>
+ <AM4PR0501MB22578AA5FF8B4062F650C581C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <HE1PR05MB14189E07EE8EE458E0CCD4DAB1240-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <AM4PR0501MB22578AA5FF8B4062F650C581C4240-dp/nxUn679hpbkYrVjfdjcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 30, 2016 at 06:17:06PM +0000, Liran Liss wrote:
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-> 
-> > On Wed, Jun 29, 2016 at 08:19:56AM +0300, Leon Romanovsky wrote:
-> > > On Tue, Jun 28, 2016 at 09:26:38PM +0000, Hefty, Sean wrote:
-> > > > > The fundamental question is if it is acceptable for libibverbs to
-> > > > > ship a new core provider agnostic API (cq polling) that is
-> > > > > optional depending on provider.
-> > > > >
-> > > > > I say no, that is not acceptable.
-> > > >
-> > > > I agree - there's no compelling argument that the new calls can't work over
-> > all providers.
-> > >
-> > > I agree too, this is why code is provided and nothing stops from other provider
-> > to support it.
-> > 
-> > That isn't what I said, and it isn't what everyone is agreeing with.
-> > 
-> > I said an optinal API is not acceptable to ship.
-> > 
-> 
-> What?
-> Almost every device interface has optional APIs.
+On Thu, Jun 30, 2016 at 11:44 AM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 6/30/2016 10:10 AM, Yuval Shaia wrote:
+>> On Thu, Jun 23, 2016 at 10:52:49PM +0300, Dan Jurgens wrote:
+>>
+>>> +static void (*ib_flush_callback)(void);
+>> Do we really want to have such ib_ prefix in security/ directory?
+>>
+>>> +            if (ib_flush_callback)
+>>> +                    ib_flush_callback();
+>> How about some generic mechanism (such as a list) in case more
+>> modules/drivers would like to register callbacks?
+>> ( assuming this is no longer RFC :) )
+>>
+> Paul Moore and I were having a higher level discussion about this in the 00/12 thread.  I think your suggestion makes sense, perhaps Paul will weigh in when he reaches this patch.
 
-re-read what I said. I'm not talking generally, but specifically about
-this case.
+I'm still working on understanding IB, but my current thinking is very
+similar to Yuval's suggestions.  There is a risk of creating a general
+purpose mechanism to solve a specific, isolated problem, but adding a
+LSM notification mechanism does seem like a reasonable thing to do.
 
-Jason
+My current thinking is to have the LSM framework itself, e.g.
+security/security.c, maintain a list of callbacks (BTW, please make it
+a RCU protected list) with other non-LSM subsystems registering
+callbacks, and specific LSMs making notification calls into the LSM
+framework itself which would handle iterating through the registered
+callbacks.  Since we're going down the general purpose solution route,
+I might add an event field and a void pointer to the callback, for
+example:
+
+  void lsm_notifier_callback(unsigned int event, void *ptr);
+
+... I would expect at first we would only have a POLICY_CHANGE event
+(ptr set to NULL), but we may want/need to add other events in the
+future.
+
+Make sense?
+
+-- 
+paul moore
+security @ redhat
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
