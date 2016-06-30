@@ -1,69 +1,50 @@
-From: Paul Moore <pmoore@redhat.com>
+From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH 01/12] security: Add LSM hooks for Infiniband security
-Date: Thu, 30 Jun 2016 17:27:12 -0400
-Message-ID: <CAGH-Kgv_2AoKvXVG1BCVehnETw2bGS8nxyj4PGqCJSXy1hGJUg@mail.gmail.com>
+Date: Thu, 30 Jun 2016 17:30:53 -0400
+Message-ID: <CAGH-KgvGn5btCGQGEiEHWrW4RZebjuoPYRSTz6RYzg=fXTbX2w@mail.gmail.com>
 References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-2-git-send-email-danielj@mellanox.com> <CAGH-KgtVpX-y+r+pA0_0Hg-Yqx6YWpuc6ud-rk_pHQCtOEFGag@mail.gmail.com>
- <AM4PR0501MB2257D88B4440B8992081B521C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
+ <1466711578-64398-2-git-send-email-danielj@mellanox.com> <CAGH-KgtcpKPciy-1-KhQDw2xA5-35t_W9TKCf3z9tj=Vg_hjsg@mail.gmail.com>
+ <AM4PR0501MB2257674DEA1F81F53A35AC21C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <AM4PR0501MB2257D88B4440B8992081B521C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>
-Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, "paul@paul-moore.com" <paul@paul-moore.com>, "sds@tycho.nsa.gov" <sds@tycho.nsa.gov>, "eparis@parisplace.org" <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AM4PR0501MB2257674DEA1F81F53A35AC21C4240-dp/nxUn679hpbkYrVjfdjcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org" <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 30, 2016 at 5:09 PM, Daniel Jurgens <danielj@mellanox.com> wrote:
-> On 6/30/2016 3:28 PM, Paul Moore wrote:
->> On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj@mellanox.com> wrote:
->>> From: Daniel Jurgens <danielj@mellanox.com>
+On Thu, Jun 30, 2016 at 5:27 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> On 6/30/2016 3:33 PM, Paul Moore wrote:
+>> On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>
+>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+>>> index 432bed5..3f6780b 100644
+>>> --- a/include/rdma/ib_verbs.h
+>>> +++ b/include/rdma/ib_verbs.h
+>>> @@ -1428,6 +1428,10 @@ struct ib_srq {
+>>>         } ext;
+>>>  };
 >>>
->>> Add nine new hooks
->>>  1. Allocate security contexts for Infiniband QPs.
->>>  2. Free security contexts for Infiniband QPs.
->>>  3. Allocate security contexts for Infiniband MAD agents.
->>>  4. Free security contexts for Infiniband MAD agents.
->>>  5. Enforce QP access to Pkeys
->>>  6. Enforce MAD agent access to Pkeys
->>>  7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
->>>     Management Packets (SMP)
->>>  8. A hook to register a callback to receive notifications of
->>>     security policy or enforcement changes.  Restricting a QPs access to
->>>     a pkey will be done during setup and not on a per packet basis
->>>     access must be enforced again.
->>>  9. A hook to unregister the callback.
->>>
->>> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
->>> Reviewed-by: Eli Cohen <eli@mellanox.com>
->>> ---
->>>  include/linux/lsm_hooks.h | 71 ++++++++++++++++++++++++++++++++++++++++
->>>  include/linux/security.h  | 63 +++++++++++++++++++++++++++++++++++
->>>  include/rdma/ib_verbs.h   |  4 +++
->>>  security/Kconfig          |  9 +++++
->>>  security/security.c       | 83 +++++++++++++++++++++++++++++++++++++++++++++++
->>>  5 files changed, 230 insertions(+)
->> I'd recommend putting the IB hook calls into this patch as well, it
->> helps make the hooks a bit more concrete as you can see where, and how
->> they are called.
->
-> Do you mean add them with SELinux hook implementations?  Or with the the IB/Core code where they are called?
+>>> +struct ib_qp_security {
+>>> +       void *q_security;
+>>> +};
+>> Sorry, I missed this earlier and didn't realize it until I was going
+>> through 4/12 ... why both with ib_qp_security?  Why not just use a
+>> straight void pointer?
+>>
+> In the RFC series Casey Schaufler asked me to not use void blobs to make module stacking easier.
 
-I mean the IB changes.  That way a single patch has both the hook
-declarations and their calling locations; it helps make the hooks a
-bit less abstract.
+I'm not entirely sure that is what he had in mind, but ...
 
-The SELinux hook implementations should be kept separate.
+> Also, in the IB/Core part of the series much is added to the ib_qp_security structure to track security info needed for proper enforcement.
 
-> I tried as best as I could to avoid mingling LSM, IB/Core, and SELinux changes.  Hoping to minimize the burden of a single patch needing acceptance from multiple maintainers and synchronization problems that could create.  I could split this up and add the hooks where they are actually used if you don't think that's problem though.
-
-Ultimately the entire patchset needs to get acceptance from the IB and
-SELinux folks, with no objections from any of the other LSM
-maintainers.  My guess is, I'll probably be the one who ends up
-merging this as it's more SELinux than anything else, but I'll want a
-thumbs-up/ACK from the IB folks before I do that.
+... okay, I'll reserve further comment until I get there.
 
 -- 
 paul moore
 security @ redhat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
