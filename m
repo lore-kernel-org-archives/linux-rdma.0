@@ -1,47 +1,143 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 03/12] selinux: Implement Infiniband flush callback
-Date: Thu, 30 Jun 2016 20:39:34 +0000
-Message-ID: <AM4PR0501MB225711F81F1E2904ABD5142CC4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-4-git-send-email-danielj@mellanox.com>
- <20160630151005.GC22107@yuval-lap.uk.oracle.com>
- <AM4PR0501MB22578AA5FF8B4062F650C581C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
- <CAGH-Kgtn0EFxYc+UOvVQk-0Bco0oOG=STZA+aGYza4TmbNXq3A@mail.gmail.com>
+From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 04/12] selinux: Allocate and free infiniband security hooks
+Date: Thu, 30 Jun 2016 16:42:18 -0400
+Message-ID: <CAGH-KgvtN8T7e5bKq0jJZvSzrGfFwA2VpmPf5gJuqdLZi6odEw@mail.gmail.com>
+References: <1466711578-64398-1-git-send-email-danielj@mellanox.com> <1466711578-64398-5-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1466711578-64398-5-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/30/2016 2:52 PM, Paul Moore wrote:
-> I'm still working on understanding IB, but my current thinking is very
-> similar to Yuval's suggestions.  There is a risk of creating a general
-> purpose mechanism to solve a specific, isolated problem, but adding a
-> LSM notification mechanism does seem like a reasonable thing to do.
+On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> My current thinking is to have the LSM framework itself, e.g.
-> security/security.c, maintain a list of callbacks (BTW, please make it
-> a RCU protected list) with other non-LSM subsystems registering
-> callbacks, and specific LSMs making notification calls into the LSM
-> framework itself which would handle iterating through the registered
-> callbacks.  Since we're going down the general purpose solution route,
-> I might add an event field and a void pointer to the callback, for
-> example:
+> Implement and attach hooks to allocate and free Infiniband QP and MAD
+> agent security structures.
 >
->   void lsm_notifier_callback(unsigned int event, void *ptr);
+> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  include/rdma/ib_mad.h             |  1 +
+>  include/rdma/ib_verbs.h           |  1 +
+>  security/selinux/hooks.c          | 53 +++++++++++++++++++++++++++++++++++++++
+>  security/selinux/include/objsec.h |  5 ++++
+>  4 files changed, 60 insertions(+)
 >
-> ... I would expect at first we would only have a POLICY_CHANGE event
-> (ptr set to NULL), but we may want/need to add other events in the
-> future.
->
-> Make sense?
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index c8a773f..a1ed025 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -537,6 +537,7 @@ struct ib_mad_agent {
+>         u32                     flags;
+>         u8                      port_num;
+>         u8                      rmpp_version;
+> +       void                    *m_security;
 
-Yes, I think so.  I'll make this change.
+General convention is to just call the LSM blobs "security" unless
+there is already a field with that name.
 
+>  };
+>
+>  /**
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 3f6780b..e522acb 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -1454,6 +1454,7 @@ struct ib_qp {
+>         void                   *qp_context;
+>         u32                     qp_num;
+>         enum ib_qp_type         qp_type;
+> +       struct ib_qp_security  *qp_sec;
+
+See my earlier question/comment about just using a void pointer here.
+
+>  };
+>
+>  struct ib_mr {
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index 6a8841d..4f13ea4 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -17,6 +17,7 @@
+>   *     Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+>   *  Copyright (C) 2007 Hitachi Software Engineering Co., Ltd.
+>   *                    Yuichi Nakamura <ynakam-FkO1umbPgv4fag7Bw7Dlfw@public.gmane.org>
+> + *  Copyright (C) 2016 Mellanox Technologies
+>   *
+>   *     This program is free software; you can redistribute it and/or modify
+>   *     it under the terms of the GNU General Public License version 2,
+> @@ -83,6 +84,8 @@
+>  #include <linux/export.h>
+>  #include <linux/msg.h>
+>  #include <linux/shm.h>
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/ib_mad.h>
+>
+>  #include "avc.h"
+>  #include "objsec.h"
+> @@ -6015,6 +6018,47 @@ static void selinux_unregister_ib_flush_callback(void)
+>         mutex_unlock(&ib_flush_mutex);
+>  }
+>
+> +static int selinux_ib_qp_alloc_security(struct ib_qp_security *qp_sec)
+> +{
+> +       struct ib_security_struct *sec;
+> +
+> +       sec = kzalloc(sizeof(*sec), GFP_ATOMIC);
+> +       if (!sec)
+> +               return -ENOMEM;
+> +       sec->sid = current_sid();
+> +
+> +       qp_sec->q_security = sec;
+> +       return 0;
+> +}
+
+If you get rid of the ip_qp_security struct, you can just return the
+blob instead of an int (NULL on error).  Same with the MAD allocator
+below.
+
+Also, and this may be more important for the MAD allocator below (I'm
+still pretty IB-ignorant), can you forsee the need/desire to have the
+QP/MAD label different from the process which creates them?  How often
+will other SELinux domains need to interact with these objects?
+
+> +static void selinux_ib_qp_free_security(struct ib_qp_security *qp_sec)
+> +{
+> +       struct ib_security_struct *sec = qp_sec->q_security;
+> +
+> +       qp_sec->q_security = NULL;
+> +       kfree(sec);
+> +}
+> +
+> +static int selinux_ib_mad_agent_alloc_security(struct ib_mad_agent *mad_agent)
+> +{
+> +       struct ib_security_struct *sec;
+> +
+> +       sec = kzalloc(sizeof(*sec), GFP_ATOMIC);
+> +       if (!sec)
+> +               return -ENOMEM;
+> +       sec->sid = current_sid();
+> +
+> +       mad_agent->m_security = sec;
+> +       return 0;
+> +}
+> +
+> +static void selinux_ib_mad_agent_free_security(struct ib_mad_agent *mad_agent)
+> +{
+> +       struct ib_security_struct *sec = mad_agent->m_security;
+> +
+> +       mad_agent->m_security = NULL;
+> +       kfree(sec);
+> +}
+>  #endif
+
+-- 
+paul moore
+security @ redhat
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
