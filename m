@@ -1,85 +1,94 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Upcoming libibverbs release
-Date: Wed, 29 Jun 2016 17:03:45 -0500
-Message-ID: <01d401d1d252$1aec4ca0$50c4e5e0$@opengridcomputing.com>
-References: <3b89c411-72be-ddc5-5ebf-009eeee29692@redhat.com> <4ec1d8e6-a908-bb49-a137-415856ec6faa@dev.mellanox.co.il> <20160627181758.GD23540@obsidianresearch.com> <20160628050246.GB3584@leon.nu> <20160628162028.GA27518@obsidianresearch.com> <20160628170549.GE3584@leon.nu> <20160628211858.GB5786@obsidianresearch.com> <20160629120920.GA24151@infradead.org> <20160629183414.GD17031@obsidianresearch.com> <017301d1d236$8496b030$8dc41090$@opengridcomputing.com> <20160629185757.GA17839@obsidianresearch.com> <017801d1d23a$a3836b10$ea8a4130$@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A82373AB06699A@ORSMSX109.amr.corp.intel.com> <017f01d1d23b$f27c4970$d774dc50$@opengridcomputing.com> <1828884A29C6694DAF28B7E6B8A82373AB0669F5@ORSMSX109.amr.corp.intel.com> <01bb01d1d248$647061e0$2d5125a0$@ope
- ngridcomputing.com> <1d03eaca-142a-3912-badf-aa9b14f6b2f6@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCHv2 iw_cxgb4-4.8] RDMA/iw_cxgb4: Use kfree_skb instead of kfree
+Date: Thu, 30 Jun 2016 11:44:33 +0530
+Message-ID: <1467267273-25048-1-git-send-email-hariprasad@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1d03eaca-142a-3912-badf-aa9b14f6b2f6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On 06/29/2016 04:54 PM, Steve Wise wrote:
-> >> I think the concern here is being overstated.
-> >
-> > I don't think it is being overstated.  It is my concern, and it is valid.
-> > However, after these discussions it has been alleviated to some degree.   It
-> > seems like some of the members of this discussion already have an
-understanding
-> > of how this would all work out.   But perhaps other provider maintainers
-need
-> > more details (obviously I did).
-> 
-> I can tell you how it worked inside Red Hat for me (I no longer handle
-> the internal builds, others do, so the methodology might have changed a
-> little bit), but whenever I got ready to do an update for a release, I
-> had these steps to complete on each package:
-> 
-> 1) Download any new source tarball
-> 2) Build/test locally.
-> 3) Build in build system (all official builds must be built through the
-> build system, which strictly controls how the build root is created for
-> each build and what packages are installed in that build root to make
-> sure a package built out of our build system will actually install and
-> rebuild on a machine of the same release properly).
-> 4) For packages that other package build against, I had to make sure the
-> new package was put into the build root of the build system so other
-> packages would get built against the new version and not the old version
-> of the package.
-> 5) Then I had to make sure the package made its way into an errata so it
-> would actually make it to the end users eventually.  Because the
-> packages in the RDMA stack are so incestuously dependent on each other,
-> I used one errata for all of the RDMA stack packages.  This is in
-> contrast to the norm at Red Hat which is a separate errata per package.
-> 
-> Mainly because of the dependency nightmare of "have I built libibverbs
-> and is it in the build root? Yes...OK, which packages can I build
-> next..", I kept a spreadsheet around to help me keep track of which
-> packages were on which steps and let me see at a glance if I could even
-> move to the next step on a given package.  Putting all of the verbs
-> providers into the same package as libibverbs itself would reduce about
-> 10 of those lines to a single line.  That would certainly make things
-> easier to track.  And going back to Jason's comments, it wouldn't really
-> slow down end user's access to the packages since most end users get the
-> packages from someone like Red Hat and they are all delayed until the
-> next release anyway.  But, it would be fairly easy to say that we can
-> have a policy that supra-minor point releases are a foregone conclusion
-> when a provider library needs an updates.  And just in case that point
-> isn't clear, let me put it this way:
-> 
-> libuberverbs->master branch - ongoing development
-> libuberverbs->x.y.0 - Ubervervs major release, major changes or features
-> present.  When you make this release, you create a verbs-x.y branch.
-> Primary development continues on master.
-> libuberverbs->x.y.z - Minor bug fixes to major releases.  Done on
-> verbs-x.y branch.  Even before bringing in providers, these are
-> typically used after a major release as bugs settle out.  After adding
-> providers, it would simply mean that a provider bugfix is an understood
-> sufficient cause for new minor point release.
-> 
+The commit 0f8ab0b6e91b4d53 ("RDMA/iw_cxgb4: Low resource fixes for Memory
+registration") from Jun 10, 2016, leads to the following static checker
+warning:
 
-Thanks Doug.  This last paragraph helps me visualize how it can work with a
-libuberverbs process.
+        drivers/infiniband/hw/cxgb4/mem.c:612 c4iw_alloc_mw()
+        error: use kfree_skb() here instead of kfree(mhp->dereg_skb)
 
-Steve.
+Also fixes skb leak in c4iw_dealloc_mw
+
+Fixes: 0f8ab0b6e91b4d53 ("RDMA/iw_cxgb4: Low resource fixes for Memory registration")
+
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+---
+
+V2: kfree_skb() checks if skb is freed, so no need to check again.
+    Based on review comments by Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+ drivers/infiniband/hw/cxgb4/mem.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 5d0aa55e82d4..0b91b0f4df71 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -603,16 +603,13 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ 
+ 	mhp->dereg_skb = alloc_skb(SGE_MAX_WR_LEN, GFP_KERNEL);
+ 	if (!mhp->dereg_skb) {
+-		kfree(mhp);
+-		return ERR_PTR(-ENOMEM);
++		ret = -ENOMEM;
++		goto free_mhp;
+ 	}
+ 
+ 	ret = allocate_window(&rhp->rdev, &stag, php->pdid);
+-	if (ret) {
+-		kfree(mhp->dereg_skb);
+-		kfree(mhp);
+-		return ERR_PTR(ret);
+-	}
++	if (ret)
++		goto free_skb;
+ 	mhp->rhp = rhp;
+ 	mhp->attr.pdid = php->pdid;
+ 	mhp->attr.type = FW_RI_STAG_MW;
+@@ -620,13 +617,19 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ 	mmid = (stag) >> 8;
+ 	mhp->ibmw.rkey = stag;
+ 	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
+-		deallocate_window(&rhp->rdev, mhp->attr.stag, mhp->dereg_skb);
+-		kfree(mhp->dereg_skb);
+-		kfree(mhp);
+-		return ERR_PTR(-ENOMEM);
++		ret = -ENOMEM;
++		goto dealloc_win;
+ 	}
+ 	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
+ 	return &(mhp->ibmw);
++
++dealloc_win:
++	deallocate_window(&rhp->rdev, mhp->attr.stag, mhp->dereg_skb);
++free_skb:
++	kfree_skb(mhp->dereg_skb);
++free_mhp:
++	kfree(mhp);
++	return ERR_PTR(ret);
+ }
+ 
+ int c4iw_dealloc_mw(struct ib_mw *mw)
+@@ -640,6 +643,7 @@ int c4iw_dealloc_mw(struct ib_mw *mw)
+ 	mmid = (mw->rkey) >> 8;
+ 	remove_handle(rhp, &rhp->mmidr, mmid);
+ 	deallocate_window(&rhp->rdev, mhp->attr.stag, mhp->dereg_skb);
++	kfree_skb(mhp->dereg_skb);
+ 	kfree(mhp);
+ 	PDBG("%s ib_mw %p mmid 0x%x ptr %p\n", __func__, mw, mmid, mhp);
+ 	return 0;
+-- 
+2.3.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
