@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 07/18] IB/hfi1: Add counter to track unsupported
- packets drop
-Date: Fri, 01 Jul 2016 16:01:22 -0700
-Message-ID: <20160701230122.20160.38368.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 10/18] IB/hfi1: Refine user process affinity
+ algorithm
+Date: Fri, 01 Jul 2016 16:01:39 -0700
+Message-ID: <20160701230138.20160.5753.stgit@scvm10.sc.intel.com>
 References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,127 +11,466 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add sw counter to track dropped unsupported packets.
-Report unsupported packets drop as the RcvError.
+When performing process affinity recommendations for MPI ranks, the current
+algorithm doesn't take into account multiple HFI units. Also, real
+cores and HT cores are not distinguished from one another. Therefore,
+all HT cores are recommended to be assigned first within the local NUMA
+node before recommending the assignments of cores in other NUMA nodes.
+It's ideal to assign all real cores across all NUMA nodes first, then all
+HT 1 cores, then all HT 2 cores, and so on to balance CPU workload. CPU
+cores in other NUMA nodes could be running interrupt handlers, and this is
+not taken into account.
 
+To balance the CPU workload for user processes, the following
+recommendation algorithm is used:
+
+ For each user process that is opening a context on HFI Y:
+  a) If all cores are assigned to user processes, start assignments all
+	 over from the first core
+  b) Assign real cores first, then HT cores (First set of HT cores on
+	 all physical cores, then second set of HT cores, and, so on) in the
+	 following order:
+
+	 1. Same NUMA node as HFI Y and not running an IRQ handler
+	 2. Same NUMA node as HFI Y and running an IRQ handler
+	 3. Different NUMA node to HFI Y and not running an IRQ handler
+	 4. Different NUMA node to HFI Y and running an IRQ handler
+  c) Mark core as assigned in the global affinity structure. As user
+	 processes are done, remove core assignments from global affinity
+	 structure.
+
+This implementation allows an arbitrary number of HT cores and provides
+support for multiple HFIs.
+
+This is being included in the kernel rather than user space due to the
+fact that user space has no way of knowing the CPU recommendations for
+contexts running as part of other jobs.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c   |   31 +++++++++++++++++++++++++++----
- drivers/infiniband/hw/hfi1/driver.c |    1 +
- drivers/infiniband/hw/hfi1/hfi.h    |    3 ++-
- drivers/infiniband/hw/hfi1/mad.c    |    3 ++-
- 4 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/affinity.c |  235 +++++++++++++++++++++++++--------
+ drivers/infiniband/hw/hfi1/affinity.h |    8 +
+ drivers/infiniband/hw/hfi1/file_ops.c |   15 +-
+ 3 files changed, 191 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 0662451..9eb4551 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -238,6 +238,9 @@ struct flag_table {
- /* all CceStatus sub-block RXE pause bits */
- #define ALL_RXE_PAUSE CCE_STATUS_RXE_PAUSED_SMASK
+diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
+index 3a3ef2a..1e31827 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.c
++++ b/drivers/infiniband/hw/hfi1/affinity.c
+@@ -116,7 +116,17 @@ int node_affinity_init(void)
+ 	struct pci_dev *dev = NULL;
+ 	const struct pci_device_id *ids = hfi1_pci_tbl;
  
-+#define CNTR_MAX 0xFFFFFFFFFFFFFFFFULL
-+#define CNTR_32BIT_MAX 0x00000000FFFFFFFF
++	cpumask_clear(&node_affinity.proc.used);
+ 	cpumask_copy(&node_affinity.proc.mask, cpu_online_mask);
 +
- /*
-  * CCE Error flags.
-  */
-@@ -3947,6 +3950,28 @@ static u64 access_sdma_wrong_dw_err_cnt(const struct cntr_entry *entry,
- 	return dd->sw_send_dma_eng_err_status_cnt[0];
++	node_affinity.proc.gen = 0;
++	node_affinity.num_core_siblings =
++				cpumask_weight(topology_sibling_cpumask(
++					cpumask_first(&node_affinity.proc.mask)
++					));
++	node_affinity.num_online_nodes = num_online_nodes();
++	node_affinity.num_online_cpus = num_online_cpus();
++
+ 	/*
+ 	 * The real cpu mask is part of the affinity struct but it has to be
+ 	 * initialized early. It is needed to calculate the number of user
+@@ -401,7 +411,7 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
+ 		set = &entry->def_intr;
+ 		break;
+ 	case IRQ_GENERAL:
+-		/* Don't accounting for general contexts */
++		/* Don't do accounting for general contexts */
+ 		break;
+ 	case IRQ_RCVCTXT:
+ 		rcd = (struct hfi1_ctxtdata *)msix->arg;
+@@ -427,14 +437,47 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
+ 	cpumask_clear(&msix->mask);
  }
  
-+static u64 access_dc_rcv_err_cnt(const struct cntr_entry *entry,
-+				 void *context, int vl, int mode,
-+				 u64 data)
+-int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
++/* This should be called with node_affinity.lock held */
++static void find_hw_thread_mask(uint hw_thread_no, cpumask_var_t hw_thread_mask,
++				struct hfi1_affinity_node_list *affinity)
 +{
-+	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
++	int possible, curr_cpu, i;
++	uint num_cores_per_socket = node_affinity.num_online_cpus /
++					affinity->num_core_siblings /
++						node_affinity.num_online_nodes;
 +
-+	u64 val = 0;
-+	u64 csr = entry->csr;
++	cpumask_copy(hw_thread_mask, &affinity->proc.mask);
++	if (affinity->num_core_siblings > 0) {
++		/* Removing other siblings not needed for now */
++		possible = cpumask_weight(hw_thread_mask);
++		curr_cpu = cpumask_first(hw_thread_mask);
++		for (i = 0;
++		     i < num_cores_per_socket * node_affinity.num_online_nodes;
++		     i++)
++			curr_cpu = cpumask_next(curr_cpu, hw_thread_mask);
 +
-+	val = read_write_csr(dd, csr, mode, data);
-+	if (mode == CNTR_MODE_R) {
-+		val = val > CNTR_MAX - dd->sw_rcv_bypass_packet_errors ?
-+			CNTR_MAX : val + dd->sw_rcv_bypass_packet_errors;
-+	} else if (mode == CNTR_MODE_W) {
-+		dd->sw_rcv_bypass_packet_errors = 0;
-+	} else {
-+		dd_dev_err(dd, "Invalid cntr register access mode");
-+		return 0;
++		for (; i < possible; i++) {
++			cpumask_clear_cpu(curr_cpu, hw_thread_mask);
++			curr_cpu = cpumask_next(curr_cpu, hw_thread_mask);
++		}
++
++		/* Identifying correct HW threads within physical cores */
++		cpumask_shift_left(hw_thread_mask, hw_thread_mask,
++				   num_cores_per_socket *
++				   node_affinity.num_online_nodes *
++				   hw_thread_no);
 +	}
-+	return val;
 +}
 +
- #define def_access_sw_cpu(cntr) \
- static u64 access_sw_cpu_##cntr(const struct cntr_entry *entry,		      \
- 			      void *context, int vl, int mode, u64 data)      \
-@@ -4020,7 +4045,8 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
- 			CCE_SEND_CREDIT_INT_CNT, CNTR_NORMAL),
- [C_DC_UNC_ERR] = DC_PERF_CNTR(DcUnctblErr, DCC_ERR_UNCORRECTABLE_CNT,
- 			      CNTR_SYNTH),
--[C_DC_RCV_ERR] = DC_PERF_CNTR(DcRecvErr, DCC_ERR_PORTRCV_ERR_CNT, CNTR_SYNTH),
-+[C_DC_RCV_ERR] = CNTR_ELEM("DcRecvErr", DCC_ERR_PORTRCV_ERR_CNT, 0, CNTR_SYNTH,
-+			    access_dc_rcv_err_cnt),
- [C_DC_FM_CFG_ERR] = DC_PERF_CNTR(DcFmCfgErr, DCC_ERR_FMCONFIG_ERR_CNT,
- 				 CNTR_SYNTH),
- [C_DC_RMT_PHY_ERR] = DC_PERF_CNTR(DcRmtPhyErr, DCC_ERR_RCVREMOTE_PHY_ERR_CNT,
-@@ -11668,9 +11694,6 @@ static void free_cntrs(struct hfi1_devdata *dd)
- 	dd->cntrnames = NULL;
- }
- 
--#define CNTR_MAX 0xFFFFFFFFFFFFFFFFULL
--#define CNTR_32BIT_MAX 0x00000000FFFFFFFF
--
- static u64 read_dev_port_cntr(struct hfi1_devdata *dd, struct cntr_entry *entry,
- 			      u64 *psval, void *context, int vl)
++int hfi1_get_proc_affinity(int node)
  {
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index c75b0ae..6c81d15 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -1362,6 +1362,7 @@ int process_receive_bypass(struct hfi1_packet *packet)
+-	int cpu = -1, ret;
+-	cpumask_var_t diff, mask, intrs;
++	int cpu = -1, ret, i;
+ 	struct hfi1_affinity_node *entry;
++	cpumask_var_t diff, hw_thread_mask, available_mask, intrs_mask;
+ 	const struct cpumask *node_mask,
+ 		*proc_mask = tsk_cpus_allowed(current);
+-	struct cpu_mask_set *set = &node_affinity.proc;
++	struct hfi1_affinity_node_list *affinity = &node_affinity;
++	struct cpu_mask_set *set = &affinity->proc;
+ 	char buf[1024];
  
- 	dd_dev_err(packet->rcd->dd,
- 		   "Bypass packets are not supported in normal operation. Dropping\n");
-+	incr_cntr64(&packet->rcd->dd->sw_rcv_bypass_packet_errors);
- 	return RHF_RCV_CONTINUE;
+ 	/*
+@@ -442,9 +485,10 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
+ 	 * been set
+ 	 */
+ 	if (cpumask_weight(proc_mask) == 1) {
+-		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %*pbl",
+-			  current->pid, current->comm,
++		scnprintf(buf, sizeof(buf), "%*pbl",
+ 			  cpumask_pr_args(proc_mask));
++		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %s",
++			  current->pid, current->comm, buf);
+ 		/*
+ 		 * Mark the pre-set CPU as used. This is atomic so we don't
+ 		 * need the lock
+@@ -453,30 +497,50 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
+ 		cpumask_set_cpu(cpu, &set->used);
+ 		goto done;
+ 	} else if (cpumask_weight(proc_mask) < cpumask_weight(&set->mask)) {
+-		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %*pbl",
+-			  current->pid, current->comm,
++		scnprintf(buf, sizeof(buf), "%*pbl",
+ 			  cpumask_pr_args(proc_mask));
++		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %s",
++			  current->pid, current->comm, buf);
+ 		goto done;
+ 	}
+ 
+ 	/*
+ 	 * The process does not have a preset CPU affinity so find one to
+-	 * recommend. We prefer CPUs on the same NUMA as the device.
++	 * recommend using the following algorithm:
++	 *
++	 * For each user process that is opening a context on HFI Y:
++	 *  a) If all cores are filled, reinitialize the bitmask
++	 *  b) Fill real cores first, then HT cores (First set of HT
++	 *     cores on all physical cores, then second set of HT core,
++	 *     and, so on) in the following order:
++	 *
++	 *     1. Same NUMA node as HFI Y and not running an IRQ
++	 *        handler
++	 *     2. Same NUMA node as HFI Y and running an IRQ handler
++	 *     3. Different NUMA node to HFI Y and not running an IRQ
++	 *        handler
++	 *     4. Different NUMA node to HFI Y and running an IRQ
++	 *        handler
++	 *  c) Mark core as filled in the bitmask. As user processes are
++	 *     done, clear cores from the bitmask.
+ 	 */
+ 
+ 	ret = zalloc_cpumask_var(&diff, GFP_KERNEL);
+ 	if (!ret)
+ 		goto done;
+-	ret = zalloc_cpumask_var(&mask, GFP_KERNEL);
++	ret = zalloc_cpumask_var(&hw_thread_mask, GFP_KERNEL);
+ 	if (!ret)
+ 		goto free_diff;
+-	ret = zalloc_cpumask_var(&intrs, GFP_KERNEL);
++	ret = zalloc_cpumask_var(&available_mask, GFP_KERNEL);
++	if (!ret)
++		goto free_hw_thread_mask;
++	ret = zalloc_cpumask_var(&intrs_mask, GFP_KERNEL);
+ 	if (!ret)
+-		goto free_mask;
++		goto free_available_mask;
+ 
+-	spin_lock(&node_affinity.lock);
++	spin_lock(&affinity->lock);
+ 	/*
+-	 * If we've used all available CPUs, clear the mask and start
++	 * If we've used all available HW threads, clear the mask and start
+ 	 * overloading.
+ 	 */
+ 	if (cpumask_equal(&set->mask, &set->used)) {
+@@ -490,82 +554,135 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
+ 	 */
+ 	entry = node_affinity_lookup(node);
+ 	if (entry) {
+-		cpumask_copy(intrs, (entry->def_intr.gen ?
+-				     &entry->def_intr.mask :
+-				     &entry->def_intr.used));
+-		cpumask_or(intrs, intrs, (entry->rcv_intr.gen ?
+-					  &entry->rcv_intr.mask :
+-					  &entry->rcv_intr.used));
+-		cpumask_or(intrs, intrs, &entry->general_intr_mask);
++		cpumask_copy(intrs_mask, (entry->def_intr.gen ?
++					  &entry->def_intr.mask :
++					  &entry->def_intr.used));
++		cpumask_or(intrs_mask, intrs_mask, (entry->rcv_intr.gen ?
++						    &entry->rcv_intr.mask :
++						    &entry->rcv_intr.used));
++		cpumask_or(intrs_mask, intrs_mask, &entry->general_intr_mask);
+ 	}
+-	scnprintf(buf, sizeof(buf), "%*pbl", cpumask_pr_args(intrs));
++	scnprintf(buf, sizeof(buf), "%*pbl", cpumask_pr_args(intrs_mask));
+ 	hfi1_cdbg(PROC, "CPUs used by interrupts: %s", buf);
+ 
++	cpumask_copy(hw_thread_mask, &set->mask);
++
+ 	/*
+-	 * If we don't have a NUMA node requested, preference is towards
+-	 * device NUMA node
++	 * If HT cores are enabled, identify which HW threads within the
++	 * physical cores should be used.
+ 	 */
+-	if (node == -1)
+-		node = dd->node;
+-	node_mask = cpumask_of_node(node);
+-	hfi1_cdbg(PROC, "device on NUMA %u, CPUs %*pbl", node,
+-		  cpumask_pr_args(node_mask));
++	if (affinity->num_core_siblings > 0) {
++		for (i = 0; i < affinity->num_core_siblings; i++) {
++			find_hw_thread_mask(i, hw_thread_mask, affinity);
++
++			/*
++			 * If there's at least one available core for this HW
++			 * thread number, stop looking for a core.
++			 *
++			 * diff will always be not empty at least once in this
++			 * loop as the used mask gets reset when
++			 * (set->mask == set->used) before this loop.
++			 */
++			cpumask_andnot(diff, hw_thread_mask, &set->used);
++			if (!cpumask_empty(diff))
++				break;
++		}
++	}
++	if (!scnprintf(buf, sizeof(buf), "%*pbl",
++		       cpumask_pr_args(hw_thread_mask)))
++		snprintf(buf, sizeof(buf), "None");
++	hfi1_cdbg(PROC, "Same available HW thread on all physical CPUs: %s",
++		  buf);
+ 
+-	/* diff will hold all unused cpus */
+-	cpumask_andnot(diff, &set->mask, &set->used);
+-	hfi1_cdbg(PROC, "unused CPUs (all) %*pbl", cpumask_pr_args(diff));
++	node_mask = cpumask_of_node(node);
++	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(node_mask));
++	hfi1_cdbg(PROC, "Device on NUMA %u, CPUs %s", node, buf);
+ 
+-	/* get cpumask of available CPUs on preferred NUMA */
+-	cpumask_and(mask, diff, node_mask);
+-	hfi1_cdbg(PROC, "available cpus on NUMA %*pbl", cpumask_pr_args(mask));
++	/* Get cpumask of available CPUs on preferred NUMA */
++	cpumask_and(available_mask, hw_thread_mask, node_mask);
++	cpumask_andnot(available_mask, available_mask, &set->used);
++	if (!scnprintf(buf, sizeof(buf), "%*pbl",
++		       cpumask_pr_args(available_mask)))
++		snprintf(buf, sizeof(buf), "None");
++	hfi1_cdbg(PROC, "Available CPUs on NUMA %u: %s", node, buf);
+ 
+ 	/*
+ 	 * At first, we don't want to place processes on the same
+-	 * CPUs as interrupt handlers.
++	 * CPUs as interrupt handlers. Then, CPUs running interrupt
++	 * handlers are used.
++	 *
++	 * 1) If diff is not empty, then there are CPUs not running
++	 *    non-interrupt handlers available, so diff gets copied
++	 *    over to available_mask.
++	 * 2) If diff is empty, then all CPUs not running interrupt
++	 *    handlers are taken, so available_mask contains all
++	 *    available CPUs running interrupt handlers.
++	 * 3) If available_mask is empty, then all CPUs on the
++	 *    preferred NUMA node are taken, so other NUMA nodes are
++	 *    used for process assignments using the same method as
++	 *    the preferred NUMA node.
+ 	 */
+-	cpumask_andnot(diff, mask, intrs);
++	cpumask_andnot(diff, available_mask, intrs_mask);
+ 	if (!cpumask_empty(diff))
+-		cpumask_copy(mask, diff);
++		cpumask_copy(available_mask, diff);
++
++	/* If we don't have CPUs on the preferred node, use other NUMA nodes */
++	if (cpumask_empty(available_mask)) {
++		cpumask_andnot(available_mask, hw_thread_mask, &set->used);
++		/* Excluding preferred NUMA cores */
++		cpumask_andnot(available_mask, available_mask, node_mask);
++		if (!scnprintf(buf, sizeof(buf), "%*pbl",
++			       cpumask_pr_args(available_mask)))
++			snprintf(buf, sizeof(buf), "None");
++		hfi1_cdbg(PROC,
++			  "Preferred NUMA node cores are taken, cores available in other NUMA nodes: %s",
++			  buf);
+ 
+-	/*
+-	 * if we don't have a cpu on the preferred NUMA, get
+-	 * the list of the remaining available CPUs
+-	 */
+-	if (cpumask_empty(mask)) {
+-		cpumask_andnot(diff, &set->mask, &set->used);
+-		cpumask_andnot(mask, diff, node_mask);
++		/*
++		 * At first, we don't want to place processes on the same
++		 * CPUs as interrupt handlers.
++		 */
++		cpumask_andnot(diff, available_mask, intrs_mask);
++		if (!cpumask_empty(diff))
++			cpumask_copy(available_mask, diff);
+ 	}
+-	hfi1_cdbg(PROC, "possible CPUs for process %*pbl",
+-		  cpumask_pr_args(mask));
++	if (!scnprintf(buf, sizeof(buf), "%*pbl",
++		       cpumask_pr_args(available_mask)))
++		snprintf(buf, sizeof(buf), "None");
++	hfi1_cdbg(PROC, "Possible CPUs for process: %s", buf);
+ 
+-	cpu = cpumask_first(mask);
++	cpu = cpumask_first(available_mask);
+ 	if (cpu >= nr_cpu_ids) /* empty */
+ 		cpu = -1;
+ 	else
+ 		cpumask_set_cpu(cpu, &set->used);
+-	spin_unlock(&node_affinity.lock);
+-
+-	free_cpumask_var(intrs);
+-free_mask:
+-	free_cpumask_var(mask);
++	spin_unlock(&affinity->lock);
++	hfi1_cdbg(PROC, "Process assigned to CPU %d", cpu);
++
++	free_cpumask_var(intrs_mask);
++free_available_mask:
++	free_cpumask_var(available_mask);
++free_hw_thread_mask:
++	free_cpumask_var(hw_thread_mask);
+ free_diff:
+ 	free_cpumask_var(diff);
+ done:
+ 	return cpu;
  }
  
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 1dd48ef..748e235 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1128,7 +1128,8 @@ struct hfi1_devdata {
- 		NUM_SEND_DMA_ENG_ERR_STATUS_COUNTERS];
- 	/* Software counter that aggregates all cce_err_status errors */
- 	u64 sw_cce_err_status_aggregate;
--
-+	/* Software counter that aggregates all bypass packet rcv errors */
-+	u64 sw_rcv_bypass_packet_errors;
- 	/* receive interrupt functions */
- 	rhf_rcv_function_ptr *rhf_rcv_function_map;
- 	rhf_rcv_function_ptr normal_rhf_rcv_functions[8];
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 349a138..962bb11 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -2874,7 +2874,8 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
- 	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
+-void hfi1_put_proc_affinity(struct hfi1_devdata *dd, int cpu)
++void hfi1_put_proc_affinity(int cpu)
+ {
+-	struct cpu_mask_set *set = &node_affinity.proc;
++	struct hfi1_affinity_node_list *affinity = &node_affinity;
++	struct cpu_mask_set *set = &affinity->proc;
  
- 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
+ 	if (cpu < 0)
+ 		return;
+-	spin_lock(&node_affinity.lock);
++	spin_lock(&affinity->lock);
+ 	cpumask_clear_cpu(cpu, &set->used);
++	hfi1_cdbg(PROC, "Returning CPU %d for future process assignment", cpu);
+ 	if (cpumask_empty(&set->used) && set->gen) {
+ 		set->gen--;
+ 		cpumask_copy(&set->used, &set->mask);
+ 	}
+-	spin_unlock(&node_affinity.lock);
++	spin_unlock(&affinity->lock);
+ }
 -
-+	rsp->port_rcv_errors =
-+		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL));
- 	vlinfo = &rsp->vls[0];
- 	vfi = 0;
- 	vl_select_mask = be32_to_cpu(req->vl_select_mask);
+diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
+index 003860e..f784de5 100644
+--- a/drivers/infiniband/hw/hfi1/affinity.h
++++ b/drivers/infiniband/hw/hfi1/affinity.h
+@@ -73,7 +73,6 @@ struct cpu_mask_set {
+ struct hfi1_affinity {
+ 	struct cpu_mask_set def_intr;
+ 	struct cpu_mask_set rcv_intr;
+-	struct cpu_mask_set proc;
+ 	struct cpumask real_cpu_mask;
+ 	/* spin lock to protect affinity struct */
+ 	spinlock_t lock;
+@@ -99,9 +98,9 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *, struct hfi1_msix_entry *);
+  * Determine a CPU affinity for a user process, if the process does not
+  * have an affinity set yet.
+  */
+-int hfi1_get_proc_affinity(struct hfi1_devdata *, int);
++int hfi1_get_proc_affinity(int);
+ /* Release a CPU used by a user process. */
+-void hfi1_put_proc_affinity(struct hfi1_devdata *, int);
++void hfi1_put_proc_affinity(int);
+ 
+ struct hfi1_affinity_node {
+ 	int node;
+@@ -115,6 +114,9 @@ struct hfi1_affinity_node_list {
+ 	struct list_head list;
+ 	struct cpumask real_cpu_mask;
+ 	struct cpu_mask_set proc;
++	int num_core_siblings;
++	int num_online_nodes;
++	int num_online_cpus;
+ 	/* protect affinity node list */
+ 	spinlock_t lock;
+ };
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 2f097d9..d7c07bc 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -715,7 +715,7 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 	hfi1_user_sdma_free_queues(fdata);
+ 
+ 	/* release the cpu */
+-	hfi1_put_proc_affinity(dd, fdata->rec_cpu_num);
++	hfi1_put_proc_affinity(fdata->rec_cpu_num);
+ 
+ 	/*
+ 	 * Clear any left over, unhandled events so the next process that
+@@ -815,9 +815,10 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
+ 		ret = find_shared_ctxt(fp, uinfo);
+ 		if (ret < 0)
+ 			goto done_unlock;
+-		if (ret)
+-			fd->rec_cpu_num = hfi1_get_proc_affinity(
+-				fd->uctxt->dd, fd->uctxt->numa_id);
++		if (ret) {
++			fd->rec_cpu_num =
++				hfi1_get_proc_affinity(fd->uctxt->numa_id);
++		}
+ 	}
+ 
+ 	/*
+@@ -929,7 +930,11 @@ static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
+ 	if (ctxt == dd->num_rcv_contexts)
+ 		return -EBUSY;
+ 
+-	fd->rec_cpu_num = hfi1_get_proc_affinity(dd, -1);
++	/*
++	 * If we don't have a NUMA node requested, preference is towards
++	 * device NUMA node.
++	 */
++	fd->rec_cpu_num = hfi1_get_proc_affinity(dd->node);
+ 	if (fd->rec_cpu_num != -1)
+ 		numa = cpu_to_node(fd->rec_cpu_num);
+ 	else
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
