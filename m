@@ -1,69 +1,75 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 01/12] security: Add LSM hooks for Infiniband security
-Date: Thu, 30 Jun 2016 21:34:29 +0000
-Message-ID: <AM4PR0501MB2257C28CFBDF413D00EA5166C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-2-git-send-email-danielj@mellanox.com>
- <CAGH-KgtVpX-y+r+pA0_0Hg-Yqx6YWpuc6ud-rk_pHQCtOEFGag@mail.gmail.com>
- <AM4PR0501MB2257D88B4440B8992081B521C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
- <CAGH-Kgv_2AoKvXVG1BCVehnETw2bGS8nxyj4PGqCJSXy1hGJUg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Oops with mlx5/NFSoRDMA client with 4.7-rc5ish
+Date: Thu, 30 Jun 2016 20:23:29 -0400
+Message-ID: <7E3193AB-418F-4B03-AAD7-019D022C1FBE@oracle.com>
+References: <730f57aa-b1f6-c6da-4936-bebba1954ca7@redhat.com> <94C521BC-7BB0-46B7-8597-F1BE10C8CB04@oracle.com> <2771797c-a7e5-61c6-4ad6-79322d04b5a5@redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <2771797c-a7e5-61c6-4ad6-79322d04b5a5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org" <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/30/2016 4:27 PM, Paul Moore wrote:
-> On Thu, Jun 30, 2016 at 5:09 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On 6/30/2016 3:28 PM, Paul Moore wrote:
->>> On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>
->>>> Add nine new hooks
->>>>  1. Allocate security contexts for Infiniband QPs.
->>>>  2. Free security contexts for Infiniband QPs.
->>>>  3. Allocate security contexts for Infiniband MAD agents.
->>>>  4. Free security contexts for Infiniband MAD agents.
->>>>  5. Enforce QP access to Pkeys
->>>>  6. Enforce MAD agent access to Pkeys
->>>>  7. Enforce MAD agent access to Infiniband End Ports for sending Subnet
->>>>     Management Packets (SMP)
->>>>  8. A hook to register a callback to receive notifications of
->>>>     security policy or enforcement changes.  Restricting a QPs access to
->>>>     a pkey will be done during setup and not on a per packet basis
->>>>     access must be enforced again.
->>>>  9. A hook to unregister the callback.
->>>>
->>>> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>> ---
->>>>  include/linux/lsm_hooks.h | 71 ++++++++++++++++++++++++++++++++++++++++
->>>>  include/linux/security.h  | 63 +++++++++++++++++++++++++++++++++++
->>>>  include/rdma/ib_verbs.h   |  4 +++
->>>>  security/Kconfig          |  9 +++++
->>>>  security/security.c       | 83 +++++++++++++++++++++++++++++++++++++++++++++++
->>>>  5 files changed, 230 insertions(+)
->>> I'd recommend putting the IB hook calls into this patch as well, it
->>> helps make the hooks a bit more concrete as you can see where, and how
->>> they are called.
->> Do you mean add them with SELinux hook implementations?  Or with the the IB/Core code where they are called?
-> I mean the IB changes.  That way a single patch has both the hook
-> declarations and their calling locations; it helps make the hooks a
-> bit less abstract.
->
-> The SELinux hook implementations should be kept separate.
->
->> I tried as best as I could to avoid mingling LSM, IB/Core, and SELinux changes.  Hoping to minimize the burden of a single patch needing acceptance from multiple maintainers and synchronization problems that could create.  I could split this up and add the hooks where they are actually used if you don't think that's problem though.
-> Ultimately the entire patchset needs to get acceptance from the IB and
-> SELinux folks, with no objections from any of the other LSM
-> maintainers.  My guess is, I'll probably be the one who ends up
-> merging this as it's more SELinux than anything else, but I'll want a
-> thumbs-up/ACK from the IB folks before I do that.
-OK, I can split this patch up and squash to the respective IB core patches where they are first used.
+
+> On Jun 30, 2016, at 6:11 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> On 6/30/2016 2:44 PM, Chuck Lever wrote:
+>> 
+>>> On Jun 30, 2016, at 2:31 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>>> 
+>>> This could easily be an mlx5 issue given that it starts with a DMAR
+>>> error, but I would also hope that NFSoRDMA can manage to survive the
+>>> DMAR error.
+>> 
+>> I'm afraid I don't know what a DMAR error is.
+> 
+> When you have your IOMMU enabled (by default it isn't, and even if you
+> have it enabled, if you are running as a bare metal install, it might
+> not be used either if your default iommu setting is passthrough),
+> attempts by the card to DMA to areas that are not currently mapped
+> trigger DMA errors.  In this case DMAR is DMA Read.  It is usually a
+> sign that something is wrong in the drivers memory registration
+> routines, or that there is a race somewhere with the card.
+
+Thanks, two questions:
+
+1. Is the verbs consumer aware of DMAR errors?
+
+2. I enabled my iommu and NFS/RDMA tests run OK.
+   How do I ensure it's not passthrough?
+
+
+> I copied you
+> because it showed up in NFSoRDMA, but the DMAR error points it to being
+> more likely an mlx5 issue.
+
+That is also my expectation, but I'll try to be helpful
+where I can. And also, the reply handler shouldn't oops.
+
+
+>> Those are happening in the forward path (send) and the
+>> GPF happens on receive. Can you give me an idea what
+>> the source code looks like around
+>> 
+>>  rpcrdma_reply_handler+0x18e/0xce0 ?
+> 
+> I didn't have this kernel compiled with debug info, so that's a bitch to
+> work out.  I'll rebuild, reinstall, and see if I get the oops again.
+> 
+> 
+> -- 
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>    GPG Key ID: 0E572FDD
+> 
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
