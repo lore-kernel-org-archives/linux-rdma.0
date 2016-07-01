@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 10/18] IB/hfi1: Refine user process affinity
- algorithm
-Date: Fri, 01 Jul 2016 16:01:39 -0700
-Message-ID: <20160701230138.20160.5753.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 11/18] IB/hfi1: Use built-in i2c bit-shift bus
+ adapter
+Date: Fri, 01 Jul 2016 16:01:44 -0700
+Message-ID: <20160701230144.20160.75116.stgit@scvm10.sc.intel.com>
 References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,466 +11,687 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When performing process affinity recommendations for MPI ranks, the current
-algorithm doesn't take into account multiple HFI units. Also, real
-cores and HT cores are not distinguished from one another. Therefore,
-all HT cores are recommended to be assigned first within the local NUMA
-node before recommending the assignments of cores in other NUMA nodes.
-It's ideal to assign all real cores across all NUMA nodes first, then all
-HT 1 cores, then all HT 2 cores, and so on to balance CPU workload. CPU
-cores in other NUMA nodes could be running interrupt handlers, and this is
-not taken into account.
+Use built-in i2c bit-shift bus adapter to control the
+i2c busses on the chip.
 
-To balance the CPU workload for user processes, the following
-recommendation algorithm is used:
-
- For each user process that is opening a context on HFI Y:
-  a) If all cores are assigned to user processes, start assignments all
-	 over from the first core
-  b) Assign real cores first, then HT cores (First set of HT cores on
-	 all physical cores, then second set of HT cores, and, so on) in the
-	 following order:
-
-	 1. Same NUMA node as HFI Y and not running an IRQ handler
-	 2. Same NUMA node as HFI Y and running an IRQ handler
-	 3. Different NUMA node to HFI Y and not running an IRQ handler
-	 4. Different NUMA node to HFI Y and running an IRQ handler
-  c) Mark core as assigned in the global affinity structure. As user
-	 processes are done, remove core assignments from global affinity
-	 structure.
-
-This implementation allows an arbitrary number of HT cores and provides
-support for multiple HFIs.
-
-This is being included in the kernel rather than user space due to the
-fact that user space has no way of knowing the CPU recommendations for
-contexts running as part of other jobs.
-
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c |  235 +++++++++++++++++++++++++--------
- drivers/infiniband/hw/hfi1/affinity.h |    8 +
- drivers/infiniband/hw/hfi1/file_ops.c |   15 +-
- 3 files changed, 191 insertions(+), 67 deletions(-)
+ drivers/infiniband/hw/hfi1/Kconfig |    3 
+ drivers/infiniband/hw/hfi1/hfi.h   |   11 +
+ drivers/infiniband/hw/hfi1/init.c  |   27 ++
+ drivers/infiniband/hw/hfi1/qsfp.c  |  407 +++++++++++++++++++++++++++---------
+ drivers/infiniband/hw/hfi1/qsfp.h  |    3 
+ 5 files changed, 336 insertions(+), 115 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 3a3ef2a..1e31827 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -116,7 +116,17 @@ int node_affinity_init(void)
- 	struct pci_dev *dev = NULL;
- 	const struct pci_device_id *ids = hfi1_pci_tbl;
+diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
+index a925fb0..bac1860 100644
+--- a/drivers/infiniband/hw/hfi1/Kconfig
++++ b/drivers/infiniband/hw/hfi1/Kconfig
+@@ -1,8 +1,9 @@
+ config INFINIBAND_HFI1
+ 	tristate "Intel OPA Gen1 support"
+-	depends on X86_64 && INFINIBAND_RDMAVT
++	depends on X86_64 && INFINIBAND_RDMAVT && I2C
+ 	select MMU_NOTIFIER
+ 	select CRC32
++	select I2C_ALGOBIT
+ 	default m
+ 	---help---
+ 	This is a low-level driver for Intel OPA Gen1 adapter.
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index fd67e98..c433eb8 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -62,6 +62,8 @@
+ #include <linux/cdev.h>
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
++#include <linux/i2c.h>
++#include <linux/i2c-algo-bit.h>
+ #include <rdma/rdma_vt.h>
  
-+	cpumask_clear(&node_affinity.proc.used);
- 	cpumask_copy(&node_affinity.proc.mask, cpu_online_mask);
-+
-+	node_affinity.proc.gen = 0;
-+	node_affinity.num_core_siblings =
-+				cpumask_weight(topology_sibling_cpumask(
-+					cpumask_first(&node_affinity.proc.mask)
-+					));
-+	node_affinity.num_online_nodes = num_online_nodes();
-+	node_affinity.num_online_cpus = num_online_cpus();
-+
- 	/*
- 	 * The real cpu mask is part of the affinity struct but it has to be
- 	 * initialized early. It is needed to calculate the number of user
-@@ -401,7 +411,7 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
- 		set = &entry->def_intr;
- 		break;
- 	case IRQ_GENERAL:
--		/* Don't accounting for general contexts */
-+		/* Don't do accounting for general contexts */
- 		break;
- 	case IRQ_RCVCTXT:
- 		rcd = (struct hfi1_ctxtdata *)msix->arg;
-@@ -427,14 +437,47 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
- 	cpumask_clear(&msix->mask);
- }
+ #include "chip_registers.h"
+@@ -805,10 +807,19 @@ struct hfi1_temp {
+ 	u8 triggers;      /* temperature triggers */
+ };
  
--int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
-+/* This should be called with node_affinity.lock held */
-+static void find_hw_thread_mask(uint hw_thread_no, cpumask_var_t hw_thread_mask,
-+				struct hfi1_affinity_node_list *affinity)
-+{
-+	int possible, curr_cpu, i;
-+	uint num_cores_per_socket = node_affinity.num_online_cpus /
-+					affinity->num_core_siblings /
-+						node_affinity.num_online_nodes;
++struct hfi1_i2c_bus {
++	struct hfi1_devdata *controlling_dd; /* current controlling device */
++	struct i2c_adapter adapter;	/* bus details */
++	struct i2c_algo_bit_data algo;	/* bus algorithm details */
++	int num;			/* bus number, 0 or 1 */
++};
 +
-+	cpumask_copy(hw_thread_mask, &affinity->proc.mask);
-+	if (affinity->num_core_siblings > 0) {
-+		/* Removing other siblings not needed for now */
-+		possible = cpumask_weight(hw_thread_mask);
-+		curr_cpu = cpumask_first(hw_thread_mask);
-+		for (i = 0;
-+		     i < num_cores_per_socket * node_affinity.num_online_nodes;
-+		     i++)
-+			curr_cpu = cpumask_next(curr_cpu, hw_thread_mask);
-+
-+		for (; i < possible; i++) {
-+			cpumask_clear_cpu(curr_cpu, hw_thread_mask);
-+			curr_cpu = cpumask_next(curr_cpu, hw_thread_mask);
-+		}
-+
-+		/* Identifying correct HW threads within physical cores */
-+		cpumask_shift_left(hw_thread_mask, hw_thread_mask,
-+				   num_cores_per_socket *
-+				   node_affinity.num_online_nodes *
-+				   hw_thread_no);
-+	}
+ /* common data between shared ASIC HFIs */
+ struct hfi1_asic_data {
+ 	struct hfi1_devdata *dds[2];	/* back pointers */
+ 	struct mutex asic_resource_mutex;
++	struct hfi1_i2c_bus *i2c_bus0;
++	struct hfi1_i2c_bus *i2c_bus1;
+ };
+ 
+ /* device data struct now contains only "general per-device" info.
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 1620d68..ec77c7e 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -973,34 +973,45 @@ void hfi1_free_ctxtdata(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 
+ /*
+  * Release our hold on the shared asic data.  If we are the last one,
+- * free the structure.  Must be holding hfi1_devs_lock.
++ * return the structure to be finalized outside the lock.  Must be
++ * holding hfi1_devs_lock.
+  */
+-static void release_asic_data(struct hfi1_devdata *dd)
++static struct hfi1_asic_data *release_asic_data(struct hfi1_devdata *dd)
+ {
++	struct hfi1_asic_data *ad;
+ 	int other;
+ 
+ 	if (!dd->asic_data)
+-		return;
++		return NULL;
+ 	dd->asic_data->dds[dd->hfi1_id] = NULL;
+ 	other = dd->hfi1_id ? 0 : 1;
+-	if (!dd->asic_data->dds[other]) {
+-		/* we are the last holder, free it */
+-		kfree(dd->asic_data);
+-	}
++	ad = dd->asic_data;
+ 	dd->asic_data = NULL;
++	/* return NULL if the other dd still has a link */
++	return ad->dds[other] ? NULL : ad;
 +}
 +
-+int hfi1_get_proc_affinity(int node)
- {
--	int cpu = -1, ret;
--	cpumask_var_t diff, mask, intrs;
-+	int cpu = -1, ret, i;
- 	struct hfi1_affinity_node *entry;
-+	cpumask_var_t diff, hw_thread_mask, available_mask, intrs_mask;
- 	const struct cpumask *node_mask,
- 		*proc_mask = tsk_cpus_allowed(current);
--	struct cpu_mask_set *set = &node_affinity.proc;
-+	struct hfi1_affinity_node_list *affinity = &node_affinity;
-+	struct cpu_mask_set *set = &affinity->proc;
- 	char buf[1024];
- 
- 	/*
-@@ -442,9 +485,10 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
- 	 * been set
- 	 */
- 	if (cpumask_weight(proc_mask) == 1) {
--		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %*pbl",
--			  current->pid, current->comm,
-+		scnprintf(buf, sizeof(buf), "%*pbl",
- 			  cpumask_pr_args(proc_mask));
-+		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU %s",
-+			  current->pid, current->comm, buf);
- 		/*
- 		 * Mark the pre-set CPU as used. This is atomic so we don't
- 		 * need the lock
-@@ -453,30 +497,50 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
- 		cpumask_set_cpu(cpu, &set->used);
- 		goto done;
- 	} else if (cpumask_weight(proc_mask) < cpumask_weight(&set->mask)) {
--		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %*pbl",
--			  current->pid, current->comm,
-+		scnprintf(buf, sizeof(buf), "%*pbl",
- 			  cpumask_pr_args(proc_mask));
-+		hfi1_cdbg(PROC, "PID %u %s affinity set to CPU set(s) %s",
-+			  current->pid, current->comm, buf);
- 		goto done;
- 	}
- 
- 	/*
- 	 * The process does not have a preset CPU affinity so find one to
--	 * recommend. We prefer CPUs on the same NUMA as the device.
-+	 * recommend using the following algorithm:
-+	 *
-+	 * For each user process that is opening a context on HFI Y:
-+	 *  a) If all cores are filled, reinitialize the bitmask
-+	 *  b) Fill real cores first, then HT cores (First set of HT
-+	 *     cores on all physical cores, then second set of HT core,
-+	 *     and, so on) in the following order:
-+	 *
-+	 *     1. Same NUMA node as HFI Y and not running an IRQ
-+	 *        handler
-+	 *     2. Same NUMA node as HFI Y and running an IRQ handler
-+	 *     3. Different NUMA node to HFI Y and not running an IRQ
-+	 *        handler
-+	 *     4. Different NUMA node to HFI Y and running an IRQ
-+	 *        handler
-+	 *  c) Mark core as filled in the bitmask. As user processes are
-+	 *     done, clear cores from the bitmask.
- 	 */
- 
- 	ret = zalloc_cpumask_var(&diff, GFP_KERNEL);
- 	if (!ret)
- 		goto done;
--	ret = zalloc_cpumask_var(&mask, GFP_KERNEL);
-+	ret = zalloc_cpumask_var(&hw_thread_mask, GFP_KERNEL);
- 	if (!ret)
- 		goto free_diff;
--	ret = zalloc_cpumask_var(&intrs, GFP_KERNEL);
-+	ret = zalloc_cpumask_var(&available_mask, GFP_KERNEL);
-+	if (!ret)
-+		goto free_hw_thread_mask;
-+	ret = zalloc_cpumask_var(&intrs_mask, GFP_KERNEL);
- 	if (!ret)
--		goto free_mask;
-+		goto free_available_mask;
- 
--	spin_lock(&node_affinity.lock);
-+	spin_lock(&affinity->lock);
- 	/*
--	 * If we've used all available CPUs, clear the mask and start
-+	 * If we've used all available HW threads, clear the mask and start
- 	 * overloading.
- 	 */
- 	if (cpumask_equal(&set->mask, &set->used)) {
-@@ -490,82 +554,135 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
- 	 */
- 	entry = node_affinity_lookup(node);
- 	if (entry) {
--		cpumask_copy(intrs, (entry->def_intr.gen ?
--				     &entry->def_intr.mask :
--				     &entry->def_intr.used));
--		cpumask_or(intrs, intrs, (entry->rcv_intr.gen ?
--					  &entry->rcv_intr.mask :
--					  &entry->rcv_intr.used));
--		cpumask_or(intrs, intrs, &entry->general_intr_mask);
-+		cpumask_copy(intrs_mask, (entry->def_intr.gen ?
-+					  &entry->def_intr.mask :
-+					  &entry->def_intr.used));
-+		cpumask_or(intrs_mask, intrs_mask, (entry->rcv_intr.gen ?
-+						    &entry->rcv_intr.mask :
-+						    &entry->rcv_intr.used));
-+		cpumask_or(intrs_mask, intrs_mask, &entry->general_intr_mask);
- 	}
--	scnprintf(buf, sizeof(buf), "%*pbl", cpumask_pr_args(intrs));
-+	scnprintf(buf, sizeof(buf), "%*pbl", cpumask_pr_args(intrs_mask));
- 	hfi1_cdbg(PROC, "CPUs used by interrupts: %s", buf);
- 
-+	cpumask_copy(hw_thread_mask, &set->mask);
-+
- 	/*
--	 * If we don't have a NUMA node requested, preference is towards
--	 * device NUMA node
-+	 * If HT cores are enabled, identify which HW threads within the
-+	 * physical cores should be used.
- 	 */
--	if (node == -1)
--		node = dd->node;
--	node_mask = cpumask_of_node(node);
--	hfi1_cdbg(PROC, "device on NUMA %u, CPUs %*pbl", node,
--		  cpumask_pr_args(node_mask));
-+	if (affinity->num_core_siblings > 0) {
-+		for (i = 0; i < affinity->num_core_siblings; i++) {
-+			find_hw_thread_mask(i, hw_thread_mask, affinity);
-+
-+			/*
-+			 * If there's at least one available core for this HW
-+			 * thread number, stop looking for a core.
-+			 *
-+			 * diff will always be not empty at least once in this
-+			 * loop as the used mask gets reset when
-+			 * (set->mask == set->used) before this loop.
-+			 */
-+			cpumask_andnot(diff, hw_thread_mask, &set->used);
-+			if (!cpumask_empty(diff))
-+				break;
-+		}
-+	}
-+	if (!scnprintf(buf, sizeof(buf), "%*pbl",
-+		       cpumask_pr_args(hw_thread_mask)))
-+		snprintf(buf, sizeof(buf), "None");
-+	hfi1_cdbg(PROC, "Same available HW thread on all physical CPUs: %s",
-+		  buf);
- 
--	/* diff will hold all unused cpus */
--	cpumask_andnot(diff, &set->mask, &set->used);
--	hfi1_cdbg(PROC, "unused CPUs (all) %*pbl", cpumask_pr_args(diff));
-+	node_mask = cpumask_of_node(node);
-+	scnprintf(buf, 1024, "%*pbl", cpumask_pr_args(node_mask));
-+	hfi1_cdbg(PROC, "Device on NUMA %u, CPUs %s", node, buf);
- 
--	/* get cpumask of available CPUs on preferred NUMA */
--	cpumask_and(mask, diff, node_mask);
--	hfi1_cdbg(PROC, "available cpus on NUMA %*pbl", cpumask_pr_args(mask));
-+	/* Get cpumask of available CPUs on preferred NUMA */
-+	cpumask_and(available_mask, hw_thread_mask, node_mask);
-+	cpumask_andnot(available_mask, available_mask, &set->used);
-+	if (!scnprintf(buf, sizeof(buf), "%*pbl",
-+		       cpumask_pr_args(available_mask)))
-+		snprintf(buf, sizeof(buf), "None");
-+	hfi1_cdbg(PROC, "Available CPUs on NUMA %u: %s", node, buf);
- 
- 	/*
- 	 * At first, we don't want to place processes on the same
--	 * CPUs as interrupt handlers.
-+	 * CPUs as interrupt handlers. Then, CPUs running interrupt
-+	 * handlers are used.
-+	 *
-+	 * 1) If diff is not empty, then there are CPUs not running
-+	 *    non-interrupt handlers available, so diff gets copied
-+	 *    over to available_mask.
-+	 * 2) If diff is empty, then all CPUs not running interrupt
-+	 *    handlers are taken, so available_mask contains all
-+	 *    available CPUs running interrupt handlers.
-+	 * 3) If available_mask is empty, then all CPUs on the
-+	 *    preferred NUMA node are taken, so other NUMA nodes are
-+	 *    used for process assignments using the same method as
-+	 *    the preferred NUMA node.
- 	 */
--	cpumask_andnot(diff, mask, intrs);
-+	cpumask_andnot(diff, available_mask, intrs_mask);
- 	if (!cpumask_empty(diff))
--		cpumask_copy(mask, diff);
-+		cpumask_copy(available_mask, diff);
-+
-+	/* If we don't have CPUs on the preferred node, use other NUMA nodes */
-+	if (cpumask_empty(available_mask)) {
-+		cpumask_andnot(available_mask, hw_thread_mask, &set->used);
-+		/* Excluding preferred NUMA cores */
-+		cpumask_andnot(available_mask, available_mask, node_mask);
-+		if (!scnprintf(buf, sizeof(buf), "%*pbl",
-+			       cpumask_pr_args(available_mask)))
-+			snprintf(buf, sizeof(buf), "None");
-+		hfi1_cdbg(PROC,
-+			  "Preferred NUMA node cores are taken, cores available in other NUMA nodes: %s",
-+			  buf);
- 
--	/*
--	 * if we don't have a cpu on the preferred NUMA, get
--	 * the list of the remaining available CPUs
--	 */
--	if (cpumask_empty(mask)) {
--		cpumask_andnot(diff, &set->mask, &set->used);
--		cpumask_andnot(mask, diff, node_mask);
-+		/*
-+		 * At first, we don't want to place processes on the same
-+		 * CPUs as interrupt handlers.
-+		 */
-+		cpumask_andnot(diff, available_mask, intrs_mask);
-+		if (!cpumask_empty(diff))
-+			cpumask_copy(available_mask, diff);
- 	}
--	hfi1_cdbg(PROC, "possible CPUs for process %*pbl",
--		  cpumask_pr_args(mask));
-+	if (!scnprintf(buf, sizeof(buf), "%*pbl",
-+		       cpumask_pr_args(available_mask)))
-+		snprintf(buf, sizeof(buf), "None");
-+	hfi1_cdbg(PROC, "Possible CPUs for process: %s", buf);
- 
--	cpu = cpumask_first(mask);
-+	cpu = cpumask_first(available_mask);
- 	if (cpu >= nr_cpu_ids) /* empty */
- 		cpu = -1;
- 	else
- 		cpumask_set_cpu(cpu, &set->used);
--	spin_unlock(&node_affinity.lock);
--
--	free_cpumask_var(intrs);
--free_mask:
--	free_cpumask_var(mask);
-+	spin_unlock(&affinity->lock);
-+	hfi1_cdbg(PROC, "Process assigned to CPU %d", cpu);
-+
-+	free_cpumask_var(intrs_mask);
-+free_available_mask:
-+	free_cpumask_var(available_mask);
-+free_hw_thread_mask:
-+	free_cpumask_var(hw_thread_mask);
- free_diff:
- 	free_cpumask_var(diff);
- done:
- 	return cpu;
++static void finalize_asic_data(struct hfi1_devdata *dd,
++			       struct hfi1_asic_data *ad)
++{
++	clean_up_i2c(dd, ad);
++	kfree(ad);
  }
  
--void hfi1_put_proc_affinity(struct hfi1_devdata *dd, int cpu)
-+void hfi1_put_proc_affinity(int cpu)
+ static void __hfi1_free_devdata(struct kobject *kobj)
  {
--	struct cpu_mask_set *set = &node_affinity.proc;
-+	struct hfi1_affinity_node_list *affinity = &node_affinity;
-+	struct cpu_mask_set *set = &affinity->proc;
+ 	struct hfi1_devdata *dd =
+ 		container_of(kobj, struct hfi1_devdata, kobj);
++	struct hfi1_asic_data *ad;
+ 	unsigned long flags;
  
- 	if (cpu < 0)
- 		return;
--	spin_lock(&node_affinity.lock);
-+	spin_lock(&affinity->lock);
- 	cpumask_clear_cpu(cpu, &set->used);
-+	hfi1_cdbg(PROC, "Returning CPU %d for future process assignment", cpu);
- 	if (cpumask_empty(&set->used) && set->gen) {
- 		set->gen--;
- 		cpumask_copy(&set->used, &set->mask);
- 	}
--	spin_unlock(&node_affinity.lock);
-+	spin_unlock(&affinity->lock);
- }
--
-diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
-index 003860e..f784de5 100644
---- a/drivers/infiniband/hw/hfi1/affinity.h
-+++ b/drivers/infiniband/hw/hfi1/affinity.h
-@@ -73,7 +73,6 @@ struct cpu_mask_set {
- struct hfi1_affinity {
- 	struct cpu_mask_set def_intr;
- 	struct cpu_mask_set rcv_intr;
--	struct cpu_mask_set proc;
- 	struct cpumask real_cpu_mask;
- 	/* spin lock to protect affinity struct */
- 	spinlock_t lock;
-@@ -99,9 +98,9 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *, struct hfi1_msix_entry *);
-  * Determine a CPU affinity for a user process, if the process does not
-  * have an affinity set yet.
-  */
--int hfi1_get_proc_affinity(struct hfi1_devdata *, int);
-+int hfi1_get_proc_affinity(int);
- /* Release a CPU used by a user process. */
--void hfi1_put_proc_affinity(struct hfi1_devdata *, int);
-+void hfi1_put_proc_affinity(int);
+ 	spin_lock_irqsave(&hfi1_devs_lock, flags);
+ 	idr_remove(&hfi1_unit_table, dd->unit);
+ 	list_del(&dd->list);
+-	release_asic_data(dd);
++	ad = release_asic_data(dd);
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
++	if (ad)
++		finalize_asic_data(dd, ad);
+ 	free_platform_config(dd);
+ 	rcu_barrier(); /* wait for rcu callbacks to complete */
+ 	free_percpu(dd->int_counter);
+diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
+index 6fca2a0..a207717 100644
+--- a/drivers/infiniband/hw/hfi1/qsfp.c
++++ b/drivers/infiniband/hw/hfi1/qsfp.c
+@@ -50,46 +50,285 @@
+ #include <linux/vmalloc.h>
  
- struct hfi1_affinity_node {
- 	int node;
-@@ -115,6 +114,9 @@ struct hfi1_affinity_node_list {
- 	struct list_head list;
- 	struct cpumask real_cpu_mask;
- 	struct cpu_mask_set proc;
-+	int num_core_siblings;
-+	int num_online_nodes;
-+	int num_online_cpus;
- 	/* protect affinity node list */
- 	spinlock_t lock;
- };
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 2f097d9..d7c07bc 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -715,7 +715,7 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
- 	hfi1_user_sdma_free_queues(fdata);
- 
- 	/* release the cpu */
--	hfi1_put_proc_affinity(dd, fdata->rec_cpu_num);
-+	hfi1_put_proc_affinity(fdata->rec_cpu_num);
- 
- 	/*
- 	 * Clear any left over, unhandled events so the next process that
-@@ -815,9 +815,10 @@ static int assign_ctxt(struct file *fp, struct hfi1_user_info *uinfo)
- 		ret = find_shared_ctxt(fp, uinfo);
- 		if (ret < 0)
- 			goto done_unlock;
--		if (ret)
--			fd->rec_cpu_num = hfi1_get_proc_affinity(
--				fd->uctxt->dd, fd->uctxt->numa_id);
-+		if (ret) {
-+			fd->rec_cpu_num =
-+				hfi1_get_proc_affinity(fd->uctxt->numa_id);
-+		}
- 	}
- 
- 	/*
-@@ -929,7 +930,11 @@ static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
- 	if (ctxt == dd->num_rcv_contexts)
- 		return -EBUSY;
- 
--	fd->rec_cpu_num = hfi1_get_proc_affinity(dd, -1);
+ #include "hfi.h"
+-#include "twsi.h"
++
++/* for the given bus number, return the CSR for reading an i2c line */
++static inline u32 i2c_in_csr(u32 bus_num)
++{
++	return bus_num ? ASIC_QSFP2_IN : ASIC_QSFP1_IN;
++}
++
++/* for the given bus number, return the CSR for writing an i2c line */
++static inline u32 i2c_oe_csr(u32 bus_num)
++{
++	return bus_num ? ASIC_QSFP2_OE : ASIC_QSFP1_OE;
++}
++
++static void hfi1_setsda(void *data, int state)
++{
++	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
++	struct hfi1_devdata *dd = bus->controlling_dd;
++	u64 reg;
++	u32 target_oe;
++
++	target_oe = i2c_oe_csr(bus->num);
++	reg = read_csr(dd, target_oe);
 +	/*
-+	 * If we don't have a NUMA node requested, preference is towards
-+	 * device NUMA node.
++	 * The OE bit value is inverted and connected to the pin.  When
++	 * OE is 0 the pin is left to be pulled up, when the OE is 1
++	 * the pin is driven low.  This matches the "open drain" or "open
++	 * collector" convention.
 +	 */
-+	fd->rec_cpu_num = hfi1_get_proc_affinity(dd->node);
- 	if (fd->rec_cpu_num != -1)
- 		numa = cpu_to_node(fd->rec_cpu_num);
- 	else
++	if (state)
++		reg &= ~QSFP_HFI0_I2CDAT;
++	else
++		reg |= QSFP_HFI0_I2CDAT;
++	write_csr(dd, target_oe, reg);
++	/* do a read to force the write into the chip */
++	(void)read_csr(dd, target_oe);
++}
++
++static void hfi1_setscl(void *data, int state)
++{
++	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
++	struct hfi1_devdata *dd = bus->controlling_dd;
++	u64 reg;
++	u32 target_oe;
++
++	target_oe = i2c_oe_csr(bus->num);
++	reg = read_csr(dd, target_oe);
++	/*
++	 * The OE bit value is inverted and connected to the pin.  When
++	 * OE is 0 the pin is left to be pulled up, when the OE is 1
++	 * the pin is driven low.  This matches the "open drain" or "open
++	 * collector" convention.
++	 */
++	if (state)
++		reg &= ~QSFP_HFI0_I2CCLK;
++	else
++		reg |= QSFP_HFI0_I2CCLK;
++	write_csr(dd, target_oe, reg);
++	/* do a read to force the write into the chip */
++	(void)read_csr(dd, target_oe);
++}
++
++static int hfi1_getsda(void *data)
++{
++	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
++	u64 reg;
++	u32 target_in;
++
++	hfi1_setsda(data, 1);	/* clear OE so we do not pull line down */
++	udelay(2);		/* 1us pull up + 250ns hold */
++
++	target_in = i2c_in_csr(bus->num);
++	reg = read_csr(bus->controlling_dd, target_in);
++	return !!(reg & QSFP_HFI0_I2CDAT);
++}
++
++static int hfi1_getscl(void *data)
++{
++	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
++	u64 reg;
++	u32 target_in;
++
++	hfi1_setscl(data, 1);	/* clear OE so we do not pull line down */
++	udelay(2);		/* 1us pull up + 250ns hold */
++
++	target_in = i2c_in_csr(bus->num);
++	reg = read_csr(bus->controlling_dd, target_in);
++	return !!(reg & QSFP_HFI0_I2CCLK);
++}
+ 
+ /*
+- * QSFP support for hfi driver, using "Two Wire Serial Interface" driver
+- * in twsi.c
++ * Allocate and initialize the given i2c bus number.
++ * Returns NULL on failure.
+  */
+-#define I2C_MAX_RETRY 4
++static struct hfi1_i2c_bus *init_i2c_bus(struct hfi1_devdata *dd,
++					 struct hfi1_asic_data *ad, int num)
++{
++	struct hfi1_i2c_bus *bus;
++	int ret;
++
++	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
++	if (!bus)
++		return NULL;
++
++	bus->controlling_dd = dd;
++	bus->num = num;	/* our bus number */
++
++	bus->algo.setsda = hfi1_setsda;
++	bus->algo.setscl = hfi1_setscl;
++	bus->algo.getsda = hfi1_getsda;
++	bus->algo.getscl = hfi1_getscl;
++	bus->algo.udelay = 5;
++	bus->algo.timeout = usecs_to_jiffies(50);
++	bus->algo.data = bus;
++
++	bus->adapter.owner = THIS_MODULE;
++	bus->adapter.algo_data = &bus->algo;
++	bus->adapter.dev.parent = &dd->pcidev->dev;
++	snprintf(bus->adapter.name, sizeof(bus->adapter.name),
++		 "hfi1_i2c%d", num);
++
++	ret = i2c_bit_add_bus(&bus->adapter);
++	if (ret) {
++		dd_dev_info(dd, "%s: unable to add i2c bus %d, err %d\n",
++			    __func__, num, ret);
++		kfree(bus);
++		return NULL;
++	}
++
++	return bus;
++}
+ 
+ /*
+- * Raw i2c write.  No set-up or lock checking.
++ * Initialize i2c buses.
++ * Return 0 on success, -errno on error.
+  */
+-static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
+-		       int offset, void *bp, int len)
++int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
+ {
+-	struct hfi1_devdata *dd = ppd->dd;
+-	int ret, cnt;
+-	u8 *buff = bp;
++	ad->i2c_bus0 = init_i2c_bus(dd, ad, 0);
++	ad->i2c_bus1 = init_i2c_bus(dd, ad, 1);
++	if (!ad->i2c_bus0 || !ad->i2c_bus1)
++		return -ENOMEM;
++	return 0;
++};
+ 
+-	cnt = 0;
+-	while (cnt < len) {
+-		int wlen = len - cnt;
++static void clean_i2c_bus(struct hfi1_i2c_bus *bus)
++{
++	if (bus) {
++		i2c_del_adapter(&bus->adapter);
++		kfree(bus);
++	}
++}
+ 
+-		ret = hfi1_twsi_blk_wr(dd, target, i2c_addr, offset,
+-				       buff + cnt, wlen);
+-		if (ret) {
+-			/* hfi1_twsi_blk_wr() 1 for error, else 0 */
+-			return -EIO;
+-		}
+-		offset += wlen;
+-		cnt += wlen;
++void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
++{
++	clean_i2c_bus(ad->i2c_bus0);
++	ad->i2c_bus0 = NULL;
++	clean_i2c_bus(ad->i2c_bus1);
++	ad->i2c_bus1 = NULL;
++}
++
++static int i2c_bus_write(struct hfi1_devdata *dd, struct hfi1_i2c_bus *i2c,
++			 u8 slave_addr, int offset, int offset_size,
++			 u8 *data, u16 len)
++{
++	int ret;
++	int num_msgs;
++	u8 offset_bytes[2];
++	struct i2c_msg msgs[2];
++
++	switch (offset_size) {
++	case 0:
++		num_msgs = 1;
++		msgs[0].addr = slave_addr;
++		msgs[0].flags = 0;
++		msgs[0].len = len;
++		msgs[0].buf = data;
++		break;
++	case 2:
++		offset_bytes[1] = (offset >> 8) & 0xff;
++		/* fall through */
++	case 1:
++		num_msgs = 2;
++		offset_bytes[0] = offset & 0xff;
++
++		msgs[0].addr = slave_addr;
++		msgs[0].flags = 0;
++		msgs[0].len = offset_size;
++		msgs[0].buf = offset_bytes;
++
++		msgs[1].addr = slave_addr;
++		msgs[1].flags = I2C_M_NOSTART,
++		msgs[1].len = len;
++		msgs[1].buf = data;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	i2c->controlling_dd = dd;
++	ret = i2c_transfer(&i2c->adapter, msgs, num_msgs);
++	if (ret != num_msgs) {
++		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; write failed, ret %d\n",
++			   __func__, i2c->num, slave_addr, offset, len, ret);
++		return ret < 0 ? ret : -EIO;
+ 	}
++	return 0;
++}
+ 
+-	/* Must wait min 20us between qsfp i2c transactions */
+-	udelay(20);
++static int i2c_bus_read(struct hfi1_devdata *dd, struct hfi1_i2c_bus *bus,
++			u8 slave_addr, int offset, int offset_size,
++			u8 *data, u16 len)
++{
++	int ret;
++	int num_msgs;
++	u8 offset_bytes[2];
++	struct i2c_msg msgs[2];
++
++	switch (offset_size) {
++	case 0:
++		num_msgs = 1;
++		msgs[0].addr = slave_addr;
++		msgs[0].flags = I2C_M_RD;
++		msgs[0].len = len;
++		msgs[0].buf = data;
++		break;
++	case 2:
++		offset_bytes[1] = (offset >> 8) & 0xff;
++		/* fall through */
++	case 1:
++		num_msgs = 2;
++		offset_bytes[0] = offset & 0xff;
++
++		msgs[0].addr = slave_addr;
++		msgs[0].flags = 0;
++		msgs[0].len = offset_size;
++		msgs[0].buf = offset_bytes;
++
++		msgs[1].addr = slave_addr;
++		msgs[1].flags = I2C_M_RD,
++		msgs[1].len = len;
++		msgs[1].buf = data;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 
+-	return cnt;
++	bus->controlling_dd = dd;
++	ret = i2c_transfer(&bus->adapter, msgs, num_msgs);
++	if (ret != num_msgs) {
++		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; read failed, ret %d\n",
++			   __func__, bus->num, slave_addr, offset, len, ret);
++		return ret < 0 ? ret : -EIO;
++	}
++	return 0;
++}
++
++/*
++ * Raw i2c write.  No set-up or lock checking.
++ *
++ * Return 0 on success, -errno on error.
++ */
++static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
++		       int offset, void *bp, int len)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++	struct hfi1_i2c_bus *bus;
++	u8 slave_addr;
++	int offset_size;
++
++	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
++	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
++	offset_size = (i2c_addr >> 8) & 0x3;
++	return i2c_bus_write(dd, bus, slave_addr, offset, offset_size, bp, len);
+ }
+ 
+ /*
+  * Caller must hold the i2c chain resource.
++ *
++ * Return number of bytes written, or -errno.
+  */
+ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ 	      void *bp, int len)
+@@ -99,63 +338,36 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+-	/* make sure the TWSI bus is in a sane state */
+-	ret = hfi1_twsi_reset(ppd->dd, target);
+-	if (ret) {
+-		hfi1_dev_porterr(ppd->dd, ppd->port,
+-				 "I2C chain %d write interface reset failed\n",
+-				 target);
++	ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
++	if (ret)
+ 		return ret;
+-	}
+ 
+-	return __i2c_write(ppd, target, i2c_addr, offset, bp, len);
++	return len;
+ }
+ 
+ /*
+  * Raw i2c read.  No set-up or lock checking.
++ *
++ * Return 0 on success, -errno on error.
+  */
+ static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
+ 		      int offset, void *bp, int len)
+ {
+ 	struct hfi1_devdata *dd = ppd->dd;
+-	int ret, cnt, pass = 0;
+-	int orig_offset = offset;
+-
+-	cnt = 0;
+-	while (cnt < len) {
+-		int rlen = len - cnt;
+-
+-		ret = hfi1_twsi_blk_rd(dd, target, i2c_addr, offset,
+-				       bp + cnt, rlen);
+-		/* Some QSFP's fail first try. Retry as experiment */
+-		if (ret && cnt == 0 && ++pass < I2C_MAX_RETRY)
+-			continue;
+-		if (ret) {
+-			/* hfi1_twsi_blk_rd() 1 for error, else 0 */
+-			ret = -EIO;
+-			goto exit;
+-		}
+-		offset += rlen;
+-		cnt += rlen;
+-	}
+-
+-	ret = cnt;
+-
+-exit:
+-	if (ret < 0) {
+-		hfi1_dev_porterr(dd, ppd->port,
+-				 "I2C chain %d read failed, addr 0x%x, offset 0x%x, len %d\n",
+-				 target, i2c_addr, orig_offset, len);
+-	}
+-
+-	/* Must wait min 20us between qsfp i2c transactions */
+-	udelay(20);
+-
+-	return ret;
++	struct hfi1_i2c_bus *bus;
++	u8 slave_addr;
++	int offset_size;
++
++	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
++	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
++	offset_size = (i2c_addr >> 8) & 0x3;
++	return i2c_bus_read(dd, bus, slave_addr, offset, offset_size, bp, len);
+ }
+ 
+ /*
+  * Caller must hold the i2c chain resource.
++ *
++ * Return number of bytes read, or -errno.
+  */
+ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ 	     void *bp, int len)
+@@ -165,16 +377,11 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+ 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+-	/* make sure the TWSI bus is in a sane state */
+-	ret = hfi1_twsi_reset(ppd->dd, target);
+-	if (ret) {
+-		hfi1_dev_porterr(ppd->dd, ppd->port,
+-				 "I2C chain %d read interface reset failed\n",
+-				 target);
++	ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
++	if (ret)
+ 		return ret;
+-	}
+ 
+-	return __i2c_read(ppd, target, i2c_addr, offset, bp, len);
++	return len;
+ }
+ 
+ /*
+@@ -182,6 +389,8 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
+  * by writing @addr = ((256 * n) + m)
+  *
+  * Caller must hold the i2c chain resource.
++ *
++ * Return number of bytes written or -errno.
+  */
+ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	       int len)
+@@ -189,21 +398,12 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	int count = 0;
+ 	int offset;
+ 	int nwrite;
+-	int ret;
++	int ret = 0;
+ 	u8 page;
+ 
+ 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+-	/* make sure the TWSI bus is in a sane state */
+-	ret = hfi1_twsi_reset(ppd->dd, target);
+-	if (ret) {
+-		hfi1_dev_porterr(ppd->dd, ppd->port,
+-				 "QSFP chain %d write interface reset failed\n",
+-				 target);
+-		return ret;
+-	}
+-
+ 	while (count < len) {
+ 		/*
+ 		 * Set the qsfp page based on a zero-based address
+@@ -213,11 +413,12 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 
+ 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
+ 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
+-		if (ret != 1) {
++		/* QSFPs require a 5-10msec delay after write operations */
++		mdelay(5);
++		if (ret) {
+ 			hfi1_dev_porterr(ppd->dd, ppd->port,
+ 					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
+ 					 target, ret);
+-			ret = -EIO;
+ 			break;
+ 		}
+ 
+@@ -229,11 +430,13 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 
+ 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
+ 				  offset, bp + count, nwrite);
+-		if (ret <= 0)	/* stop on error or nothing written */
++		/* QSFPs require a 5-10msec delay after write operations */
++		mdelay(5);
++		if (ret)	/* stop on error */
+ 			break;
+ 
+-		count += ret;
+-		addr += ret;
++		count += nwrite;
++		addr += nwrite;
+ 	}
+ 
+ 	if (ret < 0)
+@@ -266,6 +469,8 @@ int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+  * by reading @addr = ((256 * n) + m)
+  *
+  * Caller must hold the i2c chain resource.
++ *
++ * Return the number of bytes read or -errno.
+  */
+ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	      int len)
+@@ -273,21 +478,12 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 	int count = 0;
+ 	int offset;
+ 	int nread;
+-	int ret;
++	int ret = 0;
+ 	u8 page;
+ 
+ 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+ 		return -EACCES;
+ 
+-	/* make sure the TWSI bus is in a sane state */
+-	ret = hfi1_twsi_reset(ppd->dd, target);
+-	if (ret) {
+-		hfi1_dev_porterr(ppd->dd, ppd->port,
+-				 "QSFP chain %d read interface reset failed\n",
+-				 target);
+-		return ret;
+-	}
+-
+ 	while (count < len) {
+ 		/*
+ 		 * Set the qsfp page based on a zero-based address
+@@ -296,11 +492,12 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 		page = (u8)(addr / QSFP_PAGESIZE);
+ 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
+ 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
+-		if (ret != 1) {
++		/* QSFPs require a 5-10msec delay after write operations */
++		mdelay(5);
++		if (ret) {
+ 			hfi1_dev_porterr(ppd->dd, ppd->port,
+ 					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
+ 					 target, ret);
+-			ret = -EIO;
+ 			break;
+ 		}
+ 
+@@ -310,15 +507,13 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 		if (((addr % QSFP_RW_BOUNDARY) + nread) > QSFP_RW_BOUNDARY)
+ 			nread = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
+ 
+-		/* QSFPs require a 5-10msec delay after write operations */
+-		mdelay(5);
+ 		ret = __i2c_read(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
+ 				 offset, bp + count, nread);
+-		if (ret <= 0)	/* stop on error or nothing read */
++		if (ret)	/* stop on error */
+ 			break;
+ 
+-		count += ret;
+-		addr += ret;
++		count += nread;
++		addr += nread;
+ 	}
+ 
+ 	if (ret < 0)
+diff --git a/drivers/infiniband/hw/hfi1/qsfp.h b/drivers/infiniband/hw/hfi1/qsfp.h
+index dadc66c..69275eb 100644
+--- a/drivers/infiniband/hw/hfi1/qsfp.h
++++ b/drivers/infiniband/hw/hfi1/qsfp.h
+@@ -238,3 +238,6 @@ int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 		   int len);
+ int one_qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
+ 		  int len);
++struct hfi1_asic_data;
++int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);
++void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
