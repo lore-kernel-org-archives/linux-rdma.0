@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 11/18] IB/hfi1: Use built-in i2c bit-shift bus
- adapter
-Date: Fri, 01 Jul 2016 16:01:44 -0700
-Message-ID: <20160701230144.20160.75116.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 12/18] IB/hfi1: Remove TWSI references
+Date: Fri, 01 Jul 2016 16:01:50 -0700
+Message-ID: <20160701230149.20160.7941.stgit@scvm10.sc.intel.com>
 References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,8 +15,8 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Use built-in i2c bit-shift bus adapter to control the
-i2c busses on the chip.
+Remove the TWSI code.  The driver now uses the kernel's built-in
+i2c bit bus module.
 
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -25,673 +24,649 @@ Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@publi
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/Kconfig |    3 
- drivers/infiniband/hw/hfi1/hfi.h   |   11 +
- drivers/infiniband/hw/hfi1/init.c  |   27 ++
- drivers/infiniband/hw/hfi1/qsfp.c  |  407 +++++++++++++++++++++++++++---------
- drivers/infiniband/hw/hfi1/qsfp.h  |    3 
- 5 files changed, 336 insertions(+), 115 deletions(-)
+ drivers/infiniband/hw/hfi1/Makefile |    2 
+ drivers/infiniband/hw/hfi1/chip.c   |   31 --
+ drivers/infiniband/hw/hfi1/chip.h   |    2 
+ drivers/infiniband/hw/hfi1/twsi.c   |  489 -----------------------------------
+ drivers/infiniband/hw/hfi1/twsi.h   |   65 -----
+ 5 files changed, 1 insertions(+), 588 deletions(-)
+ delete mode 100644 drivers/infiniband/hw/hfi1/twsi.c
+ delete mode 100644 drivers/infiniband/hw/hfi1/twsi.h
 
-diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
-index a925fb0..bac1860 100644
---- a/drivers/infiniband/hw/hfi1/Kconfig
-+++ b/drivers/infiniband/hw/hfi1/Kconfig
-@@ -1,8 +1,9 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
--	depends on X86_64 && INFINIBAND_RDMAVT
-+	depends on X86_64 && INFINIBAND_RDMAVT && I2C
- 	select MMU_NOTIFIER
- 	select CRC32
-+	select I2C_ALGOBIT
- 	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index fd67e98..c433eb8 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -62,6 +62,8 @@
- #include <linux/cdev.h>
- #include <linux/delay.h>
- #include <linux/kthread.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
- #include <rdma/rdma_vt.h>
- 
- #include "chip_registers.h"
-@@ -805,10 +807,19 @@ struct hfi1_temp {
- 	u8 triggers;      /* temperature triggers */
- };
- 
-+struct hfi1_i2c_bus {
-+	struct hfi1_devdata *controlling_dd; /* current controlling device */
-+	struct i2c_adapter adapter;	/* bus details */
-+	struct i2c_algo_bit_data algo;	/* bus algorithm details */
-+	int num;			/* bus number, 0 or 1 */
-+};
-+
- /* common data between shared ASIC HFIs */
- struct hfi1_asic_data {
- 	struct hfi1_devdata *dds[2];	/* back pointers */
- 	struct mutex asic_resource_mutex;
-+	struct hfi1_i2c_bus *i2c_bus0;
-+	struct hfi1_i2c_bus *i2c_bus1;
- };
- 
- /* device data struct now contains only "general per-device" info.
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 1620d68..ec77c7e 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -973,34 +973,45 @@ void hfi1_free_ctxtdata(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
- 
- /*
-  * Release our hold on the shared asic data.  If we are the last one,
-- * free the structure.  Must be holding hfi1_devs_lock.
-+ * return the structure to be finalized outside the lock.  Must be
-+ * holding hfi1_devs_lock.
-  */
--static void release_asic_data(struct hfi1_devdata *dd)
-+static struct hfi1_asic_data *release_asic_data(struct hfi1_devdata *dd)
- {
-+	struct hfi1_asic_data *ad;
- 	int other;
- 
- 	if (!dd->asic_data)
--		return;
-+		return NULL;
- 	dd->asic_data->dds[dd->hfi1_id] = NULL;
- 	other = dd->hfi1_id ? 0 : 1;
--	if (!dd->asic_data->dds[other]) {
--		/* we are the last holder, free it */
--		kfree(dd->asic_data);
--	}
-+	ad = dd->asic_data;
- 	dd->asic_data = NULL;
-+	/* return NULL if the other dd still has a link */
-+	return ad->dds[other] ? NULL : ad;
-+}
-+
-+static void finalize_asic_data(struct hfi1_devdata *dd,
-+			       struct hfi1_asic_data *ad)
-+{
-+	clean_up_i2c(dd, ad);
-+	kfree(ad);
+diff --git a/drivers/infiniband/hw/hfi1/Makefile b/drivers/infiniband/hw/hfi1/Makefile
+index 9b5382c..0cf97a0 100644
+--- a/drivers/infiniband/hw/hfi1/Makefile
++++ b/drivers/infiniband/hw/hfi1/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_INFINIBAND_HFI1) += hfi1.o
+ hfi1-y := affinity.o chip.o device.o driver.o efivar.o \
+ 	eprom.o file_ops.o firmware.o \
+ 	init.o intr.o mad.o mmu_rb.o pcie.o pio.o pio_copy.o platform.o \
+-	qp.o qsfp.o rc.o ruc.o sdma.o sysfs.o trace.o twsi.o \
++	qp.o qsfp.o rc.o ruc.o sdma.o sysfs.o trace.o \
+ 	uc.o ud.o user_exp_rcv.o user_pages.o user_sdma.o verbs.o \
+ 	verbs_txreq.o
+ hfi1-$(CONFIG_DEBUG_FS) += debugfs.o
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 22bfe0e..40d485b 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -12349,37 +12349,6 @@ u8 hfi1_ibphys_portstate(struct hfi1_pportdata *ppd)
+ 	return ib_pstate;
  }
  
- static void __hfi1_free_devdata(struct kobject *kobj)
- {
- 	struct hfi1_devdata *dd =
- 		container_of(kobj, struct hfi1_devdata, kobj);
-+	struct hfi1_asic_data *ad;
- 	unsigned long flags;
+-/*
+- * Read/modify/write ASIC_QSFP register bits as selected by mask
+- * data: 0 or 1 in the positions depending on what needs to be written
+- * dir: 0 for read, 1 for write
+- * mask: select by setting
+- *      I2CCLK  (bit 0)
+- *      I2CDATA (bit 1)
+- */
+-u64 hfi1_gpio_mod(struct hfi1_devdata *dd, u32 target, u32 data, u32 dir,
+-		  u32 mask)
+-{
+-	u64 qsfp_oe, target_oe;
+-
+-	target_oe = target ? ASIC_QSFP2_OE : ASIC_QSFP1_OE;
+-	if (mask) {
+-		/* We are writing register bits, so lock access */
+-		dir &= mask;
+-		data &= mask;
+-
+-		qsfp_oe = read_csr(dd, target_oe);
+-		qsfp_oe = (qsfp_oe & ~(u64)mask) | (u64)dir;
+-		write_csr(dd, target_oe, qsfp_oe);
+-	}
+-	/* We are exclusively reading bits here, but it is unlikely
+-	 * we'll get valid data when we set the direction of the pin
+-	 * in the same call, so read should call this function again
+-	 * to get valid data
+-	 */
+-	return read_csr(dd, target ? ASIC_QSFP2_IN : ASIC_QSFP1_IN);
+-}
+-
+ #define CLEAR_STATIC_RATE_CONTROL_SMASK(r) \
+ (r &= ~SEND_CTXT_CHECK_ENABLE_DISALLOW_PBC_STATIC_RATE_CONTROL_SMASK)
  
- 	spin_lock_irqsave(&hfi1_devs_lock, flags);
- 	idr_remove(&hfi1_unit_table, dd->unit);
- 	list_del(&dd->list);
--	release_asic_data(dd);
-+	ad = release_asic_data(dd);
- 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
-+	if (ad)
-+		finalize_asic_data(dd, ad);
- 	free_platform_config(dd);
- 	rcu_barrier(); /* wait for rcu callbacks to complete */
- 	free_percpu(dd->int_counter);
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
-index 6fca2a0..a207717 100644
---- a/drivers/infiniband/hw/hfi1/qsfp.c
-+++ b/drivers/infiniband/hw/hfi1/qsfp.c
-@@ -50,46 +50,285 @@
- #include <linux/vmalloc.h>
- 
- #include "hfi.h"
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 66a3279..d0a4ddb 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -1338,8 +1338,6 @@ struct hfi1_message_header *hfi1_get_msgheader(
+ 				struct hfi1_devdata *dd, __le32 *rhf_addr);
+ int hfi1_get_base_kinfo(struct hfi1_ctxtdata *rcd,
+ 			struct hfi1_ctxt_info *kinfo);
+-u64 hfi1_gpio_mod(struct hfi1_devdata *dd, u32 target, u32 data, u32 dir,
+-		  u32 mask);
+ int hfi1_init_ctxt(struct send_context *sc);
+ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
+ 		  u32 type, unsigned long pa, u16 order);
+diff --git a/drivers/infiniband/hw/hfi1/twsi.c b/drivers/infiniband/hw/hfi1/twsi.c
+deleted file mode 100644
+index e82e52a..0000000
+--- a/drivers/infiniband/hw/hfi1/twsi.c
++++ /dev/null
+@@ -1,489 +0,0 @@
+-/*
+- * Copyright(c) 2015, 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-#include <linux/delay.h>
+-#include <linux/pci.h>
+-#include <linux/vmalloc.h>
+-
+-#include "hfi.h"
 -#include "twsi.h"
-+
-+/* for the given bus number, return the CSR for reading an i2c line */
-+static inline u32 i2c_in_csr(u32 bus_num)
-+{
-+	return bus_num ? ASIC_QSFP2_IN : ASIC_QSFP1_IN;
-+}
-+
-+/* for the given bus number, return the CSR for writing an i2c line */
-+static inline u32 i2c_oe_csr(u32 bus_num)
-+{
-+	return bus_num ? ASIC_QSFP2_OE : ASIC_QSFP1_OE;
-+}
-+
-+static void hfi1_setsda(void *data, int state)
-+{
-+	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
-+	struct hfi1_devdata *dd = bus->controlling_dd;
-+	u64 reg;
-+	u32 target_oe;
-+
-+	target_oe = i2c_oe_csr(bus->num);
-+	reg = read_csr(dd, target_oe);
-+	/*
-+	 * The OE bit value is inverted and connected to the pin.  When
-+	 * OE is 0 the pin is left to be pulled up, when the OE is 1
-+	 * the pin is driven low.  This matches the "open drain" or "open
-+	 * collector" convention.
-+	 */
-+	if (state)
-+		reg &= ~QSFP_HFI0_I2CDAT;
-+	else
-+		reg |= QSFP_HFI0_I2CDAT;
-+	write_csr(dd, target_oe, reg);
-+	/* do a read to force the write into the chip */
-+	(void)read_csr(dd, target_oe);
-+}
-+
-+static void hfi1_setscl(void *data, int state)
-+{
-+	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
-+	struct hfi1_devdata *dd = bus->controlling_dd;
-+	u64 reg;
-+	u32 target_oe;
-+
-+	target_oe = i2c_oe_csr(bus->num);
-+	reg = read_csr(dd, target_oe);
-+	/*
-+	 * The OE bit value is inverted and connected to the pin.  When
-+	 * OE is 0 the pin is left to be pulled up, when the OE is 1
-+	 * the pin is driven low.  This matches the "open drain" or "open
-+	 * collector" convention.
-+	 */
-+	if (state)
-+		reg &= ~QSFP_HFI0_I2CCLK;
-+	else
-+		reg |= QSFP_HFI0_I2CCLK;
-+	write_csr(dd, target_oe, reg);
-+	/* do a read to force the write into the chip */
-+	(void)read_csr(dd, target_oe);
-+}
-+
-+static int hfi1_getsda(void *data)
-+{
-+	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
-+	u64 reg;
-+	u32 target_in;
-+
-+	hfi1_setsda(data, 1);	/* clear OE so we do not pull line down */
-+	udelay(2);		/* 1us pull up + 250ns hold */
-+
-+	target_in = i2c_in_csr(bus->num);
-+	reg = read_csr(bus->controlling_dd, target_in);
-+	return !!(reg & QSFP_HFI0_I2CDAT);
-+}
-+
-+static int hfi1_getscl(void *data)
-+{
-+	struct hfi1_i2c_bus *bus = (struct hfi1_i2c_bus *)data;
-+	u64 reg;
-+	u32 target_in;
-+
-+	hfi1_setscl(data, 1);	/* clear OE so we do not pull line down */
-+	udelay(2);		/* 1us pull up + 250ns hold */
-+
-+	target_in = i2c_in_csr(bus->num);
-+	reg = read_csr(bus->controlling_dd, target_in);
-+	return !!(reg & QSFP_HFI0_I2CCLK);
-+}
- 
- /*
-- * QSFP support for hfi driver, using "Two Wire Serial Interface" driver
-- * in twsi.c
-+ * Allocate and initialize the given i2c bus number.
-+ * Returns NULL on failure.
-  */
--#define I2C_MAX_RETRY 4
-+static struct hfi1_i2c_bus *init_i2c_bus(struct hfi1_devdata *dd,
-+					 struct hfi1_asic_data *ad, int num)
-+{
-+	struct hfi1_i2c_bus *bus;
-+	int ret;
-+
-+	bus = kzalloc(sizeof(*bus), GFP_KERNEL);
-+	if (!bus)
-+		return NULL;
-+
-+	bus->controlling_dd = dd;
-+	bus->num = num;	/* our bus number */
-+
-+	bus->algo.setsda = hfi1_setsda;
-+	bus->algo.setscl = hfi1_setscl;
-+	bus->algo.getsda = hfi1_getsda;
-+	bus->algo.getscl = hfi1_getscl;
-+	bus->algo.udelay = 5;
-+	bus->algo.timeout = usecs_to_jiffies(50);
-+	bus->algo.data = bus;
-+
-+	bus->adapter.owner = THIS_MODULE;
-+	bus->adapter.algo_data = &bus->algo;
-+	bus->adapter.dev.parent = &dd->pcidev->dev;
-+	snprintf(bus->adapter.name, sizeof(bus->adapter.name),
-+		 "hfi1_i2c%d", num);
-+
-+	ret = i2c_bit_add_bus(&bus->adapter);
-+	if (ret) {
-+		dd_dev_info(dd, "%s: unable to add i2c bus %d, err %d\n",
-+			    __func__, num, ret);
-+		kfree(bus);
-+		return NULL;
-+	}
-+
-+	return bus;
-+}
- 
- /*
-- * Raw i2c write.  No set-up or lock checking.
-+ * Initialize i2c buses.
-+ * Return 0 on success, -errno on error.
-  */
--static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
--		       int offset, void *bp, int len)
-+int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
- {
--	struct hfi1_devdata *dd = ppd->dd;
--	int ret, cnt;
--	u8 *buff = bp;
-+	ad->i2c_bus0 = init_i2c_bus(dd, ad, 0);
-+	ad->i2c_bus1 = init_i2c_bus(dd, ad, 1);
-+	if (!ad->i2c_bus0 || !ad->i2c_bus1)
-+		return -ENOMEM;
-+	return 0;
-+};
- 
--	cnt = 0;
--	while (cnt < len) {
--		int wlen = len - cnt;
-+static void clean_i2c_bus(struct hfi1_i2c_bus *bus)
-+{
-+	if (bus) {
-+		i2c_del_adapter(&bus->adapter);
-+		kfree(bus);
-+	}
-+}
- 
--		ret = hfi1_twsi_blk_wr(dd, target, i2c_addr, offset,
--				       buff + cnt, wlen);
--		if (ret) {
--			/* hfi1_twsi_blk_wr() 1 for error, else 0 */
--			return -EIO;
+-
+-/*
+- * "Two Wire Serial Interface" support.
+- *
+- * Originally written for a not-quite-i2c serial eeprom, which is
+- * still used on some supported boards. Later boards have added a
+- * variety of other uses, most board-specific, so the bit-boffing
+- * part has been split off to this file, while the other parts
+- * have been moved to chip-specific files.
+- *
+- * We have also dropped all pretense of fully generic (e.g. pretend
+- * we don't know whether '1' is the higher voltage) interface, as
+- * the restrictions of the generic i2c interface (e.g. no access from
+- * driver itself) make it unsuitable for this use.
+- */
+-
+-#define READ_CMD 1
+-#define WRITE_CMD 0
+-
+-/**
+- * i2c_wait_for_writes - wait for a write
+- * @dd: the hfi1_ib device
+- *
+- * We use this instead of udelay directly, so we can make sure
+- * that previous register writes have been flushed all the way
+- * to the chip.  Since we are delaying anyway, the cost doesn't
+- * hurt, and makes the bit twiddling more regular
+- */
+-static void i2c_wait_for_writes(struct hfi1_devdata *dd, u32 target)
+-{
+-	/*
+-	 * implicit read of EXTStatus is as good as explicit
+-	 * read of scratch, if all we want to do is flush
+-	 * writes.
+-	 */
+-	hfi1_gpio_mod(dd, target, 0, 0, 0);
+-	rmb(); /* inlined, so prevent compiler reordering */
+-}
+-
+-/*
+- * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
+- * for "almost compliant" modules
+- */
+-#define SCL_WAIT_USEC 1000
+-
+-/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
+- * Should be 20, but some chips need more.
+- */
+-#define TWSI_BUF_WAIT_USEC 60
+-
+-static void scl_out(struct hfi1_devdata *dd, u32 target, u8 bit)
+-{
+-	u32 mask;
+-
+-	udelay(1);
+-
+-	mask = QSFP_HFI0_I2CCLK;
+-
+-	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
+-	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
+-
+-	/*
+-	 * Allow for slow slaves by simple
+-	 * delay for falling edge, sampling on rise.
+-	 */
+-	if (!bit) {
+-		udelay(2);
+-	} else {
+-		int rise_usec;
+-
+-		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
+-			if (mask & hfi1_gpio_mod(dd, target, 0, 0, 0))
+-				break;
+-			udelay(2);
 -		}
--		offset += wlen;
--		cnt += wlen;
-+void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad)
-+{
-+	clean_i2c_bus(ad->i2c_bus0);
-+	ad->i2c_bus0 = NULL;
-+	clean_i2c_bus(ad->i2c_bus1);
-+	ad->i2c_bus1 = NULL;
-+}
-+
-+static int i2c_bus_write(struct hfi1_devdata *dd, struct hfi1_i2c_bus *i2c,
-+			 u8 slave_addr, int offset, int offset_size,
-+			 u8 *data, u16 len)
-+{
-+	int ret;
-+	int num_msgs;
-+	u8 offset_bytes[2];
-+	struct i2c_msg msgs[2];
-+
-+	switch (offset_size) {
-+	case 0:
-+		num_msgs = 1;
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = len;
-+		msgs[0].buf = data;
-+		break;
-+	case 2:
-+		offset_bytes[1] = (offset >> 8) & 0xff;
-+		/* fall through */
-+	case 1:
-+		num_msgs = 2;
-+		offset_bytes[0] = offset & 0xff;
-+
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = offset_size;
-+		msgs[0].buf = offset_bytes;
-+
-+		msgs[1].addr = slave_addr;
-+		msgs[1].flags = I2C_M_NOSTART,
-+		msgs[1].len = len;
-+		msgs[1].buf = data;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	i2c->controlling_dd = dd;
-+	ret = i2c_transfer(&i2c->adapter, msgs, num_msgs);
-+	if (ret != num_msgs) {
-+		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; write failed, ret %d\n",
-+			   __func__, i2c->num, slave_addr, offset, len, ret);
-+		return ret < 0 ? ret : -EIO;
- 	}
-+	return 0;
-+}
- 
--	/* Must wait min 20us between qsfp i2c transactions */
--	udelay(20);
-+static int i2c_bus_read(struct hfi1_devdata *dd, struct hfi1_i2c_bus *bus,
-+			u8 slave_addr, int offset, int offset_size,
-+			u8 *data, u16 len)
-+{
-+	int ret;
-+	int num_msgs;
-+	u8 offset_bytes[2];
-+	struct i2c_msg msgs[2];
-+
-+	switch (offset_size) {
-+	case 0:
-+		num_msgs = 1;
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = I2C_M_RD;
-+		msgs[0].len = len;
-+		msgs[0].buf = data;
-+		break;
-+	case 2:
-+		offset_bytes[1] = (offset >> 8) & 0xff;
-+		/* fall through */
-+	case 1:
-+		num_msgs = 2;
-+		offset_bytes[0] = offset & 0xff;
-+
-+		msgs[0].addr = slave_addr;
-+		msgs[0].flags = 0;
-+		msgs[0].len = offset_size;
-+		msgs[0].buf = offset_bytes;
-+
-+		msgs[1].addr = slave_addr;
-+		msgs[1].flags = I2C_M_RD,
-+		msgs[1].len = len;
-+		msgs[1].buf = data;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
--	return cnt;
-+	bus->controlling_dd = dd;
-+	ret = i2c_transfer(&bus->adapter, msgs, num_msgs);
-+	if (ret != num_msgs) {
-+		dd_dev_err(dd, "%s: bus %d, i2c slave 0x%x, offset 0x%x, len 0x%x; read failed, ret %d\n",
-+			   __func__, bus->num, slave_addr, offset, len, ret);
-+		return ret < 0 ? ret : -EIO;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Raw i2c write.  No set-up or lock checking.
-+ *
-+ * Return 0 on success, -errno on error.
-+ */
-+static int __i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
-+		       int offset, void *bp, int len)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+	struct hfi1_i2c_bus *bus;
-+	u8 slave_addr;
-+	int offset_size;
-+
-+	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
-+	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
-+	offset_size = (i2c_addr >> 8) & 0x3;
-+	return i2c_bus_write(dd, bus, slave_addr, offset, offset_size, bp, len);
- }
- 
- /*
-  * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes written, or -errno.
-  */
- int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	      void *bp, int len)
-@@ -99,63 +338,36 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
- 		return -EACCES;
- 
--	/* make sure the TWSI bus is in a sane state */
--	ret = hfi1_twsi_reset(ppd->dd, target);
--	if (ret) {
--		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "I2C chain %d write interface reset failed\n",
--				 target);
-+	ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
-+	if (ret)
- 		return ret;
+-		if (rise_usec <= 0)
+-			dd_dev_err(dd, "SCL interface stuck low > %d uSec\n",
+-				   SCL_WAIT_USEC);
 -	}
- 
--	return __i2c_write(ppd, target, i2c_addr, offset, bp, len);
-+	return len;
- }
- 
- /*
-  * Raw i2c read.  No set-up or lock checking.
-+ *
-+ * Return 0 on success, -errno on error.
-  */
- static int __i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr,
- 		      int offset, void *bp, int len)
- {
- 	struct hfi1_devdata *dd = ppd->dd;
--	int ret, cnt, pass = 0;
--	int orig_offset = offset;
+-	i2c_wait_for_writes(dd, target);
+-}
 -
--	cnt = 0;
--	while (cnt < len) {
--		int rlen = len - cnt;
+-static u8 scl_in(struct hfi1_devdata *dd, u32 target, int wait)
+-{
+-	u32 read_val, mask;
 -
--		ret = hfi1_twsi_blk_rd(dd, target, i2c_addr, offset,
--				       bp + cnt, rlen);
--		/* Some QSFP's fail first try. Retry as experiment */
--		if (ret && cnt == 0 && ++pass < I2C_MAX_RETRY)
--			continue;
--		if (ret) {
--			/* hfi1_twsi_blk_rd() 1 for error, else 0 */
--			ret = -EIO;
--			goto exit;
--		}
--		offset += rlen;
--		cnt += rlen;
+-	mask = QSFP_HFI0_I2CCLK;
+-	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
+-	hfi1_gpio_mod(dd, target, 0, 0, mask);
+-	read_val = hfi1_gpio_mod(dd, target, 0, 0, 0);
+-	if (wait)
+-		i2c_wait_for_writes(dd, target);
+-	return (read_val & mask) >> GPIO_SCL_NUM;
+-}
+-
+-static void sda_out(struct hfi1_devdata *dd, u32 target, u8 bit)
+-{
+-	u32 mask;
+-
+-	mask = QSFP_HFI0_I2CDAT;
+-
+-	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
+-	hfi1_gpio_mod(dd, target, 0, bit ? 0 : mask, mask);
+-
+-	i2c_wait_for_writes(dd, target);
+-	udelay(2);
+-}
+-
+-static u8 sda_in(struct hfi1_devdata *dd, u32 target, int wait)
+-{
+-	u32 read_val, mask;
+-
+-	mask = QSFP_HFI0_I2CDAT;
+-	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
+-	hfi1_gpio_mod(dd, target, 0, 0, mask);
+-	read_val = hfi1_gpio_mod(dd, target, 0, 0, 0);
+-	if (wait)
+-		i2c_wait_for_writes(dd, target);
+-	return (read_val & mask) >> GPIO_SDA_NUM;
+-}
+-
+-/**
+- * i2c_ackrcv - see if ack following write is true
+- * @dd: the hfi1_ib device
+- */
+-static int i2c_ackrcv(struct hfi1_devdata *dd, u32 target)
+-{
+-	u8 ack_received;
+-
+-	/* AT ENTRY SCL = LOW */
+-	/* change direction, ignore data */
+-	ack_received = sda_in(dd, target, 1);
+-	scl_out(dd, target, 1);
+-	ack_received = sda_in(dd, target, 1) == 0;
+-	scl_out(dd, target, 0);
+-	return ack_received;
+-}
+-
+-static void stop_cmd(struct hfi1_devdata *dd, u32 target);
+-
+-/**
+- * rd_byte - read a byte, sending STOP on last, else ACK
+- * @dd: the hfi1_ib device
+- *
+- * Returns byte shifted out of device
+- */
+-static int rd_byte(struct hfi1_devdata *dd, u32 target, int last)
+-{
+-	int bit_cntr, data;
+-
+-	data = 0;
+-
+-	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
+-		data <<= 1;
+-		scl_out(dd, target, 1);
+-		data |= sda_in(dd, target, 0);
+-		scl_out(dd, target, 0);
+-	}
+-	if (last) {
+-		scl_out(dd, target, 1);
+-		stop_cmd(dd, target);
+-	} else {
+-		sda_out(dd, target, 0);
+-		scl_out(dd, target, 1);
+-		scl_out(dd, target, 0);
+-		sda_out(dd, target, 1);
+-	}
+-	return data;
+-}
+-
+-/**
+- * wr_byte - write a byte, one bit at a time
+- * @dd: the hfi1_ib device
+- * @data: the byte to write
+- *
+- * Returns 0 if we got the following ack, otherwise 1
+- */
+-static int wr_byte(struct hfi1_devdata *dd, u32 target, u8 data)
+-{
+-	int bit_cntr;
+-	u8 bit;
+-
+-	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
+-		bit = (data >> bit_cntr) & 1;
+-		sda_out(dd, target, bit);
+-		scl_out(dd, target, 1);
+-		scl_out(dd, target, 0);
+-	}
+-	return (!i2c_ackrcv(dd, target)) ? 1 : 0;
+-}
+-
+-/*
+- * issue TWSI start sequence:
+- * (both clock/data high, clock high, data low while clock is high)
+- */
+-static void start_seq(struct hfi1_devdata *dd, u32 target)
+-{
+-	sda_out(dd, target, 1);
+-	scl_out(dd, target, 1);
+-	sda_out(dd, target, 0);
+-	udelay(1);
+-	scl_out(dd, target, 0);
+-}
+-
+-/**
+- * stop_seq - transmit the stop sequence
+- * @dd: the hfi1_ib device
+- *
+- * (both clock/data low, clock high, data high while clock is high)
+- */
+-static void stop_seq(struct hfi1_devdata *dd, u32 target)
+-{
+-	scl_out(dd, target, 0);
+-	sda_out(dd, target, 0);
+-	scl_out(dd, target, 1);
+-	sda_out(dd, target, 1);
+-}
+-
+-/**
+- * stop_cmd - transmit the stop condition
+- * @dd: the hfi1_ib device
+- *
+- * (both clock/data low, clock high, data high while clock is high)
+- */
+-static void stop_cmd(struct hfi1_devdata *dd, u32 target)
+-{
+-	stop_seq(dd, target);
+-	udelay(TWSI_BUF_WAIT_USEC);
+-}
+-
+-/**
+- * hfi1_twsi_reset - reset I2C communication
+- * @dd: the hfi1_ib device
+- * returns 0 if ok, -EIO on error
+- */
+-int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target)
+-{
+-	int clock_cycles_left = 9;
+-	u32 mask;
+-
+-	/* Both SCL and SDA should be high. If not, there
+-	 * is something wrong.
+-	 */
+-	mask = QSFP_HFI0_I2CCLK | QSFP_HFI0_I2CDAT;
+-
+-	/*
+-	 * Force pins to desired innocuous state.
+-	 * This is the default power-on state with out=0 and dir=0,
+-	 * So tri-stated and should be floating high (barring HW problems)
+-	 */
+-	hfi1_gpio_mod(dd, target, 0, 0, mask);
+-
+-	/* Check if SCL is low, if it is low then we have a slave device
+-	 * misbehaving and there is not much we can do.
+-	 */
+-	if (!scl_in(dd, target, 0))
+-		return -EIO;
+-
+-	/* Check if SDA is low, if it is low then we have to clock SDA
+-	 * up to 9 times for the device to release the bus
+-	 */
+-	while (clock_cycles_left--) {
+-		if (sda_in(dd, target, 0))
+-			return 0;
+-		scl_out(dd, target, 0);
+-		scl_out(dd, target, 1);
 -	}
 -
--	ret = cnt;
+-	return -EIO;
+-}
 -
--exit:
--	if (ret < 0) {
--		hfi1_dev_porterr(dd, ppd->port,
--				 "I2C chain %d read failed, addr 0x%x, offset 0x%x, len %d\n",
--				 target, i2c_addr, orig_offset, len);
--	}
+-#define HFI1_TWSI_START 0x100
+-#define HFI1_TWSI_STOP 0x200
 -
--	/* Must wait min 20us between qsfp i2c transactions */
--	udelay(20);
+-/* Write byte to TWSI, optionally prefixed with START or suffixed with
+- * STOP.
+- * returns 0 if OK (ACK received), else != 0
+- */
+-static int twsi_wr(struct hfi1_devdata *dd, u32 target, int data, int flags)
+-{
+-	int ret = 1;
 -
+-	if (flags & HFI1_TWSI_START)
+-		start_seq(dd, target);
+-
+-	/* Leaves SCL low (from i2c_ackrcv()) */
+-	ret = wr_byte(dd, target, data);
+-
+-	if (flags & HFI1_TWSI_STOP)
+-		stop_cmd(dd, target);
 -	return ret;
-+	struct hfi1_i2c_bus *bus;
-+	u8 slave_addr;
-+	int offset_size;
-+
-+	bus = target ? dd->asic_data->i2c_bus1 : dd->asic_data->i2c_bus0;
-+	slave_addr = (i2c_addr & 0xff) >> 1; /* convert to 7-bit addr */
-+	offset_size = (i2c_addr >> 8) & 0x3;
-+	return i2c_bus_read(dd, bus, slave_addr, offset, offset_size, bp, len);
- }
- 
- /*
-  * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes read, or -errno.
-  */
- int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	     void *bp, int len)
-@@ -165,16 +377,11 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
- 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
- 		return -EACCES;
- 
--	/* make sure the TWSI bus is in a sane state */
--	ret = hfi1_twsi_reset(ppd->dd, target);
--	if (ret) {
--		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "I2C chain %d read interface reset failed\n",
--				 target);
-+	ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
-+	if (ret)
- 		return ret;
+-}
+-
+-/* Added functionality for IBA7220-based cards */
+-#define HFI1_TEMP_DEV 0x98
+-
+-/*
+- * hfi1_twsi_blk_rd
+- * General interface for data transfer from twsi devices.
+- * One vestige of its former role is that it recognizes a device
+- * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
+- * which responded to all TWSI device codes, interpreting them as
+- * address within device. On all other devices found on board handled by
+- * this driver, the device is followed by a N-byte "address" which selects
+- * the "register" or "offset" within the device from which data should
+- * be read.
+- */
+-int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+-		     void *buffer, int len)
+-{
+-	u8 *bp = buffer;
+-	int ret = 1;
+-	int i;
+-	int offset_size;
+-
+-	/* obtain the offset size, strip it from the device address */
+-	offset_size = (dev >> 8) & 0xff;
+-	dev &= 0xff;
+-
+-	/* allow at most a 2 byte offset */
+-	if (offset_size > 2)
+-		goto bail;
+-
+-	if (dev == HFI1_TWSI_NO_DEV) {
+-		/* legacy not-really-I2C */
+-		addr = (addr << 1) | READ_CMD;
+-		ret = twsi_wr(dd, target, addr, HFI1_TWSI_START);
+-	} else {
+-		/* Actual I2C */
+-		if (offset_size) {
+-			ret = twsi_wr(dd, target,
+-				      dev | WRITE_CMD, HFI1_TWSI_START);
+-			if (ret) {
+-				stop_cmd(dd, target);
+-				goto bail;
+-			}
+-
+-			for (i = 0; i < offset_size; i++) {
+-				ret = twsi_wr(dd, target,
+-					      (addr >> (i * 8)) & 0xff, 0);
+-				udelay(TWSI_BUF_WAIT_USEC);
+-				if (ret) {
+-					dd_dev_err(dd, "Failed to write byte %d of offset 0x%04X\n",
+-						   i, addr);
+-					goto bail;
+-				}
+-			}
+-		}
+-		ret = twsi_wr(dd, target, dev | READ_CMD, HFI1_TWSI_START);
 -	}
- 
--	return __i2c_read(ppd, target, i2c_addr, offset, bp, len);
-+	return len;
- }
- 
- /*
-@@ -182,6 +389,8 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
-  * by writing @addr = ((256 * n) + m)
-  *
-  * Caller must hold the i2c chain resource.
-+ *
-+ * Return number of bytes written or -errno.
-  */
- int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	       int len)
-@@ -189,21 +398,12 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	int count = 0;
- 	int offset;
- 	int nwrite;
--	int ret;
-+	int ret = 0;
- 	u8 page;
- 
- 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
- 		return -EACCES;
- 
--	/* make sure the TWSI bus is in a sane state */
--	ret = hfi1_twsi_reset(ppd->dd, target);
 -	if (ret) {
--		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "QSFP chain %d write interface reset failed\n",
--				 target);
--		return ret;
+-		stop_cmd(dd, target);
+-		goto bail;
 -	}
 -
- 	while (count < len) {
- 		/*
- 		 * Set the qsfp page based on a zero-based address
-@@ -213,11 +413,12 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 
- 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
--		if (ret != 1) {
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret) {
- 			hfi1_dev_porterr(ppd->dd, ppd->port,
- 					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
- 					 target, ret);
--			ret = -EIO;
- 			break;
- 		}
- 
-@@ -229,11 +430,13 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 
- 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				  offset, bp + count, nwrite);
--		if (ret <= 0)	/* stop on error or nothing written */
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret)	/* stop on error */
- 			break;
- 
--		count += ret;
--		addr += ret;
-+		count += nwrite;
-+		addr += nwrite;
- 	}
- 
- 	if (ret < 0)
-@@ -266,6 +469,8 @@ int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
-  * by reading @addr = ((256 * n) + m)
-  *
-  * Caller must hold the i2c chain resource.
-+ *
-+ * Return the number of bytes read or -errno.
-  */
- int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	      int len)
-@@ -273,21 +478,12 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 	int count = 0;
- 	int offset;
- 	int nread;
--	int ret;
-+	int ret = 0;
- 	u8 page;
- 
- 	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
- 		return -EACCES;
- 
--	/* make sure the TWSI bus is in a sane state */
--	ret = hfi1_twsi_reset(ppd->dd, target);
--	if (ret) {
--		hfi1_dev_porterr(ppd->dd, ppd->port,
--				 "QSFP chain %d read interface reset failed\n",
--				 target);
--		return ret;
+-	/*
+-	 * block devices keeps clocking data out as long as we ack,
+-	 * automatically incrementing the address. Some have "pages"
+-	 * whose boundaries will not be crossed, but the handling
+-	 * of these is left to the caller, who is in a better
+-	 * position to know.
+-	 */
+-	while (len-- > 0) {
+-		/*
+-		 * Get and store data, sending ACK if length remaining,
+-		 * else STOP
+-		 */
+-		*bp++ = rd_byte(dd, target, !len);
 -	}
 -
- 	while (count < len) {
- 		/*
- 		 * Set the qsfp page based on a zero-based address
-@@ -296,11 +492,12 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		page = (u8)(addr / QSFP_PAGESIZE);
- 		ret = __i2c_write(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				  QSFP_PAGE_SELECT_BYTE_OFFS, &page, 1);
--		if (ret != 1) {
-+		/* QSFPs require a 5-10msec delay after write operations */
-+		mdelay(5);
-+		if (ret) {
- 			hfi1_dev_porterr(ppd->dd, ppd->port,
- 					 "QSFP chain %d can't write QSFP_PAGE_SELECT_BYTE: %d\n",
- 					 target, ret);
--			ret = -EIO;
- 			break;
- 		}
- 
-@@ -310,15 +507,13 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		if (((addr % QSFP_RW_BOUNDARY) + nread) > QSFP_RW_BOUNDARY)
- 			nread = QSFP_RW_BOUNDARY - (addr % QSFP_RW_BOUNDARY);
- 
--		/* QSFPs require a 5-10msec delay after write operations */
--		mdelay(5);
- 		ret = __i2c_read(ppd, target, QSFP_DEV | QSFP_OFFSET_SIZE,
- 				 offset, bp + count, nread);
--		if (ret <= 0)	/* stop on error or nothing read */
-+		if (ret)	/* stop on error */
- 			break;
- 
--		count += ret;
--		addr += ret;
-+		count += nread;
-+		addr += nread;
- 	}
- 
- 	if (ret < 0)
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.h b/drivers/infiniband/hw/hfi1/qsfp.h
-index dadc66c..69275eb 100644
---- a/drivers/infiniband/hw/hfi1/qsfp.h
-+++ b/drivers/infiniband/hw/hfi1/qsfp.h
-@@ -238,3 +238,6 @@ int one_qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		   int len);
- int one_qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
- 		  int len);
-+struct hfi1_asic_data;
-+int set_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);
-+void clean_up_i2c(struct hfi1_devdata *dd, struct hfi1_asic_data *ad);
+-	ret = 0;
+-
+-bail:
+-	return ret;
+-}
+-
+-/*
+- * hfi1_twsi_blk_wr
+- * General interface for data transfer to twsi devices.
+- * One vestige of its former role is that it recognizes a device
+- * HFI1_TWSI_NO_DEV and does the correct operation for the legacy part,
+- * which responded to all TWSI device codes, interpreting them as
+- * address within device. On all other devices found on board handled by
+- * this driver, the device is followed by a N-byte "address" which selects
+- * the "register" or "offset" within the device to which data should
+- * be written.
+- */
+-int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+-		     const void *buffer, int len)
+-{
+-	const u8 *bp = buffer;
+-	int ret = 1;
+-	int i;
+-	int offset_size;
+-
+-	/* obtain the offset size, strip it from the device address */
+-	offset_size = (dev >> 8) & 0xff;
+-	dev &= 0xff;
+-
+-	/* allow at most a 2 byte offset */
+-	if (offset_size > 2)
+-		goto bail;
+-
+-	if (dev == HFI1_TWSI_NO_DEV) {
+-		if (twsi_wr(dd, target, (addr << 1) | WRITE_CMD,
+-			    HFI1_TWSI_START)) {
+-			goto failed_write;
+-		}
+-	} else {
+-		/* Real I2C */
+-		if (twsi_wr(dd, target, dev | WRITE_CMD, HFI1_TWSI_START))
+-			goto failed_write;
+-	}
+-
+-	for (i = 0; i < offset_size; i++) {
+-		ret = twsi_wr(dd, target, (addr >> (i * 8)) & 0xff, 0);
+-		udelay(TWSI_BUF_WAIT_USEC);
+-		if (ret) {
+-			dd_dev_err(dd, "Failed to write byte %d of offset 0x%04X\n",
+-				   i, addr);
+-			goto bail;
+-		}
+-	}
+-
+-	for (i = 0; i < len; i++)
+-		if (twsi_wr(dd, target, *bp++, 0))
+-			goto failed_write;
+-
+-	ret = 0;
+-
+-failed_write:
+-	stop_cmd(dd, target);
+-
+-bail:
+-	return ret;
+-}
+diff --git a/drivers/infiniband/hw/hfi1/twsi.h b/drivers/infiniband/hw/hfi1/twsi.h
+deleted file mode 100644
+index 5b8a5b5..0000000
+--- a/drivers/infiniband/hw/hfi1/twsi.h
++++ /dev/null
+@@ -1,65 +0,0 @@
+-#ifndef _TWSI_H
+-#define _TWSI_H
+-/*
+- * Copyright(c) 2015, 2016 Intel Corporation.
+- *
+- * This file is provided under a dual BSD/GPLv2 license.  When using or
+- * redistributing this file, you may do so under either license.
+- *
+- * GPL LICENSE SUMMARY
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * BSD LICENSE
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- *
+- *  - Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- *  - Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in
+- *    the documentation and/or other materials provided with the
+- *    distribution.
+- *  - Neither the name of Intel Corporation nor the names of its
+- *    contributors may be used to endorse or promote products derived
+- *    from this software without specific prior written permission.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+- *
+- */
+-
+-#define HFI1_TWSI_NO_DEV 0xFF
+-
+-struct hfi1_devdata;
+-
+-/* Bit position of SDA/SCL pins in ASIC_QSFP* registers  */
+-#define  GPIO_SDA_NUM 1
+-#define  GPIO_SCL_NUM 0
+-
+-/* these functions must be called with qsfp_lock held */
+-int hfi1_twsi_reset(struct hfi1_devdata *dd, u32 target);
+-int hfi1_twsi_blk_rd(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+-		     void *buffer, int len);
+-int hfi1_twsi_blk_wr(struct hfi1_devdata *dd, u32 target, int dev, int addr,
+-		     const void *buffer, int len);
+-
+-#endif /* _TWSI_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
