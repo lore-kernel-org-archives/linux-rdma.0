@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 02/18] IB/hfi1: Remove unnecessary done label in
- hfi1_write_iter
-Date: Fri, 01 Jul 2016 16:00:55 -0700
-Message-ID: <20160701230054.20160.66207.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 05/18] IB/hfi1: Fix trace sparse errors
+Date: Fri, 01 Jul 2016 16:01:11 -0700
+Message-ID: <20160701230111.20160.9865.stgit@scvm10.sc.intel.com>
 References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,80 +10,138 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Simple code clean up of hfi1_write_iter.
+Fix sparse errors by making sure the fast assign destinations
+are host cpu typed.
+
+For the void __iomem *, just make the field match source
+data.
+
+Fix a bug where the hw_free trace printed the pointer vs.
+the dereferenced value.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c |   31 ++++++++++++++-----------------
- 1 files changed, 14 insertions(+), 17 deletions(-)
+ drivers/infiniband/hw/hfi1/trace_ctxts.h |    8 ++--
+ drivers/infiniband/hw/hfi1/trace_tx.h    |   54 +++++++++++++++---------------
+ 2 files changed, 31 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index c702a00..2f097d9 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -392,41 +392,38 @@ static ssize_t hfi1_write_iter(struct kiocb *kiocb, struct iov_iter *from)
- 	struct hfi1_filedata *fd = kiocb->ki_filp->private_data;
- 	struct hfi1_user_sdma_pkt_q *pq = fd->pq;
- 	struct hfi1_user_sdma_comp_q *cq = fd->cq;
--	int ret = 0, done = 0, reqs = 0;
-+	int done = 0, reqs = 0;
- 	unsigned long dim = from->nr_segs;
+diff --git a/drivers/infiniband/hw/hfi1/trace_ctxts.h b/drivers/infiniband/hw/hfi1/trace_ctxts.h
+index 5052d49..31654bb 100644
+--- a/drivers/infiniband/hw/hfi1/trace_ctxts.h
++++ b/drivers/infiniband/hw/hfi1/trace_ctxts.h
+@@ -56,7 +56,7 @@
+ #define TRACE_SYSTEM hfi1_ctxts
  
--	if (!cq || !pq) {
--		ret = -EIO;
--		goto done;
--	}
-+	if (!cq || !pq)
-+		return -EIO;
- 
--	if (!iter_is_iovec(from) || !dim) {
--		ret = -EINVAL;
--		goto done;
--	}
-+	if (!iter_is_iovec(from) || !dim)
-+		return -EINVAL;
- 
- 	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
- 		  fd->uctxt->ctxt, fd->subctxt, dim);
- 
--	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs) {
--		ret = -ENOSPC;
--		goto done;
--	}
-+	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs)
-+		return -ENOSPC;
- 
- 	while (dim) {
-+		int ret;
- 		unsigned long count = 0;
- 
- 		ret = hfi1_user_sdma_process_request(
- 			kiocb->ki_filp,	(struct iovec *)(from->iov + done),
- 			dim, &count);
--		if (ret)
--			goto done;
-+		if (ret) {
-+			reqs = ret;
-+			break;
-+		}
- 		dim -= count;
- 		done += count;
- 		reqs++;
- 	}
--done:
--	return ret ? ret : reqs;
-+
-+	return reqs;
- }
- 
- static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
+ #define UCTXT_FMT \
+-	"cred:%u, credaddr:0x%llx, piobase:0x%llx, rcvhdr_cnt:%u, "	\
++	"cred:%u, credaddr:0x%llx, piobase:0x%p, rcvhdr_cnt:%u, "	\
+ 	"rcvbase:0x%llx, rcvegrc:%u, rcvegrb:0x%llx"
+ TRACE_EVENT(hfi1_uctxtdata,
+ 	    TP_PROTO(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt),
+@@ -65,7 +65,7 @@ TRACE_EVENT(hfi1_uctxtdata,
+ 			     __field(unsigned int, ctxt)
+ 			     __field(u32, credits)
+ 			     __field(u64, hw_free)
+-			     __field(u64, piobase)
++			     __field(void __iomem *, piobase)
+ 			     __field(u16, rcvhdrq_cnt)
+ 			     __field(u64, rcvhdrq_phys)
+ 			     __field(u32, eager_cnt)
+@@ -74,8 +74,8 @@ TRACE_EVENT(hfi1_uctxtdata,
+ 	    TP_fast_assign(DD_DEV_ASSIGN(dd);
+ 			   __entry->ctxt = uctxt->ctxt;
+ 			   __entry->credits = uctxt->sc->credits;
+-			   __entry->hw_free = (u64)uctxt->sc->hw_free;
+-			   __entry->piobase = (u64)uctxt->sc->base_addr;
++			   __entry->hw_free = le64_to_cpu(*uctxt->sc->hw_free);
++			   __entry->piobase = uctxt->sc->base_addr;
+ 			   __entry->rcvhdrq_cnt = uctxt->rcvhdrq_cnt;
+ 			   __entry->rcvhdrq_phys = uctxt->rcvhdrq_phys;
+ 			   __entry->eager_cnt = uctxt->egrbufs.alloced;
+diff --git a/drivers/infiniband/hw/hfi1/trace_tx.h b/drivers/infiniband/hw/hfi1/trace_tx.h
+index 79c93ec..415d6be 100644
+--- a/drivers/infiniband/hw/hfi1/trace_tx.h
++++ b/drivers/infiniband/hw/hfi1/trace_tx.h
+@@ -369,22 +369,22 @@ TRACE_EVENT(hfi1_sdma_user_header,
+ 		    __field(u16, ctxt)
+ 		    __field(u8, subctxt)
+ 		    __field(u16, req)
+-		    __field(__le32, pbc0)
+-		    __field(__le32, pbc1)
+-		    __field(__be32, lrh0)
+-		    __field(__be32, lrh1)
+-		    __field(__be32, bth0)
+-		    __field(__be32, bth1)
+-		    __field(__be32, bth2)
+-		    __field(__le32, kdeth0)
+-		    __field(__le32, kdeth1)
+-		    __field(__le32, kdeth2)
+-		    __field(__le32, kdeth3)
+-		    __field(__le32, kdeth4)
+-		    __field(__le32, kdeth5)
+-		    __field(__le32, kdeth6)
+-		    __field(__le32, kdeth7)
+-		    __field(__le32, kdeth8)
++		    __field(u32, pbc0)
++		    __field(u32, pbc1)
++		    __field(u32, lrh0)
++		    __field(u32, lrh1)
++		    __field(u32, bth0)
++		    __field(u32, bth1)
++		    __field(u32, bth2)
++		    __field(u32, kdeth0)
++		    __field(u32, kdeth1)
++		    __field(u32, kdeth2)
++		    __field(u32, kdeth3)
++		    __field(u32, kdeth4)
++		    __field(u32, kdeth5)
++		    __field(u32, kdeth6)
++		    __field(u32, kdeth7)
++		    __field(u32, kdeth8)
+ 		    __field(u32, tidval)
+ 		    ),
+ 		    TP_fast_assign(
+@@ -397,22 +397,22 @@ TRACE_EVENT(hfi1_sdma_user_header,
+ 		    __entry->ctxt = ctxt;
+ 		    __entry->subctxt = subctxt;
+ 		    __entry->req = req;
+-		    __entry->pbc0 = pbc[0];
+-		    __entry->pbc1 = pbc[1];
++		    __entry->pbc0 = le32_to_cpu(pbc[0]);
++		    __entry->pbc1 = le32_to_cpu(pbc[1]);
+ 		    __entry->lrh0 = be32_to_cpu(lrh[0]);
+ 		    __entry->lrh1 = be32_to_cpu(lrh[1]);
+ 		    __entry->bth0 = be32_to_cpu(bth[0]);
+ 		    __entry->bth1 = be32_to_cpu(bth[1]);
+ 		    __entry->bth2 = be32_to_cpu(bth[2]);
+-		    __entry->kdeth0 = kdeth[0];
+-		    __entry->kdeth1 = kdeth[1];
+-		    __entry->kdeth2 = kdeth[2];
+-		    __entry->kdeth3 = kdeth[3];
+-		    __entry->kdeth4 = kdeth[4];
+-		    __entry->kdeth5 = kdeth[5];
+-		    __entry->kdeth6 = kdeth[6];
+-		    __entry->kdeth7 = kdeth[7];
+-		    __entry->kdeth8 = kdeth[8];
++		    __entry->kdeth0 = le32_to_cpu(kdeth[0]);
++		    __entry->kdeth1 = le32_to_cpu(kdeth[1]);
++		    __entry->kdeth2 = le32_to_cpu(kdeth[2]);
++		    __entry->kdeth3 = le32_to_cpu(kdeth[3]);
++		    __entry->kdeth4 = le32_to_cpu(kdeth[4]);
++		    __entry->kdeth5 = le32_to_cpu(kdeth[5]);
++		    __entry->kdeth6 = le32_to_cpu(kdeth[6]);
++		    __entry->kdeth7 = le32_to_cpu(kdeth[7]);
++		    __entry->kdeth8 = le32_to_cpu(kdeth[8]);
+ 		    __entry->tidval = tidval;
+ 	    ),
+ 	    TP_printk(USDMA_HDR_FORMAT,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
