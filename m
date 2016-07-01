@@ -1,57 +1,241 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Upcoming libibverbs release
-Date: Thu, 30 Jun 2016 18:17:06 +0000
-Message-ID: <HE1PR05MB14189E07EE8EE458E0CCD4DAB1240@HE1PR05MB1418.eurprd05.prod.outlook.com>
-References: <3b89c411-72be-ddc5-5ebf-009eeee29692@redhat.com>
- <4ec1d8e6-a908-bb49-a137-415856ec6faa@dev.mellanox.co.il>
- <20160627181758.GD23540@obsidianresearch.com> <20160628050246.GB3584@leon.nu>
- <20160628162028.GA27518@obsidianresearch.com> <20160628170549.GE3584@leon.nu>
- <022001d1d170$fda2c3e0$f8e84ba0$@opengridcomputing.com>
- <20160628211441.GA5786@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB0663DA@ORSMSX109.amr.corp.intel.com>
- <20160629051956.GG3584@leon.nu> <20160629183042.GC17031@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 02/12] selinux: Create policydb version for Infiniband
+ support
+Date: Fri, 1 Jul 2016 15:50:43 +0300
+Message-ID: <20160701125043.GD4750@leon.nu>
+References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
+ <1466711578-64398-3-git-send-email-danielj@mellanox.com>
+ <20160630150140.GB22107@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="q9KOos5vDmpwPx9o"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160629183042.GC17031-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160630150140.GB22107-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
 
-> On Wed, Jun 29, 2016 at 08:19:56AM +0300, Leon Romanovsky wrote:
-> > On Tue, Jun 28, 2016 at 09:26:38PM +0000, Hefty, Sean wrote:
-> > > > The fundamental question is if it is acceptable for libibverbs to
-> > > > ship a new core provider agnostic API (cq polling) that is
-> > > > optional depending on provider.
-> > > >
-> > > > I say no, that is not acceptable.
-> > >
-> > > I agree - there's no compelling argument that the new calls can't work over
-> all providers.
-> >
-> > I agree too, this is why code is provided and nothing stops from other provider
-> to support it.
-> 
-> That isn't what I said, and it isn't what everyone is agreeing with.
-> 
-> I said an optinal API is not acceptable to ship.
-> 
+--q9KOos5vDmpwPx9o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What?
-Almost every device interface has optional APIs.
+On Thu, Jun 30, 2016 at 06:01:42PM +0300, Yuval Shaia wrote:
+> On Thu, Jun 23, 2016 at 10:52:48PM +0300, Dan Jurgens wrote:
+> > From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > +				rc =3D next_entry(nodebuf, fp, sizeof(u32) * 6);
+> > +				if (rc)
+> > +					goto out;
+> > +
+> > +				c->u.pkey.subnet_prefix =3D be64_to_cpu(*((__be64 *)nodebuf));
+>=20
+> More than 80 characters
 
-The most immediate example is our beloved netdevice, in which almost everything is optional: fcoe support, flow steering, fdb settings, sriov controls...
-All of these features are provider-agnostic, yet each netdev either implements them or not.
+Yes, we prefer code readability over checkpatch warning.
 
-Especially in a performance-critical interface a polling API, I think that it actually makes more sense that each vendor provides the most optimized implementation that suits the HW.
---Liran
+>=20
+> > +				/* The subnet prefix is stored as an IPv6
+> > +				 * address in the policy.
+> > +				 *
+> > +				 * Check that the lower 2 DWORDS are 0.
+> > +				 */
+> > +				if (nodebuf[2] || nodebuf[3]) {
+> > +					rc =3D -EINVAL;
+> > +					goto out;
+> > +				}
+> > +
+> > +				if (nodebuf[4] > 0xffff ||
+> > +				    nodebuf[5] > 0xffff) {
+> > +					rc =3D -EINVAL;
+> > +					goto out;
+> > +				}
+> > +
+> > +				c->u.pkey.low_pkey =3D le32_to_cpu(nodebuf[4]);
+> > +				c->u.pkey.high_pkey =3D le32_to_cpu(nodebuf[5]);
+> > +
+> > +				rc =3D context_read_and_validate(&c->context[0],
+> > +							       p,
+> > +							       fp);
+> > +				if (rc)
+> > +					goto out;
+> > +				break;
+> > +			}
+> > +			case OCON_IB_END_PORT:
+> > +				rc =3D next_entry(buf, fp, sizeof(u32) * 2);
+> > +				if (rc)
+> > +					goto out;
+> > +				len =3D le32_to_cpu(buf[0]);
+> > +
+> > +				rc =3D str_read(&c->u.ib_end_port.dev_name, GFP_KERNEL,
+>=20
+> More than 80 characters?
 
+I would recommend to place all in one line.
+
+>=20
+> > +					      fp,
+> > +					      len);
+> > +				if (rc)
+> > +					goto out;
+> > +
+> > +				c->u.ib_end_port.port =3D le32_to_cpu(buf[1]);
+> > +
+> > +				rc =3D context_read_and_validate(&c->context[0],
+> > +							       p,
+> > +							       fp);
+> > +				if (rc)
+> > +					goto out;
+> > +				break;
+> >  			}
+> >  		}
+> >  	}
+> > @@ -3147,6 +3209,43 @@ static int ocontext_write(struct policydb *p, st=
+ruct policydb_compat_info *info,
+>=20
+> More than 80 characters
+
+Agree
+
+>=20
+> >  				if (rc)
+> >  					return rc;
+> >  				break;
+> > +			case OCON_PKEY: {
+>=20
+> Is "{" needed?
+
+No, I agree, need to remove.
+
+>=20
+> > +				__be64 *sbn_pfx =3D (__be64 *)nodebuf;
+> > +				*sbn_pfx =3D cpu_to_be64(c->u.pkey.subnet_prefix);
+> > +
+> > +				/*
+> > +				 * The low order 2 bits were confirmed to be 0
+> > +				 * when the policy was loaded. Write them out
+> > +				 * as zero
+> > +				 */
+> > +				nodebuf[2] =3D 0;
+> > +				nodebuf[3] =3D 0;
+> > +
+> > +				nodebuf[4] =3D cpu_to_le32(c->u.pkey.low_pkey);
+> > +				nodebuf[5] =3D cpu_to_le32(c->u.pkey.high_pkey);
+> > +
+> > +				rc =3D put_entry(nodebuf, sizeof(u32), 6, fp);
+> > +				if (rc)
+> > +					return rc;
+> > +				rc =3D context_write(p, &c->context[0], fp);
+> > +				if (rc)
+> > +					return rc;
+> > +				break;
+> > +			}
+> > +			case OCON_IB_END_PORT:
+> > +				len =3D strlen(c->u.ib_end_port.dev_name);
+> > +				buf[0] =3D cpu_to_le32(len);
+> > +				buf[1] =3D cpu_to_le32(c->u.ib_end_port.port);
+> > +				rc =3D put_entry(buf, sizeof(u32), 2, fp);
+> > +				if (rc)
+> > +					return rc;
+> > +				rc =3D put_entry(c->u.ib_end_port.dev_name, 1, len, fp);
+>=20
+> More than 80 characters?
+
+Readability
+
+>=20
+> > +				if (rc)
+> > +					return rc;
+> > +				rc =3D context_write(p, &c->context[0], fp);
+> > +				if (rc)
+> > +					return rc;
+> > +				break;
+> >  			}
+> >  		}
+> >  	}
+> > diff --git a/security/selinux/ss/policydb.h b/security/selinux/ss/polic=
+ydb.h
+> > index 725d594..751bf604 100644
+> > --- a/security/selinux/ss/policydb.h
+> > +++ b/security/selinux/ss/policydb.h
+> > @@ -187,6 +187,15 @@ struct ocontext {
+> >  			u32 addr[4];
+> >  			u32 mask[4];
+> >  		} node6;        /* IPv6 node information */
+> > +		struct {
+> > +			u64 subnet_prefix;
+> > +			u16 low_pkey;
+> > +			u16 high_pkey;
+> > +		} pkey;
+> > +		struct {
+> > +			char *dev_name;
+> > +			u8 port;
+> > +		} ib_end_port;
+> >  	} u;
+> >  	union {
+> >  		u32 sclass;  /* security class for genfs */
+> > @@ -215,14 +224,16 @@ struct genfs {
+> >  #define SYM_NUM     8
+> > =20
+> >  /* object context array indices */
+> > -#define OCON_ISID  0	/* initial SIDs */
+> > -#define OCON_FS    1	/* unlabeled file systems */
+> > -#define OCON_PORT  2	/* TCP and UDP port numbers */
+> > -#define OCON_NETIF 3	/* network interfaces */
+> > -#define OCON_NODE  4	/* nodes */
+> > -#define OCON_FSUSE 5	/* fs_use */
+> > -#define OCON_NODE6 6	/* IPv6 nodes */
+> > -#define OCON_NUM   7
+> > +#define OCON_ISID	 0 /* initial SIDs */
+> > +#define OCON_FS		 1 /* unlabeled file systems */
+> > +#define OCON_PORT	 2 /* TCP and UDP port numbers */
+> > +#define OCON_NETIF	 3 /* network interfaces */
+> > +#define OCON_NODE	 4 /* nodes */
+> > +#define OCON_FSUSE	 5 /* fs_use */
+> > +#define OCON_NODE6	 6 /* IPv6 nodes */
+> > +#define OCON_PKEY	 7 /* Infiniband PKeys */
+> > +#define OCON_IB_END_PORT 8 /* Infiniband End ports */
+> > +#define OCON_NUM	 9
+> > =20
+> >  /* The policy database */
+> >  struct policydb {
+> > --=20
+> > 1.8.3.1
+> >=20
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--q9KOos5vDmpwPx9o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXdmcjAAoJEORje4g2clinhVoQAKxDDvIiJgXteF31E5Nzy0wt
+p5f09OakWXKYYNe3s47QKTR1izzgVgJS/VPVOks0Nbq+xXd8+6S3ubS6eXwkVhuP
+sS7We5Z+gMBJIY3qERAEePl/uh4KKRJz3XYnFFCj/t/8wo/8/tzTzsT9swQMWGFi
+vOhL9XssG4cq6jqiNUX8C4TVymfDCto2n7JAaP3Un5UaknQAfqlXiaqPk0WdqcVG
+Ygj9NPfHybEXSRcnRA1Sl3hDA2muxRAsiCXaIUKohTCw2GUjjh2ueGWrkSL3iSYm
+0g+ZwsZzvcYszK/YEwbe+/wfQ6BA+UuV87se1m8w7hm7zuyZT3tqkx5g6WP3BU8d
+9aXUzyypz5zBwqfoI0OaIzqgssP9d3V5+m81Gn4+WTuCqjN3t79BfmWL1sDOg7Dj
+geYmYvswp+MfKNoqhbPGNlivnqd1L0ETsnoEGo83dim4iB33ENgPwm8S87TbSf0h
+An5ujbOteUXju4DUhiS72kElo9wEUu1670goydPwyGLKoNUINyntWQPm3PBqLLEj
+CB84lYxE2kL+7p8ZqXRxwMiFuJkEveAxQQ2NNzUHWRSUqIZ/HbjuH6bBf0T3UKgL
+dLxi3qrz3Kquwh0bEUdhtoxE5ewL8iPGMOFTN9ZVefJAnLJjOWZnsLr/NF6JrA1Y
+embgMLwiX/7SAOUYubtf
+=QbKh
+-----END PGP SIGNATURE-----
+
+--q9KOos5vDmpwPx9o--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
