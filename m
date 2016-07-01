@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 09/18] IB/hfi1: Reserve and collapse CPU cores for
- contexts
-Date: Fri, 01 Jul 2016 16:01:33 -0700
-Message-ID: <20160701230133.20160.76302.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 07/18] IB/hfi1: Add counter to track unsupported
+ packets drop
+Date: Fri, 01 Jul 2016 16:01:22 -0700
+Message-ID: <20160701230122.20160.38368.stgit@scvm10.sc.intel.com>
 References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,305 +11,127 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Kernel receive queues oversubscribe CPU cores on multi-HFI systems.
-To prevent this, the kernel receive queues are separated onto
-different cores, and the SDMA engine interrupts are constrained to
-a lesser number of cores.
+Add sw counter to track dropped unsupported packets.
+Report unsupported packets drop as the RcvError.
 
-hfi1s_on_numa_node*krcvqs is the number of CPU cores that are
-reserved for kernel receive queues for all HFIs. Each HFI initializes
-its kernel receive queues to one of the reserved CPU cores. If there
-ends up being 0 CPU cores leftover for SDMA engines, use the same
-CPU cores as receive contexts.
-
-In addition, general and control contexts are assigned to their own
-CPU core, however, both types of contexts tend to have low traffic.
-To save CPU cores, collapse general and control contexts to one CPU
-core for all HFI units. This change prevents SDMA engine interrupts
-from wrapping around general contexts.
-
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c |  101 +++++++++++++++++++++++++--------
- drivers/infiniband/hw/hfi1/affinity.h |    3 +
- drivers/infiniband/hw/hfi1/hfi.h      |    2 +
- drivers/infiniband/hw/hfi1/init.c     |    6 +-
- 4 files changed, 84 insertions(+), 28 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c   |   31 +++++++++++++++++++++++++++----
+ drivers/infiniband/hw/hfi1/driver.c |    1 +
+ drivers/infiniband/hw/hfi1/hfi.h    |    3 ++-
+ drivers/infiniband/hw/hfi1/mad.c    |    3 ++-
+ 4 files changed, 32 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 4d82920..3a3ef2a 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -66,6 +66,9 @@ static const char * const irq_type_names[] = {
- 	"OTHER",
- };
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 0662451..9eb4551 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -238,6 +238,9 @@ struct flag_table {
+ /* all CceStatus sub-block RXE pause bits */
+ #define ALL_RXE_PAUSE CCE_STATUS_RXE_PAUSED_SMASK
  
-+/* Per NUMA node count of HFI devices */
-+static unsigned int *hfi1_per_node_cntr;
++#define CNTR_MAX 0xFFFFFFFFFFFFFFFFULL
++#define CNTR_32BIT_MAX 0x00000000FFFFFFFF
 +
- static inline void init_cpu_mask_set(struct cpu_mask_set *set)
- {
- 	cpumask_clear(&set->mask);
-@@ -107,8 +110,12 @@ void init_real_cpu_mask(void)
- 	}
+ /*
+  * CCE Error flags.
+  */
+@@ -3947,6 +3950,28 @@ static u64 access_sdma_wrong_dw_err_cnt(const struct cntr_entry *entry,
+ 	return dd->sw_send_dma_eng_err_status_cnt[0];
  }
  
--void node_affinity_init(void)
-+int node_affinity_init(void)
- {
-+	int node;
-+	struct pci_dev *dev = NULL;
-+	const struct pci_device_id *ids = hfi1_pci_tbl;
++static u64 access_dc_rcv_err_cnt(const struct cntr_entry *entry,
++				 void *context, int vl, int mode,
++				 u64 data)
++{
++	struct hfi1_devdata *dd = (struct hfi1_devdata *)context;
 +
- 	cpumask_copy(&node_affinity.proc.mask, cpu_online_mask);
- 	/*
- 	 * The real cpu mask is part of the affinity struct but it has to be
-@@ -116,6 +123,25 @@ void node_affinity_init(void)
- 	 * contexts in set_up_context_variables().
- 	 */
- 	init_real_cpu_mask();
++	u64 val = 0;
++	u64 csr = entry->csr;
 +
-+	hfi1_per_node_cntr = kcalloc(num_possible_nodes(),
-+				     sizeof(*hfi1_per_node_cntr), GFP_KERNEL);
-+	if (!hfi1_per_node_cntr)
-+		return -ENOMEM;
-+
-+	while (ids->vendor) {
-+		dev = NULL;
-+		while ((dev = pci_get_device(ids->vendor, ids->device, dev))) {
-+			node = pcibus_to_node(dev->bus);
-+			if (node < 0)
-+				node = numa_node_id();
-+
-+			hfi1_per_node_cntr[node]++;
-+		}
-+		ids++;
++	val = read_write_csr(dd, csr, mode, data);
++	if (mode == CNTR_MODE_R) {
++		val = val > CNTR_MAX - dd->sw_rcv_bypass_packet_errors ?
++			CNTR_MAX : val + dd->sw_rcv_bypass_packet_errors;
++	} else if (mode == CNTR_MODE_W) {
++		dd->sw_rcv_bypass_packet_errors = 0;
++	} else {
++		dd_dev_err(dd, "Invalid cntr register access mode");
++		return 0;
 +	}
++	return val;
++}
 +
-+	return 0;
+ #define def_access_sw_cpu(cntr) \
+ static u64 access_sw_cpu_##cntr(const struct cntr_entry *entry,		      \
+ 			      void *context, int vl, int mode, u64 data)      \
+@@ -4020,7 +4045,8 @@ static struct cntr_entry dev_cntrs[DEV_CNTR_LAST] = {
+ 			CCE_SEND_CREDIT_INT_CNT, CNTR_NORMAL),
+ [C_DC_UNC_ERR] = DC_PERF_CNTR(DcUnctblErr, DCC_ERR_UNCORRECTABLE_CNT,
+ 			      CNTR_SYNTH),
+-[C_DC_RCV_ERR] = DC_PERF_CNTR(DcRecvErr, DCC_ERR_PORTRCV_ERR_CNT, CNTR_SYNTH),
++[C_DC_RCV_ERR] = CNTR_ELEM("DcRecvErr", DCC_ERR_PORTRCV_ERR_CNT, 0, CNTR_SYNTH,
++			    access_dc_rcv_err_cnt),
+ [C_DC_FM_CFG_ERR] = DC_PERF_CNTR(DcFmCfgErr, DCC_ERR_FMCONFIG_ERR_CNT,
+ 				 CNTR_SYNTH),
+ [C_DC_RMT_PHY_ERR] = DC_PERF_CNTR(DcRmtPhyErr, DCC_ERR_RCVREMOTE_PHY_ERR_CNT,
+@@ -11668,9 +11694,6 @@ static void free_cntrs(struct hfi1_devdata *dd)
+ 	dd->cntrnames = NULL;
  }
  
- void node_affinity_destroy(void)
-@@ -131,6 +157,7 @@ void node_affinity_destroy(void)
- 		kfree(entry);
- 	}
- 	spin_unlock(&node_affinity.lock);
-+	kfree(hfi1_per_node_cntr);
+-#define CNTR_MAX 0xFFFFFFFFFFFFFFFFULL
+-#define CNTR_32BIT_MAX 0x00000000FFFFFFFF
+-
+ static u64 read_dev_port_cntr(struct hfi1_devdata *dd, struct cntr_entry *entry,
+ 			      u64 *psval, void *context, int vl)
+ {
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index c75b0ae..6c81d15 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -1362,6 +1362,7 @@ int process_receive_bypass(struct hfi1_packet *packet)
+ 
+ 	dd_dev_err(packet->rcd->dd,
+ 		   "Bypass packets are not supported in normal operation. Dropping\n");
++	incr_cntr64(&packet->rcd->dd->sw_rcv_bypass_packet_errors);
+ 	return RHF_RCV_CONTINUE;
  }
- 
- static struct hfi1_affinity_node *node_affinity_allocate(int node)
-@@ -213,6 +240,7 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 		}
- 		init_cpu_mask_set(&entry->def_intr);
- 		init_cpu_mask_set(&entry->rcv_intr);
-+		cpumask_clear(&entry->general_intr_mask);
- 		/* Use the "real" cpu mask of this node as the default */
- 		cpumask_and(&entry->def_intr.mask, &node_affinity.real_cpu_mask,
- 			    local_mask);
-@@ -224,11 +252,15 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 		if (possible == 1) {
- 			/* only one CPU, everyone will use it */
- 			cpumask_set_cpu(curr_cpu, &entry->rcv_intr.mask);
-+			cpumask_set_cpu(curr_cpu, &entry->general_intr_mask);
- 		} else {
- 			/*
--			 * Retain the first CPU in the default list for the
--			 * control context.
-+			 * The general/control context will be the first CPU in
-+			 * the default list, so it is removed from the default
-+			 * list and added to the general interrupt list.
- 			 */
-+			cpumask_clear_cpu(curr_cpu, &entry->def_intr.mask);
-+			cpumask_set_cpu(curr_cpu, &entry->general_intr_mask);
- 			curr_cpu = cpumask_next(curr_cpu,
- 						&entry->def_intr.mask);
- 
-@@ -236,7 +268,10 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 			 * Remove the remaining kernel receive queues from
- 			 * the default list and add them to the receive list.
- 			 */
--			for (i = 0; i < dd->n_krcv_queues - 1; i++) {
-+			for (i = 0;
-+			     i < (dd->n_krcv_queues - 1) *
-+				  hfi1_per_node_cntr[dd->node];
-+			     i++) {
- 				cpumask_clear_cpu(curr_cpu,
- 						  &entry->def_intr.mask);
- 				cpumask_set_cpu(curr_cpu,
-@@ -246,6 +281,15 @@ int hfi1_dev_affinity_init(struct hfi1_devdata *dd)
- 				if (curr_cpu >= nr_cpu_ids)
- 					break;
- 			}
-+
-+			/*
-+			 * If there ends up being 0 CPU cores leftover for SDMA
-+			 * engines, use the same CPU cores as general/control
-+			 * context.
-+			 */
-+			if (cpumask_weight(&entry->def_intr.mask) == 0)
-+				cpumask_copy(&entry->def_intr.mask,
-+					     &entry->general_intr_mask);
- 		}
- 
- 		spin_lock(&node_affinity.lock);
-@@ -261,7 +305,7 @@ int hfi1_get_irq_affinity(struct hfi1_devdata *dd, struct hfi1_msix_entry *msix)
- 	int ret;
- 	cpumask_var_t diff;
- 	struct hfi1_affinity_node *entry;
--	struct cpu_mask_set *set;
-+	struct cpu_mask_set *set = NULL;
- 	struct sdma_engine *sde = NULL;
- 	struct hfi1_ctxtdata *rcd = NULL;
- 	char extra[64];
-@@ -282,18 +326,17 @@ int hfi1_get_irq_affinity(struct hfi1_devdata *dd, struct hfi1_msix_entry *msix)
- 	case IRQ_SDMA:
- 		sde = (struct sdma_engine *)msix->arg;
- 		scnprintf(extra, 64, "engine %u", sde->this_idx);
--		/* fall through */
--	case IRQ_GENERAL:
- 		set = &entry->def_intr;
- 		break;
-+	case IRQ_GENERAL:
-+		cpu = cpumask_first(&entry->general_intr_mask);
-+		break;
- 	case IRQ_RCVCTXT:
- 		rcd = (struct hfi1_ctxtdata *)msix->arg;
--		if (rcd->ctxt == HFI1_CTRL_CTXT) {
--			set = &entry->def_intr;
--			cpu = cpumask_first(&set->mask);
--		} else {
-+		if (rcd->ctxt == HFI1_CTRL_CTXT)
-+			cpu = cpumask_first(&entry->general_intr_mask);
-+		else
- 			set = &entry->rcv_intr;
--		}
- 		scnprintf(extra, 64, "ctxt %u", rcd->ctxt);
- 		break;
- 	default:
-@@ -302,9 +345,9 @@ int hfi1_get_irq_affinity(struct hfi1_devdata *dd, struct hfi1_msix_entry *msix)
- 	}
- 
- 	/*
--	 * The control receive context is placed on a particular CPU, which
--	 * is set above.  Skip accounting for it.  Everything else finds its
--	 * CPU here.
-+	 * The general and control contexts are placed on a particular
-+	 * CPU, which is set above. Skip accounting for it. Everything else
-+	 * finds its CPU here.
- 	 */
- 	if (cpu == -1 && set) {
- 		spin_lock(&node_affinity.lock);
-@@ -355,12 +398,14 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
- 
- 	switch (msix->type) {
- 	case IRQ_SDMA:
--	case IRQ_GENERAL:
- 		set = &entry->def_intr;
- 		break;
-+	case IRQ_GENERAL:
-+		/* Don't accounting for general contexts */
-+		break;
- 	case IRQ_RCVCTXT:
- 		rcd = (struct hfi1_ctxtdata *)msix->arg;
--		/* only do accounting for non control contexts */
-+		/* Don't do accounting for control contexts */
- 		if (rcd->ctxt != HFI1_CTRL_CTXT)
- 			set = &entry->rcv_intr;
- 		break;
-@@ -439,14 +484,20 @@ int hfi1_get_proc_affinity(struct hfi1_devdata *dd, int node)
- 		cpumask_clear(&set->used);
- 	}
- 
--	entry = node_affinity_lookup(dd->node);
--	/* CPUs used by interrupt handlers */
--	cpumask_copy(intrs, (entry->def_intr.gen ?
--			     &entry->def_intr.mask :
--			     &entry->def_intr.used));
--	cpumask_or(intrs, intrs, (entry->rcv_intr.gen ?
--				  &entry->rcv_intr.mask :
--				  &entry->rcv_intr.used));
-+	/*
-+	 * If NUMA node has CPUs used by interrupt handlers, include them in the
-+	 * interrupt handler mask.
-+	 */
-+	entry = node_affinity_lookup(node);
-+	if (entry) {
-+		cpumask_copy(intrs, (entry->def_intr.gen ?
-+				     &entry->def_intr.mask :
-+				     &entry->def_intr.used));
-+		cpumask_or(intrs, intrs, (entry->rcv_intr.gen ?
-+					  &entry->rcv_intr.mask :
-+					  &entry->rcv_intr.used));
-+		cpumask_or(intrs, intrs, &entry->general_intr_mask);
-+	}
- 	scnprintf(buf, sizeof(buf), "%*pbl", cpumask_pr_args(intrs));
- 	hfi1_cdbg(PROC, "CPUs used by interrupts: %s", buf);
- 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.h b/drivers/infiniband/hw/hfi1/affinity.h
-index ad3e730..003860e 100644
---- a/drivers/infiniband/hw/hfi1/affinity.h
-+++ b/drivers/infiniband/hw/hfi1/affinity.h
-@@ -107,6 +107,7 @@ struct hfi1_affinity_node {
- 	int node;
- 	struct cpu_mask_set def_intr;
- 	struct cpu_mask_set rcv_intr;
-+	struct cpumask general_intr_mask;
- 	struct list_head list;
- };
- 
-@@ -118,7 +119,7 @@ struct hfi1_affinity_node_list {
- 	spinlock_t lock;
- };
- 
--void node_affinity_init(void);
-+int node_affinity_init(void);
- void node_affinity_destroy(void);
- extern struct hfi1_affinity_node_list node_affinity;
  
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 748e235..fd67e98 100644
+index 1dd48ef..748e235 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1235,6 +1235,8 @@ int handle_receive_interrupt_nodma_rtail(struct hfi1_ctxtdata *, int);
- int handle_receive_interrupt_dma_rtail(struct hfi1_ctxtdata *, int);
- void set_all_slowpath(struct hfi1_devdata *dd);
+@@ -1128,7 +1128,8 @@ struct hfi1_devdata {
+ 		NUM_SEND_DMA_ENG_ERR_STATUS_COUNTERS];
+ 	/* Software counter that aggregates all cce_err_status errors */
+ 	u64 sw_cce_err_status_aggregate;
+-
++	/* Software counter that aggregates all bypass packet rcv errors */
++	u64 sw_rcv_bypass_packet_errors;
+ 	/* receive interrupt functions */
+ 	rhf_rcv_function_ptr *rhf_rcv_function_map;
+ 	rhf_rcv_function_ptr normal_rhf_rcv_functions[8];
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 349a138..962bb11 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -2874,7 +2874,8 @@ static int pma_get_opa_porterrors(struct opa_pma_mad *pmp,
+ 	tmp = read_dev_cntr(dd, C_DC_UNC_ERR, CNTR_INVALID_VL);
  
-+extern const struct pci_device_id hfi1_pci_tbl[];
-+
- /* receive packet handler dispositions */
- #define RCV_PKT_OK      0x0 /* keep going */
- #define RCV_PKT_LIMIT   0x1 /* stop, hit limit, start thread */
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index b0c3e8a..1620d68 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1162,7 +1162,7 @@ static int init_one(struct pci_dev *, const struct pci_device_id *);
- #define DRIVER_LOAD_MSG "Intel " DRIVER_NAME " loaded: "
- #define PFX DRIVER_NAME ": "
- 
--static const struct pci_device_id hfi1_pci_tbl[] = {
-+const struct pci_device_id hfi1_pci_tbl[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL0) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL1) },
- 	{ 0, }
-@@ -1198,7 +1198,9 @@ static int __init hfi1_mod_init(void)
- 	if (ret)
- 		goto bail;
- 
--	node_affinity_init();
-+	ret = node_affinity_init();
-+	if (ret)
-+		goto bail;
- 
- 	/* validate max MTU before any devices start */
- 	if (!valid_opa_max_mtu(hfi1_max_mtu)) {
+ 	rsp->uncorrectable_errors = tmp < 0x100 ? (tmp & 0xff) : 0xff;
+-
++	rsp->port_rcv_errors =
++		cpu_to_be64(read_dev_cntr(dd, C_DC_RCV_ERR, CNTR_INVALID_VL));
+ 	vlinfo = &rsp->vls[0];
+ 	vfi = 0;
+ 	vl_select_mask = be32_to_cpu(req->vl_select_mask);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
