@@ -1,53 +1,103 @@
-From: Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 04/12] selinux: Allocate and free infiniband security hooks
-Date: Fri, 1 Jul 2016 14:54:11 -0400
-Message-ID: <CAGH-KgtKkCvynjRJKAvVxdQdCj727bH0eaHBLj3RJY2=GW=D9g@mail.gmail.com>
+From: Paul Moore <pmoore@redhat.com>
+Subject: Re: [PATCH 05/12] selinux: Implement Infiniband PKey "Access" access vector
+Date: Fri, 1 Jul 2016 14:58:59 -0400
+Message-ID: <CAGH-KgvS7jvd4yiO-BGyqCbuZEwbXbjE61s2B7G6r=rOZse7iw@mail.gmail.com>
 References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-5-git-send-email-danielj@mellanox.com> <CAGH-KgvtN8T7e5bKq0jJZvSzrGfFwA2VpmPf5gJuqdLZi6odEw@mail.gmail.com>
- <6662b3b0-6897-8775-dc30-2757387428e4@schaufler-ca.com> <AM4PR0501MB2257ADAB527392547179F779C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
+ <1466711578-64398-6-git-send-email-danielj@mellanox.com> <CAGH-KgtNiMrLVz_fMG22WcpAL3EQq9ike=EYHfxbBa4Sg2-R8A@mail.gmail.com>
+ <DB6PR0501MB2261BC286E974CFE76B1E901C4250@DB6PR0501MB2261.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR0501MB2257ADAB527392547179F779C4240-dp/nxUn679hpbkYrVjfdjcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org" <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <DB6PR0501MB2261BC286E974CFE76B1E901C4250@DB6PR0501MB2261.eurprd05.prod.outlook.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Daniel Jurgens <danielj@mellanox.com>
+Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, "paul@paul-moore.com" <paul@paul-moore.com>, "sds@tycho.nsa.gov" <sds@tycho.nsa.gov>, "eparis@parisplace.org" <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 30, 2016 at 5:48 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 6/30/2016 4:06 PM, Casey Schaufler wrote:
->> On 6/30/2016 1:42 PM, Paul Moore wrote:
-
->>>>  };
->>>>
->>>>  /**
->>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>>> index 3f6780b..e522acb 100644
->>>> --- a/include/rdma/ib_verbs.h
->>>> +++ b/include/rdma/ib_verbs.h
->>>> @@ -1454,6 +1454,7 @@ struct ib_qp {
->>>>         void                   *qp_context;
->>>>         u32                     qp_num;
->>>>         enum ib_qp_type         qp_type;
->>>> +       struct ib_qp_security  *qp_sec;
->>> See my earlier question/comment about just using a void pointer here.
->>
->> I think that this is in response to my comments to the
->> effect that I would like to see the LSM infrastructure
->> using the inode like (inode->i_security) to the xfrm
->> (void *) approach. I haven't been looking at the IB patches
->> too carefully to date. It's possible I have not been clear.
+On Fri, Jul 1, 2016 at 2:21 PM, Daniel Jurgens <danielj@mellanox.com> wrote:
+> On 7/1/2016 11:29 AM, Paul Moore wrote:
+>> On Thu, Jun 23, 2016 at 3:52 PM, Dan Jurgens <danielj@mellanox.com> wrote:
+>>> From: Daniel Jurgens <danielj@mellanox.com>
+>>>
+>>> Add a type and access vector for PKeys. Implement the qp_pkey_access
+>>> and mad_agent_pkey_access hooks to check that the caller has
+>>> permission to access the PKey on the given subnet prefix.  Add an
+>>> interface to get the PKey SID. Walk the PKey ocontexts to find an entry
+>>> for the given subnet prefix and pkey.
+>>>
+>>> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+>>> Reviewed-by: Eli Cohen <eli@mellanox.com>
+>>> ---
+>>>  include/linux/lsm_audit.h                        |  7 ++++
+>>>  security/selinux/hooks.c                         | 41 ++++++++++++++++++++++++
+>>>  security/selinux/include/classmap.h              |  2 ++
+>>>  security/selinux/include/initial_sid_to_string.h |  1 +
+>>>  security/selinux/include/security.h              |  2 ++
+>>>  security/selinux/ss/services.c                   | 41 ++++++++++++++++++++++++
+>>>  6 files changed, 94 insertions(+)
+>>>
+>>> diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
+>>> index ffb9c9d..8ff7eae 100644
+>>> --- a/include/linux/lsm_audit.h
+>>> +++ b/include/linux/lsm_audit.h
+>>> @@ -45,6 +45,11 @@ struct lsm_ioctlop_audit {
+>>>         u16 cmd;
+>>>  };
+>>>
+>>> +struct lsm_pkey_audit {
+>>> +       u64     subnet_prefix;
+>>> +       u16     pkey;
+>>> +};
+>>> +
+>>>  /* Auxiliary data to use in generating the audit record. */
+>>>  struct common_audit_data {
+>>>         char type;
+>>> @@ -59,6 +64,7 @@ struct common_audit_data {
+>>>  #define LSM_AUDIT_DATA_INODE   9
+>>>  #define LSM_AUDIT_DATA_DENTRY  10
+>>>  #define LSM_AUDIT_DATA_IOCTL_OP        11
+>>> +#define LSM_AUDIT_DATA_PKEY    12
+>>>         union   {
+>>>                 struct path path;
+>>>                 struct dentry *dentry;
+>>> @@ -75,6 +81,7 @@ struct common_audit_data {
+>>>  #endif
+>>>                 char *kmod_name;
+>>>                 struct lsm_ioctlop_audit *op;
+>>> +               struct lsm_pkey_audit *pkey;
+>>>         } u;
+>>>         /* this union contains LSM specific data */
+>>>         union {
+>> Please correct me if I'm wrong, but I don't recall seeing any code in
+>> the patchset which actually logs the extra IB information in the audit
+>> record, did I miss it?
 >
-> My understanding at the time was that by using something other than a void * different security modules could maintain their own opaque blobs with in and keep the same prototype for the hook.  It's possible I misunderstood you, but it made sense to me.  I don't know of any plans for other security modules to support Infiniband, but this leaves the door open.
+> I didn't make any changes to the audit logging.  The messages look like this.
+> [245259.895597] audit: type=1400 audit(1467392186.710:631): avc:  denied  { access } for  pid=27519 comm="ib_write_bw" scontext=root:sysadm_r:sysadm_t:s0 tcontext=system_u:object_r:staff_allowed_pkey_t:s0 tclass=infiniband_pkey permissive=1
 
-All of what you describe above can still happen with a void pointer;
-in some ways it is even easier with a void pointer.
+So why are you adding fields to the common_audit_data structure?  If
+you don't think the IB specific data is worth recording in the audit
+log, don't record it in the structure.  If you do believe it is
+important to record these IB details, please write the necessary code.
+
+>> I wondered about this earlier in the patchset when we were discussing
+>> the policy format, and I'm still wondering; perhaps you can help me
+>> understand IB a bit better ...
+>>
+>> From what I gather, the partition key is the IB security boundary, not
+>> the subnet, is that true?  If so, why are we including the subnet with
+>> the partition key value/label?  I understand the low/high pkey range
+>> as a way of simplifying the policy, but I don't quite understand the
+>> point of tying the subnet to the partition key label.  Would you ever
+>> want to have multiple labels for a single partition key, or should it
+>> be a single label for the partition key regardless of the subnet?
+>>
+> Each subnet can have a different partition configuration and a node can be on multiple subnets.  By specifying the subnet prefix along with the pkey value the user has flexibility to have different policy for different subnets, instead of a global PKey space that would require coordinating the partition configuration across all subnets.
+
+Perhaps a better explanation of partitions and subnets are in order,
+especially for those of like me who are new to IB.
 
 -- 
 paul moore
 security @ redhat
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
