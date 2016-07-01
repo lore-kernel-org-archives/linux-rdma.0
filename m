@@ -1,136 +1,124 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 01/18] IB/hfi1: Clean up port state structure
- definition
-Date: Fri, 01 Jul 2016 16:00:49 -0700
-Message-ID: <20160701230048.20160.28146.stgit@scvm10.sc.intel.com>
-References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 00/18] IB/hfi1, rdmavt,
+ qib: First batch of fixes for 4.8
+Date: Fri, 01 Jul 2016 16:00:43 -0700
+Message-ID: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Doug,
 
-The definition of port state changed mid development and the
-old structure was kept accidentally.  Remove this dead code.
+Here is a set of fixes and improvmenets that would be for the next release. They
+apply onto of the last set of RC fixes previously posted.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Of particular note in here is the twsi code clean up that was asked for
+previously while we were in staging. I think this does the job of not
+duplicating what is already present in the kernel. These are the two patches
+from Dean.
+
+The patches from Mike improve rdmavt and make the posting of sends more friendly
+to work with and extend.
+
+There are also performance improvement patches in this bunch as well as well as
+a couple minor fixes that we felt are more appropriate for the next merge cycle
+rather than RC.
+
+These patches have been added to my GitHub branch and have passed zero day
+builds.
+
+https://github.com/ddalessa/kernel/tree/for-4.8
+
 ---
- drivers/infiniband/hw/hfi1/mad.c |   12 ------------
- drivers/infiniband/hw/hfi1/mad.h |    7 -------
- include/rdma/opa_port_info.h     |   16 ----------------
- 3 files changed, 0 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index fca07a1..223dd46 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -588,7 +588,6 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 
- 	pi->port_phys_conf = (ppd->port_type & 0xf);
- 
--#if PI_LED_ENABLE_SUP
- 	pi->port_states.ledenable_offlinereason = ppd->neighbor_normal << 4;
- 	pi->port_states.ledenable_offlinereason |=
- 		ppd->is_sm_config_started << 5;
-@@ -602,11 +601,6 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	pi->port_states.ledenable_offlinereason |= is_beaconing_active << 6;
- 	pi->port_states.ledenable_offlinereason |=
- 		ppd->offline_disabled_reason;
--#else
--	pi->port_states.offline_reason = ppd->neighbor_normal << 4;
--	pi->port_states.offline_reason |= ppd->is_sm_config_started << 5;
--	pi->port_states.offline_reason |= ppd->offline_disabled_reason;
--#endif /* PI_LED_ENABLE_SUP */
- 
- 	pi->port_states.portphysstate_portstate =
- 		(hfi1_ibphys_portstate(ppd) << 4) | state;
-@@ -1752,17 +1746,11 @@ static int __subn_get_opa_psi(struct opa_smp *smp, u32 am, u8 *data,
- 	if (start_of_sm_config && (lstate == IB_PORT_INIT))
- 		ppd->is_sm_config_started = 1;
- 
--#if PI_LED_ENABLE_SUP
- 	psi->port_states.ledenable_offlinereason = ppd->neighbor_normal << 4;
- 	psi->port_states.ledenable_offlinereason |=
- 		ppd->is_sm_config_started << 5;
- 	psi->port_states.ledenable_offlinereason |=
- 		ppd->offline_disabled_reason;
--#else
--	psi->port_states.offline_reason = ppd->neighbor_normal << 4;
--	psi->port_states.offline_reason |= ppd->is_sm_config_started << 5;
--	psi->port_states.offline_reason |= ppd->offline_disabled_reason;
--#endif /* PI_LED_ENABLE_SUP */
- 
- 	psi->port_states.portphysstate_portstate =
- 		(hfi1_ibphys_portstate(ppd) << 4) | (lstate & 0xf);
-diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
-index 8b734aa..5aa3fd1 100644
---- a/drivers/infiniband/hw/hfi1/mad.h
-+++ b/drivers/infiniband/hw/hfi1/mad.h
-@@ -48,15 +48,8 @@
- #define _HFI1_MAD_H
- 
- #include <rdma/ib_pma.h>
--#define USE_PI_LED_ENABLE	1 /*
--				   * use led enabled bit in struct
--				   * opa_port_states, if available
--				   */
- #include <rdma/opa_smi.h>
- #include <rdma/opa_port_info.h>
--#ifndef PI_LED_ENABLE_SUP
--#define PI_LED_ENABLE_SUP 0
--#endif
- #include "opa_compat.h"
- 
- /*
-diff --git a/include/rdma/opa_port_info.h b/include/rdma/opa_port_info.h
-index 2b95c2c..9303e0e 100644
---- a/include/rdma/opa_port_info.h
-+++ b/include/rdma/opa_port_info.h
-@@ -33,11 +33,6 @@
- #if !defined(OPA_PORT_INFO_H)
- #define OPA_PORT_INFO_H
- 
--/* Temporary until HFI driver is updated */
--#ifndef USE_PI_LED_ENABLE
--#define USE_PI_LED_ENABLE 0
--#endif
--
- #define OPA_PORT_LINK_MODE_NOP	0		/* No change */
- #define OPA_PORT_LINK_MODE_OPA	4		/* Port mode is OPA */
- 
-@@ -274,23 +269,12 @@ enum port_info_field_masks {
- 	OPA_PI_MASK_MTU_CAP                       = 0x0F,
- };
- 
--#if USE_PI_LED_ENABLE
- struct opa_port_states {
- 	u8     reserved;
- 	u8     ledenable_offlinereason;   /* 1 res, 1 bit, 6 bits */
- 	u8     reserved2;
- 	u8     portphysstate_portstate;   /* 4 bits, 4 bits */
- };
--#define PI_LED_ENABLE_SUP 1
--#else
--struct opa_port_states {
--	u8     reserved;
--	u8     offline_reason;            /* 2 res, 6 bits */
--	u8     reserved2;
--	u8     portphysstate_portstate;   /* 4 bits, 4 bits */
--};
--#define PI_LED_ENABLE_SUP 0
--#endif
- 
- struct opa_port_state_info {
- 	struct opa_port_states port_states;
+Dean Luick (2):
+      IB/hfi1: Use built-in i2c bit-shift bus adapter
+      IB/hfi1: Remove TWSI references
 
+Ira Weiny (2):
+      IB/hfi1: Clean up port state structure definition
+      IB/hfi1: Remove unnecessary done label in hfi1_write_iter
+
+Jakub Pawlak (3):
+      IB/hfi1: Add VL XmitDiscards counters to the opapmaquery
+      IB/hfi1: Add counter to track unsupported packets drop
+      IB/hfi1: Correct receive packet handler assignment
+
+Jianxin Xiong (1):
+      IB/hfi1: Improve SDMA engine assignment for user SDMA
+
+Mike Marciniszyn (5):
+      IB/hfi1: Fix trace sparse errors
+      IB/rdmavt: Add data structures and routines for table driven post send
+      IB/hfi1: Add hfi1 post send tables
+      IB/qib: Add qib post send table
+      IB/rdmavt: Use new driver specific post send table
+
+Sebastian Sanchez (4):
+      IB/hfi1: Separate tracepoints into specific headers
+      IB/hfi1: Add global structure for affinity assignments
+      IB/hfi1: Reserve and collapse CPU cores for contexts
+      IB/hfi1: Refine user process affinity algorithm
+
+Tadeusz Struk (1):
+      IB/hfi1: Fix typo
+
+
+ drivers/infiniband/hw/hfi1/Kconfig        |    3 
+ drivers/infiniband/hw/hfi1/Makefile       |    2 
+ drivers/infiniband/hw/hfi1/affinity.c     |  526 +++++++++--
+ drivers/infiniband/hw/hfi1/affinity.h     |   34 +
+ drivers/infiniband/hw/hfi1/chip.c         |   82 +-
+ drivers/infiniband/hw/hfi1/chip.h         |    2 
+ drivers/infiniband/hw/hfi1/driver.c       |    1 
+ drivers/infiniband/hw/hfi1/file_ops.c     |   46 +
+ drivers/infiniband/hw/hfi1/hfi.h          |   67 +
+ drivers/infiniband/hw/hfi1/init.c         |   36 +
+ drivers/infiniband/hw/hfi1/mad.c          |   26 -
+ drivers/infiniband/hw/hfi1/mad.h          |    7 
+ drivers/infiniband/hw/hfi1/qp.c           |   44 +
+ drivers/infiniband/hw/hfi1/qp.h           |    2 
+ drivers/infiniband/hw/hfi1/qsfp.c         |  409 +++++++--
+ drivers/infiniband/hw/hfi1/qsfp.h         |    3 
+ drivers/infiniband/hw/hfi1/rc.c           |    8 
+ drivers/infiniband/hw/hfi1/trace.h        | 1333 -----------------------------
+ drivers/infiniband/hw/hfi1/trace_ctxts.h  |  141 +++
+ drivers/infiniband/hw/hfi1/trace_dbg.h    |  155 +++
+ drivers/infiniband/hw/hfi1/trace_ibhdrs.h |  209 +++++
+ drivers/infiniband/hw/hfi1/trace_misc.h   |   81 ++
+ drivers/infiniband/hw/hfi1/trace_rc.h     |  123 +++
+ drivers/infiniband/hw/hfi1/trace_rx.h     |  322 +++++++
+ drivers/infiniband/hw/hfi1/trace_tx.h     |  642 ++++++++++++++
+ drivers/infiniband/hw/hfi1/twsi.c         |  489 -----------
+ drivers/infiniband/hw/hfi1/twsi.h         |   65 -
+ drivers/infiniband/hw/hfi1/user_sdma.c    |   29 +
+ drivers/infiniband/hw/hfi1/verbs.c        |   32 -
+ drivers/infiniband/hw/qib/qib_qp.c        |   43 +
+ drivers/infiniband/hw/qib/qib_verbs.c     |    2 
+ drivers/infiniband/hw/qib/qib_verbs.h     |    2 
+ drivers/infiniband/sw/rdmavt/qp.c         |  113 ++
+ drivers/infiniband/sw/rdmavt/vt.c         |    3 
+ include/rdma/opa_port_info.h              |   16 
+ include/rdma/rdma_vt.h                    |    3 
+ include/rdma/rdmavt_qp.h                  |   28 +
+ 37 files changed, 2811 insertions(+), 2318 deletions(-)
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_ctxts.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_dbg.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_ibhdrs.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_misc.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_rc.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_rx.h
+ create mode 100644 drivers/infiniband/hw/hfi1/trace_tx.h
+ delete mode 100644 drivers/infiniband/hw/hfi1/twsi.c
+ delete mode 100644 drivers/infiniband/hw/hfi1/twsi.h
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
