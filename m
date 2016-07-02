@@ -1,65 +1,109 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 04/12] selinux: Allocate and free infiniband security
- hooks
-Date: Fri, 1 Jul 2016 20:46:19 +0000
-Message-ID: <DB6PR0501MB226138FF74D031F6BD1C48C6C4250@DB6PR0501MB2261.eurprd05.prod.outlook.com>
-References: <1466711578-64398-1-git-send-email-danielj@mellanox.com>
- <1466711578-64398-5-git-send-email-danielj@mellanox.com>
- <CAGH-KgvtN8T7e5bKq0jJZvSzrGfFwA2VpmPf5gJuqdLZi6odEw@mail.gmail.com>
- <6662b3b0-6897-8775-dc30-2757387428e4@schaufler-ca.com>
- <AM4PR0501MB2257ADAB527392547179F779C4240@AM4PR0501MB2257.eurprd05.prod.outlook.com>
- <CAGH-KgtKkCvynjRJKAvVxdQdCj727bH0eaHBLj3RJY2=GW=D9g@mail.gmail.com>
- <DB6PR0501MB2261A2F4D095F672A814388DC4250@DB6PR0501MB2261.eurprd05.prod.outlook.com>
- <CAGH-Kgtz7pXNJrcc-OOwGyefzm5MpsVqjyZ+UaR9pefoNMWiwg@mail.gmail.com>
- <4bdbd27c-ff4a-db87-a550-cd187cbc07c6@schaufler-ca.com>
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v11 21/22] IB/hns: Kconfig and Makefile for RoCE module
+Date: Sat, 2 Jul 2016 17:39:23 +0800
+Message-ID: <1467452364-66522-22-git-send-email-oulijun@huawei.com>
+References: <1467452364-66522-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1467452364-66522-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Casey Schaufler <casey-iSGtlc1asvQWG2LlvL+J4A@public.gmane.org>, Paul Moore <pmoore-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org" <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org" <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/1/2016 3:13 PM, Casey Schaufler wrote:
-> On 7/1/2016 12:17 PM, Paul Moore wrote:
->> On Fri, Jul 1, 2016 at 2:59 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>> On 7/1/2016 1:54 PM, Paul Moore wrote:
->>>> On Thu, Jun 30, 2016 at 5:48 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>>>> On 6/30/2016 4:06 PM, Casey Schaufler wrote:
->>>>>> On 6/30/2016 1:42 PM, Paul Moore wrote:
->>>>>>>>  };
->>>>>>>>
->>>>>>>>  /**
->>>>>>>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->>>>>>>> index 3f6780b..e522acb 100644
->>>>>>>> --- a/include/rdma/ib_verbs.h
->>>>>>>> +++ b/include/rdma/ib_verbs.h
->>>>>>>> @@ -1454,6 +1454,7 @@ struct ib_qp {
->>>>>>>>         void                   *qp_context;
->>>>>>>>         u32                     qp_num;
->>>>>>>>         enum ib_qp_type         qp_type;
->>>>>>>> +       struct ib_qp_security  *qp_sec;
->>>>>>> See my earlier question/comment about just using a void pointer here.
->>>>>> I think that this is in response to my comments to the
->>>>>> effect that I would like to see the LSM infrastructure
->>>>>> using the inode like (inode->i_security) to the xfrm
->>>>>> (void *) approach. I haven't been looking at the IB patches
->>>>>> too carefully to date. It's possible I have not been clear.
->>>>> My understanding at the time was that by using something other than a void * different security modules could maintain their own opaque blobs with in and keep the same prototype for the hook.  It's possible I misunderstood you, but it made sense to me.  I don't know of any plans for other security modules to support Infiniband, but this leaves the door open.
->>>> All of what you describe above can still happen with a void pointer;
->>>> in some ways it is even easier with a void pointer.
->>> If multiple security modules register an alloc_security hook for example, how would you coordinate between them to allocate the memory?
->> You worry about that in the LSM framework and hide the details behind
->> the void pointer.  For example, you create an array/list of LSM
->> specific blobs and just stash a pointer to the head of the data in the
->> void pointer.
-> Don't worry about it at this point. Patches pending.
-> If I have to change modules to accommodate the
-> infrastructure I'm not afraid to do so.
+This patch added Kconfig and Makefile for building RoCE module.
 
-So I should revert to void* blobs?  I just want to be clear before making the change.
+Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+---
+PATCH v11:
+hns_roce_icm.o -> hns_roce_hem.o
+
+PATCH v10/v9/v8/v7/v6/v5:
+- No change over the PATCH v4
+
+PATCH v4:
+This fixes the comments given by Christoph Hellwig over the PATCH v3:
+  Link: https://lkml.org/lkml/2016/3/22/609
+
+PATCH V3:
+This fixes the comments given by Leon Romanovsky over the PATCH v2:
+  Link: https://lkml.org/lkml/2016/3/20/5
+
+PATCH v2:
+This fixes the comments given by Leon Romanovsky over the PATCH v1:
+  Link: https://lkml.org/lkml/2016/3/6/94
+Fixes the error tested by kbuild test robot over the PATCH v1:
+  Link: https://lkml.org/lkml/2016/3/4/343
+
+PATCH v1:
+- The initial patch
+---
+---
+ drivers/infiniband/Kconfig         |  1 +
+ drivers/infiniband/hw/Makefile     |  1 +
+ drivers/infiniband/hw/hns/Kconfig  | 10 ++++++++++
+ drivers/infiniband/hw/hns/Makefile |  8 ++++++++
+ 4 files changed, 20 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hns/Kconfig
+ create mode 100644 drivers/infiniband/hw/hns/Makefile
+
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 2137adf..767f92b 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -74,6 +74,7 @@ source "drivers/infiniband/hw/mlx5/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
+ source "drivers/infiniband/hw/ocrdma/Kconfig"
+ source "drivers/infiniband/hw/usnic/Kconfig"
++source "drivers/infiniband/hw/hns/Kconfig"
+ 
+ source "drivers/infiniband/ulp/ipoib/Kconfig"
+ 
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index c0c7cf8..2ad851d 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -9,3 +9,4 @@ obj-$(CONFIG_INFINIBAND_NES)		+= nes/
+ obj-$(CONFIG_INFINIBAND_OCRDMA)		+= ocrdma/
+ obj-$(CONFIG_INFINIBAND_USNIC)		+= usnic/
+ obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
++obj-$(CONFIG_INFINIBAND_HISILICON_HNS) 	+= hns/
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+new file mode 100644
+index 0000000..c47c168
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -0,0 +1,10 @@
++config INFINIBAND_HISILICON_HNS
++	tristate "Hisilicon Hns ROCE Driver"
++	depends on NET_VENDOR_HISILICON
++	depends on ARM64 && HNS && HNS_DSAF && HNS_ENET
++	---help---
++	  This is a ROCE/RDMA driver for the Hisilicon RoCE engine. The engine
++	  is used in Hisilicon Hi1610 and more further ICT SoC.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called hns-roce.
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+new file mode 100644
+index 0000000..8bb7e85
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -0,0 +1,8 @@
++#
++# Makefile for the HISILICON RoCE drivers.
++#
++
++obj-$(CONFIG_INFINIBAND_HISILICON_HNS) += hns-roce.o
++hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_eq.o hns_roce_pd.o \
++	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
++	hns_roce_cq.o hns_roce_alloc.o hns_roce_hw_v1.o
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
