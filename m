@@ -1,35 +1,45 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH for-next 0/3] Raw Packet QP Fixes for 4.8
-Date: Sun,  3 Jul 2016 15:42:04 +0300
-Message-ID: <1467549727-23479-1-git-send-email-leon@kernel.org>
+Subject: [PATCH for-next 1/3] IB/core: Add optional AV attribute for Raw Packet QP in INIT to RTR
+Date: Sun,  3 Jul 2016 15:42:05 +0300
+Message-ID: <1467549727-23479-2-git-send-email-leon@kernel.org>
+References: <1467549727-23479-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1467549727-23479-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch series includes raw packet QP fixes which are targeted for 4.8.
-They apply cleanly on top of your k.o/for-4.8 branch.
+In order to configure QoS for Raw Packet QP, the user passes the SL
+in the AV attribute when modifying the QP from INIT to RTR state.
 
-These patches are available in the "topic/fix_raw_eth_qos" branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+This SL is used later on to set the Ethernet Priority of the QP.
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/fix_raw_eth_qos
+Until today, we couldn't pass the AV attribute for Raw Packet QP
+because it was blocked in the QP state transition matrix. This
+patch adds the AV as optional in INIT to RTR.
 
-Thanks
+Fixes: 8a51866f0810 ('IB: Add ib_modify_qp_is_ok() library function')
+Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Talat Batheesh (3):
-  IB/core: Add optional AV attribute for Raw Packet QP in INIT to RTR
-  IB/core: Fix ib_resolve_eth_dmac for Raw Packet QP
-  IB/mlx5: Fix mlx5_set_path for Raw Packet QP
-
- drivers/infiniband/core/verbs.c | 3 ++-
- drivers/infiniband/hw/mlx5/qp.c | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 2e813ed..ba75780 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -932,6 +932,7 @@ static const struct {
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+ 						 IB_QP_QKEY),
++				 [IB_QPT_RAW_PACKET] = IB_QP_AV,
+ 			 },
+ 		},
+ 	},
 -- 
 2.1.4
 
