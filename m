@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH for-next 2/3] IB/core: Fix ib_resolve_eth_dmac for Raw Packet QP
-Date: Sun,  3 Jul 2016 15:42:06 +0300
-Message-ID: <1467549727-23479-3-git-send-email-leon@kernel.org>
+Subject: [PATCH for-next 3/3] IB/mlx5: Fix mlx5_set_path for Raw Packet QP
+Date: Sun,  3 Jul 2016 15:42:07 +0300
+Message-ID: <1467549727-23479-4-git-send-email-leon@kernel.org>
 References: <1467549727-23479-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1467549727-23479-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,33 +12,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-For Raw Packet QP, the AV attribute is passed in INIT to RTR in order
-to set the Ethernet Priority using the SL. The rest of the fields
-aren't necessarily valid, which causes the ib_resolve_eth_dmac to fail.
+mlx5_set_path returns error when called without GRH in Ethernet
+link layer. Since this is not mandatory for Raw Packet QP, it
+shouldn't fail in this case.
 
-Since no release address resolution is needed, don't do anything in
-ib_resolve_eth_dmac for Raw Packet QP.
+Added additional check of QP type to make the decision.
 
-Fixes: dbf727de7440 ('IB/core: Use GID table in AH creation and ...')
+Fixes: 2811ba51b049 ('IB/mlx5: Add RoCE fields to Address Vector')
 Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index ba75780..d41e403 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1171,7 +1171,7 @@ int ib_resolve_eth_dmac(struct ib_qp *qp,
- {
- 	int           ret = 0;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index e9b3a1f..fbd94a9 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -2175,7 +2175,8 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	}
  
--	if (*qp_attr_mask & IB_QP_AV) {
-+	if ((*qp_attr_mask & IB_QP_AV) && (qp->qp_type != IB_QPT_RAW_PACKET)) {
- 		if (qp_attr->ah_attr.port_num < rdma_start_port(qp->device) ||
- 		    qp_attr->ah_attr.port_num > rdma_end_port(qp->device))
+ 	if (ll == IB_LINK_LAYER_ETHERNET) {
+-		if (!(ah->ah_flags & IB_AH_GRH))
++		if (!(ah->ah_flags & IB_AH_GRH) &&
++		    (qp->ibqp.qp_type != IB_QPT_RAW_PACKET))
  			return -EINVAL;
+ 		memcpy(path->rmac, ah->dmac, sizeof(ah->dmac));
+ 		path->udp_sport = mlx5_get_roce_udp_sport(dev, port,
 -- 
 2.1.4
 
