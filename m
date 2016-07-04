@@ -1,45 +1,42 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] infiniband: shut up a maybe-uninitialized warning
-Date: Mon,  4 Jul 2016 17:06:26 +0200
-Message-ID: <20160704150659.2883024-1-arnd@arndb.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 1/3] IB/core: Add optional AV attribute for Raw
+ Packet QP in INIT to RTR
+Date: Mon, 4 Jul 2016 09:33:37 -0600
+Message-ID: <20160704153337.GB23122@obsidianresearch.com>
+References: <1467549727-23479-1-git-send-email-leon@kernel.org>
+ <1467549727-23479-2-git-send-email-leon@kernel.org>
+ <CAJ3xEMiaD99d96RKGwD3OpgEOn0RXjXoaRuFWT6PJdXQSOo5rQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3xEMiaD99d96RKGwD3OpgEOn0RXjXoaRuFWT6PJdXQSOo5rQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The powerpc64 default configuration leads to warnings for the infiniband
-core code:
+On Mon, Jul 04, 2016 at 12:51:00AM +0300, Or Gerlitz wrote:
+> On Sun, Jul 3, 2016 at 3:42 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > In order to configure QoS for Raw Packet QP, the user passes the SL
+> > in the AV attribute when modifying the QP from INIT to RTR state.
+> >
+> > This SL is used later on to set the Ethernet Priority of the QP.
+> >
+> > Until today, we couldn't pass the AV attribute for Raw Packet QP
+> > because it was blocked in the QP state transition matrix. This
+> > patch adds the AV as optional in INIT to RTR.
+> >
+> > Fixes: 8a51866f0810 ('IB: Add ib_modify_qp_is_ok() library function')
+> 
+> This commit is 10y old and was done way before RAW Packet QP was added
+> to the kernel, please fix your Fixes: line...
 
-infiniband/core/cma.c: In function 'cma_get_net_dev':
-infiniband/core/cma.c:1242:12: warning: 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this function [-Wmaybe-uninitialized]
+It isn't a fixes if you are adding a new feature.
 
-The code looks correct to me, and I don't see the warnings on the
-other architectures, so this is a dumb change to add an unneeded
-initialization to the variables in order to shut up the warning.
-
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Link: http://arm-soc.lixom.net/buildlogs/mainline/v4.7-rc6/buildall.powerpc.ppc64_defconfig.log.passed
----
- drivers/infiniband/core/cma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index a3c9930f1f93..924ac237310b 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1309,7 +1309,7 @@ static bool validate_net_dev(struct net_device *net_dev,
- static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
- 					  const struct cma_req_info *req)
- {
--	struct sockaddr_storage listen_addr_storage, src_addr_storage;
-+	struct sockaddr_storage listen_addr_storage = {}, src_addr_storage = {};
- 	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage,
- 			*src_addr = (struct sockaddr *)&src_addr_storage;
- 	struct net_device *net_dev;
--- 
-2.9.0
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
