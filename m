@@ -1,66 +1,44 @@
-From: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: Use AF_INET for sin_family field
-Date: Mon, 4 Jul 2016 18:27:45 +0530
-Message-ID: <20160704125744.GA16796@amitoj-Inspiron-3542>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] infiniband: shut up a maybe-uninitialized warning
+Date: Mon,  4 Jul 2016 17:06:26 +0200
+Message-ID: <20160704150659.2883024-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: julia.lawall-L2FTfq7BK8M@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yotam Kenneth <yotamke-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Elsewhere the sin_family field holds a value with a name of the form
-AF_..., so it seems reasonable to do so here as well.  Also the values
-of PF_INET and AF_INET are the same.
+The powerpc64 default configuration leads to warnings for the infiniband
+core code:
 
-The Coccinelle semantic patch that makes this change is as follows:
+infiniband/core/cma.c: In function 'cma_get_net_dev':
+infiniband/core/cma.c:1242:12: warning: 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-// <smpl>
-@@
-struct sockaddr_in sip;
-@@
+The code looks correct to me, and I don't see the warnings on the
+other architectures, so this is a dumb change to add an unneeded
+initialization to the variables in order to shut up the warning.
 
-(
-sip.sin_family ==
-- PF_INET
-+ AF_INET
-|
-sip.sin_family !=
-- PF_INET
-+ AF_INET
-|
-sip.sin_family =
-- PF_INET
-+ AF_INET
-)
-// </smpl>
-
-Signed-off-by: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Link: http://arm-soc.lixom.net/buildlogs/mainline/v4.7-rc6/buildall.powerpc.ppc64_defconfig.log.passed
 ---
- drivers/infiniband/hw/cxgb3/iwch_cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-index 3e8431b..04bbf17 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-@@ -1396,10 +1396,10 @@ static int pass_accept_req(struct t3cdev *tdev, struct sk_buff *skb, void *ctx)
- 	state_set(&child_ep->com, CONNECTING);
- 	child_ep->com.tdev = tdev;
- 	child_ep->com.cm_id = NULL;
--	child_ep->com.local_addr.sin_family = PF_INET;
-+	child_ep->com.local_addr.sin_family = AF_INET;
- 	child_ep->com.local_addr.sin_port = req->local_port;
- 	child_ep->com.local_addr.sin_addr.s_addr = req->local_ip;
--	child_ep->com.remote_addr.sin_family = PF_INET;
-+	child_ep->com.remote_addr.sin_family = AF_INET;
- 	child_ep->com.remote_addr.sin_port = req->peer_port;
- 	child_ep->com.remote_addr.sin_addr.s_addr = req->peer_ip;
- 	get_ep(&parent_ep->com);
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index a3c9930f1f93..924ac237310b 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1309,7 +1309,7 @@ static bool validate_net_dev(struct net_device *net_dev,
+ static struct net_device *cma_get_net_dev(struct ib_cm_event *ib_event,
+ 					  const struct cma_req_info *req)
+ {
+-	struct sockaddr_storage listen_addr_storage, src_addr_storage;
++	struct sockaddr_storage listen_addr_storage = {}, src_addr_storage = {};
+ 	struct sockaddr *listen_addr = (struct sockaddr *)&listen_addr_storage,
+ 			*src_addr = (struct sockaddr *)&src_addr_storage;
+ 	struct net_device *net_dev;
 -- 
-1.9.1
+2.9.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
