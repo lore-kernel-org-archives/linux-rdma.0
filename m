@@ -1,80 +1,49 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 3/3] IB/mlx5: Fix mlx5_set_path for Raw Packet QP
-Date: Mon, 4 Jul 2016 08:14:03 +0300
-Message-ID: <20160704051403.GB5289@leon.nu>
-References: <1467549727-23479-1-git-send-email-leon@kernel.org>
- <1467549727-23479-4-git-send-email-leon@kernel.org>
- <CAJ3xEMhZiBjQwjgXj8peLYW4wETEE96UJ8BC7TLyO0G_jn-iBg@mail.gmail.com>
+From: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Oops with mlx5/NFSoRDMA client with 4.7-rc5ish
+Date: Mon, 4 Jul 2016 13:29:55 +0200
+Message-ID: <20160704112955.GC11467@suse.de>
+References: <730f57aa-b1f6-c6da-4936-bebba1954ca7@redhat.com>
+ <5efee0cc-1bec-9cab-c0c5-0e3a9a093894@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMhZiBjQwjgXj8peLYW4wETEE96UJ8BC7TLyO0G_jn-iBg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5efee0cc-1bec-9cab-c0c5-0e3a9a093894-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Lever, Chuck" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, omer-FrESSTt7Abv7r6psnUbsSmZHpeb/A1Y/@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---lEGEL1/lMxI0MVQ2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jul 04, 2016 at 12:55:36AM +0300, Or Gerlitz wrote:
-> On Sun, Jul 3, 2016 at 3:42 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->=20
-> > --- a/drivers/infiniband/hw/mlx5/qp.c
-> > +++ b/drivers/infiniband/hw/mlx5/qp.c
-> > @@ -2175,7 +2175,8 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev,=
- struct mlx5_ib_qp *qp,
-> >         }
+On Sun, Jul 03, 2016 at 07:25:57PM +0300, Yishai Hadas wrote:
+> On 6/30/2016 9:31 PM, Doug Ledford wrote:
+> >This could easily be an mlx5 issue given that it starts with a DMAR
+> >error, but I would also hope that NFSoRDMA can manage to survive the
+> >DMAR error.  Nothing fancy in this case, it's a plain NFSv3 mount over
+> >RDMA.  Client is mlx5, server in this case is using mlx4.  Activity was
+> >doing a build of a user space package over NFS.
 > >
-> >         if (ll =3D=3D IB_LINK_LAYER_ETHERNET) {
-> > -               if (!(ah->ah_flags & IB_AH_GRH))
-> > +               if (!(ah->ah_flags & IB_AH_GRH) &&
-> > +                   (qp->ibqp.qp_type !=3D IB_QPT_RAW_PACKET))
-> >                         return -EINVAL;
-> >                 memcpy(path->rmac, ah->dmac, sizeof(ah->dmac));
-> >                 path->udp_sport =3D mlx5_get_roce_udp_sport(dev, port,
->=20
-> As you can see here, that code was written with RoCE state of mind,
-> e.g they set the remote mac and udp source port, with both being
-> irrelevant for RAW packet QPs. So in that respect, your fix is wrong.
-> Make the code clear and correct in what they set to RoCE QPs, to RAW
-> Packet QPs and to both.
+> 
+> Worked with NFSoRDMA with 4.7-rc4 over mlx5 in order to reproduce, got at
+> some step below WARN that comes from iommu, however couldn't get the OOPs
+> that you pointed on. Later on, re-tried to reproduce but couldn't hit it
+> again.
+> 
+> [854421.609563] DMAR: ERROR: DMA PTE for vPFN 0xe81c7 already set (to
+> 817c9d002 not 817c9b002)
+> [854421.618925] ------------[ cut here ]------------
+> [854421.624494] WARNING: CPU: 22 PID: 0 at drivers/iommu/intel-iommu.c:2248
+> __domain_mapping+0x361/0x370
 
-If I read your response and code correctly, we can safely drop this
-patch. Am I right?
+This looks like a bug in the IOMMU code. The Intel VT-d driver got
+scalability improvements in this cycle which might have introduced this.
+Can you guys please try to reproduce with v4.7-rc6? It has a fix which
+might be related here.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---lEGEL1/lMxI0MVQ2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+	Joerg
 
-iQIcBAEBAgAGBQJXefCbAAoJEORje4g2clinTrUP/1r9UWEp98QN/TBlRag8WeHu
-GV81i560ZSxGZjFu0lTfUotP2ZcTSrPOhJO+mEr09p3xfOJJgGQWt77tiMQzrZfs
-fiwijUYk/l9nVh72sg2oIk7jes3faK4uYGWMEftDUzn3dSJfjfV07VD/yc7gi0H9
-vVTIDWnZFCoV3WyyYe/ey/cGbWFglOX5bp4ybeKVwThrDl00ABj6Qu0m1nrpUhHl
-xC4S1gx7DP6JLS+ovJ1I8/8Ld/D2vSgRq8lf52CCLbIfzNGdCcpY9X+e8etBb0Cj
-o3hficUT5Eg84fdLWhYCqJnhvMzI3M13gViikCgFteyF1Ano/JVzmI/XYXRYndCD
-Cw/uNIVR782YTvAeUKCGjqyJKGkx4nLV5sDhAYhMMbTX76ivt02TdW3yn/VPkWpF
-FGVh3qdsviur62UxxgKMBLQslg/tbG0D5SmHy1v0wXPCdwyZ9zgifGqBHNMJ3rK4
-6K01FUYsWU+S/k91SsgtHymOFVaAVm2m8lzXaNgwujQiBTnoohxOt/F5vFWXkcLM
-WBwN5bENzLb/SOB12X3iU1mU9diivo0W2EVKzNZy4YqpQhgyJWrVaZIr0gjKZb2L
-L5poPv0idTWF2sTIo8dPVseoLg9zqgrYpjoFJXB2k03dcV+jUbJMBtnIoqcnBL7l
-giNsazk+Tf1kfgQZzJL6
-=cGRO
------END PGP SIGNATURE-----
-
---lEGEL1/lMxI0MVQ2--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
