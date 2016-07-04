@@ -1,106 +1,38 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/2] IB/core: Support for CMA multicast join
- flags
-Date: Mon, 4 Jul 2016 08:35:54 +0300
-Message-ID: <20160704053554.GC5289@leon.nu>
-References: <1467550074-24061-1-git-send-email-leon@kernel.org>
- <1467550074-24061-3-git-send-email-leon@kernel.org>
- <CAJ3xEMitNu8HACD3EZ1kQGU4o-VyDphWFUN7qn94+LpBSV4E=w@mail.gmail.com>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v11 00/22] Add HiSilicon RoCE driver
+Date: Mon, 4 Jul 2016 16:16:46 +0800
+Message-ID: <577A1B6E.40601@huawei.com>
+References: <1467452364-66522-1-git-send-email-oulijun@huawei.com>
+ <20160702125816.GG4750@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJ3xEMitNu8HACD3EZ1kQGU4o-VyDphWFUN7qn94+LpBSV4E=w@mail.gmail.com>
+In-Reply-To: <20160702125816.GG4750-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---9Ek0hoCL9XbhcSqy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+=E5=9C=A8 2016/7/2 20:58, Leon Romanovsky =E5=86=99=E9=81=93:
+> On Sat, Jul 02, 2016 at 05:39:02PM +0800, Lijun Ou wrote:
+>=20
+> This v11
+>>  28 files changed, 10626 insertions(+), 1 deletion(-)
+>=20
+> First version
+>>  27 files changed, 11670 insertions(+), 11 deletions(-)
+>=20
+> 1K LOC less, we are moving in right direction.
+>=20
+Good, Thank you very much=EF=BC=81
+Thank you for more suggestions.
 
-On Mon, Jul 04, 2016 at 12:46:31AM +0300, Or Gerlitz wrote:
-> On Sun, Jul 3, 2016 at 3:47 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> > Added UCMA and CMA support for multicast join flags. Flags are
-> > passed using UCMA CM join command previously reserved fields.
-> > Currently supporting two join flags indicating two different
-> > multicast JoinStates:
-> [...]
->=20
-> > --- a/include/rdma/ib_sa.h
-> > +++ b/include/rdma/ib_sa.h
->=20
-> > +#define IB_SA_MCMEMBER_REC_JOIN_STATE_FULL_MEMBER       BIT(0)
-> > +#define IB_SA_MCMEMBER_REC_JOIN_STATE_NON_MEMBER        BIT(1)
-> > +#define IB_SA_MCMEMBER_REC_JOIN_STATE_SO_NON_MEMBER     BIT(2)
-> > +#define IB_SA_MCMEMBER_REC_JOIN_STATE_SO_FULL_MEMBER    BIT(3)
-> > +
->=20
-> can we somehow avoid repeating defining these join states in 2-3
-> places and either make the code introduced in commit  cd6e9b7ef
-> "IB/core: Support new type of join-state for multicast"
->=20
-> --- a/drivers/infiniband/core/multicast.c
-> +++ b/drivers/infiniband/core/multicast.c
-> @@ -93,6 +93,18 @@ enum {
->=20
->  struct mcast_member;
->=20
-> +/*
-> +* There are 4 types of join states:
-> +* FullMember, NonMember, SendOnlyNonMember, SendOnlyFullMember.
-> +*/
-> +enum {
-> + FULLMEMBER_JOIN,
-> + NONMEMBER_JOIN,
-> + SENDONLY_NONMEBER_JOIN,
-> + SENDONLY_FULLMEMBER_JOIN,
-> + NUM_JOIN_MEMBERSHIP_TYPES,
-> +};
->=20
-> to use the above defines, or the code added by this patch to use the
-> enum Erez added, or both code pieces to be re-written and use some
-> shared enum/define?
-
-Good point,
 Thanks
+Lijun Ou
 
->=20
-> Or.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---9Ek0hoCL9XbhcSqy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXefW6AAoJEORje4g2clin+1QP/2swXkAy15d2oa+sM6AB9336
-DkgaWfHJKyqts9xg2nxOrxuab5TcIg3hiTesxHMVetrDMeNuDYNHmer4mG+N6jDK
-ghdw/2xjIEHRZ+B7gZf11EpNJs4UyXBSfZ/PDGak0vDUNfUb1M5LWHq4bqtuNaaW
-zwk1qCOy0sgA+A9GyRULStcgyPFkio5f/J51ZUKQMm/lant8XgXLfe0MjLMDHr89
-ADm9jARoODRTpGhP4pn0q5++KoFPvZxsYz3cFv5TalYQY4S4Glfr0uJwFHVttBgW
-zi4eQaj+N2vK8OE4y1qfC2RDJKlS4dA3qM0xoeowjgCzirBSgzv5RA5vJtPUWAcB
-EGd2l65lB5u+p56GQGgX+MWgI0SrkN7yWq2Is+jxqk4y7xxagN4b9/l3mFT3EXG/
-q8F3q/2RqnjbSuG8sZgedvsXSjqmmyqjpRP+UKk6zfB93pH9eJOEGQP/KT3VvFTn
-9jr5tqwVeWl96qxM23lJNVecAcKG8mQd0MBN92hD8G2J4NLtTCDwGEB3l/jC2+TZ
-jSziLHxPyWEL8jDMsHP7olcQFW2KM2cNz6jOuCXBR5xjk/E04RhYlVYKyrenQSpn
-Y7Z2z/xDGK/n7iUHXHgk0FLHGkcAZLvgUx1wkxgZ+ya/jmgC7e0QNGHvkm3URfOn
-1DRqx0PpXbD0aeFjN+q5
-=d/sg
------END PGP SIGNATURE-----
-
---9Ek0hoCL9XbhcSqy--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
