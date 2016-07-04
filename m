@@ -1,34 +1,42 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v11 00/22] Add HiSilicon RoCE driver
-Date: Mon, 4 Jul 2016 14:24:05 +0800
-Message-ID: <577A0105.7000804@huawei.com>
-References: <1467452364-66522-1-git-send-email-oulijun@huawei.com>
- <20160702125816.GG4750@leon.nu>
+From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 2/3] IB/core: Fix ib_resolve_eth_dmac for Raw
+ Packet QP
+Date: Mon, 4 Jul 2016 06:10:31 +0000
+Message-ID: <C8D4A0D8-4D97-4BAB-8FE4-DDEDDDAF9775@mellanox.com>
+References: <1467549727-23479-1-git-send-email-leon@kernel.org>
+ <1467549727-23479-3-git-send-email-leon@kernel.org>,<CAJ3xEMg+kqmEQ7B_JAKGnu3ubwu5f-40jbeL4Wg9udUeoxEZJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160702125816.GG4750-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <CAJ3xEMg+kqmEQ7B_JAKGnu3ubwu5f-40jbeL4Wg9udUeoxEZJw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gongyangming-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xiaokun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tangchaofei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 2016/7/2 20:58, Leon Romanovsky wrote:
-> On Sat, Jul 02, 2016 at 05:39:02PM +0800, Lijun Ou wrote:
->
-> This v11
->>   28 files changed, 10626 insertions(+), 1 deletion(-)
-> First version
->>   27 files changed, 11670 insertions(+), 11 deletions(-)
-> 1K LOC less, we are moving in right direction.
-Thanks for your suggestions!
 
-Regards
-Wei Hu
+Sent from my iPhone
+> On 3 Jul 2016, at 3:52 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+>> On Sun, Jul 3, 2016 at 3:42 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> 
+>> For Raw Packet QP, the AV attribute is passed in INIT to RTR in order
+>> to set the Ethernet Priority using the SL. The rest of the fields
+>> aren't necessarily valid, which causes the ib_resolve_eth_dmac to fail.
+>> 
+>> Since no release address resolution is needed, don't do anything in
+>> ib_resolve_eth_dmac for Raw Packet QP.
+> 
+> What "release address resolution" means?
+Oops sorry for the typo error, "real" not "release".
 
+Yours,
+Talat
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
