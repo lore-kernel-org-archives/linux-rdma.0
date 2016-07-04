@@ -1,31 +1,40 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] RDS: fix rds_tcp_init() error path
-Date: Mon, 04 Jul 2016 16:10:10 -0700 (PDT)
-Message-ID: <20160704.161010.2254809649116558533.davem@davemloft.net>
-References: <1467536094-23722-1-git-send-email-vegard.nossum@oracle.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
+ - 7/5/2016 at 11:00PDT
+Date: Mon, 4 Jul 2016 18:08:22 +0000
+Message-ID: <HE1PR05MB1418C403A290BDC2AE450FFEB1380@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467536094-23722-1-git-send-email-vegard.nossum-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: vegard.nossum-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vegard Nossum <vegard.nossum-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Sun,  3 Jul 2016 10:54:54 +0200
+Agenda: discuss latest framework proposals
 
-> If register_pernet_subsys() fails, we shouldn't try to call
-> unregister_pernet_subsys().
-> 
-> Fixes: 467fa15356 ("RDS-TCP: Support multiple RDS-TCP listen endpoints, one per netns.")
-> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-> Signed-off-by: Vegard Nossum <vegard.nossum-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Regards,
+--Liran
 
-Applied.
+Concall details
+===========
+JOIN WEBEX MEETING
+https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+
+JOIN BY PHONE
+1-80-9453550 Israel toll free
+1-855-299-5224 USA/Canada toll free
+Access code: 702 830 424
+
+Global call-in numbers:
+https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
+
+Toll-free calling restrictions:
+http://www.webex.com/pdf/tollfree_restrictions.pdf
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
