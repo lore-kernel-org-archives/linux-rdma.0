@@ -1,71 +1,28 @@
-From: "Foraker, Jim" <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/hfi1: Fix sleep inside atomic issue in
- init_asic_data
-Date: Tue, 5 Jul 2016 21:36:42 +0000
-Message-ID: <D3A17212.9F2E0%foraker1@llnl.gov>
-References: <20160701225447.19381.90323.stgit@scvm10.sc.intel.com>
- <20160701225707.19381.34804.stgit@scvm10.sc.intel.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/rxe: Trivial coding style fix
+Date: Wed, 6 Jul 2016 00:52:40 +0300
+Message-ID: <CAJ3xEMggNphYbmSRE_Ffdjmnqf2rDnVZF8k+7vhP3RqeR2EEbg@mail.gmail.com>
+References: <1467734999-21389-1-git-send-email-monis@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160701225707.19381.34804.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
-Content-ID: <4FD17334AC10AA4383ECF752523D677F-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <1467734999-21389-1-git-send-email-monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ICAgICBUaGFua3MgZm9yIGdldHRpbmcgdGhpcyBpc3N1ZSBmaXhlZC4gIE9uZSBjb21tZW50IGJl
-bG93Lg0KDQpPbiA3LzEvMTYsIDM6NTcgUE0sICJsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVs
-Lm9yZyBvbiBiZWhhbGYgb2YgRGVubmlzDQpEYWxlc3NhbmRybyIgPGxpbnV4LXJkbWEtb3duZXJA
-dmdlci5rZXJuZWwub3JnIG9uIGJlaGFsZiBvZg0KZGVubmlzLmRhbGVzc2FuZHJvQGludGVsLmNv
-bT4gd3JvdGU6DQoNCj5Gcm9tOiBUYWRldXN6IFN0cnVrIDx0YWRldXN6LnN0cnVrQGludGVsLmNv
-bT4NCj4NCj5UaGUgY3JpdGljYWwgc2VjdGlvbiBzaG91bGQgcHJvdGVjdCBvbmx5IHRoZSBsaXN0
-IHRyYXZlcnNhbA0KPmFuZCBkZC0+YXNpY19kYXRhIG1vZGlmaWNhdGlvbiwgbm90IHRoZSBtZW1v
-cnkgYWxsb2NhdGlvbi4NCj5UaGUgZml4IHB1bGxzIHRoZSBhbGxvY2F0aW9uIG91dCBvZiB0aGUg
-Y3JpdGljYWwgc2VjdGlvbi4NCj4NCj5SZXZpZXdlZC1ieTogRGVubmlzIERhbGVzc2FuZHJvIDxk
-ZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPg0KPlJldmlld2VkLWJ5OiBTZWJhc3RpYW4gU2Fu
-Y2hleiA8c2ViYXN0aWFuLnNhbmNoZXpAaW50ZWwuY29tPg0KPlJldmlld2VkLWJ5OiBEZWFuIEx1
-aWNrIDxkZWFuLmx1aWNrQGludGVsLmNvbT4NCj5TaWduZWQtb2ZmLWJ5OiBUYWRldXN6IFN0cnVr
-IDx0YWRldXN6LnN0cnVrQGludGVsLmNvbT4NCj5TaWduZWQtb2ZmLWJ5OiBEZW5uaXMgRGFsZXNz
-YW5kcm8gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+LS0tDQo+IGRyaXZlcnMvaW5m
-aW5pYmFuZC9ody9oZmkxL2NoaXAuYyB8ICAgMjEgKysrKysrKysrKysrKystLS0tLS0tDQo+IDEg
-ZmlsZXMgY2hhbmdlZCwgMTQgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4NCj5kaWZm
-IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvY2hpcC5jDQo+Yi9kcml2ZXJzL2lu
-ZmluaWJhbmQvaHcvaGZpMS9jaGlwLmMNCj5pbmRleCBmNWRlODUxLi4wNjYyNDUxIDEwMDY0NA0K
-Pi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2NoaXAuYw0KPisrKyBiL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9oZmkxL2NoaXAuYw0KPkBAIC0xNDExMyw4ICsxNDExMywxNCBAQCBzdGF0
-aWMgaW50IGluaXRfYXNpY19kYXRhKHN0cnVjdCBoZmkxX2RldmRhdGENCj4qZGQpDQo+IHsNCj4g
-CXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+IAlzdHJ1Y3QgaGZpMV9kZXZkYXRhICp0bXAsICpwZWVy
-ID0gTlVMTDsNCj4rCXN0cnVjdCBoZmkxX2FzaWNfZGF0YSAqYXNpY19kYXRhOw0KPiAJaW50IHJl
-dCA9IDA7DQo+IA0KPisJLyogcHJlLWFsbG9jYXRlIHRoZSBhc2ljIHN0cnVjdHVyZSBpbiBjYXNl
-IHdlIGFyZSB0aGUgZmlyc3QgZGV2aWNlICovDQo+Kwlhc2ljX2RhdGEgPSBremFsbG9jKHNpemVv
-ZigqZGQtPmFzaWNfZGF0YSksIEdGUF9LRVJORUwpOw0KPisJaWYgKCFhc2ljX2RhdGEpDQo+KwkJ
-cmV0dXJuIC1FTk9NRU07DQo+Kw0KPiAJc3Bpbl9sb2NrX2lycXNhdmUoJmhmaTFfZGV2c19sb2Nr
-LCBmbGFncyk7DQo+IAkvKiBGaW5kIG91ciBwZWVyIGRldmljZSAqLw0KPiAJbGlzdF9mb3JfZWFj
-aF9lbnRyeSh0bXAsICZoZmkxX2Rldl9saXN0LCBsaXN0KSB7DQo+QEAgLTE0MTI2LDE5ICsxNDEz
-MiwyMCBAQCBzdGF0aWMgaW50IGluaXRfYXNpY19kYXRhKHN0cnVjdCBoZmkxX2RldmRhdGENCj4q
-ZGQpDQo+IAl9DQo+IA0KPiAJaWYgKHBlZXIpIHsNCj4rCQkvKiB1c2UgYWxyZWFkeSBhbGxvY2F0
-ZWQgc3RydWN0dXJlICovDQo+IAkJZGQtPmFzaWNfZGF0YSA9IHBlZXItPmFzaWNfZGF0YTsNCj4r
-CQlrZnJlZShhc2ljX2RhdGEpOw0KPiAJfSBlbHNlIHsNCj4tCQlkZC0+YXNpY19kYXRhID0ga3ph
-bGxvYyhzaXplb2YoKmRkLT5hc2ljX2RhdGEpLCBHRlBfS0VSTkVMKTsNCj4tCQlpZiAoIWRkLT5h
-c2ljX2RhdGEpIHsNCj4tCQkJcmV0ID0gLUVOT01FTTsNCj4tCQkJZ290byBkb25lOw0KPi0JCX0N
-Cj4rCQlkZC0+YXNpY19kYXRhID0gYXNpY19kYXRhOw0KPiAJCW11dGV4X2luaXQoJmRkLT5hc2lj
-X2RhdGEtPmFzaWNfcmVzb3VyY2VfbXV0ZXgpOw0KPiAJfQ0KPiAJZGQtPmFzaWNfZGF0YS0+ZGRz
-W2RkLT5oZmkxX2lkXSA9IGRkOyAvKiBzZWxmIGJhY2stcG9pbnRlciAqLw0KPi0NCj4tZG9uZToN
-Cj4gCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmhmaTFfZGV2c19sb2NrLCBmbGFncyk7DQo+Kw0K
-PisJLyogZmlyc3Qgb25lIHRocm91Z2ggLSBzZXQgdXAgaTJjIGRldmljZXMgKi8NCj4rCWlmICgh
-cGVlcikNCj4rCQlyZXQgPSBzZXRfdXBfaTJjKGRkLCBkZC0+YXNpY19kYXRhKTsNCg0KICAgICBU
-aGlzIGZ1bmN0aW9uIGRvZXNu4oCZdCBleGlzdCB1bnRpbCBwYXRjaCAxMSBvZiB5b3VyIGZvci00
-Ljggc2VyaWVzDQood2hlcmUgaXQgaXMgZGVmaW5lZCBidXQgbmV2ZXIgdXNlZCksIGFuZCBzZWVt
-cyB1bnJlbGF0ZWQgdG8gZml4aW5nIHRoZQ0KYWxsb2NhdGlvbiBpc3N1ZS4gIFBhdGNoIG1peHVw
-Pw0KDQogICAgIEppbQ0KDQo+Kw0KPiAJcmV0dXJuIHJldDsNCj4gfQ0KPiANCj4NCj4tLQ0KPlRv
-IHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBs
-aW51eC1yZG1hIiBpbg0KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
-ZXJuZWwub3JnDQo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9y
-Zy9tYWpvcmRvbW8taW5mby5odG1sDQo+DQoNCg0K
+On Tue, Jul 5, 2016 at 7:09 PM, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> A line was unnecessarily broken and with bad indentation.
+> Also, unnecessary braces were removed.
+>
+> Fixes: 99c483da1a82 ('IB/rxe: QP request handling')
+
+Doug, is this commit ID gonna persist when you merge RXE to your
+for-4.8 branch and later when Linus pulls this? if not, no point to
+use it here, in that case, Moni, please remove it.
+
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
