@@ -1,58 +1,41 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 0/3] Raw Packet QP Fixes for 4.8
-Date: Tue, 5 Jul 2016 09:20:57 +0300
-Message-ID: <20160705062057.GB15009@leon.nu>
-References: <1467549727-23479-1-git-send-email-leon@kernel.org>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] IB/sa: Add cached attribute containing SM
+ information to SA port
+Date: Tue, 5 Jul 2016 13:37:00 +0300
+Message-ID: <CAJ3xEMg81RgPM5RTRSaANBW87LDOBSUrvWVwqAywe+Wiap1aRg@mail.gmail.com>
+References: <1467550074-24061-1-git-send-email-leon@kernel.org> <1467550074-24061-2-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1467549727-23479-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1467550074-24061-2-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Jul 3, 2016 at 3:47 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> --- a/drivers/infiniband/core/sa_query.c
+> +++ b/drivers/infiniband/core/sa_query.c
 
-On Sun, Jul 03, 2016 at 03:42:04PM +0300, Leon Romanovsky wrote:
-> Hi Doug,
->=20
-> This patch series includes raw packet QP fixes which are targeted for 4.8.
-> They apply cleanly on top of your k.o/for-4.8 branch.
+>  struct ib_sa_port {
+> -       struct ib_mad_agent *agent;
+> -       struct ib_sa_sm_ah  *sm_ah;
+> -       struct work_struct   update_task;
+> -       spinlock_t           ah_lock;
+> -       u8                   port_num;
+> +       struct ib_mad_agent             *agent;
+> +       struct ib_sa_sm_ah              *sm_ah;
+> +       struct work_struct              update_task;
 
-Doug,
-Please drop this series, "fixes line" misled me.
-Sorry for inconvenience.
+please avoid re-spacing/tabbing/moving existing structure fields around when
+you introduce new fields
 
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXe1HJAAoJEORje4g2clinnzoP/AqwVpzRWFmjbSy1G5hKicLQ
-HEF9ZVoiH7u8O5pESlN0EM1XsrwE1cN8bnXl497oBGAOuIzSFvMZPUSNe8rK/8sD
-8it/fHkXVm/8RKY7AxJq05rQv61waHx8eTssN0kv2GytF7zup7Pv0OrACJaedkXd
-XiPIluQmW8kd2Vi5RQ9C6r0OW2nAdF5Sr39+vPc6quWNoUyKk4Bvg3bM75W7P+n/
-yDssCvTyjyGC1WolZHMYIS15vA9jmOSoCBnodGhqHETfXZ/d6t86UTuINzT+gMND
-1eoZMSetkap2BmJtoJu/OwliOxcxtmH3NXefzJ99PeKoAeQF14LWbn4XbzpK0e9A
-yYnuPTEVwmrD108EMcLkDasR0ea3YjALZRy3+8lD35XYe3lqisPGG1YGM8sRTlfg
-yCJWLk7nisYT6OqgNhpPcVpNNJ4s+DPCUGqeWDvmCK5v2P7mkQFSER6TSEwsKR5G
-AwVJaF4VuGm5ypOFzVlp55aIosH17RP60vs9oWZn8k5rcRqu3nHeHRIdOU/hqU7u
-qCdu0SEEkHvxlhnYQYH6iA9JynjvHet0Y3kxjhS0GrHPECPsc2B793BI2WHN0+kV
-7OE9/f1F/QJU/EZYl9D7CGU+n4wJWlULGZFttayAqXHpy3hM4/TYLjV1+fx9Q1YI
-QVKApvr70ffrBotYDcwG
-=W059
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
+> +       struct ib_sa_classport_cache    classport_info;
+> +       spinlock_t                      classport_lock; /* protects class port info set */
+> +       spinlock_t                      ah_lock;
+> +       u8                              port_num;
+>  };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
