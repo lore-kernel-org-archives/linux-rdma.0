@@ -1,81 +1,58 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH for-next 1/3] IB/core: Add optional AV attribute for Raw
- Packet QP in INIT to RTR
-Date: Tue, 5 Jul 2016 09:17:02 +0300
-Message-ID: <20160705061702.GA15009@leon.nu>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 0/3] Raw Packet QP Fixes for 4.8
+Date: Tue, 5 Jul 2016 09:20:57 +0300
+Message-ID: <20160705062057.GB15009@leon.nu>
 References: <1467549727-23479-1-git-send-email-leon@kernel.org>
- <1467549727-23479-2-git-send-email-leon@kernel.org>
- <CAJ3xEMiaD99d96RKGwD3OpgEOn0RXjXoaRuFWT6PJdXQSOo5rQ@mail.gmail.com>
- <20160704153337.GB23122@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160704153337.GB23122-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1467549727-23479-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---OgqxwSJOaUobr8KG
+
+--jho1yZJdad60DJr+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 04, 2016 at 09:33:37AM -0600, Jason Gunthorpe wrote:
-> On Mon, Jul 04, 2016 at 12:51:00AM +0300, Or Gerlitz wrote:
-> > On Sun, Jul 3, 2016 at 3:42 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > > From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >
-> > > In order to configure QoS for Raw Packet QP, the user passes the SL
-> > > in the AV attribute when modifying the QP from INIT to RTR state.
-> > >
-> > > This SL is used later on to set the Ethernet Priority of the QP.
-> > >
-> > > Until today, we couldn't pass the AV attribute for Raw Packet QP
-> > > because it was blocked in the QP state transition matrix. This
-> > > patch adds the AV as optional in INIT to RTR.
-> > >
-> > > Fixes: 8a51866f0810 ('IB: Add ib_modify_qp_is_ok() library function')
-> >=20
-> > This commit is 10y old and was done way before RAW Packet QP was added
-> > to the kernel, please fix your Fixes: line...
+On Sun, Jul 03, 2016 at 03:42:04PM +0300, Leon Romanovsky wrote:
+> Hi Doug,
 >=20
-> It isn't a fixes if you are adding a new feature.
+> This patch series includes raw packet QP fixes which are targeted for 4.8.
+> They apply cleanly on top of your k.o/for-4.8 branch.
 
-You are right, I'll resubmit.
+Doug,
+Please drop this series, "fixes line" misled me.
+Sorry for inconvenience.
 
->=20
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---OgqxwSJOaUobr8KG
+--jho1yZJdad60DJr+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXe1DeAAoJEORje4g2clinDDAP/i8jlZ3qmss+3QuQV83dlV+y
-DNB/f9HEC5aFGDe1ZULLklm4UscNF3LA4UNr8CcUAWbhc0DS/l616aGm3xLZtuM2
-CCIqf0dot0+/eaEwA7pViXhRGv41YcjQqmgMenTf3P81l4uErcuCBjyqAmVJFqS4
-k2JIfRbKundqwSf6c4L0xxGl16tUzUJxHj9BwpnXxQpczveUXBNpW5PyxmMXCRrG
-IC+rhKU10TypPjMeuLVcuiXMgPkWUrD0GuWAEeDuVBXo6p4s6/VSMo5qNRFOLUHK
-545C0s0ugZXLv3AYXJxO578Nj5hmd41q4RQK7W03VMHYxoXDQ0VIPuw0PyaYdw9I
-w5FT7yZJTtG1bJcOpfeT1NwiOaN+zESRN5wxBhwvg/rrIH8/N6tXQH3ugV+KRtFN
-o5sUNaU0onEVL/vNWFwYnyKSg7JutDiemCTM3W0Fwjjm87BtC2Zs9YMlbwcjPQiv
-Q5KomGUy3iiT1PNRwVZUbVClI/+TK3/SzEECjDzn74jd+UjRilOVtvAG9+Osims3
-2LcWr4gKjZKvtN30gyuYMP5vc3cC6MwaHquOPy9WSB/beCQjWWLrNVeyBW8tBBfl
-Kok0g0F7xCzOqQAQZMbnZcrBEI8D4QbuaMWzgq2tPvX+G+eoMkXinkxeiAow7/gO
-d8Q5KN/FqXB2E3BtEddX
-=d7Q6
+iQIcBAEBAgAGBQJXe1HJAAoJEORje4g2clinnzoP/AqwVpzRWFmjbSy1G5hKicLQ
+HEF9ZVoiH7u8O5pESlN0EM1XsrwE1cN8bnXl497oBGAOuIzSFvMZPUSNe8rK/8sD
+8it/fHkXVm/8RKY7AxJq05rQv61waHx8eTssN0kv2GytF7zup7Pv0OrACJaedkXd
+XiPIluQmW8kd2Vi5RQ9C6r0OW2nAdF5Sr39+vPc6quWNoUyKk4Bvg3bM75W7P+n/
+yDssCvTyjyGC1WolZHMYIS15vA9jmOSoCBnodGhqHETfXZ/d6t86UTuINzT+gMND
+1eoZMSetkap2BmJtoJu/OwliOxcxtmH3NXefzJ99PeKoAeQF14LWbn4XbzpK0e9A
+yYnuPTEVwmrD108EMcLkDasR0ea3YjALZRy3+8lD35XYe3lqisPGG1YGM8sRTlfg
+yCJWLk7nisYT6OqgNhpPcVpNNJ4s+DPCUGqeWDvmCK5v2P7mkQFSER6TSEwsKR5G
+AwVJaF4VuGm5ypOFzVlp55aIosH17RP60vs9oWZn8k5rcRqu3nHeHRIdOU/hqU7u
+qCdu0SEEkHvxlhnYQYH6iA9JynjvHet0Y3kxjhS0GrHPECPsc2B793BI2WHN0+kV
+7OE9/f1F/QJU/EZYl9D7CGU+n4wJWlULGZFttayAqXHpy3hM4/TYLjV1+fx9Q1YI
+QVKApvr70ffrBotYDcwG
+=W059
 -----END PGP SIGNATURE-----
 
---OgqxwSJOaUobr8KG--
+--jho1yZJdad60DJr+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
