@@ -1,45 +1,41 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 2/2] IB/core: Support for CMA multicast join flags
-Date: Tue, 5 Jul 2016 15:44:04 +0300
-Message-ID: <CAJ3xEMgSMK+xkRmr-MQCBdnFuQT_BKRCjNA+vj7f6wXojHPzrA@mail.gmail.com>
-References: <1467550074-24061-1-git-send-email-leon@kernel.org>
- <1467550074-24061-3-git-send-email-leon@kernel.org> <CAJ3xEMjqkn09zFXZ5Fj3wvtM3GSa=vzgTuuVoAFENToa4Zh4uw@mail.gmail.com>
- <20160704045111.GA5289@leon.nu> <CAJ3xEMgErk9Gu8g98dxkdjRP6aiq6hdkAOPj-a2zKLSTwaGZ0w@mail.gmail.com>
- <20160705104525.GC15009@leon.nu>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+ tomorrow - 7/5/2016 at 11:00PDT
+Date: Tue, 5 Jul 2016 15:53:04 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22F1DB42@CRSMSX101.amr.corp.intel.com>
+References: <HE1PR05MB1418C403A290BDC2AE450FFEB1380@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160705104525.GC15009-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <HE1PR05MB1418C403A290BDC2AE450FFEB1380-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 5, 2016 at 1:45 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Mon, Jul 04, 2016 at 03:40:10PM +0300, Or Gerlitz wrote:
-
->> +++ b/include/uapi/rdma/rdma_user_cm.h
->> @@ -244,12 +244,19 @@ struct rdma_ucm_join_ip_mcast {
->>   __u32 id;
->>  };
->>
->>  struct rdma_ucm_join_mcast {
->>   __u64 response; /* rdma_ucma_create_id_resp */
->>   __u64 uid;
->>   __u32 id;
->>   __u16 addr_size;
->> - __u16 reserved;
->> + __u16 join_flags;
->>   struct sockaddr_storage addr;
->>  };
-
-> The main issue here that new code is using this struct and new field while the old
-> code uses reserved field.
-
-If per your judgment, in this case we can't break things for UAPI vs
-non-UAPI, let have an exception and move on :)
-
-Or.
+RllJLA0KDQpJJ3ZlIGJlZW4gcmVtaW5kZWQgdGhhdCBJbnRlbCBoYXMgdG9kYXkgKDcvNSkgYXMg
+YSBob2xpZGF5IHNvIEknbSBub3Qgc3VyZSB3aG8gd2lsbCBiZSBhdHRlbmRpbmcuDQoNCklyYQ0K
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IG9mdndnIFttYWlsdG86b2Z2
+d2ctYm91bmNlc0BsaXN0cy5vcGVuZmFicmljcy5vcmddIE9uIEJlaGFsZiBPZg0KPiBMaXJhbiBM
+aXNzDQo+IFNlbnQ6IE1vbmRheSwgSnVseSAwNCwgMjAxNiAxMTowOCBBTQ0KPiBUbzogbGludXgt
+cmRtYUB2Z2VyLmtlcm5lbC5vcmc7ICdvZnZ3Z0BsaXN0cy5vcGVuZmFicmljcy5vcmcnDQo+IDxv
+ZnZ3Z0BsaXN0cy5vcGVuZmFicmljcy5vcmc+DQo+IFN1YmplY3Q6IFtPZnZ3Z10gW0FOTk9VTkNF
+XSBPcGVuIEZhYnJpY3MgVmVyYnMgV29ya2luZyBHcm91cCAoT0ZWV0cpDQo+IG1lZXRpbmcgdG9t
+b3Jyb3cgLSA3LzUvMjAxNiBhdCAxMTowMFBEVA0KPiANCj4gQWdlbmRhOiBkaXNjdXNzIGxhdGVz
+dCBmcmFtZXdvcmsgcHJvcG9zYWxzDQo+IA0KPiBSZWdhcmRzLA0KPiAtLUxpcmFuDQo+IA0KPiBD
+b25jYWxsIGRldGFpbHMNCj4gPT09PT09PT09PT0NCj4gSk9JTiBXRUJFWCBNRUVUSU5HDQo+IGh0
+dHBzOi8vbWVsbGFub3gtdGVjaC53ZWJleC5jb20vam9pbi9MaXJhbi5MaXNzICB8ICA3MDIgODMw
+IDQyNA0KPiANCj4gSk9JTiBCWSBQSE9ORQ0KPiAxLTgwLTk0NTM1NTAgSXNyYWVsIHRvbGwgZnJl
+ZQ0KPiAxLTg1NS0yOTktNTIyNCBVU0EvQ2FuYWRhIHRvbGwgZnJlZQ0KPiBBY2Nlc3MgY29kZTog
+NzAyIDgzMCA0MjQNCj4gDQo+IEdsb2JhbCBjYWxsLWluIG51bWJlcnM6DQo+IGh0dHBzOi8vbWVs
+bGFub3gtdGVjaC53ZWJleC5jb20vbWVsbGFub3gtDQo+IHRlY2gvZ2xvYmFsY2FsbGluLnBocD9z
+ZXJ2aWNlVHlwZT1NQyZFRD00NTc2MzcyNTcmdG9sbEZyZWU9MQ0KPiANCj4gVG9sbC1mcmVlIGNh
+bGxpbmcgcmVzdHJpY3Rpb25zOg0KPiBodHRwOi8vd3d3LndlYmV4LmNvbS9wZGYvdG9sbGZyZWVf
+cmVzdHJpY3Rpb25zLnBkZg0KPiANCj4gDQo+IA0KPiBfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXw0KPiBvZnZ3ZyBtYWlsaW5nIGxpc3QNCj4gb2Z2d2dAbGlz
+dHMub3BlbmZhYnJpY3Mub3JnDQo+IGh0dHA6Ly9saXN0cy5vcGVuZmFicmljcy5vcmcvbWFpbG1h
+bi9saXN0aW5mby9vZnZ3Zw0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
