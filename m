@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 09/15] IB/pvrdma: Add support for memory regions
-Date: Tue, 5 Jul 2016 23:14:42 -0700
-Message-ID: <1467785688-23229-10-git-send-email-aditr@vmware.com>
+Subject: [PATCH v1 01/15] IB/pvrdma: Add paravirtual rdma device
+Date: Tue, 5 Jul 2016 23:14:34 -0700
+Message-ID: <1467785688-23229-2-git-send-email-aditr@vmware.com>
 References: <1467785688-23229-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,9 +12,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support for creating and destroying memory regions. The
-PVRDMA device supports User MRs, DMA MRs (no Remote Read/Write support),
-Fast Register MRs.
+This patch adds the main device-level structures and functions to be used
+to provide RDMA functionality. Also, we define conversion functions from
+the IB core stack structures to the device-specific ones.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -22,16 +22,16 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_mr.c | 333 +++++++++++++++++++++++++++++++
- 1 file changed, 333 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+ drivers/infiniband/hw/pvrdma/pvrdma.h | 459 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 459 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_mr.c b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma.h b/drivers/infiniband/hw/pvrdma/pvrdma.h
 new file mode 100644
-index 0000000..ea5edd5
+index 0000000..0dc5bd2
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
-@@ -0,0 +1,333 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma.h
+@@ -0,0 +1,459 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -77,294 +77,420 @@ index 0000000..ea5edd5
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
++#ifndef __PVRDMA_H__
++#define __PVRDMA_H__
++
++#include <linux/compiler.h>
++#include <linux/interrupt.h>
 +#include <linux/list.h>
-+#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/pci.h>
++#include <linux/semaphore.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_verbs.h>
 +
-+#include "pvrdma.h"
++#include "pvrdma_defs.h"
++#include "pvrdma_dev_api.h"
++#include "pvrdma_verbs.h"
 +
-+/**
-+ * pvrdma_get_dma_mr - get a DMA memory region
-+ * @pd: protection domain
-+ * @acc: access flags
-+ *
-+ * @return: ib_mr pointer on success, otherwise returns an errno.
++/* NOT the same as BIT_MASK(). */
++#define PVRDMA_MASK(n) ((n << 1) - 1)
++
++/*
++ * VMware PVRDMA vendor id and PCI device id.
 + */
-+struct ib_mr *pvrdma_get_dma_mr(struct ib_pd *pd, int acc)
-+{
-+	struct pvrdma_dev *dev = to_vdev(pd->device);
-+	struct pvrdma_user_mr *mr;
-+	union pvrdma_cmd_req req;
-+	union pvrdma_cmd_resp rsp;
-+	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
-+	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
-+	int ret;
++#ifndef PCI_VENDOR_ID_VMWARE
++#define PCI_VENDOR_ID_VMWARE		0x15AD
++#endif
++#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
 +
-+	if (acc != IB_ACCESS_LOCAL_WRITE) {
-+		dev_warn(&dev->pdev->dev, "unsupported dma mr access flags\n");
-+		return ERR_PTR(-EOPNOTSUPP);
-+	}
++struct pvrdma_dev;
 +
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr)
-+		return ERR_PTR(-ENOMEM);
++struct pvrdma_page_dir {
++	dma_addr_t dir_dma;
++	u64 *dir;
++	int ntables;
++	u64 **tables;
++	u64 npages;
++	void **pages;
++};
 +
-+	memset(cmd, 0, sizeof(*cmd));
-+	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
-+	cmd->pd_handle = to_vpd(pd)->pd_handle;
-+	cmd->access_flags = acc;
-+	cmd->flags = PVRDMA_MR_FLAG_DMA;
-+
-+	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
-+	if (ret < 0) {
-+		dev_warn(&dev->pdev->dev, "could not get DMA mem region\n");
-+		kfree(mr);
-+		return ERR_PTR(ret);
-+	}
-+
-+	mr->mmr.mr_handle = resp->mr_handle;
-+	mr->ibmr.lkey = resp->lkey;
-+	mr->ibmr.rkey = resp->rkey;
-+
-+	return &mr->ibmr;
-+}
-+
-+
-+/**
-+ * pvrdma_reg_user_mr - register a userspace memory region
-+ * @pd: protection domain
-+ * @start: starting address
-+ * @length: length of region
-+ * @virt_addr: I/O virtual address
-+ * @access_flags: access flags for memory region
-+ * @udata: user data
-+ *
-+ * @return: ib_mr pointer on success, otherwise returns an errno.
-+ */
-+struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+				 u64 virt_addr, int access_flags,
-+				 struct ib_udata *udata)
-+{
-+	struct pvrdma_dev *dev = to_vdev(pd->device);
-+	struct pvrdma_user_mr *mr = NULL;
++struct pvrdma_cq {
++	struct ib_cq ibcq;
++	int offset;
++	spinlock_t cq_lock; /* Poll lock. */
++	struct pvrdma_uar_map *uar;
 +	struct ib_umem *umem;
-+	union pvrdma_cmd_req req;
-+	union pvrdma_cmd_resp rsp;
-+	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
-+	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
-+	int nchunks;
-+	int ret;
-+	int entry;
-+	struct scatterlist *sg;
++	struct pvrdma_ring_state *ring_state;
++	struct pvrdma_page_dir pdir;
++	u32 cq_handle;
++	bool is_kernel;
++	atomic_t refcnt;
++	wait_queue_head_t wait;
++};
 +
-+	if (length == 0 || length > dev->dsr->caps.max_mr_size) {
-+		dev_warn(&dev->pdev->dev, "invalid mem region length\n");
-+		return ERR_PTR(-EINVAL);
-+	}
++struct pvrdma_id_table {
++	u32 last;
++	u32 top;
++	u32 max;
++	u32 mask;
++	spinlock_t lock; /* Table lock. */
++	unsigned long *table;
++};
 +
-+	umem = ib_umem_get(pd->uobject->context, start,
-+			   length, access_flags, 0);
-+	if (IS_ERR(umem)) {
-+		dev_warn(&dev->pdev->dev,
-+			 "could not get umem for mem region\n");
-+		return ERR_CAST(umem);
-+	}
++struct pvrdma_uar_map {
++	unsigned long pfn;
++	void __iomem *map;
++	int index;
++};
 +
-+	nchunks = 0;
-+	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
-+		nchunks += sg_dma_len(sg) >> PAGE_SHIFT;
++struct pvrdma_uar_table {
++	struct pvrdma_id_table tbl;
++	int size;
++};
 +
-+	if (nchunks < 0 || nchunks > PVRDMA_PAGE_DIR_MAX_PAGES) {
-+		dev_warn(&dev->pdev->dev, "overflow %d pages in mem region\n",
-+			 nchunks);
-+		ret = -EINVAL;
-+		goto err_umem;
-+	}
++struct pvrdma_ucontext {
++	struct ib_ucontext ibucontext;
++	struct pvrdma_dev *dev;
++	struct pvrdma_uar_map uar;
++	u64 ctx_handle;
++};
 +
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr) {
-+		ret = -ENOMEM;
-+		goto err_umem;
-+	}
++struct pvrdma_pd {
++	struct ib_pd ibpd;
++	u32 pdn;
++	u32 pd_handle;
++	int priviledged;
++};
 +
-+	mr->mmr.iova = virt_addr;
-+	mr->mmr.size = length;
-+	mr->umem = umem;
++struct pvrdma_mr {
++	u32 mr_handle;
++	u64 iova;
++	u64 size;
++};
 +
-+	ret = pvrdma_page_dir_init(dev, &mr->pdir, nchunks, false);
-+	if (ret) {
-+		dev_warn(&dev->pdev->dev,
-+			 "could not allocate page directory\n");
-+		goto err_umem;
-+	}
++struct pvrdma_user_mr {
++	struct ib_mr ibmr;
++	struct ib_umem *umem;
++	struct pvrdma_mr mmr;
++	struct pvrdma_page_dir pdir;
++	u64 *pages;
++	u32 npages;
++	u32 max_pages;
++	u32 page_shift;
++};
 +
-+	ret = pvrdma_page_dir_insert_umem(&mr->pdir, mr->umem, 0);
-+	if (ret)
-+		goto err_pdir;
++struct pvrdma_wq {
++	struct pvrdma_ring *ring;
++	spinlock_t lock; /* Work queue lock. */
++	int wqe_cnt;
++	int wqe_size;
++	int max_gs;
++	int offset;
++};
 +
-+	/* Send to host */
-+	memset(cmd, 0, sizeof(*cmd));
-+	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
-+	cmd->start = start;
-+	cmd->length = length;
-+	cmd->pd_handle = to_vpd(pd)->pd_handle;
-+	cmd->access_flags = access_flags;
-+	cmd->nchunks = nchunks;
-+	cmd->pdir_dma = mr->pdir.dir_dma;
++struct pvrdma_ah {
++	struct ib_ah ibah;
++	struct pvrdma_av av;
++};
 +
-+	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
++struct pvrdma_qp {
++	struct ib_qp ibqp;
++	u32 qp_handle;
++	u32 qkey;
++	struct pvrdma_wq sq;
++	struct pvrdma_wq rq;
++	struct ib_umem *rumem;
++	struct ib_umem *sumem;
++	struct pvrdma_page_dir pdir;
++	int npages;
++	int npages_send;
++	int npages_recv;
++	u32 flags;
++	u8 port;
++	u8 state;
++	bool is_kernel;
++	struct mutex mutex; /* QP state mutex. */
++	atomic_t refcnt;
++	wait_queue_head_t wait;
++};
 +
-+	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_CREATE_MR_RESP) {
-+		dev_warn(&dev->pdev->dev, "could not register mem region\n");
-+		goto err_pdir;
-+	}
++struct pvrdma_dev {
++	/* PCI device-related information. */
++	struct ib_device ib_dev;
++	struct pci_dev *pdev;
++	void __iomem *regs;
++	struct pvrdma_device_shared_region *dsr; /* Shared region pointer */
++	dma_addr_t dsrbase; /* Shared region base address */
++	void *cmd_slot;
++	void *resp_slot;
++	unsigned long flags;
++	struct list_head device_link;
 +
-+	mr->mmr.mr_handle = resp->mr_handle;
-+	mr->ibmr.lkey = resp->lkey;
-+	mr->ibmr.rkey = resp->rkey;
++	/* Locking and interrupt information. */
++	spinlock_t cmd_lock; /* Command lock. */
++	struct semaphore cmd_sema;
++	struct completion cmd_done;
++	struct {
++		enum pvrdma_intr_type type; /* Intr type */
++		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
++		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
++		u8 enabled[PVRDMA_MAX_INTERRUPTS];
++		u8 size;
++	} intr;
 +
-+	return &mr->ibmr;
++	/* RDMA-related device information. */
++	union ib_gid *sgid_tbl;
++	struct pvrdma_ring_state *async_ring_state;
++	struct pvrdma_page_dir async_pdir;
++	struct pvrdma_ring_state *cq_ring_state;
++	struct pvrdma_page_dir cq_pdir;
++	struct pvrdma_cq **cq_tbl;
++	spinlock_t cq_tbl_lock;
++	struct pvrdma_qp **qp_tbl;
++	spinlock_t qp_tbl_lock;
++	struct pvrdma_uar_table uar_table;
++	struct pvrdma_uar_map driver_uar;
++	__be64 sys_image_guid;
++	spinlock_t desc_lock; /* Device modification lock. */
++	u32 port_cap_mask;
++	struct mutex port_mutex; /* Port modification mutex. */
++	bool ib_active;
++	atomic_t num_qps;
++	atomic_t num_cqs;
++	atomic_t num_pds;
++	atomic_t num_ahs;
 +
-+err_pdir:
-+	pvrdma_page_dir_cleanup(dev, &mr->pdir);
-+err_umem:
-+	ib_umem_release(umem);
-+	kfree(mr);
++	/* Network device information. */
++	struct net_device *netdev;
++	struct notifier_block nb_netdev;
++};
 +
-+	return ERR_PTR(ret);
-+}
-+
-+/**
-+ * pvrdma_alloc_mr - allocate a memory region
-+ * @pd: protection domain
-+ * @mr_type: type of memory region
-+ * @max_num_sg: maximum number of pages
-+ *
-+ * @return: ib_mr pointer on success, otherwise returns an errno.
-+ */
-+struct ib_mr *pvrdma_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
-+			      u32 max_num_sg)
++static inline struct pvrdma_dev *to_vdev(struct ib_device *ibdev)
 +{
-+	struct pvrdma_dev *dev = to_vdev(pd->device);
-+	struct pvrdma_user_mr *mr;
-+	union pvrdma_cmd_req req;
-+	union pvrdma_cmd_resp rsp;
-+	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
-+	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
-+	int size = max_num_sg * sizeof(u64);
-+	int ret;
-+
-+	if (mr_type != IB_MR_TYPE_MEM_REG ||
-+	    max_num_sg > PVRDMA_MAX_FAST_REG_PAGES)
-+		return ERR_PTR(-EINVAL);
-+
-+	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-+	if (!mr)
-+		return ERR_PTR(-ENOMEM);
-+
-+	mr->pages = kzalloc(size, GFP_KERNEL);
-+	if (!mr->pages) {
-+		ret = -ENOMEM;
-+		goto freemr;
-+	}
-+
-+	ret = pvrdma_page_dir_init(dev, &mr->pdir, max_num_sg, false);
-+	if (ret) {
-+		dev_warn(&dev->pdev->dev,
-+			 "failed to allocate page dir for mr\n");
-+		ret = -ENOMEM;
-+		goto freepages;
-+	}
-+
-+	memset(cmd, 0, sizeof(*cmd));
-+	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
-+	cmd->pd_handle = to_vpd(pd)->pd_handle;
-+	cmd->access_flags = 0;
-+	cmd->flags = PVRDMA_MR_FLAG_FRMR;
-+	cmd->nchunks = max_num_sg;
-+
-+	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
-+	if (ret < 0) {
-+		dev_warn(&dev->pdev->dev, "could not create FR mem region\n");
-+		ret = -EINVAL;
-+		goto freepdir;
-+	}
-+
-+	mr->max_pages = max_num_sg;
-+	mr->mmr.mr_handle = resp->mr_handle;
-+	mr->ibmr.lkey = resp->lkey;
-+	mr->ibmr.rkey = resp->rkey;
-+	mr->page_shift = PAGE_SHIFT;
-+	mr->umem = NULL;
-+
-+	return &mr->ibmr;
-+
-+freepdir:
-+	pvrdma_page_dir_cleanup(dev, &mr->pdir);
-+freepages:
-+	kfree(mr->pages);
-+freemr:
-+	kfree(mr);
-+	return ERR_PTR(ret);
++	return container_of(ibdev, struct pvrdma_dev, ib_dev);
 +}
 +
-+/**
-+ * pvrdma_dereg_mr - deregister a memory region
-+ * @ibmr: memory region
-+ *
-+ * @return: 0 on success.
-+ */
-+int pvrdma_dereg_mr(struct ib_mr *ibmr)
++static inline struct
++pvrdma_ucontext *to_vucontext(struct ib_ucontext *ibucontext)
 +{
-+	struct pvrdma_user_mr *mr = to_vmr(ibmr);
-+	struct pvrdma_dev *dev = to_vdev(ibmr->device);
-+	union pvrdma_cmd_req req;
-+	union pvrdma_cmd_resp rsp;
-+	struct pvrdma_cmd_destroy_mr *cmd = &req.destroy_mr;
-+	int ret;
-+
-+	memset(cmd, 0, sizeof(*cmd));
-+	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_MR;
-+	cmd->mr_handle = mr->mmr.mr_handle;
-+	ret = pvrdma_cmd_post(dev, &req, false, &rsp);
-+	if (ret < 0)
-+		dev_warn(&dev->pdev->dev, "could not deregister mem region\n");
-+
-+	pvrdma_page_dir_cleanup(dev, &mr->pdir);
-+	if (mr->umem)
-+		ib_umem_release(mr->umem);
-+
-+	kfree(mr->pages);
-+	kfree(mr);
-+
-+	return 0;
++	return container_of(ibucontext, struct pvrdma_ucontext, ibucontext);
 +}
 +
-+static int pvrdma_set_page(struct ib_mr *ibmr, u64 addr)
++static inline struct pvrdma_pd *to_vpd(struct ib_pd *ibpd)
 +{
-+	struct pvrdma_user_mr *mr = to_vmr(ibmr);
-+
-+	if (mr->npages == mr->max_pages)
-+		return -ENOMEM;
-+
-+	mr->pages[mr->npages++] = addr;
-+	return 0;
++	return container_of(ibpd, struct pvrdma_pd, ibpd);
 +}
 +
-+int pvrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
-+		     unsigned int *sg_offset)
++static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
 +{
-+	struct pvrdma_user_mr *mr = to_vmr(ibmr);
-+	struct pvrdma_dev *dev = to_vdev(ibmr->device);
-+	int ret;
-+
-+	mr->npages = 0;
-+
-+	ret = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, pvrdma_set_page);
-+	if (ret < 0)
-+		dev_warn(&dev->pdev->dev, "could not map sg to pages\n");
-+
-+	return ret;
++	return container_of(ibcq, struct pvrdma_cq, ibcq);
 +}
++
++static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
++{
++	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
++}
++
++static inline struct pvrdma_qp *to_vqp(struct ib_qp *ibqp)
++{
++	return container_of(ibqp, struct pvrdma_qp, ibqp);
++}
++
++static inline struct pvrdma_ah *to_vah(struct ib_ah *ibah)
++{
++	return container_of(ibah, struct pvrdma_ah, ibah);
++}
++
++static inline void pvrdma_write_reg(struct pvrdma_dev *dev, u32 reg, u32 val)
++{
++	writel(cpu_to_le32(val), dev->regs + reg);
++}
++
++static inline u32 pvrdma_read_reg(struct pvrdma_dev *dev, u32 reg)
++{
++	return le32_to_cpu(readl(dev->regs + reg));
++}
++
++static inline void *pvrdma_page_dir_get_ptr(struct pvrdma_page_dir *pdir,
++					    u64 offset)
++{
++	return pdir->pages[offset / PAGE_SIZE] + (offset % PAGE_SIZE);
++}
++
++static inline enum pvrdma_mtu ib_mtu_to_pvrdma(enum ib_mtu mtu)
++{
++	return (enum pvrdma_mtu)mtu;
++}
++
++static inline enum ib_mtu pvrdma_mtu_to_ib(enum pvrdma_mtu mtu)
++{
++	return (enum ib_mtu)mtu;
++}
++
++static inline enum pvrdma_port_state ib_port_state_to_pvrdma(
++					enum ib_port_state state)
++{
++	return (enum pvrdma_port_state)state;
++}
++
++static inline enum ib_port_state pvrdma_port_state_to_ib(
++					enum pvrdma_port_state state)
++{
++	return (enum ib_port_state)state;
++}
++
++static inline int ib_port_cap_flags_to_pvrdma(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_PORT_CAP_FLAGS_MAX);
++}
++
++static inline int pvrdma_port_cap_flags_to_ib(int flags)
++{
++	return flags;
++}
++
++static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
++					enum ib_port_width width)
++{
++	return (enum pvrdma_port_width)width;
++}
++
++static inline enum ib_port_width pvrdma_port_width_to_ib(
++					enum pvrdma_port_width width)
++{
++	return (enum ib_port_width)width;
++}
++
++static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
++					enum ib_port_speed speed)
++{
++	return (enum pvrdma_port_speed)speed;
++}
++
++static inline enum ib_port_speed pvrdma_port_speed_to_ib(
++					enum pvrdma_port_speed speed)
++{
++	return (enum ib_port_speed)speed;
++}
++
++static inline int pvrdma_qp_attr_mask_to_ib(int attr_mask)
++{
++	return attr_mask;
++}
++
++static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
++{
++	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
++}
++
++static inline enum pvrdma_mig_state ib_mig_state_to_pvrdma(
++					enum ib_mig_state state)
++{
++	return (enum pvrdma_mig_state)state;
++}
++
++static inline enum ib_mig_state pvrdma_mig_state_to_ib(
++					enum pvrdma_mig_state state)
++{
++	return (enum ib_mig_state)state;
++}
++
++static inline int ib_access_flags_to_pvrdma(int flags)
++{
++	return flags;
++}
++
++static inline int pvrdma_access_flags_to_ib(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_ACCESS_FLAGS_MAX);
++}
++
++static inline enum pvrdma_qp_type ib_qp_type_to_pvrdma(enum ib_qp_type type)
++{
++	return (enum pvrdma_qp_type)type;
++}
++
++static inline enum ib_qp_type pvrdma_qp_type_to_ib(enum pvrdma_qp_type type)
++{
++	return (enum ib_qp_type)type;
++}
++
++static inline enum pvrdma_qp_state ib_qp_state_to_pvrdma(enum ib_qp_state state)
++{
++	return (enum pvrdma_qp_state)state;
++}
++
++static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
++{
++	return (enum ib_qp_state)state;
++}
++
++static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
++{
++	return (enum pvrdma_wr_opcode)op;
++}
++
++static inline enum ib_wc_status pvrdma_wc_status_to_ib(
++					enum pvrdma_wc_status status)
++{
++	return (enum ib_wc_status)status;
++}
++
++static inline int pvrdma_wc_opcode_to_ib(int opcode)
++{
++	return opcode;
++}
++
++static inline int pvrdma_wc_flags_to_ib(int flags)
++{
++	return flags;
++}
++
++static inline int ib_send_flags_to_pvrdma(int flags)
++{
++	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
++}
++
++void pvrdma_qp_cap_to_ib(const struct pvrdma_qp_cap *src,
++			 struct ib_qp_cap *dst);
++void ib_qp_cap_to_pvrdma(const struct ib_qp_cap *src,
++			 struct pvrdma_qp_cap *dst);
++void pvrdma_gid_to_ib(const union pvrdma_gid *src, union ib_gid *dst);
++void ib_gid_to_pvrdma(const union ib_gid *src, union pvrdma_gid *dst);
++void pvrdma_global_route_to_ib(const struct pvrdma_global_route *src,
++			       struct ib_global_route *dst);
++void ib_global_route_to_pvrdma(const struct ib_global_route *src,
++			       struct pvrdma_global_route *dst);
++void pvrdma_ah_attr_to_ib(const struct pvrdma_ah_attr *src,
++			  struct ib_ah_attr *dst);
++void ib_ah_attr_to_pvrdma(const struct ib_ah_attr *src,
++			  struct pvrdma_ah_attr *dst);
++
++int pvrdma_uar_table_init(struct pvrdma_dev *dev);
++void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
++
++int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
++void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
++
++void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq);
++
++int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
++			 u64 npages, bool alloc_pages);
++void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
++			     struct pvrdma_page_dir *pdir);
++int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
++			       dma_addr_t daddr);
++int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
++				struct ib_umem *umem, u64 offset);
++dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx);
++int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
++				     u64 *page_list, int num_pages);
++
++int pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
++		    bool expect, union pvrdma_cmd_resp *rsp);
++
++#endif /* __PVRDMA_H__ */
 -- 
 2.7.4
 
