@@ -1,76 +1,39 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] IB/hfi1: Fix sleep inside atomic issue in init_asic_data
-Date: Wed, 06 Jul 2016 12:25:21 -0400
-Message-ID: <20160706162440.1890.61299.stgit@phlsvslse11.ph.intel.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Any progress on horrible IPoIB perf with kernel 4.5+?
+Date: Wed, 6 Jul 2016 10:09:51 -0700
+Message-ID: <CAL1RGDXC7JsBN_DS_iqiywKP3GikgAgXm3OK-cZ02tmVctQJQA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi,
 
-The critical section should protect only the list traversal
-and dd->asic_data modification, not the memory allocation.
-The fix pulls the allocation out of the critical section.
+https://bugzilla.kernel.org/show_bug.cgi?id=3D111921 describes a
+performance regression introduced by commit 9207f9d45b0a ("net:
+preserve IP control block during GSO segmentation").  I've recently
+run into this when updating my system, since that commit hit stable
+kernel 4.4.y =E2=80=94 in my case I noticed because scp over an IPoIB l=
+ink
+went from ~200 MB/sec down to below 1 MB/sec.  I confirmed that
+reverting that change did fix my performance.
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- v2 - fix syntax error due to bad conflict resolution
+Obviously just reverting that commit isn't the right answer, since I
+believe the patch description that says the commit fixes a crash.
+However before I start working on this myself, I want to make sure I'm
+not duplicating anyone else's work.  Doug, you mentioned having time
+to work on it back in May =E2=80=94 did you figure anything out?  Or is=
+ anyone
+else investigating this?
 
- drivers/infiniband/hw/hfi1/chip.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index f5de851..dad4d0e 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -14113,8 +14113,14 @@ static int init_asic_data(struct hfi1_devdata *dd)
- {
- 	unsigned long flags;
- 	struct hfi1_devdata *tmp, *peer = NULL;
-+	struct hfi1_asic_data *asic_data;
- 	int ret = 0;
- 
-+	/* pre-allocate the asic structure in case we are the first device */
-+	asic_data = kzalloc(sizeof(*dd->asic_data), GFP_KERNEL);
-+	if (!asic_data)
-+		return -ENOMEM;
-+
- 	spin_lock_irqsave(&hfi1_devs_lock, flags);
- 	/* Find our peer device */
- 	list_for_each_entry(tmp, &hfi1_dev_list, list) {
-@@ -14126,18 +14132,14 @@ static int init_asic_data(struct hfi1_devdata *dd)
- 	}
- 
- 	if (peer) {
-+		/* use already allocated structure */
- 		dd->asic_data = peer->asic_data;
-+		kfree(asic_data);
- 	} else {
--		dd->asic_data = kzalloc(sizeof(*dd->asic_data), GFP_KERNEL);
--		if (!dd->asic_data) {
--			ret = -ENOMEM;
--			goto done;
--		}
-+		dd->asic_data = asic_data;
- 		mutex_init(&dd->asic_data->asic_resource_mutex);
- 	}
- 	dd->asic_data->dds[dd->hfi1_id] = dd; /* self back-pointer */
--
--done:
- 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
- 	return ret;
- }
-
+Thanks,
+  Roland
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
