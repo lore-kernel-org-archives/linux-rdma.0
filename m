@@ -1,26 +1,78 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 00/15] Add Paravirtual RDMA Driver
-Date: Wed, 6 Jul 2016 18:40:23 +0000
-Message-ID: <5F559662-2278-437E-BBA6-2A8202B9D631@vmware.com>
-References: <1467785688-23229-1-git-send-email-aditr@vmware.com>
- <027501d1d79d$2ca6eef0$85f4ccd0$@opengridcomputing.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 2/2] IB/hfi1: Fix sleep inside atomic issue in
+ init_asic_data
+Date: Wed, 06 Jul 2016 17:14:47 -0400
+Message-ID: <20160706211335.24572.34137.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <027501d1d79d$2ca6eef0$85f4ccd0$@opengridcomputing.com>
-Content-Language: en-US
-Content-ID: <0A99ED6272FCC84D9C014C8B0711E1D8-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNy82LzE2LCA4OjQzIEFNLCAiU3RldmUgV2lzZSIgPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5n
-LmNvbT4gd3JvdGU6DQoNCg0KPg0KPkhleSBBZGl0LCBXaGF0IGFib3V0IHN1cHBvcnQgZm9yIElC
-IGFuZCBpV0FSUCBkZXZpY2VzPw0KDQpIaSBTdGV2ZSwNCg0KU29ycnksIHdlIGRvbuKAmXQgaGF2
-ZSBhbnkgcGxhbnMgYXMgeWV0IHRvIHN1cHBvcnQgSUIgYW5kIGlXQVJQLg0KDQpUaGFua3MsDQpB
-ZGl0DQo=
+From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+The critical section should protect only the list traversal
+and dd->asic_data modification, not the memory allocation.
+The fix pulls the allocation out of the critical section.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ v3 - adjust summary line for series
+ v2 - fix syntax error due to bad conflict resolution
+
+ drivers/infiniband/hw/hfi1/chip.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index f5de851..dad4d0e 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -14113,8 +14113,14 @@ static int init_asic_data(struct hfi1_devdata *dd)
+ {
+ 	unsigned long flags;
+ 	struct hfi1_devdata *tmp, *peer = NULL;
++	struct hfi1_asic_data *asic_data;
+ 	int ret = 0;
+ 
++	/* pre-allocate the asic structure in case we are the first device */
++	asic_data = kzalloc(sizeof(*dd->asic_data), GFP_KERNEL);
++	if (!asic_data)
++		return -ENOMEM;
++
+ 	spin_lock_irqsave(&hfi1_devs_lock, flags);
+ 	/* Find our peer device */
+ 	list_for_each_entry(tmp, &hfi1_dev_list, list) {
+@@ -14126,18 +14132,14 @@ static int init_asic_data(struct hfi1_devdata *dd)
+ 	}
+ 
+ 	if (peer) {
++		/* use already allocated structure */
+ 		dd->asic_data = peer->asic_data;
++		kfree(asic_data);
+ 	} else {
+-		dd->asic_data = kzalloc(sizeof(*dd->asic_data), GFP_KERNEL);
+-		if (!dd->asic_data) {
+-			ret = -ENOMEM;
+-			goto done;
+-		}
++		dd->asic_data = asic_data;
+ 		mutex_init(&dd->asic_data->asic_resource_mutex);
+ 	}
+ 	dd->asic_data->dds[dd->hfi1_id] = dd; /* self back-pointer */
+-
+-done:
+ 	spin_unlock_irqrestore(&hfi1_devs_lock, flags);
+ 	return ret;
+ }
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
