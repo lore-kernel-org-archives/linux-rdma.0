@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 14/15] IB: Add PVRDMA driver
-Date: Tue, 5 Jul 2016 23:14:47 -0700
-Message-ID: <1467785688-23229-15-git-send-email-aditr@vmware.com>
+Subject: [PATCH v1 15/15] MAINTAINERS: Update for PVRDMA driver
+Date: Tue, 5 Jul 2016 23:14:48 -0700
+Message-ID: <1467785688-23229-16-git-send-email-aditr@vmware.com>
 References: <1467785688-23229-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,7 +12,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch updates the InfiniBand subsystem to build the PVRDMA driver.
+Add maintainer info for the PVRDMA driver.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -20,30 +20,27 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/Kconfig     | 1 +
- drivers/infiniband/hw/Makefile | 1 +
- 2 files changed, 2 insertions(+)
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 2137adf..d677d8f 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -86,5 +86,6 @@ source "drivers/infiniband/ulp/isert/Kconfig"
- source "drivers/infiniband/sw/rdmavt/Kconfig"
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1209323..abf62e7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12302,6 +12302,13 @@ S:	Maintained
+ F:	drivers/scsi/vmw_pvscsi.c
+ F:	drivers/scsi/vmw_pvscsi.h
  
- source "drivers/infiniband/hw/hfi1/Kconfig"
-+source "drivers/infiniband/hw/pvrdma/Kconfig"
- 
- endif # INFINIBAND
-diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
-index c0c7cf8..eb24449 100644
---- a/drivers/infiniband/hw/Makefile
-+++ b/drivers/infiniband/hw/Makefile
-@@ -9,3 +9,4 @@ obj-$(CONFIG_INFINIBAND_NES)		+= nes/
- obj-$(CONFIG_INFINIBAND_OCRDMA)		+= ocrdma/
- obj-$(CONFIG_INFINIBAND_USNIC)		+= usnic/
- obj-$(CONFIG_INFINIBAND_HFI1)		+= hfi1/
-+obj-$(CONFIG_INFINIBAND_PVRDMA)		+= pvrdma/
++VMWARE PVRDMA DRIVER
++M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
++M:	VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++S:	Maintained
++F:	drivers/infiniband/hw/pvrdma
++
+ VOLTAGE AND CURRENT REGULATOR FRAMEWORK
+ M:	Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+ M:	Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 -- 
 2.7.4
 
