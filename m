@@ -1,76 +1,82 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Resurrecting due to huge ipoib perf regression - [BUG] skb corruption
- and kernel panic at forwarding with fragmentation
-Date: Wed, 6 Jul 2016 23:25:57 -0700
-Message-ID: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] Add transactions per second to latency tests
+Date: Thu, 7 Jul 2016 09:06:34 -0700
+Message-ID: <4257b3f1d2c22af577a5e584d2a34013342fb0ca.1467907759.git.root@stevo1.asicdesigners.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 7, 2016 at 3:00 AM, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Or just shift GSO CB and add couple checks like
-> BUILD_BUG_ON(sizeof(SKB_GSO_CB(skb)->room) < sizeof(*IPCB(skb)));
+For duration (-D) latency tests, it is useful to have the average
+transactions per second (tps) output.  So ib_*_lat now shows
+average tps:
 
-Resurrecting this old thread, because the patch that ultimately went
-upstream (commit 9207f9d45b0a / net: preserve IP control block during
-GSO segmentation) causes a huge IPoIB performance regression (to the
-point of being unusable):
-https://bugzilla.kernel.org/show_bug.cgi?id=111921
+---------------------------------------------------------------------------------------
+ #bytes        #iterations       t_avg[usec]    tps average
+ 2             1008430           2.97           168068.16
+---------------------------------------------------------------------------------------
 
-I don't think anyone has explained what goes wrong or why IPoIB works
-the way it does.  The underlying difference that IPoIB has from other
-drivers is that there are two levels of address resolution.  First,
-normal ARP / ND resolves an IP address to a "hardware" address.  The
-difference is that in IPoIB, the hardware address is an IB GID (plus a
-QPN, but we can ignore that).  To actually send data to that GID, the
-IPoIB driver has to do a second lookup - it needs to ask the IB subnet
-manager for a path record that tells it how to reach that GID.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ src/perftest_parameters.c | 5 +++--
+ src/perftest_parameters.h | 4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-In particular this means that "destination address" (as the IP / ARP
-layer understands it) actually isn't in the packet anywhere - there's
-nothing like an ethernet header as there is for "normal" network
-drivers.  Instead, the driver stashes the address in skb->cb during
-hard_header_ops->create() and then looks at it in the xmit routine -
-this was designed way back around when commit a0417fa3a18a / net: Make
-qdisc_skb_cb upper size bound explicit. was merged.  The expectation
-was that the part of the cb after sizeof (struct qdisc_skb_cb) would
-be preserved.
+diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
+index 1cf4985..55d894b 100755
+--- a/src/perftest_parameters.c
++++ b/src/perftest_parameters.c
+@@ -2443,13 +2443,14 @@ void print_report_lat_duration (struct perftest_parameters *user_param)
+ 	int rtt_factor;
+ 	double cycles_to_units;
+ 	cycles_t test_sample_time;
+-	double latency;
++	double latency, tps;
+ 
+ 	rtt_factor = (user_param->verb == READ || user_param->verb == ATOMIC) ? 1 : 2;
+ 	cycles_to_units = get_cpu_mhz(user_param->cpu_freq_f);
+ 
+ 	test_sample_time = (user_param->tcompleted[0] - user_param->tposted[0]);
+ 	latency = (((test_sample_time / cycles_to_units) / rtt_factor) / user_param->iters);
++	tps = user_param->iters / (test_sample_time / (cycles_to_units * 1000000));
+ 
+ 	if (user_param->output == OUTPUT_LAT) {
+ 		printf("%lf\n",latency);
+@@ -2458,7 +2459,7 @@ void print_report_lat_duration (struct perftest_parameters *user_param)
+ 		printf(REPORT_FMT_LAT_DUR,
+ 				user_param->size,
+ 				user_param->iters,
+-				latency);
++				latency, tps);
+ 		printf( user_param->cpu_util_data.enable ? REPORT_EXT_CPU_UTIL : REPORT_EXT , calc_cpu_util(user_param));
+ 	}
+ }
+diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
+index 07c539c..7c1c871 100755
+--- a/src/perftest_parameters.h
++++ b/src/perftest_parameters.h
+@@ -180,7 +180,7 @@
+ 
+ #define RESULT_FMT_LAT " #bytes #iterations    t_min[usec]    t_max[usec]  t_typical[usec]"
+ 
+-#define RESULT_FMT_LAT_DUR " #bytes        #iterations       t_avg[usec]  	"
++#define RESULT_FMT_LAT_DUR " #bytes        #iterations       t_avg[usec]    tps average"
+ 
+ #define RESULT_EXT "\n"
+ 
+@@ -202,7 +202,7 @@
+ /* Result print format for latency tests. */
+ #define REPORT_FMT_LAT " %-7lu %d          %-7.2f        %-7.2f      %-7.2f"
+ 
+-#define REPORT_FMT_LAT_DUR " %-7lu       %d            %-7.2f"
++#define REPORT_FMT_LAT_DUR " %-7lu       %d            %-7.2f        %-7.2f"
+ 
+ #define CHECK_VALUE(arg,type,minv,maxv,name) 						    					\
+ { arg = (type)strtol(optarg, NULL, 0); if ((arg < minv) || (arg > maxv))                \
+-- 
+2.7.0
 
-The problem with commit 9207f9d45b0a is that GSO operations now access
-cb after SKB_SGO_CB_OFFSET==32, which lands right in the middle of
-where IPoIB stashes its hwaddr.
-
-It seems that the intent of the commit is to preserve the IP control
-block - struct inet_skb_parm (and presumably struct inet6_skb_parm) -
-even when using SKB_GSO_CB().  Seems like both inet_skb_parm and
-inet6_skb_parm are 20 bytes.  IPoIB uses the part of cb after 28
-bytes, so if we could squeeze struct skb_gso_cb down to 8 bytes and
-set SKB_SGO_CB_OFFSET to 20, then everything would work.  The struct
-is
-
-struct skb_gso_cb {
-        int     mac_offset;
-        int     encap_level;
-        __u16   csum_start;
-};
-
-is it feasible to make encap_level a __u16 (which would make the
-overall struct exactly 8 bytes)?  If I understand this correctly, 64K
-nested encapsulations seems like quite a bit for a packet...
-
-Or, earlier in this thread, having the GSO in ip_output and other gso
-paths save and restore the IP/IP6 control block was suggested as an
-alternate approach.  I don't know if there are performance
-implications to that.
-
-What is the best way to keep the crash fix but not kill IPoIB performance?
-
-Thanks!
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
