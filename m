@@ -1,90 +1,67 @@
-From: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: NVMe over RDMA latency
-Date: Thu, 07 Jul 2016 12:55:42 -0700
-Message-ID: <1467921342.24395.12.camel@ssi>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
+ corruption and kernel panic at forwarding with fragmentation
+Date: Thu, 7 Jul 2016 15:01:40 -0700
+Message-ID: <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA@mail.gmail.com>
+References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
+ <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Alexander Duyck <alexander.duyck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi list,
+>> struct skb_gso_cb {
+>>         int     mac_offset;
+>>         int     encap_level;
+>>         __u16   csum_start;
+>> };
 
-I'm trying to understand the NVMe over RDMA latency.
+> This is based on an out-dated version of this struct.  The 4.7 RC
+> kernel has a few more fields that were added to support local checksum
+> offload for encapsulated frames.
 
-Test hardware:
-A real NVMe PCI drive on target
-Host and target back-to-back connected by Mellanox ConnectX-3
+Thanks for pointing that out.  I hit the perf regression on 4.4.y
+(stable) and looked at the struct there.  I see that latest upstream
+has changed, and I agree that this struct really can't shrink below 10
+bytes.
 
-[global]
-ioengine=libaio
-direct=1
-runtime=10
-time_based
-norandommap
-group_reporting
+Since IP needs 20 bytes, GSO needs 10 bytes and IPoIB needs 20 bytes,
+we're 2 bytes over the 48 that are available in cb[].  So this is
+harder to fix than just changing skb_gso_cb and SKB_SGO_CB_OFFSET
+unfortunately.
 
-[job1]
-filename=/dev/nvme0n1
-rw=randread
-bs=4k
+>> What is the best way to keep the crash fix but not kill IPoIB performance?
+>
+> It seems like what would probably need to happen is to move where the
+> IPoIB address is stored.  I'm not sure the control buffer is really
+> the best place for it since the cb gets overwritten at various levels,
+> and storing 20 bytes makes it hard to avoid bumping up against the
+> size restrictions of the buffer.  Seeing as how the IPoIB hwaddr is
+> generated around the same time we generate the L2 header for the
+> frame, I wonder if you couldn't get away with using a bit of extra skb
+> headroom to store it and then use a offset from the MAC header to
+> access it.  An added bonus would be that with a few tricks with
+> SKB_GSO_CB(skb)->mac_offset you might even be able to set things up so
+> that you copy the hwaddr when you copy the header for each fragment
+> instead of having to go and copy the hwaddr out of the cb and clone it
+> for each frame.
 
+Can we assume there are 20 bytes of skb headroom available?  What if
+we're forwarding an skb received on an Ethernet device?
 
-fio latency data on host side(test nvmeof device)
-    slat (usec): min=2, max=213, avg= 6.34, stdev= 3.47
-    clat (usec): min=1, max=2470, avg=39.56, stdev=13.04
-     lat (usec): min=30, max=2476, avg=46.14, stdev=15.50
+The reason we moved to the cb storage is that in the past, trying to
+hide some data in the actual skb buffer that we don't actually send
+led to some awkward-at-best code.  (As I recall GRO was difficult to
+handle before commit 936d7de3d736 "IPoIB: Stop lying about
+hard_header_len and use skb->cb to stash LL addresses")  But maybe
+there's a third way to handle this other than the old way and the
+skb->cb way.
 
-fio latency data on target side(test NVMe pci device locally)
-    slat (usec): min=1, max=36, avg= 1.92, stdev= 0.42
-    clat (usec): min=1, max=68, avg=20.35, stdev= 1.11
-     lat (usec): min=19, max=101, avg=22.35, stdev= 1.21
-
-So I picked up this sample from blktrace which seems matches the fio avg latency data.
-
-Host(/dev/nvme0n1)
-259,0    0       86     0.015768739  3241  Q   R 1272199648 + 8 [fio]
-259,0    0       87     0.015769674  3241  G   R 1272199648 + 8 [fio]
-259,0    0       88     0.015771628  3241  U   N [fio] 1
-259,0    0       89     0.015771901  3241  I  RS 1272199648 + 8 (    2227) [fio]
-259,0    0       90     0.015772863  3241  D  RS 1272199648 + 8 (     962) [fio]
-259,0    1       85     0.015819257     0  C  RS 1272199648 + 8 (   46394) [0]
-
-Target(/dev/nvme0n1)
-259,0    0      141     0.015675637  2197  Q   R 1272199648 + 8 [kworker/u17:0]
-259,0    0      142     0.015676033  2197  G   R 1272199648 + 8 [kworker/u17:0]
-259,0    0      143     0.015676915  2197  D  RS 1272199648 + 8 (15676915) [kworker/u17:0]
-259,0    0      144     0.015694992     0  C  RS 1272199648 + 8 (   18077) [0]
-
-So host completed IO in about 50usec and target completed IO in about 20usec.
-Does that mean the 30usec delta comes from RDMA write(host read means target RDMA write)?
-
-Thanks,
-Ming
-
-Below is just for myself to understand what the blktrace flag means
-===================================================================
-Q - queued:
-generic_make_request_checks: trace_block_bio_queue(q, bio)
-
-G - get request:
-blk_mq_map_request: trace_block_getrq(q, bio, op)
-
-U:
-blk_mq_insert_requests: trace_block_unplug(q, depth, !from_schedule)
-
-I - inserted:
-__blk_mq_insert_req_list: trace_block_rq_insert(hctx->queue, rq)
-
-D - issued:
-blk_mq_start_request: trace_block_rq_issue(q, rq)
-
-C - complete:
-blk_update_request: trace_block_rq_complete(req->q, req, nr_bytes)
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
