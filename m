@@ -1,53 +1,23 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Bug 121501] New: [userspace rdma package] after update kernel
- to upstream, rdma service start fail
-Date: Wed, 6 Jul 2016 17:58:46 -0600
-Message-ID: <20160706235846.GA13310@obsidianresearch.com>
-References: <bug-121501-11804@https.bugzilla.kernel.org/>
+From: Masashi Honma <masashi.honma@gmail.com>
+Subject: Re: [RFC 0/7] netlink: Add allocation flag to netlink_unicast()
+Date: Thu, 7 Jul 2016 09:35:45 +0900
+Message-ID: <577DA3E1.6020103@gmail.com>
+References: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <bug-121501-11804-3bo0kxnWaOQUvHkbgXJLS5sdmw4N0Rt+2LY78lusg7I@public.gmane.org/>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: ccaulfie@redhat.com, teigland@redhat.com
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org, linux-audit@redhat.com, cluster-devel@redhat.com, davem@davemloft.net, johannes@sipsolutions.net, pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, paul@paul-moore.com, eparis@redhat.com, zbr@ioremap.net, pshelar@nicira.com, bsingharora@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 06, 2016 at 02:37:08AM +0000, bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org wrote:
+At the fs/dlm/netlink.c#dlm_timeout_warn(),
+prepare_data allocates buffer with GFP_NOFS
+and send_data() sends the buffer.
 
-> [root@hp-dl380pgen8-01 ~]# service rdma status
-> rdma.service - Initialize the iWARP/InfiniBand/RDMA stack in the kernel
->    Loaded: loaded (/usr/lib/systemd/system/rdma.service; disabled; vendor
-> preset: disabled)
->    Active: failed (Result: exit-code) since ??? 2016-07-05 02:10:09 EDT; 6min ago
->      Docs: file:/etc/rdma/rdma.conf
->   Process: 13564 ExecStart=/usr/libexec/rdma-init-kernel (code=exited,
-> status=3)
->  Main PID: 13564 (code=exited, status=3)
-> 
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: modprobe: FATAL: Module ib_mad not found.
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: Failed to load module ib_mad
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: modprobe: FATAL: Module ib_sa not found.
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: Failed to load module ib_sa
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: modprobe: FATAL: Module ib_addr not found.
-> 7??? 05 02:10:08 hp-dl380pgen8-01.khw.lab.eng.bos.redhat.com
-> rdma-init-kernel[13564]: Failed to load module ib_addr
+But send_data() uses GFP_KERNEL or GFP_ATOMIC inside it.
+Should it be replaced by GFP_NOFS ?
 
-These modules have been replaced with ib_core in upstream.
-
-There is no reason to load these modules directly as they are all
-brought in as dependencies from other useful modules, just remove
-loading them from /usr/libexec/rdma-init-kernel and ignore failures on
-removal.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Masashi Honma
