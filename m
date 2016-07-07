@@ -1,69 +1,113 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB core sysfs: Add port_xmit_wait_counter V2
-Date: Thu, 7 Jul 2016 12:36:00 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1607071231550.20276@east.gentwo.org>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
+ corruption and kernel panic at forwarding with fragmentation
+Date: Thu, 7 Jul 2016 11:13:01 -0700
+Message-ID: <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
+References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Florian Westphal <fw@strlen.de>, Thadeu Lima de Souza Cascardo <cascardo@redhat.com>, Cong Wang <xiyou.wangcong@gmail.com>, Linux Kernel Network Developers <netdev@vger.kernel.org>, David Miller <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jul 6, 2016 at 11:25 PM, Roland Dreier <roland@purestorage.com> wrote:
+> On Thu, Jan 7, 2016 at 3:00 AM, Konstantin Khlebnikov <koct9i@gmail.com> wrote:
+>> Or just shift GSO CB and add couple checks like
+>> BUILD_BUG_ON(sizeof(SKB_GSO_CB(skb)->room) < sizeof(*IPCB(skb)));
+>
+> Resurrecting this old thread, because the patch that ultimately went
+> upstream (commit 9207f9d45b0a / net: preserve IP control block during
+> GSO segmentation) causes a huge IPoIB performance regression (to the
+> point of being unusable):
+> https://bugzilla.kernel.org/show_bug.cgi?id=111921
+>
+> I don't think anyone has explained what goes wrong or why IPoIB works
+> the way it does.  The underlying difference that IPoIB has from other
+> drivers is that there are two levels of address resolution.  First,
+> normal ARP / ND resolves an IP address to a "hardware" address.  The
+> difference is that in IPoIB, the hardware address is an IB GID (plus a
+> QPN, but we can ignore that).  To actually send data to that GID, the
+> IPoIB driver has to do a second lookup - it needs to ask the IB subnet
+> manager for a path record that tells it how to reach that GID.
+>
+> In particular this means that "destination address" (as the IP / ARP
+> layer understands it) actually isn't in the packet anywhere - there's
+> nothing like an ethernet header as there is for "normal" network
+> drivers.  Instead, the driver stashes the address in skb->cb during
+> hard_header_ops->create() and then looks at it in the xmit routine -
+> this was designed way back around when commit a0417fa3a18a / net: Make
+> qdisc_skb_cb upper size bound explicit. was merged.  The expectation
+> was that the part of the cb after sizeof (struct qdisc_skb_cb) would
+> be preserved.
+>
+> The problem with commit 9207f9d45b0a is that GSO operations now access
+> cb after SKB_SGO_CB_OFFSET==32, which lands right in the middle of
+> where IPoIB stashes its hwaddr.
 
-V1->V2
-- Tested. Found that we missed modifying one table.
+Really I don't know if the problem is GSO so much as the desire to
+maintain the control buffer between layers.  Really this kind of
+violates how we have documented the control buffer in skbuff.h.
 
+> It seems that the intent of the commit is to preserve the IP control
+> block - struct inet_skb_parm (and presumably struct inet6_skb_parm) -
+> even when using SKB_GSO_CB().  Seems like both inet_skb_parm and
+> inet6_skb_parm are 20 bytes.  IPoIB uses the part of cb after 28
+> bytes, so if we could squeeze struct skb_gso_cb down to 8 bytes and
+> set SKB_SGO_CB_OFFSET to 20, then everything would work.  The struct
+> is
+>
+> struct skb_gso_cb {
+>         int     mac_offset;
+>         int     encap_level;
+>         __u16   csum_start;
+> };
 
-Add the missing port_xmit_wait counter. This counter is displayed through
-some tools like perfquery but is not available via sysfs.
+This is based on an out-dated version of this struct.  The 4.7 RC
+kernel has a few more fields that were added to support local checksum
+offload for encapsulated frames.
 
-For the PORT_PMA_ATTR macro the _counter field is set to zero
-allowing us to specify the offset directly like with PORT_PMA_ATTR_EXT
+> is it feasible to make encap_level a __u16 (which would make the
+> overall struct exactly 8 bytes)?  If I understand this correctly, 64K
+> nested encapsulations seems like quite a bit for a packet...
 
-See also the earlier work in 2008 by Vladimir Skolovsky
+The smallest we could probably get this structure at this point would
+be around 10 bytes assuming we could make the offsets and encap level
+only be a 16 bit field.  The added size is due to a wsum that was
+added to keep a running checksum so we could keep csum_offset and
+csum_start fields while generating a running checksum for the frame in
+GSO.
 
-https://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg20313.html
+> Or, earlier in this thread, having the GSO in ip_output and other gso
+> paths save and restore the IP/IP6 control block was suggested as an
+> alternate approach.  I don't know if there are performance
+> implications to that.
 
-Tested-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Copying a block of data back and forth will always come at a cost.  In
+addition, I don't see why we need to be moving the IP/IP6 control
+block around.  If the IPoIB hwaddr is the only concern why couldn't it
+be saved/restored instead?
 
-Index: rh73alpha/drivers/infiniband/core/sysfs.c
-===================================================================
---- rh73alpha.orig/drivers/infiniband/core/sysfs.c
-+++ rh73alpha/drivers/infiniband/core/sysfs.c
-@@ -530,6 +530,7 @@ static PORT_PMA_ATTR(port_xmit_data
- static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
- static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
- static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
-+static PORT_PMA_ATTR(port_xmit_wait		    ,  0, 32, 320);
+> What is the best way to keep the crash fix but not kill IPoIB performance?
 
- /*
-  * Counters added by extended set
-@@ -560,6 +561,7 @@ static struct attribute *pma_attrs[] = {
- 	&port_pma_attr_port_rcv_data.attr.attr,
- 	&port_pma_attr_port_xmit_packets.attr.attr,
- 	&port_pma_attr_port_rcv_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	NULL
- };
+It seems like what would probably need to happen is to move where the
+IPoIB address is stored.  I'm not sure the control buffer is really
+the best place for it since the cb gets overwritten at various levels,
+and storing 20 bytes makes it hard to avoid bumping up against the
+size restrictions of the buffer.  Seeing as how the IPoIB hwaddr is
+generated around the same time we generate the L2 header for the
+frame, I wonder if you couldn't get away with using a bit of extra skb
+headroom to store it and then use a offset from the MAC header to
+access it.  An added bonus would be that with a few tricks with
+SKB_GSO_CB(skb)->mac_offset you might even be able to set things up so
+that you copy the hwaddr when you copy the header for each fragment
+instead of having to go and copy the hwaddr out of the cb and clone it
+for each frame.
 
-@@ -579,6 +581,7 @@ static struct attribute *pma_attrs_ext[]
- 	&port_pma_attr_ext_port_xmit_data.attr.attr,
- 	&port_pma_attr_ext_port_rcv_data.attr.attr,
- 	&port_pma_attr_ext_port_xmit_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	&port_pma_attr_ext_port_rcv_packets.attr.attr,
- 	&port_pma_attr_ext_unicast_rcv_packets.attr.attr,
- 	&port_pma_attr_ext_unicast_xmit_packets.attr.attr,
-@@ -604,6 +607,7 @@ static struct attribute *pma_attrs_noiet
- 	&port_pma_attr_ext_port_rcv_data.attr.attr,
- 	&port_pma_attr_ext_port_xmit_packets.attr.attr,
- 	&port_pma_attr_ext_port_rcv_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	NULL
- };
+Anyway I don't have that strong an understanding on IPoIB, but thought
+I would add my $.02 since I noticed you were referencing an outdated
+skb_gso_cb structure.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Alex
