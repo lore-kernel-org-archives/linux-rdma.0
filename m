@@ -1,77 +1,62 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
- corruption and kernel panic at forwarding with fragmentation
-Date: Fri, 8 Jul 2016 10:51:31 -0600
-Message-ID: <20160708165131.GA23650@obsidianresearch.com>
-References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
- <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
- <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA@mail.gmail.com>
- <20160707231423.GA21039@obsidianresearch.com>
- <CAL1RGDWbUCi8OT1yGw7mhV9ivpmBqXa4jZ4Lp4op=L5ODK+r3w@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3] IB core: Add port_xmit_wait counter
+Date: Fri, 8 Jul 2016 12:59:53 -0400
+Message-ID: <3bfb4906-4089-1191-8fc9-cebc0f4275ae@dev.mellanox.co.il>
+References: <alpine.DEB.2.20.1607081026550.5092@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDWbUCi8OT1yGw7mhV9ivpmBqXa4jZ4Lp4op=L5ODK+r3w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1607081026550.5092-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Alexander Duyck <alexander.duyck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 08, 2016 at 07:18:11AM -0700, Roland Dreier wrote:
-> On Thu, Jul 7, 2016 at 4:14 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > We have neighbour_priv, and ndo_neigh_construct/destruct now ..
-> >
-> > A first blush that would seem to be enough to let ipoib store the AH
-> > and other path information in the neigh and avoid the cb? At least the
-> > example in clip sure looks like what ipoib needs to do.
+On 7/8/2016 11:27 AM, Christoph Lameter wrote:
+> Add the missing port_xmit_wait counter. This counter is displayed through
+> some tools like perfquery but is not available via sysfs.
 > 
-> Do you think those new facilities let us go back to using the neigh
-> and still avoid the issues that led to commit b63b70d87741 ("IPoIB:
-> Use a private hash table for path lookup in xmit path")?
+> For the PORT_PMA_ATTR macro the _counter field is set to zero
+> allowing us to specify the offset directly like with PORT_PMA_ATTR_EXT
 
-Well, the priv stuff were brought up in the discussion around
-b63b70d87741 but never fully analyzed. Maybe it could have been used
-to solve that problem, who knows.. I guess it doesn't help this exact
-issue because we don't have a dst at hard header time anyhow.
+What does the value of the _counter field have to do with specifying the
+offset directly ?
 
-But, DaveM suggested how to handle our current problem in the above thread:
+> See also the earlier work in 2008 by Vladimir Skolovsky
+> 
+> https://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg20313.html
+> 
+> Signed-off-by: Vladimir Sokolvsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+> ---
+> 
+> V1->V2
+> - Tested. Found that we missed modifying on table.
+> 
+> V2->V3
+> - Change description, topic etc.
+> 
+> Index: rh73alpha/drivers/infiniband/core/sysfs.c
+> ===================================================================
+> --- rh73alpha.orig/drivers/infiniband/core/sysfs.c
+> +++ rh73alpha/drivers/infiniband/core/sysfs.c
+> @@ -530,6 +530,7 @@ static PORT_PMA_ATTR(port_xmit_data
+>  static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
+>  static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
+>  static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
+> +static PORT_PMA_ATTR(port_xmit_wait		    ,  0, 32, 320);
 
-http://marc.info/?l=linux-rdma&m=132813323907877&w=2
+Although it doesn't matter now as it's not used, wouldn't the _counter
+be better as 16 rather than 0 ? If it were to be used (in the future),
+it indicates the corresponding number to the counter. In the case of set
+support, it would be translated to a bit in PortCounters CounterSelect
+or CounterSelect2 (if option to set port xmit wait counter is supported).
 
-Which is the same route CLIP took:
+An alternative is to remove _counter which could be done as either part
+of this or as a follow on change.
 
-331         struct dst_entry *dst = skb_dst(skb);
-347         rt = (struct rtable *) dst;
-348         if (rt->rt_gateway)
-349                 daddr = &rt->rt_gateway;
-350         else
-351                 daddr = &ip_hdr(skb)->daddr;
-352         n = dst_neigh_lookup(dst, daddr);
-
-(DaveM said it should be &ip/ipv6_hdr(skb)->daddr, not the rtable cast)
-
-Last time this was brought up you were concerned about ARP, ARP
-sets skb_dst after calling dev_hard_header:
-
-310         skb = arp_create(type, ptype, dest_ip, dev, src_ip,
-311                          dest_hw, src_hw, target_hw);
-312         if (!skb)
-313                 return;
-314
-315         skb_dst_set(skb, dst_clone(dst));
-
-However, there is at least one fringe case (arp_send) where the dst is
-left NULL. Presumably there are other fringe cases too..
-
-So, it appears, the dst and neigh can be used for all performances cases.
-
-For the non performance dst == null case, can we just burn cycles and
-stuff the daddr in front of the packet at hardheader time, even if we
-have to copy?
-
-Jason
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
