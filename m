@@ -1,70 +1,77 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3] IB core: Add port_xmit_wait counter
-Date: Fri, 8 Jul 2016 10:27:42 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1607081026550.5092@east.gentwo.org>
-Content-Type: text/plain; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
+ corruption and kernel panic at forwarding with fragmentation
+Date: Fri, 8 Jul 2016 10:51:31 -0600
+Message-ID: <20160708165131.GA23650@obsidianresearch.com>
+References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
+ <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
+ <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA@mail.gmail.com>
+ <20160707231423.GA21039@obsidianresearch.com>
+ <CAL1RGDWbUCi8OT1yGw7mhV9ivpmBqXa4jZ4Lp4op=L5ODK+r3w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDWbUCi8OT1yGw7mhV9ivpmBqXa4jZ4Lp4op=L5ODK+r3w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Alexander Duyck <alexander.duyck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add the missing port_xmit_wait counter. This counter is displayed through
-some tools like perfquery but is not available via sysfs.
+On Fri, Jul 08, 2016 at 07:18:11AM -0700, Roland Dreier wrote:
+> On Thu, Jul 7, 2016 at 4:14 PM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > We have neighbour_priv, and ndo_neigh_construct/destruct now ..
+> >
+> > A first blush that would seem to be enough to let ipoib store the AH
+> > and other path information in the neigh and avoid the cb? At least the
+> > example in clip sure looks like what ipoib needs to do.
+> 
+> Do you think those new facilities let us go back to using the neigh
+> and still avoid the issues that led to commit b63b70d87741 ("IPoIB:
+> Use a private hash table for path lookup in xmit path")?
 
-For the PORT_PMA_ATTR macro the _counter field is set to zero
-allowing us to specify the offset directly like with PORT_PMA_ATTR_EXT
+Well, the priv stuff were brought up in the discussion around
+b63b70d87741 but never fully analyzed. Maybe it could have been used
+to solve that problem, who knows.. I guess it doesn't help this exact
+issue because we don't have a dst at hard header time anyhow.
 
-See also the earlier work in 2008 by Vladimir Skolovsky
+But, DaveM suggested how to handle our current problem in the above thread:
 
-https://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg20313.html
+http://marc.info/?l=linux-rdma&m=132813323907877&w=2
 
-Signed-off-by: Vladimir Sokolvsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
----
+Which is the same route CLIP took:
 
-V1->V2
-- Tested. Found that we missed modifying on table.
+331         struct dst_entry *dst = skb_dst(skb);
+347         rt = (struct rtable *) dst;
+348         if (rt->rt_gateway)
+349                 daddr = &rt->rt_gateway;
+350         else
+351                 daddr = &ip_hdr(skb)->daddr;
+352         n = dst_neigh_lookup(dst, daddr);
 
-V2->V3
-- Change description, topic etc.
+(DaveM said it should be &ip/ipv6_hdr(skb)->daddr, not the rtable cast)
 
-Index: rh73alpha/drivers/infiniband/core/sysfs.c
-===================================================================
---- rh73alpha.orig/drivers/infiniband/core/sysfs.c
-+++ rh73alpha/drivers/infiniband/core/sysfs.c
-@@ -530,6 +530,7 @@ static PORT_PMA_ATTR(port_xmit_data
- static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
- static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
- static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
-+static PORT_PMA_ATTR(port_xmit_wait		    ,  0, 32, 320);
+Last time this was brought up you were concerned about ARP, ARP
+sets skb_dst after calling dev_hard_header:
 
- /*
-  * Counters added by extended set
-@@ -560,6 +561,7 @@ static struct attribute *pma_attrs[] = {
- 	&port_pma_attr_port_rcv_data.attr.attr,
- 	&port_pma_attr_port_xmit_packets.attr.attr,
- 	&port_pma_attr_port_rcv_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	NULL
- };
+310         skb = arp_create(type, ptype, dest_ip, dev, src_ip,
+311                          dest_hw, src_hw, target_hw);
+312         if (!skb)
+313                 return;
+314
+315         skb_dst_set(skb, dst_clone(dst));
 
-@@ -579,6 +581,7 @@ static struct attribute *pma_attrs_ext[]
- 	&port_pma_attr_ext_port_xmit_data.attr.attr,
- 	&port_pma_attr_ext_port_rcv_data.attr.attr,
- 	&port_pma_attr_ext_port_xmit_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	&port_pma_attr_ext_port_rcv_packets.attr.attr,
- 	&port_pma_attr_ext_unicast_rcv_packets.attr.attr,
- 	&port_pma_attr_ext_unicast_xmit_packets.attr.attr,
-@@ -604,6 +607,7 @@ static struct attribute *pma_attrs_noiet
- 	&port_pma_attr_ext_port_rcv_data.attr.attr,
- 	&port_pma_attr_ext_port_xmit_packets.attr.attr,
- 	&port_pma_attr_ext_port_rcv_packets.attr.attr,
-+	&port_pma_attr_port_xmit_wait.attr.attr,
- 	NULL
- };
+However, there is at least one fringe case (arp_send) where the dst is
+left NULL. Presumably there are other fringe cases too..
 
+So, it appears, the dst and neigh can be used for all performances cases.
+
+For the non performance dst == null case, can we just burn cycles and
+stuff the daddr in front of the packet at hardheader time, even if we
+have to copy?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
