@@ -1,34 +1,57 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
- corruption and kernel panic at forwarding with fragmentation
-Date: Thu, 7 Jul 2016 17:14:23 -0600
-Message-ID: <20160707231423.GA21039@obsidianresearch.com>
-References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
- <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
- <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [RFC 5/7] net: Add allocation flag to rtnl_unicast()
+Date: Fri, 08 Jul 2016 04:56:31 +0200
+Message-ID: <1467946591.1273.45.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
+	 <1467764916-4983-6-git-send-email-masashi.honma@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Alexander Duyck <alexander.duyck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1467764916-4983-6-git-send-email-masashi.honma@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Masashi Honma <masashi.honma@gmail.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org, linux-audit@redhat.com, cluster-devel@redhat.com, davem@davemloft.net, johannes@sipsolutions.net, pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, paul@paul-moore.com, eparis@redhat.com, zbr@ioremap.net, pshelar@nicira.com, ccaulfie@redhat.com, teigland@redhat.com, bsingharora@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 07, 2016 at 03:01:40PM -0700, Roland Dreier wrote:
+On Wed, 2016-07-06 at 09:28 +0900, Masashi Honma wrote:
+> Signed-off-by: Masashi Honma <masashi.honma@gmail.com>
+> ---
 
-> The reason we moved to the cb storage is that in the past, trying to
-> hide some data in the actual skb buffer that we don't actually send
 
-We have neighbour_priv, and ndo_neigh_construct/destruct now ..
+> diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+> index a1f6b7b..2b0b994 100644
+> --- a/net/ipv6/addrconf.c
+> +++ b/net/ipv6/addrconf.c
+> @@ -628,7 +628,7 @@ static int inet6_netconf_get_devconf(struct sk_buff *in_skb,
+>  		kfree_skb(skb);
+>  		goto errout;
+>  	}
+> -	err = rtnl_unicast(skb, net, NETLINK_CB(in_skb).portid);
+> +	err = rtnl_unicast(skb, net, NETLINK_CB(in_skb).portid, GFP_ATOMIC);
+>  errout:
+>  	return err;
+>  }
+> @@ -4824,7 +4824,7 @@ static int inet6_rtm_getaddr(struct sk_buff *in_skb, struct nlmsghdr *nlh)
+>  		kfree_skb(skb);
+>  		goto errout_ifa;
+>  	}
+> -	err = rtnl_unicast(skb, net, NETLINK_CB(in_skb).portid);
+> +	err = rtnl_unicast(skb, net, NETLINK_CB(in_skb).portid, GFP_KERNEL);
+>  errout_ifa:
+>  	in6_ifa_put(ifa);
+>  errout:
 
-A first blush that would seem to be enough to let ipoib store the AH
-and other path information in the neigh and avoid the cb? At least the
-example in clip sure looks like what ipoib needs to do.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Managing to mix GFP_ATOMIC and GFP_KERNEL almost randomly as you did in
+this patch is definitely not good.
+
+Further more, RTNL is a mutex, held in control path, designed to allow
+schedules and waiting for memory under pressure.
+
+We do not want to encourage GFP_ATOMIC usage in control path.
+
+Your patch series gives the wrong signal to developers.
+
+I will send a patch against net/ipv4/devinet.c so that we remove
+GFP_ATOMIC usage there.
