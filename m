@@ -1,27 +1,33 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB core sysfs: Add port_xmit_wait_counter V2
-Date: Fri, 8 Jul 2016 09:12:24 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1607080911350.3887@east.gentwo.org>
-References: <alpine.DEB.2.20.1607071231550.20276@east.gentwo.org> <f77b903a-75d5-b7bf-3814-9efa3c627996@dev.mellanox.co.il>
-Content-Type: text/plain; charset=US-ASCII
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: Resurrecting due to huge ipoib perf regression - [BUG] skb
+ corruption and kernel panic at forwarding with fragmentation
+Date: Fri, 8 Jul 2016 07:18:11 -0700
+Message-ID: <CAL1RGDWbUCi8OT1yGw7mhV9ivpmBqXa4jZ4Lp4op=L5ODK+r3w@mail.gmail.com>
+References: <CAL1RGDV3u4bzuyGkMZGJQOiXje_qVh7AA-2nJMm2J2TR60H72g@mail.gmail.com>
+ <CAKgT0UerNfn9Uas34y6_+Fa4ALCcToQvNdbEkH1erVosa=xvXg@mail.gmail.com>
+ <CAL1RGDVgjRcb23jQQqJ4W-dfm8OkiH6n7hktVLX4mo-oUGj4gA@mail.gmail.com> <20160707231423.GA21039@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f77b903a-75d5-b7bf-3814-9efa3c627996-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160707231423.GA21039-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Alexander Duyck <alexander.duyck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Thadeu Lima de Souza Cascardo <cascardo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Cong Wang <xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Network Developers <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 8 Jul 2016, Hal Rosenstock wrote:
+On Thu, Jul 7, 2016 at 4:14 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> We have neighbour_priv, and ndo_neigh_construct/destruct now ..
+>
+> A first blush that would seem to be enough to let ipoib store the AH
+> and other path information in the neigh and avoid the cb? At least the
+> example in clip sure looks like what ipoib needs to do.
 
-> I'm not following the relationship of _counter field to the offset other
-> than they are combined in the index and then I don't see counter part of
-> index ever being used. So it looks to me like _counter can be
-> deprecated/removed which is what Roland wrote in the thread you
-> referenced below.
+Do you think those new facilities let us go back to using the neigh
+and still avoid the issues that led to commit b63b70d87741 ("IPoIB:
+Use a private hash table for path lookup in xmit path")?
 
-Yup. I think so too. But the rest of the discussion refers to some bit
-that correlates with _counter. There may be something I missed.
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
