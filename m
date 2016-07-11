@@ -1,64 +1,46 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v11 00/22] Add HiSilicon RoCE driver
-Date: Mon, 11 Jul 2016 17:38:39 +0800
-Message-ID: <5783691F.6060203@huawei.com>
-References: <1467452364-66522-1-git-send-email-oulijun@huawei.com>
- <577F16C1.8090705@huawei.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3] IB core: Add port_xmit_wait counters
+Date: Mon, 11 Jul 2016 09:03:31 -0400
+Message-ID: <a419cdf4-78b3-20f6-024b-f1233c4febd1@dev.mellanox.co.il>
+References: <alpine.DEB.2.20.1607081026550.5092@east.gentwo.org>
+ <3bfb4906-4089-1191-8fc9-cebc0f4275ae@dev.mellanox.co.il>
+ <alpine.DEB.2.20.1607081442450.8799@east.gentwo.org>
+ <1cc963dc-b7d3-f650-d57f-5d5439e6952a@dev.mellanox.co.il>
+ <alpine.DEB.2.20.1607101910001.13668@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <577F16C1.8090705-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1607101910001.13668-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2016/7/8 10:58, oulijun wrote:
-> =E5=9C=A8 2016/7/2 17:39, Lijun Ou =E5=86=99=E9=81=93:
->> The HiSilicon Network Substem is a long term evolution IP which is
->> supposed to be used in HiSilicon ICT SoCs. HNS (HiSilicon Network
->> Sybsystem) also has a hardware support of performing RDMA with
->> RoCEE.
->> The driver for HiSilicon RoCEE(RoCE Engine) is a platform driver and
->> will support mulitple versions of SOCs in future. This version of dr=
-iver
->> is meant to support Hip06 SoC(which confirms to RoCEv1 hardware
->> specifications).
+On 7/10/2016 8:15 PM, Christoph Lameter wrote:
+> On Fri, 8 Jul 2016, Hal Rosenstock wrote:
+> 
+>>> Its used to calculate the offset. See the macro definition.
 >>
->> Changes v10 -> v11:
->> [1/22]:
->> 1. modify the print description of chip don't support roce
->> 2. remove explicit values for enums for patch series
->> [3/22]:
->> 3. remove non-essential headers for patch series
-<...>
->>
-> Hi, Doug
-> We have modified Patch v10 to Patch v11 according to all the reviews =
-from Leon Romanovsky, and Patch v11 has been upstreamed,
-> hopefully, there will be more reviews.
-> Best Regards,
->
-> Lijun Ou
-Hi, Doug Ledford
+>> Isn't it used to calculate the index not the offset (and that part of
+>> index is not used anywhere AFAIT) ?
+> 
+> _width, _offset and _counter are all just used for the calculation of
+> "index" which is the final value that is stored in the port table.
+> 
+> Ok we can change that to index to be accurate?
+> 
+> 
+> #define PORT_PMA_ATTR(_name, _counter, _width, _offset)                 \
+> struct port_table_attribute port_pma_attr_##_name = {                   \
+> .attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),        \
+> .index = (_offset) | ((_width) << 16) | ((_counter) << 24),     \
+> .attr_id = IB_PMA_PORT_COUNTERS ,                               \
+> }
 
-     Have you got any time to look at this patchset? Any feedback /=20
-comment ?
-
-Many thanks
-Wei Hu
-> _______________________________________________
-> linuxarm mailing list
-> linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
-
-
+I'm not sure I'm following what you mean. Are you proposing to change
+_counter to _index ?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
