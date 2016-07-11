@@ -1,28 +1,36 @@
-From: Masashi Honma <masashi.honma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/7] netlink: Add allocation flag to netlink_unicast()
-Date: Sat, 9 Jul 2016 12:54:18 +0900
-Message-ID: <5780756A.5050405@gmail.com>
-References: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] IB core: Add port_xmit_wait counters
+Date: Sun, 10 Jul 2016 19:15:48 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1607101910001.13668@east.gentwo.org>
+References: <alpine.DEB.2.20.1607081026550.5092@east.gentwo.org> <3bfb4906-4089-1191-8fc9-cebc0f4275ae@dev.mellanox.co.il> <alpine.DEB.2.20.1607081442450.8799@east.gentwo.org> <1cc963dc-b7d3-f650-d57f-5d5439e6952a@dev.mellanox.co.il>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467764916-4983-1-git-send-email-masashi.honma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1cc963dc-b7d3-f650-d57f-5d5439e6952a-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-audit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org, pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2016年07月06日 09:28, Masashi Honma wrote:
-> Though netlink_broadcast() ...
+On Fri, 8 Jul 2016, Hal Rosenstock wrote:
 
-Thanks for reply of David Miller, Eric Dumazet, David Teigrand.
+> > Its used to calculate the offset. See the macro definition.
+>
+> Isn't it used to calculate the index not the offset (and that part of
+> index is not used anywhere AFAIT) ?
 
-On the basis of their comment, only rtnl_unicast() looks need to add gfp
-flag
-argument. So I will drop almost of patches except 0005.
+_width, _offset and _counter are all just used for the calculation of
+"index" which is the final value that is stored in the port table.
 
-I will send patch v2 to more limited destination.
+Ok we can change that to index to be accurate?
+
+
+#define PORT_PMA_ATTR(_name, _counter, _width, _offset)                 \
+struct port_table_attribute port_pma_attr_##_name = {                   \
+.attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),        \
+.index = (_offset) | ((_width) << 16) | ((_counter) << 24),     \
+.attr_id = IB_PMA_PORT_COUNTERS ,                               \
+}
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
