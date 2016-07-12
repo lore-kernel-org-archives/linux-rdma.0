@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/8] i40iw: Correct and use size parameter to i40iw_reg_phys_mr
-Date: Tue, 12 Jul 2016 11:48:40 -0500
-Message-ID: <1468342126-29168-3-git-send-email-shiraz.saleem@intel.com>
+Subject: [PATCH for-next 3/8] i40iw: Do not access pointer after free
+Date: Tue, 12 Jul 2016 11:48:41 -0500
+Message-ID: <1468342126-29168-4-git-send-email-shiraz.saleem@intel.com>
 References: <1468342126-29168-1-git-send-email-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1468342126-29168-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,36 +12,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fix size parameter passed to i40iw_reg_phys_mr and use it to
-register memory.
+Child_listen_node pointer is used in a debug print after kfree.
+Move the print before kfree.
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 86c387a..73c441b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -1838,6 +1838,7 @@ struct ib_mr *i40iw_reg_phys_mr(struct ib_pd *pd,
- 	iwmr->ibmr.lkey = stag;
- 	iwmr->page_cnt = 1;
- 	iwmr->pgaddrmem[0]  = addr;
-+	iwmr->length = size;
- 	status = i40iw_hwreg_mr(iwdev, iwmr, access);
- 	if (status) {
- 		i40iw_free_stag(iwdev, stag);
-@@ -1861,7 +1862,7 @@ static struct ib_mr *i40iw_get_dma_mr(struct ib_pd *pd, int acc)
- {
- 	u64 kva = 0;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index d2fa725..5026dc7 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1567,12 +1567,12 @@ static enum i40iw_status_code i40iw_del_multiple_qhash(
+ 		ret = i40iw_manage_qhash(iwdev, cm_info,
+ 					 I40IW_QHASH_TYPE_TCP_SYN,
+ 					 I40IW_QHASH_MANAGE_TYPE_DELETE, NULL, false);
+-		kfree(child_listen_node);
+-		cm_parent_listen_node->cm_core->stats_listen_nodes_destroyed++;
+ 		i40iw_debug(&iwdev->sc_dev,
+ 			    I40IW_DEBUG_CM,
+ 			    "freed pointer = %p\n",
+ 			    child_listen_node);
++		kfree(child_listen_node);
++		cm_parent_listen_node->cm_core->stats_listen_nodes_destroyed++;
+ 	}
+ 	spin_unlock_irqrestore(&iwdev->cm_core.listen_list_lock, flags);
  
--	return i40iw_reg_phys_mr(pd, 0, 0xffffffffffULL, acc, &kva);
-+	return i40iw_reg_phys_mr(pd, 0, 0, acc, &kva);
- }
- 
- /**
 -- 
 2.8.0
 
