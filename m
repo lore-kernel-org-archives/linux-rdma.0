@@ -1,69 +1,84 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/8] i40iw: Simplify code to set fragments in SQ WQE
-Date: Tue, 12 Jul 2016 11:48:43 -0500
-Message-ID: <1468342126-29168-6-git-send-email-shiraz.saleem@intel.com>
-References: <1468342126-29168-1-git-send-email-shiraz.saleem@intel.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH -next] IB/mlx5: Fix duplicate const warning
+Date: Tue, 12 Jul 2016 15:17:29 +0300
+Message-ID: <20160712121729.GA17430@leon.nu>
+References: <1468323167-1843-1-git-send-email-weiyj_lk@163.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1468342126-29168-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1468323167-1843-1-git-send-email-weiyj_lk-9Onoh4P/yGk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: weiyj_lk-9Onoh4P/yGk@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--G4iJoqBmSsgzjUCe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Replace a subtract and multiply with an add; while populating fragments
-in SQ wqe.
+On Tue, Jul 12, 2016 at 11:32:47AM +0000, weiyj_lk-9Onoh4P/yGk@public.gmane.org wrote:
+> From: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
+>=20
+> Fixes the following sparse warning:
+>=20
+> drivers/infiniband/hw/mlx5/main.c:2574:25: warning: duplicate const=20
+>=20
+> Signed-off-by: Wei Yongjun <yongjun_wei-zrsr2BFq86L20UzCJQGyNP8+0UxHXcjY@public.gmane.org>
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_uk.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Thanks,
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index cea0b8a..6b217e6 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -291,9 +291,9 @@ static enum i40iw_status_code i40iw_rdma_write(struct i40iw_qp_uk *qp,
- 
- 	i40iw_set_fragment(wqe, 0, op_info->lo_sg_list);
- 
--	for (i = 1; i < op_info->num_lo_sges; i++) {
--		byte_off = 32 + (i - 1) * 16;
-+	for (i = 1, byte_off = 32; i < op_info->num_lo_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &op_info->lo_sg_list[i]);
-+		byte_off += 16;
- 	}
- 
- 	wmb(); /* make sure WQE is populated before valid bit is set */
-@@ -401,9 +401,9 @@ static enum i40iw_status_code i40iw_send(struct i40iw_qp_uk *qp,
- 
- 	i40iw_set_fragment(wqe, 0, op_info->sg_list);
- 
--	for (i = 1; i < op_info->num_sges; i++) {
--		byte_off = 32 + (i - 1) * 16;
-+	for (i = 1, byte_off = 32; i < op_info->num_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &op_info->sg_list[i]);
-+		byte_off += 16;
- 	}
- 
- 	wmb(); /* make sure WQE is populated before valid bit is set */
-@@ -685,9 +685,9 @@ static enum i40iw_status_code i40iw_post_receive(struct i40iw_qp_uk *qp,
- 
- 	i40iw_set_fragment(wqe, 0, info->sg_list);
- 
--	for (i = 1; i < info->num_sges; i++) {
--		byte_off = 32 + (i - 1) * 16;
-+	for (i = 1, byte_off = 32; i < info->num_sges; i++) {
- 		i40iw_set_fragment(wqe, byte_off, &info->sg_list[i]);
-+		byte_off += 16;
- 	}
- 
- 	wmb(); /* make sure WQE is populated before valid bit is set */
--- 
-2.8.0
+> ---
+>  drivers/infiniband/hw/mlx5/main.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
+x5/main.c
+> index 7fa2fe7..a342d73 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -2571,7 +2571,7 @@ dealloc_counters:
+>  	return ret;
+>  }
+> =20
+> -static const char const *names[] =3D {
+> +static const char * const names[] =3D {
+>  	"rx_write_requests",
+>  	"rx_read_requests",
+>  	"rx_atomic_requests",
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--G4iJoqBmSsgzjUCe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXhN/ZAAoJEORje4g2clin3c0P/jTylAScE2PkYrzmBt13dNFQ
+uOpogl/vfnnw3YgtNYx+eeKZw4ft8QbRONTLXk8ofhEqLU/vZ2TGKdHeo5NhOKTK
+YOBCVhzNqLC4r0dw2QelSZQVnlhc4Xg00V6LKKbFTdS5Wec/erDGDiwu/aDLmkbt
+25g3G1qdSIiTlryaT23r/iMoaA8ErDPlwHaQrsGyxtmVWjGoLuqi+s0HCrGe6vv1
+VEYlWc8Q4nHGtPrWCivVRFh8cIxcijhE03stxBaUqW/wjZy9IcG5ngmpBtrTZkCR
+I77IZ0WkzkFu24TIjCW1r98BEp9nLADM2rxif3s9Pw06l74eqvBsTCXXXoQ0BqSb
+3WtLZcfU2godGkXFKwJESkbtXcPszNtWEPYC5/7ltXgdt5g3GtlLL9Y90nWyGIDc
+fVq9kRSg68FQcQeDUDdWBIzp3XhSKvOICDJ1ix8/nPgEcHyFxOWiPJ4ZlPTsSCre
+N3guAYNSox9ebule70SGCGm5hBaG6EosQtqIhZKBZsIbmwZAcPmlwtxaZ61Z0zxD
+ev9rV0+7z8TjxL9DdXkHMMm2zB8Y6CmAGYeDQX6qSkigrpDOhV1mlmPHtFJyQDGN
+apbarKTxAK9uWuPod/fuhJhU65jc4edcPfN8Ya7WWN5CcLB2Yiot9x/I9DxDPxug
+7DkylW5Db93b2Jvg05Me
+=K4aQ
+-----END PGP SIGNATURE-----
+
+--G4iJoqBmSsgzjUCe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
