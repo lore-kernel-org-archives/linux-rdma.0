@@ -1,496 +1,125 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 01/15] IB/pvrdma: Add paravirtual rdma device
-Date: Tue, 12 Jul 2016 12:36:31 -0700
-Message-ID: <1468352205-9137-2-git-send-email-aditr@vmware.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+Subject: [PATCH v2 00/15] Add Paravirtual RDMA Driver
+Date: Tue, 12 Jul 2016 12:36:30 -0700
+Message-ID: <1468352205-9137-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1468352205-9137-1-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the main device-level structures and functions to be used
-to provide RDMA functionality. Also, we define conversion functions from
-the IB core stack structures to the device-specific ones.
+Hi Doug, others,
 
-Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+This patch series adds a driver for a paravirtual RDMA device. The device
+is developed for VMware's Virtual Machines and allows existing RDMA
+applications to continue to use existing Verbs API when deployed in VMs on
+ESX. We recently did a presentation in the OFA Workshop regarding this
+device. See - https://goo.gl/pHOXJ8 for our workshop presentation. Note,
+that this patch series should be applied all together. I split out the
+commits so that it may be easier to review.
+
+Description and RDMA Support
+-------------------------------
+The virtual device is exposed as a dual function PCIe device. One part is
+a virtual network device (VMXNet3) which provides networking properties
+like MAC, IP addresses to the RDMA part of the device. The networking
+properties are used to register GIDs required by RDMA applications to
+communicate.
+
+These patches add support and the all required infrastructure for letting
+applications use such a device. We support the mandatory Verbs API as well
+as the base memory management extensions (Local Inv, Send with Inv and Fast
+Register Work Requests). We currently support both Reliable Connected and
+Unreliable Datagram QPs but do not support Shared Receive Queues (SRQs).
+Also, we support the following types of Work Requests:
+ o Send/Receive (with or without Immediate Data)
+ o RDMA Write (with or without Immediate Data)
+ o RDMA Read
+ o Local Invalidate
+ o Send with Invalidate
+ o Fast Register Work Requests
+
+This version only adds support for version 1 of RoCE. We will add RoCEv2
+support in a future patch. We do support registration of both MAC-based and
+IP-based GIDs. 
+
+I have also created a git tree for our user-level driver here:
+http://git.openfabrics.org/?p=~aditr/libpvrdma.git;a=summary
+
+Testing
+--------
+We have tested this internally for various types of Guest OS - Red Hat,
+Centos, Ubuntu 12.04/14.04/16.04, Oracle Enterprise Linux, SLES 12
+using backported versions of this driver. The tests included several runs
+of the performance tests (included with OFED), Intel MPI PingPong benchmark
+on OpenMPI, krping for FRWRs. Mellanox has been kind enough to test the
+backported version of the driver internally on their hardware using a
+VMware provided ESX build. I have also applied and tested this with Doug's
+master, k.o/for-4.7, k.o/for-4.8 branches.
+
+Changes v1 -> v2: 
+ Patch [07/15] - Addressed Yuval Shaia's comments and 32-bit build errors.
+
 ---
- drivers/infiniband/hw/pvrdma/pvrdma.h | 459 ++++++++++++++++++++++++++++++++++
- 1 file changed, 459 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma.h b/drivers/infiniband/hw/pvrdma/pvrdma.h
-new file mode 100644
-index 0000000..0dc5bd2
---- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma.h
-@@ -0,0 +1,459 @@
-+/*
-+ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of EITHER the GNU General Public License
-+ * version 2 as published by the Free Software Foundation or the BSD
-+ * 2-Clause License. This program is distributed in the hope that it
-+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License version 2 for more details at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program available in the file COPYING in the main
-+ * directory of this source tree.
-+ *
-+ * The BSD 2-Clause License
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
-+
-+#ifndef __PVRDMA_H__
-+#define __PVRDMA_H__
-+
-+#include <linux/compiler.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/pci.h>
-+#include <linux/semaphore.h>
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_verbs.h>
-+
-+#include "pvrdma_defs.h"
-+#include "pvrdma_dev_api.h"
-+#include "pvrdma_verbs.h"
-+
-+/* NOT the same as BIT_MASK(). */
-+#define PVRDMA_MASK(n) ((n << 1) - 1)
-+
-+/*
-+ * VMware PVRDMA vendor id and PCI device id.
-+ */
-+#ifndef PCI_VENDOR_ID_VMWARE
-+#define PCI_VENDOR_ID_VMWARE		0x15AD
-+#endif
-+#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
-+
-+struct pvrdma_dev;
-+
-+struct pvrdma_page_dir {
-+	dma_addr_t dir_dma;
-+	u64 *dir;
-+	int ntables;
-+	u64 **tables;
-+	u64 npages;
-+	void **pages;
-+};
-+
-+struct pvrdma_cq {
-+	struct ib_cq ibcq;
-+	int offset;
-+	spinlock_t cq_lock; /* Poll lock. */
-+	struct pvrdma_uar_map *uar;
-+	struct ib_umem *umem;
-+	struct pvrdma_ring_state *ring_state;
-+	struct pvrdma_page_dir pdir;
-+	u32 cq_handle;
-+	bool is_kernel;
-+	atomic_t refcnt;
-+	wait_queue_head_t wait;
-+};
-+
-+struct pvrdma_id_table {
-+	u32 last;
-+	u32 top;
-+	u32 max;
-+	u32 mask;
-+	spinlock_t lock; /* Table lock. */
-+	unsigned long *table;
-+};
-+
-+struct pvrdma_uar_map {
-+	unsigned long pfn;
-+	void __iomem *map;
-+	int index;
-+};
-+
-+struct pvrdma_uar_table {
-+	struct pvrdma_id_table tbl;
-+	int size;
-+};
-+
-+struct pvrdma_ucontext {
-+	struct ib_ucontext ibucontext;
-+	struct pvrdma_dev *dev;
-+	struct pvrdma_uar_map uar;
-+	u64 ctx_handle;
-+};
-+
-+struct pvrdma_pd {
-+	struct ib_pd ibpd;
-+	u32 pdn;
-+	u32 pd_handle;
-+	int priviledged;
-+};
-+
-+struct pvrdma_mr {
-+	u32 mr_handle;
-+	u64 iova;
-+	u64 size;
-+};
-+
-+struct pvrdma_user_mr {
-+	struct ib_mr ibmr;
-+	struct ib_umem *umem;
-+	struct pvrdma_mr mmr;
-+	struct pvrdma_page_dir pdir;
-+	u64 *pages;
-+	u32 npages;
-+	u32 max_pages;
-+	u32 page_shift;
-+};
-+
-+struct pvrdma_wq {
-+	struct pvrdma_ring *ring;
-+	spinlock_t lock; /* Work queue lock. */
-+	int wqe_cnt;
-+	int wqe_size;
-+	int max_gs;
-+	int offset;
-+};
-+
-+struct pvrdma_ah {
-+	struct ib_ah ibah;
-+	struct pvrdma_av av;
-+};
-+
-+struct pvrdma_qp {
-+	struct ib_qp ibqp;
-+	u32 qp_handle;
-+	u32 qkey;
-+	struct pvrdma_wq sq;
-+	struct pvrdma_wq rq;
-+	struct ib_umem *rumem;
-+	struct ib_umem *sumem;
-+	struct pvrdma_page_dir pdir;
-+	int npages;
-+	int npages_send;
-+	int npages_recv;
-+	u32 flags;
-+	u8 port;
-+	u8 state;
-+	bool is_kernel;
-+	struct mutex mutex; /* QP state mutex. */
-+	atomic_t refcnt;
-+	wait_queue_head_t wait;
-+};
-+
-+struct pvrdma_dev {
-+	/* PCI device-related information. */
-+	struct ib_device ib_dev;
-+	struct pci_dev *pdev;
-+	void __iomem *regs;
-+	struct pvrdma_device_shared_region *dsr; /* Shared region pointer */
-+	dma_addr_t dsrbase; /* Shared region base address */
-+	void *cmd_slot;
-+	void *resp_slot;
-+	unsigned long flags;
-+	struct list_head device_link;
-+
-+	/* Locking and interrupt information. */
-+	spinlock_t cmd_lock; /* Command lock. */
-+	struct semaphore cmd_sema;
-+	struct completion cmd_done;
-+	struct {
-+		enum pvrdma_intr_type type; /* Intr type */
-+		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
-+		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
-+		u8 enabled[PVRDMA_MAX_INTERRUPTS];
-+		u8 size;
-+	} intr;
-+
-+	/* RDMA-related device information. */
-+	union ib_gid *sgid_tbl;
-+	struct pvrdma_ring_state *async_ring_state;
-+	struct pvrdma_page_dir async_pdir;
-+	struct pvrdma_ring_state *cq_ring_state;
-+	struct pvrdma_page_dir cq_pdir;
-+	struct pvrdma_cq **cq_tbl;
-+	spinlock_t cq_tbl_lock;
-+	struct pvrdma_qp **qp_tbl;
-+	spinlock_t qp_tbl_lock;
-+	struct pvrdma_uar_table uar_table;
-+	struct pvrdma_uar_map driver_uar;
-+	__be64 sys_image_guid;
-+	spinlock_t desc_lock; /* Device modification lock. */
-+	u32 port_cap_mask;
-+	struct mutex port_mutex; /* Port modification mutex. */
-+	bool ib_active;
-+	atomic_t num_qps;
-+	atomic_t num_cqs;
-+	atomic_t num_pds;
-+	atomic_t num_ahs;
-+
-+	/* Network device information. */
-+	struct net_device *netdev;
-+	struct notifier_block nb_netdev;
-+};
-+
-+static inline struct pvrdma_dev *to_vdev(struct ib_device *ibdev)
-+{
-+	return container_of(ibdev, struct pvrdma_dev, ib_dev);
-+}
-+
-+static inline struct
-+pvrdma_ucontext *to_vucontext(struct ib_ucontext *ibucontext)
-+{
-+	return container_of(ibucontext, struct pvrdma_ucontext, ibucontext);
-+}
-+
-+static inline struct pvrdma_pd *to_vpd(struct ib_pd *ibpd)
-+{
-+	return container_of(ibpd, struct pvrdma_pd, ibpd);
-+}
-+
-+static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
-+{
-+	return container_of(ibcq, struct pvrdma_cq, ibcq);
-+}
-+
-+static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
-+{
-+	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
-+}
-+
-+static inline struct pvrdma_qp *to_vqp(struct ib_qp *ibqp)
-+{
-+	return container_of(ibqp, struct pvrdma_qp, ibqp);
-+}
-+
-+static inline struct pvrdma_ah *to_vah(struct ib_ah *ibah)
-+{
-+	return container_of(ibah, struct pvrdma_ah, ibah);
-+}
-+
-+static inline void pvrdma_write_reg(struct pvrdma_dev *dev, u32 reg, u32 val)
-+{
-+	writel(cpu_to_le32(val), dev->regs + reg);
-+}
-+
-+static inline u32 pvrdma_read_reg(struct pvrdma_dev *dev, u32 reg)
-+{
-+	return le32_to_cpu(readl(dev->regs + reg));
-+}
-+
-+static inline void *pvrdma_page_dir_get_ptr(struct pvrdma_page_dir *pdir,
-+					    u64 offset)
-+{
-+	return pdir->pages[offset / PAGE_SIZE] + (offset % PAGE_SIZE);
-+}
-+
-+static inline enum pvrdma_mtu ib_mtu_to_pvrdma(enum ib_mtu mtu)
-+{
-+	return (enum pvrdma_mtu)mtu;
-+}
-+
-+static inline enum ib_mtu pvrdma_mtu_to_ib(enum pvrdma_mtu mtu)
-+{
-+	return (enum ib_mtu)mtu;
-+}
-+
-+static inline enum pvrdma_port_state ib_port_state_to_pvrdma(
-+					enum ib_port_state state)
-+{
-+	return (enum pvrdma_port_state)state;
-+}
-+
-+static inline enum ib_port_state pvrdma_port_state_to_ib(
-+					enum pvrdma_port_state state)
-+{
-+	return (enum ib_port_state)state;
-+}
-+
-+static inline int ib_port_cap_flags_to_pvrdma(int flags)
-+{
-+	return flags & PVRDMA_MASK(PVRDMA_PORT_CAP_FLAGS_MAX);
-+}
-+
-+static inline int pvrdma_port_cap_flags_to_ib(int flags)
-+{
-+	return flags;
-+}
-+
-+static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
-+					enum ib_port_width width)
-+{
-+	return (enum pvrdma_port_width)width;
-+}
-+
-+static inline enum ib_port_width pvrdma_port_width_to_ib(
-+					enum pvrdma_port_width width)
-+{
-+	return (enum ib_port_width)width;
-+}
-+
-+static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
-+					enum ib_port_speed speed)
-+{
-+	return (enum pvrdma_port_speed)speed;
-+}
-+
-+static inline enum ib_port_speed pvrdma_port_speed_to_ib(
-+					enum pvrdma_port_speed speed)
-+{
-+	return (enum ib_port_speed)speed;
-+}
-+
-+static inline int pvrdma_qp_attr_mask_to_ib(int attr_mask)
-+{
-+	return attr_mask;
-+}
-+
-+static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
-+{
-+	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
-+}
-+
-+static inline enum pvrdma_mig_state ib_mig_state_to_pvrdma(
-+					enum ib_mig_state state)
-+{
-+	return (enum pvrdma_mig_state)state;
-+}
-+
-+static inline enum ib_mig_state pvrdma_mig_state_to_ib(
-+					enum pvrdma_mig_state state)
-+{
-+	return (enum ib_mig_state)state;
-+}
-+
-+static inline int ib_access_flags_to_pvrdma(int flags)
-+{
-+	return flags;
-+}
-+
-+static inline int pvrdma_access_flags_to_ib(int flags)
-+{
-+	return flags & PVRDMA_MASK(PVRDMA_ACCESS_FLAGS_MAX);
-+}
-+
-+static inline enum pvrdma_qp_type ib_qp_type_to_pvrdma(enum ib_qp_type type)
-+{
-+	return (enum pvrdma_qp_type)type;
-+}
-+
-+static inline enum ib_qp_type pvrdma_qp_type_to_ib(enum pvrdma_qp_type type)
-+{
-+	return (enum ib_qp_type)type;
-+}
-+
-+static inline enum pvrdma_qp_state ib_qp_state_to_pvrdma(enum ib_qp_state state)
-+{
-+	return (enum pvrdma_qp_state)state;
-+}
-+
-+static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
-+{
-+	return (enum ib_qp_state)state;
-+}
-+
-+static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
-+{
-+	return (enum pvrdma_wr_opcode)op;
-+}
-+
-+static inline enum ib_wc_status pvrdma_wc_status_to_ib(
-+					enum pvrdma_wc_status status)
-+{
-+	return (enum ib_wc_status)status;
-+}
-+
-+static inline int pvrdma_wc_opcode_to_ib(int opcode)
-+{
-+	return opcode;
-+}
-+
-+static inline int pvrdma_wc_flags_to_ib(int flags)
-+{
-+	return flags;
-+}
-+
-+static inline int ib_send_flags_to_pvrdma(int flags)
-+{
-+	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
-+}
-+
-+void pvrdma_qp_cap_to_ib(const struct pvrdma_qp_cap *src,
-+			 struct ib_qp_cap *dst);
-+void ib_qp_cap_to_pvrdma(const struct ib_qp_cap *src,
-+			 struct pvrdma_qp_cap *dst);
-+void pvrdma_gid_to_ib(const union pvrdma_gid *src, union ib_gid *dst);
-+void ib_gid_to_pvrdma(const union ib_gid *src, union pvrdma_gid *dst);
-+void pvrdma_global_route_to_ib(const struct pvrdma_global_route *src,
-+			       struct ib_global_route *dst);
-+void ib_global_route_to_pvrdma(const struct ib_global_route *src,
-+			       struct pvrdma_global_route *dst);
-+void pvrdma_ah_attr_to_ib(const struct pvrdma_ah_attr *src,
-+			  struct ib_ah_attr *dst);
-+void ib_ah_attr_to_pvrdma(const struct ib_ah_attr *src,
-+			  struct pvrdma_ah_attr *dst);
-+
-+int pvrdma_uar_table_init(struct pvrdma_dev *dev);
-+void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
-+
-+int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
-+void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
-+
-+void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq);
-+
-+int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
-+			 u64 npages, bool alloc_pages);
-+void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
-+			     struct pvrdma_page_dir *pdir);
-+int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
-+			       dma_addr_t daddr);
-+int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
-+				struct ib_umem *umem, u64 offset);
-+dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx);
-+int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
-+				     u64 *page_list, int num_pages);
-+
-+int pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
-+		    bool expect, union pvrdma_cmd_resp *rsp);
-+
-+#endif /* __PVRDMA_H__ */
+Adit Ranadive (15):
+  IB/pvrdma: Add paravirtual rdma device
+  IB/pvrdma: Add device command support
+  IB/pvrdma: Add support for Completion Queues
+  IB/pvrdma: Add the paravirtual RDMA device specification
+  IB/pvrdma: Add UAR support
+  IB/pvrdma: Add virtual device RDMA structures
+  IB/pvrdma: Add the main driver module for PVRDMA
+  IB/pvrdma: Add helper functions
+  IB/pvrdma: Add support for memory regions
+  IB/pvrdma: Add Queue Pair support
+  IB/pvrdma: Add user-level shared functions
+  IB/pvrdma: Add functions for Verbs support
+  IB/pvrdma: Add Kconfig and Makefile
+  IB: Add PVRDMA driver
+  MAINTAINERS: Update for PVRDMA driver
+
+ MAINTAINERS                                    |    7 +
+ drivers/infiniband/Kconfig                     |    1 +
+ drivers/infiniband/hw/Makefile                 |    1 +
+ drivers/infiniband/hw/pvrdma/Kconfig           |    8 +
+ drivers/infiniband/hw/pvrdma/Makefile          |    3 +
+ drivers/infiniband/hw/pvrdma/pvrdma.h          |  459 +++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_cmd.c      |  104 +++
+ drivers/infiniband/hw/pvrdma/pvrdma_cq.c       |  436 +++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_defs.h     |  300 ++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h  |  342 +++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c |  128 +++
+ drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h |  450 +++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_main.c     | 1189 ++++++++++++++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_misc.c     |  309 ++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_mr.c       |  333 +++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_qp.c       |  976 +++++++++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_uapi.h     |  247 +++++
+ drivers/infiniband/hw/pvrdma/pvrdma_user.h     |   99 ++
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.c    |  593 ++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.h    |  108 +++
+ 20 files changed, 6093 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/pvrdma/Makefile
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cq.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_defs.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_main.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_misc.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_qp.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.h
+
 -- 
 2.7.4
 
