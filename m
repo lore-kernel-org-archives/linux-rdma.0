@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 06/15] IB/pvrdma: Add virtual device RDMA structures
-Date: Tue, 12 Jul 2016 12:36:36 -0700
-Message-ID: <1468352205-9137-7-git-send-email-aditr@vmware.com>
+Subject: [PATCH v2 03/15] IB/pvrdma: Add support for Completion Queues
+Date: Tue, 12 Jul 2016 12:36:33 -0700
+Message-ID: <1468352205-9137-4-git-send-email-aditr@vmware.com>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,9 +12,8 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the various Verbs structures that we support in the
-virtual RDMA device. We have re-mapped the ones from the RDMA core stack
-to make sure we can maintain compatibility with our backend.
+This patch adds the support for creating and destroying completion queues
+on the paravirtual RDMA device.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -22,35 +21,33 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450 +++++++++++++++++++++++++
- 1 file changed, 450 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+ drivers/infiniband/hw/pvrdma/pvrdma_cq.c | 436 +++++++++++++++++++++++++++++++
+ 1 file changed, 436 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cq.c
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h b/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/pvrdma/pvrdma_cq.c
 new file mode 100644
-index 0000000..f97d43d
+index 0000000..9a4b42c
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
-@@ -0,0 +1,450 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_cq.c
+@@ -0,0 +1,436 @@
 +/*
-+ * [PLEASE NOTE:  VMWARE, INC. ELECTS TO USE AND DISTRIBUTE THIS COMPONENT
-+ * UNDER THE TERMS OF THE OpenIB.org BSD license.  THE ORIGINAL LICENSE TERMS
-+ * ARE REPRODUCED BELOW ONLY AS A REFERENCE.]
++ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
-+ * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
-+ * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
-+ * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-+ * Copyright (c) 2005, 2006, 2007 Cisco Systems.  All rights reserved.
-+ * Copyright (c) 2015-2016 VMware, Inc.  All rights reserved.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of EITHER the GNU General Public License
++ * version 2 as published by the Free Software Foundation or the BSD
++ * 2-Clause License. This program is distributed in the hope that it
++ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
++ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License version 2 for more details at
++ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * You should have received a copy of the GNU General Public License
++ * along with this program available in the file COPYING in the main
++ * directory of this source tree.
++ *
++ * The BSD 2-Clause License
 + *
 + *     Redistribution and use in source and binary forms, with or
 + *     without modification, are permitted provided that the following
@@ -65,423 +62,411 @@ index 0000000..f97d43d
 + *        disclaimer in the documentation and/or other materials
 + *        provided with the distribution.
 + *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
++ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
++ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
++ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#ifndef __PVRDMA_IB_VERBS_H__
-+#define __PVRDMA_IB_VERBS_H__
++#include <asm/page.h>
++#include <linux/io.h>
++#include <linux/wait.h>
++#include <rdma/ib_addr.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_user_verbs.h>
 +
-+#include <linux/types.h>
++#include "pvrdma.h"
++#include "pvrdma_user.h"
 +
-+union pvrdma_gid {
-+	__u8	raw[16];
-+	struct {
-+		__be64	subnet_prefix;
-+		__be64	interface_id;
-+	} global;
-+};
-+
-+enum pvrdma_link_layer {
-+	PVRDMA_LINK_LAYER_UNSPECIFIED,
-+	PVRDMA_LINK_LAYER_INFINIBAND,
-+	PVRDMA_LINK_LAYER_ETHERNET,
-+};
-+
-+enum pvrdma_mtu {
-+	PVRDMA_MTU_256  = 1,
-+	PVRDMA_MTU_512  = 2,
-+	PVRDMA_MTU_1024 = 3,
-+	PVRDMA_MTU_2048 = 4,
-+	PVRDMA_MTU_4096 = 5
-+};
-+
-+static inline int pvrdma_mtu_enum_to_int(enum pvrdma_mtu mtu)
++/**
++ * pvrdma_req_notify_cq - request notification for a completion queue
++ * @ibcq: the completion queue
++ * @notify_flags: notification flags
++ *
++ * @return: 0 for success.
++ */
++int pvrdma_req_notify_cq(struct ib_cq *ibcq,
++			 enum ib_cq_notify_flags notify_flags)
 +{
-+	switch (mtu) {
-+	case PVRDMA_MTU_256:	return  256;
-+	case PVRDMA_MTU_512:	return  512;
-+	case PVRDMA_MTU_1024:	return 1024;
-+	case PVRDMA_MTU_2048:	return 2048;
-+	case PVRDMA_MTU_4096:	return 4096;
-+	default:		return   -1;
++	struct pvrdma_dev *dev = to_vdev(ibcq->device);
++	struct pvrdma_cq *cq = to_vcq(ibcq);
++	u32 val = cq->cq_handle;
++
++	val |= (notify_flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
++		PVRDMA_UAR_CQ_ARM_SOL : PVRDMA_UAR_CQ_ARM;
++
++	writel(cpu_to_le32(val), dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
++
++	return 0;
++}
++
++/**
++ * pvrdma_create_cq - create completion queue
++ * @ibdev: the device
++ * @attr: completion queue attributes
++ * @context: user context
++ * @udata: user data
++ *
++ * @return: ib_cq completion queue pointer on success,
++ *          otherwise returns negative errno.
++ */
++struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
++			       const struct ib_cq_init_attr *attr,
++			       struct ib_ucontext *context,
++			       struct ib_udata *udata)
++{
++	int entries = attr->cqe;
++	struct pvrdma_dev *dev = to_vdev(ibdev);
++	struct pvrdma_cq *cq;
++	int ret;
++	int npages;
++	unsigned long flags;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_cq *cmd = &req.create_cq;
++	struct pvrdma_cmd_create_cq_resp *resp = &rsp.create_cq_resp;
++	struct pvrdma_create_cq ucmd;
++
++	BUILD_BUG_ON(sizeof(struct pvrdma_cqe) != 64);
++
++	entries = roundup_pow_of_two(entries);
++	if (entries < 1 || entries > dev->dsr->caps.max_cqe)
++		return ERR_PTR(-EINVAL);
++
++	if (!atomic_add_unless(&dev->num_cqs, 1, dev->dsr->caps.max_cq))
++		return ERR_PTR(-EINVAL);
++
++	cq = kzalloc(sizeof(*cq), GFP_KERNEL);
++	if (!cq) {
++		atomic_dec(&dev->num_cqs);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	cq->ibcq.cqe = entries;
++
++	if (context) {
++		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
++			ret = -EFAULT;
++			goto err_cq;
++		}
++
++		cq->umem = ib_umem_get(context, ucmd.buf_addr, ucmd.buf_size,
++				       IB_ACCESS_LOCAL_WRITE, 1);
++		if (IS_ERR(cq->umem)) {
++			ret = PTR_ERR(cq->umem);
++			goto err_cq;
++		}
++
++		npages = ib_umem_page_count(cq->umem);
++	} else {
++		cq->is_kernel = true;
++
++		/* One extra page for shared ring state */
++		npages = 1 + (entries * sizeof(struct pvrdma_cqe) +
++			      PAGE_SIZE - 1) / PAGE_SIZE;
++
++		/* Skip header page. */
++		cq->offset = PAGE_SIZE;
++	}
++
++	if (npages < 0 || npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
++		dev_warn(&dev->pdev->dev,
++			 "overflow pages in completion queue\n");
++		ret = -EINVAL;
++		goto err_umem;
++	}
++
++	ret = pvrdma_page_dir_init(dev, &cq->pdir, npages, cq->is_kernel);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "could not allocate page directory\n");
++		goto err_umem;
++	}
++
++	if (cq->is_kernel) {
++		/* Ring state is always the first page. */
++		cq->ring_state = cq->pdir.pages[0];
++	} else {
++		pvrdma_page_dir_insert_umem(&cq->pdir, cq->umem, 0);
++	}
++
++	atomic_set(&cq->refcnt, 1);
++	init_waitqueue_head(&cq->wait);
++	spin_lock_init(&cq->cq_lock);
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_CQ;
++	cmd->nchunks = npages;
++	cmd->ctx_handle = (context) ?
++		(u64)to_vucontext(context)->ctx_handle : 0;
++	cmd->cqe = entries;
++	cmd->pdir_dma = cq->pdir.dir_dma;
++	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
++
++	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_CREATE_CQ_RESP) {
++		dev_warn(&dev->pdev->dev,
++			 "could not create completion queue\n");
++		goto err_page_dir;
++	}
++
++	cq->ibcq.cqe = resp->cqe;
++	cq->cq_handle = resp->cq_handle;
++	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
++	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
++	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
++
++	if (context) {
++		cq->uar = &(to_vucontext(context)->uar);
++
++		/* Copy udata back. */
++		if (ib_copy_to_udata(udata, &cq->cq_handle, sizeof(__u32))) {
++			dev_warn(&dev->pdev->dev,
++				 "failed to copy back udata\n");
++			ret = -EINVAL;
++			goto err_page_dir;
++		}
++	}
++
++	return &cq->ibcq;
++
++err_page_dir:
++	pvrdma_page_dir_cleanup(dev, &cq->pdir);
++err_umem:
++	if (context)
++		ib_umem_release(cq->umem);
++err_cq:
++	atomic_dec(&dev->num_cqs);
++	kfree(cq);
++
++	return ERR_PTR(ret);
++}
++
++static void pvrdma_free_cq(struct pvrdma_dev *dev, struct pvrdma_cq *cq)
++{
++	atomic_dec(&cq->refcnt);
++	wait_event(cq->wait, !atomic_read(&cq->refcnt));
++
++	if (!cq->is_kernel)
++		ib_umem_release(cq->umem);
++
++	pvrdma_page_dir_cleanup(dev, &cq->pdir);
++	kfree(cq);
++}
++
++/**
++ * pvrdma_destroy_cq - destroy completion queue
++ * @cq: the completion queue to destroy.
++ *
++ * @return: 0 for success.
++ */
++int pvrdma_destroy_cq(struct ib_cq *cq)
++{
++	struct pvrdma_cq *vcq = to_vcq(cq);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_destroy_cq *cmd = &req.destroy_cq;
++	struct pvrdma_dev *dev = to_vdev(cq->device);
++	unsigned long flags;
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_CQ;
++	cmd->cq_handle = vcq->cq_handle;
++
++	ret = pvrdma_cmd_post(dev, &req, false, &rsp);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev,
++			 "could not destroy completion queue\n");
++
++	/* free cq's resources */
++	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
++	dev->cq_tbl[vcq->cq_handle] = NULL;
++	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
++
++	pvrdma_free_cq(dev, vcq);
++	atomic_dec(&dev->num_cqs);
++
++	return ret;
++}
++
++/**
++ * pvrdma_modify_cq - modify the CQ moderation parameters
++ * @ibcq: the CQ to modify
++ * @cq_count: number of CQEs that will trigger an event
++ * @cq_period: max period of time in usec before triggering an event
++ *
++ * @return: -EOPNOTSUPP as CQ resize is not supported.
++ */
++int pvrdma_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline struct pvrdma_cqe *get_cqe(struct pvrdma_cq *cq, int i)
++{
++	return (struct pvrdma_cqe *)pvrdma_page_dir_get_ptr(
++					&cq->pdir,
++					cq->offset +
++					sizeof(struct pvrdma_cqe) * i);
++}
++
++void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq)
++{
++	int head;
++	int has_data;
++
++	if (!cq->is_kernel)
++		return;
++
++	/* Lock held */
++	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
++					    cq->ibcq.cqe, &head);
++	if (unlikely(has_data > 0)) {
++		int items;
++		int curr;
++		int tail = pvrdma_idx(&cq->ring_state->rx.prod_tail,
++				      cq->ibcq.cqe);
++		struct pvrdma_cqe *cqe;
++		struct pvrdma_cqe *curr_cqe;
++
++		items = (tail > head) ? (tail - head) :
++			(cq->ibcq.cqe - head + tail);
++		curr = --tail;
++		while (items-- > 0) {
++			if (curr < 0)
++				curr = cq->ibcq.cqe - 1;
++			if (tail < 0)
++				tail = cq->ibcq.cqe - 1;
++			curr_cqe = get_cqe(cq, curr);
++			if ((curr_cqe->qp & 0xFFFF) != qp->qp_handle) {
++				if (curr != tail) {
++					cqe = get_cqe(cq, tail);
++					*cqe = *curr_cqe;
++				}
++				tail--;
++			} else {
++				pvrdma_idx_ring_inc(
++					&cq->ring_state->rx.cons_head,
++					cq->ibcq.cqe);
++			}
++			curr--;
++		}
 +	}
 +}
 +
-+static inline enum pvrdma_mtu pvrdma_mtu_int_to_enum(int mtu)
++static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp **cur_qp,
++			   struct ib_wc *wc)
 +{
-+	switch (mtu) {
-+	case 256:	return PVRDMA_MTU_256;
-+	case 512:	return PVRDMA_MTU_512;
-+	case 1024:	return PVRDMA_MTU_1024;
-+	case 2048:	return PVRDMA_MTU_2048;
-+	case 4096:
-+	default:	return PVRDMA_MTU_4096;
++	struct pvrdma_dev *dev = to_vdev(cq->ibcq.device);
++	int has_data;
++	unsigned int head;
++	bool tried = false;
++	struct pvrdma_cqe *cqe;
++
++retry:
++	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
++					    cq->ibcq.cqe, &head);
++	if (has_data == 0) {
++		u32 val;
++
++		if (tried)
++			return -EAGAIN;
++
++		/* Pass down POLL to give physical HCA a chance to poll. */
++		val = cq->cq_handle | PVRDMA_UAR_CQ_POLL;
++		writel(cpu_to_le32(val),
++		       dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
++
++		tried = true;
++		goto retry;
++	} else if (has_data == -1) {
++		return -EINVAL;
 +	}
++
++	cqe = get_cqe(cq, head);
++
++	/* Ensure cqe is valid. */
++	rmb();
++	if (dev->qp_tbl[cqe->qp & 0xffff])
++		*cur_qp = (struct pvrdma_qp *)dev->qp_tbl[cqe->qp & 0xffff];
++	else
++		return -EINVAL;
++
++	wc->opcode = pvrdma_wc_opcode_to_ib(cqe->opcode);
++	wc->status = pvrdma_wc_status_to_ib(cqe->status);
++	wc->wr_id = cqe->wr_id;
++	wc->qp = &(*cur_qp)->ibqp;
++	wc->byte_len = cqe->byte_len;
++	wc->ex.imm_data = cqe->imm_data;
++	wc->src_qp = cqe->src_qp;
++	wc->wc_flags = pvrdma_wc_flags_to_ib(cqe->wc_flags);
++	wc->pkey_index = cqe->pkey_index;
++	wc->slid = cqe->slid;
++	wc->sl = cqe->sl;
++	wc->dlid_path_bits = cqe->dlid_path_bits;
++	wc->port_num = cqe->port_num;
++	wc->vendor_err = 0;
++
++	/* Update shared ring state */
++	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq->ibcq.cqe);
++
++	return 0;
 +}
 +
-+enum pvrdma_port_state {
-+	PVRDMA_PORT_NOP			= 0,
-+	PVRDMA_PORT_DOWN		= 1,
-+	PVRDMA_PORT_INIT		= 2,
-+	PVRDMA_PORT_ARMED		= 3,
-+	PVRDMA_PORT_ACTIVE		= 4,
-+	PVRDMA_PORT_ACTIVE_DEFER	= 5
-+};
-+
-+enum pvrdma_port_cap_flags {
-+	PVRDMA_PORT_SM				= 1 <<  1,
-+	PVRDMA_PORT_NOTICE_SUP			= 1 <<  2,
-+	PVRDMA_PORT_TRAP_SUP			= 1 <<  3,
-+	PVRDMA_PORT_OPT_IPD_SUP			= 1 <<  4,
-+	PVRDMA_PORT_AUTO_MIGR_SUP		= 1 <<  5,
-+	PVRDMA_PORT_SL_MAP_SUP			= 1 <<  6,
-+	PVRDMA_PORT_MKEY_NVRAM			= 1 <<  7,
-+	PVRDMA_PORT_PKEY_NVRAM			= 1 <<  8,
-+	PVRDMA_PORT_LED_INFO_SUP		= 1 <<  9,
-+	PVRDMA_PORT_SM_DISABLED			= 1 << 10,
-+	PVRDMA_PORT_SYS_IMAGE_GUID_SUP		= 1 << 11,
-+	PVRDMA_PORT_PKEY_SW_EXT_PORT_TRAP_SUP	= 1 << 12,
-+	PVRDMA_PORT_EXTENDED_SPEEDS_SUP		= 1 << 14,
-+	PVRDMA_PORT_CM_SUP			= 1 << 16,
-+	PVRDMA_PORT_SNMP_TUNNEL_SUP		= 1 << 17,
-+	PVRDMA_PORT_REINIT_SUP			= 1 << 18,
-+	PVRDMA_PORT_DEVICE_MGMT_SUP		= 1 << 19,
-+	PVRDMA_PORT_VENDOR_CLASS_SUP		= 1 << 20,
-+	PVRDMA_PORT_DR_NOTICE_SUP		= 1 << 21,
-+	PVRDMA_PORT_CAP_MASK_NOTICE_SUP		= 1 << 22,
-+	PVRDMA_PORT_BOOT_MGMT_SUP		= 1 << 23,
-+	PVRDMA_PORT_LINK_LATENCY_SUP		= 1 << 24,
-+	PVRDMA_PORT_CLIENT_REG_SUP		= 1 << 25,
-+	PVRDMA_PORT_IP_BASED_GIDS		= 1 << 26,
-+	PVRDMA_PORT_CAP_FLAGS_MAX		= PVRDMA_PORT_IP_BASED_GIDS,
-+};
-+
-+enum pvrdma_port_width {
-+	PVRDMA_WIDTH_1X		= 1,
-+	PVRDMA_WIDTH_4X		= 2,
-+	PVRDMA_WIDTH_8X		= 4,
-+	PVRDMA_WIDTH_12X	= 8
-+};
-+
-+static inline int pvrdma_width_enum_to_int(enum pvrdma_port_width width)
++/**
++ * pvrdma_poll_cq - poll for work completion queue entries
++ * @ibcq: completion queue
++ * @num_entries: the maximum number of entries
++ * @entry: pointer to work completion array
++ *
++ * @return: number of polled completion entries
++ */
++int pvrdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
 +{
-+	switch (width) {
-+	case PVRDMA_WIDTH_1X:	return  1;
-+	case PVRDMA_WIDTH_4X:	return  4;
-+	case PVRDMA_WIDTH_8X:	return  8;
-+	case PVRDMA_WIDTH_12X:	return 12;
-+	default:		return -1;
++	struct pvrdma_cq *cq = to_vcq(ibcq);
++	struct pvrdma_qp *cur_qp = NULL;
++	unsigned long flags;
++	int npolled;
++	int ret;
++
++	if (num_entries < 1)
++		return -EINVAL;
++
++	spin_lock_irqsave(&cq->cq_lock, flags);
++	for (npolled = 0; npolled < num_entries; ++npolled) {
++		ret = pvrdma_poll_one(cq, &cur_qp, wc + npolled);
++		if (ret)
++			break;
 +	}
++
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	if ((ret == 0) || (ret == -EAGAIN))
++		return npolled;
++	else
++		return ret;
 +}
 +
-+enum pvrdma_port_speed {
-+	PVRDMA_SPEED_SDR	= 1,
-+	PVRDMA_SPEED_DDR	= 2,
-+	PVRDMA_SPEED_QDR	= 4,
-+	PVRDMA_SPEED_FDR10	= 8,
-+	PVRDMA_SPEED_FDR	= 16,
-+	PVRDMA_SPEED_EDR	= 32
-+};
-+
-+struct pvrdma_port_attr {
-+	enum pvrdma_port_state	state;
-+	enum pvrdma_mtu		max_mtu;
-+	enum pvrdma_mtu		active_mtu;
-+	__u32			gid_tbl_len;
-+	__u32			port_cap_flags;
-+	__u32			max_msg_sz;
-+	__u32			bad_pkey_cntr;
-+	__u32			qkey_viol_cntr;
-+	__u16			pkey_tbl_len;
-+	__u16			lid;
-+	__u16			sm_lid;
-+	__u8			lmc;
-+	__u8			max_vl_num;
-+	__u8			sm_sl;
-+	__u8			subnet_timeout;
-+	__u8			init_type_reply;
-+	__u8			active_width;
-+	__u8			active_speed;
-+	__u8			phys_state;
-+	__u8			reserved[2];
-+};
-+
-+struct pvrdma_global_route {
-+	union pvrdma_gid	dgid;
-+	__u32			flow_label;
-+	__u8			sgid_index;
-+	__u8			hop_limit;
-+	__u8			traffic_class;
-+	__u8			reserved;
-+};
-+
-+struct pvrdma_grh {
-+	__be32			version_tclass_flow;
-+	__be16			paylen;
-+	__u8			next_hdr;
-+	__u8			hop_limit;
-+	union pvrdma_gid	sgid;
-+	union pvrdma_gid	dgid;
-+};
-+
-+enum pvrdma_ah_flags {
-+	PVRDMA_AH_GRH = 1
-+};
-+
-+enum pvrdma_rate {
-+	PVRDMA_RATE_PORT_CURRENT = 0,
-+	PVRDMA_RATE_2_5_GBPS = 2,
-+	PVRDMA_RATE_5_GBPS   = 5,
-+	PVRDMA_RATE_10_GBPS  = 3,
-+	PVRDMA_RATE_20_GBPS  = 6,
-+	PVRDMA_RATE_30_GBPS  = 4,
-+	PVRDMA_RATE_40_GBPS  = 7,
-+	PVRDMA_RATE_60_GBPS  = 8,
-+	PVRDMA_RATE_80_GBPS  = 9,
-+	PVRDMA_RATE_120_GBPS = 10,
-+	PVRDMA_RATE_14_GBPS  = 11,
-+	PVRDMA_RATE_56_GBPS  = 12,
-+	PVRDMA_RATE_112_GBPS = 13,
-+	PVRDMA_RATE_168_GBPS = 14,
-+	PVRDMA_RATE_25_GBPS  = 15,
-+	PVRDMA_RATE_100_GBPS = 16,
-+	PVRDMA_RATE_200_GBPS = 17,
-+	PVRDMA_RATE_300_GBPS = 18
-+};
-+
-+struct pvrdma_ah_attr {
-+	struct pvrdma_global_route	grh;
-+	__u16				dlid;
-+	__u16				vlan_id;
-+	__u8				sl;
-+	__u8				src_path_bits;
-+	__u8				static_rate;
-+	__u8				ah_flags;
-+	__u8				port_num;
-+	__u8				dmac[6];
-+	__u8				reserved;
-+};
-+
-+enum pvrdma_wc_status {
-+	PVRDMA_WC_SUCCESS,
-+	PVRDMA_WC_LOC_LEN_ERR,
-+	PVRDMA_WC_LOC_QP_OP_ERR,
-+	PVRDMA_WC_LOC_EEC_OP_ERR,
-+	PVRDMA_WC_LOC_PROT_ERR,
-+	PVRDMA_WC_WR_FLUSH_ERR,
-+	PVRDMA_WC_MW_BIND_ERR,
-+	PVRDMA_WC_BAD_RESP_ERR,
-+	PVRDMA_WC_LOC_ACCESS_ERR,
-+	PVRDMA_WC_REM_INV_REQ_ERR,
-+	PVRDMA_WC_REM_ACCESS_ERR,
-+	PVRDMA_WC_REM_OP_ERR,
-+	PVRDMA_WC_RETRY_EXC_ERR,
-+	PVRDMA_WC_RNR_RETRY_EXC_ERR,
-+	PVRDMA_WC_LOC_RDD_VIOL_ERR,
-+	PVRDMA_WC_REM_INV_RD_REQ_ERR,
-+	PVRDMA_WC_REM_ABORT_ERR,
-+	PVRDMA_WC_INV_EECN_ERR,
-+	PVRDMA_WC_INV_EEC_STATE_ERR,
-+	PVRDMA_WC_FATAL_ERR,
-+	PVRDMA_WC_RESP_TIMEOUT_ERR,
-+	PVRDMA_WC_GENERAL_ERR
-+};
-+
-+enum pvrdma_wc_opcode {
-+	PVRDMA_WC_SEND,
-+	PVRDMA_WC_RDMA_WRITE,
-+	PVRDMA_WC_RDMA_READ,
-+	PVRDMA_WC_COMP_SWAP,
-+	PVRDMA_WC_FETCH_ADD,
-+	PVRDMA_WC_BIND_MW,
-+	PVRDMA_WC_LSO,
-+	PVRDMA_WC_LOCAL_INV,
-+	PVRDMA_WC_FAST_REG_MR,
-+	PVRDMA_WC_MASKED_COMP_SWAP,
-+	PVRDMA_WC_MASKED_FETCH_ADD,
-+	PVRDMA_WC_RECV = 1 << 7,
-+	PVRDMA_WC_RECV_RDMA_WITH_IMM
-+};
-+
-+enum pvrdma_wc_flags {
-+	PVRDMA_WC_GRH			= 1 << 0,
-+	PVRDMA_WC_WITH_IMM		= 1 << 1,
-+	PVRDMA_WC_WITH_INVALIDATE	= 1 << 2,
-+	PVRDMA_WC_IP_CSUM_OK		= 1 << 3,
-+	PVRDMA_WC_WITH_SMAC		= 1 << 4,
-+	PVRDMA_WC_WITH_VLAN		= 1 << 5,
-+	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_VLAN,
-+};
-+
-+enum pvrdma_cq_notify_flags {
-+	PVRDMA_CQ_SOLICITED		= 1 << 0,
-+	PVRDMA_CQ_NEXT_COMP		= 1 << 1,
-+	PVRDMA_CQ_SOLICITED_MASK	= PVRDMA_CQ_SOLICITED |
-+					  PVRDMA_CQ_NEXT_COMP,
-+	PVRDMA_CQ_REPORT_MISSED_EVENTS	= 1 << 2,
-+};
-+
-+struct pvrdma_qp_cap {
-+	__u32	max_send_wr;
-+	__u32	max_recv_wr;
-+	__u32	max_send_sge;
-+	__u32	max_recv_sge;
-+	__u32	max_inline_data;
-+	__u32	reserved;
-+};
-+
-+enum pvrdma_sig_type {
-+	PVRDMA_SIGNAL_ALL_WR,
-+	PVRDMA_SIGNAL_REQ_WR
-+};
-+
-+enum pvrdma_qp_type {
-+	PVRDMA_QPT_SMI,
-+	PVRDMA_QPT_GSI,
-+	PVRDMA_QPT_RC,
-+	PVRDMA_QPT_UC,
-+	PVRDMA_QPT_UD,
-+	PVRDMA_QPT_RAW_IPV6,
-+	PVRDMA_QPT_RAW_ETHERTYPE,
-+	PVRDMA_QPT_RAW_PACKET = 8,
-+	PVRDMA_QPT_XRC_INI = 9,
-+	PVRDMA_QPT_XRC_TGT,
-+	PVRDMA_QPT_MAX,
-+};
-+
-+enum pvrdma_qp_create_flags {
-+	PVRDMA_QP_CREATE_IPOPVRDMA_UD_LSO		= 1 << 0,
-+	PVRDMA_QP_CREATE_BLOCK_MULTICAST_LOOPBACK	= 1 << 1,
-+};
-+
-+enum pvrdma_qp_attr_mask {
-+	PVRDMA_QP_STATE			= 1 << 0,
-+	PVRDMA_QP_CUR_STATE		= 1 << 1,
-+	PVRDMA_QP_EN_SQD_ASYNC_NOTIFY	= 1 << 2,
-+	PVRDMA_QP_ACCESS_FLAGS		= 1 << 3,
-+	PVRDMA_QP_PKEY_INDEX		= 1 << 4,
-+	PVRDMA_QP_PORT			= 1 << 5,
-+	PVRDMA_QP_QKEY			= 1 << 6,
-+	PVRDMA_QP_AV			= 1 << 7,
-+	PVRDMA_QP_PATH_MTU		= 1 << 8,
-+	PVRDMA_QP_TIMEOUT		= 1 << 9,
-+	PVRDMA_QP_RETRY_CNT		= 1 << 10,
-+	PVRDMA_QP_RNR_RETRY		= 1 << 11,
-+	PVRDMA_QP_RQ_PSN		= 1 << 12,
-+	PVRDMA_QP_MAX_QP_RD_ATOMIC	= 1 << 13,
-+	PVRDMA_QP_ALT_PATH		= 1 << 14,
-+	PVRDMA_QP_MIN_RNR_TIMER		= 1 << 15,
-+	PVRDMA_QP_SQ_PSN		= 1 << 16,
-+	PVRDMA_QP_MAX_DEST_RD_ATOMIC	= 1 << 17,
-+	PVRDMA_QP_PATH_MIG_STATE	= 1 << 18,
-+	PVRDMA_QP_CAP			= 1 << 19,
-+	PVRDMA_QP_DEST_QPN		= 1 << 20,
-+	PVRDMA_QP_ATTR_MASK_MAX		= PVRDMA_QP_DEST_QPN,
-+};
-+
-+enum pvrdma_qp_state {
-+	PVRDMA_QPS_RESET,
-+	PVRDMA_QPS_INIT,
-+	PVRDMA_QPS_RTR,
-+	PVRDMA_QPS_RTS,
-+	PVRDMA_QPS_SQD,
-+	PVRDMA_QPS_SQE,
-+	PVRDMA_QPS_ERR
-+};
-+
-+enum pvrdma_mig_state {
-+	PVRDMA_MIG_MIGRATED,
-+	PVRDMA_MIG_REARM,
-+	PVRDMA_MIG_ARMED
-+};
-+
-+enum pvrdma_mw_type {
-+	PVRDMA_MW_TYPE_1 = 1,
-+	PVRDMA_MW_TYPE_2 = 2
-+};
-+
-+struct pvrdma_qp_attr {
-+	enum pvrdma_qp_state	qp_state;
-+	enum pvrdma_qp_state	cur_qp_state;
-+	enum pvrdma_mtu		path_mtu;
-+	enum pvrdma_mig_state	path_mig_state;
-+	__u32			qkey;
-+	__u32			rq_psn;
-+	__u32			sq_psn;
-+	__u32			dest_qp_num;
-+	__u32			qp_access_flags;
-+	__u16			pkey_index;
-+	__u16			alt_pkey_index;
-+	__u8			en_sqd_async_notify;
-+	__u8			sq_draining;
-+	__u8			max_rd_atomic;
-+	__u8			max_dest_rd_atomic;
-+	__u8			min_rnr_timer;
-+	__u8			port_num;
-+	__u8			timeout;
-+	__u8			retry_cnt;
-+	__u8			rnr_retry;
-+	__u8			alt_port_num;
-+	__u8			alt_timeout;
-+	__u8			reserved[5];
-+	struct pvrdma_qp_cap	cap;
-+	struct pvrdma_ah_attr	ah_attr;
-+	struct pvrdma_ah_attr	alt_ah_attr;
-+};
-+
-+enum pvrdma_wr_opcode {
-+	PVRDMA_WR_RDMA_WRITE,
-+	PVRDMA_WR_RDMA_WRITE_WITH_IMM,
-+	PVRDMA_WR_SEND,
-+	PVRDMA_WR_SEND_WITH_IMM,
-+	PVRDMA_WR_RDMA_READ,
-+	PVRDMA_WR_ATOMIC_CMP_AND_SWP,
-+	PVRDMA_WR_ATOMIC_FETCH_AND_ADD,
-+	PVRDMA_WR_LSO,
-+	PVRDMA_WR_SEND_WITH_INV,
-+	PVRDMA_WR_RDMA_READ_WITH_INV,
-+	PVRDMA_WR_LOCAL_INV,
-+	PVRDMA_WR_FAST_REG_MR,
-+	PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP,
-+	PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD,
-+	PVRDMA_WR_BIND_MW,
-+	PVRDMA_WR_REG_SIG_MR,
-+};
-+
-+enum pvrdma_send_flags {
-+	PVRDMA_SEND_FENCE	= 1 << 0,
-+	PVRDMA_SEND_SIGNALED	= 1 << 1,
-+	PVRDMA_SEND_SOLICITED	= 1 << 2,
-+	PVRDMA_SEND_INLINE	= 1 << 3,
-+	PVRDMA_SEND_IP_CSUM	= 1 << 4,
-+	PVRDMA_SEND_FLAGS_MAX	= PVRDMA_SEND_IP_CSUM,
-+};
-+
-+struct pvrdma_sge {
-+	__u64	addr;
-+	__u32	length;
-+	__u32	lkey;
-+};
-+
-+enum pvrdma_access_flags {
-+	PVRDMA_ACCESS_LOCAL_WRITE	= 1 << 0,
-+	PVRDMA_ACCESS_REMOTE_WRITE	= 1 << 1,
-+	PVRDMA_ACCESS_REMOTE_READ	= 1 << 2,
-+	PVRDMA_ACCESS_REMOTE_ATOMIC	= 1 << 3,
-+	PVRDMA_ACCESS_MW_BIND		= 1 << 4,
-+	PVRDMA_ZERO_BASED		= 1 << 5,
-+	PVRDMA_ACCESS_ON_DEMAND		= 1 << 6,
-+	PVRDMA_ACCESS_FLAGS_MAX		= PVRDMA_ACCESS_ON_DEMAND,
-+};
-+
-+#endif /* __PVRDMA_IB_VERBS_H__ */
++/**
++ * pvrdma_resize_cq - resize CQ
++ * @ibcq: the completion queue
++ * @entries: CQ entries
++ * @udata: user data
++ *
++ * @return: -EOPNOTSUPP as CQ resize is not supported.
++ */
++int pvrdma_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
++{
++	return -EOPNOTSUPP;
++}
 -- 
 2.7.4
 
