@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 02/15] IB/pvrdma: Add device command support
-Date: Tue, 12 Jul 2016 12:36:32 -0700
-Message-ID: <1468352205-9137-3-git-send-email-aditr@vmware.com>
+Subject: [PATCH v2 05/15] IB/pvrdma: Add UAR support
+Date: Tue, 12 Jul 2016 12:36:35 -0700
+Message-ID: <1468352205-9137-6-git-send-email-aditr@vmware.com>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,8 +12,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch enables posting Verb requests and receiving responses to/from
-the backend PVRDMA emulation layer.
+This patch adds the UAR support for the paravirtual RDMA device. The UAR
+pages are MMIO pages from the virtual PCI space. We define offsets within
+this page to provide the fast data-path operations.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -21,16 +22,16 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_cmd.c | 104 ++++++++++++++++++++++++++++++
- 1 file changed, 104 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+ drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128 +++++++++++++++++++++++++
+ 1 file changed, 128 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
 new file mode 100644
-index 0000000..c22debf
+index 0000000..d854f6d
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-@@ -0,0 +1,104 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+@@ -0,0 +1,128 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -76,64 +77,88 @@ index 0000000..c22debf
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#include <linux/list.h>
++#include <linux/bitmap.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
 +
 +#include "pvrdma.h"
 +
-+#define PVRDMA_CMD_TIMEOUT	10000 /* ms */
-+
-+static int pvrdma_cmd_recv(struct pvrdma_dev *dev, union pvrdma_cmd_resp *resp)
++int pvrdma_uar_table_init(struct pvrdma_dev *dev)
 +{
-+	dev_dbg(&dev->pdev->dev, "receive response from device\n");
++	u32 num = dev->dsr->caps.max_uar;
++	u32 mask = num - 1;
++	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
 +
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(resp, dev->resp_slot, sizeof(*resp));
-+	spin_unlock(&dev->cmd_lock);
++	/* Power of 2 */
++	if (num != 1 << (ffs(num) - 1))
++		return -EINVAL;
++
++	tbl->last = 0;
++	tbl->top = 0;
++	tbl->max = num;
++	tbl->mask = mask;
++	spin_lock_init(&tbl->lock);
++	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
++	if (!tbl->table)
++		return -ENOMEM;
++
++	/* 0th UAR is taken by the device. */
++	set_bit(0, tbl->table);
 +
 +	return 0;
 +}
 +
-+int
-+pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
-+		bool expect_resp, union pvrdma_cmd_resp *resp)
++void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
 +{
-+	int err;
++	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
 +
-+	dev_dbg(&dev->pdev->dev, "post request to device\n");
++	kfree(tbl->table);
++}
 +
-+	/* Serializiation */
-+	down(&dev->cmd_sema);
++int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
++{
++	struct pvrdma_id_table *tbl;
++	unsigned long flags;
++	u32 obj;
 +
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(dev->cmd_slot, req, sizeof(*req));
-+	spin_unlock(&dev->cmd_lock);
++	tbl = &dev->uar_table.tbl;
 +
-+	init_completion(&dev->cmd_done);
-+	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-+
-+	/* Make sure the request is written before reading status. */
-+	mb();
-+	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-+	if (err == 0) {
-+		if (expect_resp) {
-+			err = wait_for_completion_interruptible_timeout(
-+				&dev->cmd_done,
-+				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
-+			if (err == 0) {
-+				dev_warn(&dev->pdev->dev,
-+					 "completion timeout\n");
-+				err = -ETIMEDOUT;
-+			} else {
-+				err = pvrdma_cmd_recv(dev, resp);
-+			}
-+		}
-+	} else {
-+		dev_warn(&dev->pdev->dev, "failed to write request %d\n", err);
++	spin_lock_irqsave(&tbl->lock, flags);
++	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
++	if (obj >= tbl->max) {
++		tbl->top = (tbl->top + tbl->max) & tbl->mask;
++		obj = find_first_zero_bit(tbl->table, tbl->max);
 +	}
 +
-+	up(&dev->cmd_sema);
++	if (obj < tbl->max) {
++		set_bit(obj, tbl->table);
++		obj |= tbl->top;
++	} else {
++		spin_unlock_irqrestore(&tbl->lock, flags);
++		return -ENOMEM;
++	}
 +
-+	return err;
++	spin_unlock_irqrestore(&tbl->lock, flags);
++
++	uar->index = obj;
++	uar->pfn = (pci_resource_start(dev->pdev, PVRDMA_PCI_RESOURCE_UAR) >>
++		    PAGE_SHIFT) + uar->index;
++
++	return 0;
++}
++
++void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
++{
++	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
++	unsigned long flags;
++	u32 obj;
++
++	obj = uar->index & (tbl->max - 1);
++	spin_lock_irqsave(&tbl->lock, flags);
++	clear_bit(obj, tbl->table);
++	tbl->last = min(tbl->last, obj);
++	tbl->top = (tbl->top + tbl->max) & tbl->mask;
++	spin_unlock_irqrestore(&tbl->lock, flags);
 +}
 -- 
 2.7.4
