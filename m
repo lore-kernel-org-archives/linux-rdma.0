@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 05/15] IB/pvrdma: Add UAR support
-Date: Tue, 12 Jul 2016 12:36:35 -0700
-Message-ID: <1468352205-9137-6-git-send-email-aditr@vmware.com>
+Subject: [PATCH v2 09/15] IB/pvrdma: Add support for memory regions
+Date: Tue, 12 Jul 2016 12:36:39 -0700
+Message-ID: <1468352205-9137-10-git-send-email-aditr@vmware.com>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,9 +12,9 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the UAR support for the paravirtual RDMA device. The UAR
-pages are MMIO pages from the virtual PCI space. We define offsets within
-this page to provide the fast data-path operations.
+This patch adds support for creating and destroying memory regions. The
+PVRDMA device supports User MRs, DMA MRs (no Remote Read/Write support),
+Fast Register MRs.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -22,16 +22,16 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128 +++++++++++++++++++++++++
- 1 file changed, 128 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+ drivers/infiniband/hw/pvrdma/pvrdma_mr.c | 333 +++++++++++++++++++++++++++++++
+ 1 file changed, 333 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_mr.c
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_mr.c b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
 new file mode 100644
-index 0000000..d854f6d
+index 0000000..ea5edd5
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-@@ -0,0 +1,128 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_mr.c
+@@ -0,0 +1,333 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -77,88 +77,293 @@ index 0000000..d854f6d
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#include <linux/bitmap.h>
-+#include <linux/errno.h>
++#include <linux/list.h>
 +#include <linux/slab.h>
 +
 +#include "pvrdma.h"
 +
-+int pvrdma_uar_table_init(struct pvrdma_dev *dev)
++/**
++ * pvrdma_get_dma_mr - get a DMA memory region
++ * @pd: protection domain
++ * @acc: access flags
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
++ */
++struct ib_mr *pvrdma_get_dma_mr(struct ib_pd *pd, int acc)
 +{
-+	u32 num = dev->dsr->caps.max_uar;
-+	u32 mask = num - 1;
-+	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int ret;
 +
-+	/* Power of 2 */
-+	if (num != 1 << (ffs(num) - 1))
-+		return -EINVAL;
++	if (acc != IB_ACCESS_LOCAL_WRITE) {
++		dev_warn(&dev->pdev->dev, "unsupported dma mr access flags\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
 +
-+	tbl->last = 0;
-+	tbl->top = 0;
-+	tbl->max = num;
-+	tbl->mask = mask;
-+	spin_lock_init(&tbl->lock);
-+	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
-+	if (!tbl->table)
-+		return -ENOMEM;
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
 +
-+	/* 0th UAR is taken by the device. */
-+	set_bit(0, tbl->table);
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = acc;
++	cmd->flags = PVRDMA_MR_FLAG_DMA;
++
++	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev, "could not get DMA mem region\n");
++		kfree(mr);
++		return ERR_PTR(ret);
++	}
++
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++
++	return &mr->ibmr;
++}
++
++
++/**
++ * pvrdma_reg_user_mr - register a userspace memory region
++ * @pd: protection domain
++ * @start: starting address
++ * @length: length of region
++ * @virt_addr: I/O virtual address
++ * @access_flags: access flags for memory region
++ * @udata: user data
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
++ */
++struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
++				 u64 virt_addr, int access_flags,
++				 struct ib_udata *udata)
++{
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr = NULL;
++	struct ib_umem *umem;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int nchunks;
++	int ret;
++	int entry;
++	struct scatterlist *sg;
++
++	if (length == 0 || length > dev->dsr->caps.max_mr_size) {
++		dev_warn(&dev->pdev->dev, "invalid mem region length\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	umem = ib_umem_get(pd->uobject->context, start,
++			   length, access_flags, 0);
++	if (IS_ERR(umem)) {
++		dev_warn(&dev->pdev->dev,
++			 "could not get umem for mem region\n");
++		return ERR_CAST(umem);
++	}
++
++	nchunks = 0;
++	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry)
++		nchunks += sg_dma_len(sg) >> PAGE_SHIFT;
++
++	if (nchunks < 0 || nchunks > PVRDMA_PAGE_DIR_MAX_PAGES) {
++		dev_warn(&dev->pdev->dev, "overflow %d pages in mem region\n",
++			 nchunks);
++		ret = -EINVAL;
++		goto err_umem;
++	}
++
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr) {
++		ret = -ENOMEM;
++		goto err_umem;
++	}
++
++	mr->mmr.iova = virt_addr;
++	mr->mmr.size = length;
++	mr->umem = umem;
++
++	ret = pvrdma_page_dir_init(dev, &mr->pdir, nchunks, false);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "could not allocate page directory\n");
++		goto err_umem;
++	}
++
++	ret = pvrdma_page_dir_insert_umem(&mr->pdir, mr->umem, 0);
++	if (ret)
++		goto err_pdir;
++
++	/* Send to host */
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->start = start;
++	cmd->length = length;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = access_flags;
++	cmd->nchunks = nchunks;
++	cmd->pdir_dma = mr->pdir.dir_dma;
++
++	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
++
++	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_CREATE_MR_RESP) {
++		dev_warn(&dev->pdev->dev, "could not register mem region\n");
++		goto err_pdir;
++	}
++
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++
++	return &mr->ibmr;
++
++err_pdir:
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++err_umem:
++	ib_umem_release(umem);
++	kfree(mr);
++
++	return ERR_PTR(ret);
++}
++
++/**
++ * pvrdma_alloc_mr - allocate a memory region
++ * @pd: protection domain
++ * @mr_type: type of memory region
++ * @max_num_sg: maximum number of pages
++ *
++ * @return: ib_mr pointer on success, otherwise returns an errno.
++ */
++struct ib_mr *pvrdma_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
++			      u32 max_num_sg)
++{
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_user_mr *mr;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_mr *cmd = &req.create_mr;
++	struct pvrdma_cmd_create_mr_resp *resp = &rsp.create_mr_resp;
++	int size = max_num_sg * sizeof(u64);
++	int ret;
++
++	if (mr_type != IB_MR_TYPE_MEM_REG ||
++	    max_num_sg > PVRDMA_MAX_FAST_REG_PAGES)
++		return ERR_PTR(-EINVAL);
++
++	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
++	if (!mr)
++		return ERR_PTR(-ENOMEM);
++
++	mr->pages = kzalloc(size, GFP_KERNEL);
++	if (!mr->pages) {
++		ret = -ENOMEM;
++		goto freemr;
++	}
++
++	ret = pvrdma_page_dir_init(dev, &mr->pdir, max_num_sg, false);
++	if (ret) {
++		dev_warn(&dev->pdev->dev,
++			 "failed to allocate page dir for mr\n");
++		ret = -ENOMEM;
++		goto freepages;
++	}
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_MR;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++	cmd->access_flags = 0;
++	cmd->flags = PVRDMA_MR_FLAG_FRMR;
++	cmd->nchunks = max_num_sg;
++
++	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
++	if (ret < 0) {
++		dev_warn(&dev->pdev->dev, "could not create FR mem region\n");
++		ret = -EINVAL;
++		goto freepdir;
++	}
++
++	mr->max_pages = max_num_sg;
++	mr->mmr.mr_handle = resp->mr_handle;
++	mr->ibmr.lkey = resp->lkey;
++	mr->ibmr.rkey = resp->rkey;
++	mr->page_shift = PAGE_SHIFT;
++	mr->umem = NULL;
++
++	return &mr->ibmr;
++
++freepdir:
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++freepages:
++	kfree(mr->pages);
++freemr:
++	kfree(mr);
++	return ERR_PTR(ret);
++}
++
++/**
++ * pvrdma_dereg_mr - deregister a memory region
++ * @ibmr: memory region
++ *
++ * @return: 0 on success.
++ */
++int pvrdma_dereg_mr(struct ib_mr *ibmr)
++{
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
++	struct pvrdma_dev *dev = to_vdev(ibmr->device);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_destroy_mr *cmd = &req.destroy_mr;
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_MR;
++	cmd->mr_handle = mr->mmr.mr_handle;
++	ret = pvrdma_cmd_post(dev, &req, false, &rsp);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev, "could not deregister mem region\n");
++
++	pvrdma_page_dir_cleanup(dev, &mr->pdir);
++	if (mr->umem)
++		ib_umem_release(mr->umem);
++
++	kfree(mr->pages);
++	kfree(mr);
 +
 +	return 0;
 +}
 +
-+void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
++static int pvrdma_set_page(struct ib_mr *ibmr, u64 addr)
 +{
-+	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
 +
-+	kfree(tbl->table);
-+}
-+
-+int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-+{
-+	struct pvrdma_id_table *tbl;
-+	unsigned long flags;
-+	u32 obj;
-+
-+	tbl = &dev->uar_table.tbl;
-+
-+	spin_lock_irqsave(&tbl->lock, flags);
-+	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
-+	if (obj >= tbl->max) {
-+		tbl->top = (tbl->top + tbl->max) & tbl->mask;
-+		obj = find_first_zero_bit(tbl->table, tbl->max);
-+	}
-+
-+	if (obj < tbl->max) {
-+		set_bit(obj, tbl->table);
-+		obj |= tbl->top;
-+	} else {
-+		spin_unlock_irqrestore(&tbl->lock, flags);
++	if (mr->npages == mr->max_pages)
 +		return -ENOMEM;
-+	}
 +
-+	spin_unlock_irqrestore(&tbl->lock, flags);
-+
-+	uar->index = obj;
-+	uar->pfn = (pci_resource_start(dev->pdev, PVRDMA_PCI_RESOURCE_UAR) >>
-+		    PAGE_SHIFT) + uar->index;
-+
++	mr->pages[mr->npages++] = addr;
 +	return 0;
 +}
 +
-+void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
++int pvrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg, int sg_nents,
++		     unsigned int *sg_offset)
 +{
-+	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-+	unsigned long flags;
-+	u32 obj;
++	struct pvrdma_user_mr *mr = to_vmr(ibmr);
++	struct pvrdma_dev *dev = to_vdev(ibmr->device);
++	int ret;
 +
-+	obj = uar->index & (tbl->max - 1);
-+	spin_lock_irqsave(&tbl->lock, flags);
-+	clear_bit(obj, tbl->table);
-+	tbl->last = min(tbl->last, obj);
-+	tbl->top = (tbl->top + tbl->max) & tbl->mask;
-+	spin_unlock_irqrestore(&tbl->lock, flags);
++	mr->npages = 0;
++
++	ret = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, pvrdma_set_page);
++	if (ret < 0)
++		dev_warn(&dev->pdev->dev, "could not map sg to pages\n");
++
++	return ret;
 +}
 -- 
 2.7.4
