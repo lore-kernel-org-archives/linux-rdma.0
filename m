@@ -1,53 +1,35 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: crash on device removal
-Date: Wed, 13 Jul 2016 13:06:01 +0300
-Message-ID: <57861289.5020404@grimberg.me>
-References: <00cb01d1dc5b$51c05970$f5410c50$@opengridcomputing.com>
- <1468356054.5426.1.camel@ssi>
- <010201d1dc81$9f59cf10$de0d6d30$@opengridcomputing.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] net/mlx5: missing error code in
+ esw_create_offloads_fdb_table()
+Date: Wed, 13 Jul 2016 13:08:25 +0300
+Message-ID: <20160713100825.GD29468@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <010201d1dc81$9f59cf10$de0d6d30$@opengridcomputing.com>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Ming Lin' <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+We accidentally return success when we had intended to return an error
+code.
 
->> We actually missed a kref_get in nvme_get_ns_from_disk().
->>
->> This should fix it. Could you help to verify?
->>
->> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
->> index 4babdf0..b146f52 100644
->> --- a/drivers/nvme/host/core.c
->> +++ b/drivers/nvme/host/core.c
->> @@ -183,6 +183,8 @@ static struct nvme_ns *nvme_get_ns_from_disk(struct
->> gendisk *disk)
->>   	}
->>   	spin_unlock(&dev_list_lock);
->>
->> +	kref_get(&ns->ctrl->kref);
->> +
->>   	return ns;
->>
->>   fail_put_ns:
->
-> Hey Ming.  This avoids the crash in nvme_rdma_free_qe(), but now I see another crash:
->
-> [  975.633436] nvme nvme0: new ctrl: NQN "nqn.2014-08.org.nvmexpress.discovery", addr 10.0.1.14:4420
-> [  978.463636] nvme nvme0: creating 32 I/O queues.
-> [  979.187826] nvme nvme0: new ctrl: NQN "testnqn", addr 10.0.1.14:4420
-> [  987.778287] nvme nvme0: Got rdma device removal event, deleting ctrl
-> [  987.882202] BUG: unable to handle kernel paging request at ffff880e770e01f8
-> [  987.890024] IP: [<ffffffffa03a1a46>] __ib_process_cq+0x46/0xc0 [ib_core]
->
-> This looks like another problem with freeing the tag sets before stopping the QP.  I thought we fixed that once and for all, but perhaps there is some other path we missed. :(
+Fixes: 69697b6e2086 ('net/mlx5: E-Switch, Add support for the sriov offloads mode')
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-The fix doesn't look right to me. But I wander how you got this crash
-now? if at all, this would delay the controller removal...
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 1842dfb..7d982cf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -183,6 +183,7 @@ static int esw_create_offloads_fdb_table(struct mlx5_eswitch *esw, int nvports)
+ 
+ 	root_ns = mlx5_get_flow_namespace(dev, MLX5_FLOW_NAMESPACE_FDB);
+ 	if (!root_ns) {
++		err = -EINVAL;
+ 		esw_warn(dev, "Failed to get FDB flow namespace\n");
+ 		goto ns_err;
+ 	}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
