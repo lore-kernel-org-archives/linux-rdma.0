@@ -1,37 +1,47 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: NFS/RDMA device removal support
-Date: Wed, 13 Jul 2016 14:31:10 -0400
-Message-ID: <DB921E2E-A0DD-4BF8-B7CC-D6061C6F16BF@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Skip napi_schedule if ib_poll_cq fails (v2)
+Date: Wed, 13 Jul 2016 21:44:10 +0300
+Message-ID: <20160713184408.GA2985@yuval-lap>
+References: <1468423316-28246-1-git-send-email-yuval.shaia@oracle.com>
+ <20160713153252.GG10079@leon.nu>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160713153252.GG10079-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I'm working on supporting unloading the HCA kernel driver on
-the Linux NFS client while there are active NFS/RDMA mounts.
-Happily, the Linux NFS server already supports driver
-unloading.
+On Wed, Jul 13, 2016 at 06:32:52PM +0300, Leon Romanovsky wrote:
+> On Wed, Jul 13, 2016 at 08:21:55AM -0700, Yuval Shaia wrote:
+> > v0 -> v1:
+> > 	* Initialize n before use
+> > 
+> > v1 -> v2
+> > 	* Add reviewers
+> 
+> You don't need to resend patches with tags changes only.
+> Patchworks handles it and adds automatically when Doug
+> collects them before apply.
 
-I have prototyped adequate infrastructure to clean up RDMA-
-related resources (eg, QP and MRs) as part of handling a
-DEVICE_REMOVAL event.
+I also added some off-list reviewers.
 
-However I'm wondering about long-term DMA-mapped memory.
-These would be Send and Receive buffers that are mapped and
-then re-used for each RPC, using the ib_dma_sync_* API.
+> 
+> And it will be great if you avoid adding cover letter for one patch.
 
-I believe ULPs will have to map these buffers again once a
-new device is available. But as part of DEVICE_REMOVAL, does
-the ULP have to explicitly unmap this memory?
+Sure, will do.
 
-I'm not seeing an answer in DMA-API-HOWTO.txt.
-
---
-Chuck Lever
-
+> 
+> Thanks
+> 
+> > 
+> > [PATCH v2] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 --
