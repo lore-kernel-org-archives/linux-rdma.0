@@ -1,71 +1,125 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 2/5] IB/core, RDMA RW API: Do not exceed QP SGE send limit
-Date: Wed, 13 Jul 2016 09:29:29 -0500
-Message-ID: <002101d1dd12$f6ee0980$e4ca1c80$@opengridcomputing.com>
-References: <c9a58bf1-b230-5990-a2b3-4e6aa729cd8f@sandisk.com> <7b9f8bca-38fa-b289-a92f-19cf93955e32@sandisk.com> <57860AA4.6070303@grimberg.me> <700c95fd-ea9f-e83c-389f-30e1ca846dac@sandisk.com> <578618BD.5080101@grimberg.me>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v1] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
+Date: Wed, 13 Jul 2016 17:38:57 +0300
+Message-ID: <20160713143857.GB94611@x-vnc01.mtx.labs.mlnx>
+References: <1468405273-25375-1-git-send-email-yuval.shaia@oracle.com>
+ <1468405273-25375-2-git-send-email-yuval.shaia@oracle.com>
+ <20160713135301.GA94611@x-vnc01.mtx.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <578618BD.5080101-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20160713135301.GA94611-lgQlq6cFzJSjLWYaRI30zHI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, "'Nicholas A. Bellinger'" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, 'Parav Pandit' <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Laurence Oberman' <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Fix reviewed by...
+
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+On Wed, Jul 13, 2016 at 04:53:01PM +0300, Eli Cohen wrote:
+> Reviewd-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
+> BTW, did you actually hit this or are you sending this based on code
+> review?
 > 
-> On 13/07/16 13:18, Bart Van Assche wrote:
-> > On 07/13/2016 04:32 PM, Sagi Grimberg wrote:
-> >>
-> >>> -static inline u32 rdma_rw_max_sge(struct ib_device *dev,
-> >>> -        enum dma_data_direction dir)
-> >>> -{
-> >>> -    return dir == DMA_TO_DEVICE ?
-> >>> -        dev->attrs.max_sge : dev->attrs.max_sge_rd;
-> >>> -}
-> >>> -
-> >>
-> >> Wait, this looks wrong...
-> >>
-> >> iWARP devices have max_sge_rd = 1, Steve, did you get to test this?
-> >>
-> >>>   static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
-> >>>   {
-> >>>       /* arbitrary limit to avoid allocating gigantic resources */
-> >>> @@ -186,7 +179,7 @@ static int rdma_rw_init_map_wrs(struct
-> >>> rdma_rw_ctx *ctx, struct ib_qp *qp,
-> >>>           u64 remote_addr, u32 rkey, enum dma_data_direction dir)
-> >>>   {
-> >>>       struct ib_device *dev = qp->pd->device;
-> >>> -    u32 max_sge = rdma_rw_max_sge(dev, dir);
-> >>> +    u32 max_sge = qp->max_send_sge;
-> >>
-> >> Here, rdma_read will use qp.max_send_sge = max_sge which is set by the
-> >> ULP.
-> >>
-> >> If the ULP used max(max_sge, max_sge_rd) which is the right thing, then
-> >> we get a bug, if the ULP set min(max_sge, max_sge_rd) then it has
-> >> effectively a single sge even for writes (which is not good).
-> >>
-> >> The QP user needs to set the maximum sge allowed for reads or writes,
-> >> but for reads use max_sge_rd and for writes use max_sge. Otherwise this
-> >> will break.
-> >
-> > Hello Sagi,
-> >
-> > How about keeping rdma_rw_max_sge() and using the minimum of
-> > qp->max_send_sge and dev->attrs.max_sge_rd for RDMA READs?
-> 
-> That would work.
-
-
-I'll be sure and test v3 of this series on cxgb4 (please CC me).
-
-Steve.
-
+> On Wed, Jul 13, 2016 at 03:21:13AM -0700, Yuval Shaia wrote:
+> > To avoid entering into endless loop when device can't poll CQE from CQ
+> > driver should not reschedule if error is not -EAGAIN.
+> > 
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/ulp/ipoib/ipoib.h       |    5 +++++
+> >  drivers/infiniband/ulp/ipoib/ipoib_ib.c    |   13 ++++++++++++-
+> >  drivers/infiniband/ulp/ipoib/ipoib_verbs.c |    1 +
+> >  3 files changed, 18 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> > index 4f7d9b4..1946149 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> > @@ -116,6 +116,8 @@ enum {
+> >  	IPOIB_NON_CHILD		  = 0,
+> >  	IPOIB_LEGACY_CHILD	  = 1,
+> >  	IPOIB_RTNL_CHILD	  = 2,
+> > +
+> > +	IPOIB_MAX_CONSEQ_CQ_ERR	  = 10,
+> >  };
+> >  
+> >  #define	IPOIB_OP_RECV   (1ul << 31)
+> > @@ -347,6 +349,7 @@ struct ipoib_dev_priv {
+> >  	u16		  pkey_index;
+> >  	struct ib_pd	 *pd;
+> >  	struct ib_cq	 *recv_cq;
+> > +	int		  recv_conseq_cq_errs;
+> >  	struct ib_cq	 *send_cq;
+> >  	struct ib_qp	 *qp;
+> >  	u32		  qkey;
+> > @@ -772,6 +775,8 @@ static inline void ipoib_unregister_debugfs(void) { }
+> >  	printk(level "%s: " format, ((struct ipoib_dev_priv *) priv)->dev->name , ## arg)
+> >  #define ipoib_warn(priv, format, arg...)		\
+> >  	ipoib_printk(KERN_WARNING, priv, format , ## arg)
+> > +#define ipoib_crit(priv, format, arg...)		\
+> > +	ipoib_printk(KERN_CRIT, priv, format , ## arg)
+> >  
+> >  extern int ipoib_sendq_size;
+> >  extern int ipoib_recvq_size;
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > index dc6d241..9395a24 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > @@ -449,7 +449,8 @@ int ipoib_poll(struct napi_struct *napi, int budget)
+> >  	int t;
+> >  	int n, i;
+> >  
+> > -	done  = 0;
+> > +	done = 0;
+> > +	n = 0;
+> >  
+> >  poll_more:
+> >  	while (done < budget) {
+> > @@ -475,6 +476,16 @@ poll_more:
+> >  			break;
+> >  	}
+> >  
+> > +	if (unlikely(n < 0) && (n != -EAGAIN)) {
+> > +		if (priv->recv_conseq_cq_errs++ >= IPOIB_MAX_CONSEQ_CQ_ERR) {
+> > +			ipoib_crit(priv,
+> > +				   "Too many poll_cq errors, last error: %d\n",
+> > +				   n);
+> > +			return done;
+> > +		}
+> > +	} else
+> > +		priv->recv_conseq_cq_errs = 0;
+> > +
+> >  	if (done < budget) {
+> >  		napi_complete(napi);
+> >  		if (unlikely(ib_req_notify_cq(priv->recv_cq,
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > index 1e7cbba..6ca8bdd 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > @@ -181,6 +181,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+> >  		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
+> >  		goto out_cm_dev_cleanup;
+> >  	}
+> > +	priv->recv_conseq_cq_errs = 0;
+> >  
+> >  	cq_attr.cqe = ipoib_sendq_size;
+> >  	priv->send_cq = ib_create_cq(priv->ca, ipoib_send_comp_handler, NULL,
+> > -- 
+> > 1.7.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
