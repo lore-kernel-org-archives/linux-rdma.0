@@ -1,50 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V1 4/8] RDMA/core: Add support for custom types
-Date: Wed, 13 Jul 2016 10:39:24 -0600
-Message-ID: <20160713163924.GA19657@obsidianresearch.com>
-References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
- <1467293971-25688-5-git-send-email-matanb@mellanox.com>
- <20160712192345.GC8206@obsidianresearch.com>
- <081a02c0-0650-d0c2-494c-19a64b83cbc1@mellanox.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [patch] net/mlx5: missing error code in
+ esw_create_offloads_fdb_table()
+Date: Wed, 13 Jul 2016 14:19:06 +0300
+Message-ID: <83d5a5bb-dbf5-6c8f-39ea-320d55026a9d@mellanox.com>
+References: <20160713100825.GD29468@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <081a02c0-0650-d0c2-494c-19a64b83cbc1-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160713100825.GD29468@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 13, 2016 at 05:44:46PM +0300, Matan Barak wrote:
+On 13/07/2016 13:08, Dan Carpenter wrote:
+> We accidentally return success when we had intended to return an error
+> code.
+>
+> Fixes: 69697b6e2086 ('net/mlx5: E-Switch, Add support for the sriov offloads mode')
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index 1842dfb..7d982cf 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> @@ -183,6 +183,7 @@ static int esw_create_offloads_fdb_table(struct mlx5_eswitch *esw, int nvports)
+>
+>  	root_ns = mlx5_get_flow_namespace(dev, MLX5_FLOW_NAMESPACE_FDB);
+>  	if (!root_ns) {
+> +		err = -EINVAL;
+>  		esw_warn(dev, "Failed to get FDB flow namespace\n");
+>  		goto ns_err;
+>  	}
+>
 
-> We can, but then every driver should declare the common objects
-> order by itself.  Maybe we could provide a macro that does this for
-> you (if you don't have any custom types interleaved).
+Hi,
 
-Hum, that seems so very fragile and complex..
+Thanks for the patch.
+I'm not sure EINVAL is the right error here though.
+Maybe -ENOTSUPP is a bit more appropriate here.
 
-There are other ways to deal with destruction ordering. refcounts
-only for use during descruction might be easier. Repeatedly iterate
-over the uobject list deleting 0 refcount objects until the list is
-empty.
-
-So, eg when you create a MR on a PD then PD's destruct refcount gets
-++'d, and when the MR is deleted it gets --'d. This naturally forces
-the needed ordering.
-
-> >What use is tracking the ubojects in a per-type list? Do we ever
-> >iterate that way other than on global destruct?
-> >
-> 
-> The only purpose of these lists are either ucontext destruction or device
-> removal (which ultimately deletes all ucontexts).
-> ucontext destruction requires list per ucontext x type.
-
-I wouldn't waste memory on optimizing destruction like that, just run
-over the idr repeatedly, matching against the object type.
-
-Jason
+Regards,
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
