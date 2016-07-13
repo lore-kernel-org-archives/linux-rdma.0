@@ -1,80 +1,124 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: crash on device removal
-Date: Wed, 13 Jul 2016 10:05:05 -0500
-Message-ID: <005a01d1dd17$f008a620$d019f260$@opengridcomputing.com>
-References: <00cb01d1dc5b$51c05970$f5410c50$@opengridcomputing.com> <578611AA.4000103@grimberg.me>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
+Date: Wed, 13 Jul 2016 18:15:28 +0300
+Message-ID: <20160713151527.GB17563@yuval-lap.uk.oracle.com>
+References: <1468405273-25375-1-git-send-email-yuval.shaia@oracle.com>
+ <1468405273-25375-2-git-send-email-yuval.shaia@oracle.com>
+ <20160713135301.GA94611@x-vnc01.mtx.labs.mlnx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <578611AA.4000103-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20160713135301.GA94611-lgQlq6cFzJSjLWYaRI30zHI+JuX82XLG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On 12/07/16 19:34, Steve Wise wrote:
-> > Hey Christoph,
-> >
-> > I see a crash when shutting down a nvme host node via 'reboot' that has 1
-target
-> > device attached.  The shutdown causes iw_cxgb4 to be removed which triggers
-> the
-> > device removal logic in the nvmf rdma transport.  The crash is here:
-> >
-> > (gdb) list *nvme_rdma_free_qe+0x18
-> > 0x1e8 is in nvme_rdma_free_qe (drivers/nvme/host/rdma.c:196).
-> > 191     }
-> > 192
-> > 193     static void nvme_rdma_free_qe(struct ib_device *ibdev, struct
-> > nvme_rdma_qe *qe,
-> > 194                     size_t capsule_size, enum dma_data_direction dir)
-> > 195     {
-> > 196             ib_dma_unmap_single(ibdev, qe->dma, capsule_size, dir);
-> > 197             kfree(qe->data);
-> > 198     }
-> > 199
-> > 200     static int nvme_rdma_alloc_qe(struct ib_device *ibdev, struct
-> > nvme_rdma_qe *qe,
-> >
-> > Apparently qe is NULL.
-> >
-> > Looking at the device removal path, the logic appears correct (see
-> > nvme_rdma_device_unplug() and the nice function comment :) ).  I'm wondering
-> if
-> > concurrently to the host device removal path cleaning up queues, the target
-is
-> > disconnecting all of its queues due to the first disconnect event from the
-host
-> > causing some cleanup race on the host side?  Although since the removal path
-> > executing in the cma event handler upcall, I don't think another thread
-would be
-> > handling a disconnect event.  Maybe the qp async event handler flow?
+Thanks Eli.
+
+We faced a problem that may lead to this kind of error.
+Reading the code looks like it needs a fix.
+
+Yuval
+
+On Wed, Jul 13, 2016 at 04:53:01PM +0300, Eli Cohen wrote:
+> Reviewd-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Hey Steve,
+> BTW, did you actually hit this or are you sending this based on code
+> review?
 > 
-> I never got this error (but didn't test with cxgb4, did this happen
-> with mlx4/5?).
-
-Hey Sagi, I don't see this with mlx4. 
-
-> Can you track which qe is it? is it a request qe? is
-> it a rsp qe? is it the async qe?
-> 
-
-It happens due to the call to nvme_rdma_destroy_queue_ib() in
-nvme_rdma_device_unplug().  So it is queue->rsp_ring.
-
-
-> Also, it would be beneficial to know which queue handled the event
-> (admin/io)?
-
-How do I know this?
-
-Steve.
-
+> On Wed, Jul 13, 2016 at 03:21:13AM -0700, Yuval Shaia wrote:
+> > To avoid entering into endless loop when device can't poll CQE from CQ
+> > driver should not reschedule if error is not -EAGAIN.
+> > 
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/ulp/ipoib/ipoib.h       |    5 +++++
+> >  drivers/infiniband/ulp/ipoib/ipoib_ib.c    |   13 ++++++++++++-
+> >  drivers/infiniband/ulp/ipoib/ipoib_verbs.c |    1 +
+> >  3 files changed, 18 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+> > index 4f7d9b4..1946149 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+> > @@ -116,6 +116,8 @@ enum {
+> >  	IPOIB_NON_CHILD		  = 0,
+> >  	IPOIB_LEGACY_CHILD	  = 1,
+> >  	IPOIB_RTNL_CHILD	  = 2,
+> > +
+> > +	IPOIB_MAX_CONSEQ_CQ_ERR	  = 10,
+> >  };
+> >  
+> >  #define	IPOIB_OP_RECV   (1ul << 31)
+> > @@ -347,6 +349,7 @@ struct ipoib_dev_priv {
+> >  	u16		  pkey_index;
+> >  	struct ib_pd	 *pd;
+> >  	struct ib_cq	 *recv_cq;
+> > +	int		  recv_conseq_cq_errs;
+> >  	struct ib_cq	 *send_cq;
+> >  	struct ib_qp	 *qp;
+> >  	u32		  qkey;
+> > @@ -772,6 +775,8 @@ static inline void ipoib_unregister_debugfs(void) { }
+> >  	printk(level "%s: " format, ((struct ipoib_dev_priv *) priv)->dev->name , ## arg)
+> >  #define ipoib_warn(priv, format, arg...)		\
+> >  	ipoib_printk(KERN_WARNING, priv, format , ## arg)
+> > +#define ipoib_crit(priv, format, arg...)		\
+> > +	ipoib_printk(KERN_CRIT, priv, format , ## arg)
+> >  
+> >  extern int ipoib_sendq_size;
+> >  extern int ipoib_recvq_size;
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > index dc6d241..9395a24 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> > @@ -449,7 +449,8 @@ int ipoib_poll(struct napi_struct *napi, int budget)
+> >  	int t;
+> >  	int n, i;
+> >  
+> > -	done  = 0;
+> > +	done = 0;
+> > +	n = 0;
+> >  
+> >  poll_more:
+> >  	while (done < budget) {
+> > @@ -475,6 +476,16 @@ poll_more:
+> >  			break;
+> >  	}
+> >  
+> > +	if (unlikely(n < 0) && (n != -EAGAIN)) {
+> > +		if (priv->recv_conseq_cq_errs++ >= IPOIB_MAX_CONSEQ_CQ_ERR) {
+> > +			ipoib_crit(priv,
+> > +				   "Too many poll_cq errors, last error: %d\n",
+> > +				   n);
+> > +			return done;
+> > +		}
+> > +	} else
+> > +		priv->recv_conseq_cq_errs = 0;
+> > +
+> >  	if (done < budget) {
+> >  		napi_complete(napi);
+> >  		if (unlikely(ib_req_notify_cq(priv->recv_cq,
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > index 1e7cbba..6ca8bdd 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+> > @@ -181,6 +181,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+> >  		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
+> >  		goto out_cm_dev_cleanup;
+> >  	}
+> > +	priv->recv_conseq_cq_errs = 0;
+> >  
+> >  	cq_attr.cqe = ipoib_sendq_size;
+> >  	priv->send_cq = ib_create_cq(priv->ca, ipoib_send_comp_handler, NULL,
+> > -- 
+> > 1.7.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
