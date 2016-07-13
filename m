@@ -1,94 +1,60 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: NVMe over RDMA latency
-Date: Wed, 13 Jul 2016 12:49:46 +0300
-Message-ID: <57860EBA.5010103@grimberg.me>
-References: <1467921342.24395.12.camel@ssi>
+Subject: Re: crash on device removal
+Date: Wed, 13 Jul 2016 13:02:18 +0300
+Message-ID: <578611AA.4000103@grimberg.me>
+References: <00cb01d1dc5b$51c05970$f5410c50$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467921342.24395.12.camel@ssi>
+In-Reply-To: <00cb01d1dc5b$51c05970$f5410c50$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi list,
-
-Hey Ming,
-
-> I'm trying to understand the NVMe over RDMA latency.
->
-> Test hardware:
-> A real NVMe PCI drive on target
-> Host and target back-to-back connected by Mellanox ConnectX-3
->
-> [global]
-> ioengine=libaio
-> direct=1
-> runtime=10
-> time_based
-> norandommap
-> group_reporting
->
-> [job1]
-> filename=/dev/nvme0n1
-> rw=randread
-> bs=4k
->
->
-> fio latency data on host side(test nvmeof device)
->      slat (usec): min=2, max=213, avg= 6.34, stdev= 3.47
->      clat (usec): min=1, max=2470, avg=39.56, stdev=13.04
->       lat (usec): min=30, max=2476, avg=46.14, stdev=15.50
->
-> fio latency data on target side(test NVMe pci device locally)
->      slat (usec): min=1, max=36, avg= 1.92, stdev= 0.42
->      clat (usec): min=1, max=68, avg=20.35, stdev= 1.11
->       lat (usec): min=19, max=101, avg=22.35, stdev= 1.21
->
-> So I picked up this sample from blktrace which seems matches the fio avg latency data.
->
-> Host(/dev/nvme0n1)
-> 259,0    0       86     0.015768739  3241  Q   R 1272199648 + 8 [fio]
-> 259,0    0       87     0.015769674  3241  G   R 1272199648 + 8 [fio]
-> 259,0    0       88     0.015771628  3241  U   N [fio] 1
-> 259,0    0       89     0.015771901  3241  I  RS 1272199648 + 8 (    2227) [fio]
-> 259,0    0       90     0.015772863  3241  D  RS 1272199648 + 8 (     962) [fio]
-> 259,0    1       85     0.015819257     0  C  RS 1272199648 + 8 (   46394) [0]
->
-> Target(/dev/nvme0n1)
-> 259,0    0      141     0.015675637  2197  Q   R 1272199648 + 8 [kworker/u17:0]
-> 259,0    0      142     0.015676033  2197  G   R 1272199648 + 8 [kworker/u17:0]
-> 259,0    0      143     0.015676915  2197  D  RS 1272199648 + 8 (15676915) [kworker/u17:0]
-> 259,0    0      144     0.015694992     0  C  RS 1272199648 + 8 (   18077) [0]
->
-> So host completed IO in about 50usec and target completed IO in about 20usec.
-> Does that mean the 30usec delta comes from RDMA write(host read means target RDMA write)?
 
 
-Couple of things that come to mind:
+On 12/07/16 19:34, Steve Wise wrote:
+> Hey Christoph,
+>
+> I see a crash when shutting down a nvme host node via 'reboot' that has 1 target
+> device attached.  The shutdown causes iw_cxgb4 to be removed which triggers the
+> device removal logic in the nvmf rdma transport.  The crash is here:
+>
+> (gdb) list *nvme_rdma_free_qe+0x18
+> 0x1e8 is in nvme_rdma_free_qe (drivers/nvme/host/rdma.c:196).
+> 191     }
+> 192
+> 193     static void nvme_rdma_free_qe(struct ib_device *ibdev, struct
+> nvme_rdma_qe *qe,
+> 194                     size_t capsule_size, enum dma_data_direction dir)
+> 195     {
+> 196             ib_dma_unmap_single(ibdev, qe->dma, capsule_size, dir);
+> 197             kfree(qe->data);
+> 198     }
+> 199
+> 200     static int nvme_rdma_alloc_qe(struct ib_device *ibdev, struct
+> nvme_rdma_qe *qe,
+>
+> Apparently qe is NULL.
+>
+> Looking at the device removal path, the logic appears correct (see
+> nvme_rdma_device_unplug() and the nice function comment :) ).  I'm wondering if
+> concurrently to the host device removal path cleaning up queues, the target is
+> disconnecting all of its queues due to the first disconnect event from the host
+> causing some cleanup race on the host side?  Although since the removal path
+> executing in the cma event handler upcall, I don't think another thread would be
+> handling a disconnect event.  Maybe the qp async event handler flow?
 
-0. Are you using iodepth=1 correct?
+Hey Steve,
 
-1. I imagine you are not polling in the host but rather interrupt
-    driven correct? thats a latency source.
+I never got this error (but didn't test with cxgb4, did this happen
+with mlx4/5?). Can you track which qe is it? is it a request qe? is
+it a rsp qe? is it the async qe?
 
-2. the target code is polling if the block device supports it. can you
-    confirm that is indeed the case?
-
-3. mlx4 has a strong fencing policy for memory registration, which we
-    always do. thats a latency source. can you try with
-    register_always=0?
-
-4. IRQ affinity assignments. if the sqe is submitted on cpu core X and
-    the completion comes to cpu core Y, we will consume some latency
-    with the context-switch of waiking up fio on cpu core X. Is this
-    a possible case?
-
-5. What happens if you test against a null_blk (which has a latency of
-    < 1us)? back when I ran some tryouts I saw ~10-11us added latency
-    from the fabric under similar conditions.
+Also, it would be beneficial to know which queue handled the event
+(admin/io)?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
