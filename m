@@ -1,125 +1,100 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
-Date: Wed, 13 Jul 2016 17:38:57 +0300
-Message-ID: <20160713143857.GB94611@x-vnc01.mtx.labs.mlnx>
-References: <1468405273-25375-1-git-send-email-yuval.shaia@oracle.com>
- <1468405273-25375-2-git-send-email-yuval.shaia@oracle.com>
- <20160713135301.GA94611@x-vnc01.mtx.labs.mlnx>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V1 4/8] RDMA/core: Add support for custom types
+Date: Wed, 13 Jul 2016 17:44:46 +0300
+Message-ID: <081a02c0-0650-d0c2-494c-19a64b83cbc1@mellanox.com>
+References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
+ <1467293971-25688-5-git-send-email-matanb@mellanox.com>
+ <20160712192345.GC8206@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160713135301.GA94611-lgQlq6cFzJSjLWYaRI30zHI+JuX82XLG@public.gmane.org>
+In-Reply-To: <20160712192345.GC8206-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix reviewed by...
+On 12/07/2016 22:23, Jason Gunthorpe wrote:
+> On Thu, Jun 30, 2016 at 04:39:27PM +0300, Matan Barak wrote:
+>> From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> The new ioctl infrastructure supports driver specific types.
+>> This is implemented by having a list of uverbs_uobject_type in the
+>> ib_device. Each element of this list corresponds to a specific type
+>> and specifies its free function, driver's type_id, etc.
+>> The order of elements dictates the order of process release.
+>> The whole type_list should be initialized before any ucontext was
+>> created.
+>
+> Do we need to have a linked list? Can we use static const arrays like
+> so much other stuff in the kernel?
+>
+>
 
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We can, but then every driver should declare the common objects order by 
+itself.
+Maybe we could provide a macro that does this for you (if you don't have 
+any custom types interleaved).
 
-On Wed, Jul 13, 2016 at 04:53:01PM +0300, Eli Cohen wrote:
-> Reviewd-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> BTW, did you actually hit this or are you sending this based on code
-> review?
-> 
-> On Wed, Jul 13, 2016 at 03:21:13AM -0700, Yuval Shaia wrote:
-> > To avoid entering into endless loop when device can't poll CQE from CQ
-> > driver should not reschedule if error is not -EAGAIN.
-> > 
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/ipoib/ipoib.h       |    5 +++++
-> >  drivers/infiniband/ulp/ipoib/ipoib_ib.c    |   13 ++++++++++++-
-> >  drivers/infiniband/ulp/ipoib/ipoib_verbs.c |    1 +
-> >  3 files changed, 18 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > index 4f7d9b4..1946149 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> > @@ -116,6 +116,8 @@ enum {
-> >  	IPOIB_NON_CHILD		  = 0,
-> >  	IPOIB_LEGACY_CHILD	  = 1,
-> >  	IPOIB_RTNL_CHILD	  = 2,
-> > +
-> > +	IPOIB_MAX_CONSEQ_CQ_ERR	  = 10,
-> >  };
-> >  
-> >  #define	IPOIB_OP_RECV   (1ul << 31)
-> > @@ -347,6 +349,7 @@ struct ipoib_dev_priv {
-> >  	u16		  pkey_index;
-> >  	struct ib_pd	 *pd;
-> >  	struct ib_cq	 *recv_cq;
-> > +	int		  recv_conseq_cq_errs;
-> >  	struct ib_cq	 *send_cq;
-> >  	struct ib_qp	 *qp;
-> >  	u32		  qkey;
-> > @@ -772,6 +775,8 @@ static inline void ipoib_unregister_debugfs(void) { }
-> >  	printk(level "%s: " format, ((struct ipoib_dev_priv *) priv)->dev->name , ## arg)
-> >  #define ipoib_warn(priv, format, arg...)		\
-> >  	ipoib_printk(KERN_WARNING, priv, format , ## arg)
-> > +#define ipoib_crit(priv, format, arg...)		\
-> > +	ipoib_printk(KERN_CRIT, priv, format , ## arg)
-> >  
-> >  extern int ipoib_sendq_size;
-> >  extern int ipoib_recvq_size;
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> > index dc6d241..9395a24 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-> > @@ -449,7 +449,8 @@ int ipoib_poll(struct napi_struct *napi, int budget)
-> >  	int t;
-> >  	int n, i;
-> >  
-> > -	done  = 0;
-> > +	done = 0;
-> > +	n = 0;
-> >  
-> >  poll_more:
-> >  	while (done < budget) {
-> > @@ -475,6 +476,16 @@ poll_more:
-> >  			break;
-> >  	}
-> >  
-> > +	if (unlikely(n < 0) && (n != -EAGAIN)) {
-> > +		if (priv->recv_conseq_cq_errs++ >= IPOIB_MAX_CONSEQ_CQ_ERR) {
-> > +			ipoib_crit(priv,
-> > +				   "Too many poll_cq errors, last error: %d\n",
-> > +				   n);
-> > +			return done;
-> > +		}
-> > +	} else
-> > +		priv->recv_conseq_cq_errs = 0;
-> > +
-> >  	if (done < budget) {
-> >  		napi_complete(napi);
-> >  		if (unlikely(ib_req_notify_cq(priv->recv_cq,
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> > index 1e7cbba..6ca8bdd 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-> > @@ -181,6 +181,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
-> >  		printk(KERN_WARNING "%s: failed to create receive CQ\n", ca->name);
-> >  		goto out_cm_dev_cleanup;
-> >  	}
-> > +	priv->recv_conseq_cq_errs = 0;
-> >  
-> >  	cq_attr.cqe = ipoib_sendq_size;
-> >  	priv->send_cq = ib_create_cq(priv->ca, ipoib_send_comp_handler, NULL,
-> > -- 
-> > 1.7.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The basic advantage of a linked list is that we could still have a 
+function that builds the common types list and a driver could still 
+insert and custom type where ever it wants.
+
+>> +int ib_uverbs_uobject_type_add(struct list_head	*head,
+>> +			       void (*free)(struct uverbs_uobject_type *uobject_type,
+>> +					    struct ib_uobject *uobject,
+>> +					    struct ib_ucontext *ucontext),
+>
+> Don't pass function pointers like this, create a proper 'ops' kind of
+> structure.
+>
+> Why is this taking a list_head not a ib_device?
+>
+
+In order to let you insert a type anywhere you want in the type list.
+This affects the destruction order.
+
+>> +void ib_uverbs_uobject_type_remove(struct uverbs_uobject_type
+>> *uobject_type)
+>
+> Why would a driver ever have to remove a type?
+>
+
+Correct, unnecessary.
+
+>> +{
+>> +	/*
+>> +	 * Allocate a new object type for the vendor, this should be done when a
+>> +	 * vendor is initialized.
+>
+> Please stop using the word 'vendor' and scrub it from your patches.
+>
+> This is 'driver specific'
+>
+
+Ok, we'll replace vendor -> driver.
+
+>> +	/* List of object under uverbs_object_type */
+>> +	struct list_head	idr_list;
+>> +	struct uverbs_uobject_list *type;	/* ptr to ucontext type */
+>>  };
+>
+> I'm unclear why we need a list in the driver and list in the
+> ucontext.. I would have thought they are almost the same.
+>
+> What use is tracking the ubojects in a per-type list? Do we ever
+> iterate that way other than on global destruct?
+>
+
+The only purpose of these lists are either ucontext destruction or 
+device removal (which ultimately deletes all ucontexts).
+ucontext destruction requires list per ucontext x type.
+
+> Jason
+>
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
