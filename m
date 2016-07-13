@@ -1,28 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
-Date: Wed, 13 Jul 2016 11:47:42 -0600
-Message-ID: <20160713174742.GE19657@obsidianresearch.com>
-References: <1468402436-25053-1-git-send-email-yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [patch v2] net/mlx5: missing error code in
+ esw_create_offloads_fdb_table()
+Date: Wed, 13 Jul 2016 11:54:54 -0600
+Message-ID: <20160713175454.GF19657@obsidianresearch.com>
+References: <83d5a5bb-dbf5-6c8f-39ea-320d55026a9d@mellanox.com>
+ <20160713100825.GD29468@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1468402436-25053-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+In-Reply-To: <20160713100825.GD29468@mwanda>
+Sender: netdev-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Matan Barak <matanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 13, 2016 at 02:33:56AM -0700, Yuval Shaia wrote:
-> To avoid entering into endless loop when device can't poll CQE from CQ
-> driver should not reschedule if error is not -EAGAIN.
+On Wed, Jul 13, 2016 at 02:48:44PM +0300, Dan Carpenter wrote:
+> We accidentally return success when we had intended to return an error
+> code.
+> 
+> Fixes: 69697b6e2086 ('net/mlx5: E-Switch, Add support for the sriov offloads mode')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> v2: return -ENOTSUPP instead --EINVAL
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> index 1842dfb..7d982cf 100644
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+> @@ -183,6 +183,7 @@ static int esw_create_offloads_fdb_table(struct mlx5_eswitch *esw, int nvports)
+>  
+>  	root_ns = mlx5_get_flow_namespace(dev, MLX5_FLOW_NAMESPACE_FDB);
+>  	if (!root_ns) {
+> +		err = -ENOTSUPP;
 
-?? what causes ib_poll_cq to return an error?
+Did you mean ENOTSUP?
 
-You need to describe the motivation here.
+I thought ENOTSUPP was not to be used outside NFS, and isn't properly
+exported to userspace..
+
+$ find /usr/include -name "*errno*" | xargs grep 524
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
