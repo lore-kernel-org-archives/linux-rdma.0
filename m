@@ -1,68 +1,67 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH for-next] IB/mlx5: Fix port counter ID association to QP
- offset
-Date: Wed, 13 Jul 2016 14:09:51 +0000
-Message-ID: <VI1PR05MB1391222EBF9C51484716FC6AD2310@VI1PR05MB1391.eurprd05.prod.outlook.com>
-References: <1468416311-25643-1-git-send-email-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Skip napi_schedule if ib_poll_cq fails (v2)
+Date: Thu, 14 Jul 2016 08:11:01 +0300
+Message-ID: <20160714051101.GH10079@leon.nu>
+References: <1468423316-28246-1-git-send-email-yuval.shaia@oracle.com>
+ <20160713153252.GG10079@leon.nu>
+ <20160713184408.GA2985@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="k+G3HLlWI7eRTl+h"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1468416311-25643-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160713184408.GA2985@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Wednesday, July 13, 2016 4:25 PM
-> To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: [PATCH for-next] IB/mlx5: Fix port counter ID association to QP
-> offset
-> 
-> From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> The q-counter-id is given in modify-QP command associates
-> the QP with the counter. The offset to which the counter
-> ID was set is incorrect, causing IB port counters not to
-> count on QP.
-> 
-> Fixes: 0837e86a7a34 ('IB/mlx5: Add per port counters')
-> Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/qp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c
-> b/drivers/infiniband/hw/mlx5/qp.c
-> index 5ca14a2..40b2045 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -2657,7 +2657,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
->  		struct mlx5_ib_port *mibport = &dev->port[port_num];
-> 
->  		context->qp_counter_set_usr_page |=
-> -			cpu_to_be32(mibport->q_cnt_id << 16);
-> +			cpu_to_be32((u32)(mibport->q_cnt_id) << 24);
->  	}
-> 
->  	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state ==
-> IB_QPS_INIT)
-> --
-> 2.1.4
-> 
-> --
 
-Alex thank for noticing and fixing this.
+--k+G3HLlWI7eRTl+h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Jul 13, 2016 at 09:44:10PM +0300, Yuval Shaia wrote:
+> On Wed, Jul 13, 2016 at 06:32:52PM +0300, Leon Romanovsky wrote:
+> > On Wed, Jul 13, 2016 at 08:21:55AM -0700, Yuval Shaia wrote:
+> > > v0 -> v1:
+> > > 	* Initialize n before use
+> > >=20
+> > > v1 -> v2
+> > > 	* Add reviewers
+> >=20
+> > You don't need to resend patches with tags changes only.
+> > Patchworks handles it and adds automatically when Doug
+> > collects them before apply.
+>=20
+> I also added some off-list reviewers.
 
-Mark
+You could reply to your email with forgotten tags.
+
+--k+G3HLlWI7eRTl+h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXhx7lAAoJEORje4g2clin5qcP/3wHELhUf7jQwJ7I9kQtN1Ua
+ecCdmiw3J4kdYpCNN6NemMct6jUn4d0v4N2f2TNXDCg7VOzELPtMxiTNVDQDhLda
+fnyIYETJa5MxdzLJY9YgL5zjM5VLT0m7nXVwOh3+o5H6ipyCfehDCG88fcU3MzrG
+Xl92pDnrIctVfU89YQ9T6wy4LSbZKQYDWlkJ5AroaoQgzEDAt8ZVdojw9qCCMh0V
+Vm8TbsOr3Kd9ErCuODaL91MGSOkWsLKegaDlfNVg50R2xlSGJCSytbKOt7U2tKY/
+9x9YHNZLSNaWaZpEjqw8qLRRu8z1GTgZogKTOFhF0IJ+8QTfiPHR6aXIMgwF6yO8
+jg8C9mAg7GdWByICTm/KKkeBBVwWwHBKnoRCpPQxzro6fjnLd2c45UxrHtuyjcDE
+htqA7sBZjQANDuIlCIQ0T6DmlIYoegJunfaB73j6NoaMAb6gDK4aWMgkE3rMosH3
+AFNHp2kHKBrl0r2kPSnTIVfUs5oT749AWCz4/FzwDfBqAoSnNUUZATXNbA7CxluR
+4QHO/MXG2WEYh0pXgQkfPcv+fGSlnp/y2xjKehH7Vm4B5WmBrMMwhehtFJjsv7JZ
+DN+8kFq1+ntMVgeJyOIS4COnd5tkVOatGZBINS2EnZB0lH201QBUn+9ufSGlTLYu
+wkVo3lMJCMmH1rgrmIJd
+=3hhq
+-----END PGP SIGNATURE-----
+
+--k+G3HLlWI7eRTl+h--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
