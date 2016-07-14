@@ -1,69 +1,151 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [patch] net/mlx5: missing error code in
- esw_create_offloads_fdb_table()
-Date: Thu, 14 Jul 2016 23:09:38 +0300
-Message-ID: <20160714200938.GB30603@leon.nu>
-References: <20160713100825.GD29468@mwanda>
- <83d5a5bb-dbf5-6c8f-39ea-320d55026a9d@mellanox.com>
- <24af412f-7fa5-fa2e-c605-21ea5d45f5ff@mellanox.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LpQ9ahxlCli8rRTG"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <24af412f-7fa5-fa2e-c605-21ea5d45f5ff@mellanox.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Matan Barak <matanb@mellanox.com>, Dan Carpenter <dan.carpenter@oracle.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v2 0/9] SELinux support for Infiniband RDMA
+Date: Fri, 15 Jul 2016 01:56:42 +0300
+Message-ID: <1468537011-20407-1-git-send-email-danielj@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---LpQ9ahxlCli8rRTG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On Wed, Jul 13, 2016 at 02:40:26PM +0300, Or Gerlitz wrote:
-> On 7/13/2016 2:19 PM, Matan Barak wrote:
-> >I'm not sure EINVAL is the right error here though.
-> >Maybe -ENOTSUPP is a bit more appropriate here.
->=20
-> I agree, Dan, can you please change to be along Matan's suggestion?
+The selinux next tree is missing some patches for IB/core.  This series
+applies cleanly to ib-next, and should apply cleanly to selinux-next once
+the IB patches are merged.
 
-Or,
-Dan already did it before Matan's response and we have very vivid discussio=
-n about it [1].
+Currently there is no way to provide granular access control to an
+Infiniband fabric. By providing an ability to restrict user access to
+specific virtual subfabrics, administrators can limit access to bandwidth
+and isolate users on the fabric.
 
-[1] http://marc.info/?t=3D146841063000002&r=3D1&w=3D2
+The approach for controlling access for Infiniband is to control access to
+partitions. A partition is similar in concept to a VLAN where each data
+packet carries the partition key (PKey) in its header and isolation is
+enforced by the hardware. The partition key is not a cryptographic key,
+it's a 16 bit number identifying the partition. By controlling access to
+PKeys, users can be isolated on the fabric.
 
+Every Infiniband fabric must have a subnet manager. The subnet manager
+provisions the partitions and configures the end nodes. Each end port has
+a PKey table containing the partitions it can access. In order to enforce
+access to partitions, the subnet management interface (SMI) must also be
+controlled to prevent unauthorized changes to the fabric configuration. 
 
->=20
-> Or.
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In order to support this there must be a capability to provide security
+contexts for two new types of objects - PKeys and IB ports.
 
---LpQ9ahxlCli8rRTG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+A PKey label consists of a subnet prefix and a range of PKey values and is
+similar to the labeling mechanism for netports. Each Infiniband port can
+reside on a different subnet, labeling the PKey values for specific subnet
+prefixes provides the user maximum flexibility. There is a single access
+vector for PKeys called "access".
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+An Infiniband port is labeled by name and port number. There is a single
+access vector for IB ports called "manage_subnet".
 
-iQIcBAEBAgAGBQJXh/GCAAoJEORje4g2clinaosP/0MTZ7lmSza7yuR3+sz0uzsL
-5WQtQg7U8drKjhmSJdHIZtFTIuQezhuY4dWv+jcrHJdEF7woT6zofSadDZQKe3q5
-KyWyQnA74DbKMG5+TQORhzvhDTYu+Jq30JyJni1AOzE4E4B/qRiNBhdOHuETe/xq
-MYMEW/gE7IK4WcLOaCJneFmGy0WUuSDtY1DkFnPv8NKdUmWRcIisiZwMLqo+JH6E
-CAbL35r/31nvpWJxI4iZygI+U1gQDGCckYIbe3SGSJgsVVD9ntnX0xTTZ/S8Su6w
-vuLDK2YNlw/XoncABNCBvAyrb9K3QWx1+/R8WQ2F0pumtscFcZ7UX8vFgOOk5jqH
-5RzPYkLhvKlL4QarV/tD1rOLv5PvqQi9jQi5bMNiuPiwH5c6UM/S3+PtsyyMe8CE
-aUtDOQ2wBzQw/HVNY3X0cGKVFNIy398ipxqyN4kIor+CNz3A2UzLHCaO7eWjWUrU
-WZvP2ABH4/Bkn6RmHUOIkJGqakLTdKEKep3gFwKiiLTzRbeY+pHlsRinRhA3eAzm
-Y5IL25eYneg/ZsTNwIOEqw5ZIib3WknjodkG1VCcXSypNe/fAZKPrbTBiNUySIOi
-67hBZoXW56CSy1Opn9zlOqDQ5mn5tOe2IGZYxOdvLLaLR/JxvsVABVaOKbxCEhhR
-ZySNjb8RBWpOOnf1oF9Z
-=gkxV
------END PGP SIGNATURE-----
+Because RDMA allows kernel bypass, enforcement must be done during
+connection setup. Communication over RDMA requires a send and receive
+queue called a  queue pair (QP). During the creation of a QP it is
+initialized before it can be used to send or receive data. During
+initialization the user must provide the PKey and port the QP will use, at
+this time access can be enforced.
 
---LpQ9ahxlCli8rRTG--
+Because there is a possibility that the enforcement settings or security
+policy can change, a means of notifying the ib_core module of such changes
+is required. To facilitate this a generic notification callback mechanism
+is added to the LSM. One callback is registered for checking the QP PKey
+associations when the policy changes. Mad agents also register a callback,
+they cache the permission to send and receive SMPs to avoid another per
+packet call to the LSM.
+
+Because frequent accesses to the same PKey's SID is expected a cache is
+implemented which is very similar to the netport cache.
+
+In order to properly enforce security when changes to the PKey table or
+security policy or enforcement occur ib_core must track which QPs are
+using which port, pkey index, and alternate path for every IB device.
+This makes operations that used to be atomic transactional.
+
+When modifying a QP, ib_core must associate it with the PKey index, port,
+and alternate path specified. If the QP was already associated with
+different settings, the QP is added to the new list prior to the
+modification. If the modify succeeds then the old listing is removed. If
+the modify fails the new listing is removed and the old listing remains
+unchanged.
+
+When destroying a QP the ib_qp structure is freed by the decive specific
+driver (i.e. mlx4_ib) if the 'destroy' is successful. This requires storing
+security related information in a separate structure. When a 'destroy'
+request is in process the ib_qp structure is in an undefined state so if
+there are changes to the security policy or PKey table, the security checks
+cannot reset the QP if it doesn't have permission for the new setting. If
+the 'destroy' fails, security for that QP must be enforced again and its
+status in the list is restored. If the 'destroy' succeeds the security info
+can be cleaned up and freed.
+
+There are a number of locks required to protect the QP security structure
+and the QP to device/port/pkey index lists. If multiple locks are required,
+the safe locking order is: QP security structure mutex first, followed by
+any list locks needed, which are sorted first by port followed by pkey
+index.
+
+---
+v2:
+- Use void* blobs in the LSM hooks. Paul Moore
+- Make the policy change callback generic. Yuval Shaia, Paul Moore
+- Squash LSM changes into the patches where the calls are added. Paul Moore
+- Don't add new initial SIDs. Stephen Smalley
+- Squash MAD agent PKey and SMI patches. Dan Jurgens
+- Changed ib_end_port to ib_port. Paul Moore
+- Changed ib_port access vector from smp to manage_subnet. Paul Moore
+- Added pkey and ib_port details to the audit log. Paul Moore
+- See individual patches for more detail.
+
+Daniel Jurgens (9):
+  IB/core: IB cache enhancements to support Infiniband security
+  IB/core: Enforce PKey security on QPs
+  selinux lsm IB/core: Implement LSM notification system
+  IB/core: Enforce security on management datagrams
+  selinux: Create policydb version for Infiniband support
+  selinux: Allocate and free infiniband security hooks
+  selinux: Implement Infiniband PKey "Access" access vector
+  selinux: Add IB Port SMP access vector
+  selinux: Add a cache for quicker retreival of PKey SIDs
+
+ drivers/infiniband/core/Makefile     |    3 +-
+ drivers/infiniband/core/cache.c      |   57 +++-
+ drivers/infiniband/core/core_priv.h  |  115 ++++++
+ drivers/infiniband/core/device.c     |   79 ++++
+ drivers/infiniband/core/mad.c        |   52 +++-
+ drivers/infiniband/core/security.c   |  707 ++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_cmd.c |   20 +-
+ drivers/infiniband/core/verbs.c      |   27 ++-
+ include/linux/lsm_audit.h            |   37 ++-
+ include/linux/lsm_hooks.h            |   34 ++
+ include/linux/security.h             |   37 ++
+ include/rdma/ib_mad.h                |    4 +
+ include/rdma/ib_verbs.h              |   49 +++
+ security/Kconfig                     |    9 +
+ security/lsm_audit.c                 |   18 +
+ security/security.c                  |   97 +++++
+ security/selinux/Makefile            |    2 +-
+ security/selinux/hooks.c             |   79 ++++-
+ security/selinux/ibpkey.c            |  245 ++++++++++++
+ security/selinux/include/classmap.h  |    4 +
+ security/selinux/include/ibpkey.h    |   31 ++
+ security/selinux/include/objsec.h    |   11 +
+ security/selinux/include/security.h  |    7 +-
+ security/selinux/selinuxfs.c         |    2 +
+ security/selinux/ss/policydb.c       |  130 ++++++-
+ security/selinux/ss/policydb.h       |   27 +-
+ security/selinux/ss/services.c       |   83 ++++
+ 27 files changed, 1908 insertions(+), 58 deletions(-)
+ create mode 100644 drivers/infiniband/core/security.c
+ create mode 100644 security/selinux/ibpkey.c
+ create mode 100644 security/selinux/include/ibpkey.h
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
