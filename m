@@ -1,21 +1,188 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [QUESTION] IB/ipoib: IB_DEVICE_UD_IP_CSUM & NETIF_F_SG
-Date: Thu, 14 Jul 2016 12:57:14 +0300
-Message-ID: <20160714095714.GA13573@yuval-lap.uk.oracle.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V1 7/8] RDMA/core: Change locking of ib_uobject
+Date: Thu, 14 Jul 2016 10:59:41 +0300
+Message-ID: <6ae1a553-408c-723a-93a2-3d46d952ce35@mellanox.com>
+References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
+ <1467293971-25688-8-git-send-email-matanb@mellanox.com>
+ <20160713171657.GB19657@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20160713171657.GB19657-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-Looking at ipoib_set_dev_features().
-Any idea why NETIF_F_SG depends on IB_DEVICE_UD_IP_CSUM?
+On 13/07/2016 20:16, Jason Gunthorpe wrote:
+> On Thu, Jun 30, 2016 at 04:39:30PM +0300, Matan Barak wrote:
+>> This patch presents some concept about lockless scheme. It's only
+>> intended to open discussion and still misses some crucial parts.
+>
+> It isn't really lockless, is it? I gather the intent is to remove the
+> per-uobj lock(s) and replace with a ucontext rwsem?
+>
+>> Every ib_uobject has a usecnt atomic variable. Single rwsem in
+>> ib_uverbs_file (protect destruction of device from execution of
+>> commands).
+>>
+>> For every command execution:
+>>   a. Check if device is available (as of today, with srcu)
+>>   b. Take down_read(&file->close_sem)
+>>   c. <User is now protected from closing the process and ib-dev
+>>      destruction>
+>>   d. When an object is used -> use uverbs_lock_object function
+>>      implemented in this patch.
+>>        i .If the object isn't available (-EBUSY)
+>
+> I'd like to see a detailed list of all the calls that change from
+> blocking to EBUSY with this approach.
+>
 
-Thanks,
-Yuval
+I'm not at the office right now, but AFAIK it's attach_mcast, 
+detach_mcast, rereg_mr and all the destroy functions.
+
+> I also think this should be stand-alone as part of the uobject rework
+> series.. Again it seems like this benifits any approach.
+>
+
+Yeah, but since the new infrastructure is going to do the locks 
+automatically for you, we'll ditch the locks in uverbs_cmd anyway. 
+Therefore, I don't see a real benefit refactoring uverbs_cmd and then 
+ditching all these changes.
+
+> uverbs_lock_object is in an different patch in the series..
+>
+> I'm always nervous when I see people create their own locks with
+> atomics. Don't do that. That is a rw lock using try_lock.
+>
+
+Ok
+
+>>   e. Unlock with uverbs_unlock_object (implemented in this patch)
+>>   f. Release up_read(&file->close_sem)
+>
+> g. release srcu
+>
+> If the close_sem is always being held, then I suspect we can drop SRCU
+> as well??
+>
+
+No, it's not the same thing. SRCU protects device removal from command 
+execution. close_sem protects context destruction from command execution.
+You're correct that in the current state of the code, context is only 
+closed when a file is closed or when a device is removed, so it's 
+protected. However, if we want to add a destroy_context action - it 
+becomes necessary.
+
+If we move to a per uverbs_file idr, contexts (either file context or 
+client context), we still need to sync destruction of these contexts 
+with carrying out actions. Since the uverbs_file outlives them, it's 
+reasonable to put the lock there.
+
+>> ib_uobjects are lockless. If two commands are executed in
+>> parallel and one need exclusive access (WRITE/DESTROY) -> one
+>> command will fail. User-space needs to either synchronize or do
+>> something productive with the failure.
+>
+> I think this can work for destroy, but I have a hard time seeing how
+> it is going to be OK for WRITE/MODIFY/etc operations.
+>
+> eg rereg_mr holds the write lock, I'm not sure I'm comfortable seeing
+> that be allowed to fail ..
+>
+
+Currently, as far as I remember, modify isn't protected by the write 
+lock anyway. Besides that, nothing stops the user from syncing the actions.
+
+If you do the synchronization in kernel, you need to make sure locks are 
+taken in the exact same order for all commands to avoid deadlock in the 
+kernel. This is more expensive than just letting the user do that.
+For example, if a user has a single thread to control his resources, why 
+do we have to waste time or sorting his handles in kernel?
+
+>> @@ -308,8 +298,8 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+>>  	if (!uobj)
+>>  		return -ENOMEM;
+>>
+>> -	init_uobj(uobj, 0, file->ucontext, &pd_lock_class);
+>> -	down_write(&uobj->mutex);
+>> +	down_read(&file->close_sem);
+>> +	init_uobj(uobj, 0, file->ucontext);
+>
+> Seeing this pattern in your patches really makes me wonder.. What is
+> the down_write even doing at that point???
+>
+>         uobj = kmalloc(sizeof *uobj, GFP_KERNEL);
+>         init_uobj(uobj, 0, file->ucontext, &pd_lock_class);
+>         down_write(&uobj->mutex);
+>
+> init_uobj doesn't add the memory to any lists or anything. How could
+> another thread get access to the pointer and contend on the mutex?
+>
+
+Our latest locking series (not posted yet) removes the mutex from the 
+uobject.
+
+> I guess it is because later we do:
+>
+>         ret = idr_add_uobj(&ib_uverbs_pd_idr, uobj);
+>
+> While holding the lock. But that is a really ugly API. Nothing should be
+> added to the idr until it is 100% initialized, so we don't need
+> concurrency protection. What is the write lock doing at that point??
+>
+
+We assume the enable function can't fail. Since adding something to idr 
+could fail, we preferred adding it first with live = 0 flag and then 
+enabling it.
+
+> This whole flow should be simplified, which will make the locking
+> requirements a lot clearer.
+>
+>   uobj = uobj_alloc(file->ucontext, 0, sizeof(*uobj));
+>   [.. full setup ..]
+>   uobj_activate(uobj); // live = 1, list_add_tail, idr_add
+>
+>   resp.handle = uobj->id;
+>   copy_to_user(..);
+>
+>   put_uobj(uobj);
+>   return ret;
+>
+> err1:
+>   uobj_deactivate(uobj);
+> err2:
+>   put_obj(uobj);
+>
+
+I agree with the general schema, but I think idr_add should be done in 
+uobj_alloc as it can fail.
+
+> I would do the above sort of restructuring as another (mergable, even)
+> patch, then rip out the locking.
+>
+
+This locking is done automatically using the new infrastructure. The 
+goal is to remove all these locking semantics from the user handler.
+Therefore, I don't think we should refactor uverbs_cmd and then delete 
+all locks from there.
+
+> Also, I think the destruction should be equally cleaned up. If you
+> introduce a patch with actual ops and a destroy function pointer
+> per-type then a centralized destruct call can be implemented that does
+> the correct lock, wrapping the functionc all. Again this would be a
+> nice clean up to have distinct from the ioctl stuff...
+>
+
+We have a free function per object type. The correct locking is indeed 
+done by the wrapper.
+
+> Jason
+>
+
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
