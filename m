@@ -1,124 +1,81 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v11 21/22] IB/hns: Kconfig and Makefile for RoCE module
-Date: Thu, 14 Jul 2016 08:35:31 +0300
-Message-ID: <20160714053530.GJ10079@leon.nu>
-References: <1467452364-66522-1-git-send-email-oulijun@huawei.com>
- <1467452364-66522-22-git-send-email-oulijun@huawei.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V1 4/8] RDMA/core: Add support for custom types
+Date: Thu, 14 Jul 2016 08:30:05 +0300
+Message-ID: <5fdae959-5ab2-ee17-e36e-3642ddd3e6ce@mellanox.com>
+References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
+ <1467293971-25688-5-git-send-email-matanb@mellanox.com>
+ <20160712192345.GC8206@obsidianresearch.com>
+ <081a02c0-0650-d0c2-494c-19a64b83cbc1@mellanox.com>
+ <20160713163924.GA19657@obsidianresearch.com>
+ <0959d391-75fb-75e8-ef2e-9d8c06b1b96f@mellanox.com>
+ <20160713172116.GC19657@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pMCBjikF2xGw87uL"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1467452364-66522-22-git-send-email-oulijun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>
-Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com, jiri@mellanox.com, ogerlitz@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, gongyangming@huawei.com, xiaokun@huawei.com, tangchaofei@huawei.com, haifeng.wei@huawei.com, yisen.zhuang@huawei.com, yankejian@huawei.com, charles.chenxin@huawei.com, linuxarm@huawei.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160713172116.GC19657-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 13/07/2016 20:21, Jason Gunthorpe wrote:
+> On Wed, Jul 13, 2016 at 07:57:04PM +0300, Matan Barak wrote:
+>
+>> Maybe instead of having an idr per device, it's better to have an idr per
+>> uverbs file.
+>
+> Oh, I thought you were doing that already!
+>
+> Yes, the idr must be per ucontext, otherwise we create a big security
+> problem. Access to one files object #'s cannot be allowed from another
+> file.
+>
 
---pMCBjikF2xGw87uL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We don't have a security problem, as the ucontext pointer is store on 
+the uobject. Therefore, the uobject is returned only if it matches the 
+current ucontext.
 
-On Sat, Jul 02, 2016 at 05:39:23PM +0800, Lijun Ou wrote:
-> This patch added Kconfig and Makefile for building RoCE module.
->=20
-> Signed-off-by: Wei Hu <xavier.huwei@huawei.com>
-> Signed-off-by: Nenglong Zhao <zhaonenglong@hisilicon.com>
-> Signed-off-by: Lijun Ou <oulijun@huawei.com>
-> ---
-> PATCH v11:
-> hns_roce_icm.o -> hns_roce_hem.o
->=20
-> PATCH v10/v9/v8/v7/v6/v5:
-> - No change over the PATCH v4
->=20
-> PATCH v4:
-> This fixes the comments given by Christoph Hellwig over the PATCH v3:
->   Link: https://lkml.org/lkml/2016/3/22/609
->=20
-> PATCH V3:
-> This fixes the comments given by Leon Romanovsky over the PATCH v2:
->   Link: https://lkml.org/lkml/2016/3/20/5
->=20
-> PATCH v2:
-> This fixes the comments given by Leon Romanovsky over the PATCH v1:
->   Link: https://lkml.org/lkml/2016/3/6/94
-> Fixes the error tested by kbuild test robot over the PATCH v1:
->   Link: https://lkml.org/lkml/2016/3/4/343
->=20
-> PATCH v1:
-> - The initial patch
-> ---
-> ---
->  drivers/infiniband/Kconfig         |  1 +
->  drivers/infiniband/hw/Makefile     |  1 +
->  drivers/infiniband/hw/hns/Kconfig  | 10 ++++++++++
->  drivers/infiniband/hw/hns/Makefile |  8 ++++++++
->  4 files changed, 20 insertions(+)
->  create mode 100644 drivers/infiniband/hw/hns/Kconfig
->  create mode 100644 drivers/infiniband/hw/hns/Makefile
->=20
-> diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-> index 2137adf..767f92b 100644
-> --- a/drivers/infiniband/Kconfig
-> +++ b/drivers/infiniband/Kconfig
-> @@ -74,6 +74,7 @@ source "drivers/infiniband/hw/mlx5/Kconfig"
->  source "drivers/infiniband/hw/nes/Kconfig"
->  source "drivers/infiniband/hw/ocrdma/Kconfig"
->  source "drivers/infiniband/hw/usnic/Kconfig"
-> +source "drivers/infiniband/hw/hns/Kconfig"
-> =20
->  source "drivers/infiniband/ulp/ipoib/Kconfig"
-> =20
-> diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makef=
-ile
-> index c0c7cf8..2ad851d 100644
-> --- a/drivers/infiniband/hw/Makefile
-> +++ b/drivers/infiniband/hw/Makefile
-> @@ -9,3 +9,4 @@ obj-$(CONFIG_INFINIBAND_NES)		+=3D nes/
->  obj-$(CONFIG_INFINIBAND_OCRDMA)		+=3D ocrdma/
->  obj-$(CONFIG_INFINIBAND_USNIC)		+=3D usnic/
->  obj-$(CONFIG_INFINIBAND_HFI1)		+=3D hfi1/
-> +obj-$(CONFIG_INFINIBAND_HISILICON_HNS) 	+=3D hns/
+>> However, when a device is removed, we need to find all its related objects
+>> and destroy them. In order to do that in a simple way, we could say that a
+>> uverbs_file is either not bound to any rdma device or bound to a
+>> single IB
+>
+> This is just more searching on the disassociate path. Search all
+> ucontexts for any uobj connected to the victim device.
+>
+> If we drop the file == device scheme then we need a generic op to
+> tell what device a uobj is associated with. All our kobjs already
+> store this information, so it isn't a big deal.
+>
 
---------------------------^^^^^^^--
-There is no need in HISILICON word here.
+I've thought about ditching the lists, but there's one fundamental 
+problem. Keeping reference counts in kernel doesn't encompass dependency 
+relations in the user space. For example, since memory windows could be 
+bounded and unbounded from a MR, we need to delete all MWs before 
+deleting the MRs.
+Secondly, we could safely change the list to hlist. The memory overhead 
+will be minimal (probably better than adding and IDR per type).
 
-> diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hn=
-s/Kconfig
-> new file mode 100644
-> index 0000000..c47c168
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/hns/Kconfig
-> @@ -0,0 +1,10 @@
-> +config INFINIBAND_HISILICON_HNS
-> +	tristate "Hisilicon Hns ROCE Driver"
+If we break the file == device scheme, it also requires a few new object 
+types (for example, DEVICE and CLIENT object) to pass them from user-space.
+So the flow might be using the QUERY ioctl code and query the 
+devices/clients. Creating a device/client and get a IDR handle for that. 
+For every IOCTL code (either device or client commands), you pass this 
+idr handle as part of the ioctl code specific header.
 
-And you are still inconsistent with the names
-Hisilicon/HiSilicon/hisilicon/HISILICON/e.t.c., ROCE/roce/RoCE/e.t.c.
+However, does it really worth it? Do you see any usage of binding the 
+same uverbs_file to several rdma devices?
+If not, we could have a simpler approach of having a file either bounded 
+to a device or not bounded to any device. We could still share the IDR 
+with clients on the same fd, but they are all guaranteed to set or use 
+this exact device.
 
---pMCBjikF2xGw87uL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Jason
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXhySiAAoJEORje4g2clinj4IP+wRq+hEbjDzVuQCr+xGIltsk
-q3LgjZsEUnn2+KclRycnhANvYJhZ4+hfMyhjtba17lJASLwezrO4XuKiNmFiookf
-ofSmKKOoSWalilVhzYgHCOBIbvxLmmYHw12LVEkmUJtv6SqbkbxJfhxD3gYO2xpR
-P4xXCBG65bXOMOcxfRwtAPA68RpD9KdUzit7oJZxWmQT3IPieXC015DuQQZSMnqA
-D+Y5SBIfIpUP/iI6E+c6O+/TRnFLCkWNTj5pMrXYQBpuFSrNZ/sisutRVkRsV9XX
-Qf9EQzSuTAdhvkeQfFA2sChM3AYTbVXte1ReZU5acBKm0nGj3lhnq0XmiMTf8WjX
-tislGkYN4XTXCmSTBr3PThqO4k/gXUWDTd2aBCmjhurAPsJZ+psjqNw3gJjG2x0W
-/rhavfxrcY08z96C2fm4QkYMeHKHtx1mTB8h3PI58YuU2gws5lWwOoNXJbBBfWyw
-VWTF75kga8rlw3xKiK/gSqGGR5faVIkFIw9NLUHzaUn8zIfVMYRLEFPtWi0ak+eR
-yQ4UUofEOqR+ara1xpCrPqlV7vFbHr1G3qUPfzG1zS7rom2gPXxzj3H48immV3ow
-wrt6uqHKPBNab3sTgdTwz/tRur3UhoCGqUcGfVY7DP6GK8boMcMmgvb1hrhfc0gY
-udK+CCXFmiYocm/m0gwt
-=nhZK
------END PGP SIGNATURE-----
-
---pMCBjikF2xGw87uL--
+Matan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
