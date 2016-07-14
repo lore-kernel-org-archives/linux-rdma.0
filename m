@@ -1,188 +1,112 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V1 7/8] RDMA/core: Change locking of ib_uobject
-Date: Thu, 14 Jul 2016 10:59:41 +0300
-Message-ID: <6ae1a553-408c-723a-93a2-3d46d952ce35@mellanox.com>
-References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
- <1467293971-25688-8-git-send-email-matanb@mellanox.com>
- <20160713171657.GB19657@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
+Date: Thu, 14 Jul 2016 09:45:21 -0400
+Message-ID: <9ef4cff7-869e-23a2-ded7-f3fb3553e0e3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="0F3swFGOUrQ9D7rQljbmVdKIraVofaq6J"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160713171657.GB19657-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/07/2016 20:16, Jason Gunthorpe wrote:
-> On Thu, Jun 30, 2016 at 04:39:30PM +0300, Matan Barak wrote:
->> This patch presents some concept about lockless scheme. It's only
->> intended to open discussion and still misses some crucial parts.
->
-> It isn't really lockless, is it? I gather the intent is to remove the
-> per-uobj lock(s) and replace with a ucontext rwsem?
->
->> Every ib_uobject has a usecnt atomic variable. Single rwsem in
->> ib_uverbs_file (protect destruction of device from execution of
->> commands).
->>
->> For every command execution:
->>   a. Check if device is available (as of today, with srcu)
->>   b. Take down_read(&file->close_sem)
->>   c. <User is now protected from closing the process and ib-dev
->>      destruction>
->>   d. When an object is used -> use uverbs_lock_object function
->>      implemented in this patch.
->>        i .If the object isn't available (-EBUSY)
->
-> I'd like to see a detailed list of all the calls that change from
-> blocking to EBUSY with this approach.
->
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--0F3swFGOUrQ9D7rQljbmVdKIraVofaq6J
+Content-Type: multipart/mixed; boundary="tqqdUXxRl1T4bv2TCXJeTKSl8nVmXGMoV"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
+ linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <9ef4cff7-869e-23a2-ded7-f3fb3553e0e3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PULL REQUEST] Please pull rdma.git
 
-I'm not at the office right now, but AFAIK it's attach_mcast, 
-detach_mcast, rereg_mr and all the destroy functions.
+--tqqdUXxRl1T4bv2TCXJeTKSl8nVmXGMoV
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> I also think this should be stand-alone as part of the uobject rework
-> series.. Again it seems like this benifits any approach.
->
+Hi Linus,
 
-Yeah, but since the new infrastructure is going to do the locks 
-automatically for you, we'll ditch the locks in uverbs_cmd anyway. 
-Therefore, I don't see a real benefit refactoring uverbs_cmd and then 
-ditching all these changes.
+This is a fairly small set of late rc fixes.  Nothing very controversial
+or needing a lot of explanation.  Here's the boiler plate:
 
-> uverbs_lock_object is in an different patch in the series..
->
-> I'm always nervous when I see people create their own locks with
-> atomics. Don't do that. That is a rw lock using try_lock.
->
+The following changes since commit 9903fd1374e913f5086b58af09d4e3fd6e9e86=
+fe:
 
-Ok
+  Merge branches '4.7-rc-misc', 'hfi1-fixes', 'i40iw-rc-fixes' and
+'mellanox-rc-fixes' into k.o/for-4.7-rc (2016-06-23 12:22:33 -0400)
 
->>   e. Unlock with uverbs_unlock_object (implemented in this patch)
->>   f. Release up_read(&file->close_sem)
->
-> g. release srcu
->
-> If the close_sem is always being held, then I suspect we can drop SRCU
-> as well??
->
+are available in the git repository at:
 
-No, it's not the same thing. SRCU protects device removal from command 
-execution. close_sem protects context destruction from command execution.
-You're correct that in the current state of the code, context is only 
-closed when a file is closed or when a device is removed, so it's 
-protected. However, if we want to add a destroy_context action - it 
-becomes necessary.
+  git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+tags/for-linus
 
-If we move to a per uverbs_file idr, contexts (either file context or 
-client context), we still need to sync destruction of these contexts 
-with carrying out actions. Since the uverbs_file outlives them, it's 
-reasonable to put the lock there.
+for you to fetch changes up to 8e0e7aedadb877d91a6e66611464165c969bc0a9:
 
->> ib_uobjects are lockless. If two commands are executed in
->> parallel and one need exclusive access (WRITE/DESTROY) -> one
->> command will fail. User-space needs to either synchronize or do
->> something productive with the failure.
->
-> I think this can work for destroy, but I have a hard time seeing how
-> it is going to be OK for WRITE/MODIFY/etc operations.
->
-> eg rereg_mr holds the write lock, I'm not sure I'm comfortable seeing
-> that be allowed to fail ..
->
+  i40iw: Enable remote access rights for stag allocation (2016-07-12
+10:46:34 -0400)
 
-Currently, as far as I remember, modify isn't protected by the write 
-lock anyway. Besides that, nothing stops the user from syncing the actions.
+----------------------------------------------------------------
+Round three of 4.7 rc fixes
 
-If you do the synchronization in kernel, you need to make sure locks are 
-taken in the exact same order for all commands to avoid deadlock in the 
-kernel. This is more expensive than just letting the user do that.
-For example, if a user has a single thread to control his resources, why 
-do we have to waste time or sorting his handles in kernel?
+- Two fixes for hfi1
+- Two fixes for i40iw
+- On ommission correction in the port table counter arrays
 
->> @@ -308,8 +298,8 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
->>  	if (!uobj)
->>  		return -ENOMEM;
->>
->> -	init_uobj(uobj, 0, file->ucontext, &pd_lock_class);
->> -	down_write(&uobj->mutex);
->> +	down_read(&file->close_sem);
->> +	init_uobj(uobj, 0, file->ucontext);
->
-> Seeing this pattern in your patches really makes me wonder.. What is
-> the down_write even doing at that point???
->
->         uobj = kmalloc(sizeof *uobj, GFP_KERNEL);
->         init_uobj(uobj, 0, file->ucontext, &pd_lock_class);
->         down_write(&uobj->mutex);
->
-> init_uobj doesn't add the memory to any lists or anything. How could
-> another thread get access to the pointer and contend on the mutex?
->
+----------------------------------------------------------------
+Christoph Lameter (1):
+      IB core: Add port_xmit_wait counter
 
-Our latest locking series (not posted yet) removes the mutex from the 
-uobject.
+Mike Marciniszyn (1):
+      IB/hfi1: Correct issues with sc5 computation
 
-> I guess it is because later we do:
->
->         ret = idr_add_uobj(&ib_uverbs_pd_idr, uobj);
->
-> While holding the lock. But that is a really ugly API. Nothing should be
-> added to the idr until it is 100% initialized, so we don't need
-> concurrency protection. What is the write lock doing at that point??
->
+Nicolas Iooss (1):
+      i40iw: do not print unitialized variables in error message
 
-We assume the enable function can't fail. Since adding something to idr 
-could fail, we preferred adding it first with live = 0 flag and then 
-enabling it.
+Shiraz Saleem (1):
+      i40iw: Enable remote access rights for stag allocation
 
-> This whole flow should be simplified, which will make the locking
-> requirements a lot clearer.
->
->   uobj = uobj_alloc(file->ucontext, 0, sizeof(*uobj));
->   [.. full setup ..]
->   uobj_activate(uobj); // live = 1, list_add_tail, idr_add
->
->   resp.handle = uobj->id;
->   copy_to_user(..);
->
->   put_uobj(uobj);
->   return ret;
->
-> err1:
->   uobj_deactivate(uobj);
-> err2:
->   put_obj(uobj);
->
+Tadeusz Struk (1):
+      IB/hfi1: Fix sleep inside atomic issue in init_asic_data
 
-I agree with the general schema, but I think idr_add should be done in 
-uobj_alloc as it can fail.
+ drivers/infiniband/core/sysfs.c           |  4 ++++
+ drivers/infiniband/hw/hfi1/chip.c         | 16 +++++++++-------
+ drivers/infiniband/hw/hfi1/ud.c           | 23 +++--------------------
+ drivers/infiniband/hw/i40iw/i40iw_main.c  |  3 +--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c |  1 +
+ 5 files changed, 18 insertions(+), 29 deletions(-)
 
-> I would do the above sort of restructuring as another (mergable, even)
-> patch, then rip out the locking.
->
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
 
-This locking is done automatically using the new infrastructure. The 
-goal is to remove all these locking semantics from the user handler.
-Therefore, I don't think we should refactor uverbs_cmd and then delete 
-all locks from there.
 
-> Also, I think the destruction should be equally cleaned up. If you
-> introduce a patch with actual ops and a destroy function pointer
-> per-type then a centralized destruct call can be implemented that does
-> the correct lock, wrapping the functionc all. Again this would be a
-> nice clean up to have distinct from the ioctl stuff...
->
+--tqqdUXxRl1T4bv2TCXJeTKSl8nVmXGMoV--
 
-We have a free function per object type. The correct locking is indeed 
-done by the wrapper.
+--0F3swFGOUrQ9D7rQljbmVdKIraVofaq6J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> Jason
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-Matan
+iQIcBAEBCAAGBQJXh5dxAAoJELgmozMOVy/d1jYP+wXU9EkE/3AyIbuyRz9Bnu/l
+xZz4AFsPJkB82Fa9YcLxDSLW6G3nN1xal1Kq95dAz6/lkRRHRAIx70LaMEskb+eK
+tZHORcfg/KRcl6vzGrRBEoL2uDRBRBR/3KpKElslj5Dyo6OWci6+IKDMzUalalOX
+uPenblNYLBhBrN595ekBUw4aAw1H+EjGDxV2iJfkf3ZPsK6XN7JsHt2RoULZ3xVZ
+zalrhQmVGNtCkgnynMfXQ6Zfd6T3Bd4gChGBLYpC5Tlw0FT6HRGmH9Kqy29BzydI
+b9nbMa6apWTtGoaStsxk0OVr4BNDw8zt8GNHpH+I1rGVMGvlg3N5ABeLW07EfVJh
+cdMYxbVCndzStDkugg4qKSFg8l8ljE6njEgHtL9xQEhCYzXZod2ZUXPqP3h2IxK3
+RmVsZ3ucRNhU+GPqYN4/ge6nDsrfxftHYgh2lV92pHz9STkbYGx16rnjoEyUkFWB
+xYDTDNfyO37anARN+Ieohkw0KKTQGLqOj4K/mcCyeB6qJpW7z1Uyl0IFJMiAV90C
+a+Fq55eSD6xh7rxIWryWKUN8D+sKT5xPxcTcAe+3u7MAw7NL2Uv7vUfiA6vrh1yH
+4imcm7BUoeD4WeK/ZlmwQoO4CjKMbHzcNn7jBp2DYJgicjUlAUM6WAAK+t3/rWwM
+X9JeIe3DNdnLjm8dzTWz
+=IRR9
+-----END PGP SIGNATURE-----
+
+--0F3swFGOUrQ9D7rQljbmVdKIraVofaq6J--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
