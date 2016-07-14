@@ -1,145 +1,106 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V1 7/8] RDMA/core: Change locking of ib_uobject
-Date: Thu, 14 Jul 2016 11:00:51 -0600
-Message-ID: <20160714170051.GB2046@obsidianresearch.com>
-References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
- <1467293971-25688-8-git-send-email-matanb@mellanox.com>
- <20160713171657.GB19657@obsidianresearch.com>
- <6ae1a553-408c-723a-93a2-3d46d952ce35@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
+Date: Thu, 14 Jul 2016 19:12:48 +0200
+Message-ID: <5722B9B9-2145-414A-957A-AA5C1C223B31@oracle.com>
+References: <1468402436-25053-1-git-send-email-yuval.shaia@oracle.com> <20160713174742.GE19657@obsidianresearch.com> <20160713191224.GB2985@yuval-lap> <20160713192504.GA26851@obsidianresearch.com> <20160713195030.GB4929@yuval-lap.uk.oracle.com> <02892134-15c7-963a-d13b-95d6e35ceaca@oracle.com> <20160713205358.GA27704@obsidianresearch.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6ae1a553-408c-723a-93a2-3d46d952ce35-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160713205358.GA27704-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 14, 2016 at 10:59:41AM +0300, Matan Barak wrote:
 
-> I'm not at the office right now, but AFAIK it's attach_mcast, detach_mcast,
-> rereg_mr and all the destroy functions.
+> On 13 Jul 2016, at 22:53, Jason Gunthorpe <jgunthorpe@obsidianresearc=
+h.com> wrote:
+>=20
+> On Wed, Jul 13, 2016 at 01:46:07PM -0700, Santosh Shilimkar wrote:
+>>> Patch does not offer any recovery mechanism it simply print fatal e=
+rror to
+>>> console and exit NAPI. This fatal error will suggest admin to reloa=
+d the
+>>> driver or something like that.
+>>> This takes us to "recovery-mechanism" :)
+>>> I'm not sure that restarting the QP will help as the error is while=
+ reading
+>>> the CQ and restarting the CQ is more or less like restarting the dr=
+iver.
+>>>=20
+>> Probably Jason mean destroy the problematic CQ and create a new one.=
+ This is
+>> what Haakon suggested as well but it will lead to the leak
+>> and also possible issue with outstanding WC's getting lost without
+>> being flushed on that CQ.
+>=20
+> Again, this seems crazy.
+>=20
+> What failure mode does a CQ have that does not require a full driver
+> restart after?
 
-I don't think we can change those three, I would be too scared that
-would break existing apps that don't serialize them.
+The OFED API clearly indicates that ib_poll_cq() might fail and return =
+an error status.
 
-I think we need to change the kernel locking for those three cases to
-rely on a different lock so that the modify style operations can not
-return EBUSY.
+This API is also conforms with the IBTA specification, section 11.4.2.1=
+ Poll for Completion:
 
-That seems like it should be simple enough? Can we use the lock in the
-kobj or something? Why is it like that today anyhow?
+=E2=80=9CIf an immediate error, associated with executing the Poll CQ v=
+erb itself, is returned, the CQ and QP state shall not be affected.=E2=80=
+=9D
 
-> >I also think this should be stand-alone as part of the uobject rework
-> >series.. Again it seems like this benifits any approach.
-> 
-> Yeah, but since the new infrastructure is going to do the locks
-> automatically for you, we'll ditch the locks in uverbs_cmd anyway.
-> Therefore, I don't see a real benefit refactoring uverbs_cmd and then
-> ditching all these changes.
+> Drivers that hard fail a CQ poll should declare themselves dead and
+> require a full restart to recover. This is the same infrastructure
+> that was added to the mlx drivers to handle other forms of hard
+> errors.
 
-We still have to go through a transitional approach here, to me that
-means we should move existing uverbs closer to the new approach
-(particularly in terms of locking and code sharing), trial that in
-real apps, and then add the new api on that tested basis. We can't
-just abandon uverbs, and we probably shouldn't try to do a flag day
-convert either.
+Yes, but this is at the discretion of the driver. Provider drivers are =
+free to have a BUG_ON() instead of a return -EINVAL. But that is not th=
+e case. And, if there is an intermittent error return (e.g., EAGAIN), I=
+ take it that we can agree that the driver shall not declare itself dea=
+d.
 
-So I don't know what your plan is to 'ditch the locks' with the new
-infrastucture while maintaining the uverbs api..
+Now, for drivers that can fault isolate a CQ error to the CQ and affect=
+ed QPs, as supported by the API, should be allowed to offer that possib=
+ility in my opinion. Errors do happen, although this kind of errors hap=
+pen seldom. There are different failover models that can be used to ove=
+rcome such an error, whether it is intermittent or hard.
 
-My preference is to see smaller patch series with clear goals that can
-be applied - and 'rework uverbs locking' seems to fit that bill quite
-well.
+> This was the same direction we went in for the _destroy functions.
+>=20
+> poll_cq should only return -EAGAIN or success (and EAGAIN seems
+> fairly strange, how is that different from returning 0 wcs?)
 
-For instance, if we are introducing a uobject type scheme like this
-series does then it should be another stand alone series that doesn't
-try and introduce the ioctl stuff..
+Well, now we are post the creation time of the OFED API and the IBTA st=
+andard, and you propose to change them. Thats is OK by itself, but orth=
+ogonal to this commit.
 
-> No, it's not the same thing. SRCU protects device removal from command
-> execution. close_sem protects context destruction from command
-> execution.
+I see -EINVAL returned from poll_cq() from ehca and mlx4 for example.
 
-It is the same, device removal requires 'context destruction' as
-a precondition, so it should be able to ride on the same lock.
+> If there is some actual reason preventing a driver from implementing
+> that kind of API lets hear it. Otherwise I recommend you focus patche=
+s
+> on fixing any broken drivers and documenting this requirement.
 
-The 'context destruction' for device removal is a bit special but it
-is still basically the same action as close(fd).
+Well, handling legitimate and possible error returns from HCA drivers i=
+s honourable enough in my opinion.
 
-> You're correct that in the current state of the code, context is only closed
-> when a file is closed or when a device is removed, so it's protected.
-> However, if we want to add a destroy_context action - it becomes necessary.
 
-What would destroy_context do? Why would we need that?
 
-> If we move to a per uverbs_file idr, contexts (either file context or client
-> context), we still need to sync destruction of these contexts with carrying
-> out actions. Since the uverbs_file outlives them, it's reasonable to put the
-> lock there.
+H=C3=A5kon
 
-Are you proposing that all object destroy will be serialized?
 
-> Currently, as far as I remember, modify isn't protected by the write lock
-> anyway. Besides that, nothing stops the user from syncing the actions.
+>=20
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-You can't make that argument when dealing with compat. We can't change
-something like the locking requirements in user space.
-
-> >While holding the lock. But that is a really ugly API. Nothing should be
-> >added to the idr until it is 100% initialized, so we don't need
-> >concurrency protection. What is the write lock doing at that point??
-> 
-> We assume the enable function can't fail. Since adding something to idr
-> could fail, we preferred adding it first with live = 0 flag and then
-> enabling it.
-
-Why can't it fail?
-
-> >  uobj = uobj_alloc(file->ucontext, 0, sizeof(*uobj));
-> >  [.. full setup ..]
-> >  uobj_activate(uobj); // live = 1, list_add_tail, idr_add
-> >
-> >  resp.handle = uobj->id;
-> >  copy_to_user(..);
-> >
-> >  put_uobj(uobj);
-> >  return ret;
-> >
-> >err1:
-> >  uobj_deactivate(uobj);
-> >err2:
-> >  put_obj(uobj);
-> >
-> 
-> I agree with the general schema, but I think idr_add should be done in
-> uobj_alloc as it can fail.
-
-In my version uobj_activate can fail, and we already have to have the
-goto-unwind infrastructure to cope with that (copy_to_user could
-fail), so I'm not sure why avoiding it would be helpful?
-
-I also wonder if the above flow is enough to remove live? That always
-seemed like a strange approach to me, most idr users would just use in-idr
-as 'live' ...
-
-> >I would do the above sort of restructuring as another (mergable, even)
-> >patch, then rip out the locking.
-> 
-> This locking is done automatically using the new infrastructure. The goal is
-> to remove all these locking semantics from the user handler.
-> Therefore, I don't think we should refactor uverbs_cmd and then delete all
-> locks from there.
-
-What happens to uverbs_cmd then? As I said above we still need to keep
-it around and it still need to fit with the new infrastructure. I'd
-rather see a patch flow that slowly transforms uverbs_cmd to a point
-where adding the new ioctl becomes a simpler patch.
-
-There is obvoisly a lot of in-kernel infrastructure work to do.
-
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
