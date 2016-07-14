@@ -1,104 +1,76 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Skip napi_schedule if ib_poll_cq fails
-Date: Thu, 14 Jul 2016 11:34:59 -0600
-Message-ID: <20160714173459.GA10759@obsidianresearch.com>
-References: <1468402436-25053-1-git-send-email-yuval.shaia@oracle.com>
- <20160713174742.GE19657@obsidianresearch.com>
- <20160713191224.GB2985@yuval-lap>
- <20160713192504.GA26851@obsidianresearch.com>
- <20160713195030.GB4929@yuval-lap.uk.oracle.com>
- <02892134-15c7-963a-d13b-95d6e35ceaca@oracle.com>
- <20160713205358.GA27704@obsidianresearch.com>
- <5722B9B9-2145-414A-957A-AA5C1C223B31@oracle.com>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NVMe over RDMA latency
+Date: Thu, 14 Jul 2016 10:45:55 -0700
+Message-ID: <CABgxfbH-bMynfmMdnX0CQsSD7Yi1dPhiJMshuHhESJdu+_JzUQ@mail.gmail.com>
+References: <1467921342.24395.12.camel@ssi> <57860EBA.5010103@grimberg.me>
+ <1468434332.1869.8.camel@ssi> <CABgxfbFST4Y=d9KyDetptwNv6Hf0iJfzWm3y2aavLD3PExDCQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5722B9B9-2145-414A-957A-AA5C1C223B31-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CABgxfbFST4Y=d9KyDetptwNv6Hf0iJfzWm3y2aavLD3PExDCQw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: H??kon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 14, 2016 at 07:12:48PM +0200, H??kon Bugge wrote:
-> >> Probably Jason mean destroy the problematic CQ and create a new one. This is
-> >> what Haakon suggested as well but it will lead to the leak
-> >> and also possible issue with outstanding WC's getting lost without
-> >> being flushed on that CQ.
-> > 
-> > Again, this seems crazy.
-> > 
-> > What failure mode does a CQ have that does not require a full driver
-> > restart after?
-> 
-> The OFED API clearly indicates that ib_poll_cq() might fail and
-> return an error status.
-> 
-> This API is also conforms with the IBTA specification, section
-> 11.4.2.1 Poll for Completion:
+On Thu, Jul 14, 2016 at 9:43 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Jul 13, 2016 at 11:25 AM, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+>>> 1. I imagine you are not polling in the host but rather interrupt
+>>>     driven correct? thats a latency source.
+>>
+>> It's polling.
+>>
+>> root@host:~# cat /sys/block/nvme0n1/queue/io_poll
+>> 1
+>>
+>>>
+>>> 2. the target code is polling if the block device supports it. can you
+>>>     confirm that is indeed the case?
+>>
+>> Yes.
+>>
+>>>
+>>> 3. mlx4 has a strong fencing policy for memory registration, which we
+>>>     always do. thats a latency source. can you try with
+>>>     register_always=0?
+>>
+>> root@host:~# cat /sys/module/nvme_rdma/parameters/register_always
+>> N
+>>
+>>
+>>>
+>>> 4. IRQ affinity assignments. if the sqe is submitted on cpu core X and
+>>>     the completion comes to cpu core Y, we will consume some latency
+>>>     with the context-switch of waiking up fio on cpu core X. Is this
+>>>     a possible case?
+>>
+>> Only 1 CPU online on both host and target machine.
+>>
+>
+> Since the above tunables can be easily toggled on/off, could you break
+> down their contributions to the overall latency with each individual
+> tunable ? e.g. only do io_poll on / off to see how much it improves
+> the latency.
+>
+> From your data, it seems to indicate the local performance on the
+> target got worse. Is this perception correct ?
+>
+> Before the tunable: the target avg=22.35 usec
+> After the tunable: the target avg=23.59 usec
+>
+> I'm particularly interested in the local target device latency with
+> io_poll on vs. off. Did you keep your p99.99 latency and p90.00
+> latency numbers from this experiment that can be share ?
+>
 
-Irrelevant. This is the kAPI, it is not defined by anyone except the
-kernel community.
+BTW using one single CPU on the target (storage server) does not make
+sense. My guess is that the source of slow down on the target was
+because of this - as it is particularly relevant on polling mode
 
-We have made mistakes in it's design in the past (eg see the _destroy
-functions that used to return errors) and when those mistakes are
-discovered they need to be fixed robustly across the whole kernel.
 
-The approach in our subsystem for handling serious 'should never
-happen' errors is to trigger a full device restart & recovery.
-
-IMHO all CQ related errors at poll time fall into that category.
-
-If you have a concrete counter example please share it.
-
-> > Drivers that hard fail a CQ poll should declare themselves dead and
-> > require a full restart to recover. This is the same infrastructure
-> > that was added to the mlx drivers to handle other forms of hard
-> > errors.
-> 
-> Yes, but this is at the discretion of the driver. Provider drivers
-> are free to have a BUG_ON() instead of a return -EINVAL. But that is
-> not the case. And, if there is an intermittent error return (e.g.,
-> EAGAIN), I take it that we can agree that the driver shall not
-> declare itself dead.
-
-Giving the driver this discretion was the design error. The ULPs are
-not prepared to handle this case, and any driver that returns an error
-here is likely going to trigger kernel bugs elsewhere.
-
-> Now, for drivers that can fault isolate a CQ error to the CQ and
-> affected QPs, as supported by the API, should be allowed to offer
-> that possibility in my opinion. Errors do happen, although this kind
-> of errors happen seldom. There are different failover models that
-> can be used to overcome such an error, whether it is intermittent or
-> hard.
-
-Again, that is not the recovery model we have in our subsystem.
-
-Is this actually a real case? What scenario could possibly result in a
-CQ localized polling error?
-
-If a device really supports some kind of fine grained error detection
-then it needs to use established mechanisms -> move the impacted QPs
-to an error state and deliver a CQE. It is up to the driver to ensure
-that this can happen without cq poll failure, not every ULP.
-
-> I see -EINVAL returned from poll_cq() from ehca and mlx4 for example.
-
-I'm not disputing there is a problem here, only that this patch
-represents an acceptable fix.
-
-For instance you can argue we should handle CQ isolated errors. Fine,
-but this patch doesn't do that. It leaves IPoIB in a broken state if
-such an error occurs. It doesn't represent an audit of all poll users
-to check if they handle errors properly (I doubt they do, since this
-patch doesn't even properly fix ipoib)
-
-Thus, in my view, the shortest path to overall kernel correctness is
-to follow our subsystem standard, and trigger a device restart in the
-driver and ban failure of CQ poll in the kAPI.
-
-Jason
+Thanks,
+Wendy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
