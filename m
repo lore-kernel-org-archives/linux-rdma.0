@@ -1,68 +1,296 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 9/9] selinux: Add a cache for quicker retreival of
- PKey SIDs
-Date: Fri, 15 Jul 2016 17:06:23 +0800
-Message-ID: <201607151753.7mPKKPSZ%fengguang.wu@intel.com>
-References: <1468537011-20407-10-git-send-email-danielj@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1468537011-20407-10-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Topi Miettinen <toiwoton@gmail.com>
+Subject: [PATCH 00/14] Present useful limits to user (v2)
+Date: Fri, 15 Jul 2016 13:35:47 +0300
+Message-ID: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Topi Miettinen <toiwoton@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE 32-BIT AND 64-BIT" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.d>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hello,
 
-[auto build test WARNING on next-20160713]
-[cannot apply to pcmoore-selinux/next rdma/master v4.7-rc7 v4.7-rc6 v4.7-rc5 v4.7-rc7]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+There are many basic ways to control processes, including capabilities,
+cgroups and resource limits. However, there are far fewer ways to find out
+useful values for the limits, except blind trial and error.
 
-url:    https://github.com/0day-ci/linux/commits/Dan-Jurgens/SELinux-support-for-Infiniband-RDMA/20160715-122805
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+This patch series attempts to fix that by giving at least a nice starting
+point from the highwater mark values of the resources in question.
+I looked where each limit is checked and added a call to update the mark
+nearby.
 
+Example run of program from Documentation/accounting/getdelauys.c:
 
-sparse warnings: (new ones prefixed by >>)
+./getdelays -R -p `pidof smartd`
+printing resource accounting
+RLIMIT_CPU=0
+RLIMIT_FSIZE=0
+RLIMIT_DATA=18198528
+RLIMIT_STACK=135168
+RLIMIT_CORE=0
+RLIMIT_RSS=0
+RLIMIT_NPROC=1
+RLIMIT_NOFILE=55
+RLIMIT_MEMLOCK=0
+RLIMIT_AS=130879488
+RLIMIT_LOCKS=0
+RLIMIT_SIGPENDING=0
+RLIMIT_MSGQUEUE=0
+RLIMIT_NICE=0
+RLIMIT_RTPRIO=0
+RLIMIT_RTTIME=0
 
-   include/linux/compiler.h:232:8: sparse: attribute 'no_sanitize_address': unknown attribute
->> security/selinux/ibpkey.c:116:24: sparse: incompatible types in comparison expression (different address spaces)
+./getdelays -R -C /sys/fs/cgroup/systemd/system.slice/smartd.service/
+printing resource accounting
+sleeping 1, blocked 0, running 0, stopped 0, uninterruptible 0
+RLIMIT_CPU=0
+RLIMIT_FSIZE=0
+RLIMIT_DATA=18198528
+RLIMIT_STACK=135168
+RLIMIT_CORE=0
+RLIMIT_RSS=0
+RLIMIT_NPROC=1
+RLIMIT_NOFILE=55
+RLIMIT_MEMLOCK=0
+RLIMIT_AS=130879488
+RLIMIT_LOCKS=0
+RLIMIT_SIGPENDING=0
+RLIMIT_MSGQUEUE=0
+RLIMIT_NICE=0
+RLIMIT_RTPRIO=0
+RLIMIT_RTTIME=0
 
-vim +116 security/selinux/ibpkey.c
+In this example, smartd is running as a non-root user. The presented
+values can be used as a starting point for giving new limits to the
+service.
 
-   100	 * Description:
-   101	 * Add a new pkey record to the hash table.
-   102	 *
-   103	 */
-   104	static void sel_pkey_insert(struct sel_pkey *pkey)
-   105	{
-   106		unsigned int idx;
-   107	
-   108		/* we need to impose a limit on the growth of the hash table so check
-   109		 * this bucket to make sure it is within the specified bounds
-   110		 */
-   111		idx = sel_pkey_hashfn(pkey->psec.pkey);
-   112		list_add_rcu(&pkey->list, &sel_pkey_hash[idx].list);
-   113		if (sel_pkey_hash[idx].size == SEL_PKEY_HASH_BKT_LIMIT) {
-   114			struct sel_pkey *tail;
-   115	
- > 116			tail = list_entry(
-   117				rcu_dereference_protected(
-   118					sel_pkey_hash[idx].list.prev,
-   119					lockdep_is_held(&sel_pkey_lock)),
-   120				struct sel_pkey, list);
-   121			list_del_rcu(&tail->list);
-   122			kfree_rcu(tail, rcu);
-   123		} else {
-   124			sel_pkey_hash[idx].size++;
+There's one problem with the patch 07/13, kernel initialization calls
+create_worker() which seems to use different locking model or something:
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+[    0.145410] =========================================================
+[    0.148000] [ INFO: possible irq lock inversion dependency detected ]
+[    0.148000] 4.7.0-rc7+ #155 Not tainted
+[    0.148000] ---------------------------------------------------------
+[    0.148000] swapper/0/1 just changed the state of lock:
+[    0.148000]  (&(&(&sig->stats_lock)->lock)->rlock){+.....}, at: [<ffffffff810bf769>] __sched_setscheduler+0x339/0xbd0
+[    0.148000] but this lock was taken by another, HARDIRQ-safe lock in the past:
+[    0.148000]  (&rq->lock){-.....}
+
+and interrupts could create inverse lock ordering between them.
+
+[    0.148000] 
+[    0.148000] other info that might help us debug this:
+[    0.148000]  Possible interrupt unsafe locking scenario:
+[    0.148000] 
+[    0.148000]        CPU0                    CPU1
+[    0.148000]        ----                    ----
+[    0.148000]   lock(&(&(&sig->stats_lock)->lock)->rlock);
+[    0.148000]                                local_irq_disable();
+[    0.148000]                                lock(&rq->lock);
+[    0.148000]                                lock(&(&(&sig->stats_lock)->lock)->rlock);
+[    0.148000]   <Interrupt>
+[    0.148000]     lock(&rq->lock);
+[    0.148000] 
+[    0.148000]  *** DEADLOCK ***
+[    0.148000] 
+[    0.148000] 2 locks held by swapper/0/1:
+[    0.148000]  #0:  (cpu_hotplug.lock){.+.+.+}, at: [<ffffffff81092824>] get_online_cpus+0x24/0x70
+[    0.148000]  #1:  (smpboot_threads_lock){+.+.+.}, at: [<ffffffff810ba517>] smpboot_register_percpu_thread_cpumask+0x37/0xf0
+[    0.148000] 
+[    0.148000] the shortest dependencies between 2nd lock and 1st lock:
+[    0.148000]  -> (&rq->lock){-.....} ops: 181 {
+[    0.148000]     IN-HARDIRQ-W at:
+[    0.148000]                       [<ffffffff810e8439>] __lock_acquire+0x6e9/0x1440
+[    0.148000]                       [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]                       [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]                       [<ffffffff810c3a41>] scheduler_tick+0x41/0xd0
+[    0.148000]                       [<ffffffff81110471>] update_process_times+0x51/0x60
+[    0.148000]                       [<ffffffff8111fa4f>] tick_periodic+0x2f/0xc0
+[    0.148000]                       [<ffffffff8111fb05>] tick_handle_periodic+0x25/0x70
+[    0.148000]                       [<ffffffff8101ebf5>] timer_interrupt+0x15/0x20
+[    0.148000]                       [<ffffffff810fc731>] handle_irq_event_percpu+0x41/0x320
+[    0.148000]                       [<ffffffff810fca49>] handle_irq_event+0x39/0x60
+[    0.148000]                       [<ffffffff810ffe08>] handle_level_irq+0x88/0x110
+[    0.148000]                       [<ffffffff8101e58a>] handle_irq+0x1a/0x30
+[    0.148000]                       [<ffffffff818d2281>] do_IRQ+0x61/0x120
+[    0.148000]                       [<ffffffff818d0949>] ret_from_intr+0x0/0x19
+[    0.148000]                       [<ffffffff810fe969>] __setup_irq+0x3f9/0x5e0
+[    0.148000]                       [<ffffffff810feb96>] setup_irq+0x46/0xa0
+[    0.148000]                       [<ffffffff821878e2>] setup_default_timer_irq+0x1e/0x20
+[    0.148000]                       [<ffffffff821878fb>] hpet_time_init+0x17/0x19
+[    0.148000]                       [<ffffffff821878bd>] x86_late_time_init+0xa/0x11
+[    0.148000]                       [<ffffffff82181ef9>] start_kernel+0x39d/0x465
+[    0.148000]                       [<ffffffff82181294>] x86_64_start_reservations+0x2f/0x31
+[    0.148000]                       [<ffffffff8218140e>] x86_64_start_kernel+0x178/0x18b
+[    0.148000]     INITIAL USE at:
+[    0.148000]                      [<ffffffff810e7f90>] __lock_acquire+0x240/0x1440
+[    0.148000]                      [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]                      [<ffffffff818cf82c>] _raw_spin_lock_irqsave+0x3c/0x50
+[    0.148000]                      [<ffffffff810bdc9d>] rq_attach_root+0x1d/0x100
+[    0.148000]                      [<ffffffff8219deab>] sched_init+0x2f5/0x44c
+[    0.148000]                      [<ffffffff82181d9d>] start_kernel+0x241/0x465
+[    0.148000]                      [<ffffffff82181294>] x86_64_start_reservations+0x2f/0x31
+[    0.148000]                      [<ffffffff8218140e>] x86_64_start_kernel+0x178/0x18b
+[    0.148000]   }
+[    0.148000]   ... key      at: [<ffffffff822f3ad0>] __key.60059+0x0/0x8
+[    0.148000]   ... acquired at:
+[    0.148000]    [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]    [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]    [<ffffffff810c0514>] set_user_nice.part.92+0xf4/0x270
+[    0.148000]    [<ffffffff810c06b6>] set_user_nice+0x26/0x30
+[    0.148000]    [<ffffffff810aee10>] create_worker+0xf0/0x1a0
+[    0.148000]    [<ffffffff8219c195>] init_workqueues+0x317/0x51e
+[    0.148000]    [<ffffffff81000450>] do_one_initcall+0x50/0x180
+[    0.148000]    [<ffffffff821820d2>] kernel_init_freeable+0x111/0x25d
+[    0.148000]    [<ffffffff818c206e>] kernel_init+0xe/0x100
+[    0.148000]    [<ffffffff818d01ff>] ret_from_fork+0x1f/0x40
+[    0.148000] 
+[    0.148000] -> (&(&(&sig->stats_lock)->lock)->rlock){+.....} ops: 2 {
+[    0.148000]    HARDIRQ-ON-W at:
+[    0.148000]                     [<ffffffff810e82e0>] __lock_acquire+0x590/0x1440
+[    0.148000]                     [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]                     [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]                     [<ffffffff810bf769>] __sched_setscheduler+0x339/0xbd0
+[    0.148000]                     [<ffffffff810c0076>] _sched_setscheduler+0x76/0x90
+[    0.148000]                     [<ffffffff810c1012>] sched_set_stop_task+0x62/0xb0
+[    0.148000]                     [<ffffffff81143983>] cpu_stop_create+0x23/0x30
+[    0.148000]                     [<ffffffff810ba48d>] __smpboot_create_thread.part.2+0xad/0x100
+[    0.148000]                     [<ffffffff810ba57f>] smpboot_register_percpu_thread_cpumask+0x9f/0xf0
+[    0.148000]                     [<ffffffff821a1708>] cpu_stop_init+0x7d/0xb8
+[    0.148000]                     [<ffffffff81000450>] do_one_initcall+0x50/0x180
+[    0.148000]                     [<ffffffff821820d2>] kernel_init_freeable+0x111/0x25d
+[    0.148000]                     [<ffffffff818c206e>] kernel_init+0xe/0x100
+[    0.148000]                     [<ffffffff818d01ff>] ret_from_fork+0x1f/0x40
+[    0.148000]    INITIAL USE at:
+[    0.148000]                    [<ffffffff810e7f90>] __lock_acquire+0x240/0x1440
+[    0.148000]                    [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]                    [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]                    [<ffffffff810c0514>] set_user_nice.part.92+0xf4/0x270
+[    0.148000]                    [<ffffffff810c06b6>] set_user_nice+0x26/0x30
+[    0.148000]                    [<ffffffff810aee10>] create_worker+0xf0/0x1a0
+[    0.148000]                    [<ffffffff8219c195>] init_workqueues+0x317/0x51e
+[    0.148000]                    [<ffffffff81000450>] do_one_initcall+0x50/0x180
+[    0.148000]                    [<ffffffff821820d2>] kernel_init_freeable+0x111/0x25d
+[    0.148000]                    [<ffffffff818c206e>] kernel_init+0xe/0x100
+[    0.148000]                    [<ffffffff818d01ff>] ret_from_fork+0x1f/0x40
+[    0.148000]  }
+[    0.148000]  ... key      at: [<ffffffff822f2190>] __key.55894+0x0/0x8
+[    0.148000]  ... acquired at:
+[    0.148000]    [<ffffffff810e6885>] check_usage_backwards+0x155/0x160
+[    0.148000]    [<ffffffff810e7533>] mark_lock+0x333/0x610
+[    0.148000]    [<ffffffff810e82e0>] __lock_acquire+0x590/0x1440
+[    0.148000]    [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]    [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]    [<ffffffff810bf769>] __sched_setscheduler+0x339/0xbd0
+[    0.148000]    [<ffffffff810c0076>] _sched_setscheduler+0x76/0x90
+[    0.148000]    [<ffffffff810c1012>] sched_set_stop_task+0x62/0xb0
+[    0.148000]    [<ffffffff81143983>] cpu_stop_create+0x23/0x30
+[    0.148000]    [<ffffffff810ba48d>] __smpboot_create_thread.part.2+0xad/0x100
+[    0.148000]    [<ffffffff810ba57f>] smpboot_register_percpu_thread_cpumask+0x9f/0xf0
+[    0.148000]    [<ffffffff821a1708>] cpu_stop_init+0x7d/0xb8
+[    0.148000]    [<ffffffff81000450>] do_one_initcall+0x50/0x180
+[    0.148000]    [<ffffffff821820d2>] kernel_init_freeable+0x111/0x25d
+[    0.148000]    [<ffffffff818c206e>] kernel_init+0xe/0x100
+[    0.148000]    [<ffffffff818d01ff>] ret_from_fork+0x1f/0x40
+[    0.148000] 
+[    0.148000] 
+[    0.148000] stack backtrace:
+[    0.148000] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.7.0-rc7+ #155
+[    0.148000] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
+[    0.148000]  0000000000000086 00000000aea03eae ffff88003de6ba60 ffffffff813cb2d5
+[    0.148000]  ffffffff82d48e60 ffff88003de6bac0 ffff88003de6baa0 ffffffff811a6b05
+[    0.148000]  ffff88003de647d8 ffff88003de647d8 ffff88003de64040 ffffffff81d531a7
+[    0.148000] Call Trace:
+[    0.148000]  [<ffffffff813cb2d5>] dump_stack+0x67/0x92
+[    0.148000]  [<ffffffff811a6b05>] print_irq_inversion_bug.part.38+0x1a4/0x1b0
+[    0.148000]  [<ffffffff810e6885>] check_usage_backwards+0x155/0x160
+[    0.148000]  [<ffffffff810e7533>] mark_lock+0x333/0x610
+[    0.148000]  [<ffffffff810e6730>] ? check_usage_forwards+0x160/0x160
+[    0.148000]  [<ffffffff810e82e0>] __lock_acquire+0x590/0x1440
+[    0.148000]  [<ffffffff810e7a6d>] ? trace_hardirqs_on+0xd/0x10
+[    0.148000]  [<ffffffff81104aad>] ? debug_lockdep_rcu_enabled+0x1d/0x20
+[    0.148000]  [<ffffffff810e95d3>] lock_acquire+0xe3/0x1c0
+[    0.148000]  [<ffffffff810bf769>] ? __sched_setscheduler+0x339/0xbd0
+[    0.148000]  [<ffffffff818cf661>] _raw_spin_lock+0x31/0x40
+[    0.148000]  [<ffffffff810bf769>] ? __sched_setscheduler+0x339/0xbd0
+[    0.148000]  [<ffffffff810bf769>] __sched_setscheduler+0x339/0xbd0
+[    0.148000]  [<ffffffff810c0076>] _sched_setscheduler+0x76/0x90
+[    0.148000]  [<ffffffff810c1012>] sched_set_stop_task+0x62/0xb0
+[    0.148000]  [<ffffffff81143983>] cpu_stop_create+0x23/0x30
+[    0.148000]  [<ffffffff810ba48d>] __smpboot_create_thread.part.2+0xad/0x100
+[    0.148000]  [<ffffffff810ba57f>] smpboot_register_percpu_thread_cpumask+0x9f/0xf0
+[    0.148000]  [<ffffffff821a1708>] cpu_stop_init+0x7d/0xb8
+[    0.148000]  [<ffffffff821a168b>] ? pid_namespaces_init+0x40/0x40
+[    0.148000]  [<ffffffff81000450>] do_one_initcall+0x50/0x180
+[    0.148000]  [<ffffffff8102c24d>] ? print_cpu_info+0x7d/0xe0
+[    0.148000]  [<ffffffff821820d2>] kernel_init_freeable+0x111/0x25d
+[    0.148000]  [<ffffffff818c206e>] kernel_init+0xe/0x100
+[    0.148000]  [<ffffffff818d01ff>] ret_from_fork+0x1f/0x40
+[    0.148000]  [<ffffffff818c2060>] ? rest_init+0x130/0x130
+
+In this v2, I tried to address all comments, thanks for reviews.
+
+-Topi
+
+Topi Miettinen (14):
+  resource limits: foundation for resource highwater tracking
+  resource limits: aggregate task highwater marks to cgroup level
+  resource limits: track highwater mark of file sizes
+  resource limits: track highwater mark of VM data segment
+  resource limits: track highwater mark of stack size
+  resource limits: track highwater mark of cores dumped
+  resource limits: track highwater mark of user processes
+  resource limits: track highwater mark of number of files
+  resource limits: track highwater mark of locked memory
+  resource limits: track highwater mark of address space size
+  resource limits: track highwater mark of number of pending signals
+  resource limits: track highwater mark of size of message queues
+  resource limits: track highwater mark of niceness
+  resource limits: track highwater mark of RT priority
+
+ Documentation/accounting/getdelays.c       | 62 ++++++++++++++++++++++--
+ arch/ia64/kernel/perfmon.c                 |  1 +
+ arch/powerpc/kvm/book3s_64_vio.c           |  2 +
+ arch/powerpc/mm/mmu_context_iommu.c        |  2 +
+ arch/x86/ia32/ia32_aout.c                  |  2 +
+ drivers/infiniband/core/umem.c             |  1 +
+ drivers/infiniband/hw/hfi1/user_pages.c    |  2 +
+ drivers/infiniband/hw/qib/qib_user_pages.c |  2 +
+ drivers/infiniband/hw/usnic/usnic_uiom.c   |  2 +
+ drivers/misc/mic/scif/scif_rma.c           |  1 +
+ drivers/vfio/vfio_iommu_spapr_tce.c        |  2 +
+ drivers/vfio/vfio_iommu_type1.c            |  5 ++
+ fs/attr.c                                  |  2 +
+ fs/binfmt_aout.c                           |  2 +
+ fs/binfmt_flat.c                           |  2 +
+ fs/coredump.c                              | 11 +++--
+ fs/file.c                                  |  4 ++
+ include/linux/cgroup-defs.h                |  5 ++
+ include/linux/sched.h                      | 61 +++++++++++++++++++++++
+ include/linux/tsacct_kern.h                |  3 ++
+ include/uapi/linux/cgroupstats.h           |  3 ++
+ include/uapi/linux/taskstats.h             | 10 +++-
+ ipc/mqueue.c                               |  1 +
+ kernel/bpf/syscall.c                       |  8 +++
+ kernel/cgroup.c                            | 78 ++++++++++++++++++++++++++++++
+ kernel/cred.c                              |  1 +
+ kernel/events/core.c                       |  1 +
+ kernel/fork.c                              |  2 +
+ kernel/sched/core.c                        |  6 +++
+ kernel/signal.c                            |  2 +
+ kernel/sys.c                               |  5 ++
+ kernel/taskstats.c                         |  4 ++
+ kernel/tsacct.c                            | 47 ++++++++++++++++++
+ mm/mlock.c                                 |  8 +++
+ mm/mmap.c                                  | 17 ++++++-
+ mm/mremap.c                                |  7 +++
+ 36 files changed, 365 insertions(+), 9 deletions(-)
+
+-- 
+2.8.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
