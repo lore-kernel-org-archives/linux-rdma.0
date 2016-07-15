@@ -1,69 +1,80 @@
-From: Topi Miettinen <toiwoton@gmail.com>
-Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
-Date: Fri, 15 Jul 2016 16:57:00 +0000
-Message-ID: <485128c4-61c6-45ac-7ae2-2d4819697ec4@gmail.com>
-References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
- <20160715124330.GR30154@twins.programming.kicks-ass.net>
- <28b4b919-4f50-d9f6-c5e1-d1e92ea1ba1c@gmail.com>
- <20160715135956.GA3115@twins.programming.kicks-ass.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20160715135956.GA3115@twins.programming.kicks-ass.net>
-Sender: owner-linux-mm@kvack.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim Kr??m???? <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashut>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Add flow control to the portmapper
+Date: Fri, 15 Jul 2016 11:59:57 -0500
+Message-ID: <1468601997-63396-1-git-send-email-shiraz.saleem@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/15/16 13:59, Peter Zijlstra wrote:
-> On Fri, Jul 15, 2016 at 01:52:48PM +0000, Topi Miettinen wrote:
->> On 07/15/16 12:43, Peter Zijlstra wrote:
->>> On Fri, Jul 15, 2016 at 01:35:47PM +0300, Topi Miettinen wrote:
->>>> Hello,
->>>>
->>>> There are many basic ways to control processes, including capabilities,
->>>> cgroups and resource limits. However, there are far fewer ways to find out
->>>> useful values for the limits, except blind trial and error.
->>>>
->>>> This patch series attempts to fix that by giving at least a nice starting
->>>> point from the highwater mark values of the resources in question.
->>>> I looked where each limit is checked and added a call to update the mark
->>>> nearby.
->>>
->>> And how is that useful? Setting things to the high watermark is
->>> basically the same as not setting the limit at all.
->>
->> What else would you use, too small limits?
-> 
-> That question doesn't make sense.
-> 
-> What's the point of setting a limit if it ends up being the same as
-> no-limit (aka unlimited).
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Having a limit is not the same as not having any limits at all. You're
-in a way right that good limits don't affect the program normally. But
-they can make a difference if the flow is not normal. For example a
-successful exploit or a memory leak bug could cause RLIMIT_AS to trigger.
+Add flow control to port-mapper by changing ibnl unicast
+to use netlink messaging with blocking.
 
-> 
-> If you cannot explain; and you have not so far; what use these values
-> are, why would we look at the patches.
-> 
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/netlink.c |  4 ++--
+ include/net/netlink.h             | 17 +++++++++++++++++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-The use case is to allow system administrators, distro maintainers and
-developers to configure systems to use the resource limits. The limits
-are not very useful right now, as there is no way to figure out what
-values to use. There are a few /proc files to look, for example current
-number of file descriptors (for RLIMIT_NOFILE) could be counted via
-/proc/pid/fd. But now there is no way to know if there were more in use
-at some point. Likewise, a program can use more address space when you
-are not looking. The source code does not tell these things explicitly.
-
--Topi
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 9b8c20c..6b09580 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -229,7 +229,7 @@ static void ibnl_rcv(struct sk_buff *skb)
+ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			__u32 pid)
+ {
+-	return nlmsg_unicast(nls, skb, pid);
++	return nlmsg_unicast_block(nls, skb, pid);
+ }
+ EXPORT_SYMBOL(ibnl_unicast);
+ 
+@@ -251,7 +251,7 @@ int __init ibnl_init(void)
+ 		pr_warn("Failed to create netlink socket\n");
+ 		return -ENOMEM;
+ 	}
+-
++	nls->sk_sndtimeo = 10 * HZ;
+ 	return 0;
+ }
+ 
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index 254a0fc..5434279 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -598,6 +598,23 @@ static inline int nlmsg_unicast(struct sock *sk, struct sk_buff *skb, u32 portid
+ }
+ 
+ /**
++ * nlmsg_unicast_block - unicast a netlink message with blocking
++ * @sk: netlink socket to spread message to
++ * @skb: netlink message as socket buffer
++ * @portid: netlink portid of the destination socket
++ */
++static inline int nlmsg_unicast_block(struct sock *sk, struct sk_buff *skb, u32 portid)
++{
++	int err;
++
++	err = netlink_unicast(sk, skb, portid, 0);
++	if (err > 0)
++		err = 0;
++
++	return err;
++}
++
++/**
+  * nlmsg_for_each_msg - iterate over a stream of messages
+  * @pos: loop counter, set to current message
+  * @head: head of message stream
+-- 
+2.8.0
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
