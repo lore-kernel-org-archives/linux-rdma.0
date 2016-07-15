@@ -1,50 +1,95 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Use smaller 512 byte messages for portmapper messages
-Date: Fri, 15 Jul 2016 12:00:52 -0500
-Message-ID: <1468602052-63692-1-git-send-email-shiraz.saleem@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Topi Miettinen <toiwoton@gmail.com>
+Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
+Date: Fri, 15 Jul 2016 17:19:14 +0000
+Message-ID: <cf28b6b8-6d0d-8ce2-f3dc-953b9bee12d1@gmail.com>
+References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
+ <5788F0E1.8090203@nod.at>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5788F0E1.8090203@nod.at>
+Sender: owner-linux-mm@kvack.org
+To: Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@inte>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On 07/15/16 14:19, Richard Weinberger wrote:
+> Hi!
+> 
+> Am 15.07.2016 um 12:35 schrieb Topi Miettinen:
+>> Hello,
+>>
+>> There are many basic ways to control processes, including capabilities,
+>> cgroups and resource limits. However, there are far fewer ways to find out
+>> useful values for the limits, except blind trial and error.
+>>
+>> This patch series attempts to fix that by giving at least a nice starting
+>> point from the highwater mark values of the resources in question.
+>> I looked where each limit is checked and added a call to update the mark
+>> nearby.
+>>
+>> Example run of program from Documentation/accounting/getdelauys.c:
+>>
+>> ./getdelays -R -p `pidof smartd`
+>> printing resource accounting
+>> RLIMIT_CPU=0
+>> RLIMIT_FSIZE=0
+>> RLIMIT_DATA=18198528
+>> RLIMIT_STACK=135168
+>> RLIMIT_CORE=0
+>> RLIMIT_RSS=0
+>> RLIMIT_NPROC=1
+>> RLIMIT_NOFILE=55
+>> RLIMIT_MEMLOCK=0
+>> RLIMIT_AS=130879488
+>> RLIMIT_LOCKS=0
+>> RLIMIT_SIGPENDING=0
+>> RLIMIT_MSGQUEUE=0
+>> RLIMIT_NICE=0
+>> RLIMIT_RTPRIO=0
+>> RLIMIT_RTTIME=0
+>>
+>> ./getdelays -R -C /sys/fs/cgroup/systemd/system.slice/smartd.service/
+>> printing resource accounting
+>> sleeping 1, blocked 0, running 0, stopped 0, uninterruptible 0
+>> RLIMIT_CPU=0
+>> RLIMIT_FSIZE=0
+>> RLIMIT_DATA=18198528
+>> RLIMIT_STACK=135168
+>> RLIMIT_CORE=0
+>> RLIMIT_RSS=0
+>> RLIMIT_NPROC=1
+>> RLIMIT_NOFILE=55
+>> RLIMIT_MEMLOCK=0
+>> RLIMIT_AS=130879488
+>> RLIMIT_LOCKS=0
+>> RLIMIT_SIGPENDING=0
+>> RLIMIT_MSGQUEUE=0
+>> RLIMIT_NICE=0
+>> RLIMIT_RTPRIO=0
+>> RLIMIT_RTTIME=0
+>>
+>> In this example, smartd is running as a non-root user. The presented
+>> values can be used as a starting point for giving new limits to the
+>> service.
+> 
+> I don't think it is worth sprinkling the kernel with update_resource_highwatermark()
+> calls just to get these metrics.
+> 
+> Can't we teach the existing perf infrastructure to collect these highwatermarks for us?
 
-Reduce memory footprint by lowering the portmapper message size
-to 512 bytes.
+I don't know. What kind of changes do you think would be needed?
 
-Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/iwpm_util.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+-Topi
 
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index b65e06c..ade71e7 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -37,6 +37,7 @@
- #define IWPM_MAPINFO_HASH_MASK	(IWPM_MAPINFO_HASH_SIZE - 1)
- #define IWPM_REMINFO_HASH_SIZE	64
- #define IWPM_REMINFO_HASH_MASK	(IWPM_REMINFO_HASH_SIZE - 1)
-+#define IWPM_MSG_SIZE		512
- 
- static LIST_HEAD(iwpm_nlmsg_req_list);
- static DEFINE_SPINLOCK(iwpm_nlmsg_req_lock);
-@@ -452,7 +453,7 @@ struct sk_buff *iwpm_create_nlmsg(u32 nl_op, struct nlmsghdr **nlh,
- {
- 	struct sk_buff *skb = NULL;
- 
--	skb = dev_alloc_skb(NLMSG_GOODSIZE);
-+	skb = dev_alloc_skb(IWPM_MSG_SIZE);
- 	if (!skb) {
- 		pr_err("%s Unable to allocate skb\n", __func__);
- 		goto create_nlmsg_exit;
--- 
-2.8.0
+> 
+> Thanks,
+> //richard
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
