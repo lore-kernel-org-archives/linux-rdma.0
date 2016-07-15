@@ -1,61 +1,78 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] Use smaller 512 byte messages for portmapper messages
-Date: Fri, 15 Jul 2016 23:48:28 +0300
-Message-ID: <20160715204828.GB10556@leon.nu>
-References: <1468602052-63692-1-git-send-email-shiraz.saleem@intel.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: [GIT PULL] Please pull NFSoRDMA client changes for 4.8
+Date: Fri, 15 Jul 2016 16:53:52 -0400
+Message-ID: <a8a33481-f0cd-118b-acd0-6cbd945ac240@Netapp.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1468602052-63692-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Trond,
 
---i0/AhcQY5QxfSsSZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit 92d21ac74a9e3c09b0b01c764e530657e4c85c49:
 
-On Fri, Jul 15, 2016 at 12:00:52PM -0500, Shiraz Saleem wrote:
-> From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=20
-> Reduce memory footprint by lowering the portmapper message size
-> to 512 bytes.
+  Linux 4.7-rc7 (2016-07-10 20:24:59 -0700)
 
-Can you please add two things to the commit message?
-1. Previous value.
-2. Short justification of Why it is safe and needed to do.
+are available in the git repository at:
 
-Thanks
+  git://git.linux-nfs.org/projects/anna/nfs-rdma.git tags/nfs-rdma-4.8-1
 
---i0/AhcQY5QxfSsSZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+for you to fetch changes up to a4e187d83d88eeaba6252aac0a2ffe5eaa73a818:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+  NFS: Don't drop CB requests with invalid principals (2016-07-11 15:50:43 -0400)
 
-iQIcBAEBAgAGBQJXiUwcAAoJEORje4g2clinkbwP/1xjEWQ2crhs3AFZg6mZtJQu
-pe7EMB2PcDKyT6MVTwli0CQgrxSSGPHq6A+7dqPfo8QCHnNmX4ZZffIZrmgmx1Gn
-XSx+bH5DYGi6f668Ys90dWDRBAH/oms3B8sI057irZbtiTHm9QPmMZ7lY46zXb4t
-cSz4dGgbmoE45cuIVSczSQydB+/bQL3m4mjwdSVwHqYr8YrtvUGF0XRNgnWUiWDP
-qOIWiydKQ8DNd+t9gCGGiWuJiqx7AbbQcB6ORvRKosHbAtOeAyDTWnlFnTROcynr
-JDYAUR8Vulw6HlCSLUTL9SowewsMxTgqjv3s7ue8Ck4GcUV75TyaG0juVJreyFcU
-0eScEsvm0ojt6JpzfZa7voLhFCml1SvhY4RDWSRAKw3T0S1ReANFz0eZGp9cUkVw
-mINRVYIXsSu3f4kObgPnJzFGdOwuFrioNg5qm8ojoqitQISRqHN5SUExP9E49YiO
-cjBFpKeVSaf5eiXpo3jH05gKj5slsnlr0y8Ms203jHPKtPnxgw6QPDW3T5H35K5E
-Z9HevZ0w7qXk5EUbrarSsa4TOmzMxE9ogWxUHip4J/JAX7p7suqQX3nSeKzbBaTT
-R4GdbVLREf2XiIYB+waGkl59J53YyO7ZTInezOeHKVHZnc1wg6ASr2RdD7K39Mxz
-sJ4WloZSCB0t0k4YwN6E
-=/jZR
------END PGP SIGNATURE-----
+Thanks,
+Anna
 
---i0/AhcQY5QxfSsSZ--
+----------------------------------------------------------------
+Chuck Lever (24):
+      xprtrdma: Remove FMRs from the unmap list after unmapping
+      xprtrdma: Create common scatterlist fields in rpcrdma_mw
+      xprtrdma: Move init and release helpers
+      xprtrdma: Rename fields in rpcrdma_fmr
+      xprtrdma: Use scatterlist for DMA mapping and unmapping under FMR
+      xprtrdma: Refactor MR recovery work queues
+      xprtrdma: Do not leak an MW during a DMA map failure
+      xprtrdma: Remove ALLPHYSICAL memory registration mode
+      xprtrdma: Remove rpcrdma_map_one() and friends
+      xprtrdma: Clean up device capability detection
+      xprtrdma: Reply buffer exhaustion can be catastrophic
+      xprtrdma: Honor ->send_request API contract
+      xprtrdma: Chunk list encoders must not return zero
+      xprtrdma: Allocate MRs on demand
+      xprtrdma: Release orphaned MRs immediately
+      xprtrdma: Place registered MWs on a per-req list
+      xprtrdma: Chunk list encoders no longer share one rl_segments array
+      xprtrdma: rpcrdma_inline_fixup() overruns the receive page list
+      xprtrdma: Do not update {head, tail}.iov_len in rpcrdma_inline_fixup()
+      xprtrdma: Update only specific fields in private receive buffer
+      xprtrdma: Clean up fixup_copy_count accounting
+      xprtrdma: No direct data placement with krb5i and krb5p
+      svc: Avoid garbage replies when pc_func() returns rpc_drop_reply
+      NFS: Don't drop CB requests with invalid principals
+
+ fs/nfs/callback_xdr.c                 |   6 +-
+ include/linux/sunrpc/auth.h           |   3 +
+ include/linux/sunrpc/gss_api.h        |   2 +
+ net/sunrpc/auth_gss/auth_gss.c        |   2 +
+ net/sunrpc/auth_gss/gss_krb5_mech.c   |   2 +
+ net/sunrpc/auth_gss/gss_mech_switch.c |  12 ++
+ net/sunrpc/svc.c                      |   8 +-
+ net/sunrpc/xprtrdma/Makefile          |   2 +-
+ net/sunrpc/xprtrdma/fmr_ops.c         | 378 +++++++++++++++++++----------------------
+ net/sunrpc/xprtrdma/frwr_ops.c        | 369 +++++++++++++++-------------------------
+ net/sunrpc/xprtrdma/physical_ops.c    | 122 -------------
+ net/sunrpc/xprtrdma/rpc_rdma.c        | 274 +++++++++++++++--------------
+ net/sunrpc/xprtrdma/transport.c       |  40 +++--
+ net/sunrpc/xprtrdma/verbs.c           | 242 ++++++++++++++++++--------
+ net/sunrpc/xprtrdma/xprt_rdma.h       | 118 +++++--------
+ 15 files changed, 728 insertions(+), 852 deletions(-)
+ delete mode 100644 net/sunrpc/xprtrdma/physical_ops.c
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
