@@ -1,44 +1,96 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH 09/14] resource limits: track highwater mark of locked
-	memory
-Date: Fri, 15 Jul 2016 17:14:08 +0200
-Message-ID: <20160715151408.GA32317@redhat.com>
-References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com> <1468578983-28229-10-git-send-email-toiwoton@gmail.com>
+From: Topi Miettinen <toiwoton@gmail.com>
+Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
+Date: Fri, 15 Jul 2016 16:35:33 +0000
+Message-ID: <41b6ca51-1358-0fd7-b45a-dc29a1344865@gmail.com>
+References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
+ <20160715130458.GB21685@350D>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1468578983-28229-10-git-send-email-toiwoton@gmail.com>
+In-Reply-To: <20160715130458.GB21685@350D>
 Sender: owner-linux-mm@kvack.org
-To: Topi Miettinen <toiwoton@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alexander Graf <agraf@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Alex Williamson <alex.williamson@redhat.com>, Alexei
+To: bsingharora@gmail.com
+Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashu
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/15, Topi Miettinen wrote:
->
-> Track maximum size of locked memory, to be able to configure
-> RLIMIT_MEMLOCK resource limits. The information is available
-> with taskstats and cgroupstats netlink socket.
+On 07/15/16 13:04, Balbir Singh wrote:
+> On Fri, Jul 15, 2016 at 01:35:47PM +0300, Topi Miettinen wrote:
+>> Hello,
+>>
+>> There are many basic ways to control processes, including capabilities,
+>> cgroups and resource limits. However, there are far fewer ways to find out
+>> useful values for the limits, except blind trial and error.
+>>
+>> This patch series attempts to fix that by giving at least a nice starting
+>> point from the highwater mark values of the resources in question.
+>> I looked where each limit is checked and added a call to update the mark
+>> nearby.
+>>
+>> Example run of program from Documentation/accounting/getdelauys.c:
+>>
+>> ./getdelays -R -p `pidof smartd`
+>> printing resource accounting
+>> RLIMIT_CPU=0
+>> RLIMIT_FSIZE=0
+>> RLIMIT_DATA=18198528
+>> RLIMIT_STACK=135168
+>> RLIMIT_CORE=0
+>> RLIMIT_RSS=0
+>> RLIMIT_NPROC=1
+>> RLIMIT_NOFILE=55
+>> RLIMIT_MEMLOCK=0
+>> RLIMIT_AS=130879488
+>> RLIMIT_LOCKS=0
+>> RLIMIT_SIGPENDING=0
+>> RLIMIT_MSGQUEUE=0
+>> RLIMIT_NICE=0
+>> RLIMIT_RTPRIO=0
+>> RLIMIT_RTTIME=0
+>>
+>> ./getdelays -R -C /sys/fs/cgroup/systemd/system.slice/smartd.service/
+>> printing resource accounting
+>> sleeping 1, blocked 0, running 0, stopped 0, uninterruptible 0
+>> RLIMIT_CPU=0
+>> RLIMIT_FSIZE=0
+>> RLIMIT_DATA=18198528
+>> RLIMIT_STACK=135168
+>> RLIMIT_CORE=0
+>> RLIMIT_RSS=0
+>> RLIMIT_NPROC=1
+>> RLIMIT_NOFILE=55
+>> RLIMIT_MEMLOCK=0
+>> RLIMIT_AS=130879488
+>> RLIMIT_LOCKS=0
+>> RLIMIT_SIGPENDING=0
+>> RLIMIT_MSGQUEUE=0
+>> RLIMIT_NICE=0
+>> RLIMIT_RTPRIO=0
+>> RLIMIT_RTTIME=0
+> 
+> Does this mean that rlimit_data and rlimit_stack should be set to the
+> values as specified by the data above?
 
-So I personally still dislike the very idea of this series... but I won't
-argue if you convince maintainers.
+My plan is that either system administrator, distro maintainer or even
+upstream developer can get reasonable values for the limits. They may
+still be wrong, but things would be better than without any help to
+configure the system.
 
-> @@ -2020,6 +2020,10 @@ static int acct_stack_growth(struct vm_area_struct *vma, unsigned long size, uns
->  		return -ENOMEM;
->  
->  	update_resource_highwatermark(RLIMIT_STACK, actual_size);
-> +	if (vma->vm_flags & VM_LOCKED)
-> +		update_resource_highwatermark(RLIMIT_MEMLOCK,
-> +					      (mm->locked_vm + grow) <<
-> +					      PAGE_SHIFT);
+> 
+> Do we expect a smart user space daemon to then tweak the RLIMIT values?
 
-Btw this is not right. The same for the previous patch which tracks
-RLIMIT_STACK. The "current" task can debugger/etc.
+Someone could write an autotuning daemon that checks if the system has
+changed (for example due to upgrade) and then run some tests to
+reconfigure the system. But the limits are a bit too fragile, or rather,
+applications can't handle failure, so I don't know if that would really
+work.
 
-Yes, yes, this just reminds that the whole rlimit logic in this path
-is broken but still...
+-Topi
 
-Oleg.
+
+> 
+> Balbir Singh.
+> 
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
