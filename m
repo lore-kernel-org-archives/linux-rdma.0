@@ -1,78 +1,64 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: [GIT PULL] Please pull NFSoRDMA client changes for 4.8
-Date: Fri, 15 Jul 2016 16:53:52 -0400
-Message-ID: <a8a33481-f0cd-118b-acd0-6cbd945ac240@Netapp.com>
+From: "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
+Date: Fri, 15 Jul 2016 13:54:44 -0700
+Message-ID: <201607152054.u6FKslD1005327__49201.0765396573$1468618959$gmane$org@mail.zytor.com>
+References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com> <20160715124330.GR30154@twins.programming.kicks-ass.net> <28b4b919-4f50-d9f6-c5e1-d1e92ea1ba1c@gmail.com> <20160715135956.GA3115@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Cc: "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160715135956.GA3115-ndre7Fmf5hadTX5a5knrm8zTDFooKrT+cvkQGrU6aU0@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Topi Miettinen <toiwoton-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Fenghua Yu <fenghua.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Graf <agraf-IBi9RG/b67k@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Radim Kr??m???? <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>Alex
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Trond,
+<lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>,Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,Balbir Singh <bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>,"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>,Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,Konstantin Khlebnikov <koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Jiri Slaby <jslaby-AlSwsSmVLrQ@public.gmane.org>,Cyrill Gorcunov <gorcunov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org>,Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>,Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>,Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>,Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>,Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,"Kirill A. Shutemov" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+ ,Marcus Gelderie <redmnic-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Vladimir Davydov <vdavydov-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>,Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>,Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,!
+ "Eric W.
+Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>,Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>,Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,Stas Sergeev <stsp-cmBhpYW9OiY@public.gmane.org>,Amanieu d'Antras <amanieu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>,Wang Xiaoqiang <wangxq10-Uu6Fka/qEtMnDS1+zs4M5A@public.gmane.org>,Helge Deller <deller-Mmb7MZpHnFY@public.gmane.org>,Mateusz Guzik <mguzik-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,Alex Thorlton <athorlton-sJ/iWh9BUns@public.gmane.org>,Ben Segall <bsegall-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>,Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,Eric B Munson <emunson-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>,Alexey Klimov <klimov.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Chen Gang <gang.chen.5i5j-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,Andrey Ryabinin <aryabinin-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>,David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>,Alexander Kuleshov <kuleshovmail-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,"open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:IA64 (Itanium) PLATFORM" <linux-ia6
+ 4@vger.kernel.org>,"open list:KERNEL VIRTUAL MACHINE (KVM) FOR POWERPC" <kvm-ppc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:KERNEL VIRTUAL MACHINE (KVM)" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:LINUX FOR POWERPC!
+  (32-BIT
+AND 64-BIT)" <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>,"open list:INFINIBAND SUBSYSTEM" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:FILESYSTEMS (VFS and infrastructure)" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:CONTROL GROUP (CGROUP)" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:BPF (Safe dynamic programs and tools)" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,"open list:MEMORY MANAGEMENT" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Message-ID: <D79806FE-E6B9-481B-8AA2-A1800419D9B5-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
 
-The following changes since commit 92d21ac74a9e3c09b0b01c764e530657e4c85c49:
+On July 15, 2016 6:59:56 AM PDT, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+>On Fri, Jul 15, 2016 at 01:52:48PM +0000, Topi Miettinen wrote:
+>> On 07/15/16 12:43, Peter Zijlstra wrote:
+>> > On Fri, Jul 15, 2016 at 01:35:47PM +0300, Topi Miettinen wrote:
+>> >> Hello,
+>> >>
+>> >> There are many basic ways to control processes, including
+>capabilities,
+>> >> cgroups and resource limits. However, there are far fewer ways to
+>find out
+>> >> useful values for the limits, except blind trial and error.
+>> >>
+>> >> This patch series attempts to fix that by giving at least a nice
+>starting
+>> >> point from the highwater mark values of the resources in question.
+>> >> I looked where each limit is checked and added a call to update
+>the mark
+>> >> nearby.
+>> > 
+>> > And how is that useful? Setting things to the high watermark is
+>> > basically the same as not setting the limit at all.
+>> 
+>> What else would you use, too small limits?
+>
+>That question doesn't make sense.
+>
+>What's the point of setting a limit if it ends up being the same as
+>no-limit (aka unlimited).
+>
+>If you cannot explain; and you have not so far; what use these values
+>are, why would we look at the patches.
 
-  Linux 4.7-rc7 (2016-07-10 20:24:59 -0700)
-
-are available in the git repository at:
-
-  git://git.linux-nfs.org/projects/anna/nfs-rdma.git tags/nfs-rdma-4.8-1
-
-for you to fetch changes up to a4e187d83d88eeaba6252aac0a2ffe5eaa73a818:
-
-  NFS: Don't drop CB requests with invalid principals (2016-07-11 15:50:43 -0400)
-
-Thanks,
-Anna
-
-----------------------------------------------------------------
-Chuck Lever (24):
-      xprtrdma: Remove FMRs from the unmap list after unmapping
-      xprtrdma: Create common scatterlist fields in rpcrdma_mw
-      xprtrdma: Move init and release helpers
-      xprtrdma: Rename fields in rpcrdma_fmr
-      xprtrdma: Use scatterlist for DMA mapping and unmapping under FMR
-      xprtrdma: Refactor MR recovery work queues
-      xprtrdma: Do not leak an MW during a DMA map failure
-      xprtrdma: Remove ALLPHYSICAL memory registration mode
-      xprtrdma: Remove rpcrdma_map_one() and friends
-      xprtrdma: Clean up device capability detection
-      xprtrdma: Reply buffer exhaustion can be catastrophic
-      xprtrdma: Honor ->send_request API contract
-      xprtrdma: Chunk list encoders must not return zero
-      xprtrdma: Allocate MRs on demand
-      xprtrdma: Release orphaned MRs immediately
-      xprtrdma: Place registered MWs on a per-req list
-      xprtrdma: Chunk list encoders no longer share one rl_segments array
-      xprtrdma: rpcrdma_inline_fixup() overruns the receive page list
-      xprtrdma: Do not update {head, tail}.iov_len in rpcrdma_inline_fixup()
-      xprtrdma: Update only specific fields in private receive buffer
-      xprtrdma: Clean up fixup_copy_count accounting
-      xprtrdma: No direct data placement with krb5i and krb5p
-      svc: Avoid garbage replies when pc_func() returns rpc_drop_reply
-      NFS: Don't drop CB requests with invalid principals
-
- fs/nfs/callback_xdr.c                 |   6 +-
- include/linux/sunrpc/auth.h           |   3 +
- include/linux/sunrpc/gss_api.h        |   2 +
- net/sunrpc/auth_gss/auth_gss.c        |   2 +
- net/sunrpc/auth_gss/gss_krb5_mech.c   |   2 +
- net/sunrpc/auth_gss/gss_mech_switch.c |  12 ++
- net/sunrpc/svc.c                      |   8 +-
- net/sunrpc/xprtrdma/Makefile          |   2 +-
- net/sunrpc/xprtrdma/fmr_ops.c         | 378 +++++++++++++++++++----------------------
- net/sunrpc/xprtrdma/frwr_ops.c        | 369 +++++++++++++++-------------------------
- net/sunrpc/xprtrdma/physical_ops.c    | 122 -------------
- net/sunrpc/xprtrdma/rpc_rdma.c        | 274 +++++++++++++++--------------
- net/sunrpc/xprtrdma/transport.c       |  40 +++--
- net/sunrpc/xprtrdma/verbs.c           | 242 ++++++++++++++++++--------
- net/sunrpc/xprtrdma/xprt_rdma.h       | 118 +++++--------
- 15 files changed, 728 insertions(+), 852 deletions(-)
- delete mode 100644 net/sunrpc/xprtrdma/physical_ops.c
+One reason is to catch a malfunctioning process rather than dragging the whole system down with it.  It could also be useful for development.
+-- 
+Sent from my Android device with K-9 Mail. Please excuse brevity and formatting.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
