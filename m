@@ -1,91 +1,60 @@
 From: Topi Miettinen <toiwoton@gmail.com>
-Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
-Date: Fri, 15 Jul 2016 17:19:14 +0000
-Message-ID: <cf28b6b8-6d0d-8ce2-f3dc-953b9bee12d1@gmail.com>
+Subject: Re: [PATCH 09/14] resource limits: track highwater mark of locked
+ memory
+Date: Fri, 15 Jul 2016 17:39:26 +0000
+Message-ID: <5c43bc33-6625-ceb7-e96e-adf7df5b642c@gmail.com>
 References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
- <5788F0E1.8090203@nod.at>
+ <1468578983-28229-10-git-send-email-toiwoton@gmail.com>
+ <20160715151408.GA32317@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <5788F0E1.8090203@nod.at>
+In-Reply-To: <20160715151408.GA32317@redhat.com>
 Sender: owner-linux-mm@kvack.org
-To: Richard Weinberger <richard@nod.at>, linux-kernel@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@inte>
+To: Oleg Nesterov <oleg@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alexander Graf <agraf@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Alex Williamson <alex.williamson@redhat.com>, Alexei Starovoitov <ast@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/15/16 14:19, Richard Weinberger wrote:
-> Hi!
+On 07/15/16 15:14, Oleg Nesterov wrote:
+> On 07/15, Topi Miettinen wrote:
+>>
+>> Track maximum size of locked memory, to be able to configure
+>> RLIMIT_MEMLOCK resource limits. The information is available
+>> with taskstats and cgroupstats netlink socket.
 > 
-> Am 15.07.2016 um 12:35 schrieb Topi Miettinen:
->> Hello,
->>
->> There are many basic ways to control processes, including capabilities,
->> cgroups and resource limits. However, there are far fewer ways to find out
->> useful values for the limits, except blind trial and error.
->>
->> This patch series attempts to fix that by giving at least a nice starting
->> point from the highwater mark values of the resources in question.
->> I looked where each limit is checked and added a call to update the mark
->> nearby.
->>
->> Example run of program from Documentation/accounting/getdelauys.c:
->>
->> ./getdelays -R -p `pidof smartd`
->> printing resource accounting
->> RLIMIT_CPU=0
->> RLIMIT_FSIZE=0
->> RLIMIT_DATA=18198528
->> RLIMIT_STACK=135168
->> RLIMIT_CORE=0
->> RLIMIT_RSS=0
->> RLIMIT_NPROC=1
->> RLIMIT_NOFILE=55
->> RLIMIT_MEMLOCK=0
->> RLIMIT_AS=130879488
->> RLIMIT_LOCKS=0
->> RLIMIT_SIGPENDING=0
->> RLIMIT_MSGQUEUE=0
->> RLIMIT_NICE=0
->> RLIMIT_RTPRIO=0
->> RLIMIT_RTTIME=0
->>
->> ./getdelays -R -C /sys/fs/cgroup/systemd/system.slice/smartd.service/
->> printing resource accounting
->> sleeping 1, blocked 0, running 0, stopped 0, uninterruptible 0
->> RLIMIT_CPU=0
->> RLIMIT_FSIZE=0
->> RLIMIT_DATA=18198528
->> RLIMIT_STACK=135168
->> RLIMIT_CORE=0
->> RLIMIT_RSS=0
->> RLIMIT_NPROC=1
->> RLIMIT_NOFILE=55
->> RLIMIT_MEMLOCK=0
->> RLIMIT_AS=130879488
->> RLIMIT_LOCKS=0
->> RLIMIT_SIGPENDING=0
->> RLIMIT_MSGQUEUE=0
->> RLIMIT_NICE=0
->> RLIMIT_RTPRIO=0
->> RLIMIT_RTTIME=0
->>
->> In this example, smartd is running as a non-root user. The presented
->> values can be used as a starting point for giving new limits to the
->> service.
+> So I personally still dislike the very idea of this series... but I won't
+> argue if you convince maintainers.
 > 
-> I don't think it is worth sprinkling the kernel with update_resource_highwatermark()
-> calls just to get these metrics.
+>> @@ -2020,6 +2020,10 @@ static int acct_stack_growth(struct vm_area_struct *vma, unsigned long size, uns
+>>  		return -ENOMEM;
+>>  
+>>  	update_resource_highwatermark(RLIMIT_STACK, actual_size);
+>> +	if (vma->vm_flags & VM_LOCKED)
+>> +		update_resource_highwatermark(RLIMIT_MEMLOCK,
+>> +					      (mm->locked_vm + grow) <<
+>> +					      PAGE_SHIFT);
 > 
-> Can't we teach the existing perf infrastructure to collect these highwatermarks for us?
+> Btw this is not right. The same for the previous patch which tracks
+> RLIMIT_STACK. The "current" task can debugger/etc.
 
-I don't know. What kind of changes do you think would be needed?
+acct_stack_growth() is called from expand_upwards() and
+expand_downwards(). They call security_mmap_addr() and the various LSM
+implementations also use current task in the checks. Are these also not
+right?
+
+> 
+> Yes, yes, this just reminds that the whole rlimit logic in this path
+> is broken but still...
+
+I'd be happy to fix the logic with a separate prerequisite patch and
+then use the right logic for this patch, but I'm not sure I know how.
+Could you elaborate a bit?
 
 -Topi
 
 > 
-> Thanks,
-> //richard
+> Oleg.
 > 
 
 --
