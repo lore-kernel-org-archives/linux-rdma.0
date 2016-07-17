@@ -1,47 +1,32 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/iopib: Report SG feature regardless of HW UD CSUM capability
-Date: Sun, 17 Jul 2016 04:08:48 -0700
-Message-ID: <1468753728-13369-1-git-send-email-yuval.shaia@oracle.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 0/2] Get rid of transport layer retry count config
+ parameter
+Date: Sun, 17 Jul 2016 14:52:45 +0300
+Message-ID: <578B718D.2090909@grimberg.me>
+References: <1466597161-5242-1-git-send-email-sagi@grimberg.me>
+ <20160622161559.GA18361@infradead.org>
+ <20160622203110.GA20838@obsidianresearch.com> <576B8B30.8080402@grimberg.me>
+ <20160624071336.GE4252@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160624071336.GE4252-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Decouple SG support from HW ability to do UD checksum.
-This coupling is for historical reasons and removed with commit
-ec5f06156423 ("net: Kill link between CSUM and SG features.")
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+>> Completely agree Jason. Lowering the retry_count is very useful
+>> for APM (Automatic Path Migration).
+>
+> Does this mean you're retracting the patches?
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5f58c41..119790c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1967,8 +1967,7 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
- 	priv->hca_caps = hca->attrs.device_cap_flags;
- 
- 	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
--		priv->dev->hw_features = NETIF_F_SG |
--			NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
-+		priv->dev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
- 
- 		if (priv->hca_caps & IB_DEVICE_UD_TSO)
- 			priv->dev->hw_features |= NETIF_F_TSO;
-@@ -1976,6 +1975,8 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
- 		priv->dev->features |= priv->dev->hw_features;
- 	}
- 
-+	priv->dev->features |= NETIF_F_SG;
-+
- 	return 0;
- }
- 
--- 
-1.7.1
+No, we never use APM in nvme-rdma, so I don't see a good reason
+why we should keep it around....
 
+Can I get a review on this btw?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
