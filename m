@@ -1,30 +1,30 @@
-From: MICROSOFT LOTERY PROMOTION AWARD 2106 <goodnewsg20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: MICROSOFT LOTERY PROMOTION AWARD 2106 <mp0810203940-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: GOOD NEWS CONTACT MRS REBECCA SOLOMON VIEW ATTACHED  FILE
-Date: Sun, 17 Jul 2016 19:35:29 +0000 (UTC)
-Message-ID: <577882657.680185.1468784129964.JavaMail.yahoo@mail.yahoo.com>
-References: <930087315.3275134.1468496359103.JavaMail.yahoo.ref@mail.yahoo.com> <930087315.3275134.1468496359103.JavaMail.yahoo@mail.yahoo.com> <389400047.3255596.1468496572412.JavaMail.yahoo@mail.yahoo.com> <1419478457.170939.1468567487424.JavaMail.yahoo@mail.yahoo.com> <1389012976.158998.1468567516519.JavaMail.yahoo@mail.yahoo.com> <1848818828.143738.1468567537451.JavaMail.yahoo@mail.yahoo.com> <794311781.142513.1468567566890.JavaMail.yahoo@mail.yahoo.com> <320622720.394527.1468601065933.JavaMail.yahoo@mail.yahoo.com> <2083508342.411569.1468601122784.JavaMail.yahoo@mail.yahoo.com> <1385022005.310678.1468693623028.JavaMail.yahoo@mail.yahoo.com> <1571580936.328289.1468693664109.JavaMail.yahoo@mail.yahoo.com> <1641080769.306743.1468693703781.JavaMail.yahoo@mail.yahoo.com> <1862496134.676023
- .1468784081647.JavaMail.yahoo@mail.yahoo.com>
+Date: Sun, 17 Jul 2016 20:52:11 +0000 (UTC)
+Message-ID: <1264676748.510391.1468788731715.JavaMail.yahoo__14358.2912897275$1468789578$gmane$org@mail.yahoo.com>
+References: <738322481.3611358.1468500450034.JavaMail.yahoo.ref@mail.yahoo.com> <738322481.3611358.1468500450034.JavaMail.yahoo@mail.yahoo.com> <1947651376.3932153.1468569443849.JavaMail.yahoo@mail.yahoo.com> <1982251007.4249248.1468569483796.JavaMail.yahoo@mail.yahoo.com> <1467483157.3971224.1468569590529.JavaMail.yahoo@mail.yahoo.com> <1695157204.4098844.1468569614066.JavaMail.yahoo@mail.yahoo.com> <224043998.3986440.1468569627889.JavaMail.yahoo@mail.yahoo.com> <1668728532.4389791.1468603167784.JavaMail.yahoo@mail.yahoo.com> <30769875.4151781.1468603186430.JavaMail.yahoo@mail.yahoo.com> <811818795.4262896.1468603704267.JavaMail.yahoo@mail.yahoo.com> <772562442.4316889.1468603812703.JavaMail.yahoo@mail.yahoo.com> <1441002629.272668.1468698380610.JavaMail.yahoo@mail.yahoo.com> <743943788.2
+ 71992.1468698399890.JavaMail.yahoo@mail.yahoo.com> <1685387660.253344.1468698434619.JavaMail.yahoo@mail.yahoo.com> <1286277601.537941.1468788654507.JavaMail.yahoo@mail.yahoo.com>
 Reply-To: MICROSOFT LOTERY PROMOTION AWARD 2106
 	  <agentmrssolomon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_Part_680184_1298906214.1468784129964"
+	boundary="----=_Part_510390_721465698.1468788731715"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1862496134.676023.1468784081647.JavaMail.yahoo-sAHhhX/85wgbqTNvkayDYw@public.gmane.org>
+In-Reply-To: <1286277601.537941.1468788654507.JavaMail.yahoo-sAHhhX/85wgbqTNvkayDYw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-------=_Part_680184_1298906214.1468784129964
+------=_Part_510390_721465698.1468788731715
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-------=_Part_680184_1298906214.1468784129964
+------=_Part_510390_721465698.1468788731715
 Content-Type: application/pdf
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="2016 GOOD NEWS LUCKY-2.pdf"
-Content-ID: <tVuUywmLd1JOKriQYrUE>
+Content-ID: <WpZ46q2ihnOXCwuuRLlS>
 
 JVBERi0xLjMKJcfsj6IKNSAwIG9iago8PC9MZW5ndGggNiAwIFIvRmlsdGVyIC9GbGF0ZURlY29k
 ZT4+CnN0cmVhbQp4nO1deXwV1b2/IRtZTFhDWISLiOQiucyZfXyWEBYLFlnCJoUqCIj2sQZEKEsQ
@@ -4459,11 +4459,11 @@ PCAvU2l6ZSA2MCAvUm9vdCAxIDAgUiAvSW5mbyAyIDAgUgovSUQgWzwyMUZCQkYzQzhGOEZBNzJE
 MTc1RDhFQUFGMjFDQjQxNz48MjFGQkJGM0M4RjhGQTcyRDE3NUQ4RUFBRjIxQ0I0MTc+XQo+Pgpz
 dGFydHhyZWYKMjUxMjM0CiUlRU9GCg==
 
-------=_Part_680184_1298906214.1468784129964
+------=_Part_510390_721465698.1468788731715
 Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="2016 GOOD NEWS LUCKY-2.docx"
-Content-ID: <047ff633-6d4a-48b7-b606-4c53de1495fe-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Content-ID: <b613a3e0-8b84-2617-5ebc-1baa9cd41325-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 
 UEsDBBQABgAIAAAAIQDRc3GAigEAALgFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -9396,7 +9396,7 @@ RgAADwAAAAAAAAAAAAAAAABNOAQAd29yZC9zdHlsZXMueG1sUEsBAi0AFAAGAAgAAAAhANKCW/Re
 AQAAqgIAABEAAAAAAAAAAAAAAAAAskEEAGRvY1Byb3BzL2NvcmUueG1sUEsFBgAAAAAUABQAIwUA
 AEdEBAAAAA==
 
-------=_Part_680184_1298906214.1468784129964--
+------=_Part_510390_721465698.1468788731715--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
