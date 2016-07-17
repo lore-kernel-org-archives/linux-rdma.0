@@ -1,44 +1,46 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next] IB/rxe: Trivial rename of include guard
-Date: Sun, 17 Jul 2016 10:06:38 +0300
-Message-ID: <1468739198-14129-1-git-send-email-monis@mellanox.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/iopib: Report SG feature regardless of HW UD CSUM capability
+Date: Sun, 17 Jul 2016 04:08:48 -0700
+Message-ID: <1468753728-13369-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Give include guard a name that matches file name.
+Decouple SG support from HW ability to do UD checksum.
+This coupling is for historical reasons and removed with commit
+ec5f06156423 ("net: Kill link between CSUM and SG features.")
 
-Reported-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/uapi/rdma/rdma_user_rxe.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
-index 19f9615..1de99cf 100644
---- a/include/uapi/rdma/rdma_user_rxe.h
-+++ b/include/uapi/rdma/rdma_user_rxe.h
-@@ -30,8 +30,8 @@
-  * SOFTWARE.
-  */
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5f58c41..119790c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1967,8 +1967,7 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+ 	priv->hca_caps = hca->attrs.device_cap_flags;
  
--#ifndef IB_RXE_H
--#define IB_RXE_H
-+#ifndef RDMA_USER_RXE_H
-+#define RDMA_USER_RXE_H
+ 	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
+-		priv->dev->hw_features = NETIF_F_SG |
+-			NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
++		priv->dev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
  
- #include <linux/types.h>
+ 		if (priv->hca_caps & IB_DEVICE_UD_TSO)
+ 			priv->dev->hw_features |= NETIF_F_TSO;
+@@ -1976,6 +1975,8 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+ 		priv->dev->features |= priv->dev->hw_features;
+ 	}
  
-@@ -141,4 +141,4 @@ struct rxe_recv_wqe {
- 	struct rxe_dma_info	dma;
- };
++	priv->dev->features |= NETIF_F_SG;
++
+ 	return 0;
+ }
  
--#endif /* IB_RXE_H */
-+#endif /* RDMA_USER_RXE_H */
 -- 
-1.8.3.1
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
