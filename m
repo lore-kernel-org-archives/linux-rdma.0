@@ -1,7 +1,7 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] iw_cm: free cm_id resources on the last deref
-Date: Mon, 18 Jul 2016 13:44:37 -0700
-Message-ID: <93c3c47c16406ef00184011948424a9597e4c6b8.1468879135.git.swise@opengridcomputing.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH 3/3] nvme-rdma: Fix device removal handling
+Date: Mon, 18 Jul 2016 13:44:50 -0700
+Message-ID: <0cb1ccaa920b3ec48dd94ea49fa0f0b7c5520d38.1468879135.git.swise@opengridcomputing.com>
 References: <cover.1468879135.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1468879135.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -10,116 +10,103 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the complicated logic to free the cm_id resources in iw_cm event
-handlers vs when an application thread destroys the device.  I'm not sure
-why this code was written, but simply allowing the last deref to free
-the memory is cleaner.  It also prevents a deadlock when applications
-try to destroy cm_id's in their cm event handler function.
+Device removal sequence may have crashed because the
+controller (and admin queue space) was freed before
+we destroyed the admin queue resources. Thus we
+want to destroy the admin queue and only then queue
+controller deletion and wait for it to complete.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+More specifically we:
+1. own the controller deletion (make sure we are not
+   competing with another deletion).
+2. get rid of inflight reconnects if exists (which
+   also destroy and create queues).
+3. destroy the queue.
+4. safely queue controller deletion (and wait for it
+   to complete).
+
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/core/iwcm.c | 41 ++++++-----------------------------------
- 1 file changed, 6 insertions(+), 35 deletions(-)
+ drivers/nvme/host/rdma.c | 49 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 27 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index f057204..20a94ed 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -183,15 +183,14 @@ static void free_cm_id(struct iwcm_id_private *cm_id_priv)
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 3e3ce2b..0e58450 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -169,7 +169,6 @@ MODULE_PARM_DESC(register_always,
+ static int nvme_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 		struct rdma_cm_event *event);
+ static void nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
+-static int __nvme_rdma_del_ctrl(struct nvme_rdma_ctrl *ctrl);
  
- /*
-  * Release a reference on cm_id. If the last reference is being
-- * released, enable the waiting thread (in iw_destroy_cm_id) to
-- * get woken up, and return 1 if a thread is already waiting.
-+ * released, free the cm_id and return 1.
+ /* XXX: really should move to a generic header sooner or later.. */
+ static inline void put_unaligned_le24(u32 val, u8 *p)
+@@ -1318,37 +1317,43 @@ out_destroy_queue_ib:
+  * that caught the event. Since we hold the callout until the controller
+  * deletion is completed, we'll deadlock if the controller deletion will
+  * call rdma_destroy_id on this queue's cm_id. Thus, we claim ownership
+- * of destroying this queue before-hand, destroy the queue resources
+- * after the controller deletion completed with the exception of destroying
+- * the cm_id implicitely by returning a non-zero rc to the callout.
++ * of destroying this queue before-hand, destroy the queue resources,
++ * then queue the controller deletion which won't destroy this queue and
++ * we destroy the cm_id implicitely by returning a non-zero rc to the callout.
   */
- static int iwcm_deref_id(struct iwcm_id_private *cm_id_priv)
+ static int nvme_rdma_device_unplug(struct nvme_rdma_queue *queue)
  {
- 	BUG_ON(atomic_read(&cm_id_priv->refcount)==0);
- 	if (atomic_dec_and_test(&cm_id_priv->refcount)) {
- 		BUG_ON(!list_empty(&cm_id_priv->work_list));
--		complete(&cm_id_priv->destroy_comp);
-+		free_cm_id(cm_id_priv);
- 		return 1;
+ 	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
+-	int ret, ctrl_deleted = 0;
++	int ret;
+ 
+-	/* First disable the queue so ctrl delete won't free it */
+-	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags))
+-		goto out;
++	/* Own the controller deletion */
++	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_DELETING))
++		return 0;
+ 
+-	/* delete the controller */
+-	ret = __nvme_rdma_del_ctrl(ctrl);
+-	if (!ret) {
+-		dev_warn(ctrl->ctrl.device,
+-			"Got rdma device removal event, deleting ctrl\n");
+-		flush_work(&ctrl->delete_work);
++	dev_warn(ctrl->ctrl.device,
++		"Got rdma device removal event, deleting ctrl\n");
+ 
+-		/* Return non-zero so the cm_id will destroy implicitly */
+-		ctrl_deleted = 1;
++	/* Get rid of reconnect work if its running */
++	cancel_delayed_work_sync(&ctrl->reconnect_work);
+ 
+-		/* Free this queue ourselves */
+-		rdma_disconnect(queue->cm_id);
+-		ib_drain_qp(queue->qp);
+-		nvme_rdma_destroy_queue_ib(queue);
++	/* Disable the queue so ctrl delete won't free it */
++	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags)) {
++		ret = 0;
++		goto queue_delete;
  	}
  
-@@ -208,19 +207,10 @@ static void add_ref(struct iw_cm_id *cm_id)
- static void rem_ref(struct iw_cm_id *cm_id)
- {
- 	struct iwcm_id_private *cm_id_priv;
--	int cb_destroy;
- 
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
- 
--	/*
--	 * Test bit before deref in case the cm_id gets freed on another
--	 * thread.
--	 */
--	cb_destroy = test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
--	if (iwcm_deref_id(cm_id_priv) && cb_destroy) {
--		BUG_ON(!list_empty(&cm_id_priv->work_list));
--		free_cm_id(cm_id_priv);
--	}
-+	(void)iwcm_deref_id(cm_id_priv);
+-out:
+-	return ctrl_deleted;
++	/* Free this queue ourselves */
++	nvme_rdma_stop_queue(queue);
++	nvme_rdma_destroy_queue_ib(queue);
++
++	/* Return non-zero so the cm_id will destroy implicitly */
++	ret = 1;
++
++queue_delete:
++	/* queue controller deletion */
++	queue_work(nvme_rdma_wq, &ctrl->delete_work);
++	flush_work(&ctrl->delete_work);
++	return ret;
  }
  
- static int cm_event_handler(struct iw_cm_id *cm_id, struct iw_cm_event *event);
-@@ -433,13 +423,7 @@ void iw_destroy_cm_id(struct iw_cm_id *cm_id)
- 	struct iwcm_id_private *cm_id_priv;
- 
- 	cm_id_priv = container_of(cm_id, struct iwcm_id_private, id);
--	BUG_ON(test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags));
--
- 	destroy_cm_id(cm_id);
--
--	wait_for_completion(&cm_id_priv->destroy_comp);
--
--	free_cm_id(cm_id_priv);
- }
- EXPORT_SYMBOL(iw_destroy_cm_id);
- 
-@@ -809,10 +793,7 @@ static void cm_conn_req_handler(struct iwcm_id_private *listen_id_priv,
- 	ret = cm_id->cm_handler(cm_id, iw_event);
- 	if (ret) {
- 		iw_cm_reject(cm_id, NULL, 0);
--		set_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
--		destroy_cm_id(cm_id);
--		if (atomic_read(&cm_id_priv->refcount)==0)
--			free_cm_id(cm_id_priv);
-+		iw_destroy_cm_id(cm_id);
- 	}
- 
- out:
-@@ -1000,7 +981,6 @@ static void cm_work_handler(struct work_struct *_work)
- 	unsigned long flags;
- 	int empty;
- 	int ret = 0;
--	int destroy_id;
- 
- 	spin_lock_irqsave(&cm_id_priv->lock, flags);
- 	empty = list_empty(&cm_id_priv->work_list);
-@@ -1014,19 +994,10 @@ static void cm_work_handler(struct work_struct *_work)
- 		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
- 
- 		ret = process_event(cm_id_priv, &levent);
--		if (ret) {
--			set_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
-+		if (ret)
- 			destroy_cm_id(&cm_id_priv->id);
--		}
--		BUG_ON(atomic_read(&cm_id_priv->refcount)==0);
--		destroy_id = test_bit(IWCM_F_CALLBACK_DESTROY, &cm_id_priv->flags);
--		if (iwcm_deref_id(cm_id_priv)) {
--			if (destroy_id) {
--				BUG_ON(!list_empty(&cm_id_priv->work_list));
--				free_cm_id(cm_id_priv);
--			}
-+		if (iwcm_deref_id(cm_id_priv))
- 			return;
--		}
- 		if (empty)
- 			return;
- 		spin_lock_irqsave(&cm_id_priv->lock, flags);
+ static int nvme_rdma_cm_handler(struct rdma_cm_id *cm_id,
 -- 
 2.7.0
 
