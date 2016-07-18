@@ -1,7 +1,7 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2 02/15] IB/pvrdma: Add device command support
-Date: Mon, 18 Jul 2016 15:46:53 +0300
-Message-ID: <20160718124652.GE6165@yuval-lap.uk.oracle.com>
+Date: Mon, 18 Jul 2016 16:13:55 +0300
+Message-ID: <20160718131354.GF6165@yuval-lap.uk.oracle.com>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
  <1468352205-9137-3-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
@@ -92,6 +92,18 @@ On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
 > +	spin_lock(&dev->cmd_lock);
 > +	memcpy(resp, dev->resp_slot, sizeof(*resp));
 > +	spin_unlock(&dev->cmd_lock);
+
+In case your virtual HW supports more than one concurrent commands, if
+cmd_lock protects cmd_slot i would expect to have extra resp_lock to
+protect resp_slot.
+btw, otherwise why not just lock the entire flow:
+	memcpy(dev->cmd_slot, req, sizeof(*req));
+	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
+	pvrdma_read_reg(dev, PVRDMA_REG_ERR);
+	memcpy(resp, dev->resp_slot, sizeof(*resp));
+
+This might improve performances.
+
 > +
 > +	return 0;
 > +}
@@ -109,10 +121,6 @@ On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
 > +
 > +	spin_lock(&dev->cmd_lock);
 > +	memcpy(dev->cmd_slot, req, sizeof(*req));
-
-Just to protect against memory corruption suggesting to do:
-	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
-
 > +	spin_unlock(&dev->cmd_lock);
 > +
 > +	init_completion(&dev->cmd_done);
@@ -123,24 +131,20 @@ Just to protect against memory corruption suggesting to do:
 > +	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
 > +	if (err == 0) {
 > +		if (expect_resp) {
-
-How about utilizing resp instead of extra argument.
-This will save you for example from the local variable rsp in function
-pvrdma_destroy_qp (patch #10)
-
 > +			err = wait_for_completion_interruptible_timeout(
 > +				&dev->cmd_done,
 > +				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
 > +			if (err == 0) {
 > +				dev_warn(&dev->pdev->dev,
 > +					 "completion timeout\n");
-
-Is this really a warning only? i.e. i assume some high level flow is
-break now.
-
 > +				err = -ETIMEDOUT;
 > +			} else {
 > +				err = pvrdma_cmd_recv(dev, resp);
+
+Maybe it is a silly question but in case of two commands that issued almost
+simultaneously, it possible that fast execution of second command will
+reach this point first and the reasponse here is of the first one?
+
 > +			}
 > +		}
 > +	} else {
