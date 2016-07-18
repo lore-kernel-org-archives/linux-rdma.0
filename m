@@ -1,39 +1,49 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/15] IB/pvrdma: Add device command support
-Date: Mon, 18 Jul 2016 16:13:55 +0300
-Message-ID: <20160718131354.GF6165@yuval-lap.uk.oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 05/15] IB/pvrdma: Add UAR support
+Date: Mon, 18 Jul 2016 16:25:45 +0300
+Message-ID: <20160718132545.GD20674@leon.nu>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-3-git-send-email-aditr@vmware.com>
+ <1468352205-9137-6-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YToU2i3Vx8H2dn7O"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1468352205-9137-3-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1468352205-9137-6-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
-> This patch enables posting Verb requests and receiving responses to/from
-> the backend PVRDMA emulation layer.
-> 
+
+--YToU2i3Vx8H2dn7O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jul 12, 2016 at 12:36:35PM -0700, Adit Ranadive wrote:
+> This patch adds the UAR support for the paravirtual RDMA device. The UAR
+> pages are MMIO pages from the virtual PCI space. We define offsets within
+> this page to provide the fast data-path operations.
+>=20
 > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/pvrdma/pvrdma_cmd.c | 104 ++++++++++++++++++++++++++++++
->  1 file changed, 104 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-> 
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+>  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128 +++++++++++++++++++=
+++++++
+>  1 file changed, 128 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+>=20
+> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c b/drivers/inf=
+iniband/hw/pvrdma/pvrdma_doorbell.c
 > new file mode 100644
-> index 0000000..c22debf
+> index 0000000..d854f6d
 > --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-> @@ -0,0 +1,104 @@
+> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+> @@ -0,0 +1,128 @@
 > +/*
 > + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 > + *
@@ -79,89 +89,48 @@ On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
 > + * OF THE POSSIBILITY OF SUCH DAMAGE.
 > + */
 > +
-> +#include <linux/list.h>
+> +#include <linux/bitmap.h>
+> +#include <linux/errno.h>
+> +#include <linux/slab.h>
 > +
 > +#include "pvrdma.h"
 > +
-> +#define PVRDMA_CMD_TIMEOUT	10000 /* ms */
-> +
-> +static int pvrdma_cmd_recv(struct pvrdma_dev *dev, union pvrdma_cmd_resp *resp)
+> +int pvrdma_uar_table_init(struct pvrdma_dev *dev)
 > +{
-> +	dev_dbg(&dev->pdev->dev, "receive response from device\n");
+> +	u32 num =3D dev->dsr->caps.max_uar;
+> +	u32 mask =3D num - 1;
+> +	struct pvrdma_id_table *tbl =3D &dev->uar_table.tbl;
 > +
-> +	spin_lock(&dev->cmd_lock);
-> +	memcpy(resp, dev->resp_slot, sizeof(*resp));
-> +	spin_unlock(&dev->cmd_lock);
+> +	/* Power of 2 */
+> +	if (num !=3D 1 << (ffs(num) - 1))
+> +		return -EINVAL;
 
-In case your virtual HW supports more than one concurrent commands, if
-cmd_lock protects cmd_slot i would expect to have extra resp_lock to
-protect resp_slot.
-btw, otherwise why not just lock the entire flow:
-	memcpy(dev->cmd_slot, req, sizeof(*req));
-	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-	pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-	memcpy(resp, dev->resp_slot, sizeof(*resp));
+Can functions/macros defined in include/linux/log2.h replace the code
+above?
 
-This might improve performances.
+--YToU2i3Vx8H2dn7O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +
-> +	return 0;
-> +}
-> +
-> +int
-> +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
-> +		bool expect_resp, union pvrdma_cmd_resp *resp)
-> +{
-> +	int err;
-> +
-> +	dev_dbg(&dev->pdev->dev, "post request to device\n");
-> +
-> +	/* Serializiation */
-> +	down(&dev->cmd_sema);
-> +
-> +	spin_lock(&dev->cmd_lock);
-> +	memcpy(dev->cmd_slot, req, sizeof(*req));
-> +	spin_unlock(&dev->cmd_lock);
-> +
-> +	init_completion(&dev->cmd_done);
-> +	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-> +
-> +	/* Make sure the request is written before reading status. */
-> +	mb();
-> +	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> +	if (err == 0) {
-> +		if (expect_resp) {
-> +			err = wait_for_completion_interruptible_timeout(
-> +				&dev->cmd_done,
-> +				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
-> +			if (err == 0) {
-> +				dev_warn(&dev->pdev->dev,
-> +					 "completion timeout\n");
-> +				err = -ETIMEDOUT;
-> +			} else {
-> +				err = pvrdma_cmd_recv(dev, resp);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Maybe it is a silly question but in case of two commands that issued almost
-simultaneously, it possible that fast execution of second command will
-reach this point first and the reasponse here is of the first one?
+iQIcBAEBAgAGBQJXjNjZAAoJEORje4g2clinCTAP/Rxe0zS6BqtPe7/oz9gHeTqW
+l3Vq2Q5/NVPsJRyCjvWg1OE5wXHsm8ZLauEPnHH1xq4R0ltR78F8100i3kCJbTYa
+xPfcEVmyrZ6gjRdknQiqwZZA7JQuU5Les88ctx5gJIKnCmLLnuOks+ItKEX6lzIf
+c5w0+dM85A4phRKP0hklwsIfOQF0iKT7aZBwQtUQvL+q8G9cDgWcSrrm7xi2TlQ+
+KaTTOsqeOelc8DBWVAkXTrC0/nR8aJrfz1BgUpmWS8er0RhNjkCgJ9wh0gQUff+6
+ZKUv7Cfx2ZXiVCReLuCkUcZ2M0R3o5Z4jiApOngY9SGUY7ZuYC0HVuGKm110tADL
+UNVnspvI2/5CVBjZibpUL+9pRXDOkvjAdm4lxv3Qo37r6pD1xDD8izan0AFDZ17K
+IKzdHCyOuqgy31gYGFVtkdaxbEWxpSGRfBF7Ia3e8X8PGFFxx9UMDCp4n2VSLOoO
+/Oi3JNVLrtnyk2B3uKXaqOHYic5Sj3qHTpCWg2FaOrzqE344f/qMnioIwe/10Qo7
+6yK5mnCefN4od8TdM+M89P5m1840gIE4Y6iHfaGNK6bR7zlQsqM4U67XZCLxUr7X
+hpTeiTMTW4jUg78JYOAlFAxYKuQdT8Ao7HMpUzKdcAOvF369+IrwdiyYjC/d+Z56
+13/PO75x+doNpAM925cT
+=hXlZ
+-----END PGP SIGNATURE-----
 
-> +			}
-> +		}
-> +	} else {
-> +		dev_warn(&dev->pdev->dev, "failed to write request %d\n", err);
-> +	}
-> +
-> +	up(&dev->cmd_sema);
-> +
-> +	return err;
-> +}
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--YToU2i3Vx8H2dn7O--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
