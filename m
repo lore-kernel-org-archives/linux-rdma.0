@@ -1,47 +1,32 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [PATCH 09/14] resource limits: track highwater mark of locked
-	memory
-Date: Mon, 18 Jul 2016 17:38:03 +0200
-Message-ID: <20160718153802.GA31174@redhat.com>
-References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com> <1468578983-28229-10-git-send-email-toiwoton@gmail.com> <20160715151408.GA32317@redhat.com> <5c43bc33-6625-ceb7-e96e-adf7df5b642c@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
+ capability
+Date: Mon, 18 Jul 2016 11:19:21 -0600
+Message-ID: <20160718171921.GA3193@obsidianresearch.com>
+References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5c43bc33-6625-ceb7-e96e-adf7df5b642c@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Topi Miettinen <toiwoton@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alexander Graf <agraf@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Alex Williamson <alex.williamson@redhat.com>, Alexei
+In-Reply-To: <1468827648-17275-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/15, Topi Miettinen wrote:
->
-> On 07/15/16 15:14, Oleg Nesterov wrote:
-> >
-> > Btw this is not right. The same for the previous patch which tracks
-> > RLIMIT_STACK. The "current" task can debugger/etc.
->
-> acct_stack_growth() is called from expand_upwards() and
-> expand_downwards(). They call security_mmap_addr() and the various LSM
-> implementations also use current task in the checks. Are these also not
-> right?
+On Mon, Jul 18, 2016 at 12:40:48AM -0700, Yuval Shaia wrote:
+> Decouple SG support from HW ability to do UD checksum.
+> This coupling is for historical reasons and removed with 'commit
+> ec5f06156423 ("net: Kill link between CSUM and SG features.")'
 
-Just suppose that the stack grows because you read/write to /proc/pid/mem.
+Shouldn't this also check that the QP's sg limit is something
+appropriate? At least > 1 ..
 
-> > Yes, yes, this just reminds that the whole rlimit logic in this path
-> > is broken but still...
->
-> I'd be happy to fix the logic with a separate prerequisite patch and
-> then use the right logic for this patch, but I'm not sure I know how.
-> Could you elaborate a bit?
+Presumably things still work if the skb needs more sg's than are
+available?
 
-If only I Knew how to fix this ;) I mean, if only I could suggest a
-simple fix. Because IMHO we do not really care, rlimts are obsolete.
-
-Oleg.
-
+Jason
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
