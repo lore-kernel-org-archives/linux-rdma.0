@@ -1,53 +1,29 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM capability
-Date: Mon, 18 Jul 2016 00:40:48 -0700
-Message-ID: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 0/2] Get rid of transport layer retry count config
+ parameter
+Date: Mon, 18 Jul 2016 11:01:36 +0300
+Message-ID: <578C8CE0.5070002@grimberg.me>
+References: <1466597161-5242-1-git-send-email-sagi@grimberg.me>
+ <20160622161559.GA18361@infradead.org>
+ <20160622203110.GA20838@obsidianresearch.com> <576B8B30.8080402@grimberg.me>
+ <20160624071336.GE4252@infradead.org> <578B718D.2090909@grimberg.me>
+ <20160718040901.GA2521@infradead.org> <20160718040946.GB2521@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160718040946.GB2521-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Decouple SG support from HW ability to do UD checksum.
-This coupling is for historical reasons and removed with 'commit
-ec5f06156423 ("net: Kill link between CSUM and SG features.")'
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v0 -> v1:
-	* Fix patch title name
-	* Move settings to ipoib_setup instead of ipoib_set_dev_features
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+>> Jens already merged that patch after I pinged him last week.
+>
+> s/patch/series/.  Time to havea coffee..
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5f58c41..de7b010 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1763,8 +1763,8 @@ void ipoib_setup(struct net_device *dev)
- 	dev->addr_len		 = INFINIBAND_ALEN;
- 	dev->type		 = ARPHRD_INFINIBAND;
- 	dev->tx_queue_len	 = ipoib_sendq_size * 2;
--	dev->features		 = (NETIF_F_VLAN_CHALLENGED	|
--				    NETIF_F_HIGHDMA);
-+	dev->features		 = NETIF_F_VLAN_CHALLENGED | NETIF_F_HIGHDMA |
-+				   NETIF_F_SG;
- 	netif_keep_dst(dev);
- 
- 	memcpy(dev->broadcast, ipv4_bcast_addr, INFINIBAND_ALEN);
-@@ -1967,8 +1967,7 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
- 	priv->hca_caps = hca->attrs.device_cap_flags;
- 
- 	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
--		priv->dev->hw_features = NETIF_F_SG |
--			NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
-+		priv->dev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
- 
- 		if (priv->hca_caps & IB_DEVICE_UD_TSO)
- 			priv->dev->hw_features |= NETIF_F_TSO;
--- 
-1.7.1
-
+Thanks Christoph and Jens :)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
