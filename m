@@ -1,62 +1,511 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
- capability
-Date: Mon, 18 Jul 2016 11:09:50 +0300
-Message-ID: <20160718080950.GC20674@leon.nu>
-References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 01/15] IB/pvrdma: Add paravirtual rdma device
+Date: Mon, 18 Jul 2016 15:27:39 +0300
+Message-ID: <20160718122738.GD6165@yuval-lap.uk.oracle.com>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+ <1468352205-9137-2-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZwgA9U+XZDXt4+m+"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1468827648-17275-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1468352205-9137-2-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---ZwgA9U+XZDXt4+m+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jul 18, 2016 at 12:40:48AM -0700, Yuval Shaia wrote:
-> Decouple SG support from HW ability to do UD checksum.
-> This coupling is for historical reasons and removed with 'commit
-> ec5f06156423 ("net: Kill link between CSUM and SG features.")'
->=20
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+On Tue, Jul 12, 2016 at 12:36:31PM -0700, Adit Ranadive wrote:
+> This patch adds the main device-level structures and functions to be used
+> to provide RDMA functionality. Also, we define conversion functions from
+> the IB core stack structures to the device-specific ones.
+> 
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > ---
-> v0 -> v1:
-> 	* Fix patch title name
-> 	* Move settings to ipoib_setup instead of ipoib_set_dev_features
+>  drivers/infiniband/hw/pvrdma/pvrdma.h | 459 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 459 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+> 
+> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma.h b/drivers/infiniband/hw/pvrdma/pvrdma.h
+> new file mode 100644
+> index 0000000..0dc5bd2
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/pvrdma/pvrdma.h
+> @@ -0,0 +1,459 @@
+> +/*
+> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of EITHER the GNU General Public License
+> + * version 2 as published by the Free Software Foundation or the BSD
+> + * 2-Clause License. This program is distributed in the hope that it
+> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
+> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+> + * See the GNU General Public License version 2 for more details at
+> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program available in the file COPYING in the main
+> + * directory of this source tree.
+> + *
+> + * The BSD 2-Clause License
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+> + * OF THE POSSIBILITY OF SUCH DAMAGE.
+> + */
+> +
+> +#ifndef __PVRDMA_H__
+> +#define __PVRDMA_H__
+> +
+> +#include <linux/compiler.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/pci.h>
+> +#include <linux/semaphore.h>
+> +#include <rdma/ib_umem.h>
+> +#include <rdma/ib_verbs.h>
+> +
+> +#include "pvrdma_defs.h"
+> +#include "pvrdma_dev_api.h"
+> +#include "pvrdma_verbs.h"
+> +
+> +/* NOT the same as BIT_MASK(). */
+> +#define PVRDMA_MASK(n) ((n << 1) - 1)
+> +
+> +/*
+> + * VMware PVRDMA vendor id and PCI device id.
+> + */
+> +#ifndef PCI_VENDOR_ID_VMWARE
+> +#define PCI_VENDOR_ID_VMWARE		0x15AD
+> +#endif
+> +#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
+> +
+> +struct pvrdma_dev;
+> +
+> +struct pvrdma_page_dir {
+> +	dma_addr_t dir_dma;
+> +	u64 *dir;
+> +	int ntables;
+> +	u64 **tables;
+> +	u64 npages;
+> +	void **pages;
+> +};
+> +
+> +struct pvrdma_cq {
+> +	struct ib_cq ibcq;
+> +	int offset;
+> +	spinlock_t cq_lock; /* Poll lock. */
+> +	struct pvrdma_uar_map *uar;
+> +	struct ib_umem *umem;
+> +	struct pvrdma_ring_state *ring_state;
+> +	struct pvrdma_page_dir pdir;
+> +	u32 cq_handle;
+> +	bool is_kernel;
+> +	atomic_t refcnt;
+> +	wait_queue_head_t wait;
+> +};
+> +
+> +struct pvrdma_id_table {
+> +	u32 last;
+> +	u32 top;
+> +	u32 max;
+> +	u32 mask;
+> +	spinlock_t lock; /* Table lock. */
+> +	unsigned long *table;
+> +};
+> +
+> +struct pvrdma_uar_map {
+> +	unsigned long pfn;
+> +	void __iomem *map;
+> +	int index;
+> +};
+> +
+> +struct pvrdma_uar_table {
+> +	struct pvrdma_id_table tbl;
+> +	int size;
+> +};
+> +
+> +struct pvrdma_ucontext {
+> +	struct ib_ucontext ibucontext;
+> +	struct pvrdma_dev *dev;
+> +	struct pvrdma_uar_map uar;
+> +	u64 ctx_handle;
+> +};
+> +
+> +struct pvrdma_pd {
+> +	struct ib_pd ibpd;
+> +	u32 pdn;
+> +	u32 pd_handle;
+> +	int priviledged;
+> +};
+> +
+> +struct pvrdma_mr {
+> +	u32 mr_handle;
+> +	u64 iova;
+> +	u64 size;
+> +};
+> +
+> +struct pvrdma_user_mr {
+> +	struct ib_mr ibmr;
+> +	struct ib_umem *umem;
+> +	struct pvrdma_mr mmr;
+> +	struct pvrdma_page_dir pdir;
+> +	u64 *pages;
+> +	u32 npages;
+> +	u32 max_pages;
+> +	u32 page_shift;
+> +};
+> +
+> +struct pvrdma_wq {
+> +	struct pvrdma_ring *ring;
+> +	spinlock_t lock; /* Work queue lock. */
+> +	int wqe_cnt;
+> +	int wqe_size;
+> +	int max_gs;
+> +	int offset;
+> +};
+> +
+> +struct pvrdma_ah {
+> +	struct ib_ah ibah;
+> +	struct pvrdma_av av;
+> +};
+> +
+> +struct pvrdma_qp {
+> +	struct ib_qp ibqp;
+> +	u32 qp_handle;
+> +	u32 qkey;
+> +	struct pvrdma_wq sq;
+> +	struct pvrdma_wq rq;
+> +	struct ib_umem *rumem;
+> +	struct ib_umem *sumem;
+> +	struct pvrdma_page_dir pdir;
+> +	int npages;
+> +	int npages_send;
+> +	int npages_recv;
+> +	u32 flags;
+> +	u8 port;
+> +	u8 state;
+> +	bool is_kernel;
+> +	struct mutex mutex; /* QP state mutex. */
+> +	atomic_t refcnt;
+> +	wait_queue_head_t wait;
+> +};
+> +
+> +struct pvrdma_dev {
+> +	/* PCI device-related information. */
+> +	struct ib_device ib_dev;
+> +	struct pci_dev *pdev;
+> +	void __iomem *regs;
+> +	struct pvrdma_device_shared_region *dsr; /* Shared region pointer */
+> +	dma_addr_t dsrbase; /* Shared region base address */
+> +	void *cmd_slot;
+> +	void *resp_slot;
+> +	unsigned long flags;
+> +	struct list_head device_link;
+> +
+> +	/* Locking and interrupt information. */
+> +	spinlock_t cmd_lock; /* Command lock. */
+> +	struct semaphore cmd_sema;
+> +	struct completion cmd_done;
+> +	struct {
+> +		enum pvrdma_intr_type type; /* Intr type */
+> +		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
+> +		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
+> +		u8 enabled[PVRDMA_MAX_INTERRUPTS];
+> +		u8 size;
+> +	} intr;
+> +
+> +	/* RDMA-related device information. */
+> +	union ib_gid *sgid_tbl;
+> +	struct pvrdma_ring_state *async_ring_state;
+> +	struct pvrdma_page_dir async_pdir;
+> +	struct pvrdma_ring_state *cq_ring_state;
+> +	struct pvrdma_page_dir cq_pdir;
+> +	struct pvrdma_cq **cq_tbl;
+> +	spinlock_t cq_tbl_lock;
+> +	struct pvrdma_qp **qp_tbl;
+> +	spinlock_t qp_tbl_lock;
+> +	struct pvrdma_uar_table uar_table;
+> +	struct pvrdma_uar_map driver_uar;
+> +	__be64 sys_image_guid;
+> +	spinlock_t desc_lock; /* Device modification lock. */
+> +	u32 port_cap_mask;
+> +	struct mutex port_mutex; /* Port modification mutex. */
+> +	bool ib_active;
+> +	atomic_t num_qps;
+> +	atomic_t num_cqs;
+> +	atomic_t num_pds;
+> +	atomic_t num_ahs;
+> +
+> +	/* Network device information. */
+> +	struct net_device *netdev;
+> +	struct notifier_block nb_netdev;
+> +};
+> +
+> +static inline struct pvrdma_dev *to_vdev(struct ib_device *ibdev)
+> +{
+> +	return container_of(ibdev, struct pvrdma_dev, ib_dev);
+> +}
+> +
+> +static inline struct
+> +pvrdma_ucontext *to_vucontext(struct ib_ucontext *ibucontext)
+> +{
+> +	return container_of(ibucontext, struct pvrdma_ucontext, ibucontext);
+> +}
+> +
+> +static inline struct pvrdma_pd *to_vpd(struct ib_pd *ibpd)
+> +{
+> +	return container_of(ibpd, struct pvrdma_pd, ibpd);
+> +}
+> +
+> +static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
+> +{
+> +	return container_of(ibcq, struct pvrdma_cq, ibcq);
+> +}
+> +
+> +static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
+> +{
+> +	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
+> +}
+> +
+> +static inline struct pvrdma_qp *to_vqp(struct ib_qp *ibqp)
+> +{
+> +	return container_of(ibqp, struct pvrdma_qp, ibqp);
+> +}
+> +
+> +static inline struct pvrdma_ah *to_vah(struct ib_ah *ibah)
+> +{
+> +	return container_of(ibah, struct pvrdma_ah, ibah);
+> +}
+> +
+> +static inline void pvrdma_write_reg(struct pvrdma_dev *dev, u32 reg, u32 val)
+> +{
+> +	writel(cpu_to_le32(val), dev->regs + reg);
+> +}
+> +
+> +static inline u32 pvrdma_read_reg(struct pvrdma_dev *dev, u32 reg)
+> +{
+> +	return le32_to_cpu(readl(dev->regs + reg));
+> +}
+> +
+> +static inline void *pvrdma_page_dir_get_ptr(struct pvrdma_page_dir *pdir,
+> +					    u64 offset)
+> +{
+> +	return pdir->pages[offset / PAGE_SIZE] + (offset % PAGE_SIZE);
+> +}
+> +
+> +static inline enum pvrdma_mtu ib_mtu_to_pvrdma(enum ib_mtu mtu)
+> +{
+> +	return (enum pvrdma_mtu)mtu;
+> +}
+> +
+> +static inline enum ib_mtu pvrdma_mtu_to_ib(enum pvrdma_mtu mtu)
+> +{
+> +	return (enum ib_mtu)mtu;
+> +}
+> +
+> +static inline enum pvrdma_port_state ib_port_state_to_pvrdma(
+> +					enum ib_port_state state)
+> +{
+> +	return (enum pvrdma_port_state)state;
+> +}
+> +
+> +static inline enum ib_port_state pvrdma_port_state_to_ib(
+> +					enum pvrdma_port_state state)
+> +{
+> +	return (enum ib_port_state)state;
+> +}
+> +
+> +static inline int ib_port_cap_flags_to_pvrdma(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_PORT_CAP_FLAGS_MAX);
+> +}
+> +
+> +static inline int pvrdma_port_cap_flags_to_ib(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
+> +					enum ib_port_width width)
+> +{
+> +	return (enum pvrdma_port_width)width;
+> +}
+> +
+> +static inline enum ib_port_width pvrdma_port_width_to_ib(
+> +					enum pvrdma_port_width width)
+> +{
+> +	return (enum ib_port_width)width;
+> +}
+> +
+> +static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
+> +					enum ib_port_speed speed)
+> +{
+> +	return (enum pvrdma_port_speed)speed;
+> +}
+> +
+> +static inline enum ib_port_speed pvrdma_port_speed_to_ib(
+> +					enum pvrdma_port_speed speed)
+> +{
+> +	return (enum ib_port_speed)speed;
+> +}
+> +
+> +static inline int pvrdma_qp_attr_mask_to_ib(int attr_mask)
+> +{
+> +	return attr_mask;
+> +}
+> +
+> +static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
+> +{
+> +	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
+> +}
+> +
+> +static inline enum pvrdma_mig_state ib_mig_state_to_pvrdma(
+> +					enum ib_mig_state state)
+> +{
+> +	return (enum pvrdma_mig_state)state;
+> +}
+> +
+> +static inline enum ib_mig_state pvrdma_mig_state_to_ib(
+> +					enum pvrdma_mig_state state)
+> +{
+> +	return (enum ib_mig_state)state;
+> +}
+> +
+> +static inline int ib_access_flags_to_pvrdma(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline int pvrdma_access_flags_to_ib(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_ACCESS_FLAGS_MAX);
+> +}
+> +
+> +static inline enum pvrdma_qp_type ib_qp_type_to_pvrdma(enum ib_qp_type type)
+> +{
+> +	return (enum pvrdma_qp_type)type;
+> +}
+> +
+> +static inline enum ib_qp_type pvrdma_qp_type_to_ib(enum pvrdma_qp_type type)
+> +{
+> +	return (enum ib_qp_type)type;
+> +}
+> +
+> +static inline enum pvrdma_qp_state ib_qp_state_to_pvrdma(enum ib_qp_state state)
+> +{
+> +	return (enum pvrdma_qp_state)state;
+> +}
+> +
+> +static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
+> +{
+> +	return (enum ib_qp_state)state;
+> +}
+> +
+> +static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
+> +{
+> +	return (enum pvrdma_wr_opcode)op;
+> +}
+> +
+> +static inline enum ib_wc_status pvrdma_wc_status_to_ib(
+> +					enum pvrdma_wc_status status)
+> +{
+> +	return (enum ib_wc_status)status;
+> +}
+> +
+> +static inline int pvrdma_wc_opcode_to_ib(int opcode)
+> +{
+> +	return opcode;
+> +}
+> +
+> +static inline int pvrdma_wc_flags_to_ib(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline int ib_send_flags_to_pvrdma(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
+> +}
+> +
+> +void pvrdma_qp_cap_to_ib(const struct pvrdma_qp_cap *src,
+> +			 struct ib_qp_cap *dst);
+> +void ib_qp_cap_to_pvrdma(const struct ib_qp_cap *src,
+> +			 struct pvrdma_qp_cap *dst);
+> +void pvrdma_gid_to_ib(const union pvrdma_gid *src, union ib_gid *dst);
+> +void ib_gid_to_pvrdma(const union ib_gid *src, union pvrdma_gid *dst);
+> +void pvrdma_global_route_to_ib(const struct pvrdma_global_route *src,
+> +			       struct ib_global_route *dst);
+> +void ib_global_route_to_pvrdma(const struct ib_global_route *src,
+> +			       struct pvrdma_global_route *dst);
+> +void pvrdma_ah_attr_to_ib(const struct pvrdma_ah_attr *src,
+> +			  struct ib_ah_attr *dst);
+> +void ib_ah_attr_to_pvrdma(const struct ib_ah_attr *src,
+> +			  struct pvrdma_ah_attr *dst);
+> +
+> +int pvrdma_uar_table_init(struct pvrdma_dev *dev);
+> +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
+> +
+> +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
+> +void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
+> +
+> +void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq);
+> +
+> +int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
+> +			 u64 npages, bool alloc_pages);
+> +void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
+> +			     struct pvrdma_page_dir *pdir);
+> +int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
+> +			       dma_addr_t daddr);
+> +int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
+> +				struct ib_umem *umem, u64 offset);
+> +dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx);
+> +int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
+> +				     u64 *page_list, int num_pages);
+> +
+> +int pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
+> +		    bool expect, union pvrdma_cmd_resp *rsp);
 
-Thanks.
+Patch #1 uses unions pvrdma_cmd_req & pvrdma_cmd_resp that added in patch
+#4.
+Suggesting to change the order.
 
---ZwgA9U+XZDXt4+m+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXjI7OAAoJEORje4g2clinXXQQAIcp0wWWhMbnUEbcUm+Th1wz
-SctvvfO+TR8nocKKTdX7Xn3ZYIfFl7qliJUFU4LquzygTecvU9ZDIXbPlwArqmWP
-ImAONJb7o6ZEghLCXCTc1bMkIOvQS0+2qSv5+zk37dOyy7LYFH8jeKe3zNZMT3TS
-SxaTZ+UQuxXWNY5MPqj9KH+2lQSQmtmd/r3mk42HShIQCi2vD10YexUjmUxnWRzB
-O5JzWoJyAVhkZM8eIGB3UNByrFhiN2k+hVCs3rQv+g2IHBRCxfsOdtWsZfUTCP4U
-9IC32eGLGvzYgrGe8qK+mnGHKZmAIH5/gz5KJ1J4QtzFWti/P0em8OK5orjsF6YS
-w8vZMpc4GmlEN1+J857+/A23AR6L2QLkcJOFu3IW5OmNUQiRxKDrAoez9I921bhh
-8OvJtaMIJ1ls3xcxiFT/k83RDQr3jLLb3C99hS11ARooFJKo57ESwIWYqxKOiCjC
-am9OlSMvaENCX36XEMKGWGr7Q0wG7XCsus6tkMZ26iCBcWamiw6ojJ03XaxpUVWp
-aXr6DXL9qvyl04WkLASQjWMrOFm2QYtljL83p+y8itTpC0T21P1rK59HcozEdoxt
-TXqOpFSmRw5QqrSQprulkbGy2o4lCPXigXzMPFJQgCQ98orghtdCwOf+TWLaj7dV
-4iLqPlZ+ugx+HUiMEbwg
-=4T31
------END PGP SIGNATURE-----
-
---ZwgA9U+XZDXt4+m+--
+> +
+> +#endif /* __PVRDMA_H__ */
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
