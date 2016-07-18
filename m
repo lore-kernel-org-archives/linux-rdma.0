@@ -1,22 +1,22 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 11/15] IB/pvrdma: Add user-level shared functions
-Date: Mon, 18 Jul 2016 16:59:07 +0300
-Message-ID: <20160718135906.GA21176@yuval-lap.uk.oracle.com>
+Subject: Re: [PATCH v2 03/15] IB/pvrdma: Add support for Completion Queues
+Date: Mon, 18 Jul 2016 17:12:22 +0300
+Message-ID: <20160718141221.GA20068@yuval-lap.uk.oracle.com>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-12-git-send-email-aditr@vmware.com>
+ <1468352205-9137-4-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1468352205-9137-12-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1468352205-9137-4-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 12, 2016 at 12:36:41PM -0700, Adit Ranadive wrote:
-> We share some common structures with the user-level driver. This patch
-> adds those structures and shared functions to traverse the QP/CQ rings.
+On Tue, Jul 12, 2016 at 12:36:33PM -0700, Adit Ranadive wrote:
+> This patch adds the support for creating and destroying completion queues
+> on the paravirtual RDMA device.
 > 
 > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -24,18 +24,16 @@ On Tue, Jul 12, 2016 at 12:36:41PM -0700, Adit Ranadive wrote:
 > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/hw/pvrdma/pvrdma_uapi.h | 247 +++++++++++++++++++++++++++++
->  drivers/infiniband/hw/pvrdma/pvrdma_user.h |  99 ++++++++++++
->  2 files changed, 346 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
+>  drivers/infiniband/hw/pvrdma/pvrdma_cq.c | 436 +++++++++++++++++++++++++++++++
+>  1 file changed, 436 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cq.c
 > 
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/pvrdma/pvrdma_cq.c
 > new file mode 100644
-> index 0000000..274328c
+> index 0000000..9a4b42c
 > --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
-> @@ -0,0 +1,247 @@
+> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_cq.c
+> @@ -0,0 +1,436 @@
 > +/*
 > + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 > + *
@@ -81,316 +79,416 @@ On Tue, Jul 12, 2016 at 12:36:41PM -0700, Adit Ranadive wrote:
 > + * OF THE POSSIBILITY OF SUCH DAMAGE.
 > + */
 > +
-> +#ifndef __PVRDMA_UAPI_H__
-> +#define __PVRDMA_UAPI_H__
+> +#include <asm/page.h>
+> +#include <linux/io.h>
+> +#include <linux/wait.h>
+> +#include <rdma/ib_addr.h>
+> +#include <rdma/ib_smi.h>
+> +#include <rdma/ib_user_verbs.h>
 > +
-> +#include <linux/types.h>
+> +#include "pvrdma.h"
+> +#include "pvrdma_user.h"
 > +
-> +#define PVRDMA_VERSION 17
-> +
-> +#define PVRDMA_UAR_HANDLE_MASK	0x00FFFFFF	/* Bottom 24 bits. */
-> +#define PVRDMA_UAR_QP_OFFSET	0		/* Offset of QP doorbell. */
-> +#define PVRDMA_UAR_QP_SEND	BIT(30)		/* Send bit. */
-> +#define PVRDMA_UAR_QP_RECV	BIT(31)		/* Recv bit. */
-> +#define PVRDMA_UAR_CQ_OFFSET	4		/* Offset of CQ doorbell. */
-> +#define PVRDMA_UAR_CQ_ARM_SOL	BIT(29)		/* Arm solicited bit. */
-> +#define PVRDMA_UAR_CQ_ARM	BIT(30)		/* Arm bit. */
-> +#define PVRDMA_UAR_CQ_POLL	BIT(31)		/* Poll bit. */
-> +
-> +/* PVRDMA atomic compare and swap */
-> +struct pvrdma_exp_cmp_swap {
-> +	__u64 swap_val;
-> +	__u64 compare_val;
-> +	__u64 swap_mask;
-> +	__u64 compare_mask;
-> +};
-> +
-> +/* PVRDMA atomic fetch and add */
-> +struct pvrdma_exp_fetch_add {
-> +	__u64 add_val;
-> +	__u64 field_boundary;
-> +};
-> +
-> +/* PVRDMA address vector. */
-> +struct pvrdma_av {
-> +	__u32 port_pd;
-> +	__u32 sl_tclass_flowlabel;
-> +	__u8 dgid[16];
-> +	__u8 src_path_bits;
-> +	__u8 gid_index;
-> +	__u8 stat_rate;
-> +	__u8 hop_limit;
-> +	__u8 dmac[6];
-> +	__u8 reserved[6];
-> +};
-> +
-> +/* PVRDMA receive queue work request */
-> +struct pvrdma_rq_wqe_hdr {
-> +	__u64 wr_id;		/* wr id */
-> +	__u32 num_sge;		/* size of s/g array */
-> +	__u32 total_len;	/* reserved */
-> +};
-> +/* Use pvrdma_sge (ib_sge) for receieve queue s/g array elements. */
-> +
-> +/* PVRDMA send queue work request */
-> +struct pvrdma_sq_wqe_hdr {
-> +	__u64 wr_id;		/* wr id */
-> +	__u32 num_sge;		/* size of s/g array */
-> +	__u32 total_len;	/* reserved */
-> +	__u32 opcode;		/* operation type */
-> +	__u32 send_flags;	/* wr flags */
-> +	union {
-> +		__u32 imm_data;
-> +		__u32 invalidate_rkey;
-> +	} ex;
-> +	__u32 reserved;
-> +	union {
-> +		struct {
-> +			__u64 remote_addr;
-> +			__u32 rkey;
-> +			__u8 reserved[4];
-> +		} rdma;
-> +		struct {
-> +			__u64 remote_addr;
-> +			__u64 compare_add;
-> +			__u64 swap;
-> +			__u32 rkey;
-> +			__u32 reserved;
-> +		} atomic;
-> +		struct {
-> +			__u64 remote_addr;
-> +			__u32 log_arg_sz;
-> +			__u32 rkey;
-> +			union {
-> +				struct pvrdma_exp_cmp_swap  cmp_swap;
-> +				struct pvrdma_exp_fetch_add fetch_add;
-> +			} wr_data;
-> +		} masked_atomics;
-> +		struct {
-> +			__u64 iova_start;
-> +			__u64 pl_pdir_dma;
-> +			__u32 page_shift;
-> +			__u32 page_list_len;
-> +			__u32 length;
-> +			__u32 access_flags;
-> +			__u32 rkey;
-> +		} fast_reg;
-> +		struct {
-> +			__u32 remote_qpn;
-> +			__u32 remote_qkey;
-> +			struct pvrdma_av av;
-> +		} ud;
-> +	} wr;
-> +};
-> +/* Use pvrdma_sge (ib_sge) for send queue s/g array elements. */
-> +
-> +/* Completion queue element. */
-> +struct pvrdma_cqe {
-> +	__u64 wr_id;
-> +	__u64 qp;
-> +	__u32 opcode;
-> +	__u32 status;
-> +	__u32 byte_len;
-> +	__u32 imm_data;
-> +	__u32 src_qp;
-> +	__u32 wc_flags;
-> +	__u32 vendor_err;
-> +	__u16 pkey_index;
-> +	__u16 slid;
-> +	__u8 sl;
-> +	__u8 dlid_path_bits;
-> +	__u8 port_num;
-> +	__u8 smac[6];
-> +	__u8 reserved2[7]; /* Pad to next power of 2 (64). */
-> +};
-> +
-> +struct pvrdma_ring {
-> +	atomic_t prod_tail;	/* Producer tail. */
-> +	atomic_t cons_head;	/* Consumer head. */
-> +};
-> +
-> +struct pvrdma_ring_state {
-> +	struct pvrdma_ring tx;	/* Tx ring. */
-> +	struct pvrdma_ring rx;	/* Rx ring. */
-> +};
-> +
-> +static inline int pvrdma_idx_valid(__u32 idx, __u32 max_elems)
+> +/**
+> + * pvrdma_req_notify_cq - request notification for a completion queue
+> + * @ibcq: the completion queue
+> + * @notify_flags: notification flags
+> + *
+> + * @return: 0 for success.
+> + */
+> +int pvrdma_req_notify_cq(struct ib_cq *ibcq,
+> +			 enum ib_cq_notify_flags notify_flags)
 > +{
-> +	/* Generates fewer instructions than a less-than. */
-> +	return (idx & ~((max_elems << 1) - 1)) == 0;
-> +}
+> +	struct pvrdma_dev *dev = to_vdev(ibcq->device);
+> +	struct pvrdma_cq *cq = to_vcq(ibcq);
+> +	u32 val = cq->cq_handle;
 > +
-> +static inline __s32 pvrdma_idx(atomic_t *var, __u32 max_elems)
-> +{
-> +	const unsigned int idx = atomic_read(var);
+> +	val |= (notify_flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
+> +		PVRDMA_UAR_CQ_ARM_SOL : PVRDMA_UAR_CQ_ARM;
 > +
-> +	if (pvrdma_idx_valid(idx, max_elems))
-> +		return idx & (max_elems - 1);
-> +	return -1;
-> +}
+> +	writel(cpu_to_le32(val), dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
 > +
-> +static inline void pvrdma_idx_ring_inc(atomic_t *var, __u32 max_elems)
-> +{
-> +	__u32 idx = atomic_read(var) + 1;	/* Increment. */
-> +
-> +	idx &= (max_elems << 1) - 1;		/* Modulo size, flip gen. */
-> +	atomic_set(var, idx);
-> +}
-> +
-> +static inline __s32 pvrdma_idx_ring_has_space(const struct pvrdma_ring *r,
-> +					      __u32 max_elems, __u32 *out_tail)
-> +{
-> +	const __u32 tail = atomic_read(&r->prod_tail);
-> +	const __u32 head = atomic_read(&r->cons_head);
-> +
-> +	if (pvrdma_idx_valid(tail, max_elems) &&
-> +	    pvrdma_idx_valid(head, max_elems)) {
-> +		*out_tail = tail & (max_elems - 1);
-> +		return tail != (head ^ max_elems);
-> +	}
-> +	return -1;
-> +}
-> +
-> +static inline __s32 pvrdma_idx_ring_has_data(const struct pvrdma_ring *r,
-> +					     __u32 max_elems, __u32 *out_head)
-> +{
-> +	const __u32 tail = atomic_read(&r->prod_tail);
-> +	const __u32 head = atomic_read(&r->cons_head);
-> +
-> +	if (pvrdma_idx_valid(tail, max_elems) &&
-> +	    pvrdma_idx_valid(head, max_elems)) {
-> +		*out_head = head & (max_elems - 1);
-> +		return tail != head;
-> +	}
-> +	return -1;
-
-What is the meaning of -1?
-
-> +}
-> +
-> +static inline __s32 pvrdma_idx_ring_is_valid_idx(const struct pvrdma_ring *r,
-> +						 __u32 max_elems, __u32 *idx)
-> +{
-> +	const __u32 tail = atomic_read(&r->prod_tail);
-> +	const __u32 head = atomic_read(&r->cons_head);
-> +
-> +	if (pvrdma_idx_valid(tail, max_elems) &&
-> +	    pvrdma_idx_valid(head, max_elems) &&
-> +	    pvrdma_idx_valid(*idx, max_elems)) {
-> +		if (tail > head && (*idx < tail && *idx >= head))
-> +			return 1;
-> +		else if (head > tail && (*idx >= head || *idx < tail))
-> +			return 1;
-> +	}
 > +	return 0;
 > +}
 > +
-> +#endif /* __PVRDMA_UAPI_H__ */
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_user.h b/drivers/infiniband/hw/pvrdma/pvrdma_user.h
-> new file mode 100644
-> index 0000000..35f8c1e
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_user.h
-> @@ -0,0 +1,99 @@
-> +/*
-> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
+> +/**
+> + * pvrdma_create_cq - create completion queue
+> + * @ibdev: the device
+> + * @attr: completion queue attributes
+> + * @context: user context
+> + * @udata: user data
 > + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of EITHER the GNU General Public License
-> + * version 2 as published by the Free Software Foundation or the BSD
-> + * 2-Clause License. This program is distributed in the hope that it
-> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-> + * See the GNU General Public License version 2 for more details at
-> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program available in the file COPYING in the main
-> + * directory of this source tree.
-> + *
-> + * The BSD 2-Clause License
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-> + * OF THE POSSIBILITY OF SUCH DAMAGE.
+> + * @return: ib_cq completion queue pointer on success,
+> + *          otherwise returns negative errno.
 > + */
+> +struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
+> +			       const struct ib_cq_init_attr *attr,
+> +			       struct ib_ucontext *context,
+> +			       struct ib_udata *udata)
+> +{
+> +	int entries = attr->cqe;
+> +	struct pvrdma_dev *dev = to_vdev(ibdev);
+> +	struct pvrdma_cq *cq;
+> +	int ret;
+> +	int npages;
+> +	unsigned long flags;
+> +	union pvrdma_cmd_req req;
+> +	union pvrdma_cmd_resp rsp;
+> +	struct pvrdma_cmd_create_cq *cmd = &req.create_cq;
+> +	struct pvrdma_cmd_create_cq_resp *resp = &rsp.create_cq_resp;
+> +	struct pvrdma_create_cq ucmd;
 > +
-> +#ifndef __PVRDMA_USER_H__
-> +#define __PVRDMA_USER_H__
+> +	BUILD_BUG_ON(sizeof(struct pvrdma_cqe) != 64);
 > +
-> +#include <linux/types.h>
+> +	entries = roundup_pow_of_two(entries);
+> +	if (entries < 1 || entries > dev->dsr->caps.max_cqe)
+> +		return ERR_PTR(-EINVAL);
 > +
-> +#define PVRDMA_UVERBS_ABI_VERSION	3
-> +#define PVRDMA_BOARD_ID			1
-> +#define PVRDMA_REV_ID			1
+> +	if (!atomic_add_unless(&dev->num_cqs, 1, dev->dsr->caps.max_cq))
+> +		return ERR_PTR(-EINVAL);
 > +
-> +struct pvrdma_alloc_ucontext_resp {
-> +	u32 qp_tab_size;
-> +	u32 reserved;
-> +};
+> +	cq = kzalloc(sizeof(*cq), GFP_KERNEL);
+> +	if (!cq) {
+> +		atomic_dec(&dev->num_cqs);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
 > +
-> +struct pvrdma_alloc_pd_resp {
-> +	u32 pdn;
-> +	u32 reserved;
-> +};
+> +	cq->ibcq.cqe = entries;
 > +
-> +struct pvrdma_create_cq {
-> +	u64 buf_addr;
-> +	u32 buf_size;
-> +	u32 reserved;
-> +};
+> +	if (context) {
+> +		if (ib_copy_from_udata(&ucmd, udata, sizeof(ucmd))) {
+> +			ret = -EFAULT;
+> +			goto err_cq;
+> +		}
 > +
-> +struct pvrdma_create_cq_resp {
-> +	u32 cqn;
-> +	u32 reserved;
-> +};
+> +		cq->umem = ib_umem_get(context, ucmd.buf_addr, ucmd.buf_size,
+> +				       IB_ACCESS_LOCAL_WRITE, 1);
+> +		if (IS_ERR(cq->umem)) {
+> +			ret = PTR_ERR(cq->umem);
+> +			goto err_cq;
+> +		}
 > +
-> +struct pvrdma_resize_cq {
-> +	u64 buf_addr;
-> +	u32 buf_size;
-> +	u32 reserved;
-> +};
+> +		npages = ib_umem_page_count(cq->umem);
+> +	} else {
+> +		cq->is_kernel = true;
 > +
-> +struct pvrdma_create_srq {
-> +	u64 buf_addr;
-> +};
+> +		/* One extra page for shared ring state */
+> +		npages = 1 + (entries * sizeof(struct pvrdma_cqe) +
+> +			      PAGE_SIZE - 1) / PAGE_SIZE;
 > +
-> +struct pvrdma_create_srq_resp {
-> +	u32 srqn;
-> +	u32 reserved;
-> +};
+> +		/* Skip header page. */
+> +		cq->offset = PAGE_SIZE;
+> +	}
 > +
-> +struct pvrdma_create_qp {
-> +	u64 rbuf_addr;
-> +	u64 sbuf_addr;
-> +	u32 rbuf_size;
-> +	u32 sbuf_size;
-> +	u64 qp_addr;
-> +};
+> +	if (npages < 0 || npages > PVRDMA_PAGE_DIR_MAX_PAGES) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "overflow pages in completion queue\n");
+> +		ret = -EINVAL;
+> +		goto err_umem;
+> +	}
 > +
-> +#endif /* __PVRDMA_USER_H__ */
+> +	ret = pvrdma_page_dir_init(dev, &cq->pdir, npages, cq->is_kernel);
+> +	if (ret) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not allocate page directory\n");
+> +		goto err_umem;
+> +	}
+> +
+> +	if (cq->is_kernel) {
+> +		/* Ring state is always the first page. */
+> +		cq->ring_state = cq->pdir.pages[0];
+> +	} else {
+> +		pvrdma_page_dir_insert_umem(&cq->pdir, cq->umem, 0);
+> +	}
+> +
+> +	atomic_set(&cq->refcnt, 1);
+> +	init_waitqueue_head(&cq->wait);
+> +	spin_lock_init(&cq->cq_lock);
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_CREATE_CQ;
+> +	cmd->nchunks = npages;
+> +	cmd->ctx_handle = (context) ?
+> +		(u64)to_vucontext(context)->ctx_handle : 0;
+> +	cmd->cqe = entries;
+> +	cmd->pdir_dma = cq->pdir.dir_dma;
+> +	ret = pvrdma_cmd_post(dev, &req, true, &rsp);
+> +
+> +	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_CREATE_CQ_RESP) {
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not create completion queue\n");
+> +		goto err_page_dir;
+> +	}
+> +
+> +	cq->ibcq.cqe = resp->cqe;
+> +	cq->cq_handle = resp->cq_handle;
+> +	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
+> +	dev->cq_tbl[cq->cq_handle % dev->dsr->caps.max_cq] = cq;
+> +	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
+> +
+> +	if (context) {
+> +		cq->uar = &(to_vucontext(context)->uar);
+> +
+> +		/* Copy udata back. */
+> +		if (ib_copy_to_udata(udata, &cq->cq_handle, sizeof(__u32))) {
+> +			dev_warn(&dev->pdev->dev,
+> +				 "failed to copy back udata\n");
+> +			ret = -EINVAL;
+> +			goto err_page_dir;
+> +		}
+> +	}
+> +
+> +	return &cq->ibcq;
+> +
+> +err_page_dir:
+> +	pvrdma_page_dir_cleanup(dev, &cq->pdir);
+> +err_umem:
+> +	if (context)
+> +		ib_umem_release(cq->umem);
+> +err_cq:
+> +	atomic_dec(&dev->num_cqs);
+> +	kfree(cq);
+> +
+> +	return ERR_PTR(ret);
+> +}
+> +
+> +static void pvrdma_free_cq(struct pvrdma_dev *dev, struct pvrdma_cq *cq)
+> +{
+> +	atomic_dec(&cq->refcnt);
+> +	wait_event(cq->wait, !atomic_read(&cq->refcnt));
+> +
+> +	if (!cq->is_kernel)
+> +		ib_umem_release(cq->umem);
+> +
+> +	pvrdma_page_dir_cleanup(dev, &cq->pdir);
+> +	kfree(cq);
+> +}
+> +
+> +/**
+> + * pvrdma_destroy_cq - destroy completion queue
+> + * @cq: the completion queue to destroy.
+> + *
+> + * @return: 0 for success.
+> + */
+> +int pvrdma_destroy_cq(struct ib_cq *cq)
+> +{
+> +	struct pvrdma_cq *vcq = to_vcq(cq);
+> +	union pvrdma_cmd_req req;
+> +	union pvrdma_cmd_resp rsp;
+> +	struct pvrdma_cmd_destroy_cq *cmd = &req.destroy_cq;
+> +	struct pvrdma_dev *dev = to_vdev(cq->device);
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	memset(cmd, 0, sizeof(*cmd));
+> +	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_CQ;
+> +	cmd->cq_handle = vcq->cq_handle;
+> +
+> +	ret = pvrdma_cmd_post(dev, &req, false, &rsp);
+> +	if (ret < 0)
+> +		dev_warn(&dev->pdev->dev,
+> +			 "could not destroy completion queue\n");
+> +
+> +	/* free cq's resources */
+> +	spin_lock_irqsave(&dev->cq_tbl_lock, flags);
+> +	dev->cq_tbl[vcq->cq_handle] = NULL;
+> +	spin_unlock_irqrestore(&dev->cq_tbl_lock, flags);
+> +
+> +	pvrdma_free_cq(dev, vcq);
+> +	atomic_dec(&dev->num_cqs);
+> +
+> +	return ret;
+> +}
+> +
+> +/**
+> + * pvrdma_modify_cq - modify the CQ moderation parameters
+> + * @ibcq: the CQ to modify
+> + * @cq_count: number of CQEs that will trigger an event
+> + * @cq_period: max period of time in usec before triggering an event
+> + *
+> + * @return: -EOPNOTSUPP as CQ resize is not supported.
+> + */
+> +int pvrdma_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +static inline struct pvrdma_cqe *get_cqe(struct pvrdma_cq *cq, int i)
+> +{
+> +	return (struct pvrdma_cqe *)pvrdma_page_dir_get_ptr(
+> +					&cq->pdir,
+> +					cq->offset +
+> +					sizeof(struct pvrdma_cqe) * i);
+> +}
+> +
+> +void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq)
+> +{
+> +	int head;
+> +	int has_data;
+> +
+> +	if (!cq->is_kernel)
+> +		return;
+> +
+> +	/* Lock held */
+> +	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
+> +					    cq->ibcq.cqe, &head);
+
+For easy review (and probably maintenance) it looks to me that we need to
+preserve some sort of order where function/structures/union/enum etc will
+be define in preceding patch in a patch-set.
+This function implemented in patch #11 while we are in patch #3.
+
+> +	if (unlikely(has_data > 0)) {
+> +		int items;
+> +		int curr;
+> +		int tail = pvrdma_idx(&cq->ring_state->rx.prod_tail,
+> +				      cq->ibcq.cqe);
+> +		struct pvrdma_cqe *cqe;
+> +		struct pvrdma_cqe *curr_cqe;
+> +
+> +		items = (tail > head) ? (tail - head) :
+> +			(cq->ibcq.cqe - head + tail);
+> +		curr = --tail;
+> +		while (items-- > 0) {
+> +			if (curr < 0)
+> +				curr = cq->ibcq.cqe - 1;
+> +			if (tail < 0)
+> +				tail = cq->ibcq.cqe - 1;
+> +			curr_cqe = get_cqe(cq, curr);
+> +			if ((curr_cqe->qp & 0xFFFF) != qp->qp_handle) {
+> +				if (curr != tail) {
+> +					cqe = get_cqe(cq, tail);
+> +					*cqe = *curr_cqe;
+> +				}
+> +				tail--;
+> +			} else {
+> +				pvrdma_idx_ring_inc(
+> +					&cq->ring_state->rx.cons_head,
+> +					cq->ibcq.cqe);
+> +			}
+> +			curr--;
+> +		}
+> +	}
+> +}
+> +
+> +static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp **cur_qp,
+> +			   struct ib_wc *wc)
+> +{
+> +	struct pvrdma_dev *dev = to_vdev(cq->ibcq.device);
+> +	int has_data;
+> +	unsigned int head;
+> +	bool tried = false;
+> +	struct pvrdma_cqe *cqe;
+> +
+> +retry:
+> +	has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
+> +					    cq->ibcq.cqe, &head);
+> +	if (has_data == 0) {
+> +		u32 val;
+> +
+> +		if (tried)
+> +			return -EAGAIN;
+> +
+> +		/* Pass down POLL to give physical HCA a chance to poll. */
+> +		val = cq->cq_handle | PVRDMA_UAR_CQ_POLL;
+> +		writel(cpu_to_le32(val),
+> +		       dev->driver_uar.map + PVRDMA_UAR_CQ_OFFSET);
+> +
+> +		tried = true;
+> +		goto retry;
+> +	} else if (has_data == -1) {
+
+Is -1 represent fatal unrecoverable error or that next call to
+pvrdma_idx_ring_has_data might succeeds?
+
+> +		return -EINVAL;
+> +	}
+> +
+> +	cqe = get_cqe(cq, head);
+> +
+> +	/* Ensure cqe is valid. */
+> +	rmb();
+> +	if (dev->qp_tbl[cqe->qp & 0xffff])
+> +		*cur_qp = (struct pvrdma_qp *)dev->qp_tbl[cqe->qp & 0xffff];
+> +	else
+> +		return -EINVAL;
+
+Is this can happen when QP was deleted while WR was processing?
+Or that in first place it was pushed with invalid QP?
+
+Can you explain why you choose EINVAL and not EAGAIN? i.e we polled the
+"corrupted" CQE, next CEQ should be fine.
+Reading pvrdma_poll_cq looks like that if it was requested to poll 10 CQE
+for example and the 9th fails - the function will fail them all.
+
+> +
+> +	wc->opcode = pvrdma_wc_opcode_to_ib(cqe->opcode);
+> +	wc->status = pvrdma_wc_status_to_ib(cqe->status);
+> +	wc->wr_id = cqe->wr_id;
+> +	wc->qp = &(*cur_qp)->ibqp;
+> +	wc->byte_len = cqe->byte_len;
+> +	wc->ex.imm_data = cqe->imm_data;
+> +	wc->src_qp = cqe->src_qp;
+> +	wc->wc_flags = pvrdma_wc_flags_to_ib(cqe->wc_flags);
+> +	wc->pkey_index = cqe->pkey_index;
+> +	wc->slid = cqe->slid;
+> +	wc->sl = cqe->sl;
+> +	wc->dlid_path_bits = cqe->dlid_path_bits;
+> +	wc->port_num = cqe->port_num;
+> +	wc->vendor_err = 0;
+> +
+> +	/* Update shared ring state */
+> +	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq->ibcq.cqe);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * pvrdma_poll_cq - poll for work completion queue entries
+> + * @ibcq: completion queue
+> + * @num_entries: the maximum number of entries
+> + * @entry: pointer to work completion array
+> + *
+> + * @return: number of polled completion entries
+> + */
+> +int pvrdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+> +{
+> +	struct pvrdma_cq *cq = to_vcq(ibcq);
+> +	struct pvrdma_qp *cur_qp = NULL;
+> +	unsigned long flags;
+> +	int npolled;
+> +	int ret;
+> +
+> +	if (num_entries < 1)
+> +		return -EINVAL;
+> +
+> +	spin_lock_irqsave(&cq->cq_lock, flags);
+> +	for (npolled = 0; npolled < num_entries; ++npolled) {
+> +		ret = pvrdma_poll_one(cq, &cur_qp, wc + npolled);
+> +		if (ret)
+> +			break;
+> +	}
+> +
+> +	spin_unlock_irqrestore(&cq->cq_lock, flags);
+> +
+> +	if ((ret == 0) || (ret == -EAGAIN))
+> +		return npolled;
+> +	else
+> +		return ret;
+> +}
+> +
+> +/**
+> + * pvrdma_resize_cq - resize CQ
+> + * @ibcq: the completion queue
+> + * @entries: CQ entries
+> + * @udata: user data
+> + *
+> + * @return: -EOPNOTSUPP as CQ resize is not supported.
+> + */
+> +int pvrdma_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+> +{
+> +	return -EOPNOTSUPP;
+> +}
 > -- 
 > 2.7.4
 > 
