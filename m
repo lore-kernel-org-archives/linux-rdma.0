@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V2 1/8] RDMA/core: Export RDMA IOCTL declarations
-Date: Tue, 19 Jul 2016 18:23:25 +0300
-Message-ID: <1468941812-32286-2-git-send-email-matanb@mellanox.com>
+Subject: [RFC ABI V2 6/8] RDMA/core: Add initialize and cleanup of common types
+Date: Tue, 19 Jul 2016 18:23:30 +0300
+Message-ID: <1468941812-32286-7-git-send-email-matanb@mellanox.com>
 References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1468941812-32286-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,179 +10,345 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Place all external RDMA IOCTL declarations into one UAPI exported
-header file and move all legacy MAD commands to that file.
+The new ABI infrastructure introduced types per driver. Since current
+drivers use common types, we mimics the current release ucontext
+process using the new process.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/user_mad.c  |  2 +-
- include/rdma/rdma_ioctl.h           | 38 ++++++++++++++++++++++++
- include/uapi/rdma/Kbuild            |  1 +
- include/uapi/rdma/ib_user_mad.h     | 12 --------
- include/uapi/rdma/rdma_user_ioctl.h | 59 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 99 insertions(+), 13 deletions(-)
- create mode 100644 include/rdma/rdma_ioctl.h
- create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
+ drivers/infiniband/core/uverbs.h           |   9 +-
+ drivers/infiniband/core/uverbs_ioctl_cmd.c | 130 +++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c      | 101 +---------------------
+ include/rdma/uverbs_ioctl_cmd.h            |  15 ++++
+ 4 files changed, 156 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 415a318..70e974e 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -52,8 +52,8 @@
- 
- #include <asm/uaccess.h>
- 
-+#include <rdma/rdma_ioctl.h>
- #include <rdma/ib_mad.h>
--#include <rdma/ib_user_mad.h>
- 
- MODULE_AUTHOR("Roland Dreier");
- MODULE_DESCRIPTION("InfiniBand userspace MAD packet access");
-diff --git a/include/rdma/rdma_ioctl.h b/include/rdma/rdma_ioctl.h
-new file mode 100644
-index 0000000..f62a359
---- /dev/null
-+++ b/include/rdma/rdma_ioctl.h
-@@ -0,0 +1,38 @@
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef RDMA_IOCTL_H
-+#define RDMA_IOCTL_H
-+
-+#include <rdma/rdma_user_ioctl.h>
-+
-+#endif /* RDMA_IOCTL_H */
-diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-index 231901b..537e40e 100644
---- a/include/uapi/rdma/Kbuild
-+++ b/include/uapi/rdma/Kbuild
-@@ -1,5 +1,6 @@
- # UAPI Header export list
- header-y += ib_user_cm.h
-+header-y += rdma_user_ioctl.h
- header-y += ib_user_mad.h
- header-y += ib_user_sa.h
- header-y += ib_user_verbs.h
-diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
-index 09f809f..7e722e7 100644
---- a/include/uapi/rdma/ib_user_mad.h
-+++ b/include/uapi/rdma/ib_user_mad.h
-@@ -230,16 +230,4 @@ struct ib_user_mad_reg_req2 {
- 	__u8	reserved[3];
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 86be861..b65a865 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -174,8 +174,6 @@ struct ib_ucq_object {
+ 	u32			async_events_reported;
  };
  
--#define IB_IOCTL_MAGIC		0x1b
+-void idr_remove_uobj(struct ib_uobject *uobj);
 -
--#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
--					      struct ib_user_mad_reg_req)
+ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+ 					struct ib_device *ib_dev,
+ 					int is_async);
+@@ -197,6 +195,13 @@ void ib_uverbs_event_handler(struct ib_event_handler *handler,
+ void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev, struct ib_xrcd *xrcd);
+ 
+ int uverbs_dealloc_mw(struct ib_mw *mw);
++void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
++			   struct ib_uverbs_event_file *ev_file,
++			   struct ib_ucq_object *uobj);
++void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
++			      struct ib_uevent_object *uobj);
++void ib_uverbs_detach_umcast(struct ib_qp *qp,
++			     struct ib_uqp_object *uobj);
+ 
+ struct ib_uverbs_flow_spec {
+ 	union {
+diff --git a/drivers/infiniband/core/uverbs_ioctl_cmd.c b/drivers/infiniband/core/uverbs_ioctl_cmd.c
+index 4c2d30e4..ea50c08 100644
+--- a/drivers/infiniband/core/uverbs_ioctl_cmd.c
++++ b/drivers/infiniband/core/uverbs_ioctl_cmd.c
+@@ -31,8 +31,11 @@
+  */
+ 
+ #include <rdma/uverbs_ioctl_cmd.h>
++#include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_verbs.h>
+ #include <linux/bug.h>
++#include <linux/file.h>
++#include "rdma_core.h"
+ #include "uverbs.h"
+ 
+ #define IB_UVERBS_VENDOR_FLAG	0x8000
+@@ -76,3 +79,130 @@ int uverbs_action_std_ctx_handle(struct ib_device *ib_dev,
+ }
+ EXPORT_SYMBOL(uverbs_action_std_ctx_handle);
+ 
++static void free_ah(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	ib_destroy_ah((struct ib_ah *)uobject->object);
++}
++
++static void free_flow(struct uverbs_uobject_type *uobject_type,
++		      struct ib_uobject *uobject,
++		      struct ib_ucontext *ucontext)
++{
++	ib_destroy_flow((struct ib_flow *)uobject->object);
++}
++
++static void free_mw(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	uverbs_dealloc_mw((struct ib_mw *)uobject->object);
++}
++
++static void free_qp(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	struct ib_qp *qp = uobject->object;
++	struct ib_uqp_object *uqp =
++		container_of(uobject, struct ib_uqp_object, uevent.uobject);
++
++	if (qp != qp->real_qp) {
++		ib_close_qp(qp);
++	} else {
++		ib_uverbs_detach_umcast(qp, uqp);
++		ib_destroy_qp(qp);
++	}
++	ib_uverbs_release_uevent(ucontext->ufile, &uqp->uevent);
++}
++
++static void free_srq(struct uverbs_uobject_type *uobject_type,
++		     struct ib_uobject *uobject,
++		     struct ib_ucontext *ucontext)
++{
++	struct ib_srq *srq = uobject->object;
++	struct ib_uevent_object *uevent =
++		container_of(uobject, struct ib_uevent_object, uobject);
++
++	ib_destroy_srq(srq);
++	ib_uverbs_release_uevent(ucontext->ufile, uevent);
++}
++
++static void free_cq(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	struct ib_cq *cq = uobject->object;
++	struct ib_uverbs_event_file *ev_file = cq->cq_context;
++	struct ib_ucq_object *ucq =
++		container_of(uobject, struct ib_ucq_object, uobject);
++
++	ib_destroy_cq(cq);
++	ib_uverbs_release_ucq(ucontext->ufile, ev_file, ucq);
++}
++
++static void free_mr(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	ib_dereg_mr((struct ib_mr *)uobject);
++}
++
++static void free_xrcd(struct uverbs_uobject_type *uobject_type,
++		      struct ib_uobject *uobject,
++		      struct ib_ucontext *ucontext)
++{
++	struct ib_xrcd *xrcd = uobject->object;
++
++	mutex_lock(&ucontext->ufile->device->xrcd_tree_mutex);
++	ib_uverbs_dealloc_xrcd(ucontext->ufile->device, xrcd);
++	mutex_unlock(&ucontext->ufile->device->xrcd_tree_mutex);
++}
++
++static void free_pd(struct uverbs_uobject_type *uobject_type,
++		    struct ib_uobject *uobject,
++		    struct ib_ucontext *ucontext)
++{
++	ib_dealloc_pd((struct ib_pd *)uobject);
++}
++
++int rdma_initialize_common_types(struct ib_device *ib_dev, unsigned int types)
++{
++	static const struct
++	{
++		enum uverbs_common_types type;
++		void (*free)(struct uverbs_uobject_type *uobject_type,
++			     struct ib_uobject *uobject,
++			     struct ib_ucontext *ucontext);
++
++	} common_types[] = { /* by release order */
++		{.type = UVERBS_TYPE_AH,	.free = free_ah},
++		{.type = UVERBS_TYPE_MW,	.free = free_mw},
++		{.type = UVERBS_TYPE_FLOW,	.free = free_flow},
++		{.type = UVERBS_TYPE_QP,	.free = free_qp},
++		{.type = UVERBS_TYPE_SRQ,	.free = free_srq},
++		{.type = UVERBS_TYPE_CQ,	.free = free_cq},
++		{.type = UVERBS_TYPE_MR,	.free = free_mr},
++		{.type = UVERBS_TYPE_XRCD,	.free = free_xrcd},
++		{.type = UVERBS_TYPE_PD,	.free = free_pd},
++	};
++	int ret = 0;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(common_types); i++) {
++		if (types & common_types[i].type) {
++			ret = ib_uverbs_uobject_type_add(&ib_dev->type_list,
++							 common_types[i].free,
++							 common_types[i].type);
++			if (ret)
++				goto free;
++		}
++	}
++
++free:
++	ib_uverbs_uobject_types_remove(ib_dev);
++	return ret;
++}
++EXPORT_SYMBOL(rdma_initialize_common_types);
++
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index fa51568..9137698 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -52,6 +52,7 @@
+ #include <rdma/rdma_ioctl.h>
+ 
+ #include "uverbs.h"
++#include "rdma_core.h"
+ 
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("InfiniBand userspace verbs access");
+@@ -195,8 +196,8 @@ void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
+ 	spin_unlock_irq(&file->async_file->lock);
+ }
+ 
+-static void ib_uverbs_detach_umcast(struct ib_qp *qp,
+-				    struct ib_uqp_object *uobj)
++void ib_uverbs_detach_umcast(struct ib_qp *qp,
++			     struct ib_uqp_object *uobj)
+ {
+ 	struct ib_uverbs_mcast_entry *mcast, *tmp;
+ 
+@@ -210,103 +211,9 @@ static void ib_uverbs_detach_umcast(struct ib_qp *qp,
+ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 				      struct ib_ucontext *context)
+ {
+-	struct ib_uobject *uobj, *tmp;
 -
--#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
+ 	down_write(&file->close_sem);
+ 	context->closing = 1;
 -
--#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
+-	list_for_each_entry_safe(uobj, tmp, &context->ah_list, list) {
+-		struct ib_ah *ah = uobj->object;
 -
--#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
--					      struct ib_user_mad_reg_req2)
+-		idr_remove_uobj(uobj);
+-		ib_destroy_ah(ah);
+-		kfree(uobj);
+-	}
 -
- #endif /* IB_USER_MAD_H */
-diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
-new file mode 100644
-index 0000000..5c1117a
---- /dev/null
-+++ b/include/uapi/rdma/rdma_user_ioctl.h
-@@ -0,0 +1,59 @@
-+/*
-+ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+-	/* Remove MWs before QPs, in order to support type 2A MWs. */
+-	list_for_each_entry_safe(uobj, tmp, &context->mw_list, list) {
+-		struct ib_mw *mw = uobj->object;
+-
+-		idr_remove_uobj(uobj);
+-		uverbs_dealloc_mw(mw);
+-		kfree(uobj);
+-	}
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->rule_list, list) {
+-		struct ib_flow *flow_id = uobj->object;
+-
+-		idr_remove_uobj(uobj);
+-		ib_destroy_flow(flow_id);
+-		kfree(uobj);
+-	}
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->qp_list, list) {
+-		struct ib_qp *qp = uobj->object;
+-		struct ib_uqp_object *uqp =
+-			container_of(uobj, struct ib_uqp_object, uevent.uobject);
+-
+-		idr_remove_uobj(uobj);
+-		if (qp != qp->real_qp) {
+-			ib_close_qp(qp);
+-		} else {
+-			ib_uverbs_detach_umcast(qp, uqp);
+-			ib_destroy_qp(qp);
+-		}
+-		ib_uverbs_release_uevent(file, &uqp->uevent);
+-		kfree(uqp);
+-	}
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->srq_list, list) {
+-		struct ib_srq *srq = uobj->object;
+-		struct ib_uevent_object *uevent =
+-			container_of(uobj, struct ib_uevent_object, uobject);
+-
+-		idr_remove_uobj(uobj);
+-		ib_destroy_srq(srq);
+-		ib_uverbs_release_uevent(file, uevent);
+-		kfree(uevent);
+-	}
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->cq_list, list) {
+-		struct ib_cq *cq = uobj->object;
+-		struct ib_uverbs_event_file *ev_file = cq->cq_context;
+-		struct ib_ucq_object *ucq =
+-			container_of(uobj, struct ib_ucq_object, uobject);
+-
+-		idr_remove_uobj(uobj);
+-		ib_destroy_cq(cq);
+-		ib_uverbs_release_ucq(file, ev_file, ucq);
+-		kfree(ucq);
+-	}
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->mr_list, list) {
+-		struct ib_mr *mr = uobj->object;
+-
+-		idr_remove_uobj(uobj);
+-		ib_dereg_mr(mr);
+-		kfree(uobj);
+-	}
+-
+-	mutex_lock(&file->device->xrcd_tree_mutex);
+-	list_for_each_entry_safe(uobj, tmp, &context->xrcd_list, list) {
+-		struct ib_xrcd *xrcd = uobj->object;
+-		struct ib_uxrcd_object *uxrcd =
+-			container_of(uobj, struct ib_uxrcd_object, uobject);
+-
+-		idr_remove_uobj(uobj);
+-		ib_uverbs_dealloc_xrcd(file->device, xrcd);
+-		kfree(uxrcd);
+-	}
+-	mutex_unlock(&file->device->xrcd_tree_mutex);
+-
+-	list_for_each_entry_safe(uobj, tmp, &context->pd_list, list) {
+-		struct ib_pd *pd = uobj->object;
+-
+-		idr_remove_uobj(uobj);
+-		ib_dealloc_pd(pd);
+-		kfree(uobj);
+-	}
+-
++	ib_uverbs_uobject_type_initialize_ucontext(context, &file->device->ib_dev->type_list);
+ 	put_pid(context->tgid);
+ 	up_write(&file->close_sem);
+ 
+diff --git a/include/rdma/uverbs_ioctl_cmd.h b/include/rdma/uverbs_ioctl_cmd.h
+index 19806df..18e652d 100644
+--- a/include/rdma/uverbs_ioctl_cmd.h
++++ b/include/rdma/uverbs_ioctl_cmd.h
+@@ -64,5 +64,20 @@ struct uverbs_action_std_ctx_handler {
+ 	void *priv;
+ };
+ 
++int rdma_initialize_common_types(struct ib_device *ib_dev, unsigned int types);
 +
-+#ifndef RDMA_USER_IOCTL_H
-+#define RDMA_USER_IOCTL_H
++enum uverbs_common_types {
++	UVERBS_TYPE_DEVICE, /* Don't use IDRs here */
++	UVERBS_TYPE_PD,
++	UVERBS_TYPE_CQ,
++	UVERBS_TYPE_QP,
++	UVERBS_TYPE_SRQ,
++	UVERBS_TYPE_AH,
++	UVERBS_TYPE_MR,
++	UVERBS_TYPE_MW,
++	UVERBS_TYPE_FLOW,
++	UVERBS_TYPE_XRCD,
++};
 +
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+
-+#define RDMA_IOCTL_MAGIC		0x1b
-+/*
-+ * For hfi1 driver
-+ */
-+#define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
-+
-+/* Legacy part
-+ * !!!! NOTE: It uses the same command index as VERBS
-+ */
-+#include <rdma/ib_user_mad.h>
-+#define IB_USER_MAD_REGISTER_AGENT	_IOWR(RDMA_IOCTL_MAGIC, 1, \
-+					      struct ib_user_mad_reg_req)
-+
-+#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(RDMA_IOCTL_MAGIC, 2, __u32)
-+
-+#define IB_USER_MAD_ENABLE_PKEY		_IO(RDMA_IOCTL_MAGIC, 3)
-+
-+#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(RDMA_IOCTL_MAGIC, 4, \
-+					      struct ib_user_mad_reg_req2)
-+
-+#endif /* RDMA_USER_IOCTL_H */
+ #endif
+ 
 -- 
 2.7.4
 
