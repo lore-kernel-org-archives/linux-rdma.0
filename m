@@ -1,71 +1,83 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
- capability
-Date: Tue, 19 Jul 2016 08:42:04 +0300
-Message-ID: <20160719054204.GG20674@leon.nu>
-References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
- <20160718171921.GA3193@obsidianresearch.com>
+Subject: Re: [QUESTION] Is an ib_sbft kernel module needed to be made? (For
+ booting using SRP)
+Date: Tue, 19 Jul 2016 12:18:39 +0300
+Message-ID: <20160719091838.GI20674@leon.nu>
+References: <CA+X5Wn4aYpxAKO5aCQS+T1MH1MMedd+ukBecZGSbg02QdX1YSQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="reI/iBAAp9kzkmX4"
+	protocol="application/pgp-signature"; boundary="X0cz4bGbQuRbxrVl"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160718171921.GA3193-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CA+X5Wn4aYpxAKO5aCQS+T1MH1MMedd+ukBecZGSbg02QdX1YSQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---reI/iBAAp9kzkmX4
+--X0cz4bGbQuRbxrVl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 18, 2016 at 11:19:21AM -0600, Jason Gunthorpe wrote:
-> On Mon, Jul 18, 2016 at 12:40:48AM -0700, Yuval Shaia wrote:
-> > Decouple SG support from HW ability to do UD checksum.
-> > This coupling is for historical reasons and removed with 'commit
-> > ec5f06156423 ("net: Kill link between CSUM and SG features.")'
+On Mon, Jul 18, 2016 at 10:13:15PM -0400, james harvey wrote:
+> I'm looking to boot using SRP.  I've spent a lot of time looking, and
+> am not seeing that anyone has actually done this.  Really surprises
+> me, actually.
 >=20
-> Shouldn't this also check that the QP's sg limit is something
-> appropriate? At least > 1 ..
+> iPXE is able to make the SRP connection, load the kernel and
+> initramfs, and leaves behind a SRP boot firmware table as described at
+> http://ipxe.org/srp/sbft
 >=20
-> Presumably things still work if the skb needs more sg's than are
-> available?
+> But, I don't see anything that finds, reads, or uses it.  So then then
+> remote drive is no longer seen.
+>=20
+> I see iSCSI handles this problem through the kernel module iscsi_ibft
+> which gives a sysfs interface to iSCSI's BFT structure.
+>=20
+> I'm somewhat interested in developing the ib_sbft kernel module, if
+> I'm not missing an existing alternative to allow SRP booting.  I
+> expect I could work from the iscsi_ibft kernel module source to be
+> able to accomplish this, making the necessary changes based on the
+> sBFT documentation and iPXE's sBFT-creating source.
+>=20
+> Is anyone else who has done kernel development interested in taking
+> that on, or is it something I should start working on?
+>=20
 
-IMHO, this question is relevant for the code before change as well.
+Is this ability needed? Do you have real life scenario for this?
 
->=20
-> Jason
+Thanks
+
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---reI/iBAAp9kzkmX4
+--X0cz4bGbQuRbxrVl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXjb2sAAoJEORje4g2clinZWcP/jV3XMu7eRFp9lTy8X8NRvb2
-dLCj6HIl4YZsvNHHA/oAP68dVxkYf1VICOK7VO238KdXRO5K5kWUJTg3BCHUZcKa
-0ZvtzjrFdpVK69O2jIwyeM8oN/YOvA0rVMsUS2UtefE/CQjXFp4UaArzvjqn2MEQ
-Kdya/nBd1ze6IgeGkDbQZ2YPqFAuj7sonuDPlcZuvQlayWWhPMKAA21FCkj7GIoU
-oSoPewD36+3KklSIQYg1kMee4g6f4LdDoXfQzJHoovZ6IRav99nUdJ9jPgcPvBDV
-dEGXkBamutfQ79IFX3aRGg0JE7SwaN3EP70fwVZka+y0iWepd+te4/3OdhPIth6Z
-/c22W36tKwnBPyxSGfv+PIjxjYGHdYfI2zjLwbPWFFSsxlSvzU2D6tagVPR9hNdB
-kEb2Z6cR/bBR1hbJjJ/m9uAkSX+1ZF5Rx7B0Rzx7h6+Q7l3y+98cpcImnqthNtHx
-U1Qnvp7R1GLUz7xVWPJM7EY0loTaV7HTPmjoEBtMr4G8SPMRgYa4mG4SOxLcc2WP
-sFJodLj8lgFXDlpR7RIb374+12Ni/xsO59IRmYoptKQwZkjPcz4eeV3X0+7JG99Q
-Job5100OIke9UeikxaU7v9aKJZ4ejOydqttYkBW7gpyCqhHArhkVDVRuSgbsdxJQ
-mXX1fqxsfqRd/5P/JTSc
-=yMIn
+iQIcBAEBAgAGBQJXjfBuAAoJEORje4g2clin/pUP/2k3qsXzP62lJ2z7WgUX690u
+b70PYUAwu6Yk8aQYSfIFiIQiAK6qcgzUDOEloAYU7+aTGtc6J9lz0cBzv+ttVou7
++hrpqtAGjm65wnpCtyq+d6AfXxQI+PFM3vCdVGUj45Wym0LL2C+XWwmpXLRxm0nx
+hhtuexn3PLOUdbwzo+BSvVgq6VCaUO6albrzCtJMyA16Cgib0eOL0z0y1zMhZ/K/
+pg2wGyTWZkinT6/USofNg2hCIyYDMpHpDzKDLNbXNxRfzc/vVj1o0ixCJt64Dj5c
+s4aT729bu1u4NRlmYRAtAUB+aR25apE0G8fO1JcwzyQBxFrzMZSIBbiHhY30D2TR
+klX3herFzZkN2DE0sdF8Kl36EFAMZei2dDSc+iVEap623cYjXsdjR1uswPGKGx3m
+ZKNR+nP9R9re0CTgHIOdwDlW8p6paSlnDaHHLA3OsnfYChwgwN1QGvyetcYr3QED
+LJvRBtZ6DGd5ZO1aJd5mneRVetRzNgWfM0wsTkmgP4mV7EDzGSDwVZo4VnasHC0j
+ED1sI/e36WkjdSz9fa49LST11UTAIX90BgvnoV34pyarxyUQe1UqcCrDCch4RSSc
+ALgGlYUTbPgZs3aKWpw9+os5RyJyalbJAnQFGVrQZ8yDZ8E5Q3GyPkiaFxZUbU+7
++ZvkwPAdePSpjRq0Jc6x
+=wCPV
 -----END PGP SIGNATURE-----
 
---reI/iBAAp9kzkmX4--
+--X0cz4bGbQuRbxrVl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
