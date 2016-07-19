@@ -1,213 +1,220 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V1 7/8] RDMA/core: Change locking of ib_uobject
-Date: Tue, 19 Jul 2016 18:16:11 +0300
-Message-ID: <b47386f4-fdb5-d24b-dbc6-9b5e18be6bf9@mellanox.com>
-References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
- <1467293971-25688-8-git-send-email-matanb@mellanox.com>
- <20160713171657.GB19657@obsidianresearch.com>
- <6ae1a553-408c-723a-93a2-3d46d952ce35@mellanox.com>
- <20160714170051.GB2046@obsidianresearch.com>
+From: Topi Miettinen <toiwoton@gmail.com>
+Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
+Date: Tue, 19 Jul 2016 16:53:50 +0000
+Message-ID: <be9195cf-85f8-b761-17f2-e0ed5c4a64bc@gmail.com>
+References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
+ <20160715130458.GB21685@350D>
+ <41b6ca51-1358-0fd7-b45a-dc29a1344865@gmail.com>
+ <dc74346d-141b-d22c-72ac-de8f3ce5f766@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160714170051.GB2046-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <dc74346d-141b-d22c-72ac-de8f3ce5f766@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Doug Ledford <dledford@redhat.com>, bsingharora@gmail.com
+Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14/07/2016 20:00, Jason Gunthorpe wrote:
-> On Thu, Jul 14, 2016 at 10:59:41AM +0300, Matan Barak wrote:
->
->> I'm not at the office right now, but AFAIK it's attach_mcast, detach_mcast,
->> rereg_mr and all the destroy functions.
->
-> I don't think we can change those three, I would be too scared that
-> would break existing apps that don't serialize them.
->
-> I think we need to change the kernel locking for those three cases to
-> rely on a different lock so that the modify style operations can not
-> return EBUSY.
->
-> That seems like it should be simple enough? Can we use the lock in the
-> kobj or something? Why is it like that today anyhow?
->
-
-Yeah, I think it'll be safer to use lower level locking (like in kobj).
-
->>> I also think this should be stand-alone as part of the uobject rework
->>> series.. Again it seems like this benifits any approach.
->>
->> Yeah, but since the new infrastructure is going to do the locks
->> automatically for you, we'll ditch the locks in uverbs_cmd anyway.
->> Therefore, I don't see a real benefit refactoring uverbs_cmd and then
->> ditching all these changes.
->
-> We still have to go through a transitional approach here, to me that
-> means we should move existing uverbs closer to the new approach
-> (particularly in terms of locking and code sharing), trial that in
-> real apps, and then add the new api on that tested basis. We can't
-> just abandon uverbs, and we probably shouldn't try to do a flag day
-> convert either.
->
-
-Well, another option (not saying it's a better one) is to develop the 
-new ABI in a separate branch and try real world applications using it 
-(with a modified libibverbs of course). This shall give use a feel if 
-things are mature enough. The last step could be adding a write->ioctl 
-interface. That's qualified to "flag day" conversion in the main branch.
-
-Saying that, I see that advantages of a transitional approach. We need 
-to balance between transitional approach and try avoiding write code 
-that we know will be dumped anyway.
-
-Lets decide on the development phases here after we have a clear idea on 
-how the new ABI is going to look like and we could all work towards this 
-approach.
-
-> So I don't know what your plan is to 'ditch the locks' with the new
-> infrastucture while maintaining the uverbs api..
->
-
-Using a conversion layer of the old ABI to the new ABI. Move the current 
-write locks to lower kobj level as you suggested.
-
-> My preference is to see smaller patch series with clear goals that can
-> be applied - and 'rework uverbs locking' seems to fit that bill quite
-> well.
->
-> For instance, if we are introducing a uobject type scheme like this
-> series does then it should be another stand alone series that doesn't
-> try and introduce the ioctl stuff..
->
-
-Yeah, changes have a clear smaller goals and won't be changed 
-dramatically as the ABI task is evolving should definitely go through a 
-different patch-set.
-
->> No, it's not the same thing. SRCU protects device removal from command
->> execution. close_sem protects context destruction from command
->> execution.
->
-> It is the same, device removal requires 'context destruction' as
-> a precondition, so it should be able to ride on the same lock.
->
-> The 'context destruction' for device removal is a bit special but it
-> is still basically the same action as close(fd).
->
-
-rechecked - you're right, both calls ib_uverbs_cleanup_ucontext.
-
->> You're correct that in the current state of the code, context is only closed
->> when a file is closed or when a device is removed, so it's protected.
->> However, if we want to add a destroy_context action - it becomes necessary.
->
-> What would destroy_context do? Why would we need that?
->
-
-If you want to break device != fd, you might want to destroy a device 
-and start using the same fd with another device.
-
->> If we move to a per uverbs_file idr, contexts (either file context or client
->> context), we still need to sync destruction of these contexts with carrying
->> out actions. Since the uverbs_file outlives them, it's reasonable to put the
->> lock there.
->
-> Are you proposing that all object destroy will be serialized?
->
-
-When a process/device dies, I think it's reasonable to destroy objects 
-in a serial way. I think it's reasonable that when a device is removed, 
-you serialize this with handling commands on the same fd. Of course 
-destroying unrelated objects could be done in parallel.
-
->> Currently, as far as I remember, modify isn't protected by the write lock
->> anyway. Besides that, nothing stops the user from syncing the actions.
->
-> You can't make that argument when dealing with compat. We can't change
-> something like the locking requirements in user space.
->
-
-Of course, but if currently modify_qp uses read_lock - there's no change 
-in user space locking requirement.
-
->>> While holding the lock. But that is a really ugly API. Nothing should be
->>> added to the idr until it is 100% initialized, so we don't need
->>> concurrency protection. What is the write lock doing at that point??
->>
->> We assume the enable function can't fail. Since adding something to idr
->> could fail, we preferred adding it first with live = 0 flag and then
->> enabling it.
->
-> Why can't it fail?
->
-
-Because in our v2 (to be sent soon) we only adds it to the type list and 
-set the live flag.
-
->>>  uobj = uobj_alloc(file->ucontext, 0, sizeof(*uobj));
->>>  [.. full setup ..]
->>>  uobj_activate(uobj); // live = 1, list_add_tail, idr_add
+On 07/18/16 22:05, Doug Ledford wrote:
+> On 7/15/2016 12:35 PM, Topi Miettinen wrote:
+>> On 07/15/16 13:04, Balbir Singh wrote:
+>>> On Fri, Jul 15, 2016 at 01:35:47PM +0300, Topi Miettinen wrote:
+>>>> Hello,
+>>>>
+>>>> There are many basic ways to control processes, including capabilities,
+>>>> cgroups and resource limits. However, there are far fewer ways to find out
+>>>> useful values for the limits, except blind trial and error.
+>>>>
+>>>> This patch series attempts to fix that by giving at least a nice starting
+>>>> point from the highwater mark values of the resources in question.
+>>>> I looked where each limit is checked and added a call to update the mark
+>>>> nearby.
+>>>>
+>>>> Example run of program from Documentation/accounting/getdelauys.c:
+>>>>
+>>>> ./getdelays -R -p `pidof smartd`
+>>>> printing resource accounting
+>>>> RLIMIT_CPU=0
+>>>> RLIMIT_FSIZE=0
+>>>> RLIMIT_DATA=18198528
+>>>> RLIMIT_STACK=135168
+>>>> RLIMIT_CORE=0
+>>>> RLIMIT_RSS=0
+>>>> RLIMIT_NPROC=1
+>>>> RLIMIT_NOFILE=55
+>>>> RLIMIT_MEMLOCK=0
+>>>> RLIMIT_AS=130879488
+>>>> RLIMIT_LOCKS=0
+>>>> RLIMIT_SIGPENDING=0
+>>>> RLIMIT_MSGQUEUE=0
+>>>> RLIMIT_NICE=0
+>>>> RLIMIT_RTPRIO=0
+>>>> RLIMIT_RTTIME=0
+>>>>
+>>>> ./getdelays -R -C /sys/fs/cgroup/systemd/system.slice/smartd.service/
+>>>> printing resource accounting
+>>>> sleeping 1, blocked 0, running 0, stopped 0, uninterruptible 0
+>>>> RLIMIT_CPU=0
+>>>> RLIMIT_FSIZE=0
+>>>> RLIMIT_DATA=18198528
+>>>> RLIMIT_STACK=135168
+>>>> RLIMIT_CORE=0
+>>>> RLIMIT_RSS=0
+>>>> RLIMIT_NPROC=1
+>>>> RLIMIT_NOFILE=55
+>>>> RLIMIT_MEMLOCK=0
+>>>> RLIMIT_AS=130879488
+>>>> RLIMIT_LOCKS=0
+>>>> RLIMIT_SIGPENDING=0
+>>>> RLIMIT_MSGQUEUE=0
+>>>> RLIMIT_NICE=0
+>>>> RLIMIT_RTPRIO=0
+>>>> RLIMIT_RTTIME=0
 >>>
->>>  resp.handle = uobj->id;
->>>  copy_to_user(..);
->>>
->>>  put_uobj(uobj);
->>>  return ret;
->>>
->>> err1:
->>>  uobj_deactivate(uobj);
->>> err2:
->>>  put_obj(uobj);
->>>
+>>> Does this mean that rlimit_data and rlimit_stack should be set to the
+>>> values as specified by the data above?
 >>
->> I agree with the general schema, but I think idr_add should be done in
->> uobj_alloc as it can fail.
->
-> In my version uobj_activate can fail, and we already have to have the
-> goto-unwind infrastructure to cope with that (copy_to_user could
-> fail), so I'm not sure why avoiding it would be helpful?
->
-
-I think it should be the other way around - copy_to_user is done by the 
-handler and uobj_activate is done by the infrastructure. Therefore, the 
-general doesn't know how to roll back the command and I want to 
-guarantee anything it does after calling the handler succeed.
-
-> I also wonder if the above flow is enough to remove live? That always
-> seemed like a strange approach to me, most idr users would just use in-idr
-> as 'live' ...
->
->>> I would do the above sort of restructuring as another (mergable, even)
->>> patch, then rip out the locking.
+>> My plan is that either system administrator, distro maintainer or even
+>> upstream developer can get reasonable values for the limits. They may
+>> still be wrong, but things would be better than without any help to
+>> configure the system.
+> 
+> This is not necessarily true.  It seems like there is a disconnect
+> between what these various values are for and what you are positioning
+> them as.  Most of these limits are meant to protect the system from
+> resource starvation crashes.  They aren't meant to be any sort of double
+> check on a specific application.  The vast majority of applications can
+> have bugs, leak resources, and do all sorts of other bad things and
+> still not hit these limits.  A program that leaks a file handle an hour
+> but only normally has 50 handles in use would take 950 hours of constant
+> leaking before these limits would kick in to bring the program under
+> control.  That's over a month.  What's more though, the kernel couldn't
+> really care less that a single application leaked files until it got to
+> 1000 open.  The real point of the limit on file handles (since they are
+> cheap) is just not to let the system get brought down.  Someone could
+> maliciously fire up 1000 processes, and they could all attempt to open
+> up as many files as possible in order to drown the system in open
+> inodes.  The combination of the limit on maximum user processes and
+> maximum files per process are intended to prevent this.  They are not
+> intended to prevent a single, properly running application from
+> operating.  In fact, there are very few applications that are likely to
+> break the 1000 file per process limit.  It is outrageously high for most
+> applications.  They will leak files and do all sorts of bad things
+> without this ever stopping them.  But it does stop malicious programs.
+> And the process limit stops malicious users too.  The max locked memory
+> is used by almost no processes, and for the very few that use it, the
+> default is more than enough.  The major exception is the RDMA stack,
+> which uses it so much that we just disable it on large systems because
+> it's impossible to predict how much we'll need and we don't want a job
+> to get killed because it couldn't get the memory it needs for buffers.
+> The limit on POSIX message queues is another one where it's more than
+> enough for most applications which don't use this feature at all, and
+> the few systems that use this feature adjust the limit to something sane
+> on their system (we can't make the default sane for these special
+> systems or else it becomes an avenue for Denial of Service attack, so
+> the default must stay low and servers that make extensive use of this
+> feature must up their limit on a case by case basis).
+> 
+>>>
+>>> Do we expect a smart user space daemon to then tweak the RLIMIT values?
 >>
->> This locking is done automatically using the new infrastructure. The goal is
->> to remove all these locking semantics from the user handler.
->> Therefore, I don't think we should refactor uverbs_cmd and then delete all
->> locks from there.
->
-> What happens to uverbs_cmd then? As I said above we still need to keep
-> it around and it still need to fit with the new infrastructure. I'd
-> rather see a patch flow that slowly transforms uverbs_cmd to a point
-> where adding the new ioctl becomes a simpler patch.
->
+>> Someone could write an autotuning daemon that checks if the system has
+>> changed (for example due to upgrade) and then run some tests to
+>> reconfigure the system. But the limits are a bit too fragile, or rather,
+>> applications can't handle failure, so I don't know if that would really
+>> work.
+> 
+> This misses the point of most of these limits.  They aren't there to
+> keep normal processes and normal users in check.  They are there to stop
+> runaway use.  This runaway situation might be accidental, or it might be
+> a nefarious users.  They are generally set exceedingly high for those
+> things every application uses, and fairly low for those things that
+> almost no application uses but which could be abused by the nefarious
+> user crowd.
+> 
+> Moreover, for a large percentage of applications, the highwatermark is a
+> source of great trickery.  For instance, if you have a web server that
+> is hosting web pages written in python, and therefore are using
+> mod_python in the httpd server (assuming apache here), then your
+> highwatermark will never be a reliable, stable thing.  If you get 1000
+> web requests in a minute, all utilizing the mod_python resource in the
+> web server, and you don't have your httpd configured to restart after
+> every few hundred requests handled, then mod_python in your httpd
+> process will grow seemingly without limit.  It will consume tons of
+> memory.  And the only limit on how much memory it will consume is
+> determined by how many web requests it handles in between its garbage
+> collection intervals * how much memory it allocates per request.  If you
+> don't happen to catch the absolute highest amount while you are
+> gathering your watermarks, then when you actually switch the system to
+> enforcing the limits you learned from all your highwatermarks (you are
+> planning on doing that aren't you?....I didn't see a copy of the patch
+> 1/14, so I don't know if this infrastructure ever goes back to enforcing
+> the limits or not, but I would assume so, what point is there in
+> learning what the limits should be if you then never turn around and
+> enforce them?), load spikes will cause random program failures.
+> 
+> Really, this looks like a solution in search of a problem.  Right now,
+> the limits are set where they are because they do two things:
+> 
+> 1) Stay out of the way of the vast majority of applications.  Those
+> applications that get tripped up by the defaults (like RDMA applications
+> getting stopped by memlock settings) have setup guides that spell out
+> which limits need changed and hints on what to change them too.
+> 
+> 2) Stop nefarious users or errant applications from a total runaway
+> situation on a machine.
+> 
+> If your applications run without fail unless they have already failed,
+> and the whole machine doesn't go down with your failed application, then
+> the limits are working as designed.  If your typical machine
+> configuration includes 256GB of RAM, then you could probably stand to
+> increase some of the limits safely if you wanted to.  But unless you
+> have applications getting killed because of these limits, why would you?
 
-IMHO, uverbs_cmd should become write_format->ioctl_format convertor.
-We don't want to have two paths doing almost the same thing in two 
-different ways.
+Thanks for the long explanation. I'd suppose loose limits are also used
+because it's hard to know good tighter values. I was thinking of using
+tighter settings to make things less easy for exploit writers. With
+tight limits for RLIMIT_AS, RLIMIT_DATA and RLIMIT_STACK (also
+RLIMIT_FSIZE in case a daemon is not supposed to create new files) it
+would not so easy for the initial exploit to mmap() a large next stage
+payload.
 
-> There is obvoisly a lot of in-kernel infrastructure work to do.
->
+But there could be more direct ways to prevent that. For example, if
+there was a way for seccomp filters to access a share state, they could
+implement a state machine that could switch to a stricter mode after the
+application has entered the event loop. Most of the limits or the denial
+of service case are not interesting to me anyway.
 
-Yeah, that's why we're still in the RFC phase. I think we need to agree 
-on how we are going to do things and get the general picture clear.
+> Right now, I'm inclined to NAK the patch set.  I've only seen patch 9/14
+> since you didn't Cc: everyone on the patch 1/14 that added the
+> infrastructure.  But, as I mentioned in another email, I think this can
+> be accomplished via a systemtap script instead so we keep the clutter
+> out of the kernel.  And more importantly, these patches seem to be
+> thinking about these limits as though they are supposed to be some sort
+> of tight fitting container around applications that catch an errant
+> application as soon as it steps out of bounds.  Nothing could be further
+> from the truth, and if we actually implemented something of that sort,
+> programs susceptible to high resource usage during load spikes would
+> suddenly start failing on a frequent basis.  The proof that these limits
+> are working is given by the fact that we rarely hear from users about
+> their programs being killed for resource consumption, and yet we also
+> don't hear from users about their systems going down due to runaway
+> applications.  From what I can tell from these patches, I would suspect
+> complaints from one of those two issues to increase once these patches
+> are in place and put in use, and that doesn't seem like a good thing.
+> 
 
-> Jason
->
+Those complaints could increase either way if the users want to use
+tight limits, with kernel assistance or with systemtap. Again, the cause
+of lack of complaints could also be that users are unaware of how to get
+tight limits, so the users have no option but to either ignore the
+limits or to use loose settings.
 
-Matan
+-Topi
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
