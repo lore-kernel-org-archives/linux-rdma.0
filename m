@@ -1,47 +1,67 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 2/2] IB/hfi1: Disable by default
-Date: Tue, 19 Jul 2016 10:03:44 -0700
-Message-ID: <11ad3ffc-f1e5-4c02-16bf-29216cb38d15@sandisk.com>
-References: <e6761c19-f301-ffc4-8283-ea958a387313@sandisk.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 0/5] Reduce RDMA RW API SGE limit
+Date: Tue, 19 Jul 2016 13:14:45 -0400 (EDT)
+Message-ID: <1465736110.5730453.1468948485702.JavaMail.zimbra@redhat.com>
+References: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e6761c19-f301-ffc4-8283-ea958a387313-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <8fb358c3-3504-02ca-fcb8-1624f28be1b0-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is a strict policy in the Linux kernel that new drivers must be
-disabled by default. Hence leave out the "default m" line from Kconfig.
 
-Fixes: f48ad614c100 ("IB/hfi1: Move driver out of staging")
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.7+
----
- drivers/infiniband/hw/hfi1/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
-index a925fb0..f846fd5 100644
---- a/drivers/infiniband/hw/hfi1/Kconfig
-+++ b/drivers/infiniband/hw/hfi1/Kconfig
-@@ -3,7 +3,6 @@ config INFINIBAND_HFI1
- 	depends on X86_64 && INFINIBAND_RDMAVT
- 	select MMU_NOTIFIER
- 	select CRC32
--	default m
- 	---help---
- 	This is a low-level driver for Intel OPA Gen1 adapter.
- config HFI1_DEBUG_SDMA_ORDER
--- 
-2.9.0
+----- Original Message -----
+> From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> To: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>, "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
+> "Parav Pandit" <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger"
+> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Sent: Tuesday, July 19, 2016 12:20:45 PM
+> Subject: [PATCH v3 0/5] Reduce RDMA RW API SGE limit
+> 
+> Hello Doug,
+> 
+> The five patches in this series modify the RDMA RW API slightly. This is
+> needed to avoid that the SRP and iSER target drivers submit RDMA
+> requests with an SGE list that exceeds the queue pair limits. The
+> ib_srpt changes in this series have been tested but the ib_isert changes
+> not yet.
+> 
+> The changes compared to v2 of this patch series are:
+> * For RDMA READs, limit SGE back to dev->attrs.max_sge_rd for iWARP.
+> 
+> Changes compared to v1:
+> * max_send_sge is now stored in struct ib_qp. This greatly simplifies
+>    this patch series.
+> * An unneeded initialization that I had added to rdma_rw_init_one_mr()
+>    has been left out again.
+> * Corrected "Fixes" tag in the patch description where needed.
+> 
+> The individual patches in this series are:
+> 
+> 0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
+> 0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
+> 0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
+> 0004-IB-srpt-Simplify-srpt_queue_response.patch
+> 0005-IB-isert-Remove-an-unused-member-variable.patch
+> 
+> Thanks,
+> 
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Will pull and test these ASAP.
 
+Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
