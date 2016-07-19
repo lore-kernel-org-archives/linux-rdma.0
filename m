@@ -1,62 +1,45 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 4/5] IB/srpt: Simplify srpt_queue_response()
-Date: Tue, 19 Jul 2016 09:23:16 -0700
-Message-ID: <657cc466-c89d-5c7f-b9b8-93b0f2c1353d@sandisk.com>
-References: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com>
+Subject: [PATCH v3 0/5] Reduce RDMA RW API SGE limit
+Date: Tue, 19 Jul 2016 09:20:45 -0700
+Message-ID: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8fb358c3-3504-02ca-fcb8-1624f28be1b0-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Initialize first_wr to &send_wr. This allows to remove a ternary
-operator and an else branch. This patch does not change the behavior
-of srpt_queue_response().
+Hello Doug,
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+The five patches in this series modify the RDMA RW API slightly. This is 
+needed to avoid that the SRP and iSER target drivers submit RDMA 
+requests with an SGE list that exceeds the queue pair limits. The 
+ib_srpt changes in this series have been tested but the ib_isert changes 
+not yet.
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 9a3b954..dfa23b0 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2262,7 +2262,7 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 		container_of(cmd, struct srpt_send_ioctx, cmd);
- 	struct srpt_rdma_ch *ch = ioctx->ch;
- 	struct srpt_device *sdev = ch->sport->sdev;
--	struct ib_send_wr send_wr, *first_wr = NULL, *bad_wr;
-+	struct ib_send_wr send_wr, *first_wr = &send_wr, *bad_wr;
- 	struct ib_sge sge;
- 	enum srpt_command_state state;
- 	unsigned long flags;
-@@ -2303,11 +2303,8 @@ static void srpt_queue_response(struct se_cmd *cmd)
- 			struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
- 
- 			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
--					ch->sport->port, NULL,
--					first_wr ? first_wr : &send_wr);
-+					ch->sport->port, NULL, first_wr);
- 		}
--	} else {
--		first_wr = &send_wr;
- 	}
- 
- 	if (state != SRPT_STATE_MGMT)
--- 
-2.9.0
+The changes compared to v2 of this patch series are:
+* For RDMA READs, limit SGE back to dev->attrs.max_sge_rd for iWARP.
 
+Changes compared to v1:
+* max_send_sge is now stored in struct ib_qp. This greatly simplifies
+   this patch series.
+* An unneeded initialization that I had added to rdma_rw_init_one_mr()
+   has been left out again.
+* Corrected "Fixes" tag in the patch description where needed.
+
+The individual patches in this series are:
+
+0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
+0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
+0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
+0004-IB-srpt-Simplify-srpt_queue_response.patch
+0005-IB-isert-Remove-an-unused-member-variable.patch
+
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
