@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/2] IB/rdmavt: Disable by default
-Date: Tue, 19 Jul 2016 10:03:17 -0700
-Message-ID: <8cbeb5a3-5d16-5de2-8251-4e9d5b9688ac@sandisk.com>
+Subject: [PATCH 2/2] IB/hfi1: Disable by default
+Date: Tue, 19 Jul 2016 10:03:44 -0700
+Message-ID: <11ad3ffc-f1e5-4c02-16bf-29216cb38d15@sandisk.com>
 References: <e6761c19-f301-ffc4-8283-ea958a387313@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
@@ -16,28 +16,29 @@ List-Id: linux-rdma@vger.kernel.org
 There is a strict policy in the Linux kernel that new drivers must be
 disabled by default. Hence leave out the "default m" line from Kconfig.
 
-Fixes: 0194621b2253 ("IB/rdmavt: Create module framework and handle driver registration")
+Fixes: f48ad614c100 ("IB/hfi1: Move driver out of staging")
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.6+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.7+
 ---
- drivers/infiniband/sw/rdmavt/Kconfig | 1 -
+ drivers/infiniband/hw/hfi1/Kconfig | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-index 11aa6a3..1da8d01 100644
---- a/drivers/infiniband/sw/rdmavt/Kconfig
-+++ b/drivers/infiniband/sw/rdmavt/Kconfig
-@@ -1,6 +1,5 @@
- config INFINIBAND_RDMAVT
- 	tristate "RDMA verbs transport library"
- 	depends on 64BIT
+diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
+index a925fb0..f846fd5 100644
+--- a/drivers/infiniband/hw/hfi1/Kconfig
++++ b/drivers/infiniband/hw/hfi1/Kconfig
+@@ -3,7 +3,6 @@ config INFINIBAND_HFI1
+ 	depends on X86_64 && INFINIBAND_RDMAVT
+ 	select MMU_NOTIFIER
+ 	select CRC32
 -	default m
  	---help---
- 	This is a common software verbs provider for RDMA networks.
+ 	This is a low-level driver for Intel OPA Gen1 adapter.
+ config HFI1_DEBUG_SDMA_ORDER
 -- 
 2.9.0
 
