@@ -1,39 +1,45 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting today -
- 7/19/2016 at 11:00PDT
-Date: Tue, 19 Jul 2016 12:30:09 +0000
-Message-ID: <HE1PR0501MB21873B7DC49CF0DF2224113CB1370@HE1PR0501MB2187.eurprd05.prod.outlook.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
+ capability
+Date: Tue, 19 Jul 2016 15:55:57 +0300
+Message-ID: <20160719125556.GA14768@yuval-lap.uk.oracle.com>
+References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
+ <20160718171921.GA3193@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20160718171921.GA3193-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda: continue discussion over latest framework proposals
+On Mon, Jul 18, 2016 at 11:19:21AM -0600, Jason Gunthorpe wrote:
+> On Mon, Jul 18, 2016 at 12:40:48AM -0700, Yuval Shaia wrote:
+> > Decouple SG support from HW ability to do UD checksum.
+> > This coupling is for historical reasons and removed with 'commit
+> > ec5f06156423 ("net: Kill link between CSUM and SG features.")'
+> 
+> Shouldn't this also check that the QP's sg limit is something
+> appropriate? At least > 1 ..
 
-Regards,
---Liran
+What is special with 1?
 
-Concall details
-===========
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+Network stack can pass MAX_SKB_FRAGS frags so even if QP's SG limit is 3 we
+are still in problem.
+Fortunately this was addressed in 'commit 78a50a5 ("Add handling for
+sending of skb with many frags").
 
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
-
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
-
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
-
-
+> 
+> Presumably things still work if the skb needs more sg's than are
+> available?
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
