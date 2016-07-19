@@ -1,58 +1,51 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 5/5] IB/isert: Remove an unused member variable
-Date: Tue, 19 Jul 2016 09:23:40 -0700
-Message-ID: <13d1c6cf-4cee-d943-2864-1a0e52dc8ad4@sandisk.com>
-References: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com>
+Subject: Re: [QUESTION] Is an ib_sbft kernel module needed to be made? (For
+ booting using SRP)
+Date: Tue, 19 Jul 2016 09:46:41 -0700
+Message-ID: <685dba70-b94c-7646-6e4b-8ae93d4bd5d5@sandisk.com>
+References: <CA+X5Wn4aYpxAKO5aCQS+T1MH1MMedd+ukBecZGSbg02QdX1YSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8fb358c3-3504-02ca-fcb8-1624f28be1b0-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <CA+X5Wn4aYpxAKO5aCQS+T1MH1MMedd+ukBecZGSbg02QdX1YSQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/isert/ib_isert.c | 2 --
- drivers/infiniband/ulp/isert/ib_isert.h | 1 -
- 2 files changed, 3 deletions(-)
+On 07/18/2016 07:13 PM, james harvey wrote:
+> I'm looking to boot using SRP.  I've spent a lot of time looking, and
+> am not seeing that anyone has actually done this.  Really surprises
+> me, actually.
+>
+> iPXE is able to make the SRP connection, load the kernel and
+> initramfs, and leaves behind a SRP boot firmware table as described at
+> http://ipxe.org/srp/sbft
+>
+> But, I don't see anything that finds, reads, or uses it.  So then then
+> remote drive is no longer seen.
+>
+> I see iSCSI handles this problem through the kernel module iscsi_ibft
+> which gives a sysfs interface to iSCSI's BFT structure.
+>
+> I'm somewhat interested in developing the ib_sbft kernel module, if
+> I'm not missing an existing alternative to allow SRP booting.  I
+> expect I could work from the iscsi_ibft kernel module source to be
+> able to accomplish this, making the necessary changes based on the
+> sBFT documentation and iPXE's sBFT-creating source.
+>
+> Is anyone else who has done kernel development interested in taking
+> that on, or is it something I should start working on?
+>
+> If I had it working on my system, is there someone who would be
+> willing to review/test/revise it to sign it to be pulled by Linus?
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index a990c04..ba6be06 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -137,8 +137,6 @@ isert_create_qp(struct isert_conn *isert_conn,
- 	attr.cap.max_recv_wr = ISERT_QP_MAX_RECV_DTOS + 1;
- 	attr.cap.max_rdma_ctxs = ISCSI_DEF_XMIT_CMDS_MAX;
- 	attr.cap.max_send_sge = device->ib_device->attrs.max_sge;
--	isert_conn->max_sge = min(device->ib_device->attrs.max_sge,
--				  device->ib_device->attrs.max_sge_rd);
- 	attr.cap.max_recv_sge = 1;
- 	attr.sq_sig_type = IB_SIGNAL_REQ_WR;
- 	attr.qp_type = IB_QPT_RC;
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index e512ba9..fc791ef 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -138,7 +138,6 @@ struct isert_conn {
- 	u32			responder_resources;
- 	u32			initiator_depth;
- 	bool			pi_support;
--	u32			max_sge;
- 	struct iser_rx_desc	*login_req_buf;
- 	char			*login_rsp_buf;
- 	u64			login_req_dma;
--- 
-2.9.0
+Hi James,
 
+I'd be glad to help with testing and reviewing if you post an SRP 
+equivalent of the iscsi_ibft kernel module.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
