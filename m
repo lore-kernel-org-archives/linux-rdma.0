@@ -1,8 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v3 1/5] IB/core: Make rdma_rw_ctx_init() initialize all used
- fields
-Date: Tue, 19 Jul 2016 09:21:37 -0700
-Message-ID: <859aaa24-9031-0a8f-26ec-b45ad6ac68d2@sandisk.com>
+Subject: [PATCH v3 4/5] IB/srpt: Simplify srpt_queue_response()
+Date: Tue, 19 Jul 2016 09:23:16 -0700
+Message-ID: <657cc466-c89d-5c7f-b9b8-93b0f2c1353d@sandisk.com>
 References: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,89 +13,47 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some but not all callers of rdma_rw_ctx_init() zero-initialize
-struct rdma_rw_ctx. Hence make rdma_rw_ctx_init() initialize all
-work request fields that will be read by ib_post_send().
+Initialize first_wr to &send_wr. This allows to remove a ternary
+operator and an else branch. This patch does not change the behavior
+of srpt_queue_response().
 
-Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #v4.7+
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/rw.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 1eb9b12..1ad2baa 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -71,6 +71,7 @@ static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
- 	return min_t(u32, dev->attrs.max_fast_reg_page_list_len, 256);
- }
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 9a3b954..dfa23b0 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2262,7 +2262,7 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 		container_of(cmd, struct srpt_send_ioctx, cmd);
+ 	struct srpt_rdma_ch *ch = ioctx->ch;
+ 	struct srpt_device *sdev = ch->sport->sdev;
+-	struct ib_send_wr send_wr, *first_wr = NULL, *bad_wr;
++	struct ib_send_wr send_wr, *first_wr = &send_wr, *bad_wr;
+ 	struct ib_sge sge;
+ 	enum srpt_command_state state;
+ 	unsigned long flags;
+@@ -2303,11 +2303,8 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 			struct srpt_rw_ctx *ctx = &ioctx->rw_ctxs[i];
  
-+/* Caller must have zero-initialized *reg. */
- static int rdma_rw_init_one_mr(struct ib_qp *qp, u8 port_num,
- 		struct rdma_rw_reg_ctx *reg, struct scatterlist *sg,
- 		u32 sg_cnt, u32 offset)
-@@ -114,6 +115,7 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		u8 port_num, struct scatterlist *sg, u32 sg_cnt, u32 offset,
- 		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
- {
-+	struct rdma_rw_reg_ctx *prev = NULL;
- 	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
- 	int i, j, ret = 0, count = 0;
- 
-@@ -125,7 +127,6 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	}
- 
- 	for (i = 0; i < ctx->nr_ops; i++) {
--		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
- 		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
- 		u32 nents = min(sg_cnt, pages_per_mr);
- 
-@@ -162,9 +163,13 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		sg_cnt -= nents;
- 		for (j = 0; j < nents; j++)
- 			sg = sg_next(sg);
-+		prev = reg;
- 		offset = 0;
- 	}
- 
-+	if (prev)
-+		prev->wr.wr.next = NULL;
-+
- 	ctx->type = RDMA_RW_MR;
- 	return count;
- 
-@@ -205,11 +210,10 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 			rdma_wr->wr.opcode = IB_WR_RDMA_READ;
- 		rdma_wr->remote_addr = remote_addr + total_len;
- 		rdma_wr->rkey = rkey;
-+		rdma_wr->wr.num_sge = nr_sge;
- 		rdma_wr->wr.sg_list = sge;
- 
- 		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
--			rdma_wr->wr.num_sge++;
--
- 			sge->addr = ib_sg_dma_address(dev, sg) + offset;
- 			sge->length = ib_sg_dma_len(dev, sg) - offset;
- 			sge->lkey = qp->pd->local_dma_lkey;
-@@ -220,8 +224,8 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 			offset = 0;
+ 			first_wr = rdma_rw_ctx_wrs(&ctx->rw, ch->qp,
+-					ch->sport->port, NULL,
+-					first_wr ? first_wr : &send_wr);
++					ch->sport->port, NULL, first_wr);
  		}
- 
--		if (i + 1 < ctx->nr_ops)
--			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
-+		rdma_wr->wr.next = i + 1 < ctx->nr_ops ?
-+			&ctx->map.wrs[i + 1].wr : NULL;
+-	} else {
+-		first_wr = &send_wr;
  	}
  
- 	ctx->type = RDMA_RW_MULTI_WR;
+ 	if (state != SRPT_STATE_MGMT)
 -- 
 2.9.0
 
