@@ -1,62 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2] Add flow control to the portmapper
-Date: Tue, 19 Jul 2016 08:40:06 +0300
-Message-ID: <20160719054006.GF20674@leon.nu>
-References: <1468869810-64420-1-git-send-email-shiraz.saleem@intel.com>
+Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
+ capability
+Date: Tue, 19 Jul 2016 08:42:04 +0300
+Message-ID: <20160719054204.GG20674@leon.nu>
+References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
+ <20160718171921.GA3193@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="L2Brqb15TUChFOBK"
+	protocol="application/pgp-signature"; boundary="reI/iBAAp9kzkmX4"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1468869810-64420-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160718171921.GA3193-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---L2Brqb15TUChFOBK
+--reI/iBAAp9kzkmX4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 18, 2016 at 02:23:30PM -0500, Shiraz Saleem wrote:
-> From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, Jul 18, 2016 at 11:19:21AM -0600, Jason Gunthorpe wrote:
+> On Mon, Jul 18, 2016 at 12:40:48AM -0700, Yuval Shaia wrote:
+> > Decouple SG support from HW ability to do UD checksum.
+> > This coupling is for historical reasons and removed with 'commit
+> > ec5f06156423 ("net: Kill link between CSUM and SG features.")'
 >=20
-> During connection establishment with a large number of connections,
-> it is possible that the connection requests might fail. Adding flow
-> control prevents this failure. Change ibnl unicast to use netlink
-> messaging with blocking to enable flow control.
+> Shouldn't this also check that the QP's sg limit is something
+> appropriate? At least > 1 ..
+>=20
+> Presumably things still work if the skb needs more sg's than are
+> available?
 
-You are the one user of this new inline function.
-Why don't you directly call to netlink_unicast() in your ibnl_unicast()
-without messing with widely visible header file?
+IMHO, this question is relevant for the code before change as well.
 
-Thanks
+>=20
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---L2Brqb15TUChFOBK
+--reI/iBAAp9kzkmX4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXjb02AAoJEORje4g2clinbtYP/0SqzBcNMfeyoycc/6gai7nV
-xd65jCRERBPCgUTI1JcYZVDodLMzIb/uMqDoq5SANzdCVa+ROPo+s22weajMdXBu
-77dcaBL7C+p8Q8J6oSZMNdjumNu9ckaPzqbiRlWwxRvCJatik+mK/9svxB58e73g
-FFIZ5IMsN8zfYGAtnXWARH4onwYpod60ei90TTpZ3Mbpu5qrC0grb0iiztE+1bom
-JrnNeWKdy8Z+l8+7WhMnRMifqWDWqcVt2FnDuwK8JmwunmzLlU0Inc79CvDZ5Vsd
-Aa6c3GnQSOnZZark3TVJvj4Jzj0jtTCSGOmSEB6LddjRHrDwrzxJ6IohNIoVxAqD
-tL2bxdZqb5H8CidCn/LPJjDXUCe1cvoGZVCl8r9cXSqVRq6pyJ92U6NqxqebkDcN
-sDIQJ8UxnIUtXgoKsB95ipbhNiP8jxGzh0ha8gQ7Lzf7txd5aHVXI23YidPn337H
-NBZVYFqCCqfNVtu+7Nr5rQoh045BXCMiOaBY+nBQsMIn7sjsN6l2bCxkso5SnSy0
-lHB5ehUV961yB0irDrkt4iXauwPxTb/RQXUwA2nSZodQ0jg58QVpjvj0iu9AJR+e
-lHz5FashujDLn2pDkMwiCTf1klX4gfNNvBQoBXpnaTE7MvUFjDwPLPGSUqrvqdsN
-QGzLZ3bg5sWqqm/oGvP0
-=D4Yv
+iQIcBAEBAgAGBQJXjb2sAAoJEORje4g2clinZWcP/jV3XMu7eRFp9lTy8X8NRvb2
+dLCj6HIl4YZsvNHHA/oAP68dVxkYf1VICOK7VO238KdXRO5K5kWUJTg3BCHUZcKa
+0ZvtzjrFdpVK69O2jIwyeM8oN/YOvA0rVMsUS2UtefE/CQjXFp4UaArzvjqn2MEQ
+Kdya/nBd1ze6IgeGkDbQZ2YPqFAuj7sonuDPlcZuvQlayWWhPMKAA21FCkj7GIoU
+oSoPewD36+3KklSIQYg1kMee4g6f4LdDoXfQzJHoovZ6IRav99nUdJ9jPgcPvBDV
+dEGXkBamutfQ79IFX3aRGg0JE7SwaN3EP70fwVZka+y0iWepd+te4/3OdhPIth6Z
+/c22W36tKwnBPyxSGfv+PIjxjYGHdYfI2zjLwbPWFFSsxlSvzU2D6tagVPR9hNdB
+kEb2Z6cR/bBR1hbJjJ/m9uAkSX+1ZF5Rx7B0Rzx7h6+Q7l3y+98cpcImnqthNtHx
+U1Qnvp7R1GLUz7xVWPJM7EY0loTaV7HTPmjoEBtMr4G8SPMRgYa4mG4SOxLcc2WP
+sFJodLj8lgFXDlpR7RIb374+12Ni/xsO59IRmYoptKQwZkjPcz4eeV3X0+7JG99Q
+Job5100OIke9UeikxaU7v9aKJZ4ejOydqttYkBW7gpyCqhHArhkVDVRuSgbsdxJQ
+mXX1fqxsfqRd/5P/JTSc
+=yMIn
 -----END PGP SIGNATURE-----
 
---L2Brqb15TUChFOBK--
+--reI/iBAAp9kzkmX4--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
