@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V2 4/8] RDMA/core: Introduce add/remove uobj from types
-Date: Tue, 19 Jul 2016 18:23:28 +0300
-Message-ID: <1468941812-32286-5-git-send-email-matanb@mellanox.com>
+Subject: [RFC ABI V2 2/8] RDMA/core: Refactor IDR to be per-device
+Date: Tue, 19 Jul 2016 18:23:26 +0300
+Message-ID: <1468941812-32286-3-git-send-email-matanb@mellanox.com>
 References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1468941812-32286-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,571 +10,766 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We introduce here adding new user objects to the type list.
-Adding an object is done in two parts.
-First, an object is allocated and added to IDR. Then, the command's
-handlers (in downstream patches) could work on this object and fill
-in its required details.
-After a successful command, ib_uverbs_uobject_enable is called and
-this user objects becomes ucontext visible.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Removing an uboject is done by calling ib_uverbs_uobject_remove.
+The current code creates an IDR per type. Since types are currently
+common for all vendors and known in advance, this was good enough.
+However, the proposed ioctl based infrastructure allows each vendor
+to declare only some of the common types and declare its own specific
+types.
 
-We should make sure IDR (per-device) and lists (per-ucontext) could
-be accessed concurrently without corrupting them.
+Thus, we decided to implement IDR to be per device and refactor it to
+use a new file.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/rdma_core.c | 276 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/rdma_core.h |  21 +++
- include/rdma/ib_verbs.h             |  16 ++-
- include/rdma/uverbs_ioctl.h         | 155 ++++++++++++++++++++
- 4 files changed, 466 insertions(+), 2 deletions(-)
- create mode 100644 include/rdma/uverbs_ioctl.h
+ drivers/infiniband/core/device.c      |  14 ++++
+ drivers/infiniband/core/uverbs.h      |  14 +---
+ drivers/infiniband/core/uverbs_cmd.c  | 149 ++++++++++++++++------------------
+ drivers/infiniband/core/uverbs_main.c |  36 ++------
+ include/rdma/ib_verbs.h               |   4 +
+ 5 files changed, 100 insertions(+), 117 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 672ce82..d833874 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -33,6 +33,7 @@
- #include <rdma/ib_verbs.h>
- #include "uverbs.h"
- #include "rdma_core.h"
-+#include <rdma/uverbs_ioctl.h>
- 
- /*
-  * lockless - the list shouldn't change. If disassociate is carrie out during
-@@ -51,6 +52,189 @@ struct uverbs_uobject_type *uverbs_get_type(struct ib_device *ibdev,
- 	return NULL;
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5516fb0..b0135c2 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -168,11 +168,23 @@ static int alloc_name(char *name)
+ 	return 0;
  }
  
-+static int uverbs_lock_object(struct ib_uobject *uobj,
-+			      enum uverbs_idr_access access)
++static void ib_device_allocate_idrs(struct ib_device *device)
 +{
-+	if (access == UVERBS_IDR_ACCESS_READ)
-+		return __atomic_add_unless(&uobj->usecnt, 1, -1) == -1 ?
-+			-EBUSY : 0;
-+	else
-+		/* lock is either WRITE or DESTROY - should be exclusive */
-+		return atomic_cmpxchg(&uobj->usecnt, 0, -1) == 0 ? 0 : -EBUSY;
++	spin_lock_init(&device->idr_lock);
++	idr_init(&device->idr);
 +}
 +
-+static struct ib_uobject *get_uobj(int id, struct ib_ucontext *context)
++static void ib_device_destroy_idrs(struct ib_device *device)
 +{
-+	struct ib_uobject *uobj;
-+
-+	rcu_read_lock();
-+	uobj = idr_find(&context->device->idr, id);
-+	if (uobj && uobj->live) {
-+		if (uobj->context != context)
-+			uobj = NULL;
-+	}
-+	rcu_read_unlock();
-+
-+	return uobj;
++	idr_destroy(&device->idr);
 +}
 +
-+static void init_uobj(struct ib_uobject *uobj, u64 user_handle,
-+		      struct ib_ucontext *context)
-+{
-+	uobj->user_handle = user_handle;
-+	uobj->context     = context;
-+	uobj->live        = 0;
-+}
+ static void ib_device_release(struct device *device)
+ {
+ 	struct ib_device *dev = container_of(device, struct ib_device, dev);
+ 
+ 	ib_cache_release_one(dev);
++	ib_device_destroy_idrs(dev);
+ 	kfree(dev->port_immutable);
+ 	kfree(dev);
+ }
+@@ -219,6 +231,8 @@ struct ib_device *ib_alloc_device(size_t size)
+ 	if (!device)
+ 		return NULL;
+ 
++	ib_device_allocate_idrs(device);
 +
-+static int add_uobj(struct ib_uobject *uobj)
-+{
-+	int ret;
-+
-+	idr_preload(GFP_KERNEL);
+ 	device->dev.class = &ib_class;
+ 	device_initialize(&device->dev);
+ 
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 612ccfd..60d7c3d 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -38,7 +38,6 @@
+ #define UVERBS_H
+ 
+ #include <linux/kref.h>
+-#include <linux/idr.h>
+ #include <linux/mutex.h>
+ #include <linux/completion.h>
+ #include <linux/cdev.h>
+@@ -171,18 +170,7 @@ struct ib_ucq_object {
+ 	u32			async_events_reported;
+ };
+ 
+-extern spinlock_t ib_uverbs_idr_lock;
+-extern struct idr ib_uverbs_pd_idr;
+-extern struct idr ib_uverbs_mr_idr;
+-extern struct idr ib_uverbs_mw_idr;
+-extern struct idr ib_uverbs_ah_idr;
+-extern struct idr ib_uverbs_cq_idr;
+-extern struct idr ib_uverbs_qp_idr;
+-extern struct idr ib_uverbs_srq_idr;
+-extern struct idr ib_uverbs_xrcd_idr;
+-extern struct idr ib_uverbs_rule_idr;
+-
+-void idr_remove_uobj(struct idr *idp, struct ib_uobject *uobj);
++void idr_remove_uobj(struct ib_uobject *uobj);
+ 
+ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+ 					struct ib_device *ib_dev,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 1a8babb..6af2c29 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -118,37 +118,36 @@ static void put_uobj_write(struct ib_uobject *uobj)
+ 	put_uobj(uobj);
+ }
+ 
+-static int idr_add_uobj(struct idr *idr, struct ib_uobject *uobj)
++int idr_add_uobj(struct ib_uobject *uobj)
+ {
+ 	int ret;
+ 
+ 	idr_preload(GFP_KERNEL);
+-	spin_lock(&ib_uverbs_idr_lock);
 +	spin_lock(&uobj->context->device->idr_lock);
-+
+ 
+-	ret = idr_alloc(idr, uobj, 0, 0, GFP_NOWAIT);
 +	ret = idr_alloc(&uobj->context->device->idr, uobj, 0, 0, GFP_NOWAIT);
-+	if (ret >= 0)
-+		uobj->id = ret;
-+
+ 	if (ret >= 0)
+ 		uobj->id = ret;
+ 
+-	spin_unlock(&ib_uverbs_idr_lock);
 +	spin_unlock(&uobj->context->device->idr_lock);
-+	idr_preload_end();
-+
-+	return ret < 0 ? ret : 0;
-+}
-+
-+static void remove_uobj(struct ib_uobject *uobj)
-+{
+ 	idr_preload_end();
+ 
+ 	return ret < 0 ? ret : 0;
+ }
+ 
+-void idr_remove_uobj(struct idr *idr, struct ib_uobject *uobj)
++void idr_remove_uobj(struct ib_uobject *uobj)
+ {
+-	spin_lock(&ib_uverbs_idr_lock);
+-	idr_remove(idr, uobj->id);
+-	spin_unlock(&ib_uverbs_idr_lock);
 +	spin_lock(&uobj->context->device->idr_lock);
 +	idr_remove(&uobj->context->device->idr, uobj->id);
 +	spin_unlock(&uobj->context->device->idr_lock);
-+}
-+
-+static void put_uobj(struct ib_uobject *uobj)
-+{
-+	kfree_rcu(uobj, rcu);
-+}
-+
-+static struct ib_uobject *get_uobject_from_context(struct ib_ucontext *ucontext,
-+						   const struct uverbs_uobject_type *type,
-+						   u32 idr,
-+						   enum uverbs_idr_access access)
-+{
-+	struct ib_uobject *uobj;
-+	int ret;
-+
-+	rcu_read_lock();
-+	uobj = get_uobj(idr, ucontext);
-+	if (!uobj)
-+		goto free;
-+
-+	if (uobj->type->type != type) {
-+		uobj = NULL;
-+		goto free;
-+	}
-+
-+	ret = uverbs_lock_object(uobj, access);
-+	if (ret)
-+		uobj = ERR_PTR(ret);
-+free:
-+	rcu_read_unlock();
-+	return uobj;
-+
-+	return NULL;
-+}
-+
-+struct ib_uobject *uverbs_get_type_from_idr(struct uverbs_uobject_type *type,
-+					    struct ib_ucontext *ucontext,
-+					    enum uverbs_idr_access access,
-+					    uint32_t idr)
-+{
-+	struct ib_uobject *uobj;
-+	int ret;
-+
-+	if (access == UVERBS_IDR_ACCESS_NEW) {
-+		uobj = kmalloc(type->obj_size, GFP_KERNEL);
-+		if (!uobj)
-+			return ERR_PTR(-ENOMEM);
-+
-+		init_uobj(uobj, 0, ucontext);
-+
-+		/* lock idr */
-+		ret = ib_uverbs_uobject_add(uobj, type);
-+		if (ret) {
-+			kfree(uobj);
-+			return ERR_PTR(ret);
-+		}
-+
-+	} else {
-+		uobj = get_uobject_from_context(ucontext, type, idr,
-+						access);
-+
-+		if (!uobj)
-+			return ERR_PTR(-ENOENT);
-+	}
-+
-+	return uobj;
-+}
-+
-+static void uverbs_unlock_object(struct ib_uobject *uobj,
-+				 enum uverbs_idr_access access,
-+				 bool success)
-+{
-+	switch (access) {
-+	case UVERBS_IDR_ACCESS_READ:
-+		atomic_dec(&uobj->usecnt);
-+		break;
-+	case UVERBS_IDR_ACCESS_NEW:
-+		if (success) {
-+			atomic_set(&uobj->usecnt, 0);
-+			ib_uverbs_uobject_enable(uobj);
-+		} else {
-+			remove_uobj(uobj);
-+			put_uobj(uobj);
-+		}
-+		break;
-+	case UVERBS_IDR_ACCESS_WRITE:
-+		atomic_set(&uobj->usecnt, 0);
-+		break;
-+	case UVERBS_IDR_ACCESS_DESTROY:
-+		if (success)
-+			ib_uverbs_uobject_remove(uobj);
-+		else
-+			atomic_set(&uobj->usecnt, 0);
-+		break;
-+	}
-+}
-+
-+void uverbs_unlock_objects(struct uverbs_attr_array *attr_array,
-+			   size_t num,
-+			   const struct action_spec *chain,
-+			   bool success)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < num; i++) {
-+		struct uverbs_attr_array *attr_spec_array = &attr_array[i];
-+		const struct uverbs_attr_chain_spec *chain_spec =
-+			chain->validator_chains[i];
-+		unsigned int j;
-+
-+		for (j = 0; j < attr_spec_array->num_attrs; j++) {
-+			struct uverbs_attr *attr = &attr_spec_array->attrs[j];
-+			struct uverbs_attr_spec *spec = &chain_spec->attrs[j];
-+
-+			if (spec->type != UVERBS_ATTR_TYPE_IDR || !attr->valid)
-+				continue;
-+
-+			/*
-+			 * refcounts should be handled at the object level and
-+			 * not at the uobject level.
-+			 */
-+			uverbs_unlock_object(attr->obj_attr.uobject,
-+					     spec->idr.access, success);
-+		}
-+	}
-+}
-+
- int ib_uverbs_uobject_type_add(struct list_head	*head,
- 			       void (*free)(struct uverbs_uobject_type *uobject_type,
- 					    struct ib_uobject *uobject,
-@@ -100,3 +284,95 @@ void ib_uverbs_uobject_types_remove(struct ib_device *ib_dev)
  }
- EXPORT_SYMBOL(ib_uverbs_uobject_types_remove);
  
-+void ib_uverbs_uobject_type_cleanup_ucontext(struct ib_ucontext *ucontext)
-+{
-+	struct uverbs_uobject_list *uobject_list, *next_list;
-+
-+	list_for_each_entry_safe(uobject_list, next_list,
-+				 &ucontext->uobjects_lists, type_list) {
-+		struct ib_uobject *obj, *next_obj;
-+
-+		/*
-+		 * No need to take lock here, as cleanup should be called
-+		 * after all commands finished executing. Newly executed
-+		 * commands should fail.
-+		 */
-+		list_for_each_entry_safe(obj, next_obj, &uobject_list->list,
-+					 list)
-+			ib_uverbs_uobject_remove(obj);
-+
-+		list_del(&uobject_list->type_list);
-+	}
-+}
-+
-+int ib_uverbs_uobject_type_initialize_ucontext(struct ib_ucontext *ucontext,
-+					       struct list_head *type_list)
-+{
-+	/* create typed list in ucontext */
-+	struct uverbs_uobject_type *type;
-+	int err;
-+
-+	INIT_LIST_HEAD(&ucontext->uobjects_lists);
-+
-+	list_for_each_entry(type, type_list, type_list) {
-+		struct uverbs_uobject_list *cur;
-+
-+		cur = kzalloc(sizeof(*cur), GFP_KERNEL);
-+		if (!cur) {
-+			err = -ENOMEM;
-+			goto err;
-+		}
-+
-+		cur->type = type;
-+		INIT_LIST_HEAD(&cur->list);
-+		list_add_tail(&cur->type_list, &ucontext->uobjects_lists);
-+		mutex_init(&cur->uobj_lock);
-+	}
-+
-+	return 0;
-+
-+err:
-+	ib_uverbs_uobject_type_cleanup_ucontext(ucontext);
-+	return err;
-+}
-+
-+int ib_uverbs_uobject_add(struct ib_uobject *uobject,
-+			  struct uverbs_uobject_type *uobject_type)
-+{
-+	int ret = -EINVAL;
-+	struct uverbs_uobject_list *type;
-+
-+	/* No need for locking here is type list shouldn't be changed */
-+	list_for_each_entry(type, &uobject->context->uobjects_lists, type_list)
-+		if (type->type == uobject_type) {
-+			uobject->type = type;
-+			ret = add_uobj(uobject);
-+			return ret;
-+		}
-+
-+	return ret;
-+}
-+
-+void ib_uverbs_uobject_enable(struct ib_uobject *uobject)
-+{
-+	mutex_lock(&uobject->type->uobj_lock);
-+	list_add(&uobject->list, &uobject->type->list);
-+	mutex_unlock(&uobject->type->uobj_lock);
-+	uobject->live = 1;
-+}
-+
-+void ib_uverbs_uobject_remove(struct ib_uobject *uobject)
-+{
-+	/*
-+	 * Calling remove requires exclusive access, so it's not possible
-+	 * another thread will use our object.
-+	 */
-+	uobject->live = 0;
-+	uobject->type->type->free(uobject->type->type, uobject,
-+				  uobject->context);
-+	mutex_lock(&uobject->type->uobj_lock);
-+	list_del(&uobject->list);
-+	mutex_unlock(&uobject->type->uobj_lock);
-+	remove_uobj(uobject);
-+	put_uobj(uobject);
-+}
-diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
-index c734a76..3bf6667 100644
---- a/drivers/infiniband/core/rdma_core.h
-+++ b/drivers/infiniband/core/rdma_core.h
-@@ -37,16 +37,32 @@
- #ifndef UOBJECT_H
- #define UOBJECT_H
+-static struct ib_uobject *__idr_get_uobj(struct idr *idr, int id,
+-					 struct ib_ucontext *context)
++static struct ib_uobject *__idr_get_uobj(int id, struct ib_ucontext *context)
+ {
+ 	struct ib_uobject *uobj;
  
-+#include <linux/idr.h>
-+#include <rdma/uverbs_ioctl.h>
- #include <rdma/ib_verbs.h>
- #include <linux/mutex.h>
+ 	rcu_read_lock();
+-	uobj = idr_find(idr, id);
++	uobj = idr_find(&context->device->idr, id);
+ 	if (uobj) {
+ 		if (uobj->context == context)
+ 			kref_get(&uobj->ref);
+@@ -160,12 +159,12 @@ static struct ib_uobject *__idr_get_uobj(struct idr *idr, int id,
+ 	return uobj;
+ }
  
- struct uverbs_uobject_type *uverbs_get_type(struct ib_device *ibdev,
- 					    uint16_t type);
-+struct ib_uobject *uverbs_get_type_from_idr(struct uverbs_uobject_type *type,
-+					    struct ib_ucontext *ucontext,
-+					    enum uverbs_idr_access access,
-+					    uint32_t idr);
- int ib_uverbs_uobject_type_add(struct list_head	*head,
- 			       void (*free)(struct uverbs_uobject_type *uobject_type,
- 					    struct ib_uobject *uobject,
- 					    struct ib_ucontext *ucontext),
- 			       uint16_t	obj_type);
-+void ib_uverbs_uobject_types_remove(struct ib_device *ib_dev);
-+void ib_uverbs_uobject_remove(struct ib_uobject *uobject);
-+void ib_uverbs_uobject_enable(struct ib_uobject *uobject);
-+void uverbs_unlock_objects(struct uverbs_attr_array *attr_array,
-+			   size_t num,
-+			   const struct action_spec *chain,
-+			   bool success);
-+
-+int ib_uverbs_uobject_type_initialize_ucontext(struct ib_ucontext *ucontext,
-+					       struct list_head *type_list);
+-static struct ib_uobject *idr_read_uobj(struct idr *idr, int id,
+-					struct ib_ucontext *context, int nested)
++static struct ib_uobject *idr_read_uobj(int id, struct ib_ucontext *context,
++					int nested)
+ {
+ 	struct ib_uobject *uobj;
  
- struct uverbs_uobject_type {
- 	struct list_head	type_list;
-@@ -66,4 +82,9 @@ struct uverbs_uobject_list {
- 	struct list_head		type_list;
- };
+-	uobj = __idr_get_uobj(idr, id, context);
++	uobj = __idr_get_uobj(id, context);
+ 	if (!uobj)
+ 		return NULL;
  
-+int ib_uverbs_uobject_add(struct ib_uobject *uobject,
-+			  struct uverbs_uobject_type *uobject_type);
-+void ib_uverbs_uobject_remove(struct ib_uobject *uobject);
-+void ib_uverbs_uobject_enable(struct ib_uobject *uobject);
-+
- #endif /* UIDR_H */
+@@ -181,12 +180,11 @@ static struct ib_uobject *idr_read_uobj(struct idr *idr, int id,
+ 	return uobj;
+ }
+ 
+-static struct ib_uobject *idr_write_uobj(struct idr *idr, int id,
+-					 struct ib_ucontext *context)
++struct ib_uobject *idr_write_uobj(int id, struct ib_ucontext *context)
+ {
+ 	struct ib_uobject *uobj;
+ 
+-	uobj = __idr_get_uobj(idr, id, context);
++	uobj = __idr_get_uobj(id, context);
+ 	if (!uobj)
+ 		return NULL;
+ 
+@@ -199,18 +197,18 @@ static struct ib_uobject *idr_write_uobj(struct idr *idr, int id,
+ 	return uobj;
+ }
+ 
+-static void *idr_read_obj(struct idr *idr, int id, struct ib_ucontext *context,
++static void *idr_read_obj(int id, struct ib_ucontext *context,
+ 			  int nested)
+ {
+ 	struct ib_uobject *uobj;
+ 
+-	uobj = idr_read_uobj(idr, id, context, nested);
++	uobj = idr_read_uobj(id, context, nested);
+ 	return uobj ? uobj->object : NULL;
+ }
+ 
+-static struct ib_pd *idr_read_pd(int pd_handle, struct ib_ucontext *context)
++struct ib_pd *idr_read_pd(int pd_handle, struct ib_ucontext *context)
+ {
+-	return idr_read_obj(&ib_uverbs_pd_idr, pd_handle, context, 0);
++	return idr_read_obj(pd_handle, context, 0);
+ }
+ 
+ static void put_pd_read(struct ib_pd *pd)
+@@ -220,7 +218,7 @@ static void put_pd_read(struct ib_pd *pd)
+ 
+ static struct ib_cq *idr_read_cq(int cq_handle, struct ib_ucontext *context, int nested)
+ {
+-	return idr_read_obj(&ib_uverbs_cq_idr, cq_handle, context, nested);
++	return idr_read_obj(cq_handle, context, nested);
+ }
+ 
+ static void put_cq_read(struct ib_cq *cq)
+@@ -228,26 +226,26 @@ static void put_cq_read(struct ib_cq *cq)
+ 	put_uobj_read(cq->uobject);
+ }
+ 
+-static struct ib_ah *idr_read_ah(int ah_handle, struct ib_ucontext *context)
++static void put_ah_read(struct ib_ah *ah)
+ {
+-	return idr_read_obj(&ib_uverbs_ah_idr, ah_handle, context, 0);
++	put_uobj_read(ah->uobject);
+ }
+ 
+-static void put_ah_read(struct ib_ah *ah)
++struct ib_ah *idr_read_ah(int ah_handle, struct ib_ucontext *context)
+ {
+-	put_uobj_read(ah->uobject);
++	return idr_read_obj(ah_handle, context, 0);
+ }
+ 
+-static struct ib_qp *idr_read_qp(int qp_handle, struct ib_ucontext *context)
++struct ib_qp *idr_read_qp(int qp_handle, struct ib_ucontext *context)
+ {
+-	return idr_read_obj(&ib_uverbs_qp_idr, qp_handle, context, 0);
++	return idr_read_obj(qp_handle, context, 0);
+ }
+ 
+-static struct ib_qp *idr_write_qp(int qp_handle, struct ib_ucontext *context)
++struct ib_qp *idr_write_qp(int qp_handle, struct ib_ucontext *context)
+ {
+ 	struct ib_uobject *uobj;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_qp_idr, qp_handle, context);
++	uobj = idr_write_uobj(qp_handle, context);
+ 	return uobj ? uobj->object : NULL;
+ }
+ 
+@@ -261,9 +259,9 @@ static void put_qp_write(struct ib_qp *qp)
+ 	put_uobj_write(qp->uobject);
+ }
+ 
+-static struct ib_srq *idr_read_srq(int srq_handle, struct ib_ucontext *context)
++struct ib_srq *idr_read_srq(int srq_handle, struct ib_ucontext *context)
+ {
+-	return idr_read_obj(&ib_uverbs_srq_idr, srq_handle, context, 0);
++	return idr_read_obj(srq_handle, context, 0);
+ }
+ 
+ static void put_srq_read(struct ib_srq *srq)
+@@ -271,10 +269,10 @@ static void put_srq_read(struct ib_srq *srq)
+ 	put_uobj_read(srq->uobject);
+ }
+ 
+-static struct ib_xrcd *idr_read_xrcd(int xrcd_handle, struct ib_ucontext *context,
+-				     struct ib_uobject **uobj)
++struct ib_xrcd *idr_read_xrcd(int xrcd_handle, struct ib_ucontext *context,
++			      struct ib_uobject **uobj)
+ {
+-	*uobj = idr_read_uobj(&ib_uverbs_xrcd_idr, xrcd_handle, context, 0);
++	*uobj = idr_read_uobj(xrcd_handle, context, 0);
+ 	return *uobj ? (*uobj)->object : NULL;
+ }
+ 
+@@ -282,7 +280,6 @@ static void put_xrcd_read(struct ib_uobject *uobj)
+ {
+ 	put_uobj_read(uobj);
+ }
+-
+ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
+ 			      struct ib_device *ib_dev,
+ 			      const char __user *buf,
+@@ -550,7 +547,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	atomic_set(&pd->usecnt, 0);
+ 
+ 	uobj->object = pd;
+-	ret = idr_add_uobj(&ib_uverbs_pd_idr, uobj);
++	ret = idr_add_uobj(uobj);
+ 	if (ret)
+ 		goto err_idr;
+ 
+@@ -574,7 +571,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
+ 	return in_len;
+ 
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_pd_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ err_idr:
+ 	ib_dealloc_pd(pd);
+@@ -597,7 +594,7 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_pd_idr, cmd.pd_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.pd_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	pd = uobj->object;
+@@ -615,7 +612,7 @@ ssize_t ib_uverbs_dealloc_pd(struct ib_uverbs_file *file,
+ 	uobj->live = 0;
+ 	put_uobj_write(uobj);
+ 
+-	idr_remove_uobj(&ib_uverbs_pd_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -791,7 +788,7 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
+ 
+ 	atomic_set(&obj->refcnt, 0);
+ 	obj->uobject.object = xrcd;
+-	ret = idr_add_uobj(&ib_uverbs_xrcd_idr, &obj->uobject);
++	ret = idr_add_uobj(&obj->uobject);
+ 	if (ret)
+ 		goto err_idr;
+ 
+@@ -835,7 +832,7 @@ err_copy:
+ 	}
+ 
+ err_insert_xrcd:
+-	idr_remove_uobj(&ib_uverbs_xrcd_idr, &obj->uobject);
++	idr_remove_uobj(&obj->uobject);
+ 
+ err_idr:
+ 	ib_dealloc_xrcd(xrcd);
+@@ -869,7 +866,7 @@ ssize_t ib_uverbs_close_xrcd(struct ib_uverbs_file *file,
+ 		return -EFAULT;
+ 
+ 	mutex_lock(&file->device->xrcd_tree_mutex);
+-	uobj = idr_write_uobj(&ib_uverbs_xrcd_idr, cmd.xrcd_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.xrcd_handle, file->ucontext);
+ 	if (!uobj) {
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -902,7 +899,7 @@ ssize_t ib_uverbs_close_xrcd(struct ib_uverbs_file *file,
+ 	if (inode && !live)
+ 		xrcd_table_delete(file->device, inode);
+ 
+-	idr_remove_uobj(&ib_uverbs_xrcd_idr, uobj);
++	idr_remove_uobj(uobj);
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+ 	mutex_unlock(&file->mutex);
+@@ -995,7 +992,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+ 	atomic_inc(&pd->usecnt);
+ 
+ 	uobj->object = mr;
+-	ret = idr_add_uobj(&ib_uverbs_mr_idr, uobj);
++	ret = idr_add_uobj(uobj);
+ 	if (ret)
+ 		goto err_unreg;
+ 
+@@ -1023,7 +1020,7 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
+ 	return in_len;
+ 
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_mr_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ err_unreg:
+ 	ib_dereg_mr(mr);
+@@ -1068,8 +1065,7 @@ ssize_t ib_uverbs_rereg_mr(struct ib_uverbs_file *file,
+ 	     (cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK)))
+ 			return -EINVAL;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_mr_idr, cmd.mr_handle,
+-			      file->ucontext);
++	uobj = idr_write_uobj(cmd.mr_handle, file->ucontext);
+ 
+ 	if (!uobj)
+ 		return -EINVAL;
+@@ -1138,7 +1134,7 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_mr_idr, cmd.mr_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.mr_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 
+@@ -1153,7 +1149,7 @@ ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
+ 
+-	idr_remove_uobj(&ib_uverbs_mr_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -1213,7 +1209,7 @@ ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
+ 	atomic_inc(&pd->usecnt);
+ 
+ 	uobj->object = mw;
+-	ret = idr_add_uobj(&ib_uverbs_mw_idr, uobj);
++	ret = idr_add_uobj(uobj);
+ 	if (ret)
+ 		goto err_unalloc;
+ 
+@@ -1240,7 +1236,7 @@ ssize_t ib_uverbs_alloc_mw(struct ib_uverbs_file *file,
+ 	return in_len;
+ 
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ err_unalloc:
+ 	uverbs_dealloc_mw(mw);
+@@ -1266,7 +1262,7 @@ ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof(cmd)))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_mw_idr, cmd.mw_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.mw_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 
+@@ -1281,7 +1277,7 @@ ssize_t ib_uverbs_dealloc_mw(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
+ 
+-	idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -1395,7 +1391,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 	atomic_set(&cq->usecnt, 0);
+ 
+ 	obj->uobject.object = cq;
+-	ret = idr_add_uobj(&ib_uverbs_cq_idr, &obj->uobject);
++	ret = idr_add_uobj(&obj->uobject);
+ 	if (ret)
+ 		goto err_free;
+ 
+@@ -1421,7 +1417,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
+ 	return obj;
+ 
+ err_cb:
+-	idr_remove_uobj(&ib_uverbs_cq_idr, &obj->uobject);
++	idr_remove_uobj(&obj->uobject);
+ 
+ err_free:
+ 	ib_destroy_cq(cq);
+@@ -1691,7 +1687,7 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_cq_idr, cmd.cq_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.cq_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	cq      = uobj->object;
+@@ -1707,7 +1703,7 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
+ 
+-	idr_remove_uobj(&ib_uverbs_cq_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -1878,7 +1874,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 	qp->uobject = &obj->uevent.uobject;
+ 
+ 	obj->uevent.uobject.object = qp;
+-	ret = idr_add_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
++	ret = idr_add_uobj(&obj->uevent.uobject);
+ 	if (ret)
+ 		goto err_destroy;
+ 
+@@ -1924,7 +1920,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 
+ 	return 0;
+ err_cb:
+-	idr_remove_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
++	idr_remove_uobj(&obj->uevent.uobject);
+ 
+ err_destroy:
+ 	ib_destroy_qp(qp);
+@@ -2108,7 +2104,7 @@ ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
+ 	qp->uobject = &obj->uevent.uobject;
+ 
+ 	obj->uevent.uobject.object = qp;
+-	ret = idr_add_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
++	ret = idr_add_uobj(&obj->uevent.uobject);
+ 	if (ret)
+ 		goto err_destroy;
+ 
+@@ -2137,7 +2133,7 @@ ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
+ 	return in_len;
+ 
+ err_remove:
+-	idr_remove_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
++	idr_remove_uobj(&obj->uevent.uobject);
+ 
+ err_destroy:
+ 	ib_destroy_qp(qp);
+@@ -2377,7 +2373,7 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 
+ 	memset(&resp, 0, sizeof resp);
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_qp_idr, cmd.qp_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.qp_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	qp  = uobj->object;
+@@ -2400,7 +2396,7 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 	if (obj->uxrcd)
+ 		atomic_dec(&obj->uxrcd->refcnt);
+ 
+-	idr_remove_uobj(&ib_uverbs_qp_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -2852,7 +2848,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	ah->uobject  = uobj;
+ 	uobj->object = ah;
+ 
+-	ret = idr_add_uobj(&ib_uverbs_ah_idr, uobj);
++	ret = idr_add_uobj(uobj);
+ 	if (ret)
+ 		goto err_destroy;
+ 
+@@ -2877,7 +2873,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	return in_len;
+ 
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_ah_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ err_destroy:
+ 	ib_destroy_ah(ah);
+@@ -2902,7 +2898,7 @@ ssize_t ib_uverbs_destroy_ah(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_ah_idr, cmd.ah_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.ah_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	ah = uobj->object;
+@@ -2916,7 +2912,7 @@ ssize_t ib_uverbs_destroy_ah(struct ib_uverbs_file *file,
+ 	if (ret)
+ 		return ret;
+ 
+-	idr_remove_uobj(&ib_uverbs_ah_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -3184,7 +3180,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	flow_id->uobject = uobj;
+ 	uobj->object = flow_id;
+ 
+-	err = idr_add_uobj(&ib_uverbs_rule_idr, uobj);
++	err = idr_add_uobj(uobj);
+ 	if (err)
+ 		goto destroy_flow;
+ 
+@@ -3209,7 +3205,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 		kfree(kern_flow_attr);
+ 	return 0;
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
++	idr_remove_uobj(uobj);
+ destroy_flow:
+ 	ib_destroy_flow(flow_id);
+ err_free:
+@@ -3244,8 +3240,7 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
+ 	if (cmd.comp_mask)
+ 		return -EINVAL;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_rule_idr, cmd.flow_handle,
+-			      file->ucontext);
++	uobj = idr_write_uobj(cmd.flow_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	flow_id = uobj->object;
+@@ -3256,7 +3251,7 @@ int ib_uverbs_ex_destroy_flow(struct ib_uverbs_file *file,
+ 
+ 	put_uobj_write(uobj);
+ 
+-	idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+@@ -3344,7 +3339,7 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
+ 	atomic_set(&srq->usecnt, 0);
+ 
+ 	obj->uevent.uobject.object = srq;
+-	ret = idr_add_uobj(&ib_uverbs_srq_idr, &obj->uevent.uobject);
++	ret = idr_add_uobj(&obj->uevent.uobject);
+ 	if (ret)
+ 		goto err_destroy;
+ 
+@@ -3378,7 +3373,7 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
+ 	return 0;
+ 
+ err_copy:
+-	idr_remove_uobj(&ib_uverbs_srq_idr, &obj->uevent.uobject);
++	idr_remove_uobj(&obj->uevent.uobject);
+ 
+ err_destroy:
+ 	ib_destroy_srq(srq);
+@@ -3554,7 +3549,7 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
+-	uobj = idr_write_uobj(&ib_uverbs_srq_idr, cmd.srq_handle, file->ucontext);
++	uobj = idr_write_uobj(cmd.srq_handle, file->ucontext);
+ 	if (!uobj)
+ 		return -EINVAL;
+ 	srq = uobj->object;
+@@ -3575,7 +3570,7 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 		atomic_dec(&us->uxrcd->refcnt);
+ 	}
+ 
+-	idr_remove_uobj(&ib_uverbs_srq_idr, uobj);
++	idr_remove_uobj(uobj);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_del(&uobj->list);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 31f422a..333ed70 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -66,17 +66,6 @@ enum {
+ 
+ static struct class *uverbs_class;
+ 
+-DEFINE_SPINLOCK(ib_uverbs_idr_lock);
+-DEFINE_IDR(ib_uverbs_pd_idr);
+-DEFINE_IDR(ib_uverbs_mr_idr);
+-DEFINE_IDR(ib_uverbs_mw_idr);
+-DEFINE_IDR(ib_uverbs_ah_idr);
+-DEFINE_IDR(ib_uverbs_cq_idr);
+-DEFINE_IDR(ib_uverbs_qp_idr);
+-DEFINE_IDR(ib_uverbs_srq_idr);
+-DEFINE_IDR(ib_uverbs_xrcd_idr);
+-DEFINE_IDR(ib_uverbs_rule_idr);
+-
+ static DEFINE_SPINLOCK(map_lock);
+ static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
+ 
+@@ -227,7 +216,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	list_for_each_entry_safe(uobj, tmp, &context->ah_list, list) {
+ 		struct ib_ah *ah = uobj->object;
+ 
+-		idr_remove_uobj(&ib_uverbs_ah_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_destroy_ah(ah);
+ 		kfree(uobj);
+ 	}
+@@ -236,7 +225,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	list_for_each_entry_safe(uobj, tmp, &context->mw_list, list) {
+ 		struct ib_mw *mw = uobj->object;
+ 
+-		idr_remove_uobj(&ib_uverbs_mw_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		uverbs_dealloc_mw(mw);
+ 		kfree(uobj);
+ 	}
+@@ -244,7 +233,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	list_for_each_entry_safe(uobj, tmp, &context->rule_list, list) {
+ 		struct ib_flow *flow_id = uobj->object;
+ 
+-		idr_remove_uobj(&ib_uverbs_rule_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_destroy_flow(flow_id);
+ 		kfree(uobj);
+ 	}
+@@ -254,7 +243,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_uqp_object *uqp =
+ 			container_of(uobj, struct ib_uqp_object, uevent.uobject);
+ 
+-		idr_remove_uobj(&ib_uverbs_qp_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		if (qp != qp->real_qp) {
+ 			ib_close_qp(qp);
+ 		} else {
+@@ -270,7 +259,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_uevent_object *uevent =
+ 			container_of(uobj, struct ib_uevent_object, uobject);
+ 
+-		idr_remove_uobj(&ib_uverbs_srq_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_destroy_srq(srq);
+ 		ib_uverbs_release_uevent(file, uevent);
+ 		kfree(uevent);
+@@ -282,7 +271,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_ucq_object *ucq =
+ 			container_of(uobj, struct ib_ucq_object, uobject);
+ 
+-		idr_remove_uobj(&ib_uverbs_cq_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_destroy_cq(cq);
+ 		ib_uverbs_release_ucq(file, ev_file, ucq);
+ 		kfree(ucq);
+@@ -291,7 +280,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	list_for_each_entry_safe(uobj, tmp, &context->mr_list, list) {
+ 		struct ib_mr *mr = uobj->object;
+ 
+-		idr_remove_uobj(&ib_uverbs_mr_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_dereg_mr(mr);
+ 		kfree(uobj);
+ 	}
+@@ -302,7 +291,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 		struct ib_uxrcd_object *uxrcd =
+ 			container_of(uobj, struct ib_uxrcd_object, uobject);
+ 
+-		idr_remove_uobj(&ib_uverbs_xrcd_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_uverbs_dealloc_xrcd(file->device, xrcd);
+ 		kfree(uxrcd);
+ 	}
+@@ -311,7 +300,7 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 	list_for_each_entry_safe(uobj, tmp, &context->pd_list, list) {
+ 		struct ib_pd *pd = uobj->object;
+ 
+-		idr_remove_uobj(&ib_uverbs_pd_idr, uobj);
++		idr_remove_uobj(uobj);
+ 		ib_dealloc_pd(pd);
+ 		kfree(uobj);
+ 	}
+@@ -1326,13 +1315,6 @@ static void __exit ib_uverbs_cleanup(void)
+ 	unregister_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES);
+ 	if (overflow_maj)
+ 		unregister_chrdev_region(overflow_maj, IB_UVERBS_MAX_DEVICES);
+-	idr_destroy(&ib_uverbs_pd_idr);
+-	idr_destroy(&ib_uverbs_mr_idr);
+-	idr_destroy(&ib_uverbs_mw_idr);
+-	idr_destroy(&ib_uverbs_ah_idr);
+-	idr_destroy(&ib_uverbs_cq_idr);
+-	idr_destroy(&ib_uverbs_qp_idr);
+-	idr_destroy(&ib_uverbs_srq_idr);
+ }
+ 
+ module_init(ib_uverbs_init);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6d7964f..85d4c41 100644
+index 432bed5..14bfe3b 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -1346,16 +1346,28 @@ struct ib_ucontext {
- #endif
- };
+@@ -1706,6 +1706,10 @@ struct ib_device {
  
-+struct uverbs_object_list;
-+
-+#define OLD_ABI_COMPAT
-+
- struct ib_uobject {
- 	u64			user_handle;	/* handle given to us by userspace */
- 	struct ib_ucontext     *context;	/* associated user context */
- 	void		       *object;		/* containing object */
- 	struct list_head	list;		/* link to context's list */
- 	int			id;		/* index into kernel idr */
--	struct kref		ref;
--	struct rw_semaphore	mutex;		/* protects .live */
-+#ifdef OLD_ABI_COMPAT
-+	struct kref             ref;
-+#endif
-+	atomic_t		usecnt;
-+#ifdef OLD_ABI_COMPAT
-+	struct rw_semaphore     mutex;          /* protects .live */
-+#endif
- 	struct rcu_head		rcu;		/* kfree_rcu() overhead */
- 	int			live;
-+	/* List of object under uverbs_object_type */
-+	struct list_head	idr_list;
-+	struct uverbs_uobject_list *type;	/* ptr to ucontext type */
- };
+ 	struct iw_cm_verbs	     *iwcm;
  
- struct ib_udata {
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-new file mode 100644
-index 0000000..7733b11
---- /dev/null
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -0,0 +1,155 @@
-+/*
-+ * Copyright (c) 2016, Mellanox Technologies inc.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
++	struct idr		idr;
++	/* Global lock in use to safely release device IDR */
++	spinlock_t		idr_lock;
 +
-+#ifndef _UVERBS_IOCTL_
-+#define _UVERBS_IOCTL_
-+
-+#include <linux/kernel.h>
-+
-+struct uverbs_object_type;
-+struct ib_ucontext;
-+struct ib_device;
-+
-+/*
-+ * =======================================
-+ *	Verbs action specifications
-+ * =======================================
-+ */
-+
-+enum uverbs_attr_type {
-+	UVERBS_ATTR_TYPE_PTR_IN,
-+	UVERBS_ATTR_TYPE_PTR_OUT,
-+	UVERBS_ATTR_TYPE_IDR,
-+	/*
-+	 * TODO: we could add FD type for command which will migrate the events
-+	 * to a specific FD.
-+	 */
-+};
-+
-+enum uverbs_idr_access {
-+	UVERBS_IDR_ACCESS_READ,
-+	UVERBS_IDR_ACCESS_WRITE,
-+	UVERBS_IDR_ACCESS_NEW,
-+	UVERBS_IDR_ACCESS_DESTROY
-+};
-+
-+struct uverbs_attr_spec {
-+	u16				len;
-+	enum uverbs_attr_type		type;
-+	struct {
-+		u16			new_size;
-+		u16			idr_type;
-+		u8			access;
-+	} idr;
-+	/* TODO: In case of FD, we could validate here the fops pointer */
-+};
-+
-+struct uverbs_attr_chain_spec {
-+	struct uverbs_attr_spec		*attrs;
-+	size_t				num_attrs;
-+};
-+
-+struct action_spec {
-+	const struct uverbs_attr_chain_spec		**validator_chains;
-+	/* if > 0 -> validator, otherwise, error */
-+	int (*dist)(__u16 *attr_id, void *priv);
-+	void						*priv;
-+	size_t						num_chains;
-+};
-+
-+struct uverbs_attr_array;
-+struct ib_uverbs_file;
-+
-+struct uverbs_action {
-+	struct action_spec chain;
-+	void *priv;
-+	int (*handler)(struct ib_device *ib_dev, struct ib_uverbs_file *ufile,
-+		       struct uverbs_attr_array *ctx, size_t num, void *priv);
-+};
-+
-+struct uverbs_type_actions {
-+	size_t				num_actions;
-+	const struct uverbs_action	*actions;
-+};
-+
-+struct uverbs_types {
-+	size_t					num_types;
-+	const struct uverbs_type_actions	**types;
-+};
-+
-+/* =================================================
-+ *              Parsing infrastructure
-+ * =================================================
-+ */
-+
-+struct uverbs_ptr_attr {
-+	void	* __user ptr;
-+	__u16		len;
-+};
-+
-+struct uverbs_obj_attr {
-+	/*  idr handle */
-+	__u32	idr;
-+	/* pointer to the kernel descriptor -> type, access, etc */
-+	const struct uverbs_attr_spec *val;
-+	struct ib_uobject		*uobject;
-+	struct uverbs_uobject_type	*type;
-+};
-+
-+struct uverbs_attr {
-+	bool valid;
-+	union {
-+		struct uverbs_ptr_attr	cmd_attr;
-+		struct uverbs_obj_attr	obj_attr;
-+	};
-+};
-+
-+/* output of one validator */
-+struct uverbs_attr_array {
-+	size_t num_attrs;
-+	/* arrays of attrubytes, index is the id i.e SEND_CQ */
-+	struct uverbs_attr *attrs;
-+};
-+
-+/* =================================================
-+ *              Types infrastructure
-+ * =================================================
-+ */
-+
-+int ib_uverbs_uobject_type_add(struct list_head	*head,
-+			       void (*free)(struct uverbs_uobject_type *uobject_type,
-+					    struct ib_uobject *uobject,
-+					    struct ib_ucontext *ucontext),
-+			       uint16_t	obj_type);
-+void ib_uverbs_uobject_types_remove(struct ib_device *ib_dev);
-+
-+#endif
+ 	/**
+ 	 * alloc_hw_stats - Allocate a struct rdma_hw_stats and fill in the
+ 	 *   driver initialized data.  The struct is kfree()'ed by the sysfs
 -- 
 2.7.4
 
