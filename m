@@ -1,52 +1,86 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V1 4/8] RDMA/core: Add support for custom types
-Date: Wed, 20 Jul 2016 11:49:05 -0600
-Message-ID: <20160720174905.GL21460@obsidianresearch.com>
-References: <20160712192345.GC8206@obsidianresearch.com>
- <081a02c0-0650-d0c2-494c-19a64b83cbc1@mellanox.com>
- <20160713163924.GA19657@obsidianresearch.com>
- <0959d391-75fb-75e8-ef2e-9d8c06b1b96f@mellanox.com>
- <20160713172116.GC19657@obsidianresearch.com>
- <5fdae959-5ab2-ee17-e36e-3642ddd3e6ce@mellanox.com>
- <20160714164121.GA2046@obsidianresearch.com>
- <a1fcb1a7-0028-329a-d34a-ca8b52323916@mellanox.com>
- <20160719203609.GD16042@obsidianresearch.com>
- <9727f6e6-47fd-fb0a-537f-6264e8d742a9@mellanox.com>
+Subject: Re: [RFC ABI V1 7/8] RDMA/core: Change locking of ib_uobject
+Date: Wed, 20 Jul 2016 11:56:33 -0600
+Message-ID: <20160720175633.GM21460@obsidianresearch.com>
+References: <1467293971-25688-1-git-send-email-matanb@mellanox.com>
+ <1467293971-25688-8-git-send-email-matanb@mellanox.com>
+ <20160713171657.GB19657@obsidianresearch.com>
+ <6ae1a553-408c-723a-93a2-3d46d952ce35@mellanox.com>
+ <20160714170051.GB2046@obsidianresearch.com>
+ <b47386f4-fdb5-d24b-dbc6-9b5e18be6bf9@mellanox.com>
+ <20160719204456.GF16042@obsidianresearch.com>
+ <5c6e6a5d-9fde-a31f-1038-dce9e09662c4@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9727f6e6-47fd-fb0a-537f-6264e8d742a9-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <5c6e6a5d-9fde-a31f-1038-dce9e09662c4-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 20, 2016 at 11:01:18AM +0300, Matan Barak wrote:
+On Wed, Jul 20, 2016 at 10:54:55AM +0300, Matan Barak (External) wrote:
+> Not sure -EBUSY, but an error of course. I think this should be done in a
+> lower layer. I would like to avoid managing dependencies between object in
+> the general infrastructure. It's the same as you can't destroy a PD when
+> there's a bounded CQ (you should get some error for that).
 
-> But how would you know if rdma-cm is loaded and available? Don't we want to
-> have a decent query interface rather than iterating through sysfs?
-> I agree that it could be lower priority than the rest.
+Yes, that is my thinking..
+> >>I think it should be the other way around - copy_to_user is done by the
+> >>handler and uobj_activate is done by the infrastructure. Therefore, the
+> >>general doesn't know how to roll back the command and I want to guarantee
+> >>anything it does after calling the handler succeed.
+> >
+> >That just shuffles the requirement around. copy_to_user can always
+> >fail, and it always has to happen after the idr_add - so there must
+> >always be an unwind for it. Which means we can allow uobj_activate to
+> >fail too and use the same basic unwind.
+> >
+> 
+> [Infra]
+> validate params
+> allocate uobjects and IDRs
+> 		[handler]
+> 			copy_from_user
+> 			execute
+> 			if (success) {
+> 				copy_to_user
+> 				return success
+> 			} else {
+> 				return failure
+> 			}
+> 
+> [infra contiune]
+> if success
+> 	enable_new_uobjs
+> 	unlock_uobjs
+> 	destroy_what_has_to_be_destroyed
+> else
+> 	delete_new_uobjs
+> 	unlock_uobjs
+> 
+> 
+> In that way, the infrastructure doesn't need to roll back commands. Only to
+> roll back whatever it executed.
 
-1) 'loaded available' I think you will agree we have a fairly bad user
-   experience when it comes to autoloading modules. If we have one fd,
-   and the core of that FD is part of the ib_core module that is
-   pulled in on driver load then the a request for an API segment (eg uverbs,
-   rdma_cm) can now actually trigger a module load, just like net does
-   for PF's. So we actually get to a better, saner, place.
+I'd really prefer to avoid this kind of flow where the idr is
+installed at the top. The current code does that and uses 'live' to
+fix it, but that is not how idrs are typically used in the kernel, and
+getting rid of live is a noble goal, IMHO.
 
-2) Yes, an in-band query interface makes much more sense than
-   schlepping around sysfs. That could be done in the ioctl, or maybe
-   via netlink, but as you say, lower priority.
+I suggest you use the same basic flow but 'handler' returns a
+functional uobj that is *not* inside the idr, and the destroy of a
+functional uboj is simply handled by calling the types' destroy
+method, like any other case.
 
-> I meant moving to /dev/rdma_uapi, but when you fopen the device and get a
-> fd, you could either have fd->NULL or fd->single_rdma_dev mapping.
-> It's a little bit simpler, however, not that much from just doing 1:N
-> mapping.
+To make this work better I suggest having a standard place in the
+ioctl response for the allocated uobj # and let the core code fill
+that in, that way we don't need to copy_to_user in the handler for the
+uobj #.
 
-A major point of the unified interface is to sanely support rdma_cm
-when working with multiple devices, so I'd expect 1:N is the only
-reasonable option for that interface..
+If idr insertion fails, then call the type's destroy function, just
+like on a fd close or otherwise. No trouble for the core code.
 
 Jason
 --
