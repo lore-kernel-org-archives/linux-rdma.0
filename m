@@ -1,88 +1,83 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
-Date: Wed, 20 Jul 2016 11:11:09 +0300
-Message-ID: <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
-References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
- <1468941812-32286-6-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] IB/ipoib: Report SG feature regardless of HW UD CSUM capability
+Date: Wed, 20 Jul 2016 01:30:06 -0700
+Message-ID: <1469003406-1540-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1607192021500.5828-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/07/2016 04:25, Christoph Lameter wrote:
-> On Tue, 19 Jul 2016, Matan Barak wrote:
->
->> diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
->> index 5c1117a..f6927fc 100644
->> --- a/include/uapi/rdma/rdma_user_ioctl.h
->> +++ b/include/uapi/rdma/rdma_user_ioctl.h
->> @@ -42,6 +42,29 @@
->>   */
->>  #define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
->>
->> +#define RDMA_VERBS_IOCTL \
->> +	_IOWR(RDMA_IOCTL_MAGIC, 1, struct ib_uverbs_ioctl_hdr)
->> +
->> +#define RDMA_DIRECT_IOCTL \
->> +	_IOWR(RDMA_IOCTL_MAGIC, 2, struct ib_uverbs_ioctl_hdr)
->> +
->> +struct ib_uverbs_attr {
->> +	__u16 attr_id;		/* command specific type attribute */
->> +	__u16 len;		/* NA for idr */
->> +	__u32 reserved;
->> +	 __u64 ptr_idr;		/* ptr typeo command/idr handle */
->> +};
->> +
->> +struct ib_uverbs_ioctl_hdr {
->> +	__u16 length;
->> +	__u16 flags;
->> +	__u16 object_type;
->> +	__u16 driver_id;
->
-> driver id??? I would have expected that the driver to be used is
-> already selected through the file handle as passed to the ioctl.
->
+Decouple SG support from HW ability to do UD checksum.
+This coupling is for historical reasons and removed with 'commit
+ec5f06156423 ("net: Kill link between CSUM and SG features.")'
 
-If I recall, Jason proposed that. I think the main reason here is for 
-strace and debugging. Since the ABI is now driver specific, this helps 
-you parse the structs via strace.
+During driver load it is assumed that device does not supports SG. The
+final decision is taken after creating UD QP based on device capability.
 
-> Having the ability to issue ioctls to multiple drivers via a
-> single file handle is unusual and will likely trigger security concerns.
-> In particular various access mechanisms rely on policing access through
-> file handles.
->
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v0 -> v1:
+	* Fix patch title
+	* Move settings to ipoib_setup instead of ipoib_set_dev_feature
+v1 -> v2:
+	* Move settings to ipoib_transport_dev_init
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c  |    3 +--
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c |   10 +++++-----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-This is actually an ongoing discussion we have in the OFVWG. The benefit 
-of unifying rdma-cm and uverbs is that sharing objects (and opening a 
-device through rdma-cm and pass it to user-space) becomes easier. That 
-means that security should be handled via selinux.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5f58c41..74bcaa0 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1967,8 +1967,7 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+ 	priv->hca_caps = hca->attrs.device_cap_flags;
+ 
+ 	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
+-		priv->dev->hw_features = NETIF_F_SG |
+-			NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
++		priv->dev->hw_features = NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
+ 
+ 		if (priv->hca_caps & IB_DEVICE_UD_TSO)
+ 			priv->dev->hw_features |= NETIF_F_TSO;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+index 1e7cbba..c55ecb2 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
+@@ -135,7 +135,8 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 		.cap = {
+ 			.max_send_wr  = ipoib_sendq_size,
+ 			.max_recv_wr  = ipoib_recvq_size,
+-			.max_send_sge = 1,
++			.max_send_sge = min_t(u32, priv->ca->attrs.max_sge,
++					      MAX_SKB_FRAGS + 1),
+ 			.max_recv_sge = IPOIB_UD_RX_SG
+ 		},
+ 		.sq_sig_type = IB_SIGNAL_ALL_WR,
+@@ -205,10 +206,6 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	if (priv->hca_caps & IB_DEVICE_MANAGED_FLOW_STEERING)
+ 		init_attr.create_flags |= IB_QP_CREATE_NETIF_QP;
+ 
+-	if (dev->features & NETIF_F_SG)
+-		init_attr.cap.max_send_sge =
+-			min_t(u32, priv->ca->attrs.max_sge, MAX_SKB_FRAGS + 1);
+-
+ 	priv->qp = ib_create_qp(priv->pd, &init_attr);
+ 	if (IS_ERR(priv->qp)) {
+ 		printk(KERN_WARNING "%s: failed to create QP\n", ca->name);
+@@ -234,6 +231,9 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
+ 	priv->rx_wr.next = NULL;
+ 	priv->rx_wr.sg_list = priv->rx_sge;
+ 
++	if (init_attr.cap.max_send_sge > 1)
++		dev->features |= NETIF_F_SG;
++
+ 	priv->max_send_sge = init_attr.cap.max_send_sge;
+ 
+ 	return 0;
+-- 
+1.7.1
 
-> I guess we have a good reason for doing so? If so then please document
-> that somewhere. Or did I not see that?
->
->
-
-The current v2 approach only adds the driver_id for information and 
-strace only. I would really like to hear your insights about using a 
-single file (rdma_uapi) vs multiple files as we have today.
-
-> +	 __u16 action; > +	__u16 num_attrs;
->> +	struct ib_uverbs_attr  attrs[0];
->> +};
->> +
->>  /* Legacy part
->>   * !!!! NOTE: It uses the same command index as VERBS
->>   */
->>
-
-Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
