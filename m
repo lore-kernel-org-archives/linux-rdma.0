@@ -1,81 +1,88 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V2 2/8] RDMA/core: Refactor IDR to be per-device
-Date: Wed, 20 Jul 2016 06:20:37 +0300
-Message-ID: <20160720032037.GR20674@leon.nu>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
+Date: Wed, 20 Jul 2016 11:11:09 +0300
+Message-ID: <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
 References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
- <1468941812-32286-3-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1607192014010.5828@east.gentwo.org>
+ <1468941812-32286-6-git-send-email-matanb@mellanox.com>
+ <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VmyrZ50r30oK77nV"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1607192014010.5828-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1607192021500.5828-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---VmyrZ50r30oK77nV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 19, 2016 at 08:15:41PM -0500, Christoph Lameter wrote:
+On 20/07/2016 04:25, Christoph Lameter wrote:
 > On Tue, 19 Jul 2016, Matan Barak wrote:
->=20
-> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > index 432bed5..14bfe3b 100644
-> > --- a/include/rdma/ib_verbs.h
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -1706,6 +1706,10 @@ struct ib_device {
-> >
-> >  	struct iw_cm_verbs	     *iwcm;
-> >
-> > +	struct idr		idr;
-> > +	/* Global lock in use to safely release device IDR */
-> > +	spinlock_t		idr_lock;
->=20
-> Global? In what sense? This is a lock for the idrs for the particular
-> device right? The comment is a bit confusing. Maybe better remove it?
+>
+>> diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
+>> index 5c1117a..f6927fc 100644
+>> --- a/include/uapi/rdma/rdma_user_ioctl.h
+>> +++ b/include/uapi/rdma/rdma_user_ioctl.h
+>> @@ -42,6 +42,29 @@
+>>   */
+>>  #define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
+>>
+>> +#define RDMA_VERBS_IOCTL \
+>> +	_IOWR(RDMA_IOCTL_MAGIC, 1, struct ib_uverbs_ioctl_hdr)
+>> +
+>> +#define RDMA_DIRECT_IOCTL \
+>> +	_IOWR(RDMA_IOCTL_MAGIC, 2, struct ib_uverbs_ioctl_hdr)
+>> +
+>> +struct ib_uverbs_attr {
+>> +	__u16 attr_id;		/* command specific type attribute */
+>> +	__u16 len;		/* NA for idr */
+>> +	__u32 reserved;
+>> +	 __u64 ptr_idr;		/* ptr typeo command/idr handle */
+>> +};
+>> +
+>> +struct ib_uverbs_ioctl_hdr {
+>> +	__u16 length;
+>> +	__u16 flags;
+>> +	__u16 object_type;
+>> +	__u16 driver_id;
+>
+> driver id??? I would have expected that the driver to be used is
+> already selected through the file handle as passed to the ioctl.
+>
 
-I'll fix it and will remove "global" word from the comment.
-It should be /* Lock in use to safety release device IDR */. I prefer to
-add comment to spinlock to pass checkpatch without errors/warnings about
-missing comment for the spinlock.
+If I recall, Jason proposed that. I think the main reason here is for 
+strace and debugging. Since the ABI is now driver specific, this helps 
+you parse the structs via strace.
 
-Thanks.
+> Having the ability to issue ioctls to multiple drivers via a
+> single file handle is unusual and will likely trigger security concerns.
+> In particular various access mechanisms rely on policing access through
+> file handles.
+>
 
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is actually an ongoing discussion we have in the OFVWG. The benefit 
+of unifying rdma-cm and uverbs is that sharing objects (and opening a 
+device through rdma-cm and pass it to user-space) becomes easier. That 
+means that security should be handled via selinux.
 
---VmyrZ50r30oK77nV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> I guess we have a good reason for doing so? If so then please document
+> that somewhere. Or did I not see that?
+>
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+The current v2 approach only adds the driver_id for information and 
+strace only. I would really like to hear your insights about using a 
+single file (rdma_uapi) vs multiple files as we have today.
 
-iQIcBAEBAgAGBQJXju4FAAoJEORje4g2clin+J8QAJOOIbyDOkw9TGmZbz3oAg/g
-HXbKuZNLoP0mMc1aEapHzIRa+tHxLz5gOmT/IWk6S8SbDZF0rq2oCKhZLu0dikGi
-P6Z9A4mlVp4n0v4A0BMCLbB5ExGsIHFwdEXuYjThD3PuatOZw7PanbS29OBmxLzs
-vcNyZKrm1EGnqh8oivBpOVrC6kZ09ULrkmqD4aJVOjppyx6vneZ6wzs4xqH+L6XR
-Al4k516LcQzYWmlXQDwmZXB8mN6eB/QW4lxYXw2gT+WjzqMatDM4jARA3JV3CGFw
-N42o3xkoMz7/v3oQvaxheS/1G1IUcpxPz3bshhOdIVhhuZZVEEWz7WLIZZW7nvwJ
-wNg9NGp7dmdl1LUX43tIASqXMyJdF94WYioiS20txJWUbZ9DXNBYXPkAndwDwTBn
-FMnamSxIt+owzKpuj+Z0hc1obbLU1bYUG0tBMXJeH2Nq0a6hJbb7tYQK1JY5D8Gg
-Yy4k0W0htJ72CKhQqdhvG+gw8CPA2EUO367qrfzUC9DZVUKiuWjuDXNjitin24F/
-sP3Rmz++UE90flLR+v+Xwz+bD0YjIYz0bQAFhmOd+O7JZXvDUXKWpgyvBMQ98iii
-dznLjyE1yZ4XHfhOnNCVPfALJncxr6D6LmmdFsOu8xtBfXKibGWnaeDyQqLEU+tD
-eA0XulhwWS0loUObRH/c
-=rpMy
------END PGP SIGNATURE-----
+> +	 __u16 action; > +	__u16 num_attrs;
+>> +	struct ib_uverbs_attr  attrs[0];
+>> +};
+>> +
+>>  /* Legacy part
+>>   * !!!! NOTE: It uses the same command index as VERBS
+>>   */
+>>
 
---VmyrZ50r30oK77nV--
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
