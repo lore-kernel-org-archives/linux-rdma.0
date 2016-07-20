@@ -1,149 +1,72 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
-Date: Wed, 20 Jul 2016 14:56:53 +0300
-Message-ID: <0fc727fd-bc35-b2bd-f4a7-04efd937d4c3@mellanox.com>
-References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
- <1468941812-32286-6-git-send-email-matanb@mellanox.com>
- <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org>
- <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
- <alpine.DEB.2.20.1607200448370.12616@east.gentwo.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH RFC 0/3] iwarp device removal deadlock fix
+Date: Wed, 20 Jul 2016 08:49:06 -0500
+Message-ID: <027201d1e28d$7be227a0$73a676e0$@opengridcomputing.com>
+References: <cover.1468879135.git.swise@opengridcomputing.com> <578F3A90.1000208@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.20.1607200448370.12616-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <578F3A90.1000208-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 20/07/2016 13:03, Christoph Lameter wrote:
-> On Wed, 20 Jul 2016, Matan Barak wrote:
->
->>>> +struct ib_uverbs_ioctl_hdr {
->>>> +	__u16 length;
->>>> +	__u16 flags;
->>>> +	__u16 object_type;
->>>> +	__u16 driver_id;
->>>
->>> driver id??? I would have expected that the driver to be used is
->>> already selected through the file handle as passed to the ioctl.
->>>
->>
->> If I recall, Jason proposed that. I think the main reason here is fo=
-r strace
->> and debugging. Since the ABI is now driver specific, this helps you =
-parse the
->> structs via strace.
->
-> You specify the driver_id in the ioctl data structure. The driver in =
-an
-> ioctl is specified by the descriptor. strace etc would have an easier=
- time
-> if we would follow the standard conventions for devices and not add
-> another device_id somewhere.
->
+> > This RFC series attempts to address the deadlock issue discovered
+> > while testing nvmf/rdma handling rdma device removal events from
+> > the rdma_cm.
+> 
+> Thanks for doing this Steve!
+> 
+> > For a discussion of the deadlock that can happen, see
+> >
+> > http://lists.infradead.org/pipermail/linux-nvme/2016-July/005440.html.
+> >
+> > For my description of the deadlock itself, see this post in the above
+thread:
+> >
+> > http://lists.infradead.org/pipermail/linux-nvme/2016-July/005465.html
+> >
+> > In a nutshell, iw_cxgb4 and the iw_cm block during qp/cm_id destruction
+> > until all references are removed.  This combined with the iwarp CM passing
+> > disconnect events up to the rdma_cm during disconnect and/or qp/cm_id
+> destruction
+> > leads to a deadlock.
+> >
+> > My proposed solution is to remove the need for iw_cxgb4 and iw_cm to
+> > block during object destruction for the recnts to reach 0, but rather to
+> > let the freeing of the object memory be deferred when the last deref is
+> > done. This allows all the qps/cm_ids to be destroyed without blocking, and
+> > all the object memory freeing ends up happinging when the application's
+> > device_remove event handler function returns to the rdma_cm.
+> 
+> This sounds like a very good approach moving forward.
+> 
+> > Sean, I was hoping you could have a look at the iwcm.c patch particularly,
+> > to tell my why its broken. :)  I spent some time trying to figure out
+> > why we really need the CALLBACK_DESTROY flag, but I concluded it really
+> > isn't needed.  The one side effect I see with my change, is that the
+> > application could possibly get a cm_id event after it has destroyed the
+> > cm_id.  There probably is a way to discard events that have a reference
+> > on the cm_id but get processed after the app has destoyed the cm_id by
+> > having a new flag indicating "destroyed by app".
+> 
 
-If you use only one file (ie rdma_uapi), how will strace know which=20
-internal RDMA device is used?
-It'll need to same some bits for the entire session to figure that out.
+By the way, I think Sean is on sabbatical until 9/12. 
 
->> This is actually an ongoing discussion we have in the OFVWG. The ben=
-efit of
->> unifying rdma-cm and uverbs is that sharing objects (and opening a d=
-evice
->> through rdma-cm and pass it to user-space) becomes easier. That mean=
-s that
->> security should be handled via selinux.
->
-> Why would there be an issue of sharing data between multiple descript=
-ors?
-> Data could be a subsystem specific state and not device specific if y=
-ou
-> want to share.
->
+> That sounds easy enough. Does this mean that iwcm relies on the driver
+> to do this or is it inter-operable with the existing logic? If not this
+> will need to take care of all the iWARP drivers.
 
-Currently uverbs and rdma-cm IDRs are separated. If we would like to=20
-introduce a semantics where rdma-cm opens the device (and maybe even=20
-access the device's objects) it needs to somehow share ids with the=20
-ib_dev context.
-So do you suggest that rdma-cm will get a fd and open the required=20
-device on this fd while returning a handle bounded to this fd (you stil=
-l=20
-need to bind the fd to its objects due to security reasons).
+This can be handled all in the iw_cm module.  In fact, I'm testing a new version
+of the iw_cm patch now.
 
->>> I guess we have a good reason for doing so? If so then please docum=
-ent
->>> that somewhere. Or did I not see that?
->> The current v2 approach only adds the driver_id for information and =
-strace
->> only. I would really like to hear your insights about using a single=
- file
->> (rdma_uapi) vs multiple files as we have today.
->
-> Why do you need that information a second time if the descriptor alre=
-ady
-> provides the device information?
->
-> The simple approach would be to have either /dev or /sysfs based
-> descriptors that can be opened and then used for ioctls. F.e. open
->
-> /sys/class/infiniband/mlx5_0/desc or
->
-> /sys/class/infiniband/mlx5_0/ports/1/desc
->
-> or create a new hierachy using udev/systemd
->
-> f.e. /dev/rdma/mlx5_0
->
-> and then run ioctls on that file to configure the device. That is ver=
-y
-> similar to the traditional use of ioctls. Security for each device ca=
-n be
-> controlled separately without inspecting the data being passed (which
-> would require modifications to the security code). strace and
-> other tools would just natively know that the descriptor refers to a =
-device.
->
-> Additional system calls would allow a straightforward war to control
-> passing the descriptor on exec and other fuunky things (see manpage
-> for fcntl f.e.). The usual machinery for device descriptor control an=
-d
-> management would come in almost for free.
->
->
-
-That's exactly where we stand right now. There are some supporters for=20
-unifying all devices to one file. Even if you want to unify rdma-cm to=20
-the same fd and open the device through it, strace can't know which=20
-physical device is used.
-
-If we keep file per device as you described, we don't need this field.
-
-> IOCTL(2)                                            Linux Programmer'=
-s
-> Manual                                            IOCTL(2)
->
-> NAME
->        ioctl - control device
->
-> SYNOPSIS
->        #include <sys/ioctl.h>
->
->        int ioctl(int d, int request, ...);
->
-> DESCRIPTION
->        The ioctl() function manipulates the underlying device paramet=
-ers
-> of special files.  In particular, many operating charac=E2=80=90
->        teristics of character special files (e.g., terminals) may be
-> controlled with ioctl() requests.  The argument d must be an
->        open file descriptor.
->
+Steve.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
