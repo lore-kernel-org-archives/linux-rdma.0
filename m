@@ -1,71 +1,52 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
-Date: Thu, 21 Jul 2016 01:04:33 -0700
-Message-ID: <20160721080433.GA21060@infradead.org>
-References: <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org>
- <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
- <alpine.DEB.2.20.1607200448370.12616@east.gentwo.org>
- <20160720172143.GG21460@obsidianresearch.com>
- <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org>
- <20160721015613.GB8279@obsidianresearch.com>
- <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org>
- <20160721032803.GA12093@obsidianresearch.com>
- <alpine.DEB.2.20.1607202340280.26638@east.gentwo.org>
- <20160721054439.GA19329@obsidianresearch.com>
+Subject: Re: [RFC ABI V2 1/8] RDMA/core: Export RDMA IOCTL declarations
+Date: Thu, 21 Jul 2016 01:07:19 -0700
+Message-ID: <20160721080719.GB21060@infradead.org>
+References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
+ <1468941812-32286-2-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160721054439.GA19329-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1468941812-32286-2-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 20, 2016 at 11:44:39PM -0600, Jason Gunthorpe wrote:
-> How many ioctls have you used that use a complex variable sized struct
-> as the parameter?
+On Tue, Jul 19, 2016 at 06:23:25PM +0300, Matan Barak wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> There are a few and they ones I've used are self-describing one way or
-> another. Perhaps they have an op code or something in the struct, or a
-> netlink-like format, or *something* but you don't need to know what
-> the fd is connected to in order to parse the struct. The ioctl # and
-> the argument should be enough to parse.
+> Place all external RDMA IOCTL declarations into one UAPI exported
+> header file and move all legacy MAD commands to that file.
 
-In that case they are designed by taste-less fools.  No need to
-to spread that BS even further.
+FYI, we also need to have all the structures used for the UAPI in
+a uapi header.  I started on that a while ago, but it needs to be
+resurrected.  Given that you're busy in this area it might be a good
+idea if you pick this work up:
 
-> > Well there is no need to do that with the standard way. The filehandle
-> > identifies the driver. No need to modify strace and no need to
-> > schlepp the device_id around.
-> 
-> Nope, that isn't how strace works, strace never checks the filehandle.
+http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-uapi
 
-Strace is just a random tracing tool.  No need to design interface
-for it.  Just use a ioctl values that don't confluct with anything
-heavily used and we'll be fine.
+> +#ifndef RDMA_IOCTL_H
+> +#define RDMA_IOCTL_H
+> +
+> +#include <rdma/rdma_user_ioctl.h>
+> +
+> +#endif /* RDMA_IOCTL_H */
 
-> You are really surprised by the rdma_cm architecture??? I know it is
-> goofy, but we are stuck with it..
+What's the point of this wrappers?  Either way no need to include
+guards for a no-op header if it will be kept around for some reason.
 
-Are we?  We'll need to stick to the wire format obviously, but the
-software architectures needs to die rather sooner than later.  It's the
-worst pile of junk in the RDMA subsystem, and that really means
-something.  It's almost impossible to use it correctly due to all the
-warts and un- or under-documented assumtions in it's APIs.
+> +/*
+> + * For hfi1 driver
+> + */
+> +#define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
+> +
+> +/* Legacy part
+> + * !!!! NOTE: It uses the same command index as VERBS
+> + */
 
-> .. and we have been doing the un-described structs like you are asking
-> for today. libmlx4 just assumes the fd it is talking to is a mlx4
-> driver (because sysfs said so) and jams in untagged driver-specific
-> structs to the command flow. strace cannot parse them and there is no
-> kernel support for debugging or accidental misuse..
-> 
-> Adding a little tag to the driver specific struct seems totally
-> harmless, every iteration of the various proposals has had some kind
-> of struct tag one way or another. I don't know what you see strange
-> about this.
-
-Just use different ioctl codes for different drivers and you're done.
+In that case it should be in the same header just to avoid confusion.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
