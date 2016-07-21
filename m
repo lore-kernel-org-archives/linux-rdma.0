@@ -1,149 +1,97 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [RFC] IB/mlx4: Add sysfs entry for VF node_guid
-Date: Thu, 21 Jul 2016 02:32:52 -0700
-Message-ID: <1469093572-6793-1-git-send-email-yuval.shaia@oracle.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V2 1/8] RDMA/core: Export RDMA IOCTL declarations
+Date: Thu, 21 Jul 2016 13:49:05 +0300
+Message-ID: <20160721104905.GV20674@leon.nu>
+References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
+ <1468941812-32286-2-git-send-email-matanb@mellanox.com>
+ <20160721080719.GB21060@infradead.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="iJhwK4DKf9Unwzgv"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160721080719.GB21060-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding sysfs entries to read/write VF's Node GUID.
-This abbility will enable sys-admin to configure node GUID for VFs the same
-way it is done for VF's port GUIDs.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/sysfs.c |   72 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 72 insertions(+), 0 deletions(-)
+--iJhwK4DKf9Unwzgv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index 69fb5ba..6fc4366 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -371,6 +371,7 @@ struct mlx4_port {
- 	struct attribute_group gid_group;
- 	struct device_attribute	enable_smi_admin;
- 	struct device_attribute	smi_enabled;
-+	struct device_attribute	node_guid;
- 	int		       slave;
- 	u8                     port_num;
- };
-@@ -620,6 +621,7 @@ static int add_vf_smi_entries(struct mlx4_port *p)
- 		sysfs_remove_file(&p->kobj, &p->smi_enabled.attr);
- 		return ret;
- 	}
-+
- 	return 0;
- }
- 
-@@ -635,6 +637,69 @@ static void remove_vf_smi_entries(struct mlx4_port *p)
- 	sysfs_remove_file(&p->kobj, &p->enable_smi_admin.attr);
- }
- 
-+static ssize_t sysfs_show_node_guid(struct device *dev,
-+				    struct device_attribute *attr,
-+				    char *buf)
-+{
-+	struct mlx4_port *p = container_of(attr, struct mlx4_port, node_guid);
-+	ssize_t len = 0;
-+	__be64 guid = mlx4_get_slave_node_guid(p->dev->dev, p->slave);
-+
-+	len = sprintf(buf, "slave %d 0x%llx\n", p->slave, be64_to_cpu(guid));
-+
-+	return len;
-+}
-+
-+static ssize_t sysfs_store_node_guid(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct mlx4_port *p = container_of(attr, struct mlx4_port, node_guid);
-+	__be64 guid;
-+
-+	if (sscanf(buf, "0x%llx", &guid) != 1)
-+		return -EINVAL;
-+
-+	mlx4_put_slave_node_guid(p->dev->dev, p->slave, cpu_to_be64(guid));
-+
-+	return count;
-+}
-+
-+static int add_vf_admin_guid_entry(struct mlx4_port *p)
-+{
-+	int is_eth = rdma_port_get_link_layer(&p->dev->ib_dev, p->port_num) ==
-+		     IB_LINK_LAYER_ETHERNET;
-+	int ret;
-+
-+	/* do not display entries if eth transport, or if master */
-+	if (is_eth || p->slave == mlx4_master_func_num(p->dev->dev))
-+		return 0;
-+
-+	sysfs_attr_init(&p->node_guid.attr);
-+	p->node_guid.show = sysfs_show_node_guid;
-+	p->node_guid.store = sysfs_store_node_guid;
-+	p->node_guid.attr.name = "node_guid";
-+	p->node_guid.attr.mode = 0644;
-+	ret = sysfs_create_file(&p->kobj, &p->node_guid.attr);
-+	if (ret) {
-+		pr_err("failed to create sysfs entry for node_guid\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static void remove_vf_node_guid_entry(struct mlx4_port *p)
-+{
-+	int is_eth = rdma_port_get_link_layer(&p->dev->ib_dev, p->port_num) ==
-+			IB_LINK_LAYER_ETHERNET;
-+
-+	if (is_eth || p->slave == mlx4_master_func_num(p->dev->dev))
-+		return;
-+
-+	sysfs_remove_file(&p->kobj, &p->node_guid.attr);
-+}
-+
- static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- {
- 	struct mlx4_port *p;
-@@ -686,6 +751,10 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- 	if (ret)
- 		goto err_free_gid;
- 
-+	ret = add_vf_admin_guid_entry(p);
-+	if (ret)
-+		goto err_free_gid;
-+
- 	list_add_tail(&p->kobj.entry, &dev->pkeys.pkey_port_list[slave]);
- 	return 0;
- 
-@@ -743,6 +812,7 @@ static int register_one_pkey_tree(struct mlx4_ib_dev *dev, int slave)
- 		if (err)
- 			goto err_add;
- 	}
-+
- 	return 0;
- 
- err_add:
-@@ -754,6 +824,7 @@ err_add:
- 		sysfs_remove_group(p, &mport->pkey_group);
- 		sysfs_remove_group(p, &mport->gid_group);
- 		remove_vf_smi_entries(mport);
-+		remove_vf_node_guid_entry(mport);
- 		kobject_put(p);
- 	}
- 	kobject_put(dev->dev_ports_parent[slave]);
-@@ -799,6 +870,7 @@ static void unregister_pkey_tree(struct mlx4_ib_dev *device)
- 			sysfs_remove_group(p, &port->pkey_group);
- 			sysfs_remove_group(p, &port->gid_group);
- 			remove_vf_smi_entries(port);
-+			remove_vf_node_guid_entry(port);
- 			kobject_put(p);
- 			kobject_put(device->dev_ports_parent[slave]);
- 		}
--- 
-1.7.1
+On Thu, Jul 21, 2016 at 01:07:19AM -0700, Christoph Hellwig wrote:
+> On Tue, Jul 19, 2016 at 06:23:25PM +0300, Matan Barak wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >=20
+> > Place all external RDMA IOCTL declarations into one UAPI exported
+> > header file and move all legacy MAD commands to that file.
+>=20
+> FYI, we also need to have all the structures used for the UAPI in
+> a uapi header.  I started on that a while ago, but it needs to be
+> resurrected.  Given that you're busy in this area it might be a good
+> idea if you pick this work up:
+>=20
+> http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-uapi
+>=20
+> > +#ifndef RDMA_IOCTL_H
+> > +#define RDMA_IOCTL_H
+> > +
+> > +#include <rdma/rdma_user_ioctl.h>
+> > +
+> > +#endif /* RDMA_IOCTL_H */
+>=20
+> What's the point of this wrappers?  Either way no need to include
+> guards for a no-op header if it will be kept around for some reason.
 
+I dropped this file, it is not needed.
+
+>=20
+> > +/*
+> > + * For hfi1 driver
+> > + */
+> > +#define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
+> > +
+> > +/* Legacy part
+> > + * !!!! NOTE: It uses the same command index as VERBS
+> > + */
+>=20
+> In that case it should be in the same header just to avoid confusion.
+
+I prepared proper series for this stuff and will send next week.
+
+Thanks
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--iJhwK4DKf9Unwzgv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXkKihAAoJEORje4g2clinQaIQAK+wu94b4XuS9NOQl/48PlJ0
++FcW6DSwt5sohM/oHfDhsRuCUB0TD5I3gK6v5+d2R+h+RNUiSMTmd74/zIZ59zN8
+zEwSD74MtEaSgmD5h47Tg8CX8qfC9U48zTI8DuJR3ZnqAdtTBNGxe/pZFC1wcq5m
+g5PaOcANFBRa2cRU+uP05qazNdycvVeAhqu3HIg99lOAoRbLrQC0/BUxrSK4ueWF
+DkhP2EZLk9rIT9H4o0RFrh7WuRy3rX8ZDC1tm5P7f8VoOn1oBypCm/8gwjXCS8d8
+QiIbM7ju8XkXZ+aOZG1Gc0GHpNLysphj8UBUrO1n82G1+DzaxN9HiLUOwUofaqBy
+Z2WKyjd8rFHx3Fdet6bcOPYOHbGghJl/f7UggW41hVWeG2wVmcMpKg2aXaimDUKs
+EH1UTOrU6+UY/5HOC52oO5W1eOgElITah/iTHfKmpWmWu8OYf8+3zClanZhFK6c6
+K/2PeyxvI5E1sdT9y8EdI5WzlcGn2GpT2aTybj1oQXHA9OFueS73mT2lxAUjZGXO
+k8Hs/9vnVM3BacPLxmsExfYy84bUDtdv5VSDdnSRmStJC3cZbGpW6deGpmS45RXs
+98tr0Vci8a0m0XClL63mCN7noDCd5VaGrcH9j3X/Ci7apbRjM0YkVgkeSVrvOQSG
+YbswTo17pYWI3i0cSXNy
+=Yp9m
+-----END PGP SIGNATURE-----
+
+--iJhwK4DKf9Unwzgv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
