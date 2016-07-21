@@ -1,50 +1,37 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 0/5] Reduce RDMA RW API SGE limit
-Date: Thu, 21 Jul 2016 13:02:39 -0700
-Message-ID: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com>
+From: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: mlx5 driver load error
+Date: Thu, 21 Jul 2016 15:54:31 -0700
+Message-ID: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Doug,
+Hi,
 
-The five patches in this series modify the RDMA RW API slightly. This is 
-needed to avoid that the SRP and iSER target drivers submit RDMA 
-requests with an SGE list that exceeds the queue pair limits. The 
-ib_srpt changes in this series have been tested but the ib_isert changes 
-not yet.
+I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver doesn't work.
 
-The changes compared to v3 of this patch series are:
-* Split the single QP SGE limit into separate READ and WRITE SGE limits.
-* Added a comment in ib_srpt.h that explains where the SGE limit comes
-   from.
+root@host:~# lspci |grep -i mellanox
+03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
+03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
 
-Changes compared to v2:
-* For RDMA READs, limit SGE back to dev->attrs.max_sge_rd for iWARP.
+root@host:~# dmesg |grep -i mlx5
+[    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
+[    4.024478] mlx5_core 0000:03:00.0: enable hca failed
+[    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error code -5
+[    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
+[    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
+[    4.410366] mlx5_core 0000:03:00.1: enable hca failed
+[    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error code -5
+[    4.570046] mlx5_core: probe of 0000:03:00.1 failed with error -5
 
-Changes compared to v1:
-* max_send_sge is now stored in struct ib_qp. This greatly simplifies
-    this patch series.
-* An unneeded initialization that I had added to rdma_rw_init_one_mr()
-    has been left out again.
-* Corrected "Fixes" tag in the patch description where needed.
-
-The individual patches in this series are:
-
-0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
-0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
-0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
-0004-IB-srpt-Simplify-srpt_queue_response.patch
-0005-IB-isert-Remove-an-unused-member-variable.patch
+Could you help on this?
 
 Thanks,
-
-Bart.
+Ming
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
