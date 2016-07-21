@@ -1,84 +1,68 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
-Date: Thu, 21 Jul 2016 10:41:33 -0600
-Message-ID: <20160721164133.GD19849@obsidianresearch.com>
-References: <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
- <alpine.DEB.2.20.1607200448370.12616@east.gentwo.org>
- <20160720172143.GG21460@obsidianresearch.com>
- <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org>
- <20160721015613.GB8279@obsidianresearch.com>
- <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org>
- <20160721032803.GA12093@obsidianresearch.com>
- <alpine.DEB.2.20.1607202340280.26638@east.gentwo.org>
- <20160721054439.GA19329@obsidianresearch.com>
- <alpine.DEB.2.20.1607210202400.29415@east.gentwo.org>
+Subject: Re: [RFC ABI V2 8/8] RDMA/mlx5: Add mlx5 initial support of the new
+ infrastructure
+Date: Thu, 21 Jul 2016 10:49:52 -0600
+Message-ID: <20160721164952.GE19849@obsidianresearch.com>
+References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
+ <1468941812-32286-9-git-send-email-matanb@mellanox.com>
+ <20160720173927.GH21460@obsidianresearch.com>
+ <8ffd0f92-2564-cc39-10ab-5db287399e82@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1607210202400.29415-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
+In-Reply-To: <8ffd0f92-2564-cc39-10ab-5db287399e82-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 21, 2016 at 02:11:56AM -0500, Christoph Lameter wrote:
-> On Wed, 20 Jul 2016, Jason Gunthorpe wrote:
-> 
-> > > Well there is no need to do that with the standard way. The filehandle
-> > > identifies the driver. No need to modify strace and no need to
-> > > schlepp the device_id around.
+On Thu, Jul 21, 2016 at 02:38:28PM +0300, Matan Barak wrote:
+> On 20/07/2016 20:39, Jason Gunthorpe wrote:
+> >On Tue, Jul 19, 2016 at 06:23:32PM +0300, Matan Barak wrote:
+> >>+DECLARE_UVERBS_TYPE(
+> >>+	mlx5_device,
+> >>+	UVERBS_CTX_ACTION(
+> >>+		DEVICE_ALLOC_CONTEXT, uverbs_get_context, NULL,
+> >>+		&uverbs_get_context_spec,
+> >>+		&UVERBS_ATTR_CHAIN_SPEC(
+> >>+			/*
+> >>+			 * Declared with size 0 as we current provide
+> >>+			 * backward compatibility (0 = variable size)
+> >>+			 */
+> >>+			UVERBS_ATTR_PTR_IN(ALLOC_UCONTEXT_IN, 0),
+> >>+			UVERBS_ATTR_PTR_OUT(ALLOC_UCONTEXT_OUT, 0),
+> >>+			),
+> >>+	),
+> >>+	UVERBS_ACTION(
+> >>+		DEVICE_QUERY, uverbs_query_device_handler, NULL,
+> >>+		&uverbs_query_device_spec,
+> >>+	),
+> >>+);
 > >
-> > Nope, that isn't how strace works, strace never checks the filehandle.
+> >The entire point of getting rid of the lists and changing the destruct
+> >ordering was to avoid the need to have this kind of stuff in the
+> >drivers.
+> >
+> >I really don't want to see driver changes to implement the basic
+> >API..
+> >
 > 
-> Ok why would strace check a filehandle in the first place? The descriptor
-> is the filehandle and you can simply find the operation that created that
-> file descriptor to find the device it refers to.
-
-strace is stateless and can attach to a running process, it can't
-watch for open() to figure things out. This is also why it doesn't
-inspect the filehandle...
-
-We don't *need* strace to work, but it should would be nice :|
-
-> > I mean in IB, we don't have the ability to securely strip a single
-> > port out of a device. This is why /dev/uverbs0 referes to both ports
-> > on a card. Adding that ability would damage API capabilities we have.
+> You could declare entire types in a common space (and these two examples
+> qualify for common declarations). However, if one wants to add driver
+> specific arguments for  this command (besides some general arguments which
+> could be driver dependent), it needs to be in a driver specific files.
 > 
-> We could easily do that following naming conventions for partitions or so.
-> Why would doing so damage the API capabilities? Seems that they are
-> sufficiently screwed up already. Cleaning that up could help quite a bit.
+> I think this is a good trade-off between driver specific arguments, commands
+> and types while sharing common handlers and command descriptors.
 
-The current API is problematic because we try to both be like netdev
-in that all devices are accessible (rdma_cm) and at the same with with
-individual per-device chardevs (uverbs0).
+Are you going to fix and test every driver in the kernel?
 
-The mismatch sucks and the two do not get along together as well at
-they should, which leads to even more goofyness in the design of
-things like rdma_cm :(
+In the interests of sanity, I think you need to provide a
+straightforward way to retain the status-quo udata, at least as an
+interm step..
 
-So, if you want to move fully to the per-char-dev model then I think
-we'd give up the global netdev like behaviors, things like
-listen(0.0.0) and output route selection, and so forth. I doubt there
-is any support for that.
-
-If we go the other way to a full netdev-like module then we give up
-fine grained (currently mildly broken) file system permissions.
-
-> > There is no proposal to eliminate the multiplexors, I don't even know
-> > how that could work...
-> 
-> I thought I just tried to outline how that could work. Consistently use
-> the device semantics already provided in the kernel and use the
-> functionality through ioctls, fnctls etc etc as already provided.
-
-You haven't explained how we can mesh the rdma_cm, netdev-like
-listen(0.0.0.0) type semantics, continue to implement multi-port APM
-functionality, share PDs across ports, etc, etc. These are all the
-actual things done today that break when we drop the multiplexors.
-
-This isn't a simple API that is 1:1 tied to a single physical object,
-it is a sprawling thing with lots of built-in cross-device semantics. :(
+I'm not excited to see things start here..
 
 Jason
 --
