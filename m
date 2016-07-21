@@ -1,110 +1,179 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH V2] Add flow control to the portmapper
-Date: Thu, 21 Jul 2016 12:42:42 -0500
-Message-ID: <04ea01d1e377$4824a6f0$d86df4d0$@opengridcomputing.com>
-References: <1468869810-64420-1-git-send-email-shiraz.saleem@intel.com> <20160719054006.GF20674@leon.nu> <20160719145024.GA69464@ssaleem-MOBL4.amr.corp.intel.com> <20160719173253.GL20674@leon.nu> <20160721024750.GA52712@ssaleem-MOBL4.amr.corp.intel.com> <20160721172942.GW20674@leon.nu>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC] IB/mlx4: Add sysfs entry for VF node_guid
+Date: Thu, 21 Jul 2016 18:53:16 +0300
+Message-ID: <02d9149b-cddc-bc44-6284-67c249c97f69@mellanox.com>
+References: <1469093572-6793-1-git-send-email-yuval.shaia@oracle.com>
+ <7129f7b7-1e33-c170-7ab7-56ab5e22ff48@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160721172942.GW20674-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <7129f7b7-1e33-c170-7ab7-56ab5e22ff48-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Shiraz Saleem' <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Mustafa Ismail' <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->=20
-> On Wed, Jul 20, 2016 at 09:47:50PM -0500, Shiraz Saleem wrote:
-> > On Tue, Jul 19, 2016 at 08:32:53PM +0300, Leon Romanovsky wrote:
-> > > On Tue, Jul 19, 2016 at 09:50:24AM -0500, Shiraz Saleem wrote:
-> > > > On Tue, Jul 19, 2016 at 08:40:06AM +0300, Leon Romanovsky wrote=
-:
-> > > > >
-> > > > > You are the one user of this new inline function.
-> > > > > Why don't you directly call to netlink_unicast() in your ibnl=
-_unicast()
-> > > > > without messing with widely visible header file?
-> > > >
-> > > > Since there is a non-blocking version of nlmsg_unicast(), the i=
-dea is
-> > > > to make a blocking version available to others as well as maint=
-ain
-> > > > consistency of existing code.
-> > > >
-> > >
-> > > In such way, please provide patch series which will convert all o=
-ther
-> > > users to this new call.
-> > >
-> > > =E2=9E=9C  linux-rdma git:(master) grep -rI netlink_unicast * | g=
-rep -I 0
-> > > kernel/audit.c: err =3D netlink_unicast(audit_sock, skb, audit_nl=
-k_portid, 0);
-> > > kernel/audit.c:         netlink_unicast(aunet->nlsk, skb, dest->p=
-ortid, 0);
-> > > kernel/audit.c: netlink_unicast(aunet->nlsk , reply->skb, reply->=
-portid, 0);
-> > > kernel/audit.c: return netlink_unicast(audit_sock, skb, audit_nlk=
-_portid, 0);
-> > > samples/connector/cn_test.c:    netlink_unicast(nls, skb, 0, 0);
-> >
-> > These usages of netlink_unicast() with blocking are not the same as=
- the new
-> > nlmsg_unicast_block() function.
->=20
-> Really?
-> Did you look in the code?
-> Let's take first function from that grep output
->=20
-> 414         err =3D netlink_unicast(audit_sock, skb, audit_nlk_portid=
-, 0);
-> 415         if (err < 0) {
-> 			... do something ...
-> 437         } else
-> 			... do something else ...
->=20
-> which fits nicely with your proposal.
+On 7/21/2016 6:12 PM, Santosh Shilimkar wrote:
+> On 7/21/2016 2:32 AM, Yuval Shaia wrote:
+>> Adding sysfs entries to read/write VF's Node GUID.
+>> This abbility will enable sys-admin to configure node GUID for VFs the
+typo
+>> same
+>> way it is done for VF's port GUIDs.
+>>
+
+Hi Yuval,
+
+The following commit in iproute2 by Eli Cohen added a standard way to 
+configure node/port GUID using IPoIB netdev:
+
+d91fb3f4c7e4 Add support for configuring Infiniband GUIDs
+
+The configuration will be done in the following way:
+     ip link set dev ib0 vf 0 node_guid 00:02:c9:03:00:21:6e:70
+     ip link set dev ib0 vf 0 port_guid 00:02:c9:03:00:21:6e:78
+
+Can't this be used here as well?
+
+Thanks
+>> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+> This is inline with port GUID for paravirtualized HCAs and seems
+> reasonable to me.
 >
-
-The key is to ensure that places calling a blocking service are never c=
-alled in a non-blocking context.   Leon, do you know if the new sites a=
-re always safe to block? =20
-
-In general, I think blocking due to sockbuf flow control vs dropping or=
- retrying is a good thing for all the users in the rdam core, assuming =
-they are safe to block.
-
-=20
-> +static inline int nlmsg_unicast_block(struct sock *sk, struct sk_buf=
-f *skb, u32
-> portid)
-> +{
-> +       int err;
-> +
-> +       err =3D netlink_unicast(sk, skb, portid, 0);
-> +       if (err > 0)
-> +               err =3D 0;
-> +
-> +       return err;
-> +}
->=20
->=20
-> > You can't drop in nlmsg_unicast_block() in
-> > place of netlink_unicast() in these places. I'm not going to introd=
-uce code
-> > which modifies old behavior.
->=20
-> Again, you aren't changing any behaviour.
-
-Potential block/sleep is a change.  But if we can conclude that these a=
-dditional sites are safe to block, then probably its ok to just go ahea=
-d and use the blocking service everywhere.
-
-
-
+>>  drivers/infiniband/hw/mlx4/sysfs.c |   72
+>> ++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 72 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/mlx4/sysfs.c
+>> b/drivers/infiniband/hw/mlx4/sysfs.c
+>> index 69fb5ba..6fc4366 100644
+>> --- a/drivers/infiniband/hw/mlx4/sysfs.c
+>> +++ b/drivers/infiniband/hw/mlx4/sysfs.c
+>> @@ -371,6 +371,7 @@ struct mlx4_port {
+>>      struct attribute_group gid_group;
+>>      struct device_attribute    enable_smi_admin;
+>>      struct device_attribute    smi_enabled;
+>> +    struct device_attribute    node_guid;
+>>      int               slave;
+>>      u8                     port_num;
+>>  };
+>> @@ -620,6 +621,7 @@ static int add_vf_smi_entries(struct mlx4_port *p)
+>>          sysfs_remove_file(&p->kobj, &p->smi_enabled.attr);
+>>          return ret;
+>>      }
+>> +
+> Stray change.
+>
+>>      return 0;
+>>  }
+>>
+>> @@ -635,6 +637,69 @@ static void remove_vf_smi_entries(struct
+>> mlx4_port *p)
+>>      sysfs_remove_file(&p->kobj, &p->enable_smi_admin.attr);
+>>  }
+>>
+>> +static ssize_t sysfs_show_node_guid(struct device *dev,
+>> +                    struct device_attribute *attr,
+>> +                    char *buf)
+>> +{
+>> +    struct mlx4_port *p = container_of(attr, struct mlx4_port,
+>> node_guid);
+>> +    ssize_t len = 0;
+>> +    __be64 guid = mlx4_get_slave_node_guid(p->dev->dev, p->slave);
+>> +
+>> +    len = sprintf(buf, "slave %d 0x%llx\n", p->slave,
+>> be64_to_cpu(guid));
+>> +
+>> +    return len;
+>> +}
+>> +
+>> +static ssize_t sysfs_store_node_guid(struct device *dev,
+>> +                     struct device_attribute *attr,
+>> +                     const char *buf, size_t count)
+>> +{
+>> +    struct mlx4_port *p = container_of(attr, struct mlx4_port,
+>> node_guid);
+>> +    __be64 guid;
+>> +
+> Shouldn't we check only master can set this up ?
+>
+>> +    if (sscanf(buf, "0x%llx", &guid) != 1)
+>> +        return -EINVAL;
+>> +
+>> +    mlx4_put_slave_node_guid(p->dev->dev, p->slave, cpu_to_be64(guid));
+>> +
+>> +    return count;
+>> +}
+>> +
+>> +static int add_vf_admin_guid_entry(struct mlx4_port *p)
+>> +{
+>> +    int is_eth = rdma_port_get_link_layer(&p->dev->ib_dev,
+>> p->port_num) ==
+>> +             IB_LINK_LAYER_ETHERNET;
+>> +    int ret;
+>> +
+>> +    /* do not display entries if eth transport, or if master */
+>> +    if (is_eth || p->slave == mlx4_master_func_num(p->dev->dev))
+>> +        return 0;
+>> +
+>> +    sysfs_attr_init(&p->node_guid.attr);
+>> +    p->node_guid.show = sysfs_show_node_guid;
+>> +    p->node_guid.store = sysfs_store_node_guid;
+>> +    p->node_guid.attr.name = "node_guid";
+>> +    p->node_guid.attr.mode = 0644;
+>> +    ret = sysfs_create_file(&p->kobj, &p->node_guid.attr);
+>> +    if (ret) {
+>> +        pr_err("failed to create sysfs entry for node_guid\n");
+> Use existing driver macro or append print with "mlx4_core:"
+>> +        return ret;
+>> +    }
+>> +
+>> +    return 0;
+>> +}
+>> +
+>> +static void remove_vf_node_guid_entry(struct mlx4_port *p)
+>> +{
+>> +    int is_eth = rdma_port_get_link_layer(&p->dev->ib_dev,
+>> p->port_num) ==
+>> +            IB_LINK_LAYER_ETHERNET;
+>> +
+>> +    if (is_eth || p->slave == mlx4_master_func_num(p->dev->dev))
+>> +        return;
+>> +
+>> +    sysfs_remove_file(&p->kobj, &p->node_guid.attr);
+>> +}
+>> +
+>>  static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
+>>  {
+>>      struct mlx4_port *p;
+>> @@ -686,6 +751,10 @@ static int add_port(struct mlx4_ib_dev *dev, int
+>> port_num, int slave)
+>>      if (ret)
+>>          goto err_free_gid;
+>>
+>> +    ret = add_vf_admin_guid_entry(p);
+>> +    if (ret)
+>> +        goto err_free_gid;
+>> +
+>>      list_add_tail(&p->kobj.entry, &dev->pkeys.pkey_port_list[slave]);
+>>      return 0;
+>>
+>> @@ -743,6 +812,7 @@ static int register_one_pkey_tree(struct
+>> mlx4_ib_dev *dev, int slave)
+>>          if (err)
+>>              goto err_add;
+>>      }
+>> +
+> Stray change.
+>
+> Regards,
+> Santosh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
