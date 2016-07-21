@@ -1,80 +1,56 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
-Date: Wed, 20 Jul 2016 21:41:34 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org>
-References: <1468941812-32286-1-git-send-email-matanb@mellanox.com> <1468941812-32286-6-git-send-email-matanb@mellanox.com> <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org> <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com> <alpine.DEB.2.20.1607200448370.12616@east.gentwo.org>
- <20160720172143.GG21460@obsidianresearch.com> <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org> <20160721015613.GB8279@obsidianresearch.com>
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160721015613.GB8279-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: Re: [PATCH V2] Add flow control to the portmapper
+Date: Wed, 20 Jul 2016 21:47:50 -0500
+Message-ID: <20160721024750.GA52712@ssaleem-MOBL4.amr.corp.intel.com>
+References: <1468869810-64420-1-git-send-email-shiraz.saleem@intel.com>
+ <20160719054006.GF20674@leon.nu>
+ <20160719145024.GA69464@ssaleem-MOBL4.amr.corp.intel.com>
+ <20160719173253.GL20674@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160719173253.GL20674@leon.nu>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, e1000-rdma@lists.sourceforge.net, netdev@vger.kernel.org, Mustafa Ismail <mustafa.ismail@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 20 Jul 2016, Jason Gunthorpe wrote:
+On Tue, Jul 19, 2016 at 08:32:53PM +0300, Leon Romanovsky wrote:
+> On Tue, Jul 19, 2016 at 09:50:24AM -0500, Shiraz Saleem wrote:
+> > On Tue, Jul 19, 2016 at 08:40:06AM +0300, Leon Romanovsky wrote:
+> > >=20
+> > > You are the one user of this new inline function.
+> > > Why don't you directly call to netlink_unicast() in your ibnl_uni=
+cast()
+> > > without messing with widely visible header file?
+> >=20
+> > Since there is a non-blocking version of nlmsg_unicast(), the idea =
+is=20
+> > to make a blocking version available to others as well as maintain=20
+> > consistency of existing code.
+> >=20
+>=20
+> In such way, please provide patch series which will convert all other
+> users to this new call.
+>=20
+> =E2=9E=9C  linux-rdma git:(master) grep -rI netlink_unicast * | grep =
+-I 0
+> kernel/audit.c: err =3D netlink_unicast(audit_sock, skb, audit_nlk_po=
+rtid, 0);
+> kernel/audit.c:         netlink_unicast(aunet->nlsk, skb, dest->porti=
+d, 0);
+> kernel/audit.c: netlink_unicast(aunet->nlsk , reply->skb, reply->port=
+id, 0);
+> kernel/audit.c: return netlink_unicast(audit_sock, skb, audit_nlk_por=
+tid, 0);
+> samples/connector/cn_test.c:    netlink_unicast(nls, skb, 0, 0);
 
-> >
-> > But you already have that uniqueness if the ioctl filehandle provides
-> > that.
->
-> The argument is that ioctls should be self-describing and never rely
-> on the filehandle to uniq them. That is basically standard in the
-> kernel, and why we have Documentation/ioctl/ioctl-number.txt
-> describing how to uniquely assign ioctl numbers.
-
-Fully agree with that. But this statement does not relate to what we
-were talking about. So I guess I need to restate it one more time:
-
-device_id is useless if the driver is already determined by the device filehanle.
-
-> There is nothing special here, we are just creating a much larger
-> ioctl # space by using (ioctl #, operation, device_id) as the globally
-> unique key, following existing best-practice if self-identifying ioctls.
->
-> > multi-device requirements in the network code require a new device that
-> > aggregates the other ones. The aggregation device is not world accessible.
-> > The same approach could be used for RDMA.
->
-> Some do, some don't. The rdma_cm requirement is more like
-> listen(0.0.0.0) which does not require special net device aggregation.
-
-Well that concept is for a packetized protocol stack. In that kind of a
-system packets can be routed over multiple devices depending on the
-address. We do not have that in the IB stack. Routing of packets would
-require kernel code to run for each packet. Instead we have mostly point
-to point RDMA requests. So thos consideration is not for the IB stack.
-
-> > It is the  basic Unix convention to have a descriptor/file handle refer to
-> > a device. There is nothing special required here from strace.
-> Sometimes yes, sometimes no. There are lots of examples both ways.
->
-> /dev/pts/ptmx, /dev/mapper/control, /dev/btrfs-control, etc, etc are
-> all examples of multi-device control fds similar to the proposed
-> single char dev.
-
-Yes but those are not used for communications. They are used to control a
-subsystem and access to those requires special priviledges. We are talking
-about a device accessible witout special priviledges to do data
-communications. /dev/rdmaXXXX to control global behavior of the stack
-for all processes would be fine. But we are controlling the interaction of
-a process with a device.
-
-> .. and bear in mind that /dev/uverbs0 doesn't even really make that
-> much sense as it aggregates two physical ports. There is already no
-> way to split permissions up by port, which is a logical thing to want
-> for some dual-rail configurations.
-
-Right lets get rid of it. device specific files only.
-
-> What we have today really doesn't make much sense.
-
-Indeed lets adopt the standard filehandles for ioctls and other function
-calls as much as posssible. One may then be able to reuse other existing
-ioctls and other function calls for those filehandles (like fcntl which I
-mentioned earlier).
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These usages of netlink_unicast() with blocking are not the same as the=
+ new
+nlmsg_unicast_block() function. You can't drop in nlmsg_unicast_block()=
+ in=20
+place of netlink_unicast() in these places. I'm not going to introduce =
+code=20
+which modifies old behavior.
