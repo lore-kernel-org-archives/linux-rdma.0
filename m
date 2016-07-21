@@ -1,8 +1,8 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v4 1/5] IB/core: Make rdma_rw_ctx_init() initialize all used
- fields
-Date: Thu, 21 Jul 2016 13:03:09 -0700
-Message-ID: <608bb795-a4be-105c-ef73-21f5410e98d2@sandisk.com>
+Subject: [PATCH v4 3/5] IB/srpt: Limit the number of SG elements per work
+ request
+Date: Thu, 21 Jul 2016 13:03:47 -0700
+Message-ID: <446e3039-ec25-89d8-2583-5e60dd2bfc88@sandisk.com>
 References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,89 +14,62 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some but not all callers of rdma_rw_ctx_init() zero-initialize
-struct rdma_rw_ctx. Hence make rdma_rw_ctx_init() initialize all
-work request fields that will be read by ib_post_send().
+Limit the number of SG elements per work request to what the HCA
+and the queue pair support.
 
-Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
+Fixes: 34693573fde0 ("IB/srpt: Reduce QP buffer size")
+Reported-by: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Tested-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Tested-by: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #v4.7+
 ---
- drivers/infiniband/core/rw.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 3 ++-
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 6 +++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 1eb9b12..1ad2baa 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -71,6 +71,7 @@ static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
- 	return min_t(u32, dev->attrs.max_fast_reg_page_list_len, 256);
- }
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 4a41556..9a3b954 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1601,6 +1601,7 @@ static int srpt_create_ch_ib(struct srpt_rdma_ch *ch)
+ 	struct ib_qp_init_attr *qp_init;
+ 	struct srpt_port *sport = ch->sport;
+ 	struct srpt_device *sdev = sport->sdev;
++	const struct ib_device_attr *attrs = &sdev->device->attrs;
+ 	u32 srp_sq_size = sport->port_attrib.srp_sq_size;
+ 	int ret;
  
-+/* Caller must have zero-initialized *reg. */
- static int rdma_rw_init_one_mr(struct ib_qp *qp, u8 port_num,
- 		struct rdma_rw_reg_ctx *reg, struct scatterlist *sg,
- 		u32 sg_cnt, u32 offset)
-@@ -114,6 +115,7 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		u8 port_num, struct scatterlist *sg, u32 sg_cnt, u32 offset,
- 		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
- {
-+	struct rdma_rw_reg_ctx *prev = NULL;
- 	u32 pages_per_mr = rdma_rw_fr_page_list_len(qp->pd->device);
- 	int i, j, ret = 0, count = 0;
+@@ -1638,7 +1639,7 @@ retry:
+ 	 */
+ 	qp_init->cap.max_send_wr = srp_sq_size / 2;
+ 	qp_init->cap.max_rdma_ctxs = srp_sq_size / 2;
+-	qp_init->cap.max_send_sge = SRPT_DEF_SG_PER_WQE;
++	qp_init->cap.max_send_sge = min(attrs->max_sge, SRPT_MAX_SG_PER_WQE);
+ 	qp_init->port_num = ch->sport->port;
  
-@@ -125,7 +127,6 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 	}
+ 	ch->qp = ib_create_qp(sdev->pd, qp_init);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 3890304..5818787 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -106,7 +106,11 @@ enum {
+ 	SRP_LOGIN_RSP_MULTICHAN_MAINTAINED = 0x2,
  
- 	for (i = 0; i < ctx->nr_ops; i++) {
--		struct rdma_rw_reg_ctx *prev = i ? &ctx->reg[i - 1] : NULL;
- 		struct rdma_rw_reg_ctx *reg = &ctx->reg[i];
- 		u32 nents = min(sg_cnt, pages_per_mr);
+ 	SRPT_DEF_SG_TABLESIZE = 128,
+-	SRPT_DEF_SG_PER_WQE = 16,
++	/*
++	 * An experimentally determined value that avoids that QP creation
++	 * fails due to "swiotlb buffer is full" on systems using the swiotlb.
++	 */
++	SRPT_MAX_SG_PER_WQE = 16,
  
-@@ -162,9 +163,13 @@ static int rdma_rw_init_mr_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		sg_cnt -= nents;
- 		for (j = 0; j < nents; j++)
- 			sg = sg_next(sg);
-+		prev = reg;
- 		offset = 0;
- 	}
- 
-+	if (prev)
-+		prev->wr.wr.next = NULL;
-+
- 	ctx->type = RDMA_RW_MR;
- 	return count;
- 
-@@ -205,11 +210,10 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 			rdma_wr->wr.opcode = IB_WR_RDMA_READ;
- 		rdma_wr->remote_addr = remote_addr + total_len;
- 		rdma_wr->rkey = rkey;
-+		rdma_wr->wr.num_sge = nr_sge;
- 		rdma_wr->wr.sg_list = sge;
- 
- 		for (j = 0; j < nr_sge; j++, sg = sg_next(sg)) {
--			rdma_wr->wr.num_sge++;
--
- 			sge->addr = ib_sg_dma_address(dev, sg) + offset;
- 			sge->length = ib_sg_dma_len(dev, sg) - offset;
- 			sge->lkey = qp->pd->local_dma_lkey;
-@@ -220,8 +224,8 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 			offset = 0;
- 		}
- 
--		if (i + 1 < ctx->nr_ops)
--			rdma_wr->wr.next = &ctx->map.wrs[i + 1].wr;
-+		rdma_wr->wr.next = i + 1 < ctx->nr_ops ?
-+			&ctx->map.wrs[i + 1].wr : NULL;
- 	}
- 
- 	ctx->type = RDMA_RW_MULTI_WR;
+ 	MIN_SRPT_SQ_SIZE = 16,
+ 	DEF_SRPT_SQ_SIZE = 4096,
 -- 
 2.9.2
 
