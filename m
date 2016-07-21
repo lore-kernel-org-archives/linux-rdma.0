@@ -1,24 +1,71 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3 3/5] IB/srpt: Limit the number of SG elements per
-	work request
-Date: Thu, 21 Jul 2016 10:00:11 +0200
-Message-ID: <20160721080011.GE20121@lst.de>
-References: <8fb358c3-3504-02ca-fcb8-1624f28be1b0@sandisk.com> <2599c210-c86e-b292-15e4-2bc042ad1453@sandisk.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
+Date: Thu, 21 Jul 2016 01:04:33 -0700
+Message-ID: <20160721080433.GA21060@infradead.org>
+References: <alpine.DEB.2.20.1607192021500.5828@east.gentwo.org>
+ <53dd8337-0779-341e-49f5-ad675269bfe6@mellanox.com>
+ <alpine.DEB.2.20.1607200448370.12616@east.gentwo.org>
+ <20160720172143.GG21460@obsidianresearch.com>
+ <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org>
+ <20160721015613.GB8279@obsidianresearch.com>
+ <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org>
+ <20160721032803.GA12093@obsidianresearch.com>
+ <alpine.DEB.2.20.1607202340280.26638@east.gentwo.org>
+ <20160721054439.GA19329@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2599c210-c86e-b292-15e4-2bc042ad1453-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160721054439.GA19329-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 19, 2016 at 09:22:29AM -0700, Bart Van Assche wrote:
-> Limit the number of SG elements per work request to what the HCA
-> and the queue pair support.
+On Wed, Jul 20, 2016 at 11:44:39PM -0600, Jason Gunthorpe wrote:
+> How many ioctls have you used that use a complex variable sized struct
+> as the parameter?
+> 
+> There are a few and they ones I've used are self-describing one way or
+> another. Perhaps they have an op code or something in the struct, or a
+> netlink-like format, or *something* but you don't need to know what
+> the fd is connected to in order to parse the struct. The ioctl # and
+> the argument should be enough to parse.
 
-Can you add a comment on why this limit was chosen while you're at it?
+In that case they are designed by taste-less fools.  No need to
+to spread that BS even further.
+
+> > Well there is no need to do that with the standard way. The filehandle
+> > identifies the driver. No need to modify strace and no need to
+> > schlepp the device_id around.
+> 
+> Nope, that isn't how strace works, strace never checks the filehandle.
+
+Strace is just a random tracing tool.  No need to design interface
+for it.  Just use a ioctl values that don't confluct with anything
+heavily used and we'll be fine.
+
+> You are really surprised by the rdma_cm architecture??? I know it is
+> goofy, but we are stuck with it..
+
+Are we?  We'll need to stick to the wire format obviously, but the
+software architectures needs to die rather sooner than later.  It's the
+worst pile of junk in the RDMA subsystem, and that really means
+something.  It's almost impossible to use it correctly due to all the
+warts and un- or under-documented assumtions in it's APIs.
+
+> .. and we have been doing the un-described structs like you are asking
+> for today. libmlx4 just assumes the fd it is talking to is a mlx4
+> driver (because sysfs said so) and jams in untagged driver-specific
+> structs to the command flow. strace cannot parse them and there is no
+> kernel support for debugging or accidental misuse..
+> 
+> Adding a little tag to the driver specific struct seems totally
+> harmless, every iteration of the various proposals has had some kind
+> of struct tag one way or another. I don't know what you see strange
+> about this.
+
+Just use different ioctl codes for different drivers and you're done.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
