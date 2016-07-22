@@ -1,28 +1,41 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 01/15] IB/pvrdma: Add paravirtual rdma device
-Date: Fri, 22 Jul 2016 00:11:07 +0000
-Message-ID: <2A904F79-D017-4290-90CD-F13861C67205@vmware.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-2-git-send-email-aditr@vmware.com>
- <20160718122738.GD6165@yuval-lap.uk.oracle.com>
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: ref count of ib_ipoib.ko not incremented when an ip address is set
+Date: Fri, 22 Jul 2016 11:16:02 +0300
+Message-ID: <5791D642.9050609@kyup.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160718122738.GD6165-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
-Content-Language: en-US
-Content-ID: <CD9BC0F672E6874893C0E5BA5F7FFAE4-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Miller <davem@davemloft.net>, sean.hefty@intel.com, dledford@redhat.com, SiteGround Operations <operations@siteground.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNy8xOC8xNiwgNToyNyBBTSwgIll1dmFsIFNoYWlhIiA8eXV2YWwuc2hhaWFAb3JhY2xlLmNv
-bT4gd3JvdGU6DQoNCg0KDQo+UGF0Y2ggIzEgdXNlcyB1bmlvbnMgcHZyZG1hX2NtZF9yZXEgJiBw
-dnJkbWFfY21kX3Jlc3AgdGhhdCBhZGRlZCBpbiBwYXRjaA0KPiM0Lg0KPlN1Z2dlc3RpbmcgdG8g
-Y2hhbmdlIHRoZSBvcmRlci4NCg0KU3VyZS4gV2lsbCBlbnN1cmUgdGhlIG9yZGVyIGlzIGNvcnJl
-Y3QgZm9yIHRoZSBvdGhlciBwYXRjaGVzIHRvbyBpbiB2My4NCg0KVGhhbmtzLA0KQWRpdA0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello, 
+
+I accidentally saw that even having an ip address on an 
+ipoib interface doesn't increment the usage count of the 
+ib_ipoib.ko module: 
+
+ip a l dev ib0
+14: ib0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 65520 qdisc pfifo_fast state UP qlen 256
+    link/infiniband 80:00:02:d4:fe:80:00:00:00:00:00:00:e4:1d:2d:03:00:00:f8:31 brd 00:ff:ff:ff:ff:12:40:1b:ff:ff:00:00:00:00:00:00:ff:ff:ff:ff
+    inet 172.16.0.150/24 brd 172.16.0.255 scope global ib0
+       valid_lft forever preferred_lft forever
+
+lsmod | grep ib_ipoib
+ib_ipoib               79026  0 
+ib_cm                  34144  3 ib_ipoib,ib_ucm,rdma_cm
+ib_sa                  26598  5 ib_ipoib,rdma_ucm,rdma_cm,ib_cm,mlx4_ib
+ib_core                97620  10 ib_ipoib,ib_ucm,ib_uverbs,rdma_cm,iw_cm,ib_umad,ib_cm,mlx4_ib,ib_sa,ib_mad
+ipv6                  374806  259 ib_ipoib,rdma_cm,ib_addr,[permanent]
+
+
+In this case I can rmmod ib_ipoib.ko which would remove, 
+but in practice I've observed that when an ip address is set
+the underlying module providing the interface usually gets
+its ref count incremented. Is this normal or is a 
+refcount increment is amiss?
+
+Regards, 
+Nikolay 
