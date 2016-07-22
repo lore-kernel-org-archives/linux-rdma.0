@@ -1,122 +1,82 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 3/3] nvme-rdma: Fix device removal handling
-Date: Fri, 22 Jul 2016 13:37:43 -0500
-Message-ID: <00ef01d1e448$225132a0$66f397e0$@opengridcomputing.com>
-References: <cover.1468879135.git.swise@opengridcomputing.com> <0cb1ccaa920b3ec48dd94ea49fa0f0b7c5520d38.1468879135.git.swise@opengridcomputing.com>
+From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH v2 7/9] selinux: Implement Infiniband PKey "Access" access vector
+Date: Fri, 22 Jul 2016 14:53:19 -0400
+Message-ID: <CAHC9VhR4kgtpuiM9G5VDYhZPoHZNLmgTbXpTfxT+bDsCgbZqCw@mail.gmail.com>
+References: <1468537011-20407-1-git-send-email-danielj@mellanox.com> <1468537011-20407-8-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0cb1ccaa920b3ec48dd94ea49fa0f0b7c5520d38.1468879135.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <1468537011-20407-8-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Device removal sequence may have crashed because the
-> controller (and admin queue space) was freed before
-> we destroyed the admin queue resources. Thus we
-> want to destroy the admin queue and only then queue
-> controller deletion and wait for it to complete.
-> 
-> More specifically we:
-> 1. own the controller deletion (make sure we are not
->    competing with another deletion).
-> 2. get rid of inflight reconnects if exists (which
->    also destroy and create queues).
-> 3. destroy the queue.
-> 4. safely queue controller deletion (and wait for it
->    to complete).
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+On Thu, Jul 14, 2016 at 6:56 PM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Add a type and access vector for PKeys. Implement the ib_pkey_access
+> hook to check that the caller has permission to access the PKey on the
+> given subnet prefix. Add an interface to get the PKey SID. Walk the PKey
+> ocontexts to find an entry for the given subnet prefix and pkey.
+>
+> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
 > ---
->  drivers/nvme/host/rdma.c | 49
-++++++++++++++++++++++++++----------------------
->  1 file changed, 27 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-> index 3e3ce2b..0e58450 100644
-> --- a/drivers/nvme/host/rdma.c
-> +++ b/drivers/nvme/host/rdma.c
-> @@ -169,7 +169,6 @@ MODULE_PARM_DESC(register_always,
->  static int nvme_rdma_cm_handler(struct rdma_cm_id *cm_id,
->  		struct rdma_cm_event *event);
->  static void nvme_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc);
-> -static int __nvme_rdma_del_ctrl(struct nvme_rdma_ctrl *ctrl);
-> 
->  /* XXX: really should move to a generic header sooner or later.. */
->  static inline void put_unaligned_le24(u32 val, u8 *p)
-> @@ -1318,37 +1317,43 @@ out_destroy_queue_ib:
->   * that caught the event. Since we hold the callout until the controller
->   * deletion is completed, we'll deadlock if the controller deletion will
->   * call rdma_destroy_id on this queue's cm_id. Thus, we claim ownership
-> - * of destroying this queue before-hand, destroy the queue resources
-> - * after the controller deletion completed with the exception of destroying
-> - * the cm_id implicitely by returning a non-zero rc to the callout.
-> + * of destroying this queue before-hand, destroy the queue resources,
-> + * then queue the controller deletion which won't destroy this queue and
-> + * we destroy the cm_id implicitely by returning a non-zero rc to the
-callout.
->   */
->  static int nvme_rdma_device_unplug(struct nvme_rdma_queue *queue)
->  {
->  	struct nvme_rdma_ctrl *ctrl = queue->ctrl;
-> -	int ret, ctrl_deleted = 0;
-> +	int ret;
-> 
-> -	/* First disable the queue so ctrl delete won't free it */
-> -	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags))
-> -		goto out;
-> +	/* Own the controller deletion */
-> +	if (!nvme_change_ctrl_state(&ctrl->ctrl, NVME_CTRL_DELETING))
-> +		return 0;
-> 
-> -	/* delete the controller */
-> -	ret = __nvme_rdma_del_ctrl(ctrl);
-> -	if (!ret) {
-> -		dev_warn(ctrl->ctrl.device,
-> -			"Got rdma device removal event, deleting ctrl\n");
-> -		flush_work(&ctrl->delete_work);
-> +	dev_warn(ctrl->ctrl.device,
-> +		"Got rdma device removal event, deleting ctrl\n");
-> 
-> -		/* Return non-zero so the cm_id will destroy implicitly */
-> -		ctrl_deleted = 1;
-> +	/* Get rid of reconnect work if its running */
-> +	cancel_delayed_work_sync(&ctrl->reconnect_work);
-> 
-> -		/* Free this queue ourselves */
-> -		rdma_disconnect(queue->cm_id);
-> -		ib_drain_qp(queue->qp);
-> -		nvme_rdma_destroy_queue_ib(queue);
-> +	/* Disable the queue so ctrl delete won't free it */
-> +	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags)) {
-> +		ret = 0;
-> +		goto queue_delete;
->  	}
-> 
-> -out:
-> -	return ctrl_deleted;
-> +	/* Free this queue ourselves */
-> +	nvme_rdma_stop_queue(queue);
-> +	nvme_rdma_destroy_queue_ib(queue);
+> v2:
+> - Use void* blobs for security structs. Paul Moore
+> - Add pkey specific data to the audit log. Paul Moore
+> - Don't introduce a new initial sid, use unlabeled. Stephen Smalley
+> ---
+>  include/linux/lsm_audit.h           |    7 ++++++
+>  security/lsm_audit.c                |   13 +++++++++++
+>  security/selinux/hooks.c            |   23 +++++++++++++++++++
+>  security/selinux/include/classmap.h |    2 +
+>  security/selinux/include/security.h |    2 +
+>  security/selinux/ss/services.c      |   41 +++++++++++++++++++++++++++++++++++
+>  6 files changed, 88 insertions(+), 0 deletions(-)
+
+...
+
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index fe3d20d..d9c4bfa 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -5995,6 +5995,28 @@ static int selinux_key_getsecurity(struct key *key, char **_buffer)
+>  #endif
+>
+>  #ifdef CONFIG_SECURITY_INFINIBAND
+> +static int selinux_ib_pkey_access(u64 subnet_prefix, u16 pkey_val, void *ib_sec)
+> +{
+
+I'm only mentioning this because it looks like there is going to be
+another spin of the patches; perhaps move the ib_sec argument before
+the subnet_prefix and pkey_val arguments.  This way it matches the
+subject-object ordering we have in the avc_has_perm() call.
+
+> +       struct common_audit_data ad;
+> +       int err;
+> +       u32 sid = 0;
+> +       struct ib_security_struct *sec = ib_sec;
+> +       struct lsm_pkey_audit pkey;
 > +
-> +	/* Return non-zero so the cm_id will destroy implicitly */
-> +	ret = 1;
+> +       err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
 > +
-> +queue_delete:
-> +	/* queue controller deletion */
-> +	queue_work(nvme_rdma_wq, &ctrl->delete_work);
-> +	flush_work(&ctrl->delete_work);
+> +       if (err)
+> +               return err;
+> +
+> +       ad.type = LSM_AUDIT_DATA_PKEY;
+> +       pkey.subnet_prefix = subnet_prefix;
+> +       pkey.pkey = pkey_val;
+> +       ad.u.pkey = &pkey;
+> +       return avc_has_perm(sec->sid, sid,
+> +                           SECCLASS_INFINIBAND_PKEY,
+> +                           INFINIBAND_PKEY__ACCESS, &ad);
+> +}
 
-Actually, since the queue_work() fires off the workq thread to delete the
-controller and its resources (on another cpu potentially), and think the
-flush_work() could end up being a touch-after-free because it accesses *ctrl,
-no?
-
-
+-- 
+paul moore
+www.paul-moore.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
