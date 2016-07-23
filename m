@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 2/3] IB/mthca: Less function calls in mthca_reset() after
- error detection
-Date: Sat, 23 Jul 2016 12:59:15 +0200
-Message-ID: <060a2178-afb2-28a3-9568-25c124972062@users.sourceforge.net>
+Subject: [PATCH 3/3] IB/mthca: Delete unnecessary variable initialisations in
+ mthca_reset()
+Date: Sat, 23 Jul 2016 13:00:22 +0200
+Message-ID: <3700e687-f8e5-edd9-2f93-54839673bb14@users.sourceforge.net>
 References: <5307CAA2.8060406@users.sourceforge.net>
  <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
  <530A086E.8010901@users.sourceforge.net>
@@ -32,184 +32,36 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia 
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 23 Jul 2016 11:28:30 +0200
+Date: Sat, 23 Jul 2016 11:54:06 +0200
 
-The kfree() function was called in a few cases by the mthca_reset()
-function during error handling even if the passed variables "bridge_header"
-and "hca_header" contained a null pointer.
-
-Adjust jump targets according to the Linux coding style convention.
+Three local variables will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/mthca/mthca_reset.c | 41 +++++++++++++++----------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_reset.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
-index c521654..6727af2 100644
+index 6727af2..0a458c6 100644
 --- a/drivers/infiniband/hw/mthca/mthca_reset.c
 +++ b/drivers/infiniband/hw/mthca/mthca_reset.c
-@@ -98,7 +98,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 		err = -ENOMEM;
- 		mthca_err(mdev, "Couldn't allocate memory to save HCA "
- 			  "PCI header, aborting.\n");
--		goto out;
-+		goto put_dev;
- 	}
+@@ -42,12 +42,12 @@ int mthca_reset(struct mthca_dev *mdev)
+ {
+ 	int i;
+ 	int err = 0;
+-	u32 *hca_header    = NULL;
++	u32 *hca_header;
+ 	u32 *bridge_header = NULL;
+ 	struct pci_dev *bridge = NULL;
+ 	int bridge_pcix_cap = 0;
+-	int hca_pcie_cap = 0;
+-	int hca_pcix_cap = 0;
++	int hca_pcie_cap;
++	int hca_pcix_cap;
  
- 	for (i = 0; i < 64; ++i) {
-@@ -108,7 +108,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't save HCA "
- 				  "PCI header, aborting.\n");
--			goto out;
-+			goto free_hca;
- 		}
- 	}
- 
-@@ -121,7 +121,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 			err = -ENOMEM;
- 			mthca_err(mdev, "Couldn't allocate memory to save HCA "
- 				  "bridge PCI header, aborting.\n");
--			goto out;
-+			goto free_hca;
- 		}
- 
- 		for (i = 0; i < 64; ++i) {
-@@ -131,7 +131,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 				err = -ENODEV;
- 				mthca_err(mdev, "Couldn't save HCA bridge "
- 					  "PCI header, aborting.\n");
--				goto out;
-+				goto free_bh;
- 			}
- 		}
- 		bridge_pcix_cap = pci_find_capability(bridge, PCI_CAP_ID_PCIX);
-@@ -139,7 +139,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 				err = -ENODEV;
- 				mthca_err(mdev, "Couldn't locate HCA bridge "
- 					  "PCI-X capability, aborting.\n");
--				goto out;
-+				goto free_bh;
- 		}
- 	}
- 
-@@ -152,7 +152,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 			err = -ENOMEM;
- 			mthca_err(mdev, "Couldn't map HCA reset register, "
- 				  "aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 
- 		writel(MTHCA_RESET_VALUE, reset);
-@@ -172,7 +172,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 				err = -ENODEV;
- 				mthca_err(mdev, "Couldn't access HCA after reset, "
- 					  "aborting.\n");
--				goto out;
-+				goto free_bh;
- 			}
- 
- 			if (v != 0xffffffff)
-@@ -184,7 +184,7 @@ int mthca_reset(struct mthca_dev *mdev)
- 		err = -ENODEV;
- 		mthca_err(mdev, "PCI device did not come back after reset, "
- 			  "aborting.\n");
--		goto out;
-+		goto free_bh;
- 	}
- 
- good:
-@@ -195,14 +195,14 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA bridge Upstream "
- 				  "split transaction control, aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 		if (pci_write_config_dword(bridge, bridge_pcix_cap + 0xc,
- 				 bridge_header[(bridge_pcix_cap + 0xc) / 4])) {
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA bridge Downstream "
- 				  "split transaction control, aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 		/*
- 		 * Bridge control register is at 0x3e, so we'll
-@@ -216,7 +216,7 @@ good:
- 				err = -ENODEV;
- 				mthca_err(mdev, "Couldn't restore HCA bridge reg %x, "
- 					  "aborting.\n", i);
--				goto out;
-+				goto free_bh;
- 			}
- 		}
- 
-@@ -225,7 +225,7 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA bridge COMMAND, "
- 				  "aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 	}
- 
-@@ -235,7 +235,7 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA PCI-X "
- 				  "command register, aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 	}
- 
-@@ -246,7 +246,7 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA PCI Express "
- 				  "Device Control register, aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 		linkctl = hca_header[(hca_pcie_cap + PCI_EXP_LNKCTL) / 4];
- 		if (pcie_capability_write_word(mdev->pdev, PCI_EXP_LNKCTL,
-@@ -254,7 +254,7 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA PCI Express "
- 				  "Link control register, aborting.\n");
--			goto out;
-+			goto free_bh;
- 		}
- 	}
- 
-@@ -266,7 +266,7 @@ good:
- 			err = -ENODEV;
- 			mthca_err(mdev, "Couldn't restore HCA reg %x, "
- 				  "aborting.\n", i);
--			goto out;
-+			goto free_bh;
- 		}
- 	}
- 
-@@ -275,13 +275,12 @@ good:
- 		err = -ENODEV;
- 		mthca_err(mdev, "Couldn't restore HCA COMMAND, "
- 			  "aborting.\n");
--		goto out;
- 	}
--
--out:
--	pci_dev_put(bridge);
-+free_bh:
- 	kfree(bridge_header);
-+free_hca:
- 	kfree(hca_header);
--
-+put_dev:
-+	pci_dev_put(bridge);
- 	return err;
- }
+ 	u16 devctl;
+ 	u16 linkctl;
 -- 
 2.9.2
 
