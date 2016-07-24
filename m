@@ -1,67 +1,88 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 3/3] IB/mthca: Delete unnecessary variable initialisations in
- mthca_reset()
-Date: Sat, 23 Jul 2016 13:00:22 +0200
-Message-ID: <3700e687-f8e5-edd9-2f93-54839673bb14@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net> <546CE09B.9090101@users.sourceforge.net>
- <55b7a06e-6bb4-f1bb-e4dd-7812648ecf34@users.sourceforge.net>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC ABI V2 8/8] RDMA/mlx5: Add mlx5 initial support of the new
+ infrastructure
+Date: Sun, 24 Jul 2016 09:18:21 +0300
+Message-ID: <cc09ff03-86ae-7f4f-faca-a1402b24c1a7@mellanox.com>
+References: <1468941812-32286-1-git-send-email-matanb@mellanox.com>
+ <1468941812-32286-9-git-send-email-matanb@mellanox.com>
+ <20160720173927.GH21460@obsidianresearch.com>
+ <8ffd0f92-2564-cc39-10ab-5db287399e82@mellanox.com>
+ <20160721164952.GE19849@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <55b7a06e-6bb4-f1bb-e4dd-7812648ecf34@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160721164952.GE19849-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 23 Jul 2016 11:54:06 +0200
+On 21/07/2016 19:49, Jason Gunthorpe wrote:
+> On Thu, Jul 21, 2016 at 02:38:28PM +0300, Matan Barak wrote:
+>> On 20/07/2016 20:39, Jason Gunthorpe wrote:
+>>> On Tue, Jul 19, 2016 at 06:23:32PM +0300, Matan Barak wrote:
+>>>> +DECLARE_UVERBS_TYPE(
+>>>> +	mlx5_device,
+>>>> +	UVERBS_CTX_ACTION(
+>>>> +		DEVICE_ALLOC_CONTEXT, uverbs_get_context, NULL,
+>>>> +		&uverbs_get_context_spec,
+>>>> +		&UVERBS_ATTR_CHAIN_SPEC(
+>>>> +			/*
+>>>> +			 * Declared with size 0 as we current provide
+>>>> +			 * backward compatibility (0 = variable size)
+>>>> +			 */
+>>>> +			UVERBS_ATTR_PTR_IN(ALLOC_UCONTEXT_IN, 0),
+>>>> +			UVERBS_ATTR_PTR_OUT(ALLOC_UCONTEXT_OUT, 0),
+>>>> +			),
+>>>> +	),
+>>>> +	UVERBS_ACTION(
+>>>> +		DEVICE_QUERY, uverbs_query_device_handler, NULL,
+>>>> +		&uverbs_query_device_spec,
+>>>> +	),
+>>>> +);
+>>>
+>>> The entire point of getting rid of the lists and changing the destruct
+>>> ordering was to avoid the need to have this kind of stuff in the
+>>> drivers.
+>>>
+>>> I really don't want to see driver changes to implement the basic
+>>> API..
+>>>
+>>
+>> You could declare entire types in a common space (and these two examples
+>> qualify for common declarations). However, if one wants to add driver
+>> specific arguments for  this command (besides some general arguments which
+>> could be driver dependent), it needs to be in a driver specific files.
+>>
+>> I think this is a good trade-off between driver specific arguments, commands
+>> and types while sharing common handlers and command descriptors.
+>
+> Are you going to fix and test every driver in the kernel?
+>
+> In the interests of sanity, I think you need to provide a
+> straightforward way to retain the status-quo udata, at least as an
+> interm step..
+>
+> I'm not excited to see things start here..
 
-Three local variables will be set to an appropriate value a bit later.
-Thus omit the explicit initialisation at the beginning.
+As an interm step, we use udata (see the actual example). By using that, 
+these actions could be in a common place. However, IMHO since we 
+declared this is a driver specific ABI where each driver could implement 
+and use whatever attributes it wants and create new types and actions, I 
+don't think we should differentiate between common attributes and driver 
+specific attributes (as it's the driver which decides whats common and 
+whats not).
+Therefore, udata is great as an interm step avoiding changing 
+everything, but as a last step it might be better to go with standard 
+array of attributes.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/hw/mthca/mthca_reset.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> Jason
+>
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
-index 6727af2..0a458c6 100644
---- a/drivers/infiniband/hw/mthca/mthca_reset.c
-+++ b/drivers/infiniband/hw/mthca/mthca_reset.c
-@@ -42,12 +42,12 @@ int mthca_reset(struct mthca_dev *mdev)
- {
- 	int i;
- 	int err = 0;
--	u32 *hca_header    = NULL;
-+	u32 *hca_header;
- 	u32 *bridge_header = NULL;
- 	struct pci_dev *bridge = NULL;
- 	int bridge_pcix_cap = 0;
--	int hca_pcie_cap = 0;
--	int hca_pcix_cap = 0;
-+	int hca_pcie_cap;
-+	int hca_pcix_cap;
- 
- 	u16 devctl;
- 	u16 linkctl;
--- 
-2.9.2
-
+Matan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
