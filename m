@@ -1,62 +1,33 @@
-From: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: mlx5 driver load error
-Date: Mon, 25 Jul 2016 13:40:45 -0700
-Message-ID: <CAF1ivSZ=a46t7HFxBDKv5FdW+NPeXqJqi3bCunrVDh+_BwkYog@mail.gmail.com>
-References: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
- <20160725070059.GA20674@leon.nu> <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ@mail.gmail.com>
- <c8b50608-12cd-25ac-2dac-fadf06d5a2e1@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 09/28] IB/hfi1: Add support for extended memory management
+Date: Mon, 25 Jul 2016 15:24:57 -0600
+Message-ID: <20160725212457.GA21162@obsidianresearch.com>
+References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
+ <20160725203842.4800.60710.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c8b50608-12cd-25ac-2dac-fadf06d5a2e1-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160725203842.4800.60710.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 25, 2016 at 2:01 AM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 7/25/2016 10:28 AM, Ming Lin wrote:
->>
->> On Mon, Jul 25, 2016 at 12:00 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> wrote:
->>>
->>> On Thu, Jul 21, 2016 at 03:54:31PM -0700, Ming Lin wrote:
->>>>
->>>> Hi,
->>>>
->>>> I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver doesn't
->>>> work.
->>>>
->>>> root@host:~# lspci |grep -i mellanox
->>>> 03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family
->>>> [ConnectX-4]
->>>> 03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family
->>>> [ConnectX-4]
->>>>
->>>> root@host:~# dmesg |grep -i mlx5
->>>> [    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
->>>> [    4.024478] mlx5_core 0000:03:00.0: enable hca failed
->>>> [    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error
->>>> code -5
->>>> [    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
->>>> [    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
->>>> [    4.410366] mlx5_core 0000:03:00.1: enable hca failed
->>>> [    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error
->>>> code -5
->
-> Hi Ming,
->
-> Did you upgrade the Firmware as well?
+On Mon, Jul 25, 2016 at 01:38:43PM -0700, Dennis Dalessandro wrote:
+>  	rdi->dparms.props.device_cap_flags = IB_DEVICE_BAD_PKEY_CNTR |
+>  			IB_DEVICE_BAD_QKEY_CNTR | IB_DEVICE_SHUTDOWN_PORT |
+>  			IB_DEVICE_SYS_IMAGE_GUID | IB_DEVICE_RC_RNR_NAK_GEN |
+> -			IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE;
+> +			IB_DEVICE_PORT_ACTIVE_EVENT | IB_DEVICE_SRQ_RESIZE |
+> +			IB_DEVICE_MEM_MGT_EXTENSIONS;
 
-It works after upgrading firmware.
+It would be good to do IB_DEVICE_LOCAL_DMA_LKEY as well, that feature
+is used automatically now.
 
-Thanks.
+Any chance we will see a qib update for FWRW as well?
 
-> Did it work before the kernel upgrade?
-> Do you work in pass-through mode?
-> Does cold reboot resolve the issue?
->
-> Thanks
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
