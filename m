@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 24/28] IB/hfi1: Rename struct ahg_ib_header to struct
- hfi1_ahg_info
-Date: Mon, 25 Jul 2016 13:40:16 -0700
-Message-ID: <20160725204015.4800.86943.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 26/28] IB/hfi1: Cleanup UD packet handler.
+Date: Mon, 25 Jul 2016 13:40:28 -0700
+Message-ID: <20160725204027.4800.25840.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,247 +10,161 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160725203554.4800.37248.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-struct ahg_ib_header has no header specific information.
-Rename it to struct hfi1_ahg_info
+Cleanup hfi1_ud_rcv to not have to look at the packet
+header fields multiple times. The fields are looked up
+once and used throughout the function. Also fix sc
+computation when validating MAD packets.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qp.c    |    7 ++++---
- drivers/infiniband/hw/hfi1/qp.h    |    2 +-
- drivers/infiniband/hw/hfi1/ruc.c   |   28 ++++++++++++++--------------
- drivers/infiniband/hw/hfi1/ud.c    |    6 +++---
- drivers/infiniband/hw/hfi1/verbs.c |   20 ++++++++++----------
- drivers/infiniband/hw/hfi1/verbs.h |    4 ++--
- 6 files changed, 34 insertions(+), 33 deletions(-)
+ drivers/infiniband/hw/hfi1/ud.c |   51 ++++++++++++++++-----------------------
+ 1 files changed, 21 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index ad8ad33..a5aa351 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -806,8 +806,9 @@ void *qp_priv_alloc(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 
- 	priv->owner = qp;
- 
--	priv->s_hdr = kzalloc_node(sizeof(*priv->s_hdr), gfp, rdi->dparms.node);
--	if (!priv->s_hdr) {
-+	priv->s_ahg = kzalloc_node(sizeof(*priv->s_ahg), gfp,
-+				   rdi->dparms.node);
-+	if (!priv->s_ahg) {
- 		kfree(priv);
- 		return ERR_PTR(-ENOMEM);
- 	}
-@@ -820,7 +821,7 @@ void qp_priv_free(struct rvt_dev_info *rdi, struct rvt_qp *qp)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
- 
--	kfree(priv->s_hdr);
-+	kfree(priv->s_ahg);
- 	kfree(priv);
- }
- 
-diff --git a/drivers/infiniband/hw/hfi1/qp.h b/drivers/infiniband/hw/hfi1/qp.h
-index ddf8298..587d84d 100644
---- a/drivers/infiniband/hw/hfi1/qp.h
-+++ b/drivers/infiniband/hw/hfi1/qp.h
-@@ -63,7 +63,7 @@ static inline void clear_ahg(struct rvt_qp *qp)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
- 
--	priv->s_hdr->ahgcount = 0;
-+	priv->s_ahg->ahgcount = 0;
- 	qp->s_flags &= ~(RVT_S_AHG_VALID | RVT_S_AHG_CLEAR);
- 	if (priv->s_sde && qp->s_ahgidx >= 0)
- 		sdma_ahg_free(priv->s_sde, qp->s_ahgidx);
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index c7c2f48..ea7977d 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -711,7 +711,7 @@ u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
- #define BTH2_OFFSET (offsetof(struct hfi1_pio_header, hdr.u.oth.bth[2]) / 4)
- 
- /**
-- * build_ahg - create ahg in s_hdr
-+ * build_ahg - create ahg in s_ahg
-  * @qp: a pointer to QP
-  * @npsn: the next PSN for the request/response
-  *
-@@ -733,18 +733,18 @@ static inline void build_ahg(struct rvt_qp *qp, u32 npsn)
- 			qp->s_ahgidx = sdma_ahg_alloc(priv->s_sde);
- 		if (qp->s_ahgidx >= 0) {
- 			qp->s_ahgpsn = npsn;
--			priv->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
-+			priv->s_ahg->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
- 			/* save to protect a change in another thread */
--			priv->s_hdr->ahgidx = qp->s_ahgidx;
-+			priv->s_ahg->ahgidx = qp->s_ahgidx;
- 			qp->s_flags |= RVT_S_AHG_VALID;
- 		}
- 	} else {
- 		/* subsequent middle after valid */
- 		if (qp->s_ahgidx >= 0) {
--			priv->s_hdr->tx_flags |= SDMA_TXREQ_F_USE_AHG;
--			priv->s_hdr->ahgidx = qp->s_ahgidx;
--			priv->s_hdr->ahgcount++;
--			priv->s_hdr->ahgdesc[0] =
-+			priv->s_ahg->tx_flags |= SDMA_TXREQ_F_USE_AHG;
-+			priv->s_ahg->ahgidx = qp->s_ahgidx;
-+			priv->s_ahg->ahgcount++;
-+			priv->s_ahg->ahgdesc[0] =
- 				sdma_build_ahg_descriptor(
- 					(__force u16)cpu_to_be16((u16)npsn),
- 					BTH2_OFFSET,
-@@ -752,8 +752,8 @@ static inline void build_ahg(struct rvt_qp *qp, u32 npsn)
- 					16);
- 			if ((npsn & 0xffff0000) !=
- 					(qp->s_ahgpsn & 0xffff0000)) {
--				priv->s_hdr->ahgcount++;
--				priv->s_hdr->ahgdesc[1] =
-+				priv->s_ahg->ahgcount++;
-+				priv->s_ahg->ahgdesc[1] =
- 					sdma_build_ahg_descriptor(
- 						(__force u16)cpu_to_be16(
- 							(u16)(npsn >> 16)),
-@@ -790,7 +790,7 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct hfi1_other_headers *ohdr,
- 	}
- 	lrh0 |= (priv->s_sc & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
- 	/*
--	 * reset s_hdr/AHG fields
-+	 * reset s_ahg/AHG fields
- 	 *
- 	 * This insures that the ahgentry/ahgcount
- 	 * are at a non-AHG default to protect
-@@ -800,9 +800,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct hfi1_other_headers *ohdr,
- 	 * build_ahg() will modify as appropriate
- 	 * to use the AHG feature.
- 	 */
--	priv->s_hdr->tx_flags = 0;
--	priv->s_hdr->ahgcount = 0;
--	priv->s_hdr->ahgidx = 0;
-+	priv->s_ahg->tx_flags = 0;
-+	priv->s_ahg->ahgcount = 0;
-+	priv->s_ahg->ahgidx = 0;
- 	if (qp->s_mig_state == IB_MIG_MIGRATED)
- 		bth0 |= IB_BTH_MIG_REQ;
- 	else
-@@ -913,7 +913,7 @@ void hfi1_do_send(struct rvt_qp *qp)
- 			 */
- 			if (hfi1_verbs_send(qp, &ps))
- 				return;
--			/* Record that s_hdr is empty. */
-+			/* Record that s_ahg is empty. */
- 			qp->s_hdrwords = 0;
- 			/* allow other tasks to run */
- 			if (unlikely(time_after(jiffies, timeout))) {
 diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index d4afb1d..08a9c12 100644
+index 08a9c12..852c20f 100644
 --- a/drivers/infiniband/hw/hfi1/ud.c
 +++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -430,9 +430,9 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 					 qp->qkey : wqe->ud_wr.remote_qkey);
- 	ohdr->u.ud.deth[1] = cpu_to_be32(qp->ibqp.qp_num);
- 	/* disarm any ahg */
--	priv->s_hdr->ahgcount = 0;
--	priv->s_hdr->ahgidx = 0;
--	priv->s_hdr->tx_flags = 0;
-+	priv->s_ahg->ahgcount = 0;
-+	priv->s_ahg->ahgidx = 0;
-+	priv->s_ahg->tx_flags = 0;
- 	/* pbc */
- 	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
+@@ -664,13 +664,13 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	struct hfi1_other_headers *ohdr = packet->ohdr;
+ 	int opcode;
+ 	u32 hdrsize = packet->hlen;
+-	u32 pad;
+ 	struct ib_wc wc;
+ 	u32 qkey;
+ 	u32 src_qp;
+ 	u16 dlid, pkey;
+ 	int mgmt_pkey_idx = -1;
+ 	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct hfi1_ib_header *hdr = packet->hdr;
+ 	u32 rcv_flags = packet->rcv_flags;
+ 	void *data = packet->ebuf;
+@@ -678,31 +678,34 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	struct rvt_qp *qp = packet->qp;
+ 	bool has_grh = rcv_flags & HFI1_HAS_GRH;
+ 	u8 sc5 = hdr2sc((struct hfi1_message_header *)hdr, packet->rhf);
++	u32 bth1;
++	u8 sl_from_sc, sl;
++	u16 slid;
++	u8 extra_bytes;
  
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 9578565..2b3fa40 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -816,19 +816,19 @@ static int build_verbs_tx_desc(
- 	struct rvt_sge_state *ss,
- 	u32 length,
- 	struct verbs_txreq *tx,
--	struct ahg_ib_header *ahdr,
-+	struct hfi1_ahg_info *ahg_info,
- 	u64 pbc)
- {
- 	int ret = 0;
- 	struct hfi1_pio_header *phdr = &tx->phdr;
- 	u16 hdrbytes = tx->hdr_dwords << 2;
+ 	qkey = be32_to_cpu(ohdr->u.ud.deth[0]);
+ 	src_qp = be32_to_cpu(ohdr->u.ud.deth[1]) & RVT_QPN_MASK;
+ 	dlid = be16_to_cpu(hdr->lrh[1]);
++	bth1 = be32_to_cpu(ohdr->bth[1]);
++	slid = be16_to_cpu(hdr->lrh[3]);
++	pkey = (u16)be32_to_cpu(ohdr->bth[0]);
++	sl = (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xf;
++	extra_bytes = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++	extra_bytes += (SIZE_OF_CRC << 2);
++	sl_from_sc = ibp->sc_to_sl[sc5];
  
--	if (!ahdr->ahgcount) {
-+	if (!ahg_info->ahgcount) {
- 		ret = sdma_txinit_ahg(
- 			&tx->txreq,
--			ahdr->tx_flags,
-+			ahg_info->tx_flags,
- 			hdrbytes + length,
--			ahdr->ahgidx,
-+			ahg_info->ahgidx,
- 			0,
- 			NULL,
- 			0,
-@@ -846,11 +846,11 @@ static int build_verbs_tx_desc(
- 	} else {
- 		ret = sdma_txinit_ahg(
- 			&tx->txreq,
--			ahdr->tx_flags,
-+			ahg_info->tx_flags,
- 			length,
--			ahdr->ahgidx,
--			ahdr->ahgcount,
--			ahdr->ahgdesc,
-+			ahg_info->ahgidx,
-+			ahg_info->ahgcount,
-+			ahg_info->ahgdesc,
- 			hdrbytes,
- 			verbs_sdma_complete);
- 		if (ret)
-@@ -868,7 +868,7 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 			u64 pbc)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
--	struct ahg_ib_header *ahdr = priv->s_hdr;
-+	struct hfi1_ahg_info *ahg_info = priv->s_ahg;
- 	u32 hdrwords = qp->s_hdrwords;
- 	struct rvt_sge_state *ss = qp->s_cur_sge;
- 	u32 len = qp->s_cur_size;
-@@ -896,7 +896,7 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 					 plen);
+-	/*
+-	 * The opcode is in the low byte when its in network order
+-	 * (top byte when in host order).
+-	 */
+ 	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
+ 	opcode &= 0xff;
+ 
+-	pkey = (u16)be32_to_cpu(ohdr->bth[0]);
+-
+ 	process_ecn(qp, packet, (opcode != IB_OPCODE_CNP));
+-
+ 	/*
+ 	 * Get the number of bytes the message was padded by
+ 	 * and drop incomplete packets.
+ 	 */
+-	pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
+-	if (unlikely(tlen < (hdrsize + pad + 4)))
++	if (unlikely(tlen < (hdrsize + extra_bytes)))
+ 		goto drop;
+ 
+-	tlen -= hdrsize + pad + 4;
++	tlen -= hdrsize + extra_bytes;
+ 
+ 	/*
+ 	 * Check that the permissive LID is only used on QP0
+@@ -713,10 +716,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 			     hdr->lrh[3] == IB_LID_PERMISSIVE))
+ 			goto drop;
+ 		if (qp->ibqp.qp_num > 1) {
+-			struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-			u16 slid;
+-
+-			slid = be16_to_cpu(hdr->lrh[3]);
+ 			if (unlikely(rcv_pkey_check(ppd, pkey, sc5, slid))) {
+ 				/*
+ 				 * Traps will not be sent for packets dropped
+@@ -725,12 +724,9 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 				 * IB spec (release 1.3, section 10.9.4)
+ 				 */
+ 				hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY,
+-					       pkey,
+-					       (be16_to_cpu(hdr->lrh[0]) >> 4) &
+-						0xF,
++					       pkey, sl,
+ 					       src_qp, qp->ibqp.qp_num,
+-					       be16_to_cpu(hdr->lrh[3]),
+-					       be16_to_cpu(hdr->lrh[1]));
++					       slid, dlid);
+ 				return;
+ 			}
+ 		} else {
+@@ -740,22 +736,18 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 				goto drop;
  		}
- 		tx->wqe = qp->s_wqe;
--		ret = build_verbs_tx_desc(tx->sde, ss, len, tx, ahdr, pbc);
-+		ret = build_verbs_tx_desc(tx->sde, ss, len, tx, ahg_info, pbc);
- 		if (unlikely(ret))
- 			goto bail_build;
- 	}
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 4bd1cd4..d44550f 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -178,7 +178,7 @@ struct hfi1_ib_header {
- 	} u;
- } __packed;
+ 		if (unlikely(qkey != qp->qkey)) {
+-			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey,
+-				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey, sl,
+ 				       src_qp, qp->ibqp.qp_num,
+-				       be16_to_cpu(hdr->lrh[3]),
+-				       be16_to_cpu(hdr->lrh[1]));
++				       slid, dlid);
+ 			return;
+ 		}
+ 		/* Drop invalid MAD packets (see 13.5.3.1). */
+ 		if (unlikely(qp->ibqp.qp_num == 1 &&
+-			     (tlen > 2048 ||
+-			      (be16_to_cpu(hdr->lrh[0]) >> 12) == 15)))
++			     (tlen > 2048 || (sc5 == 0xF))))
+ 			goto drop;
+ 	} else {
+ 		/* Received on QP0, and so by definition, this is an SMP */
+ 		struct opa_smp *smp = (struct opa_smp *)data;
+-		u16 slid = be16_to_cpu(hdr->lrh[3]);
  
--struct ahg_ib_header {
-+struct hfi1_ahg_info {
- 	u32 ahgdesc[2];
- 	u16 tx_flags;
- 	u8 ahgcount;
-@@ -195,7 +195,7 @@ struct hfi1_pio_header {
-  * pair is made common
-  */
- struct hfi1_qp_priv {
--	struct ahg_ib_header *s_hdr;              /* next header to send */
-+	struct hfi1_ahg_info *s_ahg;              /* ahg info for next header */
- 	struct sdma_engine *s_sde;                /* current sde */
- 	struct send_context *s_sendcontext;       /* current sendcontext */
- 	u8 s_sc;		                  /* SC[0..4] for next packet */
+ 		if (opa_smp_check(ibp, pkey, sc5, qp, slid, smp))
+ 			goto drop;
+@@ -838,7 +830,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	    qp->ibqp.qp_type == IB_QPT_SMI) {
+ 		if (mgmt_pkey_idx < 0) {
+ 			if (net_ratelimit()) {
+-				struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 				struct hfi1_devdata *dd = ppd->dd;
+ 
+ 				dd_dev_err(dd, "QP type %d mgmt_pkey_idx < 0 and packet not dropped???\n",
+@@ -851,8 +842,8 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		wc.pkey_index = 0;
+ 	}
+ 
+-	wc.slid = be16_to_cpu(hdr->lrh[3]);
+-	wc.sl = ibp->sc_to_sl[sc5];
++	wc.slid = slid;
++	wc.sl = sl_from_sc;
+ 
+ 	/*
+ 	 * Save the LMC lower bits if the destination LID is a unicast LID.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
