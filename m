@@ -1,159 +1,92 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/28] IB/hfi1: Add static PCIe Gen3 CTLE tuning
-Date: Mon, 25 Jul 2016 13:39:21 -0700
-Message-ID: <20160725203919.4800.75949.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH 13/28] IB/rdmavt: Add missing spin_lock_init call for
+ rdi->n_cqs_lock
+Date: Mon, 25 Jul 2016 13:39:08 -0700
+Message-ID: <20160725203907.4800.24160.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160725203554.4800.37248.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Stable <stable@vger.kernel.org>, Jianxin Xiong <jianxin.xiong@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jianxin Xiong <jianxin.xiong@intel.com>
 
-Enhance the PCIe Gen3 recipe to support static CTLE tuning,
-and add a switch to choose between static and dynamic
-approaches.  Make discrete chips default to static CTLE
-tuning.
+This fixes the following warning with PROV_LOCKING enabled kernel:
 
-Reviewed-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+INFO: trying to register non-static key.
+the code is fine but needs lockdep annotation.
+turning off the locking correctness validator.
+CPU: 15 PID: 12286 Comm: modprobe Not tainted 4.7.0-rc5.prove_rcu+ #1
+Hardware name: Intel Corporation S2600WT2R/S2600WT2R,
+......
+Call Trace:
+[<ffffffff8139ec0d>] dump_stack+0x85/0xc8
+[<ffffffff810eb765>] register_lock_class+0x415/0x4b0
+[<ffffffff810ede1c>] ? __lock_acquire+0x40c/0x1960
+[<ffffffff810edaa9>] __lock_acquire+0x99/0x1960
+[<ffffffff8120ab62>] ? find_vmap_area+0x42/0x60
+[<ffffffff8120ab39>] ? find_vmap_area+0x19/0x60
+[<ffffffff810ef9d3>] lock_acquire+0xd3/0x200
+[<ffffffffa049d598>] ? rvt_create_cq+0xc8/0x250 [rdmavt]
+[<ffffffff81763391>] _raw_spin_lock+0x31/0x40
+[<ffffffffa049d598>] ? rvt_create_cq+0xc8/0x250 [rdmavt]
+[<ffffffffa049d598>] rvt_create_cq+0xc8/0x250 [rdmavt]
+[<ffffffff810ead46>] ? static_obj+0x36/0x50
+[<ffffffffa0469e39>] ib_alloc_cq+0x49/0x180 [ib_core]
+[<ffffffffa047bed4>] ib_mad_init_device+0x204/0x6d0 [ib_core]
+[<ffffffff810e968f>] ? up_write+0x1f/0x40
+[<ffffffffa046e2c0>] ib_register_device+0x3d0/0x510 [ib_core]
+[<ffffffffa0752410>] ? read_cc_setting_bin+0x200/0x200 [hfi1]
+[<ffffffff810ead46>] ? static_obj+0x36/0x50
+[<ffffffff810eb888>] ? lockdep_init_map+0x88/0x200
+[<ffffffffa049cbff>] rvt_register_device+0x17f/0x320 [rdmavt]
+[<ffffffffa0766caa>] hfi1_register_ib_device+0x6ca/0x7c0 [hfi1]
+[<ffffffffa0733de4>] init_one+0x2b4/0x430 [hfi1]
+[<ffffffff813e40a5>] local_pci_probe+0x45/0xa0
+[<ffffffff813e5110>] ? pci_match_device+0xe0/0x110
+[<ffffffff813e550c>] pci_device_probe+0xfc/0x140
+[<ffffffff814daee9>] driver_probe_device+0x239/0x460
+[<ffffffff814db1dd>] __driver_attach+0xcd/0xf0
+[<ffffffff814db110>] ? driver_probe_device+0x460/0x460
+[<ffffffff814d89b3>] bus_for_each_dev+0x73/0xc0
+[<ffffffff814da74e>] driver_attach+0x1e/0x20
+[<ffffffff814da1b3>] bus_add_driver+0x1d3/0x290
+[<ffffffffa04cc114>] ? dev_init+0x114/0x114 [hfi1]
+[<ffffffff814dbf60>] driver_register+0x60/0xe0
+[<ffffffffa04cc114>] ? dev_init+0x114/0x114 [hfi1]
+[<ffffffff813e39d0>] __pci_register_driver+0x60/0x70
+[<ffffffffa04cc2aa>] hfi1_mod_init+0x196/0x1fe [hfi1]
+[<ffffffff81002190>] do_one_initcall+0x50/0x190
+[<ffffffff8110be72>] ? rcu_read_lock_sched_held+0x62/0x70
+[<ffffffff8122d4aa>] ? kmem_cache_alloc_trace+0x23a/0x2a0
+[<ffffffff811c1881>] ? do_init_module+0x27/0x1dc
+[<ffffffff811c18ba>] do_init_module+0x60/0x1dc
+[<ffffffff811360cc>] load_module+0x132c/0x1ac0
+[<ffffffff81132c40>] ? __symbol_put+0x60/0x60
+[<ffffffff8133e50d>] ? ima_post_read_file+0x3d/0x80
+
+Cc: Stable <stable@vger.kernel.org> # 4.6+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Jianxin Xiong <jianxin.xiong@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/pcie.c |   68 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 64 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rdmavt/cq.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 0bac21e..89c68da 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -679,6 +679,10 @@ static uint pcie_pset = UNSET_PSET;
- module_param(pcie_pset, uint, S_IRUGO);
- MODULE_PARM_DESC(pcie_pset, "PCIe Eq Pset value to use, range is 0-10");
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 6ca6fa8..f2f229e 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -510,6 +510,7 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
  
-+static uint pcie_ctle = 1; /* discrete on, integrated off */
-+module_param(pcie_ctle, uint, S_IRUGO);
-+MODULE_PARM_DESC(pcie_ctle, "PCIe static CTLE mode, bit 0 - discrete on/off, bit 1 - integrated on/off");
-+
- /* equalization columns */
- #define PREC 0
- #define ATTN 1
-@@ -716,6 +720,36 @@ static const u8 integrated_preliminary_eq[11][3] = {
- 	{  0x00,  0x1e,  0x0a },	/* p10 */
- };
- 
-+static const u8 discrete_ctle_tunings[11][4] = {
-+	/* DC     LF     HF     BW */
-+	{  0x48,  0x0b,  0x04,  0x04 },	/* p0 */
-+	{  0x60,  0x05,  0x0f,  0x0a },	/* p1 */
-+	{  0x50,  0x09,  0x06,  0x06 },	/* p2 */
-+	{  0x68,  0x05,  0x0f,  0x0a },	/* p3 */
-+	{  0x80,  0x05,  0x0f,  0x0a },	/* p4 */
-+	{  0x70,  0x05,  0x0f,  0x0a },	/* p5 */
-+	{  0x68,  0x05,  0x0f,  0x0a },	/* p6 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p7 */
-+	{  0x48,  0x09,  0x06,  0x06 },	/* p8 */
-+	{  0x60,  0x05,  0x0f,  0x0a },	/* p9 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p10 */
-+};
-+
-+static const u8 integrated_ctle_tunings[11][4] = {
-+	/* DC     LF     HF     BW */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p0 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p1 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p2 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p3 */
-+	{  0x58,  0x0a,  0x05,  0x05 },	/* p4 */
-+	{  0x48,  0x0a,  0x05,  0x05 },	/* p5 */
-+	{  0x40,  0x0a,  0x05,  0x05 },	/* p6 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p7 */
-+	{  0x38,  0x0f,  0x00,  0x00 },	/* p8 */
-+	{  0x38,  0x09,  0x06,  0x06 },	/* p9 */
-+	{  0x38,  0x0e,  0x01,  0x01 },	/* p10 */
-+};
-+
- /* helper to format the value to write to hardware */
- #define eq_value(pre, curr, post) \
- 	((((u32)(pre)) << \
-@@ -951,11 +985,14 @@ int do_pcie_gen3_transition(struct hfi1_devdata *dd)
- 	u32 status, err;
- 	int ret;
- 	int do_retry, retry_count = 0;
-+	int intnum = 0;
- 	uint default_pset;
- 	u16 target_vector, target_speed;
- 	u16 lnkctl2, vendor;
- 	u8 div;
- 	const u8 (*eq)[3];
-+	const u8 (*ctle_tunings)[4];
-+	uint static_ctle_mode;
- 	int return_error = 0;
- 
- 	/* PCIe Gen3 is for the ASIC only */
-@@ -1089,6 +1126,9 @@ retry:
- 		div = 3;
- 		eq = discrete_preliminary_eq;
- 		default_pset = DEFAULT_DISCRETE_PSET;
-+		ctle_tunings = discrete_ctle_tunings;
-+		/* bit 0 - discrete on/off */
-+		static_ctle_mode = pcie_ctle & 0x1;
- 	} else {
- 		/* 400mV, FS=29, LF = 9 */
- 		fs = 29;
-@@ -1096,6 +1136,9 @@ retry:
- 		div = 1;
- 		eq = integrated_preliminary_eq;
- 		default_pset = DEFAULT_MCP_PSET;
-+		ctle_tunings = integrated_ctle_tunings;
-+		/* bit 1 - integrated on/off */
-+		static_ctle_mode = (pcie_ctle >> 1) & 0x1;
- 	}
- 	pci_write_config_dword(dd->pcidev, PCIE_CFG_REG_PL101,
- 			       (fs <<
-@@ -1135,16 +1178,33 @@ retry:
- 	 * step 5c: Program gasket interrupts
- 	 */
- 	/* set the Rx Bit Rate to REFCLK ratio */
--	write_gasket_interrupt(dd, 0, 0x0006, 0x0050);
-+	write_gasket_interrupt(dd, intnum++, 0x0006, 0x0050);
- 	/* disable pCal for PCIe Gen3 RX equalization */
--	write_gasket_interrupt(dd, 1, 0x0026, 0x5b01);
-+	/* select adaptive or static CTLE */
-+	write_gasket_interrupt(dd, intnum++, 0x0026,
-+			       0x5b01 | (static_ctle_mode << 3));
- 	/*
- 	 * Enable iCal for PCIe Gen3 RX equalization, and set which
- 	 * evaluation of RX_EQ_EVAL will launch the iCal procedure.
- 	 */
--	write_gasket_interrupt(dd, 2, 0x0026, 0x5202);
-+	write_gasket_interrupt(dd, intnum++, 0x0026, 0x5202);
-+
-+	if (static_ctle_mode) {
-+		/* apply static CTLE tunings */
-+		u8 pcie_dc, pcie_lf, pcie_hf, pcie_bw;
-+
-+		pcie_dc = ctle_tunings[pcie_pset][0];
-+		pcie_lf = ctle_tunings[pcie_pset][1];
-+		pcie_hf = ctle_tunings[pcie_pset][2];
-+		pcie_bw = ctle_tunings[pcie_pset][3];
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0200 | pcie_dc);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0100 | pcie_lf);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x0000 | pcie_hf);
-+		write_gasket_interrupt(dd, intnum++, 0x0026, 0x5500 | pcie_bw);
-+	}
-+
- 	/* terminate list */
--	write_gasket_interrupt(dd, 3, 0x0000, 0x0000);
-+	write_gasket_interrupt(dd, intnum++, 0x0000, 0x0000);
- 
- 	/*
- 	 * step 5d: program XMT margin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	if (rdi->worker)
+ 		return 0;
++	spin_lock_init(&rdi->n_cqs_lock);
+ 	rdi->worker = kzalloc(sizeof(*rdi->worker), GFP_KERNEL);
+ 	if (!rdi->worker)
+ 		return -ENOMEM;
