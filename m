@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 20/28] IB/hfi1: Disable external device configuration
- requests
-Date: Mon, 25 Jul 2016 13:39:51 -0700
-Message-ID: <20160725203950.4800.59636.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 21/28] IB/hfi1: Ignore QSFP interrupts until power stabilizes
+Date: Mon, 25 Jul 2016 13:39:57 -0700
+Message-ID: <20160725203956.4800.1166.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,43 +15,74 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-QSFP CDR enablement is now controlled by determining power class
-and the configuration file. We disable the DC 8051 from requesting
-enablement or disabling of TX and RX CDRs by removing the code
-that allowed the DC 8051 to request changes.
+Some QSFP cables assert the interrupt line as a side effect of module
+plug-in and power up. This causes the SerDes and QSFP tuning algorithm
+to begin cable initialization by reading the QSFP memory map over I2C,
+which fails. This patch ignores any interrupt line assertion until
+the module has completed power up and voltage rails have stabilized,
+which can take a maximum of 500 ms per the SFF-8679 specification.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/platform.c |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   28 +++++++++++++++++++++-------
+ 1 files changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
-index 03df932..41af629 100644
---- a/drivers/infiniband/hw/hfi1/platform.c
-+++ b/drivers/infiniband/hw/hfi1/platform.c
-@@ -537,20 +537,6 @@ static void apply_tunings(
- 	u8 precur = 0, attn = 0, postcur = 0, external_device_config = 0;
- 	u8 *cache = ppd->qsfp_info.cache;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index faeed29..becc7b1 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -9191,17 +9191,24 @@ static void wait_for_qsfp_init(struct hfi1_pportdata *ppd)
+ 	unsigned long timeout;
  
--	/* Enable external device config if channel is limiting active */
--	read_8051_config(ppd->dd, LINK_OPTIMIZATION_SETTINGS,
--			 GENERAL_CONFIG, &config_data);
--	config_data &= ~(0xff << ENABLE_EXT_DEV_CONFIG_SHIFT);
--	config_data |= ((u32)limiting_active << ENABLE_EXT_DEV_CONFIG_SHIFT);
--	ret = load_8051_config(ppd->dd, LINK_OPTIMIZATION_SETTINGS,
--			       GENERAL_CONFIG, config_data);
--	if (ret != HCMD_SUCCESS)
--		dd_dev_err(
--			ppd->dd,
--			"%s: Failed to set enable external device config\n",
--			__func__);
--
--	config_data = 0; /* re-init  */
- 	/* Pass tuning method to 8051 */
- 	read_8051_config(ppd->dd, LINK_TUNING_PARAMETERS, GENERAL_CONFIG,
- 			 &config_data);
+ 	/*
+-	 * Check for QSFP interrupt for t_init (SFF 8679)
++	 * Some QSFP cables have a quirk that asserts the IntN line as a side
++	 * effect of power up on plug-in. We ignore this false positive
++	 * interrupt until the module has finished powering up by waiting for
++	 * a minimum timeout of the module inrush initialization time of
++	 * 500 ms (SFF 8679 Table 5-6) to ensure the voltage rails in the
++	 * module have stabilized.
++	 */
++	msleep(500);
++
++	/*
++	 * Check for QSFP interrupt for t_init (SFF 8679 Table 8-1)
+ 	 */
+ 	timeout = jiffies + msecs_to_jiffies(2000);
+ 	while (1) {
+ 		mask = read_csr(dd, dd->hfi1_id ?
+ 				ASIC_QSFP2_IN : ASIC_QSFP1_IN);
+-		if (!(mask & QSFP_HFI0_INT_N)) {
+-			write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_CLEAR :
+-				  ASIC_QSFP1_CLEAR, QSFP_HFI0_INT_N);
++		if (!(mask & QSFP_HFI0_INT_N))
+ 			break;
+-		}
+ 		if (time_after(jiffies, timeout)) {
+ 			dd_dev_info(dd, "%s: No IntN detected, reset complete\n",
+ 				    __func__);
+@@ -9217,10 +9224,17 @@ static void set_qsfp_int_n(struct hfi1_pportdata *ppd, u8 enable)
+ 	u64 mask;
+ 
+ 	mask = read_csr(dd, dd->hfi1_id ? ASIC_QSFP2_MASK : ASIC_QSFP1_MASK);
+-	if (enable)
++	if (enable) {
++		/*
++		 * Clear the status register to avoid an immediate interrupt
++		 * when we re-enable the IntN pin
++		 */
++		write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_CLEAR : ASIC_QSFP1_CLEAR,
++			  QSFP_HFI0_INT_N);
+ 		mask |= (u64)QSFP_HFI0_INT_N;
+-	else
++	} else {
+ 		mask &= ~(u64)QSFP_HFI0_INT_N;
++	}
+ 	write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_MASK : ASIC_QSFP1_MASK, mask);
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
