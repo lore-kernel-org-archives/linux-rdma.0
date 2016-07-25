@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 21/28] IB/hfi1: Ignore QSFP interrupts until power stabilizes
-Date: Mon, 25 Jul 2016 13:39:57 -0700
-Message-ID: <20160725203956.4800.1166.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 23/28] IB/hfi1: Remove unused elements from struct
+ ahg_ib_header
+Date: Mon, 25 Jul 2016 13:40:10 -0700
+Message-ID: <20160725204009.4800.59124.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,79 +11,74 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160725203554.4800.37248.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some QSFP cables assert the interrupt line as a side effect of module
-plug-in and power up. This causes the SerDes and QSFP tuning algorithm
-to begin cable initialization by reading the QSFP memory map over I2C,
-which fails. This patch ignores any interrupt line assertion until
-the module has completed power up and voltage rails have stabilized,
-which can take a maximum of 500 ms per the SFF-8679 specification.
+sde and hfi1_ib_header are not used anymore.
 
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   28 +++++++++++++++++++++-------
- 1 files changed, 21 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hfi1/ruc.c   |    2 --
+ drivers/infiniband/hw/hfi1/ud.c    |    1 -
+ drivers/infiniband/hw/hfi1/verbs.h |    2 --
+ 3 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index faeed29..becc7b1 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9191,17 +9191,24 @@ static void wait_for_qsfp_init(struct hfi1_pportdata *ppd)
- 	unsigned long timeout;
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 7e76d33..c7c2f48 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -735,7 +735,6 @@ static inline void build_ahg(struct rvt_qp *qp, u32 npsn)
+ 			qp->s_ahgpsn = npsn;
+ 			priv->s_hdr->tx_flags |= SDMA_TXREQ_F_AHG_COPY;
+ 			/* save to protect a change in another thread */
+-			priv->s_hdr->sde = priv->s_sde;
+ 			priv->s_hdr->ahgidx = qp->s_ahgidx;
+ 			qp->s_flags |= RVT_S_AHG_VALID;
+ 		}
+@@ -804,7 +803,6 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct hfi1_other_headers *ohdr,
+ 	priv->s_hdr->tx_flags = 0;
+ 	priv->s_hdr->ahgcount = 0;
+ 	priv->s_hdr->ahgidx = 0;
+-	priv->s_hdr->sde = NULL;
+ 	if (qp->s_mig_state == IB_MIG_MIGRATED)
+ 		bth0 |= IB_BTH_MIG_REQ;
+ 	else
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index 02488c6..d4afb1d 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -433,7 +433,6 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	priv->s_hdr->ahgcount = 0;
+ 	priv->s_hdr->ahgidx = 0;
+ 	priv->s_hdr->tx_flags = 0;
+-	priv->s_hdr->sde = NULL;
+ 	/* pbc */
+ 	ps->s_txreq->hdr_dwords = qp->s_hdrwords + 2;
  
- 	/*
--	 * Check for QSFP interrupt for t_init (SFF 8679)
-+	 * Some QSFP cables have a quirk that asserts the IntN line as a side
-+	 * effect of power up on plug-in. We ignore this false positive
-+	 * interrupt until the module has finished powering up by waiting for
-+	 * a minimum timeout of the module inrush initialization time of
-+	 * 500 ms (SFF 8679 Table 5-6) to ensure the voltage rails in the
-+	 * module have stabilized.
-+	 */
-+	msleep(500);
-+
-+	/*
-+	 * Check for QSFP interrupt for t_init (SFF 8679 Table 8-1)
- 	 */
- 	timeout = jiffies + msecs_to_jiffies(2000);
- 	while (1) {
- 		mask = read_csr(dd, dd->hfi1_id ?
- 				ASIC_QSFP2_IN : ASIC_QSFP1_IN);
--		if (!(mask & QSFP_HFI0_INT_N)) {
--			write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_CLEAR :
--				  ASIC_QSFP1_CLEAR, QSFP_HFI0_INT_N);
-+		if (!(mask & QSFP_HFI0_INT_N))
- 			break;
--		}
- 		if (time_after(jiffies, timeout)) {
- 			dd_dev_info(dd, "%s: No IntN detected, reset complete\n",
- 				    __func__);
-@@ -9217,10 +9224,17 @@ static void set_qsfp_int_n(struct hfi1_pportdata *ppd, u8 enable)
- 	u64 mask;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index 4883567..4bd1cd4 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -179,12 +179,10 @@ struct hfi1_ib_header {
+ } __packed;
  
- 	mask = read_csr(dd, dd->hfi1_id ? ASIC_QSFP2_MASK : ASIC_QSFP1_MASK);
--	if (enable)
-+	if (enable) {
-+		/*
-+		 * Clear the status register to avoid an immediate interrupt
-+		 * when we re-enable the IntN pin
-+		 */
-+		write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_CLEAR : ASIC_QSFP1_CLEAR,
-+			  QSFP_HFI0_INT_N);
- 		mask |= (u64)QSFP_HFI0_INT_N;
--	else
-+	} else {
- 		mask &= ~(u64)QSFP_HFI0_INT_N;
-+	}
- 	write_csr(dd, dd->hfi1_id ? ASIC_QSFP2_MASK : ASIC_QSFP1_MASK, mask);
- }
+ struct ahg_ib_header {
+-	struct sdma_engine *sde;
+ 	u32 ahgdesc[2];
+ 	u16 tx_flags;
+ 	u8 ahgcount;
+ 	u8 ahgidx;
+-	struct hfi1_ib_header ibh;
+ };
  
+ struct hfi1_pio_header {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
