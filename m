@@ -1,60 +1,69 @@
-From: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: mlx5 driver load error
-Date: Mon, 25 Jul 2016 00:28:51 -0700
-Message-ID: <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ@mail.gmail.com>
-References: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
- <20160725070059.GA20674@leon.nu>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH 1/3] IB/mthca: Delete an unnecessary check before the
+ function call "pci_dev_put"
+Date: Mon, 25 Jul 2016 16:19:26 +0300
+Message-ID: <20160725131926.GB20674@leon.nu>
+References: <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
+ <546CE09B.9090101@users.sourceforge.net>
+ <55b7a06e-6bb4-f1bb-e4dd-7812648ecf34@users.sourceforge.net>
+ <989c5ce4-4e66-04f1-6c4e-f371337852d7@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160725070059.GA20674-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="fez1/uVX7m6GpeOd"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <989c5ce4-4e66-04f1-6c4e-f371337852d7@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 25, 2016 at 12:00 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Thu, Jul 21, 2016 at 03:54:31PM -0700, Ming Lin wrote:
->> Hi,
->>
->> I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver doesn't work.
->>
->> root@host:~# lspci |grep -i mellanox
->> 03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
->> 03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
->>
->> root@host:~# dmesg |grep -i mlx5
->> [    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
->> [    4.024478] mlx5_core 0000:03:00.0: enable hca failed
->> [    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error code -5
->> [    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
->> [    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
->> [    4.410366] mlx5_core 0000:03:00.1: enable hca failed
->> [    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error code -5
->> [    4.570046] mlx5_core: probe of 0000:03:00.1 failed with error -5
->>
->> Could you help on this?
->
-> Hi Ming,
-> Sorry for slow response,
 
-Hi Leon,
+--fez1/uVX7m6GpeOd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
-> We tested this commit with this firmware version to eliminate the case
-> that it is related to FW and it works.
->
-> Can you please post your "grep MLX5 .config" output?
+On Sat, Jul 23, 2016 at 12:58:08PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sat, 23 Jul 2016 10:05:12 +0200
+>=20
+> The pci_dev_put() function tests whether its argument is NULL and then
+> returns immediately. Thus the test around the call is not needed.
+>=20
+> This issue was detected by using the Coccinelle software.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-$ grep MLX5 .config
-CONFIG_MLX5_CORE=m
-# CONFIG_MLX5_CORE_EN is not set
-CONFIG_MLX5_INFINIBAND=m
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
+--fez1/uVX7m6GpeOd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->
-> Thanks
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXlhHeAAoJEORje4g2clinvQ8P/2Al3Ww1mPGAfFcVEFNHud1j
+wqIkX+uZHmMe/naYxXzQ45y46CHqDfz8BzA13wfRMTnaoTsE5y9qO3BQQx0KOP5q
+h+pkW5aCuK7uNgq7RtbRCunfTYkXDCqtsR35PjEBT2dL+v3Sw0LVxN4+mNo9c2Kg
+96+LVSc4Is6L3g+1FZj6xDESNOc8iVY1OaLilLZYhmfPgL2GmUBxMV8YroLqyu17
+DE7uE2IdZGUXlmH+Nh8WA0OOggrdSQx5yeTjxqbEDLDHGCJKWAxMyejPPr3mB7cT
+mGf26cH9+xaaVtoHm4B/Rr5kwq8uzZqryvs1v+4CNHydK86/u3pkMxyshrBZv1Sf
+rOeOy0wsW2qT5iNqqRpBeeaZXd8FqMpLXJJG++gNj9y2nMOzieoHi2DAE4cGqEOv
+65wGybSCPMFYh9wlePDcb3N/xk0WpCYXPNNlW0QgMXkRYUqhj0tpll4Lsv9Gkm6k
+8slZkZiLDbTdusZhjbv7u0VrJWhIJdtYLplZp1td4NDrw3lzyhsX4NGWx9hIgDnx
+06Gv4qy10rGFYmpChI7XwcQwDWnjEHz3qEicHozj1o9AHCXtxFqz/V9FMqQCRvA5
+cfq1X3d48dQOkLQM0Nvng8VXdX94cfC1ouCVgpeoIcvuBYf9g6hREgldNkVWgajZ
+dsfa7Y0i/pn/JKnPhlJY
+=59NT
+-----END PGP SIGNATURE-----
+
+--fez1/uVX7m6GpeOd--
