@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/28] IB/rdmavt: Handle local operations in post send
-Date: Mon, 25 Jul 2016 13:38:25 -0700
-Message-ID: <20160725203824.4800.45029.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 07/28] IB/hfi1: Handle send with invalidate opcode in the RC
+ recv path
+Date: Mon, 25 Jul 2016 13:38:31 -0700
+Message-ID: <20160725203830.4800.41066.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,126 +16,92 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Some work requests are local operations, such as IB_WR_REG_MR and
-IB_WR_LOCAL_INV. They differ from non-local operations in that:
-
-(1) Local operations can be processed immediately without being posted
-to the send queue if neither fencing nor completion generation is needed.
-However, to ensure correct ordering, once a local operation is posted to
-the work queue due to fencing or completion requiement, all subsequent
-local operations must also be posted to the work queue until all the
-local operations on the work queue have completed.
-
-(2) Local operations don't send packets over the wire and thus don't
-need (and shouldn't update) the packet sequence numbers.
-
-Define a new a flag bit for the post send table to identify local
-operations.
-
-Add a new field to the QP structure to track the number of local
-operations on the send queue to determine if direct processing of new
-local operations should be enabled/disabled.
+As part of enabling extended memory management support, add the processing
+of the RC send with invalidate.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |   45 +++++++++++++++++++++++++++++++++----
- include/rdma/rdmavt_qp.h          |    3 ++
- 2 files changed, 43 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hfi1/rc.c    |   16 +++++++++++++++-
+ drivers/infiniband/hw/hfi1/verbs.c |    2 ++
+ 2 files changed, 17 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index ebc37f5..f79b809 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -743,6 +743,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 		spin_lock_init(&qp->s_lock);
- 		spin_lock_init(&qp->r_rq.lock);
- 		atomic_set(&qp->refcount, 0);
-+		atomic_set(&qp->local_ops_pending, 0);
- 		init_waitqueue_head(&qp->wait);
- 		init_timer(&qp->s_timer);
- 		qp->s_timer.data = (unsigned long)qp;
-@@ -1548,6 +1549,31 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
- 		return ret;
- 	cplen = ret;
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index bd4baa4..cb474a7 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -2098,6 +2098,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 	unsigned long flags;
+ 	int ret, is_fecn = 0;
+ 	int copy_last = 0;
++	u32 rkey;
  
-+	/*
-+	 * Local operations including fast register and local invalidate
-+	 * can be processed immediately w/o being posted to the send queue
-+	 * if neither fencing nor completion generation is needed. However,
-+	 * once fencing or completion is requested, direct processing of
-+	 * following local operations must be disabled until all the local
-+	 * operations posted to the send queue have completed. This is
-+	 * necessary to ensure the correct ordering.
-+	 */
-+	if ((rdi->post_parms[wr->opcode].flags & RVT_OPERATION_LOCAL) &&
-+	    !(wr->send_flags & (IB_SEND_FENCE | IB_SEND_SIGNALED)) &&
-+	    !atomic_read(&qp->local_ops_pending)) {
-+		struct ib_reg_wr *reg = reg_wr(wr);
-+
-+		switch (wr->opcode) {
-+		case IB_WR_REG_MR:
-+			return rvt_fast_reg_mr(qp, reg->mr, reg->key,
-+					       reg->access);
-+		case IB_WR_LOCAL_INV:
-+			return rvt_invalidate_rkey(qp, wr->ex.invalidate_rkey);
-+		default:
-+			return -EINVAL;
-+		}
-+	}
-+
- 	/* check for avail */
- 	if (unlikely(!qp->s_avail)) {
- 		qp->s_avail = qp_get_savail(qp);
-@@ -1612,11 +1638,20 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
- 		atomic_inc(&ibah_to_rvtah(ud_wr(wr)->ah)->refcount);
- 	}
+ 	bth0 = be32_to_cpu(ohdr->bth[0]);
+ 	if (hfi1_ruc_check_hdr(ibp, hdr, rcv_flags & HFI1_HAS_GRH, qp, bth0))
+@@ -2137,7 +2138,8 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 	case OP(SEND_MIDDLE):
+ 		if (opcode == OP(SEND_MIDDLE) ||
+ 		    opcode == OP(SEND_LAST) ||
+-		    opcode == OP(SEND_LAST_WITH_IMMEDIATE))
++		    opcode == OP(SEND_LAST_WITH_IMMEDIATE) ||
++		    opcode == OP(SEND_LAST_WITH_INVALIDATE))
+ 			break;
+ 		goto nack_inv;
  
--	wqe->ssn = qp->s_ssn++;
--	wqe->psn = qp->s_next_psn;
--	wqe->lpsn = wqe->psn +
--			(wqe->length ? ((wqe->length - 1) >> log_pmtu) : 0);
--	qp->s_next_psn = wqe->lpsn + 1;
-+	if (rdi->post_parms[wr->opcode].flags & RVT_OPERATION_LOCAL) {
-+		atomic_inc(&qp->local_ops_pending);
-+		wqe->ssn = 0;
-+		wqe->psn = 0;
-+		wqe->lpsn = 0;
-+	} else {
-+		wqe->ssn = qp->s_ssn++;
-+		wqe->psn = qp->s_next_psn;
-+		wqe->lpsn = wqe->psn +
-+				(wqe->length ?
-+					((wqe->length - 1) >> log_pmtu) :
-+					0);
-+		qp->s_next_psn = wqe->lpsn + 1;
-+	}
- 	trace_rvt_post_one_wr(qp, wqe);
- 	smp_wmb(); /* see request builders */
- 	qp->s_avail--;
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index a90d1e9..b0ab12b 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -231,6 +231,7 @@ struct rvt_ack_entry {
- #define RVT_OPERATION_PRIV        0x00000001
- #define RVT_OPERATION_ATOMIC      0x00000002
- #define RVT_OPERATION_ATOMIC_SGE  0x00000004
-+#define RVT_OPERATION_LOCAL       0x00000008
+@@ -2153,6 +2155,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 		if (opcode == OP(SEND_MIDDLE) ||
+ 		    opcode == OP(SEND_LAST) ||
+ 		    opcode == OP(SEND_LAST_WITH_IMMEDIATE) ||
++		    opcode == OP(SEND_LAST_WITH_INVALIDATE) ||
+ 		    opcode == OP(RDMA_WRITE_MIDDLE) ||
+ 		    opcode == OP(RDMA_WRITE_LAST) ||
+ 		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
+@@ -2201,6 +2204,7 @@ send_middle:
  
- #define RVT_OPERATION_MAX (IB_WR_RESERVED10 + 1)
- 
-@@ -363,6 +364,8 @@ struct rvt_qp {
- 	struct rvt_sge_state s_ack_rdma_sge;
- 	struct timer_list s_timer;
- 
-+	atomic_t local_ops_pending; /* number of fast_reg/local_inv reqs */
-+
- 	/*
- 	 * This sge list MUST be last. Do not add anything below here.
- 	 */
+ 	case OP(SEND_ONLY):
+ 	case OP(SEND_ONLY_WITH_IMMEDIATE):
++	case OP(SEND_ONLY_WITH_INVALIDATE):
+ 		ret = hfi1_rvt_get_rwqe(qp, 0);
+ 		if (ret < 0)
+ 			goto nack_op_err;
+@@ -2209,12 +2213,22 @@ send_middle:
+ 		qp->r_rcv_len = 0;
+ 		if (opcode == OP(SEND_ONLY))
+ 			goto no_immediate_data;
++		if (opcode == OP(SEND_ONLY_WITH_INVALIDATE))
++			goto send_last_inv;
+ 		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
+ 	case OP(SEND_LAST_WITH_IMMEDIATE):
+ send_last_imm:
+ 		wc.ex.imm_data = ohdr->u.imm_data;
+ 		wc.wc_flags = IB_WC_WITH_IMM;
+ 		goto send_last;
++	case OP(SEND_LAST_WITH_INVALIDATE):
++send_last_inv:
++		rkey = be32_to_cpu(ohdr->u.ieth);
++		if (rvt_invalidate_rkey(qp, rkey))
++			goto no_immediate_data;
++		wc.ex.invalidate_rkey = rkey;
++		wc.wc_flags = IB_WC_WITH_INVALIDATE;
++		goto send_last;
+ 	case OP(RDMA_WRITE_LAST):
+ 		copy_last = ibpd_to_rvtpd(qp->ibqp.pd)->user;
+ 		/* fall through */
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index a89055f..84cc09a 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -378,6 +378,8 @@ static const opcode_handler opcode_handler_tbl[256] = {
+ 	[IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE]             = &hfi1_rc_rcv,
+ 	[IB_OPCODE_RC_COMPARE_SWAP]                   = &hfi1_rc_rcv,
+ 	[IB_OPCODE_RC_FETCH_ADD]                      = &hfi1_rc_rcv,
++	[IB_OPCODE_RC_SEND_LAST_WITH_INVALIDATE]      = &hfi1_rc_rcv,
++	[IB_OPCODE_RC_SEND_ONLY_WITH_INVALIDATE]      = &hfi1_rc_rcv,
+ 	/* UC */
+ 	[IB_OPCODE_UC_SEND_FIRST]                     = &hfi1_uc_rcv,
+ 	[IB_OPCODE_UC_SEND_MIDDLE]                    = &hfi1_uc_rcv,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
