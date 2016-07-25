@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 26/28] IB/hfi1: Cleanup UD packet handler.
-Date: Mon, 25 Jul 2016 13:40:28 -0700
-Message-ID: <20160725204027.4800.25840.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 27/28] IB/hfi1: Use hdr2sc function to calculate 5-bit SC
+Date: Mon, 25 Jul 2016 13:40:34 -0700
+Message-ID: <20160725204033.4800.41045.stgit@scvm10.sc.intel.com>
 References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,161 +10,89 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160725203554.4800.37248.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Cleanup hfi1_ud_rcv to not have to look at the packet
-header fields multiple times. The fields are looked up
-once and used throughout the function. Also fix sc
-computation when validating MAD packets.
+The interface is used to compute the 5-bit SC field from the
+LRH and the RHF bits. Modify code to use the interface instead.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/ud.c |   51 ++++++++++++++++-----------------------
- 1 files changed, 21 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c |    4 +---
+ drivers/infiniband/hw/hfi1/hfi.h    |    7 +------
+ drivers/infiniband/hw/hfi1/verbs.c  |    7 ++-----
+ 3 files changed, 4 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 08a9c12..852c20f 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -664,13 +664,13 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	struct hfi1_other_headers *ohdr = packet->ohdr;
- 	int opcode;
- 	u32 hdrsize = packet->hlen;
--	u32 pad;
- 	struct ib_wc wc;
- 	u32 qkey;
- 	u32 src_qp;
- 	u16 dlid, pkey;
- 	int mgmt_pkey_idx = -1;
- 	struct hfi1_ibport *ibp = &packet->rcd->ppd->ibport_data;
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	struct hfi1_ib_header *hdr = packet->hdr;
- 	u32 rcv_flags = packet->rcv_flags;
- 	void *data = packet->ebuf;
-@@ -678,31 +678,34 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 4dbadf7..8246dc7 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -392,9 +392,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
+ 			u16 rlid;
+ 			u8 svc_type, sl, sc5;
+ 
+-			sc5  = (be16_to_cpu(rhdr->lrh[0]) >> 12) & 0xf;
+-			if (rhf_dc_info(packet->rhf))
+-				sc5 |= 0x10;
++			sc5 = hdr2sc(rhdr, packet->rhf);
+ 			sl = ibp->sc_to_sl[sc5];
+ 
+ 			lqpn = be32_to_cpu(bth[1]) & RVT_QPN_MASK;
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index d22876d..df43732 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -368,11 +368,6 @@ struct hfi1_packet {
+ 	u8 etype;
+ };
+ 
+-static inline bool has_sc4_bit(struct hfi1_packet *p)
+-{
+-	return !!rhf_dc_info(p->rhf);
+-}
+-
+ /*
+  * Private data for snoop/capture support.
+  */
+@@ -1273,7 +1268,7 @@ void receive_interrupt_work(struct work_struct *work);
+ static inline int hdr2sc(struct hfi1_message_header *hdr, u64 rhf)
+ {
+ 	return ((be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf) |
+-	       ((!!(rhf & RHF_DC_INFO_SMASK)) << 4);
++	       ((!!(rhf_dc_info(rhf))) << 4);
+ }
+ 
+ static inline u16 generate_jkey(kuid_t uid)
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 67810e3..5265d16 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1743,8 +1743,7 @@ void hfi1_cnp_rcv(struct hfi1_packet *packet)
  	struct rvt_qp *qp = packet->qp;
- 	bool has_grh = rcv_flags & HFI1_HAS_GRH;
- 	u8 sc5 = hdr2sc((struct hfi1_message_header *)hdr, packet->rhf);
-+	u32 bth1;
-+	u8 sl_from_sc, sl;
-+	u16 slid;
-+	u8 extra_bytes;
+ 	u32 lqpn, rqpn = 0;
+ 	u16 rlid = 0;
+-	u8 sl, sc5, sc4_bit, svc_type;
+-	bool sc4_set = has_sc4_bit(packet);
++	u8 sl, sc5, svc_type;
  
- 	qkey = be32_to_cpu(ohdr->u.ud.deth[0]);
- 	src_qp = be32_to_cpu(ohdr->u.ud.deth[1]) & RVT_QPN_MASK;
- 	dlid = be16_to_cpu(hdr->lrh[1]);
-+	bth1 = be32_to_cpu(ohdr->bth[1]);
-+	slid = be16_to_cpu(hdr->lrh[3]);
-+	pkey = (u16)be32_to_cpu(ohdr->bth[0]);
-+	sl = (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xf;
-+	extra_bytes = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+	extra_bytes += (SIZE_OF_CRC << 2);
-+	sl_from_sc = ibp->sc_to_sl[sc5];
- 
--	/*
--	 * The opcode is in the low byte when its in network order
--	 * (top byte when in host order).
--	 */
- 	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
- 	opcode &= 0xff;
- 
--	pkey = (u16)be32_to_cpu(ohdr->bth[0]);
--
- 	process_ecn(qp, packet, (opcode != IB_OPCODE_CNP));
--
- 	/*
- 	 * Get the number of bytes the message was padded by
- 	 * and drop incomplete packets.
- 	 */
--	pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
--	if (unlikely(tlen < (hdrsize + pad + 4)))
-+	if (unlikely(tlen < (hdrsize + extra_bytes)))
- 		goto drop;
- 
--	tlen -= hdrsize + pad + 4;
-+	tlen -= hdrsize + extra_bytes;
- 
- 	/*
- 	 * Check that the permissive LID is only used on QP0
-@@ -713,10 +716,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 			     hdr->lrh[3] == IB_LID_PERMISSIVE))
- 			goto drop;
- 		if (qp->ibqp.qp_num > 1) {
--			struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
--			u16 slid;
--
--			slid = be16_to_cpu(hdr->lrh[3]);
- 			if (unlikely(rcv_pkey_check(ppd, pkey, sc5, slid))) {
- 				/*
- 				 * Traps will not be sent for packets dropped
-@@ -725,12 +724,9 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 				 * IB spec (release 1.3, section 10.9.4)
- 				 */
- 				hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY,
--					       pkey,
--					       (be16_to_cpu(hdr->lrh[0]) >> 4) &
--						0xF,
-+					       pkey, sl,
- 					       src_qp, qp->ibqp.qp_num,
--					       be16_to_cpu(hdr->lrh[3]),
--					       be16_to_cpu(hdr->lrh[1]));
-+					       slid, dlid);
- 				return;
- 			}
- 		} else {
-@@ -740,22 +736,18 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 				goto drop;
- 		}
- 		if (unlikely(qkey != qp->qkey)) {
--			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey,
--				       (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey, sl,
- 				       src_qp, qp->ibqp.qp_num,
--				       be16_to_cpu(hdr->lrh[3]),
--				       be16_to_cpu(hdr->lrh[1]));
-+				       slid, dlid);
- 			return;
- 		}
- 		/* Drop invalid MAD packets (see 13.5.3.1). */
- 		if (unlikely(qp->ibqp.qp_num == 1 &&
--			     (tlen > 2048 ||
--			      (be16_to_cpu(hdr->lrh[0]) >> 12) == 15)))
-+			     (tlen > 2048 || (sc5 == 0xF))))
- 			goto drop;
- 	} else {
- 		/* Received on QP0, and so by definition, this is an SMP */
- 		struct opa_smp *smp = (struct opa_smp *)data;
--		u16 slid = be16_to_cpu(hdr->lrh[3]);
- 
- 		if (opa_smp_check(ibp, pkey, sc5, qp, slid, smp))
- 			goto drop;
-@@ -838,7 +830,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	    qp->ibqp.qp_type == IB_QPT_SMI) {
- 		if (mgmt_pkey_idx < 0) {
- 			if (net_ratelimit()) {
--				struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 				struct hfi1_devdata *dd = ppd->dd;
- 
- 				dd_dev_err(dd, "QP type %d mgmt_pkey_idx < 0 and packet not dropped???\n",
-@@ -851,8 +842,8 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		wc.pkey_index = 0;
+ 	switch (packet->qp->ibqp.qp_type) {
+ 	case IB_QPT_UC:
+@@ -1767,9 +1766,7 @@ void hfi1_cnp_rcv(struct hfi1_packet *packet)
+ 		return;
  	}
  
--	wc.slid = be16_to_cpu(hdr->lrh[3]);
--	wc.sl = ibp->sc_to_sl[sc5];
-+	wc.slid = slid;
-+	wc.sl = sl_from_sc;
+-	sc4_bit = sc4_set << 4;
+-	sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-	sc5 |= sc4_bit;
++	sc5 = hdr2sc((struct hfi1_message_header *)hdr, packet->rhf);
+ 	sl = ibp->sc_to_sl[sc5];
+ 	lqpn = qp->ibqp.qp_num;
  
- 	/*
- 	 * Save the LMC lower bits if the destination LID is a unicast LID.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
