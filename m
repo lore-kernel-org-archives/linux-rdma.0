@@ -1,90 +1,68 @@
-From: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: mlx5 driver load error
-Date: Tue, 26 Jul 2016 10:29:42 -0700
-Message-ID: <CAF1ivSbYMxe8CE87KrzM9SRV7UD030chhfNPzMxd=ODq48zgvw@mail.gmail.com>
-References: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
- <20160725070059.GA20674@leon.nu> <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ@mail.gmail.com>
- <c8b50608-12cd-25ac-2dac-fadf06d5a2e1@mellanox.com> <CAF1ivSZ=a46t7HFxBDKv5FdW+NPeXqJqi3bCunrVDh+_BwkYog@mail.gmail.com>
- <232a2b7a-8832-4baf-f595-73c39cc5d3df@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [infiniband-diags commit]infiniband-diags - Infiniband
+ diagnostic tools branch, master, updated. 1.5.9-223-g1f2f062
+Date: Tue, 26 Jul 2016 17:54:12 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E22F47D1D@CRSMSX101.amr.corp.intel.com>
+References: <20160726174433.A9C6E2246700@flatbed.openfabrics.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <232a2b7a-8832-4baf-f595-73c39cc5d3df-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20160726174433.A9C6E2246700-3fL9S5w5tYwbbOeZqR+qftTWuKd1BNJ1@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "chu11-i2BcT+NCU+M@public.gmane.org" <chu11-i2BcT+NCU+M@public.gmane.org>, "meier3-i2BcT+NCU+M@public.gmane.org" <meier3-i2BcT+NCU+M@public.gmane.org>, "foraker1-i2BcT+NCU+M@public.gmane.org" <foraker1-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 25, 2016 at 11:49 PM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->
-> On 7/25/2016 11:40 PM, Ming Lin wrote:
->>
->> On Mon, Jul 25, 2016 at 2:01 AM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->>>
->>> On 7/25/2016 10:28 AM, Ming Lin wrote:
->>>>
->>>>
->>>> On Mon, Jul 25, 2016 at 12:00 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>> wrote:
->>>>>
->>>>>
->>>>> On Thu, Jul 21, 2016 at 03:54:31PM -0700, Ming Lin wrote:
->>>>>>
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver
->>>>>> doesn't
->>>>>> work.
->>>>>>
->>>>>> root@host:~# lspci |grep -i mellanox
->>>>>> 03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family
->>>>>> [ConnectX-4]
->>>>>> 03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family
->>>>>> [ConnectX-4]
->>>>>>
->>>>>> root@host:~# dmesg |grep -i mlx5
->>>>>> [    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
->>>>>> [    4.024478] mlx5_core 0000:03:00.0: enable hca failed
->>>>>> [    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error
->>>>>> code -5
->>>>>> [    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
->>>>>> [    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
->>>>>> [    4.410366] mlx5_core 0000:03:00.1: enable hca failed
->>>>>> [    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error
->>>>>> code -5
->>>
->>>
->>> Hi Ming,
->>>
->>> Did you upgrade the Firmware as well?
->>
->>
->> It works after upgrading firmware.
->
-> Hi Ming,
->
-> I didn't mean that you need to upgrade the firmware to make this work.
-> I wanted to understand if alongside with driver upgrade you did a firmware
-> upgrade.
-
-The original firmware is 12.12.1100.
-
-12.12.1100 + v4.4 kernel: not work
-12.12.1100 + v4.7-rc2 kernel: not work
-
-12.16.1020 + v4.4 kernel: works
-12.16.1020 + v4.7-rc2: works
-
->
->>
->> Thanks.
->>
->>> Did it work before the kernel upgrade?
->>> Do you work in pass-through mode?
->>> Does cold reboot resolve the issue?
->>>
->>> Thanks
+SSdtIGdldHRpbmcgcmVhZHkgdG8gZG8gYSByZWxlYXNlIG9mIGluZmluaWJhbmQtZGlhZ3MuDQoN
+CkhhbCBJIGJlbGlldmUgSSBoYXZlIGV2ZXJ5dGhpbmcgeW91IGhhdmUgcG9zdGVkIGJ1dCBJIHdh
+bnRlZCB0byBtYWtlIHN1cmUgSSBoYXZlIG5vdCBtaXNzZWQgYW55dGhpbmcuDQoNCklzIHRoZXJl
+IGFueXRoaW5nIG91dHN0YW5kaW5nIEkgbWF5IGhhdmUgbWlzc2VkPyAgSGVyZSBpcyB0aGUgbG9n
+IHNpbmNlIDEuNi42Lg0KDQoqIHJkbWEtbmRkOiBBZGQgc3lzdGVtZCBzdXBwb3J0DQoqIGluZmlu
+aWJhbmQtZGlhZ3M6IEFkZCBTd2l0Y2gtSUIyIHN1cHBvcnQgdG8gZGV2aWNlIHdoaXRlIGxpc3Rz
+DQoqIHNhcXVlcnkuYzogRml4IGNoYW5naW5nIHFvc19jbGFzcyBmbGFnIHZhbHVlIHRvIG5ldHdv
+cmsgb3JkZXIgdHdpY2UNCiogaWJzZW5kdHJhcC5jOiBFbGltaW5hdGUgdW51c2VkIHBhcmFtZXRl
+ciBmcm9tIHNlbmRfdHJhcA0KKiBpYnBvcnRzdGF0ZS5jOiBGaXggdW5zaWduZWQgY29tcGFyaXNv
+biB3YXJuaW5ncw0KKiBSZW1vdmUgdW51c2VkIHBpc2l6ZSBwYXJhbWV0ZXIgZnJvbSBkdW1wX3Bv
+cnRpbmZvIGluIGliZGlhZ19jb21tb24NCiogaWJxdWVyeWVycm9ycy5jOiBSZW1vdmVkIHVudXNl
+ZCBwYXNzZWQgcGFyYW1ldGVycyB0byBwcmludF9wb3J0X2NvbmZpZyBhbmQgcXVlcnlfYW5kX2R1
+bXANCiogaWJjYWNoZWVkaXQuYzogRWxpbWluYXRlIHVudXNlZCBwYXJhbWV0ZXIgcGFzc2VkIHRv
+IHVwZGF0ZV9zd2l0Y2hwb3J0Z3VpZHMNCg0KDQpJcmENCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KPiBGcm9tOiBJcmEgV2VpbnkgKEludGVsKSBbbWFpbHRvOmlyYXdlaW55QG9wZW5m
+YWJyaWNzLm9yZ10NCj4gU2VudDogVHVlc2RheSwgSnVseSAyNiwgMjAxNiAxMDo0NSBBTQ0KPiBU
+bzogV2VpbnksIElyYSA8aXJhLndlaW55QGludGVsLmNvbT47IGhhbC5yb3NlbnN0b2NrQGdtYWls
+LmNvbTsNCj4gY2h1MTFAbGxubC5nb3Y7IG1laWVyM0BsbG5sLmdvdjsgZm9yYWtlcjFAbGxubC5n
+b3YNCj4gU3ViamVjdDogW2luZmluaWJhbmQtZGlhZ3MgY29tbWl0XWluZmluaWJhbmQtZGlhZ3Mg
+LSBJbmZpbmliYW5kIGRpYWdub3N0aWMNCj4gdG9vbHMgYnJhbmNoLCBtYXN0ZXIsIHVwZGF0ZWQu
+IDEuNS45LTIyMy1nMWYyZjA2Mg0KPiANCj4gVGhpcyBpcyBhbiBhdXRvbWF0ZWQgZW1haWwgZnJv
+bSB0aGUgZ2l0IGhvb2tzL3Bvc3QtcmVjZWl2ZSBzY3JpcHQuIEl0IHdhcw0KPiBnZW5lcmF0ZWQg
+YmVjYXVzZSBhIHJlZiBjaGFuZ2Ugd2FzIHB1c2hlZCB0byB0aGUgcmVwb3NpdG9yeSBjb250YWlu
+aW5nIHRoZQ0KPiBwcm9qZWN0ICJpbmZpbmliYW5kLWRpYWdzIC0gSW5maW5pYmFuZCBkaWFnbm9z
+dGljIHRvb2xzIi4NCj4gDQo+IFRoZSBicmFuY2gsIG1hc3RlciBoYXMgYmVlbiB1cGRhdGVkDQo+
+ICAgICAgICB2aWEgIDFmMmYwNjI3OTJlNzkxNDBmYWNlYzkxYWRkMzFmMWY5ZjBkODVmMTAgKGNv
+bW1pdCkNCj4gICAgICAgZnJvbSAgODQ2YjMxY2U3ZWI5M2M2NzJkOTllMzg5ZDAxMTI0NWJhYjU4
+NjExYyAoY29tbWl0KQ0KPiANCj4gVGhvc2UgcmV2aXNpb25zIGxpc3RlZCBhYm92ZSB0aGF0IGFy
+ZSBuZXcgdG8gdGhpcyByZXBvc2l0b3J5IGhhdmUgbm90DQo+IGFwcGVhcmVkIG9uIGFueSBvdGhl
+ciBub3RpZmljYXRpb24gZW1haWw7IHNvIHdlIGxpc3QgdGhvc2UgcmV2aXNpb25zIGluIGZ1bGws
+DQo+IGJlbG93Lg0KPiANCj4gLSBMb2cgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gY29tbWl0IDFmMmYwNjI3OTJlNzkx
+NDBmYWNlYzkxYWRkMzFmMWY5ZjBkODVmMTANCj4gQXV0aG9yOiBJcmEgV2VpbnkgPGlyYS53ZWlu
+eUBpbnRlbC5jb20+DQo+IERhdGU6ICAgU3VuIE1heSAxNSAwMTo0MDowOCAyMDE2IC0wNDAwDQo+
+IA0KPiAgICAgcmRtYS1uZGQ6IEFkZCBzeXN0ZW1kIHN1cHBvcnQNCj4gDQo+ICAgICBBbHNvIGNs
+ZWFuIHVwIHByZS9wb3N0IGluc3RhbGwgc2NyaXB0cyBmb3Igc3BlYyBmaWxlcy4NCj4gDQo+ICAg
+ICBUbyBpbnN0YWxsIHRvIGEgc3BlY2lmaWMgZGlyZWN0b3J5IHVzZSAtLXdpdGgtc3lzdGVtZHN5
+c3RlbXVuaXRkaXIuDQo+IA0KPiAgICAgU2lnbmVkLW9mZi1ieTogSXJhIFdlaW55IDxpcmEud2Vp
+bnlAaW50ZWwuY29tPg0KPiANCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gDQo+IFN1bW1hcnkgb2YgY2hh
+bmdlczoNCj4gIE1ha2VmaWxlLmFtICAgICAgICAgICAgICB8ICA0ICsrKysNCj4gIGNvbmZpZ3Vy
+ZS5hYyAgICAgICAgICAgICB8IDI1ICsrKysrKysrKysrKysrKysrKysrKysrKy0NCj4gIGV0Yy9y
+ZG1hLW5kZC5zZXJ2aWNlLmluICB8IDEyICsrKysrKysrKysrKyAgaW5maW5pYmFuZC1kaWFncy5z
+cGVjLmluIHwgMzINCj4gKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0NCj4gIDQgZmls
+ZXMgY2hhbmdlZCwgNTYgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pICBjcmVhdGUgbW9k
+ZSAxMDA2NDQNCj4gZXRjL3JkbWEtbmRkLnNlcnZpY2UuaW4NCj4gDQo+IA0KPiBob29rcy9wb3N0
+LXJlY2VpdmUNCj4gLS0NCj4gaW5maW5pYmFuZC1kaWFncyAtIEluZmluaWJhbmQgZGlhZ25vc3Rp
+YyB0b29scw0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
