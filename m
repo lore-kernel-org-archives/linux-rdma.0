@@ -1,43 +1,42 @@
-From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Subject: [PATCH 2/2] ipoib: Ratelimit messages which can flood a host.
-Date: Tue, 26 Jul 2016 17:38:49 +0300
-Message-ID: <1469543929-17659-2-git-send-email-kernel@kyup.com>
-References: <1469543929-17659-1-git-send-email-kernel@kyup.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting today -
+ 7/26/2016 at 11:00PDT
+Date: Tue, 26 Jul 2016 15:08:51 +0000
+Message-ID: <VI1PR0501MB218921EB52A6BBF6C5790D60B10E0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469543929-17659-1-git-send-email-kernel-6AxghH7DbtA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In case an infiniband outtage occurs the messages modified
-in this patchset can flood the host with a rate of 1 message per
-ms which is a lot. Using the ratelimited version of ipoib_warn
-fixes the issue by limiting at most 10 messages in 5 seconds.
+Agenda:
+- Short walkthrough of Matan's v2 patches
+- Continue FD per-device discussion
+- Type order registration
 
-Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Regards,
+--Liran
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 7d3281866ffc..dd5b4afbc00b 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1034,9 +1034,9 @@ static void ipoib_timeout(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 
--	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
-+	ipoib_warn_rl(priv, "transmit timeout: latency %d msecs\n",
- 		   jiffies_to_msecs(jiffies - dev->trans_start));
--	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
-+	ipoib_warn_rl(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
- 		   netif_queue_stopped(dev),
- 		   priv->tx_head, priv->tx_tail);
- 	/* XXX reset QP, etc. */
--- 
-2.5.0
+Concall details
+===========
+JOIN WEBEX MEETING
+https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+
+JOIN BY PHONE
+1-80-9453550 Israel toll free
+1-855-299-5224 USA/Canada toll free
+Access code: 702 830 424
+
+Global call-in numbers:
+https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
+
+Toll-free calling restrictions:
+http://www.webex.com/pdf/tollfree_restrictions.pdf
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
