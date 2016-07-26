@@ -1,61 +1,71 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] ipoib: Ratelimit messages which can flood a host.
-Date: Tue, 26 Jul 2016 21:00:22 +0300
-Message-ID: <20160726180021.GA6144@yuval-lap.uk.oracle.com>
-References: <1469543929-17659-1-git-send-email-kernel@kyup.com>
- <1469543929-17659-2-git-send-email-kernel@kyup.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH v2] net/mlx5_core/health: Remove deprecated
+ create_singlethread_workqueue
+Date: Tue, 26 Jul 2016 21:11:07 +0300
+Message-ID: <20160726181107.GB4628@leon.nu>
+References: <20160717051327.GA20674@leon.nu>
+ <20160726170824.GA10721@Karyakshetra>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aVD9QWMuhilNxW9f"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1469543929-17659-2-git-send-email-kernel-6AxghH7DbtA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+In-Reply-To: <20160726170824.GA10721@Karyakshetra>
+Sender: netdev-owner@vger.kernel.org
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Matan Barak <matanb@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 26, 2016 at 05:38:49PM +0300, Nikolay Borisov wrote:
-> In case an infiniband outtage occurs the messages modified
-> in this patchset can flood the host with a rate of 1 message per
 
-s/patchset/patch
+--aVD9QWMuhilNxW9f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ms which is a lot. Using the ratelimited version of ipoib_warn
-> fixes the issue by limiting at most 10 messages in 5 seconds.
-> 
-> Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+On Tue, Jul 26, 2016 at 10:38:24PM +0530, Bhaktipriya Shridhar wrote:
+> The workqueue health->wq was used as per device private health thread.
+> This was done to perform delayed work.
+>=20
+> The workqueue has a single workitem(&health->work) and
+> hence doesn't require ordering. It is involved in handling the health of
+> the device and is not being used on a memory reclaim path.
+> Hence, the singlethreaded workqueue has been replaced with the use of
+> system_wq.
+>=20
+> Work item has been flushed in mlx5_health_cleanup() to ensure that
+> there are no pending tasks while disconnecting the driver.
+>=20
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 7d3281866ffc..dd5b4afbc00b 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1034,9 +1034,9 @@ static void ipoib_timeout(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
->  
-> -	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
-> +	ipoib_warn_rl(priv, "transmit timeout: latency %d msecs\n",
->  		   jiffies_to_msecs(jiffies - dev->trans_start));
-> -	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
-> +	ipoib_warn_rl(priv, "queue stopped %d, tx_head %u, tx_tail %u\n",
+>  Changes in v2:
+> 	-Updated commit description as per the feedback received.
+>=20
+>  drivers/net/ethernet/mellanox/mlx5/core/health.c | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 
-So this is just to hide the hide the problem, the real question is what is
-causing this to happen a lot.
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
 
->  		   netif_queue_stopped(dev),
->  		   priv->tx_head, priv->tx_tail);
->  	/* XXX reset QP, etc. */
-> -- 
-> 2.5.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--aVD9QWMuhilNxW9f
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXl6e7AAoJEORje4g2clinFjMP/inmr6U+sMdyDf7WmGuSMjg3
+vEnx3oXkSM0Vv+OIA6MxH5wYZgERdh7UbzdLJTOjIBWx36KwlfC4RyK80RjveVVn
+ggTIu9S8wgcWwAw9yknFPmQhSr4oA9E1ZwCdhsvPsdxjtPH8fQIdFe08JRlijKqj
+OKCD2SQixLJjkMUSQAQlkL8kmLXPSPsYHLzQf9wrPzztIE6vU8Et/NkXCCAB8D0K
+u5CZ6qD6491wNwahuJ8Ouisp2Q+f7j2sfF0ekwiDW+gQ/dTUQen/Tlyoc0VSBucI
+HdflJ7xktod+7gZMxaN4ZbS713xMCxgcnhn/HvkcbHuUt74k8EnL0VJGzXqikAoL
+p3J4K0HoUecv/E+o6t3NESlK3e760i7qpTuUr41U8qG7vNfL9hfEIDJLGJ1dj2z4
+Vev5EgDGIcemL35gS13nzSIdRwyZezG4/2077YYQ9OCWazL/smI8kVPC4/hIUQJS
+IWW5+/UOOjC1o3qOBAzDEIzuIwMF4sbVj5x7pe7WSsMjSisvgTzmJttcp2qnFtXz
+4iCpT4R+kiS05AEFbgvk4Xg3uD6hqbDDukyCBB2CKRbH6dmqSjkqv55VSyD+SeVS
+iL7aZnZq+pTl2Kcm77U+xcBsGl9vH6hp4FEKk+czD4vr5YLs/Ubb+T0azLbGCUp8
+848jfEiWZoQp6bbSsIyb
+=c4pD
+-----END PGP SIGNATURE-----
+
+--aVD9QWMuhilNxW9f--
