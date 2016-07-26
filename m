@@ -1,91 +1,72 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 06/15] IB/pvrdma: Add virtual device RDMA structures
-Date: Tue, 26 Jul 2016 08:46:29 +0300
-Message-ID: <20160726054629.GF20674@leon.nu>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-7-git-send-email-aditr@vmware.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx5 driver load error
+Date: Tue, 26 Jul 2016 09:49:08 +0300
+Message-ID: <232a2b7a-8832-4baf-f595-73c39cc5d3df@mellanox.com>
+References: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
+ <20160725070059.GA20674@leon.nu>
+ <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ@mail.gmail.com>
+ <c8b50608-12cd-25ac-2dac-fadf06d5a2e1@mellanox.com>
+ <CAF1ivSZ=a46t7HFxBDKv5FdW+NPeXqJqi3bCunrVDh+_BwkYog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="slMCvwAS3D50yFKj"
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1468352205-9137-7-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAF1ivSZ=a46t7HFxBDKv5FdW+NPeXqJqi3bCunrVDh+_BwkYog-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---slMCvwAS3D50yFKj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 7/25/2016 11:40 PM, Ming Lin wrote:
+> On Mon, Jul 25, 2016 at 2:01 AM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> On 7/25/2016 10:28 AM, Ming Lin wrote:
+>>>
+>>> On Mon, Jul 25, 2016 at 12:00 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> wrote:
+>>>>
+>>>> On Thu, Jul 21, 2016 at 03:54:31PM -0700, Ming Lin wrote:
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver doesn't
+>>>>> work.
+>>>>>
+>>>>> root@host:~# lspci |grep -i mellanox
+>>>>> 03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family
+>>>>> [ConnectX-4]
+>>>>> 03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family
+>>>>> [ConnectX-4]
+>>>>>
+>>>>> root@host:~# dmesg |grep -i mlx5
+>>>>> [    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
+>>>>> [    4.024478] mlx5_core 0000:03:00.0: enable hca failed
+>>>>> [    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error
+>>>>> code -5
+>>>>> [    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
+>>>>> [    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
+>>>>> [    4.410366] mlx5_core 0000:03:00.1: enable hca failed
+>>>>> [    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error
+>>>>> code -5
+>>
+>> Hi Ming,
+>>
+>> Did you upgrade the Firmware as well?
+>
+> It works after upgrading firmware.
+Hi Ming,
 
-On Tue, Jul 12, 2016 at 12:36:36PM -0700, Adit Ranadive wrote:
-> This patch adds the various Verbs structures that we support in the
-> virtual RDMA device. We have re-mapped the ones from the RDMA core stack
-> to make sure we can maintain compatibility with our backend.
->=20
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450 +++++++++++++++++++=
-++++++
->  1 file changed, 450 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
->=20
-
-=2E..
-
-> +enum pvrdma_wc_opcode {
-> +	PVRDMA_WC_SEND,
-
-=2E..
-
-> +	PVRDMA_WC_RECV_RDMA_WITH_IMM
-> +};
-
-=2E...
-> +
-> +enum pvrdma_wc_flags {
-> +	PVRDMA_WC_GRH			=3D 1 << 0,
-=2E...
-
-> +	PVRDMA_WC_FLAGS_MAX		=3D PVRDMA_WC_WITH_VLAN,
-> +};
-> +
-
-Sometimes you put "," at the last line of enums, sometimes you don't.
-Can you please be more consistent?
-
-Thanks.
-
---slMCvwAS3D50yFKj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXlvk1AAoJEORje4g2clinbrkP/j7tDth8eeHYoEjeQreBP+Cu
-Lw6grWb8FfCuBHds2fCVoJsQOh1C6EuqjcBGyMRJOZKF8k+ChTMX2Rhnr0w5Zknc
-vkwN5zwyjwhYfQDTjFi/vFAqXfJkJKkAqVDEHD8zzsy3MOzvDfBacdE2Iv6SsThz
-RyBg3v/AKAanp7o1zkybWa14ZRZoYAMF5Y43qpk/aUvzFQR1dM955bdIu/PrHOTQ
-TUTp8cr2PO/JXwo1wYEpWhJ6KJUd7cXQAa9NeC8IGvVHBD4gf70OXrz/4R0yvwYY
-Oc9j9HO4yJ+Mo4h9JPDi7LLbMTu31dVeEEiR5uGZnB1CqPFln/i9Ai1UTVT69f1L
-dfFkpMn8Vw8WQhOMj/CAHGudP6ytzuqEBZHTetk4rnMyb8vYeozCFwuHYAUDzzsz
-cI759aPQdJEHdfGLFJVqBG6GH3wlkweC1pfcu6ifSOKTXoPGWi5hta/5n9oHR4xH
-KRXcgqWXZCq1s31M22ZQ9LCVkKN865Pv94BxKGtoyrh6+Qgwb6pXS5hqOeUfUXwe
-kfpXnW4fR5H8ReaPuD62BiQLJBlKmh6cn3OpYyM6M/ugIwBeNTXxUuo392o8EO7v
-SlIrFnFhaugKwr+0IMJzJXcBloGAydELmE7ycElCmUcGjwOUD6J517KbH7l38tLa
-StE/DA6xYNic7nEgX3Oc
-=uiWu
------END PGP SIGNATURE-----
-
---slMCvwAS3D50yFKj--
+I didn't mean that you need to upgrade the firmware to make this work.
+I wanted to understand if alongside with driver upgrade you did a 
+firmware upgrade.
+>
+> Thanks.
+>
+>> Did it work before the kernel upgrade?
+>> Do you work in pass-through mode?
+>> Does cold reboot resolve the issue?
+>>
+>> Thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
