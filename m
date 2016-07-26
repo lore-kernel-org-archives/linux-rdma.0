@@ -1,76 +1,92 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx5 driver load error
-Date: Mon, 25 Jul 2016 12:01:10 +0300
-Message-ID: <c8b50608-12cd-25ac-2dac-fadf06d5a2e1@mellanox.com>
-References: <CAF1ivSa1vtCzGX7tkyTwxQr7zbSZ-e=p8vJPFT=DANS7ZaE_eA@mail.gmail.com>
- <20160725070059.GA20674@leon.nu>
- <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 02/28] IB/hfi1: Fix to fully initialize send context area
+Date: Tue, 26 Jul 2016 08:26:57 +0300
+Message-ID: <20160726052657.GD20674@leon.nu>
+References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
+ <20160725203759.4800.2358.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5PPnVwj6ulmYFu5t"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAF1ivSZarECVv9J2epbtmhgD9txfhZXGRiAnCpVPh+rP4ib3PQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160725203759.4800.2358.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/25/2016 10:28 AM, Ming Lin wrote:
-> On Mon, Jul 25, 2016 at 12:00 AM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->> On Thu, Jul 21, 2016 at 03:54:31PM -0700, Ming Lin wrote:
->>> Hi,
->>>
->>> I build k.o/for-4.8 branch(commit fb92d8fb1b9). But mlx5 driver doesn't work.
->>>
->>> root@host:~# lspci |grep -i mellanox
->>> 03:00.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
->>> 03:00.1 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
->>>
->>> root@host:~# dmesg |grep -i mlx5
->>> [    3.833348] mlx5_core 0000:03:00.0: firmware version: 12.12.1100
->>> [    4.024478] mlx5_core 0000:03:00.0: enable hca failed
->>> [    4.260086] mlx5_core 0000:03:00.0: mlx5_load_one failed with error code -5
->>> [    4.333568] mlx5_core: probe of 0000:03:00.0 failed with error -5
->>> [    4.339977] mlx5_core 0000:03:00.1: firmware version: 12.12.1100
->>> [    4.410366] mlx5_core 0000:03:00.1: enable hca failed
->>> [    4.562862] mlx5_core 0000:03:00.1: mlx5_load_one failed with error code -5
-Hi Ming,
 
-Did you upgrade the Firmware as well?
-Did it work before the kernel upgrade?
-Do you work in pass-through mode?
-Does cold reboot resolve the issue?
+--5PPnVwj6ulmYFu5t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks
+On Mon, Jul 25, 2016 at 01:38:01PM -0700, Dennis Dalessandro wrote:
+> From: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>=20
+> While handling buffer control MAD, partially initialized
+> dd->kernel_send_context area may cause potential dereference
+> of uninitialized pointers. Fix by using kzalloc_node()
+> instead of kmalloc_node().
+>=20
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/hfi1/pio.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi=
+1/pio.c
+> index d402245..a99fcca 100644
+> --- a/drivers/infiniband/hw/hfi1/pio.c
+> +++ b/drivers/infiniband/hw/hfi1/pio.c
+> @@ -1956,7 +1956,7 @@ int init_pervl_scs(struct hfi1_devdata *dd)
+>  	hfi1_init_ctxt(dd->vld[15].sc);
+>  	dd->vld[15].mtu =3D enum_to_mtu(OPA_MTU_2048);
+> =20
+> -	dd->kernel_send_context =3D kmalloc_node(dd->num_send_contexts *
+> +	dd->kernel_send_context =3D kzalloc_node(dd->num_send_contexts *
+>  					sizeof(struct send_context *),
+>  					GFP_KERNEL, dd->node);
 
->>> [    4.570046] mlx5_core: probe of 0000:03:00.1 failed with error -5
->>>
->>> Could you help on this?
->>
->> Hi Ming,
->> Sorry for slow response,
->
-> Hi Leon,
->
->>
->> We tested this commit with this firmware version to eliminate the case
->> that it is related to FW and it works.
->>
->> Can you please post your "grep MLX5 .config" output?
->
-> $ grep MLX5 .config
-> CONFIG_MLX5_CORE=m
-> # CONFIG_MLX5_CORE_EN is not set
-> CONFIG_MLX5_INFINIBAND=m
->
->
->>
->> Thanks
+Dennis,
+Don't you want to check kzalloc_node execution success
+prior to use dd->kernel_send_context?
+
+>  	dd->kernel_send_context[0] =3D dd->vld[15].sc;
+>=20
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+
+--5PPnVwj6ulmYFu5t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXlvShAAoJEORje4g2clinEUwP/208gPkVwB4AJPuPlOq8PAXV
+dVFwW5vFVsXJqZ8RaJaOVGR7rzibOT0evkCtQKvu/sUWgUicDP7WzJoH9pOctkNs
+GfQHFwh8/905vuS12l8qZ4DGpFCHcqNIVdX+xdbaKRYJqBGekSjNEYKDqjvsB+mK
+jitHxPfhjb3U5BAngAGOkRKUtI6+DNXXKAPKCRPjysna5tgfftkvptAAtjyUAC+H
+6Gd+UiyTDqi0Xa6Q4207lah4FSlr6hdlyOzSnyYpwYfS/wnX8VdbSWY8ZSnDS1Lh
+Q0i/yauJjKkE6yPUrOBYhq4JguUuqqgo74WROrOEViTjqs/JiW8YjPhLi8KF87Be
+qIdka5AxvPkdRmX2bgPOPJqZwd4Ipr0NxAWkU4OIxkEk0AsG7OOqJM7qu+4i5SSS
+bv7nmJqGW+Pl8vuFjmk2L/PuQ4DHFbrcGWa3wJtJ1ocw8B+aaM3QzHMmJ+b48KZw
+wyQ5cQjpj9zWTZuZomhDuyKIEp6rFuNBB3v13MQbV3gUlhtUWpVYQu4Oizh5NWvp
+iNW1eO9bnp246MKojnRO+4bl6lycU4wqFCTdkfyE0S/0CVkvVaK3l530O1fKHiDD
+v9+PTnP8zmlwgGbZet0MhZWNdh62XrzENG9O2vMAFNG6rA4kaYc/YyTurGI37VUg
+K9p+15SWJzDE72xSzKkQ
+=lmJn
+-----END PGP SIGNATURE-----
+
+--5PPnVwj6ulmYFu5t--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
