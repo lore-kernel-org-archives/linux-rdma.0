@@ -1,34 +1,42 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libmlx5 0/6] libmlx5: fix various coverity/clang issues
-Date: Wed, 27 Jul 2016 15:17:21 -0400
-Message-ID: <1469647047-7544-1-git-send-email-jarod@redhat.com>
+Subject: [PATCH libmlx5 2/6] fix coverity buffer overrun warning
+Date: Wed, 27 Jul 2016 15:17:23 -0400
+Message-ID: <1469647047-7544-3-git-send-email-jarod@redhat.com>
+References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1469647047-7544-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Part of Red Hat's release process involves running packages through a
-scan in coverity, and inspecting anything that pops up. Well, with version
-1.2.1, coverity was a bit chatty, so I started investigating, and have
-attempted to come up with fixes for at least most of what it reported.
-
-Jarod Wilson (6):
-  fix size in malloc of qp->sq.wr_data
-  fix coverity buffer overrun warning
-  fix buffer overrun copying inline header
-  fix check of mlx5_store_uidx return
-  fix alloc of mlx5_resource table
-  fix undefined uuar_index value assignment
+In set_umr_data_seg, there's a union between a 16-byte struct and a
+64-byte array, named data. The code then makes a memset() call on the
+struct that is sizeof(array) - sizeof(struct) long, which results in
+writing 48 bytes to a 16 byte container. Technically, we know this is
+actually fine, because of the union, but to silence the warning, we can
+just do the memset on the array instead. Same address, same result, but no
+warning spew from coverity.
 
 CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- src/mlx5.c  |  2 +-
- src/qp.c    |  2 +-
- src/verbs.c | 14 +++++++++-----
- src/wqe.h   |  2 +-
- 4 files changed, 12 insertions(+), 8 deletions(-)
-
+diff --git a/src/qp.c b/src/qp.c
+index 51e1176..8bb66be 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -426,7 +426,7 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
+ 	data->klm.mkey = htonl(bind_info->mr->lkey);
+ 	data->klm.address = htonll(bind_info->addr);
+ 
+-	memset(&data->klm + 1, 0, sizeof(data->reserved) -
++	memset(&data->reserved + 1, 0, sizeof(data->reserved) -
+ 	       sizeof(data->klm));
+ 
+ 	*seg += sizeof(*data);
 -- 
 1.8.3.1
 
