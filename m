@@ -1,119 +1,158 @@
-From: KY Srinivasan <kys@microsoft.com>
+From: KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 Subject: RE: [PATCH 1/1] Drivers: infiniband: hw: vmbus-nd: NetworkDirect
  driver for Linux
-Date: Wed, 27 Jul 2016 22:32:36 +0000
-Message-ID: <DM2PR0301MB0783A488E36D1BFAC43A4704A00F0@DM2PR0301MB0783.namprd03.prod.outlook.com>
+Date: Wed, 27 Jul 2016 23:31:03 +0000
+Message-ID: <DM2PR0301MB0783273A01F94AA980179CA1A00F0@DM2PR0301MB0783.namprd03.prod.outlook.com>
 References: <1469585137-31229-1-git-send-email-kys@exchange.microsoft.com>
- <20160727042521.GD4628@leon.nu>
+ <20160727044047.GA20509@kroah.com>
+ <DM2PR0301MB0783CDD854EAA40B5739468FA00F0@DM2PR0301MB0783.namprd03.prod.outlook.com>
+ <20160727212543.GA7821@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20160727042521.GD4628@leon.nu>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160727212543.GA7821-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "olaf@aepfle.de" <olaf@aepfle.de>, "leann.ogasawara@canonical.com" <leann.ogasawara@canonical.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jasowang@redhat.com" <jasowang@redhat.com>, "dledford@redhat.com" <dledford@redhat.com>, "apw@canonical.com" <apw@canonical.com>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "sean.hefty@intel.com" <sean.hefty@intel.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "olaf-QOLJcTWqO2uzQB+pC5nmwQ@public.gmane.org" <olaf-QOLJcTWqO2uzQB+pC5nmwQ@public.gmane.org>, "apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "vkuznets-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <vkuznets-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leann.ogasawara-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <leann.ogasawara-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
 > -----Original Message-----
-> From: Leon Romanovsky [mailto:leon@kernel.org]
-> Sent: Tuesday, July 26, 2016 9:25 PM
-> To: KY Srinivasan <kys@microsoft.com>
-> Cc: gregkh@linuxfoundation.org; linux-kernel@vger.kernel.org;
-> devel@linuxdriverproject.org; linux-rdma@vger.kernel.org;
-> yishaih@mellanox.com; sean.hefty@intel.com; dledford@redhat.com;
-> olaf@aepfle.de; apw@canonical.com; vkuznets@redhat.com;
-> jasowang@redhat.com; leann.ogasawara@canonical.com; Long Li
-> <longli@microsoft.com>
+> From: Greg KH [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]
+> Sent: Wednesday, July 27, 2016 2:26 PM
+> To: KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org; linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; olaf-QOLJcTWqO2uzQB+pC5nmwQ@public.gmane.org; apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org;
+> vkuznets-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> leann.ogasawara-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org; Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 > Subject: Re: [PATCH 1/1] Drivers: infiniband: hw: vmbus-nd: NetworkDirect
 > driver for Linux
 > 
-> On Tue, Jul 26, 2016 at 07:05:37PM -0700, kys@exchange.microsoft.com
-> wrote:
-> > From: K. Y. Srinivasan <kys@microsoft.com>
+> On Wed, Jul 27, 2016 at 09:09:08PM +0000, KY Srinivasan wrote:
 > >
-> > This driver is a bridge driver that surfaces a Mellanox device in the Linux
-> guest and plugs into
-> > the "NetworkDirect" RDMA infrastructure on the Windows host. Only a subset
-> of the ibverbs are
-> > implemented (this decision is based on the verbs supported by the Windows
-> host).
-> > The control path is implemented over the vmbus using the NetworkDirect
-> protocol for
-> > virtualized environments. The data path bypasses the guest and host kernel
-> and the NIC is able to RDMA
-> > into guest addresses.
 > >
-> > Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
-> > ---
-> >  drivers/infiniband/Kconfig                  |    1 +
-> >  drivers/infiniband/hw/Makefile              |    1 +
-> >  drivers/infiniband/hw/vmbus-nd/Kconfig      |    5 +
-> >  drivers/infiniband/hw/vmbus-nd/Makefile     |    3 +
-> >  drivers/infiniband/hw/vmbus-nd/hvnd_addr.c  |  292 +++
-> >  drivers/infiniband/hw/vmbus-nd/mx_abi.h     |  232 ++
-> >  drivers/infiniband/hw/vmbus-nd/provider.c   | 2844
-> ++++++++++++++++++++++++
-> >  drivers/infiniband/hw/vmbus-nd/vmbus_rdma.c | 3086
-> +++++++++++++++++++++++++++
-> >  drivers/infiniband/hw/vmbus-nd/vmbus_rdma.h | 2205
-> +++++++++++++++++++
-> >  9 files changed, 8669 insertions(+), 0 deletions(-)
+> > > -----Original Message-----
+> > > From: Greg KH [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]
+> > > Sent: Tuesday, July 26, 2016 9:41 PM
+> > > To: KY Srinivasan <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> > > Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org; linux-
+> > > rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+> > > dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; olaf-QOLJcTWqO2uzQB+pC5nmwQ@public.gmane.org; apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org;
+> > > vkuznets-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> > > leann.ogasawara-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org; Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> > > Subject: Re: [PATCH 1/1] Drivers: infiniband: hw: vmbus-nd: NetworkDirect
+> > > driver for Linux
+> > >
+> > > On Tue, Jul 26, 2016 at 07:05:37PM -0700, kys-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org
+> > > wrote:
+> > > > +/*
+> > > > + * Create a char device that can support read/write for passing
+> > > > + * the payload.
+> > > > + */
+> > >
+> > > That sounds "interesting"...
+> > >
+> > > > +
+> > > > +static struct completion ip_event;
+> > > > +static bool opened;
+> > > > +
+> > > > +char hvnd_ip_addr[4];
+> > > > +char hvnd_mac_addr[6];
+> > > > +bool hvnd_addr_set;
+> > >
+> > > Global variables?
+> >
+> > >
+> > > > +
+> > > > +int hvnd_get_ip_addr(char **ip_addr, char **mac_addr)
+> > > > +{
+> > > > +	int t;
+> > > > +
+> > > > +	/*
+> > > > +	 * Now wait for the user level daemon to get us the
+> > > > +	 * IP addresses bound to the MAC address.
+> > > > +	 */
+> > > > +	if (!hvnd_addr_set) {
+> > > > +		t = wait_for_completion_timeout(&ip_event, 600*HZ);
+> > > > +		if (t == 0)
+> > > > +			return -ETIMEDOUT;
+> > > > +	}
+> > > > +
+> > > > +	if (hvnd_addr_set) {
+> > > > +		*ip_addr = hvnd_ip_addr;
+> > > > +		*mac_addr = hvnd_mac_addr;
+> > > > +		return 0;
+> > > > +	}
+> > > > +
+> > > > +	return -ENODATA;
+> > > > +}
+> > > > +
+> > > > +static ssize_t hvnd_write(struct file *file, const char __user *buf,
+> > > > +			size_t count, loff_t *ppos)
+> > > > +{
+> > > > +	char input[120];
+> > > > +	int scaned, i;
+> > > > +	unsigned int mac_addr[6], ip_addr[4];
+> > > > +
+> > > > +	if (hvnd_addr_set) {
+> > > > +		hvnd_error("IP/MAC address already set, ignoring input\n");
+> > > > +		return count;
+> > > > +	}
+> > > > +
+> > > > +	if (count > sizeof(input)-1)
+> > > > +		return -EINVAL;
+> > > > +
+> > > > +	if (copy_from_user(input, buf, count))
+> > > > +		return -EFAULT;
+> > > > +
+> > > > +	input[count] = 0;
+> > > > +
+> > > > +	/*
+> > > > +	 * Wakeup the context that may be waiting for this.
+> > > > +	 */
+> > > > +	hvnd_debug("get user mode input: %s\n", input);
+> > > > +
+> > > > +	scaned = sscanf(input,
+> > > > +		"rdmaMacAddress=\"%x:%x:%x:%x:%x:%x\"
+> > > rdmaIPv4Address=\"%u.%u.%u.%u\"",
+> > > > +		&mac_addr[0],
+> > > > +		&mac_addr[1],
+> > > > +		&mac_addr[2],
+> > > > +		&mac_addr[3],
+> > > > +		&mac_addr[4],
+> > > > +		&mac_addr[5],
+> > > > +		&ip_addr[0],
+> > > > +		&ip_addr[1],
+> > > > +		&ip_addr[2],
+> > > > +		&ip_addr[3]);
+> > >
+> > > Oh, that's a mess, you are going to parse text in the kernel that is
+> > > passed on a char device?  Please tell me that not all IB drivers are
+> > > like this...
+> >
+> > Greg,
+> >
+> > This driver is plugging into the Windows NetworkDirect infrastructure on the
+> host side.
+> > The fabric assigns the MAC/IP address for the interface. I have chosen this
+> mechanism for
+> > passing the information to the kernel driver. I can certainly look at other
+> mechanism.
 > 
-> If your final goal is to merge this driver into Linux kernel, so I will
-> ask from you to do the following actions:
+> Why create a new mechanism that is different from all other IB
+> controllers?  Shouldn't this just be a "normal" network device in that
+> manner?
 
-Yes, our final goal is to get the driver into the Linux Kernel.
-
-> 
-> 1. Split this patch to smaller patches to allow review.
-
-In the past I have submitted new drivers as a single patch and that is what I did here.
-That said, I will try to breakup this driver on a per verb implementation basis. Hope that
-is adequate for making the review easy.
-
-> You can see as an example - latest submission of "Add Paravirtual RDMA
-> Driver" [1].
-> 2. Fix licenses, magic numbers, remove creepy comments and learn about
-> MAINTAINERS file.
-> 3. Use preferred for this susbsystem title format.
-
-I will do that.
-
-> 4. Find the relevant mailing list and maintainer for this submission and
-> don't add unrelated people.
-
-I looked at the MAINTAINERS file and selected the addresses that I thought I should send to.
-Sean Hefty (from Intel) helped me during the initial implementation and so I included him.
-In my next submission, I will do as you are recommending here.
-
-Leon,
-
-Thank you for your comments and I will address them all in my next submission.
+That is a good point. I will look at other options.
 
 Regards,
 
 K. Y
-> 
-> Thanks.
-> 
-> [1] http://marc.info/?l=linux-rdma&m=146835226218818&w=2
-> 
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/Kconfig
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/Makefile
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/hvnd_addr.c
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/mx_abi.h
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/provider.c
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/vmbus_rdma.c
-> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/vmbus_rdma.h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
