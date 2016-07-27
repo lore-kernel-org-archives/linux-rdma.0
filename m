@@ -1,97 +1,119 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/15] IB/pvrdma: Add device command support
-Date: Wed, 27 Jul 2016 14:57:06 -0700
-Message-ID: <16e2ecc7-44f1-18c1-e189-d3ee7fac6b4f@vmware.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-3-git-send-email-aditr@vmware.com>
- <20160718131354.GF6165@yuval-lap.uk.oracle.com>
+From: KY Srinivasan <kys@microsoft.com>
+Subject: RE: [PATCH 1/1] Drivers: infiniband: hw: vmbus-nd: NetworkDirect
+ driver for Linux
+Date: Wed, 27 Jul 2016 22:32:36 +0000
+Message-ID: <DM2PR0301MB0783A488E36D1BFAC43A4704A00F0@DM2PR0301MB0783.namprd03.prod.outlook.com>
+References: <1469585137-31229-1-git-send-email-kys@exchange.microsoft.com>
+ <20160727042521.GD4628@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160718131354.GF6165-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20160727042521.GD4628@leon.nu>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "olaf@aepfle.de" <olaf@aepfle.de>, "leann.ogasawara@canonical.com" <leann.ogasawara@canonical.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jasowang@redhat.com" <jasowang@redhat.com>, "dledford@redhat.com" <dledford@redhat.com>, "apw@canonical.com" <apw@canonical.com>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "sean.hefty@intel.com" <sean.hefty@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/18/16 6:13 AM, Yuval Shaia wrote:
->> +
->> +static int pvrdma_cmd_recv(struct pvrdma_dev *dev, union pvrdma_cmd_resp *resp)
->> +{
->> +	dev_dbg(&dev->pdev->dev, "receive response from device\n");
->> +
->> +	spin_lock(&dev->cmd_lock);
->> +	memcpy(resp, dev->resp_slot, sizeof(*resp));
->> +	spin_unlock(&dev->cmd_lock);
+
+
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon@kernel.org]
+> Sent: Tuesday, July 26, 2016 9:25 PM
+> To: KY Srinivasan <kys@microsoft.com>
+> Cc: gregkh@linuxfoundation.org; linux-kernel@vger.kernel.org;
+> devel@linuxdriverproject.org; linux-rdma@vger.kernel.org;
+> yishaih@mellanox.com; sean.hefty@intel.com; dledford@redhat.com;
+> olaf@aepfle.de; apw@canonical.com; vkuznets@redhat.com;
+> jasowang@redhat.com; leann.ogasawara@canonical.com; Long Li
+> <longli@microsoft.com>
+> Subject: Re: [PATCH 1/1] Drivers: infiniband: hw: vmbus-nd: NetworkDirect
+> driver for Linux
 > 
-> In case your virtual HW supports more than one concurrent commands, if
-> cmd_lock protects cmd_slot i would expect to have extra resp_lock to
-> protect resp_slot.
-
-Thanks for the suggestion! Currently, our virtual hardware only supports
-processing one command at a time. I'll skip adding the resp->lock since it
-may not add much value here.
-
-> btw, otherwise why not just lock the entire flow:
-> 	memcpy(dev->cmd_slot, req, sizeof(*req));
-> 	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-> 	pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-> 	memcpy(resp, dev->resp_slot, sizeof(*resp));
+> On Tue, Jul 26, 2016 at 07:05:37PM -0700, kys@exchange.microsoft.com
+> wrote:
+> > From: K. Y. Srinivasan <kys@microsoft.com>
+> >
+> > This driver is a bridge driver that surfaces a Mellanox device in the Linux
+> guest and plugs into
+> > the "NetworkDirect" RDMA infrastructure on the Windows host. Only a subset
+> of the ibverbs are
+> > implemented (this decision is based on the verbs supported by the Windows
+> host).
+> > The control path is implemented over the vmbus using the NetworkDirect
+> protocol for
+> > virtualized environments. The data path bypasses the guest and host kernel
+> and the NIC is able to RDMA
+> > into guest addresses.
+> >
+> > Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+> > ---
+> >  drivers/infiniband/Kconfig                  |    1 +
+> >  drivers/infiniband/hw/Makefile              |    1 +
+> >  drivers/infiniband/hw/vmbus-nd/Kconfig      |    5 +
+> >  drivers/infiniband/hw/vmbus-nd/Makefile     |    3 +
+> >  drivers/infiniband/hw/vmbus-nd/hvnd_addr.c  |  292 +++
+> >  drivers/infiniband/hw/vmbus-nd/mx_abi.h     |  232 ++
+> >  drivers/infiniband/hw/vmbus-nd/provider.c   | 2844
+> ++++++++++++++++++++++++
+> >  drivers/infiniband/hw/vmbus-nd/vmbus_rdma.c | 3086
+> +++++++++++++++++++++++++++
+> >  drivers/infiniband/hw/vmbus-nd/vmbus_rdma.h | 2205
+> +++++++++++++++++++
+> >  9 files changed, 8669 insertions(+), 0 deletions(-)
 > 
-> This might improve performances.
+> If your final goal is to merge this driver into Linux kernel, so I will
+> ask from you to do the following actions:
+
+Yes, our final goal is to get the driver into the Linux Kernel.
+
 > 
+> 1. Split this patch to smaller patches to allow review.
 
-Since this is in the slow control path and we execute 1 command at a time,
-not sure if that would be beneficial.
+In the past I have submitted new drivers as a single patch and that is what I did here.
+That said, I will try to breakup this driver on a per verb implementation basis. Hope that
+is adequate for making the review easy.
 
->> +
->> +	return 0;
->> +}
->> +
->> +int
->> +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
->> +		bool expect_resp, union pvrdma_cmd_resp *resp)
->> +{
->> +	int err;
->> +
->> +	dev_dbg(&dev->pdev->dev, "post request to device\n");
->> +
->> +	/* Serializiation */
->> +	down(&dev->cmd_sema);
->> +
->> +	spin_lock(&dev->cmd_lock);
->> +	memcpy(dev->cmd_slot, req, sizeof(*req));
->> +	spin_unlock(&dev->cmd_lock);
->> +
->> +	init_completion(&dev->cmd_done);
->> +	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
->> +
->> +	/* Make sure the request is written before reading status. */
->> +	mb();
->> +	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
->> +	if (err == 0) {
->> +		if (expect_resp) {
->> +			err = wait_for_completion_interruptible_timeout(
->> +				&dev->cmd_done,
->> +				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
->> +			if (err == 0) {
->> +				dev_warn(&dev->pdev->dev,
->> +					 "completion timeout\n");
->> +				err = -ETIMEDOUT;
->> +			} else {
->> +				err = pvrdma_cmd_recv(dev, resp);
+> You can see as an example - latest submission of "Add Paravirtual RDMA
+> Driver" [1].
+> 2. Fix licenses, magic numbers, remove creepy comments and learn about
+> MAINTAINERS file.
+> 3. Use preferred for this susbsystem title format.
+
+I will do that.
+
+> 4. Find the relevant mailing list and maintainer for this submission and
+> don't add unrelated people.
+
+I looked at the MAINTAINERS file and selected the addresses that I thought I should send to.
+Sean Hefty (from Intel) helped me during the initial implementation and so I included him.
+In my next submission, I will do as you are recommending here.
+
+Leon,
+
+Thank you for your comments and I will address them all in my next submission.
+
+Regards,
+
+K. Y
 > 
-> Maybe it is a silly question but in case of two commands that issued almost
-> simultaneously, it possible that fast execution of second command will
-> reach this point first and the reasponse here is of the first one?
+> Thanks.
 > 
-
-I don't think that may happen since we do have a semaphore here to protect that.
-
-Thanks,
-Adit
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [1] http://marc.info/?l=linux-rdma&m=146835226218818&w=2
+> 
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/Kconfig
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/Makefile
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/hvnd_addr.c
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/mx_abi.h
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/provider.c
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/vmbus_rdma.c
+> >  create mode 100644 drivers/infiniband/hw/vmbus-nd/vmbus_rdma.h
