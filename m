@@ -1,114 +1,49 @@
-From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/1] IB/iSER-Target: Release connection resources properly when receiving RDMA_CM_EVENT_DEVICE_REMOVAL
-Date: Wed, 27 Jul 2016 10:39:18 +0530
-Message-ID: <20160727050918.12772-1-rajur@chelsio.com>
+From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [RFC] net/mlx5_core/en_main: Remove deprecated create_workqueue
+Date: Wed, 27 Jul 2016 11:42:30 +0530
+Message-ID: <20160727061229.GA16943@Karyakshetra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When the low level driver exercises the hot unplug they would call
-rdma_cm cma_remove_one which would fire DEVICE_REMOVAL event to all cma
-consumers. Now, if consumer doesn't make sure they destroy all IB
-objects created on that IB device instance prior to finalizing all
-processing of DEVICE_REMOVAL callback, rdma_cm will let the lld to
-de-register with IB core and destroy the IB device instance. And if the
-consumer calls (say) ib_dereg_mr(), it will crash since that dev object
-is NULL.
+alloc_ordered_workqueue() with WQ_MEM_RECLAIM set replaces
+deprecated create_singlethread_workqueue(). This is the identity
+conversion.
 
-In the current implementation, iser-target just initiates the cleanup
-and returns from DEVICE_REMOVAL callback. This deferred work creates a
-race between iser-target cleaning IB objects(say MR) and lld destroying
-IB device instance.
+A dedicated workqueue has been used since mlx5e workqueue was created to
+handle all mlx5e specific tasks. This is in preparation for vxlan using
+the mlx5e workqueue in order to schedule port add/remove operations.
+WQ_MEM_RECLAIM has been set to guarantee forward progress under memory
+pressure.
 
-This patch includes the following fixes
-  -> make sure that consumer frees all IB objects associated with device
-     instance
-  -> return non-zero from the callback to destroy the rdma_cm id
+Can the workitems be executed concurrently?
+Are the workitems being used on a memory reclaim path?
+
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/isert/ib_isert.c | 24 ++++++++++++++++++++++--
- drivers/infiniband/ulp/isert/ib_isert.h |  2 ++
- 2 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index a990c04..9adc38d 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -405,6 +405,7 @@ isert_init_conn(struct isert_conn *isert_conn)
- 	INIT_LIST_HEAD(&isert_conn->node);
- 	init_completion(&isert_conn->login_comp);
- 	init_completion(&isert_conn->login_req_comp);
-+	init_waitqueue_head(&isert_conn->rem_wait);
- 	kref_init(&isert_conn->kref);
- 	mutex_init(&isert_conn->mutex);
- 	INIT_WORK(&isert_conn->release_work, isert_release_work);
-@@ -580,7 +581,8 @@ isert_connect_release(struct isert_conn *isert_conn)
- 	BUG_ON(!device);
- 
- 	isert_free_rx_descriptors(isert_conn);
--	if (isert_conn->cm_id)
-+	if (isert_conn->cm_id &&
-+	    !isert_conn->dev_removed)
- 		rdma_destroy_id(isert_conn->cm_id);
- 
- 	if (isert_conn->qp) {
-@@ -595,7 +597,10 @@ isert_connect_release(struct isert_conn *isert_conn)
- 
- 	isert_device_put(device);
- 
--	kfree(isert_conn);
-+	if (isert_conn->dev_removed)
-+		wake_up_interruptible(&isert_conn->rem_wait);
-+	else
-+		kfree(isert_conn);
- }
- 
- static void
-@@ -755,6 +760,7 @@ static int
- isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- {
- 	struct isert_np *isert_np = cma_id->context;
-+	struct isert_conn *isert_conn;
- 	int ret = 0;
- 
- 	isert_info("%s (%d): status %d id %p np %p\n",
-@@ -778,6 +784,20 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 	case RDMA_CM_EVENT_DEVICE_REMOVAL: /* FALLTHRU */
- 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:  /* FALLTHRU */
- 		ret = isert_disconnected_handler(cma_id, event->event);
-+
-+		if (event->event == RDMA_CM_EVENT_DEVICE_REMOVAL) {
-+			isert_conn = cma_id->qp->qp_context;
-+			isert_conn->dev_removed = true;
-+			wait_event_interruptible(isert_conn->rem_wait,
-+					 isert_conn->state == ISER_CONN_DOWN);
-+
-+			kfree(isert_conn);
-+			 /*
-+			  * return non-zero from the callback to destroy
-+			  * the rdma cm id
-+			  */
-+			return 1;
-+		}
- 		break;
- 	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
- 	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index e512ba9..d0c5c2c 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -159,6 +159,8 @@ struct isert_conn {
- 	struct work_struct	release_work;
- 	bool                    logout_posted;
- 	bool                    snd_w_inv;
-+	wait_queue_head_t       rem_wait;
-+	bool                    dev_removed;
- };
- 
- #define ISERT_MAX_CQ 64
--- 
-2.8.3
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index fd43929..1a96445 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3042,7 +3042,7 @@ static void *mlx5e_create_netdev(struct mlx5_core_dev *mdev)
+
+ 	priv = netdev_priv(netdev);
+
+-	priv->wq = create_singlethread_workqueue("mlx5e");
++	priv->wq = alloc_ordered_workqueue("mlx5e", WQ_MEM_RECLAIM);
+ 	if (!priv->wq)
+ 		goto err_free_netdev;
+
+--
+2.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
