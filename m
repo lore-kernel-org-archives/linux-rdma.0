@@ -1,7 +1,7 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libmlx5 4/6] fix check of mlx5_store_uidx return
-Date: Wed, 27 Jul 2016 15:17:25 -0400
-Message-ID: <1469647047-7544-5-git-send-email-jarod@redhat.com>
+Subject: [PATCH libmlx5 6/6] fix undefined uuar_index value assignment
+Date: Wed, 27 Jul 2016 15:17:27 -0400
+Message-ID: <1469647047-7544-7-git-send-email-jarod@redhat.com>
 References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469647047-7544-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -10,10 +10,19 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-mlx5_store_uidx() returns an int32_t, but create_qp was storing the return
-in a uint32_t, and then checking for a value less than 0, which is
-impossible with the uint32_t. Use a local int32_t for the return, check
-for < 0, then cast to uint32_t and save the result for later use.
+In the case of (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) being not
+true, uuar_index gets set to resp.uuar_index, but nothing ever initializes
+resp.uuar_index.
+
+That said, both this case, and the true case, it looks like uuar_index
+never gets assigned to anything but 0. In the true path, resp_ex gets
+memset to 0, and then nothing ever sets uuar_index. Not sure what the
+intended use was here, but ultimately, uuar_index is always going to be 0
+with this patch (0 or undetermined garbage before).
+
+Additionally, I'm not sure if the cmd and resp size parameters passed to
+ibv_cmd_create_qp_ex() are correct, but they're at least larger than they
+might be, which should be fine. I think. But I'm just guessing here.
 
 CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -22,25 +31,26 @@ Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/src/verbs.c b/src/verbs.c
-index 7ed394e..d64e406 100644
+index d64e406..e88253e 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -1224,11 +1224,13 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 		cmd.uidx = 0xffffff;
- 		pthread_mutex_lock(&ctx->qp_table_mutex);
- 	} else if (!is_xrc_tgt(attr->qp_type)) {
--		usr_idx = mlx5_store_uidx(ctx, qp);
--		if (usr_idx < 0) {
-+		int32_t uidx_ret;
-+		uidx_ret = mlx5_store_uidx(ctx, qp);
-+		if (uidx_ret < 0) {
- 			mlx5_dbg(fp, MLX5_DBG_QP, "Couldn't find free user index\n");
- 			goto err_rq_db;
- 		}
-+		usr_idx = (uint32_t)uidx_ret;
- 
+@@ -1235,12 +1235,14 @@ struct ibv_qp *create_qp(struct ibv_context *context,
  		cmd.uidx = usr_idx;
  	}
+ 
+-	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
++	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) {
+ 		ret = mlx5_cmd_create_qp_ex(context, attr, &cmd, qp, &resp_ex);
+-	else
++	} else {
++		memset(&resp, 0, sizeof(resp));
+ 		ret = ibv_cmd_create_qp_ex(context, &qp->verbs_qp, sizeof(qp->verbs_qp),
+ 					   attr, &cmd.ibv_cmd, sizeof(cmd),
+ 					   &resp.ibv_resp, sizeof(resp));
++	}
+ 	if (ret) {
+ 		mlx5_dbg(fp, MLX5_DBG_QP, "ret %d\n", ret);
+ 		goto err_free_uidx;
 -- 
 1.8.3.1
 
