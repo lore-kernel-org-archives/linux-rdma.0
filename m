@@ -1,143 +1,68 @@
-From: Nikolay Borisov <n.borisov-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
-Subject: Re: State of ipoib cm mode
-Date: Wed, 27 Jul 2016 19:35:50 +0300
-Message-ID: <CAJFSNy7seqPM3rF_OaXQnTGgTBTNTAYjXCxkPHBs11Od__8P0g@mail.gmail.com>
-References: <57988FF1.9050405@kyup.com> <20160727115450.GA9717@redhat.com>
- <5798A3A0.8070301@kyup.com> <CAH_0vi9btY8PaDXnZOoP98hW_ZKkb6q11Fs+bEr_1VgRFgZjFQ@mail.gmail.com>
+From: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
+Date: Wed, 27 Jul 2016 22:58:31 +0530
+Message-ID: <CAG53R5XZ9RVg-2yGFbr-7To1SMbRoGG3xiZHf-vNnGM4K+R4pw@mail.gmail.com>
+References: <20160720172143.GG21460@obsidianresearch.com> <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org>
+ <20160721015613.GB8279@obsidianresearch.com> <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org>
+ <20160721032803.GA12093@obsidianresearch.com> <alpine.DEB.2.20.1607202340280.26638@east.gentwo.org>
+ <20160721054439.GA19329@obsidianresearch.com> <alpine.DEB.2.20.1607210202400.29415@east.gentwo.org>
+ <20160721164133.GD19849@obsidianresearch.com> <alpine.DEB.2.20.1607251104370.23039@east.gentwo.org>
+ <20160725180119.GB18773@obsidianresearch.com> <alpine.DEB.2.20.1607270954150.25436@east.gentwo.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAH_0vi9btY8PaDXnZOoP98hW_ZKkb6q11Fs+bEr_1VgRFgZjFQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1607270954150.25436-wcBtFHqTun5QOdAKl3ChDw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Serge Ryabchun <serge.ryabchun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 27, 2016 at 7:05 PM, Serge Ryabchun
-<serge.ryabchun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi Nikolay,
+On Wed, Jul 27, 2016 at 8:33 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
 >
-> very similar behavior we have experienced an half a year ago with CX2 and
-> CX3 and QDR Mellanox switches.
-> It was fixed by this patch -
-> http://www.spinics.net/lists/linux-rdma/msg23811.html. Not fixed really but
-> at least it can move multicast QP from SQE to RTS state and restore
-> connectivity.
+> On Mon, 25 Jul 2016, Jason Gunthorpe wrote:
+>
+> > I can't help that IBTA created a different scheme for device
+> > aggregation, addressing, and basically everything else. 'standard
+> > convention' in the kernel really just means ethernet, and this isn't
+> > like ethernet, except superficially.
+>
+> Well you can create your own non ethernet protocol. Why is there not an IB
+> ulp that allows basic messaging, listen() and all the other stuff using
+> standard system calls? There should be a netdev. I already see devices
+> in /sys/class/infiniband/*! But they are not listed in /proc/net/dev!!!
+>
+> Why can we not use these with regular syscalls? Could provide this basic
+> support for native infiniband? And maybe offload some of the need for
+> esoteric IB ioctl functions that could just be provided by the standard
+> calls? F.e. statistics and device configuration would be simplified and possible using
+> the standard tools. IB devices have MACs as well. We could reuse quite a
+> bit of software there.
+>
 
-Thanks for chiming in. According to git describe this patch made it to
-4.1 and the kernel I'm using is 4.4. So in my case this behavior is
-happening despite this patch being applied. One other element is that
-I'm seeing this with qlogic cards (ib_qib driver). Unfortunately I'm
-not able to pinpoint whether this is a problem of the card driver or
-with the middleware ib_ipoib driver.
+I recall this functionality is being called as SDP (Socket Direct
+Protocol) in Annex-4 of IB spec. 1.3 which used be present in older
+2.6.x kernel as well as an ULP.
+Vaguely recall it as non zcopy implementation.
 
->
-> It really was fixed replacing PSUs in the chassis by the more powerful. It
-> appeared that Mellanox ASIC is very sensitive to the power. Under heavy
-> loading those PSUs became slightly unstable and as a result built-in switch
-> on the same PSUs produced damaged frames.
->
+Few older papers on this:
+1. Asynchronous Zero-copy Communication for Synchronous Sockets in the
+Sockets Direct Protocol (SDP) over InfiniBand
+2. Zero Copy Sockets Direct Protocol over InfiniBand - Preliminary
+Implementation and Performance Analysis
+3. Transparently Achieving Superior Socket Performance Using Zero Copy
+Socket Direct Protocol over IB
+4. One more paper from Microsoft, I don't have ready reference too
+which did zcopy implementation
+
+Parav
+
+> I think Christoph H made the point already that the wire format needs to
+> stay the same and also the user verbs API (to some degree) but below that
+> we could do pretty much what we want.
 > --
-> Regards,
-> Serge
->
->
-> On Wed, Jul 27, 2016 at 2:05 PM, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org> wrote:
->>
->> [Resending with the linux-rdma list cc'ed + some additional information]
->>
->> On 07/27/2016 02:54 PM, Michael S. Tsirkin wrote:
->> > On Wed, Jul 27, 2016 at 01:41:53PM +0300, Nikolay Borisov wrote:
->> >> Hello,
->> >>
->> >> I've been running some production servers with ipoib cm but have
->> >> observed various hangs, e.g. :
->> >>
->> >> http://www.spinics.net/lists/linux-rdma/msg34577.html
->> >> http://www.spinics.net/lists/linux-rdma/msg37011.html
->> >> http://thread.gmane.org/gmane.linux.drivers.rdma/38899
->> >>
->> >> Other people have also confirmed that there is a latent bug, which is
->> >> very hard to debug (e.g. here:
->> >> http://www.spinics.net/lists/linux-rdma/msg37022.html). Essentially
->> >>
->> >> As the person who originally wrote the code and considering that git
->> >> blame indicates most of it hasn't been touched does that mean it's
->> >> considered stable? Also do you happen to have a hunch as to what might
->> >> be causing such stalls?
->> >>
->> >> Regards,
->> >> Nikolay
->> >
->> > Please repost copying a mailing list.
->> > I have a general policy against responding to off-list mail.
->>
->> Ok.
->>
->> In addition to that, here is the state of a node which has been hung for
->> about 2 days now - no infiniband multicast connectivity, this is similar
->> to the issue observed in the first mailing list entry I have referenced,
->> but this time I managed to obtain the state of the ipoib_cm_rx and
->> ib_cm_id structs (as well as any other structs which are referenced from
->> those):
->>
->>
->> struct ipoib_cm_rx {
->>   id = 0xffff8802128fa600,
->>   qp = 0xffff880100e94000,
->>   rx_ring = 0x0,
->>   list = {
->>     next = 0xffff88055f02bdd8,
->>     prev = 0xffff88055f02bdd8
->>   },
->>   dev = 0xffff880661f68000,
->>   jiffies = 4367003834,
->>   state = IPOIB_CM_RX_FLUSH,
->>   recv_count = 0
->> }
->>
->> struct ib_cm_id {
->>   cm_handler = 0xffffffffa01e7b60 <ipoib_cm_rx_handler>,
->>   context = 0xffff880660f11780,
->>   device = 0xffff8800378e4000,
->>   service_id = 216172782113783824,
->>   service_mask = 18446744073709551615,
->>   state = IB_CM_IDLE,
->>   lap_state = IB_CM_LAP_UNINIT,
->>   local_id = 1741978561,
->>   remote_id = 3782023797,
->>   remote_cm_qpn = 1
->> }
->>
->> And the backtrace is like that:
->>
->> PID: 28224  TASK: ffff88064bdb5280  CPU: 5   COMMAND: "kworker/u24:2"
->>  #0 [ffff88055f02bc28] __schedule at ffffffff8160fc6a
->>  #1 [ffff88055f02bc70] schedule at ffffffff816103dc
->>  #2 [ffff88055f02bc88] schedule_timeout at ffffffff81613642
->>  #3 [ffff88055f02bd08] wait_for_completion at ffffffff816118df
->>  #4 [ffff88055f02bd68] cm_destroy_id at ffffffffa01d3759 [ib_cm]
->>  #5 [ffff88055f02bdc0] ib_destroy_cm_id at ffffffffa01d3a10 [ib_cm]
->>  #6 [ffff88055f02bdd0] ipoib_cm_free_rx_reap_list at ffffffffa01e7675
->> [ib_ipoib]
->>  #7 [ffff88055f02be18] ipoib_cm_rx_reap at ffffffffa01e7705 [ib_ipoib]
->>  #8 [ffff88055f02be28] process_one_work at ffffffff8106bdf9
->>  #9 [ffff88055f02be68] worker_thread at ffffffff8106c4a9
->> #10 [ffff88055f02bed0] kthread at ffffffff8107161f
->> #11 [ffff88055f02bf50] ret_from_fork at ffffffff816149ff
->>
->> ffffffffa01d3759 is wait_for_completion(&cm_id_priv->comp);
->>
->> Can you advise what other information might be helpful to debug this ?
->>
->> Regards,
->> Nikolay
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
