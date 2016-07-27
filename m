@@ -1,102 +1,118 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 2/5] IB/core, RDMA RW API: Do not exceed QP SGE send
- limit
-Date: Wed, 27 Jul 2016 15:42:17 +0300
-Message-ID: <20160727124217.GJ4628@leon.nu>
-References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com>
- <c71ece34-36e2-86da-5032-2fc946ff0073@sandisk.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: State of ipoib cm mode
+Date: Wed, 27 Jul 2016 15:46:48 +0300
+Message-ID: <20160727152119-mutt-send-email-mst@kernel.org>
+References: <57988FF1.9050405@kyup.com>
+ <20160727115450.GA9717@redhat.com>
+ <5798A3A0.8070301@kyup.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rwgQ89ZNnFUwFHTC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <c71ece34-36e2-86da-5032-2fc946ff0073-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <5798A3A0.8070301-6AxghH7DbtA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jul 27, 2016 at 03:05:52PM +0300, Nikolay Borisov wrote:
+> [Resending with the linux-rdma list cc'ed + some additional information]
+> 
+> On 07/27/2016 02:54 PM, Michael S. Tsirkin wrote:
+> > On Wed, Jul 27, 2016 at 01:41:53PM +0300, Nikolay Borisov wrote:
+> >> Hello,
+> >>
+> >> I've been running some production servers with ipoib cm but have
+> >> observed various hangs, e.g. :
+> >>
+> >> http://www.spinics.net/lists/linux-rdma/msg34577.html
+> >> http://www.spinics.net/lists/linux-rdma/msg37011.html
+> >> http://thread.gmane.org/gmane.linux.drivers.rdma/38899
+> >>
+> >> Other people have also confirmed that there is a latent bug, which is
+> >> very hard to debug (e.g. here:
+> >> http://www.spinics.net/lists/linux-rdma/msg37022.html). Essentially
+> >>
+> >> As the person who originally wrote the code and considering that git
+> >> blame indicates most of it hasn't been touched does that mean it's
+> >> considered stable? Also do you happen to have a hunch as to what might
+> >> be causing such stalls?
+> >>
+> >> Regards,
+> >> Nikolay
+> > 
+> > Please repost copying a mailing list.
+> > I have a general policy against responding to off-list mail.
+> 
+> Ok.
+> 
+> In addition to that, here is the state of a node which has been hung for
+> about 2 days now - no infiniband multicast connectivity, this is similar
+> to the issue observed in the first mailing list entry I have referenced,
+> but this time I managed to obtain the state of the ipoib_cm_rx and
+> ib_cm_id structs (as well as any other structs which are referenced from
+> those):
+> 
+> 
+> struct ipoib_cm_rx {
+>   id = 0xffff8802128fa600,
+>   qp = 0xffff880100e94000,
+>   rx_ring = 0x0,
+>   list = {
+>     next = 0xffff88055f02bdd8,
+>     prev = 0xffff88055f02bdd8
+>   },
+>   dev = 0xffff880661f68000,
+>   jiffies = 4367003834,
+>   state = IPOIB_CM_RX_FLUSH,
+>   recv_count = 0
+> }
+> 
+> struct ib_cm_id {
+>   cm_handler = 0xffffffffa01e7b60 <ipoib_cm_rx_handler>,
+>   context = 0xffff880660f11780,
+>   device = 0xffff8800378e4000,
+>   service_id = 216172782113783824,
+>   service_mask = 18446744073709551615,
+>   state = IB_CM_IDLE,
+>   lap_state = IB_CM_LAP_UNINIT,
+>   local_id = 1741978561,
+>   remote_id = 3782023797,
+>   remote_cm_qpn = 1
+> }
+> 
+> And the backtrace is like that:
+> 
+> PID: 28224  TASK: ffff88064bdb5280  CPU: 5   COMMAND: "kworker/u24:2"
+>  #0 [ffff88055f02bc28] __schedule at ffffffff8160fc6a
+>  #1 [ffff88055f02bc70] schedule at ffffffff816103dc
+>  #2 [ffff88055f02bc88] schedule_timeout at ffffffff81613642
+>  #3 [ffff88055f02bd08] wait_for_completion at ffffffff816118df
+>  #4 [ffff88055f02bd68] cm_destroy_id at ffffffffa01d3759 [ib_cm]
+>  #5 [ffff88055f02bdc0] ib_destroy_cm_id at ffffffffa01d3a10 [ib_cm]
+>  #6 [ffff88055f02bdd0] ipoib_cm_free_rx_reap_list at ffffffffa01e7675
+> [ib_ipoib]
+>  #7 [ffff88055f02be18] ipoib_cm_rx_reap at ffffffffa01e7705 [ib_ipoib]
+>  #8 [ffff88055f02be28] process_one_work at ffffffff8106bdf9
+>  #9 [ffff88055f02be68] worker_thread at ffffffff8106c4a9
+> #10 [ffff88055f02bed0] kthread at ffffffff8107161f
+> #11 [ffff88055f02bf50] ret_from_fork at ffffffff816149ff
+> 
+> ffffffffa01d3759 is wait_for_completion(&cm_id_priv->comp);
+> 
+> Can you advise what other information might be helpful to debug this ?
+> 
+> Regards,
+> Nikolay
 
---rwgQ89ZNnFUwFHTC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I haven't looked at infiniband for ages, and won't be able to help you
+much. The links provided seem to indicate issues when SM or CM is not
+responsive.  Try introducing delays by pausing the SM once in a while,
+or dropping packets to/from SM, or CM packets. Maybe add a mode that drops
+some of these packets once in a while.
 
-On Thu, Jul 21, 2016 at 01:03:30PM -0700, Bart Van Assche wrote:
-> Compute the SGE limit for RDMA READ and WRITE requests in
-> ib_create_qp(). Use that limit in the RDMA RW API implementation.
->=20
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-> Cc: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> #v4.7+
-> ---
->  drivers/infiniband/core/rw.c    | 10 ++--------
->  drivers/infiniband/core/verbs.c |  9 +++++++++
->  include/rdma/ib_verbs.h         |  6 ++++++
->  3 files changed, 17 insertions(+), 8 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-> index 1ad2baa..dbfd854 100644
-> --- a/drivers/infiniband/core/rw.c
-> +++ b/drivers/infiniband/core/rw.c
-> @@ -58,13 +58,6 @@ static inline bool rdma_rw_io_needs_mr(struct ib_devic=
-e *dev, u8 port_num,
->  	return false;
->  }
-> =20
-> -static inline u32 rdma_rw_max_sge(struct ib_device *dev,
-> -		enum dma_data_direction dir)
-> -{
-> -	return dir =3D=3D DMA_TO_DEVICE ?
-> -		dev->attrs.max_sge : dev->attrs.max_sge_rd;
-> -}
-> -
->  static inline u32 rdma_rw_fr_page_list_len(struct ib_device *dev)
->  {
->  	/* arbitrary limit to avoid allocating gigantic resources */
-> @@ -186,7 +179,8 @@ static int rdma_rw_init_map_wrs(struct rdma_rw_ctx *c=
-tx, struct ib_qp *qp,
->  		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
->  {
->  	struct ib_device *dev =3D qp->pd->device;
-> -	u32 max_sge =3D rdma_rw_max_sge(dev, dir);
-> +	u32 max_sge =3D dir =3D=3D DMA_TO_DEVICE ? qp->max_write_sge :
-> +		      qp->max_read_sge;
-
-Bart,
-I'm sure that I missed something.
-
-Can "dir" be DMA_BIDIRECTIONAL?
-If yes, mxa_sge will be min(max_write_sge, max_read_sge).
-
---rwgQ89ZNnFUwFHTC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXmKwpAAoJEORje4g2clin49MQAJ5j3ZVTowvwKrsdbu3wIRyX
-8Wc+Og9GHFu5cPRyZLw2n3IHCreUMV5eRnx3cpcun8kwhhPoRh0aqDOGl9TXg8bm
-3wZdG1NkFQXZ/ut5GP+HTQANde+J6yBkSXIKTxaXJgq1k/RhxEF8WtERhp96nOnz
-3DM4V8ERyzlmwW5kDyH8Ii6aNd8JudJWo07DkQpBRu84EUlC0XGGYn+gsVv7mRQg
-nR/vqOH2vZEL2vHiUINAOpdPZaM2QH+vWZyT5Yf0D+dPq9ZVxeA7ImMFV/5nVwQE
-88cfkJdTHPbWv3vpUmOdIPEKbYs4XuXaGigbnmLUDHmfrsgoZX+aHm9Nqs6k5miR
-hztIY98KmN1bJdmEz+jvuDvdMIVdLthOGiIcqafdOVjZColRUoX97cceZRDo1d0K
-5uM90pRGkghQDMfLtMvlMDA1wxz0Bq16SlarJJBwbEn478im5tT+jWPG5xXDg8ut
-3T0Kz5Jpq0j119Bd/sMRYN65l5KE3CMP2YHULhuxRqE5J+s5nJ13y7PI8sVs7Mvp
-LBHWtgf5783IQtr57yuNWsOn/XuLm3nONsyK/Dkn7s6TYo9EoPDPHNxsYSzbhySV
-fRoQ1eV9xB6wCIOkJ8Y4jU+2LOz9lnzf32Uuo2SE1IWvaNj0+BIEpHO3a+05JbQr
-Eg6k5bmfW3gJWVwrVfJ1
-=7Kth
------END PGP SIGNATURE-----
-
---rwgQ89ZNnFUwFHTC--
+-- 
+MST
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
