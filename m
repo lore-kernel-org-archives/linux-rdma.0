@@ -1,7 +1,7 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libmlx5 2/6] fix coverity buffer overrun warning
-Date: Wed, 27 Jul 2016 15:17:23 -0400
-Message-ID: <1469647047-7544-3-git-send-email-jarod@redhat.com>
+Subject: [PATCH libmlx5 3/6] fix buffer overrun copying inline header
+Date: Wed, 27 Jul 2016 15:17:24 -0400
+Message-ID: <1469647047-7544-4-git-send-email-jarod@redhat.com>
 References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469647047-7544-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -10,33 +10,33 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In set_umr_data_seg, there's a union between a 16-byte struct and a
-64-byte array, named data. The code then makes a memset() call on the
-struct that is sizeof(array) - sizeof(struct) long, which results in
-writing 48 bytes to a 16 byte container. Technically, we know this is
-actually fine, because of the union, but to silence the warning, we can
-just do the memset on the array instead. Same address, same result, but no
-warning spew from coverity.
+At present, the size of eseg->inline_hdr_start is 16 bits, while
+MLX5_ETH_L2_INLINE_HEADER_SIZE is 18, so there are attempts made to copy
+18 bits into 16 bits of storage. The mlx5_dbg() statement in
+copy_eth_inline_header() suggests that perhaps
+MLX5_ETH_L2_INLINE_HEADER_SIZE should be only 16, not 18. So either that
+needs to be changed, or the inline_hdr_start array needs to be bumped up
+to 3 bytes instead of 2.
 
 CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- src/qp.c | 2 +-
+ src/wqe.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/qp.c b/src/qp.c
-index 51e1176..8bb66be 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -426,7 +426,7 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
- 	data->klm.mkey = htonl(bind_info->mr->lkey);
- 	data->klm.address = htonll(bind_info->addr);
+diff --git a/src/wqe.h b/src/wqe.h
+index c2622d5..c0e176d 100644
+--- a/src/wqe.h
++++ b/src/wqe.h
+@@ -77,7 +77,7 @@ struct mlx5_eqe_qp_srq {
+ };
  
--	memset(&data->klm + 1, 0, sizeof(data->reserved) -
-+	memset(&data->reserved + 1, 0, sizeof(data->reserved) -
- 	       sizeof(data->klm));
+ enum {
+-	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 18,
++	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 16,
+ };
  
- 	*seg += sizeof(*data);
+ enum {
 -- 
 1.8.3.1
 
