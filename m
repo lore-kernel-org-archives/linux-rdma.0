@@ -1,185 +1,40 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 05/15] IB/pvrdma: Add UAR support
-Date: Wed, 27 Jul 2016 17:06:12 +0300
-Message-ID: <20160727140611.GC3549@yuval-lap.uk.oracle.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-6-git-send-email-aditr@vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC ABI V2 5/8] RDMA/core: Add new ioctl interface
+Date: Wed, 27 Jul 2016 10:03:50 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1607270954150.25436@east.gentwo.org>
+References: <20160720172143.GG21460@obsidianresearch.com> <alpine.DEB.2.20.1607201950160.24804@east.gentwo.org> <20160721015613.GB8279@obsidianresearch.com> <alpine.DEB.2.20.1607202132080.26260@east.gentwo.org> <20160721032803.GA12093@obsidianresearch.com>
+ <alpine.DEB.2.20.1607202340280.26638@east.gentwo.org> <20160721054439.GA19329@obsidianresearch.com> <alpine.DEB.2.20.1607210202400.29415@east.gentwo.org> <20160721164133.GD19849@obsidianresearch.com> <alpine.DEB.2.20.1607251104370.23039@east.gentwo.org>
+ <20160725180119.GB18773@obsidianresearch.com>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1468352205-9137-6-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160725180119.GB18773-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 12, 2016 at 12:36:35PM -0700, Adit Ranadive wrote:
-> This patch adds the UAR support for the paravirtual RDMA device. The UAR
-> pages are MMIO pages from the virtual PCI space. We define offsets within
-> this page to provide the fast data-path operations.
-> 
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128 +++++++++++++++++++++++++
->  1 file changed, 128 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> 
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> new file mode 100644
-> index 0000000..d854f6d
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> @@ -0,0 +1,128 @@
-> +/*
-> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of EITHER the GNU General Public License
-> + * version 2 as published by the Free Software Foundation or the BSD
-> + * 2-Clause License. This program is distributed in the hope that it
-> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-> + * See the GNU General Public License version 2 for more details at
-> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program available in the file COPYING in the main
-> + * directory of this source tree.
-> + *
-> + * The BSD 2-Clause License
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-> + * OF THE POSSIBILITY OF SUCH DAMAGE.
-> + */
-> +
-> +#include <linux/bitmap.h>
-> +#include <linux/errno.h>
-> +#include <linux/slab.h>
-> +
-> +#include "pvrdma.h"
-> +
-> +int pvrdma_uar_table_init(struct pvrdma_dev *dev)
-> +{
-> +	u32 num = dev->dsr->caps.max_uar;
-> +	u32 mask = num - 1;
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +
-> +	/* Power of 2 */
-> +	if (num != 1 << (ffs(num) - 1))
-> +		return -EINVAL;
-> +
-> +	tbl->last = 0;
-> +	tbl->top = 0;
-> +	tbl->max = num;
-> +	tbl->mask = mask;
-> +	spin_lock_init(&tbl->lock);
-> +	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
-> +	if (!tbl->table)
-> +		return -ENOMEM;
-> +
-> +	/* 0th UAR is taken by the device. */
-> +	set_bit(0, tbl->table);
-> +
-> +	return 0;
-> +}
-> +
-> +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
-> +{
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +
-> +	kfree(tbl->table);
-> +}
-> +
-> +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-> +{
-> +	struct pvrdma_id_table *tbl;
-> +	unsigned long flags;
-> +	u32 obj;
-> +
-> +	tbl = &dev->uar_table.tbl;
-> +
-> +	spin_lock_irqsave(&tbl->lock, flags);
-> +	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
-> +	if (obj >= tbl->max) {
-> +		tbl->top = (tbl->top + tbl->max) & tbl->mask;
-> +		obj = find_first_zero_bit(tbl->table, tbl->max);
-> +	}
-> +
-> +	if (obj < tbl->max) {
-> +		set_bit(obj, tbl->table);
-> +		obj |= tbl->top;
-> +	} else {
-> +		spin_unlock_irqrestore(&tbl->lock, flags);
-> +		return -ENOMEM;
-> +	}
+On Mon, 25 Jul 2016, Jason Gunthorpe wrote:
 
-Please consider restructuring the above block to something like this:
-	if (obj >= tbl->max) {
-		spin_unlock_irqrestore(&tbl->lock, flags);
-		return -ENOMEM;
-	}
+> I can't help that IBTA created a different scheme for device
+> aggregation, addressing, and basically everything else. 'standard
+> convention' in the kernel really just means ethernet, and this isn't
+> like ethernet, except superficially.
 
-	set_bit(obj, tbl->table);
-	obj |= tbl->top;
+Well you can create your own non ethernet protocol. Why is there not an IB
+ulp that allows basic messaging, listen() and all the other stuff using
+standard system calls? There should be a netdev. I already see devices
+in /sys/class/infiniband/*! But they are not listed in /proc/net/dev!!!
 
-> +
-> +	spin_unlock_irqrestore(&tbl->lock, flags);
-> +
-> +	uar->index = obj;
-> +	uar->pfn = (pci_resource_start(dev->pdev, PVRDMA_PCI_RESOURCE_UAR) >>
-> +		    PAGE_SHIFT) + uar->index;
-> +
-> +	return 0;
-> +}
-> +
-> +void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-> +{
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +	unsigned long flags;
-> +	u32 obj;
-> +
-> +	obj = uar->index & (tbl->max - 1);
-> +	spin_lock_irqsave(&tbl->lock, flags);
-> +	clear_bit(obj, tbl->table);
-> +	tbl->last = min(tbl->last, obj);
-> +	tbl->top = (tbl->top + tbl->max) & tbl->mask;
-> +	spin_unlock_irqrestore(&tbl->lock, flags);
-> +}
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why can we not use these with regular syscalls? Could provide this basic
+support for native infiniband? And maybe offload some of the need for
+esoteric IB ioctl functions that could just be provided by the standard
+calls? F.e. statistics and device configuration would be simplified and possible using
+the standard tools. IB devices have MACs as well. We could reuse quite a
+bit of software there.
+
+I think Christoph H made the point already that the wire format needs to
+stay the same and also the user verbs API (to some degree) but below that
+we could do pretty much what we want.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
