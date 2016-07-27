@@ -1,49 +1,57 @@
-From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] net/mlx5_core/en_main: Remove deprecated create_workqueue
-Date: Wed, 27 Jul 2016 11:42:30 +0530
-Message-ID: <20160727061229.GA16943@Karyakshetra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 2/2] IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one
+Date: Wed, 27 Jul 2016 01:24:53 -0700
+Message-ID: <1469607893-10657-3-git-send-email-yuval.shaia@oracle.com>
+References: <1469607893-10657-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1469607893-10657-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-alloc_ordered_workqueue() with WQ_MEM_RECLAIM set replaces
-deprecated create_singlethread_workqueue(). This is the identity
-conversion.
+Error code EAGAIN should be used when errors are temporary and next call
+might succeeds.
+When error code other than EAGAIN is returned, the caller (mlx4_ib_poll)
+will assume all CQE in the same bunch are error too and will drop them all.
 
-A dedicated workqueue has been used since mlx5e workqueue was created to
-handle all mlx5e specific tasks. This is in preparation for vxlan using
-the mlx5e workqueue in order to schedule port add/remove operations.
-WQ_MEM_RECLAIM has been set to guarantee forward progress under memory
-pressure.
-
-Can the workitems be executed concurrently?
-Are the workitems being used on a memory reclaim path?
-
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/cq.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index fd43929..1a96445 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -3042,7 +3042,7 @@ static void *mlx5e_create_netdev(struct mlx5_core_dev *mdev)
-
- 	priv = netdev_priv(netdev);
-
--	priv->wq = create_singlethread_workqueue("mlx5e");
-+	priv->wq = alloc_ordered_workqueue("mlx5e", WQ_MEM_RECLAIM);
- 	if (!priv->wq)
- 		goto err_free_netdev;
-
---
-2.1.4
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 4c2e1b0..4516282 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -690,7 +690,7 @@ repoll:
+ 	if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) == MLX4_OPCODE_NOP &&
+ 		     is_send)) {
+ 		pr_warn("Completion for NOP opcode detected!\n");
+-		return -EINVAL;
++		return -EAGAIN;
+ 	}
+ 
+ 	/* Resize CQ in progress */
+@@ -721,7 +721,7 @@ repoll:
+ 		if (unlikely(!mqp)) {
+ 			pr_warn("CQ %06x with entry for unknown QPN %06x\n",
+ 			       cq->mcq.cqn, be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK);
+-			return -EINVAL;
++			return -EAGAIN;
+ 		}
+ 
+ 		*cur_qp = to_mibqp(mqp);
+@@ -739,7 +739,7 @@ repoll:
+ 		if (unlikely(!msrq)) {
+ 			pr_warn("CQ %06x with entry for unknown SRQN %06x\n",
+ 				cq->mcq.cqn, srq_num);
+-			return -EINVAL;
++			return -EAGAIN;
+ 		}
+ 	}
+ 
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
