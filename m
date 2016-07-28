@@ -1,69 +1,64 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many
- SGEs
-Date: Thu, 28 Jul 2016 13:08:56 +0000
-Message-ID: <DB5PR05MB1848930C5B1D2D52CD2AC3AAC5000@DB5PR05MB1848.eurprd05.prod.outlook.com>
-References: <20160727193718.29482.73416.stgit@manet.1015granger.net>
- <20160728052246.GM4628@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH libi40iw] fix remaining potential leaks of info arrays and iwuqp
+Date: Thu, 28 Jul 2016 15:09:23 -0400
+Message-ID: <1469732963-58257-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160728052246.GM4628-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I am not sure I agree with this. I intentionally put ENOMEM since this indicates that the WQ buffer is not large enough to contain all the s/g entries. I return EINVAL if the opcode is invalid for example.
+If we get to err_destroy_qp, we still need to free info.rq_wrid_array and
+info.sq_wrtrk_array, so just slide the return down after those respective
+free() calls, and free iwuqp before gotos below err_destroy_qp, so we do
+call free() iwuqp, but only once (i40iw_udestroy_qp() also free()'s it).
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-Sent: Thursday, July 28, 2016 12:23 AM
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many SGEs
+Fixes: 5f13b882d (libi40iw: Add return code check for pthread_spin calls)
+CC: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/i40iw_uverbs.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-On Wed, Jul 27, 2016 at 03:38:36PM -0400, Chuck Lever wrote:
-> Other similar functions (mlx5_ib_post_recv being the closest) return 
-> EINVAL in this case.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+diff --git a/src/i40iw_uverbs.c b/src/i40iw_uverbs.c
+index ec5f77e..e5753e0 100644
+--- a/src/i40iw_uverbs.c
++++ b/src/i40iw_uverbs.c
+@@ -698,6 +698,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
+ 	info.rq_wrid_array = calloc(rqdepth, sizeof(*info.rq_wrid_array));
+ 	if (!info.rq_wrid_array) {
+ 		fprintf(stderr, PFX "%s: failed to allocate memory for RQ work array\n", __func__);
++		free(iwuqp);
+ 		goto err_free_sq_wrtrk;
+ 	}
+ 
+@@ -707,6 +708,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
+ 
+ 	if (!status) {
+ 		fprintf(stderr, PFX "%s: failed to map QP\n", __func__);
++		free(iwuqp);
+ 		goto err_free_rq_wrid;
+ 	}
+ 	info.qp_id = resp.qp_id;
+@@ -728,12 +730,12 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
+ 
+ err_destroy_qp:
+ 	i40iw_udestroy_qp(&iwuqp->ibv_qp);
+-	return NULL;
+-
+ err_free_rq_wrid:
+ 	free(info.rq_wrid_array);
+ err_free_sq_wrtrk:
+ 	free(info.sq_wrtrk_array);
++	return NULL;
++
+ err_destroy_lock:
+ 	if (pthread_spin_destroy(&iwuqp->lock))
+ 		return NULL;
+-- 
+1.8.3.1
 
-Thanks Chuck,
-You are absolutely right, it should be EINVAL error.
-Do you mind if I submit it by myself together with other mlx5 fixes?
-
-Looks ok, except title :)
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-> ---
-> Hi Matan, Leon-
-> 
-> I noticed this nit while debugging a problem in xprtrdma.
-> 
->  drivers/infiniband/hw/mlx5/qp.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c 
-> b/drivers/infiniband/hw/mlx5/qp.c index ce0a7ab..b0e5498 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3436,7 +3436,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->  		num_sge = wr->num_sge;
->  		if (unlikely(num_sge > qp->sq.max_gs)) {
->  			mlx5_ib_warn(dev, "\n");
-> -			err = -ENOMEM;
-> +			err = -EINVAL;
->  			*bad_wr = wr;
->  			goto out;
->  		}
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
-> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
