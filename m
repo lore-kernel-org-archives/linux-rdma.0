@@ -1,45 +1,76 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 00/13] Code clean ups for 4.8
-Date: Thu, 28 Jul 2016 12:27:24 -0400
-Message-ID: <1469723257-27317-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 02/13] IB/hfi1: Remove unused uctxt->subpid and uctxt->pid
+Date: Thu, 28 Jul 2016 12:27:26 -0400
+Message-ID: <1469723257-27317-3-git-send-email-ira.weiny@intel.com>
+References: <1469723257-27317-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1469723257-27317-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The following patches perform some code clean up in preparation for up coming
-fixes.
+These are no longer needed.
 
-Functionality is not changed.
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/hfi1/file_ops.c | 4 ----
+ drivers/infiniband/hw/hfi1/hfi.h      | 3 ---
+ 2 files changed, 7 deletions(-)
 
-Dean Luick (6):
-  IB/hfi1: Remove unused uctxt->subpid and uctxt->pid
-  IB/hfi1: Remove unused function hfi1_mmu_rb_search
-  IB/hfi1: Always expect ops functions
-  IB/hfi1: Make iovec loop index easy to understand
-  IB/hfi1: Remove unneeded empty check in hfi1_mmu_rb_unregister()
-  IB/hfi1: Rename TID mmu_rb_* functions
-
-Ira Weiny (7):
-  IB/hfi1: Fix minor format error
-  IB/hfi1: Add parameter names to function declarations
-  IB/hfi1: Add parameter names to callback declarations
-  IB/hfi1: Consolidate __mmu_rb_remove and hfi1_mmu_rb_remove
-  IB/hfi1: Remove unused sub-context parameter
-  IB/hfi1: Use "false" not 0
-  IB/hfi1: Restructure hfi1_file_open
-
- drivers/infiniband/hw/hfi1/file_ops.c     | 18 ++++----
- drivers/infiniband/hw/hfi1/hfi.h          | 11 +++--
- drivers/infiniband/hw/hfi1/mmu_rb.c       | 74 ++++++++-----------------------
- drivers/infiniband/hw/hfi1/mmu_rb.h       | 13 +++---
- drivers/infiniband/hw/hfi1/user_exp_rcv.c | 33 +++++++-------
- drivers/infiniband/hw/hfi1/user_sdma.c    | 11 ++---
- 6 files changed, 62 insertions(+), 98 deletions(-)
-
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index d7c07bc7bd14..b80c8d2ac52b 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -727,7 +727,6 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 
+ 	if (--uctxt->cnt) {
+ 		uctxt->active_slaves &= ~(1 << fdata->subctxt);
+-		uctxt->subpid[fdata->subctxt] = 0;
+ 		mutex_unlock(&hfi1_mutex);
+ 		goto done;
+ 	}
+@@ -753,7 +752,6 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 	write_kctxt_csr(dd, uctxt->sc->hw_context, SEND_CTXT_CHECK_ENABLE,
+ 			hfi1_pkt_default_send_ctxt_mask(dd, uctxt->sc->type));
+ 	sc_disable(uctxt->sc);
+-	uctxt->pid = 0;
+ 	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
+ 
+ 	dd->rcd[uctxt->ctxt] = NULL;
+@@ -893,7 +891,6 @@ static int find_shared_ctxt(struct file *fp,
+ 			}
+ 			fd->uctxt = uctxt;
+ 			fd->subctxt  = uctxt->cnt++;
+-			uctxt->subpid[fd->subctxt] = current->pid;
+ 			uctxt->active_slaves |= 1 << fd->subctxt;
+ 			ret = 1;
+ 			goto done;
+@@ -978,7 +975,6 @@ static int allocate_ctxt(struct file *fp, struct hfi1_devdata *dd,
+ 			return ret;
+ 	}
+ 	uctxt->userversion = uinfo->userversion;
+-	uctxt->pid = current->pid;
+ 	uctxt->flags = HFI1_CAP_UGET(MASK);
+ 	init_waitqueue_head(&uctxt->wait);
+ 	strlcpy(uctxt->comm, current->comm, sizeof(uctxt->comm));
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index df43732621ee..63ce587d6f94 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -270,9 +270,6 @@ struct hfi1_ctxtdata {
+ 	u32 urgent;
+ 	/* saved total number of polled urgent packets for poll edge trigger */
+ 	u32 urgent_poll;
+-	/* pid of process using this ctxt */
+-	pid_t pid;
+-	pid_t subpid[HFI1_MAX_SHARED_CTXTS];
+ 	/* same size as task_struct .comm[], command that opened context */
+ 	char comm[TASK_COMM_LEN];
+ 	/* so file ops can get at unit */
 -- 
 1.8.2
 
