@@ -1,68 +1,96 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 06/15] IB/pvrdma: Add virtual device RDMA structures
-Date: Thu, 28 Jul 2016 13:07:32 -0700
-Message-ID: <20160728130732.35b8bcb3@adits-macbook-pro.local>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
-	<1468352205-9137-7-git-send-email-aditr@vmware.com>
-	<20160726054629.GF20674@leon.nu>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH libmlx5 2/6] fix coverity buffer overrun warning
+Date: Thu, 28 Jul 2016 16:12:02 -0400
+Message-ID: <20160728201202.GR36313@redhat.com>
+References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
+ <1469647047-7544-3-git-send-email-jarod@redhat.com>
+ <9ee81879-93c4-97ee-eebf-3300533e4efe@dev.mellanox.co.il>
+ <20160728163714.GP36313@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160726054629.GF20674-2ukJVAZIZ/Y@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160728163714.GP36313-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 26 Jul 2016 08:46:29 +0300
-Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-
-> On Tue, Jul 12, 2016 at 12:36:36PM -0700, Adit Ranadive wrote:
-> > This patch adds the various Verbs structures that we support in the
-> > virtual RDMA device. We have re-mapped the ones from the RDMA core stack
-> > to make sure we can maintain compatibility with our backend.
+On Thu, Jul 28, 2016 at 12:37:14PM -0400, Jarod Wilson wrote:
+> On Thu, Jul 28, 2016 at 05:46:16PM +0300, Yishai Hadas wrote:
+> > On 7/27/2016 10:17 PM, Jarod Wilson wrote:
+> > >In set_umr_data_seg, there's a union between a 16-byte struct and a
+> > >64-byte array, named data. The code then makes a memset() call on the
+> > >struct that is sizeof(array) - sizeof(struct) long, which results in
+> > >writing 48 bytes to a 16 byte container. Technically, we know this is
+> > >actually fine, because of the union, but to silence the warning, we can
+> > >just do the memset on the array instead. Same address, same result, but no
+> > >warning spew from coverity.
+> > >
+> > >CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > >Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > >---
+> > > src/qp.c | 2 +-
+> > > 1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > >diff --git a/src/qp.c b/src/qp.c
+> > >index 51e1176..8bb66be 100644
+> > >--- a/src/qp.c
+> > >+++ b/src/qp.c
+> > >@@ -426,7 +426,7 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
+> > > 	data->klm.mkey = htonl(bind_info->mr->lkey);
+> > > 	data->klm.address = htonll(bind_info->addr);
+> > >
+> > >-	memset(&data->klm + 1, 0, sizeof(data->reserved) -
+> > >+	memset(&data->reserved + 1, 0, sizeof(data->reserved) -
+> > > 	       sizeof(data->klm));
 > > 
-> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450
-> > +++++++++++++++++++++++++ 1 file changed, 450 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
-> >   
+> > As you pointed out this is false alarm, code is correct.
+> > 
+> > Your suggestion seems wrong as it skipped size of 'reserved' instead
+> > of size of 'klm' (i.e. 16 bytes), isn't it ?
 > 
-> ...
+> &data->klm + 1 and &data->reserved + 1 should point to the same location,
+> no? Must admit, I'm a little hazy on how a union pointer works.
 > 
-> > +enum pvrdma_wc_opcode {
-> > +	PVRDMA_WC_SEND,  
+> Regardless, I think this might be much more straight-forward if we did
+> something like this:
 > 
-> ...
+> From 43e845cc1055e4f86a2e9c78e5a3eae2c1e915c4 Mon Sep 17 00:00:00 2001
+> From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Date: Wed, 27 Jul 2016 11:35:02 -0400
+> Subject: [PATCH v2 libmlx5 2/6] fix coverity buffer overrun warning
 > 
-> > +	PVRDMA_WC_RECV_RDMA_WITH_IMM
-> > +};  
+> In set_umr_data_seg, there's a union between a 16-byte struct and a
+> 64-byte array, named data. The code then makes a memset() call on the
+> struct that is sizeof(array) - sizeof(struct) long, which results in
+> writing 48 bytes to a 16 byte container. Technically, we know this is
+> actually fine, because of the union, but to silence the warning and
+> simplify the pointer math and union gymnastics, simply zero out the entire
+> storage space before assigning klm bits.
 > 
-> ....
-> > +
-> > +enum pvrdma_wc_flags {
-> > +	PVRDMA_WC_GRH			= 1 << 0,  
-> ....
+> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  src/qp.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
 > 
-> > +	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_VLAN,
-> > +};
-> > +  
-> 
-> Sometimes you put "," at the last line of enums, sometimes you don't.
-> Can you please be more consistent?
-> 
-> Thanks.
+> diff --git a/src/qp.c b/src/qp.c
+> index 51e1176..17f2c81 100644
+> --- a/src/qp.c
+> +++ b/src/qp.c
+> @@ -422,13 +422,12 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
+>  		uint8_t				reserved[64];
+>  	} *data = *seg;
+>  
+> +	memset(&data, 0, sizeof(*data));
 
-Done. Added , to the enums missing it. Will send this out in v3.
+Nope, this is wrong, should be just data, not &data, I think. Or perhaps
+memset(&data->reserved, 0, sizeof(data->reserved));. Urgh, pointers...
 
-Thanks,
-Adit
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
