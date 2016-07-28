@@ -1,72 +1,91 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libmlx5 7/6] combine inline_hdr and inline_hdr_start
-Date: Wed, 27 Jul 2016 21:32:34 -0400
-Message-ID: <1469669554-23782-1-git-send-email-jarod@redhat.com>
-References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many
+ SGEs
+Date: Thu, 28 Jul 2016 08:22:46 +0300
+Message-ID: <20160728052246.GM4628@leon.nu>
+References: <20160727193718.29482.73416.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="W4pDZ/VvazBYHhxQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469647047-7544-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160727193718.29482.73416.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I can't see any good reason why inline_hdr and inline_hdr_start should be
-two separate arrays in struct mlx5_wqe_eth_seg. The only time I see
-anything actually accessed by dereferencing either inline_hdr or
-inline_hdr_start is when the MLX5_ETH_L2_INLINE_HEADER_SIZE or less bytes
-are copied into inline_hdr_start. By default, it's 18 bytes, copied to
-what is a 2-byte and a 16-byte array back to back in the struct, and
-coverity and clang both sound alarms because the code says "just write 18
-bytes into that 2-byte array", which in practice is ultimately fine, but
-again, why?...
 
-I propose to just add two bytes to inline_hdr and drop inline_hdr_start.
+--W4pDZ/VvazBYHhxQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- src/qp.c  | 4 ++--
- src/wqe.h | 3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+On Wed, Jul 27, 2016 at 03:38:36PM -0400, Chuck Lever wrote:
+> Other similar functions (mlx5_ib_post_recv being the closest)
+> return EINVAL in this case.
+>=20
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/src/qp.c b/src/qp.c
-index 8bb66be..f4a22be 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -369,14 +369,14 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
- 
- 	if (likely(wr->sg_list[0].length >= MLX5_ETH_L2_INLINE_HEADER_SIZE)) {
- 		inl_hdr_copy_size = MLX5_ETH_L2_INLINE_HEADER_SIZE;
--		memcpy(eseg->inline_hdr_start,
-+		memcpy(eseg->inline_hdr,
- 		       (void *)(uintptr_t)wr->sg_list[0].addr,
- 		       inl_hdr_copy_size);
- 	} else {
- 		for (j = 0; j < wr->num_sge && inl_hdr_size > 0; ++j) {
- 			inl_hdr_copy_size = min(wr->sg_list[j].length,
- 						inl_hdr_size);
--			memcpy(eseg->inline_hdr_start +
-+			memcpy(eseg->inline_hdr +
- 			       (MLX5_ETH_L2_INLINE_HEADER_SIZE - inl_hdr_size),
- 			       (void *)(uintptr_t)wr->sg_list[j].addr,
- 			       inl_hdr_copy_size);
-diff --git a/src/wqe.h b/src/wqe.h
-index c2622d5..d979232 100644
---- a/src/wqe.h
-+++ b/src/wqe.h
-@@ -92,8 +92,7 @@ struct mlx5_wqe_eth_seg {
- 	uint16_t	mss;
- 	uint32_t	rsvd2;
- 	uint16_t	inline_hdr_sz;
--	uint8_t		inline_hdr_start[2];
--	uint8_t		inline_hdr[16];
-+	uint8_t		inline_hdr[MLX5_ETH_L2_INLINE_HEADER_SIZE];
- };
- 
- struct mlx5_wqe_ctrl_seg {
--- 
-1.8.3.1
+Thanks Chuck,
+You are absolutely right, it should be EINVAL error.
+Do you mind if I submit it by myself together with other mlx5 fixes?
 
+Looks ok, except title :)
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+> ---
+> Hi Matan, Leon-
+>=20
+> I noticed this nit while debugging a problem in xprtrdma.
+>=20
+>  drivers/infiniband/hw/mlx5/qp.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5=
+/qp.c
+> index ce0a7ab..b0e5498 100644
+> --- a/drivers/infiniband/hw/mlx5/qp.c
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+> @@ -3436,7 +3436,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib=
+_send_wr *wr,
+>  		num_sge =3D wr->num_sge;
+>  		if (unlikely(num_sge > qp->sq.max_gs)) {
+>  			mlx5_ib_warn(dev, "\n");
+> -			err =3D -ENOMEM;
+> +			err =3D -EINVAL;
+>  			*bad_wr =3D wr;
+>  			goto out;
+>  		}
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--W4pDZ/VvazBYHhxQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXmZamAAoJEORje4g2clinHyYQAILH9jVmCyyF4pVRw9wZkPIO
+rIw4BYDCUhDhZnJRlI1Wv6LISAWetrJtxsTrdUTBgeF2EP0ItPttmWXxNppqs7Yp
+zjtHcZlI5/xUZjix0RmKSmHCvIe/QisPM6ofwRK1X+b6FiEgSajb1aH1ggfTDHIf
+M5ryckgv8opqg3tk5tJYw03ChDe8JjDxGFfv7wuT7davPFIjA4AuPDR6IltvHHzL
+hhPPE3BHAPEKhW86Trq5LGCk0WmHn0knXthkNybOf7wDU4G2XqyyPBMdokF74QfT
+iGzfHB151LJvtPCkVp+65tqYiGW+5wpwH8lN9yCKbvEAKsBKtEXN/FpAigHwR4Qd
+ZDQFkbSBN4N6HdR7qDhk3IrbXMYaFsvjL7NHb0ZYMo4/Kvt+AWoBx3mc11LU0fWt
+GEaJmo43YWUijpIN3SQu8ac6Ar2Y9FrfUmWH60i04lGU4k9aPq8Pi6PMkgoqKtyf
+aXHtEs8aJXFXlD1om6zqw+WmXCZxbw9bCJGWh91y2ybL+h5QLjQEGsEXrrMaB7IS
+nE8o/4A7+gJvTKrCjIAki+SIdfYatot27FVABTedhEAxMahJLH1OMrjJ7q8swy67
+VCabr42dlNcekNKT95J6Cz9qpxl3u7APFnKEEps/i8mhxUvjyx5XSdtNXrHQ0JvA
+yY288kPIYd/4I9vQ9wqO
+=rIRR
+-----END PGP SIGNATURE-----
+
+--W4pDZ/VvazBYHhxQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
