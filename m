@@ -1,27 +1,33 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 05/15] IB/pvrdma: Add UAR support
-Date: Thu, 28 Jul 2016 13:13:36 -0700
-Message-ID: <20160728131336.30907f0b@adits-macbook-pro.local>
+Subject: Re: [PATCH v2 04/15] IB/pvrdma: Add the paravirtual RDMA device
+ specification
+Date: Thu, 28 Jul 2016 13:17:55 -0700
+Message-ID: <20160728131755.35f6d42a@adits-macbook-pro.local>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
-	<1468352205-9137-6-git-send-email-aditr@vmware.com>
-	<20160727140611.GC3549@yuval-lap.uk.oracle.com>
+	<1468352205-9137-5-git-send-email-aditr@vmware.com>
+	<20160721084508.GA8661@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160727140611.GC3549-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+In-Reply-To: <20160721084508.GA8661-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 27 Jul 2016 17:06:12 +0300
+On Thu, 21 Jul 2016 11:45:09 +0300
 Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-> On Tue, Jul 12, 2016 at 12:36:35PM -0700, Adit Ranadive wrote:
-> > This patch adds the UAR support for the paravirtual RDMA device. The UAR
-> > pages are MMIO pages from the virtual PCI space. We define offsets within
-> > this page to provide the fast data-path operations.
+> Two minor comments.
+> Besides that - Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> Yuval
+> 
+> On Tue, Jul 12, 2016 at 12:36:34PM -0700, Adit Ranadive wrote:
+> > This patch describes the main specification of the underlying virtual RDMA
+> > device. The pvrdma_dev_api header file defines the Verbs commands and
+> > their parameters that can be issued to the device backend.
 > > 
 > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -29,16 +35,18 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128
-> > +++++++++++++++++++++++++ 1 file changed, 128 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+> >  drivers/infiniband/hw/pvrdma/pvrdma_defs.h    | 300 ++++++++++++++++++++++
+> >  drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h | 342
+> > ++++++++++++++++++++++++++ 2 files changed, 642 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_defs.h
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_dev_api.h
 > > 
-> > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> > b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c new file mode 100644
-> > index 0000000..d854f6d
+> > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_defs.h
+> > b/drivers/infiniband/hw/pvrdma/pvrdma_defs.h new file mode 100644
+> > index 0000000..225cba4
 > > --- /dev/null
-> > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> > @@ -0,0 +1,128 @@
+> > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_defs.h
+> > @@ -0,0 +1,300 @@
 > > +/*
 > > + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 > > + *
@@ -50,7 +58,7 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 > > + * See the GNU General Public License version 2 for more details at
 > > + *
-> > https://urldefense.proofpoint.com/v2/url?u=http-3A__www.gnu.org_licenses_old-2Dlicenses_gpl-2D2.0.en.html&d=CwIBAg&c=Sqcl0Ez6M0X8aeM67LKIiDJAXVeAw-YihVMNtXt-uEs&r=uGpVYdpWLb65FRYUmM4EfQ&m=tNZWuWp3kE1s-gan-hE-5OXvDfvRDs9-8F-8KAmtUuA&s=sMzAhVyP3X8sxMREMqDO2OCcL6iGgSPFW_cbNPeGKUA&e= .
+> > https://urldefense.proofpoint.com/v2/url?u=http-3A__www.gnu.org_licenses_old-2Dlicenses_gpl-2D2.0.en.html&d=CwIBAg&c=Sqcl0Ez6M0X8aeM67LKIiDJAXVeAw-YihVMNtXt-uEs&r=uGpVYdpWLb65FRYUmM4EfQ&m=czr8sWJhFSFR3J4meRKD6XraZLGcdnFbdCzUt9taPoM&s=w9TucKdjv27QS7PpvjqjVfU9uV35OBXlSCMXLdq9nQQ&e= .
 > > + *
 > > + * You should have received a copy of the GNU General Public License
 > > + * along with this program available in the file COPYING in the main
@@ -85,78 +93,153 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > + * OF THE POSSIBILITY OF SUCH DAMAGE.
 > > + */
 > > +
-> > +#include <linux/bitmap.h>
-> > +#include <linux/errno.h>
-> > +#include <linux/slab.h>
+> > +#ifndef __PVRDMA_DEFS_H__
+> > +#define __PVRDMA_DEFS_H__
 > > +
-> > +#include "pvrdma.h"
+> > +#include <linux/types.h>
+> > +#include "pvrdma_ib_verbs.h"
+> > +#include "pvrdma_uapi.h"
 > > +
-> > +int pvrdma_uar_table_init(struct pvrdma_dev *dev)
-> > +{
-> > +	u32 num = dev->dsr->caps.max_uar;
-> > +	u32 mask = num - 1;
-> > +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
+> > +/*
+> > + * Masks and accessors for page directory, which is a two-level lookup:
+> > + * page directory -> page table -> page. Only one directory for now, but we
+> > + * could expand that easily. 9 bits for tables, 9 bits for pages, gives one
+> > + * gigabyte for memory regions and so forth.
+> > + */
 > > +
-> > +	/* Power of 2 */
-> > +	if (num != 1 << (ffs(num) - 1))
-> > +		return -EINVAL;
-> > +
-> > +	tbl->last = 0;
-> > +	tbl->top = 0;
-> > +	tbl->max = num;
-> > +	tbl->mask = mask;
-> > +	spin_lock_init(&tbl->lock);
-> > +	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
-> > +	if (!tbl->table)
-> > +		return -ENOMEM;
-> > +
-> > +	/* 0th UAR is taken by the device. */
-> > +	set_bit(0, tbl->table);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
-> > +{
-> > +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> > +
-> > +	kfree(tbl->table);
-> > +}
-> > +
-> > +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-> > +{
-> > +	struct pvrdma_id_table *tbl;
-> > +	unsigned long flags;
-> > +	u32 obj;
-> > +
-> > +	tbl = &dev->uar_table.tbl;
-> > +
-> > +	spin_lock_irqsave(&tbl->lock, flags);
-> > +	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
-> > +	if (obj >= tbl->max) {
-> > +		tbl->top = (tbl->top + tbl->max) & tbl->mask;
-> > +		obj = find_first_zero_bit(tbl->table, tbl->max);
-> > +	}
-> > +
-> > +	if (obj < tbl->max) {
-> > +		set_bit(obj, tbl->table);
-> > +		obj |= tbl->top;
-> > +	} else {
-> > +		spin_unlock_irqrestore(&tbl->lock, flags);
-> > +		return -ENOMEM;
-> > +	}  
+> > +#define PVRDMA_PAGE_DIR_DIR(x)		(((x) >> 18) & 0x1)
+> > +#define PVRDMA_PAGE_DIR_TABLE(x)	(((x) >> 9) & 0x1ff)  
 > 
-> Please consider restructuring the above block to something like this:
-> 	if (obj >= tbl->max) {
-> 		spin_unlock_irqrestore(&tbl->lock, flags);
-> 		return -ENOMEM;
-> 	}
-> 
-> 	set_bit(obj, tbl->table);
-> 	obj |= tbl->top;
+> Suggesting to add #define for the above 9 and 18, ex PVRDMA_PAGE_DIR_SHIFT
+> or something like that.
 > 
 
-Done. Will add this in v3.
+Will add this in v3.
+
+> > +#define PVRDMA_PAGE_DIR_PAGE(x)		((x) & 0x1ff)
+> > +#define PVRDMA_PAGE_DIR_MAX_PAGES	(1 * 512 * 512)
+> > +#define PVRDMA_MAX_FAST_REG_PAGES	128
+> > +
+> > +/*
+> > + * Max MSI-X vectors.
+> > + */
+> > +
+> > +#define PVRDMA_MAX_INTERRUPTS	3
+> > +
+> > +/* Register offsets within PCI resource on BAR1. */
+> > +#define PVRDMA_REG_VERSION	0x00	/* R: Version of device. */
+> > +#define PVRDMA_REG_DSRLOW	0x04	/* W: Device shared region
+> > low PA. */ +#define PVRDMA_REG_DSRHIGH	0x08	/* W: Device
+> > shared region high PA. */ +#define PVRDMA_REG_CTL
+> > 0x0c	/* W: PVRDMA_DEVICE_CTL */ +#define PVRDMA_REG_REQUEST
+> > 0x10	/* W: Indicate device request. */ +#define
+> > PVRDMA_REG_ERR		0x14	/* R: Device error. */ +#define
+> > PVRDMA_REG_ICR		0x18	/* R: Interrupt cause. */
+> > +#define PVRDMA_REG_IMR		0x1c	/* R/W: Interrupt mask.
+> > */ +#define PVRDMA_REG_MACL		0x20	/* R/W: MAC address
+> > low. */ +#define PVRDMA_REG_MACH		0x24	/* R/W: MAC
+> > address high. */ + +/* Object flags. */
+> > +#define PVRDMA_CQ_FLAG_ARMED_SOL	BIT(0)	/* Armed for
+> > solicited-only. */ +#define PVRDMA_CQ_FLAG_ARMED
+> > BIT(1)	/* Armed. */ +#define PVRDMA_MR_FLAG_DMA
+> > BIT(0)	/* DMA region. */ +#define PVRDMA_MR_FLAG_FRMR
+> > BIT(1)	/* Fast reg memory region. */ +
+> > +/*
+> > + * Atomic operation capability (masked versions are extended atomic
+> > + * operations.
+> > + */
+> > +
+> > +#define PVRDMA_ATOMIC_OP_COMP_SWAP	BIT(0) /* Compare and swap. */
+> > +#define PVRDMA_ATOMIC_OP_FETCH_ADD	BIT(1) /* Fetch and add. */
+> > +#define PVRDMA_ATOMIC_OP_MASK_COMP_SWAP	BIT(2) /* Masked compare
+> > and swap. */ +#define PVRDMA_ATOMIC_OP_MASK_FETCH_ADD	BIT(3) /*
+> > Masked fetch and add. */ +
+> > +/*
+> > + * Base Memory Management Extension flags to support Fast Reg Memory
+> > Regions
+> > + * and Fast Reg Work Requests. Each flag represents a verb operation and we
+> > + * must support all of them to qualify for the BMME device cap.
+> > + */
+> > +
+> > +#define PVRDMA_BMME_FLAG_LOCAL_INV	BIT(0) /* Local Invalidate. */
+> > +#define PVRDMA_BMME_FLAG_REMOTE_INV	BIT(1) /* Remote Invalidate. */
+> > +#define PVRDMA_BMME_FLAG_FAST_REG_WR	BIT(2) /* Fast Reg Work
+> > Request. */ +
+> > +/*
+> > + * GID types. The interpretation of the gid_types bit field in the device
+> > + * capabilities will depend on the device mode. For now, the device only
+> > + * supports RoCE as mode, so only the different GID types for RoCE are
+> > + * defined.
+> > + */
+> > +
+> > +#define PVRDMA_GID_TYPE_FLAG_ROCE_V1 BIT(0)
+> > +#define PVRDMA_GID_TYPE_FLAG_ROCE_V2 BIT(1)
+> > +
+> > +enum pvrdma_pci_resource {
+> > +	PVRDMA_PCI_RESOURCE_MSIX = 0,	/* BAR0: MSI-X, MMIO. */
+> > +	PVRDMA_PCI_RESOURCE_REG,	/* BAR1: Registers, MMIO. */
+> > +	PVRDMA_PCI_RESOURCE_UAR,	/* BAR2: UAR pages, MMIO, 64-bit.
+> > */
+> > +	PVRDMA_PCI_RESOURCE_LAST,	/* Last. */
+> > +};
+> > +
+> > +enum pvrdma_device_ctl {
+> > +	PVRDMA_DEVICE_CTL_ACTIVATE = 0,	/* Activate device. */
+> > +	PVRDMA_DEVICE_CTL_QUIESCE,	/* Quiesce device. */
+> > +	PVRDMA_DEVICE_CTL_RESET,	/* Reset device. */
+> > +};
+> > +
+> > +enum pvrdma_intr_vector {
+> > +	PVRDMA_INTR_VECTOR_RESPONSE	= 0,	/* Command
+> > response. */
+> > +	PVRDMA_INTR_VECTOR_ASYNC	= 1,	/* Async events. */
+> > +	PVRDMA_INTR_VECTOR_CQ		= 2,	/* CQ
+> > notification. */
+> > +	/* Additional CQ notification vectors. */
+> > +};
+> > +
+> > +enum pvrdma_intr_cause {
+> > +	PVRDMA_INTR_CAUSE_RESPONSE	= (1 <<
+> > PVRDMA_INTR_VECTOR_RESPONSE),
+> > +	PVRDMA_INTR_CAUSE_ASYNC		= (1 <<
+> > PVRDMA_INTR_VECTOR_ASYNC),
+> > +	PVRDMA_INTR_CAUSE_CQ		= (1 << PVRDMA_INTR_VECTOR_CQ),
+> > +};
+> > +
+> > +enum pvrdma_intr_type {
+> > +	PVRDMA_INTR_TYPE_INTX = 0,	/* Legacy. */
+> > +	PVRDMA_INTR_TYPE_MSI,		/* MSI. */
+> > +	PVRDMA_INTR_TYPE_MSIX,		/* MSI-X. */
+> > +};
+> > +
+> > +enum pvrdma_gos_bits {
+> > +	PVRDMA_GOS_BITS_UNK = 0,	/* Unknown. */
+> > +	PVRDMA_GOS_BITS_32,		/* 32-bit. */
+> > +	PVRDMA_GOS_BITS_64,		/* 64-bit. */
+> > +};
+> > +
+> > +enum pvrdma_gos_type {
+> > +	PVRDMA_GOS_TYPE_UNK = 0,	/* Unknown. */
+> > +	PVRDMA_GOS_TYPE_LINUX,		/* Linux. */
+> > +};
+> > +
+> > +enum pvrdma_device_mode {
+> > +	PVRDMA_DEVICE_MODE_ROCE = 0,	/* RoCE. */
+> > +	PVRDMA_DEVICE_MODE_IWARP,	/* iWarp. */
+> > +	PVRDMA_DEVICE_MODE_IB		/* InfiniBand. */
+> > +};
+> > +
+> > +struct pvrdma_gos_info {
+> > +	__u32 gos_bits:2;	/* W: PVRDMA_GOS_BITS_ */
+> > +	__u32 gos_type:4;	/* W: PVRDMA_GOS_TYPE_ */
+> > +	__u32 gos_ver:16;	/* W: Guest OS version. */
+> > +	__u32 gos_misc:10;	/* W: Other. */
+> > +	__u32 pad;		/*    Pad to 8-byte alignment. */  
+> 
+> Strip the spaces in comment.
+> 
+
+Ok. Did it here and other places below.
 
 Thanks,
 Adit
