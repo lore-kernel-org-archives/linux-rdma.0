@@ -1,58 +1,64 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libmlx5 4/6] fix check of mlx5_store_uidx return
-Date: Thu, 28 Jul 2016 18:04:24 +0300
-Message-ID: <782a0deb-7743-4fff-644e-7e25794e46c1@dev.mellanox.co.il>
-References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
- <1469647047-7544-5-git-send-email-jarod@redhat.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH] Add transactions per second to latency tests
+Date: Thu, 28 Jul 2016 10:17:59 -0500
+Message-ID: <008e01d1e8e3$3a0a5170$ae1ef450$@opengridcomputing.com>
+References: <4257b3f1d2c22af577a5e584d2a34013342fb0ca.1467907759.git.root@stevo1.asicdesigners.com> <013001d1d86a$5b3ea460$11bbed20$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469647047-7544-5-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <013001d1d86a$5b3ea460$11bbed20$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/27/2016 10:17 PM, Jarod Wilson wrote:
-> mlx5_store_uidx() returns an int32_t, but create_qp was storing the return
-> in a uint32_t, and then checking for a value less than 0, which is
-> impossible with the uint32_t. Use a local int32_t for the return, check
-> for < 0, then cast to uint32_t and save the result for later use.
+Hey Gil, will you merge this?
 
-Good point, thanks.
+Thanks,
 
-Actually the change can be to use int 'usr_idx' instead of uint32_t. See 
-same flow as part of mlx5_create_xrc_srq which works as expected by 
-using int.
+Steve.
+ 
 
-> CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  src/verbs.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
+> Sent: Thursday, July 07, 2016 11:12 AM
+> To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: [PATCH] Add transactions per second to latency tests
+> 
+> 
+> > Subject: [PATCH] Add transactions per second to latency tests
+> >
+> > For duration (-D) latency tests, it is useful to have the average
+> > transactions per second (tps) output.  So ib_*_lat now shows
+> > average tps:
+> >
+> >
 >
-> diff --git a/src/verbs.c b/src/verbs.c
-> index 7ed394e..d64e406 100644
-> --- a/src/verbs.c
-> +++ b/src/verbs.c
-> @@ -1224,11 +1224,13 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  		cmd.uidx = 0xffffff;
->  		pthread_mutex_lock(&ctx->qp_table_mutex);
->  	} else if (!is_xrc_tgt(attr->qp_type)) {
-> -		usr_idx = mlx5_store_uidx(ctx, qp);
-> -		if (usr_idx < 0) {
-> +		int32_t uidx_ret;
-> +		uidx_ret = mlx5_store_uidx(ctx, qp);
-> +		if (uidx_ret < 0) {
->  			mlx5_dbg(fp, MLX5_DBG_QP, "Couldn't find free user index\n");
->  			goto err_rq_db;
->  		}
-> +		usr_idx = (uint32_t)uidx_ret;
+--------------------------------------------------------------------------------
+> -------
+> >  #bytes        #iterations       t_avg[usec]    tps average
+> >  2             1008430           2.97           168068.16
+> >
 >
->  		cmd.uidx = usr_idx;
->  	}
->
+--------------------------------------------------------------------------------
+> -------
+> >
+> > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> 
+> I should have added "perftest" to the subject.  This is a patch to
+> git://git.openfabrics.org/~grockah/perftest.
+> 
+> Steve.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
