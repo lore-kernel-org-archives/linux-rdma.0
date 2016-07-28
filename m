@@ -1,63 +1,42 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libi40iw] fix remaining potential leaks of info arrays and iwuqp
-Date: Thu, 28 Jul 2016 15:09:23 -0400
-Message-ID: <1469732963-58257-1-git-send-email-jarod@redhat.com>
+From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Subject: [PATCH 01/16] IB/hfi1: Prevent null pointer dereference
+Date: Thu, 28 Jul 2016 15:21:12 -0400
+Message-ID: <1469733687-31738-2-git-send-email-ira.weiny@intel.com>
+References: <1469733687-31738-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1469733687-31738-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If we get to err_destroy_qp, we still need to free info.rq_wrid_array and
-info.sq_wrtrk_array, so just slide the return down after those respective
-free() calls, and free iwuqp before gotos below err_destroy_qp, so we do
-call free() iwuqp, but only once (i40iw_udestroy_qp() also free()'s it).
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fixes: 5f13b882d (libi40iw: Add return code check for pthread_spin calls)
-CC: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-CC: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+If a context has not been assigned or assignment failed, pq may be NULL.
+Move the unregister within the protection of the null check.
+
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/i40iw_uverbs.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/i40iw_uverbs.c b/src/i40iw_uverbs.c
-index ec5f77e..e5753e0 100644
---- a/src/i40iw_uverbs.c
-+++ b/src/i40iw_uverbs.c
-@@ -698,6 +698,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
- 	info.rq_wrid_array = calloc(rqdepth, sizeof(*info.rq_wrid_array));
- 	if (!info.rq_wrid_array) {
- 		fprintf(stderr, PFX "%s: failed to allocate memory for RQ work array\n", __func__);
-+		free(iwuqp);
- 		goto err_free_sq_wrtrk;
- 	}
- 
-@@ -707,6 +708,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
- 
- 	if (!status) {
- 		fprintf(stderr, PFX "%s: failed to map QP\n", __func__);
-+		free(iwuqp);
- 		goto err_free_rq_wrid;
- 	}
- 	info.qp_id = resp.qp_id;
-@@ -728,12 +730,12 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr
- 
- err_destroy_qp:
- 	i40iw_udestroy_qp(&iwuqp->ibv_qp);
--	return NULL;
--
- err_free_rq_wrid:
- 	free(info.rq_wrid_array);
- err_free_sq_wrtrk:
- 	free(info.sq_wrtrk_array);
-+	return NULL;
-+
- err_destroy_lock:
- 	if (pthread_spin_destroy(&iwuqp->lock))
- 		return NULL;
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index 586f07807b27..6b8d1e8b6286 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -472,8 +472,8 @@ int hfi1_user_sdma_free_queues(struct hfi1_filedata *fd)
+ 	hfi1_cdbg(SDMA, "[%u:%u:%u] Freeing user SDMA queues", uctxt->dd->unit,
+ 		  uctxt->ctxt, fd->subctxt);
+ 	pq = fd->pq;
+-	hfi1_mmu_rb_unregister(&pq->sdma_rb_root);
+ 	if (pq) {
++		hfi1_mmu_rb_unregister(&pq->sdma_rb_root);
+ 		spin_lock_irqsave(&uctxt->sdma_qlock, flags);
+ 		if (!list_empty(&pq->list))
+ 			list_del_init(&pq->list);
 -- 
-1.8.3.1
+1.8.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
