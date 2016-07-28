@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 04/13] IB/hfi1: Add parameter names to function declarations
-Date: Thu, 28 Jul 2016 12:27:28 -0400
-Message-ID: <1469723257-27317-5-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 11/13] IB/hfi1: Restructure hfi1_file_open
+Date: Thu, 28 Jul 2016 12:27:35 -0400
+Message-ID: <1469723257-27317-12-git-send-email-ira.weiny@intel.com>
 References: <1469723257-27317-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469723257-27317-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,34 +12,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Parameter names to function declarations make it more clear
-what those parameters do.
+Rearrange the file open call in prep for new changes.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 63ce587d6f94..6fb86fee0701 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1700,9 +1700,11 @@ void shutdown_led_override(struct hfi1_pportdata *ppd);
-  */
- #define DEFAULT_RCVHDR_ENTSIZE 32
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index b80c8d2ac52b..0522bafb190b 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -168,6 +168,7 @@ static inline int is_valid_mmap(u64 token)
  
--bool hfi1_can_pin_pages(struct hfi1_devdata *, u32, u32);
--int hfi1_acquire_user_pages(unsigned long, size_t, bool, struct page **);
--void hfi1_release_user_pages(struct mm_struct *, struct page **, size_t, bool);
-+bool hfi1_can_pin_pages(struct hfi1_devdata *dd, u32 nlocked, u32 npages);
-+int hfi1_acquire_user_pages(unsigned long vaddr, size_t npages, bool writable,
-+			    struct page **pages);
-+void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
-+			     size_t npages, bool dirty);
- 
- static inline void clear_rcvhdrtail(const struct hfi1_ctxtdata *rcd)
+ static int hfi1_file_open(struct inode *inode, struct file *fp)
  {
++	struct hfi1_filedata *fd;
+ 	struct hfi1_devdata *dd = container_of(inode->i_cdev,
+ 					       struct hfi1_devdata,
+ 					       user_cdev);
+@@ -176,10 +177,15 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
+ 	kobject_get(&dd->kobj);
+ 
+ 	/* The real work is performed later in assign_ctxt() */
+-	fp->private_data = kzalloc(sizeof(struct hfi1_filedata), GFP_KERNEL);
+-	if (fp->private_data) /* no cpu affinity by default */
+-		((struct hfi1_filedata *)fp->private_data)->rec_cpu_num = -1;
+-	return fp->private_data ? 0 : -ENOMEM;
++
++	fd = kzalloc(sizeof(*fd), GFP_KERNEL);
++
++	if (fd) /* no cpu affinity by default */
++		fd->rec_cpu_num = -1;
++
++	fp->private_data = fd;
++
++	return fd ? 0 : -ENOMEM;
+ }
+ 
+ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
 -- 
 1.8.2
 
