@@ -1,74 +1,82 @@
-From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] net/mlx5_core/pagealloc: Remove deprecated create_singlethread_workqueue
-Date: Fri, 29 Jul 2016 01:45:53 +0300
-Message-ID: <CALzJLG8D11VqnGi=tJg4+TGrgPCfGZhNtk=n+pJ+oaG8wDEQOg@mail.gmail.com>
-References: <20160728081949.GA5561@Karyakshetra> <20160728093735.GO4628@leon.nu>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/15] IB/pvrdma: Add device command support
+Date: Thu, 28 Jul 2016 22:51:39 +0000
+Message-ID: <BLUPR0501MB8363954E94FE9D268E66CB7C5000@BLUPR0501MB836.namprd05.prod.outlook.com>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+ <1468352205-9137-3-git-send-email-aditr@vmware.com>
+ <20160718124652.GE6165@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160728093735.GO4628-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160718124652.GE6165-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 28, 2016 at 12:37 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Thu, Jul 28, 2016 at 01:49:49PM +0530, Bhaktipriya Shridhar wrote:
->> A dedicated workqueue has been used since the work items are being used
->> on a memory reclaim path. WQ_MEM_RECLAIM has been set to guarantee forward
->> progress under memory pressure.
->>
->> The workqueue has a single work item. Hence, alloc_workqueue() is used
->> instead of alloc_ordered_workqueue() since ordering is unnecessary when
->> there's only one work item.
->>
->> Explicit concurrency limit is unnecessary here since there are only a
->> fixed number of work items.
->>
->> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> Hi Bhaktipriya,
->
-> First of all, I would like to thank you for your work and invite you to
-> continue, but can you please submit ONE patch SERIES which changes all
-> similar places?
->
+On Mon, 18 Jul 2016 15:46:53 +0300 Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
+> > This patch enables posting Verb requests and receiving responses to/from
+> > the backend PVRDMA emulation layer.
+> >
 
-I agree with Leon, please push one series for all mlx5 patches and add
-some explanation in the cover letter regarding the motivation of this
-work.
+...
 
-> BTW,
-> Did you test this patch? Did you notice the memory reclaim path nature
-> of this work?
->
-> Thanks
->
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
->> index 9eeee05..7c85262 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c
->> @@ -552,7 +552,8 @@ void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev)
->>
->>  int mlx5_pagealloc_start(struct mlx5_core_dev *dev)
->>  {
->> -     dev->priv.pg_wq = create_singlethread_workqueue("mlx5_page_allocator");
->> +     dev->priv.pg_wq = alloc_workqueue("mlx5_page_allocator",
->> +                                       WQ_MEM_RECLAIM, 0);
->>       if (!dev->priv.pg_wq)
->>               return -ENOMEM;
->>
->> --
->> 2.1.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +int
+> > +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
+> > +		bool expect_resp, union pvrdma_cmd_resp *resp)
+> > +{
+> > +	int err;
+> > +
+> > +	dev_dbg(&dev->pdev->dev, "post request to device\n");
+> > +
+> > +	/* Serializiation */
+> > +	down(&dev->cmd_sema);
+> > +
+> > +	spin_lock(&dev->cmd_lock);
+> > +	memcpy(dev->cmd_slot, req, sizeof(*req));
+> 
+> Just to protect against memory corruption suggesting to do:
+> 	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
+> 
+
+Done.
+
+> > +	spin_unlock(&dev->cmd_lock);
+> > +
+> > +	init_completion(&dev->cmd_done);
+> > +	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
+> > +
+> > +	/* Make sure the request is written before reading status. */
+> > +	mb();
+> > +	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
+> > +	if (err == 0) {
+> > +		if (expect_resp) {
+> 
+> How about utilizing resp instead of extra argument.
+> This will save you for example from the local variable rsp in function
+> pvrdma_destroy_qp (patch #10)
+> 
+
+Ok. Will remove the extra argument.
+
+> > +			err = wait_for_completion_interruptible_timeout(
+> > +				&dev->cmd_done,
+> > +				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
+> > +			if (err == 0) {
+> > +				dev_warn(&dev->pdev->dev,
+> > +					 "completion timeout\n");
+> 
+> Is this really a warning only? i.e. i assume some high level flow is
+> break now.
+> 
+
+I have changed this to a dev_err.
+
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
