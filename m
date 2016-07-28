@@ -1,65 +1,68 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V3] Add flow control to the portmapper
-Date: Thu, 28 Jul 2016 15:02:26 -0500
-Message-ID: <1469736146-17640-1-git-send-email-shiraz.saleem@intel.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 06/15] IB/pvrdma: Add virtual device RDMA structures
+Date: Thu, 28 Jul 2016 13:07:32 -0700
+Message-ID: <20160728130732.35b8bcb3@adits-macbook-pro.local>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+	<1468352205-9137-7-git-send-email-aditr@vmware.com>
+	<20160726054629.GF20674@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160726054629.GF20674-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Tue, 26 Jul 2016 08:46:29 +0300
+Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
-During connection establishment with a large number of
-connections, it is possible that the connection requests
-might fail. Adding flow control prevents this failure.
-Change ibnl_unicast to use blocking to enable flow control.
+> On Tue, Jul 12, 2016 at 12:36:36PM -0700, Adit Ranadive wrote:
+> > This patch adds the various Verbs structures that we support in the
+> > virtual RDMA device. We have re-mapped the ones from the RDMA core stack
+> > to make sure we can maintain compatibility with our backend.
+> > 
+> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450
+> > +++++++++++++++++++++++++ 1 file changed, 450 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> >   
+> 
+> ...
+> 
+> > +enum pvrdma_wc_opcode {
+> > +	PVRDMA_WC_SEND,  
+> 
+> ...
+> 
+> > +	PVRDMA_WC_RECV_RDMA_WITH_IMM
+> > +};  
+> 
+> ....
+> > +
+> > +enum pvrdma_wc_flags {
+> > +	PVRDMA_WC_GRH			= 1 << 0,  
+> ....
+> 
+> > +	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_VLAN,
+> > +};
+> > +  
+> 
+> Sometimes you put "," at the last line of enums, sometimes you don't.
+> Can you please be more consistent?
+> 
+> Thanks.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+Done. Added , to the enums missing it. Will send this out in v3.
 
-V3: update to use blocking ver. of netlink_unicast() in 
-ibnl_unicast(), instead of creating new function in 
-netlink header for this purpose; as was done in V1.
-
-V2: update commit message with justification for flow control. 
-CC'ing linux-netdev mailing list.
-
- drivers/infiniband/core/netlink.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 9b8c20c..a6b3acb 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -229,7 +229,13 @@ static void ibnl_rcv(struct sk_buff *skb)
- int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			__u32 pid)
- {
--	return nlmsg_unicast(nls, skb, pid);
-+	int err;
-+
-+	err = netlink_unicast(nls, skb, pid, 0);
-+	if (err > 0)
-+		err = 0;
-+
-+	return err;
- }
- EXPORT_SYMBOL(ibnl_unicast);
- 
-@@ -252,6 +258,7 @@ int __init ibnl_init(void)
- 		return -ENOMEM;
- 	}
- 
-+	nls->sk_sndtimeo = 10 * HZ;
- 	return 0;
- }
- 
--- 
-2.8.0
-
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
