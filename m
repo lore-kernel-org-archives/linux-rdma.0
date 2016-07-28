@@ -1,112 +1,113 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v2 libmlx5 6/6] fix undefined uuar_index value assignment
-Date: Thu, 28 Jul 2016 18:53:36 +0300
-Message-ID: <828fc991-56e5-91e4-72e1-f10ca7c05aef@dev.mellanox.co.il>
-References: <1469647047-7544-7-git-send-email-jarod@redhat.com>
- <1469669515-23720-1-git-send-email-jarod@redhat.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many
+ SGEs
+Date: Thu, 28 Jul 2016 13:24:43 +0000
+Message-ID: <DB5PR05MB184872B96AE45A89A55F289FC5000@DB5PR05MB1848.eurprd05.prod.outlook.com>
+References: <20160727193718.29482.73416.stgit@manet.1015granger.net>
+ <20160728052246.GM4628@leon.nu>
+ <DB5PR05MB1848930C5B1D2D52CD2AC3AAC5000@DB5PR05MB1848.eurprd05.prod.outlook.com>
+ <80BD326A-06FD-48F3-B701-E7F9DC385EA9@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469669515-23720-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <80BD326A-06FD-48F3-B701-E7F9DC385EA9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/28/2016 4:31 AM, Jarod Wilson wrote:
-> In the case of (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) being not
-> true, uuar_index gets set to resp.uuar_index, but nothing ever initializes
-> resp.uuar_index.
->
-> That said, both this case, and the true case, it looks like uuar_index
-> never gets assigned to anything but 0. In the true path, resp_ex gets
-> memset to 0, and then nothing ever sets uuar_index. Not sure what the
-> intended use was here, but ultimately, uuar_index is always going to be 0
-> with this patch (0 or undetermined garbage before).
->
-> Additionally, I'm not sure if the cmd and resp size parameters passed to
-> ibv_cmd_create_qp_ex() are correct, but they're at least larger than they
-> might be, which should be fine. I think. But I'm just guessing here.
+OK, sounds reasonable. So if we follow this reasoning there are more places to fix in the post send function:
 
-In both cases the data comes back from the kernel driver in the vendor 
-channel path and uuar_index gets a real value. That's why 
-ibv_cmd_create_qp_ex gets resp_size which is really larger than struct 
-ibv_create_qp_resp which holds the output from the IB layer.
+static int begin_wqe(struct mlx5_ib_qp *qp, void **seg,
+                     struct mlx5_wqe_ctrl_seg **ctrl,
+                     struct ib_send_wr *wr, unsigned *idx,
+                     int *size, int nreq)
+{
+        int err = 0;
 
-No change is needed here.
+        if (unlikely(mlx5_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq))) {
+                err = -ENOMEM;
+                return err;
+        }
 
-> v2: only check flag once, save to local var, memset() resp and resp_ex
-> accordingly within this function.
->
-> CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  src/verbs.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/src/verbs.c b/src/verbs.c
-> index d64e406..c68864a 100644
-> --- a/src/verbs.c
-> +++ b/src/verbs.c
-> @@ -1098,7 +1098,6 @@ static int mlx5_cmd_create_qp_ex(struct ibv_context *context,
->  	struct mlx5_create_qp_ex cmd_ex;
->  	int ret;
->
-> -	memset(resp, 0, sizeof(*resp));
->  	memset(&cmd_ex, 0, sizeof(cmd_ex));
->  	memcpy(&cmd_ex.ibv_cmd.base, &cmd->ibv_cmd.user_handle,
->  	       offsetof(typeof(cmd->ibv_cmd), is_srq) +
-> @@ -1140,6 +1139,7 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  	struct ibv_qp		       *ibqp;
->  	uint32_t			usr_idx = 0;
->  	uint32_t			uuar_index;
-> +	uint8_t				use_ex2 = 0;
->  #ifdef MLX5_DEBUG
->  	FILE *fp = ctx->dbg_fp;
->  #endif
-> @@ -1147,6 +1147,9 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  	if (attr->comp_mask & ~MLX5_CREATE_QP_SUP_COMP_MASK)
->  		return NULL;
->
-> +	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
-> +		use_ex2 = 1;
-> +
->  	qp = calloc(1, sizeof(*qp));
->  	if (!qp) {
->  		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-> @@ -1156,6 +1159,10 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  	qp->ibv_qp = ibqp;
->
->  	memset(&cmd, 0, sizeof(cmd));
-> +	if (use_ex2)
-> +		memset(&resp_ex, 0, sizeof(resp_ex));
-> +	else
-> +		memset(&resp, 0, sizeof(resp));
->
->  	qp->wq_sig = qp_sig_enabled();
->  	if (qp->wq_sig)
-> @@ -1235,7 +1242,7 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  		cmd.uidx = usr_idx;
->  	}
->
-> -	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
-> +	if (use_ex2)
->  		ret = mlx5_cmd_create_qp_ex(context, attr, &cmd, qp, &resp_ex);
->  	else
->  		ret = ibv_cmd_create_qp_ex(context, &qp->verbs_qp, sizeof(qp->verbs_qp),
-> @@ -1246,8 +1253,8 @@ struct ibv_qp *create_qp(struct ibv_context *context,
->  		goto err_free_uidx;
->  	}
->
-> -	uuar_index = (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) ?
-> -			resp_ex.uuar_index : resp.uuar_index;
-> +	uuar_index = use_ex2 ? resp_ex.uuar_index : resp.uuar_index;
-> +
->  	if (!ctx->cqe_version) {
->  		if (qp->sq.wqe_cnt || qp->rq.wqe_cnt) {
->  			ret = mlx5_store_qp(ctx, ibqp->qp_num, qp);
->
+
+-----Original Message-----
+From: Chuck Lever [mailto:chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org] 
+Sent: Thursday, July 28, 2016 8:19 AM
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many SGEs
+
+Hi Eli-
+
+> On Jul 28, 2016, at 9:08 AM, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> 
+> I am not sure I agree with this. I intentionally put ENOMEM since this indicates that the WQ buffer is not large enough to contain all the s/g entries. I return EINVAL if the opcode is invalid for example.
+
+All other drivers I reviewed return EINVAL in this case. So there is an implied API contract already.
+
+The functional issue here is that the consumer has attempted to post a Send WR with an incorrect num_sge value. sq.max_gs is a limit also specified by the consumer. There's no dynamic memory allocation here to fail.
+
+ENOMEM would be correct if a dynamic memory allocation failed, where posting again with the same arguments is likely to succeed. In this case, an invalid parameter has been provided by the consumer, which is a permanent error.
+
+Therefore EINVAL is the correct return.
+
+
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
+> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+> Sent: Thursday, July 28, 2016 12:23 AM
+> To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH] IB-mlx5: Return EINVAL when caller specifies too 
+> many SGEs
+> 
+> On Wed, Jul 27, 2016 at 03:38:36PM -0400, Chuck Lever wrote:
+>> Other similar functions (mlx5_ib_post_recv being the closest) return 
+>> EINVAL in this case.
+>> 
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> Thanks Chuck,
+> You are absolutely right, it should be EINVAL error.
+> Do you mind if I submit it by myself together with other mlx5 fixes?
+> 
+> Looks ok, except title :)
+> Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+>> ---
+>> Hi Matan, Leon-
+>> 
+>> I noticed this nit while debugging a problem in xprtrdma.
+>> 
+>> drivers/infiniband/hw/mlx5/qp.c |    2 +-
+>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>> 
+>> diff --git a/drivers/infiniband/hw/mlx5/qp.c 
+>> b/drivers/infiniband/hw/mlx5/qp.c index ce0a7ab..b0e5498 100644
+>> --- a/drivers/infiniband/hw/mlx5/qp.c
+>> +++ b/drivers/infiniband/hw/mlx5/qp.c
+>> @@ -3436,7 +3436,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>> 		num_sge = wr->num_sge;
+>> 		if (unlikely(num_sge > qp->sq.max_gs)) {
+>> 			mlx5_ib_warn(dev, "\n");
+>> -			err = -ENOMEM;
+>> +			err = -EINVAL;
+>> 			*bad_wr = wr;
+>> 			goto out;
+>> 		}
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
+>> info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
