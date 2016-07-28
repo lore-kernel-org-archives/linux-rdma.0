@@ -1,26 +1,27 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 11/15] IB/pvrdma: Add user-level shared functions
-Date: Thu, 28 Jul 2016 13:11:47 -0700
-Message-ID: <20160728131147.0a5a0b35@adits-macbook-pro.local>
+Subject: Re: [PATCH v2 05/15] IB/pvrdma: Add UAR support
+Date: Thu, 28 Jul 2016 13:13:36 -0700
+Message-ID: <20160728131336.30907f0b@adits-macbook-pro.local>
 References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
-	<1468352205-9137-12-git-send-email-aditr@vmware.com>
-	<20160718135906.GA21176@yuval-lap.uk.oracle.com>
+	<1468352205-9137-6-git-send-email-aditr@vmware.com>
+	<20160727140611.GC3549@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160718135906.GA21176-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
+In-Reply-To: <20160727140611.GC3549-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 18 Jul 2016 16:59:07 +0300
+On Wed, 27 Jul 2016 17:06:12 +0300
 Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
-> On Tue, Jul 12, 2016 at 12:36:41PM -0700, Adit Ranadive wrote:
-> > We share some common structures with the user-level driver. This patch
-> > adds those structures and shared functions to traverse the QP/CQ rings.
+> On Tue, Jul 12, 2016 at 12:36:35PM -0700, Adit Ranadive wrote:
+> > This patch adds the UAR support for the paravirtual RDMA device. The UAR
+> > pages are MMIO pages from the virtual PCI space. We define offsets within
+> > this page to provide the fast data-path operations.
 > > 
 > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -28,18 +29,16 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 > > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma_uapi.h | 247
-> > +++++++++++++++++++++++++++++ drivers/infiniband/hw/pvrdma/pvrdma_user.h |
-> > 99 ++++++++++++ 2 files changed, 346 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
+> >  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128
+> > +++++++++++++++++++++++++ 1 file changed, 128 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
 > > 
-> > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
-> > b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h new file mode 100644
-> > index 0000000..274328c
+> > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+> > b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c new file mode 100644
+> > index 0000000..d854f6d
 > > --- /dev/null
-> > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
-> > @@ -0,0 +1,247 @@
+> > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
+> > @@ -0,0 +1,128 @@
 > > +/*
 > > + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 > > + *
@@ -51,7 +50,7 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 > > + * See the GNU General Public License version 2 for more details at
 > > + *
-> > https://urldefense.proofpoint.com/v2/url?u=http-3A__www.gnu.org_licenses_old-2Dlicenses_gpl-2D2.0.en.html&d=CwIBAg&c=Sqcl0Ez6M0X8aeM67LKIiDJAXVeAw-YihVMNtXt-uEs&r=uGpVYdpWLb65FRYUmM4EfQ&m=zWCNDfhYzlW7r0Soati7Ec2q9Vao5VNR2emCPrPrXLY&s=Tma3LbotbhNrOqLsPbVKn2noOZmFLnwQu2pOYlZqpfE&e= .
+> > https://urldefense.proofpoint.com/v2/url?u=http-3A__www.gnu.org_licenses_old-2Dlicenses_gpl-2D2.0.en.html&d=CwIBAg&c=Sqcl0Ez6M0X8aeM67LKIiDJAXVeAw-YihVMNtXt-uEs&r=uGpVYdpWLb65FRYUmM4EfQ&m=tNZWuWp3kE1s-gan-hE-5OXvDfvRDs9-8F-8KAmtUuA&s=sMzAhVyP3X8sxMREMqDO2OCcL6iGgSPFW_cbNPeGKUA&e= .
 > > + *
 > > + * You should have received a copy of the GNU General Public License
 > > + * along with this program available in the file COPYING in the main
@@ -86,193 +85,78 @@ Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > > + * OF THE POSSIBILITY OF SUCH DAMAGE.
 > > + */
 > > +
-> > +#ifndef __PVRDMA_UAPI_H__
-> > +#define __PVRDMA_UAPI_H__
+> > +#include <linux/bitmap.h>
+> > +#include <linux/errno.h>
+> > +#include <linux/slab.h>
 > > +
-> > +#include <linux/types.h>
+> > +#include "pvrdma.h"
 > > +
-> > +#define PVRDMA_VERSION 17
-> > +
-> > +#define PVRDMA_UAR_HANDLE_MASK	0x00FFFFFF	/* Bottom 24 bits.
-> > */ +#define PVRDMA_UAR_QP_OFFSET	0		/* Offset of QP
-> > doorbell. */ +#define PVRDMA_UAR_QP_SEND	BIT(30)		/*
-> > Send bit. */ +#define PVRDMA_UAR_QP_RECV	BIT(31)		/*
-> > Recv bit. */ +#define PVRDMA_UAR_CQ_OFFSET	4		/*
-> > Offset of CQ doorbell. */ +#define PVRDMA_UAR_CQ_ARM_SOL
-> > BIT(29)		/* Arm solicited bit. */ +#define
-> > PVRDMA_UAR_CQ_ARM	BIT(30)		/* Arm bit. */ +#define
-> > PVRDMA_UAR_CQ_POLL	BIT(31)		/* Poll bit. */ +
-> > +/* PVRDMA atomic compare and swap */
-> > +struct pvrdma_exp_cmp_swap {
-> > +	__u64 swap_val;
-> > +	__u64 compare_val;
-> > +	__u64 swap_mask;
-> > +	__u64 compare_mask;
-> > +};
-> > +
-> > +/* PVRDMA atomic fetch and add */
-> > +struct pvrdma_exp_fetch_add {
-> > +	__u64 add_val;
-> > +	__u64 field_boundary;
-> > +};
-> > +
-> > +/* PVRDMA address vector. */
-> > +struct pvrdma_av {
-> > +	__u32 port_pd;
-> > +	__u32 sl_tclass_flowlabel;
-> > +	__u8 dgid[16];
-> > +	__u8 src_path_bits;
-> > +	__u8 gid_index;
-> > +	__u8 stat_rate;
-> > +	__u8 hop_limit;
-> > +	__u8 dmac[6];
-> > +	__u8 reserved[6];
-> > +};
-> > +
-> > +/* PVRDMA receive queue work request */
-> > +struct pvrdma_rq_wqe_hdr {
-> > +	__u64 wr_id;		/* wr id */
-> > +	__u32 num_sge;		/* size of s/g array */
-> > +	__u32 total_len;	/* reserved */
-> > +};
-> > +/* Use pvrdma_sge (ib_sge) for receieve queue s/g array elements. */
-> > +
-> > +/* PVRDMA send queue work request */
-> > +struct pvrdma_sq_wqe_hdr {
-> > +	__u64 wr_id;		/* wr id */
-> > +	__u32 num_sge;		/* size of s/g array */
-> > +	__u32 total_len;	/* reserved */
-> > +	__u32 opcode;		/* operation type */
-> > +	__u32 send_flags;	/* wr flags */
-> > +	union {
-> > +		__u32 imm_data;
-> > +		__u32 invalidate_rkey;
-> > +	} ex;
-> > +	__u32 reserved;
-> > +	union {
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u32 rkey;
-> > +			__u8 reserved[4];
-> > +		} rdma;
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u64 compare_add;
-> > +			__u64 swap;
-> > +			__u32 rkey;
-> > +			__u32 reserved;
-> > +		} atomic;
-> > +		struct {
-> > +			__u64 remote_addr;
-> > +			__u32 log_arg_sz;
-> > +			__u32 rkey;
-> > +			union {
-> > +				struct pvrdma_exp_cmp_swap  cmp_swap;
-> > +				struct pvrdma_exp_fetch_add fetch_add;
-> > +			} wr_data;
-> > +		} masked_atomics;
-> > +		struct {
-> > +			__u64 iova_start;
-> > +			__u64 pl_pdir_dma;
-> > +			__u32 page_shift;
-> > +			__u32 page_list_len;
-> > +			__u32 length;
-> > +			__u32 access_flags;
-> > +			__u32 rkey;
-> > +		} fast_reg;
-> > +		struct {
-> > +			__u32 remote_qpn;
-> > +			__u32 remote_qkey;
-> > +			struct pvrdma_av av;
-> > +		} ud;
-> > +	} wr;
-> > +};
-> > +/* Use pvrdma_sge (ib_sge) for send queue s/g array elements. */
-> > +
-> > +/* Completion queue element. */
-> > +struct pvrdma_cqe {
-> > +	__u64 wr_id;
-> > +	__u64 qp;
-> > +	__u32 opcode;
-> > +	__u32 status;
-> > +	__u32 byte_len;
-> > +	__u32 imm_data;
-> > +	__u32 src_qp;
-> > +	__u32 wc_flags;
-> > +	__u32 vendor_err;
-> > +	__u16 pkey_index;
-> > +	__u16 slid;
-> > +	__u8 sl;
-> > +	__u8 dlid_path_bits;
-> > +	__u8 port_num;
-> > +	__u8 smac[6];
-> > +	__u8 reserved2[7]; /* Pad to next power of 2 (64). */
-> > +};
-> > +
-> > +struct pvrdma_ring {
-> > +	atomic_t prod_tail;	/* Producer tail. */
-> > +	atomic_t cons_head;	/* Consumer head. */
-> > +};
-> > +
-> > +struct pvrdma_ring_state {
-> > +	struct pvrdma_ring tx;	/* Tx ring. */
-> > +	struct pvrdma_ring rx;	/* Rx ring. */
-> > +};
-> > +
-> > +static inline int pvrdma_idx_valid(__u32 idx, __u32 max_elems)
+> > +int pvrdma_uar_table_init(struct pvrdma_dev *dev)
 > > +{
-> > +	/* Generates fewer instructions than a less-than. */
-> > +	return (idx & ~((max_elems << 1) - 1)) == 0;
+> > +	u32 num = dev->dsr->caps.max_uar;
+> > +	u32 mask = num - 1;
+> > +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
+> > +
+> > +	/* Power of 2 */
+> > +	if (num != 1 << (ffs(num) - 1))
+> > +		return -EINVAL;
+> > +
+> > +	tbl->last = 0;
+> > +	tbl->top = 0;
+> > +	tbl->max = num;
+> > +	tbl->mask = mask;
+> > +	spin_lock_init(&tbl->lock);
+> > +	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
+> > +	if (!tbl->table)
+> > +		return -ENOMEM;
+> > +
+> > +	/* 0th UAR is taken by the device. */
+> > +	set_bit(0, tbl->table);
+> > +
+> > +	return 0;
 > > +}
 > > +
-> > +static inline __s32 pvrdma_idx(atomic_t *var, __u32 max_elems)
+> > +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
 > > +{
-> > +	const unsigned int idx = atomic_read(var);
+> > +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
 > > +
-> > +	if (pvrdma_idx_valid(idx, max_elems))
-> > +		return idx & (max_elems - 1);
-> > +	return -1;
+> > +	kfree(tbl->table);
 > > +}
 > > +
-> > +static inline void pvrdma_idx_ring_inc(atomic_t *var, __u32 max_elems)
+> > +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
 > > +{
-> > +	__u32 idx = atomic_read(var) + 1;	/* Increment. */
+> > +	struct pvrdma_id_table *tbl;
+> > +	unsigned long flags;
+> > +	u32 obj;
 > > +
-> > +	idx &= (max_elems << 1) - 1;		/* Modulo size, flip
-> > gen. */
-> > +	atomic_set(var, idx);
-> > +}
+> > +	tbl = &dev->uar_table.tbl;
 > > +
-> > +static inline __s32 pvrdma_idx_ring_has_space(const struct pvrdma_ring *r,
-> > +					      __u32 max_elems, __u32
-> > *out_tail) +{
-> > +	const __u32 tail = atomic_read(&r->prod_tail);
-> > +	const __u32 head = atomic_read(&r->cons_head);
-> > +
-> > +	if (pvrdma_idx_valid(tail, max_elems) &&
-> > +	    pvrdma_idx_valid(head, max_elems)) {
-> > +		*out_tail = tail & (max_elems - 1);
-> > +		return tail != (head ^ max_elems);
+> > +	spin_lock_irqsave(&tbl->lock, flags);
+> > +	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
+> > +	if (obj >= tbl->max) {
+> > +		tbl->top = (tbl->top + tbl->max) & tbl->mask;
+> > +		obj = find_first_zero_bit(tbl->table, tbl->max);
 > > +	}
-> > +	return -1;
-> > +}
 > > +
-> > +static inline __s32 pvrdma_idx_ring_has_data(const struct pvrdma_ring *r,
-> > +					     __u32 max_elems, __u32
-> > *out_head) +{
-> > +	const __u32 tail = atomic_read(&r->prod_tail);
-> > +	const __u32 head = atomic_read(&r->cons_head);
-> > +
-> > +	if (pvrdma_idx_valid(tail, max_elems) &&
-> > +	    pvrdma_idx_valid(head, max_elems)) {
-> > +		*out_head = head & (max_elems - 1);
-> > +		return tail != head;
-> > +	}
-> > +	return -1;  
+> > +	if (obj < tbl->max) {
+> > +		set_bit(obj, tbl->table);
+> > +		obj |= tbl->top;
+> > +	} else {
+> > +		spin_unlock_irqrestore(&tbl->lock, flags);
+> > +		return -ENOMEM;
+> > +	}  
 > 
-> What is the meaning of -1?
+> Please consider restructuring the above block to something like this:
+> 	if (obj >= tbl->max) {
+> 		spin_unlock_irqrestore(&tbl->lock, flags);
+> 		return -ENOMEM;
+> 	}
+> 
+> 	set_bit(obj, tbl->table);
+> 	obj |= tbl->top;
+> 
 
-It just means its an invalid index. I'll make that more clear in v3.
+Done. Will add this in v3.
 
 Thanks,
 Adit
