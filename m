@@ -1,99 +1,69 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 libmlx5 6/6] fix undefined uuar_index value assignment
-Date: Wed, 27 Jul 2016 21:31:55 -0400
-Message-ID: <1469669515-23720-1-git-send-email-jarod@redhat.com>
-References: <1469647047-7544-7-git-send-email-jarod@redhat.com>
+Subject: [PATCH libmlx5 7/6] combine inline_hdr and inline_hdr_start
+Date: Wed, 27 Jul 2016 21:32:34 -0400
+Message-ID: <1469669554-23782-1-git-send-email-jarod@redhat.com>
+References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469647047-7544-7-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1469647047-7544-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the case of (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) being not
-true, uuar_index gets set to resp.uuar_index, but nothing ever initializes
-resp.uuar_index.
+I can't see any good reason why inline_hdr and inline_hdr_start should be
+two separate arrays in struct mlx5_wqe_eth_seg. The only time I see
+anything actually accessed by dereferencing either inline_hdr or
+inline_hdr_start is when the MLX5_ETH_L2_INLINE_HEADER_SIZE or less bytes
+are copied into inline_hdr_start. By default, it's 18 bytes, copied to
+what is a 2-byte and a 16-byte array back to back in the struct, and
+coverity and clang both sound alarms because the code says "just write 18
+bytes into that 2-byte array", which in practice is ultimately fine, but
+again, why?...
 
-That said, both this case, and the true case, it looks like uuar_index
-never gets assigned to anything but 0. In the true path, resp_ex gets
-memset to 0, and then nothing ever sets uuar_index. Not sure what the
-intended use was here, but ultimately, uuar_index is always going to be 0
-with this patch (0 or undetermined garbage before).
-
-Additionally, I'm not sure if the cmd and resp size parameters passed to
-ibv_cmd_create_qp_ex() are correct, but they're at least larger than they
-might be, which should be fine. I think. But I'm just guessing here.
-
-v2: only check flag once, save to local var, memset() resp and resp_ex
-accordingly within this function.
+I propose to just add two bytes to inline_hdr and drop inline_hdr_start.
 
 CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- src/verbs.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ src/qp.c  | 4 ++--
+ src/wqe.h | 3 +--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/src/verbs.c b/src/verbs.c
-index d64e406..c68864a 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -1098,7 +1098,6 @@ static int mlx5_cmd_create_qp_ex(struct ibv_context *context,
- 	struct mlx5_create_qp_ex cmd_ex;
- 	int ret;
+diff --git a/src/qp.c b/src/qp.c
+index 8bb66be..f4a22be 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -369,14 +369,14 @@ static inline int copy_eth_inline_headers(struct ibv_qp *ibqp,
  
--	memset(resp, 0, sizeof(*resp));
- 	memset(&cmd_ex, 0, sizeof(cmd_ex));
- 	memcpy(&cmd_ex.ibv_cmd.base, &cmd->ibv_cmd.user_handle,
- 	       offsetof(typeof(cmd->ibv_cmd), is_srq) +
-@@ -1140,6 +1139,7 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 	struct ibv_qp		       *ibqp;
- 	uint32_t			usr_idx = 0;
- 	uint32_t			uuar_index;
-+	uint8_t				use_ex2 = 0;
- #ifdef MLX5_DEBUG
- 	FILE *fp = ctx->dbg_fp;
- #endif
-@@ -1147,6 +1147,9 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 	if (attr->comp_mask & ~MLX5_CREATE_QP_SUP_COMP_MASK)
- 		return NULL;
+ 	if (likely(wr->sg_list[0].length >= MLX5_ETH_L2_INLINE_HEADER_SIZE)) {
+ 		inl_hdr_copy_size = MLX5_ETH_L2_INLINE_HEADER_SIZE;
+-		memcpy(eseg->inline_hdr_start,
++		memcpy(eseg->inline_hdr,
+ 		       (void *)(uintptr_t)wr->sg_list[0].addr,
+ 		       inl_hdr_copy_size);
+ 	} else {
+ 		for (j = 0; j < wr->num_sge && inl_hdr_size > 0; ++j) {
+ 			inl_hdr_copy_size = min(wr->sg_list[j].length,
+ 						inl_hdr_size);
+-			memcpy(eseg->inline_hdr_start +
++			memcpy(eseg->inline_hdr +
+ 			       (MLX5_ETH_L2_INLINE_HEADER_SIZE - inl_hdr_size),
+ 			       (void *)(uintptr_t)wr->sg_list[j].addr,
+ 			       inl_hdr_copy_size);
+diff --git a/src/wqe.h b/src/wqe.h
+index c2622d5..d979232 100644
+--- a/src/wqe.h
++++ b/src/wqe.h
+@@ -92,8 +92,7 @@ struct mlx5_wqe_eth_seg {
+ 	uint16_t	mss;
+ 	uint32_t	rsvd2;
+ 	uint16_t	inline_hdr_sz;
+-	uint8_t		inline_hdr_start[2];
+-	uint8_t		inline_hdr[16];
++	uint8_t		inline_hdr[MLX5_ETH_L2_INLINE_HEADER_SIZE];
+ };
  
-+	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
-+		use_ex2 = 1;
-+
- 	qp = calloc(1, sizeof(*qp));
- 	if (!qp) {
- 		mlx5_dbg(fp, MLX5_DBG_QP, "\n");
-@@ -1156,6 +1159,10 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 	qp->ibv_qp = ibqp;
- 
- 	memset(&cmd, 0, sizeof(cmd));
-+	if (use_ex2)
-+		memset(&resp_ex, 0, sizeof(resp_ex));
-+	else
-+		memset(&resp, 0, sizeof(resp));
- 
- 	qp->wq_sig = qp_sig_enabled();
- 	if (qp->wq_sig)
-@@ -1235,7 +1242,7 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 		cmd.uidx = usr_idx;
- 	}
- 
--	if (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK)
-+	if (use_ex2)
- 		ret = mlx5_cmd_create_qp_ex(context, attr, &cmd, qp, &resp_ex);
- 	else
- 		ret = ibv_cmd_create_qp_ex(context, &qp->verbs_qp, sizeof(qp->verbs_qp),
-@@ -1246,8 +1253,8 @@ struct ibv_qp *create_qp(struct ibv_context *context,
- 		goto err_free_uidx;
- 	}
- 
--	uuar_index = (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) ?
--			resp_ex.uuar_index : resp.uuar_index;
-+	uuar_index = use_ex2 ? resp_ex.uuar_index : resp.uuar_index;
-+
- 	if (!ctx->cqe_version) {
- 		if (qp->sq.wqe_cnt || qp->rq.wqe_cnt) {
- 			ret = mlx5_store_qp(ctx, ibqp->qp_num, qp);
+ struct mlx5_wqe_ctrl_seg {
 -- 
 1.8.3.1
 
