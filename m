@@ -1,54 +1,75 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2 01/15] IB/pvrdma: Add paravirtual rdma device
-Date: Thu, 28 Jul 2016 20:56:54 +0000
-Message-ID: <BLUPR0501MB836FF004F1DB57D54B1588FC5000@BLUPR0501MB836.namprd05.prod.outlook.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-2-git-send-email-aditr@vmware.com>
- <20160726053820.GE20674@leon.nu>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH libi40iw] fix remaining potential leaks of info arrays
+ and iwuqp
+Date: Thu, 28 Jul 2016 21:10:07 +0000
+Message-ID: <748B799B6A00724488C603FD7E5E7EB94C9942EB@FMSMSX114.amr.corp.intel.com>
+References: <1469732963-58257-1-git-send-email-jarod@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160726053820.GE20674-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1469732963-58257-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 26 Jul 2016 08:38:20 +0300 Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Tue, Jul 12, 2016 at 12:36:31PM -0700, Adit Ranadive wrote:
-> > This patch adds the main device-level structures and functions to be used
-> > to provide RDMA functionality. Also, we define conversion functions from
-> > the IB core stack structures to the device-specific ones.
-> >
-> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/hw/pvrdma/pvrdma.h | 459 ++++++++++++++++++++++++++++++++++
-> >  1 file changed, 459 insertions(+)
-> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+Hi Jarod,
 
-...
+Thank you for the patch, just a couple of things.  Please send a V2 and we will include it.
 
-> > +/*
-> > + * VMware PVRDMA vendor id and PCI device id.
-> > + */
-> > +#ifndef PCI_VENDOR_ID_VMWARE
-> > +#define PCI_VENDOR_ID_VMWARE		0x15AD
-> > +#endif
+> diff --git a/src/i40iw_uverbs.c b/src/i40iw_uverbs.c index ec5f77e..e5753e0
+> 100644
+> --- a/src/i40iw_uverbs.c
+> +++ b/src/i40iw_uverbs.c
+> @@ -698,6 +698,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd,
+> struct ibv_qp_init_attr *attr
+>  	info.rq_wrid_array = calloc(rqdepth, sizeof(*info.rq_wrid_array));
+>  	if (!info.rq_wrid_array) {
+>  		fprintf(stderr, PFX "%s: failed to allocate memory for RQ work
+> array\n", __func__);
+> +		free(iwuqp);
+[Chien] Not needed, see changes below.
+
+>  		goto err_free_sq_wrtrk;
+>  	}
 > 
-> Any special reason to do it?
-> You have this define in include/linux/pci_ids.h file.
+> @@ -707,6 +708,7 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd,
+> struct ibv_qp_init_attr *attr
+> 
+>  	if (!status) {
+>  		fprintf(stderr, PFX "%s: failed to map QP\n", __func__);
+> +		free(iwuqp);
+[Chien] Not needed, see changes below.
 
-Hmm, not necessarily. I believe it wasn't defined in some of the older
-distros. We should be okay to remove it.
+>  		goto err_free_rq_wrid;
+>  	}
+>  	info.qp_id = resp.qp_id;
+> @@ -728,12 +730,12 @@ struct ibv_qp *i40iw_ucreate_qp(struct ibv_pd *pd,
+> struct ibv_qp_init_attr *attr
+> 
+>  err_destroy_qp:
+>  	i40iw_udestroy_qp(&iwuqp->ibv_qp);
+> -	return NULL;
+> -
+>  err_free_rq_wrid:
+>  	free(info.rq_wrid_array);
+>  err_free_sq_wrtrk:
+>  	free(info.sq_wrtrk_array);
+> +	return NULL;
+[Chien] Need to remove this.  We don't want to return when unwinding resources
+Same issue as the return NULL I missed.
 
-Thanks,
-Adit
+> +
+>  err_destroy_lock:
+>  	if (pthread_spin_destroy(&iwuqp->lock))
+>  		return NULL;
+[Chien] Not sure why I would bother with the if statement here.
+Remove the if check and return NULL. Now everything should flow correctly in the error path.
+> --
+> 1.8.3.1
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
