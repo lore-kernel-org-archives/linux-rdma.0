@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 08/13] IB/hfi1: Remove unused sub-context parameter
-Date: Thu, 28 Jul 2016 12:27:32 -0400
-Message-ID: <1469723257-27317-9-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 07/13] IB/hfi1: Consolidate __mmu_rb_remove and hfi1_mmu_rb_remove
+Date: Thu, 28 Jul 2016 12:27:31 -0400
+Message-ID: <1469723257-27317-8-git-send-email-ira.weiny@intel.com>
 References: <1469723257-27317-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469723257-27317-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,51 +12,64 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-subctxt is not used, just remove it.
+__mmu_rb_remove was called in only 1 place which was a very simple
+call site.  Combine this function into its caller.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_exp_rcv.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c | 26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-index 1b640a35b3fe..f16eb25bfcd2 100644
---- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-+++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-@@ -94,7 +94,7 @@ static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
- 			    u32 *, unsigned *, unsigned *);
- static int unprogram_rcvarray(struct file *, u32, struct tid_group **);
--static void clear_tid_node(struct hfi1_filedata *, u16, struct tid_rb_node *);
-+static void clear_tid_node(struct hfi1_filedata *, struct tid_rb_node *);
- 
- static struct mmu_rb_ops tid_rb_ops = {
- 	.insert = mmu_rb_insert,
-@@ -911,12 +911,11 @@ static int unprogram_rcvarray(struct file *fp, u32 tidinfo,
- 
- 	if (grp)
- 		*grp = node->grp;
--	clear_tid_node(fd, fd->subctxt, node);
-+	clear_tid_node(fd, node);
- 	return 0;
+diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
+index 525d58afb354..b845adf9fc0e 100644
+--- a/drivers/infiniband/hw/hfi1/mmu_rb.c
++++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
+@@ -200,22 +200,6 @@ static struct mmu_rb_node *__mmu_rb_search(struct mmu_rb_handler *handler,
+ 	return node;
  }
  
--static void clear_tid_node(struct hfi1_filedata *fd, u16 subctxt,
--			   struct tid_rb_node *node)
-+static void clear_tid_node(struct hfi1_filedata *fd, struct tid_rb_node *node)
+-/* Caller must *not* hold handler lock. */
+-static void __mmu_rb_remove(struct mmu_rb_handler *handler,
+-			    struct mmu_rb_node *node, struct mm_struct *mm)
+-{
+-	unsigned long flags;
+-
+-	/* Validity of handler and node pointers has been checked by caller. */
+-	hfi1_cdbg(MMU, "Removing node addr 0x%llx, len %u", node->addr,
+-		  node->len);
+-	spin_lock_irqsave(&handler->lock, flags);
+-	__mmu_int_rb_remove(node, handler->root);
+-	spin_unlock_irqrestore(&handler->lock, flags);
+-
+-	handler->ops->remove(handler->root, node, mm);
+-}
+-
+ struct mmu_rb_node *hfi1_mmu_rb_extract(struct rb_root *root,
+ 					unsigned long addr, unsigned long len)
  {
- 	struct hfi1_ctxtdata *uctxt = fd->uctxt;
- 	struct hfi1_devdata *dd = uctxt->dd;
-@@ -975,7 +974,7 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
- 				else
- 					hfi1_mmu_rb_remove(&fd->tid_rb_root,
- 							   &node->mmu);
--				clear_tid_node(fd, -1, node);
-+				clear_tid_node(fd, node);
- 			}
- 		}
- 	}
+@@ -237,12 +221,20 @@ struct mmu_rb_node *hfi1_mmu_rb_extract(struct rb_root *root,
+ 
+ void hfi1_mmu_rb_remove(struct rb_root *root, struct mmu_rb_node *node)
+ {
++	unsigned long flags;
+ 	struct mmu_rb_handler *handler = find_mmu_handler(root);
+ 
+ 	if (!handler || !node)
+ 		return;
+ 
+-	__mmu_rb_remove(handler, node, NULL);
++	/* Validity of handler and node pointers has been checked by caller. */
++	hfi1_cdbg(MMU, "Removing node addr 0x%llx, len %u", node->addr,
++		  node->len);
++	spin_lock_irqsave(&handler->lock, flags);
++	__mmu_int_rb_remove(node, handler->root);
++	spin_unlock_irqrestore(&handler->lock, flags);
++
++	handler->ops->remove(handler->root, node, NULL);
+ }
+ 
+ static struct mmu_rb_handler *find_mmu_handler(struct rb_root *root)
 -- 
 1.8.2
 
