@@ -1,50 +1,69 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 libmlx5 6/6] fix undefined uuar_index value assignment
-Date: Thu, 28 Jul 2016 12:40:01 -0400
-Message-ID: <20160728164001.GQ36313@redhat.com>
-References: <1469647047-7544-7-git-send-email-jarod@redhat.com>
- <1469669515-23720-1-git-send-email-jarod@redhat.com>
- <828fc991-56e5-91e4-72e1-f10ca7c05aef@dev.mellanox.co.il>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many
+ SGEs
+Date: Thu, 28 Jul 2016 13:08:56 +0000
+Message-ID: <DB5PR05MB1848930C5B1D2D52CD2AC3AAC5000@DB5PR05MB1848.eurprd05.prod.outlook.com>
+References: <20160727193718.29482.73416.stgit@manet.1015granger.net>
+ <20160728052246.GM4628@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <828fc991-56e5-91e4-72e1-f10ca7c05aef-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160728052246.GM4628-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 28, 2016 at 06:53:36PM +0300, Yishai Hadas wrote:
-> On 7/28/2016 4:31 AM, Jarod Wilson wrote:
-> >In the case of (attr->comp_mask & MLX5_CREATE_QP_EX2_COMP_MASK) being not
-> >true, uuar_index gets set to resp.uuar_index, but nothing ever initializes
-> >resp.uuar_index.
-> >
-> >That said, both this case, and the true case, it looks like uuar_index
-> >never gets assigned to anything but 0. In the true path, resp_ex gets
-> >memset to 0, and then nothing ever sets uuar_index. Not sure what the
-> >intended use was here, but ultimately, uuar_index is always going to be 0
-> >with this patch (0 or undetermined garbage before).
-> >
-> >Additionally, I'm not sure if the cmd and resp size parameters passed to
-> >ibv_cmd_create_qp_ex() are correct, but they're at least larger than they
-> >might be, which should be fine. I think. But I'm just guessing here.
+I am not sure I agree with this. I intentionally put ENOMEM since this indicates that the WQ buffer is not large enough to contain all the s/g entries. I return EINVAL if the opcode is invalid for example.
+
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
+Sent: Thursday, July 28, 2016 12:23 AM
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH] IB-mlx5: Return EINVAL when caller specifies too many SGEs
+
+On Wed, Jul 27, 2016 at 03:38:36PM -0400, Chuck Lever wrote:
+> Other similar functions (mlx5_ib_post_recv being the closest) return 
+> EINVAL in this case.
 > 
-> In both cases the data comes back from the kernel driver in the
-> vendor channel path and uuar_index gets a real value. That's why
-> ibv_cmd_create_qp_ex gets resp_size which is really larger than
-> struct ibv_create_qp_resp which holds the output from the IB layer.
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+Thanks Chuck,
+You are absolutely right, it should be EINVAL error.
+Do you mind if I submit it by myself together with other mlx5 fixes?
+
+Looks ok, except title :)
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+> ---
+> Hi Matan, Leon-
 > 
-> No change is needed here.
-
-Hm. Well, coverity and clang dislike the current state, and this patch
-does make them happy, but I suppose I can be persuaded to ignore them.
-
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-
+> I noticed this nit while debugging a problem in xprtrdma.
+> 
+>  drivers/infiniband/hw/mlx5/qp.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/qp.c 
+> b/drivers/infiniband/hw/mlx5/qp.c index ce0a7ab..b0e5498 100644
+> --- a/drivers/infiniband/hw/mlx5/qp.c
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+> @@ -3436,7 +3436,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  		num_sge = wr->num_sge;
+>  		if (unlikely(num_sge > qp->sq.max_gs)) {
+>  			mlx5_ib_warn(dev, "\n");
+> -			err = -ENOMEM;
+> +			err = -EINVAL;
+>  			*bad_wr = wr;
+>  			goto out;
+>  		}
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
+> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
