@@ -1,7 +1,7 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH 14/16] IB/hfi1: Remove unneeded mm argument in remove function
-Date: Thu, 28 Jul 2016 15:21:25 -0400
-Message-ID: <1469733687-31738-15-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 16/16] IB/hfi1: Add cache evict LRU list
+Date: Thu, 28 Jul 2016 15:21:27 -0400
+Message-ID: <1469733687-31738-17-git-send-email-ira.weiny@intel.com>
 References: <1469733687-31738-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469733687-31738-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,128 +12,119 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The reworked mmu_rb interface allows the unused mm argument to be removed.
+The original code used a LRU list to evict nodes which were least
+recently used.  For correctness the evict code was moved under the
+handler->lock, now add back the LRU list.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mmu_rb.c       |  7 +++----
- drivers/infiniband/hw/hfi1/mmu_rb.h       |  3 +--
- drivers/infiniband/hw/hfi1/user_exp_rcv.c | 10 ++++------
- drivers/infiniband/hw/hfi1/user_sdma.c    |  5 ++---
- 4 files changed, 10 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/hfi1/mmu_rb.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
-index 76f7b0403207..a02344a9d746 100644
+index a02344a9d746..7ad30898fc19 100644
 --- a/drivers/infiniband/hw/hfi1/mmu_rb.c
 +++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
-@@ -253,8 +253,7 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
- 	while (!list_empty(&del_list)) {
- 		rbnode = list_first_entry(&del_list, struct mmu_rb_node, list);
- 		list_del(&rbnode->list);
--		handler->ops->remove(handler->ops_arg, rbnode,
--				     handler->mm);
-+		handler->ops->remove(handler->ops_arg, rbnode);
- 	}
- }
+@@ -59,6 +59,7 @@ struct mmu_rb_handler {
+ 	spinlock_t lock;        /* protect the RB tree */
+ 	struct mmu_rb_ops *ops;
+ 	struct mm_struct *mm;
++	struct list_head lru_list;
+ 	struct work_struct del_work;
+ 	struct list_head del_list;
+ 	struct workqueue_struct *wq;
+@@ -119,6 +120,7 @@ int hfi1_mmu_rb_register(void *ops_arg, struct mm_struct *mm,
+ 	handlr->mm = mm;
+ 	INIT_WORK(&handlr->del_work, handle_remove);
+ 	INIT_LIST_HEAD(&handlr->del_list);
++	INIT_LIST_HEAD(&handlr->lru_list);
+ 	handlr->wq = wq;
  
-@@ -275,7 +274,7 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
- 	__mmu_int_rb_remove(node, &handler->root);
+ 	ret = mmu_notifier_register(&handlr->mn, handlr->mm);
+@@ -153,7 +155,8 @@ void hfi1_mmu_rb_unregister(struct mmu_rb_handler *handler)
+ 	while ((node = rb_first(&handler->root))) {
+ 		rbnode = rb_entry(node, struct mmu_rb_node, node);
+ 		rb_erase(node, &handler->root);
+-		list_add(&rbnode->list, &del_list);
++		/* move from LRU list to delete list */
++		list_move(&rbnode->list, &del_list);
+ 	}
  	spin_unlock_irqrestore(&handler->lock, flags);
  
--	handler->ops->remove(handler->ops_arg, node, NULL);
-+	handler->ops->remove(handler->ops_arg, node);
- }
- 
- static inline void mmu_notifier_page(struct mmu_notifier *mn,
-@@ -335,7 +334,7 @@ static void do_remove(struct mmu_rb_handler *handler,
- 	while (!list_empty(del_list)) {
- 		node = list_first_entry(del_list, struct mmu_rb_node, list);
- 		list_del(&node->list);
--		handler->ops->remove(handler->ops_arg, node, handler->mm);
-+		handler->ops->remove(handler->ops_arg, node);
+@@ -178,10 +181,13 @@ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
+ 		goto unlock;
  	}
- }
+ 	__mmu_int_rb_insert(mnode, &handler->root);
++	list_add(&mnode->list, &handler->lru_list);
  
-diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.h b/drivers/infiniband/hw/hfi1/mmu_rb.h
-index e4f853fa91e6..754f6ebf13fb 100644
---- a/drivers/infiniband/hw/hfi1/mmu_rb.h
-+++ b/drivers/infiniband/hw/hfi1/mmu_rb.h
-@@ -65,8 +65,7 @@ struct mmu_rb_ops {
- 	bool (*filter)(struct mmu_rb_node *node, unsigned long addr,
- 		       unsigned long len);
- 	int (*insert)(void *ops_arg, struct mmu_rb_node *mnode);
--	void (*remove)(void *ops_arg, struct mmu_rb_node *mnode,
--		       struct mm_struct *mm);
-+	void (*remove)(void *ops_arg, struct mmu_rb_node *mnode);
- 	int (*invalidate)(void *ops_arg, struct mmu_rb_node *node);
- 	int (*evict)(void *ops_arg, struct mmu_rb_node *mnode,
- 		     void *evict_arg, bool *stop);
-diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-index 3bcda22e7b87..8717e11fe3f5 100644
---- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-+++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-@@ -87,8 +87,7 @@ static u32 find_phys_blocks(struct page **, unsigned, struct tid_pageset *);
- static int set_rcvarray_entry(struct file *, unsigned long, u32,
- 			      struct tid_group *, struct page **, unsigned);
- static int tid_rb_insert(void *, struct mmu_rb_node *);
--static void tid_rb_remove(void *, struct mmu_rb_node *,
--			  struct mm_struct *);
-+static void tid_rb_remove(void *, struct mmu_rb_node *);
- static int tid_rb_invalidate(void *, struct mmu_rb_node *);
- static int program_rcvarray(struct file *, unsigned long, struct tid_group *,
- 			    struct tid_pageset *, unsigned, u16, struct page **,
-@@ -901,7 +900,7 @@ static int unprogram_rcvarray(struct file *fp, u32 tidinfo,
- 	if (!node || node->rcventry != (uctxt->expected_base + rcventry))
- 		return -EBADF;
- 	if (!fd->handler)
--		tid_rb_remove(fd, &node->mmu, fd->mm);
-+		tid_rb_remove(fd, &node->mmu);
- 	else
- 		hfi1_mmu_rb_remove(fd->handler, &node->mmu);
+ 	ret = handler->ops->insert(handler->ops_arg, mnode);
+-	if (ret)
++	if (ret) {
+ 		__mmu_int_rb_remove(mnode, &handler->root);
++		list_del(&mnode->list); /* remove from LRU list */
++	}
+ unlock:
+ 	spin_unlock_irqrestore(&handler->lock, flags);
+ 	return ret;
+@@ -219,8 +225,10 @@ struct mmu_rb_node *hfi1_mmu_rb_extract(struct mmu_rb_handler *handler,
  
-@@ -964,7 +963,7 @@ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
- 				if (!node || node->rcventry != rcventry)
- 					continue;
- 				if (!fd->handler)
--					tid_rb_remove(fd, &node->mmu, fd->mm);
-+					tid_rb_remove(fd, &node->mmu);
- 				else
- 					hfi1_mmu_rb_remove(fd->handler,
- 							   &node->mmu);
-@@ -1028,8 +1027,7 @@ static int tid_rb_insert(void *arg, struct mmu_rb_node *node)
- 	return 0;
- }
+ 	spin_lock_irqsave(&handler->lock, flags);
+ 	node = __mmu_rb_search(handler, addr, len);
+-	if (node)
++	if (node) {
+ 		__mmu_int_rb_remove(node, &handler->root);
++		list_del(&node->list); /* remove from LRU list */
++	}
+ 	spin_unlock_irqrestore(&handler->lock, flags);
  
--static void tid_rb_remove(void *arg, struct mmu_rb_node *node,
--			  struct mm_struct *mm)
-+static void tid_rb_remove(void *arg, struct mmu_rb_node *node)
+ 	return node;
+@@ -228,8 +236,7 @@ struct mmu_rb_node *hfi1_mmu_rb_extract(struct mmu_rb_handler *handler,
+ 
+ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
  {
- 	struct hfi1_filedata *fdata = arg;
- 	struct tid_rb_node *tnode =
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 751aa2260c1c..0ecf27903dc2 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -310,7 +310,7 @@ static bool sdma_rb_filter(struct mmu_rb_node *, unsigned long, unsigned long);
- static int sdma_rb_insert(void *, struct mmu_rb_node *);
- static int sdma_rb_evict(void *arg, struct mmu_rb_node *mnode,
- 			 void *arg2, bool *stop);
--static void sdma_rb_remove(void *, struct mmu_rb_node *, struct mm_struct *);
-+static void sdma_rb_remove(void *, struct mmu_rb_node *);
- static int sdma_rb_invalidate(void *, struct mmu_rb_node *);
+-	struct mmu_rb_node *rbnode;
+-	struct rb_node *node, *next;
++	struct mmu_rb_node *rbnode, *ptr;
+ 	struct list_head del_list;
+ 	unsigned long flags;
+ 	bool stop = false;
+@@ -237,13 +244,13 @@ void hfi1_mmu_rb_evict(struct mmu_rb_handler *handler, void *evict_arg)
+ 	INIT_LIST_HEAD(&del_list);
  
- static struct mmu_rb_ops sdma_rb_ops = {
-@@ -1643,8 +1643,7 @@ static int sdma_rb_evict(void *arg, struct mmu_rb_node *mnode,
- 	return 1; /* remove this node */
- }
+ 	spin_lock_irqsave(&handler->lock, flags);
+-	for (node = rb_first(&handler->root); node; node = next) {
+-		next = rb_next(node);
+-		rbnode = rb_entry(node, struct mmu_rb_node, node);
++	list_for_each_entry_safe_reverse(rbnode, ptr, &handler->lru_list,
++					 list) {
+ 		if (handler->ops->evict(handler->ops_arg, rbnode, evict_arg,
+ 					&stop)) {
+ 			__mmu_int_rb_remove(rbnode, &handler->root);
+-			list_add(&rbnode->list, &del_list);
++			/* move from LRU list to delete list */
++			list_move(&rbnode->list, &del_list);
+ 		}
+ 		if (stop)
+ 			break;
+@@ -272,6 +279,7 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
+ 		  node->len);
+ 	spin_lock_irqsave(&handler->lock, flags);
+ 	__mmu_int_rb_remove(node, &handler->root);
++	list_del(&node->list); /* remove from LRU list */
+ 	spin_unlock_irqrestore(&handler->lock, flags);
  
--static void sdma_rb_remove(void *arg, struct mmu_rb_node *mnode,
--			   struct mm_struct *mm)
-+static void sdma_rb_remove(void *arg, struct mmu_rb_node *mnode)
- {
- 	struct sdma_mmu_node *node =
- 		container_of(mnode, struct sdma_mmu_node, rb);
+ 	handler->ops->remove(handler->ops_arg, node);
+@@ -311,7 +319,8 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
+ 			  node->addr, node->len);
+ 		if (handler->ops->invalidate(handler->ops_arg, node)) {
+ 			__mmu_int_rb_remove(node, root);
+-			list_add(&node->list, &handler->del_list);
++			/* move from LRU list to delete list */
++			list_move(&node->list, &handler->del_list);
+ 			added = true;
+ 		}
+ 	}
 -- 
 1.8.2
 
