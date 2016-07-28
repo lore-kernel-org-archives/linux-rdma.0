@@ -1,96 +1,281 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libmlx5 2/6] fix coverity buffer overrun warning
-Date: Thu, 28 Jul 2016 16:12:02 -0400
-Message-ID: <20160728201202.GR36313@redhat.com>
-References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
- <1469647047-7544-3-git-send-email-jarod@redhat.com>
- <9ee81879-93c4-97ee-eebf-3300533e4efe@dev.mellanox.co.il>
- <20160728163714.GP36313@redhat.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 11/15] IB/pvrdma: Add user-level shared functions
+Date: Thu, 28 Jul 2016 13:11:47 -0700
+Message-ID: <20160728131147.0a5a0b35@adits-macbook-pro.local>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+	<1468352205-9137-12-git-send-email-aditr@vmware.com>
+	<20160718135906.GA21176@yuval-lap.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160728163714.GP36313-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160718135906.GA21176-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 28, 2016 at 12:37:14PM -0400, Jarod Wilson wrote:
-> On Thu, Jul 28, 2016 at 05:46:16PM +0300, Yishai Hadas wrote:
-> > On 7/27/2016 10:17 PM, Jarod Wilson wrote:
-> > >In set_umr_data_seg, there's a union between a 16-byte struct and a
-> > >64-byte array, named data. The code then makes a memset() call on the
-> > >struct that is sizeof(array) - sizeof(struct) long, which results in
-> > >writing 48 bytes to a 16 byte container. Technically, we know this is
-> > >actually fine, because of the union, but to silence the warning, we can
-> > >just do the memset on the array instead. Same address, same result, but no
-> > >warning spew from coverity.
-> > >
-> > >CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > >---
-> > > src/qp.c | 2 +-
-> > > 1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > >diff --git a/src/qp.c b/src/qp.c
-> > >index 51e1176..8bb66be 100644
-> > >--- a/src/qp.c
-> > >+++ b/src/qp.c
-> > >@@ -426,7 +426,7 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
-> > > 	data->klm.mkey = htonl(bind_info->mr->lkey);
-> > > 	data->klm.address = htonll(bind_info->addr);
-> > >
-> > >-	memset(&data->klm + 1, 0, sizeof(data->reserved) -
-> > >+	memset(&data->reserved + 1, 0, sizeof(data->reserved) -
-> > > 	       sizeof(data->klm));
+On Mon, 18 Jul 2016 16:59:07 +0300
+Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+
+> On Tue, Jul 12, 2016 at 12:36:41PM -0700, Adit Ranadive wrote:
+> > We share some common structures with the user-level driver. This patch
+> > adds those structures and shared functions to traverse the QP/CQ rings.
 > > 
-> > As you pointed out this is false alarm, code is correct.
+> > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/pvrdma/pvrdma_uapi.h | 247
+> > +++++++++++++++++++++++++++++ drivers/infiniband/hw/pvrdma/pvrdma_user.h |
+> > 99 ++++++++++++ 2 files changed, 346 insertions(+)
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+> >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_user.h
 > > 
-> > Your suggestion seems wrong as it skipped size of 'reserved' instead
-> > of size of 'klm' (i.e. 16 bytes), isn't it ?
+> > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+> > b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h new file mode 100644
+> > index 0000000..274328c
+> > --- /dev/null
+> > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_uapi.h
+> > @@ -0,0 +1,247 @@
+> > +/*
+> > + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of EITHER the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation or the BSD
+> > + * 2-Clause License. This program is distributed in the hope that it
+> > + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
+> > + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+> > + * See the GNU General Public License version 2 for more details at
+> > + *
+> > https://urldefense.proofpoint.com/v2/url?u=http-3A__www.gnu.org_licenses_old-2Dlicenses_gpl-2D2.0.en.html&d=CwIBAg&c=Sqcl0Ez6M0X8aeM67LKIiDJAXVeAw-YihVMNtXt-uEs&r=uGpVYdpWLb65FRYUmM4EfQ&m=zWCNDfhYzlW7r0Soati7Ec2q9Vao5VNR2emCPrPrXLY&s=Tma3LbotbhNrOqLsPbVKn2noOZmFLnwQu2pOYlZqpfE&e= .
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program available in the file COPYING in the main
+> > + * directory of this source tree.
+> > + *
+> > + * The BSD 2-Clause License
+> > + *
+> > + *     Redistribution and use in source and binary forms, with or
+> > + *     without modification, are permitted provided that the following
+> > + *     conditions are met:
+> > + *
+> > + *      - Redistributions of source code must retain the above
+> > + *        copyright notice, this list of conditions and the following
+> > + *        disclaimer.
+> > + *
+> > + *      - Redistributions in binary form must reproduce the above
+> > + *        copyright notice, this list of conditions and the following
+> > + *        disclaimer in the documentation and/or other materials
+> > + *        provided with the distribution.
+> > + *
+> > + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> > + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> > + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+> > + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+> > + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+> > + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> > + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> > + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+> > + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+> > + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+> > + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+> > + * OF THE POSSIBILITY OF SUCH DAMAGE.
+> > + */
+> > +
+> > +#ifndef __PVRDMA_UAPI_H__
+> > +#define __PVRDMA_UAPI_H__
+> > +
+> > +#include <linux/types.h>
+> > +
+> > +#define PVRDMA_VERSION 17
+> > +
+> > +#define PVRDMA_UAR_HANDLE_MASK	0x00FFFFFF	/* Bottom 24 bits.
+> > */ +#define PVRDMA_UAR_QP_OFFSET	0		/* Offset of QP
+> > doorbell. */ +#define PVRDMA_UAR_QP_SEND	BIT(30)		/*
+> > Send bit. */ +#define PVRDMA_UAR_QP_RECV	BIT(31)		/*
+> > Recv bit. */ +#define PVRDMA_UAR_CQ_OFFSET	4		/*
+> > Offset of CQ doorbell. */ +#define PVRDMA_UAR_CQ_ARM_SOL
+> > BIT(29)		/* Arm solicited bit. */ +#define
+> > PVRDMA_UAR_CQ_ARM	BIT(30)		/* Arm bit. */ +#define
+> > PVRDMA_UAR_CQ_POLL	BIT(31)		/* Poll bit. */ +
+> > +/* PVRDMA atomic compare and swap */
+> > +struct pvrdma_exp_cmp_swap {
+> > +	__u64 swap_val;
+> > +	__u64 compare_val;
+> > +	__u64 swap_mask;
+> > +	__u64 compare_mask;
+> > +};
+> > +
+> > +/* PVRDMA atomic fetch and add */
+> > +struct pvrdma_exp_fetch_add {
+> > +	__u64 add_val;
+> > +	__u64 field_boundary;
+> > +};
+> > +
+> > +/* PVRDMA address vector. */
+> > +struct pvrdma_av {
+> > +	__u32 port_pd;
+> > +	__u32 sl_tclass_flowlabel;
+> > +	__u8 dgid[16];
+> > +	__u8 src_path_bits;
+> > +	__u8 gid_index;
+> > +	__u8 stat_rate;
+> > +	__u8 hop_limit;
+> > +	__u8 dmac[6];
+> > +	__u8 reserved[6];
+> > +};
+> > +
+> > +/* PVRDMA receive queue work request */
+> > +struct pvrdma_rq_wqe_hdr {
+> > +	__u64 wr_id;		/* wr id */
+> > +	__u32 num_sge;		/* size of s/g array */
+> > +	__u32 total_len;	/* reserved */
+> > +};
+> > +/* Use pvrdma_sge (ib_sge) for receieve queue s/g array elements. */
+> > +
+> > +/* PVRDMA send queue work request */
+> > +struct pvrdma_sq_wqe_hdr {
+> > +	__u64 wr_id;		/* wr id */
+> > +	__u32 num_sge;		/* size of s/g array */
+> > +	__u32 total_len;	/* reserved */
+> > +	__u32 opcode;		/* operation type */
+> > +	__u32 send_flags;	/* wr flags */
+> > +	union {
+> > +		__u32 imm_data;
+> > +		__u32 invalidate_rkey;
+> > +	} ex;
+> > +	__u32 reserved;
+> > +	union {
+> > +		struct {
+> > +			__u64 remote_addr;
+> > +			__u32 rkey;
+> > +			__u8 reserved[4];
+> > +		} rdma;
+> > +		struct {
+> > +			__u64 remote_addr;
+> > +			__u64 compare_add;
+> > +			__u64 swap;
+> > +			__u32 rkey;
+> > +			__u32 reserved;
+> > +		} atomic;
+> > +		struct {
+> > +			__u64 remote_addr;
+> > +			__u32 log_arg_sz;
+> > +			__u32 rkey;
+> > +			union {
+> > +				struct pvrdma_exp_cmp_swap  cmp_swap;
+> > +				struct pvrdma_exp_fetch_add fetch_add;
+> > +			} wr_data;
+> > +		} masked_atomics;
+> > +		struct {
+> > +			__u64 iova_start;
+> > +			__u64 pl_pdir_dma;
+> > +			__u32 page_shift;
+> > +			__u32 page_list_len;
+> > +			__u32 length;
+> > +			__u32 access_flags;
+> > +			__u32 rkey;
+> > +		} fast_reg;
+> > +		struct {
+> > +			__u32 remote_qpn;
+> > +			__u32 remote_qkey;
+> > +			struct pvrdma_av av;
+> > +		} ud;
+> > +	} wr;
+> > +};
+> > +/* Use pvrdma_sge (ib_sge) for send queue s/g array elements. */
+> > +
+> > +/* Completion queue element. */
+> > +struct pvrdma_cqe {
+> > +	__u64 wr_id;
+> > +	__u64 qp;
+> > +	__u32 opcode;
+> > +	__u32 status;
+> > +	__u32 byte_len;
+> > +	__u32 imm_data;
+> > +	__u32 src_qp;
+> > +	__u32 wc_flags;
+> > +	__u32 vendor_err;
+> > +	__u16 pkey_index;
+> > +	__u16 slid;
+> > +	__u8 sl;
+> > +	__u8 dlid_path_bits;
+> > +	__u8 port_num;
+> > +	__u8 smac[6];
+> > +	__u8 reserved2[7]; /* Pad to next power of 2 (64). */
+> > +};
+> > +
+> > +struct pvrdma_ring {
+> > +	atomic_t prod_tail;	/* Producer tail. */
+> > +	atomic_t cons_head;	/* Consumer head. */
+> > +};
+> > +
+> > +struct pvrdma_ring_state {
+> > +	struct pvrdma_ring tx;	/* Tx ring. */
+> > +	struct pvrdma_ring rx;	/* Rx ring. */
+> > +};
+> > +
+> > +static inline int pvrdma_idx_valid(__u32 idx, __u32 max_elems)
+> > +{
+> > +	/* Generates fewer instructions than a less-than. */
+> > +	return (idx & ~((max_elems << 1) - 1)) == 0;
+> > +}
+> > +
+> > +static inline __s32 pvrdma_idx(atomic_t *var, __u32 max_elems)
+> > +{
+> > +	const unsigned int idx = atomic_read(var);
+> > +
+> > +	if (pvrdma_idx_valid(idx, max_elems))
+> > +		return idx & (max_elems - 1);
+> > +	return -1;
+> > +}
+> > +
+> > +static inline void pvrdma_idx_ring_inc(atomic_t *var, __u32 max_elems)
+> > +{
+> > +	__u32 idx = atomic_read(var) + 1;	/* Increment. */
+> > +
+> > +	idx &= (max_elems << 1) - 1;		/* Modulo size, flip
+> > gen. */
+> > +	atomic_set(var, idx);
+> > +}
+> > +
+> > +static inline __s32 pvrdma_idx_ring_has_space(const struct pvrdma_ring *r,
+> > +					      __u32 max_elems, __u32
+> > *out_tail) +{
+> > +	const __u32 tail = atomic_read(&r->prod_tail);
+> > +	const __u32 head = atomic_read(&r->cons_head);
+> > +
+> > +	if (pvrdma_idx_valid(tail, max_elems) &&
+> > +	    pvrdma_idx_valid(head, max_elems)) {
+> > +		*out_tail = tail & (max_elems - 1);
+> > +		return tail != (head ^ max_elems);
+> > +	}
+> > +	return -1;
+> > +}
+> > +
+> > +static inline __s32 pvrdma_idx_ring_has_data(const struct pvrdma_ring *r,
+> > +					     __u32 max_elems, __u32
+> > *out_head) +{
+> > +	const __u32 tail = atomic_read(&r->prod_tail);
+> > +	const __u32 head = atomic_read(&r->cons_head);
+> > +
+> > +	if (pvrdma_idx_valid(tail, max_elems) &&
+> > +	    pvrdma_idx_valid(head, max_elems)) {
+> > +		*out_head = head & (max_elems - 1);
+> > +		return tail != head;
+> > +	}
+> > +	return -1;  
 > 
-> &data->klm + 1 and &data->reserved + 1 should point to the same location,
-> no? Must admit, I'm a little hazy on how a union pointer works.
-> 
-> Regardless, I think this might be much more straight-forward if we did
-> something like this:
-> 
-> From 43e845cc1055e4f86a2e9c78e5a3eae2c1e915c4 Mon Sep 17 00:00:00 2001
-> From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Date: Wed, 27 Jul 2016 11:35:02 -0400
-> Subject: [PATCH v2 libmlx5 2/6] fix coverity buffer overrun warning
-> 
-> In set_umr_data_seg, there's a union between a 16-byte struct and a
-> 64-byte array, named data. The code then makes a memset() call on the
-> struct that is sizeof(array) - sizeof(struct) long, which results in
-> writing 48 bytes to a 16 byte container. Technically, we know this is
-> actually fine, because of the union, but to silence the warning and
-> simplify the pointer math and union gymnastics, simply zero out the entire
-> storage space before assigning klm bits.
-> 
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  src/qp.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/src/qp.c b/src/qp.c
-> index 51e1176..17f2c81 100644
-> --- a/src/qp.c
-> +++ b/src/qp.c
-> @@ -422,13 +422,12 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
->  		uint8_t				reserved[64];
->  	} *data = *seg;
->  
-> +	memset(&data, 0, sizeof(*data));
+> What is the meaning of -1?
 
-Nope, this is wrong, should be just data, not &data, I think. Or perhaps
-memset(&data->reserved, 0, sizeof(data->reserved));. Urgh, pointers...
+It just means its an invalid index. I'll make that more clear in v3.
 
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
