@@ -1,105 +1,45 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libmlx5 2/6] fix coverity buffer overrun warning
-Date: Thu, 28 Jul 2016 12:37:14 -0400
-Message-ID: <20160728163714.GP36313@redhat.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libmlx5 7/6] combine inline_hdr and inline_hdr_start
+Date: Thu, 28 Jul 2016 19:39:39 +0300
+Message-ID: <b29f2744-949e-0010-4905-797f2b226360@dev.mellanox.co.il>
 References: <1469647047-7544-1-git-send-email-jarod@redhat.com>
- <1469647047-7544-3-git-send-email-jarod@redhat.com>
- <9ee81879-93c4-97ee-eebf-3300533e4efe@dev.mellanox.co.il>
+ <1469669554-23782-1-git-send-email-jarod@redhat.com>
+ <20160728142717.GO36313@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9ee81879-93c4-97ee-eebf-3300533e4efe-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20160728142717.GO36313-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 28, 2016 at 05:46:16PM +0300, Yishai Hadas wrote:
-> On 7/27/2016 10:17 PM, Jarod Wilson wrote:
-> >In set_umr_data_seg, there's a union between a 16-byte struct and a
-> >64-byte array, named data. The code then makes a memset() call on the
-> >struct that is sizeof(array) - sizeof(struct) long, which results in
-> >writing 48 bytes to a 16 byte container. Technically, we know this is
-> >actually fine, because of the union, but to silence the warning, we can
-> >just do the memset on the array instead. Same address, same result, but no
-> >warning spew from coverity.
-> >
-> >CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >---
-> > src/qp.c | 2 +-
-> > 1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> >diff --git a/src/qp.c b/src/qp.c
-> >index 51e1176..8bb66be 100644
-> >--- a/src/qp.c
-> >+++ b/src/qp.c
-> >@@ -426,7 +426,7 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
-> > 	data->klm.mkey = htonl(bind_info->mr->lkey);
-> > 	data->klm.address = htonll(bind_info->addr);
-> >
-> >-	memset(&data->klm + 1, 0, sizeof(data->reserved) -
-> >+	memset(&data->reserved + 1, 0, sizeof(data->reserved) -
-> > 	       sizeof(data->klm));
-> 
-> As you pointed out this is false alarm, code is correct.
-> 
-> Your suggestion seems wrong as it skipped size of 'reserved' instead
-> of size of 'klm' (i.e. 16 bytes), isn't it ?
+On 7/28/2016 5:27 PM, Jarod Wilson wrote:
+> On Wed, Jul 27, 2016 at 09:32:34PM -0400, Jarod Wilson wrote:
+>> I can't see any good reason why inline_hdr and inline_hdr_start should be
+>> two separate arrays in struct mlx5_wqe_eth_seg. The only time I see
+>> anything actually accessed by dereferencing either inline_hdr or
+>> inline_hdr_start is when the MLX5_ETH_L2_INLINE_HEADER_SIZE or less bytes
+>> are copied into inline_hdr_start. By default, it's 18 bytes, copied to
+>> what is a 2-byte and a 16-byte array back to back in the struct, and
+>> coverity and clang both sound alarms because the code says "just write 18
+>> bytes into that 2-byte array", which in practice is ultimately fine, but
+>> again, why?...
+>>
+>> I propose to just add two bytes to inline_hdr and drop inline_hdr_start.
+>
+> Heh, okay, so I see "Add TSO support for RAW Ethernet QP" posted today,
+> which does actually make use of those bits. Still not sure the split is
+> actually required though, that patch could probably be reworked to
+> operate on a single array as well.
+>
 
-&data->klm + 1 and &data->reserved + 1 should point to the same location,
-no? Must admit, I'm a little hazy on how a union pointer works.
-
-Regardless, I think this might be much more straight-forward if we did
-something like this:
-
->From 43e845cc1055e4f86a2e9c78e5a3eae2c1e915c4 Mon Sep 17 00:00:00 2001
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date: Wed, 27 Jul 2016 11:35:02 -0400
-Subject: [PATCH v2 libmlx5 2/6] fix coverity buffer overrun warning
-
-In set_umr_data_seg, there's a union between a 16-byte struct and a
-64-byte array, named data. The code then makes a memset() call on the
-struct that is sizeof(array) - sizeof(struct) long, which results in
-writing 48 bytes to a 16 byte container. Technically, we know this is
-actually fine, because of the union, but to silence the warning and
-simplify the pointer math and union gymnastics, simply zero out the entire
-storage space before assigning klm bits.
-
-Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- src/qp.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/src/qp.c b/src/qp.c
-index 51e1176..17f2c81 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -422,13 +422,12 @@ static void set_umr_data_seg(struct mlx5_qp *qp, enum ibv_mw_type type,
- 		uint8_t				reserved[64];
- 	} *data = *seg;
- 
-+	memset(&data, 0, sizeof(*data));
-+
- 	data->klm.byte_count = htonl(bind_info->length);
- 	data->klm.mkey = htonl(bind_info->mr->lkey);
- 	data->klm.address = htonll(bind_info->addr);
- 
--	memset(&data->klm + 1, 0, sizeof(data->reserved) -
--	       sizeof(data->klm));
--
- 	*seg += sizeof(*data);
- 	*size += (sizeof(*data) / 16);
- }
--- 
-1.8.3.1
-
-
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-
+The reason for that is that from HW/PRM point of view the 
+mlx5_wqe_eth_seg structure defined to include only 2 bytes for the 
+inline header start to be 16 bytes structure aligned with its previous 
+fields. The extra 16 bytes field was added to ease the implementation 
+for copying the extra inline header.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
