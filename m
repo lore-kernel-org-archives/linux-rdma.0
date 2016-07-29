@@ -1,34 +1,40 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH 0/5] Some fabrics fixes
-Date: Fri, 29 Jul 2016 22:57:17 +0300
-Message-ID: <1469822242-3477-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH 3/5] nvme-rdma: Make sure to shutdown the controller if we can
+Date: Fri, 29 Jul 2016 22:57:20 +0300
+Message-ID: <1469822242-3477-4-git-send-email-sagi@grimberg.me>
+References: <1469822242-3477-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1469822242-3477-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A set of fixes to the nvme-rdma host driver. First two patches relate
-to bug reports from Steve Wise on dervice removal handling (and go
-together with Steve's iwcm patch set).
+Relying on ctrl state in nvme_rdma_shutdown_ctrl is wrong because
+it will never be NVME_CTRL_LIVE (delete_ctrl or reset_ctrl invoked it).
 
-Third patch fixes the host behavior that it never shutdown the
-controller (wrong check on the controller state).
+Instead, check that the admin queue is connected. Note that it is safe
+because we can never see a copmeting thread trying to destroy the admin
+queue (reset or delete controller).
 
-Last two patches remove redundant calls to nvme_remove_namespaces
-which is called from nvme_uninit_ctrl.
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/nvme/host/rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sagi Grimberg (5):
-  nvme-rdma: Fix device removal handling
-  nvme-rdma: Free the I/O tags when we delete the controller
-  nvme-rdma: Make sure to shutdown the controller if we can
-  nvme-rdma: Remove duplicate call to nvme_remove_namespaces
-  nvme-loop: Remove duplicate call to nvme_remove_namespaces
-
- drivers/nvme/host/rdma.c   | 62 ++++++++++++++++++++++++----------------------
- drivers/nvme/target/loop.c |  4 +--
- 2 files changed, 34 insertions(+), 32 deletions(-)
-
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index a70eb3cbf656..641ab7f91899 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -1644,7 +1644,7 @@ static void nvme_rdma_shutdown_ctrl(struct nvme_rdma_ctrl *ctrl)
+ 		nvme_rdma_free_io_queues(ctrl);
+ 	}
+ 
+-	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
++	if (test_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[0].flags))
+ 		nvme_shutdown_ctrl(&ctrl->ctrl);
+ 
+ 	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
 -- 
 1.9.1
 
