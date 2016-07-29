@@ -1,64 +1,80 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2 0/2] iwarp device removal deadlock fixes
-Date: Fri, 29 Jul 2016 13:36:17 -0700
-Message-ID: <cover.1469824577.git.swise@opengridcomputing.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v2 02/15] IB/pvrdma: Add device command support
+Date: Fri, 29 Jul 2016 21:31:16 +0000
+Message-ID: <BLUPR0501MB8364D3CE8FF7DE654D1E045C5010@BLUPR0501MB836.namprd05.prod.outlook.com>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+ <1468352205-9137-3-git-send-email-aditr@vmware.com>
+ <20160718124652.GE6165@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB8363954E94FE9D268E66CB7C5000@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160729123711.GU4628@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160729123711.GU4628-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This series fixes the deadlock issue discovered while testing nvmf/rdma
-handling rdma device removal events from the rdma_cm.  For a discussion
-of the deadlock that can happen, see
+On Fri, 29 Jul 2016 12:37:29 +0000, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Thu, Jul 28, 2016 at 10:51:39PM +0000, Adit Ranadive wrote:
+> > On Mon, 18 Jul 2016 15:46:53 +0300 Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > > On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
+> > > > This patch enables posting Verb requests and receiving responses to/from
+> > > > the backend PVRDMA emulation layer.
+> > > >
+> >
+> > ...
+> >
+> > > > +int
+> > > > +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
+> > > > +		bool expect_resp, union pvrdma_cmd_resp *resp)
+> > > > +{
+> > > > +	int err;
+> > > > +
+> > > > +	dev_dbg(&dev->pdev->dev, "post request to device\n");
+> > > > +
+> > > > +	/* Serializiation */
+> > > > +	down(&dev->cmd_sema);
+> > > > +
+> > > > +	spin_lock(&dev->cmd_lock);
+> > > > +	memcpy(dev->cmd_slot, req, sizeof(*req));
+> > >
+> > > Just to protect against memory corruption suggesting to do:
+> > > 	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
+> > >
+> >
+> > Done.
+> 
+> Hi Adit,
+> I didn't check how "dev->cmd_slot" was declared and if it is equal to
+> req in size. Additionally I didn't check if memcpy has any size
+> limitations, but wanted to warn you that implementation of this
+> suggestion as is will leave your system in much worse situation of
+> partially copied data.
+> 
+> if you really want to check sizes, please do it with BUILD_ON compilation
+> macro. I have serious doubts if you need it.
+> 
+> Thanks
 
-http://lists.infradead.org/pipermail/linux-nvme/2016-July/005440.html.
+Hi Leon,
 
-For my description of the deadlock itself, see this post in the above thread:
+Thanks for taking a look!
+I think this is okay to do was that we allocate a page for cmd_slot anyways
+and the size of req will always be smaller than PAGE_SIZE. If the request is
+malformed, our virtual hardware should throw an error for it.
+I dont think we would run into partially copied data.
 
-http://lists.infradead.org/pipermail/linux-nvme/2016-July/005465.html
+Having said that, I dont see a necessary advantage of using min here so am
+willing to drop it if you feel strongly about it.
 
-In a nutshell, iw_cxgb4 and the iw_cm block during qp/cm_id destruction
-until all references are removed.  This combined with the iwarp CM passing
-disconnect events up to the rdma_cm during disconnect and/or qp/cm_id destruction
-leads to a deadlock.
+Can you clarify what you mean by memcpy size limitations?
 
-My proposed solution is to remove the need for iw_cxgb4 and iw_cm to
-block during object destruction for the refnts to reach 0, but rather to
-let the freeing of the object memory be deferred when the last deref is
-done, which is SOP in the much of the linux kernel. This allows all the
-qps/cm_ids to be destroyed without blocking, and all the object memory
-freeing ends up happinging when the application's device_remove event
-handler function returns to the rdma_cm.
-
-This series is needed along with Sagi's fixes from:
-https://www.spinics.net/lists/linux-rdma/msg38715.html
-
-Hey Faisal, it would be great to get some review/test tags from Intel
-on the iw_cm change.  Thanks!
-
-Changes since v1:
-
-- reworded commit text for the iw_cm patch
-
-- added a iw_cm_id flag to drop pending events when the cm_id has
-been marked for destruction.
-
----
-
-Steve Wise (2):
-  iw_cxgb4: don't block in destroy_qp awaiting the last deref
-  iw_cm: free cm_id resources on the last deref
-
- drivers/infiniband/core/iwcm.c         | 54 +++++++++++-----------------------
- drivers/infiniband/core/iwcm.h         |  2 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  2 +-
- drivers/infiniband/hw/cxgb4/qp.c       | 21 ++++++++-----
- 4 files changed, 33 insertions(+), 46 deletions(-)
-
--- 
-2.7.0
-
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
