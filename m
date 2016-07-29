@@ -1,330 +1,215 @@
-From: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 5/9] selinux: Create policydb version for Infiniband support
-Date: Fri, 29 Jul 2016 16:53:32 +0300
-Message-ID: <1469800416-125043-6-git-send-email-danielj@mellanox.com>
+From: Dan Jurgens <danielj@mellanox.com>
+Subject: [PATCH v3 7/9] selinux: Implement Infiniband PKey "Access" access vector
+Date: Fri, 29 Jul 2016 16:53:34 +0300
+Message-ID: <1469800416-125043-8-git-send-email-danielj@mellanox.com>
 References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469800416-125043-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com, Daniel Jurgens <danielj@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Daniel Jurgens <danielj@mellanox.com>
 
-Support for Infiniband requires the addition of two new object contexts,
-one for infiniband PKeys and another IB Ports. Added handlers to read
-and write the new ocontext types when reading or writing a binary policy
-representation.
+Add a type and access vector for PKeys. Implement the ib_pkey_access
+hook to check that the caller has permission to access the PKey on the
+given subnet prefix. Add an interface to get the PKey SID. Walk the PKey
+ocontexts to find an entry for the given subnet prefix and pkey.
 
-Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
 
 ---
 v2:
-- Shorten ib_end_port to ib_port. Paul Moore
-- Added bounds checking to port number. Paul Moore
-- Eliminated {} in OCON_PKEY case statement.  Yuval Shaia
+- Use void* blobs for security structs. Paul Moore
+- Add pkey specific data to the audit log. Paul Moore
+- Don't introduce a new initial sid, use unlabeled. Stephen Smalley
 
 v3:
-- ib_port -> ib_endport. Paul Moore
+- Reorder parameters to pkey_access hook. Paul Moore
 
- security/selinux/include/security.h |   3 +-
- security/selinux/ss/policydb.c      | 130 +++++++++++++++++++++++++++++++-----
- security/selinux/ss/policydb.h      |  27 +++++---
- 3 files changed, 136 insertions(+), 24 deletions(-)
+ include/linux/lsm_audit.h           |  7 +++++++
+ security/lsm_audit.c                | 13 ++++++++++++
+ security/selinux/hooks.c            | 23 +++++++++++++++++++++
+ security/selinux/include/classmap.h |  2 ++
+ security/selinux/include/security.h |  2 ++
+ security/selinux/ss/services.c      | 41 +++++++++++++++++++++++++++++++++++++
+ 6 files changed, 88 insertions(+)
 
-diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
-index 38feb55..a7e6ed2 100644
---- a/security/selinux/include/security.h
-+++ b/security/selinux/include/security.h
-@@ -36,13 +36,14 @@
- #define POLICYDB_VERSION_DEFAULT_TYPE	28
- #define POLICYDB_VERSION_CONSTRAINT_NAMES	29
- #define POLICYDB_VERSION_XPERMS_IOCTL	30
-+#define POLICYDB_VERSION_INFINIBAND		31
+diff --git a/include/linux/lsm_audit.h b/include/linux/lsm_audit.h
+index ffb9c9d..8ff7eae 100644
+--- a/include/linux/lsm_audit.h
++++ b/include/linux/lsm_audit.h
+@@ -45,6 +45,11 @@ struct lsm_ioctlop_audit {
+ 	u16 cmd;
+ };
  
- /* Range of policy versions we understand*/
- #define POLICYDB_VERSION_MIN   POLICYDB_VERSION_BASE
- #ifdef CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX
- #define POLICYDB_VERSION_MAX	CONFIG_SECURITY_SELINUX_POLICYDB_VERSION_MAX_VALUE
- #else
--#define POLICYDB_VERSION_MAX	POLICYDB_VERSION_XPERMS_IOCTL
-+#define POLICYDB_VERSION_MAX	POLICYDB_VERSION_INFINIBAND
++struct lsm_pkey_audit {
++	u64	subnet_prefix;
++	u16	pkey;
++};
++
+ /* Auxiliary data to use in generating the audit record. */
+ struct common_audit_data {
+ 	char type;
+@@ -59,6 +64,7 @@ struct common_audit_data {
+ #define LSM_AUDIT_DATA_INODE	9
+ #define LSM_AUDIT_DATA_DENTRY	10
+ #define LSM_AUDIT_DATA_IOCTL_OP	11
++#define LSM_AUDIT_DATA_PKEY	12
+ 	union 	{
+ 		struct path path;
+ 		struct dentry *dentry;
+@@ -75,6 +81,7 @@ struct common_audit_data {
+ #endif
+ 		char *kmod_name;
+ 		struct lsm_ioctlop_audit *op;
++		struct lsm_pkey_audit *pkey;
+ 	} u;
+ 	/* this union contains LSM specific data */
+ 	union {
+diff --git a/security/lsm_audit.c b/security/lsm_audit.c
+index cccbf30..2546d82 100644
+--- a/security/lsm_audit.c
++++ b/security/lsm_audit.c
+@@ -397,6 +397,19 @@ static void dump_common_audit_data(struct audit_buffer *ab,
+ 		audit_log_format(ab, " kmod=");
+ 		audit_log_untrustedstring(ab, a->u.kmod_name);
+ 		break;
++	case LSM_AUDIT_DATA_PKEY: {
++		struct in6_addr sbn_pfx;
++
++		memset(&sbn_pfx.s6_addr, 0,
++		       sizeof(sbn_pfx.s6_addr));
++
++		memcpy(&sbn_pfx.s6_addr, &a->u.pkey->subnet_prefix,
++		       sizeof(a->u.pkey->subnet_prefix));
++
++		audit_log_format(ab, " pkey=0x%x subnet_prefix=%pI6c",
++				 a->u.pkey->pkey, &sbn_pfx);
++		break;
++	}
+ 	} /* switch (a->type) */
+ }
+ 
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index ef1088c..101ea82 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -5995,6 +5995,28 @@ static int selinux_key_getsecurity(struct key *key, char **_buffer)
  #endif
  
- /* Mask for just the mount related flags */
-diff --git a/security/selinux/ss/policydb.c b/security/selinux/ss/policydb.c
-index 992a315..6056c2c 100644
---- a/security/selinux/ss/policydb.c
-+++ b/security/selinux/ss/policydb.c
-@@ -17,6 +17,11 @@
-  *
-  *      Added support for the policy capability bitmap
-  *
-+ * Update: Mellanox Techonologies
-+ *
-+ *	Added Infiniband support
-+ *
-+ * Copyright (C) 2016 Mellanox Techonologies
-  * Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
-  * Copyright (C) 2004-2005 Trusted Computer Solutions, Inc.
-  * Copyright (C) 2003 - 2004 Tresys Technology, LLC
-@@ -76,81 +81,86 @@ static struct policydb_compat_info policydb_compat[] = {
- 	{
- 		.version	= POLICYDB_VERSION_BASE,
- 		.sym_num	= SYM_NUM - 3,
--		.ocon_num	= OCON_NUM - 1,
-+		.ocon_num	= OCON_NUM - 3,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_BOOL,
- 		.sym_num	= SYM_NUM - 2,
--		.ocon_num	= OCON_NUM - 1,
-+		.ocon_num	= OCON_NUM - 3,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_IPV6,
- 		.sym_num	= SYM_NUM - 2,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_NLCLASS,
- 		.sym_num	= SYM_NUM - 2,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_MLS,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_AVTAB,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_RANGETRANS,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_POLCAP,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_PERMISSIVE,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_BOUNDARY,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_FILENAME_TRANS,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_ROLETRANS,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_NEW_OBJECT_DEFAULTS,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_DEFAULT_TYPE,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_CONSTRAINT_NAMES,
- 		.sym_num	= SYM_NUM,
--		.ocon_num	= OCON_NUM,
-+		.ocon_num	= OCON_NUM - 2,
- 	},
- 	{
- 		.version	= POLICYDB_VERSION_XPERMS_IOCTL,
- 		.sym_num	= SYM_NUM,
-+		.ocon_num	= OCON_NUM - 2,
-+	},
-+	{
-+		.version	= POLICYDB_VERSION_INFINIBAND,
-+		.sym_num	= SYM_NUM,
- 		.ocon_num	= OCON_NUM,
- 	},
- };
-@@ -2219,6 +2229,61 @@ static int ocontext_read(struct policydb *p, struct policydb_compat_info *info,
- 					goto out;
- 				break;
- 			}
-+			case OCON_PKEY: {
-+				rc = next_entry(nodebuf, fp, sizeof(u32) * 6);
-+				if (rc)
-+					goto out;
+ #ifdef CONFIG_SECURITY_INFINIBAND
++static int selinux_ib_pkey_access(void *ib_sec, u64 subnet_prefix, u16 pkey_val)
++{
++	struct common_audit_data ad;
++	int err;
++	u32 sid = 0;
++	struct ib_security_struct *sec = ib_sec;
++	struct lsm_pkey_audit pkey;
 +
-+				c->u.pkey.subnet_prefix = be64_to_cpu(*((__be64 *)nodebuf));
-+				/* The subnet prefix is stored as an IPv6
-+				 * address in the policy.
-+				 *
-+				 * Check that the lower 2 DWORDS are 0.
-+				 */
-+				if (nodebuf[2] || nodebuf[3]) {
-+					rc = -EINVAL;
-+					goto out;
-+				}
++	err = security_pkey_sid(subnet_prefix, pkey_val, &sid);
 +
-+				if (nodebuf[4] > 0xffff ||
-+				    nodebuf[5] > 0xffff) {
-+					rc = -EINVAL;
-+					goto out;
-+				}
++	if (err)
++		return err;
 +
-+				c->u.pkey.low_pkey = le32_to_cpu(nodebuf[4]);
-+				c->u.pkey.high_pkey = le32_to_cpu(nodebuf[5]);
++	ad.type = LSM_AUDIT_DATA_PKEY;
++	pkey.subnet_prefix = subnet_prefix;
++	pkey.pkey = pkey_val;
++	ad.u.pkey = &pkey;
++	return avc_has_perm(sec->sid, sid,
++			    SECCLASS_INFINIBAND_PKEY,
++			    INFINIBAND_PKEY__ACCESS, &ad);
++}
 +
-+				rc = context_read_and_validate(&c->context[0],
-+							       p,
-+							       fp);
-+				if (rc)
-+					goto out;
-+				break;
-+			}
-+			case OCON_IB_ENDPORT:
-+				rc = next_entry(buf, fp, sizeof(u32) * 2);
-+				if (rc)
-+					goto out;
-+				len = le32_to_cpu(buf[0]);
-+
-+				rc = str_read(&c->u.ib_endport.dev_name, GFP_KERNEL, fp, len);
-+				if (rc)
-+					goto out;
-+
-+				if (buf[1] > 0xff || buf[1] == 0) {
-+					rc = -EINVAL;
-+					goto out;
-+				}
-+
-+				c->u.ib_endport.port_num = le32_to_cpu(buf[1]);
-+
-+				rc = context_read_and_validate(&c->context[0],
-+							       p,
-+							       fp);
-+				if (rc)
-+					goto out;
-+				break;
- 			}
- 		}
- 	}
-@@ -3147,6 +3212,41 @@ static int ocontext_write(struct policydb *p, struct policydb_compat_info *info,
- 				if (rc)
- 					return rc;
- 				break;
-+			case OCON_PKEY:
-+				*((__be64 *)nodebuf) = cpu_to_be64(c->u.pkey.subnet_prefix);
-+
-+				/*
-+				 * The low order 2 bits were confirmed to be 0
-+				 * when the policy was loaded. Write them out
-+				 * as zero
-+				 */
-+				nodebuf[2] = 0;
-+				nodebuf[3] = 0;
-+
-+				nodebuf[4] = cpu_to_le32(c->u.pkey.low_pkey);
-+				nodebuf[5] = cpu_to_le32(c->u.pkey.high_pkey);
-+
-+				rc = put_entry(nodebuf, sizeof(u32), 6, fp);
-+				if (rc)
-+					return rc;
-+				rc = context_write(p, &c->context[0], fp);
-+				if (rc)
-+					return rc;
-+				break;
-+			case OCON_IB_ENDPORT:
-+				len = strlen(c->u.ib_endport.dev_name);
-+				buf[0] = cpu_to_le32(len);
-+				buf[1] = cpu_to_le32(c->u.ib_endport.port_num);
-+				rc = put_entry(buf, sizeof(u32), 2, fp);
-+				if (rc)
-+					return rc;
-+				rc = put_entry(c->u.ib_endport.dev_name, 1, len, fp);
-+				if (rc)
-+					return rc;
-+				rc = context_write(p, &c->context[0], fp);
-+				if (rc)
-+					return rc;
-+				break;
- 			}
- 		}
- 	}
-diff --git a/security/selinux/ss/policydb.h b/security/selinux/ss/policydb.h
-index 725d594..edb329d 100644
---- a/security/selinux/ss/policydb.h
-+++ b/security/selinux/ss/policydb.h
-@@ -187,6 +187,15 @@ struct ocontext {
- 			u32 addr[4];
- 			u32 mask[4];
- 		} node6;        /* IPv6 node information */
-+		struct {
-+			u64 subnet_prefix;
-+			u16 low_pkey;
-+			u16 high_pkey;
-+		} pkey;
-+		struct {
-+			char *dev_name;
-+			u8 port_num;
-+		} ib_endport;
- 	} u;
- 	union {
- 		u32 sclass;  /* security class for genfs */
-@@ -215,14 +224,16 @@ struct genfs {
- #define SYM_NUM     8
+ static int selinux_ib_alloc_security(void **ib_sec)
+ {
+ 	struct ib_security_struct *sec;
+@@ -6196,6 +6218,7 @@ static struct security_hook_list selinux_hooks[] = {
+ 	LSM_HOOK_INIT(tun_dev_attach, selinux_tun_dev_attach),
+ 	LSM_HOOK_INIT(tun_dev_open, selinux_tun_dev_open),
+ #ifdef CONFIG_SECURITY_INFINIBAND
++	LSM_HOOK_INIT(ib_pkey_access, selinux_ib_pkey_access),
+ 	LSM_HOOK_INIT(ib_alloc_security, selinux_ib_alloc_security),
+ 	LSM_HOOK_INIT(ib_free_security, selinux_ib_free_security),
+ #endif
+diff --git a/security/selinux/include/classmap.h b/security/selinux/include/classmap.h
+index 1f1f4b2..d42dd4d 100644
+--- a/security/selinux/include/classmap.h
++++ b/security/selinux/include/classmap.h
+@@ -165,5 +165,7 @@ struct security_class_mapping secclass_map[] = {
+ 	  { COMMON_CAP_PERMS, NULL } },
+ 	{ "cap2_userns",
+ 	  { COMMON_CAP2_PERMS, NULL } },
++	{ "infiniband_pkey",
++	  { "access", NULL } },
+ 	{ NULL }
+   };
+diff --git a/security/selinux/include/security.h b/security/selinux/include/security.h
+index a7e6ed2..8f1a66e 100644
+--- a/security/selinux/include/security.h
++++ b/security/selinux/include/security.h
+@@ -180,6 +180,8 @@ int security_get_user_sids(u32 callsid, char *username,
  
- /* object context array indices */
--#define OCON_ISID  0	/* initial SIDs */
--#define OCON_FS    1	/* unlabeled file systems */
--#define OCON_PORT  2	/* TCP and UDP port numbers */
--#define OCON_NETIF 3	/* network interfaces */
--#define OCON_NODE  4	/* nodes */
--#define OCON_FSUSE 5	/* fs_use */
--#define OCON_NODE6 6	/* IPv6 nodes */
--#define OCON_NUM   7
-+#define OCON_ISID	0 /* initial SIDs */
-+#define OCON_FS		1 /* unlabeled file systems */
-+#define OCON_PORT	2 /* TCP and UDP port numbers */
-+#define OCON_NETIF	3 /* network interfaces */
-+#define OCON_NODE	4 /* nodes */
-+#define OCON_FSUSE	5 /* fs_use */
-+#define OCON_NODE6	6 /* IPv6 nodes */
-+#define OCON_PKEY	7 /* Infiniband PKeys */
-+#define OCON_IB_ENDPORT	8 /* Infiniband end ports */
-+#define OCON_NUM	9
+ int security_port_sid(u8 protocol, u16 port, u32 *out_sid);
  
- /* The policy database */
- struct policydb {
++int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid);
++
+ int security_netif_sid(char *name, u32 *if_sid);
+ 
+ int security_node_sid(u16 domain, void *addr, u32 addrlen,
+diff --git a/security/selinux/ss/services.c b/security/selinux/ss/services.c
+index 89df646..ba346da 100644
+--- a/security/selinux/ss/services.c
++++ b/security/selinux/ss/services.c
+@@ -2229,6 +2229,47 @@ out:
+ }
+ 
+ /**
++ * security_pkey_sid - Obtain the SID for a pkey.
++ * @subnet_prefix: Subnet Prefix
++ * @pkey_num: pkey number
++ * @out_sid: security identifier
++ */
++int security_pkey_sid(u64 subnet_prefix, u16 pkey_num, u32 *out_sid)
++{
++	struct ocontext *c;
++	int rc = 0;
++
++	read_lock(&policy_rwlock);
++
++	c = policydb.ocontexts[OCON_PKEY];
++	while (c) {
++		if (c->u.pkey.low_pkey <= pkey_num &&
++		    c->u.pkey.high_pkey >= pkey_num &&
++		    c->u.pkey.subnet_prefix == subnet_prefix)
++			break;
++
++		c = c->next;
++	}
++
++	if (c) {
++		if (!c->sid[0]) {
++			rc = sidtab_context_to_sid(&sidtab,
++						   &c->context[0],
++						   &c->sid[0]);
++			if (rc)
++				goto out;
++		}
++		*out_sid = c->sid[0];
++	} else {
++		*out_sid = SECINITSID_UNLABELED;
++	}
++
++out:
++	read_unlock(&policy_rwlock);
++	return rc;
++}
++
++/**
+  * security_netif_sid - Obtain the SID for a network interface.
+  * @name: interface name
+  * @if_sid: interface SID
 -- 
 1.8.3.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
