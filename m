@@ -1,56 +1,34 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Allocation of CQ resize structure doesn't need to be atomic
-Date: Thu, 28 Jul 2016 21:58:43 -0700
-Message-ID: <1469768323-8093-1-git-send-email-roland@kernel.org>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] net/mlx5_core/pagealloc: Remove deprecated
+ create_singlethread_workqueue
+Date: Fri, 29 Jul 2016 08:22:37 -0400
+Message-ID: <20160729122237.GG2542@mtj.duckdns.org>
+References: <20160728081949.GA5561@Karyakshetra>
+ <20160728093735.GO4628@leon.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160728093735.GO4628-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Hello,
 
-We allocate a small tracking structure as part of mlx4_ib_resize_cq().
-However, we don't need to use GFP_ATOMIC -- immediately after the
-allocation, we call mlx4_cq_resize(), which allocates a command
-mailbox with GFP_KERNEL and then sleeps on a firmware command, so we
-better not be in an atomic context.
+On Thu, Jul 28, 2016 at 12:37:35PM +0300, Leon Romanovsky wrote:
+> Did you test this patch? Did you notice the memory reclaim path nature
+> of this work?
 
-This actually has a real impact, because when this GFP_ATOMIC
-allocation fails (and GFP_ATOMIC does fail in practice) then a
-userspace consumer resizing a CQ will get a spurious failure that we
-can easily avoid.
+The conversion uses WQ_MEM_RECLAIM, which is standard for all
+workqueues which can stall packet processing if stalled.  The
+requirement comes from nfs or block devices over network.
 
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cq.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks.
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 9f8b516eb2b0..d6fc8a6e8c33 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -288,7 +288,7 @@ static int mlx4_alloc_resize_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq,
- 	if (cq->resize_buf)
- 		return -EBUSY;
- 
--	cq->resize_buf = kmalloc(sizeof *cq->resize_buf, GFP_ATOMIC);
-+	cq->resize_buf = kmalloc(sizeof *cq->resize_buf, GFP_KERNEL);
- 	if (!cq->resize_buf)
- 		return -ENOMEM;
- 
-@@ -316,7 +316,7 @@ static int mlx4_alloc_resize_umem(struct mlx4_ib_dev *dev, struct mlx4_ib_cq *cq
- 	if (ib_copy_from_udata(&ucmd, udata, sizeof ucmd))
- 		return -EFAULT;
- 
--	cq->resize_buf = kmalloc(sizeof *cq->resize_buf, GFP_ATOMIC);
-+	cq->resize_buf = kmalloc(sizeof *cq->resize_buf, GFP_KERNEL);
- 	if (!cq->resize_buf)
- 		return -ENOMEM;
- 
 -- 
-2.7.4
-
+tejun
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
