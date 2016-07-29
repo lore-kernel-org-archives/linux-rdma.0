@@ -1,61 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/2] iw_cxgb4: explicitly move the qp to ERROR state during
- flush
-Date: Fri, 29 Jul 2016 08:38:46 -0700
-Message-ID: <069a9546fefe1c38aeb5fa0c47c7d32340b7847c.1469824142.git.swise@opengridcomputing.com>
-References: <cover.1469824142.git.swise@opengridcomputing.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/iSER-Target: Release connection resources properly
+ when receiving RDMA_CM_EVENT_DEVICE_REMOVAL
+Date: Fri, 29 Jul 2016 23:33:11 +0300
+Message-ID: <22568e6b-e764-bdd4-eec9-dc53a258b371@grimberg.me>
+References: <20160727191511.18122-1-rajur@chelsio.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1469824142.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20160727191511.18122-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This forces the connection to abort if the application failed to
-disconnect before flushing.  This is aligned with how the common
-flush services work.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/qp.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+> When the low level driver exercises the hot unplug they would call
+> rdma_cm cma_remove_one which would fire DEVICE_REMOVAL event to all cma
+> consumers. Now, if consumer doesn't make sure they destroy all IB
+> objects created on that IB device instance prior to finalizing all
+> processing of DEVICE_REMOVAL callback, rdma_cm will let the lld to
+> de-register with IB core and destroy the IB device instance. And if the
+> consumer calls (say) ib_dereg_mr(), it will crash since that dev object
+> is NULL.
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index e8993e4..0d461f3 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1896,12 +1896,20 @@ int c4iw_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	return 0;
- }
- 
-+static void move_qp_to_err(struct c4iw_qp *qp)
-+{
-+	struct c4iw_qp_attributes attrs = { .next_state = C4IW_QP_STATE_ERROR };
-+
-+	(void)c4iw_modify_qp(qp->rhp, qp, C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
-+}
-+
- void c4iw_drain_sq(struct ib_qp *ibqp)
- {
- 	struct c4iw_qp *qp = to_c4iw_qp(ibqp);
- 	unsigned long flag;
- 	bool need_to_wait;
- 
-+	move_qp_to_err(qp);
- 	spin_lock_irqsave(&qp->lock, flag);
- 	need_to_wait = !t4_sq_empty(&qp->wq);
- 	spin_unlock_irqrestore(&qp->lock, flag);
-@@ -1916,6 +1924,7 @@ void c4iw_drain_rq(struct ib_qp *ibqp)
- 	unsigned long flag;
- 	bool need_to_wait;
- 
-+	move_qp_to_err(qp);
- 	spin_lock_irqsave(&qp->lock, flag);
- 	need_to_wait = !t4_rq_empty(&qp->wq);
- 	spin_unlock_irqrestore(&qp->lock, flag);
--- 
-2.7.0
+Yea... this used to work but sort of broke somewhere...
 
+Thanks Raju, the patch looks good,
+
+Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+
+Doug,
+
+Can you add a stable tag to this when picking it up?
+
+Thanks,
+Sagi
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
