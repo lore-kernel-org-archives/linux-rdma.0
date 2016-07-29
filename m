@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH 4/5] nvme-rdma: Remove duplicate call to nvme_remove_namespaces
-Date: Fri, 29 Jul 2016 22:57:21 +0300
-Message-ID: <1469822242-3477-5-git-send-email-sagi@grimberg.me>
+Subject: [PATCH 5/5] nvme-loop: Remove duplicate call to nvme_remove_namespaces
+Date: Fri, 29 Jul 2016 22:57:22 +0300
+Message-ID: <1469822242-3477-6-git-send-email-sagi@grimberg.me>
 References: <1469822242-3477-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1469822242-3477-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -14,32 +14,32 @@ nvme_uninit_ctrl already does that for us.
 
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/nvme/host/rdma.c | 4 +---
+ drivers/nvme/target/loop.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 641ab7f91899..bd9b416fe21a 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -1658,9 +1658,8 @@ static void nvme_rdma_del_ctrl_work(struct work_struct *work)
- 	struct nvme_rdma_ctrl *ctrl = container_of(work,
- 				struct nvme_rdma_ctrl, delete_work);
+diff --git a/drivers/nvme/target/loop.c b/drivers/nvme/target/loop.c
+index 94e782987cc9..7affd40a6b33 100644
+--- a/drivers/nvme/target/loop.c
++++ b/drivers/nvme/target/loop.c
+@@ -414,9 +414,8 @@ static void nvme_loop_del_ctrl_work(struct work_struct *work)
+ 	struct nvme_loop_ctrl *ctrl = container_of(work,
+ 				struct nvme_loop_ctrl, delete_work);
  
 -	nvme_remove_namespaces(&ctrl->ctrl);
--	nvme_rdma_shutdown_ctrl(ctrl);
+-	nvme_loop_shutdown_ctrl(ctrl);
  	nvme_uninit_ctrl(&ctrl->ctrl);
-+	nvme_rdma_shutdown_ctrl(ctrl);
- 	if (ctrl->ctrl.tagset) {
- 		blk_cleanup_queue(ctrl->ctrl.connect_q);
- 		blk_mq_free_tag_set(&ctrl->tag_set);
-@@ -1699,7 +1698,6 @@ static void nvme_rdma_remove_ctrl_work(struct work_struct *work)
- 	struct nvme_rdma_ctrl *ctrl = container_of(work,
- 				struct nvme_rdma_ctrl, delete_work);
++	nvme_loop_shutdown_ctrl(ctrl);
+ 	nvme_put_ctrl(&ctrl->ctrl);
+ }
  
+@@ -501,7 +500,6 @@ out_free_queues:
+ 	nvme_loop_destroy_admin_queue(ctrl);
+ out_disable:
+ 	dev_warn(ctrl->ctrl.device, "Removing after reset failure\n");
 -	nvme_remove_namespaces(&ctrl->ctrl);
  	nvme_uninit_ctrl(&ctrl->ctrl);
- 	if (ctrl->ctrl.tagset) {
- 		blk_cleanup_queue(ctrl->ctrl.connect_q);
+ 	nvme_put_ctrl(&ctrl->ctrl);
+ }
 -- 
 1.9.1
 
