@@ -1,87 +1,91 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] net/mlx5_core/pagealloc: Remove deprecated
- create_singlethread_workqueue
-Date: Sun, 31 Jul 2016 09:35:13 +0300
-Message-ID: <20160731063513.GW4628@leon.nu>
-References: <20160728081949.GA5561@Karyakshetra>
- <20160728093735.GO4628@leon.nu>
- <20160729122237.GG2542@mtj.duckdns.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 02/28] IB/hfi1: Fix to fully initialize send context area
+Date: Sun, 31 Jul 2016 09:53:31 +0300
+Message-ID: <20160731065331.GY4628@leon.nu>
+References: <20160725203554.4800.37248.stgit@scvm10.sc.intel.com>
+ <20160725203759.4800.2358.stgit@scvm10.sc.intel.com>
+ <20160726052657.GD20674@leon.nu>
+ <20160728163209.GA28030@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7uidztUHYC105IRM"
+	protocol="application/pgp-signature"; boundary="BERr2LqgA7m/bZG/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160729122237.GG2542-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
+In-Reply-To: <20160728163209.GA28030-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrzej Kacprowski <andrzej.kacprowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---7uidztUHYC105IRM
+--BERr2LqgA7m/bZG/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 29, 2016 at 08:22:37AM -0400, Tejun Heo wrote:
-> Hello,
+On Thu, Jul 28, 2016 at 12:32:09PM -0400, ira.weiny wrote:
+> On Tue, Jul 26, 2016 at 08:26:57AM +0300, Leon Romanovsky wrote:
+> > On Mon, Jul 25, 2016 at 01:38:01PM -0700, Dennis Dalessandro wrote:
+> > > From: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > >=20
+> > > =20
+> > > -	dd->kernel_send_context =3D kmalloc_node(dd->num_send_contexts *
+> > > +	dd->kernel_send_context =3D kzalloc_node(dd->num_send_contexts *
+> > >  					sizeof(struct send_context *),
+> > >  					GFP_KERNEL, dd->node);
+> >=20
+> > Dennis,
+> > Don't you want to check kzalloc_node execution success
+> > prior to use dd->kernel_send_context?
 >=20
-> On Thu, Jul 28, 2016 at 12:37:35PM +0300, Leon Romanovsky wrote:
-> > Did you test this patch? Did you notice the memory reclaim path nature
-> > of this work?
->=20
-> The conversion uses WQ_MEM_RECLAIM, which is standard for all
-> workqueues which can stall packet processing if stalled.  The
-> requirement comes from nfs or block devices over network.
+> Again thanks for catching this.  Follow on fix was sent which depends on =
+this
+> patch.
 
-The title stays "remove deprecated create_singlethread_workqueue" and if
-we put aside the word "deprecated", the code moves from ordered
-workqueue to unordered workqueue and changes max_active count which
-isn't expressed in commit message.
-
-For reclaim paths, I want to be extra caution and want to see
-justification for doing that along with understanding if it is tested or
-not.
-
-Right now, I'm feeling that I'm participating in soapie where one sends
-patch for every line, waits and sends the same patch for another file.
-It is worth to send one patch set and let us to test it all in once.
-
-Thanks.
+No problem.
 
 >=20
-> Thanks.
+> Thanks,
+> Ira
 >=20
-> --=20
-> tejun
+> >=20
+> > >  	dd->kernel_send_context[0] =3D dd->vld[15].sc;
+> > >=20
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
+>=20
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---7uidztUHYC105IRM
+--BERr2LqgA7m/bZG/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXnZwhAAoJEORje4g2clinMmEQAJeUsY1s9+pdwsuE4W/XGaTU
-in5iWOxXqny0ElIFX6mVd+qb3YlzJoDMMjO9bD4wWdn1wnmYlo/eMVzdjdXWzFYu
-zOMCV494J8hojqCF2h/CgjaFsWDZev8Q67kQZGrTNIMWk2cozT/jBpU4bGxOpLlo
-1lt938+eCbnCmb7bokencLKS8ljJslvYrC92T0+Z3GALc9LHuTbvyhyzvi3C77eM
-DZRQuN82kpUqhp611M6iLRZKUci2hhYiLqlsnKXf6EbMbfQcIu8P4LPEOaAF3zCx
-QQr9Vo8HvQdcB29FJeerCMkMfYM7cd7msM+/9JEhwqgr6qo8Bgp3PX6xqEp3Z66s
-CDtSmfTcCh/NLVVTXkUSTwL56FuWK2dTqy0ix/T+YG0cYdZmLbf16AMtWEVZAEy6
-BKTZkwi/JpxWbr6N4ABx3oROvHCELitswqwMEMrZDddb56RjGuctqKNcuAFn3feI
-15AltfTTnpvyH+TxHJ06CmCdtGgKXGdbx6yAk8/4r0qA0bZKL0fKkbhiLJOe9k1M
-3/0Sanv2EY9IRxHJiKxs4Cbi3k7xfQYdda/ZOasMjaiN5p/T3vO9OsESuiluxiNp
-6if18XanmkmRowctZbRcdj/Z6V/8BmxPtR1Rnkm4lwMfAs0cbvwXjAx4+erTjcdi
-y0LQ5DE9KHse5+6Ned2K
-=5lHY
+iQIcBAEBAgAGBQJXnaBrAAoJEORje4g2clin9C8P/3+OUojzTvb66DYNPTB0ZRCj
+V6/sIujKWBzk6hbkuugCz/liStESAox9pTuFz2rw5QjOruWJlRpSIfWJhgMgHxKE
+psdcdV0ZMrFKDsbvlhT1OzvmnJ7UVQco+K2TtOBMYTQm6TpilMr8/zlxsaQgM1Nx
+bF4FjJyop7ylu/1ag1ELhU3wNv/QL9YMOkpmjpE3kX5zOV2qVgvBszyUmuxxWibN
+hDJMY3TpDdj2TnPxkcyJ7B1sBhRsCnuaFp4I6MtyvBKWTv1B0vORaTmKVnr7UV3Y
+ibA+Cy2Kx4MknhUNVK1XOX3DZJzLlnHVCxVjdaheFWsYB/piv7OwKH2DkIHtwNBC
+qT6D5hTufNLjmS1OtmuSkBG/tAbDww12Xz48X9xvtv0tGIl49Gv7bNAiWS/Z2BSR
+iL2Brpfm+2lftWpiM+yVCHax4DCMAJ3UEsbkELmKQKJhZznwwLThoiBoQc7fDI3P
+AWyqVAR+Kk9y3ktuZfQJ8q2z05T9JlHJVeS11f8A3MGgYKdpg+PAqYjxpa1vEPuX
+ATo1RPu/FrHpSn19gJueuaThwmZxY8el2bs06BcpEWpE+HFW/9SYN4zvxHbddIKi
+A4FbjQDjusB2qjOK/qfdZWx9TzvMFzPSIjsnk6TGO5Be+3Rt4CWQEygFduXxyyma
+nbeR99itZth/j8SfzqIg
+=/HMl
 -----END PGP SIGNATURE-----
 
---7uidztUHYC105IRM--
+--BERr2LqgA7m/bZG/--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
