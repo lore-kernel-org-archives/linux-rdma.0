@@ -1,212 +1,180 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 2/2] nvme-rdma: Add handling for connecting to IPv6
- targets
-Date: Sun, 31 Jul 2016 13:58:23 +0300
-Message-ID: <33dfc646-1804-363e-4d83-1ba618303dbb@grimberg.me>
-References: <1469950060-18098-1-git-send-email-roland@kernel.org>
- <1469950060-18098-2-git-send-email-roland@kernel.org>
- <4acdd466-b8f6-8208-7287-e97dfd45bbf1@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] nvmet-rdma: Correctly handle RDMA device hot removal
+Date: Sun, 31 Jul 2016 14:44:23 +0300
+Message-ID: <1469965463-30592-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4acdd466-b8f6-8208-7287-e97dfd45bbf1-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+When configuring a device attached listener, we may
+see device removal events. In this case we return a
+non-zero return code from the cm event handler which
+implicitly destroys the cm_id. It is possible that in
+the future the user will remove this listener and by
+that trigger a second call to rdma_destroy_id on an
+already destroyed cm_id -> BUG.
 
-> On 31/07/16 10:27, Roland Dreier wrote:
->> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->>
->> If a target address does not parse as IPv4, try parsing it as IPv6
->> (including handling '%<scope-id>' suffixes for link-local addresses).
->>
->> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->
->
-> Nice! thanks Roland,
->
-> testing it now...
+In addition, when a queue bound (active session) cm_id
+generates a DEVICE_REMOVAL event we must guarantee all
+resources are cleaned up by the time we return from the
+event handler.
 
-How did you test it btw?
+Introduce nvmet_rdma_device_removal which addresses
+(or at least attempts to) both scenarios.
 
-Currently the target driver doesn't support ipv6 addresses.
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+Steve, would love if you can test iwarp devices with
+this patch. Some selftests patches will follow.
 
-These complementary patches [1,2] makes the it work e2e! So,
-
-Reviewed-by: Sagi Grimberg <sagi-egDjqUIXVlxBDLzU/O5InQ@public.gmane.org>
-and,
-Tested-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-
-
-[1]:
---
-commit 068d8e511d9a6927721bddfd545ad4976196297d
-Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Date:   Sun Jul 31 13:45:44 2016 +0300
-
-     nvmet-rdma: Add ipv6 support
-
-     Allow the nvme-rdma target accept connections using
-     ipv6 address resolution.
-
-     Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+ drivers/nvme/target/rdma.c | 87 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 71 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 4e83d92d6bdd..347cc6d37dad 100644
+index 347cc6d37dad..18af0cb4ebfe 100644
 --- a/drivers/nvme/target/rdma.c
 +++ b/drivers/nvme/target/rdma.c
-@@ -1336,29 +1336,65 @@ restart:
-         mutex_unlock(&nvmet_rdma_queue_mutex);
-  }
-
--static int nvmet_rdma_add_port(struct nvmet_port *port)
-+static int nvmet_rdma_set_addr_port(int family, char *ipaddr,
-+               char *ipport, struct sockaddr_storage *addr)
-  {
--       struct rdma_cm_id *cm_id;
--       struct sockaddr_in addr_in;
--       u16 port_in;
--       int ret;
-+       size_t buflen = strlen(ipaddr);
-+       struct sockaddr_in *addr4;
-+       struct sockaddr_in6 *addr6;
-+       u16 port;
+@@ -77,6 +77,7 @@ enum nvmet_rdma_queue_state {
+ 	NVMET_RDMA_Q_CONNECTING,
+ 	NVMET_RDMA_Q_LIVE,
+ 	NVMET_RDMA_Q_DISCONNECTING,
++	NVMET_RDMA_IN_DEVICE_REMOVAL,
+ };
+ 
+ struct nvmet_rdma_queue {
+@@ -977,9 +978,17 @@ static void nvmet_rdma_release_queue_work(struct work_struct *w)
+ 		container_of(w, struct nvmet_rdma_queue, release_work);
+ 	struct rdma_cm_id *cm_id = queue->cm_id;
+ 	struct nvmet_rdma_device *dev = queue->dev;
++	bool device_removal;
++	unsigned long flags;
+ 
+ 	nvmet_rdma_free_queue(queue);
+-	rdma_destroy_id(cm_id);
 +
-+       if (kstrtou16(ipport, 0, &port))
-+               return -EINVAL;
-
--       switch (port->disc_addr.adrfam) {
-+       switch (family) {
-         case NVMF_ADDR_FAMILY_IP4:
-+               if (buflen > INET_ADDRSTRLEN)
-+                       return -EINVAL;
++	spin_lock_irqsave(&queue->state_lock, flags);
++	device_removal = queue->state == NVMET_RDMA_IN_DEVICE_REMOVAL;
++	spin_unlock_irqrestore(&queue->state_lock, flags);
++	if (!device_removal)
++		rdma_destroy_id(cm_id);
 +
-+               addr4 = (struct sockaddr_in *)addr;
-+
-+               if (in4_pton(ipaddr, buflen, (u8 *)&addr4->sin_addr.s_addr,
-+                            '\n', NULL) == 0)
-+                       return -EINVAL;
-+
-+               addr4->sin_family = AF_INET;
-+               addr4->sin_port = htons(port);
-+               break;
-+       case NVMF_ADDR_FAMILY_IP6:
-+               if (buflen > INET6_ADDRSTRLEN)
-+                       return -EINVAL;
-+
-+               addr6 = (struct sockaddr_in6 *) addr;
-+
-+               if (in6_pton(ipaddr, buflen, (u8 
-*)&addr6->sin6_addr.s6_addr,
-+                            '\n', NULL) == 0)
-+                       return -EINVAL;
-+
-+               addr6->sin6_family = AF_INET6;
-+               addr6->sin6_port = htons(port);
-                 break;
-         default:
--               pr_err("address family %d not supported\n",
--                               port->disc_addr.adrfam);
-+               pr_err("address family %d not supported\n", family);
-                 return -EINVAL;
-         }
-
--       ret = kstrtou16(port->disc_addr.trsvcid, 0, &port_in);
--       if (ret)
--               return ret;
-+       return 0;
-+}
-
--       addr_in.sin_family = AF_INET;
--       addr_in.sin_addr.s_addr = in_aton(port->disc_addr.traddr);
--       addr_in.sin_port = htons(port_in);
-+static int nvmet_rdma_add_port(struct nvmet_port *port)
+ 	kref_put(&dev->ref, nvmet_rdma_free_dev);
+ }
+ 
+@@ -1228,8 +1237,9 @@ static void __nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
+ 	switch (queue->state) {
+ 	case NVMET_RDMA_Q_CONNECTING:
+ 	case NVMET_RDMA_Q_LIVE:
+-		disconnect = true;
+ 		queue->state = NVMET_RDMA_Q_DISCONNECTING;
++	case NVMET_RDMA_IN_DEVICE_REMOVAL:
++		disconnect = true;
+ 		break;
+ 	case NVMET_RDMA_Q_DISCONNECTING:
+ 		break;
+@@ -1267,9 +1277,62 @@ static void nvmet_rdma_queue_connect_fail(struct rdma_cm_id *cm_id,
+ 	schedule_work(&queue->release_work);
+ }
+ 
++/**
++ * nvme_rdma_device_removal() - Handle RDMA device removal
++ * @queue:      nvmet rdma queue (cm id qp_context)
++ * @addr:	nvmet address (cm_id context)
++ *
++ * DEVICE_REMOVAL event notifies us that the RDMA device is about
++ * to unplug so we should take care of destroying our RDMA resources.
++ * This event will be generated for each allocated cm_id.
++ *
++ * Note that this event can be generated on a normal queue cm_id
++ * and/or a device bound listener cm_id (where in this case
++ * queue will be null).
++ *
++ * we claim ownership on destroying the cm_id. For queues we move
++ * the queue state to NVMET_RDMA_IN_DEVICE_REMOVAL and for port
++ * we nullify the priv to prevent double cm_id destruction and destroying
++ * the cm_id implicitely by returning a non-zero rc to the callout.
++ */
++static int nvmet_rdma_device_removal(struct nvmet_addr *addr,
++			struct nvmet_rdma_queue *queue)
 +{
-+       struct rdma_cm_id *cm_id;
-+       struct sockaddr_storage addr = { };
-+       int ret;
++	unsigned long flags;
 +
-+       ret = nvmet_rdma_set_addr_port(port->disc_addr.adrfam,
-+               port->disc_addr.traddr, port->disc_addr.trsvcid, &addr);
-+       if (ret) {
-+               pr_err("failed setting addr %s:%s\n",
-+               port->disc_addr.traddr, port->disc_addr.trsvcid);
-+               return ret;
-+       }
-
-         cm_id = rdma_create_id(&init_net, nvmet_rdma_cm_handler, port,
-                         RDMA_PS_TCP, IB_QPT_RC);
-@@ -1367,20 +1403,33 @@ static int nvmet_rdma_add_port(struct nvmet_port 
-*port)
-                 return PTR_ERR(cm_id);
-         }
-
--       ret = rdma_bind_addr(cm_id, (struct sockaddr *)&addr_in);
-+       /*
-+        * Allow both IPv4 and IPv6 sockets to bind a single port
-+        * at the same time.
-+        */
-+       ret = rdma_set_afonly(cm_id, 1);
-+       if (ret) {
-+               pr_err("rdma_set_afonly failed (%d)\n", ret);
-+               goto out_destroy_id;
-+       }
++	if (!queue) {
++		/*
++		 * This is a listener cm_id. Make sure that
++		 * future remove_port won't invoke a double
++		 * cm_id destroy.
++		 */
++		addr->priv = NULL;
++	} else {
++		/*
++		 * This is a queue cm_id. Make sure that
++		 * release queue will not destroy the cm_id
++		 * and schedule all ctrl queues removal (only
++		 * if the queue is not disconnecting already).
++		 */
++		spin_lock_irqsave(&queue->state_lock, flags);
++		if (queue->state != NVMET_RDMA_Q_DISCONNECTING)
++			queue->state = NVMET_RDMA_IN_DEVICE_REMOVAL;
++		spin_unlock_irqrestore(&queue->state_lock, flags);
++		nvmet_rdma_queue_disconnect(queue);
++		flush_scheduled_work();
++	}
 +
-+       ret = rdma_bind_addr(cm_id, (struct sockaddr *)&addr);
-         if (ret) {
--               pr_err("binding CM ID to %pISpc failed (%d)\n", 
-&addr_in, ret);
-+               pr_err("binding CM ID to %pISpcs failed (%d)\n",
-+                       (struct sockaddr *)&addr, ret);
-                 goto out_destroy_id;
-         }
++	/*
++	 * We need to return 1 so that the core will destroy
++	 * it's own ID.  What a great API design..
++	 */
++	return 1;
++}
++
+ static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 		struct rdma_cm_event *event)
+ {
++	struct nvmet_addr *addr = cm_id->context;
+ 	struct nvmet_rdma_queue *queue = NULL;
+ 	int ret = 0;
+ 
+@@ -1289,20 +1352,11 @@ static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
+ 		break;
+ 	case RDMA_CM_EVENT_ADDR_CHANGE:
+ 	case RDMA_CM_EVENT_DISCONNECTED:
+-	case RDMA_CM_EVENT_DEVICE_REMOVAL:
+ 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
+-		/*
+-		 * We can get the device removal callback even for a
+-		 * CM ID that we aren't actually using.  In that case
+-		 * the context pointer is NULL, so we shouldn't try
+-		 * to disconnect a non-existing queue.  But we also
+-		 * need to return 1 so that the core will destroy
+-		 * it's own ID.  What a great API design..
+-		 */
+-		if (queue)
+-			nvmet_rdma_queue_disconnect(queue);
+-		else
+-			ret = 1;
++		nvmet_rdma_queue_disconnect(queue);
++		break;
++	case RDMA_CM_EVENT_DEVICE_REMOVAL:
++		ret = nvmet_rdma_device_removal(addr, queue);
+ 		break;
+ 	case RDMA_CM_EVENT_REJECTED:
+ 	case RDMA_CM_EVENT_UNREACHABLE:
+@@ -1442,7 +1496,8 @@ static void nvmet_rdma_remove_port(struct nvmet_port *port)
+ {
+ 	struct rdma_cm_id *cm_id = port->priv;
+ 
+-	rdma_destroy_id(cm_id);
++	if (cm_id)
++		rdma_destroy_id(cm_id);
+ }
+ 
+ static struct nvmet_fabrics_ops nvmet_rdma_ops = {
+-- 
+1.9.1
 
-         ret = rdma_listen(cm_id, 128);
-         if (ret) {
--               pr_err("listening to %pISpc failed (%d)\n", &addr_in, ret);
-+               pr_err("listening to %pISpcs failed (%d)\n",
-+                       (struct sockaddr *)&addr, ret);
-                 goto out_destroy_id;
-         }
-
--       pr_info("enabling port %d (%pISpc)\n",
--               le16_to_cpu(port->disc_addr.portid), &addr_in);
-+       pr_info("enabling port %d (%pISpcs)\n",
-+               le16_to_cpu(port->disc_addr.portid),
-+               (struct sockaddr *)&addr);
-         port->priv = cm_id;
-         return 0;
---
-
-[2]:
---
-commit 6d962c76580680e9cd0f5a56f47bcd30b5a39dd7
-Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Date:   Sun Jul 31 13:56:58 2016 +0300
-
-     fabrics: Allow ipv6 address resolution
-
-     Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-
-diff --git a/fabrics.c b/fabrics.c
-index 4bf557b5e672..221e34e5e39b 100644
---- a/fabrics.c
-+++ b/fabrics.c
-@@ -390,7 +390,8 @@ static int connect_ctrl(struct 
-nvmf_disc_rsp_page_entry *e)
-                 /* we can safely ignore the rest of the entries */
-                 break;
-         case NVMF_TRTYPE_RDMA:
--               if (e->adrfam != NVMF_ADDR_FAMILY_IP4) {
-+               if (e->adrfam != NVMF_ADDR_FAMILY_IP4 &&
-+                   e->adrfam != NVMF_ADDR_FAMILY_IP6) {
-                         fprintf(stderr, "skipping unsupported adrfam\n");
-                         return -EINVAL;
-                 }
---
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
