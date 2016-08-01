@@ -1,23 +1,45 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC 7/7] NVMe: CMB on DMA-BUF
-Date: Mon, 1 Aug 2016 08:52:06 -0700
-Message-ID: <20160801155206.GA23224@infradead.org>
-References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
- <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 2/2] nvme-rdma: Add handling for connecting to IPv6
+	targets
+Date: Mon, 1 Aug 2016 17:50:36 +0200
+Message-ID: <20160801155036.GC22771@lst.de>
+References: <1469950060-18098-1-git-send-email-roland@kernel.org> <1469950060-18098-2-git-send-email-roland@kernel.org> <4acdd466-b8f6-8208-7287-e97dfd45bbf1@grimberg.me> <33dfc646-1804-363e-4d83-1ba618303dbb@grimberg.me> <20160801110956.GI16141@lst.de> <e6e54d3f-c6ee-2057-d4e5-13981cd95140@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Haggai Eran <haggaie@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, Liran Liss <liranl@mellanox.com>, linux-pci@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Stephen Bates <stephen.bates@microsemi.com>, Leon Romanovsky <leonro@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Jerome Glisse <j.glisse@gmail.com>
+In-Reply-To: <e6e54d3f-c6ee-2057-d4e5-13981cd95140-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 01, 2016 at 09:57:33AM +0300, Haggai Eran wrote:
-> Allocate a CMB region to user-space as a DMA-BUF object.
+On Mon, Aug 01, 2016 at 02:24:10PM +0300, Sagi Grimberg wrote:
+>
+>>> Currently the target driver doesn't support ipv6 addresses.
+>>>
+>>> These complementary patches [1,2] makes the it work e2e! So,
+>>
+>> I think we should use the same ipv6 addr parsing that Roland used
+>> in the host, and preferably have another module export that as a helper.
+>
+> I can try to unify them, but unlike the host that first tries ipv4 and
+> then fall to ipv6, the target needs to enforce the address family so
+> it's somewhat different. I kinda think that these are different enough
+> to stay separate don't you think?
 
-NACK.  Absolutely no way we're going to export a low-level device
-specific feature to userspace like that.  If you want to DMA to
-the CMB do it from the kernel, and for that we'll need a proper
-block device level API.
+It'd still need all the scope ID handling similar to what Roland did,
+and that's a fair chunk of code.  We have a few options to handle the
+different allowed addresses:
+
+ (1) v4/v6 only flags
+ (2) having low-level v4/v6 handlers and one that tries these both
+ (3) using the try both handler and rejecting the wrong one after
+     parsing.
+
+(3) seems easiest, but (2) sounds fine to me.  But I'd really like to
+hear from folks on the netdev list what they think of that idea first.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
