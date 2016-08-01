@@ -1,30 +1,35 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3] nvmet-rdma: Correctly handle RDMA device hot removal
-Date: Mon, 1 Aug 2016 13:15:30 +0200
-Message-ID: <20160801111530.GB16474@lst.de>
-References: <1469967347-20466-1-git-send-email-sagi@grimberg.me>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH 4/5] nvme-rdma: Remove duplicate call to
+ nvme_remove_namespaces
+Date: Mon, 1 Aug 2016 14:21:17 +0300
+Message-ID: <f196255e-b179-e3e3-8439-baebd1c62211@grimberg.me>
+References: <1469822242-3477-1-git-send-email-sagi@grimberg.me>
+ <1469822242-3477-5-git-send-email-sagi@grimberg.me>
+ <20160801110604.GE16141@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1469967347-20466-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20160801110604.GE16141-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This looks reasonable to me, but a little question below:
 
-> @@ -1442,7 +1491,8 @@ static void nvmet_rdma_remove_port(struct nvmet_port *port)
->  {
->  	struct rdma_cm_id *cm_id = port->priv;
->  
-> -	rdma_destroy_id(cm_id);
-> +	if (cm_id)
-> +		rdma_destroy_id(cm_id);
->  }
+>> -	nvme_remove_namespaces(&ctrl->ctrl);
+>> -	nvme_rdma_shutdown_ctrl(ctrl);
+>>  	nvme_uninit_ctrl(&ctrl->ctrl);
+>> +	nvme_rdma_shutdown_ctrl(ctrl);
+>
+> How safe is the reordering here?  The description should explain why
+> it's fine.
 
-How is ->remove_port synchronized vs the RDMA/CM even handler?
+The reordering is safe because we do want everything in uninit_ctrl
+(flush aen,scan and ns-remove) to happen before we shutdown the rdma
+stuff. I'll add to the change log.
+
+Thanks!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
