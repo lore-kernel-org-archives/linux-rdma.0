@@ -1,40 +1,33 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 3/5] nvme-rdma: Make sure to shutdown the controller if
-	we can
-Date: Mon, 1 Aug 2016 17:48:40 +0200
-Message-ID: <20160801154840.GB22771@lst.de>
-References: <1469822242-3477-1-git-send-email-sagi@grimberg.me> <1469822242-3477-4-git-send-email-sagi@grimberg.me> <20160801110446.GD16141@lst.de> <63b33585-3fd2-a497-94a1-34dc9484da99@grimberg.me>
+From: Jon Derrick <jonathan.derrick@intel.com>
+Subject: Re: [RFC 6/7] NVMe: Use genalloc to allocate CMB regions
+Date: Mon, 1 Aug 2016 10:20:58 -0600
+Message-ID: <20160801162057.GA11476@localhost.localdomain>
+References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+ <1470034653-9097-7-git-send-email-haggaie@mellanox.com>
+ <20160801155348.GB23224@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <63b33585-3fd2-a497-94a1-34dc9484da99-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <20160801155348.GB23224@infradead.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Haggai Eran <haggaie@mellanox.com>, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, Liran Liss <liranl@mellanox.com>, linux-pci@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Stephen Bates <stephen.bates@microsemi.com>, Leon Romanovsky <leonro@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Jerome Glisse <j.glisse@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 01, 2016 at 02:17:37PM +0300, Sagi Grimberg wrote:
->>> -	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
->>> +	if (test_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[0].flags))
->>>  		nvme_shutdown_ctrl(&ctrl->ctrl);
->>>
->>>  	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
->>
->> Maybe the right way to handle this is to unconditionally call
->> nvme_shutdown_ctrl and make sure we return an early error
->> on the register write?
->
-> As I wrote on patch 2/5 reply, I'd like to avoid depending on
-> queue_rq to fail early peeking at the ctrl state. This dependency
-> can grow in the future and I think we should at least try not to
-> go there...
+On Mon, Aug 01, 2016 at 08:53:49AM -0700, Christoph Hellwig wrote:
+> On Mon, Aug 01, 2016 at 09:57:32AM +0300, Haggai Eran wrote:
+> > Register the CMB in a gen_pool dedicated to manage CMB regions. Use the
+> > pool to allocate the SQs to make sure they are registered.
+> 
+> And why would the NVMe driver care if "they are registered"?
+> 
+> Once we start allowing diverse CMB uses (what happened to Jon's patches
+> btw?) genalloc might be a good backend allocator, but without that
+> it's entirely pointless.  Also please don't introduce useless header
+> files.
+My concern is using CMB as a generic memory space could lead to invalid uses and untested paths in broken firmware (leading to bricked drives...). The spec defines what it's allowed to be used for, but doesn't really leave it open for general purpose usage outside of that. Because of that I think it needs more hand-holding by the kernel to prevent invalid usage.
 
-I don't want ->queue_rq to peek at controller state.  What I had
-in mind was copying the PCIe behavior of failing early in the
-timeout handler if we are in the reset handler, which will
-mean blk_execute_rq will return ASAP with an error.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What I would like to see is a set of knobs controlling the 'chunks' of memory's usages (controlled through sysfs/configfs?) and the kernel takes care of allocation. My set was going to expose a resource file for WDS/RDS but everything else was unhandled except for its current sqes usage. I think the genalloc could fit into this scheme quite well.
+
+Thoughts?
