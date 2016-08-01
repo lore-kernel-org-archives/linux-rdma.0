@@ -1,239 +1,145 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: [RFC 4/7] IB/uverbs: Add command to register a DMA-BUF fd
-Date: Mon,  1 Aug 2016 09:57:30 +0300
-Message-ID: <1470034653-9097-5-git-send-email-haggaie@mellanox.com>
-References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
-Cc: linux-pci@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, Liran Liss <liranl@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Jerome Glisse <j.glisse@gmail.com>, Yishai Hadas <yishaih@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [IPOIB] Excessive TX packet drops due to IPOIB_MAX_PATH_REC_QUEUE
+Date: Mon, 1 Aug 2016 11:01:08 +0300
+Message-ID: <CAAk-MO83mJTq=E_MC=izqq8fEmVujY=5egVmKfFjxAz4jO3hHg@mail.gmail.com>
+References: <5799E5E6.3060104@kyup.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5799E5E6.3060104-6AxghH7DbtA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Cc: shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The new command accept the file descriptor of a DMA-BUF object as input,
-as well as the PD and access flags, and produces a memory region
-accessing the device memory exposed by the DMA-BUF object.
+Hi Nikolay,
 
-Signed-off-by: Haggai Eran <haggaie@mellanox.com>
----
- drivers/infiniband/core/uverbs.h      |   1 +
- drivers/infiniband/core/uverbs_cmd.c  | 111 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c |   1 +
- include/rdma/ib_verbs.h               |   6 ++
- include/uapi/rdma/ib_user_verbs.h     |  18 ++++++
- 5 files changed, 137 insertions(+)
+IPoIB is a special driver because it plays in 2 "courts", in one hand
+it is a network driver and in the other hand it is IB driver, this is
+the reason for what you are seeing. (be carefull more details are
+coming ..)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 612ccfd39bf9..491292740b67 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -275,5 +275,6 @@ IB_UVERBS_DECLARE_EX_CMD(destroy_flow);
- IB_UVERBS_DECLARE_EX_CMD(query_device);
- IB_UVERBS_DECLARE_EX_CMD(create_cq);
- IB_UVERBS_DECLARE_EX_CMD(create_qp);
-+IB_UVERBS_DECLARE_EX_CMD(reg_dma_buf_mr);
- 
- #endif /* UVERBS_H */
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 825021d1008b..ca1f40769019 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -37,6 +37,7 @@
- #include <linux/fs.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/dma-buf.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -1125,6 +1126,116 @@ put_uobjs:
- 	return ret;
- }
- 
-+int ib_uverbs_ex_reg_dma_buf_mr(struct ib_uverbs_file *file,
-+				struct ib_device *ib_dev,
-+				struct ib_udata *ucore, struct ib_udata *uhw)
-+{
-+	struct ib_uverbs_ex_reg_dma_buf_mr      cmd;
-+	struct ib_uverbs_ex_reg_dma_buf_mr_resp resp;
-+	struct ib_uobject           *uobj;
-+	struct ib_pd                *pd;
-+	struct ib_mr                *mr;
-+	struct dma_buf		    *dmabuf;
-+	int                          ret;
-+
-+	if (ucore->inlen < sizeof(cmd))
-+		return -EINVAL;
-+
-+	ret = ib_copy_from_udata(&cmd, ucore, sizeof(cmd));
-+	if (ret)
-+		return ret;
-+
-+	if (cmd.comp_mask)
-+		return -EINVAL;
-+
-+	if (ucore->outlen < (offsetof(typeof(resp), response_length) +
-+			     sizeof(resp.response_length)))
-+		return -ENOSPC;
-+
-+	ret = ib_check_mr_access(cmd.access_flags);
-+	if (ret)
-+		return ret;
-+
-+	dmabuf = dma_buf_get(cmd.fd);
-+	if (IS_ERR(dmabuf))
-+		return PTR_ERR(dmabuf);
-+
-+	uobj = kmalloc(sizeof(*uobj), GFP_KERNEL);
-+	if (!uobj) {
-+		ret = -ENOMEM;
-+		goto err_dma_buf;
-+	}
-+
-+	init_uobj(uobj, 0, file->ucontext, &mr_lock_class);
-+	down_write(&uobj->mutex);
-+
-+	pd = idr_read_pd(cmd.pd_handle, file->ucontext);
-+	if (!pd) {
-+		ret = -EINVAL;
-+		goto err_free;
-+	}
-+
-+	if (!pd->device->reg_user_dma_buf_mr) {
-+		ret = -EINVAL;
-+		goto err_put;
-+	}
-+
-+	mr = pd->device->reg_user_dma_buf_mr(pd, dmabuf, cmd.access_flags, uhw);
-+	if (IS_ERR(mr)) {
-+		ret = PTR_ERR(mr);
-+		goto err_put;
-+	}
-+
-+	mr->device  = pd->device;
-+	mr->pd      = pd;
-+	mr->uobject = uobj;
-+
-+	uobj->object = mr;
-+	ret = idr_add_uobj(&ib_uverbs_mr_idr, uobj);
-+	if (ret)
-+		goto err_unreg;
-+
-+	memset(&resp, 0, sizeof(resp));
-+	resp.lkey      = mr->lkey;
-+	resp.rkey      = mr->rkey;
-+	resp.mr_handle = uobj->id;
-+	resp.response_length = sizeof(resp);
-+
-+	if (ib_copy_to_udata(ucore, &resp, resp.response_length)) {
-+		ret = -EFAULT;
-+		goto err_copy;
-+	}
-+
-+	dma_buf_put(dmabuf);
-+	put_pd_read(pd);
-+
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&uobj->list, &file->ucontext->mr_list);
-+	mutex_unlock(&file->mutex);
-+
-+	uobj->live = 1;
-+
-+	up_write(&uobj->mutex);
-+
-+	return 0;
-+
-+err_copy:
-+	idr_remove_uobj(&ib_uverbs_mr_idr, uobj);
-+
-+err_unreg:
-+	ib_dereg_mr(mr);
-+
-+err_put:
-+	put_pd_read(pd);
-+
-+err_free:
-+	put_uobj_write(uobj);
-+
-+err_dma_buf:
-+	dma_buf_put(dmabuf);
-+	return ret;
-+}
-+
- ssize_t ib_uverbs_dereg_mr(struct ib_uverbs_file *file,
- 			   struct ib_device *ib_dev,
- 			   const char __user *buf, int in_len,
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 31f422a70623..c5368f2b1cf0 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -130,6 +130,7 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
- 	[IB_USER_VERBS_EX_CMD_QUERY_DEVICE]	= ib_uverbs_ex_query_device,
- 	[IB_USER_VERBS_EX_CMD_CREATE_CQ]	= ib_uverbs_ex_create_cq,
- 	[IB_USER_VERBS_EX_CMD_CREATE_QP]        = ib_uverbs_ex_create_qp,
-+	[IB_USER_VERBS_EX_CMD_REG_DMA_BUF_MR]   = ib_uverbs_ex_reg_dma_buf_mr,
- };
- 
- static void ib_uverbs_add_one(struct ib_device *device);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index da23ec0a06d7..9c4241aeec79 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1677,6 +1677,7 @@ struct ib_dma_mapping_ops {
- };
- 
- struct iw_cm_verbs;
-+struct dma_buf;
- 
- struct ib_port_immutable {
- 	int                           pkey_tbl_len;
-@@ -1866,6 +1867,11 @@ struct ib_device {
- 						    int mr_access_flags,
- 						    struct ib_pd *pd,
- 						    struct ib_udata *udata);
-+	struct ib_mr *             (*reg_user_dma_buf_mr)(
-+					struct ib_pd *pd,
-+					struct dma_buf *dmabuf,
-+					int mr_access_flags,
-+					struct ib_udata *udata);
- 	int                        (*dereg_mr)(struct ib_mr *mr);
- 	struct ib_mr *		   (*alloc_mr)(struct ib_pd *pd,
- 					       enum ib_mr_type mr_type,
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index b6543d73d20a..aad37e4572b5 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -95,6 +95,7 @@ enum {
- 	IB_USER_VERBS_EX_CMD_CREATE_QP = IB_USER_VERBS_CMD_CREATE_QP,
- 	IB_USER_VERBS_EX_CMD_CREATE_FLOW = IB_USER_VERBS_CMD_THRESHOLD,
- 	IB_USER_VERBS_EX_CMD_DESTROY_FLOW,
-+	IB_USER_VERBS_EX_CMD_REG_DMA_BUF_MR,
- };
- 
- /*
-@@ -320,6 +321,23 @@ struct ib_uverbs_rereg_mr_resp {
- 	__u32 rkey;
- };
- 
-+struct ib_uverbs_ex_reg_dma_buf_mr {
-+	__u64 response;
-+	__u32 fd;
-+	__u32 access_flags;
-+	__u32 pd_handle;
-+	__u32 comp_mask;
-+};
-+
-+struct ib_uverbs_ex_reg_dma_buf_mr_resp {
-+	__u32 mr_handle;
-+	__u32 lkey;
-+	__u32 rkey;
-+	__u32 comp_mask;
-+	__u32 response_length;
-+	__u32 reserved;
-+};
-+
- struct ib_uverbs_dereg_mr {
- 	__u32 mr_handle;
- };
--- 
-1.7.11.2
+After ARP reply the kernel which threats ipoib driver as network
+driver (like ethernet, and doesn't aware of the IB aspect of the ipoib
+driver)
+the kernel thinks that now after it has the layer 2 address (from ARP)
+it can send the packets to the destination, it doesn't aware of the IB
+aspect which needs the AV (by Path Record) in order to get the right
+destination, ipoib tries to do best effort and while it asks the SM
+for the PathRecord it keeps theses packets (skb's) from the kernel in
+the neigh structure, the number of packets that are kept is 3, (3 is a
+good number, right after 2 .. and for almost all of the topologies we
+will not get more than 1 or 2 drops)
+
+Now, for your case, i think you have other problem, the connectivity
+with the SM is bad, or the destination is no longer exists.
+check that via the saquery tool (saquery PR <> <>)
+
+Thanks, Erez
+
+On Thu, Jul 28, 2016 at 2:00 PM, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org> wrote:
+> Hello,
+>
+> While investigating excessive (> 50%) packet drops on an ipoib
+> interface as reported by ifconfig :
+>
+> TX packets:16565 errors:1 dropped:9058 overruns:0 carrier:0
+>
+> I discovered that this is happening due to the following check
+> in ipoib_start_xmit failing:
+>
+> if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
+>                spin_lock_irqsave(&priv->lock, flags);
+>                __skb_queue_tail(&neigh->queue, skb);
+>                spin_unlock_irqrestore(&priv->lock, flags);
+> } else {
+>                ++dev->stats.tx_dropped;
+>                dev_kfree_skb_any(skb);
+> }
+>
+> With the following stacktrace:
+>
+> [1629744.927799]  [<ffffffffa048e6a1>] ipoib_start_xmit+0x651/0x6c0 [ib_ipoib]
+> [1629744.927804]  [<ffffffff8154ecf6>] dev_hard_start_xmit+0x266/0x410
+> [1629744.927807]  [<ffffffff81571b1b>] sch_direct_xmit+0xdb/0x210
+> [1629744.927808]  [<ffffffff8154f22a>] __dev_queue_xmit+0x24a/0x580
+> [1629744.927810]  [<ffffffff8154f570>] dev_queue_xmit+0x10/0x20
+> [1629744.927813]  [<ffffffff81557cf8>] neigh_resolve_output+0x118/0x1c0
+> [1629744.927828]  [<ffffffffa0003c7e>] ip6_finish_output2+0x18e/0x490 [ipv6]
+> [1629744.927831]  [<ffffffffa03b7374>] ? ipv6_confirm+0xc4/0x130 [nf_conntrack_ipv6]
+> [1629744.927837]  [<ffffffffa00052a6>] ip6_finish_output+0xa6/0x100 [ipv6]
+> [1629744.927843]  [<ffffffffa0005344>] ip6_output+0x44/0xe0 [ipv6]
+> [1629744.927850]  [<ffffffffa0005200>] ? ip6_fragment+0x9b0/0x9b0 [ipv6]
+> [1629744.927858]  [<ffffffffa000447c>] ip6_forward+0x4fc/0x8d0 [ipv6]
+> [1629744.927867]  [<ffffffffa00142ad>] ? ip6_route_input+0xfd/0x130 [ipv6]
+> [1629744.927872]  [<ffffffffa0001b70>] ? dst_output+0x20/0x20 [ipv6]
+> [1629744.927877]  [<ffffffffa0005be7>] ip6_rcv_finish+0x57/0xa0 [ipv6]
+> [1629744.927882]  [<ffffffffa0006374>] ipv6_rcv+0x314/0x4e0 [ipv6]
+> [1629744.927887]  [<ffffffffa0005b90>] ? ip6_make_skb+0x1b0/0x1b0 [ipv6]
+> [1629744.927890]  [<ffffffff8154c66b>] __netif_receive_skb_core+0x2cb/0xa30
+> [1629744.927893]  [<ffffffff8108310c>] ? __enqueue_entity+0x6c/0x70
+> [1629744.927894]  [<ffffffff8154cde6>] __netif_receive_skb+0x16/0x70
+> [1629744.927896]  [<ffffffff8154dc63>] process_backlog+0xb3/0x160
+> [1629744.927898]  [<ffffffff8154d36c>] net_rx_action+0x1ec/0x330
+> [1629744.927900]  [<ffffffff810821e1>] ? sched_clock_cpu+0xa1/0xb0
+> [1629744.927902]  [<ffffffff81057337>] __do_softirq+0x147/0x310
+> [1629744.927907]  [<ffffffffa0003c80>] ? ip6_finish_output2+0x190/0x490 [ipv6]
+> [1629744.927909]  [<ffffffff8161618c>] do_softirq_own_stack+0x1c/0x30
+> [1629744.927910]  <EOI>  [<ffffffff810567bb>] do_softirq.part.17+0x3b/0x40
+> [1629744.927913]  [<ffffffff81056876>] __local_bh_enable_ip+0xb6/0xc0
+> [1629744.927918]  [<ffffffffa0003c91>] ip6_finish_output2+0x1a1/0x490 [ipv6]
+> [1629744.927920]  [<ffffffffa03b7374>] ? ipv6_confirm+0xc4/0x130 [nf_conntrack_ipv6]
+> [1629744.927925]  [<ffffffffa00052a6>] ip6_finish_output+0xa6/0x100 [ipv6]
+> [1629744.927930]  [<ffffffffa0005344>] ip6_output+0x44/0xe0 [ipv6]
+> [1629744.927935]  [<ffffffffa0005200>] ? ip6_fragment+0x9b0/0x9b0 [ipv6]
+> [1629744.927939]  [<ffffffffa0002e1f>] ip6_xmit+0x23f/0x4f0 [ipv6]
+> [1629744.927944]  [<ffffffffa0001b50>] ? ac6_proc_exit+0x20/0x20 [ipv6]
+> [1629744.927952]  [<ffffffffa0033ce5>] inet6_csk_xmit+0x85/0xd0 [ipv6]
+> [1629744.927955]  [<ffffffff815aa56d>] tcp_transmit_skb+0x53d/0x910
+> [1629744.927957]  [<ffffffff815aab13>] tcp_write_xmit+0x1d3/0xe90
+> [1629744.927959]  [<ffffffff815aba31>] __tcp_push_pending_frames+0x31/0xa0
+> [1629744.927961]  [<ffffffff8159a19f>] tcp_push+0xef/0x120
+> [1629744.927963]  [<ffffffff8159e219>] tcp_sendmsg+0x6c9/0xac0
+> [1629744.927965]  [<ffffffff815c84d3>] inet_sendmsg+0x73/0xb0
+> [1629744.927967]  [<ffffffff81531728>] sock_sendmsg+0x38/0x50
+> [1629744.927969]  [<ffffffff815317bb>] sock_write_iter+0x7b/0xd0
+> [1629744.927972]  [<ffffffff811988ba>] __vfs_write+0xaa/0xe0
+> [1629744.927974]  [<ffffffff81198f29>] vfs_write+0xa9/0x190
+> [1629744.927975]  [<ffffffff81198e63>] ? vfs_read+0x113/0x130
+> [1629744.927977]  [<ffffffff81199c16>] SyS_write+0x46/0xa0
+> [1629744.927979]  [<ffffffff8161465b>] entry_SYSCALL_64_fastpath+0x16/0x6e
+> [1629744.927988] ---[ end trace 08584e4165caf3df ]---
+>
+>
+> IPOIB_MAX_PATH_REC_QUEUE is set to 3. If I'm reading the code correctly
+> if there are more than 3 outstanding packets for a neighbour this would
+> cause the code to drop the packets. Is this correct? Also I tried bumping
+
+yes.
+
+> IPOIB_MAX_PATH_REC_QUEUE to 150 to see what will happen and this instead
+
+it is a bad idea to move it to 150 ...
+
+> moved the dropping to occur in ipoib_neigh_dtor:
+>
+> [1629558.306405]  [<ffffffffa04788ec>] ipoib_neigh_dtor+0x9c/0x130 [ib_ipoib]
+> [1629558.306407]  [<ffffffffa0478999>] ipoib_neigh_reclaim+0x19/0x20 [ib_ipoib]
+> [1629558.306411]  [<ffffffff810ad0fb>] rcu_process_callbacks+0x21b/0x620
+> [1629558.306413]  [<ffffffff81057337>] __do_softirq+0x147/0x310
+>
+> Since you've taken part in the development of the said code I'd like
+> to ask what's the purpose of the IPOIB_MAX_PATH_REC_QUEUE limit and why
+> do we drop packets if there are more than this many outstanding packets,
+> since having 50% packet drops is a very large amount of drops?
+>
+> Regards,
+> Nikolay
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
