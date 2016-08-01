@@ -1,49 +1,26 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 3/5] nvme-rdma: Make sure to shutdown the controller if
-	we can
-Date: Mon, 1 Aug 2016 13:04:46 +0200
-Message-ID: <20160801110446.GD16141@lst.de>
-References: <1469822242-3477-1-git-send-email-sagi@grimberg.me> <1469822242-3477-4-git-send-email-sagi@grimberg.me>
+Subject: Re: [PATCH v4 3/5] IB/srpt: Limit the number of SG elements per
+	work request
+Date: Mon, 1 Aug 2016 12:57:28 +0200
+Message-ID: <20160801105728.GB16088@lst.de>
+References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com> <446e3039-ec25-89d8-2583-5e60dd2bfc88@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1469822242-3477-4-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <446e3039-ec25-89d8-2583-5e60dd2bfc88-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 29, 2016 at 10:57:20PM +0300, Sagi Grimberg wrote:
-> Relying on ctrl state in nvme_rdma_shutdown_ctrl is wrong because
-> it will never be NVME_CTRL_LIVE (delete_ctrl or reset_ctrl invoked it).
-> 
-> Instead, check that the admin queue is connected. Note that it is safe
-> because we can never see a copmeting thread trying to destroy the admin
-> queue (reset or delete controller).
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  drivers/nvme/host/rdma.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-> index a70eb3cbf656..641ab7f91899 100644
-> --- a/drivers/nvme/host/rdma.c
-> +++ b/drivers/nvme/host/rdma.c
-> @@ -1644,7 +1644,7 @@ static void nvme_rdma_shutdown_ctrl(struct nvme_rdma_ctrl *ctrl)
->  		nvme_rdma_free_io_queues(ctrl);
->  	}
->  
-> -	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
-> +	if (test_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[0].flags))
->  		nvme_shutdown_ctrl(&ctrl->ctrl);
->  
->  	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
+On Thu, Jul 21, 2016 at 01:03:47PM -0700, Bart Van Assche wrote:
+> Limit the number of SG elements per work request to what the HCA
+> and the queue pair support.
 
-Maybe the right way to handle this is to unconditionally call
-nvme_shutdown_ctrl and make sure we return an early error
-on the register write?
+Looks fine,
+
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
