@@ -1,67 +1,35 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] net/mlx5_core/pagealloc: Remove deprecated
- create_singlethread_workqueue
-Date: Mon, 1 Aug 2016 11:11:19 -0400
-Message-ID: <20160801151119.GE2542@mtj.duckdns.org>
-References: <20160728081949.GA5561@Karyakshetra>
- <20160728093735.GO4628@leon.nu>
- <20160729122237.GG2542@mtj.duckdns.org>
- <20160731063513.GW4628@leon.nu>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v3] nvmet-rdma: Correctly handle RDMA device hot removal
+Date: Mon, 1 Aug 2016 17:50:54 +0200
+Message-ID: <20160801155054.GD22771@lst.de>
+References: <1469967347-20466-1-git-send-email-sagi@grimberg.me> <20160801111530.GB16474@lst.de> <307087d1-88af-5244-38e8-5b9786285488@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160731063513.GW4628@leon.nu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>, Matan Barak <matanb@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+In-Reply-To: <307087d1-88af-5244-38e8-5b9786285488-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Leon.
+On Mon, Aug 01, 2016 at 02:30:37PM +0300, Sagi Grimberg wrote:
+>> How is ->remove_port synchronized vs the RDMA/CM even handler?
+>
+> Easy, it isn't :)
+>
+> So we have three choices here:
+> 1. Add a lock in nvmet_port that only rdma will use for now (don't like
+> it)
+> or
+> 2. Add nvmet_rdma_port as nvmet_port->priv with a lock (don't like it)
+> or
+> 3. take the global nvmet_config_sem (hate it)
+>
+> Any preferences?
 
-On Sun, Jul 31, 2016 at 09:35:13AM +0300, Leon Romanovsky wrote:
-> > The conversion uses WQ_MEM_RECLAIM, which is standard for all
-> > workqueues which can stall packet processing if stalled.  The
-> > requirement comes from nfs or block devices over network.
-> 
-> The title stays "remove deprecated create_singlethread_workqueue" and if
-> we put aside the word "deprecated", the code moves from ordered
-> workqueue to unordered workqueue and changes max_active count which
-> isn't expressed in commit message.
-
-Maybe it was too compressed but the description says
-
-"The workqueue has a single work item. Hence, alloc_workqueue() is
- used instead of alloc_ordered_workqueue() since ordering is
- unnecessary when there's only one work item."
-
-There's only one work item so whether the workqueue is ordered and its
-concurrency level don't make any difference.  The reason why people
-used to use create_singlethread_workqueue() in these situations was
-because per-cpu workqueues used to be very expensive which isn't true
-anymore.
-
-> For reclaim paths, I want to be extra caution and want to see
-> justification for doing that along with understanding if it is tested or
-> not.
-
-WQ_MEM_RECLAIM maintains the behavior of the existing code and the
-requirement comes from network interfaces being used for nfs and
-transport for block devices and is universial to everything in network
-layer.  The only test we can do here is removing it and pushing it
-really hard and see whether we can actually trigger deadlock, which it
-will under the right circumstances which may or may not be easy to
-replicate in test environments.  I don't see many merits in doing this
-especially when the behavior doesn't change from the existing code.
-
-> Right now, I'm feeling that I'm participating in soapie where one sends
-> patch for every line, waits and sends the same patch for another file.
-> It is worth to send one patch set and let us to test it all in once.
-
-Yeah, I guess it can be a bit annoying.  Bhaktipriya, can you please
-group patches for meallnox?
-
-Thanks.
-
--- 
-tejun
+(4) use cmpxchg?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
