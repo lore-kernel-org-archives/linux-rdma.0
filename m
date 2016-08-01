@@ -1,35 +1,23 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3] nvmet-rdma: Correctly handle RDMA device hot removal
-Date: Mon, 1 Aug 2016 17:50:54 +0200
-Message-ID: <20160801155054.GD22771@lst.de>
-References: <1469967347-20466-1-git-send-email-sagi@grimberg.me> <20160801111530.GB16474@lst.de> <307087d1-88af-5244-38e8-5b9786285488@grimberg.me>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [RFC 7/7] NVMe: CMB on DMA-BUF
+Date: Mon, 1 Aug 2016 08:52:06 -0700
+Message-ID: <20160801155206.GA23224@infradead.org>
+References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+ <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <307087d1-88af-5244-38e8-5b9786285488-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, Liran Liss <liranl@mellanox.com>, linux-pci@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Stephen Bates <stephen.bates@microsemi.com>, Leon Romanovsky <leonro@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Jerome Glisse <j.glisse@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 01, 2016 at 02:30:37PM +0300, Sagi Grimberg wrote:
->> How is ->remove_port synchronized vs the RDMA/CM even handler?
->
-> Easy, it isn't :)
->
-> So we have three choices here:
-> 1. Add a lock in nvmet_port that only rdma will use for now (don't like
-> it)
-> or
-> 2. Add nvmet_rdma_port as nvmet_port->priv with a lock (don't like it)
-> or
-> 3. take the global nvmet_config_sem (hate it)
->
-> Any preferences?
+On Mon, Aug 01, 2016 at 09:57:33AM +0300, Haggai Eran wrote:
+> Allocate a CMB region to user-space as a DMA-BUF object.
 
-(4) use cmpxchg?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+NACK.  Absolutely no way we're going to export a low-level device
+specific feature to userspace like that.  If you want to DMA to
+the CMB do it from the kernel, and for that we'll need a proper
+block device level API.
