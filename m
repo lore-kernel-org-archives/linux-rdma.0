@@ -1,30 +1,188 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 2/2] nvme-rdma: Add handling for connecting to IPv6
- targets
-Date: Mon, 1 Aug 2016 09:15:09 +0300
-Message-ID: <31e89c94-bc0e-b06c-e63f-832a3511a7fb@grimberg.me>
-References: <1469950060-18098-1-git-send-email-roland@kernel.org>
- <1469950060-18098-2-git-send-email-roland@kernel.org>
- <4acdd466-b8f6-8208-7287-e97dfd45bbf1@grimberg.me>
- <33dfc646-1804-363e-4d83-1ba618303dbb@grimberg.me>
- <CAL1RGDUHrvQWXxHgxsK78WWT+Mr1uB2LFAVGi8-bHf1n5vCJDA@mail.gmail.com>
- <333b4d7a-d93b-daa9-7abd-108db5c534e4@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <333b4d7a-d93b-daa9-7abd-108db5c534e4-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: [RFC 1/7] IB/mlx5: Helper for posting work-requests on the UMR QP
+Date: Mon,  1 Aug 2016 09:57:27 +0300
+Message-ID: <1470034653-9097-2-git-send-email-haggaie@mellanox.com>
+References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org
+Cc: linux-pci@vger.kernel.org, Stephen Bates <stephen.bates@microsemi.com>, Liran Liss <liranl@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Jerome Glisse <j.glisse@gmail.com>, Yishai Hadas <yishaih@mellanox.com>, Haggai Eran <haggaie@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
->>> How did you test it btw?
->>
->> I have a userspace target :).
+Add mlx5_ib_post_umr_sync(), a helper function that posts work-requests
+on the UMR QP, waits for their completion, and returns the result.
+Modify several functions to use the new helper.
 
-Is it the spdk one?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/mr.c | 98 ++++++++++++++---------------------------
+ 1 file changed, 32 insertions(+), 66 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 8cf2ce50511f..fb2bb25c6cf0 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -852,16 +852,41 @@ static inline void mlx5_ib_init_umr_context(struct mlx5_ib_umr_context *context)
+ 	init_completion(&context->done);
+ }
+ 
++static int mlx5_ib_post_umr_sync(struct mlx5_ib_dev *dev, struct ib_send_wr *wr)
++{
++	struct umr_common *umrc = &dev->umrc;
++	struct mlx5_ib_umr_context umr_context;
++	struct ib_send_wr *bad;
++	int err;
++
++	mlx5_ib_init_umr_context(&umr_context);
++	wr->wr_cqe = &umr_context.cqe;
++
++	down(&umrc->sem);
++	err = ib_post_send(umrc->qp, wr, &bad);
++	if (err) {
++		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
++		goto out;
++	} else {
++		wait_for_completion(&umr_context.done);
++		if (umr_context.status != IB_WC_SUCCESS) {
++			mlx5_ib_warn(dev, "umr failed\n");
++			err = -EFAULT;
++			goto out;
++		}
++	}
++out:
++	up(&umrc->sem);
++	return err;
++}
++
+ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 				  u64 virt_addr, u64 len, int npages,
+ 				  int page_shift, int order, int access_flags)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct device *ddev = dev->ib_dev.dma_device;
+-	struct umr_common *umrc = &dev->umrc;
+-	struct mlx5_ib_umr_context umr_context;
+ 	struct mlx5_umr_wr umrwr = {};
+-	struct ib_send_wr *bad;
+ 	struct mlx5_ib_mr *mr;
+ 	struct ib_sge sg;
+ 	int size;
+@@ -890,24 +915,12 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	if (err)
+ 		goto free_mr;
+ 
+-	mlx5_ib_init_umr_context(&umr_context);
+-
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_reg_wqe(pd, &umrwr.wr, &sg, dma, npages, mr->mmkey.key,
+ 			 page_shift, virt_addr, len, access_flags);
+ 
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+-	if (err) {
+-		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
++	err = mlx5_ib_post_umr_sync(dev, &umrwr.wr);
++	if (err)
+ 		goto unmap_dma;
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		if (umr_context.status != IB_WC_SUCCESS) {
+-			mlx5_ib_warn(dev, "reg umr failed\n");
+-			err = -EFAULT;
+-		}
+-	}
+ 
+ 	mr->mmkey.iova = virt_addr;
+ 	mr->mmkey.size = len;
+@@ -916,7 +929,6 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	mr->live = 1;
+ 
+ unmap_dma:
+-	up(&umrc->sem);
+ 	dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 
+ 	kfree(mr_pas);
+@@ -1193,36 +1205,10 @@ error:
+ 
+ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+ {
+-	struct umr_common *umrc = &dev->umrc;
+-	struct mlx5_ib_umr_context umr_context;
+ 	struct mlx5_umr_wr umrwr = {};
+-	struct ib_send_wr *bad;
+-	int err;
+-
+-	mlx5_ib_init_umr_context(&umr_context);
+ 
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	prep_umr_unreg_wqe(dev, &umrwr.wr, mr->mmkey.key);
+-
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+-	if (err) {
+-		up(&umrc->sem);
+-		mlx5_ib_dbg(dev, "err %d\n", err);
+-		goto error;
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		up(&umrc->sem);
+-	}
+-	if (umr_context.status != IB_WC_SUCCESS) {
+-		mlx5_ib_warn(dev, "unreg umr failed\n");
+-		err = -EFAULT;
+-		goto error;
+-	}
+-	return 0;
+-
+-error:
+-	return err;
++	return mlx5_ib_post_umr_sync(dev, &umrwr.wr);
+ }
+ 
+ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+@@ -1231,19 +1217,13 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct device *ddev = dev->ib_dev.dma_device;
+-	struct mlx5_ib_umr_context umr_context;
+-	struct ib_send_wr *bad;
+ 	struct mlx5_umr_wr umrwr = {};
+ 	struct ib_sge sg;
+-	struct umr_common *umrc = &dev->umrc;
+ 	dma_addr_t dma = 0;
+ 	__be64 *mr_pas = NULL;
+ 	int size;
+ 	int err;
+ 
+-	mlx5_ib_init_umr_context(&umr_context);
+-
+-	umrwr.wr.wr_cqe = &umr_context.cqe;
+ 	umrwr.wr.send_flags = MLX5_IB_SEND_UMR_FAIL_IF_FREE;
+ 
+ 	if (flags & IB_MR_REREG_TRANS) {
+@@ -1271,21 +1251,7 @@ static int rereg_umr(struct ib_pd *pd, struct mlx5_ib_mr *mr, u64 virt_addr,
+ 	}
+ 
+ 	/* post send request to UMR QP */
+-	down(&umrc->sem);
+-	err = ib_post_send(umrc->qp, &umrwr.wr, &bad);
+-
+-	if (err) {
+-		mlx5_ib_warn(dev, "post send failed, err %d\n", err);
+-	} else {
+-		wait_for_completion(&umr_context.done);
+-		if (umr_context.status != IB_WC_SUCCESS) {
+-			mlx5_ib_warn(dev, "reg umr failed (%u)\n",
+-				     umr_context.status);
+-			err = -EFAULT;
+-		}
+-	}
+-
+-	up(&umrc->sem);
++	err = mlx5_ib_post_umr_sync(dev, &umrwr.wr);
+ 	if (flags & IB_MR_REREG_TRANS) {
+ 		dma_unmap_single(ddev, dma, size, DMA_TO_DEVICE);
+ 		kfree(mr_pas);
+-- 
+1.7.11.2
