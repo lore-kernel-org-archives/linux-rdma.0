@@ -1,20 +1,38 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v4 2/5] IB/core, RDMA RW API: Do not exceed QP SGE send
-	limit
-Date: Mon, 1 Aug 2016 12:56:59 +0200
-Message-ID: <20160801105659.GA16088@lst.de>
-References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com> <c71ece34-36e2-86da-5032-2fc946ff0073@sandisk.com>
+Subject: Re: [PATCH 1/5] nvme-rdma: Fix device removal handling
+Date: Mon, 1 Aug 2016 13:00:15 +0200
+Message-ID: <20160801110015.GB16141@lst.de>
+References: <1469822242-3477-1-git-send-email-sagi@grimberg.me> <1469822242-3477-2-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <c71ece34-36e2-86da-5032-2fc946ff0073-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1469822242-3477-2-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks fine, thanks a lot Bart!
+On Fri, Jul 29, 2016 at 10:57:18PM +0300, Sagi Grimberg wrote:
+> Device removal sequence may have crashed because the
+> controller (and admin queue space) was freed before
+> we destroyed the admin queue resources. Thus we
+> want to destroy the admin queue and only then queue
+> controller deletion and wait for it to complete.
+> 
+> More specifically we:
+> 1. own the controller deletion (make sure we are not
+>    competing with another deletion).
+> 2. get rid of inflight reconnects if exists (which
+>    also destroy and create queues).
+> 3. destroy the queue.
+> 4. safely queue controller deletion (and wait for it
+>    to complete).
+> 
+> Reported-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+
+Looks fine,
 
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 --
