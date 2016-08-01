@@ -1,140 +1,160 @@
 From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [IPOIB] Excessive TX packet drops due to IPOIB_MAX_PATH_REC_QUEUE
-Date: Mon, 1 Aug 2016 11:01:08 +0300
-Message-ID: <CAAk-MO83mJTq=E_MC=izqq8fEmVujY=5egVmKfFjxAz4jO3hHg@mail.gmail.com>
-References: <5799E5E6.3060104@kyup.com>
+Subject: Re: State of ipoib cm mode
+Date: Mon, 1 Aug 2016 11:08:17 +0300
+Message-ID: <CAAk-MO9HP-uicX2TyzFVYDGFT5NnG4exQqrBrHzZ6TE5-QFLxg@mail.gmail.com>
+References: <57988FF1.9050405@kyup.com> <20160727115450.GA9717@redhat.com>
+ <5798A3A0.8070301@kyup.com> <CAH_0vi9btY8PaDXnZOoP98hW_ZKkb6q11Fs+bEr_1VgRFgZjFQ@mail.gmail.com>
+ <CAJFSNy7seqPM3rF_OaXQnTGgTBTNTAYjXCxkPHBs11Od__8P0g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5799E5E6.3060104-6AxghH7DbtA@public.gmane.org>
+In-Reply-To: <CAJFSNy7seqPM3rF_OaXQnTGgTBTNTAYjXCxkPHBs11Od__8P0g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: shlomop-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Nikolay Borisov <n.borisov-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
+Cc: Serge Ryabchun <serge.ryabchun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Nikolay,
 
-IPoIB is a special driver because it plays in 2 "courts", in one hand
-it is a network driver and in the other hand it is IB driver, this is
-the reason for what you are seeing. (be carefull more details are
-coming ..)
+There are few issues here, the tx_timeout is part of the error flow of
+the driver, it happened mostly because the HW is much faster than the
+SW/CPU, it is temporary occasion that should be freed after a short
+time (not including bugs ..)
 
-After ARP reply the kernel which threats ipoib driver as network
-driver (like ethernet, and doesn't aware of the IB aspect of the ipoib
-driver)
-the kernel thinks that now after it has the layer 2 address (from ARP)
-it can send the packets to the destination, it doesn't aware of the IB
-aspect which needs the AV (by Path Record) in order to get the right
-destination, ipoib tries to do best effort and while it asks the SM
-for the PathRecord it keeps theses packets (skb's) from the kernel in
-the neigh structure, the number of packets that are kept is 3, (3 is a
-good number, right after 2 .. and for almost all of the topologies we
-will not get more than 1 or 2 drops)
-
-Now, for your case, i think you have other problem, the connectivity
-with the SM is bad, or the destination is no longer exists.
-check that via the saquery tool (saquery PR <> <>)
+according your issue, please check with your HW vendor, i think that
+it misses a completion.
+that can lead to a livelock ..
 
 Thanks, Erez
 
-On Thu, Jul 28, 2016 at 2:00 PM, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org> wrote:
-> Hello,
->
-> While investigating excessive (> 50%) packet drops on an ipoib
-> interface as reported by ifconfig :
->
-> TX packets:16565 errors:1 dropped:9058 overruns:0 carrier:0
->
-> I discovered that this is happening due to the following check
-> in ipoib_start_xmit failing:
->
-> if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
->                spin_lock_irqsave(&priv->lock, flags);
->                __skb_queue_tail(&neigh->queue, skb);
->                spin_unlock_irqrestore(&priv->lock, flags);
-> } else {
->                ++dev->stats.tx_dropped;
->                dev_kfree_skb_any(skb);
-> }
->
-> With the following stacktrace:
->
-> [1629744.927799]  [<ffffffffa048e6a1>] ipoib_start_xmit+0x651/0x6c0 [ib_ipoib]
-> [1629744.927804]  [<ffffffff8154ecf6>] dev_hard_start_xmit+0x266/0x410
-> [1629744.927807]  [<ffffffff81571b1b>] sch_direct_xmit+0xdb/0x210
-> [1629744.927808]  [<ffffffff8154f22a>] __dev_queue_xmit+0x24a/0x580
-> [1629744.927810]  [<ffffffff8154f570>] dev_queue_xmit+0x10/0x20
-> [1629744.927813]  [<ffffffff81557cf8>] neigh_resolve_output+0x118/0x1c0
-> [1629744.927828]  [<ffffffffa0003c7e>] ip6_finish_output2+0x18e/0x490 [ipv6]
-> [1629744.927831]  [<ffffffffa03b7374>] ? ipv6_confirm+0xc4/0x130 [nf_conntrack_ipv6]
-> [1629744.927837]  [<ffffffffa00052a6>] ip6_finish_output+0xa6/0x100 [ipv6]
-> [1629744.927843]  [<ffffffffa0005344>] ip6_output+0x44/0xe0 [ipv6]
-> [1629744.927850]  [<ffffffffa0005200>] ? ip6_fragment+0x9b0/0x9b0 [ipv6]
-> [1629744.927858]  [<ffffffffa000447c>] ip6_forward+0x4fc/0x8d0 [ipv6]
-> [1629744.927867]  [<ffffffffa00142ad>] ? ip6_route_input+0xfd/0x130 [ipv6]
-> [1629744.927872]  [<ffffffffa0001b70>] ? dst_output+0x20/0x20 [ipv6]
-> [1629744.927877]  [<ffffffffa0005be7>] ip6_rcv_finish+0x57/0xa0 [ipv6]
-> [1629744.927882]  [<ffffffffa0006374>] ipv6_rcv+0x314/0x4e0 [ipv6]
-> [1629744.927887]  [<ffffffffa0005b90>] ? ip6_make_skb+0x1b0/0x1b0 [ipv6]
-> [1629744.927890]  [<ffffffff8154c66b>] __netif_receive_skb_core+0x2cb/0xa30
-> [1629744.927893]  [<ffffffff8108310c>] ? __enqueue_entity+0x6c/0x70
-> [1629744.927894]  [<ffffffff8154cde6>] __netif_receive_skb+0x16/0x70
-> [1629744.927896]  [<ffffffff8154dc63>] process_backlog+0xb3/0x160
-> [1629744.927898]  [<ffffffff8154d36c>] net_rx_action+0x1ec/0x330
-> [1629744.927900]  [<ffffffff810821e1>] ? sched_clock_cpu+0xa1/0xb0
-> [1629744.927902]  [<ffffffff81057337>] __do_softirq+0x147/0x310
-> [1629744.927907]  [<ffffffffa0003c80>] ? ip6_finish_output2+0x190/0x490 [ipv6]
-> [1629744.927909]  [<ffffffff8161618c>] do_softirq_own_stack+0x1c/0x30
-> [1629744.927910]  <EOI>  [<ffffffff810567bb>] do_softirq.part.17+0x3b/0x40
-> [1629744.927913]  [<ffffffff81056876>] __local_bh_enable_ip+0xb6/0xc0
-> [1629744.927918]  [<ffffffffa0003c91>] ip6_finish_output2+0x1a1/0x490 [ipv6]
-> [1629744.927920]  [<ffffffffa03b7374>] ? ipv6_confirm+0xc4/0x130 [nf_conntrack_ipv6]
-> [1629744.927925]  [<ffffffffa00052a6>] ip6_finish_output+0xa6/0x100 [ipv6]
-> [1629744.927930]  [<ffffffffa0005344>] ip6_output+0x44/0xe0 [ipv6]
-> [1629744.927935]  [<ffffffffa0005200>] ? ip6_fragment+0x9b0/0x9b0 [ipv6]
-> [1629744.927939]  [<ffffffffa0002e1f>] ip6_xmit+0x23f/0x4f0 [ipv6]
-> [1629744.927944]  [<ffffffffa0001b50>] ? ac6_proc_exit+0x20/0x20 [ipv6]
-> [1629744.927952]  [<ffffffffa0033ce5>] inet6_csk_xmit+0x85/0xd0 [ipv6]
-> [1629744.927955]  [<ffffffff815aa56d>] tcp_transmit_skb+0x53d/0x910
-> [1629744.927957]  [<ffffffff815aab13>] tcp_write_xmit+0x1d3/0xe90
-> [1629744.927959]  [<ffffffff815aba31>] __tcp_push_pending_frames+0x31/0xa0
-> [1629744.927961]  [<ffffffff8159a19f>] tcp_push+0xef/0x120
-> [1629744.927963]  [<ffffffff8159e219>] tcp_sendmsg+0x6c9/0xac0
-> [1629744.927965]  [<ffffffff815c84d3>] inet_sendmsg+0x73/0xb0
-> [1629744.927967]  [<ffffffff81531728>] sock_sendmsg+0x38/0x50
-> [1629744.927969]  [<ffffffff815317bb>] sock_write_iter+0x7b/0xd0
-> [1629744.927972]  [<ffffffff811988ba>] __vfs_write+0xaa/0xe0
-> [1629744.927974]  [<ffffffff81198f29>] vfs_write+0xa9/0x190
-> [1629744.927975]  [<ffffffff81198e63>] ? vfs_read+0x113/0x130
-> [1629744.927977]  [<ffffffff81199c16>] SyS_write+0x46/0xa0
-> [1629744.927979]  [<ffffffff8161465b>] entry_SYSCALL_64_fastpath+0x16/0x6e
-> [1629744.927988] ---[ end trace 08584e4165caf3df ]---
->
->
-> IPOIB_MAX_PATH_REC_QUEUE is set to 3. If I'm reading the code correctly
-> if there are more than 3 outstanding packets for a neighbour this would
-> cause the code to drop the packets. Is this correct? Also I tried bumping
 
-yes.
-
-> IPOIB_MAX_PATH_REC_QUEUE to 150 to see what will happen and this instead
-
-it is a bad idea to move it to 150 ...
-
-> moved the dropping to occur in ipoib_neigh_dtor:
+On Wed, Jul 27, 2016 at 7:35 PM, Nikolay Borisov
+<n.borisov-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org> wrote:
+> On Wed, Jul 27, 2016 at 7:05 PM, Serge Ryabchun
+> <serge.ryabchun-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> Hi Nikolay,
+>>
+>> very similar behavior we have experienced an half a year ago with CX2 and
+>> CX3 and QDR Mellanox switches.
+>> It was fixed by this patch -
+>> http://www.spinics.net/lists/linux-rdma/msg23811.html. Not fixed really but
+>> at least it can move multicast QP from SQE to RTS state and restore
+>> connectivity.
 >
-> [1629558.306405]  [<ffffffffa04788ec>] ipoib_neigh_dtor+0x9c/0x130 [ib_ipoib]
-> [1629558.306407]  [<ffffffffa0478999>] ipoib_neigh_reclaim+0x19/0x20 [ib_ipoib]
-> [1629558.306411]  [<ffffffff810ad0fb>] rcu_process_callbacks+0x21b/0x620
-> [1629558.306413]  [<ffffffff81057337>] __do_softirq+0x147/0x310
+> Thanks for chiming in. According to git describe this patch made it to
+> 4.1 and the kernel I'm using is 4.4. So in my case this behavior is
+> happening despite this patch being applied. One other element is that
+> I'm seeing this with qlogic cards (ib_qib driver). Unfortunately I'm
+> not able to pinpoint whether this is a problem of the card driver or
+> with the middleware ib_ipoib driver.
 >
-> Since you've taken part in the development of the said code I'd like
-> to ask what's the purpose of the IPOIB_MAX_PATH_REC_QUEUE limit and why
-> do we drop packets if there are more than this many outstanding packets,
-> since having 50% packet drops is a very large amount of drops?
->
-> Regards,
-> Nikolay
+>>
+>> It really was fixed replacing PSUs in the chassis by the more powerful. It
+>> appeared that Mellanox ASIC is very sensitive to the power. Under heavy
+>> loading those PSUs became slightly unstable and as a result built-in switch
+>> on the same PSUs produced damaged frames.
+>>
+>> --
+>> Regards,
+>> Serge
+>>
+>>
+>> On Wed, Jul 27, 2016 at 2:05 PM, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org> wrote:
+>>>
+>>> [Resending with the linux-rdma list cc'ed + some additional information]
+>>>
+>>> On 07/27/2016 02:54 PM, Michael S. Tsirkin wrote:
+>>> > On Wed, Jul 27, 2016 at 01:41:53PM +0300, Nikolay Borisov wrote:
+>>> >> Hello,
+>>> >>
+>>> >> I've been running some production servers with ipoib cm but have
+>>> >> observed various hangs, e.g. :
+>>> >>
+>>> >> http://www.spinics.net/lists/linux-rdma/msg34577.html
+>>> >> http://www.spinics.net/lists/linux-rdma/msg37011.html
+>>> >> http://thread.gmane.org/gmane.linux.drivers.rdma/38899
+>>> >>
+>>> >> Other people have also confirmed that there is a latent bug, which is
+>>> >> very hard to debug (e.g. here:
+>>> >> http://www.spinics.net/lists/linux-rdma/msg37022.html). Essentially
+>>> >>
+>>> >> As the person who originally wrote the code and considering that git
+>>> >> blame indicates most of it hasn't been touched does that mean it's
+>>> >> considered stable? Also do you happen to have a hunch as to what might
+>>> >> be causing such stalls?
+>>> >>
+>>> >> Regards,
+>>> >> Nikolay
+>>> >
+>>> > Please repost copying a mailing list.
+>>> > I have a general policy against responding to off-list mail.
+>>>
+>>> Ok.
+>>>
+>>> In addition to that, here is the state of a node which has been hung for
+>>> about 2 days now - no infiniband multicast connectivity, this is similar
+>>> to the issue observed in the first mailing list entry I have referenced,
+>>> but this time I managed to obtain the state of the ipoib_cm_rx and
+>>> ib_cm_id structs (as well as any other structs which are referenced from
+>>> those):
+>>>
+>>>
+>>> struct ipoib_cm_rx {
+>>>   id = 0xffff8802128fa600,
+>>>   qp = 0xffff880100e94000,
+>>>   rx_ring = 0x0,
+>>>   list = {
+>>>     next = 0xffff88055f02bdd8,
+>>>     prev = 0xffff88055f02bdd8
+>>>   },
+>>>   dev = 0xffff880661f68000,
+>>>   jiffies = 4367003834,
+>>>   state = IPOIB_CM_RX_FLUSH,
+>>>   recv_count = 0
+>>> }
+>>>
+>>> struct ib_cm_id {
+>>>   cm_handler = 0xffffffffa01e7b60 <ipoib_cm_rx_handler>,
+>>>   context = 0xffff880660f11780,
+>>>   device = 0xffff8800378e4000,
+>>>   service_id = 216172782113783824,
+>>>   service_mask = 18446744073709551615,
+>>>   state = IB_CM_IDLE,
+>>>   lap_state = IB_CM_LAP_UNINIT,
+>>>   local_id = 1741978561,
+>>>   remote_id = 3782023797,
+>>>   remote_cm_qpn = 1
+>>> }
+>>>
+>>> And the backtrace is like that:
+>>>
+>>> PID: 28224  TASK: ffff88064bdb5280  CPU: 5   COMMAND: "kworker/u24:2"
+>>>  #0 [ffff88055f02bc28] __schedule at ffffffff8160fc6a
+>>>  #1 [ffff88055f02bc70] schedule at ffffffff816103dc
+>>>  #2 [ffff88055f02bc88] schedule_timeout at ffffffff81613642
+>>>  #3 [ffff88055f02bd08] wait_for_completion at ffffffff816118df
+>>>  #4 [ffff88055f02bd68] cm_destroy_id at ffffffffa01d3759 [ib_cm]
+>>>  #5 [ffff88055f02bdc0] ib_destroy_cm_id at ffffffffa01d3a10 [ib_cm]
+>>>  #6 [ffff88055f02bdd0] ipoib_cm_free_rx_reap_list at ffffffffa01e7675
+>>> [ib_ipoib]
+>>>  #7 [ffff88055f02be18] ipoib_cm_rx_reap at ffffffffa01e7705 [ib_ipoib]
+>>>  #8 [ffff88055f02be28] process_one_work at ffffffff8106bdf9
+>>>  #9 [ffff88055f02be68] worker_thread at ffffffff8106c4a9
+>>> #10 [ffff88055f02bed0] kthread at ffffffff8107161f
+>>> #11 [ffff88055f02bf50] ret_from_fork at ffffffff816149ff
+>>>
+>>> ffffffffa01d3759 is wait_for_completion(&cm_id_priv->comp);
+>>>
+>>> Can you advise what other information might be helpful to debug this ?
+>>>
+>>> Regards,
+>>> Nikolay
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
