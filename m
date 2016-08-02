@@ -1,79 +1,63 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] infiniband: shut up a maybe-uninitialized warning
-Date: Tue, 02 Aug 2016 13:45:25 -0400
-Message-ID: <1470159925.18081.21.camel@redhat.com>
-References: <20160704150659.2883024-1-arnd@arndb.de>
+Subject: Re: [PATCH for-next 1/2] IB/uverbs: Fix race between uverbs_close
+ and remove_one
+Date: Tue, 02 Aug 2016 14:31:46 -0400
+Message-ID: <1470162706.18081.27.camel@redhat.com>
+References: <1467548899-21923-1-git-send-email-leon@kernel.org>
+	 <1467548899-21923-2-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-QOTpuwHXYEnsTlcEyl7n"
+	protocol="application/pgp-signature"; boundary="=-sZlo6iBgM+7Z/Nkxy2fB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160704150659.2883024-1-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <1467548899-21923-2-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-QOTpuwHXYEnsTlcEyl7n
+--=-sZlo6iBgM+7Z/Nkxy2fB
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2016-07-04 at 17:06 +0200, Arnd Bergmann wrote:
-> The powerpc64 default configuration leads to warnings for the
-> infiniband
-> core code:
+On Sun, 2016-07-03 at 15:28 +0300, Leon Romanovsky wrote:
+> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 >=20
-> infiniband/core/cma.c: In function 'cma_get_net_dev':
-> infiniband/core/cma.c:1242:12: warning:
-> 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this
-> function [-Wmaybe-uninitialized]
+> Fixes an oops that might happen if uverbs_close races with
+> remove_one.
 >=20
-> The code looks correct to me, and I don't see the warnings on the
-> other architectures, so this is a dumb change to add an unneeded
-> initialization to the variables in order to shut up the warning.
+> Both contexts may run ib_uverbs_cleanup_ucontext, it depends
+> on the flow.
 >=20
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Link: http://arm-soc.lixom.net/buildlogs/mainline/v4.7-
-> rc6/buildall.powerpc.ppc64_defconfig.log.passed
+> Currently, there is no protection for a case that remove_one
+> didn't make the cleanup it runs to its end, the underlying
+> ib_device was freed then uverbs_close will call
+> ib_uverbs_cleanup_ucontext and OOPs.
+>=20
+> Above might happen if uverbs_close deleted the file from the list
+> then remove_one didn't find it and runs to its end.
+>=20
+> Fixes to protect against that case by a new cleanup lock so that
+> ib_uverbs_cleanup_ucontext will be called always before that
+> remove_one is ended.
+>=20
+> Fixes: 35d4a0b63dc0 ("IB/uverbs: Fix race between ib_uverbs_open and
+> remove_one")
+> Reported-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-I thought about taking this, but I also looked over the code and it
-looks correct to me. =C2=A0This is a semi-hot path in the connection bring
-up code, so I'm loathe to put in sizeof(struct sockaddr_storage) * 2 of
-needless memory writes. =C2=A0So, I dropped this patch. =C2=A0Hopefully, pp=
-c64
-compiler will straighten its warnings out soon.
-
-> ---
-> =C2=A0drivers/infiniband/core/cma.c | 2 +-
-> =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/core/cma.c
-> b/drivers/infiniband/core/cma.c
-> index a3c9930f1f93..924ac237310b 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -1309,7 +1309,7 @@ static bool validate_net_dev(struct net_device
-> *net_dev,
-> =C2=A0static struct net_device *cma_get_net_dev(struct ib_cm_event
-> *ib_event,
-> =C2=A0					=C2=A0=C2=A0const struct cma_req_info
-> *req)
-> =C2=A0{
-> -	struct sockaddr_storage listen_addr_storage,
-> src_addr_storage;
-> +	struct sockaddr_storage listen_addr_storage =3D {},
-> src_addr_storage =3D {};
-> =C2=A0	struct sockaddr *listen_addr =3D (struct sockaddr
-> *)&listen_addr_storage,
-> =C2=A0			*src_addr =3D (struct sockaddr
-> *)&src_addr_storage;
-> =C2=A0	struct net_device *net_dev;
+The only reason I hadn't taken this patch before is because Jason said
+it was totally untested and someone (Devesh in this case) needed to
+test it to make sure it resolved their problem. =C2=A0I don't see a test-by
+line here, so has this happened?
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-QOTpuwHXYEnsTlcEyl7n
+--=-sZlo6iBgM+7Z/Nkxy2fB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -81,22 +65,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoNw1AAoJELgmozMOVy/dQUkP/3N/lZmJuID5pPWURnHJUdzI
-el+KsaOHLEtkonGlwjHXxsLZZW99wCQXL/Qf/PuXpXEc4HqZNhp0xe4TZEuWnjik
-sU6reRL50qAflLtLWs29GTm4wo3y/gIaLnVEeVg4SpQv6AXOEgZLTlx7+H0J6M9i
-935melMuia+jK8Dl+ZQ0lvtqB7nxVjmbwa3d9AGrkJ3i++M9IFKET8qBLuPE9ZsF
-jOCKZr2n1ddwUI+LGrIt/AjaPoUJXBclotAt3ljl7sK6A/L2j0z/877n6yNu4Jpp
-rwxxxV/mJaAxbYozuxGbKly4Ts90ID4byajdNLFseyOV4ZXIYoCGttBj4PbJxG3o
-vCzkqeCDL+c3jQoVnGGBwk37/3OHdVftU3P6puBds2ARpEFKBr2dp7pBvN6Z9kXX
-FWn7tCvmZQGx+pF3Vjey4FkU7KRFcBTpe5sa5k9qyZIdaFSr0hnZBbpWHTT9uucI
-Dj7/yTbO637N42rnOMabOUXGP8cJEKHMjg437De/fyViCdux8B0i9vTYBzG2+C4X
-HxeJ/Nadw+sTkhE7MTNIOJC/1ZpPFc4yf3NRQVEt/QeWjFwTOCvN/bfQYj6HmCJq
-d19dVOU/mtjXRdi6ig9u7cXnaMGaXx+js88DJFcxaXjUYiwL1slyAJ1TGgcyk+Re
-aBpWuSBMo+UXr5N13q4W
-=qmuI
+iQIcBAABCAAGBQJXoOcSAAoJELgmozMOVy/d0ZYP/Rryg/UXNUc9aNahktMb6F8M
+tREsimOZWVkmi4tw4xgi9e3pb5uE0ZR0RwoikxOJmlqCIje+gbkmM8fMC2QQ10Ip
+9JQN7RKvfgFErc8yczXWRRDxbFiMBbLcGkBATBz3j1lM8YV+J16GHmerXjCZ0fjL
+eWAPLhzR904ZbuZqkLQf25Zya/l5WdVsZQk9pmkz46woX/q75wBlp32ZoZ9UjVZm
+Q3g8fHmucj9bwhPiPhSXCdka5hWSfAbF2Wuo11O+VWvtdy5rH9FgNKqNl81oeETU
+JYN20y0NFsP0j3VnmLyAT1iKszXq80h/H4jWFsRfMHavDH/FQHZjgs/SXAV+vAd4
+Ln+7D1VcK5rjMcWyuPknr6M9yJ7SGwCT/Qux5NhOdcywXV24oBCEzd3Qfi/sefGA
+IEdkMd8FoKNboPDFaX2ryKPda1jjcufi2QS7b4OGOcMmxC5rOn3+7M2hcnCcLiof
+c9P85Uq60wiTJoBGcMGIqO+AzkHLpSvg8AHMaqIOfU9VeTSXji7SYUFa0IYHYBwE
+VeQBVYBN1YW1XB3nvG2Znec4h4eBfypUcsop7RCDiBq8kLlmfXJCvOcLOSWnmluO
+fcpyvQMksKkP6GbC0ABSQQuAm+XMgyIXN4sCWgcE++rGqudKBboubS2Sh0KygGv1
+FnRRk5zmy2+GQNr2/Upe
+=vmba
 -----END PGP SIGNATURE-----
 
---=-QOTpuwHXYEnsTlcEyl7n--
+--=-sZlo6iBgM+7Z/Nkxy2fB--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
