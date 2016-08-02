@@ -1,50 +1,118 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [RFC 6/7] NVMe: Use genalloc to allocate CMB regions
-Date: Tue, 2 Aug 2016 07:15:26 +0000
-Message-ID: <1470122126.20129.11.camel@mellanox.com>
-References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
-	 <1470034653-9097-7-git-send-email-haggaie@mellanox.com>
-	 <20160801155348.GB23224@infradead.org>
-	 <20160801162057.GA11476@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160801162057.GA11476@localhost.localdomain>
-Content-Language: en-US
-Content-ID: <3CB8718189124A4FBECD4502B8994FFB@eurprd05.prod.outlook.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "hch@infradead.org" <hch@infradead.org>, "jonathan.derrick@intel.com" <jonathan.derrick@intel.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Kovalyov Artemy <artemyko@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, "stephen.bates@microsemi.com" <stephen.bates@microsemi.com>, "j.glisse@gmail.com" <j.glisse@gmail.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Liran Liss <liranl@mellanox.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+From: Baole Ni <baolex.ni@intel.com>
+Subject: [PATCH 0724/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 19:40:08 +0800
+Message-ID: <20160802114008.30326-1-baolex.ni@intel.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: yishaih@mellanox.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, computersforpeace@gmail.com, m.chehab@samsung.com, pawel@osciak.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, fw@strlen.de, davem@davemloft.net, Baohua.Song@csr.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24g15EnLCAyMDE2LTA4LTAxIGF0IDEwOjIwIC0wNjAwLCBKb24gRGVycmljayB3cm90ZToNCj4g
-T24gTW9uLCBBdWcgMDEsIDIwMTYgYXQgMDg6NTM6NDlBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
-aWcgd3JvdGU6DQo+ID4gDQo+ID4gT24gTW9uLCBBdWcgMDEsIDIwMTYgYXQgMDk6NTc6MzJBTSAr
-MDMwMCwgSGFnZ2FpIEVyYW4gd3JvdGU6DQo+ID4gPiANCj4gPiA+IFJlZ2lzdGVyIHRoZSBDTUIg
-aW4gYSBnZW5fcG9vbCBkZWRpY2F0ZWQgdG8gbWFuYWdlIENNQiByZWdpb25zLg0KPiA+ID4gVXNl
-IHRoZQ0KPiA+ID4gcG9vbCB0byBhbGxvY2F0ZSB0aGUgU1FzIHRvIG1ha2Ugc3VyZSB0aGV5IGFy
-ZSByZWdpc3RlcmVkLg0KPiA+IEFuZCB3aHkgd291bGQgdGhlIE5WTWUgZHJpdmVyIGNhcmUgaWYg
-InRoZXkgYXJlIHJlZ2lzdGVyZWQiPw0KPiA+IA0KPiA+IE9uY2Ugd2Ugc3RhcnQgYWxsb3dpbmcg
-ZGl2ZXJzZSBDTUIgdXNlcyAod2hhdCBoYXBwZW5lZCB0byBKb24ncw0KPiA+IHBhdGNoZXMNCj4g
-PiBidHc/KSBnZW5hbGxvYyBtaWdodCBiZSBhIGdvb2QgYmFja2VuZCBhbGxvY2F0b3IsIGJ1dCB3
-aXRob3V0IHRoYXQNCj4gPiBpdCdzIGVudGlyZWx5IHBvaW50bGVzcy7CoMKgQWxzbyBwbGVhc2Ug
-ZG9uJ3QgaW50cm9kdWNlIHVzZWxlc3MNCj4gPiBoZWFkZXINCj4gPiBmaWxlcy4NCj4gTXkgY29u
-Y2VybiBpcyB1c2luZyBDTUIgYXMgYSBnZW5lcmljIG1lbW9yeSBzcGFjZSBjb3VsZCBsZWFkIHRv
-DQo+IGludmFsaWQgdXNlcyBhbmQgdW50ZXN0ZWQgcGF0aHMgaW4gYnJva2VuIGZpcm13YXJlIChs
-ZWFkaW5nIHRvDQo+IGJyaWNrZWQgZHJpdmVzLi4uKS4gVGhlIHNwZWMgZGVmaW5lcyB3aGF0IGl0
-J3MgYWxsb3dlZCB0byBiZSB1c2VkDQo+IGZvciwgYnV0IGRvZXNuJ3QgcmVhbGx5IGxlYXZlIGl0
-IG9wZW4gZm9yIGdlbmVyYWwgcHVycG9zZSB1c2FnZQ0KPiBvdXRzaWRlIG9mIHRoYXQuIEJlY2F1
-c2Ugb2YgdGhhdCBJIHRoaW5rIGl0IG5lZWRzIG1vcmUgaGFuZC1ob2xkaW5nDQo+IGJ5IHRoZSBr
-ZXJuZWwgdG8gcHJldmVudCBpbnZhbGlkIHVzYWdlLg0KSSB1bmRlcnN0YW5kLiBEaWQgeW91IGhh
-cHBlbiB0byB0aGluayBvZiBob3cgdGhlIGtlcm5lbCB3b3VsZCBleHBvc2UNCml0Pw0KDQo+IFdo
-YXQgSSB3b3VsZCBsaWtlIHRvIHNlZSBpcyBhIHNldCBvZiBrbm9icyBjb250cm9sbGluZyB0aGUg
-J2NodW5rcycNCj4gb2YgbWVtb3J5J3MgdXNhZ2VzIChjb250cm9sbGVkIHRocm91Z2ggc3lzZnMv
-Y29uZmlnZnM/KSBhbmQgdGhlDQo+IGtlcm5lbCB0YWtlcyBjYXJlIG9mIGFsbG9jYXRpb24uIE15
-IHNldCB3YXMgZ29pbmcgdG8gZXhwb3NlIGENCj4gcmVzb3VyY2UgZmlsZSBmb3IgV0RTL1JEUyBi
-dXQgZXZlcnl0aGluZyBlbHNlIHdhcyB1bmhhbmRsZWQgZXhjZXB0DQo+IGZvciBpdHMgY3VycmVu
-dCBzcWVzIHVzYWdlLiBJIHRoaW5rIHRoZSBnZW5hbGxvYyBjb3VsZCBmaXQgaW50byB0aGlzDQo+
-IHNjaGVtZSBxdWl0ZSB3ZWxsLg0KV2hhdCBkbyB5b3UgbWVhbiBieSBhIHJlc291cmNlIGZpbGU/
-IEFyZSB5b3UgcmVmZXJyaW5nIHRvIHRoZQ0Kc3lzZnMvY29uZmlnZnMga25vYiBvciB0byBhIGZp
-bGUgdGhhdCBleHBvc2VzIHRoZSByZXNvdXJjZSB0byB1c2VyLQ0Kc3BhY2U/DQoNClRoYW5rcywN
-CkhhZ2dhaQ==
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
+
+Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+Signed-off-by: Baole Ni <baolex.ni@intel.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 12c77a7..633b300 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -61,7 +61,7 @@ struct workqueue_struct *mlx4_wq;
+ #ifdef CONFIG_MLX4_DEBUG
+ 
+ int mlx4_debug_level = 0;
+-module_param_named(debug_level, mlx4_debug_level, int, 0644);
++module_param_named(debug_level, mlx4_debug_level, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
+ 
+ #endif /* CONFIG_MLX4_DEBUG */
+@@ -69,7 +69,7 @@ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
+ #ifdef CONFIG_PCI_MSI
+ 
+ static int msi_x = 1;
+-module_param(msi_x, int, 0444);
++module_param(msi_x, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
+ 
+ #else /* CONFIG_PCI_MSI */
+@@ -80,19 +80,19 @@ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
+ 
+ static uint8_t num_vfs[3] = {0, 0, 0};
+ static int num_vfs_argc;
+-module_param_array(num_vfs, byte , &num_vfs_argc, 0444);
++module_param_array(num_vfs, byte , &num_vfs_argc, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_vfs, "enable #num_vfs functions if num_vfs > 0\n"
+ 			  "num_vfs=port1,port2,port1+2");
+ 
+ static uint8_t probe_vf[3] = {0, 0, 0};
+ static int probe_vfs_argc;
+-module_param_array(probe_vf, byte, &probe_vfs_argc, 0444);
++module_param_array(probe_vf, byte, &probe_vfs_argc, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(probe_vf, "number of vfs to probe by pf driver (num_vfs > 0)\n"
+ 			   "probe_vf=port1,port2,port1+2");
+ 
+ int mlx4_log_num_mgm_entry_size = MLX4_DEFAULT_MGM_LOG_ENTRY_SIZE;
+ module_param_named(log_num_mgm_entry_size,
+-			mlx4_log_num_mgm_entry_size, int, 0444);
++			mlx4_log_num_mgm_entry_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
+ 					 " of qp per mcg, for example:"
+ 					 " 10 gives 248.range: 7 <="
+@@ -101,12 +101,12 @@ MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
+ 					 " flow steering when available, set to -1");
+ 
+ static bool enable_64b_cqe_eqe = true;
+-module_param(enable_64b_cqe_eqe, bool, 0444);
++module_param(enable_64b_cqe_eqe, bool, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(enable_64b_cqe_eqe,
+ 		 "Enable 64 byte CQEs/EQEs when the FW supports this (default: True)");
+ 
+ static bool enable_4k_uar;
+-module_param(enable_4k_uar, bool, 0444);
++module_param(enable_4k_uar, bool, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(enable_4k_uar,
+ 		 "Enable using 4K UAR. Should not be enabled if have VFs which do not support 4K UARs (default: false)");
+ 
+@@ -141,11 +141,11 @@ static struct mlx4_profile low_mem_profile = {
+ };
+ 
+ static int log_num_mac = 7;
+-module_param_named(log_num_mac, log_num_mac, int, 0444);
++module_param_named(log_num_mac, log_num_mac, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(log_num_mac, "Log2 max number of MACs per ETH port (1-7)");
+ 
+ static int log_num_vlan;
+-module_param_named(log_num_vlan, log_num_vlan, int, 0444);
++module_param_named(log_num_vlan, log_num_vlan, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(log_num_vlan, "Log2 max number of VLANs per ETH port (0-7)");
+ /* Log2 max number of VLANs per ETH port (0-7) */
+ #define MLX4_LOG_NUM_VLANS 7
+@@ -153,16 +153,16 @@ MODULE_PARM_DESC(log_num_vlan, "Log2 max number of VLANs per ETH port (0-7)");
+ #define MLX4_MIN_LOG_NUM_MAC 1
+ 
+ static bool use_prio;
+-module_param_named(use_prio, use_prio, bool, 0444);
++module_param_named(use_prio, use_prio, bool, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(use_prio, "Enable steering by VLAN priority on ETH ports (deprecated)");
+ 
+ int log_mtts_per_seg = ilog2(MLX4_MTT_ENTRY_PER_SEG);
+-module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, 0444);
++module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-7)");
+ 
+ static int port_type_array[2] = {MLX4_PORT_TYPE_NONE, MLX4_PORT_TYPE_NONE};
+ static int arr_argc = 2;
+-module_param_array(port_type_array, int, &arr_argc, 0444);
++module_param_array(port_type_array, int, &arr_argc, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(port_type_array, "Array of port types: HW_DEFAULT (0) is default "
+ 				"1 for IB, 2 for Ethernet");
+ 
+-- 
+2.9.2
