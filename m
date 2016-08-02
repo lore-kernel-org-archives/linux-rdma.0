@@ -1,11 +1,11 @@
-From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 0256/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 18:53:52 +0800
-Message-ID: <20160802105352.30808-1-baolex.ni@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: swise@chelsio.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, airlied@linux.ie, kgene@kernel.org, k.kozlowski@samsung.com, dougthompson@xmission.com, bp@alien8.de
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, hch@infradead.org, matanb@mellanox.com, markb@mellanox.com, jgunthorpe@obsidianresearch.com, dean.luick@intel.com
+From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0273/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:55:33 +0800
+Message-ID: <20160802105533.31950-1-baolex.ni@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 I find that the developers often just specified the numeric value
@@ -14,33 +14,44 @@ As we know, these numeric value for access permission have had the corresponding
 and that using macro can improve the robustness and readability of the code,
 thus, I suggest replacing the numeric parameter with the macro.
 
-Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-Signed-off-by: Baole Ni <baolex.ni@intel.com>
+Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/mem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index 55d0651..73fccdc 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -39,7 +39,7 @@
- #include "iw_cxgb4.h"
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index e68b20cb..291334e 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -71,12 +71,12 @@ static DEFINE_SPINLOCK(srpt_dev_lock);	/* Protects srpt_dev_list. */
+ static LIST_HEAD(srpt_dev_list);	/* List of srpt_device structures. */
  
- int use_dsgl = 0;
--module_param(use_dsgl, int, 0644);
-+module_param(use_dsgl, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(use_dsgl, "Use DSGL for PBL/FastReg (default=0)");
+ static unsigned srp_max_req_size = DEFAULT_MAX_REQ_SIZE;
+-module_param(srp_max_req_size, int, 0444);
++module_param(srp_max_req_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(srp_max_req_size,
+ 		 "Maximum size of SRP request messages in bytes.");
  
- #define T4_ULPTX_MIN_IO 32
-@@ -48,7 +48,7 @@ MODULE_PARM_DESC(use_dsgl, "Use DSGL for PBL/FastReg (default=0)");
- #define C4IW_INLINE_THRESHOLD 128
+ static int srpt_srq_size = DEFAULT_SRPT_SRQ_SIZE;
+-module_param(srpt_srq_size, int, 0444);
++module_param(srpt_srq_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(srpt_srq_size,
+ 		 "Shared receive queue (SRQ) size.");
  
- static int inline_threshold = C4IW_INLINE_THRESHOLD;
--module_param(inline_threshold, int, 0644);
-+module_param(inline_threshold, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(inline_threshold, "inline vs dsgl threshold (default=128)");
- 
- static int mr_exceeds_hw_limits(struct c4iw_dev *dev, u64 length)
+@@ -85,7 +85,7 @@ static int srpt_get_u64_x(char *buffer, struct kernel_param *kp)
+ 	return sprintf(buffer, "0x%016llx", *(u64 *)kp->arg);
+ }
+ module_param_call(srpt_service_guid, NULL, srpt_get_u64_x, &srpt_service_guid,
+-		  0444);
++		  S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(srpt_service_guid,
+ 		 "Using this value for ioc_guid, id_ext, and cm_listen_id"
+ 		 " instead of using the node_guid of the first HCA.");
 -- 
 2.9.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
