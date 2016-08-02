@@ -1,52 +1,57 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv2 iw_cxgb4-4.8] RDMA/iw_cxgb4: Use kfree_skb instead of
- kfree
-Date: Tue, 02 Aug 2016 13:05:24 -0400
-Message-ID: <1470157524.18081.13.camel@redhat.com>
-References: <1467267273-25048-1-git-send-email-hariprasad@chelsio.com>
+Subject: Re: [PATCH] RDMA/cxgb3: Use AF_INET for sin_family field
+Date: Tue, 02 Aug 2016 13:06:08 -0400
+Message-ID: <1470157568.18081.14.camel@redhat.com>
+References: <20160704125744.GA16796@amitoj-Inspiron-3542>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-ScqvgepMNP7bbr3tcVdJ"
+	protocol="application/pgp-signature"; boundary="=-Ef6xByUp0zxShzPjy45/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1467267273-25048-1-git-send-email-hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160704125744.GA16796@amitoj-Inspiron-3542>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: julia.lawall-L2FTfq7BK8M@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-ScqvgepMNP7bbr3tcVdJ
+--=-Ef6xByUp0zxShzPjy45/
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2016-06-30 at 11:44 +0530, Hariprasad Shenai wrote:
-> The commit 0f8ab0b6e91b4d53 ("RDMA/iw_cxgb4: Low resource fixes for
-> Memory
-> registration") from Jun 10, 2016, leads to the following static
-> checker
-> warning:
+On Mon, 2016-07-04 at 18:27 +0530, Amitoj Kaur Chawla wrote:
+> Elsewhere the sin_family field holds a value with a name of the form
+> AF_..., so it seems reasonable to do so here as well.=C2=A0=C2=A0Also the
+> values
+> of PF_INET and AF_INET are the same.
 >=20
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0drivers/infiniband/hw/cxg=
-b4/mem.c:612 c4iw_alloc_mw()
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0error: use kfree_skb() he=
-re instead of kfree(mhp->dereg_skb)
+> The Coccinelle semantic patch that makes this change is as follows:
 >=20
-> Also fixes skb leak in c4iw_dealloc_mw
+> // <smpl>
+> @@
+> struct sockaddr_in sip;
+> @@
 >=20
-> Fixes: 0f8ab0b6e91b4d53 ("RDMA/iw_cxgb4: Low resource fixes for
-> Memory registration")
+> (
+> sip.sin_family =3D=3D
+> - PF_INET
+> + AF_INET
+> >=20
+> >=20
+> sip.sin_family !=3D
+> - PF_INET
+> + AF_INET
+> >=20
+> >=20
+> sip.sin_family =3D
+> - PF_INET
+> + AF_INET
+> )
+> // </smpl>
 >=20
-> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Hariprasad Shenai <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Amitoj Kaur Chawla <amitoj1606-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->=20
-> V2: kfree_skb() checks if skb is freed, so no need to check again.
-> =C2=A0=C2=A0=C2=A0=C2=A0Based on review comments by Leon Romanovsky <leon=
-@kernel.org>
->=20
-> =C2=A0drivers/infiniband/hw/cxgb4/mem.c | 26 +++++++++++++++-----------
-> =C2=A01 file changed, 15 insertions(+), 11 deletions(-)
+> =C2=A0drivers/infiniband/hw/cxgb3/iwch_cm.c | 4 ++--
+> =C2=A01 file changed, 2 insertions(+), 2 deletions(-)
 >=C2=A0
 
 Thanks, applied.
@@ -55,7 +60,7 @@ Thanks, applied.
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-ScqvgepMNP7bbr3tcVdJ
+--=-Ef6xByUp0zxShzPjy45/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -63,22 +68,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoNLUAAoJELgmozMOVy/dObkP/2nEj9vBQ1AejV5Iw2jCxkfX
-YBCnjtLZIV75+eORnDkqLFC6QXA4uXj3J8Bh7nym619y3MwEDQcEwIRXkDboZykX
-Ba2Ki98a5BM9kp3AcluidFtBtyCP272SJlEe6spFdcjn2VJZgklQVj3pXmVZPrAW
-HdOj4DgGsT8ANvm9xlHZZE0A7bdSzeM7yuP5xTkP0U/ck6hjBMIwTmLliBp1aays
-77D/kr+oFiROMLjhqcf6ID1V0wMDFGqv6OAZd/qQ4n/LFumekgqcI9YT7xmn1Y5t
-oLFJHNbYzfCh/JrdZs6BqutEkmLQMKEpQSo0gLK6345kFdibCY1t7z5uE4CK1RmG
-oPISUPz3VKfN9reovwDH2RRzezztRDXDkstIXybFoamvDUN0z0YT4N0Wjid7cEDG
-NvLpkdN3vMmJorNvVhrq+Xl/ec9dubuZsXI5wHROahyVjjsbDoo63NPXshJQPdcs
-IJGwYxOYEPQBT/OqkLwtquZol1NoYl6m7tKjqJU4qr//37+rCkH3tz5Muezcywef
-rMWQYoBEWfRIWJmwR9eCz4psI0PIaT/7sfL3+ZIQ/+EWZdMJKSkqmK1SG4uk6X6U
-RIdONE2Dki70Pa1sJ63tCujTEdOQ5g4zUpNZba5p33ObdqK3tUecHH1kGB1xbrnb
-/DN4rrxLyQhHtlv/1usY
-=pAGQ
+iQIcBAABCAAGBQJXoNMAAAoJELgmozMOVy/daYsQAIJBWlB66j9iBc1/5JGL1EYU
+sO3SprBERYZpdUoDrmneDkuM11MfmsdkKWWTE+buZIniZD78Xqv4kyBPlvnTXmiG
+M56Wwh9PfDBcZ/AyaqJjsuVmUvvHPIwtcJZDFmI0UtYheq/a4GLg4rX7okOmV7ze
+9iTfBaVYHk2XoaxNx9yC/tO2MXNOSKTBG+6oRDX2PYR9fMxtpa/pY7d86VQqMO3E
+oq3m0dgU18KjUblboR/Kl/wKDu4CtkUMf7GMxGioV4P2Ew/B6/CVEWs+ikYoEETg
+JIJ5Cv9S5CA/y5sHU1zsiwuyA2vZl8ZlK0kaoywqc3BjNGU2kw7WANSakb1vHa6r
+le80AwWGFhj3606elkTJpMlv6k3Nh73VGvr3S32qlSEjb9+PEF+4x23kU9TgyAwZ
+HSuSDQOGhff5IK2+lCbbnFLkd+W0SW8Oi7dEk3gBa1JkQ2nWYfZNrhZJ7r5FBelX
+dn42simDHT+PJIzzmu/iIqIQ7h3haGGJwycELXnD0UKbs6kGuG5gxtOrmuOig8yz
+a9E1PvaJow+nYitSsfDU0jkmHTFuZMB4lHxRUa/0Y/IDIOKuTvVw3VmKxALcE6cJ
+epX7vwS14Bgt8Qr9iSf5RF4E2bzMSILGDbut8XHc1xJMDzMRzNhlcp60gTO5Ap8y
+rbeyeZ0suKzG73se5Nee
+=rI4U
 -----END PGP SIGNATURE-----
 
---=-ScqvgepMNP7bbr3tcVdJ--
+--=-Ef6xByUp0zxShzPjy45/--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
