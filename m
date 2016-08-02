@@ -1,41 +1,46 @@
-From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 7/7] NVMe: CMB on DMA-BUF
-Date: Tue, 2 Aug 2016 07:10:14 +0000
-Message-ID: <1470121814.20129.8.camel@mellanox.com>
-References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
-	 <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
-	 <20160801155206.GA23224@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v2 0/5] Some fabrics fixes
+Date: Tue,  2 Aug 2016 10:53:34 +0300
+Message-ID: <1470124419-30405-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160801155206.GA23224-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <EBADE578C319D54C9954ABD8EA0AFCE5-wNKe6lTLrGecE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kovalyov Artemy <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "stephen.bates-dzo6w/eZyo2tG0bUXCXiUA@public.gmane.org" <stephen.bates-dzo6w/eZyo2tG0bUXCXiUA@public.gmane.org>, "j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <j.glisse-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24g15EnLCAyMDE2LTA4LTAxIGF0IDA4OjUyIC0wNzAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90
-ZToNCj4gT24gTW9uLCBBdWcgMDEsIDIwMTYgYXQgMDk6NTc6MzNBTSArMDMwMCwgSGFnZ2FpIEVy
-YW4gd3JvdGU6DQo+ID4gDQo+ID4gQWxsb2NhdGUgYSBDTUIgcmVnaW9uIHRvIHVzZXItc3BhY2Ug
-YXMgYSBETUEtQlVGIG9iamVjdC4NCj4gTkFDSy7CoMKgQWJzb2x1dGVseSBubyB3YXkgd2UncmUg
-Z29pbmcgdG8gZXhwb3J0IGEgbG93LWxldmVsIGRldmljZQ0KPiBzcGVjaWZpYyBmZWF0dXJlIHRv
-IHVzZXJzcGFjZSBsaWtlIHRoYXQuwqDCoElmIHlvdSB3YW50IHRvIERNQSB0bw0KPiB0aGUgQ01C
-IGRvIGl0IGZyb20gdGhlIGtlcm5lbCwgYW5kIGZvciB0aGF0IHdlJ2xsIG5lZWQgYSBwcm9wZXIN
-Cj4gYmxvY2sgZGV2aWNlIGxldmVsIEFQSS4NCg0KVGhlIHJlYXNvbiBJIHRob3VnaHQgdGhpcyBp
-ZGVhIG1pZ2h0IHdvcmsgaXMgYmVjYXVzZSBvZiB0aGUgcmVzcG9uc2VzDQpTdGVwaGVuIGdvdCBm
-b3IgaGlzIGF0dGVtcHQgdG8gdXNlIFpPTkVfREVWSUNFIGZvciB0aGluZ3MgbGlrZSB0aGUgQ01C
-Lg0KVGhlIHByb2JsZW0gd2l0aCB0aGF0IGlzIHRoYXQgdGhlIHdheSBSRE1BIHJlZ2lzdHJhdGlv
-biB3b3JrcyB3aXRoDQpnZXRfdXNlcl9wYWdlcyBtZWFucyB0aGF0IHRoZSBDUFUgYWxzbyBnZXRz
-IGFjY2VzcyB0byB0aGUgQ01CIGFuZA0Kc29tZXRpbWVzIHlvdSBkb24ndCB3YW50IHRoYXQuIERN
-QS1CVUYgY2FuIHNvbHZlIHRoYXQgbmljZWx5IGluIHRoYXQgaXQNCmRvZXNuJ3QgcmVxdWlyZSBt
-YXBwaW5nIGl0IHRvIHRoZSBDUFUgLSBhIGRyaXZlciBjYW4gYXR0YWNoIHRvIGl0DQpkaXJlY3Rs
-eS4NCg0KQW55d2F5LCBJIHVuZGVyc3RhbmQgZXhwb3NpbmcgdGhlIENNQiBkaXJlY3RseSBtaWdo
-dCBiZSBhIGxpdHRsZSB0b28NCmxvdyBsZXZlbC4gV2hhdCBkbyB5b3UgdGhpbmsgd291bGQgd29y
-ayBiZXR0ZXI/IFNvbWV0aGluZyBsaWtlDQpkaXJlY3RfYWNjZXNzIHRoYXQgcmV0dXJucyBidXMg
-YWRkcmVzc2VzIGluc3RlYWQgb2YgcGZucz8NCg0KVGhhbmtzLA0KSGFnZ2Fp
+A set of fixes to the nvme-rdma host driver. First two patches relate
+to bug reports from Steve Wise on dervice removal handling (and go
+together with Steve's iwcm patch set).
+
+Next two patches remove redundant calls to nvme_remove_namespaces
+which is called from nvme_uninit_ctrl.
+
+The last patch fixes the host behavior that it never shutdown the
+controller (wrong check on the controller state). Christoph,
+we can either go with this and change the behavior incrementally
+(currently we never shutdown the controller) or I can just remove
+the patch altogether.
+
+Changes from v1:
+- rearranged nvme ctrl remove to avoid code duplication
+- added some change log info to rdma and loop uninit and
+  shutdown reordering.
+- collected some review tags
+
+Sagi Grimberg (5):
+  nvme-rdma: Fix device removal handling
+  nvme-rdma: Remove duplicate call to nvme_remove_namespaces
+  nvme-rdma: Free the I/O tags when we delete the controller
+  nvme-loop: Remove duplicate call to nvme_remove_namespaces
+  nvme-rdma: Make sure to shutdown the controller if we can
+
+ drivers/nvme/host/rdma.c   | 72 +++++++++++++++++++++++++---------------------
+ drivers/nvme/target/loop.c |  4 +--
+ 2 files changed, 40 insertions(+), 36 deletions(-)
+
+-- 
+1.9.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
