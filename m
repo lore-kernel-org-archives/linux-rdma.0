@@ -1,49 +1,43 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] nvmet-rdma: Don't use the inline buffer in order to avoid
- allocation for small reads
-Date: Tue, 2 Aug 2016 16:38:58 +0300
-Message-ID: <157675f0-0576-1cc9-1f99-c0944185e3c5@grimberg.me>
-References: <1470040599-7294-1-git-send-email-sagi@grimberg.me>
- <20160802125042.GB13235@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160802125042.GB13235-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Baole Ni <baolex.ni@intel.com>
+Subject: [PATCH 1131/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 20:19:07 +0800
+Message-ID: <20160802121907.25519-1-baolex.ni@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: santosh.shilimkar@oracle.com, davem@davemloft.net, kadlec@blackhole.kfki.hu, kaber@trash.net, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, aryabinin@virtuozzo.com
 List-Id: linux-rdma@vger.kernel.org
 
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
 
->> Under extreme conditions this might cause data corruptions. By doing that
->> we we repost the buffer and then post this buffer for the device to send.
->> If we happen to use shared receive queues the device might write to the
->> buffer before it sends it (there is no ordering between send and recv
->> queues). Without SRQs we probably won't get that if the host doesn't
->> mis-behave and send more than we allowed it, but relying on that is not
->> really a good idea.
->
-> Pitty - it seems so wasteful not being able to use these buffers for
-> anything that isn't an inline write.
+Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+Signed-off-by: Baole Ni <baolex.ni@intel.com>
+---
+ net/rds/ib.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Totally agree, I'm open to smart ideas on this...
-
-> I fully agree on the SRQ case, but I think we should offer it for the non-SRP case.
-
-As I wrote, even in the non-srq case, if the host is sending a single
-write over the negotiated queue size, the data can land in the buffer
-that is currently being sent (its a rare race condition, but
-theoretically possible). The reason is that we repost the inline data
-buffer for receive before we post the send request. We used to have
-it the other way around (which eliminates the issue) but we then saw
-some latency bubbles due to the HW sending rnr-naks to the host in
-the lack of a receive buffer (in iWARP the problem was even worse
-because there is no flow-control).
-
-Do you think it's OK to risk data corruption if the host is
-misbehaving?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index b5342fd..07a783e 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -48,11 +48,11 @@ unsigned int rds_ib_mr_1m_pool_size = RDS_MR_1M_POOL_SIZE;
+ unsigned int rds_ib_mr_8k_pool_size = RDS_MR_8K_POOL_SIZE;
+ unsigned int rds_ib_retry_count = RDS_IB_DEFAULT_RETRY_COUNT;
+ 
+-module_param(rds_ib_mr_1m_pool_size, int, 0444);
++module_param(rds_ib_mr_1m_pool_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(rds_ib_mr_1m_pool_size, " Max number of 1M mr per HCA");
+-module_param(rds_ib_mr_8k_pool_size, int, 0444);
++module_param(rds_ib_mr_8k_pool_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(rds_ib_mr_8k_pool_size, " Max number of 8K mr per HCA");
+-module_param(rds_ib_retry_count, int, 0444);
++module_param(rds_ib_retry_count, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(rds_ib_retry_count, " Number of hw retries before reporting an error");
+ 
+ /*
+-- 
+2.9.2
