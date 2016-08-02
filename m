@@ -1,118 +1,93 @@
-From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 0724/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 19:40:08 +0800
-Message-ID: <20160802114008.30326-1-baolex.ni@intel.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: yishaih@mellanox.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, computersforpeace@gmail.com, m.chehab@samsung.com, pawel@osciak.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, k.kozlowski@samsung.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, fw@strlen.de, davem@davemloft.net, Baohua.Song@csr.com
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 0/5] Reduce RDMA RW API SGE limit
+Date: Tue, 02 Aug 2016 12:05:08 -0400
+Message-ID: <1470153908.18081.3.camel@redhat.com>
+References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-0gKy30deRpabn+kWOsC/"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <75fc8647-16a6-5a89-400f-f5f418a8d6eb-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I find that the developers often just specified the numeric value
-when calling a macro which is defined with a parameter for access permission.
-As we know, these numeric value for access permission have had the corresponding macro,
-and that using macro can improve the robustness and readability of the code,
-thus, I suggest replacing the numeric parameter with the macro.
 
-Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-Signed-off-by: Baole Ni <baolex.ni@intel.com>
----
- drivers/net/ethernet/mellanox/mlx4/main.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+--=-0gKy30deRpabn+kWOsC/
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 12c77a7..633b300 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -61,7 +61,7 @@ struct workqueue_struct *mlx4_wq;
- #ifdef CONFIG_MLX4_DEBUG
- 
- int mlx4_debug_level = 0;
--module_param_named(debug_level, mlx4_debug_level, int, 0644);
-+module_param_named(debug_level, mlx4_debug_level, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
- 
- #endif /* CONFIG_MLX4_DEBUG */
-@@ -69,7 +69,7 @@ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
- #ifdef CONFIG_PCI_MSI
- 
- static int msi_x = 1;
--module_param(msi_x, int, 0444);
-+module_param(msi_x, int, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
- 
- #else /* CONFIG_PCI_MSI */
-@@ -80,19 +80,19 @@ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
- 
- static uint8_t num_vfs[3] = {0, 0, 0};
- static int num_vfs_argc;
--module_param_array(num_vfs, byte , &num_vfs_argc, 0444);
-+module_param_array(num_vfs, byte , &num_vfs_argc, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(num_vfs, "enable #num_vfs functions if num_vfs > 0\n"
- 			  "num_vfs=port1,port2,port1+2");
- 
- static uint8_t probe_vf[3] = {0, 0, 0};
- static int probe_vfs_argc;
--module_param_array(probe_vf, byte, &probe_vfs_argc, 0444);
-+module_param_array(probe_vf, byte, &probe_vfs_argc, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(probe_vf, "number of vfs to probe by pf driver (num_vfs > 0)\n"
- 			   "probe_vf=port1,port2,port1+2");
- 
- int mlx4_log_num_mgm_entry_size = MLX4_DEFAULT_MGM_LOG_ENTRY_SIZE;
- module_param_named(log_num_mgm_entry_size,
--			mlx4_log_num_mgm_entry_size, int, 0444);
-+			mlx4_log_num_mgm_entry_size, int, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
- 					 " of qp per mcg, for example:"
- 					 " 10 gives 248.range: 7 <="
-@@ -101,12 +101,12 @@ MODULE_PARM_DESC(log_num_mgm_entry_size, "log mgm size, that defines the num"
- 					 " flow steering when available, set to -1");
- 
- static bool enable_64b_cqe_eqe = true;
--module_param(enable_64b_cqe_eqe, bool, 0444);
-+module_param(enable_64b_cqe_eqe, bool, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(enable_64b_cqe_eqe,
- 		 "Enable 64 byte CQEs/EQEs when the FW supports this (default: True)");
- 
- static bool enable_4k_uar;
--module_param(enable_4k_uar, bool, 0444);
-+module_param(enable_4k_uar, bool, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(enable_4k_uar,
- 		 "Enable using 4K UAR. Should not be enabled if have VFs which do not support 4K UARs (default: false)");
- 
-@@ -141,11 +141,11 @@ static struct mlx4_profile low_mem_profile = {
- };
- 
- static int log_num_mac = 7;
--module_param_named(log_num_mac, log_num_mac, int, 0444);
-+module_param_named(log_num_mac, log_num_mac, int, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(log_num_mac, "Log2 max number of MACs per ETH port (1-7)");
- 
- static int log_num_vlan;
--module_param_named(log_num_vlan, log_num_vlan, int, 0444);
-+module_param_named(log_num_vlan, log_num_vlan, int, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(log_num_vlan, "Log2 max number of VLANs per ETH port (0-7)");
- /* Log2 max number of VLANs per ETH port (0-7) */
- #define MLX4_LOG_NUM_VLANS 7
-@@ -153,16 +153,16 @@ MODULE_PARM_DESC(log_num_vlan, "Log2 max number of VLANs per ETH port (0-7)");
- #define MLX4_MIN_LOG_NUM_MAC 1
- 
- static bool use_prio;
--module_param_named(use_prio, use_prio, bool, 0444);
-+module_param_named(use_prio, use_prio, bool, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(use_prio, "Enable steering by VLAN priority on ETH ports (deprecated)");
- 
- int log_mtts_per_seg = ilog2(MLX4_MTT_ENTRY_PER_SEG);
--module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, 0444);
-+module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-7)");
- 
- static int port_type_array[2] = {MLX4_PORT_TYPE_NONE, MLX4_PORT_TYPE_NONE};
- static int arr_argc = 2;
--module_param_array(port_type_array, int, &arr_argc, 0444);
-+module_param_array(port_type_array, int, &arr_argc, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(port_type_array, "Array of port types: HW_DEFAULT (0) is default "
- 				"1 for IB, 2 for Ethernet");
- 
--- 
-2.9.2
+On Thu, 2016-07-21 at 13:02 -0700, Bart Van Assche wrote:
+> Hello Doug,
+>=20
+> The five patches in this series modify the RDMA RW API slightly. This
+> is=C2=A0
+> needed to avoid that the SRP and iSER target drivers submit RDMA=C2=A0
+> requests with an SGE list that exceeds the queue pair limits. The=C2=A0
+> ib_srpt changes in this series have been tested but the ib_isert
+> changes=C2=A0
+> not yet.
+>=20
+> The changes compared to v3 of this patch series are:
+> * Split the single QP SGE limit into separate READ and WRITE SGE
+> limits.
+> * Added a comment in ib_srpt.h that explains where the SGE limit
+> comes
+> =C2=A0=C2=A0=C2=A0from.
+>=20
+> Changes compared to v2:
+> * For RDMA READs, limit SGE back to dev->attrs.max_sge_rd for iWARP.
+>=20
+> Changes compared to v1:
+> * max_send_sge is now stored in struct ib_qp. This greatly simplifies
+> =C2=A0=C2=A0=C2=A0=C2=A0this patch series.
+> * An unneeded initialization that I had added to
+> rdma_rw_init_one_mr()
+> =C2=A0=C2=A0=C2=A0=C2=A0has been left out again.
+> * Corrected "Fixes" tag in the patch description where needed.
+>=20
+> The individual patches in this series are:
+>=20
+> 0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
+> 0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
+> 0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
+> 0004-IB-srpt-Simplify-srpt_queue_response.patch
+> 0005-IB-isert-Remove-an-unused-member-variable.patch
+>=C2=A0
+
+Thanks Bart, series applied.
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+--=-0gKy30deRpabn+kWOsC/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJXoMS0AAoJELgmozMOVy/dH7kQAL66BqduUUfmrOZ8DUoz4Vom
+0Q1bXVZPPQB8nJU/xIgBCN9XSZcIOUzJGrXC9ok7JDVxruFNuC+b1m0gtu6lb6SR
+gXLkxN0ksK7X38Qm4y072aFXMqzuWu35YzqD/63A/fMutuBwNXQwKpZwYmdokGpE
+xOMR69xpqFWmnEp51zf2zjK+Fi5cvGua9OC2Fm6PLnNxpwEQ4ni4kw+PyTTWCVS1
+4lHqxpCebTkz8D12TdPdFXyNuCFmHFqeAneQNNRXyqUJEmmmYTE1l1tN9qMBsU9K
+MWyz6IZ3GAkQQeRGaUJDiRTAHBNvnOv/tvoWP8TWBoFZpWA0qTYyWsPEsR/wMrNU
+kv1KRy6mfk9fh9WQN9I0D3T/ZXFAXUw37J3ThvWyU1VgMuckrTw8Ro5IqDUKi7gj
+C4xf4I3I7hRyU1j91oVn67xGIz0/iTjOPL34JBcU0mxGqcnPN4/IzaNiHCyrEqAK
+7yMl4Ou0cVm006iSNUcv2vXIrm8sd7tRLJZt8EEyiAhOznfwZItp37KUhGTlE3lM
+JA1kUewwR/N9rjpC1mR/8CQSDE6dwyf13+O8QW37+VsvEEzQPS5FRhWUlkkm9vet
+cALk0TQITrVSs4mp0sSojtbaAKwx4e+zdHcRtm/F1Z5pAqqIKiKhAJRhIunlnuXV
+ikLR3i4inLLOvIeJb2sy
+=+ECd
+-----END PGP SIGNATURE-----
+
+--=-0gKy30deRpabn+kWOsC/--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
