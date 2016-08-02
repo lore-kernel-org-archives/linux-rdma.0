@@ -1,60 +1,90 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] IB/uverbs: Fix race between uverbs_close and remove_one
-Date: Tue, 2 Aug 2016 21:50:14 +0300
-Message-ID: <CALq1K=LUb+bvx5+3JYLQw+OnhzP5MuqmuydMS8G7eS8Kvyb9Ow@mail.gmail.com>
-References: <1467548899-21923-1-git-send-email-leon@kernel.org>
- <1467548899-21923-2-git-send-email-leon@kernel.org> <1470162706.18081.27.camel@redhat.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH 0266/1285] Replace numeric parameter like 0444 with macro
+Date: Tue, 2 Aug 2016 21:52:47 +0300
+Message-ID: <20160802185247.GC27667@leon.nu>
+References: <20160802105446.31475-1-baolex.ni@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1470162706.18081.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nmemrqcdn5VTmUEE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160802105446.31475-1-baolex.ni@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baole Ni <baolex.ni@intel.com>
+Cc: faisal.latif@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, bp@alien8.de, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, hch@infradead.org, matanb@mellanox.com, markb@mellanox.com, jgunthorpe@obsidianresearch.com, dean.luick@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 2, 2016 at 9:31 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Sun, 2016-07-03 at 15:28 +0300, Leon Romanovsky wrote:
->> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->>
->> Fixes an oops that might happen if uverbs_close races with
->> remove_one.
->>
->> Both contexts may run ib_uverbs_cleanup_ucontext, it depends
->> on the flow.
->>
->> Currently, there is no protection for a case that remove_one
->> didn't make the cleanup it runs to its end, the underlying
->> ib_device was freed then uverbs_close will call
->> ib_uverbs_cleanup_ucontext and OOPs.
->>
->> Above might happen if uverbs_close deleted the file from the list
->> then remove_one didn't find it and runs to its end.
->>
->> Fixes to protect against that case by a new cleanup lock so that
->> ib_uverbs_cleanup_ucontext will be called always before that
->> remove_one is ended.
->>
->> Fixes: 35d4a0b63dc0 ("IB/uverbs: Fix race between ib_uverbs_open and
->> remove_one")
->> Reported-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->
-> The only reason I hadn't taken this patch before is because Jason said
-> it was totally untested and someone (Devesh in this case) needed to
-> test it to make sure it resolved their problem.  I don't see a test-by
-> line here, so has this happened?
 
-I can't say about Devesh, but we verified it as part of our verification phase.
-Do you need anything special except Yishai's SOB?
+--nmemrqcdn5VTmUEE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
+On Tue, Aug 02, 2016 at 06:54:46PM +0800, Baole Ni wrote:
+> I find that the developers often just specified the numeric value
+> when calling a macro which is defined with a parameter for access permiss=
+ion.
+> As we know, these numeric value for access permission have had the corres=
+ponding macro,
+> and that using macro can improve the robustness and readability of the co=
+de,
+> thus, I suggest replacing the numeric parameter with the macro.
+>=20
+> Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+> Signed-off-by: Baole Ni <baolex.ni@intel.com>
+
+Looks good,
+Reviewed-By: Leon Romanovsky <leonro@mellanox.com>
+
+
+> ---
+>  drivers/infiniband/hw/nes/nes_hw.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/n=
+es/nes_hw.c
+> index a1c6481..f25c37f 100644
+> --- a/drivers/infiniband/hw/nes/nes_hw.c
+> +++ b/drivers/infiniband/hw/nes/nes_hw.c
+> @@ -41,7 +41,7 @@
+>  #include "nes.h"
+> =20
+>  static int wide_ppm_offset;
+> -module_param(wide_ppm_offset, int, 0644);
+> +module_param(wide_ppm_offset, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH=
+);
+>  MODULE_PARM_DESC(wide_ppm_offset, "Increase CX4 interface clock ppm offs=
+et, 0=3D100ppm (default), 1=3D300ppm");
+> =20
+>  static u32 crit_err_count;
+> --=20
+> 2.9.2
+>=20
 > --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->               GPG KeyID: 0E572FDD
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--nmemrqcdn5VTmUEE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXoOv/AAoJEORje4g2clinqG0QAKVb/jBwugcuaiesqHceBosj
+rxazLVxfMTse/Qzpm9b5WD1TSvXPsE537P1CQqzgv6jf3Fz26iJtxdyuaefXFfLG
+xPaj0CsCJXQwZEh1jve0GImBgqNfzwQ84Sv5KOwaLlpFecgHIay1UxIkSjl+D8ok
+vY1VmnaeZcaGtMsu2KlmgOu4lXluo2/wiTtjMc306FGn1IDJHa/Kc+mp73MMjar7
+UjFge0dvl+eaLELX6zncoSJZ9ok96fYbFfS178H0hbTf9dW7O/sdl7LFlgRIY1uL
+QKUHPHRPIc/+tmh79Ca4xD2H43Vyw0rTHmTgfq8jyXEY3itLI9j0wzCDc67XAdRO
+T0uOFvYmnppG2jmILE5dJ97uJYgUNQ2nXheusHeLz+5zh2ftDWz6ytNz8EgWAbXn
+sPgKCEwXabx5Tjn8Ujx/RKhwdKKU9WiYlWGdMdCnLbE6A5CiU5JxIDGJdsG8RFGY
+rlH9O/8RH1Scy1IEo/kfWS7LbfaqfesswgEzEeQ/ms4FJZi4q5MiXbGTJEF2NlZO
+WWmjWqWZCP6NwgQBijyYvGmqn+dbs/XfsSpABNvD4coqt0WkZXJVW3PhMy9wCkcp
+8enCd1s2yxHozRSa2XjyyCLkPc/npAj8M+17+/3VGeqW5270HNcMap8/U6aIK8p0
+zY7CDXUGc4B5oTO5xm6O
+=6hNZ
+-----END PGP SIGNATURE-----
+
+--nmemrqcdn5VTmUEE--
