@@ -1,98 +1,40 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v12 00/22] Add Hisilicon RoCE driver
-Date: Tue, 02 Aug 2016 12:26:36 -0400
-Message-ID: <1470155196.18081.10.camel@redhat.com>
-References: <1469099217-26071-1-git-send-email-oulijun@huawei.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-aD14aQggynfO+OcpZ3bJ"
+From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0260/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:54:13 +0800
+Message-ID: <20160802105413.31072-1-baolex.ni@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469099217-26071-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
 
---=-aD14aQggynfO+OcpZ3bJ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Thu, 2016-07-21 at 19:06 +0800, Lijun Ou wrote:
-> The Hisilicon Network Substem is a long term evolution IP which is
-> supposed to be used in Hisilicon ICT SoCs. HNS (Hisilicon Network
-> Sybsystem) also has a hardware support of performing RDMA with
-> RoCEE.
-> The driver for Hisilicon RoCEE(RoCE Engine) is a platform driver and
-> will support mulitple versions of SOCs in future. This version of
-> driver
-> is meant to support Hip06 SoC(which confirms to RoCEv1 hardware
-> specifications).
-
-I would like to thank you for being as responsive as you've been during
-the review process. =C2=A0I know you have put a lot of effort into
-addressing people's questions/comments. =C2=A0You've addressed the review
-comments I had, as well as other peoples. =C2=A0At this point, I don't want
-to say the driver is perfect, because as you continue to look at it you
-will almost always find something you can nitpick (like this segment in
-hns_roce_cmd.h:
-
-enum {
-	HNS_ROCE_CMD_TIME_CLASS_A	=3D 10000,
-	HNS_ROCE_CMD_TIME_CLASS_B	=3D 10000,
-	HNS_ROCE_CMD_TIME_CLASS_C	=3D 10000,
-};
-
-This is a case where you guys used the mlx4 RoCE driver as a template
-to help you create your own...and their driver has to have different
-timeout expectations for different firmware commands because some take
-a long time and others don't, and you ended up copying this TIME_CLASS
-stuff to your driver, but it isn't really needed and so they all have
-the same value). =C2=A0However, I believe you have brought the driver to a
-level of quality sufficient for the initial submission to the linux
-tree. =C2=A0As such, I have taken v12 of your patchset. =C2=A0I squashed ma=
-ny of
-the patches into just one patch, so the series now looks like this:
-
-dd778a9920a6 MAINTAINERS: Add maintainers for Hisilicon RoCE driver
-51db6bbe7de1 IB/hns: Kconfig and Makefile for RoCE module
-5e43122add63 IB/hns: Add driver files for hns RoCE driver
-c2c3b9d9e463 devicetree: bindings: IB: Add binding document for
-Hisilicon RoCE
-c80815c0b214 net: hns: Add reset function support for RoCE driver
-92d21ac74a9e Linux 4.7-rc7
-
-Thanks for all the hard work in answering review comments, series
-applied ;-)
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-aD14aQggynfO+OcpZ3bJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoMm8AAoJELgmozMOVy/dhr8P/2lhPl0gTUTfGQbEuYMNcOhS
-MIXLidsqC8T2Tv+ERS6EZCETD4rXVZp9WcBHCW3Nyi/FiwU3sxf+Pc0slO6i6Tai
-kKGzDivv+tzx7Cfac6mAZkzS84ajit592NfTW53WzHeUhsfpgTx6VBmQbfYTxb/C
-jAOLW2TbHK7g0oldgXYXe5RfplMe9SlNU5N0XRKnVIFwPHscdVVwFdqSVDlIekII
-FxvisISpLfpb/zq1gRNm3swURA49Zg6agk/Kc01HsGFaqcMSNadwlvAjkl+B8tM1
-FyVbENrJnaawEnoFBiKNMS6SdFoIj9JJhCj1j3gXsrHUWIjqxcrXjZK1Z8aWyE7D
-JWDYMM2IGd79ZKLasnNG8dfUgVzS5OFJtVYDMb7yLuqEQe8a1GvLzk9E7gkveuW6
-R5RcRgtkE0VrStN/oD9taAn9oreSIln2EH1WCjJZ4a4UUO6ICGGDgacjdur/RuYF
-FYNxwReQZnThe6n3iaNjDXfy1svt5LyDaBaaUaKkGRll5BEsz/I126fjkbXKxYVE
-zDILPd0iEfncgXqjuSuHfkNzv4LwvDo29cSyFrXlmbEKFTMq/wMhYvUk3CHFaTRa
-WYq1Wdk9tyhIbUAqOiSBFO1FSihrkoklTGlxTXE/fLoIrUR4EC0nAoHgprCZxs8j
-UTLBDByGxnUOkrbrXwH6
-=VOWB
------END PGP SIGNATURE-----
-
---=-aD14aQggynfO+OcpZ3bJ--
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 0eb09e1..994f2e8 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -71,7 +71,7 @@ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_VERSION(DRV_VERSION);
+ 
+ int mlx4_ib_sm_guid_assign = 0;
+-module_param_named(sm_guid_assign, mlx4_ib_sm_guid_assign, int, 0444);
++module_param_named(sm_guid_assign, mlx4_ib_sm_guid_assign, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(sm_guid_assign, "Enable SM alias_GUID assignment if sm_guid_assign > 0 (Default: 0)");
+ 
+ static const char mlx4_ib_version[] =
+-- 
+2.9.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
