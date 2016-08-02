@@ -1,41 +1,30 @@
-From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0723/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 19:40:02 +0800
-Message-ID: <20160802114002.30260-1-baolex.ni@intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] nvmet-rdma: Don't use the inline buffer in order to
+ avoid allocation for small reads
+Date: Tue, 2 Aug 2016 10:15:26 -0600
+Message-ID: <20160802161526.GA14964@obsidianresearch.com>
+References: <1470040599-7294-1-git-send-email-sagi@grimberg.me>
+ <20160802125042.GB13235@lst.de>
+ <157675f0-0576-1cc9-1f99-c0944185e3c5@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <157675f0-0576-1cc9-1f99-c0944185e3c5-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, pawel-FA/gS7QP4orQT0dZR+AlfA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Baohua.Song-kQvG35nSl+M@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I find that the developers often just specified the numeric value
-when calling a macro which is defined with a parameter for access permission.
-As we know, these numeric value for access permission have had the corresponding macro,
-and that using macro can improve the robustness and readability of the code,
-thus, I suggest replacing the numeric parameter with the macro.
+On Tue, Aug 02, 2016 at 04:38:58PM +0300, Sagi Grimberg wrote:
+> that is currently being sent (its a rare race condition, but
+> theoretically possible). The reason is that we repost the inline data
+> buffer for receive before we post the send request. We used to have
 
-Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/fw.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+?? The same buffer is posted at the same time for send and recv? That
+is never OK, SRQ or not.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw.c b/drivers/net/ethernet/mellanox/mlx4/fw.c
-index e970945..a4e6b51 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw.c
-@@ -50,7 +50,7 @@ extern void __buggy_use_of_MLX4_GET(void);
- extern void __buggy_use_of_MLX4_PUT(void);
- 
- static bool enable_qos = true;
--module_param(enable_qos, bool, 0444);
-+module_param(enable_qos, bool, S_IRUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(enable_qos, "Enable Enhanced QoS support (default: on)");
- 
- #define MLX4_GET(dest, source, offset)				      \
--- 
-2.9.2
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
