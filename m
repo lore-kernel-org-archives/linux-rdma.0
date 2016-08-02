@@ -1,90 +1,51 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/18] IB/hfi1, rdmavt, qib: First batch of
- fixes for 4.8
-Date: Tue, 02 Aug 2016 15:58:42 -0400
-Message-ID: <1470167922.18081.43.camel@redhat.com>
-References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH] infiniband: shut up a maybe-uninitialized warning
+Date: Tue, 02 Aug 2016 22:05:17 +0200
+Message-ID: <5746036.amdJeiC7gv@wuerfel>
+References: <20160704150659.2883024-1-arnd@arndb.de> <1470159925.18081.21.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-wHXrHy5ywbHO2b1iN1Vc"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1470159925.18081.21.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tuesday, August 2, 2016 1:45:25 PM CEST Doug Ledford wrote:
+> On Mon, 2016-07-04 at 17:06 +0200, Arnd Bergmann wrote:
+> > The powerpc64 default configuration leads to warnings for the
+> > infiniband
+> > core code:
+> > 
+> > infiniband/core/cma.c: In function 'cma_get_net_dev':
+> > infiniband/core/cma.c:1242:12: warning:
+> > 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this
+> > function [-Wmaybe-uninitialized]
+> > 
+> > The code looks correct to me, and I don't see the warnings on the
+> > other architectures, so this is a dumb change to add an unneeded
+> > initialization to the variables in order to shut up the warning.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> > Link: http://arm-soc.lixom.net/buildlogs/mainline/v4.7-
+> > rc6/buildall.powerpc.ppc64_defconfig.log.passed
+> 
+> I thought about taking this, but I also looked over the code and it
+> looks correct to me.  This is a semi-hot path in the connection bring
+> up code, so I'm loathe to put in sizeof(struct sockaddr_storage) * 2 of
+> needless memory writes.  So, I dropped this patch.  Hopefully, ppc64
+> compiler will straighten its warnings out soon.
 
---=-wHXrHy5ywbHO2b1iN1Vc
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Ok, no worries. Linus just disabled the warning tree-wide for
+all compilers, so it's gone from the autobuilder, and newer gcc
+versions (4.9 or higher) should be fine too, even if someone
+enables the warning manually or by passing W=1.
 
-On Fri, 2016-07-01 at 16:00 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
->=20
-> Here is a set of fixes and improvmenets that would be for the next
-> release. They
-> apply onto of the last set of RC fixes previously posted.
->=20
-> Of particular note in here is the twsi code clean up that was asked
-> for
-> previously while we were in staging. I think this does the job of not
-> duplicating what is already present in the kernel. These are the two
-> patches
-> from Dean.
->=20
-> The patches from Mike improve rdmavt and make the posting of sends
-> more friendly
-> to work with and extend.
->=20
-> There are also performance improvement patches in this bunch as well
-> as well as
-> a couple minor fixes that we felt are more appropriate for the next
-> merge cycle
-> rather than RC.
->=20
-> These patches have been added to my GitHub branch and have passed
-> zero day
-> builds.
->=20
-> https://github.com/ddalessa/kernel/tree/for-4.8
->=20
->=C2=A0
+Thanks for having a look,
 
-Hi Denny,
-
-These are in. =C2=A0I had to rebase in order to rip out the V1 of patches 8=
-,
-9, and 10, and then put the v2 in their place, but that's done as well.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-wHXrHy5ywbHO2b1iN1Vc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoPtyAAoJELgmozMOVy/d9WUQAK8XUp8DzhMEETukNxEDO1Sn
-DRkrXjq3JDXUuZk91ynLFOFh3fahWflyoCYiI/99XMJTEixfP3+rBkvC5KuhE5rd
-WKtdHI3FZstyxZVRSfLaWu8FbX/ph6iXbz6E9LB0dYeSeYjPvOytZ6cep4DJ7WsK
-7gk+HhLpnBEOt8tP4FZn6+u6GKjqGhxxOlJX2XTpxIrznkQ5+sPCFUmxkvvsImsM
-tK/9fnZTRn7eYvP7w3ar7rOEkEEJ2qHAP0vma99ZCxnBtlRXZ/bSRow+IObyDrR3
-Bk/tH6L/V7L6QiUqWpmqy1xcKaYe1gXFBz/k/l8u5eYD90X+gv8nnmq9QaBzAvSn
-sotpkC0i5m+clWN+VX75SPgwSJLxZCChVvCScXjW50naGKK9EKruERbjeEDr9lMK
-xQbwTx1PHqGZJogk0UliR9EFwYH8JzTDjCw8/zUq994iZGQ/iTF5cMXAxL5BiXkv
-wwsyca32m9AzjIod0gMsfPNP2tbkI1VktamIcHTkR4fYE4w7Wcv2edr17YiEdynS
-EdoJ+gt7wLONdOjAaGRzM2Y9Ppe0Suu4NvGuUUu9LBs+KvmSLQkWCYON8fwZr6UV
-BCmahycDolJhoEkJB2+e2pr3PcatuMW1NqN9O94SsMJZZctSStuZQ9lYXVceq1CZ
-5lsD4/cug+iIgidPbR+2
-=mP9X
------END PGP SIGNATURE-----
-
---=-wHXrHy5ywbHO2b1iN1Vc--
+	Arnd
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
