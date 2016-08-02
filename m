@@ -1,7 +1,7 @@
 From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0257/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 18:53:57 +0800
-Message-ID: <20160802105357.30874-1-baolex.ni@intel.com>
+Subject: [PATCH 0258/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:54:02 +0800
+Message-ID: <20160802105402.30940-1-baolex.ni@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dougthompson-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org
@@ -17,22 +17,46 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/provider.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/cxgb4/qp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index dd8a86b..a6761a390 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -55,7 +55,7 @@
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index e8993e4..3b2d95d 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -35,27 +35,27 @@
  #include "iw_cxgb4.h"
  
- static int fastreg_support = 1;
--module_param(fastreg_support, int, 0644);
-+module_param(fastreg_support, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(fastreg_support, "Advertise fastreg support (default=1)");
+ static int db_delay_usecs = 1;
+-module_param(db_delay_usecs, int, 0644);
++module_param(db_delay_usecs, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(db_delay_usecs, "Usecs to delay awaiting db fifo to drain");
  
- static struct ib_ah *c4iw_ah_create(struct ib_pd *pd,
+ static int ocqp_support = 1;
+-module_param(ocqp_support, int, 0644);
++module_param(ocqp_support, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(ocqp_support, "Support on-chip SQs (default=1)");
+ 
+ int db_fc_threshold = 1000;
+-module_param(db_fc_threshold, int, 0644);
++module_param(db_fc_threshold, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(db_fc_threshold,
+ 		 "QP count/threshold that triggers"
+ 		 " automatic db flow control mode (default = 1000)");
+ 
+ int db_coalescing_threshold;
+-module_param(db_coalescing_threshold, int, 0644);
++module_param(db_coalescing_threshold, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(db_coalescing_threshold,
+ 		 "QP count/threshold that triggers"
+ 		 " disabling db coalescing (default = 0)");
+ 
+ static int max_fr_immd = T4_MAX_FR_IMMD;
+-module_param(max_fr_immd, int, 0644);
++module_param(max_fr_immd, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(max_fr_immd, "fastreg threshold for using DSGL instead of immedate");
+ 
+ static int alloc_ird(struct c4iw_dev *dev, u32 ird)
 -- 
 2.9.2
 
