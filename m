@@ -1,97 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [IPoIB] Missing join mcast events causing full machine lockup
-Date: Tue, 02 Aug 2016 15:21:12 -0400
-Message-ID: <1470165672.18081.37.camel@redhat.com>
-References: <57907A37.3000902@kyup.com>
+Subject: Re: [PATCH for-next 00/18] IB/hfi1, rdmavt, qib: First batch of
+ fixes for 4.8
+Date: Tue, 02 Aug 2016 15:58:42 -0400
+Message-ID: <1470167922.18081.43.camel@redhat.com>
+References: <20160701225824.20160.19055.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-qyDN4LMggK/1gHVROxMC"
+	protocol="application/pgp-signature"; boundary="=-wHXrHy5ywbHO2b1iN1Vc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57907A37.3000902-6AxghH7DbtA@public.gmane.org>
+In-Reply-To: <20160701225824.20160.19055.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Pawlak <jakub.pawlak-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jianxin Xiong <jianxin.xiong-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-qyDN4LMggK/1gHVROxMC
+--=-wHXrHy5ywbHO2b1iN1Vc
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2016-07-21 at 10:31 +0300, Nikolay Borisov wrote:
-> Hello,=C2=A0
+On Fri, 2016-07-01 at 16:00 -0700, Dennis Dalessandro wrote:
+> Hi Doug,
 >=20
-> With running the risk of sounding like a broken record, I came
-> across=C2=A0
-> another case where ipoib can cause the machine to go haywire due to=C2=A0
-> missed join requests. This is on 4.4.14 kernel. Here is what I
-> believe=C2=A0
-> happens:
-
-[ snip long traces ]
-
-> This makes me wonder if using timeouts is actually better than
-> blindly relying on completing the join.
-
-Blindly relying on the join completions is not what we do. =C2=A0We are ver=
-y
-careful to make sure we always have the right locking so that we never
-leave a join request in the BUSY state without running the completion
-at some time. =C2=A0If you are seeing us do that, then it means we have a
-bug in our locking or state processing. =C2=A0The answer then is to find
-that bug and not to paper over it with a timeout. =C2=A0Can you find some
-way to reproduce this with a 4.7 kernel?
-
->  So Doug, what would
-> you say about the following as a proposed fix (not tested):
+> Here is a set of fixes and improvmenets that would be for the next
+> release. They
+> apply onto of the last set of RC fixes previously posted.
 >=20
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> index 87799de90a1d..f6f15d36b02d 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-> @@ -947,7 +947,7 @@ void ipoib_mcast_restart_task(struct work_struct
-> *work)
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*/
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0list_for_each_entry_safe(=
-mcast, tmcast, &remove_list, list)
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
-> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0wait_for_=
-completion(&mcast->done);
-> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0wait_for_=
-completion_timeout(&mcast->done, 30
-> * HZ);
-> =C2=A0
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0list_for_each_entry_safe(=
-mcast, tmcast, &remove_list, list) {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0ipoib_mcast_leave(mcast->dev, mcast);
+> Of particular note in here is the twsi code clean up that was asked
+> for
+> previously while we were in staging. I think this does the job of not
+> duplicating what is already present in the kernel. These are the two
+> patches
+> from Dean.
 >=20
-> Given the loop afterwards which uses ipoib_mcast_(leave_free) that
-> should work?
-> Looking at the code in ipoib_mcast_leave it seems we are going to
-> trigger a warning,=C2=A0
-> which is preferable to putting the machine to a grinding halt?=C2=A0
+> The patches from Mike improve rdmavt and make the posting of sends
+> more friendly
+> to work with and extend.
 >=20
-> Does the proposed patch break things horribly ?
+> There are also performance improvement patches in this bunch as well
+> as well as
+> a couple minor fixes that we felt are more appropriate for the next
+> merge cycle
+> rather than RC.
+>=20
+> These patches have been added to my GitHub branch and have passed
+> zero day
+> builds.
+>=20
+> https://github.com/ddalessa/kernel/tree/for-4.8
+>=20
+>=C2=A0
 
-It violates the intent of the join processing. =C2=A0And if we have the
-problem you are seeing, we really need to know if it's broken in IPoIB
-or deeper down in the core portion of the stack. =C2=A0Breaking out and
-continuing might be OK, but if we do, we are likely going to either
-leak something or have a use-after-free or something like that, so I
-would have to spend some time thinking about how things might go wrong
-and whether or not it's better to stop the machine when this happens,
-or continue and hope we don't corrupt memory somehow.
+Hi Denny,
+
+These are in. =C2=A0I had to rebase in order to rip out the V1 of patches 8=
+,
+9, and 10, and then put the v2 in their place, but that's done as well.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-qyDN4LMggK/1gHVROxMC
+--=-wHXrHy5ywbHO2b1iN1Vc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -99,22 +69,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoPKoAAoJELgmozMOVy/drHoP/RQkPeRKBefdg2wPq78GCMOO
-yE0GISXXgKpfpZPhaXGtCP/9qU9GQBKUp/XoS3nPpYqCe49FUDHol40cPJ/9wJi8
-8e7mLfpgwQ0tDB+nYRsUrFXHTDLCoy+5KjiStSuhnNmCMZgemY+/9kh1YxbvCV0V
-fp4126LjLoYiwiAHgARrKDuGmZnKgxb7T3pQ9+DIWkbEIOnRgg8NjIIpK9jhUSNz
-kXG43MZoHoh2cranX945RLrSyC1OXX7fIcC1H8BJqYaCybD2o1lgaohpYkI7dxTt
-M8HTHwdJdjMEd5TzwXMZsmsPmDbvl7x9VGZStHcPPJewG+GvxghhXF0HHzBH0V5G
-p9lHrDwmrYdGKLO8GO4+kRJnbbV2WkXH1oTDBetp7Y3rLFlcNR2sjTKW7nInDgCU
-6Kifw+5LOvgOaOUy6QpUfbl6Et+TzMOEIZRPrmbPCUEEJlPE3oScU9NTgqsEhi91
-aHuQ6he5bicRooadju0GNH6cIFlje1YjK4zmVCadqVDpqM/hcYU/xCkEje2b1cX1
-JrHzwiEqO7ex/TYGuwkOyKnTK+Y0d0TIRnq9YimI8OPjp3/CEWZjkthHUrWhz4mv
-huYvFSIv2WxEpYO2pc0FzpLTf3jqY6f0KeInL/O1+SMu5YUcuXDccP19KyYnm1QK
-lzZ0U+gwwzJY0vEBxGU+
-=v1Il
+iQIcBAABCAAGBQJXoPtyAAoJELgmozMOVy/d9WUQAK8XUp8DzhMEETukNxEDO1Sn
+DRkrXjq3JDXUuZk91ynLFOFh3fahWflyoCYiI/99XMJTEixfP3+rBkvC5KuhE5rd
+WKtdHI3FZstyxZVRSfLaWu8FbX/ph6iXbz6E9LB0dYeSeYjPvOytZ6cep4DJ7WsK
+7gk+HhLpnBEOt8tP4FZn6+u6GKjqGhxxOlJX2XTpxIrznkQ5+sPCFUmxkvvsImsM
+tK/9fnZTRn7eYvP7w3ar7rOEkEEJ2qHAP0vma99ZCxnBtlRXZ/bSRow+IObyDrR3
+Bk/tH6L/V7L6QiUqWpmqy1xcKaYe1gXFBz/k/l8u5eYD90X+gv8nnmq9QaBzAvSn
+sotpkC0i5m+clWN+VX75SPgwSJLxZCChVvCScXjW50naGKK9EKruERbjeEDr9lMK
+xQbwTx1PHqGZJogk0UliR9EFwYH8JzTDjCw8/zUq994iZGQ/iTF5cMXAxL5BiXkv
+wwsyca32m9AzjIod0gMsfPNP2tbkI1VktamIcHTkR4fYE4w7Wcv2edr17YiEdynS
+EdoJ+gt7wLONdOjAaGRzM2Y9Ppe0Suu4NvGuUUu9LBs+KvmSLQkWCYON8fwZr6UV
+BCmahycDolJhoEkJB2+e2pr3PcatuMW1NqN9O94SsMJZZctSStuZQ9lYXVceq1CZ
+5lsD4/cug+iIgidPbR+2
+=mP9X
 -----END PGP SIGNATURE-----
 
---=-qyDN4LMggK/1gHVROxMC--
+--=-wHXrHy5ywbHO2b1iN1Vc--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
