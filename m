@@ -1,121 +1,50 @@
-From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 1/1] IB/iSER-Target: Release connection resources properly when receiving RDMA_CM_EVENT_DEVICE_REMOVAL
-Date: Tue,  2 Aug 2016 14:16:35 +0530
-Message-ID: <20160802084635.14414-1-rajur@chelsio.com>
+From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0269/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:55:08 +0800
+Message-ID: <20160802105508.31682-1-baolex.ni@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the low level driver exercises the hot unplug they would call
-rdma_cm cma_remove_one which would fire DEVICE_REMOVAL event to all cma
-consumers. Now, if consumer doesn't make sure they destroy all IB
-objects created on that IB device instance prior to finalizing all
-processing of DEVICE_REMOVAL callback, rdma_cm will let the lld to
-de-register with IB core and destroy the IB device instance. And if the
-consumer calls (say) ib_dereg_mr(), it will crash since that dev object
-is NULL.
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
 
-In the current implementation, iser-target just initiates the cleanup
-and returns from DEVICE_REMOVAL callback. This deferred work creates a
-race between iser-target cleaning IB objects(say MR) and lld destroying
-IB device instance.
-
-This patch includes the following fixes
-  -> make sure that consumer frees all IB objects associated with device
-     instance
-  -> return non-zero from the callback to destroy the rdma_cm id
-
-Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes since v1:
-- Added S.O.B note
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
- drivers/infiniband/ulp/isert/ib_isert.c | 23 ++++++++++++++++++++---
- drivers/infiniband/ulp/isert/ib_isert.h |  2 ++
- 2 files changed, 22 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index a990c04..3dfd903 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -405,6 +405,7 @@ isert_init_conn(struct isert_conn *isert_conn)
- 	INIT_LIST_HEAD(&isert_conn->node);
- 	init_completion(&isert_conn->login_comp);
- 	init_completion(&isert_conn->login_req_comp);
-+	init_waitqueue_head(&isert_conn->rem_wait);
- 	kref_init(&isert_conn->kref);
- 	mutex_init(&isert_conn->mutex);
- 	INIT_WORK(&isert_conn->release_work, isert_release_work);
-@@ -580,7 +581,8 @@ isert_connect_release(struct isert_conn *isert_conn)
- 	BUG_ON(!device);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5f58c41..eed3e3c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -65,15 +65,15 @@ MODULE_VERSION(DRV_VERSION);
+ int ipoib_sendq_size __read_mostly = IPOIB_TX_RING_SIZE;
+ int ipoib_recvq_size __read_mostly = IPOIB_RX_RING_SIZE;
  
- 	isert_free_rx_descriptors(isert_conn);
--	if (isert_conn->cm_id)
-+	if (isert_conn->cm_id &&
-+	    !isert_conn->dev_removed)
- 		rdma_destroy_id(isert_conn->cm_id);
+-module_param_named(send_queue_size, ipoib_sendq_size, int, 0444);
++module_param_named(send_queue_size, ipoib_sendq_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(send_queue_size, "Number of descriptors in send queue");
+-module_param_named(recv_queue_size, ipoib_recvq_size, int, 0444);
++module_param_named(recv_queue_size, ipoib_recvq_size, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(recv_queue_size, "Number of descriptors in receive queue");
  
- 	if (isert_conn->qp) {
-@@ -595,7 +597,10 @@ isert_connect_release(struct isert_conn *isert_conn)
+ #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+ int ipoib_debug_level;
  
- 	isert_device_put(device);
+-module_param_named(debug_level, ipoib_debug_level, int, 0644);
++module_param_named(debug_level, ipoib_debug_level, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
+ #endif
  
--	kfree(isert_conn);
-+	if (isert_conn->dev_removed)
-+		wake_up_interruptible(&isert_conn->rem_wait);
-+	else
-+		kfree(isert_conn);
- }
- 
- static void
-@@ -755,6 +760,7 @@ static int
- isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- {
- 	struct isert_np *isert_np = cma_id->context;
-+	struct isert_conn *isert_conn;
- 	int ret = 0;
- 
- 	isert_info("%s (%d): status %d id %p np %p\n",
-@@ -775,10 +781,21 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
- 		break;
- 	case RDMA_CM_EVENT_ADDR_CHANGE:    /* FALLTHRU */
- 	case RDMA_CM_EVENT_DISCONNECTED:   /* FALLTHRU */
--	case RDMA_CM_EVENT_DEVICE_REMOVAL: /* FALLTHRU */
- 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:  /* FALLTHRU */
- 		ret = isert_disconnected_handler(cma_id, event->event);
- 		break;
-+	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-+		isert_conn = cma_id->qp->qp_context;
-+		isert_conn->dev_removed = true;
-+		isert_disconnected_handler(cma_id, event->event);
-+		wait_event_interruptible(isert_conn->rem_wait,
-+					 isert_conn->state == ISER_CONN_DOWN);
-+		kfree(isert_conn);
-+		/*
-+		 * return non-zero from the callback to destroy
-+		 * the rdma cm id
-+		 */
-+		return 1;
- 	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
- 	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
- 	case RDMA_CM_EVENT_CONNECT_ERROR:
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
-index e512ba9..d0c5c2c 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -159,6 +159,8 @@ struct isert_conn {
- 	struct work_struct	release_work;
- 	bool                    logout_posted;
- 	bool                    snd_w_inv;
-+	wait_queue_head_t       rem_wait;
-+	bool                    dev_removed;
- };
- 
- #define ISERT_MAX_CQ 64
 -- 
-2.8.3
+2.9.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
