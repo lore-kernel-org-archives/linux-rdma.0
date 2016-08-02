@@ -1,91 +1,46 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 0/5] Reduce RDMA RW API SGE limit
-Date: Tue, 02 Aug 2016 12:05:08 -0400
-Message-ID: <1470153908.18081.3.camel@redhat.com>
-References: <75fc8647-16a6-5a89-400f-f5f418a8d6eb@sandisk.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-0gKy30deRpabn+kWOsC/"
+From: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0725/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 19:40:13 +0800
+Message-ID: <20160802114013.30392-1-baolex.ni@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <75fc8647-16a6-5a89-400f-f5f418a8d6eb-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, computersforpeace-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, m.chehab-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, pawel-FA/gS7QP4orQT0dZR+AlfA@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, Baohua.Song-kQvG35nSl+M@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
 
---=-0gKy30deRpabn+kWOsC/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chuansheng Liu <chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Baole Ni <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Thu, 2016-07-21 at 13:02 -0700, Bart Van Assche wrote:
-> Hello Doug,
->=20
-> The five patches in this series modify the RDMA RW API slightly. This
-> is=C2=A0
-> needed to avoid that the SRP and iSER target drivers submit RDMA=C2=A0
-> requests with an SGE list that exceeds the queue pair limits. The=C2=A0
-> ib_srpt changes in this series have been tested but the ib_isert
-> changes=C2=A0
-> not yet.
->=20
-> The changes compared to v3 of this patch series are:
-> * Split the single QP SGE limit into separate READ and WRITE SGE
-> limits.
-> * Added a comment in ib_srpt.h that explains where the SGE limit
-> comes
-> =C2=A0=C2=A0=C2=A0from.
->=20
-> Changes compared to v2:
-> * For RDMA READs, limit SGE back to dev->attrs.max_sge_rd for iWARP.
->=20
-> Changes compared to v1:
-> * max_send_sge is now stored in struct ib_qp. This greatly simplifies
-> =C2=A0=C2=A0=C2=A0=C2=A0this patch series.
-> * An unneeded initialization that I had added to
-> rdma_rw_init_one_mr()
-> =C2=A0=C2=A0=C2=A0=C2=A0has been left out again.
-> * Corrected "Fixes" tag in the patch description where needed.
->=20
-> The individual patches in this series are:
->=20
-> 0001-IB-core-Make-rdma_rw_ctx_init-initialize-all-used-fi.patch
-> 0002-IB-core-RDMA-RW-API-Do-not-exceed-QP-SGE-send-limit.patch
-> 0003-IB-srpt-Limit-the-number-of-SG-elements-per-work-req.patch
-> 0004-IB-srpt-Simplify-srpt_queue_response.patch
-> 0005-IB-isert-Remove-an-unused-member-variable.patch
->=C2=A0
-
-Thanks Bart, series applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-0gKy30deRpabn+kWOsC/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoMS0AAoJELgmozMOVy/dH7kQAL66BqduUUfmrOZ8DUoz4Vom
-0Q1bXVZPPQB8nJU/xIgBCN9XSZcIOUzJGrXC9ok7JDVxruFNuC+b1m0gtu6lb6SR
-gXLkxN0ksK7X38Qm4y072aFXMqzuWu35YzqD/63A/fMutuBwNXQwKpZwYmdokGpE
-xOMR69xpqFWmnEp51zf2zjK+Fi5cvGua9OC2Fm6PLnNxpwEQ4ni4kw+PyTTWCVS1
-4lHqxpCebTkz8D12TdPdFXyNuCFmHFqeAneQNNRXyqUJEmmmYTE1l1tN9qMBsU9K
-MWyz6IZ3GAkQQeRGaUJDiRTAHBNvnOv/tvoWP8TWBoFZpWA0qTYyWsPEsR/wMrNU
-kv1KRy6mfk9fh9WQN9I0D3T/ZXFAXUw37J3ThvWyU1VgMuckrTw8Ro5IqDUKi7gj
-C4xf4I3I7hRyU1j91oVn67xGIz0/iTjOPL34JBcU0mxGqcnPN4/IzaNiHCyrEqAK
-7yMl4Ou0cVm006iSNUcv2vXIrm8sd7tRLJZt8EEyiAhOznfwZItp37KUhGTlE3lM
-JA1kUewwR/N9rjpC1mR/8CQSDE6dwyf13+O8QW37+VsvEEzQPS5FRhWUlkkm9vet
-cALk0TQITrVSs4mp0sSojtbaAKwx4e+zdHcRtm/F1Z5pAqqIKiKhAJRhIunlnuXV
-ikLR3i4inLLOvIeJb2sy
-=+ECd
------END PGP SIGNATURE-----
-
---=-0gKy30deRpabn+kWOsC/--
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index a19b593..423679c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -63,12 +63,12 @@ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_VERSION(DRIVER_VERSION);
+ 
+ int mlx5_core_debug_mask;
+-module_param_named(debug_mask, mlx5_core_debug_mask, int, 0644);
++module_param_named(debug_mask, mlx5_core_debug_mask, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(debug_mask, "debug mask: 1 = dump cmd data, 2 = dump cmd exec time, 3 = both. Default=0");
+ 
+ #define MLX5_DEFAULT_PROF	2
+ static int prof_sel = MLX5_DEFAULT_PROF;
+-module_param_named(prof_sel, prof_sel, int, 0444);
++module_param_named(prof_sel, prof_sel, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(prof_sel, "profile selector. Valid range 0 - 2");
+ 
+ static LIST_HEAD(intf_list);
+-- 
+2.9.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
