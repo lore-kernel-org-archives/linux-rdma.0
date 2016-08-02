@@ -1,69 +1,97 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 0/3] IB/mthca: Fine-tuning for mthca_reset()
-Date: Tue, 02 Aug 2016 15:40:42 -0400
-Message-ID: <1470166842.18081.41.camel@redhat.com>
-References: <5307CAA2.8060406@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
-	 <530A086E.8010901@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
-	 <530A72AA.3000601@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
-	 <530B5FB6.6010207@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402241710370.2074@hadrien>
-	 <530C5E18.1020800@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402251014170.2080@hadrien>
-	 <530CD2C4.4050903@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402251840450.7035@hadrien>
-	 <530CF8FF.8080600@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
-	 <530DD06F.4090703@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
-	 <5317A59D.4@users.sourceforge.net> <546CE09B.9090101@users.sourceforge.net>
-	 <55b7a06e-6bb4-f1bb-e4dd-7812648ecf34@users.sourceforge.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [IPoIB] Missing join mcast events causing full machine lockup
+Date: Tue, 02 Aug 2016 15:21:12 -0400
+Message-ID: <1470165672.18081.37.camel@redhat.com>
+References: <57907A37.3000902@kyup.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-LC37Lw+MODnLx54+Sfuu"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <55b7a06e-6bb4-f1bb-e4dd-7812648ecf34@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+	protocol="application/pgp-signature"; boundary="=-qyDN4LMggK/1gHVROxMC"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <57907A37.3000902-6AxghH7DbtA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-LC37Lw+MODnLx54+Sfuu
+--=-qyDN4LMggK/1gHVROxMC
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, 2016-07-23 at 12:55 +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 23 Jul 2016 12:50:12 +0200
+On Thu, 2016-07-21 at 10:31 +0300, Nikolay Borisov wrote:
+> Hello,=C2=A0
 >=20
-> Further update suggestions were taken into account
-> after a patch was applied from static source code analysis.
->=20
-> Markus Elfring (3):
-> =C2=A0 Delete an unnecessary check before the function call "pci_dev_put"
-> =C2=A0 Less function calls after error detection
-> =C2=A0 Delete unnecessary variable initialisations
->=20
-> =C2=A0drivers/infiniband/hw/mthca/mthca_reset.c | 48 +++++++++++++++----
-> ------------
-> =C2=A01 file changed, 23 insertions(+), 25 deletions(-)
->=20
+> With running the risk of sounding like a broken record, I came
+> across=C2=A0
+> another case where ipoib can cause the machine to go haywire due to=C2=A0
+> missed join requests. This is on 4.4.14 kernel. Here is what I
+> believe=C2=A0
+> happens:
 
-I applied 1 and 2, but skipped 3. =C2=A0My memory from long ago is that
-those variables didn't used to have initializers, but the compiler
-complained, so the initialization was added at some point. =C2=A0This is a
-dead driver, only around for the few systems out there using out dated
-hardware. =C2=A0I don't want to change this and then have to revert it
-because the old warnings came back, so I just dropped that patch.
+[ snip long traces ]
+
+> This makes me wonder if using timeouts is actually better than
+> blindly relying on completing the join.
+
+Blindly relying on the join completions is not what we do. =C2=A0We are ver=
+y
+careful to make sure we always have the right locking so that we never
+leave a join request in the BUSY state without running the completion
+at some time. =C2=A0If you are seeing us do that, then it means we have a
+bug in our locking or state processing. =C2=A0The answer then is to find
+that bug and not to paper over it with a timeout. =C2=A0Can you find some
+way to reproduce this with a 4.7 kernel?
+
+>  So Doug, what would
+> you say about the following as a proposed fix (not tested):
+>=20
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> index 87799de90a1d..f6f15d36b02d 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -947,7 +947,7 @@ void ipoib_mcast_restart_task(struct work_struct
+> *work)
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*/
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0list_for_each_entry_safe(=
+mcast, tmcast, &remove_list, list)
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0wait_for_=
+completion(&mcast->done);
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0wait_for_=
+completion_timeout(&mcast->done, 30
+> * HZ);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0list_for_each_entry_safe(=
+mcast, tmcast, &remove_list, list) {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0ipoib_mcast_leave(mcast->dev, mcast);
+>=20
+> Given the loop afterwards which uses ipoib_mcast_(leave_free) that
+> should work?
+> Looking at the code in ipoib_mcast_leave it seems we are going to
+> trigger a warning,=C2=A0
+> which is preferable to putting the machine to a grinding halt?=C2=A0
+>=20
+> Does the proposed patch break things horribly ?
+
+It violates the intent of the join processing. =C2=A0And if we have the
+problem you are seeing, we really need to know if it's broken in IPoIB
+or deeper down in the core portion of the stack. =C2=A0Breaking out and
+continuing might be OK, but if we do, we are likely going to either
+leak something or have a use-after-free or something like that, so I
+would have to spend some time thinking about how things might go wrong
+and whether or not it's better to stop the machine when this happens,
+or continue and hope we don't corrupt memory somehow.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-LC37Lw+MODnLx54+Sfuu
+--=-qyDN4LMggK/1gHVROxMC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -71,20 +99,24 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoPc7AAoJELgmozMOVy/dz9cP/0V7lkVsXBPNWbOE/Lb33Kjo
-zXz4tGsF9fGbc/FSpbR3ZdUdEiWH+Hh+JZBqCre78qChEmxugjGBV97s4B1V1T1k
-aIDss15jQ/l75nw5VhotUblZQsJ6LYiX9nmKCdWXzCDglP/YWsBbQCanfwNfM8+4
-CgsGtcDZafdzVcjhChl+MyKxnbDdqFk4Js0Z/+AdXN5mr3Ab2RRPaeHZzO8q88Vq
-JQ3/iHya50GYGI7WhmFDh0dWAkMJH7n6Z8IlyU7BeGRzG2e6GQEXMK0lgpb6PxTq
-jFqoJRnrTDWdf/lZ59pURB8+lc7p8FjD+DgJTWwM2xKAc3GYJl8Kkw0pARIvgMHs
-LUfkan0ULzomgMVr9EwH+2aFKAd3gQ8gZaiQaQg2kKprhM5GpmUpMzZzBZ1LlTuV
-C/5PqtOrZctUknmiDH1NbGNufdLscj7UdoWC8g8i3omNw7rxcXyEZOnrODWJ9zP/
-Xj0CmljSWo6f0IdCmu4nFyRDjAzvd1EiDy8theVBP3sbQXwPC92YV8L1TVsWVZiy
-SZDe3NvK6tkF2yJj+oRxI5NrCoMR/cFacVdF8Nfmr3Kx0qEGDYnV82P+exYONjmG
-893xtgqqCwLq8wEa5tslU43eywmwdWsCyCKggztXgvyswTHV7y9wNxx+BI4Y5py0
-+5n6SAIyvaUYhNQ+/4qc
-=9yqQ
+iQIcBAABCAAGBQJXoPKoAAoJELgmozMOVy/drHoP/RQkPeRKBefdg2wPq78GCMOO
+yE0GISXXgKpfpZPhaXGtCP/9qU9GQBKUp/XoS3nPpYqCe49FUDHol40cPJ/9wJi8
+8e7mLfpgwQ0tDB+nYRsUrFXHTDLCoy+5KjiStSuhnNmCMZgemY+/9kh1YxbvCV0V
+fp4126LjLoYiwiAHgARrKDuGmZnKgxb7T3pQ9+DIWkbEIOnRgg8NjIIpK9jhUSNz
+kXG43MZoHoh2cranX945RLrSyC1OXX7fIcC1H8BJqYaCybD2o1lgaohpYkI7dxTt
+M8HTHwdJdjMEd5TzwXMZsmsPmDbvl7x9VGZStHcPPJewG+GvxghhXF0HHzBH0V5G
+p9lHrDwmrYdGKLO8GO4+kRJnbbV2WkXH1oTDBetp7Y3rLFlcNR2sjTKW7nInDgCU
+6Kifw+5LOvgOaOUy6QpUfbl6Et+TzMOEIZRPrmbPCUEEJlPE3oScU9NTgqsEhi91
+aHuQ6he5bicRooadju0GNH6cIFlje1YjK4zmVCadqVDpqM/hcYU/xCkEje2b1cX1
+JrHzwiEqO7ex/TYGuwkOyKnTK+Y0d0TIRnq9YimI8OPjp3/CEWZjkthHUrWhz4mv
+huYvFSIv2WxEpYO2pc0FzpLTf3jqY6f0KeInL/O1+SMu5YUcuXDccP19KyYnm1QK
+lzZ0U+gwwzJY0vEBxGU+
+=v1Il
 -----END PGP SIGNATURE-----
 
---=-LC37Lw+MODnLx54+Sfuu--
+--=-qyDN4LMggK/1gHVROxMC--
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
