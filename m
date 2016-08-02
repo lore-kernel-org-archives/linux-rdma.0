@@ -1,110 +1,50 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0254/1285] Replace numeric parameter like 0444 with macro
-Date: Tue, 02 Aug 2016 11:44:15 -0400
-Message-ID: <1470152655.18081.1.camel@redhat.com>
-References: <20160802105341.30676-1-baolex.ni@intel.com>
-	 <006201d1ecc7$f6889bd0$e399d370$@opengridcomputing.com>
-	 <20160802150832.GA26697@home.goodmis.org>
-	 <00c701d1ecd1$5a4caef0$0ee60cd0$@opengridcomputing.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [RFC 6/7] NVMe: Use genalloc to allocate CMB regions
+Date: Tue, 2 Aug 2016 07:15:26 +0000
+Message-ID: <1470122126.20129.11.camel@mellanox.com>
+References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+	 <1470034653-9097-7-git-send-email-haggaie@mellanox.com>
+	 <20160801155348.GB23224@infradead.org>
+	 <20160801162057.GA11476@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-F7DcYzqLjVAVFwXTa72X"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <00c701d1ecd1$5a4caef0$0ee60cd0$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Steven Rostedt' <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Cc: 'Baole Ni' <baolex.ni-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, kgene-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, k.kozlowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, dougthompson-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, chuansheng.liu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160801162057.GA11476@localhost.localdomain>
+Content-Language: en-US
+Content-ID: <3CB8718189124A4FBECD4502B8994FFB@eurprd05.prod.outlook.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "hch@infradead.org" <hch@infradead.org>, "jonathan.derrick@intel.com" <jonathan.derrick@intel.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Kovalyov Artemy <artemyko@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, "stephen.bates@microsemi.com" <stephen.bates@microsemi.com>, "j.glisse@gmail.com" <j.glisse@gmail.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, Liran Liss <liranl@mellanox.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-F7DcYzqLjVAVFwXTa72X
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2016-08-02 at 10:20 -0500, Steve Wise wrote:
-> >=20
-> >=20
-> > On Tue, Aug 02, 2016 at 09:12:54AM -0500, Steve Wise wrote:
-> > >=20
-> > > Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > >=20
-> >=20
-> > I have to ask, why did you ack all these? There's several things
-> > wrong with
-> > this patch series, but even the point of the patch is mistaken. It
-> > makes
-> > readable code much less readable. When you chmod a file, do you
-> > type
-> >=20
-> > =C2=A0 chmod 0444 file
-> >=20
-> > or do you write
-> >=20
-> > =C2=A0 chmod S_IRUSR|S_IRGRP|S_IROTH file
-> >=20
-> > ?
-> >=20
-> > Which of the above is easier to figure what is being changed?
-> >=20
->=20
-> I assumed this was some global "fix up".=C2=A0=C2=A0=C2=A0
-
-It is, but I'm not so sure I don't agree with Steve. =C2=A0I'm not sure thi=
-s
-actually makes things better. =C2=A0At a minimum, I would argue that Bart's
-fix is mandatory before they would get my ack. =C2=A0I would also request
-that even though the patches are split up for review, they be squashed
-on commit (whoever would want to tackle this monstrous pile of dubious
-janitorial stuff).
-
-> >=20
-> > Not to mention, because the subject is the same for all 1285
-> > patches, and you
-> > deleted the content of the patch in your ack, there's no way to
-> > know what
-> > exactly this ack is for (I haven't received the original patch yet
-> > because
-> > it's probably being ratelimited by some mail server).
-> >=20
->=20
-> I acked just the single patches that hit cxgb3/cxgb4.=C2=A0=C2=A0But if t=
-his is
-> really
-> garbage, then ignore my ACKs...
->=20
-> Steve.
->=20
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-F7DcYzqLjVAVFwXTa72X
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoL/QAAoJELgmozMOVy/dj4cP/jIeTngHBfQ4EE1Bli+wjgS+
-xvQaOgvUyq+CKdrxbWTbFOMUTwoMgUjCFjwoa5vb5CA25PwGRf1S5hwwMJ2f9SJe
-HMvHUEb4hW/J34Q/nzRLj8SIwYEJp+dxwMZS/nVMX5fX8eJdhD/e7Dg42XiLMcwu
-VHY18BRNO9k92ZNOtd6qHPTOYHRf2KCPXVvG5gqo1tn3RzQqhww8U5zcxDmL6L0G
-VxH59PAohMrB8YrtnKRr+DJ8LaHzEXyK7aitvOs242ZVEGa4HrBA55bBXRaSRYkD
-4VPPtVEWD8//i1DldevkgF4aAoAt9bg9ypZtNN+BvFz8VpsIveqFoy3+TTvpJI3G
-pmwbrx2kqhspsdHdx709GsHkwQZJSyH3ATDPRVh4N2+adYackb0oA/5XGZWkGFsw
-s9tN+a1hSbawGngGJvGyVChLZHPu9sy3zjybG92aq9dUwhes9pDzn92jPRcqwaIW
-gOYCFjXvuoKY3i7iDOIgCfUPxty8fEtpAW0Ui5p6qRePt3VLlu2SKRkALzDt0RKu
-wlfbD+l1c4QJZEt8DaNlpXXgA7Yq6J5JVUeowGC7BMrz61VhDHtR+RoUBa/o3Yi3
-3PkNdiaS1it5lF3qPKdaLN7izPAkiY+Ryy2ouBKuMNlpZiujLqVTFnFY+Q7chxva
-xbU5+j1YP4najCsHSvNK
-=OFZO
------END PGP SIGNATURE-----
-
---=-F7DcYzqLjVAVFwXTa72X--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24g15EnLCAyMDE2LTA4LTAxIGF0IDEwOjIwIC0wNjAwLCBKb24gRGVycmljayB3cm90ZToNCj4g
+T24gTW9uLCBBdWcgMDEsIDIwMTYgYXQgMDg6NTM6NDlBTSAtMDcwMCwgQ2hyaXN0b3BoIEhlbGx3
+aWcgd3JvdGU6DQo+ID4gDQo+ID4gT24gTW9uLCBBdWcgMDEsIDIwMTYgYXQgMDk6NTc6MzJBTSAr
+MDMwMCwgSGFnZ2FpIEVyYW4gd3JvdGU6DQo+ID4gPiANCj4gPiA+IFJlZ2lzdGVyIHRoZSBDTUIg
+aW4gYSBnZW5fcG9vbCBkZWRpY2F0ZWQgdG8gbWFuYWdlIENNQiByZWdpb25zLg0KPiA+ID4gVXNl
+IHRoZQ0KPiA+ID4gcG9vbCB0byBhbGxvY2F0ZSB0aGUgU1FzIHRvIG1ha2Ugc3VyZSB0aGV5IGFy
+ZSByZWdpc3RlcmVkLg0KPiA+IEFuZCB3aHkgd291bGQgdGhlIE5WTWUgZHJpdmVyIGNhcmUgaWYg
+InRoZXkgYXJlIHJlZ2lzdGVyZWQiPw0KPiA+IA0KPiA+IE9uY2Ugd2Ugc3RhcnQgYWxsb3dpbmcg
+ZGl2ZXJzZSBDTUIgdXNlcyAod2hhdCBoYXBwZW5lZCB0byBKb24ncw0KPiA+IHBhdGNoZXMNCj4g
+PiBidHc/KSBnZW5hbGxvYyBtaWdodCBiZSBhIGdvb2QgYmFja2VuZCBhbGxvY2F0b3IsIGJ1dCB3
+aXRob3V0IHRoYXQNCj4gPiBpdCdzIGVudGlyZWx5IHBvaW50bGVzcy7CoMKgQWxzbyBwbGVhc2Ug
+ZG9uJ3QgaW50cm9kdWNlIHVzZWxlc3MNCj4gPiBoZWFkZXINCj4gPiBmaWxlcy4NCj4gTXkgY29u
+Y2VybiBpcyB1c2luZyBDTUIgYXMgYSBnZW5lcmljIG1lbW9yeSBzcGFjZSBjb3VsZCBsZWFkIHRv
+DQo+IGludmFsaWQgdXNlcyBhbmQgdW50ZXN0ZWQgcGF0aHMgaW4gYnJva2VuIGZpcm13YXJlIChs
+ZWFkaW5nIHRvDQo+IGJyaWNrZWQgZHJpdmVzLi4uKS4gVGhlIHNwZWMgZGVmaW5lcyB3aGF0IGl0
+J3MgYWxsb3dlZCB0byBiZSB1c2VkDQo+IGZvciwgYnV0IGRvZXNuJ3QgcmVhbGx5IGxlYXZlIGl0
+IG9wZW4gZm9yIGdlbmVyYWwgcHVycG9zZSB1c2FnZQ0KPiBvdXRzaWRlIG9mIHRoYXQuIEJlY2F1
+c2Ugb2YgdGhhdCBJIHRoaW5rIGl0IG5lZWRzIG1vcmUgaGFuZC1ob2xkaW5nDQo+IGJ5IHRoZSBr
+ZXJuZWwgdG8gcHJldmVudCBpbnZhbGlkIHVzYWdlLg0KSSB1bmRlcnN0YW5kLiBEaWQgeW91IGhh
+cHBlbiB0byB0aGluayBvZiBob3cgdGhlIGtlcm5lbCB3b3VsZCBleHBvc2UNCml0Pw0KDQo+IFdo
+YXQgSSB3b3VsZCBsaWtlIHRvIHNlZSBpcyBhIHNldCBvZiBrbm9icyBjb250cm9sbGluZyB0aGUg
+J2NodW5rcycNCj4gb2YgbWVtb3J5J3MgdXNhZ2VzIChjb250cm9sbGVkIHRocm91Z2ggc3lzZnMv
+Y29uZmlnZnM/KSBhbmQgdGhlDQo+IGtlcm5lbCB0YWtlcyBjYXJlIG9mIGFsbG9jYXRpb24uIE15
+IHNldCB3YXMgZ29pbmcgdG8gZXhwb3NlIGENCj4gcmVzb3VyY2UgZmlsZSBmb3IgV0RTL1JEUyBi
+dXQgZXZlcnl0aGluZyBlbHNlIHdhcyB1bmhhbmRsZWQgZXhjZXB0DQo+IGZvciBpdHMgY3VycmVu
+dCBzcWVzIHVzYWdlLiBJIHRoaW5rIHRoZSBnZW5hbGxvYyBjb3VsZCBmaXQgaW50byB0aGlzDQo+
+IHNjaGVtZSBxdWl0ZSB3ZWxsLg0KV2hhdCBkbyB5b3UgbWVhbiBieSBhIHJlc291cmNlIGZpbGU/
+IEFyZSB5b3UgcmVmZXJyaW5nIHRvIHRoZQ0Kc3lzZnMvY29uZmlnZnMga25vYiBvciB0byBhIGZp
+bGUgdGhhdCBleHBvc2VzIHRoZSByZXNvdXJjZSB0byB1c2VyLQ0Kc3BhY2U/DQoNClRoYW5rcywN
+CkhhZ2dhaQ==
