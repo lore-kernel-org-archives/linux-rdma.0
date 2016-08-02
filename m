@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v2 5/5] nvme-rdma: Make sure to shutdown the controller if we can
-Date: Tue,  2 Aug 2016 10:53:39 +0300
-Message-ID: <1470124419-30405-6-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v2 2/5] nvme-rdma: Remove duplicate call to nvme_remove_namespaces
+Date: Tue,  2 Aug 2016 10:53:36 +0300
+Message-ID: <1470124419-30405-3-git-send-email-sagi@grimberg.me>
 References: <1470124419-30405-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1470124419-30405-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -10,31 +10,61 @@ To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Relying on ctrl state in nvme_rdma_shutdown_ctrl is wrong because
-it will never be NVME_CTRL_LIVE (delete_ctrl or reset_ctrl invoked it).
+nvme_uninit_ctrl already does that for us. Note that we reordered
+nvme_rdma_shutdown_ctrl and nvme_uninit_ctrl, this is perfectly
+fine because we actually want ctrl uninit (aen, scan cancellation
+and namespaces removal) to happen before we shutdown the rdma
+resources.
 
-Instead, check that the admin queue is connected. Note that it is safe
-because we can never see a copmeting thread trying to destroy the admin
-queue (reset or delete controller).
+Also, centralize the deletion work and the dead controller removal
+work code duplication into __nvme_rdma_shutdown_ctrl that accepts
+a shutdown boolean.
 
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/nvme/host/rdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvme/host/rdma.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index f31915696421..ef821592b791 100644
+index f391d67e4ee0..39330bd295d4 100644
 --- a/drivers/nvme/host/rdma.c
 +++ b/drivers/nvme/host/rdma.c
-@@ -1644,7 +1644,7 @@ static void nvme_rdma_shutdown_ctrl(struct nvme_rdma_ctrl *ctrl)
- 		nvme_rdma_free_io_queues(ctrl);
- 	}
+@@ -1658,15 +1658,20 @@ static void nvme_rdma_shutdown_ctrl(struct nvme_rdma_ctrl *ctrl)
+ 	nvme_rdma_destroy_admin_queue(ctrl);
+ }
  
--	if (ctrl->ctrl.state == NVME_CTRL_LIVE)
-+	if (test_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[0].flags))
- 		nvme_shutdown_ctrl(&ctrl->ctrl);
++static void __nvme_rdma_remove_ctrl(struct nvme_rdma_ctrl *ctrl, bool shutdown)
++{
++	nvme_uninit_ctrl(&ctrl->ctrl);
++	if (shutdown)
++		nvme_rdma_shutdown_ctrl(ctrl);
++	nvme_put_ctrl(&ctrl->ctrl);
++}
++
+ static void nvme_rdma_del_ctrl_work(struct work_struct *work)
+ {
+ 	struct nvme_rdma_ctrl *ctrl = container_of(work,
+ 				struct nvme_rdma_ctrl, delete_work);
  
- 	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
+-	nvme_remove_namespaces(&ctrl->ctrl);
+-	nvme_rdma_shutdown_ctrl(ctrl);
+-	nvme_uninit_ctrl(&ctrl->ctrl);
+-	nvme_put_ctrl(&ctrl->ctrl);
++	__nvme_rdma_remove_ctrl(ctrl, true);
+ }
+ 
+ static int __nvme_rdma_del_ctrl(struct nvme_rdma_ctrl *ctrl)
+@@ -1699,9 +1704,7 @@ static void nvme_rdma_remove_ctrl_work(struct work_struct *work)
+ 	struct nvme_rdma_ctrl *ctrl = container_of(work,
+ 				struct nvme_rdma_ctrl, delete_work);
+ 
+-	nvme_remove_namespaces(&ctrl->ctrl);
+-	nvme_uninit_ctrl(&ctrl->ctrl);
+-	nvme_put_ctrl(&ctrl->ctrl);
++	__nvme_rdma_remove_ctrl(ctrl, false);
+ }
+ 
+ static void nvme_rdma_reset_ctrl_work(struct work_struct *work)
 -- 
 1.9.1
 
