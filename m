@@ -1,49 +1,64 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Allocation of CQ resize structure doesn't need
- to be atomic
-Date: Tue, 02 Aug 2016 13:52:56 -0400
-Message-ID: <1470160376.18081.25.camel@redhat.com>
-References: <1469768323-8093-1-git-send-email-roland@kernel.org>
+Subject: Re: [PATCH 1/1] IB/iSER-Target: Release connection resources
+ properly when receiving RDMA_CM_EVENT_DEVICE_REMOVAL
+Date: Tue, 02 Aug 2016 13:49:52 -0400
+Message-ID: <1470160192.18081.23.camel@redhat.com>
+References: <20160727191511.18122-1-rajur@chelsio.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-YOZIvniFUwuHiSjG6/8Q"
+	protocol="application/pgp-signature"; boundary="=-IyDdlByoicsgZOojFY3J"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469768323-8093-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160727191511.18122-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-YOZIvniFUwuHiSjG6/8Q
+--=-IyDdlByoicsgZOojFY3J
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2016-07-28 at 21:58 -0700, Roland Dreier wrote:
-> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On Thu, 2016-07-28 at 00:45 +0530, Raju Rangoju wrote:
+> When the low level driver exercises the hot unplug they would call
+> rdma_cm cma_remove_one which would fire DEVICE_REMOVAL event to all
+> cma
+> consumers. Now, if consumer doesn't make sure they destroy all IB
+> objects created on that IB device instance prior to finalizing all
+> processing of DEVICE_REMOVAL callback, rdma_cm will let the lld to
+> de-register with IB core and destroy the IB device instance. And if
+> the
+> consumer calls (say) ib_dereg_mr(), it will crash since that dev
+> object
+> is NULL.
 >=20
-> We allocate a small tracking structure as part of
-> mlx4_ib_resize_cq().
-> However, we don't need to use GFP_ATOMIC -- immediately after the
-> allocation, we call mlx4_cq_resize(), which allocates a command
-> mailbox with GFP_KERNEL and then sleeps on a firmware command, so we
-> better not be in an atomic context.
+> In the current implementation, iser-target just initiates the cleanup
+> and returns from DEVICE_REMOVAL callback. This deferred work creates
+> a
+> race between iser-target cleaning IB objects(say MR) and lld
+> destroying
+> IB device instance.
 >=20
-> This actually has a real impact, because when this GFP_ATOMIC
-> allocation fails (and GFP_ATOMIC does fail in practice) then a
-> userspace consumer resizing a CQ will get a spurious failure that we
-> can easily avoid.
->=20
-> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->=C2=A0
+> This patch includes the following fixes
+> =C2=A0 -> make sure that consumer frees all IB objects associated with
+> device
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0instance
+> =C2=A0 -> return non-zero from the callback to destroy the rdma_cm id
 
-Thanks, I reworded the commit subject for length and applied.
+This patch is missing a Signed-off-by: line and can not be accepted as
+it is. =C2=A0Please resubmit with the proper attribution. =C2=A0Also please
+reword your commit subject as it's too long. =C2=A0I suggest something like=
+:
+
+IB/isert: Properly release resources on RDMA_CM_EVENT_DEVICE_REMOVAL
+
+which is still too long, but not as bad as what you have now.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-YOZIvniFUwuHiSjG6/8Q
+--=-IyDdlByoicsgZOojFY3J
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -51,22 +66,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoN34AAoJELgmozMOVy/dxc8P/jzOYDB5qDHM70anHEQ0Uzc/
-ahZAoFRMC7V4qiPcTpNNO2lxNEXSREQ2Go40LFsMQqcti7EUzUXJn+9NI+vzO1+E
-/7ltaFs44edIWuK7O3sZdmKyE1MOmM6iVsMH/Ukb9kWHhsYTc3AVhfPBjAhYq9UG
-sANDWJiY6sl8MqTHCwFFpPk8mKI6NqFnRZNzQvcT4UFiNYXKX/EZIcKcrq0ddHAp
-j3nLltuBGBi27pr/sdduHBGQaIUQDN3quUbsu0FT6yaqJPeaCoiXnvTjXiBQJ6+K
-t9XBFvPlt09IO8xho3m+iQO/26VPWNthdDzeVe5kEcmZE9XWIhhcRu+iHVMq+Rj2
-jf22Z9MS4Muqc+xyog+9S+J0kzeLBQq0F+oI2xW+8EBT3FBmZyGQcYWo0byHa7Mv
-GrH7DQ2mu23O1C/U/71hhjTyDDCGgze0Xt/hQpXkYE0ujNuEndDG5QQhZNWinWlD
-G0K/zDTTVFbsKWZLsQsjOaNVujQetw5ECGV0ycf7sUyXZJ8WcaP9sGE9U4KruLqh
-0eiejX8B46qjCCyeGJfoUiAZPMK33JTbMp4NVFjrfigxuVPDPQls+zCs8rnJWaQT
-9CGqtQ6j9b4vqycWIBNuJLAc6aJi1SwKc7y9A0M/rA8mCB3fAJyaEYJKqQvFYnRV
-wjnsi1TPMFPaXUVajw4Y
-=a6hK
+iQIcBAABCAAGBQJXoN1AAAoJELgmozMOVy/d8TIQAJ7I3eZbCmRGukV16npxfnsR
+E5BybQKQNXVOPDRkkaWnxss9Crh6KmRZOsNzHZOCh2ZSYGLY50IFSq1RpAYIfwoa
+Q3UZt8Gz11kyuF2KoSXG7fnpeclNnMBkGSYh9MIQhRqI3rTL6NQPVxEKODRKX8qV
+xE4utQIMM8zRiEZtnTj3rY5KjUKtEg12fwNib5MGFwk/nOhoSZbRP0RLRWBRnf8+
+cWwR4+ZLHQ6+SCasDlC92f2h1C5dKjkzzq/oatqglWu5mYtWa2jJLek3hyOM9mQJ
+YdMJ/yJxOaZGUvKPFVt8PG6lTniKLNrgk8qCpStxL63658Ty6HI/JFI5ud6vqGTc
+U9SuW2CSJQ+J1laHOf8MSEr40MPEOeXJOXywM0bUOBB0Wa4PhQvIO+IGDuXdP8Yu
+J+ueMhvXRXDlU0Pan7hgu0oxrT4Ao1sfctr+Q5Zs1+flk7LCLe/Efk1tDH+WW0F9
+y0pEWelJW8e6PzpA8qDnUEOACoJMfs52ON6PaJ0dPGbn0EdlsievGKklK0opFEao
+cyIYY9UzVSfGeoeiTDMxSgHS9+MK91iEKjFP2wDen4oCr7wpSEIi0nK+fxRFHzN5
+6VFk1/HmL25qacugx7TXyih9E4jOE24Z4ZAXgHBgPvSF+3V1WEou+qRwDyGa5d7F
+H1ozisHMutfEQ+SH5p3r
+=Yb2O
 -----END PGP SIGNATURE-----
 
---=-YOZIvniFUwuHiSjG6/8Q--
+--=-IyDdlByoicsgZOojFY3J--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
