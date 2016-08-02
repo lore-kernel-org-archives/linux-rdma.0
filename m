@@ -1,106 +1,100 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V3] Add flow control to the portmapper
-Date: Tue, 02 Aug 2016 13:16:50 -0400
-Message-ID: <1470158210.18081.15.camel@redhat.com>
-References: <1469736146-17640-1-git-send-email-shiraz.saleem@intel.com>
-	 <20160729044746.GT4628@leon.nu>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-/mPdSata8oodvvP9zllV"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160729044746.GT4628-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Baole Ni <baolex.ni@intel.com>
+Subject: [PATCH 0264/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 18:54:37 +0800
+Message-ID: <20160802105437.31343-1-baolex.ni@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, bp@alien8.de
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, chuansheng.liu@intel.com, baolex.ni@intel.com, hch@infradead.org, matanb@mellanox.com, markb@mellanox.com, jgunthorpe@obsidianresearch.com, dean.luick@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
+I find that the developers often just specified the numeric value
+when calling a macro which is defined with a parameter for access permission.
+As we know, these numeric value for access permission have had the corresponding macro,
+and that using macro can improve the robustness and readability of the code,
+thus, I suggest replacing the numeric parameter with the macro.
 
---=-/mPdSata8oodvvP9zllV
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
+Signed-off-by: Baole Ni <baolex.ni@intel.com>
+---
+ drivers/infiniband/hw/mthca/mthca_main.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-On Fri, 2016-07-29 at 07:47 +0300, Leon Romanovsky wrote:
-> On Thu, Jul 28, 2016 at 03:02:26PM -0500, Shiraz Saleem wrote:
-> >=20
-> > From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >=20
-> > During connection establishment with a large number of
-> > connections, it is possible that the connection requests
-> > might fail. Adding flow control prevents this failure.
-> > Change ibnl_unicast to use blocking to enable flow control.
-> >=20
-> > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >=20
-> > V3: update to use blocking ver. of netlink_unicast() in=C2=A0
-> > ibnl_unicast(), instead of creating new function in=C2=A0
-> > netlink header for this purpose; as was done in V1.
-> >=20
-> > V2: update commit message with justification for flow control.=C2=A0
-> > CC'ing linux-netdev mailing list.
-> >=20
-> > =C2=A0drivers/infiniband/core/netlink.c | 9 ++++++++-
-> > =C2=A01 file changed, 8 insertions(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/infiniband/core/netlink.c
-> > b/drivers/infiniband/core/netlink.c
-> > index 9b8c20c..a6b3acb 100644
-> > --- a/drivers/infiniband/core/netlink.c
-> > +++ b/drivers/infiniband/core/netlink.c
-> > @@ -229,7 +229,13 @@ static void ibnl_rcv(struct sk_buff *skb)
-> > =C2=A0int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
-> > =C2=A0			__u32 pid)
-> > =C2=A0{
-> > -	return nlmsg_unicast(nls, skb, pid);
-> > +	int err;
-> > +
-> > +	err =3D netlink_unicast(nls, skb, pid, 0);
-> > +	if (err > 0)
-> > +		err =3D 0;
-> > +
-> > +	return err;
->=20
-> It can be simplified a little bit to remove number of lines.
-> 4 last lines can be replaced to be one in ANSI C.
->=20
-> return (err < 0)?:0;
-
-return (err < 0) ? err : 0; is more readable to me.
-
-With fixup and minor change to commit subject, applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-/mPdSata8oodvvP9zllV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoNWCAAoJELgmozMOVy/dsKIQALFMlhNTvDBnSiD6P+D3ppYy
-LdW/Ta6ZUS6r8+jMcxXMINV/hozDcgwsXyomIoFQ7Wyg5u54Cnai33dt1QAAlhnD
-vAKIZ+zqMOBuyT+lYtuSoNgKpcsUetG9ft6HpWrj1W2GPqtUsuxMuKVRkMmOwNXA
-U3U6JT2rsC0c9bWS2xr7Lo88nExJGP9y8AR/VsJaxP4NVDOsGuBdLWZrtbWY6W75
-FUH1ng/5YFi0CHHDpuUNNfvzHBP+MlrFcqVI79iLOV4015OSHWCIKW5erK6P2xRx
-rnhinJwDKC5kERreqTwGyLKt1xVg1dND3Po4ORhzrwZRdpZDLpmamicNvD4Z0len
-tab0VZi7/UfHGy5lvuKOyQiQGgn3CTLKWPlxVdBsH3D0pNPsHrW/G0UToVtNgXt8
-SPY2/WSO5xVcylCDxFeadMmbaQIpM1R/AXSCLiVWn0Te3y4pKT23vf5tyiL+76IK
-huB71KBbo2nhCDtzU2tIvBI9dCDcrfW0j5/L6J7MBTX7+bp6BWBNb5vWQFp4HYXR
-fknwD3wHU0OmPUW2gP8zL3ZoO7HIuJvL4hxtZryMOiX49CmiNhkeVjtVm6D3dEgC
-1Y4oRFA+7wLJ41YLF3W7OSRnZ9kX+OqH34YYz8eO0oPe7KechOcgBonto6/FCE77
-41i7cuKZts9BaAAWNKHU
-=BM8Y
------END PGP SIGNATURE-----
-
---=-/mPdSata8oodvvP9zllV--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index ded76c1..71b7773 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -54,7 +54,7 @@ MODULE_VERSION(DRV_VERSION);
+ #ifdef CONFIG_INFINIBAND_MTHCA_DEBUG
+ 
+ int mthca_debug_level = 0;
+-module_param_named(debug_level, mthca_debug_level, int, 0644);
++module_param_named(debug_level, mthca_debug_level, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
+ 
+ #endif /* CONFIG_INFINIBAND_MTHCA_DEBUG */
+@@ -62,7 +62,7 @@ MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
+ #ifdef CONFIG_PCI_MSI
+ 
+ static int msi_x = 1;
+-module_param(msi_x, int, 0444);
++module_param(msi_x, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
+ 
+ #else /* CONFIG_PCI_MSI */
+@@ -72,7 +72,7 @@ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
+ #endif /* CONFIG_PCI_MSI */
+ 
+ static int tune_pci = 0;
+-module_param(tune_pci, int, 0444);
++module_param(tune_pci, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(tune_pci, "increase PCI burst from the default set by BIOS if nonzero");
+ 
+ DEFINE_MUTEX(mthca_device_mutex);
+@@ -99,35 +99,35 @@ static struct mthca_profile hca_profile = {
+ 	.uarc_size          = MTHCA_DEFAULT_NUM_UARC_SIZE,     /* Arbel only */
+ };
+ 
+-module_param_named(num_qp, hca_profile.num_qp, int, 0444);
++module_param_named(num_qp, hca_profile.num_qp, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_qp, "maximum number of QPs per HCA");
+ 
+-module_param_named(rdb_per_qp, hca_profile.rdb_per_qp, int, 0444);
++module_param_named(rdb_per_qp, hca_profile.rdb_per_qp, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(rdb_per_qp, "number of RDB buffers per QP");
+ 
+-module_param_named(num_cq, hca_profile.num_cq, int, 0444);
++module_param_named(num_cq, hca_profile.num_cq, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_cq, "maximum number of CQs per HCA");
+ 
+-module_param_named(num_mcg, hca_profile.num_mcg, int, 0444);
++module_param_named(num_mcg, hca_profile.num_mcg, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_mcg, "maximum number of multicast groups per HCA");
+ 
+-module_param_named(num_mpt, hca_profile.num_mpt, int, 0444);
++module_param_named(num_mpt, hca_profile.num_mpt, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_mpt,
+ 		"maximum number of memory protection table entries per HCA");
+ 
+-module_param_named(num_mtt, hca_profile.num_mtt, int, 0444);
++module_param_named(num_mtt, hca_profile.num_mtt, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_mtt,
+ 		 "maximum number of memory translation table segments per HCA");
+ 
+-module_param_named(num_udav, hca_profile.num_udav, int, 0444);
++module_param_named(num_udav, hca_profile.num_udav, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(num_udav, "maximum number of UD address vectors per HCA");
+ 
+-module_param_named(fmr_reserved_mtts, hca_profile.fmr_reserved_mtts, int, 0444);
++module_param_named(fmr_reserved_mtts, hca_profile.fmr_reserved_mtts, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(fmr_reserved_mtts,
+ 		 "number of memory translation table segments reserved for FMR");
+ 
+ static int log_mtts_per_seg = ilog2(MTHCA_MTT_SEG_SIZE / 8);
+-module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, 0444);
++module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, S_IRUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-5)");
+ 
+ static char mthca_version[] =
+-- 
+2.9.2
