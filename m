@@ -1,48 +1,55 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] Disable rdmavt and hfi1 drivers by default
-Date: Tue, 02 Aug 2016 15:05:35 -0400
-Message-ID: <1470164735.18081.30.camel@redhat.com>
-References: <e6761c19-f301-ffc4-8283-ea958a387313@sandisk.com>
+Subject: Re: [PATCH v2] IB/ipoib: Report SG feature regardless of HW UD CSUM
+ capability
+Date: Tue, 02 Aug 2016 15:11:19 -0400
+Message-ID: <1470165079.18081.31.camel@redhat.com>
+References: <1469003406-1540-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-/nC3wXlmHxJ+AnLub63H"
+	protocol="application/pgp-signature"; boundary="=-KhuojAjd1eZpmZOcga7W"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e6761c19-f301-ffc4-8283-ea958a387313-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1469003406-1540-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-/nC3wXlmHxJ+AnLub63H
+--=-KhuojAjd1eZpmZOcga7W
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2016-07-19 at 10:02 -0700, Bart Van Assche wrote:
-> Hi Doug,
+On Wed, 2016-07-20 at 01:30 -0700, Yuval Shaia wrote:
+> Decouple SG support from HW ability to do UD checksum.
+> This coupling is for historical reasons and removed with 'commit
+> ec5f06156423 ("net: Kill link between CSUM and SG features.")'
 >=20
-> Since there is a strict policy in the Linux kernel that new drivers
-> must=C2=A0
-> be disabled by default, hence this series with two small patches
-> that=C2=A0
-> ensure that e.g. "make oldconfig" neither enables the rdmavt nor the=C2=
-=A0
-> hfi1 driver. The patches in this series are:
+> During driver load it is assumed that device does not supports SG.
+> The
+> final decision is taken after creating UD QP based on device
+> capability.
 >=20
-> 0001-IB-rdmavt-Disable-by-default.patch
-> 0002-IB-hfi1-Disable-by-default.patch
->=20
-> Thanks,
->=20
-> Bart.
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+> v0 -> v1:
+> 	* Fix patch title
+> 	* Move settings to ipoib_setup instead of ipoib_set_dev_feature
+> v1 -> v2:
+> 	* Move settings to ipoib_transport_dev_init
+> ---
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c=C2=A0=C2=A0|=C2=A0=C2=A0=
+=C2=A0=C2=A03 +--
+> =C2=A0drivers/infiniband/ulp/ipoib/ipoib_verbs.c |=C2=A0=C2=A0=C2=A010 ++=
++++-----
+> =C2=A02 files changed, 6 insertions(+), 7 deletions(-)
+>=C2=A0
 
-Series applied, thanks.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-/nC3wXlmHxJ+AnLub63H
+--=-KhuojAjd1eZpmZOcga7W
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -50,22 +57,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoO7/AAoJELgmozMOVy/dT6oP/AtfI/qbN4ye95BK05KMX88P
-PFZqiuj+VOtLnZISeRWbHFX8i15IgfDY3Zqy4hznb/2U+bW4mOylPa1cN815ABlB
-MrC2n5PWBQdGVfdr8TbLm/URIoY/vrE7Xs7g5ZPuOli/METYeGCp/LYZqgN7RQ+E
-psUsCojMhMUit4XAYWK9p48bHsoTbz7GbTrDSFLcs7Hp7baMMRBE8fjmBXbGX8H9
-dCsQmWlw7UJFeN3vXu1AN1D+hx1+LK3wKvcTinrgwpBqn4bN8RUPokR/jR5q2kap
-aEV4QUm035Qx+t2OYhiwBbqFbsDvR9xXrELgSzxRoEut7WAkG0glYWm24tTtUCm2
-Dh2AitwOhaCp/JyucZHVEwtUj8xNDJVIWGSIJz79llztoZT1aqpf1Vh6nVT5+vv2
-/Ku7O1he3oIdKWzR0Nm8jLGjC0Hb8XpQhbQlEataexbpudNkLUjUQIFhOCgpo1Zr
-n3mllXjrq2TnFQdfNO+hperT1az9/1QBFukwLWN4f9toh/5Vp2AvxBVslny8qPcq
-W/qyx7C+412ITZR2/SDiO07bl6+8TiAjtaYM3ncpwZrgIcIOo9g+FDe3qBaFvva2
-1NXvxpAGirrnBFDU5jzK/tMOjU7/iWen5cBY7rAB0hDG88WdPtKzv3AhE2WBTF91
-sezGPxmXqY6YwFD+xOSQ
-=M02V
+iQIcBAABCAAGBQJXoPBXAAoJELgmozMOVy/dHCgQAI7lTkX3tchg1O5Q3bnheR0f
+5h3iNBzkggFlwUUCewm2rsezYsPr7cdSMZ7t+ekwwt4NvEm9VQybZarZuqHGVC2n
+pytNPn4fMyG+vBb+QNxpS5hm6bs3legiA94mtgcdm4v+RHzrXAs0DkhauXgGXi5J
+6EQljZDCQxuDLy0nk8wWnAja6VM7IP6JuqYWeugsME15g2guPVz9eKDIahjxsSvh
+HYQphnCddiTFDAOFRlBW+k5N42bZxf0DUOF3ZS+KT6s6rRwlm31rKgriJZBhSGts
+AB/bO2uNTjzZjga6mp1NKBJZ6IFLznlb6O7ktuNonywHlUertwtxuFjDyGLlcldS
+emv7vfBtpes0YkOAMICidCSEvfBvx3csJAj+2RhgtSbnXMQhVXHm+pB6eM/YqRRF
+U9g7eZIb5vkjVeZU40K6GcYc5X18x06E7iDzz4fWs+wGsRWr9FUryeL/+sYARKpk
+uIZ6Hr9AEoJV+gDWmcMckUDkswE2712rn6TSzQG5RiiqNdA5ExxnzahoT9rTLnmx
+xcHfeaH0+pYv5RdQKw62wdtN6qr5i2Zur+JelhodXBY7A3IjljmfGHA7/HdobM3+
+qk6ZFiJUW+jY7LAyFDCGEys/z4X+NPE41UPdItRlQL8zB4wkokPEQO3KgLQQUzQ1
+CuK5M6aDgn6ngV1tGaXB
+=4JmD
 -----END PGP SIGNATURE-----
 
---=-/nC3wXlmHxJ+AnLub63H--
+--=-KhuojAjd1eZpmZOcga7W--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
