@@ -1,72 +1,56 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Allow for non-double word multiple message
- sizes for user SDMA
-Date: Tue, 02 Aug 2016 22:49:39 -0400
-Message-ID: <1470192579.18081.53.camel@redhat.com>
-References: <20160728010842.GC3158@phlsvsds.ph.intel.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting today
+ - 7/26/2016 at 11:00PDT
+Date: Tue, 2 Aug 2016 14:10:11 +0000
+Message-ID: <VI1PR0501MB218912CBC9327A54E308496FB1050@VI1PR0501MB2189.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-YkEOW71ieHweZHQZL5QE"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160728010842.GC3158-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+No meeting today (8/2/2016).
 
---=-YkEOW71ieHweZHQZL5QE
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Next OFVWG meeting planned for 8/9/2016.
+--Liran
 
-On Wed, 2016-07-27 at 21:08 -0400, ira.weiny wrote:
-> The driver pads non-double word multiple message sizes but it doesn't
-> account for this padding when the packet length is calculated. Also,
-> the
-> data length is miscalculated for message sizes less than 4 bytes due
-> to
-> the bit representation in LRH. And there's a check for non-double
-> word
-> multiple message sizes that prevents these messages from being sent.
-> This patch fixes length miscalculations and enables the functionality
-> to
-> send non-double word multiple message sizes.
->=20
-> Reviewed-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->=C2=A0
-
-I agree with you, I like sizeof(u32) as compared to a bare 4. =C2=A0Applied=
-.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-YkEOW71ieHweZHQZL5QE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCAAGBQJXoVvDAAoJELgmozMOVy/d12UP/j78z7I5JOJkv0xHWHaXYLjE
-r6eClJca56GqTElyRiTJHDg25yGT2XE0xbNnNImiJV1L1+93n/esx/PatqKzCS3f
-SQ23frwPRwODyZdImw3/JlA63psiUzPyUI+O6PUGphUrnOGkCAI6ouMljqw+Q9j+
-t4Raykmj7OmV2XK1gXGrmu5Z+Y7vVI9YWDoCzYQyMVhPj6ZFSqTVj8biWgJGbBU5
-hAtcIhQn41X2Kakwvj9Ay4hORrg/4/tbMZsutC51OuPIiOughle3EKlBjhgoPej+
-bAgGm6dohUpMmPwE9Su5zkO30dSmNbX5hjCHEzFjCi3Kd5nsuocp7b3EA8NZuM0x
-PTDu0SyncP898KzjSWZ3I8N6JM9nR+F5hu532EVPl5nuBKN7yFbNsfDP2OcDrXGr
-Q5gOwgKmbtlJat/BnW2cvVXM/ynEw3aH+zDefw3oZWdXWji7ceYbAeqg12gATbw1
-X/W3FynJ0Nwu+hIElbVZX54i5cuieyI2I4NsTWL6xJW/h+09UNYs4zn0Xa0ijtxz
-+dbPRoBlx6j3YPykjrx5T0YQGtYHLwHghTgagYi69VbsGKYGRhci5gs81M+b6ool
-LegLJKc3MMgAM5X9ivdimiF4dLDnuctlx71s63U9+hiIZoAdV3CPoXuPFOWkb8Hc
-vamPPsB8svPxf+j5nYVW
-=HGNW
------END PGP SIGNATURE-----
-
---=-YkEOW71ieHweZHQZL5QE--
+> -----Original Message-----
+> From: Liran Liss
+> Sent: Tuesday, July 26, 2016 6:09 PM
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'
+> <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+> Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+> today - 7/26/2016 at 11:00PDT
+> 
+> Agenda:
+> - Short walkthrough of Matan's v2 patches
+> - Continue FD per-device discussion
+> - Type order registration
+> 
+> Regards,
+> --Liran
+> 
+> Concall details
+> ===========
+> JOIN WEBEX MEETING
+> https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+> 
+> JOIN BY PHONE
+> 1-80-9453550 Israel toll free
+> 1-855-299-5224 USA/Canada toll free
+> Access code: 702 830 424
+> 
+> Global call-in numbers:
+> https://mellanox-tech.webex.com/mellanox-
+> tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
+> 
+> Toll-free calling restrictions:
+> http://www.webex.com/pdf/tollfree_restrictions.pdf
+> 
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
