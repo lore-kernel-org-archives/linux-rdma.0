@@ -1,183 +1,139 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v4] nvmet-rdma: Correctly handle RDMA device hot removal
-Date: Wed,  3 Aug 2016 16:19:53 +0300
-Message-ID: <1470230393-23671-1-git-send-email-sagi@grimberg.me>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/2] ipoib: Ratelimit messages which can flood a host.
+Date: Wed, 03 Aug 2016 10:26:10 -0400
+Message-ID: <1470234370.18081.63.camel@redhat.com>
+References: <1469543929-17659-1-git-send-email-kernel@kyup.com>
+	 <1469543929-17659-2-git-send-email-kernel@kyup.com>
+	 <20160726180021.GA6144@yuval-lap.uk.oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-4+imx38ClrmdR6DxgabZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160726180021.GA6144-Hxa29pjIrETlQW142y8m19+IiqhCXseY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jay Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When configuring a device attached listener, we may
-see device removal events. In this case we return a
-non-zero return code from the cm event handler which
-implicitly destroys the cm_id. It is possible that in
-the future the user will remove this listener and by
-that trigger a second call to rdma_destroy_id on an
-already destroyed cm_id -> BUG.
 
-In addition, when a queue bound (active session) cm_id
-generates a DEVICE_REMOVAL event we must guarantee all
-resources are cleaned up by the time we return from the
-event handler.
+--=-4+imx38ClrmdR6DxgabZ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Introduce nvmet_rdma_device_removal which addresses
-(or at least attempts to) both scenarios.
+On Tue, 2016-07-26 at 21:00 +0300, Yuval Shaia wrote:
+> On Tue, Jul 26, 2016 at 05:38:49PM +0300, Nikolay Borisov wrote:
+> >=20
+> > In case an infiniband outtage occurs the messages modified
+> > in this patchset can flood the host with a rate of 1 message per
+>=20
+> s/patchset/patch
+>=20
+> >=20
+> > ms which is a lot. Using the ratelimited version of ipoib_warn
+> > fixes the issue by limiting at most 10 messages in 5 seconds.
+> >=20
+> > Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+> > ---
+> > =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
+> > =C2=A01 file changed, 2 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > index 7d3281866ffc..dd5b4afbc00b 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -1034,9 +1034,9 @@ static void ipoib_timeout(struct net_device
+> > *dev)
+> > =C2=A0{
+> > =C2=A0	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
+> > =C2=A0
+> > -	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
+> > +	ipoib_warn_rl(priv, "transmit timeout: latency %d
+> > msecs\n",
+> > =C2=A0		=C2=A0=C2=A0=C2=A0jiffies_to_msecs(jiffies - dev->trans_start))=
+;
+> > -	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail
+> > %u\n",
+> > +	ipoib_warn_rl(priv, "queue stopped %d, tx_head %u, tx_tail
+> > %u\n",
+>=20
+> So this is just to hide the hide the problem,
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
-Changes from v3:
-- Fixed synchronization of device removal on the listener cm_id and
-  user-initiated port removal.
+No, that's not true. =C2=A0To hide the problem, he would have to remove the
+printk entirely. =C2=A0Linus absolutely despises when programmers use
+BUG_ON() for situations where it is possible for the system to
+continue, albeit with reduced capability or what not. =C2=A0Similarly, it i=
+s
+entirely unacceptable that a simple issue, such as a hardware queue
+stoppage on a network device, can render a system mostly or entirely or
+even just somewhat unusable due to a flood of kernel printk messages.
 
-Changes from v2:
-- Fixed (an old) review comment from hch,
-  remove redundant locking around the queue state.
+Just so we're clear, I absolutely despise printk floods. =C2=A0There is
+never a valid reason for them. =C2=A0If someone in the kernel community
+suggested that we make the default printk implementation be flood
+proof, I would support it. =C2=A0In the meantime, I'm all for these patches=
+.
+=C2=A0And if there are other places in the ipoib code that can cause floods
+too, I would like to see them switched over to use the rate limited
+version too.
 
-Changes from v1:
-- Fixed some typos resulting of uncommited code conflicts of an old patch.
+Now that I think about it, I'm just as likely to be receptive to a
+patch that makes the default ipoib_warn() always be rate limited, and
+if there are exceptions in the ipoib stack where we truly want every
+message, then change just those places to a different
+ipoib_warn_no_rate_limit() implementation. =C2=A0I would probably modify th=
+e
+default rate though...10 in 5 seconds is probably too low for some of
+the messages, as we can legitimately get a burst of 50 in less than a
+second when doing things like joining lots of multicast groups and
+there is an issue, or something like that. =C2=A0Maybe 100 in 60 to allow
+for bursts but to still prevent runaway printks like you are having?
 
- drivers/nvme/target/rdma.c | 87 +++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 70 insertions(+), 17 deletions(-)
+>  the real question is what is
+> causing this to happen a lot.
+>=20
+> >=20
+> > =C2=A0		=C2=A0=C2=A0=C2=A0netif_queue_stopped(dev),
+> > =C2=A0		=C2=A0=C2=A0=C2=A0priv->tx_head, priv->tx_tail);
+> > =C2=A0	/* XXX reset QP, etc. */
+> > --=C2=A0
+> > 2.5.0
+> >=20
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at=C2=A0=C2=A0http://vger.kernel.org/majordomo-info=
+.html
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index e06d504bdf0c..48c811850c29 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -77,6 +77,7 @@ enum nvmet_rdma_queue_state {
- 	NVMET_RDMA_Q_CONNECTING,
- 	NVMET_RDMA_Q_LIVE,
- 	NVMET_RDMA_Q_DISCONNECTING,
-+	NVMET_RDMA_IN_DEVICE_REMOVAL,
- };
- 
- struct nvmet_rdma_queue {
-@@ -984,7 +985,10 @@ static void nvmet_rdma_release_queue_work(struct work_struct *w)
- 	struct nvmet_rdma_device *dev = queue->dev;
- 
- 	nvmet_rdma_free_queue(queue);
--	rdma_destroy_id(cm_id);
-+
-+	if (queue->state != NVMET_RDMA_IN_DEVICE_REMOVAL)
-+		rdma_destroy_id(cm_id);
-+
- 	kref_put(&dev->ref, nvmet_rdma_free_dev);
- }
- 
-@@ -1233,8 +1237,9 @@ static void __nvmet_rdma_queue_disconnect(struct nvmet_rdma_queue *queue)
- 	switch (queue->state) {
- 	case NVMET_RDMA_Q_CONNECTING:
- 	case NVMET_RDMA_Q_LIVE:
--		disconnect = true;
- 		queue->state = NVMET_RDMA_Q_DISCONNECTING;
-+	case NVMET_RDMA_IN_DEVICE_REMOVAL:
-+		disconnect = true;
- 		break;
- 	case NVMET_RDMA_Q_DISCONNECTING:
- 		break;
-@@ -1272,6 +1277,62 @@ static void nvmet_rdma_queue_connect_fail(struct rdma_cm_id *cm_id,
- 	schedule_work(&queue->release_work);
- }
- 
-+/**
-+ * nvme_rdma_device_removal() - Handle RDMA device removal
-+ * @queue:      nvmet rdma queue (cm id qp_context)
-+ * @addr:	nvmet address (cm_id context)
-+ *
-+ * DEVICE_REMOVAL event notifies us that the RDMA device is about
-+ * to unplug so we should take care of destroying our RDMA resources.
-+ * This event will be generated for each allocated cm_id.
-+ *
-+ * Note that this event can be generated on a normal queue cm_id
-+ * and/or a device bound listener cm_id (where in this case
-+ * queue will be null).
-+ *
-+ * we claim ownership on destroying the cm_id. For queues we move
-+ * the queue state to NVMET_RDMA_IN_DEVICE_REMOVAL and for port
-+ * we nullify the priv to prevent double cm_id destruction and destroying
-+ * the cm_id implicitely by returning a non-zero rc to the callout.
-+ */
-+static int nvmet_rdma_device_removal(struct rdma_cm_id *cm_id,
-+		struct nvmet_rdma_queue *queue)
-+{
-+	unsigned long flags;
-+
-+	if (!queue) {
-+		struct nvmet_port *port = cm_id->context;
-+
-+		/*
-+		 * This is a listener cm_id. Make sure that
-+		 * future remove_port won't invoke a double
-+		 * cm_id destroy. use atomic xchg to make sure
-+		 * we don't compete with remove_port.
-+		 */
-+		if (xchg(&port->priv, NULL) != cm_id)
-+			return 0;
-+	} else {
-+		/*
-+		 * This is a queue cm_id. Make sure that
-+		 * release queue will not destroy the cm_id
-+		 * and schedule all ctrl queues removal (only
-+		 * if the queue is not disconnecting already).
-+		 */
-+		spin_lock_irqsave(&queue->state_lock, flags);
-+		if (queue->state != NVMET_RDMA_Q_DISCONNECTING)
-+			queue->state = NVMET_RDMA_IN_DEVICE_REMOVAL;
-+		spin_unlock_irqrestore(&queue->state_lock, flags);
-+		nvmet_rdma_queue_disconnect(queue);
-+		flush_scheduled_work();
-+	}
-+
-+	/*
-+	 * We need to return 1 so that the core will destroy
-+	 * it's own ID.  What a great API design..
-+	 */
-+	return 1;
-+}
-+
- static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
- 		struct rdma_cm_event *event)
- {
-@@ -1294,20 +1355,11 @@ static int nvmet_rdma_cm_handler(struct rdma_cm_id *cm_id,
- 		break;
- 	case RDMA_CM_EVENT_ADDR_CHANGE:
- 	case RDMA_CM_EVENT_DISCONNECTED:
--	case RDMA_CM_EVENT_DEVICE_REMOVAL:
- 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:
--		/*
--		 * We can get the device removal callback even for a
--		 * CM ID that we aren't actually using.  In that case
--		 * the context pointer is NULL, so we shouldn't try
--		 * to disconnect a non-existing queue.  But we also
--		 * need to return 1 so that the core will destroy
--		 * it's own ID.  What a great API design..
--		 */
--		if (queue)
--			nvmet_rdma_queue_disconnect(queue);
--		else
--			ret = 1;
-+		nvmet_rdma_queue_disconnect(queue);
-+		break;
-+	case RDMA_CM_EVENT_DEVICE_REMOVAL:
-+		ret = nvmet_rdma_device_removal(cm_id, queue);
- 		break;
- 	case RDMA_CM_EVENT_REJECTED:
- 	case RDMA_CM_EVENT_UNREACHABLE:
-@@ -1396,9 +1448,10 @@ out_destroy_id:
- 
- static void nvmet_rdma_remove_port(struct nvmet_port *port)
- {
--	struct rdma_cm_id *cm_id = port->priv;
-+	struct rdma_cm_id *cm_id = xchg(&port->priv, NULL);
- 
--	rdma_destroy_id(cm_id);
-+	if (cm_id)
-+		rdma_destroy_id(cm_id);
- }
- 
- static struct nvmet_fabrics_ops nvmet_rdma_ops = {
--- 
-1.9.1
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+
+--=-4+imx38ClrmdR6DxgabZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJXof8CAAoJELgmozMOVy/dXfAQAL1MTuNVw/CvYDJqi2OYrgf5
+a8ZAzBsOmmFGgrfj4MvsMp2EOAtQorp2r8oJSW+VozbF9cvuPuljse95fLmi8T5Z
+MGNgVFEMXNCyNXr9xjeyH1LyPBiRnm3IWYie9KljyS+tiEV8nYTIXagbla2lQ3KG
+VhWchbu49jfKycsh/2+Zs4U2ZjRD2mmepAEU/7HXD5lwE/UO5obZu3y+kuaXabp8
+L6aV3uduwkgkVYXcnzb57fwGEzUq6Ougab7tiXsfFYhpzUhNxXPWYghruQOqZ2GU
+17YmIKIV4jgPo1pjOy7EFK2APPIidn9BfOFyy6IyUaXeBo4Qo/mKgKkhi47CsE8o
+tgodzM0JwMOVb+Q/kGfo7ge1EDUzQUeSOJfYY/xe64mgOtwnMTzuNfQ29qvAJY2n
+tvgA6MGaERWIKCqrwtmBA0QCabNISF+S3CuH8gYOqjmNUOSdiMfVxFsSJHHLDfPc
+PTgQTXKeNkawyKuKZcKvEhPtMYR1c9chCtQdVjRVYEht4ylUQ2fMJF/gEhaeM7qq
+dULYvm2g9Qk1FdfTJXUntqEnzxpV9IMb5YukBjVnmMRg6TsnN+SAHQNbhJfqV5wO
+NnW4AcEHwW4ex3Qvxc6JWMqAbc9ouSBhSkDOkirxs6zvYZ+CATtlI8TzUCP7mqA2
+dJzRZ6Iuab1/351DSSZy
+=odZt
+-----END PGP SIGNATURE-----
+
+--=-4+imx38ClrmdR6DxgabZ--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
