@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 06/15] IB/pvrdma: Add helper functions
-Date: Wed, 3 Aug 2016 16:27:35 -0700
-Message-ID: <1470266864-16888-7-git-send-email-aditr@vmware.com>
+Subject: [PATCH v3 04/15] IB/pvrdma: Add functions for Verbs support
+Date: Wed, 3 Aug 2016 16:27:33 -0700
+Message-ID: <1470266864-16888-5-git-send-email-aditr@vmware.com>
 References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,11 +12,11 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds helper functions to store guest page addresses in a page
-directory structure. The page directory pointer is passed down to the
-backend which then maps the entire memory for the RDMA object by
-traversing the directory. We add some more helper functions for converting
-to/from RDMA stack address handles from/to PVRDMA ones.
+This patch implements the remaining Verbs functions registered with the
+core RDMA stack.
+
+Changes v2->v3:
+ - Removed the boolean from pvrdma_cmd_post call.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -24,16 +24,18 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_misc.c | 309 +++++++++++++++++++++++++++++
- 1 file changed, 309 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_misc.c
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.c | 593 ++++++++++++++++++++++++++++
+ drivers/infiniband/hw/pvrdma/pvrdma_verbs.h | 108 +++++
+ 2 files changed, 701 insertions(+)
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.c
+ create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_verbs.h
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_misc.c b/drivers/infiniband/hw/pvrdma/pvrdma_misc.c
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/pvrdma/pvrdma_verbs.c
 new file mode 100644
-index 0000000..97a1fcd
+index 0000000..1a90790
 --- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_misc.c
-@@ -0,0 +1,309 @@
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_verbs.c
+@@ -0,0 +1,593 @@
 +/*
 + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
 + *
@@ -79,270 +81,668 @@ index 0000000..97a1fcd
 + * OF THE POSSIBILITY OF SUCH DAMAGE.
 + */
 +
-+#include <linux/errno.h>
-+#include <linux/slab.h>
-+#include <linux/bitmap.h>
++#include <asm/page.h>
++#include <linux/inet.h>
++#include <linux/io.h>
++#include <rdma/ib_addr.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_user_verbs.h>
 +
 +#include "pvrdma.h"
++#include "pvrdma_user.h"
 +
-+int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
-+			 u64 npages, bool alloc_pages)
++/**
++ * pvrdma_query_device - query device
++ * @ibdev: the device to query
++ * @props: the device properties
++ * @uhw: user data
++ *
++ * @return: 0 on success, otherwise negative errno
++ */
++int pvrdma_query_device(struct ib_device *ibdev,
++			struct ib_device_attr *props,
++			struct ib_udata *uhw)
 +{
-+	u64 i;
++	struct pvrdma_dev *dev = to_vdev(ibdev);
 +
-+	if (npages > PVRDMA_PAGE_DIR_MAX_PAGES)
++	if (uhw->inlen || uhw->outlen)
 +		return -EINVAL;
 +
-+	memset(pdir, 0, sizeof(*pdir));
++	memset(props, 0, sizeof(*props));
 +
-+	pdir->dir = dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
-+				       &pdir->dir_dma, GFP_KERNEL);
-+	if (!pdir->dir)
-+		goto err;
-+
-+	pdir->ntables = PVRDMA_PAGE_DIR_TABLE(npages - 1) + 1;
-+	pdir->tables = kcalloc(pdir->ntables, sizeof(*pdir->tables),
-+			       GFP_KERNEL);
-+	if (!pdir->tables)
-+		goto err;
-+
-+	for (i = 0; i < pdir->ntables; i++) {
-+		u64 *table;
-+		dma_addr_t table_base;
-+
-+		table = dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
-+					   &table_base, GFP_KERNEL);
-+		if (!table)
-+			goto err;
-+
-+		pdir->tables[i] = table;
-+		pdir->dir[i] = table_base;
++	props->fw_ver = dev->dsr->caps.fw_ver;
++	props->sys_image_guid = dev->dsr->caps.sys_image_guid;
++	props->max_mr_size = dev->dsr->caps.max_mr_size;
++	props->page_size_cap = dev->dsr->caps.page_size_cap;
++	props->vendor_id = dev->dsr->caps.vendor_id;
++	props->vendor_part_id = dev->pdev->device;
++	props->hw_ver = dev->dsr->caps.hw_ver;
++	props->max_qp = dev->dsr->caps.max_qp;
++	props->max_qp_wr = dev->dsr->caps.max_qp_wr;
++	props->device_cap_flags = dev->dsr->caps.device_cap_flags;
++	props->max_sge = dev->dsr->caps.max_sge;
++	props->max_sge_rd = dev->dsr->caps.max_sge_rd;
++	props->max_cq = dev->dsr->caps.max_cq;
++	props->max_cqe = dev->dsr->caps.max_cqe;
++	props->max_mr = dev->dsr->caps.max_mr;
++	props->max_pd = dev->dsr->caps.max_pd;
++	props->max_qp_rd_atom = dev->dsr->caps.max_qp_rd_atom;
++	props->max_ee_rd_atom = dev->dsr->caps.max_ee_rd_atom;
++	props->max_res_rd_atom = dev->dsr->caps.max_res_rd_atom;
++	props->max_qp_init_rd_atom = dev->dsr->caps.max_qp_init_rd_atom;
++	props->max_ee_init_rd_atom = dev->dsr->caps.max_ee_init_rd_atom;
++	props->atomic_cap =
++		dev->dsr->caps.atomic_ops &
++		(PVRDMA_ATOMIC_OP_COMP_SWAP | PVRDMA_ATOMIC_OP_FETCH_ADD) ?
++		IB_ATOMIC_HCA : IB_ATOMIC_NONE;
++	props->masked_atomic_cap = props->atomic_cap;
++	props->max_ee = dev->dsr->caps.max_ee;
++	props->max_rdd = dev->dsr->caps.max_rdd;
++	props->max_mw = dev->dsr->caps.max_mw;
++	props->max_raw_ipv6_qp = dev->dsr->caps.max_raw_ipv6_qp;
++	props->max_raw_ethy_qp = dev->dsr->caps.max_raw_ethy_qp;
++	props->max_mcast_grp = dev->dsr->caps.max_mcast_grp;
++	props->max_mcast_qp_attach = dev->dsr->caps.max_mcast_qp_attach;
++	props->max_total_mcast_qp_attach =
++		dev->dsr->caps.max_total_mcast_qp_attach;
++	props->max_ah = dev->dsr->caps.max_ah;
++	props->max_fmr = dev->dsr->caps.max_fmr;
++	props->max_map_per_fmr = dev->dsr->caps.max_map_per_fmr;
++	props->max_srq = dev->dsr->caps.max_srq;
++	props->max_srq_wr = dev->dsr->caps.max_srq_wr;
++	props->max_srq_sge = dev->dsr->caps.max_srq_sge;
++	props->max_fast_reg_page_list_len = 0;
++	props->max_pkeys = dev->dsr->caps.max_pkeys;
++	props->local_ca_ack_delay = dev->dsr->caps.local_ca_ack_delay;
++	if ((dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_LOCAL_INV) &&
++	    (dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_REMOTE_INV) &&
++	    (dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_FAST_REG_WR)) {
++		props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
 +	}
-+
-+	pdir->npages = npages;
-+
-+	if (alloc_pages) {
-+		pdir->pages = kcalloc(npages, sizeof(*pdir->pages),
-+				      GFP_KERNEL);
-+		if (!pdir->pages)
-+			goto err;
-+
-+		for (i = 0; i < pdir->npages; i++) {
-+			void *page;
-+			dma_addr_t page_dma;
-+
-+			page = dma_alloc_coherent(&dev->pdev->dev, PAGE_SIZE,
-+						  &page_dma, GFP_KERNEL);
-+			if (!page)
-+				goto err;
-+
-+			pdir->pages[i] = page;
-+			pvrdma_page_dir_insert_dma(pdir, i, page_dma);
-+		}
-+	}
-+
-+	return 0;
-+
-+err:
-+	pvrdma_page_dir_cleanup(dev, pdir);
-+
-+	return -ENOMEM;
-+}
-+
-+static u64 *pvrdma_page_dir_table(struct pvrdma_page_dir *pdir, u64 idx)
-+{
-+	return pdir->tables[PVRDMA_PAGE_DIR_TABLE(idx)];
-+}
-+
-+dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx)
-+{
-+	return pvrdma_page_dir_table(pdir, idx)[PVRDMA_PAGE_DIR_PAGE(idx)];
-+}
-+
-+static void pvrdma_page_dir_cleanup_pages(struct pvrdma_dev *dev,
-+					  struct pvrdma_page_dir *pdir)
-+{
-+	if (pdir->pages) {
-+		u64 i;
-+
-+		for (i = 0; i < pdir->npages && pdir->pages[i]; i++) {
-+			dma_addr_t page_dma = pvrdma_page_dir_get_dma(pdir, i);
-+
-+			dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
-+					  pdir->pages[i], page_dma);
-+		}
-+
-+		kfree(pdir->pages);
-+	}
-+}
-+
-+static void pvrdma_page_dir_cleanup_tables(struct pvrdma_dev *dev,
-+					   struct pvrdma_page_dir *pdir)
-+{
-+	if (pdir->tables) {
-+		int i;
-+
-+		pvrdma_page_dir_cleanup_pages(dev, pdir);
-+
-+		for (i = 0; i < pdir->ntables; i++) {
-+			u64 *table = pdir->tables[i];
-+
-+			if (table)
-+				dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
-+						  table, pdir->dir[i]);
-+		}
-+
-+		kfree(pdir->tables);
-+	}
-+}
-+
-+void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
-+			     struct pvrdma_page_dir *pdir)
-+{
-+	if (pdir->dir) {
-+		pvrdma_page_dir_cleanup_tables(dev, pdir);
-+		dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
-+				  pdir->dir, pdir->dir_dma);
-+	}
-+}
-+
-+int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
-+			       dma_addr_t daddr)
-+{
-+	u64 *table;
-+
-+	if (idx >= pdir->npages)
-+		return -EINVAL;
-+
-+	table = pvrdma_page_dir_table(pdir, idx);
-+	table[PVRDMA_PAGE_DIR_PAGE(idx)] = daddr;
 +
 +	return 0;
 +}
 +
-+int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
-+				struct ib_umem *umem, u64 offset)
++/**
++ * pvrdma_query_port - query device port attributes
++ * @ibdev: the device to query
++ * @port: the port number
++ * @props: the device properties
++ *
++ * @return: 0 on success, otherwise negative errno
++ */
++int pvrdma_query_port(struct ib_device *ibdev, u8 port,
++		      struct ib_port_attr *props)
 +{
-+	u64 i = offset;
-+	int j, entry;
-+	int ret = 0, len = 0;
-+	struct scatterlist *sg;
++	struct pvrdma_dev *dev = to_vdev(ibdev);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_query_port *cmd = &req.query_port;
++	struct pvrdma_cmd_query_port_resp *resp = &rsp.query_port_resp;
++	int err;
 +
-+	if (offset >= pdir->npages)
-+		return -EINVAL;
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_QUERY_PORT;
++	cmd->port_num = port;
 +
-+	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
-+		len = sg_dma_len(sg) >> PAGE_SHIFT;
-+		for (j = 0; j < len; j++) {
-+			dma_addr_t addr = sg_dma_address(sg) +
-+					  umem->page_size * j;
-+
-+			ret = pvrdma_page_dir_insert_dma(pdir, i, addr);
-+			if (ret)
-+				goto exit;
-+
-+			i++;
-+		}
++	err = pvrdma_cmd_post(dev, &req, &rsp);
++	if (err < 0 || rsp.hdr.ack != PVRDMA_CMD_QUERY_PORT_RESP) {
++		dev_warn(&dev->pdev->dev, "could not query port\n");
++		return -EFAULT;
 +	}
 +
-+exit:
++	memset(props, 0, sizeof(*props));
++
++	props->state = pvrdma_port_state_to_ib(resp->attrs.state);
++	props->max_mtu = pvrdma_mtu_to_ib(resp->attrs.max_mtu);
++	props->active_mtu = pvrdma_mtu_to_ib(resp->attrs.active_mtu);
++	props->gid_tbl_len = resp->attrs.gid_tbl_len;
++	props->port_cap_flags =
++		pvrdma_port_cap_flags_to_ib(resp->attrs.port_cap_flags);
++	props->max_msg_sz = resp->attrs.max_msg_sz;
++	props->bad_pkey_cntr = resp->attrs.bad_pkey_cntr;
++	props->qkey_viol_cntr = resp->attrs.qkey_viol_cntr;
++	props->pkey_tbl_len = resp->attrs.pkey_tbl_len;
++	props->lid = resp->attrs.lid;
++	props->sm_lid = resp->attrs.sm_lid;
++	props->lmc = resp->attrs.lmc;
++	props->max_vl_num = resp->attrs.max_vl_num;
++	props->sm_sl = resp->attrs.sm_sl;
++	props->subnet_timeout = resp->attrs.subnet_timeout;
++	props->init_type_reply = resp->attrs.init_type_reply;
++	props->active_width = pvrdma_port_width_to_ib(resp->attrs.active_width);
++	props->active_speed = pvrdma_port_speed_to_ib(resp->attrs.active_speed);
++	props->phys_state = resp->attrs.phys_state;
++
++	return 0;
++}
++
++/**
++ * pvrdma_query_gid - query device gid
++ * @ibdev: the device to query
++ * @port: the port number
++ * @index: the index
++ * @gid: the device gid value
++ *
++ * @return: 0 on success, otherwise negative errno
++ */
++int pvrdma_query_gid(struct ib_device *ibdev, u8 port, int index,
++		     union ib_gid *gid)
++{
++	struct pvrdma_dev *dev = to_vdev(ibdev);
++
++	if (index >= dev->dsr->caps.gid_tbl_len)
++		return -EINVAL;
++
++	memcpy(gid, &dev->sgid_tbl[index], sizeof(union ib_gid));
++
++	return 0;
++}
++
++/**
++ * pvrdma_query_pkey - query device port's P_Key table
++ * @ibdev: the device to query
++ * @port: the port number
++ * @index: the index
++ * @pkey: the device P_Key value
++ *
++ * @return: 0 on success, otherwise negative errno
++ */
++int pvrdma_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
++		      u16 *pkey)
++{
++	int err = 0;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_query_pkey *cmd = &req.query_pkey;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_QUERY_PKEY;
++	cmd->port_num = port;
++	cmd->index = index;
++
++	err = pvrdma_cmd_post(to_vdev(ibdev), &req, &rsp);
++	if (err < 0 || rsp.hdr.ack != PVRDMA_CMD_QUERY_PKEY_RESP) {
++		struct pvrdma_dev *dev = to_vdev(ibdev);
++
++		dev_warn(&dev->pdev->dev, "could not query device pkey\n");
++		return -EFAULT;
++	}
++
++	*pkey = rsp.query_pkey_resp.pkey;
++
++	return 0;
++}
++
++enum rdma_link_layer pvrdma_port_link_layer(struct ib_device *ibdev,
++					    u8 port)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++int pvrdma_modify_device(struct ib_device *ibdev, int mask,
++			 struct ib_device_modify *props)
++{
++	unsigned long flags;
++	int ret;
++
++	if (mask & ~(IB_DEVICE_MODIFY_SYS_IMAGE_GUID |
++		     IB_DEVICE_MODIFY_NODE_DESC)) {
++		struct pvrdma_dev *dev = to_vdev(ibdev);
++
++		dev_warn(&dev->pdev->dev, "unsupported device modify mask\n");
++		ret = -EOPNOTSUPP;
++		goto err_out;
++	}
++
++	if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
++		spin_lock_irqsave(&to_vdev(ibdev)->desc_lock, flags);
++		memcpy(ibdev->node_desc, props->node_desc, 64);
++		spin_unlock_irqrestore(&to_vdev(ibdev)->desc_lock, flags);
++	}
++
++	if (mask & IB_DEVICE_MODIFY_SYS_IMAGE_GUID) {
++		mutex_lock(&to_vdev(ibdev)->port_mutex);
++		to_vdev(ibdev)->sys_image_guid =
++			cpu_to_be64(props->sys_image_guid);
++		mutex_unlock(&to_vdev(ibdev)->port_mutex);
++	}
++
++	return 0;
++
++err_out:
 +	return ret;
 +}
 +
-+int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
-+				     u64 *page_list,
-+				     int num_pages)
++/**
++ * pvrdma_modify_port - modify device port attributes
++ * @ibdev: the device to modify
++ * @port: the port number
++ * @mask: attributes to modify
++ * @props: the device properties
++ *
++ * @return: 0 on success, otherwise negative errno
++ */
++int pvrdma_modify_port(struct ib_device *ibdev, u8 port, int mask,
++		       struct ib_port_modify *props)
 +{
-+	int i;
++	struct ib_port_attr attr;
++	struct pvrdma_dev *vdev = to_vdev(ibdev);
 +	int ret;
 +
-+	if (num_pages > pdir->npages)
-+		return -EINVAL;
++	mutex_lock(&vdev->port_mutex);
++	ret = pvrdma_query_port(ibdev, port, &attr);
++	if (ret)
++		goto err_out;
 +
-+	for (i = 0; i < num_pages; i++) {
-+		ret = pvrdma_page_dir_insert_dma(pdir, i, page_list[i]);
-+		if (ret)
-+			return ret;
++	vdev->port_cap_mask |= props->set_port_cap_mask;
++	vdev->port_cap_mask &= ~props->clr_port_cap_mask;
++
++	if (mask & IB_PORT_SHUTDOWN)
++		vdev->ib_active = false;
++
++	if (mask & (IB_PORT_INIT_TYPE | IB_PORT_RESET_QKEY_CNTR)) {
++		ret = -EOPNOTSUPP;
++		goto err_out;
 +	}
++
++	ret = 0;
++
++err_out:
++	mutex_unlock(&vdev->port_mutex);
++	return ret;
++}
++
++/**
++ * pvrdma_alloc_ucontext - allocate ucontext
++ * @ibdev: the IB device
++ * @udata: user data
++ *
++ * @return: the ib_ucontext pointer on success, otherwise errno.
++ */
++struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
++					  struct ib_udata *udata)
++{
++	struct pvrdma_dev *vdev = to_vdev(ibdev);
++	struct pvrdma_ucontext *context;
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_uc *cmd = &req.create_uc;
++	struct pvrdma_cmd_create_uc_resp *resp = &rsp.create_uc_resp;
++	struct pvrdma_alloc_ucontext_resp uresp;
++	int ret;
++
++	if (!vdev->ib_active)
++		return ERR_PTR(-EAGAIN);
++
++	context = kmalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
++		return ERR_PTR(-ENOMEM);
++
++	context->dev = vdev;
++	ret = pvrdma_uar_alloc(vdev, &context->uar);
++	if (ret) {
++		kfree(context);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	/* get ctx_handle from host */
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->pfn = context->uar.pfn;
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_UC;
++	ret = pvrdma_cmd_post(vdev, &req, &rsp);
++	if (ret < 0 || rsp.hdr.ack != PVRDMA_CMD_CREATE_UC_RESP) {
++		struct pvrdma_dev *dev = to_vdev(ibdev);
++
++		dev_warn(&dev->pdev->dev, "could not create ucontext\n");
++		pvrdma_uar_free(vdev, &context->uar);
++		kfree(context);
++		return ERR_PTR(-EFAULT);
++	}
++
++	context->ctx_handle = resp->ctx_handle;
++
++	/* copy back to user */
++	uresp.qp_tab_size = vdev->dsr->caps.max_qp;
++	ret = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
++	if (ret) {
++		pvrdma_uar_free(vdev, &context->uar);
++		context->ibucontext.device = ibdev;
++		pvrdma_dealloc_ucontext(&context->ibucontext);
++		return ERR_PTR(-EFAULT);
++	}
++
++	return &context->ibucontext;
++}
++
++/**
++ * pvrdma_dealloc_ucontext - deallocate ucontext
++ * @ibcontext: the ucontext
++ *
++ * @return: 0 on success, otherwise errno.
++ */
++int pvrdma_dealloc_ucontext(struct ib_ucontext *ibcontext)
++{
++	struct pvrdma_ucontext *context = to_vucontext(ibcontext);
++	union pvrdma_cmd_req req;
++	struct pvrdma_cmd_destroy_uc *cmd = &req.destroy_uc;
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_UC;
++	cmd->ctx_handle = context->ctx_handle;
++
++	ret = pvrdma_cmd_post(context->dev, &req, NULL);
++	if (ret < 0) {
++		dev_warn(&context->dev->pdev->dev,
++			 "destroy ucontext failed\n");
++		/* Just do it */
++	}
++	pvrdma_uar_free(to_vdev(ibcontext->device), &context->uar);
++	kfree(context);
++
++	return ret;
++}
++
++/**
++ * pvrdma_mmap - create mmap region
++ * @ibcontext: the user context
++ * @vma: the VMA
++ *
++ * @return: 0 on success, otherwise errno.
++ */
++int pvrdma_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vma)
++{
++	struct pvrdma_ucontext *context = to_vucontext(ibcontext);
++	unsigned long start = vma->vm_start;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++
++	dev_dbg(&context->dev->pdev->dev, "create mmap region\n");
++
++	if ((size != PAGE_SIZE) || (offset & ~PAGE_MASK)) {
++		dev_warn(&context->dev->pdev->dev,
++			 "invalid params for mmap region\n");
++		return -EINVAL;
++	}
++
++	/* Map UAR to kernel space, VM_LOCKED? */
++	vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND;
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	if (io_remap_pfn_range(vma, start, context->uar.pfn, size,
++			       vma->vm_page_prot))
++		return -EAGAIN;
 +
 +	return 0;
 +}
 +
-+void ib_qp_cap_to_pvrdma(const struct ib_qp_cap *src, struct pvrdma_qp_cap *dst)
++/**
++ * pvrdma_alloc_pd - allocate protection domain
++ * @ibdev: the IB device
++ * @context: user context
++ * @udata: user data
++ *
++ * @return: the ib_pd protection domain pointer on success, otherwise errno.
++ */
++struct ib_pd *pvrdma_alloc_pd(struct ib_device *ibdev,
++			      struct ib_ucontext *context,
++			      struct ib_udata *udata)
 +{
-+	dst->max_send_wr = src->max_send_wr;
-+	dst->max_recv_wr = src->max_recv_wr;
-+	dst->max_send_sge = src->max_send_sge;
-+	dst->max_recv_sge = src->max_recv_sge;
-+	dst->max_inline_data = src->max_inline_data;
++	struct pvrdma_pd *pd;
++	struct pvrdma_dev *dev = to_vdev(ibdev);
++	union pvrdma_cmd_req req;
++	union pvrdma_cmd_resp rsp;
++	struct pvrdma_cmd_create_pd *cmd = &req.create_pd;
++	struct pvrdma_cmd_create_pd_resp *resp = &rsp.create_pd_resp;
++	int ret;
++
++	/* Check allowed max pds */
++	if (!atomic_add_unless(&dev->num_pds, 1, dev->dsr->caps.max_pd))
++		return ERR_PTR(-EINVAL);
++
++	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
++	if (!pd) {
++		atomic_dec(&dev->num_pds);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	pd->priviledged = !context;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_CREATE_PD;
++	cmd->ctx_handle = (context) ? to_vucontext(context)->ctx_handle : 0;
++	ret = pvrdma_cmd_post(dev, &req, &rsp);
++	if (ret < 0 || resp->hdr.ack != PVRDMA_CMD_CREATE_PD_RESP) {
++		dev_warn(&dev->pdev->dev,
++			 "failed to allocate protection domain\n");
++		kfree(pd);
++		atomic_dec(&dev->num_pds);
++		return ERR_PTR(-EFAULT);
++	}
++
++	pd->pd_handle = resp->pd_handle;
++	pd->pdn = resp->pd_handle;
++
++	if (context) {
++		if (ib_copy_to_udata(udata, &pd->pdn, sizeof(__u32))) {
++			dev_warn(&dev->pdev->dev,
++				 "failed to copy back protection domain\n");
++			pvrdma_dealloc_pd(&pd->ibpd);
++			atomic_dec(&dev->num_pds);
++			return ERR_PTR(-EFAULT);
++		}
++	}
++
++	/* u32 pd handle */
++	return  &pd->ibpd;
 +}
 +
-+void pvrdma_qp_cap_to_ib(const struct pvrdma_qp_cap *src, struct ib_qp_cap *dst)
++/**
++ * pvrdma_dealloc_pd - deallocate protection domain
++ * @pd: the protection domain to be released
++ *
++ * @return: 0 on success, otherwise errno.
++ */
++int pvrdma_dealloc_pd(struct ib_pd *pd)
 +{
-+	dst->max_send_wr = src->max_send_wr;
-+	dst->max_recv_wr = src->max_recv_wr;
-+	dst->max_send_sge = src->max_send_sge;
-+	dst->max_recv_sge = src->max_recv_sge;
-+	dst->max_inline_data = src->max_inline_data;
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	union pvrdma_cmd_req req;
++	struct pvrdma_cmd_destroy_pd *cmd = &req.destroy_pd;
++	int ret;
++
++	memset(cmd, 0, sizeof(*cmd));
++	cmd->hdr.cmd = PVRDMA_CMD_DESTROY_PD;
++	cmd->pd_handle = to_vpd(pd)->pd_handle;
++
++	ret = pvrdma_cmd_post(dev, &req, NULL);
++	if (ret)
++		dev_warn(&dev->pdev->dev,
++			 "could not dealloc protection domain\n");
++
++	kfree(to_vpd(pd));
++	atomic_dec(&dev->num_pds);
++
++	return 0;
 +}
 +
-+void pvrdma_gid_to_ib(const union pvrdma_gid *src, union ib_gid *dst)
++/**
++ * pvrdma_create_ah - create an address handle
++ * @pd: the protection domain
++ * @ah_attr: the attributes of the AH
++ *
++ * @return: the ib_ah pointer on success, oterwise errno.
++ */
++struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr)
 +{
-+	BUILD_BUG_ON(sizeof(union pvrdma_gid) != sizeof(union ib_gid));
-+	memcpy(dst, src, sizeof(*src));
++	struct pvrdma_dev *dev = to_vdev(pd->device);
++	struct pvrdma_ah *ah;
++	enum rdma_link_layer ll;
++
++	if (!(ah_attr->ah_flags & IB_AH_GRH))
++		return ERR_PTR(-EINVAL);
++
++	ll = rdma_port_get_link_layer(pd->device, ah_attr->port_num);
++
++	if (ll != IB_LINK_LAYER_ETHERNET ||
++	    rdma_is_multicast_addr((struct in6_addr *)ah_attr->grh.dgid.raw))
++		return ERR_PTR(-EINVAL);
++
++	if (!atomic_add_unless(&dev->num_ahs, 1, dev->dsr->caps.max_ah))
++		return ERR_PTR(-EINVAL);
++
++	ah = kzalloc(sizeof(*ah), GFP_KERNEL);
++	if (!ah) {
++		atomic_dec(&dev->num_ahs);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	ah->av.port_pd = to_vpd(pd)->pd_handle | (ah_attr->port_num << 24);
++	ah->av.src_path_bits = ah_attr->src_path_bits;
++	ah->av.src_path_bits |= 0x80;
++	ah->av.gid_index = ah_attr->grh.sgid_index;
++	ah->av.hop_limit = ah_attr->grh.hop_limit;
++	ah->av.sl_tclass_flowlabel = (ah_attr->grh.traffic_class << 20) |
++				      ah_attr->grh.flow_label;
++	memcpy(ah->av.dgid, ah_attr->grh.dgid.raw, 16);
++	memcpy(ah->av.dmac, ah_attr->dmac, 6);
++
++	ah->ibah.device = pd->device;
++	ah->ibah.pd = pd;
++	ah->ibah.uobject = NULL;
++
++	return &ah->ibah;
 +}
 +
-+void ib_gid_to_pvrdma(const union ib_gid *src, union pvrdma_gid *dst)
++/**
++ * pvrdma_destroy_ah - destroy an address handle
++ * @ah: the address handle to destroyed
++ *
++ * @return: 0 on success.
++ */
++int pvrdma_destroy_ah(struct ib_ah *ah)
 +{
-+	BUILD_BUG_ON(sizeof(union pvrdma_gid) != sizeof(union ib_gid));
-+	memcpy(dst, src, sizeof(*src));
++	struct pvrdma_dev *dev = to_vdev(ah->device);
++
++	kfree(to_vah(ah));
++	atomic_dec(&dev->num_ahs);
++
++	return 0;
 +}
 +
-+void ib_global_route_to_pvrdma(const struct ib_global_route *src,
-+			       struct pvrdma_global_route *dst)
-+{
-+	ib_gid_to_pvrdma(&src->dgid, &dst->dgid);
-+	dst->flow_label = src->flow_label;
-+	dst->sgid_index = src->sgid_index;
-+	dst->hop_limit = src->hop_limit;
-+	dst->traffic_class = src->traffic_class;
-+}
+diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_verbs.h b/drivers/infiniband/hw/pvrdma/pvrdma_verbs.h
+new file mode 100644
+index 0000000..e52fbe5
+--- /dev/null
++++ b/drivers/infiniband/hw/pvrdma/pvrdma_verbs.h
+@@ -0,0 +1,108 @@
++/*
++ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of EITHER the GNU General Public License
++ * version 2 as published by the Free Software Foundation or the BSD
++ * 2-Clause License. This program is distributed in the hope that it
++ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
++ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License version 2 for more details at
++ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program available in the file COPYING in the main
++ * directory of this source tree.
++ *
++ * The BSD 2-Clause License
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
++ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
++ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
++ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
 +
-+void pvrdma_global_route_to_ib(const struct pvrdma_global_route *src,
-+			       struct ib_global_route *dst)
-+{
-+	pvrdma_gid_to_ib(&src->dgid, &dst->dgid);
-+	dst->flow_label = src->flow_label;
-+	dst->sgid_index = src->sgid_index;
-+	dst->hop_limit = src->hop_limit;
-+	dst->traffic_class = src->traffic_class;
-+}
++#ifndef __PVRDMA_VERBS_H__
++#define __PVRDMA_VERBS_H__
 +
-+void ib_ah_attr_to_pvrdma(const struct ib_ah_attr *src,
-+			  struct pvrdma_ah_attr *dst)
-+{
-+	ib_global_route_to_pvrdma(&src->grh, &dst->grh);
-+	dst->dlid = src->dlid;
-+	dst->sl = src->sl;
-+	dst->src_path_bits = src->src_path_bits;
-+	dst->static_rate = src->static_rate;
-+	dst->ah_flags = src->ah_flags;
-+	dst->port_num = src->port_num;
-+	memcpy(&dst->dmac, &src->dmac, sizeof(dst->dmac));
-+}
++int pvrdma_query_device(struct ib_device *ibdev,
++			struct ib_device_attr *props,
++			struct ib_udata *udata);
++int pvrdma_query_port(struct ib_device *ibdev, u8 port,
++		      struct ib_port_attr *props);
++int pvrdma_query_gid(struct ib_device *ibdev, u8 port,
++		     int index, union ib_gid *gid);
++int pvrdma_query_pkey(struct ib_device *ibdev, u8 port,
++		      u16 index, u16 *pkey);
++enum rdma_link_layer pvrdma_port_link_layer(struct ib_device *ibdev,
++					    u8 port);
++int pvrdma_modify_device(struct ib_device *ibdev, int mask,
++			 struct ib_device_modify *props);
++int pvrdma_modify_port(struct ib_device *ibdev, u8 port,
++		       int mask, struct ib_port_modify *props);
++int pvrdma_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
++struct ib_ucontext *pvrdma_alloc_ucontext(struct ib_device *ibdev,
++					  struct ib_udata *udata);
++int pvrdma_dealloc_ucontext(struct ib_ucontext *context);
++struct ib_pd *pvrdma_alloc_pd(struct ib_device *ibdev,
++			      struct ib_ucontext *context,
++			      struct ib_udata *udata);
++int pvrdma_dealloc_pd(struct ib_pd *ibpd);
++struct ib_mr *pvrdma_get_dma_mr(struct ib_pd *pd, int acc);
++struct ib_mr *pvrdma_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
++				 u64 virt_addr, int access_flags,
++				 struct ib_udata *udata);
++int pvrdma_dereg_mr(struct ib_mr *mr);
++struct ib_mr *pvrdma_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
++			      u32 max_num_sg);
++int pvrdma_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
++		     int sg_nents, unsigned int *sg_offset);
++int pvrdma_modify_cq(struct ib_cq *cq, u16 cq_count, u16 cq_period);
++int pvrdma_resize_cq(struct ib_cq *ibcq, int entries,
++		     struct ib_udata *udata);
++struct ib_cq *pvrdma_create_cq(struct ib_device *ibdev,
++			       const struct ib_cq_init_attr *attr,
++			       struct ib_ucontext *context,
++			       struct ib_udata *udata);
++int pvrdma_resize_cq(struct ib_cq *ibcq, int entries,
++		     struct ib_udata *udata);
++int pvrdma_destroy_cq(struct ib_cq *cq);
++int pvrdma_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
++int pvrdma_req_notify_cq(struct ib_cq *cq, enum ib_cq_notify_flags flags);
++struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr);
++int pvrdma_destroy_ah(struct ib_ah *ah);
++struct ib_qp *pvrdma_create_qp(struct ib_pd *pd,
++			       struct ib_qp_init_attr *init_attr,
++			       struct ib_udata *udata);
++int pvrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
++		     int attr_mask, struct ib_udata *udata);
++int pvrdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
++		    int qp_attr_mask, struct ib_qp_init_attr *qp_init_attr);
++int pvrdma_destroy_qp(struct ib_qp *qp);
++int pvrdma_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
++		     struct ib_send_wr **bad_wr);
++int pvrdma_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
++		     struct ib_recv_wr **bad_wr);
 +
-+void pvrdma_ah_attr_to_ib(const struct pvrdma_ah_attr *src,
-+			  struct ib_ah_attr *dst)
-+{
-+	pvrdma_global_route_to_ib(&src->grh, &dst->grh);
-+	dst->dlid = src->dlid;
-+	dst->sl = src->sl;
-+	dst->src_path_bits = src->src_path_bits;
-+	dst->static_rate = src->static_rate;
-+	dst->ah_flags = src->ah_flags;
-+	dst->port_num = src->port_num;
-+	memcpy(&dst->dmac, &src->dmac, sizeof(dst->dmac));
-+}
++#endif /* __PVRDMA_VERBS_H__ */
 -- 
 2.7.4
 
