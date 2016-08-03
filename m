@@ -1,119 +1,118 @@
-From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Subject: Re: [PATCH 2/2] ipoib: Ratelimit messages which can flood a host.
-Date: Wed, 3 Aug 2016 17:32:11 +0300
-Message-ID: <57A2006B.5070304@kyup.com>
-References: <1469543929-17659-1-git-send-email-kernel@kyup.com>
- <1469543929-17659-2-git-send-email-kernel@kyup.com>
- <20160726180021.GA6144@yuval-lap.uk.oracle.com>
- <1470234370.18081.63.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1470234370.18081.63.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+From: Raju Rangoju <rajur@chelsio.com>
+Subject: [PATCH v2 1/1] IB/isert: Properly release resources on DEVICE_REMOVAL event
+Date: Wed,  3 Aug 2016 20:50:36 +0530
+Message-ID: <20160803152036.12557-1-rajur@chelsio.com>
+Return-path: <target-devel-owner@vger.kernel.org>
+Sender: target-devel-owner@vger.kernel.org
+To: dledford@redhat.com, nab@linux-iscsi.org, target-devel@vger.kernel.org
+Cc: sagi@grimberg.me, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, Raju Rangoju <rajur@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
+When the low level driver exercises the hot unplug they would call
+rdma_cm cma_remove_one which would fire DEVICE_REMOVAL event to all cma
+consumers. Now, if consumer doesn't make sure they destroy all IB
+objects created on that IB device instance prior to finalizing all
+processing of DEVICE_REMOVAL callback, rdma_cm will let the lld to
+de-register with IB core and destroy the IB device instance. And if the
+consumer calls (say) ib_dereg_mr(), it will crash since that dev object
+is NULL.
 
+In the current implementation, iser-target just initiates the cleanup
+and returns from DEVICE_REMOVAL callback. This deferred work creates a
+race between iser-target cleaning IB objects(say MR) and lld destroying
+IB device instance.
 
-On 08/03/2016 05:26 PM, Doug Ledford wrote:
-> On Tue, 2016-07-26 at 21:00 +0300, Yuval Shaia wrote:
->> On Tue, Jul 26, 2016 at 05:38:49PM +0300, Nikolay Borisov wrote:
->>>
->>> In case an infiniband outtage occurs the messages modified
->>> in this patchset can flood the host with a rate of 1 message per
->>
->> s/patchset/patch
->>
->>>
->>> ms which is a lot. Using the ratelimited version of ipoib_warn
->>> fixes the issue by limiting at most 10 messages in 5 seconds.
->>>
->>> Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
->>> ---
->>>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
->>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>> b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>> index 7d3281866ffc..dd5b4afbc00b 100644
->>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->>> @@ -1034,9 +1034,9 @@ static void ipoib_timeout(struct net_device
->>> *dev)
->>>  {
->>>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
->>>  
->>> -	ipoib_warn(priv, "transmit timeout: latency %d msecs\n",
->>> +	ipoib_warn_rl(priv, "transmit timeout: latency %d
->>> msecs\n",
->>>  		   jiffies_to_msecs(jiffies - dev->trans_start));
->>> -	ipoib_warn(priv, "queue stopped %d, tx_head %u, tx_tail
->>> %u\n",
->>> +	ipoib_warn_rl(priv, "queue stopped %d, tx_head %u, tx_tail
->>> %u\n",
->>
->> So this is just to hide the hide the problem,
-> 
-> No, that's not true.  To hide the problem, he would have to remove the
-> printk entirely.  Linus absolutely despises when programmers use
-> BUG_ON() for situations where it is possible for the system to
-> continue, albeit with reduced capability or what not.  Similarly, it is
-> entirely unacceptable that a simple issue, such as a hardware queue
-> stoppage on a network device, can render a system mostly or entirely or
-> even just somewhat unusable due to a flood of kernel printk messages.
-> 
-> Just so we're clear, I absolutely despise printk floods.  There is
-> never a valid reason for them.  If someone in the kernel community
-> suggested that we make the default printk implementation be flood
-> proof, I would support it.  In the meantime, I'm all for these patches.
->  And if there are other places in the ipoib code that can cause floods
-> too, I would like to see them switched over to use the rate limited
-> version too.
-> 
-> Now that I think about it, I'm just as likely to be receptive to a
-> patch that makes the default ipoib_warn() always be rate limited, and
-> if there are exceptions in the ipoib stack where we truly want every
+This patch includes the following fixes
+  -> make sure that consumer frees all IB objects associated with device
+     instance
+  -> return non-zero from the callback to destroy the rdma_cm id
 
-The thing with this approach is that it's entirely possible to miss
-messages if there is one particular ratelimit state.
+Signed-off-by: Raju Rangoju <rajur@chelsio.com>
+---
+Changes since v1:
+- rephrased commit subject
 
-> message, then change just those places to a different
-> ipoib_warn_no_rate_limit() implementation.  I would probably modify the
-> default rate though...10 in 5 seconds is probably too low for some of
-> the messages, as we can legitimately get a burst of 50 in less than a
-> second when doing things like joining lots of multicast groups and
-> there is an issue, or something like that.  Maybe 100 in 60 to allow
-> for bursts but to still prevent runaway printks like you are having?
-> 
-If you take a closer look at the definition of ipoib_warn_rl you would
-see that it's enclosed in it's own {} block, meaning its ratelimit state
-is going to apply to this particular place. In essence only the
-"transmit timeout: latency msec" message would be rate limited to 10
-messages in 5 seconds, which I believe is fine. In a flood situation
-you'd get 10 identical messages and then there will be a line saying how
-many were suppressed, indicating a flood.
+ drivers/infiniband/ulp/isert/ib_isert.c | 23 ++++++++++++++++++++---
+ drivers/infiniband/ulp/isert/ib_isert.h |  2 ++
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
-
->>  the real question is what is
->> causing this to happen a lot.
->>
->>>
->>>  		   netif_queue_stopped(dev),
->>>  		   priv->tx_head, priv->tx_tail);
->>>  	/* XXX reset QP, etc. */
->>> -- 
->>> 2.5.0
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-
->>> rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index a990c04..3dfd903 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -405,6 +405,7 @@ isert_init_conn(struct isert_conn *isert_conn)
+ 	INIT_LIST_HEAD(&isert_conn->node);
+ 	init_completion(&isert_conn->login_comp);
+ 	init_completion(&isert_conn->login_req_comp);
++	init_waitqueue_head(&isert_conn->rem_wait);
+ 	kref_init(&isert_conn->kref);
+ 	mutex_init(&isert_conn->mutex);
+ 	INIT_WORK(&isert_conn->release_work, isert_release_work);
+@@ -580,7 +581,8 @@ isert_connect_release(struct isert_conn *isert_conn)
+ 	BUG_ON(!device);
+ 
+ 	isert_free_rx_descriptors(isert_conn);
+-	if (isert_conn->cm_id)
++	if (isert_conn->cm_id &&
++	    !isert_conn->dev_removed)
+ 		rdma_destroy_id(isert_conn->cm_id);
+ 
+ 	if (isert_conn->qp) {
+@@ -595,7 +597,10 @@ isert_connect_release(struct isert_conn *isert_conn)
+ 
+ 	isert_device_put(device);
+ 
+-	kfree(isert_conn);
++	if (isert_conn->dev_removed)
++		wake_up_interruptible(&isert_conn->rem_wait);
++	else
++		kfree(isert_conn);
+ }
+ 
+ static void
+@@ -755,6 +760,7 @@ static int
+ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ {
+ 	struct isert_np *isert_np = cma_id->context;
++	struct isert_conn *isert_conn;
+ 	int ret = 0;
+ 
+ 	isert_info("%s (%d): status %d id %p np %p\n",
+@@ -775,10 +781,21 @@ isert_cma_handler(struct rdma_cm_id *cma_id, struct rdma_cm_event *event)
+ 		break;
+ 	case RDMA_CM_EVENT_ADDR_CHANGE:    /* FALLTHRU */
+ 	case RDMA_CM_EVENT_DISCONNECTED:   /* FALLTHRU */
+-	case RDMA_CM_EVENT_DEVICE_REMOVAL: /* FALLTHRU */
+ 	case RDMA_CM_EVENT_TIMEWAIT_EXIT:  /* FALLTHRU */
+ 		ret = isert_disconnected_handler(cma_id, event->event);
+ 		break;
++	case RDMA_CM_EVENT_DEVICE_REMOVAL:
++		isert_conn = cma_id->qp->qp_context;
++		isert_conn->dev_removed = true;
++		isert_disconnected_handler(cma_id, event->event);
++		wait_event_interruptible(isert_conn->rem_wait,
++					 isert_conn->state == ISER_CONN_DOWN);
++		kfree(isert_conn);
++		/*
++		 * return non-zero from the callback to destroy
++		 * the rdma cm id
++		 */
++		return 1;
+ 	case RDMA_CM_EVENT_REJECTED:       /* FALLTHRU */
+ 	case RDMA_CM_EVENT_UNREACHABLE:    /* FALLTHRU */
+ 	case RDMA_CM_EVENT_CONNECT_ERROR:
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.h b/drivers/infiniband/ulp/isert/ib_isert.h
+index e512ba9..d0c5c2c 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.h
++++ b/drivers/infiniband/ulp/isert/ib_isert.h
+@@ -159,6 +159,8 @@ struct isert_conn {
+ 	struct work_struct	release_work;
+ 	bool                    logout_posted;
+ 	bool                    snd_w_inv;
++	wait_queue_head_t       rem_wait;
++	bool                    dev_removed;
+ };
+ 
+ #define ISERT_MAX_CQ 64
+-- 
+2.8.3
