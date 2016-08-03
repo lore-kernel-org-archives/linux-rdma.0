@@ -1,204 +1,740 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] ipoib: Ratelimit messages which can flood a host.
-Date: Wed, 03 Aug 2016 12:25:25 -0400
-Message-ID: <1470241525.18081.66.camel@redhat.com>
-References: <1469543929-17659-1-git-send-email-kernel@kyup.com>
-	 <1469543929-17659-2-git-send-email-kernel@kyup.com>
-	 <20160726180021.GA6144@yuval-lap.uk.oracle.com>
-	 <1470234370.18081.63.camel@redhat.com> <57A2006B.5070304@kyup.com>
+From: Topi Miettinen <toiwoton@gmail.com>
+Subject: Re: [PATCH 00/14] Present useful limits to user (v2)
+Date: Wed, 3 Aug 2016 18:20:20 +0000
+Message-ID: <5808f9b5-6558-458b-0487-d20ecea0e903@gmail.com>
+References: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-yWz9uNo/qwI+eFy7fybl"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <57A2006B.5070304-6AxghH7DbtA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Content-Type: multipart/mixed;
+ boundary="------------A3E853F60BD52C9FDFF5D323"
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1468578983-28229-1-git-send-email-toiwoton@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Alexander Graf <agraf@suse.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@inte>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-yWz9uNo/qwI+eFy7fybl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2016-08-03 at 17:32 +0300, Nikolay Borisov wrote:
->=20
-> On 08/03/2016 05:26 PM, Doug Ledford wrote:
-> >=20
-> > On Tue, 2016-07-26 at 21:00 +0300, Yuval Shaia wrote:
-> > >=20
-> > > On Tue, Jul 26, 2016 at 05:38:49PM +0300, Nikolay Borisov wrote:
-> > > >=20
-> > > >=20
-> > > > In case an infiniband outtage occurs the messages modified
-> > > > in this patchset can flood the host with a rate of 1 message
-> > > > per
-> > >=20
-> > > s/patchset/patch
-> > >=20
-> > > >=20
-> > > >=20
-> > > > ms which is a lot. Using the ratelimited version of ipoib_warn
-> > > > fixes the issue by limiting at most 10 messages in 5 seconds.
-> > > >=20
-> > > > Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-> > > > ---
-> > > > =C2=A0drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
-> > > > =C2=A01 file changed, 2 insertions(+), 2 deletions(-)
-> > > >=20
-> > > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > > b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > > index 7d3281866ffc..dd5b4afbc00b 100644
-> > > > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > > > @@ -1034,9 +1034,9 @@ static void ipoib_timeout(struct
-> > > > net_device
-> > > > *dev)
-> > > > =C2=A0{
-> > > > =C2=A0	struct ipoib_dev_priv *priv =3D netdev_priv(dev);
-> > > > =C2=A0
-> > > > -	ipoib_warn(priv, "transmit timeout: latency %d
-> > > > msecs\n",
-> > > > +	ipoib_warn_rl(priv, "transmit timeout: latency %d
-> > > > msecs\n",
-> > > > =C2=A0		=C2=A0=C2=A0=C2=A0jiffies_to_msecs(jiffies - dev-
-> > > > >trans_start));
-> > > > -	ipoib_warn(priv, "queue stopped %d, tx_head %u,
-> > > > tx_tail
-> > > > %u\n",
-> > > > +	ipoib_warn_rl(priv, "queue stopped %d, tx_head %u,
-> > > > tx_tail
-> > > > %u\n",
-> > >=20
-> > > So this is just to hide the hide the problem,
-> >=20
-> > No, that's not true.=C2=A0=C2=A0To hide the problem, he would have to r=
-emove
-> > the
-> > printk entirely.=C2=A0=C2=A0Linus absolutely despises when programmers =
-use
-> > BUG_ON() for situations where it is possible for the system to
-> > continue, albeit with reduced capability or what not.=C2=A0=C2=A0Simila=
-rly,
-> > it is
-> > entirely unacceptable that a simple issue, such as a hardware queue
-> > stoppage on a network device, can render a system mostly or
-> > entirely or
-> > even just somewhat unusable due to a flood of kernel printk
-> > messages.
-> >=20
-> > Just so we're clear, I absolutely despise printk floods.=C2=A0=C2=A0The=
-re is
-> > never a valid reason for them.=C2=A0=C2=A0If someone in the kernel comm=
-unity
-> > suggested that we make the default printk implementation be flood
-> > proof, I would support it.=C2=A0=C2=A0In the meantime, I'm all for thes=
-e
-> > patches.
-> > =C2=A0And if there are other places in the ipoib code that can cause
-> > floods
-> > too, I would like to see them switched over to use the rate limited
-> > version too.
-> >=20
-> > Now that I think about it, I'm just as likely to be receptive to a
-> > patch that makes the default ipoib_warn() always be rate limited,
-> > and
-> > if there are exceptions in the ipoib stack where we truly want
-> > every
->=20
-> The thing with this approach is that it's entirely possible to miss
-> messages if there is one particular ratelimit state.
->=20
-> >=20
-> > message, then change just those places to a different
-> > ipoib_warn_no_rate_limit() implementation.=C2=A0=C2=A0I would probably =
-modify
-> > the
-> > default rate though...10 in 5 seconds is probably too low for some
-> > of
-> > the messages, as we can legitimately get a burst of 50 in less than
-> > a
-> > second when doing things like joining lots of multicast groups and
-> > there is an issue, or something like that.=C2=A0=C2=A0Maybe 100 in 60 t=
-o
-> > allow
-> > for bursts but to still prevent runaway printks like you are
-> > having?
-> >=20
-> If you take a closer look at the definition of ipoib_warn_rl you
-> would
-> see that it's enclosed in it's own {} block, meaning its ratelimit
-> state
-> is going to apply to this particular place. In essence only the
-> "transmit timeout: latency msec" message would be rate limited to 10
-> messages in 5 seconds, which I believe is fine. In a flood situation
-> you'd get 10 identical messages and then there will be a line saying
-> how
-> many were suppressed, indicating a flood.
-
-I saw that. =C2=A0You're missing my point. =C2=A0I was referring to keeping=
- the
-individual {} block in the define of ipoib_warn() instead of creating a
-new ipoib_warn_rl() define, but I was commenting that some of the
-messages in the ipoib file really need a higher burst, and since even
-though each of these messages would have their own rate limit state,
-they still all share a common rate limit config, the config would need
-to be bumped up for some of the spammier message spots in ipoib.
-
->=20
-> >=20
-> > >=20
-> > > =C2=A0the real question is what is
-> > > causing this to happen a lot.
-> > >=20
-> > > >=20
-> > > >=20
-> > > > =C2=A0		=C2=A0=C2=A0=C2=A0netif_queue_stopped(dev),
-> > > > =C2=A0		=C2=A0=C2=A0=C2=A0priv->tx_head, priv->tx_tail);
-> > > > =C2=A0	/* XXX reset QP, etc. */
-> > > > --=C2=A0
-> > > > 2.5.0
-> > > >=20
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe
-> > > > linux-
-> > > > rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at=C2=A0=C2=A0http://vger.kernel.org/majordomo-=
-info.h
-> > > > tml
-> >=20
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: 0E572FDD
-
---=-yWz9uNo/qwI+eFy7fybl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+This is a multi-part message in MIME format.
+--------------A3E853F60BD52C9FDFF5D323
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Hello,
 
-iQIcBAABCAAGBQJXohr1AAoJELgmozMOVy/dfqQQAKJMrmxvsPenGPhw2czcQFZS
-nGhhi2CgzhKVJ2nZ4BPfwGVPJJXuQrEuMPhKrQ3a56+rPLQic/eSMha7bsccENk2
-suv0j6z98JkJxjRQsai6wNEmlLygaRr2ObKeivlC3QFc0T0j0hl2HtW/dsi8EFQM
-29D3ICDxW+l1bqzft47MdRUe0knEvyZ0b85wM2S65iYTyn/My1NC8s1g2Ro4QM7o
-i6L8Fmtk0b/j1BszvIYoqj7IdqCuvJJLzfs28sM3NB7dS14Joe684+KdBWJKq/md
-pUnMEXjYHj/kIixfOrw50ZKhmU0I3yKb6977NN/dtwq6KWjMevcSKAHv1yD9ceaZ
-Jadw0b8bzRoX99XoneRjgnhFsASzwjY664TRAYTvoo+rXwmcRG/q1fOZbdbt8yRP
-mbyQrRjlwukix8vlAqyKJ/p0/V9ofhKyHZ4iAgBU0a2icibAVwvZ8ggJZzHbyktO
-qQPSPSsnUHhppxsl4AVa7LTJbe2TOTd0Fyoi0ljejNuExcSQ31DrRAwcjZkGalvZ
-qJCMIeg67nIOtb/Ji6BrcheYNqosvIvV2sW2iGIAUwxCJMv0cBQ8WgjrkfjiAHm1
-xd7iYcmDH/Ot5/v+/ae9arz9XqImhBPC9tKYwSSZ+6uYXFbMG0JK1QX16AZnJsK8
-xRDrGFcFuiheaLBrrOAs
-=OqrU
------END PGP SIGNATURE-----
+I'm trying the systemtap approach and it looks promising. The script is
+annotating strace-like output with capability, device access and RLIMIT
+information. In the end there's a summary. Here's sample output from
+wpa_supplicant run:
 
---=-yWz9uNo/qwI+eFy7fybl--
+mprotect(0x7efebf140000, 16384, PROT_READ) = 0 [DATA 548864 -> 573440]
+[AS 44986368 -> 45002752]
+brk(0x55d9611f8000) = 94392125718528 missing
+[Capabilities=CAP_SYS_ADMIN] [AS 45002752 -> 45010944]
+open(0x55d960716462, O_RDWR) = 3 [DeviceAllow=/dev/char/1:3 rw ]
+open("/dev/random", O_RDONLY|O_NONBLOCK) = 3 [DeviceAllow=/dev/char/1:8 r ]
+socket(PF_LOCAL, SOCK_STREAM|SOCK_CLOEXEC, 0) = 4
+[RestrictAddressFamilies=AF_UNIX] [NOFILE 3 -> 4]
+open("/etc/wpa_supplicant.conf", O_RDONLY) = 5 [NOFILE 4 -> 5]
+socket(PF_NETLINK, SOCK_RAW, 0) = 5 [RestrictAddressFamilies=AF_NETLINK]
+socket(PF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, 16) = 6
+[RestrictAddressFamilies=AF_NETLINK] [NOFILE 5 -> 6]
+socket(PF_NETLINK, SOCK_RAW|SOCK_CLOEXEC, 16) = 7
+[RestrictAddressFamilies=AF_NETLINK] [NOFILE 6 -> 7]
+socket(PF_INET, SOCK_DGRAM, IPPROTO_IP) = 8
+[RestrictAddressFamilies=AF_INET] [NOFILE 7 -> 8]
+open("/dev/rfkill", O_RDONLY) = 9 [DeviceAllow=/dev/char/10:58 r ]
+[NOFILE 8 -> 9]
+socket(PF_LOCAL, SOCK_DGRAM|SOCK_CLOEXEC, 0) = 10
+[RestrictAddressFamilies=AF_UNIX] [NOFILE 9 -> 10]
+sendmsg(6, 0x7ffc778f35b0, 0x0) = 36 [Capabilities=CAP_NET_ADMIN]
+
+Summary:
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+Consider also missing CapabilityBoundingSet=CAP_SYS_ADMIN
+DeviceAllow=/dev/char/1:3 rw
+DeviceAllow=/dev/char/1:8 r
+DeviceAllow=/dev/char/10:58 r
+DeviceAllow=/dev/char/1:9 r
+LimitFSIZE=0
+LimitDATA=577536
+LimitSTACK=139264
+LimitCORE=0
+LimitNOFILE=15
+LimitAS=45146112
+LimitNPROC=171
+LimitMEMLOCK=0
+LimitSIGPENDING=0
+LimitMSGQUEUE=0
+LimitNICE=0
+LimitRTPRIO=0
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK AF_PACKET
+MemoryDenyWriteExecute=true
+
+Some values are not correct. NPROC is wrong because staprun needs to be
+run as root instead of the separate privileged user for wpa_supplicant
+and that messes user process count. DATA/AS/STACK seems to be a bit off.
+I can easily use this as systemd service configuration drop-in otherwise.
+
+Now, the relevant part for the kernel is that I'd like to analyze error
+paths better, so the system calls would be also annotated when there's a
+failure when a RLIMIT is too tight. It would be easier to insert probes
+if there was only one path for RLIMIT checks. Would it be OK to make the
+function task_rlimit() a full check against the limit and also make it a
+non-inlined function, just for improved probing purposes?
+
+There's already error analysis for the capabilities, but there are some
+false positive hits (like brk() complaining about missing CAP_SYS_ADMIN
+above).
+
+-Topi
+
+
+--------------A3E853F60BD52C9FDFF5D323
+Content-Type: text/plain; charset=UTF-8;
+ name="strace.stp"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="strace.stp"
+
+#! /bin/sh
+
+# suppress some run-time errors here for cleaner output
+//bin/true && exec stap --suppress-handler-errors --skip-badvars $0 ${1+"$@"}
+
+/*
+ * Compile:
+ * stap -p4 -DSTP_NO_OVERLOAD -m strace
+ * Run:
+ * /usr/bin/staprun -R -c "/sbin/wpa_supplicant -u -O /run/wpa_supplicant -c /etc/wpa_supplicant.conf -i wlan0" -w /root/strace.ko only_capability_use=1 timestamp=0
+ */
+
+/* configuration options; set these with stap -G */
+global follow_fork = 0   /* -Gfollow_fork=1 means trace descendant processes too */
+global timestamp = 1     /* -Gtimestamp=0 means don't print a syscall timestamp */
+global elapsed_time = 0  /* -Gelapsed_time=1 means print a syscall duration too */
+global only_capability_use = 0 /* -Gonly_capability_use=1 means print only when capabilities are used */
+global thread_argstr%
+global thread_time%
+
+global syscalls_nonreturn[2]
+global capnames[64]
+global used_caps
+global missing_caps
+global all_used_caps
+global all_missing_caps
+global accessed_devices[1000]
+global all_accessed_devices[1000]
+global highwatermark_fsize
+global highwatermark_data
+global highwatermark_stack
+global highwatermark_core
+global highwatermark_nproc
+global highwatermark_nofile
+global highwatermark_memlock
+global highwatermark_as
+global highwatermark_sigpending
+global highwatermark_msgqueue
+global highwatermark_nice
+global highwatermark_rtprio
+global old_highwatermark_fsize
+global old_highwatermark_data
+global old_highwatermark_stack
+global old_highwatermark_core
+global old_highwatermark_nproc
+global old_highwatermark_nofile
+global old_highwatermark_memlock
+global old_highwatermark_as
+global old_highwatermark_sigpending
+global old_highwatermark_msgqueue
+global old_highwatermark_nice
+global old_highwatermark_rtprio
+global afnames[64]
+global used_afs
+global missing_afs
+global all_used_afs
+global all_missing_afs
+global no_memory_deny_write_execute
+global all_memory_deny_write_execute = "true"
+global print_syscall
+
+
+probe begin 
+  {
+    /* list those syscalls that never .return */
+    syscalls_nonreturn["exit"]=1
+    syscalls_nonreturn["exit_group"]=1
+
+    // grep '#define CAP_.*[0-9]+$' /usr/src/linux-headers*/include/uapi/linux/capability.h | awk '{ print "capnames[" $3 "] = \"" $2 "\";" }'
+    capnames[0] = "CAP_CHOWN";
+    capnames[1] = "CAP_DAC_OVERRIDE";
+    capnames[2] = "CAP_DAC_READ_SEARCH";
+    capnames[3] = "CAP_FOWNER";
+    capnames[4] = "CAP_FSETID";
+    capnames[5] = "CAP_KILL";
+    capnames[6] = "CAP_SETGID";
+    capnames[7] = "CAP_SETUID";
+    capnames[8] = "CAP_SETPCAP";
+    capnames[9] = "CAP_LINUX_IMMUTABLE";
+    capnames[10] = "CAP_NET_BIND_SERVICE";
+    capnames[11] = "CAP_NET_BROADCAST";
+    capnames[12] = "CAP_NET_ADMIN";
+    capnames[13] = "CAP_NET_RAW";
+    capnames[14] = "CAP_IPC_LOCK";
+    capnames[15] = "CAP_IPC_OWNER";
+    capnames[16] = "CAP_SYS_MODULE";
+    capnames[17] = "CAP_SYS_RAWIO";
+    capnames[18] = "CAP_SYS_CHROOT";
+    capnames[19] = "CAP_SYS_PTRACE";
+    capnames[20] = "CAP_SYS_PACCT";
+    capnames[21] = "CAP_SYS_ADMIN";
+    capnames[22] = "CAP_SYS_BOOT";
+    capnames[23] = "CAP_SYS_NICE";
+    capnames[24] = "CAP_SYS_RESOURCE";
+    capnames[25] = "CAP_SYS_TIME";
+    capnames[26] = "CAP_SYS_TTY_CONFIG";
+    capnames[27] = "CAP_MKNOD";
+    capnames[28] = "CAP_LEASE";
+    capnames[29] = "CAP_AUDIT_WRITE";
+    capnames[30] = "CAP_AUDIT_CONTROL";
+    capnames[31] = "CAP_SETFCAP";
+    capnames[32] = "CAP_MAC_OVERRIDE";
+    capnames[33] = "CAP_MAC_ADMIN";
+    capnames[34] = "CAP_SYSLOG";
+    capnames[35] = "CAP_WAKE_ALARM";
+    capnames[36] = "CAP_BLOCK_SUSPEND";
+    capnames[37] = "CAP_AUDIT_READ";
+
+    //grep '#define AF_.*' /usr/src/linux-headers-*/include/linux/socket.h | awk '{ print "afnames[" $3 "] = \"" $2 "\"" }'
+    afnames[0] = "AF_UNSPEC"
+    afnames[1] = "AF_UNIX"
+    afnames[2] = "AF_INET"
+    afnames[3] = "AF_AX25"
+    afnames[4] = "AF_IPX"
+    afnames[5] = "AF_APPLETALK"
+    afnames[6] = "AF_NETROM"
+    afnames[7] = "AF_BRIDGE"
+    afnames[8] = "AF_ATMPVC"
+    afnames[9] = "AF_X25"
+    afnames[10] = "AF_INET6"
+    afnames[11] = "AF_ROSE"
+    afnames[12] = "AF_DECnet"
+    afnames[13] = "AF_NETBEUI"
+    afnames[14] = "AF_SECURITY"
+    afnames[15] = "AF_KEY"
+    afnames[16] = "AF_NETLINK"
+    afnames[17] = "AF_PACKET"
+    afnames[18] = "AF_ASH"
+    afnames[19] = "AF_ECONET"
+    afnames[20] = "AF_ATMSVC"
+    afnames[21] = "AF_RDS"
+    afnames[22] = "AF_SNA"
+    afnames[23] = "AF_IRDA"
+    afnames[24] = "AF_PPPOX"
+    afnames[25] = "AF_WANPIPE"
+    afnames[26] = "AF_LLC"
+    afnames[27] = "AF_IB"
+    afnames[28] = "AF_MPLS"
+    afnames[29] = "AF_CAN"
+    afnames[30] = "AF_TIPC"
+    afnames[31] = "AF_BLUETOOTH"
+    afnames[32] = "AF_IUCV"
+    afnames[33] = "AF_RXRPC"
+    afnames[34] = "AF_ISDN"
+    afnames[35] = "AF_PHONET"
+    afnames[36] = "AF_IEEE802154"
+    afnames[37] = "AF_CAIF"
+    afnames[38] = "AF_ALG"
+    afnames[39] = "AF_NFC"
+    afnames[40] = "AF_VSOCK"
+    afnames[41] = "AF_KCM"
+  }
+
+
+
+function filter_p()
+  {
+    if (target() == 0) return 0; /* system-wide */
+    if (!follow_fork && pid() != target()) return 1; /* single-process */
+    if (follow_fork && !target_set_pid(pid())) return 1; /* multi-process */
+    return 0;
+  }
+
+function caps_to_str(caps)
+  {
+    str = ""
+    for (i = 0; i < 37; i++) # CAP_LAST_CAP
+      if (caps & (1 << i)) {
+        str .= capnames[i]
+	if ((caps & ~((1 << (i + 1)) - 1)) != 0)
+	  str .= " "
+      }
+    return str
+  }
+
+function dev_to_str(type, dev, access)
+  {
+    devs = "/dev/"
+    if (type == 1) # DEV_BLOCK
+      devs .= "block"
+    else
+      devs .= "char"
+    devs .= sprintf("/%d:%d ", dev >> 32, dev & 0xffffffff)
+    if (access & 2) # ACC_READ
+      devs .= "r"
+    if (access & 4) # ACC_WRITE
+      devs .= "w"
+    if (access & 1) # ACC_MKNOD
+      devs .= "m"
+    return devs
+  }
+
+function afs_to_str(afs)
+  {
+    str = ""
+    for (i = 0; i < 42; i++) # MAX_AF
+      if (afs & (1 << i)) {
+        str .= afnames[i]
+	if ((afs & ~((1 << (i + 1)) - 1)) != 0)
+	  str .= " "
+      }
+    return str
+  }
+
+/* Capabilities */
+probe kernel.function("cap_capable@security/commoncap.c").return
+  {
+    if (filter_p()) next;
+
+    if ($return == 0 && $audit)
+      used_caps |= 1 << $cap;
+    else
+      missing_caps |= 1 << $cap;
+  }
+
+/* Devices */
+probe kernel.function("__devcgroup_check_permission@security/device_cgroup.c").return
+  {
+    if (filter_p()) next;
+
+    if ($return == 0)
+      accessed_devices[$type, $major << 32 | $minor] |= $access
+  }
+
+/* RLIMIT_FSIZE */
+probe kernel.function("inode_newsize_ok@fs/attr.c").return
+  {
+    if (filter_p()) next;
+
+    if ($return == 0 && highwatermark_fsize < $offset)
+      highwatermark_fsize = $offset
+  }
+
+/* RLIMIT_DATA */
+probe kernel.function("prctl_set_mm@kernel/sys.c").return
+  {
+    if (filter_p()) next;
+
+    if ($return == 0 && highwatermark_data < $prctl_map->end_data - $prctl_map->start_data) {
+      highwatermark_data = $prctl_map->end_data - $prctl_map->start_data
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("do_brk@mm/mmap.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    if ($return > 0 && highwatermark_data < task->mm->data_vm << 12) { # PAGE_SHIFT
+      highwatermark_data = task->mm->data_vm << 12
+      print_syscall = 1
+    }
+    if ($return > 0 && highwatermark_as < task->mm->total_vm << 12) {
+      highwatermark_as = task->mm->total_vm << 12
+      print_syscall = 1
+    }
+  }
+
+/* also RLIMIT_STACK and RLIMIT_MEMLOCK */
+probe kernel.function("vm_stat_account@mm/mmap.c").return
+  {
+    if (filter_p()) next;
+
+    if (highwatermark_data < $mm->data_vm << 12) { # PAGE_SHIFT
+      highwatermark_data = $mm->data_vm << 12
+      print_syscall = 1
+    }
+    if (highwatermark_stack < $mm->stack_vm << 12) {
+      highwatermark_stack = $mm->stack_vm << 12
+      print_syscall = 1
+    }
+    if (highwatermark_memlock < atomic_long_read(&$mm->locked_vm) << 12) {
+      highwatermark_memlock = atomic_long_read(&$mm->locked_vm) << 12
+      print_syscall = 1
+    }
+    if (highwatermark_as < $mm->total_vm << 12) {
+      highwatermark_as = $mm->total_vm << 12
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_CORE */
+probe kernel.function("dump_emit@fs/coredump.c").return
+  {
+    if (filter_p()) next;
+
+    if (highwatermark_core < $cprm->written) {
+      highwatermark_core = $cprm->written
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_NPROC */
+probe kernel.function("commit_creds@kernel/cred.c").return
+  {
+    if (filter_p()) next;
+
+    if (highwatermark_nproc < atomic_read(&$new->user->processes)) {
+      highwatermark_nproc = atomic_read(&$new->user->processes)
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("copy_process@kernel/fork.c").return
+  {
+    if (filter_p()) next;
+    printf("return %d\n", $return);
+    try {
+    if (($return > 0 || $return < -1000) && $return->real_cred && $return->real_cred->user)
+      printf("good return %d\n", $return);
+      if (highwatermark_nproc < atomic_read(&$return->real_cred->user->processes)) {
+	highwatermark_nproc = atomic_read(&$return->real_cred->user->processes)
+	print_syscall = 1
+      }
+    } catch {}
+  }
+
+/* RLIMIT_NOFILE */
+probe kernel.function("__alloc_fd@fs/file.c").return
+  {
+    if (filter_p()) next;
+
+    if (($return >= 0 || $return < -1000) && highwatermark_nofile < $return) {
+      highwatermark_nofile = $return
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("do_dup2@fs/file.c").return
+  {
+    if (filter_p()) next;
+
+    if (($return >= 0 || $return < -1000) && highwatermark_nofile < $return) {
+      highwatermark_nofile = $return
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_MEMLOCK */
+probe kernel.function("sys_bpf@kernel/bpf/syscall.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    user = task->real_cred->user
+    if ($return == 0 && highwatermark_memlock < atomic_long_read(&user->locked_vm) << 12) { # PAGE_SHIFT
+      highwatermark_memlock = atomic_long_read(&user->locked_vm) << 12
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("perf_mmap@kernel/events/core.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    if ($return == 0 && highwatermark_memlock < task->mm->pinned_vm << 12) { # PAGE_SHIFT
+      highwatermark_memlock = task->mm->pinned_vm << 12
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("do_mlock@mm/mlock.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    if ($return == 0 && highwatermark_memlock < task->mm->locked_vm << 12) { # PAGE_SHIFT
+      highwatermark_memlock = task->mm->locked_vm << 12
+      print_syscall = 1
+    }
+  }
+
+probe kernel.function("sys_mlockall@mm/mlock.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    if ($return == 0 && highwatermark_memlock < task->mm->total_vm << 12) { # PAGE_SHIFT
+      highwatermark_memlock = task->mm->total_vm << 12
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_SIGPENDING */
+probe kernel.function("__sigqueue_alloc@kernel/signal.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    user = task->real_cred->user
+    if ($return == 0 && highwatermark_sigpending < atomic_read(&user->sigpending)) {
+      highwatermark_sigpending = atomic_read(&user->sigpending)
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_MSGGQUEUE */
+probe kernel.function("mqueue_get_inode@ipc/mqueue.c").return
+  {
+    if (filter_p()) next;
+
+    task = task_current()
+    user = task->real_cred->user
+    if ($return == 0 && highwatermark_msgqueue < user->mq_bytes) {
+      highwatermark_msgqueue = user->mq_bytes
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_NICE */
+probe kernel.function("set_user_nice@kernel/sched/core.c").return
+  {
+    if (filter_p()) next;
+
+    if (highwatermark_nice < $nice) {
+      highwatermark_nice = $nice
+      print_syscall = 1
+    }
+  }
+
+/* RLIMIT_RTPRIO */
+probe kernel.function("__sched_setscheduler@kernel/sched/core.c").return
+  {
+    if (filter_p()) next;
+
+    if (highwatermark_rtprio < $attr->sched_priority) {
+      highwatermark_rtprio = $attr->sched_priority
+      print_syscall = 1
+    }
+  }
+
+/* socket address families */
+probe kernel.function("__sock_create@net/socket.c").return
+  {
+    if (filter_p()) next;
+
+    if ($return == 0) {
+      used_afs |= 1 << $family
+      print_syscall = 1
+    } else if ($return == 93) { # EPROTONOSUPPORT
+      missing_afs |= 1 << $family
+      print_syscall = 1
+    }
+  }
+
+/* mmap flags */
+probe kernel.function("do_mmap@mm/mmap.c").return
+  {
+    if (filter_p()) next;
+
+    if (($return >= 0 || $return < -1000) && ($flags & (2 | 4)) == (2 | 4)) { # PROT_WRITE | PROT_EXEC
+      no_memory_deny_write_execute = 1
+      print_syscall = 1
+    }
+  }
+
+/* system call printing */
+probe nd_syscall.* 
+  {
+    # TODO: filter out apparently-nested syscalls (that are implemented
+    # in terms of each other within the kernel); PR6762
+
+    if (filter_p()) next;
+
+    thread_argstr[tid()]=argstr
+    if (timestamp || elapsed_time)
+      thread_time[tid()]=gettimeofday_us()
+
+    if (name in syscalls_nonreturn)
+      report(name,argstr,"")
+  }
+
+probe nd_syscall.*.return
+  {
+    if (filter_p()) next;
+
+    report(name,thread_argstr[tid()],retstr)
+  }
+
+function report(syscall_name, syscall_argstr, syscall_retstr)
+  {
+    if (timestamp || elapsed_time)
+      {
+        now = gettimeofday_us()
+        then = thread_time[tid()]
+
+        if (timestamp)
+          prefix=sprintf("%s.%06d ", ctime(then/1000000), then%1000000)
+
+        if (elapsed_time && (now>then)) {
+          diff = now-then
+          suffix=sprintf(" <%d.%06d>", diff/1000000, diff%1000000)
+        }
+
+        delete thread_time[tid()]
+      }
+
+    /* add a thread-id string in lots of cases, except if
+       stap strace.stp -c SINGLE_THREADED_CMD */
+    if (tid() != target()) {
+      prefix .= sprintf("%s[%d] ", execname(), tid())
+    }
+
+    if (used_caps) {
+       suffix .= " [Capabilities=" . caps_to_str(used_caps) . "]"
+       all_used_caps |= used_caps
+       print_syscall = 1
+    }		       
+    if (missing_caps) {
+       suffix .= " missing [Capabilities=" . caps_to_str(missing_caps) . "]"
+       all_missing_caps |= missing_caps
+       print_syscall = 1
+    }		       
+
+    foreach ([type, dev] in accessed_devices) {
+      devs .= dev_to_str(type, dev, accessed_devices[type, dev]) . " "
+      if (has_devs == 0) {
+        has_devs = 1
+	print_syscall = 1
+	devs = " [DeviceAllow=" . devs
+      }
+      all_accessed_devices[type, dev] = accessed_devices[type, dev];
+    }
+    if (has_devs) {
+      devs .= "]"
+      suffix .= devs
+    }
+
+    if (used_afs) {
+      suffix .= " [RestrictAddressFamilies=" . afs_to_str(used_afs) . "]"
+      all_used_afs |= used_afs
+      print_syscall = 1
+    }		       
+    if (missing_afs) {
+      suffix .= " missing [RestrictAddressFamilies=" . afs_to_str(missing_afs) . "]"
+      all_missing_afs |= missing_afs
+      print_syscall = 1
+    }		       
+
+    if (no_memory_deny_write_execute) {
+      suffix .= " [MemoryDenyWriteExecute=false]"
+      all_memory_deny_write_execute = "false"
+    }		       
+
+    if (highwatermark_fsize > old_highwatermark_fsize) {
+      suffix .= sprintf(" [FSIZE %d -> %d]", old_highwatermark_fsize, highwatermark_fsize)
+      old_highwatermark_fsize = highwatermark_fsize
+    }
+    if (highwatermark_data > old_highwatermark_data) {
+      suffix .= sprintf(" [DATA %d -> %d]", old_highwatermark_data, highwatermark_data)
+      old_highwatermark_data = highwatermark_data
+    }
+    if (highwatermark_stack > old_highwatermark_stack) {
+      suffix .= sprintf(" [STACK %d -> %d]", old_highwatermark_stack, highwatermark_stack)
+      old_highwatermark_stack = highwatermark_stack
+    }
+    if (highwatermark_core > old_highwatermark_core) {
+      suffix .= sprintf(" [CORE %d -> %d]", old_highwatermark_core, highwatermark_core)
+      old_highwatermark_core = highwatermark_core
+    }
+    if (highwatermark_nofile > old_highwatermark_nofile) {
+      suffix .= sprintf(" [NOFILE %d -> %d]", old_highwatermark_nofile, highwatermark_nofile)
+      old_highwatermark_nofile = highwatermark_nofile
+    }
+    if (highwatermark_as > old_highwatermark_as) {
+      suffix .= sprintf(" [AS %d -> %d]", old_highwatermark_as, highwatermark_as)
+      old_highwatermark_as = highwatermark_as
+    }
+    if (highwatermark_nproc > old_highwatermark_nproc) {
+      suffix .= sprintf(" [NPROC %d -> %d]", old_highwatermark_nproc, highwatermark_nproc)
+      old_highwatermark_nproc = highwatermark_nproc
+    }
+    if (highwatermark_memlock > old_highwatermark_memlock) {
+      suffix .= sprintf(" [MEMLOCK %d -> %d]", old_highwatermark_memlock, highwatermark_memlock)
+      old_highwatermark_memlock = highwatermark_memlock
+    }
+    if (highwatermark_sigpending > old_highwatermark_sigpending) {
+      suffix .= sprintf(" [SIGPENDING %d -> %d]", old_highwatermark_sigpending, highwatermark_sigpending)
+      old_highwatermark_sigpending = highwatermark_sigpending
+    }
+    if (highwatermark_msgqueue > old_highwatermark_msgqueue) {
+      suffix .= sprintf(" [MSGQUEUE %d -> %d]", old_highwatermark_msgqueue, highwatermark_msgqueue)
+      old_highwatermark_msgqueue = highwatermark_msgqueue
+    }
+    if (highwatermark_nice > old_highwatermark_nice) {
+      suffix .= sprintf(" [NICE %d -> %d]", old_highwatermark_nice, highwatermark_nice)
+      old_highwatermark_nice = highwatermark_nice
+    }
+    if (highwatermark_rtprio > old_highwatermark_rtprio) {
+      suffix .= sprintf(" [RTPRIO %d -> %d]", old_highwatermark_rtprio, highwatermark_rtprio)
+      old_highwatermark_rtprio = highwatermark_rtprio
+    }
+
+    if (!only_capability_use || print_syscall)
+        printf("%s%s(%s) = %s%s\n",
+             prefix, 
+             syscall_name, syscall_argstr, syscall_retstr,
+	     suffix)
+
+    used_caps = 0
+    missing_caps = 0
+    used_afs = 0
+    print_syscall = 0
+    no_memory_deny_write_execute = 0
+    delete accessed_devices
+
+    delete thread_argstr[tid()]
+  }
+
+probe end
+  {
+    printf("\nSummary:\n")
+    printf("CapabilityBoundingSet=%s\n", caps_to_str(all_used_caps))
+    if (all_missing_caps)
+	    printf("Consider also missing CapabilityBoundingSet=%s\n", caps_to_str(all_missing_caps))
+    foreach ([type, dev] in all_accessed_devices)
+      printf("DeviceAllow=%s\n", dev_to_str(type, dev, all_accessed_devices[type, dev]))
+    printf("LimitFSIZE=%d\n", highwatermark_fsize)
+    printf("LimitDATA=%d\n", highwatermark_data)
+    printf("LimitSTACK=%d\n", highwatermark_stack)
+    printf("LimitCORE=%d\n", highwatermark_core)
+    printf("LimitNOFILE=%d\n", highwatermark_nofile)
+    printf("LimitAS=%d\n", highwatermark_as)
+    printf("LimitNPROC=%d\n", highwatermark_nproc)
+    printf("LimitMEMLOCK=%d\n", highwatermark_memlock)
+    printf("LimitSIGPENDING=%d\n", highwatermark_sigpending)
+    printf("LimitMSGQUEUE=%d\n", highwatermark_msgqueue)
+    printf("LimitNICE=%d\n", highwatermark_nice)
+    printf("LimitRTPRIO=%d\n", highwatermark_rtprio)
+    printf("RestrictAddressFamilies=%s\n", afs_to_str(all_used_afs))
+    if (all_missing_afs)
+	    printf("Consider also missing RestrictAddressFamilies=%s\n", afs_to_str(all_missing_afs))
+    printf("MemoryDenyWriteExecute=%s\n", all_memory_deny_write_execute)
+  }
+--------------A3E853F60BD52C9FDFF5D323--
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
