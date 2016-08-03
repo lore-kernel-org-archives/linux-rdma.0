@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 07/15] IB/pvrdma: Add device command support
-Date: Wed, 3 Aug 2016 16:27:36 -0700
-Message-ID: <1470266864-16888-8-git-send-email-aditr@vmware.com>
+Subject: [PATCH v3 15/15] MAINTAINERS: Update for PVRDMA driver
+Date: Wed, 3 Aug 2016 16:27:44 -0700
+Message-ID: <1470266864-16888-16-git-send-email-aditr@vmware.com>
 References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,13 +12,7 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch enables posting Verb requests and receiving responses to/from
-the backend PVRDMA emulation layer.
-
-Changes v2->v3:
- - Converted pvrdma_cmd_recv to inline.
- - Added a min check in the memcpy to cmd_slot.
- - Removed the boolean from pvrdma_cmd_post.
+Add maintainer info for the PVRDMA driver.
 
 Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
@@ -26,121 +20,27 @@ Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/pvrdma/pvrdma_cmd.c | 105 ++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
- create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-new file mode 100644
-index 0000000..45aa31f
---- /dev/null
-+++ b/drivers/infiniband/hw/pvrdma/pvrdma_cmd.c
-@@ -0,0 +1,105 @@
-+/*
-+ * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of EITHER the GNU General Public License
-+ * version 2 as published by the Free Software Foundation or the BSD
-+ * 2-Clause License. This program is distributed in the hope that it
-+ * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-+ * See the GNU General Public License version 2 for more details at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program available in the file COPYING in the main
-+ * directory of this source tree.
-+ *
-+ * The BSD 2-Clause License
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-+ * OF THE POSSIBILITY OF SUCH DAMAGE.
-+ */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 25f4320..eaa7736 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12511,6 +12511,13 @@ S:	Maintained
+ F:	drivers/scsi/vmw_pvscsi.c
+ F:	drivers/scsi/vmw_pvscsi.h
+ 
++VMWARE PVRDMA DRIVER
++M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
++M:	VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++S:	Maintained
++F:	drivers/infiniband/hw/pvrdma
 +
-+#include <linux/list.h>
-+
-+#include "pvrdma.h"
-+
-+#define PVRDMA_CMD_TIMEOUT	10000 /* ms */
-+
-+static inline int pvrdma_cmd_recv(struct pvrdma_dev *dev,
-+				  union pvrdma_cmd_resp *resp)
-+{
-+	dev_dbg(&dev->pdev->dev, "receive response from device\n");
-+
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(resp, dev->resp_slot, sizeof(*resp));
-+	spin_unlock(&dev->cmd_lock);
-+
-+	return 0;
-+}
-+
-+int
-+pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
-+		union pvrdma_cmd_resp *resp)
-+{
-+	int err;
-+
-+	dev_dbg(&dev->pdev->dev, "post request to device\n");
-+
-+	/* Serializiation */
-+	down(&dev->cmd_sema);
-+
-+	spin_lock(&dev->cmd_lock);
-+	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
-+	spin_unlock(&dev->cmd_lock);
-+
-+	init_completion(&dev->cmd_done);
-+	pvrdma_write_reg(dev, PVRDMA_REG_REQUEST, 0);
-+
-+	/* Make sure the request is written before reading status. */
-+	mb();
-+	err = pvrdma_read_reg(dev, PVRDMA_REG_ERR);
-+	if (err == 0) {
-+		if (resp != NULL) {
-+			err = wait_for_completion_interruptible_timeout(
-+				&dev->cmd_done,
-+				msecs_to_jiffies(PVRDMA_CMD_TIMEOUT));
-+			if (err == 0 || err == -ERESTARTSYS) {
-+				dev_err(&dev->pdev->dev,
-+					"completion timeout or interrupted\n");
-+				err = -ETIMEDOUT;
-+			} else {
-+				err = pvrdma_cmd_recv(dev, resp);
-+			}
-+		}
-+	} else {
-+		dev_warn(&dev->pdev->dev, "failed to write request %d\n", err);
-+	}
-+
-+	up(&dev->cmd_sema);
-+
-+	return err;
-+}
+ VOLTAGE AND CURRENT REGULATOR FRAMEWORK
+ M:	Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+ M:	Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 -- 
 2.7.4
 
