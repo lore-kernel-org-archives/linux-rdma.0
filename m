@@ -1,90 +1,90 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [IPoIB] Missing join mcast events causing full machine lockup
-Date: Tue, 02 Aug 2016 16:29:30 -0400
-Message-ID: <1470169770.18081.44.camel@redhat.com>
-References: <57907A37.3000902@kyup.com>
-	 <1470165672.18081.37.camel@redhat.com>
-	 <CAJFSNy6USnLqcBiPEOcFOG8MrGq8gXwvakG48jHHi_-YgVaQ3g@mail.gmail.com>
+Subject: Re: [PATCH V1 for-next 0/2] Support for Send Only Full Member
+ multicast join
+Date: Tue, 02 Aug 2016 22:37:52 -0400
+Message-ID: <1470191872.18081.46.camel@redhat.com>
+References: <1467812195-22221-1-git-send-email-leon@kernel.org>
+	 <CAAKD3BCY+=_q3k+cV9AO7Det9JaPHguTU03K5ueLncbfoSFa2A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-lwaJqjgJQPiSK8GhA9pN"
+	protocol="application/pgp-signature"; boundary="=-riDOVRuAenrmXzfr4ZXX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJFSNy6USnLqcBiPEOcFOG8MrGq8gXwvakG48jHHi_-YgVaQ3g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAAKD3BCY+=_q3k+cV9AO7Det9JaPHguTU03K5ueLncbfoSFa2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-lwaJqjgJQPiSK8GhA9pN
+--=-riDOVRuAenrmXzfr4ZXX
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2016-08-02 at 23:18 +0300, Nikolay Borisov wrote:
-> On Tue, Aug 2, 2016 at 10:21 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Sun, 2016-07-24 at 16:11 +0300, Matan Barak wrote:
+> On Wed, Jul 6, 2016 at 4:36 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > wrote:
 > >=20
-> > On Thu, 2016-07-21 at 10:31 +0300, Nikolay Borisov wrote:
-> > >=20
-> > > Hello,
-> > >=20
-> > > With running the risk of sounding like a broken record, I came
-> > > across
-> > > another case where ipoib can cause the machine to go haywire due
-> > > to
-> > > missed join requests. This is on 4.4.14 kernel. Here is what I
-> > > believe
-> > > happens:
+> > Added UCMA and CMA support for multicast join flags. Flags are
+> > passed using UCMA CM join command previously reserved fields.
+> > Currently supporting two join flags indicating two different
+> > multicast JoinStates:
 > >=20
-> > [ snip long traces ]
+> > 1. Full Member:
+> > =C2=A0=C2=A0=C2=A0The initiator creates the Multicast group(MCG) if it =
+wasn't
+> > =C2=A0=C2=A0=C2=A0previously created, can send Multicast messages to th=
+e group
+> > =C2=A0=C2=A0=C2=A0and receive messages from the MCG.
 > >=20
-> > >=20
-> > > This makes me wonder if using timeouts is actually better than
-> > > blindly relying on completing the join.
+> > 2. Send Only Full Member:
+> > =C2=A0=C2=A0=C2=A0The initiator creates the Multicast group(MCG) if it =
+wasn't
+> > =C2=A0=C2=A0=C2=A0previously created, can send Multicast messages to th=
+e group
+> > =C2=A0=C2=A0=C2=A0but doesn't receive any messages from the MCG.
 > >=20
-> > Blindly relying on the join completions is not what we do.=C2=A0=C2=A0W=
-e are
-> > very
-> > careful to make sure we always have the right locking so that we
-> > never
-> > leave a join request in the BUSY state without running the
-> > completion
-> > at some time.=C2=A0=C2=A0If you are seeing us do that, then it means we=
- have
-> > a
-> > bug in our locking or state processing.=C2=A0=C2=A0The answer then is t=
-o find
-> > that bug and not to paper over it with a timeout.=C2=A0=C2=A0Can you fi=
-nd
-> > some
-> > way to reproduce this with a 4.7 kernel?
+> > Since Send Only Full Member requires SM support a new cached
+> > SA port attribute containing SM ClassPortInfo fields was added
+> > (ClassPortInfo fields: Table 126 IB Spec 1.3.). The attribute
+> > is cached to avoid resending queries, caching is done when a
+> > successful ClassPortInfo reply is received on the port.
+> > Invalidation of the attribute is done on SM change events,
+> > SM re-registration events, and SM LID change events. The fields
+> > in ClassPortInfo should not change during SM runtime without an
+> > event.
+> >=20
+> > The changes compared to v0 of this patch series are:
+> > =C2=A0* Use multicast.c join state enum instead of the new added bits
+> > =C2=A0=C2=A0=C2=A0defined by IB_SA_MCMEMBER_REC_JOIN_STATE in ib_sa.h
+> > =C2=A0* Remove ib_sa_port struct alignment spaces
+> >=20
+> > Alex Vesker (2):
+> > =C2=A0 IB/sa: Add cached attribute containing SM information to SA port
+> > =C2=A0 IB/core: Support for CMA multicast join flags
+> >=20
 >=20
-> Unfortunately my environment is constrained to 4.4 kernel. I will,
-> however,
-> try and check if I can get a couple of IB-enabled nodes on 4.7 and
-> see
-> if something
-> shows up. And while I don't have a 100% reproducer for it I see those
-> symptoms rather regularly
-> on production nodes. I'm able and happy to extract any runtime state
-> that might be useful in debugging this i.e I can obtain crashdumps
-> and
-> reverse the state of the ipoib stacks. I've seen this issue on 3.12
-> and on 4.4.
-> Some of my previous emails also show this manifesting in hangs in
-> cm_destroy_id
-> as well. So clearly there is a problem there but it proves very
-> elusive.
+> Hi Doug,
+>=20
+> This series conflicts with c65f6c5a3650 ('IB/core: Fix RoCE v1
+> multicast join logic issue') which was merged to your k.o/for-4.7-rc
+> branch.
+> The solution for this conflict requires to take the hunk for cma.c
+> from this series.
+>=20
+> If it's required to respin this series above c65f6c5a3650, please
+> just say so.
+>=C2=A0
 
-Can you give any clues as to what's causing it? =C2=A0Do you have link flap=
-?
-SM bounces? =C2=A0Lots of multicast joins/leaves?
+I'm not entirely sure what you are referring to. =C2=A0The series applied
+cleanly for me. =C2=A0However, it's in my misc branch (to be pushed shortly=
+)
+, please double check that there isn't something wrong.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
               GPG KeyID: 0E572FDD
 
---=-lwaJqjgJQPiSK8GhA9pN
+--=-riDOVRuAenrmXzfr4ZXX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -92,22 +92,22 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAABCAAGBQJXoQKqAAoJELgmozMOVy/dviEP/2GG8rMcqW4YQZmf9YcquSVD
-/kNEMtPW9nhkZZrDpd7SZ7LC/MZqAEGrI6aEYhHsHiJl5bzXjavqH3E9Ej8M2IqC
-kKYwOadETTSSzLh2i5uyepsXBFBWkMly07ttMmpcGx7zHB02H6cMahATpQonLcc2
-xmGXuHBat1OLSpBSj9OjgXjNHlx8eaB4Ms9Y7W1zWSUO0EOLxXO2BqSHxQwQMlXt
-wGfXktcyk6DUu3FvAKCyWlmShdv5Q/if2JOsfC8TzIk3bZfMQA9oQd26gvRGDYbP
-O15iZJySnw8iNRJKAHi+7GMb5XbadkfRq2Lz42TR1FKt1R2SSiimEi4joI4YMN5F
-XtjDUEo/fjNzpEiQFzMRLr+gVh2vX2aDoh4ZfycKD8ezpbF5KY4cXqfsrpXGPBJG
-ar87OuAq0ov540MxkcAw3sDbupvkNUu7N0GLiYuvL705MHVbjcQOBeYujUG293BL
-dI7/uvPhynwzrXa4FusHXkshs/VhzYZh41JPop9gjv91RIm96tiJvtd6pPjagPoR
-c7mIZI4JYIev47x9IKRWnyJ7rupjLv9XGDXKCgs4aE5ShNEFPzowIQT0JgV856XE
-B/n688z0npT6L+oeyrJ/uF1OMNhLpmSralggcrJgP0juxAPKy3/xBKkRWp49PacG
-WFAAtueB5tUVN/6mwEi5
-=AXXU
+iQIcBAABCAAGBQJXoVkAAAoJELgmozMOVy/dxbUP/i4bLGQMrS47O6KW2g4SmHcP
+RVHt0/VB79s6FUCIW11Q9ySZXAbtVEqrzC+G7ZZbdFrNYlvsMk/jLvgHArTjEM3M
+pKCt6y5c+upE3dd3xadMrJpmGFM1dZaat0m+84G3byPCyBjSRvzmMaNjYBzsIY3V
+071kOxbRDnXwiGBQ3HfNxekYesYqedsE752zt738m4of9TteWXHRKCo213YK4Cao
+Tga95vZPRx8qEOe8hgXrH/pOPTd8nazOkq73LOMEEADcqc0QADjL580IlZLwduKM
+AU9Atl9WjSdujr/Uohjw/Lgcm4wXPM+YSo7NcB2TU7tQnw6OWA6vp+XFsSrdf0IZ
+KZ92DiBx9fdbO6eB2Lsqyg07/RX/9ZxI7xjVVuRWDvKDJaFjYH4tH9u07+M8aTVV
+dYgavZQFj8xbP8E1TCfx0kmDoZdVErX3PFOGqcerYyO1AQjsdU1mzV5cPoSQ9oEy
+8c6GNtgYYCizgkbbMKTZB0eC+i9vOfGUkgeyQQcB4XBJLSET8qVGa8vc/zLJg4/p
+RvL6VjXRKxC3E9YS/ooJPziYmjSP2YXUwk2Ijk7bkY5lFtSxvbAQHTl4bYAFsAvm
+kL4oTRhuXabL1bh2eDj2DoiSdsZ6dGeMN+2uLpE2njyGyFhnBuF6l2CX0dVN7YJW
+yHu/TjUF3d4raR65j+H5
+=orXa
 -----END PGP SIGNATURE-----
 
---=-lwaJqjgJQPiSK8GhA9pN--
+--=-riDOVRuAenrmXzfr4ZXX--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
