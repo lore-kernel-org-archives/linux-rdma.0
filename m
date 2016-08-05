@@ -1,80 +1,85 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] iser-target: Fix error return code in
- isert_alloc_login_buf()
-Date: Fri, 5 Aug 2016 17:36:09 +0300
-Message-ID: <20160805143609.GM27667@leon.nu>
-References: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rZHzn+A9B7nBTGyj"
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
-Sender: target-devel-owner@vger.kernel.org
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH libmlx5] fix err return values to match ibv_post_send expectations
+Date: Fri,  5 Aug 2016 13:33:59 -0400
+Message-ID: <1470418439-59245-1-git-send-email-jarod@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The man page for ibv_post_send says:
 
---rZHzn+A9B7nBTGyj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   RETURN VALUE
 
-On Fri, Aug 05, 2016 at 01:49:28PM +0000, Wei Yongjun wrote:
-> Fix to return error code -ENOMEM from the alloc error handling
-> case instead of 0, as done elsewhere in this function.
->=20
-> Signed-off-by: Wei Yongjun <weiyj.lk@gmail.com>
-> ---
->  drivers/infiniband/ulp/isert/ib_isert.c | 1 +
->  1 file changed, 1 insertion(+)
->=20
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband=
-/ulp/isert/ib_isert.c
-> index ba6be06..65af523 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -449,6 +449,7 @@ isert_alloc_login_buf(struct isert_conn *isert_conn,
->  	isert_conn->login_rsp_buf =3D kzalloc(ISER_RX_PAYLOAD_SIZE, GFP_KERNEL);
->  	if (!isert_conn->login_rsp_buf) {
->  		isert_err("Unable to allocate isert_conn->login_rspbuf\n");
+       ibv_post_send() returns 0 on success, or the value of errno on failure
+       (which indicates the failure reason).
 
-Please remove the line above too.
-There is no chance to miss kzalloc allocation failure.
+QEMU looks for the return value, and in the ENOMEM case, waits and
+retries, but with mlx5, it ends up dropping requests and hanging, because
+of the unexpected -1 return instead of ENOMEM.
 
-> +		ret =3D -ENOMEM;
->  		goto out_unmap_login_req_buf;
->  	}
+The fix is simple: set err = E<whatever> instead of -1, and eliminate use
+of errno = in _mlx5_post_send, just have mlx5_post_send assign the return
+from _mlx5_post_send in errno instead. This fix has been confirmed to
+resolves the issues seen with QEMU.
 
-Thanks.
+Reported-by: Dr. David Alan Gilbert <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Tested-by: Dr. David Alan Gilbert <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+CC: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/qp.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/qp.c b/src/qp.c
+index 51e1176..2ad3ac0 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -590,8 +590,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(wr->opcode < 0 ||
+ 		    wr->opcode >= sizeof mlx5_ib_opcode / sizeof mlx5_ib_opcode[0])) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "bad opcode %d\n", wr->opcode);
+-			errno = EINVAL;
+-			err = -1;
++			err = EINVAL;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -599,8 +598,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq,
+ 					      to_mcq(qp->ibv_qp->send_cq)))) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "work queue overflow\n");
+-			errno = ENOMEM;
+-			err = -1;
++			err = ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -608,8 +606,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(wr->num_sge > qp->sq.max_gs)) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "max gs exceeded %d (max = %d)\n",
+ 				 wr->num_sge, qp->sq.max_gs);
+-			errno = ENOMEM;
+-			err = -1;
++			err = ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -918,7 +915,8 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	}
+ #endif
+ 
+-	return _mlx5_post_send(ibqp, wr, bad_wr);
++	errno = _mlx5_post_send(ibqp, wr, bad_wr);
++	return errno;
+ }
+ 
+ int mlx5_bind_mw(struct ibv_qp *qp, struct ibv_mw *mw,
+-- 
+1.8.3.1
 
---rZHzn+A9B7nBTGyj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXpKRZAAoJEORje4g2clinfwsQAIh0ZFn+o1jyb1Sznn+hD19i
-caVD0Y7XzMJbeq7J3iZfRoU2AwHnE0phF79FPXsHH4fO7FCQFASWHmx0Sfm49TUI
-wZL6DO25H6C4404GdO/u8ZRNyLTm8N11aazUpr/+KgTyUYXnKgBwSkmzS64bqZXm
-Jw6U5abo+Rv34k3s80tAorACj4Xikv7p9wQLzA/3/5zx6dY2ARaV4Y9wdt/BDnAJ
-x/EsiqZtpHXF9P8SO1XEhz4tvmvlwoyo/vpseP/PjM8DgFCq9uOHU5lTp/fMp5A7
-kowZFAvcPYaHA5RXPXzHPoNqKVdGt5GC33ueYxzowNcaQR2uvrQA77GTqq1bINQn
-ome2ETfNBkM9MUPuqijJZTXeMUxt+oyE4ycd7uovNvTY29TSfaLTmtdRpRfZihem
-Ncg++clXIKyBBl4ioXHb8/RLClvRtAyV8yOYEz2NcmEiKPZpStk1mLOFbNX+C/Uz
-3KxK5A0kZiA9hlSCkAwZjlqeqTEwj2usTdJ3OYB4hLxlxXunacLA69o4oIy2rXI+
-niVU45G+hVJY0QiYENjCdO8MXzkQHI1znRjVk0FG48NfjzB7pHJI9ag1FK68BTJ2
-mTXo3Ppp8vOj7vB1XIaoBtkIUy7fWOcV/u6sliCIuAZzzfI6x9YnS/9p4RfOvK3F
-qhWkMYfkaWkBxK3sbR2x
-=tzSI
------END PGP SIGNATURE-----
-
---rZHzn+A9B7nBTGyj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
