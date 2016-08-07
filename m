@@ -1,63 +1,66 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH -next] IB/hns: Fix return value check in
- hns_roce_get_cfg()
-Date: Sun, 7 Aug 2016 08:31:15 +0300
-Message-ID: <20160807053115.GQ27667@leon.nu>
-References: <1470445284-28970-1-git-send-email-weiyj.lk@gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH RFC] nvme-rdma: Queue ns scanning after a sucessful
+ reconnection
+Date: Sun, 7 Aug 2016 12:12:35 +0300
+Message-ID: <ce424fe1-d6e8-706f-18f8-aa9c880bcdec@grimberg.me>
+References: <1469980540-16103-1-git-send-email-sagi@grimberg.me>
+ <1470330508.19927.18.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LwgCY5hL6Igino+O"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470445284-28970-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1470330508.19927.18.camel-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: J Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---LwgCY5hL6Igino+O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>> On an ordered target shutdown, the target can send a AEN on a
+>> namespace
+>> removal, this will trigger the host to queue ns-list query. The
+>> shutdown
+>> will trigger error recovery which will attepmt periodic reconnect.
+>>
+>> We can hit a race where the ns rescanning fails (error recovery
+>> kicked
+>> in and we're not connected) causing removing all the namespaces and
+>> when
+>> we reconnect we won't see any namespaces for this controller.
+>>
+>> So, queue a namespace rescan after we successfully reconnected to the
+>> target.
+>>
+>> Note, that unlike user initiated controller reset, we don't need to
+>> trigger
+>> namespace scanning (until the point I noticed the above at least)
+>> because we
+>> reconnect to an existing controller. However due to the interaction
+>> with
+>> the aen mechanism we queue ns scan here as well.
+>>
+>> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>> ---
+>> I'm open to other suggestions if anyone has any...
+>
+> this sounds like a fix that should really go in the core target code
+> instead of RDMA code as this could affect any implementation layer.
 
-On Sat, Aug 06, 2016 at 01:01:24AM +0000, Wei Yongjun wrote:
-> In case of error, the function devm_ioremap_resource() returns ERR_PTR()
-> and never returns NULL. The NULL test in the return value check should
-> be replaced with IS_ERR().
->=20
-> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+But it fixes the host behavior (nvme-rdma).
 
-On which branch did you base your patch?
-It would be helpful to us if you followed SubmittionPatches document,
-section with Fixes description. In such case "git describe" will give
-immediate answer on my first question.
+> If the target is shutting down I'm not sure why it would enter error
+> recovery which would attempt a reconnect.  If the target is shutting
+> down, shut down.  Maybe the keep-alive timer needs to stop
+> (nvmet_stop_keep_alive_timer()???). I could see the benefit of the
+> target emitting an AEN to tell the host to rescan for namespaces so it
+> doesn't keep a stale list of namespaces after shutdown.
 
-Thanks
+Its not the target entering error recovery, its the host. What would
+you expect from a host that suddenly was disconnected by the target?
+Not sure what other than periodic reconnects would be adequate...
 
---LwgCY5hL6Igino+O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXpsejAAoJEORje4g2clinSDAQALANi+SF+gcgUDNd5yaHBLBj
-EsZSdI/l/3RslLAi9XlC3GNH0kMmYoSHnMN+VYXwYiJSW918aJwmiW6+UoXZ4Ene
-5r5VdHgy3Yj+oj0sr4daT+j4+3B6U1RorA3s1G1Tt2WN80vpeA3G3m6fxQFNJKZ1
-zKXYtqOqG6rI8/hIVv+s6pGQ5rrGjbGmfhz6cigl0XfdlIgj0GL3PoFHwzFXridp
-/R22lSVQ2zVZtbRWzW6yjEkQ3fZ7e5Ys1DJyWqW5Vqj1ycYDpwlSVA/N1OdOnjcp
-Wx9j8aY2wVO3CqaaQBxcXWHQas0Zc/nxdtnuBrSqXGTpVmStCz5766yDKDxP3k2M
-iVBdF1iiSTwG3EIVHFKlmFdwXtXvTuGDnYVpY1LVica64q4e1vxTnv/q35o3kKZE
-KcI5rSfxEAscxj9GwSzj0CrNhl8R/1uVZelK3ZSkGdMeXfgtp4kCUk7t3nMtU7a7
-E+WUowGgP5ygAjzd5BNkuzqu5cwBWMbelg2QdQr1Kg4tEQyufOvvnE6G2wP2wSHG
-6+nvdRU3AAwm2AsTlT1WUPXhVimb+HR0t8ThaKNgyQD+fXecOWwd27ujywD+6Cm0
-Ru3BJVkETJieNYRDEbh9UZo746Nr4k9TpAcrsmMBp/eyflILSzDt+kSUeJXna36P
-zwAe+cPGjOyFLL/jvccc
-=pSJ1
------END PGP SIGNATURE-----
-
---LwgCY5hL6Igino+O--
+The patch here just requeue ns scanning when we successfully reconnected
+to the target that was restored.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
