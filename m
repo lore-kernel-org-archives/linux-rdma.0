@@ -1,44 +1,33 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [RFC 7/7] NVMe: CMB on DMA-BUF
-Date: Sun, 7 Aug 2016 08:24:16 +0300
-Message-ID: <666d2c1e-77cb-c2b3-963f-cd0502ee5335@mellanox.com>
-References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
- <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
- <20160801155206.GA23224@infradead.org>
- <1470121814.20129.8.camel@mellanox.com>
- <20160804115624.GA12004@infradead.org>
+From: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix possible memory leak in
+ cma_resolve_iboe_route()
+Date: Sun, 7 Aug 2016 07:49:33 +0300
+Message-ID: <0fe65631-0776-720e-a399-033f13e6f351@mellanox.com>
+References: <1470404809-16658-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20160804115624.GA12004@infradead.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: "hch@infradead.org" <hch@infradead.org>
-Cc: Liran Liss <liranl@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "stephen.bates@microsemi.com" <stephen.bates@microsemi.com>, Leon Romanovsky <leonro@mellanox.com>, Kovalyov Artemy <artemyko@mellanox.com>, "j.glisse@gmail.com" <j.glisse@gmail.com>, William Davis <wdavis@nvidia.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470404809-16658-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/4/2016 2:56 PM, hch@infradead.org wrote:
->> Anyway, I understand exposing the CMB directly might be a little too
->> low level. What do you think would work better? Something like
->> direct_access that returns bus addresses instead of pfns?
+On 8/5/2016 4:46 PM, Wei Yongjun wrote:
+> 'work' and 'route->path_rec' are malloced in cma_resolve_iboe_route()
+> and should be freed before leaving from the error handling cases,
+> otherwise it will cause memory leak.
 > 
-> This would be my primary choicse.  We'll really need to built an
-> in-kernel framework for a) PCI P2P access involving drivers for the PCI
-> switches etc, 
-I was thinking perhaps the dma_map_resource patches by Will Davis [1]
-could be used (adding him to the thread).
+> Fixes: 200298326b27 ('IB/core: Validate route when we init ah')
+> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-> and then on top of that build something speicifly for
-> block drivers.  Which will be a bit complicated because both have the
-> case of directly memory mapped device as well as indirect devices like
-> the CMB.  I'm pretty sure we won't get it right at the first attempt,
-> so exposing it to userspace is an absolute no-go as that will lock us
-> into the first ABI forever.
-I understand. I'll try to think of something for kernel usage only for
-the next attempt.
+Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks,
-Haggai
-
-[1]
-https://lists.linuxfoundation.org/pipermail/iommu/2015-August/014106.html
+By the way, what happens when someone moves the get_netdev() device to
+network namespace other than init_net? I don't think that would work
+correctly.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
