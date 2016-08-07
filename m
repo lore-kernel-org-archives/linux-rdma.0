@@ -1,44 +1,44 @@
-From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH -next] IB/hns: Fix return value check in hns_roce_get_cfg()
-Date: Sat,  6 Aug 2016 01:01:24 +0000
-Message-ID: <1470445284-28970-1-git-send-email-weiyj.lk@gmail.com>
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: Re: [RFC 7/7] NVMe: CMB on DMA-BUF
+Date: Sun, 7 Aug 2016 08:24:16 +0300
+Message-ID: <666d2c1e-77cb-c2b3-963f-cd0502ee5335@mellanox.com>
+References: <1470034653-9097-1-git-send-email-haggaie@mellanox.com>
+ <1470034653-9097-8-git-send-email-haggaie@mellanox.com>
+ <20160801155206.GA23224@infradead.org>
+ <1470121814.20129.8.camel@mellanox.com>
+ <20160804115624.GA12004@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160804115624.GA12004@infradead.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: "hch@infradead.org" <hch@infradead.org>
+Cc: Liran Liss <liranl@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "stephen.bates@microsemi.com" <stephen.bates@microsemi.com>, Leon Romanovsky <leonro@mellanox.com>, Kovalyov Artemy <artemyko@mellanox.com>, "j.glisse@gmail.com" <j.glisse@gmail.com>, William Davis <wdavis@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-In case of error, the function devm_ioremap_resource() returns ERR_PTR()
-and never returns NULL. The NULL test in the return value check should
-be replaced with IS_ERR().
+On 8/4/2016 2:56 PM, hch@infradead.org wrote:
+>> Anyway, I understand exposing the CMB directly might be a little too
+>> low level. What do you think would work better? Something like
+>> direct_access that returns bus addresses instead of pfns?
+> 
+> This would be my primary choicse.  We'll really need to built an
+> in-kernel framework for a) PCI P2P access involving drivers for the PCI
+> switches etc, 
+I was thinking perhaps the dma_map_resource patches by Will Davis [1]
+could be used (adding him to the thread).
 
-Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hns/hns_roce_main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> and then on top of that build something speicifly for
+> block drivers.  Which will be a bit complicated because both have the
+> case of directly memory mapped device as well as indirect devices like
+> the CMB.  I'm pretty sure we won't get it right at the first attempt,
+> so exposing it to userspace is an absolute no-go as that will lock us
+> into the first ABI forever.
+I understand. I'll try to think of something for kernel usage only for
+the next attempt.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 5b42ec8..6ead671 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -715,8 +715,8 @@ static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
- 
- 	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
- 	hr_dev->reg_base = devm_ioremap_resource(dev, res);
--	if (!hr_dev->reg_base)
--		return -ENOMEM;
-+	if (IS_ERR(hr_dev->reg_base))
-+		return PTR_ERR(hr_dev->reg_base);
- 
- 	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
- 		net_node = of_parse_phandle(np, "eth-handle", i);
+Thanks,
+Haggai
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1]
+https://lists.linuxfoundation.org/pipermail/iommu/2015-August/014106.html
