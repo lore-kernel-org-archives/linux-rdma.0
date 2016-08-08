@@ -1,38 +1,53 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
-Date: Tue, 9 Aug 2016 05:41:30 +0800
-Message-ID: <201608090536.P51CBwj7%fengguang.wu@intel.com>
-References: <1470649818-30040-1-git-send-email-weiyj.lk@gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/1] Libibumad: Clarify the man page for function
+ umad_get_ca_portguids
+Date: Mon, 8 Aug 2016 17:49:58 -0400
+Message-ID: <25ddb388-8b03-c622-929b-a293fc203fc0@dev.mellanox.co.il>
+References: <1470678598-27218-1-git-send-email-jay.p.patel@intel.com>
+ <1470678598-27218-2-git-send-email-jay.p.patel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470649818-30040-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1470678598-27218-2-git-send-email-jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Wei,
+On 8/8/2016 1:49 PM, jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Jay Patel <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Clarified the return value explanation of umad_get_ca_portguids() in
+> corresponding man page.
 
-[auto build test ERROR on rdma/master]
-[also build test ERROR on v4.8-rc1 next-20160808]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+Thanks. Applied.
 
-url:    https://github.com/0day-ci/linux/commits/Wei-Yongjun/IB-hfi1-Using-kfree_rcu-to-simplify-the-code/20160808-175215
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
-config: x86_64-allmodconfig
-compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
-reproduce:
-        make ARCH=x86_64  allmodconfig
-        make ARCH=x86_64 
+> Signed-off-by: Jay Patel <jay.p.patel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  man/umad_get_ca_portguids.3 | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/man/umad_get_ca_portguids.3 b/man/umad_get_ca_portguids.3
+> index 3512649..ff8d433 100644
+> --- a/man/umad_get_ca_portguids.3
+> +++ b/man/umad_get_ca_portguids.3
+> @@ -29,6 +29,9 @@ uint64_t entries.
+>  On success,
+>  .B umad_get_ca_portguids()
+>  returns a non-negative value equal to the number of port GUIDs actually filled.
+> +Not all filled entries may be valid. Invalid entries will be 0.
+> +For example, calling function on computing node with only one port returns a value of 2.
+> +The value at index zero will be invalid as it is reserved for switches.
 
-All errors (new ones prefixed by >>):
+I changed the wording a little.
 
->> ERROR: "cc_state_reclaim" [drivers/infiniband/hw/hfi1/hfi1.ko] undefined!
+-- Hal
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>  On failure, a negative value is returned.
+>  .SH "SEE ALSO"
+>  .BR umad_get_cas_names (3)
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
