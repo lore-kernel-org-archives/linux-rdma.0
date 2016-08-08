@@ -1,106 +1,39 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] IB/hfi1: Correct issues with sc5 computation
-Date: Mon, 08 Aug 2016 15:51:43 -0400
-Message-ID: <20160808195143.22343.32815.stgit@phlsvslse11.ph.intel.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
+Date: Tue, 9 Aug 2016 05:41:30 +0800
+Message-ID: <201608090536.P51CBwj7%fengguang.wu@intel.com>
+References: <1470649818-30040-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1470649818-30040-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-commit 896ce45da2c2f4abc508d443fdecde7de0b3fa7e upstream.
+Hi Wei,
 
-There are several computatations of the sc in the
-ud receive routine.
+[auto build test ERROR on rdma/master]
+[also build test ERROR on v4.8-rc1 next-20160808]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Besides the code duplication, all are wrong when the
-sc is greater than 15.   In that case the code incorrectly
-or's a 1 into the computed sc instead of 1 shifted left
-by 4.
+url:    https://github.com/0day-ci/linux/commits/Wei-Yongjun/IB-hfi1-Using-kfree_rcu-to-simplify-the-code/20160808-175215
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
+config: x86_64-allmodconfig
+compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        make ARCH=x86_64  allmodconfig
+        make ARCH=x86_64 
 
-Fix precomputed sc5 by using an already implemented routine
-hdr2sc() and deleting flawed duplicated code.
+All errors (new ones prefixed by >>):
 
-[ported from 896ce45da2c to linux-4.6.y]
+>> ERROR: "cc_state_reclaim" [drivers/infiniband/hw/hfi1/hfi1.ko] undefined!
 
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
 ---
- drivers/staging/rdma/hfi1/ud.c |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
-index ae8a70f..23e60fe 100644
---- a/drivers/staging/rdma/hfi1/ud.c
-+++ b/drivers/staging/rdma/hfi1/ud.c
-@@ -678,8 +678,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	u32 tlen = packet->tlen;
- 	struct rvt_qp *qp = packet->qp;
- 	bool has_grh = rcv_flags & HFI1_HAS_GRH;
--	bool sc4_bit = has_sc4_bit(packet);
--	u8 sc;
-+	u8 sc5 = hdr2sc((struct hfi1_message_header *)hdr, packet->rhf);
- 	u32 bth1;
- 	int is_mcast;
- 	struct ib_grh *grh = NULL;
-@@ -697,10 +696,8 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		 */
- 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 		u32 lqpn =  be32_to_cpu(ohdr->bth[1]) & RVT_QPN_MASK;
--		u8 sl, sc5;
-+		u8 sl;
- 
--		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
--		sc5 |= sc4_bit;
- 		sl = ibp->sc_to_sl[sc5];
- 
- 		process_becn(ppd, sl, 0, lqpn, 0, IB_CC_SVCTYPE_UD);
-@@ -717,10 +714,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 
- 	if (!is_mcast && (opcode != IB_OPCODE_CNP) && bth1 & HFI1_FECN_SMASK) {
- 		u16 slid = be16_to_cpu(hdr->lrh[3]);
--		u8 sc5;
--
--		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
--		sc5 |= sc4_bit;
- 
- 		return_cnp(ibp, qp, src_qp, pkey, dlid, slid, sc5, grh);
- 	}
-@@ -745,10 +738,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		if (qp->ibqp.qp_num > 1) {
- 			struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 			u16 slid;
--			u8 sc5;
--
--			sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
--			sc5 |= sc4_bit;
- 
- 			slid = be16_to_cpu(hdr->lrh[3]);
- 			if (unlikely(rcv_pkey_check(ppd, pkey, sc5, slid))) {
-@@ -790,10 +779,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		/* Received on QP0, and so by definition, this is an SMP */
- 		struct opa_smp *smp = (struct opa_smp *)data;
- 		u16 slid = be16_to_cpu(hdr->lrh[3]);
--		u8 sc5;
--
--		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
--		sc5 |= sc4_bit;
- 
- 		if (opa_smp_check(ibp, pkey, sc5, qp, slid, smp))
- 			goto drop;
-@@ -890,9 +875,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	}
- 
- 	wc.slid = be16_to_cpu(hdr->lrh[3]);
--	sc = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
--	sc |= sc4_bit;
--	wc.sl = ibp->sc_to_sl[sc];
-+	wc.sl = ibp->sc_to_sl[sc5];
- 
- 	/*
- 	 * Save the LMC lower bits if the destination LID is a unicast LID.
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
