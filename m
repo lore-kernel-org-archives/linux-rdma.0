@@ -1,68 +1,106 @@
-From: J Freyensee <james_p_freyensee-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: Queue ns scanning after a sucessful
- reconnection
-Date: Mon, 08 Aug 2016 12:43:50 -0700
-Message-ID: <1470685430.4368.9.camel@linux.intel.com>
-References: <1469980540-16103-1-git-send-email-sagi@grimberg.me>
-	 <1470330508.19927.18.camel@linux.intel.com>
-	 <ce424fe1-d6e8-706f-18f8-aa9c880bcdec@grimberg.me>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] IB/hfi1: Correct issues with sc5 computation
+Date: Mon, 08 Aug 2016 15:51:43 -0400
+Message-ID: <20160808195143.22343.32815.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ce424fe1-d6e8-706f-18f8-aa9c880bcdec-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ming Lin <mlin-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2016-08-07 at 12:12 +0300, Sagi Grimberg wrote:
-> > 
-> > > 
-> > > On an ordered target shutdown, the target can send a AEN on a
-> > > namespace
-> > > removal, this will trigger the host to queue ns-list query. The
-> > > shutdown
-> > > will trigger error recovery which will attepmt periodic
-> > > reconnect.
-> > > 
-> > > We can hit a race where the ns rescanning fails (error recovery
-> > > kicked
-> > > in and we're not connected) causing removing all the namespaces
-> > > and
-> > > when
-> > > we reconnect we won't see any namespaces for this controller.
-> > > 
-> > > So, queue a namespace rescan after we successfully reconnected to
-> > > the
-> > > target.
-> > > 
-> > > Note, that unlike user initiated controller reset, we don't need
-> > > to
-> > > trigger
-> > > namespace scanning (until the point I noticed the above at least)
-> > > because we
-> > > reconnect to an existing controller. However due to the
-> > > interaction
-> > > with
-> > > the aen mechanism we queue ns scan here as well.
-> > > 
-> > > Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> > > ---
-> > > I'm open to other suggestions if anyone has any...
-> > 
-> > this sounds like a fix that should really go in the core target
-> > code
-> > instead of RDMA code as this could affect any implementation layer.
-> 
-> But it fixes the host behavior (nvme-rdma).
+commit 896ce45da2c2f4abc508d443fdecde7de0b3fa7e upstream.
 
-Actually I think I meant host but didn't have enough coffee for my
-brain when I looked at this :-/...
+There are several computatations of the sc in the
+ud receive routine.
 
-OK, makes sense.
+Besides the code duplication, all are wrong when the
+sc is greater than 15.   In that case the code incorrectly
+or's a 1 into the computed sc instead of 1 shifted left
+by 4.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix precomputed sc5 by using an already implemented routine
+hdr2sc() and deleting flawed duplicated code.
+
+[ported from 896ce45da2c to linux-4.6.y]
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+---
+ drivers/staging/rdma/hfi1/ud.c |   23 +++--------------------
+ 1 file changed, 3 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index ae8a70f..23e60fe 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -678,8 +678,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	u32 tlen = packet->tlen;
+ 	struct rvt_qp *qp = packet->qp;
+ 	bool has_grh = rcv_flags & HFI1_HAS_GRH;
+-	bool sc4_bit = has_sc4_bit(packet);
+-	u8 sc;
++	u8 sc5 = hdr2sc((struct hfi1_message_header *)hdr, packet->rhf);
+ 	u32 bth1;
+ 	int is_mcast;
+ 	struct ib_grh *grh = NULL;
+@@ -697,10 +696,8 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		 */
+ 		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 		u32 lqpn =  be32_to_cpu(ohdr->bth[1]) & RVT_QPN_MASK;
+-		u8 sl, sc5;
++		u8 sl;
+ 
+-		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-		sc5 |= sc4_bit;
+ 		sl = ibp->sc_to_sl[sc5];
+ 
+ 		process_becn(ppd, sl, 0, lqpn, 0, IB_CC_SVCTYPE_UD);
+@@ -717,10 +714,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 
+ 	if (!is_mcast && (opcode != IB_OPCODE_CNP) && bth1 & HFI1_FECN_SMASK) {
+ 		u16 slid = be16_to_cpu(hdr->lrh[3]);
+-		u8 sc5;
+-
+-		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-		sc5 |= sc4_bit;
+ 
+ 		return_cnp(ibp, qp, src_qp, pkey, dlid, slid, sc5, grh);
+ 	}
+@@ -745,10 +738,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		if (qp->ibqp.qp_num > 1) {
+ 			struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 			u16 slid;
+-			u8 sc5;
+-
+-			sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-			sc5 |= sc4_bit;
+ 
+ 			slid = be16_to_cpu(hdr->lrh[3]);
+ 			if (unlikely(rcv_pkey_check(ppd, pkey, sc5, slid))) {
+@@ -790,10 +779,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 		/* Received on QP0, and so by definition, this is an SMP */
+ 		struct opa_smp *smp = (struct opa_smp *)data;
+ 		u16 slid = be16_to_cpu(hdr->lrh[3]);
+-		u8 sc5;
+-
+-		sc5 = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-		sc5 |= sc4_bit;
+ 
+ 		if (opa_smp_check(ibp, pkey, sc5, qp, slid, smp))
+ 			goto drop;
+@@ -890,9 +875,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+ 	}
+ 
+ 	wc.slid = be16_to_cpu(hdr->lrh[3]);
+-	sc = (be16_to_cpu(hdr->lrh[0]) >> 12) & 0xf;
+-	sc |= sc4_bit;
+-	wc.sl = ibp->sc_to_sl[sc];
++	wc.sl = ibp->sc_to_sl[sc5];
+ 
+ 	/*
+ 	 * Save the LMC lower bits if the destination LID is a unicast LID.
