@@ -1,81 +1,47 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Remove duplicated include from affinity.c
-Date: Mon, 8 Aug 2016 13:46:58 +0300
-Message-ID: <20160808104658.GT27667@leon.nu>
-References: <1470649787-29933-1-git-send-email-weiyj.lk@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="finhkSr2yyrWw3ow"
+From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Subject: [PATCH] ipoib: Make ipoib_warn ratelimited
+Date: Mon,  8 Aug 2016 17:14:22 +0300
+Message-ID: <1470665662-24028-1-git-send-email-kernel@kyup.com>
+References: <1470234370.18081.63.camel@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470649787-29933-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1470234370.18081.63.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+In certain cases it's possible to be flooded by warning messages. To
+cope with such situations make the ipoib_warn macro be ratelimited.
+To prevent accidental limiting of legitimate, bursty messages make
+the limit fairly liberal by allowing up to 100 messages in 10 seconds.
 
---finhkSr2yyrWw3ow
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-On Mon, Aug 08, 2016 at 09:49:47AM +0000, Wei Yongjun wrote:
-> Remove duplicated include.
->=20
-> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hfi1/affinity.c | 1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/h=
-w/hfi1/affinity.c
-> index 79575ee..7a3eb30 100644
-> --- a/drivers/infiniband/hw/hfi1/affinity.c
-> +++ b/drivers/infiniband/hw/hfi1/affinity.c
-> @@ -47,7 +47,6 @@
->  #include <linux/topology.h>
->  #include <linux/cpumask.h>
->  #include <linux/module.h>
-> -#include <linux/cpumask.h>
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 3ede10309754..1f02ccbdccd0 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -764,7 +764,13 @@ static inline void ipoib_unregister_debugfs(void) { }
+ #define ipoib_printk(level, priv, format, arg...)	\
+ 	printk(level "%s: " format, ((struct ipoib_dev_priv *) priv)->dev->name , ## arg)
+ #define ipoib_warn(priv, format, arg...)		\
+-	ipoib_printk(KERN_WARNING, priv, format , ## arg)
++do {							\
++	static DEFINE_RATELIMIT_STATE(_rs,		\
++		10 * HZ /*10 seconds */,		\
++		100);		\
++	if (__ratelimit(&_rs))				\
++		ipoib_printk(KERN_WARNING, priv, format , ## arg);\
++} while (0)
+ 
+ extern int ipoib_sendq_size;
+ extern int ipoib_recvq_size;
+-- 
+2.5.0
 
-Yeah, no doubts, thanks.
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-> =20
->  #include "hfi.h"
->  #include "affinity.h"
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---finhkSr2yyrWw3ow
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXqGMiAAoJEORje4g2clinMaIP/R0LbYdEFRl4vUUlbfUAGIDl
-CLNO2DSa3QwQVhQKJZgwf76gg+ap+VAmC2RGAgsX5ifyjyi6qyux0/A8eQ6cSUF5
-SCM64UBIYzfOTYaXlFwICxmya8H6TqdeCxKiOBi6/djpcOv1QobC5VHtf+W0wvOw
-M8l7BsIlSuLb/9pEYAKIcKd5oWsoss+R0rVGOb51zwm45mbCnGP+v8FOKV9tbsdd
-ObG6HKXH8RF7ySdp2HvrRaA8OgSHO4c2tmhILOMqXuKFUVdNeRc69rmUsLU1pgEw
-P/Wpyipj3CzlSJtrFLQu7lnkYd84A+JqKfC1q22sNMlyEiclkSa138ArKu7Zo4jd
-DmD9ME53jdW25ZPrnTe8AjPJ4Qnfzq0ahernur6QOHAsP0hGpLxiTzNR7fLVXU95
-cgLQfmRPnH98w4J/puiPeTypGWfV4tIU7y3wgnFYDJhGyTuaWxYnfCrYwy3ZZcdg
-nLSj1e1SxwsQNfAkaxNxPJmRQziP9MGzENP6OdOgsQrp98flSUjV31KjaLn69HS0
-3s/IiMkhHmzcO2cAlpwx3z2eqF4Civ4/oKktanv1T9hOH01HB76z+nmJKg9ByNOZ
-XSz3UUoCkq1Fc6oGqgHDLSyrHJTQwxAlJbHIJSsveNZaZDPWLPXuy4Qrm8stn1y7
-Soqu8vFmphG3aK14jQdQ
-=x2o+
------END PGP SIGNATURE-----
-
---finhkSr2yyrWw3ow--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
