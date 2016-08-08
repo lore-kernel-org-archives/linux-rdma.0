@@ -1,7 +1,7 @@
 From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/hfi1: Remove duplicated include from affinity.c
-Date: Mon,  8 Aug 2016 09:49:47 +0000
-Message-ID: <1470649787-29933-1-git-send-email-weiyj.lk@gmail.com>
+Subject: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
+Date: Mon,  8 Aug 2016 09:50:18 +0000
+Message-ID: <1470649818-30040-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,25 +11,41 @@ To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
 Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove duplicated include.
+The callback function of call_rcu() just calls a kfree(), so we
+can use kfree_rcu() instead of call_rcu() + callback function.
 
 Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/hw/hfi1/mad.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index 79575ee..7a3eb30 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -47,7 +47,6 @@
- #include <linux/topology.h>
- #include <linux/cpumask.h>
- #include <linux/module.h>
--#include <linux/cpumask.h>
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 1263abe..95c43e1 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -3398,7 +3398,7 @@ static void apply_cc_state(struct hfi1_pportdata *ppd)
  
- #include "hfi.h"
- #include "affinity.h"
+ 	spin_unlock(&ppd->cc_state_lock);
+ 
+-	call_rcu(&old_cc_state->rcu, cc_state_reclaim);
++	kfree_rcu(old_cc_state, rcu);
+ }
+ 
+ static int __subn_set_opa_cong_setting(struct opa_smp *smp, u32 am, u8 *data,
+@@ -3553,13 +3553,6 @@ static int __subn_get_opa_cc_table(struct opa_smp *smp, u32 am, u8 *data,
+ 	return reply((struct ib_mad_hdr *)smp);
+ }
+ 
+-void cc_state_reclaim(struct rcu_head *rcu)
+-{
+-	struct cc_state *cc_state = container_of(rcu, struct cc_state, rcu);
+-
+-	kfree(cc_state);
+-}
+-
+ static int __subn_set_opa_cc_table(struct opa_smp *smp, u32 am, u8 *data,
+ 				   struct ib_device *ibdev, u8 port,
+ 				   u32 *resp_len)
 
 
 
