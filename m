@@ -1,44 +1,60 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting today -
- 8/9/2016 at 11:00PDT
-Date: Tue, 9 Aug 2016 16:13:19 +0000
-Message-ID: <VI1PR0501MB2189D893D50DB425E67E81A2B11C0@VI1PR0501MB2189.eurprd05.prod.outlook.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
+Date: Tue, 9 Aug 2016 16:20:08 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2D09F703@fmsmsx120.amr.corp.intel.com>
+References: <1470649818-30040-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470649818-30040-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda - ABI update:
-- Collapse type definition into single declaration
-- Automatic IDR object management
-- Seamless provider transition to new ABI
-- User-space ABI integration
-- Additional command conversions to new ABI (RegMR, AllocPD)
-
-Regards,
---Liran
-
-Concall details
-===========
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
-
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
-
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=MC&ED=457637257&tollFree=1
-
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
 
 
+> -----Original Message-----
+> From: Wei Yongjun [mailto:weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: Monday, August 8, 2016 5:50 AM
+> To: Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Dalessandro, Dennis
+> <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>;
+> Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Hal Rosenstock
+> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
+> 
+> The callback function of call_rcu() just calls a kfree(), so we can use
+> kfree_rcu() instead of call_rcu() + callback function.
+> 
+> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/hfi1/mad.c | 9 +--------
+>  1 file changed, 1 insertion(+), 8 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/mad.c
+> b/drivers/infiniband/hw/hfi1/mad.c
+> index 1263abe..95c43e1 100644
+> --- a/drivers/infiniband/hw/hfi1/mad.c
+> +++ b/drivers/infiniband/hw/hfi1/mad.c
+> @@ -3398,7 +3398,7 @@ static void apply_cc_state(struct hfi1_pportdata
+> *ppd)
+> 
+>  	spin_unlock(&ppd->cc_state_lock);
+> 
+> -	call_rcu(&old_cc_state->rcu, cc_state_reclaim);
+> +	kfree_rcu(old_cc_state, rcu);
+>  }
+> 
+
+This patch misses another call_rcu() that needs to be replaced in cleanup_device_data()
+and that seems to be causing 0day issues.
+
+Doug, have you put this anywhere to elicit the 0day issues?
+
+Nacked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> 
 
 
 --
