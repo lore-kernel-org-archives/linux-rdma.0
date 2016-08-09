@@ -1,62 +1,71 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
-Date: Tue, 9 Aug 2016 16:20:08 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC2D09F703@fmsmsx120.amr.corp.intel.com>
-References: <1470649818-30040-1-git-send-email-weiyj.lk@gmail.com>
+From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [RFI] ucmatose: No effect to set service type for QoS
+Date: Tue, 9 Aug 2016 18:26:34 +0200
+Message-ID: <CAMGffEn=dQsBzV9SPsVTJdsppJ65n_FFiRRASyrjwnmMNmCuDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1470649818-30040-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sean,
+
+I'm testing QoS support for IB. I notice ucmatose has equally
+performance when set different service type, but set SL in ib_send_bw
+works well (different SL show different performance base on opensm
+settings)
+
+I capature packats using ibdump, it shows in in LRH the service level
+fields are all 0 when running traffic with ucmatose.
+
+When running ib_send_bw, it carries the right service level I set.
+
+Seems in rdma_set_service_type, it sets to tos to id_priv->tos, and
+lter set to path_rec->qos_class or traffic_class but not to sl
+directly, what's the consideration here?
+code snip:
+        switch (cma_family(id_priv)) {
+        case AF_INET:
+                path_rec->qos_class = cpu_to_be16((u16) id_priv->tos);
+                comp_mask |= IB_SA_PATH_REC_QOS_CLASS;
+                break;
+        case AF_INET6:
+                sin6 = (struct sockaddr_in6 *) cma_src_addr(id_priv);
+                path_rec->traffic_class = (u8)
+(be32_to_cpu(sin6->sin6_flowinfo) >> 20);
+                comp_mask |= IB_SA_PATH_REC_TRAFFIC_CLASS;
+                break;
+        case AF_IB:
+                sib = (struct sockaddr_ib *) cma_src_addr(id_priv);
+                path_rec->traffic_class = (u8)
+(be32_to_cpu(sib->sib_flowinfo) >> 20);
 
 
-> -----Original Message-----
-> From: Wei Yongjun [mailto:weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Monday, August 8, 2016 5:50 AM
-> To: Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Dalessandro, Dennis
-> <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>;
-> Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Hal Rosenstock
-> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH] IB/hfi1: Using kfree_rcu() to simplify the code
-> 
-> The callback function of call_rcu() just calls a kfree(), so we can use
-> kfree_rcu() instead of call_rcu() + callback function.
-> 
-> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hfi1/mad.c | 9 +--------
->  1 file changed, 1 insertion(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c
-> b/drivers/infiniband/hw/hfi1/mad.c
-> index 1263abe..95c43e1 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -3398,7 +3398,7 @@ static void apply_cc_state(struct hfi1_pportdata
-> *ppd)
-> 
->  	spin_unlock(&ppd->cc_state_lock);
-> 
-> -	call_rcu(&old_cc_state->rcu, cc_state_reclaim);
-> +	kfree_rcu(old_cc_state, rcu);
->  }
-> 
+Does it make sense we also set sl here, or service type for ucmatose
+is totally different with SL for ib_send_bw?
+-- 
+Mit freundlichen Grüßen,
+Best Regards,
 
-This patch misses another call_rcu() that needs to be replaced in cleanup_device_data()
-and that seems to be causing 0day issues.
+Jack Wang
 
-Doug, have you put this anywhere to elicit the 0day issues?
+Linux Kernel Developer Storage
+ProfitBricks GmbH  The IaaS-Company.
 
-Nacked-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> 
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+Tel: +49 30 5770083-42
+Fax: +49 30 5770085-98
+Email: jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+URL: http://www.profitbricks.de
 
-
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506 B.
+Geschäftsführer: Andreas Gauger, Achim Weiss.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
