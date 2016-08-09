@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC ABI V3 7/7] IB/mlx5: Implement common uverb objects
-Date: Tue,  9 Aug 2016 19:39:35 +0300
-Message-ID: <1470760775-6813-8-git-send-email-matanb@mellanox.com>
+Subject: [RFC ABI V3 1/7] RDMA/core: Export RDMA IOCTL declarations
+Date: Tue,  9 Aug 2016 19:39:29 +0300
+Message-ID: <1470760775-6813-2-git-send-email-matanb@mellanox.com>
 References: <1470760775-6813-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1470760775-6813-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,35 +10,179 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch simply tells mlx5 to use the uverb objects declared by
-the common layer.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Place all external RDMA IOCTL declarations into one UAPI exported
+header file and move all legacy MAD commands to that file.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/core/user_mad.c  |  2 +-
+ include/rdma/rdma_ioctl.h           | 38 ++++++++++++++++++++++++
+ include/uapi/rdma/Kbuild            |  1 +
+ include/uapi/rdma/ib_user_mad.h     | 12 --------
+ include/uapi/rdma/rdma_user_ioctl.h | 59 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 99 insertions(+), 13 deletions(-)
+ create mode 100644 include/rdma/rdma_ioctl.h
+ create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index c72797c..003042a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -49,6 +49,7 @@
- #include <linux/mlx5/vport.h>
- #include <rdma/ib_smi.h>
- #include <rdma/ib_umem.h>
-+#include <rdma/uverbs_ioctl_cmd.h>
- #include <linux/in.h>
- #include <linux/etherdevice.h>
- #include <linux/mlx5/fs.h>
-@@ -2467,6 +2468,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	if (err)
- 		goto err_rsrc;
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 415a318..70e974e 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -52,8 +52,8 @@
  
-+	dev->ib_dev.types_group = &uverbs_types_group;
+ #include <asm/uaccess.h>
+ 
++#include <rdma/rdma_ioctl.h>
+ #include <rdma/ib_mad.h>
+-#include <rdma/ib_user_mad.h>
+ 
+ MODULE_AUTHOR("Roland Dreier");
+ MODULE_DESCRIPTION("InfiniBand userspace MAD packet access");
+diff --git a/include/rdma/rdma_ioctl.h b/include/rdma/rdma_ioctl.h
+new file mode 100644
+index 0000000..f62a359
+--- /dev/null
++++ b/include/rdma/rdma_ioctl.h
+@@ -0,0 +1,38 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
- 	err = ib_register_device(&dev->ib_dev, NULL);
- 	if (err)
- 		goto err_odp;
++#ifndef RDMA_IOCTL_H
++#define RDMA_IOCTL_H
++
++#include <rdma/rdma_user_ioctl.h>
++
++#endif /* RDMA_IOCTL_H */
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+index 231901b..537e40e 100644
+--- a/include/uapi/rdma/Kbuild
++++ b/include/uapi/rdma/Kbuild
+@@ -1,5 +1,6 @@
+ # UAPI Header export list
+ header-y += ib_user_cm.h
++header-y += rdma_user_ioctl.h
+ header-y += ib_user_mad.h
+ header-y += ib_user_sa.h
+ header-y += ib_user_verbs.h
+diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
+index 09f809f..7e722e7 100644
+--- a/include/uapi/rdma/ib_user_mad.h
++++ b/include/uapi/rdma/ib_user_mad.h
+@@ -230,16 +230,4 @@ struct ib_user_mad_reg_req2 {
+ 	__u8	reserved[3];
+ };
+ 
+-#define IB_IOCTL_MAGIC		0x1b
+-
+-#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
+-					      struct ib_user_mad_reg_req)
+-
+-#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
+-
+-#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
+-
+-#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
+-					      struct ib_user_mad_reg_req2)
+-
+ #endif /* IB_USER_MAD_H */
+diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
+new file mode 100644
+index 0000000..5c1117a
+--- /dev/null
++++ b/include/uapi/rdma/rdma_user_ioctl.h
+@@ -0,0 +1,59 @@
++/*
++ * Copyright (c) 2016 Mellanox Technologies, LTD. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef RDMA_USER_IOCTL_H
++#define RDMA_USER_IOCTL_H
++
++#include <linux/types.h>
++#include <linux/ioctl.h>
++
++#define RDMA_IOCTL_MAGIC		0x1b
++/*
++ * For hfi1 driver
++ */
++#define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
++
++/* Legacy part
++ * !!!! NOTE: It uses the same command index as VERBS
++ */
++#include <rdma/ib_user_mad.h>
++#define IB_USER_MAD_REGISTER_AGENT	_IOWR(RDMA_IOCTL_MAGIC, 1, \
++					      struct ib_user_mad_reg_req)
++
++#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(RDMA_IOCTL_MAGIC, 2, __u32)
++
++#define IB_USER_MAD_ENABLE_PKEY		_IO(RDMA_IOCTL_MAGIC, 3)
++
++#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(RDMA_IOCTL_MAGIC, 4, \
++					      struct ib_user_mad_reg_req2)
++
++#endif /* RDMA_USER_IOCTL_H */
 -- 
 2.7.4
 
