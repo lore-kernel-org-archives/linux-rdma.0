@@ -1,95 +1,59 @@
 From: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] IB/hfi1: Fetch monitor values on-demand for CableInfo query
-Date: Tue,  9 Aug 2016 11:17:18 -0400
-Message-ID: <1470755838-14117-1-git-send-email-ira.weiny@intel.com>
+Subject: [PATCH 1/2] IB/hfi1: Pass packet ptr to set_armed_active
+Date: Tue,  9 Aug 2016 11:19:55 -0400
+Message-ID: <1470755996-14187-2-git-send-email-ira.weiny@intel.com>
+References: <1470755996-14187-1-git-send-email-ira.weiny@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470755996-14187-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The monitor values from bytes 22 through 81 of the QSFP memory space
-(SFF 8636) are dynamic and serving them out of the QSFP memory cache
-maintained by the driver provides stale data to the CableInfo SMA query.
-This patch refreshes the dynamic values from the QSFP memory on request
-and overwrites the stale data from the cache for the overlap between the
-requested range and the monitor range.
+The "packet" parameter was being passed on the stack,
+change it to a pointer.
 
 
-Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qsfp.c | 32 ++++++++++++++++++++++++++++++--
- drivers/infiniband/hw/hfi1/qsfp.h |  3 +++
- 2 files changed, 33 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/driver.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.c b/drivers/infiniband/hw/hfi1/qsfp.c
-index a207717ade2a..4e95ad810847 100644
---- a/drivers/infiniband/hw/hfi1/qsfp.c
-+++ b/drivers/infiniband/hw/hfi1/qsfp.c
-@@ -706,8 +706,8 @@ int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
- 		   u8 *data)
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index 8246dc7d0573..c4156870a8bb 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -888,14 +888,14 @@ void set_all_slowpath(struct hfi1_devdata *dd)
+ }
+ 
+ static inline int set_armed_to_active(struct hfi1_ctxtdata *rcd,
+-				      struct hfi1_packet packet,
++				      struct hfi1_packet *packet,
+ 				      struct hfi1_devdata *dd)
  {
- 	struct hfi1_pportdata *ppd;
--	u32 excess_len = 0;
--	int ret = 0;
-+	u32 excess_len = len;
-+	int ret = 0, offset = 0;
+ 	struct work_struct *lsaw = &rcd->ppd->linkstate_active_work;
+-	struct hfi1_message_header *hdr = hfi1_get_msgheader(packet.rcd->dd,
+-							     packet.rhf_addr);
++	struct hfi1_message_header *hdr = hfi1_get_msgheader(packet->rcd->dd,
++							     packet->rhf_addr);
  
- 	if (port_num > dd->num_pports || port_num < 1) {
- 		dd_dev_info(dd, "%s: Invalid port number %d\n",
-@@ -740,6 +740,34 @@ int get_cable_info(struct hfi1_devdata *dd, u32 port_num, u32 addr, u32 len,
- 	}
+-	if (hdr2sc(hdr, packet.rhf) != 0xf) {
++	if (hdr2sc(hdr, packet->rhf) != 0xf) {
+ 		int hwstate = read_logical_state(dd);
  
- 	memcpy(data, &ppd->qsfp_info.cache[addr], len);
-+
-+	if (addr <= QSFP_MONITOR_VAL_END &&
-+	    (addr + len) >= QSFP_MONITOR_VAL_START) {
-+		/* Overlap with the dynamic channel monitor range */
-+		if (addr < QSFP_MONITOR_VAL_START) {
-+			if (addr + len <= QSFP_MONITOR_VAL_END)
-+				len = addr + len - QSFP_MONITOR_VAL_START;
-+			else
-+				len = QSFP_MONITOR_RANGE;
-+			offset = QSFP_MONITOR_VAL_START - addr;
-+			addr = QSFP_MONITOR_VAL_START;
-+		} else if (addr == QSFP_MONITOR_VAL_START) {
-+			offset = 0;
-+			if (addr + len > QSFP_MONITOR_VAL_END)
-+				len = QSFP_MONITOR_RANGE;
-+		} else {
-+			offset = 0;
-+			if (addr + len > QSFP_MONITOR_VAL_END)
-+				len = QSFP_MONITOR_VAL_END - addr + 1;
-+		}
-+		/* Refresh the values of the dynamic monitors from the cable */
-+		ret = one_qsfp_read(ppd, dd->hfi1_id, addr, data + offset, len);
-+		if (ret != len) {
-+			ret = -EAGAIN;
-+			goto set_zeroes;
-+		}
-+	}
-+
- 	return 0;
- 
- set_zeroes:
-diff --git a/drivers/infiniband/hw/hfi1/qsfp.h b/drivers/infiniband/hw/hfi1/qsfp.h
-index 69275ebd9597..36cf52359848 100644
---- a/drivers/infiniband/hw/hfi1/qsfp.h
-+++ b/drivers/infiniband/hw/hfi1/qsfp.h
-@@ -74,6 +74,9 @@
- /* Defined fields that Intel requires of qualified cables */
- /* Byte 0 is Identifier, not checked */
- /* Byte 1 is reserved "status MSB" */
-+#define QSFP_MONITOR_VAL_START 22
-+#define QSFP_MONITOR_VAL_END 81
-+#define QSFP_MONITOR_RANGE (QSFP_MONITOR_VAL_END - QSFP_MONITOR_VAL_START + 1)
- #define QSFP_TX_CTRL_BYTE_OFFS 86
- #define QSFP_PWR_CTRL_BYTE_OFFS 93
- #define QSFP_CDR_CTRL_BYTE_OFFS 98
+ 		if (hwstate != LSTATE_ACTIVE) {
+@@ -979,7 +979,7 @@ int handle_receive_interrupt(struct hfi1_ctxtdata *rcd, int thread)
+ 			/* Auto activate link on non-SC15 packet receive */
+ 			if (unlikely(rcd->ppd->host_link_state ==
+ 				     HLS_UP_ARMED) &&
+-			    set_armed_to_active(rcd, packet, dd))
++			    set_armed_to_active(rcd, &packet, dd))
+ 				goto bail;
+ 			last = process_rcv_packet(&packet, thread);
+ 		}
 -- 
 1.8.2
 
