@@ -1,46 +1,48 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Consolidated userspace RDMA library repo
-Date: Wed, 10 Aug 2016 09:37:25 -0500
-Message-ID: <007001d1f314$b670db40$235291c0$@opengridcomputing.com>
-References: <20160810053437.GA22257@obsidianresearch.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/hfi1: Remove duplicated include from affinity.c
+Date: Wed, 10 Aug 2016 01:54:25 -0400
+Message-ID: <20160810055424.GC32695@phlsvsds.ph.intel.com>
+References: <1470649787-29933-1-git-send-email-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160810053437.GA22257-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1470649787-29933-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Aug 08, 2016 at 09:49:47AM +0000, Wei Yongjun wrote:
+> Remove duplicated include.
 > 
-> Hello everyone,
+> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+> ---
+>  drivers/infiniband/hw/hfi1/affinity.c | 1 -
+>  1 file changed, 1 deletion(-)
 > 
-> I have gone ahead and constructed a unified user space source repo
-> for almost all of the user space kernel interface components. This not
-> very hard just fussy. The biggest issue was harmonizing the divergent
-> builds into one single system.
+> diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
+> index 79575ee..7a3eb30 100644
+> --- a/drivers/infiniband/hw/hfi1/affinity.c
+> +++ b/drivers/infiniband/hw/hfi1/affinity.c
+> @@ -47,7 +47,6 @@
+>  #include <linux/topology.h>
+>  #include <linux/cpumask.h>
+>  #include <linux/module.h>
+> -#include <linux/cpumask.h>
+>  
+>  #include "hfi.h"
+>  #include "affinity.h"
 > 
-> This merging will help the distros and help streamline the forthcoming
-> API work.
->
-
-Hey Jason, thanks for getting the ball rolling on this.
-
-<snip>
-
 > 
-> I was looking at iwpm as well, but I don't know too much about what
-> that is..
 > 
-
-I think iwpm should be added, it is the user component needed for iWARP port
-mapping.
-
-Steve.
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
