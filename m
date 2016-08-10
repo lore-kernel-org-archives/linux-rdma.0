@@ -1,45 +1,154 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: Fetch monitor values on-demand for CableInfo
- query
-Date: Wed, 10 Aug 2016 19:07:12 +0000
-Message-ID: <1470856029.9289.11.camel@intel.com>
-References: <1470755838-14117-1-git-send-email-ira.weiny@intel.com>
-	 <20160809175801.GD23921@leon.nu>
-	 <20160810053549.GA32695@phlsvsds.ph.intel.com>
-	 <20160810055138.GH23921@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V3 libmlx5] Fix return value of mlx5_post_send to be aligned with man page
+Date: Wed, 10 Aug 2016 15:07:34 +0300
+Message-ID: <1470830854-7452-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160810055138.GH23921-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B935E4D4EAEE2142A65E7EB7452D13D7-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hariharan, Easwar" <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTA4LTEwIGF0IDA4OjUxICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFdlZCwgQXVnIDEwLCAyMDE2IGF0IDAxOjM1OjUwQU0gLTA0MDAsIGlyYS53ZWlueSB3
-cm90ZToNCj4gPiBPbiBUdWUsIEF1ZyAwOSwgMjAxNiBhdCAwODo1ODowMVBNICswMzAwLCBMZW9u
-IFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBPbiBUdWUsIEF1ZyAwOSwgMjAxNiBhdCAxMToxNzox
-OEFNIC0wNDAwLCBpcmEud2VpbnlAaW50ZWwuY29tDQo+ID4gPiB3cm90ZToNCj4gPiA+ID4gRnJv
-bTogRWFzd2FyIEhhcmloYXJhbiA8ZWFzd2FyLmhhcmloYXJhbkBpbnRlbC5jb20+DQo+ID4gPiA+
-IA0KPiA+ID4gPiBUaGUgbW9uaXRvciB2YWx1ZXMgZnJvbSBieXRlcyAyMiB0aHJvdWdoIDgxIG9m
-IHRoZSBRU0ZQIG1lbW9yeQ0KPiA+ID4gPiBzcGFjZQ0KPiA+ID4gPiAoU0ZGIDg2MzYpIGFyZSBk
-eW5hbWljIGFuZCBzZXJ2aW5nIHRoZW0gb3V0IG9mIHRoZSBRU0ZQIG1lbW9yeQ0KPiA+ID4gPiBj
-YWNoZQ0KPiA+ID4gPiBtYWludGFpbmVkIGJ5IHRoZSBkcml2ZXIgcHJvdmlkZXMgc3RhbGUgZGF0
-YSB0byB0aGUgQ2FibGVJbmZvDQo+ID4gPiA+IFNNQSBxdWVyeS4NCj4gPiA+ID4gVGhpcyBwYXRj
-aCByZWZyZXNoZXMgdGhlIGR5bmFtaWMgdmFsdWVzIGZyb20gdGhlIFFTRlAgbWVtb3J5IG9uDQo+
-ID4gPiA+IHJlcXVlc3QNCj4gPiA+ID4gYW5kIG92ZXJ3cml0ZXMgdGhlIHN0YWxlIGRhdGEgZnJv
-bSB0aGUgY2FjaGUgZm9yIHRoZSBvdmVybGFwDQo+ID4gPiA+IGJldHdlZW4gdGhlDQo+ID4gPiA+
-IHJlcXVlc3RlZCByYW5nZSBhbmQgdGhlIG1vbml0b3IgcmFuZ2UuDQo+ID4gPiA+IA0KPiA+ID4g
-PiANCj4gPiA+IA0KPiA+ID4gSXJhLA0KPiA+ID4gT24gYWxsIHlvdXIgcGF0Y2hlcywgeW91IGhh
-dmUgZG91YmxlIGxpbmUgYmV0d2VlbiBjb21taXQgbWVzc2FnZQ0KPiA+ID4gYW5kDQo+ID4gPiB0
-YWdzLg0KPiA+IA0KPiA+IERvZXMgdGhpcyBjYXVzZSBhIHByb2JsZW0/DQo+IA0KPiBQcm9ibGVt
-IC0gbm8sIGluY29udmVuaWVuY2UgLSB5ZXMuDQo+IEl0IGRvZXNuJ3QgbG9vayBwcmV0dHkgaW4g
-Z2l0IGhpc3RvcnkuDQoNCldlJ2xsIGNhdGNoIGl0IG5leHQgdGltZT8gTm90IHdvcnRoIHJlc3Vi
-bWl0dGluZyBJIGRvbid0IHRoaW5rLg0KDQotRGVubnk=
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
+The man page for ibv_post_send says:
+RETURN VALUE
+       ibv_post_send() returns 0 on success, or the value of errno on failure
+       (which indicates the failure reason).
+
+QEMU looks for the return value, and in the ENOMEM case, waits and
+retries, but with mlx5, it ends up dropping requests and hanging, because
+of the unexpected -1 return instead of ENOMEM.
+
+The fix is simple: set err = E<whatever> instead of -1, and eliminate use
+of errno = in _mlx5_post_send, just have mlx5_post_send return the err from
+_mlx5_post_send instead. This fix has been confirmed to resolve the issues
+seen with QEMU.
+
+While we're at it, fix the MW_DEBUG code paths to no muck with errno either.
+
+Reported-by: Dr. David Alan Gilbert <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Tested-by: Dr. David Alan Gilbert <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+CC: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/qp.c | 52 ++++++++++++++++++----------------------------------
+ 1 file changed, 18 insertions(+), 34 deletions(-)
+
+diff --git a/src/qp.c b/src/qp.c
+index 51e1176..12191be 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -279,10 +279,8 @@ static int set_data_inl_seg(struct mlx5_qp *qp, struct ibv_send_wr *wr,
+ 		inl += len;
+ 		offset = 0;
+ 
+-		if (unlikely(inl > qp->max_inline_data)) {
+-			errno = ENOMEM;
+-			return -1;
+-		}
++		if (unlikely(inl > qp->max_inline_data))
++			return ENOMEM;
+ 
+ 		if (unlikely(wqe + len > qend)) {
+ 			copy = qend - wqe;
+@@ -517,10 +515,8 @@ static inline int set_bind_wr(struct mlx5_qp *qp, enum ibv_mw_type type,
+ #ifdef MW_DEBUG
+ 	if (bind_info->mw_access_flags &
+ 	    ~(IBV_ACCESS_REMOTE_ATOMIC | IBV_ACCESS_REMOTE_READ |
+-	     IBV_ACCESS_REMOTE_WRITE)) {
+-		errno = EINVAL;
+-		return errno;
+-	}
++	     IBV_ACCESS_REMOTE_WRITE))
++		return EINVAL;
+ 
+ 	if (bind_info->mr &&
+ 	    (bind_info->mr->addr > (void *)bind_info->addr ||
+@@ -529,17 +525,14 @@ static inline int set_bind_wr(struct mlx5_qp *qp, enum ibv_mw_type type,
+ 	     !(to_mmr(bind_info->mr)->alloc_flags &  IBV_ACCESS_MW_BIND) ||
+ 	     (bind_info->mw_access_flags &
+ 	      (IBV_ACCESS_REMOTE_ATOMIC | IBV_ACCESS_REMOTE_WRITE) &&
+-	      !(to_mmr(bind_info->mr)->alloc_flags & IBV_ACCESS_LOCAL_WRITE)))) {
+-		errno = EINVAL;
+-		return errno;
+-	}
++	      !(to_mmr(bind_info->mr)->alloc_flags & IBV_ACCESS_LOCAL_WRITE))))
++		return EINVAL;
++
+ #endif
+ 
+ 	/* check that len > 2GB because KLM support only 2GB */
+-	if (bind_info->length > 1UL << 31) {
+-		errno = EOPNOTSUPP;
+-		return errno;
+-	}
++	if (bind_info->length > 1UL << 31)
++		return EOPNOTSUPP;
+ 
+ 	set_umr_control_seg(qp, type, rkey, bind_info, qpn, seg, size);
+ 	if (unlikely((*seg == qend)))
+@@ -590,8 +583,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(wr->opcode < 0 ||
+ 		    wr->opcode >= sizeof mlx5_ib_opcode / sizeof mlx5_ib_opcode[0])) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "bad opcode %d\n", wr->opcode);
+-			errno = EINVAL;
+-			err = -1;
++			err = EINVAL;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -599,8 +591,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(mlx5_wq_overflow(&qp->sq, nreq,
+ 					      to_mcq(qp->ibv_qp->send_cq)))) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "work queue overflow\n");
+-			errno = ENOMEM;
+-			err = -1;
++			err = ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -608,8 +599,7 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 		if (unlikely(wr->num_sge > qp->sq.max_gs)) {
+ 			mlx5_dbg(fp, MLX5_DBG_QP_SEND, "max gs exceeded %d (max = %d)\n",
+ 				 wr->num_sge, qp->sq.max_gs);
+-			errno = ENOMEM;
+-			err = -1;
++			err = ENOMEM;
+ 			*bad_wr = wr;
+ 			goto out;
+ 		}
+@@ -899,22 +889,16 @@ int mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ {
+ #ifdef MW_DEBUG
+ 	if (wr->opcode == IBV_WR_BIND_MW) {
+-		if (wr->bind_mw.mw->type == IBV_MW_TYPE_1) {
+-			errno = EINVAL;
+-			return errno;
+-		}
++		if (wr->bind_mw.mw->type == IBV_MW_TYPE_1)
++			return EINVAL;
+ 
+ 		if (!wr->bind_mw.bind_info.mr ||
+ 		    !wr->bind_mw.bind_info.addr ||
+-		    !wr->bind_mw.bind_info.length) {
+-			errno = EINVAL;
+-			return errno;
+-		}
++		    !wr->bind_mw.bind_info.length)
++			return EINVAL;
+ 
+-		if (wr->bind_mw.bind_info.mr->pd != wr->bind_mw.mw->pd) {
+-			errno = EINVAL;
+-			return errno;
+-		}
++		if (wr->bind_mw.bind_info.mr->pd != wr->bind_mw.mw->pd)
++			return EINVAL;
+ 	}
+ #endif
+ 
+-- 
+1.8.3.1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
