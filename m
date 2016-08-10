@@ -1,34 +1,88 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH] IB/hfi1: Add missing error code assignment before test
-Date: Wed, 10 Aug 2016 16:10:58 +0000
-Message-ID: <1470845455.2576.6.camel@intel.com>
-References: <1470807267-12714-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/hfi1: Fetch monitor values on-demand for CableInfo
+ query
+Date: Wed, 10 Aug 2016 08:51:38 +0300
+Message-ID: <20160810055138.GH23921@leon.nu>
+References: <1470755838-14117-1-git-send-email-ira.weiny@intel.com>
+ <20160809175801.GD23921@leon.nu>
+ <20160810053549.GA32695@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470807267-12714-1-git-send-email-christophe.jaillet@wanadoo.fr>
-Content-Language: en-US
-Content-ID: <0818EF7E2B0CAD4F9A53BE887E31055D@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "christophe.jaillet@wanadoo.fr" <christophe.jaillet@wanadoo.fr>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZPDwMsyfds7q4mrK"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160810053549.GA32695-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTA4LTEwIGF0IDA3OjM0ICswMjAwLCBDaHJpc3RvcGhlIEpBSUxMRVQgd3Jv
-dGU6DQo+IEl0IGlzIGxpa2VseSB0aGF0IGNoZWNraW5nIHRoZSByZXN1bHQgb2YgJ3NldHVwX2N0
-eHQnIGlzIGV4cGVjdGVkDQo+IGhlcmUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDaHJpc3RvcGhl
-IEpBSUxMRVQgPGNocmlzdG9waGUuamFpbGxldEB3YW5hZG9vLmZyPg0KPiAtLS0NCj4gwqBkcml2
-ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9maWxlX29wcy5jIHwgMiArLQ0KPiDCoDEgZmlsZSBjaGFu
-Z2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2ZpbGVfb3BzLmMNCj4gYi9kcml2ZXJzL2luZmluaWJh
-bmQvaHcvaGZpMS9maWxlX29wcy5jDQo+IGluZGV4IDFlY2JlYzE5MjM1OC4uZWQ3NmJlMzliMjBi
-IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9maWxlX29wcy5jDQo+
-ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2ZpbGVfb3BzLmMNCj4gQEAgLTIyMiw3
-ICsyMjIsNyBAQCBzdGF0aWMgbG9uZyBoZmkxX2ZpbGVfaW9jdGwoc3RydWN0IGZpbGUgKmZwLA0K
-PiB1bnNpZ25lZCBpbnQgY21kLA0KPiDCoAkJcmV0ID0gYXNzaWduX2N0eHQoZnAsICZ1aW5mbyk7
-DQo+IMKgCQlpZiAocmV0IDwgMCkNCj4gwqAJCQlyZXR1cm4gcmV0Ow0KPiAtCQlzZXR1cF9jdHh0
-KGZwKTsNCj4gKwkJcmV0ID0gc2V0dXBfY3R4dChmcCk7DQo+IMKgCQlpZiAocmV0KQ0KPiDCoAkJ
-CXJldHVybiByZXQ7DQo+IMKgCQlyZXQgPSB1c2VyX2luaXQoZnApOw0KDQpUaGFua3MgZm9yIHRo
-ZSBwYXRjaC4NCg0KQWNrZWQtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2Fu
-ZHJvQGludGVsLmNvbT4=
+
+--ZPDwMsyfds7q4mrK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Aug 10, 2016 at 01:35:50AM -0400, ira.weiny wrote:
+> On Tue, Aug 09, 2016 at 08:58:01PM +0300, Leon Romanovsky wrote:
+> > On Tue, Aug 09, 2016 at 11:17:18AM -0400, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > >=20
+> > > The monitor values from bytes 22 through 81 of the QSFP memory space
+> > > (SFF 8636) are dynamic and serving them out of the QSFP memory cache
+> > > maintained by the driver provides stale data to the CableInfo SMA que=
+ry.
+> > > This patch refreshes the dynamic values from the QSFP memory on reque=
+st
+> > > and overwrites the stale data from the cache for the overlap between =
+the
+> > > requested range and the monitor range.
+> > >=20
+> > >=20
+> >=20
+> > Ira,
+> > On all your patches, you have double line between commit message and
+> > tags.
+>=20
+> Does this cause a problem?
+
+Problem - no, inconvenience - yes.
+It doesn't look pretty in git history.
+
+>=20
+> Ira
+>=20
+> >=20
+> > > Reviewed-by: Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>=20
+>=20
+
+--ZPDwMsyfds7q4mrK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXqsDqAAoJEORje4g2clin6Y4P/3GRI3FYm393uLpjEll4+1zo
+iLm2Y50hghcqqpHtYEm0uXaNO8nLHbi2RsqqGqSRONmKtpkGOlqtR0xD0uF3D4Uo
+rTWiqWkd5muqIvSithPi6dHmdAq2KfJaKV+7n4RpD3xABa30d6UuRXYPy18JGWSS
+EujnJZ7OTDYqYezVTeYTVZT33a0kDE5VOyTLaJ7lx47m1B2E3UhDhBYOoBQzzpqa
+d01wo+nZ+m9ILNCDJKeABZfeLti+dT6bIaZjQkqmcxwVb/GWCFPGVyN0ivooZ51c
+vxXeouNRrYnCmFO8EcKLQPnhnUjOg9IzeyB7Kq4Qu5U691nqryx4akxXykaIMdkK
+QdsdtIUhBfnUPZ94onJXbvA/+AO3+Rml+RRS/UCErodyFMOR+b5k8t6I2c6HVAvK
+PMuvDwj9q7y2w1W+wPAzx7lYG0ueBiXwBJxrYsY7L0RKJitB22FOXjWc8dJ+6uEM
+ht9sUHBO9CGQOfi5yWux5BCU46VpoQ4pWIdNXABfqcak4A87Zsgn5oT06+Jp1CyM
+F+K8Ij4ZK7lN5vPvgy/XdDhUpYsHQiS1Gljs9BrWt4FSm6xMNs6UqHDdWsbI1aYr
+J4B2g6btzFmZ4MxnX5TzdHFdJVWP2sy5EYHWJoJoFzEUqfli+TdLiW5KSilKuLy6
+C+wyeHumrvYFKQDc2Sz0
+=Wnla
+-----END PGP SIGNATURE-----
+
+--ZPDwMsyfds7q4mrK--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
