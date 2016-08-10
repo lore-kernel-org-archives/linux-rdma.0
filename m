@@ -1,45 +1,34 @@
-From: Christophe JAILLET <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
-Subject: [PATCH] IB/hfi1: Add missing error code assignment before test
-Date: Wed, 10 Aug 2016 07:34:27 +0200
-Message-ID: <1470807267-12714-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH] IB/hfi1: Add missing error code assignment before test
+Date: Wed, 10 Aug 2016 16:10:58 +0000
+Message-ID: <1470845455.2576.6.camel@intel.com>
+References: <1470807267-12714-1-git-send-email-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe JAILLET <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1470807267-12714-1-git-send-email-christophe.jaillet@wanadoo.fr>
+Content-Language: en-US
+Content-ID: <0818EF7E2B0CAD4F9A53BE887E31055D@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "christophe.jaillet@wanadoo.fr" <christophe.jaillet@wanadoo.fr>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It is likely that checking the result of 'setup_ctxt' is expected here.
-
-Signed-off-by: Christophe JAILLET <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/file_ops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 1ecbec192358..ed76be39b20b 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -222,7 +222,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
- 		ret = assign_ctxt(fp, &uinfo);
- 		if (ret < 0)
- 			return ret;
--		setup_ctxt(fp);
-+		ret = setup_ctxt(fp);
- 		if (ret)
- 			return ret;
- 		ret = user_init(fp);
--- 
-2.7.4
-
-
----
-L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
-https://www.avast.com/antivirus
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gV2VkLCAyMDE2LTA4LTEwIGF0IDA3OjM0ICswMjAwLCBDaHJpc3RvcGhlIEpBSUxMRVQgd3Jv
+dGU6DQo+IEl0IGlzIGxpa2VseSB0aGF0IGNoZWNraW5nIHRoZSByZXN1bHQgb2YgJ3NldHVwX2N0
+eHQnIGlzIGV4cGVjdGVkDQo+IGhlcmUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDaHJpc3RvcGhl
+IEpBSUxMRVQgPGNocmlzdG9waGUuamFpbGxldEB3YW5hZG9vLmZyPg0KPiAtLS0NCj4gwqBkcml2
+ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9maWxlX29wcy5jIHwgMiArLQ0KPiDCoDEgZmlsZSBjaGFu
+Z2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2ZpbGVfb3BzLmMNCj4gYi9kcml2ZXJzL2luZmluaWJh
+bmQvaHcvaGZpMS9maWxlX29wcy5jDQo+IGluZGV4IDFlY2JlYzE5MjM1OC4uZWQ3NmJlMzliMjBi
+IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9maWxlX29wcy5jDQo+
+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL2ZpbGVfb3BzLmMNCj4gQEAgLTIyMiw3
+ICsyMjIsNyBAQCBzdGF0aWMgbG9uZyBoZmkxX2ZpbGVfaW9jdGwoc3RydWN0IGZpbGUgKmZwLA0K
+PiB1bnNpZ25lZCBpbnQgY21kLA0KPiDCoAkJcmV0ID0gYXNzaWduX2N0eHQoZnAsICZ1aW5mbyk7
+DQo+IMKgCQlpZiAocmV0IDwgMCkNCj4gwqAJCQlyZXR1cm4gcmV0Ow0KPiAtCQlzZXR1cF9jdHh0
+KGZwKTsNCj4gKwkJcmV0ID0gc2V0dXBfY3R4dChmcCk7DQo+IMKgCQlpZiAocmV0KQ0KPiDCoAkJ
+CXJldHVybiByZXQ7DQo+IMKgCQlyZXQgPSB1c2VyX2luaXQoZnApOw0KDQpUaGFua3MgZm9yIHRo
+ZSBwYXRjaC4NCg0KQWNrZWQtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2Fu
+ZHJvQGludGVsLmNvbT4=
