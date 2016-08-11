@@ -1,158 +1,109 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [RFI] ucmatose: No effect to set service type for QoS
-Date: Thu, 11 Aug 2016 14:29:13 +0200
-Message-ID: <CAMGffEmP_ouVu5v1cGGENqD9dssgtAqTg39-xa6--NaUkf1aVw@mail.gmail.com>
-References: <CAMGffEn=dQsBzV9SPsVTJdsppJ65n_FFiRRASyrjwnmMNmCuDQ@mail.gmail.com>
- <170f9d79-2351-d95f-9ed1-eddedc467d68@dev.mellanox.co.il>
+From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Subject: Race between ipoib_cm_handle_tx_wc and ipoib_cm_tx_destroy crashing.
+Date: Thu, 11 Aug 2016 17:11:37 +0300
+Message-ID: <57AC8799.8060003@kyup.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a113f12ba1cd48f0539caebbb
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <170f9d79-2351-d95f-9ed1-eddedc467d68-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---001a113f12ba1cd48f0539caebbb
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hello list, 
 
-On Wed, Aug 10, 2016 at 8:52 PM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wr=
-ote:
-> On 8/9/2016 12:26 PM, Jinpu Wang wrote:
->> Hi Sean,
->>
->> I'm testing QoS support for IB. I notice ucmatose has equally
->> performance when set different service type, but set SL in ib_send_bw
->> works well (different SL show different performance base on opensm
->> settings)
->>
->> I capature packats using ibdump, it shows in in LRH the service level
->> fields are all 0 when running traffic with ucmatose.
->>
->> When running ib_send_bw, it carries the right service level I set.
->>
->> Seems in rdma_set_service_type, it sets to tos to id_priv->tos, and
->> lter set to path_rec->qos_class or traffic_class but not to sl
->> directly, what's the consideration here?
->> code snip:
->>         switch (cma_family(id_priv)) {
->>         case AF_INET:
->>                 path_rec->qos_class =3D cpu_to_be16((u16) id_priv->tos);
->>                 comp_mask |=3D IB_SA_PATH_REC_QOS_CLASS;
->>                 break;
->>         case AF_INET6:
->>                 sin6 =3D (struct sockaddr_in6 *) cma_src_addr(id_priv);
->>                 path_rec->traffic_class =3D (u8)
->> (be32_to_cpu(sin6->sin6_flowinfo) >> 20);
->>                 comp_mask |=3D IB_SA_PATH_REC_TRAFFIC_CLASS;
->>                 break;
->>         case AF_IB:
->>                 sib =3D (struct sockaddr_ib *) cma_src_addr(id_priv);
->>                 path_rec->traffic_class =3D (u8)
->> (be32_to_cpu(sib->sib_flowinfo) >> 20);
->>
->>
->> Does it make sense we also set sl here, or service type for ucmatose
->> is totally different with SL for ib_send_bw?
->
-> I think this is an OpenSM configuration issue. QoS policy needs to be
-> setup to return the proper SL to use for QoS class or TClass in the
-> PathRecord response.
->
-> -- Hal
->
-Thanks Hal,
+I've come across yet another ipoib issue. I got the following crash, 
+while executing "ifdown ib0". At this time the infiniband network was working
+as expected (e.g. no issue like the ones I reported before with tx queue
+time outs, etc) : 
 
-Configure extra QoS policy seems quite complex.
-Do you think patch attached make sense?
+[721677.936044] ib0: timing out; 1 sends not completed
+[721678.760114] IPv6: ADDRCONF(NETDEV_UP): ib0: link is not ready
+[721678.760337] IPv6: ADDRCONF(NETDEV_CHANGE): ib0: link becomes ready
+[721679.081771] BUG: unable to handle kernel paging request at ffffc900358e24d8
+[721679.081776] IP: [<ffffffffa01edf20>] ipoib_dma_unmap_tx+0x20/0x170 [ib_ipoib]
+[721679.081782] PGD 1fff432067 PUD 3ffec01067 PMD 1e8f064067 PTE 0
+[721679.081785] Oops: 0000 [#1] SMP 
+[721679.081819] CPU: 0 PID: 3451 Comm: qib_cq0 Tainted: G           O    4.4.14-clouder3 #26
+[721679.081821] Hardware name: Supermicro X9DRD-7LN4F(-JBOD)/X9DRD-EF/X9DRD-7LN4F, BIOS 3.2 01/16/2015
+[721679.081822] task: ffff881fee8bb700 ti: ffff881ff0144000 task.ti: ffff881ff0144000
+[721679.081823] RIP: 0010:[<ffffffffa01edf20>]  [<ffffffffa01edf20>] ipoib_dma_unmap_tx+0x20/0x170 [ib_ipoib]
+[721679.081826] RSP: 0000:ffff881fff803e00  EFLAGS: 00010286
+[721679.081827] RAX: ffffc900358e24e0 RBX: ffffc900358e24d8 RCX: 0000000000000100
+[721679.081828] RDX: 000000000000069b RSI: ffffc900358e24d8 RDI: ffff881ff25c8700
+[721679.081829] RBP: ffff881fff803e30 R08: 0000000000000002 R09: ffffc9001b7df000
+[721679.081830] R10: 00000000000aebb9 R11: 0000000000000000 R12: 0000000000000000
+[721679.081831] R13: 0000000000000000 R14: ffff881ff25c8700 R15: ffff881ff25c8000
+[721679.081832] FS:  0000000000000000(0000) GS:ffff881fff800000(0000) knlGS:0000000000000000
+[721679.081833] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[721679.081834] CR2: ffffc900358e24d8 CR3: 0000001fa3b4f000 CR4: 00000000001406f0
+[721679.081834] Stack:
+[721679.081835]  0000000000000000 ffffc900358e24d8 0000000000000000 ffff881fdf4b2c00
+[721679.081837]  0000000000000000 ffff881ff25c8000 ffff881fff803e80 ffffffffa01f5660
+[721679.081839]  ffff881ff25c9068 0000000040000059 ffff881ff25c8700 ffff881ff25c8710
+[721679.081840] Call Trace:
+[721679.081842]  <IRQ> 
+[721679.081845]  [<ffffffffa01f5660>] ipoib_cm_handle_tx_wc+0x70/0x280 [ib_ipoib]
+[721679.081848]  [<ffffffffa01ee487>] ipoib_poll+0xd7/0x160 [ib_ipoib]
+[721679.081852]  [<ffffffff8154d36c>] net_rx_action+0x1ec/0x330
+[721679.081855]  [<ffffffff81057337>] __do_softirq+0x147/0x310
+[721679.081866]  [<ffffffffa00b601f>] ? send_complete+0x1f/0x60 [ib_qib]
+[721679.081869]  [<ffffffff8161618c>] do_softirq_own_stack+0x1c/0x30
+[721679.081869]  <EOI> 
+[721679.081871]  [<ffffffff810567bb>] do_softirq.part.17+0x3b/0x40
+[721679.081873]  [<ffffffff81056876>] __local_bh_enable_ip+0xb6/0xc0
+[721679.081877]  [<ffffffffa00b604b>] send_complete+0x4b/0x60 [ib_qib]
+[721679.081881]  [<ffffffff81071bdb>] kthread_worker_fn+0xbb/0x1e0
+[721679.081883]  [<ffffffff81071b20>] ? kthread_create_on_node+0x180/0x180
+[721679.081885]  [<ffffffff8107161f>] kthread+0xef/0x110
+[721679.081887]  [<ffffffff81071530>] ? kthread_park+0x60/0x60
+[721679.081889]  [<ffffffff816149ff>] ret_from_fork+0x3f/0x70
+[721679.081891]  [<ffffffff81071530>] ? kthread_park+0x60/0x60
+[721679.081892] Code: 48 8b 05 b4 63 a2 e1 eb a3 66 90 0f 1f 44 00 00 55 48 8d 46 08 48 89 e5 41 57 41 56 49 89 fe 41 55 45 31 ed 41 54 53 48 83 ec 08 <4c> 8b 3e 48 89 45 d0 41 8b 97 80 00 00 00 41 8b 87 84 00 00 00 
+[721679.081909] RIP  [<ffffffffa01edf20>] ipoib_dma_unmap_tx+0x20/0x170 [ib_ipoib]
+[721679.081911]  RSP <ffff881fff803e00>
+[721679.081912] CR2: ffffc900358e24d8
+
+ipoib_dma_unmap_tx+0x20 is : struct sk_buff *skb = tx_req->skb;
+The address of tx_req is ffffc900358e24d8, which apparently
+is unmapped address. 
+
+The warning message "ib0: timing out; 1 sends not completed", 
+came from  ipoib_cm_tx_destroy. This means the "goto timeout" 
+statement has executed, triggering the freeing of the ipoib_cm_tx
+state, eventually unmapping the vmalloced. At the time of the crash ipoib_cm_tx looks like: 
+
+struct ipoib_cm_tx {
+  id = 0xffff881fdf4b2c60, 
+  qp = 0xffff8801c0bc8000, 
+  list = {
+    next = 0xdead000000000100, 
+    prev = 0xdead000000000200
+  }, 
+  dev = 0xffff881ff25c8000, 
+  neigh = 0x0, 
+  path = 0xffff881f3f7a7500, 
+  tx_ring = 0xffffc900358df000, 
+  tx_head = 101722, 
+  tx_tail = 101722, 
+  flags = 1, 
+  mtu = 65524
+}
+
+The list is dead which corresponds to the list_del(&p->list);
+in cm_tx_reap and the tx_head/tx_tail are equal, corresponding
+to the loop in ipoib_cm_tx_destroy. 
+
+Reading the code in ipoib_cm_handle_tx_wc I wasn't able to figure out
+how is this function synchronized against parallel destruction of 
+underlying ipoib_cm_tx, which seems to be the case here. 
+
+Regards, 
+Nikolay
 
 
 
-
-
---=20
-Mit freundlichen Gr=C3=BC=C3=9Fen,
-Best Regards,
-
-Jack Wang
-
-Linux Kernel Developer Storage
-ProfitBricks GmbH  The IaaS-Company.
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-Tel: +49 30 5770083-42
-Fax: +49 30 5770085-98
-Email: jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL: http://www.profitbricks.de
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B.
-Gesch=C3=A4ftsf=C3=BChrer: Andreas Gauger, Achim Weiss.
-
---001a113f12ba1cd48f0539caebbb
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-cma-export-function-to-set-service-level.patch"
-Content-Disposition: attachment;
-	filename="0001-cma-export-function-to-set-service-level.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_irq4f2zk0
-
-RnJvbSBiZWVjM2EyZmMyNWQzN2Q0ZjczNWM1NTIzMWY0ZTBmYmUzZjE4MGFjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBKYWNrIFdhbmcgPGppbnB1LndhbmdAcHJvZml0YnJpY2tzLmNv
-bT4KRGF0ZTogV2VkLCAxMCBBdWcgMjAxNiAxMDo1MDo1MyArMDIwMApTdWJqZWN0OiBbUEFUQ0hd
-IGNtYTogZXhwb3J0IGZ1bmN0aW9uIHRvIHNldCBzZXJ2aWNlIGxldmVsCgpXZSB3YW50IHRoaXMg
-Zm9yIGlzb2xhdGluZyBuZXR3b3JrIHRyYWZmaWMgd2l0aCBzdG9yYWdlIHRyYWZmaWMuCgpTbyBl
-eHRlbmQgY21hIHRvIGFsbG93IHVzIHRvIGRvIGl0IGZvciBRb1MuCgpTaWduZWQtb2ZmLWJ5OiBK
-YWNrIFdhbmcgPGppbnB1LndhbmdAcHJvZml0YnJpY2tzLmNvbT4KLS0tCiBkcml2ZXJzL2luZmlu
-aWJhbmQvY29yZS9jbWEuYyB8IDE0ICsrKysrKysrKysrKystCiBpbmNsdWRlL3JkbWEvcmRtYV9j
-bS5oICAgICAgICB8IDEzICsrKysrKysrKysrKysKIDIgZmlsZXMgY2hhbmdlZCwgMjYgaW5zZXJ0
-aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9j
-b3JlL2NtYS5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMKaW5kZXggNjZlODUxNi4u
-YzQ2NGFhNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMKKysrIGIv
-ZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMKQEAgLTIyNSw2ICsyMjUsNyBAQCBzdHJ1Y3Qg
-cmRtYV9pZF9wcml2YXRlIHsKIAl1MzIJCQlvcHRpb25zOwogCXU4CQkJc3JxOwogCXU4CQkJdG9z
-OworCXU4CQkJc2w7CiAJdTgJCQlyZXVzZWFkZHI7CiAJdTgJCQlhZm9ubHk7CiAJZW51bSBpYl9n
-aWRfdHlwZQlnaWRfdHlwZTsKQEAgLTI3NTIsNiArMjc1MywxNiBAQCBzdGF0aWMgdm9pZCBjbWFf
-bGlzdGVuX29uX2FsbChzdHJ1Y3QgcmRtYV9pZF9wcml2YXRlICppZF9wcml2KQogCW11dGV4X3Vu
-bG9jaygmbG9jayk7CiB9CiAKK3ZvaWQgcmRtYV9zZXRfc2VydmljZV9sZXZlbChzdHJ1Y3QgcmRt
-YV9jbV9pZCAqaWQsIHU4IHNsKQoreworCXN0cnVjdCByZG1hX2lkX3ByaXZhdGUgKmlkX3ByaXY7
-CisKKwlpZF9wcml2ID0gY29udGFpbmVyX29mKGlkLCBzdHJ1Y3QgcmRtYV9pZF9wcml2YXRlLCBp
-ZCk7CisJaWRfcHJpdi0+c2wgPSBzbDsKK30KK0VYUE9SVF9TWU1CT0wocmRtYV9zZXRfc2Vydmlj
-ZV9sZXZlbCk7CisKKwogdm9pZCByZG1hX3NldF9zZXJ2aWNlX3R5cGUoc3RydWN0IHJkbWFfY21f
-aWQgKmlkLCBpbnQgdG9zKQogewogCXN0cnVjdCByZG1hX2lkX3ByaXZhdGUgKmlkX3ByaXY7CkBA
-IC0yODM4LDkgKzI4NDksMTAgQEAgc3RhdGljIGludCBjbWFfcXVlcnlfaWJfcm91dGUoc3RydWN0
-IHJkbWFfaWRfcHJpdmF0ZSAqaWRfcHJpdiwgaW50IHRpbWVvdXRfbXMsCiAJcGF0aF9yZWMtPnBr
-ZXkgPSBjcHVfdG9fYmUxNihpYl9hZGRyX2dldF9wa2V5KCZhZGRyLT5kZXZfYWRkcikpOwogCXBh
-dGhfcmVjLT5udW1iX3BhdGggPSAxOwogCXBhdGhfcmVjLT5yZXZlcnNpYmxlID0gMTsKKwlwYXRo
-X3JlYy0+c2wgPSBpZF9wcml2LT5zbDsKIAlwYXRoX3JlYy0+c2VydmljZV9pZCA9IHJkbWFfZ2V0
-X3NlcnZpY2VfaWQoJmlkX3ByaXYtPmlkLCBjbWFfZHN0X2FkZHIoaWRfcHJpdikpOwogCi0JY29t
-cF9tYXNrIHw9IElCX1NBX1BBVEhfUkVDX1BLRVkgfCBJQl9TQV9QQVRIX1JFQ19OVU1CX1BBVEgg
-fAorCWNvbXBfbWFzayB8PSBJQl9TQV9QQVRIX1JFQ19QS0VZIHwgSUJfU0FfUEFUSF9SRUNfTlVN
-Ql9QQVRIIHwgSUJfU0FfUEFUSF9SRUNfU0wgfAogCQkgICAgSUJfU0FfUEFUSF9SRUNfUkVWRVJT
-SUJMRSB8IElCX1NBX1BBVEhfUkVDX1NFUlZJQ0VfSUQ7CiAKIAlzd2l0Y2ggKGNtYV9mYW1pbHko
-aWRfcHJpdikpIHsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvcmRtYS9yZG1hX2NtLmggYi9pbmNsdWRl
-L3JkbWEvcmRtYV9jbS5oCmluZGV4IGIzNGVlNGUuLmRmNzAzMGUgMTAwNjQ0Ci0tLSBhL2luY2x1
-ZGUvcmRtYS9yZG1hX2NtLmgKKysrIGIvaW5jbHVkZS9yZG1hL3JkbWFfY20uaApAQCAtMzc0LDYg
-KzM3NCwxOSBAQCBpbnQgcmRtYV9qb2luX211bHRpY2FzdChzdHJ1Y3QgcmRtYV9jbV9pZCAqaWQs
-IHN0cnVjdCBzb2NrYWRkciAqYWRkciwKIHZvaWQgcmRtYV9sZWF2ZV9tdWx0aWNhc3Qoc3RydWN0
-IHJkbWFfY21faWQgKmlkLCBzdHJ1Y3Qgc29ja2FkZHIgKmFkZHIpOwogCiAvKioKKyAqIHJkbWFf
-c2V0X3NlcnZpY2VfbGV2ZWwgLSBTZXQgdGhlIGxldmVsIG9mIHNlcnZpY2UgYXNzb2NpYXRlZCB3
-aXRoIGEKKyAqICAgY29ubmVjdGlvbiBpZGVudGlmaWVyLgorICogQGlkOiBDb21tdW5pY2F0aW9u
-IGlkZW50aWZpZXIgdG8gYXNzb2NpYXRlZCB3aXRoIHNlcnZpY2UgdHlwZS4KKyAqIEBzbDogc2Vy
-dmljZSBsZXZlbC4KKyAqCisgKiBUaGUgc2VydmljZSBsZXZlbCBzaG91bGQgYmUgc3BlY2lmaWVk
-IGJlZm9yZQorICogcGVyZm9ybWluZyByb3V0ZSByZXNvbHV0aW9uLCBhcyBleGlzdGluZyBjb21t
-dW5pY2F0aW9uIG9uIHRoZQorICogY29ubmVjdGlvbiBpZGVudGlmaWVyIG1heSBiZSB1bmFmZmVj
-dGVkLiAgVGhlIGxldmVsIG9mIHNlcnZpY2UKKyAqIHJlcXVlc3RlZCBtYXkgbm90IGJlIHN1cHBv
-cnRlZCBieSB0aGUgbmV0d29yayB0byBhbGwgZGVzdGluYXRpb25zLgorICovCit2b2lkIHJkbWFf
-c2V0X3NlcnZpY2VfbGV2ZWwoc3RydWN0IHJkbWFfY21faWQgKmlkLCB1OCBzbCk7CisKKy8qKgog
-ICogcmRtYV9zZXRfc2VydmljZV90eXBlIC0gU2V0IHRoZSB0eXBlIG9mIHNlcnZpY2UgYXNzb2Np
-YXRlZCB3aXRoIGEKICAqICAgY29ubmVjdGlvbiBpZGVudGlmaWVyLgogICogQGlkOiBDb21tdW5p
-Y2F0aW9uIGlkZW50aWZpZXIgdG8gYXNzb2NpYXRlZCB3aXRoIHNlcnZpY2UgdHlwZS4KLS0gCjIu
-Ny40Cgo=
---001a113f12ba1cd48f0539caebbb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
