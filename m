@@ -1,83 +1,96 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH V2] IB/hfi1,IB/qib: Fix qp_stats sleep with rcu read lock
- held
-Date: Sun, 14 Aug 2016 11:55:11 +0300
-Message-ID: <20160814085511.GB21270@leon.nu>
-References: <1471015057-9886-1-git-send-email-ira.weiny@intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/15] IB/pvrdma: Add device command support
+Date: Sun, 14 Aug 2016 14:25:36 +0300
+Message-ID: <20160814112536.GA3404@yuval-lap>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+ <1468352205-9137-3-git-send-email-aditr@vmware.com>
+ <20160718124652.GE6165@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB8363954E94FE9D268E66CB7C5000@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160729123711.GU4628@leon.nu>
+ <BLUPR0501MB8364D3CE8FF7DE654D1E045C5010@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160731061547.GV4628@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bCsyhTFzCvuiizWE"
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1471015057-9886-1-git-send-email-ira.weiny@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: ira.weiny@intel.com
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+In-Reply-To: <20160731061547.GV4628-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Jul 31, 2016 at 09:15:47AM +0300, Leon Romanovsky wrote:
+> On Fri, Jul 29, 2016 at 09:31:16PM +0000, Adit Ranadive wrote:
+> > On Fri, 29 Jul 2016 12:37:29 +0000, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > > On Thu, Jul 28, 2016 at 10:51:39PM +0000, Adit Ranadive wrote:
+> > > > On Mon, 18 Jul 2016 15:46:53 +0300 Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > > > > On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote:
+> > > > > > This patch enables posting Verb requests and receiving responses to/from
+> > > > > > the backend PVRDMA emulation layer.
+> > > > > >
+> > > >
+> > > > ...
+> > > >
+> > > > > > +int
+> > > > > > +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
+> > > > > > +		bool expect_resp, union pvrdma_cmd_resp *resp)
+> > > > > > +{
+> > > > > > +	int err;
+> > > > > > +
+> > > > > > +	dev_dbg(&dev->pdev->dev, "post request to device\n");
+> > > > > > +
+> > > > > > +	/* Serializiation */
+> > > > > > +	down(&dev->cmd_sema);
+> > > > > > +
+> > > > > > +	spin_lock(&dev->cmd_lock);
+> > > > > > +	memcpy(dev->cmd_slot, req, sizeof(*req));
+> > > > >
+> > > > > Just to protect against memory corruption suggesting to do:
+> > > > > 	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
+> > > > >
+> > > >
+> > > > Done.
+> > > 
+> > > Hi Adit,
+> > > I didn't check how "dev->cmd_slot" was declared and if it is equal to
+> > > req in size. Additionally I didn't check if memcpy has any size
+> > > limitations, but wanted to warn you that implementation of this
+> > > suggestion as is will leave your system in much worse situation of
+> > > partially copied data.
+> > > 
+> > > if you really want to check sizes, please do it with BUILD_ON compilation
+> > > macro. I have serious doubts if you need it.
+> > > 
+> > > Thanks
+> > 
+> > Hi Leon,
+> > 
+> > Thanks for taking a look!
+> > I think this is okay to do was that we allocate a page for cmd_slot anyways
+> > and the size of req will always be smaller than PAGE_SIZE. If the request is
+> > malformed, our virtual hardware should throw an error for it.
+> > I dont think we would run into partially copied data.
+> > 
+> > Having said that, I dont see a necessary advantage of using min here so am
+> > willing to drop it if you feel strongly about it.
+> > 
+> > Can you clarify what you mean by memcpy size limitations?
+> 
+> I didn't have time to look after reasons for Yuval's comment about
+> min(..), so I assumed that one of the possibilities will be limitation
+> of memcpy which I'm not aware.
 
---bCsyhTFzCvuiizWE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I understand that it is not such realistic that one of the structures in
+union pvrdma_cmd_req will be more then PAGE_SIZE but any other alternative
+to protect from such case?
 
-On Fri, Aug 12, 2016 at 11:17:37AM -0400, ira.weiny@intel.com wrote:
-> From: Mike Marciniszyn <mike.marciniszyn@intel.com>
->=20
-> The qp init function does a kzalloc() while holding the RCU
-> lock that encounters the following warning with a debug kernel
-> when a cat of the qp_stats is done:
->=20
-> [  231.723948] rcu_scheduler_active =3D 1, debug_locks =3D 0
-> [  231.731939] 3 locks held by cat/11355:
-> [  231.736492]  #0:  (debugfs_srcu){......}, at: [<ffffffff813001a5>] deb=
-ugfs_use_file_start+0x5/0x90
-> [  231.746955]  #1:  (&p->lock){+.+.+.}, at: [<ffffffff81289a6c>] seq_rea=
-d+0x4c/0x3c0
-> [  231.755873]  #2:  (rcu_read_lock){......}, at: [<ffffffffa0a0c535>] _q=
-p_stats_seq_start+0x5/0xd0 [hfi1]
-> [  231.766862]
->=20
-> The init functions do an implicit next which requires the rcu read lock
-> before the kzalloc().
->=20
-> Fix for both drivers is to change the scope of the init function to only
-> do the allocation and the initialization of the just allocated iter.
->=20
-> The implict next is moved back into the respective start functions to fix
-> the issue.
->=20
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> CC: <stable@vger.kernel.org> # 4.6.x-
->=20
-> ---
-> Changes from V1:
-> 	use do.. while loop to execute first iter call.
+> 
+> > 
+> > Thanks,
+> > Adit
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---bCsyhTFzCvuiizWE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXsDHvAAoJEORje4g2clin+c0P/0pqfQaNygCQPADgNo4jfZiq
-vWD9vcxu+qBNEpjpt7ZQzTRtgwp+7mOTYKedlMUoJo2eQkF2Cz/WdtgllPNCLUil
-Ubb+cX9ywRftHHYOIAQyNxGTHIvcNagwT/QhP+pE/IPqpctk/CJxqEiaPpF/NLaS
-CM83Rclfa8Jr08fYSmMi/0QMS2fTKGe1UD0L6/2PnjuHEPE8ONYn1LMn7Drvg4gz
-gq4rTETdWzx3u7qd7E5VckOrXTUe8ulNaB7DhnmqPePIvFKTtYGnk1Ahy1NbfCnb
-CTD+uI9TvZaatZNigpaP+6AVVzHlqZUaFxyftyNQdLmlTh1haDACCl97b5YoJhnp
-sKD1JBbtfpKIa81J4OcgpGe2ccuBBdGSZIQn1q1H+ouThGaNrPMc8bsJG+prUPm5
-eWYQ6lXf1ro7LzdVXnNGSbsTfJspPLIr3cN5ViwHksieyb6ErqRqMjm9ZSm4yRjj
-Qju1xstM7bhMfewafJki3WVU2lVRmLSxVPQKqpqTObVZoVj4cS1vjtHUk4upplfq
-uodPg8H1ixLYdVoy6n6GWNxSHLkvnqks4HqoV1BThWaIdcDRzLtwGm0SG+XX46cS
-/OSIscuKLgCzm/BiXdPQ+6BaaDfIjyq9JGgwvPc+AJSamoNT12uAYGhubPD8A4df
-Gi9a/7nrzY1eCr7XF6rs
-=SBUl
------END PGP SIGNATURE-----
-
---bCsyhTFzCvuiizWE--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
