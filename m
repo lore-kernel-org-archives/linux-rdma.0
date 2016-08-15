@@ -1,8 +1,7 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH 18/22] IB/mlx4/mcg: Remove deprecated
- create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:43:35 +0530
-Message-ID: <4045f5014733b227e085c76f00f9ecf7f6266803.1471283718.git.bhaktipriya96@gmail.com>
+Subject: [PATCH 19/22] IB/nes: Remove deprecated create_singlethread_workqueue
+Date: Mon, 15 Aug 2016 23:44:03 +0530
+Message-ID: <f1904095c510faad8c81799826e9782618d8754d.1471283718.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -14,46 +13,39 @@ To: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sea
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
-deprecated create_singlethread_workqueue(). This is the identity
-conversion.
+alloc_ordered_workqueue() replaces deprecated
+create_singlethread_workqueue().
 
-The workqueue "mcg_wq" queues work items &group->work
-and &group->timeout_work.
+The workqueue "event_wq" queues work item &event->event_work and the
+workqueue "disconn_wq" queues work item work (maps to
+g_cm_core->disconn_wq).
 
-The workqueue "clean_wq" queues work item mcg_clean_task.
-
-Both have been identity converted.
-
-WQ_MEM_RECLAIM has been set to ensure forward progress under
-memory pressure.
+WQ_MEM_RECLAIM has not been set since the workqueues are not being used
+on a memory reclaim path.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/infiniband/hw/mlx4/mcg.c | 4 ++--
+ drivers/infiniband/hw/nes/nes_cm.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index 8f7ad07..7d30be0 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -1045,7 +1045,7 @@ int mlx4_ib_mcg_port_init(struct mlx4_ib_demux_ctx *ctx)
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 7f0aa23..57db9b3 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -2692,12 +2692,12 @@ static struct nes_cm_core *nes_cm_alloc_core(void)
+ 	nes_debug(NES_DBG_CM, "Init CM Core completed -- cm_core=%p\n", cm_core);
 
- 	atomic_set(&ctx->tid, 0);
- 	sprintf(name, "mlx4_ib_mcg%d", ctx->port);
--	ctx->mcg_wq = create_singlethread_workqueue(name);
-+	ctx->mcg_wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
- 	if (!ctx->mcg_wq)
- 		return -ENOMEM;
-
-@@ -1246,7 +1246,7 @@ void clean_vf_mcast(struct mlx4_ib_demux_ctx *ctx, int slave)
-
- int mlx4_ib_mcg_init(void)
- {
--	clean_wq = create_singlethread_workqueue("mlx4_ib_mcg");
-+	clean_wq = alloc_ordered_workqueue("mlx4_ib_mcg", WQ_MEM_RECLAIM);
- 	if (!clean_wq)
- 		return -ENOMEM;
+ 	nes_debug(NES_DBG_CM, "Enable QUEUE EVENTS\n");
+-	cm_core->event_wq = create_singlethread_workqueue("nesewq");
++	cm_core->event_wq = alloc_ordered_workqueue("nesewq", 0);
+ 	if (!cm_core->event_wq)
+ 		goto out_free_cmcore;
+ 	cm_core->post_event = nes_cm_post_event;
+ 	nes_debug(NES_DBG_CM, "Enable QUEUE DISCONNECTS\n");
+-	cm_core->disconn_wq = create_singlethread_workqueue("nesdwq");
++	cm_core->disconn_wq = alloc_ordered_workqueue("nesdwq", 0);
+ 	if (!cm_core->disconn_wq)
+ 		goto out_free_wq;
 
 --
 2.1.4
