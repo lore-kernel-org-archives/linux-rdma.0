@@ -1,7 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/22] IB/qib: Remove deprecated create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:38:47 +0530
-Message-ID: <e0310e6be2420c4dc27d752c2b7465cd359cdca9.1471283717.git.bhaktipriya96@gmail.com>
+Subject: [PATCH 10/22] iw_cxgb4: Remove deprecated
+ create_singlethread_workqueue
+Date: Mon, 15 Aug 2016 23:39:14 +0530
+Message-ID: <e077483441ceffa8810f78590cff123bf1e7cc89.1471283717.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,7 +18,7 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "qib" queues work item &priv->s_work. It has been
+The workqueue "workq" queues work item &skb_work. It has been
 identity converted.
 
 WQ_MEM_RECLAIM has been set to ensure forward progress under
@@ -25,24 +26,22 @@ memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_init.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index f253111..1730aa8 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -614,8 +614,8 @@ static int qib_create_workqueues(struct qib_devdata *dd)
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index a3a6721..6438b4c 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -4282,7 +4282,7 @@ int __init c4iw_cm_init(void)
+ 	spin_lock_init(&timeout_lock);
+ 	skb_queue_head_init(&rxq);
 
- 			snprintf(wq_name, sizeof(wq_name), "qib%d_%d",
- 				dd->unit, pidx);
--			ppd->qib_wq =
--				create_singlethread_workqueue(wq_name);
-+			ppd->qib_wq = alloc_ordered_workqueue(wq_name,
-+							      WQ_MEM_RECLAIM);
- 			if (!ppd->qib_wq)
- 				goto wq_error;
- 		}
+-	workq = create_singlethread_workqueue("iw_cxgb4");
++	workq = alloc_ordered_workqueue("iw_cxgb4", WQ_MEM_RECLAIM);
+ 	if (!workq)
+ 		return -ENOMEM;
+
 --
 2.1.4
 
