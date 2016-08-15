@@ -1,67 +1,45 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH 00/22] Remove deprecated create_workqueue instances
-Date: Mon, 15 Aug 2016 23:27:01 +0530
-Message-ID: <cover.1471283717.git.bhaktipriya96@gmail.com>
+Subject: [PATCH 01/22] IB/sa : Remove deprecated create_singlethread_workqueue
+Date: Mon, 15 Aug 2016 23:27:46 +0530
+Message-ID: <54ed68ef678ba1cb607dee4bda9107cd396cf4d5.1471283717.git.bhaktipriya96@gmail.com>
+References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Leon Romanovsky <leonro@mellanox.com>, Chuck Lever <chuck.lever@oracle.com>, Mark Bloch <markb@mellanox.com>, Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Christoph Lameter <cl@linux.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Florian Westphal <fw@strlen.de>, Guy Shapiro <guysh@mellanox.com>, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Matan Barak <matanb@mellanox.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Steve Wise <swise@chelsi>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set removes the instances of deprecated
-create_singlethread_workqueue (scheduled for removal) in
-drivers/infiniband by making the appropriate conversions.
+alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
+deprecated create_singlethread_workqueue(). This is the identity
+conversion.
 
-Bhaktipriya Shridhar (22):
-  IB/sa : Remove deprecated create_singlethread_workqueue
-  IB/mad: Remove deprecated create_singlethread_workqueue
-  IB/multicast: Remove deprecated create_singlethread_workqueue
-  IB/ucma: Remove deprecated create_singlethread_workqueue
-  IB/cma: Remove deprecated create_singlethread_workqueue
-  IB/addr: Remove deprecated create_singlethread_workqueue
-  IB/iwcm: Remove deprecated create_singlethread_workqueue
-  iw_cxgb3: Remove deprecated create_singlethread_workqueue
-  IB/qib: Remove deprecated create_singlethread_workqueue
-  iw_cxgb4: Remove deprecated create_singlethread_workqueue
-  IB/mthca: Remove deprecated create_singlethread_workqueue
-  i40iw_main: Remove deprecated create_singlethread_workqueue
-  i40iw_cm: Remove deprecated create_singlethread_workqueue
-  IB/mlx5: Remove deprecated create_singlethread_workqueue
-  IB/mlx5/odp: Remove deprecated create_singlethread_workqueue
-  IB/mlx4: Remove deprecated create_singlethread_workqueue
-  IB/mlx4/mad: Remove deprecated create_singlethread_workqueue
-  IB/mlx4/mcg: Remove deprecated create_singlethread_workqueue
-  IB/nes: Remove deprecated create_singlethread_workqueue
-  IB/ipoib: Remove deprecated create_singlethread_workqueue
-  IB/ipoib_verbs: Remove deprecated create_singlethread_workqueue
-  IB/mlx4/alias_GUID: Remove deprecated create_singlethread_workqueue
+The workqueue "ib_nl" queues work item &ib_nl_timed_work. It has been
+identity converted.
 
- drivers/infiniband/core/addr.c             | 2 +-
- drivers/infiniband/core/cma.c              | 2 +-
- drivers/infiniband/core/iwcm.c             | 2 +-
- drivers/infiniband/core/mad.c              | 2 +-
- drivers/infiniband/core/multicast.c        | 2 +-
- drivers/infiniband/core/sa_query.c         | 2 +-
- drivers/infiniband/core/ucma.c             | 3 ++-
- drivers/infiniband/hw/cxgb3/iwch_cm.c      | 2 +-
- drivers/infiniband/hw/cxgb4/cm.c           | 2 +-
- drivers/infiniband/hw/i40iw/i40iw_cm.c     | 7 +++++--
- drivers/infiniband/hw/i40iw/i40iw_main.c   | 2 +-
- drivers/infiniband/hw/mlx4/alias_GUID.c    | 2 +-
- drivers/infiniband/hw/mlx4/mad.c           | 4 ++--
- drivers/infiniband/hw/mlx4/main.c          | 2 +-
- drivers/infiniband/hw/mlx4/mcg.c           | 4 ++--
- drivers/infiniband/hw/mlx5/mr.c            | 2 +-
- drivers/infiniband/hw/mlx5/odp.c           | 4 ++--
- drivers/infiniband/hw/mthca/mthca_catas.c  | 2 +-
- drivers/infiniband/hw/nes/nes_cm.c         | 4 ++--
- drivers/infiniband/hw/qib/qib_init.c       | 4 ++--
- drivers/infiniband/ulp/ipoib/ipoib_main.c  | 3 ++-
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 2 +-
- 22 files changed, 33 insertions(+), 28 deletions(-)
+WQ_MEM_RECLAIM has been set to ensure forward progress under memory
+pressure.
 
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+---
+ drivers/infiniband/core/sa_query.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index e955386..6559199 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1974,7 +1974,7 @@ int ib_sa_init(void)
+ 		goto err2;
+ 	}
+
+-	ib_nl_wq = create_singlethread_workqueue("ib_nl_sa_wq");
++	ib_nl_wq = alloc_ordered_workqueue("ib_nl_sa_wq", WQ_MEM_RECLAIM);
+ 	if (!ib_nl_wq) {
+ 		ret = -ENOMEM;
+ 		goto err3;
 --
 2.1.4
