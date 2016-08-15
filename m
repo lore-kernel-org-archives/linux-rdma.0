@@ -1,112 +1,186 @@
-From: "Mccormick, Patrick M" <patrick.m.mccormick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Add transactions per second to latency tests
-Date: Mon, 15 Aug 2016 18:33:50 +0000
-Message-ID: <856EA97E2D31FB4CB11D0FAEE9481E4BA8AF746C@ORSMSX109.amr.corp.intel.com>
-References: <4257b3f1d2c22af577a5e584d2a34013342fb0ca.1467907759.git.root@stevo1.asicdesigners.com>
- <013001d1d86a$5b3ea460$11bbed20$@opengridcomputing.com>
- <008e01d1e8e3$3a0a5170$ae1ef450$@opengridcomputing.com>
- <01f401d1f70c$e9ca1be0$bd5e53a0$@opengridcomputing.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 00/22] client-side NFS/RDMA patches proposed for v4.9
+Date: Mon, 15 Aug 2016 16:50:10 -0400
+Message-ID: <20160815195649.11652.32252.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01f401d1f70c$e9ca1be0$bd5e53a0$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I am also interested in knowing who is the current maintainer, CCing recent committers from:
+Posted for review, the following patch series makes these changes:
 
-git://flatbed.openfabrics.org/~mmarciniszyn/perftest/.git
+- Correct use of DMA API
+- Delay DMA mapping to permit device driver unload
+- Introduce simple RDMA-CM private message exchange
+- Support Remote Invalidation
+- Support s/g list when sending RPC calls
 
-Also: which git repo is the source for openfabrics OFED ?
 
-I have a trivial patch I would like to get merged before the next ofed release also.
+Available in the "nfs-rdma-for-4.9" topic branch of this git repo:
 
-Patrick
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> Sent: Monday, August 15, 2016 8:52 AM
-> To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Leon Romanovsky
-> <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Subject: RE: [PATCH] Add transactions per second to latency tests
-> 
-> ping...
-> 
-> Does anyone still maintain the perftest repo?
-> 
-> 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> > Sent: Thursday, July 28, 2016 10:18 AM
-> > To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: RE: [PATCH] Add transactions per second to latency tests
-> >
-> > Hey Gil, will you merge this?
-> >
-> > Thanks,
-> >
-> > Steve.
-> >
-> >
-> > > -----Original Message-----
-> > > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Steve Wise
-> > > Sent: Thursday, July 07, 2016 11:12 AM
-> > > To: gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Subject: RE: [PATCH] Add transactions per second to latency tests
-> > >
-> > >
-> > > > Subject: [PATCH] Add transactions per second to latency tests
-> > > >
-> > > > For duration (-D) latency tests, it is useful to have the average
-> > > > transactions per second (tps) output.  So ib_*_lat now shows
-> > > > average tps:
-> > > >
-> > > >
-> > >
-> >
-> --------------------------------------------------------------------------------
-> > > -------
-> > > >  #bytes        #iterations       t_avg[usec]    tps average
-> > > >  2             1008430           2.97           168068.16
-> > > >
-> > >
-> >
-> --------------------------------------------------------------------------------
-> > > -------
-> > > >
-> > > > Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > >
-> > > I should have added "perftest" to the subject.  This is a patch to
-> > > git://git.openfabrics.org/~grockah/perftest.
-> > >
-> > > Steve.
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe
-> > > linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More
-> majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info
-> at  http://vger.kernel.org/majordomo-info.html
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.9
+
+
+== Performance results ==
+
+This is NFSv3 / RDMA, CX-3 Pro (FRWR) on a 12-core dual-socket
+client and an 8-core single-socket server. The exported fs is a
+tmpfs. Note that iozone reports latency for a system call, not
+RPC round-trip.
+
+Test #1: The inline threshold is set to 1KB, and Remote Invalidation
+is disabled (RPC-over-RDMA Version One baseline).
+
+    O_DIRECT feature enabled
+    Microseconds/op Mode. Output is in microseconds per operation.
+    Command line used: /home/cel/bin/iozone -i0 -i1 -s128m -y1k -az -I -N
+
+              KB  reclen   write rewrite    read    reread
+          131072       1      61      62       51       51
+          131072       2      63      62       51       51
+          131072       4      64      63       52       51
+          131072       8      67      66       54       52
+          131072      16      71      70       56       56
+          131072      32      83      80       63       63
+          131072      64     104     100       83       82
+
+    O_DIRECT feature enabled
+    OPS Mode. Output is in operations per second.
+    Command line used: /home/cel/bin/iozone -i0 -i1 -s16m -r4k -t12 -I -O
+    Throughput test with 12 processes
+    Each process writes a 16384 Kbyte file in 4 Kbyte records
+
+    Children see throughput for 12 readers =   84198.24 ops/sec
+    Parent sees throughput for 12 readers  =   84065.36 ops/sec
+    Min throughput per process             =    5925.38 ops/sec
+    Max throughput per process             =    7346.19 ops/sec
+    Avg throughput per process             =    7016.52 ops/sec
+    Min xfer                               =    3300.00 ops
+
+Test #2: The inline threshold is set to 4KB, and Remote Invalidation
+is enabled. This means I/O payloads smaller than about 3.9KB do not
+use explicit RDMA at all, and no LOCAL_INV WR is needed for operations
+that do use RDMA.
+
+    O_DIRECT feature enabled
+    Microseconds/op Mode. Output is in microseconds per operation.
+    Command line used: /home/cel/bin/iozone -i0 -i1 -s128m -y1k -az -I -N
+
+              KB  reclen   write rewrite    read    reread
+          131072       1      41      43       37       37
+          131072       2      44      44       37       37
+          131072       4      61      59       41       41
+          131072       8      63      62       43       43
+          131072      16      68      66       47       47
+          131072      32      76      72       53       53
+          131072      64     100      95       70       70
+
+    O_DIRECT feature enabled
+    OPS Mode. Output is in operations per second.
+    Command line used: /home/cel/bin/iozone -i0 -i1 -s16m -r4k -t12 -I -O
+    Throughput test with 12 processes
+    Each process writes a 16384 Kbyte file in 4 Kbyte records
+
+    Children see throughput for 12 readers =  111520.52 ops/sec
+    Parent sees throughput for 12 readers  =  111250.80 ops/sec
+    Min throughput per process             =    8463.72 ops/sec
+    Max throughput per process             =    9658.81 ops/sec
+    Avg throughput per process             =    9293.38 ops/sec
+    Min xfer                               =    3596.00 ops
+
+== Analysis ==
+
+To understand these results, note that:
+
+Typical round-trip latency in this configuration for LOOKUP, ACCESS
+and GETATTR (which bear no data payload) is 30-35us.
+
+- An NFS READ call is a pure inline RDMA Send
+- A small NFS READ reply is a pure inline RDMA Send
+- A large NFS READ reply is an RDMA Write followed by an RDMA Send
+
+- A small NFS WRITE call is a pure inline RDMA Send
+- A large NFS WRITE call is an RDMA Send followed by the
+server doing an RDMA Read
+- An NFS WRITE reply is a pure inline RDMA Send
+
+In Test #2, the 1KB and 2KB I/Os are all pure inline. No explicit
+RDMA operation is involved. At 4KB and above, explicit RDMA is used
+with a single STag. The server invalidates each RPC's STag, so no
+LOCAL_INV WR is needed on the client for Test #2.
+
+The key take-aways are that:
+
+- For small payloads, NFS READ using RDMA Write with Remote
+Invalidation is nearly as fast as pure inline; both modes take
+about 40usec per RPC
+
+- The NFS READ improvement with Remote Invalidation enabled is
+effective even at 8KB payloads and above, but 10us is relatively
+small compared to other transmission costs
+
+- For small payloads, the RDMA Read round-trip still adds
+significant per-WRITE latency
+
+---
+
+Chuck Lever (22):
+      xprtrdma: Eliminate INLINE_THRESHOLD macros
+      SUNRPC: Refactor rpc_xdr_buf_init()
+      SUNRPC: Generalize the RPC buffer allocation API
+      SUNRPC: Generalize the RPC buffer release API
+      SUNRPC: Separate buffer pointers for RPC Call and Reply messages
+      SUNRPC: Add a transport-specific private field in rpc_rqst
+      xprtrdma: Initialize separate RPC call and reply buffers
+      xprtrdma: Use smaller buffers for RPC-over-RDMA headers
+      xprtrdma: Replace DMA_BIDIRECTIONAL
+      xprtrdma: Delay DMA mapping Send and Receive buffers
+      xprtrdma: Eliminate "ia" argument in rpcrdma_{alloc,free}_regbuf
+      xprtrdma: Simplify rpcrdma_ep_post_recv()
+      xprtrdma: Move send_wr to struct rpcrdma_req
+      xprtrdma: Move recv_wr to struct rpcrdma_rep
+      xprtrmda: Report address of frmr, not mw
+      rpcrdma: RDMA/CM private message data structure
+      xprtrdma: Client-side support for rpcrdma_connect_private
+      xprtrdma: Basic support for Remote Invalidation
+      xprtrdma: Use gathered Send for large inline messages
+      xprtrdma: Support larger inline thresholds
+      xprtrdma: Rename rpcrdma_receive_wc()
+      xprtrdma: Eliminate rpcrdma_receive_worker()
+
+
+ include/linux/sunrpc/rpc_rdma.h            |   39 ++++
+ include/linux/sunrpc/sched.h               |    4 
+ include/linux/sunrpc/xdr.h                 |   10 +
+ include/linux/sunrpc/xprt.h                |   12 +
+ include/linux/sunrpc/xprtrdma.h            |    4 
+ net/sunrpc/backchannel_rqst.c              |    8 -
+ net/sunrpc/clnt.c                          |   36 +--
+ net/sunrpc/sched.c                         |   36 ++-
+ net/sunrpc/sunrpc.h                        |    2 
+ net/sunrpc/xprt.c                          |    2 
+ net/sunrpc/xprtrdma/backchannel.c          |   48 ++--
+ net/sunrpc/xprtrdma/fmr_ops.c              |    7 -
+ net/sunrpc/xprtrdma/frwr_ops.c             |   27 ++-
+ net/sunrpc/xprtrdma/rpc_rdma.c             |  299 ++++++++++++++++++++--------
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   19 +-
+ net/sunrpc/xprtrdma/transport.c            |  201 +++++++++++--------
+ net/sunrpc/xprtrdma/verbs.c                |  238 +++++++++++++---------
+ net/sunrpc/xprtrdma/xprt_rdma.h            |  102 ++++++----
+ net/sunrpc/xprtsock.c                      |   23 +-
+ 19 files changed, 700 insertions(+), 417 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
