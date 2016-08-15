@@ -1,8 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH 16/22] IB/mlx4: Remove deprecated
+Subject: [PATCH 17/22] IB/mlx4/mad: Remove deprecated
  create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:42:48 +0530
-Message-ID: <0fd56271e4fd6518141f3af078c0f16c8107711f.1471283717.git.bhaktipriya96@gmail.com>
+Date: Mon, 15 Aug 2016 23:43:10 +0530
+Message-ID: <18c4505e94d23ab7a34c2aaa9c4ee9f7ace09cef.1471283718.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -18,29 +18,40 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "wq" queues work items &dm[i]->work, &ew->work.
-It has been identity converted.
+The workqueue "wq" queues work item &ctx->work and the workqueue "ud_wq"
+queues work item &dm[i]->work.
+
+Both the workqueues have been identity converted.
 
 WQ_MEM_RECLAIM has been set to ensure forward progress under
 memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/infiniband/hw/mlx4/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mad.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 42a4607..f3876b79 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -3023,7 +3023,7 @@ static int __init mlx4_ib_init(void)
- {
- 	int err;
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 9c2e53d..35b1260 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -2070,7 +2070,7 @@ static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
+ 	}
 
--	wq = create_singlethread_workqueue("mlx4_ib");
-+	wq = alloc_ordered_workqueue("mlx4_ib", WQ_MEM_RECLAIM);
- 	if (!wq)
- 		return -ENOMEM;
+ 	snprintf(name, sizeof name, "mlx4_ibt%d", port);
+-	ctx->wq = create_singlethread_workqueue(name);
++	ctx->wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
+ 	if (!ctx->wq) {
+ 		pr_err("Failed to create tunnelling WQ for port %d\n", port);
+ 		ret = -ENOMEM;
+@@ -2078,7 +2078,7 @@ static int mlx4_ib_alloc_demux_ctx(struct mlx4_ib_dev *dev,
+ 	}
 
+ 	snprintf(name, sizeof name, "mlx4_ibud%d", port);
+-	ctx->ud_wq = create_singlethread_workqueue(name);
++	ctx->ud_wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
+ 	if (!ctx->ud_wq) {
+ 		pr_err("Failed to create up/down WQ for port %d\n", port);
+ 		ret = -ENOMEM;
 --
 2.1.4
