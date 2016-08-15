@@ -1,73 +1,58 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 20/22] xprtrdma: Support larger inline thresholds
-Date: Mon, 15 Aug 2016 16:52:57 -0400
-Message-ID: <20160815205257.11652.42036.stgit@manet.1015granger.net>
+Subject: [PATCH v1 21/22] xprtrdma: Rename rpcrdma_receive_wc()
+Date: Mon, 15 Aug 2016 16:53:05 -0400
+Message-ID: <20160815205305.11652.33036.stgit@manet.1015granger.net>
 References: <20160815195649.11652.32252.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160815195649.11652.32252.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RPC-over-RDMA Version Two will likely require at least a 4KB inline
-threshold by default. The Version One inline threshold is still 1KB,
-and it's automatically negotiated down to in
-rpcrdma_update_connect_private.
+Clean up: When converting xprtrdma to use the new CQ API, I missed a
+spot. The naming convention elsewhere is:
 
-The maximum is somewhat arbitrary. There's no fundamental
-architectural limit I'm aware of, but it's good to keep the size of
-Receive buffers reasonable. Now that Send can use a s/g list, a
-Send buffer is only as large as each RPC requires. Receive buffers
-are always the size of the inline threshold, however.
+  {svc_rdma,rpcrdma}_wc_{operation}
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/xprtrdma.h |    4 ++--
- net/sunrpc/xprtrdma/transport.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
-index 39267dc..221b7a2 100644
---- a/include/linux/sunrpc/xprtrdma.h
-+++ b/include/linux/sunrpc/xprtrdma.h
-@@ -53,8 +53,8 @@
- #define RPCRDMA_MAX_SLOT_TABLE	(256U)
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index f921a03..ef7177a 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -160,13 +160,13 @@ rpcrdma_update_granted_credits(struct rpcrdma_rep *rep)
+ }
  
- #define RPCRDMA_MIN_INLINE  (1024)	/* min inline thresh */
--#define RPCRDMA_DEF_INLINE  (1024)	/* default inline thresh */
--#define RPCRDMA_MAX_INLINE  (3068)	/* max inline thresh */
-+#define RPCRDMA_DEF_INLINE  (4096)	/* default inline thresh */
-+#define RPCRDMA_MAX_INLINE  (65536)	/* max inline thresh */
+ /**
+- * rpcrdma_receive_wc - Invoked by RDMA provider for each polled Receive WC
++ * rpcrdma_wc_receive - Invoked by RDMA provider for each polled Receive WC
+  * @cq:	completion queue (ignored)
+  * @wc:	completed WR
+  *
+  */
+ static void
+-rpcrdma_receive_wc(struct ib_cq *cq, struct ib_wc *wc)
++rpcrdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ {
+ 	struct ib_cqe *cqe = wc->wr_cqe;
+ 	struct rpcrdma_rep *rep = container_of(cqe, struct rpcrdma_rep,
+@@ -917,7 +917,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
+ 	}
  
- /* Memory registration strategies, by number.
-  * This is part of a kernel / user space API. Do not remove. */
-diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
-index 1762f59..7eb5864 100644
---- a/net/sunrpc/xprtrdma/transport.c
-+++ b/net/sunrpc/xprtrdma/transport.c
-@@ -97,7 +97,7 @@ static struct ctl_table xr_tunables_table[] = {
- 		.data		= &xprt_rdma_max_inline_read,
- 		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= &min_inline_size,
- 		.extra2		= &max_inline_size,
- 	},
-@@ -106,7 +106,7 @@ static struct ctl_table xr_tunables_table[] = {
- 		.data		= &xprt_rdma_max_inline_write,
- 		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= &min_inline_size,
- 		.extra2		= &max_inline_size,
- 	},
+ 	rep->rr_device = ia->ri_device;
+-	rep->rr_cqe.done = rpcrdma_receive_wc;
++	rep->rr_cqe.done = rpcrdma_wc_receive;
+ 	rep->rr_rxprt = r_xprt;
+ 	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
+ 	rep->rr_recv_wr.next = NULL;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
