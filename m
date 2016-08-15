@@ -1,7 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/22] IB/mad: Remove deprecated create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:28:07 +0530
-Message-ID: <628aa8595bcf9b2294afa3cd78560de9714d6443.1471283717.git.bhaktipriya96@gmail.com>
+Subject: [PATCH 03/22] IB/multicast: Remove deprecated
+ create_singlethread_workqueue
+Date: Mon, 15 Aug 2016 23:28:36 +0530
+Message-ID: <147d09ed5685d5a76fb8709e18bfd9f966755781.1471283717.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,30 +14,34 @@ To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The workqueue "ib_nl" queues work items &ib_nl_timed_work and
-&mad_agent_priv->local_work. It has been identity converted.
+alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
+deprecated create_singlethread_workqueue(). This is the identity
+conversion.
+
+The workqueue "mcast_wq" queues work item &group->work. It has been
+identity converted.
 
 WQ_MEM_RECLAIM has been set to ensure forward progress under
 memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c | 2 +-
+ drivers/infiniband/core/multicast.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 2d49228..d882868 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -3177,7 +3177,7 @@ static int ib_mad_port_open(struct ib_device *device,
- 		goto error7;
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index a83ec28..002a85c 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -894,7 +894,7 @@ int mcast_init(void)
+ {
+ 	int ret;
 
- 	snprintf(name, sizeof name, "ib_mad%d", port_num);
--	port_priv->wq = create_singlethread_workqueue(name);
-+	port_priv->wq = alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
- 	if (!port_priv->wq) {
- 		ret = -ENOMEM;
- 		goto error8;
+-	mcast_wq = create_singlethread_workqueue("ib_mcast");
++	mcast_wq = alloc_ordered_workqueue("ib_mcast", WQ_MEM_RECLAIM);
+ 	if (!mcast_wq)
+ 		return -ENOMEM;
+
 --
 2.1.4
 
