@@ -1,8 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH 13/22] i40iw_cm: Remove deprecated
+Subject: [PATCH 14/22] IB/mlx5: Remove deprecated
  create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:40:53 +0530
-Message-ID: <a88357097ecff8511185fb899524abd149108470.1471283717.git.bhaktipriya96@gmail.com>
+Date: Mon, 15 Aug 2016 23:41:18 +0530
+Message-ID: <7d8b7737365694e925e50cef5d673aba0b9dbc04.1471283717.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -18,39 +18,30 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "event_wq" is involved in event handling and queues
-i40iw_cm_event_handler.
+The workqueue "cache->wq" queues work items &ent->work (maps to
+cache_work_func) and &ent->dwork(maps to delayed_cache_work_func).
+It has been identity converted.
 
-The workqueue "disconn_wq" is involved in closing connection and queues
-i40iw_disconnect_worker.
-
-Both workqueues have been identity converted.
-
-WQ_MEM_RECLAIM has been set to ensure forward progress under memory
-pressure.
+WQ_MEM_RECLAIM has been set to ensure forward progress under
+memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index d2fa725..76082b3 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -3166,8 +3166,11 @@ void i40iw_setup_cm_core(struct i40iw_device *iwdev)
- 	spin_lock_init(&cm_core->ht_lock);
- 	spin_lock_init(&cm_core->listen_list_lock);
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 8cf2ce5..fb0194d 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -614,7 +614,7 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+ 	int err;
+ 	int i;
 
--	cm_core->event_wq = create_singlethread_workqueue("iwewq");
--	cm_core->disconn_wq = create_singlethread_workqueue("iwdwq");
-+	cm_core->event_wq = alloc_ordered_workqueue("iwewq",
-+						    WQ_MEM_RECLAIM);
-+
-+	cm_core->disconn_wq = alloc_ordered_workqueue("iwdwq",
-+						      WQ_MEM_RECLAIM);
- }
-
- /**
+-	cache->wq = create_singlethread_workqueue("mkey_cache");
++	cache->wq = alloc_ordered_workqueue("mkey_cache", WQ_MEM_RECLAIM);
+ 	if (!cache->wq) {
+ 		mlx5_ib_warn(dev, "failed to create work queue\n");
+ 		return -ENOMEM;
 --
 2.1.4
