@@ -1,8 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/22] IB/multicast: Remove deprecated
+Subject: [PATCH 04/22] IB/ucma: Remove deprecated
  create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:28:36 +0530
-Message-ID: <147d09ed5685d5a76fb8709e18bfd9f966755781.1471283717.git.bhaktipriya96@gmail.com>
+Date: Mon, 15 Aug 2016 23:29:10 +0530
+Message-ID: <1b0e0db2cb8858dddda24abc5376016bd72ad902.1471283717.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -18,30 +18,32 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "mcast_wq" queues work item &group->work. It has been
-identity converted.
+The workqueue "close_wq" queues work items &ctx->close_work (maps to
+ucma_close_id) and &con_req_eve->close_work (maps to
+ucma_close_event_id). It has been identity converted.
 
 WQ_MEM_RECLAIM has been set to ensure forward progress under
 memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/multicast.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/ucma.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index a83ec28..002a85c 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -894,7 +894,7 @@ int mcast_init(void)
- {
- 	int ret;
-
--	mcast_wq = create_singlethread_workqueue("ib_mcast");
-+	mcast_wq = alloc_ordered_workqueue("ib_mcast", WQ_MEM_RECLAIM);
- 	if (!mcast_wq)
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index c0f3826..9045387 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1628,7 +1628,8 @@ static int ucma_open(struct inode *inode, struct file *filp)
+ 	if (!file)
  		return -ENOMEM;
 
+-	file->close_wq = create_singlethread_workqueue("ucma_close_id");
++	file->close_wq = alloc_ordered_workqueue("ucma_close_id",
++						 WQ_MEM_RECLAIM);
+ 	if (!file->close_wq) {
+ 		kfree(file);
+ 		return -ENOMEM;
 --
 2.1.4
 
