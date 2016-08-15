@@ -1,8 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/22] iw_cxgb4: Remove deprecated
+Subject: [PATCH 11/22] IB/mthca: Remove deprecated
  create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:39:14 +0530
-Message-ID: <e077483441ceffa8810f78590cff123bf1e7cc89.1471283717.git.bhaktipriya96@gmail.com>
+Date: Mon, 15 Aug 2016 23:39:37 +0530
+Message-ID: <fa3faeb55855e879dc73761a63b06c62a1644882.1471283717.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -18,28 +18,29 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "workq" queues work item &skb_work. It has been
-identity converted.
+The workqueue "catas_wq" in triggering a device remove and causing a
+device reset when a catastrophic error occurs. It has been identity
+converted.
 
-WQ_MEM_RECLAIM has been set to ensure forward progress under
-memory pressure.
+WQ_MEM_RECLAIM has been set to ensure forward progress under memory
+pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ drivers/infiniband/hw/mthca/mthca_catas.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index a3a6721..6438b4c 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -4282,7 +4282,7 @@ int __init c4iw_cm_init(void)
- 	spin_lock_init(&timeout_lock);
- 	skb_queue_head_init(&rxq);
+diff --git a/drivers/infiniband/hw/mthca/mthca_catas.c b/drivers/infiniband/hw/mthca/mthca_catas.c
+index 712d2a3..f6474c2 100644
+--- a/drivers/infiniband/hw/mthca/mthca_catas.c
++++ b/drivers/infiniband/hw/mthca/mthca_catas.c
+@@ -187,7 +187,7 @@ int __init mthca_catas_init(void)
+ {
+ 	INIT_WORK(&catas_work, catas_reset);
 
--	workq = create_singlethread_workqueue("iw_cxgb4");
-+	workq = alloc_ordered_workqueue("iw_cxgb4", WQ_MEM_RECLAIM);
- 	if (!workq)
+-	catas_wq = create_singlethread_workqueue("mthca_catas");
++	catas_wq = alloc_ordered_workqueue("mthca_catas", WQ_MEM_RECLAIM);
+ 	if (!catas_wq)
  		return -ENOMEM;
 
 --
