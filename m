@@ -1,8 +1,8 @@
 From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH 21/22] IB/ipoib_verbs: Remove deprecated
+Subject: [PATCH 22/22] IB/mlx4/alias_GUID: Remove deprecated
  create_singlethread_workqueue
-Date: Mon, 15 Aug 2016 23:44:47 +0530
-Message-ID: <eb1e68a015714b1a566def4c19cc1da6e4193e7d.1471283718.git.bhaktipriya96@gmail.com>
+Date: Mon, 15 Aug 2016 23:45:06 +0530
+Message-ID: <d3a5db9481e09376cc6200de187e451a582c6722.1471283718.git.bhaktipriya96@gmail.com>
 References: <cover.1471283717.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -18,32 +18,29 @@ alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
 deprecated create_singlethread_workqueue(). This is the identity
 conversion.
 
-The workqueue "wq" queues mulitple work items viz &priv->restart_task,
-&priv->cm.rx_reap_task, &priv->cm.skb_task, &priv->neigh_reap_task,
-&priv->ah_reap_task, &priv->mcast_task and &priv->carrier_on_task.
-The work items require strict execution ordering.
-Hence, an ordered dedicated workqueue has been used.
+The workqueue "wq" queues work item that maps to alias_guid_work.
+It has been identity converted.
 
 WQ_MEM_RECLAIM has been set to ensure forward progress under
 memory pressure.
 
 Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_verbs.c | 2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-index 1e7cbba..5737652 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_verbs.c
-@@ -156,7 +156,7 @@ int ipoib_transport_dev_init(struct net_device *dev, struct ib_device *ca)
- 	 * the various IPoIB tasks assume they will never race against
- 	 * themselves, so always use a single thread workqueue
- 	 */
--	priv->wq = create_singlethread_workqueue("ipoib_wq");
-+	priv->wq = alloc_ordered_workqueue("ipoib_wq", WQ_MEM_RECLAIM);
- 	if (!priv->wq) {
- 		printk(KERN_WARNING "ipoib: failed to allocate device WQ\n");
- 		goto out_free_pd;
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index c74ef26..5e99390 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -881,7 +881,7 @@ int mlx4_ib_init_alias_guid_service(struct mlx4_ib_dev *dev)
+
+ 		snprintf(alias_wq_name, sizeof alias_wq_name, "alias_guid%d", i);
+ 		dev->sriov.alias_guid.ports_guid[i].wq =
+-			create_singlethread_workqueue(alias_wq_name);
++			alloc_ordered_workqueue(alias_wq_name, WQ_MEM_RECLAIM);
+ 		if (!dev->sriov.alias_guid.ports_guid[i].wq) {
+ 			ret = -ENOMEM;
+ 			goto err_thread;
 --
 2.1.4
