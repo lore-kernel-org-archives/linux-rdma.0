@@ -1,38 +1,40 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 05/22] IB/cma: Remove deprecated create_singlethread_workqueue
-Date: Tue, 16 Aug 2016 13:21:35 -0500
-Message-ID: <042501d1f7eb$05b9c150$112d43f0$@opengridcomputing.com>
-References: <cover.1471283717.git.bhaktipriya96@gmail.com> <a56fa1378894125beed6a679b9d8ee14ae3b601f.1471283717.git.bhaktipriya96@gmail.com>
+From: Vinson Lee <vlee-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org>
+Subject: =?UTF-8?B?bGludXgtbmV4dCBidWlsZCBlcnJvciAiY2FsbCB0byDigJhfX2NvbXBpbGV0aW1lX2Fzcw==?=
+	=?UTF-8?B?ZXJ0XzM0MeKAmSBkZWNsYXJlZCB3aXRoIGF0dHJpYnV0ZSBlcnJvcjogQlVJTERfQlVHX09OIGZhaWxl?=
+	=?UTF-8?B?ZDogX19tbHg1X2JpdF9vZmYobWFuYWdlX3BhZ2VzX291dCwgcGFzW2ldKSAlIDY0Ig==?=
+Date: Tue, 16 Aug 2016 11:57:23 -0700
+Message-ID: <CACKvgLHp0jc_0drhk2u7GChhZkwBXhA0ps55=+J8NXp=u7u7Nw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a56fa1378894125beed6a679b9d8ee14ae3b601f.1471283717.git.bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Bhaktipriya Shridhar' <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Leon Romanovsky' <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Chuck Lever' <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Mark Bloch' <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Hans Westgaard Ry' <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, 'Erez Shitrit' <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Haggai Eran' <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Florian Westphal' <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, 'Guy Shapiro' <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Eli Cohen' <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Or Gerlitz' <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Faisal Latif' <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Matan Barak' <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Chien Tin Tung' <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Mustafa Ismail' <mustafa.is>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Tejun Heo' <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
-> deprecated create_singlethread_workqueue(). This is the identity
-> conversion.
-> 
-> The workqueue "cma_wq" queues work item cma_work_handler. It has been
-> identity converted.
-> 
-> WQ_MEM_RECLAIM has been set to ensure forward progress under
-> memory pressure.
-> 
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hi.
 
+Commit a533ed5e179c "net/mlx5: Pages management commands via mlx5 ifc"
+introduced this build error with GCC 4.4.
 
-Looks fine.
+  CC [M]  drivers/net/ethernet/mellanox/mlx5/core/pagealloc.o
+drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function
+=E2=80=98reclaim_pages_cmd.clone.0=E2=80=99:
+drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:341: error: call
+to =E2=80=98__compiletime_assert_341=E2=80=99 declared with attribute error=
+:
+BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_out, pas[i]) % 64
+drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function =E2=80=98g=
+ive_pages=E2=80=99:
+drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:290: error: call
+to =E2=80=98__compiletime_assert_290=E2=80=99 declared with attribute error=
+:
+BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_in, pas[i]) % 64
+make[5]: *** [drivers/net/ethernet/mellanox/mlx5/core/pagealloc.o] Error 1
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-
+Cheers,
+Vinson
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
