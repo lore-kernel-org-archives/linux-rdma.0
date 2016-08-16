@@ -1,113 +1,49 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2 02/15] IB/pvrdma: Add device command support
-Date: Tue, 16 Aug 2016 16:51:19 +0000
-Message-ID: <BLUPR0501MB836A9EB3D27557F39350818C5130@BLUPR0501MB836.namprd05.prod.outlook.com>
-References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
- <1468352205-9137-3-git-send-email-aditr@vmware.com>
- <20160718124652.GE6165@yuval-lap.uk.oracle.com>
- <BLUPR0501MB8363954E94FE9D268E66CB7C5000@BLUPR0501MB836.namprd05.prod.outlook.com>
- <20160729123711.GU4628@leon.nu>
- <BLUPR0501MB8364D3CE8FF7DE654D1E045C5010@BLUPR0501MB836.namprd05.prod.outlook.com>
- <20160731061547.GV4628@leon.nu> <20160814112536.GA3404@yuval-lap>
- <20160814172344.GA5548@leon.nu>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Tue, 16 Aug 2016 17:09:27 +0000
+Message-ID: <1471367364.2661.45.camel@intel.com>
+References: <1471355123-6227-1-git-send-email-leon@kernel.org>
+	 <1471355123-6227-7-git-send-email-leon@kernel.org>
+	 <1471357887.2661.28.camel@intel.com> <20160816165041.GA5489@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160814172344.GA5548-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160816165041.GA5489-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
+Content-ID: <C0D2FADD6926FE4CA8C793432A02BF7E-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Aug 14, 2016 at 17:24:46 +0000, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> w=
-rote:
-> On Sun, Aug 14, 2016 at 02:25:36PM +0300, Yuval Shaia wrote:
-> > On Sun, Jul 31, 2016 at 09:15:47AM +0300, Leon Romanovsky wrote:
-> > > On Fri, Jul 29, 2016 at 09:31:16PM +0000, Adit Ranadive wrote:
-> > > > On Fri, 29 Jul 2016 12:37:29 +0000, Leon Romanovsky <leon-DgEjT+Ai2yhQFI55V6+gNQ@public.gmane.org=
-g> wrote:
-> > > > > On Thu, Jul 28, 2016 at 10:51:39PM +0000, Adit Ranadive wrote:
-> > > > > > On Mon, 18 Jul 2016 15:46:53 +0300 Yuval Shaia <yuval.shaia@ora=
-cle.com> wrote:
-> > > > > > > On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote=
-:
-> > > > > > > > This patch enables posting Verb requests and receiving resp=
-onses to/from
-> > > > > > > > the backend PVRDMA emulation layer.
-> > > > > > > >
-> > > > > >
-> > > > > > ...
-> > > > > >
-> > > > > > > > +int
-> > > > > > > > +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_r=
-eq *req,
-> > > > > > > > +		bool expect_resp, union pvrdma_cmd_resp *resp)
-> > > > > > > > +{
-> > > > > > > > +	int err;
-> > > > > > > > +
-> > > > > > > > +	dev_dbg(&dev->pdev->dev, "post request to device\n");
-> > > > > > > > +
-> > > > > > > > +	/* Serializiation */
-> > > > > > > > +	down(&dev->cmd_sema);
-> > > > > > > > +
-> > > > > > > > +	spin_lock(&dev->cmd_lock);
-> > > > > > > > +	memcpy(dev->cmd_slot, req, sizeof(*req));
-> > > > > > >
-> > > > > > > Just to protect against memory corruption suggesting to do:
-> > > > > > > 	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
-> > > > > > >
-> > > > > >
-> > > > > > Done.
-> > > > >
-> > > > > Hi Adit,
-> > > > > I didn't check how "dev->cmd_slot" was declared and if it is equa=
-l to
-> > > > > req in size. Additionally I didn't check if memcpy has any size
-> > > > > limitations, but wanted to warn you that implementation of this
-> > > > > suggestion as is will leave your system in much worse situation o=
-f
-> > > > > partially copied data.
-> > > > >
-> > > > > if you really want to check sizes, please do it with BUILD_ON com=
-pilation
-> > > > > macro. I have serious doubts if you need it.
-> > > > >
-> > > > > Thanks
-> > > >
-> > > > Hi Leon,
-> > > >
-> > > > Thanks for taking a look!
-> > > > I think this is okay to do was that we allocate a page for cmd_slot=
- anyways
-> > > > and the size of req will always be smaller than PAGE_SIZE. If the r=
-equest is
-> > > > malformed, our virtual hardware should throw an error for it.
-> > > > I dont think we would run into partially copied data.
-> > > >
-> > > > Having said that, I dont see a necessary advantage of using min her=
-e so am
-> > > > willing to drop it if you feel strongly about it.
-> > > >
-> > > > Can you clarify what you mean by memcpy size limitations?
-> > >
-> > > I didn't have time to look after reasons for Yuval's comment about
-> > > min(..), so I assumed that one of the possibilities will be limitatio=
-n
-> > > of memcpy which I'm not aware.
-> >
-> > I understand that it is not such realistic that one of the structures i=
-n
-> > union pvrdma_cmd_req will be more then PAGE_SIZE but any other alternat=
-ive
-> > to protect from such case?
->=20
-> BUILD_BUG_ON(...) is a perfect way to achieve it.
-
-Thanks for your comments, Leon and Yuval! I will add that in v4 of the patc=
-h series.
-
+T24gVHVlLCAyMDE2LTA4LTE2IGF0IDE5OjUwICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFR1ZSwgQXVnIDE2LCAyMDE2IGF0IDAyOjMxOjMyUE0gKzAwMDAsIERhbGVzc2FuZHJv
+LCBEZW5uaXMgd3JvdGU6DQo+ID4gT24gVHVlLCAyMDE2LTA4LTE2IGF0IDE2OjQ1ICswMzAwLCBM
+ZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25y
+b0BtZWxsYW5veC5jb20+DQo+ID4gPiANCj4gPiA+IE1BRCBhbmQgSEZJMSBoYXZlIGRpZmZlcmVu
+dCBuYW1pbmcgY29udmVudGlvbiwgdGhpcyBwYXRjaA0KPiA+ID4gc2ltcGxpZmllcyBhbmQgdW5p
+ZmllcyB0aGVpciBkZWZpbmVzIGFuZCBuYW1lcy4NCj4gPiANCj4gPiBJIGRvbid0IGtub3cgdGhh
+dCBJIGFncmVlIHRoYXQgaXQgc2ltcGxpZmllcyB0aGluZ3MuIEl0IGNoYW5nZXMgYQ0KPiA+IGxv
+dA0KPiA+IG9mIGNvZGUgZm9yIG5vdCBtdWNoIHJlYWwgdmFsdWUgaW4gbXkgb3Bpbmlvbi7CoA0K
+PiA+IA0KPiA+IFdhcyB0aGlzIHNvbWV0aGluZyB0aGF0IHdhcyBkaXNjdXNzZWQgaW4gdGhlIHZl
+cmJzIGNhbGw/IEkgaGF2ZSBub3QNCj4gPiBiZWVuIGFibGUgdG8gYXR0ZW5kIHRoYXQgdGhlIGxh
+c3QgZmV3IHdlZWtzLg0KPiANCj4gSXQgd2FzIGRpc2N1c3NlZCBvdmVyIG1haWxzLCBmb3IgZXhh
+bXBsZSBKYXNvbidzIG9waW5pb24gWzFdLA0KPiBDaHJpc3RvcGhlciBMYW1ldGVyJ3Mgb3Bpbmlv
+biBbMl0sIENocmlzdG9waCBIZWxsd2lnJ3Mgb3BpbmlvbiBbM10uDQoNCkknbSBub3Qgb3Bwb3Nl
+ZCB0byB0cnlpbmcgdG8gdW5pZnkgdGhpbmdzLCBob3dldmVyIHRoaXMgc2VlbXMgdG8gYmUNCm1v
+cmUgdGhhbiBwbG9wIGRvd24gdGhlIGhmaTEgc3R1ZmYgZnJvbSBoZXJlIGFuZCBwdXQgaXQgb3Zl
+ciB0aGVyZS4gSXQNCmlzIGNlcnRhaW5seSBub3Qgc2ltcGxpZnlpbmcgYW55dGhpbmcuDQoNCj4g
+PiA+IEFzIHBhcnQgb2YgY2xlYW51cCwgdGhlIEhGSTEgX05VTSgpIG1hY3JvIHdhcyByZW1vdmVk
+IGFuZCBNQUQNCj4gPiA+IGluZGV4ZXMgd2VyZSByZW5hbWVkLiBJdCBoYXMgYSBwb3RlbnRpYWwg
+dG8gYnJlYWsgYXBwbGljYXRpb24NCj4gPiA+IHdoaWNoIHVzZSB0aGVzZSBkZWZpbmVzIGRpcmVj
+dGx5Lg0KPiA+IA0KPiA+IFdoeSBkbyB5b3Ugd2FudCB0byByZW1vdmUgdGhlIF9OVU0oKSBtYWNy
+byB0aGF0IERvdWcganVzdCBwdXQgaW4/DQo+IA0KPiBJdCBpcyBub3QgdXNlZCBhZnRlciByZWZh
+Y3RvcmluZyBhbmQgSU1ITyB0aGlzIG1hY3JvIGRvZXNuJ3QNCj4gYmVsb25nIHRvIFVBUEksIHNp
+bmNlIGl0IHdvdWxkbid0IGluIHVzZSBieSBhbnkgdXNlcnMsIGJ1dCBJJ2xsIGJlDQo+IGdsYWQg
+dG8NCj4gZ2V0IGFuIGV4YW1wbGVzIG9mIGl0cyB1c2FnZSBpbiByZWFsIHVzZXIgc3BhY2UgYXBw
+bGljYXRpb25zDQo+IChsaWJmYWJyaWM/Pz8pLCBpZiBhbnkuDQo+IA0KDQpUaGF0J3MgYSBmYWly
+IHBvaW50LiBJIGNhbiBzZWUgZ2V0dGluZyByaWQgb2YgaXQgbm93Lg0KDQotRGVubnk=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
