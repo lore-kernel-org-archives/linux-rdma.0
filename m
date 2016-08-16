@@ -1,71 +1,67 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/6] RDMA/core: Move legacy MAD IOCTL declarations to common file
-Date: Tue, 16 Aug 2016 16:45:19 +0300
-Message-ID: <1471355123-6227-3-git-send-email-leon@kernel.org>
-References: <1471355123-6227-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 0/6] Refactor RDMA IOCTL declarations
+Date: Tue, 16 Aug 2016 16:45:17 +0300
+Message-ID: <1471355123-6227-1-git-send-email-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1471355123-6227-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-Move legacy MAD IOCTL declarations to rdma_user_ioctl.h file.
+This patch set refactors RDMA IOCTL declarations, unifies their
+location, moves all current IOCTL exporters to one place and renames
+them to fix the differences in coding style.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- include/uapi/rdma/ib_user_mad.h     | 10 ----------
- include/uapi/rdma/rdma_user_ioctl.h | 11 +++++++++++
- 2 files changed, 11 insertions(+), 10 deletions(-)
+IOCTLs commands need to export the size of their data for their transfer
+which is usually declared as a struct defined in relevant submodule.
+These structures should be visible at the linkage stage.
 
-diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
-index 9de7a2b..5c7abd8 100644
---- a/include/uapi/rdma/ib_user_mad.h
-+++ b/include/uapi/rdma/ib_user_mad.h
-@@ -230,14 +230,4 @@ struct ib_user_mad_reg_req2 {
- 	__u8	reserved[3];
- };
- 
--#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
--					      struct ib_user_mad_reg_req)
--
--#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
--
--#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
--
--#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
--					      struct ib_user_mad_reg_req2)
--
- #endif /* IB_USER_MAD_H */
-diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
-index ba1bcdd..820bf34 100644
---- a/include/uapi/rdma/rdma_user_ioctl.h
-+++ b/include/uapi/rdma/rdma_user_ioctl.h
-@@ -35,9 +35,20 @@
- 
- #include <linux/types.h>
- #include <linux/ioctl.h>
-+#include <rdma/ib_user_mad.h>
- 
- /* Documentation/ioctl/ioctl-number.txt */
- #define RDMA_IOCTL_MAGIC		0x1b
- #define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
- 
-+#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
-+					      struct ib_user_mad_reg_req)
-+
-+#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
-+
-+#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
-+
-+#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
-+					      struct ib_user_mad_reg_req2)
-+
- #endif /* RDMA_USER_IOCTL_H */
+There are number of possible solutions to overcome this limitations.
+
+One of the options is to declare anonymous variable which will be visible
+during the linkage. As a downside, such option won't allow direct use of
+this header by other parts of code without their specific includes of
+other logically unrelated submodules.
+
+Another possible option will be to move declarations of that structures
+to that common header file. Such move will cause to bloat this file
+with different submodules declarations.
+
+Our decision was to choose direct include of other exported files with
+declarations of such structures to simplify future usage of this file.
+There is no change for legacy applications and libraries.
+
+Available in the "topic/ioctl-header" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ioctl-header
+
+Thanks
+
+Leon Romanovsky (6):
+  RDMA/core: Commonize RDMA IOCTL declarations location
+  RDMA/core: Move legacy MAD IOCTL declarations to common file
+  RDMA/hfi1: Avoid redeclaration error
+  RDMA/core: Move HFI1 IOCTL declarations to common file
+  RDMA/core: Rename RDMA magic number
+  RDMA/core: Unify style of IOCTL commands
+
+ include/uapi/rdma/Kbuild            |   1 +
+ include/uapi/rdma/hfi/Kbuild        |   1 +
+ include/uapi/rdma/hfi/hfi1_ioctl.h  | 173 +++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/hfi/hfi1_user.h   | 175 +-----------------------------------
+ include/uapi/rdma/ib_user_mad.h     |  14 +--
+ include/uapi/rdma/rdma_user_ioctl.h | 127 ++++++++++++++++++++++++++
+ 6 files changed, 304 insertions(+), 187 deletions(-)
+ create mode 100644 include/uapi/rdma/hfi/hfi1_ioctl.h
+ create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
+
 -- 
 2.7.4
 
