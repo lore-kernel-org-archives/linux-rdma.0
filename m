@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/4] IB/hfi1: Improve J_KEY generation
-Date: Tue, 16 Aug 2016 13:26:12 -0700
-Message-ID: <20160816202539.24004.76306.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 1/4] IB/hfi1: Return invalid field for non-QSFP CableInfo
+ queries
+Date: Tue, 16 Aug 2016 13:25:34 -0700
+Message-ID: <20160816202343.24004.69623.stgit@scvm10.sc.intel.com>
 References: <20160816202133.24004.31487.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,73 +11,40 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160816202133.24004.31487.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Previously, J_KEY generation was based on the lower 16 bits
-of the user's UID. While this works, it was not good enough
-as a non-root user could collide with a root user given a
-sufficiently large UID.
-
-This patch attempt to improve the J_KEY generation by using
-the following algorithm:
-
-The 16 bit J_KEY space is partitioned into 3 separate spaces
-reserved for different user classes:
-   * all users with administtor privileges (including 'root')
-     will use J_KEYs in the range of 0 to 31,
-   * all kernel protocols, which use KDETH packets will use
-     J_KEYs in the range of 32 to 63, and
-   * all other users will use J_KEYs in the range of 64 to
-     65535.
-
-The above separation is aimed at preventing different user levels
-from sending packets to each other and, additionally, separate
-kernel protocols from all other types of users. The later is meant
-to prevent the potential corruption of kernel memory by any other
-type of user.
+The driver does not check if the CableInfo query is supported for the
+port type. Return early if CableInfo is not supported for the port type,
+making compliance with the specification explicit and preventing lower
+level code from potentially doing the wrong thing if the query is not
+supported for the hardware implementation.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/mad.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 1000e0f..ceccf78 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1272,9 +1272,26 @@ static inline int hdr2sc(struct hfi1_message_header *hdr, u64 rhf)
- 	       ((!!(rhf_dc_info(rhf))) << 4);
- }
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 1263abe..d9d909b 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -1819,6 +1819,11 @@ static int __subn_get_opa_cable_info(struct opa_smp *smp, u32 am, u8 *data,
+ 	u32 len = OPA_AM_CI_LEN(am) + 1;
+ 	int ret;
  
-+#define HFI1_JKEY_WIDTH       16
-+#define HFI1_JKEY_MASK        (BIT(16) - 1)
-+#define HFI1_ADMIN_JKEY_RANGE 32
++	if (dd->pport->port_type != PORT_TYPE_QSFP) {
++		smp->status |= IB_SMP_INVALID_FIELD;
++		return reply((struct ib_mad_hdr *)smp);
++	}
 +
-+/*
-+ * J_KEYs are split and allocated in the following groups:
-+ *   0 - 31    - users with administrator privileges
-+ *  32 - 63    - kernel protocols using KDETH packets
-+ *  64 - 65535 - all other users using KDETH packets
-+ */
- static inline u16 generate_jkey(kuid_t uid)
- {
--	return from_kuid(current_user_ns(), uid) & 0xffff;
-+	u16 jkey = from_kuid(current_user_ns(), uid) & HFI1_JKEY_MASK;
-+
-+	if (capable(CAP_SYS_ADMIN))
-+		jkey &= HFI1_ADMIN_JKEY_RANGE - 1;
-+	else if (jkey < 64)
-+		jkey |= BIT(HFI1_JKEY_WIDTH - 1);
-+
-+	return jkey;
- }
- 
- /*
+ #define __CI_PAGE_SIZE BIT(7) /* 128 bytes */
+ #define __CI_PAGE_MASK ~(__CI_PAGE_SIZE - 1)
+ #define __CI_PAGE_NUM(a) ((a) & __CI_PAGE_MASK)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
