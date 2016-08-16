@@ -1,84 +1,113 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Tue, 16 Aug 2016 19:50:41 +0300
-Message-ID: <20160816165041.GA5489@leon.nu>
-References: <1471355123-6227-1-git-send-email-leon@kernel.org>
- <1471355123-6227-7-git-send-email-leon@kernel.org>
- <1471357887.2661.28.camel@intel.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v2 02/15] IB/pvrdma: Add device command support
+Date: Tue, 16 Aug 2016 16:51:19 +0000
+Message-ID: <BLUPR0501MB836A9EB3D27557F39350818C5130@BLUPR0501MB836.namprd05.prod.outlook.com>
+References: <1468352205-9137-1-git-send-email-aditr@vmware.com>
+ <1468352205-9137-3-git-send-email-aditr@vmware.com>
+ <20160718124652.GE6165@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB8363954E94FE9D268E66CB7C5000@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160729123711.GU4628@leon.nu>
+ <BLUPR0501MB8364D3CE8FF7DE654D1E045C5010@BLUPR0501MB836.namprd05.prod.outlook.com>
+ <20160731061547.GV4628@leon.nu> <20160814112536.GA3404@yuval-lap>
+ <20160814172344.GA5548@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1471357887.2661.28.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160814172344.GA5548-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Aug 16, 2016 at 02:31:32PM +0000, Dalessandro, Dennis wrote:
-> On Tue, 2016-08-16 at 16:45 +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >=20
-> > MAD and HFI1 have different naming convention, this patch
-> > simplifies and unifies their defines and names.
+On Sun, Aug 14, 2016 at 17:24:46 +0000, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> w=
+rote:
+> On Sun, Aug 14, 2016 at 02:25:36PM +0300, Yuval Shaia wrote:
+> > On Sun, Jul 31, 2016 at 09:15:47AM +0300, Leon Romanovsky wrote:
+> > > On Fri, Jul 29, 2016 at 09:31:16PM +0000, Adit Ranadive wrote:
+> > > > On Fri, 29 Jul 2016 12:37:29 +0000, Leon Romanovsky <leon-DgEjT+Ai2yhQFI55V6+gNQ@public.gmane.org=
+g> wrote:
+> > > > > On Thu, Jul 28, 2016 at 10:51:39PM +0000, Adit Ranadive wrote:
+> > > > > > On Mon, 18 Jul 2016 15:46:53 +0300 Yuval Shaia <yuval.shaia@ora=
+cle.com> wrote:
+> > > > > > > On Tue, Jul 12, 2016 at 12:36:32PM -0700, Adit Ranadive wrote=
+:
+> > > > > > > > This patch enables posting Verb requests and receiving resp=
+onses to/from
+> > > > > > > > the backend PVRDMA emulation layer.
+> > > > > > > >
+> > > > > >
+> > > > > > ...
+> > > > > >
+> > > > > > > > +int
+> > > > > > > > +pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_r=
+eq *req,
+> > > > > > > > +		bool expect_resp, union pvrdma_cmd_resp *resp)
+> > > > > > > > +{
+> > > > > > > > +	int err;
+> > > > > > > > +
+> > > > > > > > +	dev_dbg(&dev->pdev->dev, "post request to device\n");
+> > > > > > > > +
+> > > > > > > > +	/* Serializiation */
+> > > > > > > > +	down(&dev->cmd_sema);
+> > > > > > > > +
+> > > > > > > > +	spin_lock(&dev->cmd_lock);
+> > > > > > > > +	memcpy(dev->cmd_slot, req, sizeof(*req));
+> > > > > > >
+> > > > > > > Just to protect against memory corruption suggesting to do:
+> > > > > > > 	memcpy(dev->cmd_slot, req, min(PAGE_SIZE, sizeof(*req)));
+> > > > > > >
+> > > > > >
+> > > > > > Done.
+> > > > >
+> > > > > Hi Adit,
+> > > > > I didn't check how "dev->cmd_slot" was declared and if it is equa=
+l to
+> > > > > req in size. Additionally I didn't check if memcpy has any size
+> > > > > limitations, but wanted to warn you that implementation of this
+> > > > > suggestion as is will leave your system in much worse situation o=
+f
+> > > > > partially copied data.
+> > > > >
+> > > > > if you really want to check sizes, please do it with BUILD_ON com=
+pilation
+> > > > > macro. I have serious doubts if you need it.
+> > > > >
+> > > > > Thanks
+> > > >
+> > > > Hi Leon,
+> > > >
+> > > > Thanks for taking a look!
+> > > > I think this is okay to do was that we allocate a page for cmd_slot=
+ anyways
+> > > > and the size of req will always be smaller than PAGE_SIZE. If the r=
+equest is
+> > > > malformed, our virtual hardware should throw an error for it.
+> > > > I dont think we would run into partially copied data.
+> > > >
+> > > > Having said that, I dont see a necessary advantage of using min her=
+e so am
+> > > > willing to drop it if you feel strongly about it.
+> > > >
+> > > > Can you clarify what you mean by memcpy size limitations?
+> > >
+> > > I didn't have time to look after reasons for Yuval's comment about
+> > > min(..), so I assumed that one of the possibilities will be limitatio=
+n
+> > > of memcpy which I'm not aware.
+> >
+> > I understand that it is not such realistic that one of the structures i=
+n
+> > union pvrdma_cmd_req will be more then PAGE_SIZE but any other alternat=
+ive
+> > to protect from such case?
 >=20
-> I don't know that I agree that it simplifies things. It changes a lot
-> of code for not much real value in my opinion.=A0
->=20
-> Was this something that was discussed in the verbs call? I have not
-> been able to attend that the last few weeks.
+> BUILD_BUG_ON(...) is a perfect way to achieve it.
 
-It was discussed over mails, for example Jason's opinion [1],
-Christopher Lameter's opinion [2], Christoph Hellwig's opinion [3].
+Thanks for your comments, Leon and Yuval! I will add that in v4 of the patc=
+h series.
 
->=20
-> > As part of cleanup, the HFI1 _NUM() macro was removed and MAD
-> > indexes were renamed. It has a potential to break application
-> > which use these defines directly.
->=20
-> Why do you want to remove the _NUM() macro that Doug just put in?
-
-It is not used after refactoring and IMHO this macro doesn't
-belong to UAPI, since it wouldn't in use by any users, but I'll be glad to
-get an examples of its usage in real user space applications (libfabric???)=
-, if any.
-
->=20
-> -Denny
-
-[1] http://marc.info/?l=3Dlinux-rdma&m=3D146835080018352&w=3D2
-[2] http://marc.info/?l=3Dlinux-rdma&m=3D146897679911490&w=3D2
-[3] http://marc.info/?l=3Dlinux-rdma&m=3D146908844509592&w=3D2
-
---3V7upXqbjpZ4EhLz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXs0RhAAoJEORje4g2clinCb0P/RPV5IKypJGcDJSuqdyCdmt8
-Q7JA9TQGAeHz4vKZ3JfiQMMyZWgoIBVbyt/IUCcgdFt2eujWbrbFCR6lf6LXRvEG
-UavlzucZVUc8cBjbEUhev+YoNOzt9/qwV0Tx7mr1j4HZdkvJ0e2tvlCiGKzEYghT
-e19vYajqjsazOFpixHBaw8gZ8LSGv9CBh0hXQl28KGpECLUgD0rdCePI1TdPkw4C
-M93C4D7jkGqXdUL9kKBJE+OaYb4E22f2NxLjqsY4Q/jcN5NHMSD5Jla4TwTX+sbi
-enMlJ+7Dz2G5i862ImvVD06lDG43tNUn9WhHxMey09LcvfLvxISgUndHj1F4wa1a
-YwOUcDkRxCSmdeYtm9B6cbBOMNtT6D+Sd0/Rkk2UV4dzSvS63zBBYo2cKYS7+2t8
-aV1ZkBmeqBZIhR/a63+Ie6oM1qwUMQHQafOJaD+BNCkJLdANXfI2vCswhxOU/9wX
-qAykBZhtWLOXr/pUvlK0yRxTcpjh7Lxf54sbOJQl+S5nlfLva/BFAm7/qQzNz0Du
-RtjkW4qFFeXBDtO3E6k3ywrzpSttQ9Cwdx4ny7yNIwBhaI88XiuH5/vruiUQTosG
-d2j7c3mulwTSko9gMBgcNciu14cgdLohh6kusNkDQjB3JNEquIIgQvySG/iOIy+L
-uRMM0N/QstivRdQLjhA3
-=/Z+j
------END PGP SIGNATURE-----
-
---3V7upXqbjpZ4EhLz--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
