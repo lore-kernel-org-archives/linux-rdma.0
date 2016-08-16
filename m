@@ -1,40 +1,51 @@
-From: Vinson Lee <vlee-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org>
-Subject: =?UTF-8?B?bGludXgtbmV4dCBidWlsZCBlcnJvciAiY2FsbCB0byDigJhfX2NvbXBpbGV0aW1lX2Fzcw==?=
-	=?UTF-8?B?ZXJ0XzM0MeKAmSBkZWNsYXJlZCB3aXRoIGF0dHJpYnV0ZSBlcnJvcjogQlVJTERfQlVHX09OIGZhaWxl?=
-	=?UTF-8?B?ZDogX19tbHg1X2JpdF9vZmYobWFuYWdlX3BhZ2VzX291dCwgcGFzW2ldKSAlIDY0Ig==?=
-Date: Tue, 16 Aug 2016 11:57:23 -0700
-Message-ID: <CACKvgLHp0jc_0drhk2u7GChhZkwBXhA0ps55=+J8NXp=u7u7Nw@mail.gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/4] hfi1/rdmavt: For 4.8 rc
+Date: Tue, 16 Aug 2016 13:23:38 -0700
+Message-ID: <20160816202133.24004.31487.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi.
+Doug,
 
-Commit a533ed5e179c "net/mlx5: Pages management commands via mlx5 ifc"
-introduced this build error with GCC 4.4.
+Here are four patches that we'd like to get into the rc cycle.
 
-  CC [M]  drivers/net/ethernet/mellanox/mlx5/core/pagealloc.o
-drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function
-=E2=80=98reclaim_pages_cmd.clone.0=E2=80=99:
-drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:341: error: call
-to =E2=80=98__compiletime_assert_341=E2=80=99 declared with attribute error=
-:
-BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_out, pas[i]) % 64
-drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c: In function =E2=80=98g=
-ive_pages=E2=80=99:
-drivers/net/ethernet/mellanox/mlx5/core/pagealloc.c:290: error: call
-to =E2=80=98__compiletime_assert_290=E2=80=99 declared with attribute error=
-:
-BUILD_BUG_ON failed: __mlx5_bit_off(manage_pages_in, pas[i]) % 64
-make[5]: *** [drivers/net/ethernet/mellanox/mlx5/core/pagealloc.o] Error 1
+These apply on top of the last set of patches Ira sent (including the v2 of
+[1]).
 
-Cheers,
-Vinson
+[1] http://marc.info/?l=linux-rdma&m=147116491910005&w=2
+
+Patches can also be viewed in my repo at:
+https://github.com/ddalessa/kernel/tree/for-4.8
+
+---
+
+Easwar Hariharan (1):
+      IB/hfi1: Return invalid field for non-QSFP CableInfo queries
+
+Ira Weiny (1):
+      IB/hfi1: Fix mm_struct use after free
+
+Mike Marciniszyn (1):
+      IB/rdmvat: Fix double vfree() in rvt_create_qp() error path
+
+Mitko Haralanov (1):
+      IB/hfi1: Improve J_KEY generation
+
+
+ drivers/infiniband/hw/hfi1/file_ops.c |    2 ++
+ drivers/infiniband/hw/hfi1/hfi.h      |   19 ++++++++++++++++++-
+ drivers/infiniband/hw/hfi1/mad.c      |    5 +++++
+ drivers/infiniband/sw/rdmavt/qp.c     |    3 ++-
+ 4 files changed, 27 insertions(+), 2 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
