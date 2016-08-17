@@ -1,51 +1,39 @@
 From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 4/6] RDMA/core: Move HFI1 IOCTL declarations
- to common file
-Date: Wed, 17 Aug 2016 13:35:53 +0000
-Message-ID: <1471440949.19634.7.camel@intel.com>
+Subject: Re: [PATCH rdma-next 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Wed, 17 Aug 2016 13:45:21 +0000
+Message-ID: <1471441516.19634.15.camel@intel.com>
 References: <1471355123-6227-1-git-send-email-leon@kernel.org>
-	 <1471355123-6227-5-git-send-email-leon@kernel.org>
-	 <20160817061630.GB27477@phlsvsds.ph.intel.com>
-	 <20160817065529.GG5489@leon.nu>
+		 <1471355123-6227-7-git-send-email-leon@kernel.org>
+		 <1471357887.2661.28.camel@intel.com> <20160816165041.GA5489@leon.nu>
+		 <1471367364.2661.45.camel@intel.com> <20160817051952.GC5489@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160817065529.GG5489-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160817051952.GC5489-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
-Content-ID: <A22809A3704D3C42BD5679A9EB690145-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-ID: <142202CAB1014842B0D6D4EA68E089B9-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTA4LTE3IGF0IDA5OjU1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFdlZCwgQXVnIDE3LCAyMDE2IGF0IDAyOjE2OjMxQU0gLTA0MDAsIGlyYS53ZWlueSB3
-cm90ZToNCj4gPiBPbiBUdWUsIEF1ZyAxNiwgMjAxNiBhdCAwNDo0NToyMVBNICswMzAwLCBMZW9u
-IFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0Bt
-ZWxsYW5veC5jb20+DQo+ID4gPiANCj4gPiA+IE1vdmUgSEZJMSBJT0NUTCBkZWNsYXJhdGlvbnMg
-dG8gcmRtYV91c2VyX2lvY3RsLmggZmlsZS4NCj4gPiANCj4gPiBJIGhhdmUgbm90IHRyaWVkIHdp
-dGggdGhlIHBhdGNoIGJ1dCBJJ20gOTklIHN1cmUgdGhpcyB3aWxsIGJyZWFrDQo+ID4gdGhlIFBT
-TTINCj4gPiBsaWJyYXJ5IGJ1aWxkIHdoaWNoIGluY2x1ZGVzIGhmaTFfdXNlci5oLg0KPiA+IA0K
-PiA+IFRoaXMgaXMgb25lIG9mIHRob3NlIHRoaW5ncyBJIGhhdmUgcG9uZGVyZWQgaW4gdGhlIHBh
-c3QuwqDCoE1vc3Qgb2YNCj4gPiB0aGUgcmRtYQ0KPiA+IGxpYnJhcmllcyBkb24ndCBhY3R1YWxs
-eSB1c2UgdGhlc2UgZGVmaW5pdGlvbnMgZGlyZWN0bHkuwqDCoFBTTTINCj4gPiBkb2VzLg0KPiAN
-Cj4gSSdtIG5vdCBzbyBjb252aW5jZWQgYWJvdXQgaXQuDQo+ICIjaW5jbHVkZSA8cmRtYS9yZG1h
-X3VzZXJfaW9jdGwuaD4iIHdhcyBhZGRlZCB0byBoZmkxX3VzZXIuaCB0byBzaGFyZQ0KPiBhbGwg
-ZGVmaW5pdGlvbnMuIFBTTTIgbGlicmFyeSB3aWxsIHNlZSBpdC4NCg0KT24gZmFjZSB2YWx1ZSB0
-aGF0IHNob3VsZCBiZSB0cnVlLiBJIHdvdWxkIHdhbnQgdG8gcnVuIGl0IGJ5IHRoZSBQU00NCmZv
-bGtzIGFuZCB0ZXN0IGl0IG91dCB0aG91Z2ggdG8gYmUgc3VyZS4NCg0KDQoNCj4gPiBJJ20gbm90
-IHN1cmUgd2hhdCBvdGhlciBsaWJyYXJpZXMgZG8uDQo+ID4gDQo+ID4gSW4gdGhlIGZpbmFsIHBh
-dGNoIG9mIHRoaXMgc2VyaWVzIHlvdSBhZG1pdCB0aGF0IHRoZSBuYW1lIGNoYW5nZXMNCj4gPiBp
-biB0aGF0IHBhdGNoDQo+ID4gd2lsbCBicmVhayB1c2Vyc3BhY2Ugd2hpY2ggdXNlcyB0aGUgZGVm
-aW5lcyBkaXJlY3RseS7CoMKgQ2FuIHdlLA0KPiA+IHNob3VsZCB3ZSwgZG8NCj4gPiB0aGF0Pw0K
-PiANCj4gSSdtIHRhbGtpbmcgYWJvdXQgX19OVU0oKSBtYWNyb3MuDQo+IA0KPiBEbyB5b3UgcmVh
-bGx5IHVzZSBfX05VTShBU1NJR05fQ1RYVCkgaW4gdXNlciBhcHBsaWNhdGlvbj8gV2h5IGRpZCB5
-b3UNCj4gZG8NCj4gaXQ/IFlvdSBzdXBwb3NlZCB0byB1c2UgSEZJMV9JT0NUTF9BU1NJR05fQ1RY
-VCBpbnN0ZWFkLg0KDQpZZWFoIEkgdGhpbmsgd2UgY2FuIGdldCByaWQgb2YgdGhlIF9fTlVNKCkg
-bWFjcm8uIEl0IHNob3VsZCBub3QNCnN0cmljdGx5IGJlIG5lZWRlZCBieSB1c2VyIHNwYWNlLiBV
-c2VyIHNob3VsZCBiZSB1c2luZyB0aGUgdGhpbmcgdGhhdA0KX19OVU0oKSB3YXMgdXNlZCBpbiwg
-dGhlIElPQ1RMIG51bWJlci4NCg0KLURlbm55
+T24gV2VkLCAyMDE2LTA4LTE3IGF0IDA4OjE5ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQoNCg0KPiA+IEknbSBub3Qgb3Bwb3NlZCB0byB0cnlpbmcgdG8gdW5pZnkgdGhpbmdzLCBob3dl
+dmVyIHRoaXMgc2VlbXMgdG8gYmUNCj4gPiBtb3JlIHRoYW4gcGxvcCBkb3duIHRoZSBoZmkxIHN0
+dWZmIGZyb20gaGVyZSBhbmQgcHV0IGl0IG92ZXIgdGhlcmUuDQo+ID4gSXQNCj4gPiBpcyBjZXJ0
+YWlubHkgbm90IHNpbXBsaWZ5aW5nIGFueXRoaW5nLg0KPiANCj4gSXQgaXMgImRhcmsgc2lkZSIg
+b2YgVUFQSSAtIGluYWJpbGl0eSB0byBjaGFuZ2UgbGVnYWN5IGRlY2xhcmF0aW9ucy4NCj4gVGhp
+cyBpcyB3aHkgSSBkaWRuJ3QgcmVtb3ZlIGFueXRoaW5nIGV4Y2VwdCBfTlVNKCkgbWFjcm8uDQo+
+IA0KPiBUaGUgc2ltcGxpZmljYXRpb24gY29tZXMgZnJvbSBkZWZpbml0aW9uIG9mIG9uZSBwbGFj
+ZSBmb3INCj4gZGVjbGFyYXRpb24gb2YgSU9DVExzIG51bWJlcnMgYW5kIGV4cG9ydGluZyBpdCB0
+byB1c2Vycy4gSXQgZ2l2ZXMNCj4gdmlzaWJpbGl0eSBmb3IgdXNlciBzcGFjZSBhdXRob3JzIHRv
+by4NCg0KSG93IG9mdGVuIGRvZXMgYSB1c2VyIG5lZWQgdGhlIElPQ1RMIG51bWJlcnMgZm9yIE1B
+RCBhbmQgUFNNIGFuZA0Kd2hhdGV2ZXIgZWxzZSB3ZSBjb21lIHVwIHdpdGggYXQgdGhlIHNhbWUg
+dGltZT8gV2h5IHdvdWxkIHRoZXkgY2FyZQ0KYWJvdXQgdGhlIG90aGVyIElPQ1RMIG51bWJlcnM/
+wqANCg0KSSBkb24ndCByZWFsbHkgc2VlIGEgcHJvYmxlbSB3aXRoIGtlZXBpbmcgdGhlbSBzZXBh
+cmF0ZSwgYnV0IEknbSBub3QNCnJlYWxseSBvcHBvc2VkIHRvIGNvbGxhcHNpbmcgaW50byBvbmUg
+cGxhY2UgZWl0aGVyLg0KDQotRGVubnk=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
