@@ -1,275 +1,92 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 4/6] RDMA/core: Move HFI1 IOCTL declarations to
- common file
-Date: Wed, 17 Aug 2016 09:55:29 +0300
-Message-ID: <20160817065529.GG5489@leon.nu>
-References: <1471355123-6227-1-git-send-email-leon@kernel.org>
- <1471355123-6227-5-git-send-email-leon@kernel.org>
- <20160817061630.GB27477@phlsvsds.ph.intel.com>
+From: Nikolay Borisov <kernel-6AxghH7DbtA@public.gmane.org>
+Subject: Re: [IPoIB] Missing join mcast events causing full machine lockup
+Date: Wed, 17 Aug 2016 14:26:43 +0300
+Message-ID: <57B449F3.4090804@kyup.com>
+References: <57907A37.3000902@kyup.com> <1470165672.18081.37.camel@redhat.com>
+ <CAJFSNy6USnLqcBiPEOcFOG8MrGq8gXwvakG48jHHi_-YgVaQ3g@mail.gmail.com>
+ <1470169770.18081.44.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WkfBGePaEyrk4zXB"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160817061630.GB27477-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1470169770.18081.44.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SiteGround Operations <operations-/eCPMmvKun9pLGFMi4vTTA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---WkfBGePaEyrk4zXB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 17, 2016 at 02:16:31AM -0400, ira.weiny wrote:
-> On Tue, Aug 16, 2016 at 04:45:21PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >=20
-> > Move HFI1 IOCTL declarations to rdma_user_ioctl.h file.
->=20
-> I have not tried with the patch but I'm 99% sure this will break the PSM2
-> library build which includes hfi1_user.h.
->=20
-> This is one of those things I have pondered in the past.  Most of the rdma
-> libraries don't actually use these definitions directly.  PSM2 does.
+On 08/02/2016 11:29 PM, Doug Ledford wrote:
+> On Tue, 2016-08-02 at 23:18 +0300, Nikolay Borisov wrote:
+>> On Tue, Aug 2, 2016 at 10:21 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> wrote:
+>>>
+>>> On Thu, 2016-07-21 at 10:31 +0300, Nikolay Borisov wrote:
+>>>>
+>>>> Hello,
+>>>>
+>>>> With running the risk of sounding like a broken record, I came
+>>>> across
+>>>> another case where ipoib can cause the machine to go haywire due
+>>>> to
+>>>> missed join requests. This is on 4.4.14 kernel. Here is what I
+>>>> believe
+>>>> happens:
+>>>
+>>> [ snip long traces ]
+>>>
+>>>>
+>>>> This makes me wonder if using timeouts is actually better than
+>>>> blindly relying on completing the join.
+>>>
+>>> Blindly relying on the join completions is not what we do.  We are
+>>> very
+>>> careful to make sure we always have the right locking so that we
+>>> never
+>>> leave a join request in the BUSY state without running the
+>>> completion
+>>> at some time.  If you are seeing us do that, then it means we have
+>>> a
+>>> bug in our locking or state processing.  The answer then is to find
+>>> that bug and not to paper over it with a timeout.  Can you find
+>>> some
+>>> way to reproduce this with a 4.7 kernel?
+>>
+>> Unfortunately my environment is constrained to 4.4 kernel. I will,
+>> however,
+>> try and check if I can get a couple of IB-enabled nodes on 4.7 and
+>> see
+>> if something
+>> shows up. And while I don't have a 100% reproducer for it I see those
+>> symptoms rather regularly
+>> on production nodes. I'm able and happy to extract any runtime state
+>> that might be useful in debugging this i.e I can obtain crashdumps
+>> and
+>> reverse the state of the ipoib stacks. I've seen this issue on 3.12
+>> and on 4.4.
+>> Some of my previous emails also show this manifesting in hangs in
+>> cm_destroy_id
+>> as well. So clearly there is a problem there but it proves very
+>> elusive.
+> 
+> Can you give any clues as to what's causing it?  Do you have link flap?
+> SM bounces?  Lots of multicast joins/leaves?
 
-I'm not so convinced about it.
-"#include <rdma/rdma_user_ioctl.h>" was added to hfi1_user.h to share
-all definitions. PSM2 library will see it.
+Hello again, after some testing and a lot more reboots I think we've
+managed to isolate a culprit. Based on data we've observed on the
+switches it seems that when a particular switch is congested it can
+start queuing packets internally, and after its queue overflows it will
+start dropping packets. Our switches show that they are discarding a lot
+of packets when we increase the amount of traffic. Since our network is
+linear e.g. switch 1 -> switch 2-> switch 3 then if node on sw1 wants to
+send packets to a node on sw2 and sw2 is congested then it might
+silently discard packets. And this in turn causes the ipoib (and the MAD
+drivers) to wait for a response on a packet they sent, but that never
+got sent to its destination. Does that sound plausible?
 
->=20
-> I'm not sure what other libraries do.
->=20
-> In the final patch of this series you admit that the name changes in that=
- patch
-> will break userspace which uses the defines directly.  Can we, should we,=
- do
-> that?
 
-I'm talking about __NUM() macros.
-
-Do you really use __NUM(ASSIGN_CTXT) in user application? Why did you do
-it? You supposed to use HFI1_IOCTL_ASSIGN_CTXT instead.
-
->=20
-> To be completely pedantic I think we need to maintain the old names at le=
-ast
-> for some time.  Perhaps they are best put in an rdma_user_compat_ioctl.h =
-which
-> is included in the final rdma_user_ioctl.h?
-
-Except __NUM() macro, there is no change in names.
-
->=20
-> For this patch I think it would be sufficient to include rdma_user_ioctl.=
-h in
-> hfi1_user.h but I would have to double check that.
-
-It is already done in patches before.
-
->=20
-> Ira
->=20
-> >=20
-> > Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
-> >  include/uapi/rdma/hfi/hfi1_user.h   | 55 -----------------------------=
---------
-> >  include/uapi/rdma/rdma_user_ioctl.h | 54 +++++++++++++++++++++++++++++=
-+++++++
-> >  2 files changed, 54 insertions(+), 55 deletions(-)
-> >=20
-> > diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/=
-hfi1_user.h
-> > index 8aa3867..8807f06 100644
-> > --- a/include/uapi/rdma/hfi/hfi1_user.h
-> > +++ b/include/uapi/rdma/hfi/hfi1_user.h
-> > @@ -58,7 +58,6 @@
-> > =20
-> >  #include <linux/types.h>
-> >  #include <rdma/rdma_user_ioctl.h>
-> > -#include <rdma/hfi/hfi1_ioctl.h>
-> > =20
-> >  /*
-> >   * This version number is given to the driver by the user code during
-> > @@ -114,60 +113,6 @@
-> >  #define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
-> >  #define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
-> > =20
-> > -/* User commands. */
-> > -#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
-> > -#define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
-> > -#define HFI1_CMD_USER_INFO       3	/* set up userspace */
-> > -#define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
-> > -#define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
-> > -#define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
-> > -
-> > -#define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
-> > -#define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want =
-*/
-> > -#define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
-> > -#define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
-> > -#define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send con=
-text */
-> > -#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidation=
-s */
-> > -#define HFI1_CMD_GET_VERS	 14	/* get the version of the user cdev */
-> > -
-> > -/*
-> > - * User IOCTLs can not go above 128 if they do then see common.h and c=
-hange the
-> > - * base for the snoop ioctl
-> > - */
-> > -
-> > -/*
-> > - * Make the ioctls occupy the last 0xf0-0xff portion of the IB range
-> > - */
-> > -#define __NUM(cmd) (HFI1_CMD_##cmd + 0xe0)
-> > -
-> > -struct hfi1_cmd;
-> > -#define HFI1_IOCTL_ASSIGN_CTXT \
-> > -	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
-> > -#define HFI1_IOCTL_CTXT_INFO \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(CTXT_INFO), struct hfi1_ctxt_info)
-> > -#define HFI1_IOCTL_USER_INFO \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(USER_INFO), struct hfi1_base_info)
-> > -#define HFI1_IOCTL_TID_UPDATE \
-> > -	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_UPDATE), struct hfi1_tid_info)
-> > -#define HFI1_IOCTL_TID_FREE \
-> > -	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_FREE), struct hfi1_tid_info)
-> > -#define HFI1_IOCTL_CREDIT_UPD \
-> > -	_IO(IB_IOCTL_MAGIC, __NUM(CREDIT_UPD))
-> > -#define HFI1_IOCTL_RECV_CTRL \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(RECV_CTRL), int)
-> > -#define HFI1_IOCTL_POLL_TYPE \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(POLL_TYPE), int)
-> > -#define HFI1_IOCTL_ACK_EVENT \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(ACK_EVENT), unsigned long)
-> > -#define HFI1_IOCTL_SET_PKEY \
-> > -	_IOW(IB_IOCTL_MAGIC, __NUM(SET_PKEY), __u16)
-> > -#define HFI1_IOCTL_CTXT_RESET \
-> > -	_IO(IB_IOCTL_MAGIC, __NUM(CTXT_RESET))
-> > -#define HFI1_IOCTL_TID_INVAL_READ \
-> > -	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_INVAL_READ), struct hfi1_tid_info)
-> > -#define HFI1_IOCTL_GET_VERS \
-> > -	_IOR(IB_IOCTL_MAGIC, __NUM(GET_VERS), int)
-> > -
-> >  #define _HFI1_EVENT_FROZEN_BIT         0
-> >  #define _HFI1_EVENT_LINKDOWN_BIT       1
-> >  #define _HFI1_EVENT_LID_CHANGE_BIT     2
-> > diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rd=
-ma_user_ioctl.h
-> > index 820bf34..e9a69f0 100644
-> > --- a/include/uapi/rdma/rdma_user_ioctl.h
-> > +++ b/include/uapi/rdma/rdma_user_ioctl.h
-> > @@ -36,6 +36,7 @@
-> >  #include <linux/types.h>
-> >  #include <linux/ioctl.h>
-> >  #include <rdma/ib_user_mad.h>
-> > +#include <rdma/hfi/hfi1_ioctl.h>
-> > =20
-> >  /* Documentation/ioctl/ioctl-number.txt */
-> >  #define RDMA_IOCTL_MAGIC		0x1b
-> > @@ -51,4 +52,57 @@
-> >  #define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
-> >  					      struct ib_user_mad_reg_req2)
-> > =20
-> > +/* User commands. */
-> > +#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
-> > +#define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
-> > +#define HFI1_CMD_USER_INFO       3	/* set up userspace */
-> > +#define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
-> > +#define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
-> > +#define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
-> > +
-> > +#define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
-> > +#define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want =
-*/
-> > +#define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
-> > +#define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
-> > +#define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send con=
-text */
-> > +#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidation=
-s */
-> > +#define HFI1_CMD_GET_VERS	 14	/* get the version of the user cdev */
-> > +
-> > +/*
-> > + * User IOCTLs can not go above 128 if they do then see common.h and c=
-hange the
-> > + * base for the snoop ioctl
-> > + */
-> > +
-> > +/*
-> > + * Make the ioctls occupy the last 0xf0-0xff portion of the IB range
-> > + */
-> > +#define __NUM(cmd) (HFI1_CMD_##cmd + 0xe0)
-> > +
-> > +#define HFI1_IOCTL_ASSIGN_CTXT \
-> > +	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
-> > +#define HFI1_IOCTL_CTXT_INFO \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(CTXT_INFO), struct hfi1_ctxt_info)
-> > +#define HFI1_IOCTL_USER_INFO \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(USER_INFO), struct hfi1_base_info)
-> > +#define HFI1_IOCTL_TID_UPDATE \
-> > +	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_UPDATE), struct hfi1_tid_info)
-> > +#define HFI1_IOCTL_TID_FREE \
-> > +	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_FREE), struct hfi1_tid_info)
-> > +#define HFI1_IOCTL_CREDIT_UPD \
-> > +	_IO(IB_IOCTL_MAGIC, __NUM(CREDIT_UPD))
-> > +#define HFI1_IOCTL_RECV_CTRL \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(RECV_CTRL), int)
-> > +#define HFI1_IOCTL_POLL_TYPE \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(POLL_TYPE), int)
-> > +#define HFI1_IOCTL_ACK_EVENT \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(ACK_EVENT), unsigned long)
-> > +#define HFI1_IOCTL_SET_PKEY \
-> > +	_IOW(IB_IOCTL_MAGIC, __NUM(SET_PKEY), __u16)
-> > +#define HFI1_IOCTL_CTXT_RESET \
-> > +	_IO(IB_IOCTL_MAGIC, __NUM(CTXT_RESET))
-> > +#define HFI1_IOCTL_TID_INVAL_READ \
-> > +	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_INVAL_READ), struct hfi1_tid_info)
-> > +#define HFI1_IOCTL_GET_VERS \
-> > +	_IOR(IB_IOCTL_MAGIC, __NUM(GET_VERS), int)
-> > +
-> >  #endif /* RDMA_USER_IOCTL_H */
-> > --=20
-> > 2.7.4
-> >=20
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---WkfBGePaEyrk4zXB
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXtAphAAoJEORje4g2clinf9QP/3VPtvuK6DWAwU8T6kbvSzjy
-U+jV+yrPzlZ7vM4PiHaxldLYuo7Xu62kjhOyV3o3HhMq4RmVkRi56tm7yHc7dZmk
-L7inX3WkfzthVzrJGo1QOfyqB7nTbqEgY/BThdda2VvgH+mpai0XU+la2eSohsZi
-Xj4taOsH4RLkAlxVzfvQ/vFlbZ+msb3zKkHQkThNIA8DO8FnxXvbcUYI0hshS+w/
-TwEDgmvktXcH0Wke1IsG2jmubvWfTsaJxh+KAIbRPrUIZCL61e/RoR/P5Gr50yZU
-QK5VUhhN4wt1qsKcl4UqjKshGAfdnJs23zRu/LETDNFFF3YJVWcaf1UwXRF/Itnl
-0kk/U0IrDEwh0qxs+wJma3CejgU/qgoUkrQRmAtTBrgCYFmKAQDJZFVXt0ixr/aw
-U0gfBBNQbJG/6eufI9iYeI06qwGD+4r40zIXaVKsoSDeK8jMLp9kqQyuV6FExM9k
-4VPmb+bDtLtlBLbfmSf1B5QfqbbdvISlR6glVxiR1whecDO3tAdsWE3s3T36kRWY
-Sua2MVThK4+XWCLXpx31YPZPvMK+Re5fBQPs2EKDdUPfghKAURHUU7cDdV6vRTV/
-WUqskLMTKo/4U+1n1LclrujArbug7UuFlINAW039mAFvmztmFbmG9CCN+G8T8dzU
-N7L3nF3ZNnLRC6Ffa8Fd
-=kdp/
------END PGP SIGNATURE-----
-
---WkfBGePaEyrk4zXB--
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
