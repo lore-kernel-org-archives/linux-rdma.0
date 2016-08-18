@@ -1,7 +1,7 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH perftest 10/23] write_lat: fix assorted memory leaks on error paths
-Date: Thu, 18 Aug 2016 13:32:05 -0400
-Message-ID: <1471541538-20270-11-git-send-email-jarod@redhat.com>
+Subject: [PATCH perftest 08/23] read_lat: fix assorted memory leaks on error paths
+Date: Thu, 18 Aug 2016 13:32:03 -0400
+Message-ID: <1471541538-20270-9-git-send-email-jarod@redhat.com>
 References: <1471541538-20270-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1471541538-20270-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -10,26 +10,26 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Leaks reportedy by clang/coverity.
+Leaks reported by clang/coverity.
 
 CC: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- src/write_lat.c | 38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ src/read_lat.c | 55 ++++++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 34 insertions(+), 21 deletions(-)
 
-diff --git a/src/write_lat.c b/src/write_lat.c
-index 4cb3e36..232ca14 100755
---- a/src/write_lat.c
-+++ b/src/write_lat.c
+diff --git a/src/read_lat.c b/src/read_lat.c
+index 247c70d..1e63e87 100755
+--- a/src/read_lat.c
++++ b/src/read_lat.c
 @@ -54,6 +54,7 @@
  int main(int argc, char *argv[])
  {
- 	int				ret_parser,i = 0;
-+	int				ret_val = FAILURE;
- 	struct report_options		report;
- 	struct pingpong_context		ctx;
- 	struct pingpong_dest		*my_dest  = NULL;
+ 	int                         ret_parser,i = 0;
++	int			    ret_val = FAILURE;
+ 	struct report_options       report;
+ 	struct pingpong_context     ctx;
+ 	struct ibv_device           *ib_dev;
 @@ -95,7 +96,7 @@ int main(int argc, char *argv[])
  	ctx.context = ibv_open_device(ib_dev);
  	if (!ctx.context) {
@@ -87,7 +87,7 @@ index 4cb3e36..232ca14 100755
  
  	/* Print basic test information. */
 @@ -184,7 +185,7 @@ int main(int argc, char *argv[])
- 	/* shaking hands and gather the other side info. */
+ 	/*  shaking hands and gather the other side info. */
  	if (ctx_hand_shake(&user_comm,my_dest,rem_dest)) {
  		fprintf(stderr,"Failed to exchange data between server and clients\n");
 -		return 1;
@@ -104,7 +104,7 @@ index 4cb3e36..232ca14 100755
  		}
  
  		ctx_print_pingpong_data(&rem_dest[i],&user_comm);
-@@ -203,21 +204,21 @@ int main(int argc, char *argv[])
+@@ -203,7 +204,7 @@ int main(int argc, char *argv[])
  		if (ctx_check_gid_compatibility(&my_dest[0], &rem_dest[0])) {
  			fprintf(stderr,"\n Found Incompatibility issue with GID types.\n");
  			fprintf(stderr," Please Try to use a different IP version.\n\n");
@@ -113,7 +113,8 @@ index 4cb3e36..232ca14 100755
  		}
  	}
  
- 	if (user_param.work_rdma_cm == OFF) {
+@@ -211,14 +212,14 @@ int main(int argc, char *argv[])
+ 
  		if (ctx_connect(&ctx,rem_dest,&user_param,my_dest)) {
  			fprintf(stderr," Unable to Connect the HCA's through the link\n");
 -			return 1;
@@ -128,32 +129,67 @@ index 4cb3e36..232ca14 100755
 +		goto destroy_ctx;
  	}
  
- 	ctx_set_send_wqes(&ctx,&user_param,rem_dest);
-@@ -234,7 +235,7 @@ int main(int argc, char *argv[])
- 			user_param.size = (uint64_t)1 << i;
- 			if(run_iter_lat_write(&ctx,&user_param)) {
- 				fprintf(stderr,"Test exited with Error\n");
--				return FAILURE;
-+				goto destroy_ctx;
- 			}
+ 	/* Only Client post read request. */
+@@ -226,19 +227,19 @@ int main(int argc, char *argv[])
  
- 			user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
-@@ -244,7 +245,7 @@ int main(int argc, char *argv[])
- 
- 		if(run_iter_lat_write(&ctx,&user_param)) {
- 			fprintf(stderr,"Test exited with Error\n");
--			return FAILURE;
+ 		if (ctx_close_connection(&user_comm,my_dest,rem_dest)) {
+ 			fprintf(stderr,"Failed to close connection between server and client\n");
+-			return 1;
 +			goto destroy_ctx;
  		}
+ 		if (user_param.output == FULL_VERBOSITY) {
+ 			printf(RESULT_LINE);
+ 		}
+-		return 0;
++		goto out_success;
+ 
+ 	}
+ 
+ 	if (user_param.use_event) {
+ 		if (ibv_req_notify_cq(ctx.send_cq, 0)) {
+ 			fprintf(stderr, "Couldn't request CQ notification\n");
+-			return 1;
++			goto destroy_ctx;
+ 		}
+ 	}
+ 
+@@ -253,25 +254,37 @@ int main(int argc, char *argv[])
+ 	if (user_param.test_method == RUN_ALL) {
+ 		for (i = 1; i < 24 ; ++i) {
+ 			user_param.size = (uint64_t)1 << i;
+-			if(run_iter_lat(&ctx,&user_param))
+-				return 17;
++			if(run_iter_lat(&ctx,&user_param)) {
++				ret_val = 17;
++				goto destroy_ctx;
++			}
+ 
+ 			user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
+ 		}
+ 	} else {
+-		if(run_iter_lat(&ctx,&user_param))
+-			return 18;
++		if(run_iter_lat(&ctx,&user_param)) {
++			ret_val = 18;
++			goto destroy_ctx;
++		}
+ 
  		user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
  	}
-@@ -252,5 +253,12 @@ int main(int argc, char *argv[])
+ 
+ 	if (ctx_close_connection(&user_comm,my_dest,rem_dest)) {
+ 		fprintf(stderr,"Failed to close connection between server and client\n");
+-		return 1;
++		goto destroy_ctx;
+ 	}
+ 
  	if (user_param.output == FULL_VERBOSITY) {
  		printf(RESULT_LINE);
  	}
 -	return 0;
-+	ret_val = 0;
 +
++out_success:
++	ret_val = 0;
 +destroy_ctx:
 +	destroy_ctx(&ctx, &user_param);
 +free_dests:
