@@ -1,7 +1,7 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH perftest 13/23] perftest_communication: don't leak addrinfo
-Date: Thu, 18 Aug 2016 13:32:08 -0400
-Message-ID: <1471541538-20270-14-git-send-email-jarod@redhat.com>
+Subject: [PATCH perftest 15/23] perftest_communication: fix overflow w/size_of_cur=4
+Date: Thu, 18 Aug 2016 13:32:10 -0400
+Message-ID: <1471541538-20270-16-git-send-email-jarod@redhat.com>
 References: <1471541538-20270-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1471541538-20270-1-git-send-email-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -10,77 +10,32 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Error: RESOURCE_LEAK (CWE-772): [#def7]
-perftest-3.0/src/perftest_communication.c:873: alloc_arg: "check_add_port" allocates memory that is stored into "res".
-perftest-3.0/src/perftest_resources.c:554:2: alloc_arg: "getaddrinfo" allocates memory that is stored into "*res".
-perftest-3.0/src/perftest_communication.c:879: leaked_storage: Variable "res" going out of scope leaks the storage it points to.
- #  877|
- #  878|   	if (res->ai_family != PF_INET) {
- #  879|-> 		return FAILURE;
- #  880|   	}
- #  881|
-
-Error: RESOURCE_LEAK (CWE-772): [#def8]
-perftest-3.0/src/perftest_communication.c:873: alloc_arg: "check_add_port" allocates memory that is stored into "res".
-perftest-3.0/src/perftest_resources.c:554:2: alloc_arg: "getaddrinfo" allocates memory that is stored into "*res".
-perftest-3.0/src/perftest_communication.c:889: leaked_storage: Variable "res" going out of scope leaks the storage it points to.
- #  887|   		if (num_of_retry == 0) {
- #  888|   			fprintf(stderr, "Received %d times ADDR_ERROR\n",NUM_OF_RETRIES);
- #  889|-> 			return FAILURE;
- #  890|   		}
- #  891|
-
-(and more!)
-
-This var is only accessed by the above referenced conditional, and to copy
-sin, just add two freeaddrinfo(res) calls and we should plug several
-possible leaks on error paths.
+First up, we have rem[2] and cur[2], and then we figure out what to set
+size_of_cur to -- either 2 or 4. If it's 4 though... we then try to do a
+ctx_xchg_data() on rem and cur with a size of 4, which results in buffer
+overflows and memory corruption. Just make cur and rem size 4 instead.
 
 CC: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- src/perftest_communication.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ src/perftest_communication.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/src/perftest_communication.c b/src/perftest_communication.c
-index d46d21e..bec973a 100755
+index d938e41..b66801c 100755
 --- a/src/perftest_communication.c
 +++ b/src/perftest_communication.c
-@@ -876,11 +876,13 @@ int rdma_client_connect(struct pingpong_context *ctx,struct perftest_parameters
- 	}
+@@ -1706,8 +1706,8 @@ void check_sys_data(struct perftest_comm *user_comm, struct perftest_parameters
+  ******************************************************************************/
+ int check_mtu(struct ibv_context *context,struct perftest_parameters *user_param, struct perftest_comm *user_comm) {
+ 	int curr_mtu=0, rem_mtu=0;
+-	char cur[2];
+-	char rem[2];
++	char cur[4];
++	char rem[4];
+ 	int size_of_cur;
  
- 	if (res->ai_family != PF_INET) {
-+		freeaddrinfo(res);
- 		return FAILURE;
- 	}
- 
- 	memcpy(&sin, res->ai_addr, sizeof(sin));
- 	sin.sin_port = htons((unsigned short)user_param->port);
-+	freeaddrinfo(res);
- 
- 	while (1) {
- 
-@@ -1074,10 +1076,12 @@ int rdma_server_connect(struct pingpong_context *ctx,
- 	}
- 
- 	if (res->ai_family != PF_INET) {
-+		freeaddrinfo(res);
- 		return FAILURE;
- 	}
- 	memcpy(&sin, res->ai_addr, sizeof(sin));
- 	sin.sin_port = htons((unsigned short)user_param->port);
-+	freeaddrinfo(res);
- 
- 	if (rdma_bind_addr(ctx->cm_id_control,(struct sockaddr *)&sin)) {
- 		fprintf(stderr," rdma_bind_addr failed\n");
-@@ -1160,7 +1164,6 @@ int rdma_server_connect(struct pingpong_context *ctx,
- 
- 	rdma_ack_cm_event(event);
- 	rdma_destroy_id(ctx->cm_id_control);
--	freeaddrinfo(res);
- 	return 0;
- }
- 
+ 	if (user_param->connection_type == RawEth) {
 -- 
 1.8.3.1
 
