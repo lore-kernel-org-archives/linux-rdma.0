@@ -1,82 +1,48 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/6] Refactor RDMA IOCTL declarations
-Date: Thu, 18 Aug 2016 14:08:20 +0300
-Message-ID: <20160818110819.GB8590@yuval-lap.uk.oracle.com>
-References: <1471355123-6227-1-git-send-email-leon@kernel.org>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH libibverbs 2/3] Add support for TCP segmentation offload
+ (TSO)
+Date: Thu, 18 Aug 2016 07:55:08 +0000
+Message-ID: <HE1PR05MB1418BA4382257289AB9DEA63CE150@HE1PR05MB1418.eurprd05.prod.outlook.com>
+References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
+ <1469708382-29408-3-git-send-email-yishaih@mellanox.com>
+ <80ff6d05-201a-3fa6-deab-2dbb035a89c3@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1471355123-6227-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <80ff6d05-201a-3fa6-deab-2dbb035a89c3-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 16, 2016 at 04:45:17PM +0300, Leon Romanovsky wrote:
-> Hi Doug,
-> 
-> This patch set refactors RDMA IOCTL declarations, unifies their
-> location, moves all current IOCTL exporters to one place and renames
-> them to fix the differences in coding style.
-> 
-> IOCTLs commands need to export the size of their data for their transfer
-> which is usually declared as a struct defined in relevant submodule.
-> These structures should be visible at the linkage stage.
+> From: Or Gerlitz
+> Sent: Thursday, August 18, 2016 9:06 AM
+> To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Bodong Wang
+> <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Tal Alon
+> <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation
+> offload (TSO)
+>=20
+> On 7/28/2016 3:19 PM, Yishai Hadas wrote:
+> > 3) Add IBV_WC_TSO to be used as part of poll_cq to report a TSO
+> completion.
+>=20
+> why is that needed? what's the proposed/possible applicative usage of
+> that bit?
 
-Just for my understanding - this is not an issue only with RDMA-IOCTLs,
-right?
-(Wondering how other modules approaches this).
+It's consistent with the kernel API that adds similar bit for LSO.
+http://lxr.free-electrons.com/source/include/rdma/ib_verbs.h#L842
 
-> 
-> There are number of possible solutions to overcome this limitations.
-> 
-> One of the options is to declare anonymous variable which will be visible
-> during the linkage. As a downside, such option won't allow direct use of
-> this header by other parts of code without their specific includes of
-> other logically unrelated submodules.
-> 
-> Another possible option will be to move declarations of that structures
-> to that common header file. Such move will cause to bloat this file
-> with different submodules declarations.
-> 
-> Our decision was to choose direct include of other exported files with
-> declarations of such structures to simplify future usage of this file.
-> There is no change for legacy applications and libraries.
-> 
-> Available in the "topic/ioctl-header" topic branch of this git repo:
-> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> 
-> Or for browsing:
-> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ioctl-header
-> 
-> Thanks
-> 
-> Leon Romanovsky (6):
->   RDMA/core: Commonize RDMA IOCTL declarations location
->   RDMA/core: Move legacy MAD IOCTL declarations to common file
->   RDMA/hfi1: Avoid redeclaration error
->   RDMA/core: Move HFI1 IOCTL declarations to common file
->   RDMA/core: Rename RDMA magic number
->   RDMA/core: Unify style of IOCTL commands
-> 
->  include/uapi/rdma/Kbuild            |   1 +
->  include/uapi/rdma/hfi/Kbuild        |   1 +
->  include/uapi/rdma/hfi/hfi1_ioctl.h  | 173 +++++++++++++++++++++++++++++++++++
->  include/uapi/rdma/hfi/hfi1_user.h   | 175 +-----------------------------------
->  include/uapi/rdma/ib_user_mad.h     |  14 +--
->  include/uapi/rdma/rdma_user_ioctl.h | 127 ++++++++++++++++++++++++++
->  6 files changed, 304 insertions(+), 187 deletions(-)
->  create mode 100644 include/uapi/rdma/hfi/hfi1_ioctl.h
->  create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
-> 
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Specifically, it can give an application an accurate  knowledge about the c=
+ompletion type
+as done for other cases as part of ibv_post_send as of IBV_WC_BIND_MW,
+IBV_WC_LOCAL_INV, etc.
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
