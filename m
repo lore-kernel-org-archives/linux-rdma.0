@@ -1,68 +1,41 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/2] cxgb4/i40iw interoperability fixes
-Date: Thu, 18 Aug 2016 19:07:40 +0300
-Message-ID: <20160818160740.GG7047@leon.nu>
-References: <cover.1471453661.git.swise@opengridcomputing.com>
- <20160818063035.GB7047@leon.nu>
- <012501d1f958$102fc760$308f5620$@opengridcomputing.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload (TSO)
+Date: Thu, 18 Aug 2016 18:45:24 +0300
+Message-ID: <CAJ3xEMgsaNq0bp005WPeU9X8H3tvpmCUymNKb0Ht8c6O---JSg@mail.gmail.com>
+References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
+ <1469708382-29408-3-git-send-email-yishaih@mellanox.com> <80ff6d05-201a-3fa6-deab-2dbb035a89c3@mellanox.com>
+ <HE1PR05MB1418BA4382257289AB9DEA63CE150@HE1PR05MB1418.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="5L6AZ1aJH5mDrqCQ"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <012501d1f958$102fc760$308f5620$@opengridcomputing.com>
+In-Reply-To: <HE1PR05MB1418BA4382257289AB9DEA63CE150-eBadYZ65MZ87O8BmmlM1zNqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Aug 18, 2016 at 10:55 AM, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> From: Or Gerlitz
 
---5L6AZ1aJH5mDrqCQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>> why is that needed? what's the proposed/possible applicative usage of
+>> that bit?
+>
+> It's consistent with the kernel API that adds similar bit for LSO.
+> http://lxr.free-electrons.com/source/include/rdma/ib_verbs.h#L842
 
-On Thu, Aug 18, 2016 at 08:54:39AM -0500, Steve Wise wrote:
-> > On Wed, Aug 17, 2016 at 10:07:41AM -0700, Steve Wise wrote:
-> > > Doug, these would be good for 4.8-rc.  They fix some interoperability
-> > > problems between Intel and Chelsio iWARP devices.
-> >=20
-> > Hi Steve,
-> > Is there any chance you could remove "Problem description:" words from =
-commit
-> > messages?
->=20
-> I can.  But why is that a problem? (pun intended :) )
+C&P is not something you want to use as argument, specifically if no
+one uses this 10y old define nowadays (and maybe never)
 
-It is not a problem if you can. We are thrilled to see it happening,
-please show us :)
+net.git]# git grep IB_WC_LSO drivers/infiniband/ include/rdma/
+drivers/infiniband/hw/mlx4/cq.c: wc->opcode    = IB_WC_LSO;
+include/rdma/ib_verbs.h:        IB_WC_LSO,
 
->=20
-> Steve.
->=20
+> Specifically, it can give an application an accurate  knowledge about the completion type
+> as done for other cases as part of ibv_post_send as of IBV_WC_BIND_MW,
+> IBV_WC_LOCAL_INV, etc.
 
---5L6AZ1aJH5mDrqCQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXtd1MAAoJEORje4g2clinOJAQAKbJSZvL+3AeWU1c7epvqnN2
-mJ8FXG0KMLjdAoJCnXI4jvT0TZWHEY83BBcRaNUYqQENFPmisu/LK+4EZIB2s30S
-C3Yu4dolK0mMN39ezfwS3TQyCCtG9pdOWoOfvao3nkpuQP5+kbT40COiroOXMJSo
-xAfK3AqVLLNQRAwHVBQMaIm92Hs9jrHszTiyymTbeVkPooBg2mfRsZq1l/U/9ZWi
-ZfzUxJuZHfzo+dZGwL8l2X+w6yMh3hDCjh0lREMssXsC4tUG+c8+YDAnBsjPLrlZ
-outGiLHsGHN3gahUzMel24RJwoaJXfGrmp9jEAFZ4GjnLpZiK1EbCRZZe6tqDLKT
-PEtVV+whUFOkmHKnhEDq4bzx9OODk9IFxDHz2U00hIPz9svvp3QK+oowNyy2jGup
-+8Ok4XyB7T8a9jyfiPmKKLBRAGyUwM7E/OyNyj+kHQx4tcZtoL8iR9YpFfuWNijD
-s/vtcPk+SkAaivdFZ1b9mF3ijq2Y42/k2MxjV+vaNdFKk7f2f+AdgfXkoOiDht9l
-lSaryvElafiBuM4wTE1x3kbxo8QRMxPwuXFgnnxaf0YJZxWk58c2F6c1xhhdzUlU
-2o4i83CsQQj9GURdoAB5v0BpcD2wxQsRnAO5XrOZWbTiZeTxgepHM1AEKi6D3Ihr
-cmkC5lspevbuJvTgfTmE
-=o3HU
------END PGP SIGNATURE-----
-
---5L6AZ1aJH5mDrqCQ--
+IPoIB uses LSO for 10y and doesn't need that, I don't see why
+user-space IPoIBs would need that
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
