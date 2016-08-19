@@ -1,106 +1,90 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 18/22] IB/mlx4/mcg: Remove deprecated
- create_singlethread_workqueue
-Date: Fri, 19 Aug 2016 18:50:55 +0300
-Message-ID: <20160819155055.GK18515@leon.nu>
-References: <cover.1471283717.git.bhaktipriya96@gmail.com>
- <4045f5014733b227e085c76f00f9ecf7f6266803.1471283718.git.bhaktipriya96@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+ implementation
+Date: Fri, 19 Aug 2016 18:41:06 +0300
+Message-ID: <20160819154106.GC18515@leon.nu>
+References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
+ <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1y1tiN5hVw5cPBDe"
+        protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4045f5014733b227e085c76f00f9ecf7f6266803.1471283718.git.bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC2D0AF815-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hans Westgaard Ry <hans.westgaard.ry-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem@i>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---1y1tiN5hVw5cPBDe
+--s9fJI615cBHmzTOP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 15, 2016 at 11:43:35PM +0530, Bhaktipriya Shridhar wrote:
-> alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
-> deprecated create_singlethread_workqueue(). This is the identity
-> conversion.
+On Fri, Aug 19, 2016 at 03:27:20PM +0000, Marciniszyn, Mike wrote:
+> > Subject: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+> > diff --git a/drivers/infiniband/hw/qib/qib_fs.c
 >=20
-> The workqueue "mcg_wq" queues work items &group->work
-> and &group->timeout_work.
+> I would be even more aggressive at reducing lines of code.
 >=20
-> The workqueue "clean_wq" queues work item mcg_clean_task.
+> For example do direct returns when ok to do:
+>         if (pos !=3D 0 || count !=3D sizeof(struct qib_flash))
+>                 return -EINVAL;
 >=20
-> Both have been identity converted.
+>         tmp =3D memdup_user(buf, count);
+>         if (IS_ERR(tmp))
+>                 return PTR_ERR(tmp);
 >=20
-> WQ_MEM_RECLAIM has been set to ensure forward progress under
-> memory pressure.
->=20
-> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
+> The bail_tmp: label is then not needed.
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+You still need to free tmp allocation if qib_eeprom_write failed and
+this is your bail_tmp.
 
->  drivers/infiniband/hw/mlx4/mcg.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx=
-4/mcg.c
-> index 8f7ad07..7d30be0 100644
-> --- a/drivers/infiniband/hw/mlx4/mcg.c
-> +++ b/drivers/infiniband/hw/mlx4/mcg.c
-> @@ -1045,7 +1045,7 @@ int mlx4_ib_mcg_port_init(struct mlx4_ib_demux_ctx =
-*ctx)
->=20
->  	atomic_set(&ctx->tid, 0);
->  	sprintf(name, "mlx4_ib_mcg%d", ctx->port);
-> -	ctx->mcg_wq =3D create_singlethread_workqueue(name);
-> +	ctx->mcg_wq =3D alloc_ordered_workqueue(name, WQ_MEM_RECLAIM);
->  	if (!ctx->mcg_wq)
->  		return -ENOMEM;
->=20
-> @@ -1246,7 +1246,7 @@ void clean_vf_mcast(struct mlx4_ib_demux_ctx *ctx, =
-int slave)
->=20
->  int mlx4_ib_mcg_init(void)
->  {
-> -	clean_wq =3D create_singlethread_workqueue("mlx4_ib_mcg");
-> +	clean_wq =3D alloc_ordered_workqueue("mlx4_ib_mcg", WQ_MEM_RECLAIM);
->  	if (!clean_wq)
->  		return -ENOMEM;
->=20
-> --
-> 2.1.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+341         tmp =3D kmalloc(count, GFP_KERNEL);
+342         if (!tmp) {
+343                 ret =3D -ENOMEM;
+344                 goto bail;
+345         }
+346
+347         if (copy_from_user(tmp, buf, count)) {
+348                 ret =3D -EFAULT;
+349                 goto bail_tmp;
+350         }
+351
+352         dd =3D private2dd(file);
+353         if (qib_eeprom_write(dd, pos, tmp, count)) {
+354                 ret =3D -ENXIO;
+355                 qib_dev_err(dd, "failed to write to flash\n");
+356                 goto bail_tmp;
+357         }
 
---1y1tiN5hVw5cPBDe
+>=20
+> Mike
+>=20
+
+--s9fJI615cBHmzTOP
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXtyrfAAoJEORje4g2clinIeYP/3gd8EvnRHYhFBfnIU82uMZw
-4yn/yo2MVyK7ALEo+Es30wbao4NkPyWj/SZhoBm1tc7A2uusqLhJ2suQjQ8hAUCM
-iN68nNt9RPsZgv5GODDO1w4z0mhB6g+plPb2GtxTBJfr+gCKm6lR5CPmKe+f+Bzk
-bF7aRuAGiV+GwaIFCB4HCALgoUdD1DBXNgw6f/Uh8FO8Tzz5kRrJcRQ3sgMauoK5
-SMWyoLR06mMU6zvOyhg/cXieQdlwaeUW2A+78+rpFNjg/Ibgu+jbzaF4UbMTPvpg
-73NTxp1N+owNHH4ieO8YU8IHGa12f9P84/Aq32vF7iDhDbnhVqbSPuxH0wwVToSZ
-Tdd6zIF+91fDQ9mde4Pjp0Zg2hGvwQm5i+PhmWFTN++QCeFSgQeJnRSFH/ULA1XI
-Tdjs9qiKOtgfpKbclyhQQ1SPfHAcdD3XdxhRELhRkZnr9l5AOijktmHKECM8TwdL
-UzVQVpvoHSagOdbZ2l/kdpPrOWS3ux2Pt47WSVB9m9+u0UeJHmZjSkkZgexVc1YN
-z0HP9xb4eHRWOudjtmWoptnK8ur5juyRrm7Vos0KezTUTCnlJag1WfAT0TC/ERkc
-1j94YmtMvqiErarGDGvkdqyLQ+wBww56XfOmP7w1ItrxGtCw7wBs1QMS0Lr1s33V
-aKeSXNO6zEWczerJUuPg
-=K5FG
+iQIcBAEBAgAGBQJXtyiSAAoJEORje4g2clincbgP/iFbR/NRNIxGPptRYwx90xC5
+soZ+DM84KHB380vWv2WA1iSgYEE/l+Z0G+FGKmJreFfrLKvW82WIXVpNU1Jx4bNi
+Qa+DjR6vxUlae4C53ySTzqTEYeb3OHAWkIL2Ahr5CqPfqELS8ASkoSpJt/jGya4Z
+H3XRybyLjmTOifoNOD/BPxba3bWqehmvyMb7i3PLvPLT6Jgnk+YbR0khIj4CHIpS
+88zVrLZdFKyJetf5WHbhLUMNAI+VrZVBzEtgpPxPCqm2LFl4ns1wU+YrYFHDYqBQ
+jQmGF9u+Mh1Q3vTRFNw7M3z1jptMIVS3c3P7Ufj4VFZcvsFt4jrC6e47JzEwCw/d
+5iPQN2+8s7z6FCVvXaiVaOo2Qg4SSh2qM+CKj7dgAHicFfsLivMJEzfL0B8L5cyC
+Q7UoeQOBn+CxPZUbfm4g1YmEsrrWeYEMfNOc/z+56iuTUo3JsiXmF/pvn/Z01w/K
+A2c7SCrflBHdlmYaR0ad+dnH/BBI9+4dtzwegE0fvYNtj/EYlWpncQx9LgzuMxHL
+fN/RJutNyz2mY5Wid9xZwN/5XEp8VsRW09SfpElZIlX2bKdoOrqkgntQt2m9aYS+
+YxGZMLd2maquSsj4kKjyhwAfv+3+5sMSbRSkBbO5Ckl6rZvNcrNCLBybltIp7CB7
+ityeVW+uGfrjn+cIpt1Z
+=BUSs
 -----END PGP SIGNATURE-----
 
---1y1tiN5hVw5cPBDe--
+--s9fJI615cBHmzTOP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
