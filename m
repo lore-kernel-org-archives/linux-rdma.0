@@ -1,40 +1,37 @@
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload
- (TSO)
-Date: Fri, 19 Aug 2016 19:00:30 +0000
-Message-ID: <HE1PR05MB1642B58A0D293DB54C005EDEAA160@HE1PR05MB1642.eurprd05.prod.outlook.com>
-References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
- <1469708382-29408-3-git-send-email-yishaih@mellanox.com>
- <4cf7c492-ed42-d9cc-38e8-15d8c50d585f@grimberg.me>
- <20160819183334.GB20340@obsidianresearch.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next] net: hns: Add reset function support for RoCE
+ driver
+Date: Fri, 19 Aug 2016 16:58:53 -0700 (PDT)
+Message-ID: <20160819.165853.2138490805068691222.davem@davemloft.net>
+References: <1471523572-50633-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1471523572-50633-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/19/2016 1:33 PM, Jason Gunthorpe wrote:=0A=
-> On Wed, Aug 17, 2016 at 05:35:42PM +0300, Sagi Grimberg wrote:=0A=
->>> diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h=0A=
->>> index ccf1d51..87e4332 100644=0A=
->>> +++ b/include/infiniband/verbs.h=0A=
->>> @@ -209,6 +209,13 @@ enum ibv_odp_general_caps {=0A=
->>> 	IBV_ODP_SUPPORT =3D 1 << 0,=0A=
->>> };=0A=
->>>=0A=
->>> +#define ibv_is_qpt_supported(caps, qpt) ((caps) & (1 << (qpt)))=0A=
->> This looks useful, but not directly related to this patch. Would=0A=
->> be better to add it in a stand-alone patch (even if its a one-liner).=0A=
-> And of course it should be a static inline....=0A=
->=0A=
-> Jason=0A=
->=0A=
-This is a macro, not a function.=0A=
-=0A=
+From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Date: Thu, 18 Aug 2016 20:32:52 +0800
+
+> It added reset function for RoCE driver. RoCE is a feature of hns.
+> In hip06 SoC, in RoCE reset process, it's needed to configure dsaf
+> channel reset, port and sl map info. Reset function of RoCE is
+> located in dsaf module, we only call it in RoCE driver when needed.
+> 
+> This patch is used to fix the conflict, please refer to this link:
+>   https://www.spinics.net/lists/linux-rdma/msg39114.html
+> 
+> Signed-off-by: Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+> Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Sheng Li <lisheng011-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
