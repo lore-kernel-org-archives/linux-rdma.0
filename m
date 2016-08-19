@@ -1,49 +1,29 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2 1/2] iw_cxgb4: limit IRD/ORD advertised to ULP by device
- max.
-Date: Fri, 19 Aug 2016 07:29:07 -0700
-Message-ID: <7e844cc03ce77b36d7356d651eb974208760389e.1471617103.git.swise@opengridcomputing.com>
-References: <cover.1471617103.git.swise@opengridcomputing.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+ implementation
+Date: Fri, 19 Aug 2016 15:27:20 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
+References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1471617103.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <620b3961-6e05-6638-4ca8-18766acc91f4-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The i40iw initiator sends an MPA-request with ird = 63, ord = 63. The
-cxgb4 responder sends a RST.  Since the inbound ord=63 and it exceeds
-the max_ird/c4iw_max_read_depth (=32 default), chelsio decides to abort.
-
-Instead, cxgb4 should adjust the ord/ird down before presenting it to
-the ULP.
-
-Reported-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 3aca7f6..a698efc 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1827,8 +1827,12 @@ static int process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
- 				(ep->mpa_pkt + sizeof(*mpa));
- 			ep->ird = ntohs(mpa_v2_params->ird) &
- 				MPA_V2_IRD_ORD_MASK;
-+			ep->ird = min_t(u32, ep->ird,
-+					cur_max_read_depth(ep->com.dev));
- 			ep->ord = ntohs(mpa_v2_params->ord) &
- 				MPA_V2_IRD_ORD_MASK;
-+			ep->ord = min_t(u32, ep->ord,
-+					cur_max_read_depth(ep->com.dev));
- 			PDBG("%s initiator ird %u ord %u\n", __func__, ep->ird,
- 			     ep->ord);
- 			if (ntohs(mpa_v2_params->ird) & MPA_V2_PEER2PEER_MODEL)
--- 
-2.7.0
-
+PiBTdWJqZWN0OiBbUEFUQ0hdIElCL3FpYjogVXNlIG1lbWR1cF91c2VyKCkgcmF0aGVyIHRoYW4g
+ZHVwbGljYXRpbmcgaXRzDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWli
+L3FpYl9mcy5jDQoNCkkgd291bGQgYmUgZXZlbiBtb3JlIGFnZ3Jlc3NpdmUgYXQgcmVkdWNpbmcg
+bGluZXMgb2YgY29kZS4NCg0KRm9yIGV4YW1wbGUgZG8gZGlyZWN0IHJldHVybnMgd2hlbiBvayB0
+byBkbzoNCiAgICAgICAgaWYgKHBvcyAhPSAwIHx8IGNvdW50ICE9IHNpemVvZihzdHJ1Y3QgcWli
+X2ZsYXNoKSkNCiAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsNCg0KICAgICAgICB0bXAg
+PSBtZW1kdXBfdXNlcihidWYsIGNvdW50KTsNCiAgICAgICAgaWYgKElTX0VSUih0bXApKQ0KICAg
+ICAgICAgICAgICAgIHJldHVybiBQVFJfRVJSKHRtcCk7DQoNClRoZSBiYWlsX3RtcDogbGFiZWwg
+aXMgdGhlbiBub3QgbmVlZGVkLg0KDQpNaWtlDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
