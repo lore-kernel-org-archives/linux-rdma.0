@@ -1,42 +1,40 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH perftest] perftest: make inline send on ocrdma work better
-Date: Fri, 19 Aug 2016 16:31:16 -0500
-Message-ID: <021401d1fa61$04ba3960$0e2eac20$@opengridcomputing.com>
-References: <1471633611-41155-1-git-send-email-jarod@redhat.com> <85f0801f-a78f-7091-7ae2-5febde6b19b6@opengridcomputing.com> <20160819211242.GY1916@redhat.com>
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload
+ (TSO)
+Date: Fri, 19 Aug 2016 19:00:30 +0000
+Message-ID: <HE1PR05MB1642B58A0D293DB54C005EDEAA160@HE1PR05MB1642.eurprd05.prod.outlook.com>
+References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
+ <1469708382-29408-3-git-send-email-yishaih@mellanox.com>
+ <4cf7c492-ed42-d9cc-38e8-15d8c50d585f@grimberg.me>
+ <20160819183334.GB20340@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160819211242.GY1916-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Gil Rockah' <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Fri, Aug 19, 2016 at 03:45:57PM -0500, Steve Wise wrote:
-> > On 8/19/2016 2:06 PM, Jarod Wilson wrote:
-> > >The ocrdma driver supports a maximum inline send size of 224, while the
-> > >current code sets this size to 236. Add an ocrdma-specific check when
-> > >setting max inline size to eliminate the need to always pass -I 224 when
-> > >running ib_send_lat on ocrdma hardware.
-> >
-> > <soap box>
-> > We really should fix the RDMA uAPI to allow querying the device to
-> > get the max inline size for various SQ WRs (it might vary for send
-> > vs write, for example), instead of requiring applications to guess
-> > or hardcoding benchmarks based on device name...
-> > </soap box>
-> 
-> This was a nice quick hack Friday afternoon hack to get it working
-> with existing kernels in our testing infra, but having a way to ask
-> the hardware would definitely be vastly superior.
-> 
-
-I hear ya.  Maybe as part of the new verbs API work we could provide a way for
-applications to query the max inline...
-
+On 8/19/2016 1:33 PM, Jason Gunthorpe wrote:=0A=
+> On Wed, Aug 17, 2016 at 05:35:42PM +0300, Sagi Grimberg wrote:=0A=
+>>> diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h=0A=
+>>> index ccf1d51..87e4332 100644=0A=
+>>> +++ b/include/infiniband/verbs.h=0A=
+>>> @@ -209,6 +209,13 @@ enum ibv_odp_general_caps {=0A=
+>>> 	IBV_ODP_SUPPORT =3D 1 << 0,=0A=
+>>> };=0A=
+>>>=0A=
+>>> +#define ibv_is_qpt_supported(caps, qpt) ((caps) & (1 << (qpt)))=0A=
+>> This looks useful, but not directly related to this patch. Would=0A=
+>> be better to add it in a stand-alone patch (even if its a one-liner).=0A=
+> And of course it should be a static inline....=0A=
+>=0A=
+> Jason=0A=
+>=0A=
+This is a macro, not a function.=0A=
+=0A=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
