@@ -1,91 +1,89 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
- implementation
-Date: Fri, 19 Aug 2016 18:41:06 +0300
-Message-ID: <20160819154106.GC18515@leon.nu>
-References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
- <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH 22/22] IB/mlx4/alias_GUID: Remove deprecated
+ create_singlethread_workqueue
+Date: Fri, 19 Aug 2016 18:51:30 +0300
+Message-ID: <20160819155130.GL18515@leon.nu>
+References: <cover.1471283717.git.bhaktipriya96@gmail.com>
+ <d3a5db9481e09376cc6200de187e451a582c6722.1471283718.git.bhaktipriya96@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="Bzq2cJcN05fcPrs+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2D0AF815-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+In-Reply-To: <d3a5db9481e09376cc6200de187e451a582c6722.1471283718.git.bhaktipriya96@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Chuck Lever <chuck.lever@oracle.com>, Mark Bloch <markb@mellanox.com>, Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Christoph Lameter <cl@linux.com>, Erez Shitrit <erezsh@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Florian Westphal <fw@strlen.de>, Guy Shapiro <guysh@mellanox.com>, Eli Cohen <eli@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Faisal Latif <faisal.latif@intel.com>, Matan Barak <matanb@mellanox.com>, Chien Tin Tung <chien.tin.tung@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Shiraz Saleem <shiraz.saleem@i>
 List-Id: linux-rdma@vger.kernel.org
 
 
---s9fJI615cBHmzTOP
+--Bzq2cJcN05fcPrs+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 19, 2016 at 03:27:20PM +0000, Marciniszyn, Mike wrote:
-> > Subject: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
-> > diff --git a/drivers/infiniband/hw/qib/qib_fs.c
+On Mon, Aug 15, 2016 at 11:45:06PM +0530, Bhaktipriya Shridhar wrote:
+> alloc_ordered_workqueue() with WQ_MEM_RECLAIM set, replaces
+> deprecated create_singlethread_workqueue(). This is the identity
+> conversion.
 >=20
-> I would be even more aggressive at reducing lines of code.
+> The workqueue "wq" queues work item that maps to alias_guid_work.
+> It has been identity converted.
 >=20
-> For example do direct returns when ok to do:
->         if (pos !=3D 0 || count !=3D sizeof(struct qib_flash))
->                 return -EINVAL;
+> WQ_MEM_RECLAIM has been set to ensure forward progress under
+> memory pressure.
 >=20
->         tmp =3D memdup_user(buf, count);
->         if (IS_ERR(tmp))
->                 return PTR_ERR(tmp);
->=20
-> The bail_tmp: label is then not needed.
+> Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
 
-You still need to free tmp allocation if qib_eeprom_write failed and
-this is your bail_tmp.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-341         tmp =3D kmalloc(count, GFP_KERNEL);
-342         if (!tmp) {
-343                 ret =3D -ENOMEM;
-344                 goto bail;
-345         }
-346
-347         if (copy_from_user(tmp, buf, count)) {
-348                 ret =3D -EFAULT;
-349                 goto bail_tmp;
-350         }
-351
-352         dd =3D private2dd(file);
-353         if (qib_eeprom_write(dd, pos, tmp, count)) {
-354                 ret =3D -ENXIO;
-355                 qib_dev_err(dd, "failed to write to flash\n");
-356                 goto bail_tmp;
-357         }
-
+> ---
+>  drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> Mike
+> diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband=
+/hw/mlx4/alias_GUID.c
+> index c74ef26..5e99390 100644
+> --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
+> +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+> @@ -881,7 +881,7 @@ int mlx4_ib_init_alias_guid_service(struct mlx4_ib_de=
+v *dev)
 >=20
+>  		snprintf(alias_wq_name, sizeof alias_wq_name, "alias_guid%d", i);
+>  		dev->sriov.alias_guid.ports_guid[i].wq =3D
+> -			create_singlethread_workqueue(alias_wq_name);
+> +			alloc_ordered_workqueue(alias_wq_name, WQ_MEM_RECLAIM);
+>  		if (!dev->sriov.alias_guid.ports_guid[i].wq) {
+>  			ret =3D -ENOMEM;
+>  			goto err_thread;
+> --
+> 2.1.4
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---s9fJI615cBHmzTOP
+--Bzq2cJcN05fcPrs+
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXtyiSAAoJEORje4g2clincbgP/iFbR/NRNIxGPptRYwx90xC5
-soZ+DM84KHB380vWv2WA1iSgYEE/l+Z0G+FGKmJreFfrLKvW82WIXVpNU1Jx4bNi
-Qa+DjR6vxUlae4C53ySTzqTEYeb3OHAWkIL2Ahr5CqPfqELS8ASkoSpJt/jGya4Z
-H3XRybyLjmTOifoNOD/BPxba3bWqehmvyMb7i3PLvPLT6Jgnk+YbR0khIj4CHIpS
-88zVrLZdFKyJetf5WHbhLUMNAI+VrZVBzEtgpPxPCqm2LFl4ns1wU+YrYFHDYqBQ
-jQmGF9u+Mh1Q3vTRFNw7M3z1jptMIVS3c3P7Ufj4VFZcvsFt4jrC6e47JzEwCw/d
-5iPQN2+8s7z6FCVvXaiVaOo2Qg4SSh2qM+CKj7dgAHicFfsLivMJEzfL0B8L5cyC
-Q7UoeQOBn+CxPZUbfm4g1YmEsrrWeYEMfNOc/z+56iuTUo3JsiXmF/pvn/Z01w/K
-A2c7SCrflBHdlmYaR0ad+dnH/BBI9+4dtzwegE0fvYNtj/EYlWpncQx9LgzuMxHL
-fN/RJutNyz2mY5Wid9xZwN/5XEp8VsRW09SfpElZIlX2bKdoOrqkgntQt2m9aYS+
-YxGZMLd2maquSsj4kKjyhwAfv+3+5sMSbRSkBbO5Ckl6rZvNcrNCLBybltIp7CB7
-ityeVW+uGfrjn+cIpt1Z
-=BUSs
+iQIcBAEBAgAGBQJXtysCAAoJEORje4g2clinTlEQALqI3AmNnh+/1pIYv4x6iSMo
+LA3CR07XaOcHHux1orVjrFd3VRtAJRBq59APY79o/52MXtX+ol5xQbhYqhlr2d+v
+P1a19Fw6uxqOtpCO6bwPBXx2FuDE5NeOND2jSvS90iGuEct+DJZjtz85Vb1FCsI9
+lH/dSK+g6vi4WS1oPRzKTXCMypbofYP+T6iOtz7JwrWByHb55eu5JII/92l+uQ7f
+qo9jPd9QFUzRoqbsI87p08SP3XBWhZg9kTnSXa7vjL8L9HKjOAk5V697f01ddgs+
+hQtEb0WVyyZWS9W7mMjacIV8B4QM2G2bm4Yp/bNEW9Y5x5mGwMwHNga47dmEcZ4f
+zZlxsX52Lq74tBAqUx9xqUqxChRBv2ah5Cv7KiRUpi7lExbHRWQaZl4lB+0nFXvd
+gwq9S72i0aAAcNHyteIz5ziLRRSfS7tAsURHZvNlMKhmHhOKX6IuPLcLCDw8xiPi
+ehoOe8QUfzhA4md6mtm4Y81dgR1jg/7NK0ODHrgq9EkewH/KV/q4dPubomrzMeAr
+lE/ezsEByqnQtOfuUyTiiWx1TLbXInAWM/mIxTHoilEIOVzGUEpTypa6msBHphRK
+OYtnqVYn+q8rpyL8ZKwIGWaeSi9VygRXXDKEC9O+ZWV9BX6eyCce8kxXqABBD2nX
+O9m1z8l5S+dpcmKEs4I3
+=Cchd
 -----END PGP SIGNATURE-----
 
---s9fJI615cBHmzTOP--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Bzq2cJcN05fcPrs+--
