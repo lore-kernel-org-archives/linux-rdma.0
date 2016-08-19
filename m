@@ -1,30 +1,58 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
  implementation
-Date: Fri, 19 Aug 2016 15:27:20 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
+Date: Fri, 19 Aug 2016 18:37:49 +0300
+Message-ID: <20160819153748.GB18515@leon.nu>
 References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <620b3961-6e05-6638-4ca8-18766acc91f4-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBbUEFUQ0hdIElCL3FpYjogVXNlIG1lbWR1cF91c2VyKCkgcmF0aGVyIHRoYW4g
-ZHVwbGljYXRpbmcgaXRzDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWli
-L3FpYl9mcy5jDQoNCkkgd291bGQgYmUgZXZlbiBtb3JlIGFnZ3Jlc3NpdmUgYXQgcmVkdWNpbmcg
-bGluZXMgb2YgY29kZS4NCg0KRm9yIGV4YW1wbGUgZG8gZGlyZWN0IHJldHVybnMgd2hlbiBvayB0
-byBkbzoNCiAgICAgICAgaWYgKHBvcyAhPSAwIHx8IGNvdW50ICE9IHNpemVvZihzdHJ1Y3QgcWli
-X2ZsYXNoKSkNCiAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsNCg0KICAgICAgICB0bXAg
-PSBtZW1kdXBfdXNlcihidWYsIGNvdW50KTsNCiAgICAgICAgaWYgKElTX0VSUih0bXApKQ0KICAg
-ICAgICAgICAgICAgIHJldHVybiBQVFJfRVJSKHRtcCk7DQoNClRoZSBiYWlsX3RtcDogbGFiZWwg
-aXMgdGhlbiBub3QgbmVlZGVkLg0KDQpNaWtlDQoNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--0eh6TmSyL6TZE2Uz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Aug 19, 2016 at 09:06:20AM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 19 Aug 2016 08:50:23 +0200
+>=20
+> Reuse existing functionality from memdup_user() instead of keeping
+> duplicate source code.
+>=20
+> This issue was detected by using the Coccinelle software.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--0eh6TmSyL6TZE2Uz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXtyfMAAoJEORje4g2clin2nsQAL6lUM0JPSY+Of7ZAT24soqI
+PgtAqtgeiHQNNRnXqbpjKrcSMnUJ0GgH7l9ovmSlpvdAHqVOp/Wbw7D1fPGlyoFt
+/1e+SZ1KXj8L3RU8GeZisBUvk6Na5wWRMCmt5unHP4QPjSDx4/fxnGknTLxt8WH3
+zyvpIlbiHYSpZ/MTg1uv9PfsbpQVq+4qLDfccg0tRr97OlVrWJxiQM/z07oubk2Y
+xPgg669toTUED+llSBUNrcadNxqgqESG9+xHGhP/iiYP+hmbMT2s/4EaN6XGE+DI
+Y11NBwhJJvOolqdlT0rpysXyK46726yaZwXKRz4vi+wODXn7jrID/yWDvFskqPvn
+5lAYe8FQU45k5LMec5IoFA9ufRujpM69HdizFAaBlbGc+vkEFko7HkTNuS81iWtx
+BshhY9MJsQ1iFI4PeUde9pY5tbPPYMOBjnZmDV4jZnJzcjLyyq+RDKZTZDwQx20v
+GY+vIIrllbi8Zt7hiP4ViDdePDMw29rpIOQsw3Ez6jbqxlQIyvrPjtALqHNH5uiS
+NelKohAfovXQzFhL3iMacRFIZUoDpz7wAg+nBcv3GxoliA0l9BHTmz+nA7pWI/cT
+qSEdQdolwFfpai2/alJDZ3OMq6ljZWd4Ukawra3dDQO2b2/AkLU9POMkTPxMqBv7
+1Vvdu3/pzszeqYCIBsIX
+=3p/F
+-----END PGP SIGNATURE-----
+
+--0eh6TmSyL6TZE2Uz--
