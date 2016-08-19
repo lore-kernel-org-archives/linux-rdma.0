@@ -1,38 +1,61 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload
- (TSO)
-Date: Fri, 19 Aug 2016 12:33:34 -0600
-Message-ID: <20160819183334.GB20340@obsidianresearch.com>
-References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
- <1469708382-29408-3-git-send-email-yishaih@mellanox.com>
- <4cf7c492-ed42-d9cc-38e8-15d8c50d585f@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH perftest] perftest: make inline send on ocrdma work better
+Date: Fri, 19 Aug 2016 15:06:51 -0400
+Message-ID: <1471633611-41155-1-git-send-email-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4cf7c492-ed42-d9cc-38e8-15d8c50d585f-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 17, 2016 at 05:35:42PM +0300, Sagi Grimberg wrote:
-> 
-> >diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-> >index ccf1d51..87e4332 100644
-> >+++ b/include/infiniband/verbs.h
-> >@@ -209,6 +209,13 @@ enum ibv_odp_general_caps {
-> > 	IBV_ODP_SUPPORT = 1 << 0,
-> > };
-> >
-> >+#define ibv_is_qpt_supported(caps, qpt) ((caps) & (1 << (qpt)))
-> 
-> This looks useful, but not directly related to this patch. Would
-> be better to add it in a stand-alone patch (even if its a one-liner).
+The ocrdma driver supports a maximum inline send size of 224, while the
+current code sets this size to 236. Add an ocrdma-specific check when
+setting max inline size to eliminate the need to always pass -I 224 when
+running ib_send_lat on ocrdma hardware.
 
-And of course it should be a static inline....
+CC: Gil Rockah <gilr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/perftest_parameters.c | 8 ++++++++
+ src/perftest_parameters.h | 3 +++
+ 2 files changed, 11 insertions(+)
 
-Jason
+diff --git a/src/perftest_parameters.c b/src/perftest_parameters.c
+index 3ffddd7..65ce731 100755
+--- a/src/perftest_parameters.c
++++ b/src/perftest_parameters.c
+@@ -1465,6 +1465,14 @@ static void ctx_set_max_inline(struct ibv_context *context,struct perftest_param
+ 		}
+ 	}
+ 
++	if (strncmp("ocrdma", user_param->ib_devname, 6) == 0) {
++		if (user_param->inline_size > DEF_INLINE_SEND_MAX_OCRDMA) {
++			fprintf(stdout, "lowering inline size to ocrdma supported maximum of %d\n",
++				DEF_INLINE_SEND_MAX_OCRDMA);
++			user_param->inline_size = DEF_INLINE_SEND_MAX_OCRDMA;
++		}
++	}
++
+ 	return;
+ }
+ /******************************************************************************
+diff --git a/src/perftest_parameters.h b/src/perftest_parameters.h
+index 1122792..a566f42 100755
+--- a/src/perftest_parameters.h
++++ b/src/perftest_parameters.h
+@@ -133,6 +133,9 @@
+ #define DEF_INLINE_SEND_UD (188)
+ #define DEF_INLINE_DC (150)
+ 
++/* OCRDMA has an inline max of 224 */
++#define DEF_INLINE_SEND_MAX_OCRDMA (224)
++
+ /* Max and Min allowed values for perftest parameters. */
+ #define MIN_TOS		(0)
+ #define MAX_TOS		(256)
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
