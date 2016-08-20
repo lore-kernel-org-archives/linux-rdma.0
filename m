@@ -1,55 +1,182 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload
- (TSO)
-Date: Sat, 20 Aug 2016 01:15:43 +0000
-Message-ID: <SN1PR0201MB1870C69552DFB8DE185EB0C881170@SN1PR0201MB1870.namprd02.prod.outlook.com>
-References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
- <1469708382-29408-3-git-send-email-yishaih@mellanox.com>
- <4cf7c492-ed42-d9cc-38e8-15d8c50d585f@grimberg.me>
- <20160819183334.GB20340@obsidianresearch.com>
- <HE1PR05MB1642B58A0D293DB54C005EDEAA160@HE1PR05MB1642.eurprd05.prod.outlook.com>
+From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: 4.7.0 ib_srpt Regression - 4.6.4 Got failed path rec status -22 got
+ worse on 4.7.0
+Date: Sat, 20 Aug 2016 01:21:14 -0400
+Message-ID: <CA+X5Wn46GGnqijVS54A_45_D8g_0cvcZ3iAYbt2J6syiKwqNGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/19/16 12:00, Bodong Wang wrote:=0A=
-> On 8/19/2016 1:33 PM, Jason Gunthorpe wrote:=0A=
->> On Wed, Aug 17, 2016 at 05:35:42PM +0300, Sagi Grimberg wrote:=0A=
->>>> diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h=
-=0A=
->>>> index ccf1d51..87e4332 100644=0A=
->>>> +++ b/include/infiniband/verbs.h=0A=
->>>> @@ -209,6 +209,13 @@ enum ibv_odp_general_caps {=0A=
->>>> 	IBV_ODP_SUPPORT =3D 1 << 0,=0A=
->>>> };=0A=
->>>>=0A=
->>>> +#define ibv_is_qpt_supported(caps, qpt) ((caps) & (1 << (qpt)))=0A=
->>> This looks useful, but not directly related to this patch. Would=0A=
->>> be better to add it in a stand-alone patch (even if its a one-liner).=
-=0A=
->> And of course it should be a static inline....=0A=
->=0A=
-> This is a macro, not a function.=0A=
-=0A=
-Hello Bodong,=0A=
-=0A=
-In case you didn't know this: when introducing new functionality, =0A=
-whenever there is a choice between introducing this functionality as a =0A=
-macro or an inline function, using an inline function is preferred. With =
-=0A=
-an inline the compiler namely can perform type checking, arguments do =0A=
-not have to be surrounded by parentheses and using an argument multiple =0A=
-times in the body of the inline function is safe even if the argument =0A=
-expression has side effects.=0A=
-=0A=
-Bart.=0A=
-=0A=
+I have booting over SRP working.
+
+iPXE makes a SRP connection, creates an ACPI-based sBFT table leaving
+behind the connection information.  The bootloader (I'm using
+syslinux) successfully loads the kernel and initrd, a new ib_sbft
+kernel module creates a sysfs interface to the sBFT table, and a new
+srp-boot script connects to the SRP devices.
+
+I needed to write about a problem with "ib_srp: Got failed path rec
+status -22" causing a 10-30 second connection delay on linux's SRP
+connection, which is the second one after iPXE's , but with
+interesting timing, 4.7.0 has a regression that turns the 10-30 second
+delay into a permanent failure.
+
+So, the SRP booting only works if the target is on kernel < 4.7.0
+(4.6.4.)  Initiator works on 4.7.1.
+
+For those interested:
+* ib_sbft kernel module, and patch to iPXE, see
+https://github.com/jamespharvey20/ib_sbft
+* script to mount SRP devices in initramfs, see
+https://github.com/jamespharvey20/srp-boot
+
+Ultimately, the cause issue is that iPXE never performs an initiator
+logout.  I'm working on seeing if that can be added.
+
+Through ib_srpt 4.6.4, linux's SRP connection initially errors with:
+=====
+scsi host7: ib_srp: Got failed path rec status -22
+scsi host7: ib_srp: Path record query failed
+scsi host7: ib_srp: Connection 0/4 failed
+scsi host7: ib_srp: Sending CM DREQ failed
+=====
+
+I believe this error is coming from
+linux/drivers/infiniband/ulp/srp/ib_srp.c::srp_path_rec_completion()
+
+The only reference I can find to status -22 is an Oracle document,
+saying this can happen if the I/O path to the active target is
+interrupted via a link failure or cluster takeover.  Sounds similar to
+what's going on here, with the original iPXE SRP connection being
+hijacked by the (second) linux connection.
+
+But within 10-30 seconds, attempting again succeeds.  So, I
+implemented a 100-times retry with 1 second delay in my srp-boot
+script.  It works, with the delay.  The 4.6.4 target logs show:
+
+=====
+[   91.870131] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 80 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   91.877392] ib_srpt truncated sense data from 96 to 44 bytes
+[  115.941400] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[  115.941418] ib_srpt Relogin - closed existing channel
+0x1d534b0003c902000002c903004b5275
+[  115.941470] ib_srpt Received CM DREP message for ch
+0x1d534b0003c902000002c903004b5275-522.
+[  115.952702] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[  115.964149] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[  115.975708] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[  116.022420] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[  116.059152] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[  116.095754] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[  116.135728] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+=====
+
+The initial SRP_LOGIN_REQ around 91.8 is iPXE.  The others around
+115.9 are linux.  Although add_target attempts are run on the
+initiator, showing the "path rec status -22" error, no messages are
+logged on the target for those.
+
+As of ib_srpt 4.7.0, linux's SRP connection errors forever.  Whatever
+allowed ib_srpt to realize to close the existing channel and reconnect
+no longer functions.  The 4.7.1 target logs show:
+
+=====
+[   66.312149] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 80 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   66.319699] ib_srpt truncated sense data from 96 to 44 bytes
+[   95.537151] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   95.537170] ib_srpt Relogin - closed existing channel
+0x1d534b0003c902000002c903004b5275
+[   95.537208] ib_srpt Received CM DREP message for ch
+0x1d534b0003c902000002c903004b5275-523.
+[   95.547887] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   95.559176] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   95.570267] ib_srpt Received SRP_LOGIN_REQ with i_port_id
+0x1d534b0003c90200:0x2c903004b5275, t_port_id
+0x2c903004b531c:0x2c903004b531c and it_iu_len 260 on port 1
+(guid=0xfe80000000000000:0x2c903004b531d)
+[   95.603721] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[   95.637072] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[   95.673745] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[   95.710313] srpt/0x1d534b0003c902000002c903004b5275: Unsupported
+SCSI Opcode 0xa3, sending CHECK_CONDITION.
+[   95.757202] ib_srpt srpt_queue_response: sending cmd response
+failed for tag 0 (-22)
+[  157.844561] ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 0
+[  157.851231] ib_srpt srpt_queue_response: sending cmd response
+failed for tag 0 (-22)
+[  157.852622] ib_srpt srpt_queue_response: sending cmd response
+failed for tag 1 (-22)
+[  219.692597] ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 0
+[  219.692743] ABORT_TASK: Sending TMR_TASK_DOES_NOT_EXIST for ref_tag: 1
+=====
+
+The initial SRP_LOGIN_REQ around 66.3 is iPXE.  The others around 95.5
+are linux.  As before, add_target attempts are run on the initiator
+between these, showing the "path rec status -22" error, but no
+messages are logged on the target for those.
+
+But, starting with ib_srpt 4.7.0, immediately after the linux SRP
+connection starts the "sending cmd response failed" messages.
+
+Then, without the user doing anything else on the target or initiator,
+the ABORT_TASK and "cmd response failed" messages repeat about every
+62 seconds forever.
+
+The last commit in 4.6.4 is: 3c96888 (Apr 7, Bart Van Assche)  After
+that, to 4.7, there's:
+* +c0cf4512 (Jun 23, Bart Van Assche, Reduce QP buffer size)
+* +9ba55cf7 (May 28, Linus Torvalds, Merge branch 'for-next')
+* +507f6afa (May 25, Erez Shitrit, srpt: Adjust the use of ib_class_port_info)
+* +b99f8e4d (May 3, Christoph Hellwig, convert to the generic RDMA
+READ/WRITE API)
+* +22d11759 (May 2, Christoph Hellwig, make ->shutdown_session optional)
+
+These aren't in tags/v4.7:
+* 10fce586 (Jul 21, Bart Van Assche, Simplify srpt_queue_response)
+* 30c6d877 (Jul 21, Bart Van Assche, Limit the number of SG elements
+per work request)
+
+If requested, I can narrow it down to which commit.  Hoping it jumps
+out to you guys.  I'm thinking it has to be the optional
+shutdown_session change, or the conversion to the generic RDMA
+READ/WRITE API.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
