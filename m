@@ -1,54 +1,67 @@
-From: james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: 4.7.0 ib_srpt Regression - 4.6.4 Got failed path rec status -22
- got worse on 4.7.0
-Date: Sat, 20 Aug 2016 22:10:07 -0400
-Message-ID: <CA+X5Wn7KH9d3B7ERbo+0Wb-M6QR+G3-yUzEBXAQTZtp=9fnKdw@mail.gmail.com>
-References: <CA+X5Wn46GGnqijVS54A_45_D8g_0cvcZ3iAYbt2J6syiKwqNGA@mail.gmail.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH libibverbs 2/3] Add support for TCP segmentation offload (TSO)
+Date: Sun, 21 Aug 2016 09:59:26 +0300
+Message-ID: <CAJ3xEMjYP=+Kpeda1JaMK6M7xrjC+ikKwDa=bj4dqrDzoGSO2A@mail.gmail.com>
+References: <1469708382-29408-1-git-send-email-yishaih@mellanox.com>
+ <1469708382-29408-3-git-send-email-yishaih@mellanox.com> <80ff6d05-201a-3fa6-deab-2dbb035a89c3@mellanox.com>
+ <HE1PR05MB1418BA4382257289AB9DEA63CE150@HE1PR05MB1418.eurprd05.prod.outlook.com>
+ <CAJ3xEMgsaNq0bp005WPeU9X8H3tvpmCUymNKb0Ht8c6O---JSg@mail.gmail.com> <5c895498-caad-0ac3-5a66-286fc1ab2906@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+X5Wn46GGnqijVS54A_45_D8g_0cvcZ3iAYbt2J6syiKwqNGA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <5c895498-caad-0ac3-5a66-286fc1ab2906-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 20, 2016 at 1:21 AM, james harvey <jamespharvey20-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> The initial SRP_LOGIN_REQ around 66.3 is iPXE.  The others around 95.5
-> are linux.  As before, add_target attempts are run on the initiator
-> between these, showing the "path rec status -22" error, but no
-> messages are logged on the target for those.
+On Fri, Aug 19, 2016 at 12:26 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
 >
-> But, starting with ib_srpt 4.7.0, immediately after the linux SRP
-> connection starts the "sending cmd response failed" messages.
+>>>> why is that needed? what's the proposed/possible applicative usage of
+>>>> that bit?
+>>>
+>>>
+>>> It's consistent with the kernel API that adds similar bit for LSO.
+>>> http://lxr.free-electrons.com/source/include/rdma/ib_verbs.h#L842
+>>
+>>
+>> C&P is not something you want to use as argument, specifically if no
+>> one uses this 10y old define nowadays (and maybe never)
+>>
+>> net.git]# git grep IB_WC_LSO drivers/infiniband/ include/rdma/
+>> drivers/infiniband/hw/mlx4/cq.c: wc->opcode    = IB_WC_LSO;
+>> include/rdma/ib_verbs.h:        IB_WC_LSO,
+>
+>
+> IPoIB never looks at wc->opcode, does it mean that it is redundant?
 
-Interestingly (to me) if I boot iPXE and run the sanhook command to
-initiate the SRP connection, and reboot the initiator so the SRP
-connection is never closed or re-attempted, I can in the second iPXE
-start run the sanhook command again and properly initate a new SRP
-connection without any type of delay or error.  In this case, the
-target shows:
+I tend to agree :)
 
-=====
-[  345.321267] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-0x1d534b0003c90200:0x2c903004b5275, t_port_id
-0x2c903004b531c:0x2c903004b531c and it_iu_len 80 on port 1
-(guid=0xfe80000000000000:0x2c903004b531d)
-[  345.327900] ib_srpt truncated sense data from 96 to 44 bytes
-[  438.994377] ib_srpt Received SRP_LOGIN_REQ with i_port_id
-0x1d534b0003c90200:0x2c903004b5275, t_port_id
-0x2c903004b531c:0x2c903004b531c and it_iu_len 80 on port 1
-(guid=0xfe80000000000000:0x2c903004b531d)
-[  438.994389] ib_srpt Relogin - closed existing channel
-0x1d534b0003c902000002c903004b5275
-[  438.994414] ib_srpt Received CM DREP message for ch
-0x1d534b0003c902000002c903004b5275-522.
-=====
+> I tend to agree that something that is not used shouldn't exist, but
+> my concern is what is the semantics in the lack of IBV_WC_TSO? You post
+> IBV_WR_TSO and when you get the completion and happen to look at the
+> wc->opcode, what would you expect to see?
 
-The initial SRP_LOGIN_REQ around 345.3 is the first iPXE, and the
-second SRP_LOGIN_REQ around 438.9 is the second iPXE after the reboot.
-Then attempting to proceed with the boot, as before, winds up with the
-target showing linux's SRP_LOGIN_REQ and the corresponding "sending
-cmd response failed for tag" around 513.6.
+again, fact is that the application (ipoib) doesn't need it, as you
+can see mlx5 even doesn't implement that.
+
+The application should expect a completion of a send, that's it.
+
+# git grep WR_LSO drivers/infiniband/
+drivers/infiniband/hw/mlx4/qp.c:                        if (wr->opcode
+== IB_WR_LSO) {
+drivers/infiniband/hw/mlx5/qp.c:        if (wr->opcode == IB_WR_LSO) {
+drivers/infiniband/sw/rxe/rxe_comp.c:   case IB_WR_LSO:
+         return IB_WC_LSO;
+
+drivers/infiniband/ulp/ipoib/ipoib_ib.c:
+priv->tx_wr.wr.opcode   = IB_WR_LSO;
+
+[root@r-dcs58 net.git]# git grep WC_LSO drivers/infiniband/
+drivers/infiniband/hw/mlx4/cq.c:                        wc->opcode
+= IB_WC_LSO;
+drivers/infiniband/sw/rxe/rxe_comp.c:   case IB_WR_LSO:
+         return IB_WC_LSO;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
