@@ -1,55 +1,48 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/2] IB/core: Use memdup_user() rather than duplicating its
- implementation
-Date: Sun, 21 Aug 2016 19:42:11 +0200
-Message-ID: <7eb9ab74-b609-44d3-86f2-60137817aeed@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 2/2] IB/core: Delete an unnecessary initialisation in
+ ib_is_udata_cleared()
+Date: Sun, 21 Aug 2016 19:45:12 +0200
+Message-ID: <c6edb204-061f-069f-743e-abac441fc472@users.sourceforge.net>
 References: <566ABCD9.1060404@users.sourceforge.net>
  <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 21 Aug 2016 18:45:22 +0200
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sun, 21 Aug 2016 19:23:12 +0200
 
-Reuse existing functionality from memdup_user() instead of keeping
-duplicate source code.
+The local variable "ret" will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ include/rdma/ib_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6f667dd..033610b 100644
+index 033610b..0d8100f 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2205,16 +2205,11 @@ static inline bool ib_is_udata_cleared(struct ib_udata *udata,
+@@ -2199,7 +2199,7 @@ static inline bool ib_is_udata_cleared(struct ib_udata *udata,
+ 				       size_t len)
+ {
+ 	const void __user *p = udata->inbuf + offset;
+-	bool ret = false;
++	bool ret;
+ 	u8 *buf;
+ 
  	if (len > USHRT_MAX)
- 		return false;
- 
--	buf = kmalloc(len, GFP_KERNEL);
--	if (!buf)
-+	buf = memdup_user(p, len);
-+	if (IS_ERR(buf))
- 		return false;
- 
--	if (copy_from_user(buf, p, len))
--		goto free;
--
- 	ret = !memchr_inv(buf, 0, len);
--
--free:
- 	kfree(buf);
- 	return ret;
- }
 -- 
 2.9.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
