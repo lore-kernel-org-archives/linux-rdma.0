@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 libibverbs 1/3] Fix ibv_cmd_query_device_ex to return valid output
-Date: Sun, 21 Aug 2016 19:47:59 +0300
-Message-ID: <1471798081-19088-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 libibverbs 3/3] Update man pages for TSO support
+Date: Sun, 21 Aug 2016 19:48:01 +0300
+Message-ID: <1471798081-19088-4-git-send-email-yishaih@mellanox.com>
 References: <1471798081-19088-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1471798081-19088-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,67 +12,139 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Make sure to return valid output by memset the extended fields to zero.
-No need to deal with specific fields any more.
+Update relevant man pages for TSO:
+- Add max_tso_header as part of ibv_create_qp_ex man page.
+- Add IBV_WR_TSO opcode and update send operation support table for
+  RAW_PACKET QP as part of ibv_post_send man page.
+- Add TSO capabilities as part of ibv_query_device_ex man page.
 
-Currently, extended fields will be assigned to some value or 0 depending
-on response from the command. When adding a new extended field, relevant
-variables must be cleared if no response got from the kernel.
+In addition, fixed a typo as part of updating ibv_post_send related to
+ibv_odp_caps.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cmd.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ man/ibv_create_qp_ex.3    |  1 +
+ man/ibv_post_send.3       | 36 ++++++++++++++++++++++++------------
+ man/ibv_query_device_ex.3 | 22 ++++++++++++++--------
+ 3 files changed, 39 insertions(+), 20 deletions(-)
 
-diff --git a/src/cmd.c b/src/cmd.c
-index cb9e34c..4b3304f 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -163,6 +163,7 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 	cmd->comp_mask = 0;
- 	cmd->reserved = 0;
- 	memset(attr->orig_attr.fw_ver, 0, sizeof(attr->orig_attr.fw_ver));
-+	memset(&attr->comp_mask, 0, attr_size - sizeof(attr->orig_attr));
- 	err = write(context->cmd_fd, cmd, cmd_size);
- 	if (err != cmd_size)
- 		return errno;
-@@ -184,8 +185,6 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 				resp->odp_caps.per_transport_caps.uc_odp_caps;
- 			attr->odp_caps.per_transport_caps.ud_odp_caps =
- 				resp->odp_caps.per_transport_caps.ud_odp_caps;
--		} else {
--			memset(&attr->odp_caps, 0, sizeof(attr->odp_caps));
- 		}
- 	}
+diff --git a/man/ibv_create_qp_ex.3 b/man/ibv_create_qp_ex.3
+index f772a57..a2a67a4 100644
+--- a/man/ibv_create_qp_ex.3
++++ b/man/ibv_create_qp_ex.3
+@@ -34,6 +34,7 @@ uint32_t                comp_mask;	/* Identifies valid fields */
+ struct ibv_pd          *pd;		/* PD to be associated with the QP */
+ struct ibv_xrcd        *xrcd;		/* XRC domain to be associated with the target QP */
+ enum ibv_qp_create_flags create_flags;	/* Creation flags for this QP */
++uint16_t                max_tso_header; /* Maximum TSO header size */
+ .in -8
+ };
+ .sp
+diff --git a/man/ibv_post_send.3 b/man/ibv_post_send.3
+index f918afb..0d3fa66 100644
+--- a/man/ibv_post_send.3
++++ b/man/ibv_post_send.3
+@@ -69,6 +69,8 @@ uint32_t remote_srqn;            /* Number of the remote SRQ */
+ } xrc;
+ .in -8
+ } qp_type;
++union {
++.in +8
+ struct {
+ .in +8
+ struct ibv_mw            *mw;             /* Memory window (MW) of type 2 to bind */
+@@ -76,6 +78,15 @@ uint32_t                 rkey;            /* The desired new rkey of the MW */
+ struct ibv_mw_bind_info  bind_info;       /* MW additional bind information */
+ .in -8
+ } bind_mw;
++struct {
++.in +8
++void			*hdr;	/* Pointer address of inline header */
++uint16_t		hdr_sz;	/* Inline header size */
++uint16_t		mss;	/* Maximum segment size for each TSO fragment */
++.in -8
++} tso;
++.in -8
++};
+ .in -8
+ };
+ .fi
+@@ -104,18 +115,19 @@ uint32_t                lkey;                   /* Key of the local Memory Regio
+ Each QP Transport Service Type supports a specific set of opcodes, as shown in the following table:
+ .PP
+ .nf
+-OPCODE                      | IBV_QPT_UD | IBV_QPT_UC | IBV_QPT_RC | IBV_QPT_XRC_SEND
+-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-
+-IBV_WR_SEND                 |     X      |     X      |     X     |     X
+-IBV_WR_SEND_WITH_IMM        |     X      |     X      |     X     |     X
+-IBV_WR_RDMA_WRITE           |            |     X      |     X     |     X
+-IBV_WR_RDMA_WRITE_WITH_IMM  |            |     X      |     X     |     X
+-IBV_WR_RDMA_READ            |            |            |     X     |     X
+-IBV_WR_ATOMIC_CMP_AND_SWP   |            |            |     X     |     X
+-IBV_WR_ATOMIC_FETCH_AND_ADD |            |            |     X     |     X
+-IBV_WR_LOCAL_INV            |            |     X      |     X     |     X
+-IBV_WR_BIND_MW              |            |     X      |     X     |     X
+-IBV_WR_SEND_WITH_INV        |            |     X      |     X     |     X
++OPCODE                      | IBV_QPT_UD | IBV_QPT_UC | IBV_QPT_RC | IBV_QPT_XRC_SEND | IBV_QPT_RAW_PACKET
++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
++IBV_WR_SEND                 |     X      |     X      |     X      |         X        |         X
++IBV_WR_SEND_WITH_IMM        |     X      |     X      |     X      |         X        |
++IBV_WR_RDMA_WRITE           |            |     X      |     X      |         X        |
++IBV_WR_RDMA_WRITE_WITH_IMM  |            |     X      |     X      |         X        |
++IBV_WR_RDMA_READ            |            |            |     X      |         X        |
++IBV_WR_ATOMIC_CMP_AND_SWP   |            |            |     X      |         X        |
++IBV_WR_ATOMIC_FETCH_AND_ADD |            |            |     X      |         X        |
++IBV_WR_LOCAL_INV            |            |     X      |     X      |         X        |
++IBV_WR_BIND_MW              |            |     X      |     X      |         X        |
++IBV_WR_SEND_WITH_INV        |            |     X      |     X      |         X        |
++IBV_WR_TSO                  |            |            |            |                  |         X
+ .fi
+ .PP
+ The attribute send_flags describes the properties of the \s-1WR\s0. It is either 0 or the bitwise \s-1OR\s0 of one or more of the following flags:
+diff --git a/man/ibv_query_device_ex.3 b/man/ibv_query_device_ex.3
+index 5097be0..d06b40f 100644
+--- a/man/ibv_query_device_ex.3
++++ b/man/ibv_query_device_ex.3
+@@ -26,17 +26,18 @@ uint32_t               comp_mask;                  /* Compatibility mask that de
+ struct ibv_odp_caps    odp_caps;                   /* On-Demand Paging capabilities */
+ uint64_t               completion_timestamp_mask;  /* Completion timestamp mask (0 = unsupported) */
+ uint64_t               hca_core_clock;             /* The frequency (in kHZ) of the HCA (0 = unsupported) */
+-uint64_t               device_cap_flags_ex;    /* Extended device capability flags */
++uint64_t               device_cap_flags_ex;        /* Extended device capability flags */
++struct ibv_tso_caps    tso_caps;                   /* TCP segmentation offload capabilities */
+ .in -8
+ };
  
-@@ -196,8 +195,6 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 		    offsetof(struct ibv_query_device_resp_ex, timestamp_mask) +
- 		    sizeof(resp->timestamp_mask))
- 			attr->completion_timestamp_mask = resp->timestamp_mask;
--		else
--			attr->completion_timestamp_mask = 0;
- 	}
+-struct ibv_exp_odp_caps {
+-	uint64_t	general_odp_caps;  /* Mask with enum ibv_odp_general_cap_bits */
+-	struct {
+-		uint32_t	rc_odp_caps;      /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
+-		uint32_t	uc_odp_caps;      /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
+-		uint32_t	ud_odp_caps;      /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
+-	} per_transport_caps;
++struct ibv_odp_caps {
++        uint64_t general_odp_caps;    /* Mask with enum ibv_odp_general_cap_bits */
++        struct {
++                uint32_t rc_odp_caps; /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
++                uint32_t uc_odp_caps; /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
++                uint32_t ud_odp_caps; /* Mask with enum ibv_odp_tranport_cap_bits to know which operations are supported. */
++        } per_transport_caps;
+ };
  
- 	if (attr_size >= offsetof(struct ibv_device_attr_ex, hca_core_clock) +
-@@ -206,8 +203,6 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 		    offsetof(struct ibv_query_device_resp_ex, hca_core_clock) +
- 		    sizeof(resp->hca_core_clock))
- 			attr->hca_core_clock = resp->hca_core_clock;
--		else
--			attr->hca_core_clock = 0;
- 	}
+ enum ibv_odp_general_cap_bits {
+@@ -51,6 +52,11 @@ enum ibv_odp_transport_cap_bits {
+         IBV_ODP_SUPPORT_ATOMIC   = 1 << 4, /* RDMA-Atomic operations support on-demand paging */
+ };
  
- 	if (attr_size >= offsetof(struct ibv_device_attr_ex, device_cap_flags_ex) +
-@@ -216,8 +211,6 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 		    offsetof(struct ibv_query_device_resp_ex, device_cap_flags_ex) +
- 		    sizeof(resp->device_cap_flags_ex))
- 			attr->device_cap_flags_ex = resp->device_cap_flags_ex;
--		else
--			attr->device_cap_flags_ex = 0;
- 	}
- 
- 	return 0;
++struct ibv_tso_caps {
++        uint32_t max_tso;        /* Maximum payload size in bytes supported for segmentation by TSO engine.*/
++        uint32_t supported_qpts; /* Bitmap showing which QP types are supported by TSO operation. */
++};
++
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_device_ex()
 -- 
 1.8.3.1
 
