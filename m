@@ -1,91 +1,71 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH V2] IB/hfi1,IB/qib: Fix qp_stats sleep with rcu read lock
- held
-Date: Mon, 22 Aug 2016 14:32:23 -0400
-Message-ID: <c67f0026-691c-b13a-eae7-109a5ebc4016@redhat.com>
-References: <1471015057-9886-1-git-send-email-ira.weiny@intel.com>
- <20160814085511.GB21270@leon.nu>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Fix Soft RoCE location
+Date: Mon, 22 Aug 2016 14:38:04 -0400
+Message-ID: <e62c981a-7d8b-b5bc-129f-4e522157489d@redhat.com>
+References: <1471339786-4618-1-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="ngOoXDo4XWcP00k2mqSQQAWVAIjAMNVTH"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160814085511.GB21270@leon.nu>
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, ira.weiny@intel.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+ boundary="PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ngOoXDo4XWcP00k2mqSQQAWVAIjAMNVTH
-Content-Type: multipart/mixed; boundary="7NBbB30pLaUnoCrG3xsHMOahjU9uLlOvf"
-From: Doug Ledford <dledford@redhat.com>
-To: Leon Romanovsky <leon@kernel.org>, ira.weiny@intel.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn
- <mike.marciniszyn@intel.com>, stable@vger.kernel.org
-Message-ID: <c67f0026-691c-b13a-eae7-109a5ebc4016@redhat.com>
-Subject: Re: [PATCH V2] IB/hfi1,IB/qib: Fix qp_stats sleep with rcu read lock
- held
-References: <1471015057-9886-1-git-send-email-ira.weiny@intel.com>
- <20160814085511.GB21270@leon.nu>
-In-Reply-To: <20160814085511.GB21270@leon.nu>
+--PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0
+Content-Type: multipart/mixed; boundary="lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <e62c981a-7d8b-b5bc-129f-4e522157489d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] MAINTAINERS: Fix Soft RoCE location
+References: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---7NBbB30pLaUnoCrG3xsHMOahjU9uLlOvf
+--lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/14/2016 4:55 AM, Leon Romanovsky wrote:
-> On Fri, Aug 12, 2016 at 11:17:37AM -0400, ira.weiny@intel.com wrote:
->> From: Mike Marciniszyn <mike.marciniszyn@intel.com>
->>
->> The qp init function does a kzalloc() while holding the RCU
->> lock that encounters the following warning with a debug kernel
->> when a cat of the qp_stats is done:
->>
->> [  231.723948] rcu_scheduler_active =3D 1, debug_locks =3D 0
->> [  231.731939] 3 locks held by cat/11355:
->> [  231.736492]  #0:  (debugfs_srcu){......}, at: [<ffffffff813001a5>] =
-debugfs_use_file_start+0x5/0x90
->> [  231.746955]  #1:  (&p->lock){+.+.+.}, at: [<ffffffff81289a6c>] seq_=
-read+0x4c/0x3c0
->> [  231.755873]  #2:  (rcu_read_lock){......}, at: [<ffffffffa0a0c535>]=
- _qp_stats_seq_start+0x5/0xd0 [hfi1]
->> [  231.766862]
->>
->> The init functions do an implicit next which requires the rcu read loc=
-k
->> before the kzalloc().
->>
->> Fix for both drivers is to change the scope of the init function to on=
-ly
->> do the allocation and the initialization of the just allocated iter.
->>
->> The implict next is moved back into the respective start functions to =
-fix
->> the issue.
->>
->> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
->> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
->> CC: <stable@vger.kernel.org> # 4.6.x-
->>
->> ---
->> Changes from V1:
->> 	use do.. while loop to execute first iter call.
+On 8/16/2016 5:29 AM, Leon Romanovsky wrote:
+> The Soft RoCE (rxe) is located in drivers/inifiniband/sw
+> and not in drivers/infiniband/hw/.
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> This patch fixes it.
+>=20
+> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  MAINTAINERS | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a306795..119edf4 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7655,7 +7655,7 @@ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>  S:	Supported
+>  W:	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
+>  Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+> -F:	drivers/infiniband/hw/rxe/
+> +F:	drivers/infiniband/sw/rxe/
+>  F:	include/uapi/rdma/rdma_user_rxe.h
+> =20
+>  MEMBARRIER SUPPORT
 >=20
 
-Sorry, responded to v1 email, but I applied the v2 patch.
+Thanks, applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---7NBbB30pLaUnoCrG3xsHMOahjU9uLlOvf--
+--lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp--
 
---ngOoXDo4XWcP00k2mqSQQAWVAIjAMNVTH
+--PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -94,19 +74,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXu0U3AAoJELgmozMOVy/dc2cP/1xTtLhjT9NIMzhGqqCx4w3s
-zGCa5o0RYwbLqdAO0CIIBpQ+1iN9Q7yqRsZJELFd4aZYP37GmbXPDuX5zKfHVzbT
-7SiyJfF7of8Vi2tpOdWGs6ieTiY4lEPAQHjMfZf8ZFszIBnZAt5FNSjQmIjP/Qh6
-WowNZj1J8xfbEeQDi0GucWvBzU8t1LBmYV1YiIhFWLSGI476wwb9n3CrJrBDXLKj
-Y2PDFl1SDckuk9m6Ns2ZtJtIB5z9PtAy4OcOT8GHzA1KvRZeer/kvOkm+BUsXF8e
-lFSD/1Ovw7pAE5kN5AZFKyDx0oKDjNDwr/D5+AN1/YI7Uuasl3c1Mf7gj/YGJz3o
-C6mQ/djkeS/p4dqaa935ZytX50dcyIYa7N1wQI18Idus6F6+VRrB/nHYm2ae9+Zb
-4hPpnpC95eo2Uf4dEnw55QWCjG/W0oZa4/frx36GJrbq9LE6RyVZk8ec+MtAFawQ
-fWQOt55L9pPL/MX8vpwc+0A7pAYMeVt1TnaiR5ZESM9IhVoY5yffvKJkeBGdi3FP
-gCYlgYH8wPLIdjMdWlRpsQH9XJ/nDUV2Ly4ZEN1WKkA81qCtvnK87krHWszJG6TW
-NVEAZB4jxNRtLASceqWDgVFrWd+NH1/1JULNoUk9PEnkxF6h4TQFmLQzYTtuxjLe
-+Dtqns3L9nwFHanytVHA
-=bfST
+iQIcBAEBCAAGBQJXu0aMAAoJELgmozMOVy/dTxcQAIHq5GAxu0XmITQV54XoPbgt
+y0RYPeAntWkcVMEiSeo7EHjsQZwaFus3MJUtRo2qNM/dmLOPwD0jvCqMUOZ5/yt5
+SVsBCHvWTqSrn4W/O56KVeX0S+XbNlhn9gZWXuRldXxFYLXAZ9TUdR+BQt2rYVCn
+ABsjoF0LTGqY6ZQjFT3aVnmJg3t2iQJ6ZYm8qINd4rS10zeoWaytxMd1IAB+FSq+
+IfNYUBIsqNmcAhkCbJtjBr1Ry+sV3nQYhCx3CItVJI89yElrXdgxlIdqT+UlHux1
+kjmpk3dZNZBDjq4DvIQ4p9yBhF46lFeviQZ3x9NOoyzaO/wpWJ1GQDtdZumM2xW2
+3QrJx4vqmkPnaIycOVnMFhNwMyuqdRbs3Jls28X1V0DttU2jweWT7KKqXk26n/lf
+5W8EKpsNCEpFgH6nBynGrU2mp9qz4ZCsuPyMVw3O4094MAaKxODvo3gDDZdI1LoB
+NWqgMUDeuRWzkE6E7bT+7GUcTDSmzfCXeIBiNZhld/lNz1R0s9emezDebpIAVwRF
+y9ymfjc998+k552/OMXQp4PVIxmU422nEVO9TIZ+iNVRNCHatSDlYfD+Ot8fYxoH
+lwk9ynJhcr9naNyHm1fzca3ONDTpRL1/He9Jaz4NJh674NZUcBpeZNoJoWoNNOVz
+THbHobHO+N54JEUggTya
+=ARE1
 -----END PGP SIGNATURE-----
 
---ngOoXDo4XWcP00k2mqSQQAWVAIjAMNVTH--
+--PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
