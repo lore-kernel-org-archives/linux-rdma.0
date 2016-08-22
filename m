@@ -1,71 +1,87 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Fix Soft RoCE location
-Date: Mon, 22 Aug 2016 14:38:04 -0400
-Message-ID: <e62c981a-7d8b-b5bc-129f-4e522157489d@redhat.com>
-References: <1471339786-4618-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH 0/4] hfi1/rdmavt: For 4.8 rc
+Date: Mon, 22 Aug 2016 14:41:12 -0400
+Message-ID: <46938952-7613-634f-eb5e-8d566d97fbfe@redhat.com>
+References: <20160816202133.24004.31487.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0"
+ boundary="O9JvVqREEFnm4jSIQ5HhuURLPFH4xKMkL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160816202133.24004.31487.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0
-Content-Type: multipart/mixed; boundary="lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp"
+--O9JvVqREEFnm4jSIQ5HhuURLPFH4xKMkL
+Content-Type: multipart/mixed; boundary="BhvT9iki5JVJVcmESersxPKfhF5pqsHg6"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <e62c981a-7d8b-b5bc-129f-4e522157489d-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] MAINTAINERS: Fix Soft RoCE location
-References: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1471339786-4618-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <46938952-7613-634f-eb5e-8d566d97fbfe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/4] hfi1/rdmavt: For 4.8 rc
+References: <20160816202133.24004.31487.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160816202133.24004.31487.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
---lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp
-Content-Type: text/plain; charset=windows-1252
+--BhvT9iki5JVJVcmESersxPKfhF5pqsHg6
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 8/16/2016 5:29 AM, Leon Romanovsky wrote:
-> The Soft RoCE (rxe) is located in drivers/inifiniband/sw
-> and not in drivers/infiniband/hw/.
+On 8/16/2016 4:23 PM, Dennis Dalessandro wrote:
+> Doug,
 >=20
-> This patch fixes it.
+> Here are four patches that we'd like to get into the rc cycle.
 >=20
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> These apply on top of the last set of patches Ira sent (including the v=
+2 of
+> [1]).
+>=20
+> [1] http://marc.info/?l=3Dlinux-rdma&m=3D147116491910005&w=3D2
+>=20
+> Patches can also be viewed in my repo at:
+> https://github.com/ddalessa/kernel/tree/for-4.8
+>=20
 > ---
->  MAINTAINERS | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a306795..119edf4 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7655,7 +7655,7 @@ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->  S:	Supported
->  W:	https://github.com/SoftRoCE/rxe-dev/wiki/rxe-dev:-Home
->  Q:	http://patchwork.kernel.org/project/linux-rdma/list/
-> -F:	drivers/infiniband/hw/rxe/
-> +F:	drivers/infiniband/sw/rxe/
->  F:	include/uapi/rdma/rdma_user_rxe.h
-> =20
->  MEMBARRIER SUPPORT
+> Easwar Hariharan (1):
+>       IB/hfi1: Return invalid field for non-QSFP CableInfo queries
+>=20
+> Ira Weiny (1):
+>       IB/hfi1: Fix mm_struct use after free
+>=20
+> Mike Marciniszyn (1):
+>       IB/rdmvat: Fix double vfree() in rvt_create_qp() error path
+>=20
+> Mitko Haralanov (1):
+>       IB/hfi1: Improve J_KEY generation
+>=20
+>=20
+>  drivers/infiniband/hw/hfi1/file_ops.c |    2 ++
+>  drivers/infiniband/hw/hfi1/hfi.h      |   19 ++++++++++++++++++-
+>  drivers/infiniband/hw/hfi1/mad.c      |    5 +++++
+>  drivers/infiniband/sw/rdmavt/qp.c     |    3 ++-
+>  4 files changed, 27 insertions(+), 2 deletions(-)
+>=20
+> --
+> -Denny
 >=20
 
-Thanks, applied.
+Series applied, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---lgwlcTC423u6VoLP1F3JTMjDaPTlR2msp--
+--BhvT9iki5JVJVcmESersxPKfhF5pqsHg6--
 
---PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0
+--O9JvVqREEFnm4jSIQ5HhuURLPFH4xKMkL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -74,22 +90,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXu0aMAAoJELgmozMOVy/dTxcQAIHq5GAxu0XmITQV54XoPbgt
-y0RYPeAntWkcVMEiSeo7EHjsQZwaFus3MJUtRo2qNM/dmLOPwD0jvCqMUOZ5/yt5
-SVsBCHvWTqSrn4W/O56KVeX0S+XbNlhn9gZWXuRldXxFYLXAZ9TUdR+BQt2rYVCn
-ABsjoF0LTGqY6ZQjFT3aVnmJg3t2iQJ6ZYm8qINd4rS10zeoWaytxMd1IAB+FSq+
-IfNYUBIsqNmcAhkCbJtjBr1Ry+sV3nQYhCx3CItVJI89yElrXdgxlIdqT+UlHux1
-kjmpk3dZNZBDjq4DvIQ4p9yBhF46lFeviQZ3x9NOoyzaO/wpWJ1GQDtdZumM2xW2
-3QrJx4vqmkPnaIycOVnMFhNwMyuqdRbs3Jls28X1V0DttU2jweWT7KKqXk26n/lf
-5W8EKpsNCEpFgH6nBynGrU2mp9qz4ZCsuPyMVw3O4094MAaKxODvo3gDDZdI1LoB
-NWqgMUDeuRWzkE6E7bT+7GUcTDSmzfCXeIBiNZhld/lNz1R0s9emezDebpIAVwRF
-y9ymfjc998+k552/OMXQp4PVIxmU422nEVO9TIZ+iNVRNCHatSDlYfD+Ot8fYxoH
-lwk9ynJhcr9naNyHm1fzca3ONDTpRL1/He9Jaz4NJh674NZUcBpeZNoJoWoNNOVz
-THbHobHO+N54JEUggTya
-=ARE1
+iQIcBAEBCAAGBQJXu0dIAAoJELgmozMOVy/dSpYQAJdC8Du7QVhAAeixmyVgXJJj
+FoPka4Fe1s7ZFPMcrXnG1Nsu36yVWbnSclCDKk+dUunAoSWeDQtfiKehHLsvbyXe
+B4Y/4whVt92/C48kIjus3zPsvxg6gysaLZ74cxv8RIMF+Mt5oh4Ymp3ACuvytRbP
+5pUttY7Y+kfwYC30RhUoHD1OuYLomiuvzYAwzOPWp0rtY3gNHaIwMfyYML2sDeDS
+edpbIyPUcgmpns6g13PBV9pw3QLczX2yK4qSuKMtFZGaJAt8aFnNfGK697KGth5G
+H4i6hp515Aro5qOln3VPKl2diRdB6yRDAcKN1YSzAmannNBywuswyAhBScR1Bx7U
+HBv/L5bc5YRhLvFIcH+1kje1S7sqNno77/j/GHFpQm2j2Cy9vcfmUTpRTRLGzewj
+cB+bRzZwY7kURemsC95CjepNIAqoPe614poKc1S3vNssq9ANEpJctqu55ymJMmOx
+7zWuuSTUDYsPhdE1ll85FQXPc7Eboypr+0nl/wNUi4dWBJsTW7XDJftJ+SO5MOUU
+aTAXIpsa8S8usXo1eTDWzwbux79w/neVx/rNi7+5t9WFbx/zlvhD1dlaxv6NrrQv
+eBEYnY3rZwBAz8RTBaLPmtR+dNGKUPIsDCa7jWKvOiq4xdjSpXJufzAtYPQOqxMJ
+NQ6vxZr60tVaMfICh/og
+=p4Pj
 -----END PGP SIGNATURE-----
 
---PpRO33P9wNQd0p5vOpO4DJ6F8aIsMtxO0--
+--O9JvVqREEFnm4jSIQ5HhuURLPFH4xKMkL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
