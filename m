@@ -1,54 +1,59 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/usnic: Fix error return code
-Date: Mon, 22 Aug 2016 14:24:07 -0400
-Message-ID: <b6ea2a2f-fd60-d235-cc24-0fec5e453de9@redhat.com>
-References: <1470843901-16506-1-git-send-email-christophe.jaillet@wanadoo.fr>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/2] Validate header in set_armed_active
+Date: Mon, 22 Aug 2016 14:22:47 -0400
+Message-ID: <6690fc03-ff08-a204-f6e6-8703de6a9df7@redhat.com>
+References: <1470755996-14187-1-git-send-email-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="CeHbaqsDjRumFK1PbNhqbSB8c2j59d24c"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1470843901-16506-1-git-send-email-christophe.jaillet@wanadoo.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, benve@cisco.com, dgoodell@cisco.com, sean.hefty@intel.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+ boundary="7meaKVlxeTtEQrPdBc0PB4OlT14FxusdT"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1470755996-14187-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CeHbaqsDjRumFK1PbNhqbSB8c2j59d24c
-Content-Type: multipart/mixed; boundary="Icl45dbmOD7JN2oj0MqhreR2l1rfEvI6k"
-From: Doug Ledford <dledford@redhat.com>
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, benve@cisco.com,
- dgoodell@cisco.com, sean.hefty@intel.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- kernel-janitors@vger.kernel.org
-Message-ID: <b6ea2a2f-fd60-d235-cc24-0fec5e453de9@redhat.com>
-Subject: Re: [PATCH] IB/usnic: Fix error return code
-References: <1470843901-16506-1-git-send-email-christophe.jaillet@wanadoo.fr>
-In-Reply-To: <1470843901-16506-1-git-send-email-christophe.jaillet@wanadoo.fr>
+--7meaKVlxeTtEQrPdBc0PB4OlT14FxusdT
+Content-Type: multipart/mixed; boundary="Mc36tu2QUpfWIJhAKe2Ae1hjrAdf4NSpV"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <6690fc03-ff08-a204-f6e6-8703de6a9df7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/2] Validate header in set_armed_active
+References: <1470755996-14187-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1470755996-14187-1-git-send-email-ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---Icl45dbmOD7JN2oj0MqhreR2l1rfEvI6k
-Content-Type: text/plain; charset=utf-8
+--Mc36tu2QUpfWIJhAKe2Ae1hjrAdf4NSpV
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/10/2016 11:45 AM, Christophe JAILLET wrote:
-> If 'pci_register_driver' fails, we return 'err' which is known to be 0.=
-
-> Return the error instead.
+On 8/9/2016 11:19 AM, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >=20
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> These are 2 simple fixes but there is a dependency here so I'm sending =
+them
+> together.
+>=20
+> Mike Marciniszyn (2):
+>   IB/hfi1: Pass packet ptr to set_armed_active
+>   IB/hfi1: Validate header in set_armed_active
+>=20
+>  drivers/infiniband/hw/hfi1/driver.c | 11 ++++++-----
+>  1 file changed, 6 insertions(+), 5 deletions(-)
+>=20
 
-Thanks, applied.
-
+Series applied.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---Icl45dbmOD7JN2oj0MqhreR2l1rfEvI6k--
+--Mc36tu2QUpfWIJhAKe2Ae1hjrAdf4NSpV--
 
---CeHbaqsDjRumFK1PbNhqbSB8c2j59d24c
+--7meaKVlxeTtEQrPdBc0PB4OlT14FxusdT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -57,19 +62,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXu0NHAAoJELgmozMOVy/dirUP/1erX1qjuagMf1ut5VwXTBX+
-5w6ssEcxL7oHda43AlXHqvdbNvF+vD3MQwUP2KS38EyyAZaDr0ULOR/xjEQyiLOo
-DKkmEDDWyIV0xnlDTJuW4G9kjLvNIXw0lw3l0WUimS8R1naAWr/qQNrdAwkRCE2L
-/BoWapfwYUYO/LIHgODBTn6IN8eAP+Bjp/JQuIhkJCy1OmiqJh7Jf+pFavTVsN4Z
-IoKbsBaqGEweJ02V24jt0/oaoy1I5DloyAxZKsDZMEX/q/lb6Y3DV9lstqeBbnx4
-aPHkw0EOyVliZk2Elqq9Ts2ksUIlkhPfN9PQCdPuqaMsSy3GJstQuGxRpCc8vB1D
-xawF2C/jNH2HpYTlMABwlKjyjHkM/VEELuvq49qzAg1LdkTWtxllJ+n+z4KkME9/
-STBm+SzGPuHFMDjhY2qGF6tb9lhIPKDmem+qtqNidwLdiYOuWGArPT0ZGh/mWnl3
-j55Lp+TuyVyERNaSBFRdT4GuC7NisePAkhR3UUh3Lc9GstyZOnCD0fKgs/5H/mzi
-eAj/suCI/kbc88pBYq/u4IH3ACT1RDHdwa0vIV8Bee0igHl9NRBHl9coAWQEuFLg
-ZZzYl1PUyYFZs5FxEyZXTVC97FBgkUToIn/tCQv5SyspUdp4TDVm5qOZ/tdBw0ex
-dSPNGNkaXOTLT4lOENBm
-=ge2/
+iQIcBAEBCAAGBQJXu0L3AAoJELgmozMOVy/dgiYQAKPRxad91MBR9yAmvN9t7heQ
+SCllwqGxbYVrums6LlFZdNP6KAOjPqVAqULx3ESw1iaNLpYssvHNxTUxSeiTIcLJ
+/Xc3HagOcZQyO4XMsJhHvTF0Hnr+pTZqO/04jAVWWlXH3DEH096JiHQC9sytGiLi
+MR9LKDlFMcvRvxVoyq+ZAEjbR/fphiprSrmWoIp29iW6SgwKcQtNTCGDSWkxndpJ
+yUf/QlAy1d+/KY6i7qt1tik2fC6mp61s3zHR26yFYnvK7YKBjTFCQf34QTsbtiWn
+bABp1E2GZ83/anM8KtGQWjjs5Ukap3AnhzCCZWSE9Cbxc0MCPXp4rsx+AtxjFqmE
+ZKmhi8mklKq8HEwMNAzZ/es47Z6sbIDFFRXsBhYGfTCRKY27OVV8gjyBJNq8kFPX
+SQFFjapL/obeRLdNghc4F9D8EgikCilXHQdr+TOThSDjVzcOs6W+NNJBYPK1TGYK
+ulvL9rFSQe4GqHo00stkSVRngk05TOEhOe+PArJDRs0q3bFLpfxGbQf+1KQ7lEcK
+qxCmFA7klfvS62R9M1mMm9o1Rde7WIEoHyrkm8p6+D7QEp0e0Lk/W0iDs82AOySf
+7AcGxbIHHECR74y4iHfRf5UbIJo4exZLn61LXpaQxnza08PMXR9cul3h8WVVzj75
+NwcL5wJ/tFtt4JOUHz44
+=YecB
 -----END PGP SIGNATURE-----
 
---CeHbaqsDjRumFK1PbNhqbSB8c2j59d24c--
+--7meaKVlxeTtEQrPdBc0PB4OlT14FxusdT--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
