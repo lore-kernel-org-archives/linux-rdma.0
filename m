@@ -1,120 +1,48 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 5/6] svcrdma: Server-side support for
- rpcrdma_connect_private
-Date: Mon, 22 Aug 2016 14:58:15 -0400
-Message-ID: <20160822185815.12076.77878.stgit@klimt.1015granger.net>
-References: <20160822185459.12076.43516.stgit@klimt.1015granger.net>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: [PATCH v05 61/72] include/uapi/rdma/rdma_user_rxe.h: include in.h and in6.h
+Date: Mon, 22 Aug 2016 20:33:18 +0200
+Message-ID: <1471890809-4383-62-git-send-email-mikko.rapeli@iki.fi>
+References: <1471890809-4383-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160822185459.12076.43516.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1471890809-4383-1-git-send-email-mikko.rapeli@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Mikko Rapeli <mikko.rapeli@iki.fi>, Moni Shoua <monis@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Prepare to receive an RDMA-CM private message when handling a new
-connection attempt, and send a similar message as part of connection
-acceptance.
+Fixes these userspace compilation errors when rdma_user_rxe.h is compiled
+alone:
 
-Both sides can communicate their various implementation limits.
-Implementations that don't support this sideband protocol ignore it.
+rdma/rdma_user_rxe.h:59:20: error: field ‘_sockaddr’ has incomplete type
+   struct sockaddr  _sockaddr;
+                    ^~~~~~~~~
+rdma/rdma_user_rxe.h:60:22: error: field ‘_sockaddr_in’ has incomplete type
+   struct sockaddr_in _sockaddr_in;
+                      ^~~~~~~~~~~~
+rdma/rdma_user_rxe.h:61:23: error: field ‘_sockaddr_in6’ has incomplete type
+   struct sockaddr_in6 _sockaddr_in6;
+                       ^~~~~~~~~~~~~
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
 ---
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   34 ++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ include/uapi/rdma/rdma_user_rxe.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 924271c..f51e98a 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -648,6 +648,21 @@ int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
- 	return ret;
- }
+diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
+index 1de99cf..ce6c929 100644
+--- a/include/uapi/rdma/rdma_user_rxe.h
++++ b/include/uapi/rdma/rdma_user_rxe.h
+@@ -34,6 +34,8 @@
+ #define RDMA_USER_RXE_H
  
-+static void
-+svc_rdma_parse_connect_private(struct svcxprt_rdma *newxprt,
-+			       struct rdma_conn_param *param)
-+{
-+	const struct rpcrdma_connect_private *pmsg = param->private_data;
-+
-+	if (pmsg &&
-+	    pmsg->cp_magic == rpcrdma_cmp_magic &&
-+	    pmsg->cp_version == RPCRDMA_CMP_VERSION) {
-+		dprintk("svcrdma: client send_size %u, recv_size %u\n",
-+			rpcrdma_decode_buffer_size(pmsg->cp_send_size),
-+			rpcrdma_decode_buffer_size(pmsg->cp_recv_size));
-+	}
-+}
-+
- /*
-  * This function handles the CONNECT_REQUEST event on a listening
-  * endpoint. It is passed the cma_id for the _new_ connection. The context in
-@@ -659,7 +674,8 @@ int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
-  * will call the recvfrom method on the listen xprt which will accept the new
-  * connection.
-  */
--static void handle_connect_req(struct rdma_cm_id *new_cma_id, size_t client_ird)
-+static void handle_connect_req(struct rdma_cm_id *new_cma_id,
-+			       struct rdma_conn_param *param)
- {
- 	struct svcxprt_rdma *listen_xprt = new_cma_id->context;
- 	struct svcxprt_rdma *newxprt;
-@@ -675,9 +691,10 @@ static void handle_connect_req(struct rdma_cm_id *new_cma_id, size_t client_ird)
- 	new_cma_id->context = newxprt;
- 	dprintk("svcrdma: Creating newxprt=%p, cm_id=%p, listenxprt=%p\n",
- 		newxprt, newxprt->sc_cm_id, listen_xprt);
-+	svc_rdma_parse_connect_private(newxprt, param);
+ #include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
  
- 	/* Save client advertised inbound read limit for use later in accept. */
--	newxprt->sc_ord = client_ird;
-+	newxprt->sc_ord = param->initiator_depth;
- 
- 	/* Set the local and remote addresses in the transport */
- 	sa = (struct sockaddr *)&newxprt->sc_cm_id->route.addr.dst_addr;
-@@ -712,8 +729,7 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
- 		dprintk("svcrdma: Connect request on cma_id=%p, xprt = %p, "
- 			"event = %s (%d)\n", cma_id, cma_id->context,
- 			rdma_event_msg(event->event), event->event);
--		handle_connect_req(cma_id,
--				   event->param.conn.initiator_depth);
-+		handle_connect_req(cma_id, &event->param.conn);
- 		break;
- 
- 	case RDMA_CM_EVENT_ESTABLISHED:
-@@ -947,6 +963,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	struct svcxprt_rdma *listen_rdma;
- 	struct svcxprt_rdma *newxprt = NULL;
- 	struct rdma_conn_param conn_param;
-+	struct rpcrdma_connect_private pmsg;
- 	struct ib_qp_init_attr qp_attr;
- 	struct ib_device *dev;
- 	unsigned int i;
-@@ -1100,11 +1117,20 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	/* Swap out the handler */
- 	newxprt->sc_cm_id->event_handler = rdma_cma_handler;
- 
-+	/* Construct RDMA-CM private message */
-+	pmsg.cp_magic = rpcrdma_cmp_magic;
-+	pmsg.cp_version = RPCRDMA_CMP_VERSION;
-+	pmsg.cp_flags = 0;
-+	pmsg.cp_send_size = pmsg.cp_recv_size =
-+		rpcrdma_encode_buffer_size(newxprt->sc_max_req_size);
-+
- 	/* Accept Connection */
- 	set_bit(RDMAXPRT_CONN_PENDING, &newxprt->sc_flags);
- 	memset(&conn_param, 0, sizeof conn_param);
- 	conn_param.responder_resources = 0;
- 	conn_param.initiator_depth = newxprt->sc_ord;
-+	conn_param.private_data = &pmsg;
-+	conn_param.private_data_len = sizeof(pmsg);
- 	ret = rdma_accept(newxprt->sc_cm_id, &conn_param);
- 	if (ret) {
- 		dprintk("svcrdma: failed to accept new connection, ret=%d\n",
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ union rxe_gid {
+ 	__u8	raw[16];
+-- 
+2.8.1
