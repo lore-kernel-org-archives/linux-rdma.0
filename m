@@ -1,54 +1,120 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 1/6] SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is in
- use
-Date: Mon, 22 Aug 2016 14:57:42 -0400
-Message-ID: <20160822185742.12076.34446.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 5/6] svcrdma: Server-side support for
+ rpcrdma_connect_private
+Date: Mon, 22 Aug 2016 14:58:15 -0400
+Message-ID: <20160822185815.12076.77878.stgit@klimt.1015granger.net>
 References: <20160822185459.12076.43516.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160822185459.12076.43516.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Using NFSv4.1 on RDMA should be safe, so broaden the new checks in
-rpc_create().
+Prepare to receive an RDMA-CM private message when handling a new
+connection attempt, and send a similar message as part of connection
+acceptance.
 
-WARN_ON_ONCE is used, matching most other WARN call sites in clnt.c.
+Both sides can communicate their various implementation limits.
+Implementations that don't support this sideband protocol ignore it.
 
-Fixes: 39a9beab5acb ("rpc: share one xps between all backchannels")
-Fixes: d50039ea5ee6 ("nfsd4/rpc: move backchannel create logic...")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- net/sunrpc/clnt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   34 ++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
-index 7f79fb7..66f23b3 100644
---- a/net/sunrpc/clnt.c
-+++ b/net/sunrpc/clnt.c
-@@ -453,7 +453,7 @@ static struct rpc_clnt *rpc_create_xprt(struct rpc_create_args *args,
- 	struct rpc_xprt_switch *xps;
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 924271c..f51e98a 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -648,6 +648,21 @@ int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+ 	return ret;
+ }
  
- 	if (args->bc_xprt && args->bc_xprt->xpt_bc_xps) {
--		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
-+		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
- 		xps = args->bc_xprt->xpt_bc_xps;
- 		xprt_switch_get(xps);
- 	} else {
-@@ -520,7 +520,7 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
- 	char servername[48];
++static void
++svc_rdma_parse_connect_private(struct svcxprt_rdma *newxprt,
++			       struct rdma_conn_param *param)
++{
++	const struct rpcrdma_connect_private *pmsg = param->private_data;
++
++	if (pmsg &&
++	    pmsg->cp_magic == rpcrdma_cmp_magic &&
++	    pmsg->cp_version == RPCRDMA_CMP_VERSION) {
++		dprintk("svcrdma: client send_size %u, recv_size %u\n",
++			rpcrdma_decode_buffer_size(pmsg->cp_send_size),
++			rpcrdma_decode_buffer_size(pmsg->cp_recv_size));
++	}
++}
++
+ /*
+  * This function handles the CONNECT_REQUEST event on a listening
+  * endpoint. It is passed the cma_id for the _new_ connection. The context in
+@@ -659,7 +674,8 @@ int svc_rdma_repost_recv(struct svcxprt_rdma *xprt, gfp_t flags)
+  * will call the recvfrom method on the listen xprt which will accept the new
+  * connection.
+  */
+-static void handle_connect_req(struct rdma_cm_id *new_cma_id, size_t client_ird)
++static void handle_connect_req(struct rdma_cm_id *new_cma_id,
++			       struct rdma_conn_param *param)
+ {
+ 	struct svcxprt_rdma *listen_xprt = new_cma_id->context;
+ 	struct svcxprt_rdma *newxprt;
+@@ -675,9 +691,10 @@ static void handle_connect_req(struct rdma_cm_id *new_cma_id, size_t client_ird)
+ 	new_cma_id->context = newxprt;
+ 	dprintk("svcrdma: Creating newxprt=%p, cm_id=%p, listenxprt=%p\n",
+ 		newxprt, newxprt->sc_cm_id, listen_xprt);
++	svc_rdma_parse_connect_private(newxprt, param);
  
- 	if (args->bc_xprt) {
--		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
-+		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
- 		xprt = args->bc_xprt->xpt_bc_xprt;
- 		if (xprt) {
- 			xprt_get(xprt);
+ 	/* Save client advertised inbound read limit for use later in accept. */
+-	newxprt->sc_ord = client_ird;
++	newxprt->sc_ord = param->initiator_depth;
+ 
+ 	/* Set the local and remote addresses in the transport */
+ 	sa = (struct sockaddr *)&newxprt->sc_cm_id->route.addr.dst_addr;
+@@ -712,8 +729,7 @@ static int rdma_listen_handler(struct rdma_cm_id *cma_id,
+ 		dprintk("svcrdma: Connect request on cma_id=%p, xprt = %p, "
+ 			"event = %s (%d)\n", cma_id, cma_id->context,
+ 			rdma_event_msg(event->event), event->event);
+-		handle_connect_req(cma_id,
+-				   event->param.conn.initiator_depth);
++		handle_connect_req(cma_id, &event->param.conn);
+ 		break;
+ 
+ 	case RDMA_CM_EVENT_ESTABLISHED:
+@@ -947,6 +963,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct svcxprt_rdma *listen_rdma;
+ 	struct svcxprt_rdma *newxprt = NULL;
+ 	struct rdma_conn_param conn_param;
++	struct rpcrdma_connect_private pmsg;
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct ib_device *dev;
+ 	unsigned int i;
+@@ -1100,11 +1117,20 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	/* Swap out the handler */
+ 	newxprt->sc_cm_id->event_handler = rdma_cma_handler;
+ 
++	/* Construct RDMA-CM private message */
++	pmsg.cp_magic = rpcrdma_cmp_magic;
++	pmsg.cp_version = RPCRDMA_CMP_VERSION;
++	pmsg.cp_flags = 0;
++	pmsg.cp_send_size = pmsg.cp_recv_size =
++		rpcrdma_encode_buffer_size(newxprt->sc_max_req_size);
++
+ 	/* Accept Connection */
+ 	set_bit(RDMAXPRT_CONN_PENDING, &newxprt->sc_flags);
+ 	memset(&conn_param, 0, sizeof conn_param);
+ 	conn_param.responder_resources = 0;
+ 	conn_param.initiator_depth = newxprt->sc_ord;
++	conn_param.private_data = &pmsg;
++	conn_param.private_data_len = sizeof(pmsg);
+ 	ret = rdma_accept(newxprt->sc_cm_id, &conn_param);
+ 	if (ret) {
+ 		dprintk("svcrdma: failed to accept new connection, ret=%d\n",
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
