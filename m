@@ -1,90 +1,118 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2] iser-target: fix error return code in
- isert_alloc_login_buf()
-Date: Mon, 22 Aug 2016 14:11:11 -0400
-Message-ID: <eea52d82-9470-680f-636e-c2dbb6fb02ec@redhat.com>
-References: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
- <1470572438-12360-1-git-send-email-weiyj.lk@gmail.com>
- <20160807130806.GR27667@leon.nu>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn"
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <20160807130806.GR27667@leon.nu>
-Sender: target-devel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [RFCv2 03/15] rdmacm: Control symbol export from librspreload
+Date: Mon, 22 Aug 2016 12:13:26 -0600
+Message-ID: <1471889618-1605-4-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn
-Content-Type: multipart/mixed; boundary="eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU"
-From: Doug Ledford <dledford@redhat.com>
-To: Leon Romanovsky <leon@kernel.org>, Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
- target-devel@vger.kernel.org
-Message-ID: <eea52d82-9470-680f-636e-c2dbb6fb02ec@redhat.com>
-Subject: Re: [PATCH v2] iser-target: fix error return code in
- isert_alloc_login_buf()
-References: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
- <1470572438-12360-1-git-send-email-weiyj.lk@gmail.com>
- <20160807130806.GR27667@leon.nu>
-In-Reply-To: <20160807130806.GR27667@leon.nu>
+Since librspreload is a LD_PRELOAD library it should only export
+symbols it intends to override. The following internal symbols were
+leaking out:
 
---eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+ getenv_options
+ idm_clear
+ idm_set
+ idx_insert
+ idx_remove
+ idx_replace
+ set_rsocket_options
 
-On 8/7/2016 9:08 AM, Leon Romanovsky wrote:
-> On Sun, Aug 07, 2016 at 12:20:38PM +0000, Wei Yongjun wrote:
->> Fix to return error code -ENOMEM from the alloc error handling
->> case instead of 0, as done elsewhere in this function.
->>
->> Signed-off-by: Wei Yongjun <weiyj.lk@gmail.com>
->> Acked-by: Sagi Grimberg <sagi@grimberg.me>
->> ---
->> v1 -> v2: fix with Leon's comment
->> ---
->>  drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
->=20
+The simplest way to fix this is with a map file.
 
-Thanks, applied.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ librdmacm/Makefile.am          |  5 ++++-
+ librdmacm/src/librspreload.map | 33 +++++++++++++++++++++++++++++++++
+ librdmacm/src/preload.c        |  4 ++--
+ 3 files changed, 39 insertions(+), 3 deletions(-)
+ create mode 100644 librdmacm/src/librspreload.map
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG Key ID: 0E572FDD
+diff --git a/librdmacm/Makefile.am b/librdmacm/Makefile.am
+index bf721345f68d..fa82d801a4dd 100644
+--- a/librdmacm/Makefile.am
++++ b/librdmacm/Makefile.am
+@@ -23,7 +23,10 @@ src_librdmacm_la_LDFLAGS = -version-info 1 -export-dynamic \
+ src_librdmacm_la_DEPENDENCIES =  $(srcdir)/src/librdmacm.map
+ 
+ src_librspreload_la_SOURCES = src/preload.c src/indexer.c
+-src_librspreload_la_LDFLAGS = -version-info 1 -export-dynamic
++src_librspreload_la_LDFLAGS = -version-info 1
++if HAVE_LD_VERSION_SCRIPT
++    src_librspreload_la_LDFLAGS += -Wl,--version-script=$(srcdir)/src/librspreload.map
++endif
+ src_librspreload_la_LIBADD = $(top_builddir)/src/librdmacm.la
+ 
+ bin_PROGRAMS = examples/ucmatose examples/rping examples/udaddy examples/mckey \
+diff --git a/librdmacm/src/librspreload.map b/librdmacm/src/librspreload.map
+new file mode 100644
+index 000000000000..67ecf33b8203
+--- /dev/null
++++ b/librdmacm/src/librspreload.map
+@@ -0,0 +1,33 @@
++{
++        /* FIXME: It is probably not a great idea to not tag these with the
++	   proper symbol version from glibc, at least if glibc ever changes
++	   the signature this will go sideways.. */
++	global:
++		accept;
++		bind;
++		close;
++		connect;
++		dup2;
++		fcntl;
++		getpeername;
++		getsockname;
++		getsockopt;
++		listen;
++		poll;
++		read;
++		readv;
++		recv;
++		recvfrom;
++		recvmsg;
++		select;
++		send;
++		sendfile;
++		sendmsg;
++		sendto;
++		setsockopt;
++		shutdown;
++		socket;
++		write;
++		writev;
++	local: *;
++};
+diff --git a/librdmacm/src/preload.c b/librdmacm/src/preload.c
+index 3a0bc4c8c71d..7d9352ab1f90 100644
+--- a/librdmacm/src/preload.c
++++ b/librdmacm/src/preload.c
+@@ -356,7 +356,7 @@ static enum fd_type fd_close(int index, int *fd)
+ 	return type;
+ }
+ 
+-void getenv_options(void)
++static void getenv_options(void)
+ {
+ 	char *var;
+ 
+@@ -521,7 +521,7 @@ err:
+ /*
+  * Use defaults on failure.
+  */
+-void set_rsocket_options(int rsocket)
++static void set_rsocket_options(int rsocket)
+ {
+ 	if (sq_size)
+ 		rsetsockopt(rsocket, SOL_RDMA, RDMA_SQSIZE, &sq_size, sizeof sq_size);
+-- 
+2.1.4
 
-
---eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU--
-
---wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXu0A/AAoJELgmozMOVy/dCKMP/it66iuRv89HC1YZmID1S3Cv
-jdh/FuhKodg8xlDnYqQwRgeMTIW3SotbMZMoeOqQg5iiyfL9swvQOfndEfT1GcUL
-+oaiNdc7IuCWIMVOqIySiTNHkEuUF5ECxctBlWw+qScBM3XatF92Jks9igbISfgx
-znoKw3uzw/PZGs7wjHQvG4DXV6JW1lrpGFAPld7zr5dyCzngdtpR9/qyKUlMgzmI
-PNutUXqe3gdUSLrZ7qsH3LbDmJSCIs0gEJ1iLPDFnBEJKaSJiqbn3TzBlgj9Kbav
-jXAK74Daa6+YQTqzxYqkmX5ArqVbFHZNpN6fyibejGaqKc87mVMCxJQ/W22s2bab
-IEeNxo5d0y2RHfJ5rsu3H2427e6o3huDj8TKjXYnNJMLTFol8C3zPTIwlTQUpr3S
-i9qJpM4kBvF+Xt6Kx/HSHvNjfkuX75SPzD8YNBFSzM81jDHIikhhi4XZcufWvL4B
-RnMGkxFBVtS8ruSEOccWCydtlA6xBL26VphJrvXFy6+245E09cqv8/lAN2Hc6ff+
-oibhzfAPSaM7be2+ri843IA+WV5T8FyXxMuZu5JEu/WXZiofYWm6jekxBAbIAnOW
-Is5eMnsfmBdSOx5d1pGemdYyTIBpi7AL/XW7nt87DPTVSa/Sd0qV28tAOyC4XZQ2
-2SyyoOSfYMcr8eDe9b8W
-=ohRE
------END PGP SIGNATURE-----
-
---wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
