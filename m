@@ -1,72 +1,69 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix possible memory leak in
- cma_resolve_iboe_route()
-Date: Mon, 22 Aug 2016 14:10:52 -0400
-Message-ID: <985a4286-5454-4a37-9fc0-ee01c0e1d658@redhat.com>
-References: <1470404809-16658-1-git-send-email-weiyj.lk@gmail.com>
- <0fe65631-0776-720e-a399-033f13e6f351@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v2] iser-target: fix error return code in
+ isert_alloc_login_buf()
+Date: Mon, 22 Aug 2016 14:11:11 -0400
+Message-ID: <eea52d82-9470-680f-636e-c2dbb6fb02ec@redhat.com>
+References: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
+ <1470572438-12360-1-git-send-email-weiyj.lk@gmail.com>
+ <20160807130806.GR27667@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="L9wiQQahxSx97x7E4KXL7sdNbQ9CNWvD2"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0fe65631-0776-720e-a399-033f13e6f351-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ boundary="wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn"
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20160807130806.GR27667@leon.nu>
+Sender: target-devel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Wei Yongjun <weiyj.lk@gmail.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---L9wiQQahxSx97x7E4KXL7sdNbQ9CNWvD2
-Content-Type: multipart/mixed; boundary="rJam4axKMAtxkfdT7d7bpqSpvnGDL7DRP"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,
- Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock
- <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>,
- Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Shapiro <guysh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- Shachar Raindel <raindel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <985a4286-5454-4a37-9fc0-ee01c0e1d658-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix possible memory leak in
- cma_resolve_iboe_route()
-References: <1470404809-16658-1-git-send-email-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
- <0fe65631-0776-720e-a399-033f13e6f351-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <0fe65631-0776-720e-a399-033f13e6f351-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn
+Content-Type: multipart/mixed; boundary="eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU"
+From: Doug Ledford <dledford@redhat.com>
+To: Leon Romanovsky <leon@kernel.org>, Wei Yongjun <weiyj.lk@gmail.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>,
+ Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
+ target-devel@vger.kernel.org
+Message-ID: <eea52d82-9470-680f-636e-c2dbb6fb02ec@redhat.com>
+Subject: Re: [PATCH v2] iser-target: fix error return code in
+ isert_alloc_login_buf()
+References: <1470404968-17339-1-git-send-email-weiyj.lk@gmail.com>
+ <1470572438-12360-1-git-send-email-weiyj.lk@gmail.com>
+ <20160807130806.GR27667@leon.nu>
+In-Reply-To: <20160807130806.GR27667@leon.nu>
 
---rJam4axKMAtxkfdT7d7bpqSpvnGDL7DRP
+--eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/7/2016 12:49 AM, Haggai Eran wrote:
-> On 8/5/2016 4:46 PM, Wei Yongjun wrote:
->> 'work' and 'route->path_rec' are malloced in cma_resolve_iboe_route()
->> and should be freed before leaving from the error handling cases,
->> otherwise it will cause memory leak.
+On 8/7/2016 9:08 AM, Leon Romanovsky wrote:
+> On Sun, Aug 07, 2016 at 12:20:38PM +0000, Wei Yongjun wrote:
+>> Fix to return error code -ENOMEM from the alloc error handling
+>> case instead of 0, as done elsewhere in this function.
 >>
->> Fixes: 200298326b27 ('IB/core: Validate route when we init ah')
->> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Wei Yongjun <weiyj.lk@gmail.com>
+>> Acked-by: Sagi Grimberg <sagi@grimberg.me>
+>> ---
+>> v1 -> v2: fix with Leon's comment
+>> ---
+>>  drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
 >=20
-> Reviewed-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+>=20
 
 Thanks, applied.
 
-> By the way, what happens when someone moves the get_netdev() device to
-> network namespace other than init_net? I don't think that would work
-> correctly.
-
-I suspect you're right.  The entire RDMA stack will need an audit for
-init_net misuses before containers are a real item I think.
-
-
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---rJam4axKMAtxkfdT7d7bpqSpvnGDL7DRP--
+--eBoGOq6GAHMKlidPnnFmHoCoSVoxJuUlU--
 
---L9wiQQahxSx97x7E4KXL7sdNbQ9CNWvD2
+--wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -75,23 +72,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXu0AsAAoJELgmozMOVy/dgXoP/3x+xfUG8d6OkNHmYorbmwGa
-my/ZqYu8yQgJYFPTMYNkO8JcFsnI927jJUdKzSrJ+XjkprwCHGWuDZuF2zJahwQk
-w4GqUqW22qUftE6ZkJ8DarntSnK9fHvWWG7e0ornIRwfeqFuu2GVl/FZ7mT2xcRG
-aTao19lxZQKRW6guBffUwjpphnH45PTyidlYWI5dNOXrlrqDCWmwde0VXFWtQUfQ
-rMJMqudJ9O5ou70UzJX8+3RaqvUkzvPJCS8ZRn76ZrJW5dLGMZf4MDDKdtAbNSVq
-nvnfrbthmrhjSvGmGayty9XEG1MJQStTPb4dbUlahwR4s7Iq/zGm7ZdCeOEPzog0
-iNLEc5rDKsj+kMS6y+0n6o9csfPvcvbgzyCruC19dLd3Xcx/fBeCULj7GHOjTpSh
-r5RCsJg92zvTLHlt1Ka+fUKIph1DZvkKnKPbdticc021mQK/A1OreQQwcjdK9l57
-JbioJCUkar08X/uSpy5vMdPlOgCWa2NLXGxdIPVtOevHkjKzFA7qa9D2XPrke9HV
-uaNwLan6dnbvdOE8ERYmLyO6V5zKJyhIG8CTTPlJhbpBfBmnymB5W40XxjwJpNQ9
-Gn3IES4GgoeC5lsY5mDpnhCPvKFvwXs7lMOaGw/4jgYUoqK9hUecVWmnspZv5Ojt
-Hg4Vj+EMMLyXCWwA5LE7
-=Bv04
+iQIcBAEBCAAGBQJXu0A/AAoJELgmozMOVy/dCKMP/it66iuRv89HC1YZmID1S3Cv
+jdh/FuhKodg8xlDnYqQwRgeMTIW3SotbMZMoeOqQg5iiyfL9swvQOfndEfT1GcUL
++oaiNdc7IuCWIMVOqIySiTNHkEuUF5ECxctBlWw+qScBM3XatF92Jks9igbISfgx
+znoKw3uzw/PZGs7wjHQvG4DXV6JW1lrpGFAPld7zr5dyCzngdtpR9/qyKUlMgzmI
+PNutUXqe3gdUSLrZ7qsH3LbDmJSCIs0gEJ1iLPDFnBEJKaSJiqbn3TzBlgj9Kbav
+jXAK74Daa6+YQTqzxYqkmX5ArqVbFHZNpN6fyibejGaqKc87mVMCxJQ/W22s2bab
+IEeNxo5d0y2RHfJ5rsu3H2427e6o3huDj8TKjXYnNJMLTFol8C3zPTIwlTQUpr3S
+i9qJpM4kBvF+Xt6Kx/HSHvNjfkuX75SPzD8YNBFSzM81jDHIikhhi4XZcufWvL4B
+RnMGkxFBVtS8ruSEOccWCydtlA6xBL26VphJrvXFy6+245E09cqv8/lAN2Hc6ff+
+oibhzfAPSaM7be2+ri843IA+WV5T8FyXxMuZu5JEu/WXZiofYWm6jekxBAbIAnOW
+Is5eMnsfmBdSOx5d1pGemdYyTIBpi7AL/XW7nt87DPTVSa/Sd0qV28tAOyC4XZQ2
+2SyyoOSfYMcr8eDe9b8W
+=ohRE
 -----END PGP SIGNATURE-----
 
---L9wiQQahxSx97x7E4KXL7sdNbQ9CNWvD2--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--wPOrF6q6J6UUXDWeBRwBHcG3oCtc0aIBn--
