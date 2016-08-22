@@ -1,39 +1,30 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: IB/core: Fine-tuning for ib_is_udata_cleared()
-Date: Sun, 21 Aug 2016 22:15:32 +0200
-Message-ID: <5e87f691-edb9-0a12-ff7a-59854c2ca2f8@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
- <1471802623.3746.1.camel@perches.com>
- <683187e0-2e6a-88c0-f87a-9c5f0489370a@users.sourceforge.net>
- <1471809188.3746.18.camel@perches.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 2/2] nvme-rdma: Add handling for connecting to IPv6 targets
+Date: Sun, 21 Aug 2016 21:44:06 -0700
+Message-ID: <CAG4TOxO9RY+h_Pwa1qtdrm3BRKvr7eDrD-tz-D1=uxY2LcpqWw@mail.gmail.com>
+References: <1469950060-18098-1-git-send-email-roland@kernel.org>
+ <1469950060-18098-2-git-send-email-roland@kernel.org> <4acdd466-b8f6-8208-7287-e97dfd45bbf1@grimberg.me>
+ <33dfc646-1804-363e-4d83-1ba618303dbb@grimberg.me> <20160801110956.GI16141@lst.de>
+ <e6e54d3f-c6ee-2057-d4e5-13981cd95140@grimberg.me> <20160801155036.GC22771@lst.de>
+ <CAG4TOxPNnUKWeh7FUY8YB127sx8yMu41FuP4hxUMCan_HWQmVQ@mail.gmail.com> <2b4f4727-58b5-c62e-e5fd-cc5e5b4ae6be@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1471809188.3746.18.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <2b4f4727-58b5-c62e-e5fd-cc5e5b4ae6be-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->>> Don't introduce a defect in patch 1 and correct
->>> that introduced defect in patch 2.
->> Which detail do you not like here?
-> 
-> See above.
+On Thu, Aug 18, 2016 at 12:44 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> Are you looking into this?
+>
+> I'd love to get it into 4.9...
 
-This feedback is not clearer.
+Yeah, me too.  I got distracted about halfway through writing the
+patch but I will finish it this week.
 
-I find that the two update steps should work in principle,
-shouldn't they?
-
-I guess that we have got different preferences for the shown
-patch granularity. Another update variant can follow a bit later
-with the changes squashed together.
-
-Regards,
-Markus
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
