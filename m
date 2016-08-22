@@ -1,56 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 22 Aug 2016 15:43:52 -0600
-Message-ID: <20160822214352.GB11695@obsidianresearch.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i40iw: Change mem_resources pointer to a u8
+Date: Mon, 22 Aug 2016 18:09:14 -0500
+Message-ID: <1471907354-82408-1-git-send-email-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 22, 2016 at 03:06:13PM -0500, Steve Wise wrote:
+iwdev->mem_resources is incorrectly defined as an unsigned
+long instead of u8. As a result, the offset into the dynamic
+allocated structures in i40iw_initialize_hw_resources() is
+incorrectly calculated and would lead to writing of memory
+regions outside of the allocated buffer.
 
-> Hey Jason, following your RHEL6 instructions from README.md, I was able to build
-> everything fine.  I'm amazed at how fast it builds...
+Fixes: 8e06af711bf2 ("i40iw: add main, hdr, status")
 
-Yes, it really is a better developer experience, and you probably
-didn't notice that ninja automatically does stuff like 'make -O' (and
-it actually fully works) and tracks changes to the build commands
-(like kbuild).. For those reading my system can go from a clean git
-checkout to a full build of all 15 libraries in 3.5s.
+Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The install is done in the usual way:
+diff --git a/drivers/infiniband/hw/i40iw/i40iw.h b/drivers/infiniband/hw/i40iw/i40iw.h
+index b738acd..882f3ef 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw.h
++++ b/drivers/infiniband/hw/i40iw/i40iw.h
+@@ -232,7 +232,7 @@ struct i40iw_device {
+ 	struct i40e_client *client;
+ 	struct i40iw_hw hw;
+ 	struct i40iw_cm_core cm_core;
+-	unsigned long *mem_resources;
++	u8 *mem_resources;
+ 	unsigned long *allocated_qps;
+ 	unsigned long *allocated_cqs;
+ 	unsigned long *allocated_mrs;
+-- 
+2.8.0
 
-(make or ninja) install
-
-DESTDIR environment var works as usual for packagers.
-
-That does exactly the same as 'make install' did for auto*, which is,
-IMHO, somewhat useless since it goes into /usr/local.
-
-The full install to / is still a small TODO, it is part and parcel
-with doing the packaging, in my mind.
-
-But the basic starting point is:
-
-cmake .. -DCMAKE_SKIP_RPATH=ON  -DCMAKE_INSTALL_PREFIX=/usr
-
-But a bit more work is needed to make SYSCONFDIR work right..
-
-I also want to make a patch to 'run in place' (eg with
-LD_LIBRARY_PATH), which makes sense now that the providers build
-along-side libverbs.
-
-It isn't too hard but lets get agreement on this direction at all
-first...
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
