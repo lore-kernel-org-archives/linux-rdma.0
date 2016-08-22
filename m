@@ -1,514 +1,209 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 22 Aug 2016 12:13:23 -0600
-Message-ID: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [RFCv2 14/15] Move providers into providers/
+Date: Mon, 22 Aug 2016 12:13:37 -0600
+Message-ID: <1471889618-1605-15-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Everyone,
+Also
+ - Delete debian and RPM packaging from providers
+ - Flatten the src/ directory into the root
+ - Drop the 'lib' prefix. These are plugins, not true libraries
 
-Here is the patch series for the consolidation. This is based on the special
-merge commit created by the buildlib/make-merge.py script. See my prior
-message (http://www.spinics.net/lists/linux-rdma/msg39026.html) for details.
-
-The first 7 patches change/fix various things in the original packages to
-build consistently, patch 8 has cmake and all the auto* co-exist, and can be
-used to do build compares (see buildlib/compare-build.py)
-
-The next batch of patches removes the old build stuff, packaging, merges
-COPYING files and lightly simplifies the directory structure.
-
-https://github.com/jgunthorpe/rdma-plumbing
-
-This has been rebased since my last posting with feedback from Steve.
-
-The following 15 repositories were pulled together.
-
-      libcxgb3 git://git.openfabrics.org/~swise/libcxgb3.git 0de0392268af3a657b329874b63b6ee827109508
-      libcxgb4 git://git.openfabrics.org/~swise/libcxgb4.git 15d3253dc814da28e2b93ed02a8e9a96d97f20ae
-      libhfi1verbs https://github.com/01org/opa-libhfi1verbs.git 377b68888a0b885fc2a44ddf7a2ec33f2fcf217b
-      libi40iw git://git.openfabrics.org/~tnikolova/libi40iw/.git 9d35609f79d6a235e23182e9ceadf3605b2682da
-      libibcm git://git.openfabrics.org/~shefty/libibcm.git b04920e8bfe0689a2fe67815321dcf646fd48a7e
-      libibumad git://git.openfabrics.org/~halr/libibumad.git ecda3a56b18c6a2845f3d966f8b8061941f5d447
-      libibverbs git://git.kernel.org/pub/scm/libs/infiniband/libibverbs.git 0be978ea2bfaf203c35334b090bddb280de62611
-      libipathverbs https://github.com/01org/libipathverbs.git 8291d485f3a5544b43974e7be88f3646f35ae07c
-      libmlx4 git://git.openfabrics.org/~yishaih/libmlx4.git 162f948c4e04753a15cfb7afcdf6219dbe0bc31e
-      libmlx5 git://git.openfabrics.org/~yishaih/libmlx5.git f23f9aa7b9033cd8ebbd58d67d65e9b81d0525fa
-      libmthca git://git.kernel.org/pub/scm/libs/infiniband/libmthca.git 6f4dd7451ddef120247e13fa6cb8e1df69c3ddf9
-      libnes git://git.openfabrics.org/~tnikolova/libnes/.git 7dc7cf2474612ec909bff251096ca2aefa9cddf1
-      libocrdma git://git.openfabrics.org/~emulex/libocrdma.git 41f6bbb3fe8129678c233da439d872b3fe9f75dc
-      librdmacm git://git.openfabrics.org/~shefty/librdmacm.git 032bbe60ad32d59004447e03061a9f6d632cc55f
-      librxe https://github.com/SoftRoCE/librxe-dev.git 227e3c49b6e423c066e1e1887fe30c8261f63cbd
-
-Steve suggests that iwpm be included as well, which makes sense..
-
-My hope is that Doug will step up as the unified maintainer, with a process
-similar to the kernel. Most of the libraries are unchanging/unmaintained/dead.
-
-Jason Gunthorpe (15):
-  Fix bogus executable file permissions
-  umad: Include umad.h in the canonical way
-  rdmacm: Control symbol export from librspreload
-  ibcm: Actually use the version script when linking
-  Include pthreads in the provider libraries
-  Be explicit about _GNU_SOURCE
-  hfi/ipath: Use the name of the provider for the .driver file
-  Unified CMake build system
-  Support obsolete cmake from 2013
-  Remove the auto* based build systems
-  Remove the ChangeLog files
-  Combine COPYING files
-  Consolidate the .gitignore files
-  Move providers into providers/
-  Add a MAINTAINERS file
-
- .gitignore                                         |    29 +
- CMakeLists.txt                                     |   230 +
- COPYING                                            |     6 +
- COPYING.BSD                                        |    26 +
- libnes/gpl-2.0.txt => COPYING.GPL2                 |    14 +-
- MAINTAINERS                                        |    81 +
- README.md                                          |    69 +
- buildlib/FindLDSymVer.cmake                        |    41 +
- buildlib/RDMA_BuildType.cmake                      |    31 +
- buildlib/RDMA_DoFixup.cmake                        |    25 +
- buildlib/RDMA_EnableCStd.cmake                     |    23 +
- buildlib/config.h.in                               |    29 +
- buildlib/fixup-include/rdma-rdma_user_rxe.h        |   144 +
- buildlib/fixup-include/valgrind-memcheck.h         |     5 +
- buildlib/provider.map                              |     6 +
- buildlib/publish_headers.cmake                     |    20 +
- buildlib/rdma_functions.cmake                      |   243 +
- libcxgb3/ChangeLog                                 |   791 -
- libcxgb3/Makefile.am                               |    27 -
- libcxgb3/autogen.sh                                |     8 -
- libcxgb3/config/.gitignore                         |     0
- libcxgb3/configure.in                              |    67 -
- libcxgb3/cxgb3.driver                              |     1 -
- libcxgb3/libcxgb3.spec.in                          |    55 -
- libcxgb3/src/iwch.map                              |     6 -
- libcxgb4/COPYING                                   |    29 -
- libcxgb4/ChangeLog                                 |  1133 --
- libcxgb4/Makefile.am                               |    27 -
- libcxgb4/autogen.sh                                |     8 -
- libcxgb4/config/config.guess                       |  1439 --
- libcxgb4/config/config.sub                         |  1811 ---
- libcxgb4/config/depcomp                            |   530 -
- libcxgb4/config/install-sh                         |   323 -
- libcxgb4/configure.in                              |    67 -
- libcxgb4/cxgb4.driver                              |     1 -
- libcxgb4/libcxgb4.spec.in                          |    55 -
- libcxgb4/src/cxgb4.map                             |     6 -
- libhfi1verbs/.gitignore                            |    18 -
- libhfi1verbs/Makefile.am                           |    83 -
- libhfi1verbs/autogen.sh                            |    64 -
- libhfi1verbs/configure.in                          |   124 -
- libhfi1verbs/hfi1.driver                           |     1 -
- libhfi1verbs/libhfi1verbs.spec.in                  |   111 -
- libhfi1verbs/makefile                              |    93 -
- libhfi1verbs/makesrpm.sh                           |    15 -
- libhfi1verbs/src/hfiverbs.map                      |     4 -
- libi40iw/COPYING                                   |   372 -
- libi40iw/Makefile.am                               |    26 -
- libi40iw/configure.ac                              |    72 -
- libi40iw/i40iw.driver                              |     1 -
- libi40iw/libi40iw.spec.in                          |    72 -
- libi40iw/src/i40iw.map                             |    39 -
- libibcm/COPYING                                    |   378 -
- libibcm/ChangeLog                                  |     0
- libibcm/Makefile.am                                |    35 -
- libibcm/autogen.sh                                 |     9 -
- libibcm/configure.in                               |    72 -
- libibcm/examples/CMakeLists.txt                    |     2 +
- libibcm/src/CMakeLists.txt                         |     9 +
- libibcm/src/cm.c                                   |     2 +-
- libibumad/COPYING                                  |   377 -
- libibumad/ChangeLog                                |    94 -
- libibumad/Makefile.am                              |    75 -
- libibumad/autogen.sh                               |    11 -
- libibumad/configure.in                             |    72 -
- libibumad/man/CMakeLists.txt                       |    42 +
- libibumad/src/CMakeLists.txt                       |    14 +
- libibumad/src/sysfs.c                              |     3 -
- libibumad/src/umad.c                               |     2 +-
- libibumad/tests/CMakeLists.txt                     |     5 +
- libibumad/tests/umad_reg2_compat.c                 |     2 +-
- libibumad/tests/umad_register2.c                   |     2 +-
- libibverbs/.gitignore                              |    24 -
- libibverbs/COPYING                                 |   378 -
- libibverbs/ChangeLog                               |   583 -
- libibverbs/Makefile.am                             |   126 -
- libibverbs/autogen.sh                              |     4 -
- libibverbs/config/.gitignore                       |     8 -
- libibverbs/configure.ac                            |   125 -
- libibverbs/examples/.gitignore                     |    10 -
- libibverbs/examples/CMakeLists.txt                 |    29 +
- libibverbs/examples/asyncwatch.c                   |     2 +-
- libibverbs/examples/rc_pingpong.c                  |     2 +-
- libibverbs/examples/srq_pingpong.c                 |     2 +-
- libibverbs/examples/uc_pingpong.c                  |     2 +-
- libibverbs/examples/ud_pingpong.c                  |     2 +-
- libibverbs/examples/xsrq_pingpong.c                |     2 +-
- libibverbs/man/CMakeLists.txt                      |    78 +
- libibverbs/src/.gitignore                          |     3 -
- libibverbs/src/CMakeLists.txt                      |    34 +
- libibverbs/src/device.c                            |     2 +-
- libibverbs/src/init.c                              |     2 +-
- libibverbs/src/sysfs.c                             |     2 +-
- libipathverbs/.gitignore                           |    22 -
- libipathverbs/Makefile.am                          |    79 -
- libipathverbs/autogen.sh                           |    43 -
- libipathverbs/configure.in                         |   118 -
- libipathverbs/ipath.driver                         |     1 -
- libipathverbs/libipathverbs.spec.in                |   104 -
- libipathverbs/src/ipathverbs.map                   |     4 -
- libmlx4/.gitignore                                 |    17 -
- libmlx4/COPYING                                    |   378 -
- libmlx4/Makefile.am                                |    19 -
- libmlx4/autogen.sh                                 |     4 -
- libmlx4/config/.gitignore                          |     8 -
- libmlx4/configure.ac                               |    94 -
- libmlx4/debian/changelog                           |    73 -
- libmlx4/debian/compat                              |     1 -
- libmlx4/debian/control                             |    47 -
- libmlx4/debian/copyright                           |    43 -
- libmlx4/debian/libmlx4-1.install                   |     2 -
- libmlx4/debian/libmlx4-dev.install                 |     1 -
- .../debian/patches/driver-plugin-directory.patch   |    10 -
- libmlx4/debian/patches/series                      |     1 -
- libmlx4/debian/rules                               |    10 -
- libmlx4/debian/source/format                       |     1 -
- libmlx4/debian/watch                               |     3 -
- libmlx4/libmlx4.spec.in                            |    90 -
- libmlx4/mlx4.driver                                |     1 -
- libmlx4/src/.gitignore                             |     3 -
- libmlx4/src/mlx4.map                               |     5 -
- libmlx5/.gitignore                                 |    33 -
- libmlx5/COPYING                                    |   378 -
- libmlx5/Makefile.am                                |    27 -
- libmlx5/autogen.sh                                 |     7 -
- libmlx5/config/.gitignore                          |     8 -
- libmlx5/configure.ac                               |   105 -
- libmlx5/debian/changelog                           |    18 -
- libmlx5/debian/compat                              |     1 -
- libmlx5/debian/control                             |    47 -
- libmlx5/debian/copyright                           |    43 -
- libmlx5/debian/libmlx5-1.install                   |     2 -
- libmlx5/debian/libmlx5-dev.install                 |     1 -
- .../debian/patches/driver-plugin-directory.patch   |    10 -
- libmlx5/debian/patches/series                      |     1 -
- libmlx5/debian/rules                               |    10 -
- libmlx5/debian/source/format                       |     1 -
- libmlx5/debian/watch                               |     3 -
- libmlx5/libmlx5.spec.in                            |    60 -
- libmlx5/m4/ax_gcc_func_attribute.m4                |   223 -
- libmlx5/mlx5.driver                                |     1 -
- libmlx5/src/.gitignore                             |     3 -
- libmlx5/src/mlx5.map                               |     5 -
- libmthca/.gitignore                                |    17 -
- libmthca/COPYING                                   |   378 -
- libmthca/ChangeLog                                 |   378 -
- libmthca/Makefile.am                               |    29 -
- libmthca/autogen.sh                                |     8 -
- libmthca/config/.gitignore                         |     8 -
- libmthca/configure.in                              |    80 -
- libmthca/debian/changelog                          |    73 -
- libmthca/debian/compat                             |     1 -
- libmthca/debian/control                            |    48 -
- libmthca/debian/copyright                          |    44 -
- libmthca/debian/libmthca-dev.install               |     1 -
- libmthca/debian/libmthca1.install                  |     2 -
- .../debian/patches/driver-plugin-directory.patch   |    10 -
- libmthca/debian/patches/series                     |     1 -
- libmthca/debian/rules                              |    10 -
- libmthca/debian/source/format                      |     1 -
- libmthca/debian/watch                              |     3 -
- libmthca/libmthca.spec.in                          |    97 -
- libmthca/mthca.driver                              |     1 -
- libmthca/src/.gitignore                            |     3 -
- libmthca/src/mthca.map                             |     5 -
- libnes/Makefile.am                                 |    26 -
- libnes/autogen.sh                                  |    12 -
- libnes/config/.gitignore                           |     0
- libnes/configure.in                                |    72 -
- libnes/libnes.spec.in                              |   107 -
- libnes/nes.driver                                  |     1 -
- libnes/src/nes.map                                 |     5 -
- libocrdma/COPYING                                  |   317 -
- libocrdma/Makefile.am                              |    23 -
- libocrdma/autogen.sh                               |     8 -
- libocrdma/config/.gitignore                        |     8 -
- libocrdma/configure.in                             |    68 -
- libocrdma/libocrdma.spec.in                        |    71 -
- libocrdma/ocrdma.driver                            |     1 -
- libocrdma/src/ocrdma.map                           |     5 -
- librdmacm/.gitignore                               |    64 -
- librdmacm/COPYING                                  |   378 -
- librdmacm/ChangeLog                                |     0
- librdmacm/Makefile.am                              |   138 -
- librdmacm/autogen.sh                               |     5 -
- librdmacm/configure.ac                             |   108 -
- librdmacm/examples/.gitignore                      |    23 -
- librdmacm/examples/CMakeLists.txt                  |    43 +
- librdmacm/examples/rping.c                         |     2 +-
- librdmacm/man/CMakeLists.txt                       |    65 +
- librdmacm/src/.gitignore                           |     9 -
- librdmacm/src/CMakeLists.txt                       |    39 +
- librdmacm/src/librspreload.map                     |    33 +
- librdmacm/src/preload.c                            |     6 +-
- librdmacm/src/rsocket.c                            |     2 +-
- librxe/AUTHORS                                     |     0
- librxe/COPYING                                     |     0
- librxe/ChangeLog                                   |     0
- librxe/INSTALL                                     |     0
- librxe/Makefile.am                                 |    36 -
- librxe/Makefile.in                                 |   939 --
- librxe/NEWS                                        |     0
- librxe/README                                      |     0
- librxe/aclocal.m4                                  |  9390 ------------
- librxe/config.h.in                                 |    89 -
- librxe/config/config.guess                         |  1526 --
- librxe/config/config.sub                           |  1658 ---
- librxe/config/depcomp                              |   530 -
- librxe/config/install-sh                           |   519 -
- librxe/config/ltmain.sh                            |  9636 ------------
- librxe/config/missing                              |   360 -
- librxe/configure                                   | 14728 -------------------
- librxe/configure.in                                |    75 -
- librxe/librxe.spec                                 |    55 -
- librxe/librxe.spec.in                              |    55 -
- librxe/rxe.driver                                  |     1 -
- librxe/src/rxe.map                                 |     5 -
- {libcxgb4 => providers/cxgb3}/AUTHORS              |     0
- providers/cxgb3/CMakeLists.txt                     |     6 +
- {libcxgb3 => providers/cxgb3}/COPYING              |     0
- {libcxgb3 => providers/cxgb3}/README               |     0
- {libcxgb3/src => providers/cxgb3}/cq.c             |     0
- {libcxgb3/src => providers/cxgb3}/cxio_wr.h        |     0
- .../src => providers/cxgb3}/firmware_exports.h     |     0
- {libcxgb3/src => providers/cxgb3}/iwch-abi.h       |     0
- {libcxgb3/src => providers/cxgb3}/iwch.c           |     0
- {libcxgb3/src => providers/cxgb3}/iwch.h           |     0
- {libcxgb3/src => providers/cxgb3}/qp.c             |     0
- {libcxgb3/src => providers/cxgb3}/verbs.c          |     0
- {libcxgb3 => providers/cxgb4}/AUTHORS              |     0
- providers/cxgb4/CMakeLists.txt                     |     6 +
- {libcxgb4 => providers/cxgb4}/README               |     0
- {libcxgb4/src => providers/cxgb4}/cq.c             |     0
- {libcxgb4/src => providers/cxgb4}/cxgb4-abi.h      |     0
- {libcxgb4/src => providers/cxgb4}/dev.c            |     0
- {libcxgb4/src => providers/cxgb4}/libcxgb4.h       |     0
- {libcxgb4/src => providers/cxgb4}/qp.c             |     0
- {libcxgb4/src => providers/cxgb4}/queue.h          |     0
- {libcxgb4/src => providers/cxgb4}/t4.h             |     0
- {libcxgb4/src => providers/cxgb4}/t4_chip_type.h   |     0
- {libcxgb4/src => providers/cxgb4}/t4_pci_id_tbl.h  |     0
- {libcxgb4/src => providers/cxgb4}/t4_regs.h        |     0
- {libcxgb4/src => providers/cxgb4}/t4fw_interface.h |     0
- {libcxgb4/src => providers/cxgb4}/verbs.c          |     0
- {libhfi1verbs => providers/hfi1verbs}/AUTHORS      |     0
- providers/hfi1verbs/CMakeLists.txt                 |     4 +
- {libhfi1verbs => providers/hfi1verbs}/COPYING      |     0
- {libhfi1verbs => providers/hfi1verbs}/README       |     0
- .../src => providers/hfi1verbs}/hfi-abi.h          |     0
- .../src => providers/hfi1verbs}/hfiverbs.c         |     0
- .../src => providers/hfi1verbs}/hfiverbs.h         |     0
- {libhfi1verbs/src => providers/hfi1verbs}/verbs.c  |     0
- {libnes => providers/i40iw}/AUTHORS                |     0
- providers/i40iw/CMakeLists.txt                     |     5 +
- {libi40iw/src => providers/i40iw}/i40e_devids.h    |     0
- {libi40iw/src => providers/i40iw}/i40iw-abi.h      |     0
- {libi40iw/src => providers/i40iw}/i40iw_d.h        |     0
- {libi40iw/src => providers/i40iw}/i40iw_osdep.h    |     0
- {libi40iw/src => providers/i40iw}/i40iw_register.h |     0
- {libi40iw/src => providers/i40iw}/i40iw_status.h   |     0
- {libi40iw/src => providers/i40iw}/i40iw_uk.c       |     0
- {libi40iw/src => providers/i40iw}/i40iw_umain.c    |     0
- {libi40iw/src => providers/i40iw}/i40iw_umain.h    |     0
- {libi40iw/src => providers/i40iw}/i40iw_user.h     |     0
- {libi40iw/src => providers/i40iw}/i40iw_uverbs.c   |     0
- {libipathverbs => providers/ipathverbs}/AUTHORS    |     0
- providers/ipathverbs/CMakeLists.txt                |     8 +
- {libipathverbs => providers/ipathverbs}/COPYING    |     0
- {libipathverbs => providers/ipathverbs}/README     |     0
- .../ipathverbs}/dracut_check                       |     0
- .../ipathverbs}/dracut_install                     |     0
- .../ipathverbs}/dracut_kmod                        |     0
- .../src => providers/ipathverbs}/ipath-abi.h       |     0
- .../src => providers/ipathverbs}/ipathverbs.c      |     0
- .../src => providers/ipathverbs}/ipathverbs.h      |     0
- .../ipathverbs}/truescale-serdes.cmds              |     0
- .../ipathverbs}/truescale.conf                     |     0
- .../src => providers/ipathverbs}/verbs.c           |     0
- {libmlx4 => providers/mlx4}/AUTHORS                |     0
- providers/mlx4/CMakeLists.txt                      |     9 +
- {libmlx4 => providers/mlx4}/README                 |     0
- {libmlx4/src => providers/mlx4}/buf.c              |     0
- {libmlx4/src => providers/mlx4}/cq.c               |     0
- {libmlx4/src => providers/mlx4}/dbrec.c            |     2 +-
- {libmlx4/src => providers/mlx4}/doorbell.h         |     0
- {libmlx4/src => providers/mlx4}/mlx4-abi.h         |     0
- {libmlx4/src => providers/mlx4}/mlx4.c             |     0
- {libmlx4/src => providers/mlx4}/mlx4.h             |     0
- {libmlx4/src => providers/mlx4}/mmio.h             |     0
- {libmlx4/src => providers/mlx4}/qp.c               |     0
- {libmlx4/src => providers/mlx4}/srq.c              |     0
- {libmlx4/src => providers/mlx4}/verbs.c            |     0
- {libmlx4/src => providers/mlx4}/wqe.h              |     0
- {libmlx5 => providers/mlx5}/AUTHORS                |     0
- providers/mlx5/CMakeLists.txt                      |     9 +
- {libmlx5 => providers/mlx5}/README                 |     0
- {libmlx5/src => providers/mlx5}/bitmap.h           |     0
- {libmlx5/src => providers/mlx5}/buf.c              |     0
- {libmlx5/src => providers/mlx5}/cq.c               |     0
- {libmlx5/src => providers/mlx5}/dbrec.c            |     3 +-
- {libmlx5/src => providers/mlx5}/doorbell.h         |     0
- {libmlx5/src => providers/mlx5}/list.h             |     0
- {libmlx5/src => providers/mlx5}/mlx5-abi.h         |     0
- {libmlx5/src => providers/mlx5}/mlx5.c             |     3 +-
- {libmlx5/src => providers/mlx5}/mlx5.h             |     0
- {libmlx5/src => providers/mlx5}/qp.c               |     0
- {libmlx5/src => providers/mlx5}/srq.c              |     0
- {libmlx5/src => providers/mlx5}/verbs.c            |     0
- {libmlx5/src => providers/mlx5}/wqe.h              |     0
- {libmthca => providers/mthca}/AUTHORS              |     0
- providers/mthca/CMakeLists.txt                     |    10 +
- {libmthca => providers/mthca}/README               |     0
- {libmthca/src => providers/mthca}/ah.c             |     0
- {libmthca/src => providers/mthca}/buf.c            |     0
- {libmthca/src => providers/mthca}/cq.c             |     0
- {libmthca/src => providers/mthca}/doorbell.h       |     0
- {libmthca/src => providers/mthca}/memfree.c        |     2 +-
- {libmthca/src => providers/mthca}/mthca-abi.h      |     0
- {libmthca/src => providers/mthca}/mthca.c          |     0
- {libmthca/src => providers/mthca}/mthca.h          |     0
- {libmthca/src => providers/mthca}/qp.c             |     0
- {libmthca/src => providers/mthca}/srq.c            |     0
- {libmthca/src => providers/mthca}/verbs.c          |     0
- {libmthca/src => providers/mthca}/wqe.h            |     0
- {libi40iw => providers/nes}/AUTHORS                |     0
- providers/nes/CMakeLists.txt                       |     4 +
- {libnes => providers/nes}/COPYING                  |     0
- {libnes/src => providers/nes}/nes-abi.h            |     0
- {libnes/src => providers/nes}/nes_umain.c          |     0
- {libnes/src => providers/nes}/nes_umain.h          |     0
- {libnes/src => providers/nes}/nes_uverbs.c         |     0
- {libocrdma => providers/ocrdma}/AUTHORS            |     0
- providers/ocrdma/CMakeLists.txt                    |     4 +
- {libocrdma => providers/ocrdma}/Changelog          |     0
- {libocrdma => providers/ocrdma}/README             |     0
- {libocrdma/src => providers/ocrdma}/ocrdma_abi.h   |     0
- {libocrdma/src => providers/ocrdma}/ocrdma_list.h  |     0
- {libocrdma/src => providers/ocrdma}/ocrdma_main.c  |     0
- {libocrdma/src => providers/ocrdma}/ocrdma_main.h  |     0
- {libocrdma/src => providers/ocrdma}/ocrdma_verbs.c |     0
- providers/rxe/CMakeLists.txt                       |     7 +
- {librxe => providers/rxe}/README.md                |     0
- providers/rxe/man/CMakeLists.txt                   |     4 +
- {librxe => providers/rxe}/man/rxe.7                |     0
- {librxe => providers/rxe}/man/rxe_cfg.8            |     0
- {librxe/src => providers/rxe}/rxe-abi.h            |     0
- {librxe/src => providers/rxe}/rxe.c                |     0
- {librxe/src => providers/rxe}/rxe.h                |     0
- {librxe => providers/rxe}/rxe_cfg                  |     0
- {librxe/src => providers/rxe}/rxe_queue.h          |     0
- 350 files changed, 1506 insertions(+), 54315 deletions(-)
- create mode 100644 .gitignore
- create mode 100644 CMakeLists.txt
- create mode 100644 COPYING
- create mode 100644 COPYING.BSD
- rename libnes/gpl-2.0.txt => COPYING.GPL2 (98%)
- create mode 100644 MAINTAINERS
- create mode 100644 README.md
- create mode 100644 buildlib/FindLDSymVer.cmake
- create mode 100644 buildlib/RDMA_BuildType.cmake
- create mode 100644 buildlib/RDMA_DoFixup.cmake
- create mode 100644 buildlib/RDMA_EnableCStd.cmake
- create mode 100644 buildlib/config.h.in
- create mode 100644 buildlib/fixup-include/rdma-rdma_user_rxe.h
- create mode 100644 buildlib/fixup-include/valgrind-memcheck.h
- create mode 100644 buildlib/provider.map
- create mode 100644 buildlib/publish_headers.cmake
- create mode 100644 buildlib/rdma_functions.cmake
- delete mode 100644 libcxgb3/ChangeLog
- delete mode 100644 libcxgb3/Makefile.am
- delete mode 100755 libcxgb3/autogen.sh
- delete mode 100644 libcxgb3/config/.gitignore
- delete mode 100644 libcxgb3/configure.in
- delete mode 100644 libcxgb3/cxgb3.driver
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ CMakeLists.txt                                     |  26 +++--
+ libcxgb3/libcxgb3.spec.in                          |  55 ----------
+ libcxgb4/libcxgb4.spec.in                          |  55 ----------
+ libhfi1verbs/libhfi1verbs.spec.in                  | 111 ---------------------
+ libi40iw/libi40iw.spec.in                          |  72 -------------
+ libipathverbs/libipathverbs.spec.in                | 104 -------------------
+ libipathverbs/src/CMakeLists.txt                   |   4 -
+ libmlx4/debian/changelog                           |  73 --------------
+ libmlx4/debian/compat                              |   1 -
+ libmlx4/debian/control                             |  47 ---------
+ libmlx4/debian/copyright                           |  43 --------
+ libmlx4/debian/libmlx4-1.install                   |   2 -
+ libmlx4/debian/libmlx4-dev.install                 |   1 -
+ .../debian/patches/driver-plugin-directory.patch   |  10 --
+ libmlx4/debian/patches/series                      |   1 -
+ libmlx4/debian/rules                               |  10 --
+ libmlx4/debian/source/format                       |   1 -
+ libmlx4/debian/watch                               |   3 -
+ libmlx4/libmlx4.spec.in                            |  90 -----------------
+ libmlx5/debian/changelog                           |  18 ----
+ libmlx5/debian/compat                              |   1 -
+ libmlx5/debian/control                             |  47 ---------
+ libmlx5/debian/copyright                           |  43 --------
+ libmlx5/debian/libmlx5-1.install                   |   2 -
+ libmlx5/debian/libmlx5-dev.install                 |   1 -
+ .../debian/patches/driver-plugin-directory.patch   |  10 --
+ libmlx5/debian/patches/series                      |   1 -
+ libmlx5/debian/rules                               |  10 --
+ libmlx5/debian/source/format                       |   1 -
+ libmlx5/debian/watch                               |   3 -
+ libmlx5/libmlx5.spec.in                            |  60 -----------
+ libmthca/debian/changelog                          |  73 --------------
+ libmthca/debian/compat                             |   1 -
+ libmthca/debian/control                            |  48 ---------
+ libmthca/debian/copyright                          |  44 --------
+ libmthca/debian/libmthca-dev.install               |   1 -
+ libmthca/debian/libmthca1.install                  |   2 -
+ .../debian/patches/driver-plugin-directory.patch   |  10 --
+ libmthca/debian/patches/series                     |   1 -
+ libmthca/debian/rules                              |  10 --
+ libmthca/debian/source/format                      |   1 -
+ libmthca/debian/watch                              |   3 -
+ libmthca/libmthca.spec.in                          |  97 ------------------
+ libnes/libnes.spec.in                              | 107 --------------------
+ libocrdma/libocrdma.spec.in                        |  71 -------------
+ librxe/librxe.spec.in                              |  55 ----------
+ librxe/src/CMakeLists.txt                          |   3 -
+ {libcxgb4 => providers/cxgb3}/AUTHORS              |   0
+ {libcxgb3/src => providers/cxgb3}/CMakeLists.txt   |   0
+ {libcxgb3 => providers/cxgb3}/COPYING              |   0
+ {libcxgb3 => providers/cxgb3}/README               |   0
+ {libcxgb3/src => providers/cxgb3}/cq.c             |   0
+ {libcxgb3/src => providers/cxgb3}/cxio_wr.h        |   0
+ .../src => providers/cxgb3}/firmware_exports.h     |   0
+ {libcxgb3/src => providers/cxgb3}/iwch-abi.h       |   0
+ {libcxgb3/src => providers/cxgb3}/iwch.c           |   0
+ {libcxgb3/src => providers/cxgb3}/iwch.h           |   0
+ {libcxgb3/src => providers/cxgb3}/qp.c             |   0
+ {libcxgb3/src => providers/cxgb3}/verbs.c          |   0
+ {libcxgb3 => providers/cxgb4}/AUTHORS              |   0
+ {libcxgb4/src => providers/cxgb4}/CMakeLists.txt   |   0
+ {libcxgb4 => providers/cxgb4}/README               |   0
+ {libcxgb4/src => providers/cxgb4}/cq.c             |   0
+ {libcxgb4/src => providers/cxgb4}/cxgb4-abi.h      |   0
+ {libcxgb4/src => providers/cxgb4}/dev.c            |   0
+ {libcxgb4/src => providers/cxgb4}/libcxgb4.h       |   0
+ {libcxgb4/src => providers/cxgb4}/qp.c             |   0
+ {libcxgb4/src => providers/cxgb4}/queue.h          |   0
+ {libcxgb4/src => providers/cxgb4}/t4.h             |   0
+ {libcxgb4/src => providers/cxgb4}/t4_chip_type.h   |   0
+ {libcxgb4/src => providers/cxgb4}/t4_pci_id_tbl.h  |   0
+ {libcxgb4/src => providers/cxgb4}/t4_regs.h        |   0
+ {libcxgb4/src => providers/cxgb4}/t4fw_interface.h |   0
+ {libcxgb4/src => providers/cxgb4}/verbs.c          |   0
+ {libhfi1verbs => providers/hfi1verbs}/AUTHORS      |   0
+ .../src => providers/hfi1verbs}/CMakeLists.txt     |   0
+ {libhfi1verbs => providers/hfi1verbs}/COPYING      |   0
+ {libhfi1verbs => providers/hfi1verbs}/README       |   0
+ .../src => providers/hfi1verbs}/hfi-abi.h          |   0
+ .../src => providers/hfi1verbs}/hfiverbs.c         |   0
+ .../src => providers/hfi1verbs}/hfiverbs.h         |   0
+ {libhfi1verbs/src => providers/hfi1verbs}/verbs.c  |   0
+ {libnes => providers/i40iw}/AUTHORS                |   0
+ {libi40iw/src => providers/i40iw}/CMakeLists.txt   |   0
+ {libi40iw/src => providers/i40iw}/i40e_devids.h    |   0
+ {libi40iw/src => providers/i40iw}/i40iw-abi.h      |   0
+ {libi40iw/src => providers/i40iw}/i40iw_d.h        |   0
+ {libi40iw/src => providers/i40iw}/i40iw_osdep.h    |   0
+ {libi40iw/src => providers/i40iw}/i40iw_register.h |   0
+ {libi40iw/src => providers/i40iw}/i40iw_status.h   |   0
+ {libi40iw/src => providers/i40iw}/i40iw_uk.c       |   0
+ {libi40iw/src => providers/i40iw}/i40iw_umain.c    |   0
+ {libi40iw/src => providers/i40iw}/i40iw_umain.h    |   0
+ {libi40iw/src => providers/i40iw}/i40iw_user.h     |   0
+ {libi40iw/src => providers/i40iw}/i40iw_uverbs.c   |   0
+ {libipathverbs => providers/ipathverbs}/AUTHORS    |   0
+ .../ipathverbs}/CMakeLists.txt                     |   4 +
+ {libipathverbs => providers/ipathverbs}/COPYING    |   0
+ {libipathverbs => providers/ipathverbs}/README     |   0
+ .../ipathverbs}/dracut_check                       |   0
+ .../ipathverbs}/dracut_install                     |   0
+ .../ipathverbs}/dracut_kmod                        |   0
+ .../src => providers/ipathverbs}/ipath-abi.h       |   0
+ .../src => providers/ipathverbs}/ipathverbs.c      |   0
+ .../src => providers/ipathverbs}/ipathverbs.h      |   0
+ .../ipathverbs}/truescale-serdes.cmds              |   0
+ .../ipathverbs}/truescale.conf                     |   0
+ .../src => providers/ipathverbs}/verbs.c           |   0
+ {libmlx4 => providers/mlx4}/AUTHORS                |   0
+ {libmlx4/src => providers/mlx4}/CMakeLists.txt     |   0
+ {libmlx4 => providers/mlx4}/README                 |   0
+ {libmlx4/src => providers/mlx4}/buf.c              |   0
+ {libmlx4/src => providers/mlx4}/cq.c               |   0
+ {libmlx4/src => providers/mlx4}/dbrec.c            |   0
+ {libmlx4/src => providers/mlx4}/doorbell.h         |   0
+ {libmlx4/src => providers/mlx4}/mlx4-abi.h         |   0
+ {libmlx4/src => providers/mlx4}/mlx4.c             |   0
+ {libmlx4/src => providers/mlx4}/mlx4.h             |   0
+ {libmlx4/src => providers/mlx4}/mmio.h             |   0
+ {libmlx4/src => providers/mlx4}/qp.c               |   0
+ {libmlx4/src => providers/mlx4}/srq.c              |   0
+ {libmlx4/src => providers/mlx4}/verbs.c            |   0
+ {libmlx4/src => providers/mlx4}/wqe.h              |   0
+ {libmlx5 => providers/mlx5}/AUTHORS                |   0
+ {libmlx5/src => providers/mlx5}/CMakeLists.txt     |   0
+ {libmlx5 => providers/mlx5}/README                 |   0
+ {libmlx5/src => providers/mlx5}/bitmap.h           |   0
+ {libmlx5/src => providers/mlx5}/buf.c              |   0
+ {libmlx5/src => providers/mlx5}/cq.c               |   0
+ {libmlx5/src => providers/mlx5}/dbrec.c            |   0
+ {libmlx5/src => providers/mlx5}/doorbell.h         |   0
+ {libmlx5/src => providers/mlx5}/list.h             |   0
+ {libmlx5/src => providers/mlx5}/mlx5-abi.h         |   0
+ {libmlx5/src => providers/mlx5}/mlx5.c             |   0
+ {libmlx5/src => providers/mlx5}/mlx5.h             |   0
+ {libmlx5/src => providers/mlx5}/qp.c               |   0
+ {libmlx5/src => providers/mlx5}/srq.c              |   0
+ {libmlx5/src => providers/mlx5}/verbs.c            |   0
+ {libmlx5/src => providers/mlx5}/wqe.h              |   0
+ {libmthca => providers/mthca}/AUTHORS              |   0
+ {libmthca/src => providers/mthca}/CMakeLists.txt   |   0
+ {libmthca => providers/mthca}/README               |   0
+ {libmthca/src => providers/mthca}/ah.c             |   0
+ {libmthca/src => providers/mthca}/buf.c            |   0
+ {libmthca/src => providers/mthca}/cq.c             |   0
+ {libmthca/src => providers/mthca}/doorbell.h       |   0
+ {libmthca/src => providers/mthca}/memfree.c        |   0
+ {libmthca/src => providers/mthca}/mthca-abi.h      |   0
+ {libmthca/src => providers/mthca}/mthca.c          |   0
+ {libmthca/src => providers/mthca}/mthca.h          |   0
+ {libmthca/src => providers/mthca}/qp.c             |   0
+ {libmthca/src => providers/mthca}/srq.c            |   0
+ {libmthca/src => providers/mthca}/verbs.c          |   0
+ {libmthca/src => providers/mthca}/wqe.h            |   0
+ {libi40iw => providers/nes}/AUTHORS                |   0
+ {libnes/src => providers/nes}/CMakeLists.txt       |   0
+ {libnes => providers/nes}/COPYING                  |   0
+ {libnes/src => providers/nes}/nes-abi.h            |   0
+ {libnes/src => providers/nes}/nes_umain.c          |   0
+ {libnes/src => providers/nes}/nes_umain.h          |   0
+ {libnes/src => providers/nes}/nes_uverbs.c         |   0
+ {libocrdma => providers/ocrdma}/AUTHORS            |   0
+ {libocrdma/src => providers/ocrdma}/CMakeLists.txt |   0
+ {libocrdma => providers/ocrdma}/Changelog          |   0
+ {libocrdma => providers/ocrdma}/README             |   0
+ {libocrdma/src => providers/ocrdma}/ocrdma_abi.h   |   0
+ {libocrdma/src => providers/ocrdma}/ocrdma_list.h  |   0
+ {libocrdma/src => providers/ocrdma}/ocrdma_main.c  |   0
+ {libocrdma/src => providers/ocrdma}/ocrdma_main.h  |   0
+ {libocrdma/src => providers/ocrdma}/ocrdma_verbs.c |   0
+ {librxe => providers/rxe}/CMakeLists.txt           |   3 +
+ {librxe => providers/rxe}/README.md                |   0
+ {librxe => providers/rxe}/man/CMakeLists.txt       |   0
+ {librxe => providers/rxe}/man/rxe.7                |   0
+ {librxe => providers/rxe}/man/rxe_cfg.8            |   0
+ {librxe/src => providers/rxe}/rxe-abi.h            |   0
+ {librxe/src => providers/rxe}/rxe.c                |   0
+ {librxe/src => providers/rxe}/rxe.h                |   0
+ {librxe => providers/rxe}/rxe_cfg                  |   0
+ {librxe/src => providers/rxe}/rxe_queue.h          |   0
+ 180 files changed, 19 insertions(+), 1421 deletions(-)
  delete mode 100644 libcxgb3/libcxgb3.spec.in
- delete mode 100644 libcxgb3/src/iwch.map
- delete mode 100644 libcxgb4/COPYING
- delete mode 100644 libcxgb4/ChangeLog
- delete mode 100644 libcxgb4/Makefile.am
- delete mode 100755 libcxgb4/autogen.sh
- delete mode 100755 libcxgb4/config/config.guess
- delete mode 100755 libcxgb4/config/config.sub
- delete mode 100755 libcxgb4/config/depcomp
- delete mode 100755 libcxgb4/config/install-sh
- delete mode 100644 libcxgb4/configure.in
- delete mode 100644 libcxgb4/cxgb4.driver
  delete mode 100644 libcxgb4/libcxgb4.spec.in
- delete mode 100644 libcxgb4/src/cxgb4.map
- delete mode 100644 libhfi1verbs/.gitignore
- delete mode 100644 libhfi1verbs/Makefile.am
- delete mode 100755 libhfi1verbs/autogen.sh
- delete mode 100644 libhfi1verbs/configure.in
- delete mode 100644 libhfi1verbs/hfi1.driver
  delete mode 100644 libhfi1verbs/libhfi1verbs.spec.in
- delete mode 100644 libhfi1verbs/makefile
- delete mode 100644 libhfi1verbs/makesrpm.sh
- delete mode 100644 libhfi1verbs/src/hfiverbs.map
- delete mode 100644 libi40iw/COPYING
- delete mode 100644 libi40iw/Makefile.am
- delete mode 100644 libi40iw/configure.ac
- delete mode 100644 libi40iw/i40iw.driver
  delete mode 100644 libi40iw/libi40iw.spec.in
- delete mode 100644 libi40iw/src/i40iw.map
- delete mode 100644 libibcm/COPYING
- delete mode 100644 libibcm/ChangeLog
- delete mode 100644 libibcm/Makefile.am
- delete mode 100755 libibcm/autogen.sh
- delete mode 100644 libibcm/configure.in
- create mode 100644 libibcm/examples/CMakeLists.txt
- create mode 100644 libibcm/src/CMakeLists.txt
- mode change 100755 => 100644 libibcm/src/cm.c
- delete mode 100644 libibumad/COPYING
- delete mode 100644 libibumad/ChangeLog
- delete mode 100644 libibumad/Makefile.am
- delete mode 100755 libibumad/autogen.sh
- delete mode 100644 libibumad/configure.in
- create mode 100644 libibumad/man/CMakeLists.txt
- create mode 100644 libibumad/src/CMakeLists.txt
- create mode 100644 libibumad/tests/CMakeLists.txt
- delete mode 100644 libibverbs/.gitignore
- delete mode 100644 libibverbs/COPYING
- delete mode 100644 libibverbs/ChangeLog
- delete mode 100644 libibverbs/Makefile.am
- delete mode 100755 libibverbs/autogen.sh
- delete mode 100644 libibverbs/config/.gitignore
- delete mode 100644 libibverbs/configure.ac
- delete mode 100644 libibverbs/examples/.gitignore
- create mode 100644 libibverbs/examples/CMakeLists.txt
- create mode 100644 libibverbs/man/CMakeLists.txt
- delete mode 100644 libibverbs/src/.gitignore
- create mode 100644 libibverbs/src/CMakeLists.txt
- delete mode 100644 libipathverbs/.gitignore
- delete mode 100644 libipathverbs/Makefile.am
- delete mode 100755 libipathverbs/autogen.sh
- delete mode 100644 libipathverbs/configure.in
- delete mode 100644 libipathverbs/ipath.driver
  delete mode 100644 libipathverbs/libipathverbs.spec.in
- delete mode 100644 libipathverbs/src/ipathverbs.map
- delete mode 100644 libmlx4/.gitignore
- delete mode 100644 libmlx4/COPYING
- delete mode 100644 libmlx4/Makefile.am
- delete mode 100755 libmlx4/autogen.sh
- delete mode 100644 libmlx4/config/.gitignore
- delete mode 100644 libmlx4/configure.ac
+ delete mode 100644 libipathverbs/src/CMakeLists.txt
  delete mode 100644 libmlx4/debian/changelog
  delete mode 100644 libmlx4/debian/compat
  delete mode 100644 libmlx4/debian/control
@@ -521,15 +216,6 @@ Jason Gunthorpe (15):
  delete mode 100644 libmlx4/debian/source/format
  delete mode 100644 libmlx4/debian/watch
  delete mode 100644 libmlx4/libmlx4.spec.in
- delete mode 100644 libmlx4/mlx4.driver
- delete mode 100644 libmlx4/src/.gitignore
- delete mode 100644 libmlx4/src/mlx4.map
- delete mode 100644 libmlx5/.gitignore
- delete mode 100644 libmlx5/COPYING
- delete mode 100644 libmlx5/Makefile.am
- delete mode 100755 libmlx5/autogen.sh
- delete mode 100644 libmlx5/config/.gitignore
- delete mode 100644 libmlx5/configure.ac
  delete mode 100644 libmlx5/debian/changelog
  delete mode 100644 libmlx5/debian/compat
  delete mode 100644 libmlx5/debian/control
@@ -542,17 +228,6 @@ Jason Gunthorpe (15):
  delete mode 100644 libmlx5/debian/source/format
  delete mode 100644 libmlx5/debian/watch
  delete mode 100644 libmlx5/libmlx5.spec.in
- delete mode 100644 libmlx5/m4/ax_gcc_func_attribute.m4
- delete mode 100644 libmlx5/mlx5.driver
- delete mode 100644 libmlx5/src/.gitignore
- delete mode 100644 libmlx5/src/mlx5.map
- delete mode 100644 libmthca/.gitignore
- delete mode 100644 libmthca/COPYING
- delete mode 100644 libmthca/ChangeLog
- delete mode 100644 libmthca/Makefile.am
- delete mode 100755 libmthca/autogen.sh
- delete mode 100644 libmthca/config/.gitignore
- delete mode 100644 libmthca/configure.in
  delete mode 100644 libmthca/debian/changelog
  delete mode 100644 libmthca/debian/compat
  delete mode 100644 libmthca/debian/control
@@ -565,60 +240,12 @@ Jason Gunthorpe (15):
  delete mode 100644 libmthca/debian/source/format
  delete mode 100644 libmthca/debian/watch
  delete mode 100644 libmthca/libmthca.spec.in
- delete mode 100644 libmthca/mthca.driver
- delete mode 100644 libmthca/src/.gitignore
- delete mode 100644 libmthca/src/mthca.map
- delete mode 100644 libnes/Makefile.am
- delete mode 100755 libnes/autogen.sh
- delete mode 100644 libnes/config/.gitignore
- delete mode 100644 libnes/configure.in
  delete mode 100644 libnes/libnes.spec.in
- delete mode 100644 libnes/nes.driver
- delete mode 100644 libnes/src/nes.map
- delete mode 100644 libocrdma/COPYING
- delete mode 100644 libocrdma/Makefile.am
- delete mode 100644 libocrdma/autogen.sh
- delete mode 100644 libocrdma/config/.gitignore
- delete mode 100644 libocrdma/configure.in
  delete mode 100644 libocrdma/libocrdma.spec.in
- delete mode 100644 libocrdma/ocrdma.driver
- delete mode 100644 libocrdma/src/ocrdma.map
- delete mode 100644 librdmacm/.gitignore
- delete mode 100644 librdmacm/COPYING
- delete mode 100644 librdmacm/ChangeLog
- delete mode 100644 librdmacm/Makefile.am
- delete mode 100755 librdmacm/autogen.sh
- delete mode 100644 librdmacm/configure.ac
- delete mode 100644 librdmacm/examples/.gitignore
- create mode 100644 librdmacm/examples/CMakeLists.txt
- create mode 100644 librdmacm/man/CMakeLists.txt
- delete mode 100644 librdmacm/src/.gitignore
- create mode 100644 librdmacm/src/CMakeLists.txt
- create mode 100644 librdmacm/src/librspreload.map
- delete mode 100644 librxe/AUTHORS
- delete mode 100644 librxe/COPYING
- delete mode 100644 librxe/ChangeLog
- delete mode 100644 librxe/INSTALL
- delete mode 100644 librxe/Makefile.am
- delete mode 100644 librxe/Makefile.in
- delete mode 100644 librxe/NEWS
- delete mode 100644 librxe/README
- delete mode 100644 librxe/aclocal.m4
- delete mode 100644 librxe/config.h.in
- delete mode 100755 librxe/config/config.guess
- delete mode 100755 librxe/config/config.sub
- delete mode 100755 librxe/config/depcomp
- delete mode 100755 librxe/config/install-sh
- delete mode 100755 librxe/config/ltmain.sh
- delete mode 100755 librxe/config/missing
- delete mode 100755 librxe/configure
- delete mode 100644 librxe/configure.in
- delete mode 100644 librxe/librxe.spec
  delete mode 100644 librxe/librxe.spec.in
- delete mode 100644 librxe/rxe.driver
- delete mode 100644 librxe/src/rxe.map
+ delete mode 100644 librxe/src/CMakeLists.txt
  rename {libcxgb4 => providers/cxgb3}/AUTHORS (100%)
- create mode 100644 providers/cxgb3/CMakeLists.txt
+ rename {libcxgb3/src => providers/cxgb3}/CMakeLists.txt (100%)
  rename {libcxgb3 => providers/cxgb3}/COPYING (100%)
  rename {libcxgb3 => providers/cxgb3}/README (100%)
  rename {libcxgb3/src => providers/cxgb3}/cq.c (100%)
@@ -630,7 +257,7 @@ Jason Gunthorpe (15):
  rename {libcxgb3/src => providers/cxgb3}/qp.c (100%)
  rename {libcxgb3/src => providers/cxgb3}/verbs.c (100%)
  rename {libcxgb3 => providers/cxgb4}/AUTHORS (100%)
- create mode 100644 providers/cxgb4/CMakeLists.txt
+ rename {libcxgb4/src => providers/cxgb4}/CMakeLists.txt (100%)
  rename {libcxgb4 => providers/cxgb4}/README (100%)
  rename {libcxgb4/src => providers/cxgb4}/cq.c (100%)
  rename {libcxgb4/src => providers/cxgb4}/cxgb4-abi.h (100%)
@@ -645,7 +272,7 @@ Jason Gunthorpe (15):
  rename {libcxgb4/src => providers/cxgb4}/t4fw_interface.h (100%)
  rename {libcxgb4/src => providers/cxgb4}/verbs.c (100%)
  rename {libhfi1verbs => providers/hfi1verbs}/AUTHORS (100%)
- create mode 100644 providers/hfi1verbs/CMakeLists.txt
+ rename {libhfi1verbs/src => providers/hfi1verbs}/CMakeLists.txt (100%)
  rename {libhfi1verbs => providers/hfi1verbs}/COPYING (100%)
  rename {libhfi1verbs => providers/hfi1verbs}/README (100%)
  rename {libhfi1verbs/src => providers/hfi1verbs}/hfi-abi.h (100%)
@@ -653,7 +280,7 @@ Jason Gunthorpe (15):
  rename {libhfi1verbs/src => providers/hfi1verbs}/hfiverbs.h (100%)
  rename {libhfi1verbs/src => providers/hfi1verbs}/verbs.c (100%)
  rename {libnes => providers/i40iw}/AUTHORS (100%)
- create mode 100644 providers/i40iw/CMakeLists.txt
+ rename {libi40iw/src => providers/i40iw}/CMakeLists.txt (100%)
  rename {libi40iw/src => providers/i40iw}/i40e_devids.h (100%)
  rename {libi40iw/src => providers/i40iw}/i40iw-abi.h (100%)
  rename {libi40iw/src => providers/i40iw}/i40iw_d.h (100%)
@@ -666,7 +293,7 @@ Jason Gunthorpe (15):
  rename {libi40iw/src => providers/i40iw}/i40iw_user.h (100%)
  rename {libi40iw/src => providers/i40iw}/i40iw_uverbs.c (100%)
  rename {libipathverbs => providers/ipathverbs}/AUTHORS (100%)
- create mode 100644 providers/ipathverbs/CMakeLists.txt
+ rename {libipathverbs => providers/ipathverbs}/CMakeLists.txt (80%)
  rename {libipathverbs => providers/ipathverbs}/COPYING (100%)
  rename {libipathverbs => providers/ipathverbs}/README (100%)
  rename {libipathverbs => providers/ipathverbs}/dracut_check (100%)
@@ -676,15 +303,14 @@ Jason Gunthorpe (15):
  rename {libipathverbs/src => providers/ipathverbs}/ipathverbs.c (100%)
  rename {libipathverbs/src => providers/ipathverbs}/ipathverbs.h (100%)
  rename {libipathverbs => providers/ipathverbs}/truescale-serdes.cmds (100%)
- mode change 100644 => 100755
  rename {libipathverbs => providers/ipathverbs}/truescale.conf (100%)
  rename {libipathverbs/src => providers/ipathverbs}/verbs.c (100%)
  rename {libmlx4 => providers/mlx4}/AUTHORS (100%)
- create mode 100644 providers/mlx4/CMakeLists.txt
+ rename {libmlx4/src => providers/mlx4}/CMakeLists.txt (100%)
  rename {libmlx4 => providers/mlx4}/README (100%)
  rename {libmlx4/src => providers/mlx4}/buf.c (100%)
  rename {libmlx4/src => providers/mlx4}/cq.c (100%)
- rename {libmlx4/src => providers/mlx4}/dbrec.c (99%)
+ rename {libmlx4/src => providers/mlx4}/dbrec.c (100%)
  rename {libmlx4/src => providers/mlx4}/doorbell.h (100%)
  rename {libmlx4/src => providers/mlx4}/mlx4-abi.h (100%)
  rename {libmlx4/src => providers/mlx4}/mlx4.c (100%)
@@ -695,29 +321,29 @@ Jason Gunthorpe (15):
  rename {libmlx4/src => providers/mlx4}/verbs.c (100%)
  rename {libmlx4/src => providers/mlx4}/wqe.h (100%)
  rename {libmlx5 => providers/mlx5}/AUTHORS (100%)
- create mode 100644 providers/mlx5/CMakeLists.txt
+ rename {libmlx5/src => providers/mlx5}/CMakeLists.txt (100%)
  rename {libmlx5 => providers/mlx5}/README (100%)
  rename {libmlx5/src => providers/mlx5}/bitmap.h (100%)
  rename {libmlx5/src => providers/mlx5}/buf.c (100%)
  rename {libmlx5/src => providers/mlx5}/cq.c (100%)
- rename {libmlx5/src => providers/mlx5}/dbrec.c (99%)
+ rename {libmlx5/src => providers/mlx5}/dbrec.c (100%)
  rename {libmlx5/src => providers/mlx5}/doorbell.h (100%)
  rename {libmlx5/src => providers/mlx5}/list.h (100%)
  rename {libmlx5/src => providers/mlx5}/mlx5-abi.h (100%)
- rename {libmlx5/src => providers/mlx5}/mlx5.c (99%)
+ rename {libmlx5/src => providers/mlx5}/mlx5.c (100%)
  rename {libmlx5/src => providers/mlx5}/mlx5.h (100%)
  rename {libmlx5/src => providers/mlx5}/qp.c (100%)
  rename {libmlx5/src => providers/mlx5}/srq.c (100%)
  rename {libmlx5/src => providers/mlx5}/verbs.c (100%)
  rename {libmlx5/src => providers/mlx5}/wqe.h (100%)
  rename {libmthca => providers/mthca}/AUTHORS (100%)
- create mode 100644 providers/mthca/CMakeLists.txt
+ rename {libmthca/src => providers/mthca}/CMakeLists.txt (100%)
  rename {libmthca => providers/mthca}/README (100%)
  rename {libmthca/src => providers/mthca}/ah.c (100%)
  rename {libmthca/src => providers/mthca}/buf.c (100%)
  rename {libmthca/src => providers/mthca}/cq.c (100%)
  rename {libmthca/src => providers/mthca}/doorbell.h (100%)
- rename {libmthca/src => providers/mthca}/memfree.c (99%)
+ rename {libmthca/src => providers/mthca}/memfree.c (100%)
  rename {libmthca/src => providers/mthca}/mthca-abi.h (100%)
  rename {libmthca/src => providers/mthca}/mthca.c (100%)
  rename {libmthca/src => providers/mthca}/mthca.h (100%)
@@ -726,14 +352,14 @@ Jason Gunthorpe (15):
  rename {libmthca/src => providers/mthca}/verbs.c (100%)
  rename {libmthca/src => providers/mthca}/wqe.h (100%)
  rename {libi40iw => providers/nes}/AUTHORS (100%)
- create mode 100644 providers/nes/CMakeLists.txt
+ rename {libnes/src => providers/nes}/CMakeLists.txt (100%)
  rename {libnes => providers/nes}/COPYING (100%)
  rename {libnes/src => providers/nes}/nes-abi.h (100%)
  rename {libnes/src => providers/nes}/nes_umain.c (100%)
  rename {libnes/src => providers/nes}/nes_umain.h (100%)
  rename {libnes/src => providers/nes}/nes_uverbs.c (100%)
  rename {libocrdma => providers/ocrdma}/AUTHORS (100%)
- create mode 100644 providers/ocrdma/CMakeLists.txt
+ rename {libocrdma/src => providers/ocrdma}/CMakeLists.txt (100%)
  rename {libocrdma => providers/ocrdma}/Changelog (100%)
  rename {libocrdma => providers/ocrdma}/README (100%)
  rename {libocrdma/src => providers/ocrdma}/ocrdma_abi.h (100%)
@@ -741,9 +367,9 @@ Jason Gunthorpe (15):
  rename {libocrdma/src => providers/ocrdma}/ocrdma_main.c (100%)
  rename {libocrdma/src => providers/ocrdma}/ocrdma_main.h (100%)
  rename {libocrdma/src => providers/ocrdma}/ocrdma_verbs.c (100%)
- create mode 100644 providers/rxe/CMakeLists.txt
+ rename {librxe => providers/rxe}/CMakeLists.txt (82%)
  rename {librxe => providers/rxe}/README.md (100%)
- create mode 100644 providers/rxe/man/CMakeLists.txt
+ rename {librxe => providers/rxe}/man/CMakeLists.txt (100%)
  rename {librxe => providers/rxe}/man/rxe.7 (100%)
  rename {librxe => providers/rxe}/man/rxe_cfg.8 (100%)
  rename {librxe/src => providers/rxe}/rxe-abi.h (100%)
@@ -752,6 +378,734 @@ Jason Gunthorpe (15):
  rename {librxe => providers/rxe}/rxe_cfg (100%)
  rename {librxe/src => providers/rxe}/rxe_queue.h (100%)
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 4058c8a68258..f18e65289396 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -188,20 +188,18 @@ add_subdirectory(librdmacm/man)
+ add_subdirectory(libibcm/src)
+ 
+ # Providers
+-add_subdirectory(libcxgb3/src)
+-add_subdirectory(libcxgb4/src)
+-add_subdirectory(libhfi1verbs/src)
+-add_subdirectory(libi40iw/src)
+-add_subdirectory(libipathverbs/src)
+-add_subdirectory(libipathverbs/)
+-add_subdirectory(libmlx4/src)
+-add_subdirectory(libmlx5/src)
+-add_subdirectory(libmthca/src)
+-add_subdirectory(libnes/src)
+-add_subdirectory(libocrdma/src)
+-add_subdirectory(librxe/src)
+-add_subdirectory(librxe/man)
+-add_subdirectory(librxe/)
++add_subdirectory(providers/cxgb3)
++add_subdirectory(providers/cxgb4)
++add_subdirectory(providers/hfi1verbs)
++add_subdirectory(providers/i40iw)
++add_subdirectory(providers/ipathverbs)
++add_subdirectory(providers/mlx4)
++add_subdirectory(providers/mlx5)
++add_subdirectory(providers/mthca)
++add_subdirectory(providers/nes)
++add_subdirectory(providers/ocrdma)
++add_subdirectory(providers/rxe)
++add_subdirectory(providers/rxe/man)
+ 
+ # Binaries
+ add_subdirectory(libibcm/examples)
+diff --git a/libcxgb3/libcxgb3.spec.in b/libcxgb3/libcxgb3.spec.in
+deleted file mode 100644
+index 1ae72d793111..000000000000
+diff --git a/libcxgb4/libcxgb4.spec.in b/libcxgb4/libcxgb4.spec.in
+deleted file mode 100644
+index 6b4294468cf0..000000000000
+diff --git a/libhfi1verbs/libhfi1verbs.spec.in b/libhfi1verbs/libhfi1verbs.spec.in
+deleted file mode 100644
+index 110d795cc31b..000000000000
+diff --git a/libi40iw/libi40iw.spec.in b/libi40iw/libi40iw.spec.in
+deleted file mode 100644
+index 4e794fa1898c..000000000000
+diff --git a/libipathverbs/libipathverbs.spec.in b/libipathverbs/libipathverbs.spec.in
+deleted file mode 100644
+index d029696d70ef..000000000000
+diff --git a/libipathverbs/src/CMakeLists.txt b/libipathverbs/src/CMakeLists.txt
+deleted file mode 100644
+index 20924fda7900..000000000000
+diff --git a/libmlx4/debian/changelog b/libmlx4/debian/changelog
+deleted file mode 100644
+index ec7ba21e0573..000000000000
+diff --git a/libmlx4/debian/compat b/libmlx4/debian/compat
+deleted file mode 100644
+index 7f8f011eb73d..000000000000
+diff --git a/libmlx4/debian/control b/libmlx4/debian/control
+deleted file mode 100644
+index ab08e00e4eeb..000000000000
+diff --git a/libmlx4/debian/copyright b/libmlx4/debian/copyright
+deleted file mode 100644
+index db07a25fcbf1..000000000000
+diff --git a/libmlx4/debian/libmlx4-1.install b/libmlx4/debian/libmlx4-1.install
+deleted file mode 100644
+index 8cab406b098d..000000000000
+diff --git a/libmlx4/debian/libmlx4-dev.install b/libmlx4/debian/libmlx4-dev.install
+deleted file mode 100644
+index 8f70e5214388..000000000000
+diff --git a/libmlx4/debian/patches/driver-plugin-directory.patch b/libmlx4/debian/patches/driver-plugin-directory.patch
+deleted file mode 100644
+index fd73a739f424..000000000000
+diff --git a/libmlx4/debian/patches/series b/libmlx4/debian/patches/series
+deleted file mode 100644
+index 213f49e4c278..000000000000
+diff --git a/libmlx4/debian/rules b/libmlx4/debian/rules
+deleted file mode 100755
+index 9d15bec7c2a8..000000000000
+diff --git a/libmlx4/debian/source/format b/libmlx4/debian/source/format
+deleted file mode 100644
+index 163aaf8d82b6..000000000000
+diff --git a/libmlx4/debian/watch b/libmlx4/debian/watch
+deleted file mode 100644
+index 06bae51d7eb3..000000000000
+diff --git a/libmlx4/libmlx4.spec.in b/libmlx4/libmlx4.spec.in
+deleted file mode 100644
+index 3c93122b5a02..000000000000
+diff --git a/libmlx5/debian/changelog b/libmlx5/debian/changelog
+deleted file mode 100644
+index f43b43f41dfd..000000000000
+diff --git a/libmlx5/debian/compat b/libmlx5/debian/compat
+deleted file mode 100644
+index 7f8f011eb73d..000000000000
+diff --git a/libmlx5/debian/control b/libmlx5/debian/control
+deleted file mode 100644
+index 0aceae4a25ae..000000000000
+diff --git a/libmlx5/debian/copyright b/libmlx5/debian/copyright
+deleted file mode 100644
+index db07a25fcbf1..000000000000
+diff --git a/libmlx5/debian/libmlx5-1.install b/libmlx5/debian/libmlx5-1.install
+deleted file mode 100644
+index 1af89543be5a..000000000000
+diff --git a/libmlx5/debian/libmlx5-dev.install b/libmlx5/debian/libmlx5-dev.install
+deleted file mode 100644
+index 7de9fbe4978b..000000000000
+diff --git a/libmlx5/debian/patches/driver-plugin-directory.patch b/libmlx5/debian/patches/driver-plugin-directory.patch
+deleted file mode 100644
+index 91eb0482b3bb..000000000000
+diff --git a/libmlx5/debian/patches/series b/libmlx5/debian/patches/series
+deleted file mode 100644
+index 213f49e4c278..000000000000
+diff --git a/libmlx5/debian/rules b/libmlx5/debian/rules
+deleted file mode 100755
+index c8a46746512a..000000000000
+diff --git a/libmlx5/debian/source/format b/libmlx5/debian/source/format
+deleted file mode 100644
+index 163aaf8d82b6..000000000000
+diff --git a/libmlx5/debian/watch b/libmlx5/debian/watch
+deleted file mode 100644
+index cf13e694b2f8..000000000000
+diff --git a/libmlx5/libmlx5.spec.in b/libmlx5/libmlx5.spec.in
+deleted file mode 100644
+index 8c73c40fea39..000000000000
+diff --git a/libmthca/debian/changelog b/libmthca/debian/changelog
+deleted file mode 100644
+index d106ed76b49a..000000000000
+diff --git a/libmthca/debian/compat b/libmthca/debian/compat
+deleted file mode 100644
+index 7f8f011eb73d..000000000000
+diff --git a/libmthca/debian/control b/libmthca/debian/control
+deleted file mode 100644
+index 5ad14106b85c..000000000000
+diff --git a/libmthca/debian/copyright b/libmthca/debian/copyright
+deleted file mode 100644
+index 04abee0b74f7..000000000000
+diff --git a/libmthca/debian/libmthca-dev.install b/libmthca/debian/libmthca-dev.install
+deleted file mode 100644
+index e8122b99f572..000000000000
+diff --git a/libmthca/debian/libmthca1.install b/libmthca/debian/libmthca1.install
+deleted file mode 100644
+index 7d1d899e896f..000000000000
+diff --git a/libmthca/debian/patches/driver-plugin-directory.patch b/libmthca/debian/patches/driver-plugin-directory.patch
+deleted file mode 100644
+index 2ed7a66a24c0..000000000000
+diff --git a/libmthca/debian/patches/series b/libmthca/debian/patches/series
+deleted file mode 100644
+index 213f49e4c278..000000000000
+diff --git a/libmthca/debian/rules b/libmthca/debian/rules
+deleted file mode 100755
+index 902923802e67..000000000000
+diff --git a/libmthca/debian/source/format b/libmthca/debian/source/format
+deleted file mode 100644
+index 163aaf8d82b6..000000000000
+diff --git a/libmthca/debian/watch b/libmthca/debian/watch
+deleted file mode 100644
+index 8010f867b5d5..000000000000
+diff --git a/libmthca/libmthca.spec.in b/libmthca/libmthca.spec.in
+deleted file mode 100644
+index f23a159a5b97..000000000000
+diff --git a/libnes/libnes.spec.in b/libnes/libnes.spec.in
+deleted file mode 100644
+index 251365aedd1d..000000000000
+diff --git a/libocrdma/libocrdma.spec.in b/libocrdma/libocrdma.spec.in
+deleted file mode 100644
+index 5f7d9f13c527..000000000000
+diff --git a/librxe/librxe.spec.in b/librxe/librxe.spec.in
+deleted file mode 100644
+index 16dbaa615946..000000000000
+diff --git a/librxe/src/CMakeLists.txt b/librxe/src/CMakeLists.txt
+deleted file mode 100644
+index d8f3265176e4..000000000000
+diff --git a/libcxgb4/AUTHORS b/providers/cxgb3/AUTHORS
+similarity index 100%
+rename from libcxgb4/AUTHORS
+rename to providers/cxgb3/AUTHORS
+diff --git a/libcxgb3/src/CMakeLists.txt b/providers/cxgb3/CMakeLists.txt
+similarity index 100%
+rename from libcxgb3/src/CMakeLists.txt
+rename to providers/cxgb3/CMakeLists.txt
+diff --git a/libcxgb3/COPYING b/providers/cxgb3/COPYING
+similarity index 100%
+rename from libcxgb3/COPYING
+rename to providers/cxgb3/COPYING
+diff --git a/libcxgb3/README b/providers/cxgb3/README
+similarity index 100%
+rename from libcxgb3/README
+rename to providers/cxgb3/README
+diff --git a/libcxgb3/src/cq.c b/providers/cxgb3/cq.c
+similarity index 100%
+rename from libcxgb3/src/cq.c
+rename to providers/cxgb3/cq.c
+diff --git a/libcxgb3/src/cxio_wr.h b/providers/cxgb3/cxio_wr.h
+similarity index 100%
+rename from libcxgb3/src/cxio_wr.h
+rename to providers/cxgb3/cxio_wr.h
+diff --git a/libcxgb3/src/firmware_exports.h b/providers/cxgb3/firmware_exports.h
+similarity index 100%
+rename from libcxgb3/src/firmware_exports.h
+rename to providers/cxgb3/firmware_exports.h
+diff --git a/libcxgb3/src/iwch-abi.h b/providers/cxgb3/iwch-abi.h
+similarity index 100%
+rename from libcxgb3/src/iwch-abi.h
+rename to providers/cxgb3/iwch-abi.h
+diff --git a/libcxgb3/src/iwch.c b/providers/cxgb3/iwch.c
+similarity index 100%
+rename from libcxgb3/src/iwch.c
+rename to providers/cxgb3/iwch.c
+diff --git a/libcxgb3/src/iwch.h b/providers/cxgb3/iwch.h
+similarity index 100%
+rename from libcxgb3/src/iwch.h
+rename to providers/cxgb3/iwch.h
+diff --git a/libcxgb3/src/qp.c b/providers/cxgb3/qp.c
+similarity index 100%
+rename from libcxgb3/src/qp.c
+rename to providers/cxgb3/qp.c
+diff --git a/libcxgb3/src/verbs.c b/providers/cxgb3/verbs.c
+similarity index 100%
+rename from libcxgb3/src/verbs.c
+rename to providers/cxgb3/verbs.c
+diff --git a/libcxgb3/AUTHORS b/providers/cxgb4/AUTHORS
+similarity index 100%
+rename from libcxgb3/AUTHORS
+rename to providers/cxgb4/AUTHORS
+diff --git a/libcxgb4/src/CMakeLists.txt b/providers/cxgb4/CMakeLists.txt
+similarity index 100%
+rename from libcxgb4/src/CMakeLists.txt
+rename to providers/cxgb4/CMakeLists.txt
+diff --git a/libcxgb4/README b/providers/cxgb4/README
+similarity index 100%
+rename from libcxgb4/README
+rename to providers/cxgb4/README
+diff --git a/libcxgb4/src/cq.c b/providers/cxgb4/cq.c
+similarity index 100%
+rename from libcxgb4/src/cq.c
+rename to providers/cxgb4/cq.c
+diff --git a/libcxgb4/src/cxgb4-abi.h b/providers/cxgb4/cxgb4-abi.h
+similarity index 100%
+rename from libcxgb4/src/cxgb4-abi.h
+rename to providers/cxgb4/cxgb4-abi.h
+diff --git a/libcxgb4/src/dev.c b/providers/cxgb4/dev.c
+similarity index 100%
+rename from libcxgb4/src/dev.c
+rename to providers/cxgb4/dev.c
+diff --git a/libcxgb4/src/libcxgb4.h b/providers/cxgb4/libcxgb4.h
+similarity index 100%
+rename from libcxgb4/src/libcxgb4.h
+rename to providers/cxgb4/libcxgb4.h
+diff --git a/libcxgb4/src/qp.c b/providers/cxgb4/qp.c
+similarity index 100%
+rename from libcxgb4/src/qp.c
+rename to providers/cxgb4/qp.c
+diff --git a/libcxgb4/src/queue.h b/providers/cxgb4/queue.h
+similarity index 100%
+rename from libcxgb4/src/queue.h
+rename to providers/cxgb4/queue.h
+diff --git a/libcxgb4/src/t4.h b/providers/cxgb4/t4.h
+similarity index 100%
+rename from libcxgb4/src/t4.h
+rename to providers/cxgb4/t4.h
+diff --git a/libcxgb4/src/t4_chip_type.h b/providers/cxgb4/t4_chip_type.h
+similarity index 100%
+rename from libcxgb4/src/t4_chip_type.h
+rename to providers/cxgb4/t4_chip_type.h
+diff --git a/libcxgb4/src/t4_pci_id_tbl.h b/providers/cxgb4/t4_pci_id_tbl.h
+similarity index 100%
+rename from libcxgb4/src/t4_pci_id_tbl.h
+rename to providers/cxgb4/t4_pci_id_tbl.h
+diff --git a/libcxgb4/src/t4_regs.h b/providers/cxgb4/t4_regs.h
+similarity index 100%
+rename from libcxgb4/src/t4_regs.h
+rename to providers/cxgb4/t4_regs.h
+diff --git a/libcxgb4/src/t4fw_interface.h b/providers/cxgb4/t4fw_interface.h
+similarity index 100%
+rename from libcxgb4/src/t4fw_interface.h
+rename to providers/cxgb4/t4fw_interface.h
+diff --git a/libcxgb4/src/verbs.c b/providers/cxgb4/verbs.c
+similarity index 100%
+rename from libcxgb4/src/verbs.c
+rename to providers/cxgb4/verbs.c
+diff --git a/libhfi1verbs/AUTHORS b/providers/hfi1verbs/AUTHORS
+similarity index 100%
+rename from libhfi1verbs/AUTHORS
+rename to providers/hfi1verbs/AUTHORS
+diff --git a/libhfi1verbs/src/CMakeLists.txt b/providers/hfi1verbs/CMakeLists.txt
+similarity index 100%
+rename from libhfi1verbs/src/CMakeLists.txt
+rename to providers/hfi1verbs/CMakeLists.txt
+diff --git a/libhfi1verbs/COPYING b/providers/hfi1verbs/COPYING
+similarity index 100%
+rename from libhfi1verbs/COPYING
+rename to providers/hfi1verbs/COPYING
+diff --git a/libhfi1verbs/README b/providers/hfi1verbs/README
+similarity index 100%
+rename from libhfi1verbs/README
+rename to providers/hfi1verbs/README
+diff --git a/libhfi1verbs/src/hfi-abi.h b/providers/hfi1verbs/hfi-abi.h
+similarity index 100%
+rename from libhfi1verbs/src/hfi-abi.h
+rename to providers/hfi1verbs/hfi-abi.h
+diff --git a/libhfi1verbs/src/hfiverbs.c b/providers/hfi1verbs/hfiverbs.c
+similarity index 100%
+rename from libhfi1verbs/src/hfiverbs.c
+rename to providers/hfi1verbs/hfiverbs.c
+diff --git a/libhfi1verbs/src/hfiverbs.h b/providers/hfi1verbs/hfiverbs.h
+similarity index 100%
+rename from libhfi1verbs/src/hfiverbs.h
+rename to providers/hfi1verbs/hfiverbs.h
+diff --git a/libhfi1verbs/src/verbs.c b/providers/hfi1verbs/verbs.c
+similarity index 100%
+rename from libhfi1verbs/src/verbs.c
+rename to providers/hfi1verbs/verbs.c
+diff --git a/libnes/AUTHORS b/providers/i40iw/AUTHORS
+similarity index 100%
+rename from libnes/AUTHORS
+rename to providers/i40iw/AUTHORS
+diff --git a/libi40iw/src/CMakeLists.txt b/providers/i40iw/CMakeLists.txt
+similarity index 100%
+rename from libi40iw/src/CMakeLists.txt
+rename to providers/i40iw/CMakeLists.txt
+diff --git a/libi40iw/src/i40e_devids.h b/providers/i40iw/i40e_devids.h
+similarity index 100%
+rename from libi40iw/src/i40e_devids.h
+rename to providers/i40iw/i40e_devids.h
+diff --git a/libi40iw/src/i40iw-abi.h b/providers/i40iw/i40iw-abi.h
+similarity index 100%
+rename from libi40iw/src/i40iw-abi.h
+rename to providers/i40iw/i40iw-abi.h
+diff --git a/libi40iw/src/i40iw_d.h b/providers/i40iw/i40iw_d.h
+similarity index 100%
+rename from libi40iw/src/i40iw_d.h
+rename to providers/i40iw/i40iw_d.h
+diff --git a/libi40iw/src/i40iw_osdep.h b/providers/i40iw/i40iw_osdep.h
+similarity index 100%
+rename from libi40iw/src/i40iw_osdep.h
+rename to providers/i40iw/i40iw_osdep.h
+diff --git a/libi40iw/src/i40iw_register.h b/providers/i40iw/i40iw_register.h
+similarity index 100%
+rename from libi40iw/src/i40iw_register.h
+rename to providers/i40iw/i40iw_register.h
+diff --git a/libi40iw/src/i40iw_status.h b/providers/i40iw/i40iw_status.h
+similarity index 100%
+rename from libi40iw/src/i40iw_status.h
+rename to providers/i40iw/i40iw_status.h
+diff --git a/libi40iw/src/i40iw_uk.c b/providers/i40iw/i40iw_uk.c
+similarity index 100%
+rename from libi40iw/src/i40iw_uk.c
+rename to providers/i40iw/i40iw_uk.c
+diff --git a/libi40iw/src/i40iw_umain.c b/providers/i40iw/i40iw_umain.c
+similarity index 100%
+rename from libi40iw/src/i40iw_umain.c
+rename to providers/i40iw/i40iw_umain.c
+diff --git a/libi40iw/src/i40iw_umain.h b/providers/i40iw/i40iw_umain.h
+similarity index 100%
+rename from libi40iw/src/i40iw_umain.h
+rename to providers/i40iw/i40iw_umain.h
+diff --git a/libi40iw/src/i40iw_user.h b/providers/i40iw/i40iw_user.h
+similarity index 100%
+rename from libi40iw/src/i40iw_user.h
+rename to providers/i40iw/i40iw_user.h
+diff --git a/libi40iw/src/i40iw_uverbs.c b/providers/i40iw/i40iw_uverbs.c
+similarity index 100%
+rename from libi40iw/src/i40iw_uverbs.c
+rename to providers/i40iw/i40iw_uverbs.c
+diff --git a/libipathverbs/AUTHORS b/providers/ipathverbs/AUTHORS
+similarity index 100%
+rename from libipathverbs/AUTHORS
+rename to providers/ipathverbs/AUTHORS
+diff --git a/libipathverbs/CMakeLists.txt b/providers/ipathverbs/CMakeLists.txt
+similarity index 80%
+rename from libipathverbs/CMakeLists.txt
+rename to providers/ipathverbs/CMakeLists.txt
+index eba006e4c409..afebc36ec14f 100644
+--- a/libipathverbs/CMakeLists.txt
++++ b/providers/ipathverbs/CMakeLists.txt
+@@ -1,3 +1,7 @@
++rdma_provider(ipathverbs
++  ipathverbs.c
++  verbs.c
++  )
+ install(FILES truescale.conf DESTINATION "${SYSCONFDIR}/modprobe.d/")
+ install(FILES truescale-serdes.cmds
+   DESTINATION "sbin/"
+diff --git a/libipathverbs/COPYING b/providers/ipathverbs/COPYING
+similarity index 100%
+rename from libipathverbs/COPYING
+rename to providers/ipathverbs/COPYING
+diff --git a/libipathverbs/README b/providers/ipathverbs/README
+similarity index 100%
+rename from libipathverbs/README
+rename to providers/ipathverbs/README
+diff --git a/libipathverbs/dracut_check b/providers/ipathverbs/dracut_check
+similarity index 100%
+rename from libipathverbs/dracut_check
+rename to providers/ipathverbs/dracut_check
+diff --git a/libipathverbs/dracut_install b/providers/ipathverbs/dracut_install
+similarity index 100%
+rename from libipathverbs/dracut_install
+rename to providers/ipathverbs/dracut_install
+diff --git a/libipathverbs/dracut_kmod b/providers/ipathverbs/dracut_kmod
+similarity index 100%
+rename from libipathverbs/dracut_kmod
+rename to providers/ipathverbs/dracut_kmod
+diff --git a/libipathverbs/src/ipath-abi.h b/providers/ipathverbs/ipath-abi.h
+similarity index 100%
+rename from libipathverbs/src/ipath-abi.h
+rename to providers/ipathverbs/ipath-abi.h
+diff --git a/libipathverbs/src/ipathverbs.c b/providers/ipathverbs/ipathverbs.c
+similarity index 100%
+rename from libipathverbs/src/ipathverbs.c
+rename to providers/ipathverbs/ipathverbs.c
+diff --git a/libipathverbs/src/ipathverbs.h b/providers/ipathverbs/ipathverbs.h
+similarity index 100%
+rename from libipathverbs/src/ipathverbs.h
+rename to providers/ipathverbs/ipathverbs.h
+diff --git a/libipathverbs/truescale-serdes.cmds b/providers/ipathverbs/truescale-serdes.cmds
+similarity index 100%
+rename from libipathverbs/truescale-serdes.cmds
+rename to providers/ipathverbs/truescale-serdes.cmds
+diff --git a/libipathverbs/truescale.conf b/providers/ipathverbs/truescale.conf
+similarity index 100%
+rename from libipathverbs/truescale.conf
+rename to providers/ipathverbs/truescale.conf
+diff --git a/libipathverbs/src/verbs.c b/providers/ipathverbs/verbs.c
+similarity index 100%
+rename from libipathverbs/src/verbs.c
+rename to providers/ipathverbs/verbs.c
+diff --git a/libmlx4/AUTHORS b/providers/mlx4/AUTHORS
+similarity index 100%
+rename from libmlx4/AUTHORS
+rename to providers/mlx4/AUTHORS
+diff --git a/libmlx4/src/CMakeLists.txt b/providers/mlx4/CMakeLists.txt
+similarity index 100%
+rename from libmlx4/src/CMakeLists.txt
+rename to providers/mlx4/CMakeLists.txt
+diff --git a/libmlx4/README b/providers/mlx4/README
+similarity index 100%
+rename from libmlx4/README
+rename to providers/mlx4/README
+diff --git a/libmlx4/src/buf.c b/providers/mlx4/buf.c
+similarity index 100%
+rename from libmlx4/src/buf.c
+rename to providers/mlx4/buf.c
+diff --git a/libmlx4/src/cq.c b/providers/mlx4/cq.c
+similarity index 100%
+rename from libmlx4/src/cq.c
+rename to providers/mlx4/cq.c
+diff --git a/libmlx4/src/dbrec.c b/providers/mlx4/dbrec.c
+similarity index 100%
+rename from libmlx4/src/dbrec.c
+rename to providers/mlx4/dbrec.c
+diff --git a/libmlx4/src/doorbell.h b/providers/mlx4/doorbell.h
+similarity index 100%
+rename from libmlx4/src/doorbell.h
+rename to providers/mlx4/doorbell.h
+diff --git a/libmlx4/src/mlx4-abi.h b/providers/mlx4/mlx4-abi.h
+similarity index 100%
+rename from libmlx4/src/mlx4-abi.h
+rename to providers/mlx4/mlx4-abi.h
+diff --git a/libmlx4/src/mlx4.c b/providers/mlx4/mlx4.c
+similarity index 100%
+rename from libmlx4/src/mlx4.c
+rename to providers/mlx4/mlx4.c
+diff --git a/libmlx4/src/mlx4.h b/providers/mlx4/mlx4.h
+similarity index 100%
+rename from libmlx4/src/mlx4.h
+rename to providers/mlx4/mlx4.h
+diff --git a/libmlx4/src/mmio.h b/providers/mlx4/mmio.h
+similarity index 100%
+rename from libmlx4/src/mmio.h
+rename to providers/mlx4/mmio.h
+diff --git a/libmlx4/src/qp.c b/providers/mlx4/qp.c
+similarity index 100%
+rename from libmlx4/src/qp.c
+rename to providers/mlx4/qp.c
+diff --git a/libmlx4/src/srq.c b/providers/mlx4/srq.c
+similarity index 100%
+rename from libmlx4/src/srq.c
+rename to providers/mlx4/srq.c
+diff --git a/libmlx4/src/verbs.c b/providers/mlx4/verbs.c
+similarity index 100%
+rename from libmlx4/src/verbs.c
+rename to providers/mlx4/verbs.c
+diff --git a/libmlx4/src/wqe.h b/providers/mlx4/wqe.h
+similarity index 100%
+rename from libmlx4/src/wqe.h
+rename to providers/mlx4/wqe.h
+diff --git a/libmlx5/AUTHORS b/providers/mlx5/AUTHORS
+similarity index 100%
+rename from libmlx5/AUTHORS
+rename to providers/mlx5/AUTHORS
+diff --git a/libmlx5/src/CMakeLists.txt b/providers/mlx5/CMakeLists.txt
+similarity index 100%
+rename from libmlx5/src/CMakeLists.txt
+rename to providers/mlx5/CMakeLists.txt
+diff --git a/libmlx5/README b/providers/mlx5/README
+similarity index 100%
+rename from libmlx5/README
+rename to providers/mlx5/README
+diff --git a/libmlx5/src/bitmap.h b/providers/mlx5/bitmap.h
+similarity index 100%
+rename from libmlx5/src/bitmap.h
+rename to providers/mlx5/bitmap.h
+diff --git a/libmlx5/src/buf.c b/providers/mlx5/buf.c
+similarity index 100%
+rename from libmlx5/src/buf.c
+rename to providers/mlx5/buf.c
+diff --git a/libmlx5/src/cq.c b/providers/mlx5/cq.c
+similarity index 100%
+rename from libmlx5/src/cq.c
+rename to providers/mlx5/cq.c
+diff --git a/libmlx5/src/dbrec.c b/providers/mlx5/dbrec.c
+similarity index 100%
+rename from libmlx5/src/dbrec.c
+rename to providers/mlx5/dbrec.c
+diff --git a/libmlx5/src/doorbell.h b/providers/mlx5/doorbell.h
+similarity index 100%
+rename from libmlx5/src/doorbell.h
+rename to providers/mlx5/doorbell.h
+diff --git a/libmlx5/src/list.h b/providers/mlx5/list.h
+similarity index 100%
+rename from libmlx5/src/list.h
+rename to providers/mlx5/list.h
+diff --git a/libmlx5/src/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+similarity index 100%
+rename from libmlx5/src/mlx5-abi.h
+rename to providers/mlx5/mlx5-abi.h
+diff --git a/libmlx5/src/mlx5.c b/providers/mlx5/mlx5.c
+similarity index 100%
+rename from libmlx5/src/mlx5.c
+rename to providers/mlx5/mlx5.c
+diff --git a/libmlx5/src/mlx5.h b/providers/mlx5/mlx5.h
+similarity index 100%
+rename from libmlx5/src/mlx5.h
+rename to providers/mlx5/mlx5.h
+diff --git a/libmlx5/src/qp.c b/providers/mlx5/qp.c
+similarity index 100%
+rename from libmlx5/src/qp.c
+rename to providers/mlx5/qp.c
+diff --git a/libmlx5/src/srq.c b/providers/mlx5/srq.c
+similarity index 100%
+rename from libmlx5/src/srq.c
+rename to providers/mlx5/srq.c
+diff --git a/libmlx5/src/verbs.c b/providers/mlx5/verbs.c
+similarity index 100%
+rename from libmlx5/src/verbs.c
+rename to providers/mlx5/verbs.c
+diff --git a/libmlx5/src/wqe.h b/providers/mlx5/wqe.h
+similarity index 100%
+rename from libmlx5/src/wqe.h
+rename to providers/mlx5/wqe.h
+diff --git a/libmthca/AUTHORS b/providers/mthca/AUTHORS
+similarity index 100%
+rename from libmthca/AUTHORS
+rename to providers/mthca/AUTHORS
+diff --git a/libmthca/src/CMakeLists.txt b/providers/mthca/CMakeLists.txt
+similarity index 100%
+rename from libmthca/src/CMakeLists.txt
+rename to providers/mthca/CMakeLists.txt
+diff --git a/libmthca/README b/providers/mthca/README
+similarity index 100%
+rename from libmthca/README
+rename to providers/mthca/README
+diff --git a/libmthca/src/ah.c b/providers/mthca/ah.c
+similarity index 100%
+rename from libmthca/src/ah.c
+rename to providers/mthca/ah.c
+diff --git a/libmthca/src/buf.c b/providers/mthca/buf.c
+similarity index 100%
+rename from libmthca/src/buf.c
+rename to providers/mthca/buf.c
+diff --git a/libmthca/src/cq.c b/providers/mthca/cq.c
+similarity index 100%
+rename from libmthca/src/cq.c
+rename to providers/mthca/cq.c
+diff --git a/libmthca/src/doorbell.h b/providers/mthca/doorbell.h
+similarity index 100%
+rename from libmthca/src/doorbell.h
+rename to providers/mthca/doorbell.h
+diff --git a/libmthca/src/memfree.c b/providers/mthca/memfree.c
+similarity index 100%
+rename from libmthca/src/memfree.c
+rename to providers/mthca/memfree.c
+diff --git a/libmthca/src/mthca-abi.h b/providers/mthca/mthca-abi.h
+similarity index 100%
+rename from libmthca/src/mthca-abi.h
+rename to providers/mthca/mthca-abi.h
+diff --git a/libmthca/src/mthca.c b/providers/mthca/mthca.c
+similarity index 100%
+rename from libmthca/src/mthca.c
+rename to providers/mthca/mthca.c
+diff --git a/libmthca/src/mthca.h b/providers/mthca/mthca.h
+similarity index 100%
+rename from libmthca/src/mthca.h
+rename to providers/mthca/mthca.h
+diff --git a/libmthca/src/qp.c b/providers/mthca/qp.c
+similarity index 100%
+rename from libmthca/src/qp.c
+rename to providers/mthca/qp.c
+diff --git a/libmthca/src/srq.c b/providers/mthca/srq.c
+similarity index 100%
+rename from libmthca/src/srq.c
+rename to providers/mthca/srq.c
+diff --git a/libmthca/src/verbs.c b/providers/mthca/verbs.c
+similarity index 100%
+rename from libmthca/src/verbs.c
+rename to providers/mthca/verbs.c
+diff --git a/libmthca/src/wqe.h b/providers/mthca/wqe.h
+similarity index 100%
+rename from libmthca/src/wqe.h
+rename to providers/mthca/wqe.h
+diff --git a/libi40iw/AUTHORS b/providers/nes/AUTHORS
+similarity index 100%
+rename from libi40iw/AUTHORS
+rename to providers/nes/AUTHORS
+diff --git a/libnes/src/CMakeLists.txt b/providers/nes/CMakeLists.txt
+similarity index 100%
+rename from libnes/src/CMakeLists.txt
+rename to providers/nes/CMakeLists.txt
+diff --git a/libnes/COPYING b/providers/nes/COPYING
+similarity index 100%
+rename from libnes/COPYING
+rename to providers/nes/COPYING
+diff --git a/libnes/src/nes-abi.h b/providers/nes/nes-abi.h
+similarity index 100%
+rename from libnes/src/nes-abi.h
+rename to providers/nes/nes-abi.h
+diff --git a/libnes/src/nes_umain.c b/providers/nes/nes_umain.c
+similarity index 100%
+rename from libnes/src/nes_umain.c
+rename to providers/nes/nes_umain.c
+diff --git a/libnes/src/nes_umain.h b/providers/nes/nes_umain.h
+similarity index 100%
+rename from libnes/src/nes_umain.h
+rename to providers/nes/nes_umain.h
+diff --git a/libnes/src/nes_uverbs.c b/providers/nes/nes_uverbs.c
+similarity index 100%
+rename from libnes/src/nes_uverbs.c
+rename to providers/nes/nes_uverbs.c
+diff --git a/libocrdma/AUTHORS b/providers/ocrdma/AUTHORS
+similarity index 100%
+rename from libocrdma/AUTHORS
+rename to providers/ocrdma/AUTHORS
+diff --git a/libocrdma/src/CMakeLists.txt b/providers/ocrdma/CMakeLists.txt
+similarity index 100%
+rename from libocrdma/src/CMakeLists.txt
+rename to providers/ocrdma/CMakeLists.txt
+diff --git a/libocrdma/Changelog b/providers/ocrdma/Changelog
+similarity index 100%
+rename from libocrdma/Changelog
+rename to providers/ocrdma/Changelog
+diff --git a/libocrdma/README b/providers/ocrdma/README
+similarity index 100%
+rename from libocrdma/README
+rename to providers/ocrdma/README
+diff --git a/libocrdma/src/ocrdma_abi.h b/providers/ocrdma/ocrdma_abi.h
+similarity index 100%
+rename from libocrdma/src/ocrdma_abi.h
+rename to providers/ocrdma/ocrdma_abi.h
+diff --git a/libocrdma/src/ocrdma_list.h b/providers/ocrdma/ocrdma_list.h
+similarity index 100%
+rename from libocrdma/src/ocrdma_list.h
+rename to providers/ocrdma/ocrdma_list.h
+diff --git a/libocrdma/src/ocrdma_main.c b/providers/ocrdma/ocrdma_main.c
+similarity index 100%
+rename from libocrdma/src/ocrdma_main.c
+rename to providers/ocrdma/ocrdma_main.c
+diff --git a/libocrdma/src/ocrdma_main.h b/providers/ocrdma/ocrdma_main.h
+similarity index 100%
+rename from libocrdma/src/ocrdma_main.h
+rename to providers/ocrdma/ocrdma_main.h
+diff --git a/libocrdma/src/ocrdma_verbs.c b/providers/ocrdma/ocrdma_verbs.c
+similarity index 100%
+rename from libocrdma/src/ocrdma_verbs.c
+rename to providers/ocrdma/ocrdma_verbs.c
+diff --git a/librxe/CMakeLists.txt b/providers/rxe/CMakeLists.txt
+similarity index 82%
+rename from librxe/CMakeLists.txt
+rename to providers/rxe/CMakeLists.txt
+index d736c67e53d9..2b6a236db0de 100644
+--- a/librxe/CMakeLists.txt
++++ b/providers/rxe/CMakeLists.txt
+@@ -1,3 +1,6 @@
++rdma_provider(rxe
++  rxe.c
++  )
+ install(FILES rxe_cfg
+   DESTINATION bin/
+   PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE
+diff --git a/librxe/README.md b/providers/rxe/README.md
+similarity index 100%
+rename from librxe/README.md
+rename to providers/rxe/README.md
+diff --git a/librxe/man/CMakeLists.txt b/providers/rxe/man/CMakeLists.txt
+similarity index 100%
+rename from librxe/man/CMakeLists.txt
+rename to providers/rxe/man/CMakeLists.txt
+diff --git a/librxe/man/rxe.7 b/providers/rxe/man/rxe.7
+similarity index 100%
+rename from librxe/man/rxe.7
+rename to providers/rxe/man/rxe.7
+diff --git a/librxe/man/rxe_cfg.8 b/providers/rxe/man/rxe_cfg.8
+similarity index 100%
+rename from librxe/man/rxe_cfg.8
+rename to providers/rxe/man/rxe_cfg.8
+diff --git a/librxe/src/rxe-abi.h b/providers/rxe/rxe-abi.h
+similarity index 100%
+rename from librxe/src/rxe-abi.h
+rename to providers/rxe/rxe-abi.h
+diff --git a/librxe/src/rxe.c b/providers/rxe/rxe.c
+similarity index 100%
+rename from librxe/src/rxe.c
+rename to providers/rxe/rxe.c
+diff --git a/librxe/src/rxe.h b/providers/rxe/rxe.h
+similarity index 100%
+rename from librxe/src/rxe.h
+rename to providers/rxe/rxe.h
+diff --git a/librxe/rxe_cfg b/providers/rxe/rxe_cfg
+similarity index 100%
+rename from librxe/rxe_cfg
+rename to providers/rxe/rxe_cfg
+diff --git a/librxe/src/rxe_queue.h b/providers/rxe/rxe_queue.h
+similarity index 100%
+rename from librxe/src/rxe_queue.h
+rename to providers/rxe/rxe_queue.h
 -- 
 2.1.4
 
