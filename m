@@ -1,74 +1,315 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH -next] IB/hns: Fix return value check in
- hns_roce_get_cfg()
-Date: Tue, 23 Aug 2016 09:56:53 +0800
-Message-ID: <57BBAD65.6000108@huawei.com>
-References: <1470445284-28970-1-git-send-email-weiyj.lk@gmail.com>
- <20160807053115.GQ27667@leon.nu>
- <087f4381-d830-fc57-ea5d-c516a1b160b5@gmail.com>
- <20160807131419.GS27667@leon.nu> <57AC56D4.3050401@huawei.com>
- <c27a3c5f-9604-546a-5ac7-e70613d93d50@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c27a3c5f-9604-546a-5ac7-e70613d93d50-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH for-next V3 10/15] {net,IB}/mlx5: Modify QP commands via mlx5 ifc
+Date: Tue, 23 Aug 2016 11:49:12 +0300
+Message-ID: <1471942157-9131-11-git-send-email-saeedm@mellanox.com>
+References: <1471942157-9131-1-git-send-email-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1471942157-9131-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Matan Barak <matanb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Prior to this patch we assumed that modify QP commands have the
+same layout.
 
+In ConnectX-4 for each QP transition there is a specific command
+and their layout can vary.
 
-On 2016/8/23 2:15, Doug Ledford wrote:
-> On 8/11/2016 6:43 AM, Wei Hu (Xavier) wrote:
->> Hi,  Doug Ledford
->>
->>    Can you give me a suggestion that what we should do? Thanks very much!
-> I still have a branch for your driver, the hns-roce branch in my tree
-> (only available via my github repo for now).  Now that Dave Miller has
-> taken in the most recent patch to add the needed reset function to the
-> hns net driver, I rebased your branch in my tree on his net-next branch.
->   I'll submit it in the next merge window.  I then applied this patch on
-> top of that branch.  So, future patches to your driver need to be
-> against my hns-roce branch in my github repo, at least until I merge it
-> into my official k.o/for-4.9 branch.
-Hi, Doug Ledford
-     Can you provide us your hns-roce branch in github repo?
-     Many thanks
-Wei Hu
->> Regards
->> Wei Hu
->>
->> On 2016/8/7 21:14, Leon Romanovsky wrote:
->>> On Sun, Aug 07, 2016 at 08:19:39PM +0800, Wei Yongjun wrote:
->>>> On 08/07/2016 01:31 PM, Leon Romanovsky wrote:
->>>>> On Sat, Aug 06, 2016 at 01:01:24AM +0000, Wei Yongjun wrote:
->>>>>> In case of error, the function devm_ioremap_resource() returns
->>>>>> ERR_PTR()
->>>>>> and never returns NULL. The NULL test in the return value check should
->>>>>> be replaced with IS_ERR().
->>>>>>
->>>>>> Signed-off-by: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>> On which branch did you base your patch?
->>>>> It would be helpful to us if you followed SubmittionPatches document,
->>>>> section with Fixes description. In such case "git describe" will give
->>>>> immediate answer on my first question.
->>>>>
->>>> This patch is based on the linux-next.git tree.
->>>> Fixes: 5e43122add63 ('IB/hns: Add driver files for hns RoCE driver')
->>> This driver wasn't part of last pull request and it is worth to consult
->>> with Doug Ledford on the plans for this driver (stay in ->next, resubmit
->>> e.t.c).
->>>
->>> Right now, there is no tree to apply this patch.
->>>
->>> Thanks
->>
->
+e.g: 2err/2rst commands don't have QP context in their layout and before
+this patch we posted the QP context in those commands.
 
+Fortunately the FW only checks the suffix of the commands and executes
+them, while ignoring all invalid data sent after the valid command
+layout.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch removes mlx5_modify_qp_mbox_in and changes
+mlx5_core_qp_modify to receive the required transition and QP context
+with opt_param_mask if needed.  This way the caller is not required to
+provide the command inbox layout and it will be generated automatically.
+
+mlx5_core_qp_modify will generate the command inbox/outbox layouts
+according to the requested transition and will fill the requested
+parameters.
+
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c              |  22 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 124 +++++++++++++++++++++++++--
+ include/linux/mlx5/qp.h                      |  20 +----
+ 3 files changed, 124 insertions(+), 42 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d22492f..6261737 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1871,7 +1871,6 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ {
+ 	struct mlx5_ib_cq *send_cq, *recv_cq;
+ 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
+-	struct mlx5_modify_qp_mbox_in *in;
+ 	unsigned long flags;
+ 	int err;
+ 
+@@ -1884,16 +1883,12 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	       &qp->raw_packet_qp.rq.base :
+ 	       &qp->trans_qp.base;
+ 
+-	in = kzalloc(sizeof(*in), GFP_KERNEL);
+-	if (!in)
+-		return;
+-
+ 	if (qp->state != IB_QPS_RESET) {
+ 		if (qp->ibqp.qp_type != IB_QPT_RAW_PACKET) {
+ 			mlx5_ib_qp_disable_pagefaults(qp);
+ 			err = mlx5_core_qp_modify(dev->mdev,
+-						  MLX5_CMD_OP_2RST_QP, in, 0,
+-						  &base->mqp);
++						  MLX5_CMD_OP_2RST_QP, 0,
++						  NULL, &base->mqp);
+ 		} else {
+ 			err = modify_raw_packet_qp(dev, qp,
+ 						   MLX5_CMD_OP_2RST_QP);
+@@ -1935,8 +1930,6 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 				     base->mqp.qpn);
+ 	}
+ 
+-	kfree(in);
+-
+ 	if (qp->create_type == MLX5_QP_KERNEL)
+ 		destroy_qp_kernel(dev, qp);
+ 	else if (qp->create_type == MLX5_QP_USER)
+@@ -2522,7 +2515,6 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
+ 	struct mlx5_ib_cq *send_cq, *recv_cq;
+ 	struct mlx5_qp_context *context;
+-	struct mlx5_modify_qp_mbox_in *in;
+ 	struct mlx5_ib_pd *pd;
+ 	enum mlx5_qp_state mlx5_cur, mlx5_new;
+ 	enum mlx5_qp_optpar optpar;
+@@ -2531,11 +2523,10 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	int err;
+ 	u16 op;
+ 
+-	in = kzalloc(sizeof(*in), GFP_KERNEL);
+-	if (!in)
++	context = kzalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
+ 		return -ENOMEM;
+ 
+-	context = &in->ctx;
+ 	err = to_mlx5_st(ibqp->qp_type);
+ 	if (err < 0) {
+ 		mlx5_ib_dbg(dev, "unsupported qp type %d\n", ibqp->qp_type);
+@@ -2700,12 +2691,11 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	op = optab[mlx5_cur][mlx5_new];
+ 	optpar = ib_mask_to_mlx5_opt(attr_mask);
+ 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+-	in->optparam = cpu_to_be32(optpar);
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET)
+ 		err = modify_raw_packet_qp(dev, qp, op);
+ 	else
+-		err = mlx5_core_qp_modify(dev->mdev, op, in, sqd_event,
++		err = mlx5_core_qp_modify(dev->mdev, op, optpar, context,
+ 					  &base->mqp);
+ 	if (err)
+ 		goto out;
+@@ -2746,7 +2736,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	}
+ 
+ out:
+-	kfree(in);
++	kfree(context);
+ 	return err;
+ }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index 36d240c..50875a4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -335,21 +335,127 @@ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
+ }
+ EXPORT_SYMBOL_GPL(mlx5_core_destroy_qp);
+ 
+-int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
+-			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
++struct mbox_info {
++	u32 *in;
++	u32 *out;
++	int inlen;
++	int outlen;
++};
++
++static int mbox_alloc(struct mbox_info *mbox, int inlen, int outlen)
++{
++	mbox->inlen  = inlen;
++	mbox->outlen = outlen;
++	mbox->in = kzalloc(mbox->inlen, GFP_KERNEL);
++	mbox->out = kzalloc(mbox->outlen, GFP_KERNEL);
++	if (!mbox->in || !mbox->out) {
++		kfree(mbox->in);
++		kfree(mbox->out);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void mbox_free(struct mbox_info *mbox)
++{
++	kfree(mbox->in);
++	kfree(mbox->out);
++}
++
++static int modify_qp_mbox_alloc(struct mlx5_core_dev *dev, u16 opcode, int qpn,
++				u32 opt_param_mask, void *qpc,
++				struct mbox_info *mbox)
++{
++	mbox->out = NULL;
++	mbox->in = NULL;
++
++#define MBOX_ALLOC(mbox, typ)  \
++	mbox_alloc(mbox, MLX5_ST_SZ_BYTES(typ##_in), MLX5_ST_SZ_BYTES(typ##_out))
++
++#define MOD_QP_IN_SET(typ, in, _opcode, _qpn) \
++	MLX5_SET(typ##_in, in, opcode, _opcode); \
++	MLX5_SET(typ##_in, in, qpn, _qpn)
++
++#define MOD_QP_IN_SET_QPC(typ, in, _opcode, _qpn, _opt_p, _qpc) \
++	MOD_QP_IN_SET(typ, in, _opcode, _qpn); \
++	MLX5_SET(typ##_in, in, opt_param_mask, _opt_p); \
++	memcpy(MLX5_ADDR_OF(typ##_in, in, qpc), _qpc, MLX5_ST_SZ_BYTES(qpc))
++
++	switch (opcode) {
++	/* 2RST & 2ERR */
++	case MLX5_CMD_OP_2RST_QP:
++		if (MBOX_ALLOC(mbox, qp_2rst))
++			return -ENOMEM;
++		MOD_QP_IN_SET(qp_2rst, mbox->in, opcode, qpn);
++		break;
++	case MLX5_CMD_OP_2ERR_QP:
++		if (MBOX_ALLOC(mbox, qp_2err))
++			return -ENOMEM;
++		MOD_QP_IN_SET(qp_2err, mbox->in, opcode, qpn);
++		break;
++
++	/* MODIFY with QPC */
++	case MLX5_CMD_OP_RST2INIT_QP:
++		if (MBOX_ALLOC(mbox, rst2init_qp))
++			return -ENOMEM;
++		 MOD_QP_IN_SET_QPC(rst2init_qp, mbox->in, opcode, qpn,
++				   opt_param_mask, qpc);
++		 break;
++	case MLX5_CMD_OP_INIT2RTR_QP:
++		if (MBOX_ALLOC(mbox, init2rtr_qp))
++			return -ENOMEM;
++		 MOD_QP_IN_SET_QPC(init2rtr_qp, mbox->in, opcode, qpn,
++				   opt_param_mask, qpc);
++		 break;
++	case MLX5_CMD_OP_RTR2RTS_QP:
++		if (MBOX_ALLOC(mbox, rtr2rts_qp))
++			return -ENOMEM;
++		 MOD_QP_IN_SET_QPC(rtr2rts_qp, mbox->in, opcode, qpn,
++				   opt_param_mask, qpc);
++		 break;
++	case MLX5_CMD_OP_RTS2RTS_QP:
++		if (MBOX_ALLOC(mbox, rts2rts_qp))
++			return -ENOMEM;
++		MOD_QP_IN_SET_QPC(rts2rts_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
++	case MLX5_CMD_OP_SQERR2RTS_QP:
++		if (MBOX_ALLOC(mbox, sqerr2rts_qp))
++			return -ENOMEM;
++		MOD_QP_IN_SET_QPC(sqerr2rts_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
++	case MLX5_CMD_OP_INIT2INIT_QP:
++		if (MBOX_ALLOC(mbox, init2init_qp))
++			return -ENOMEM;
++		MOD_QP_IN_SET_QPC(init2init_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
++	default:
++		mlx5_core_err(dev, "Unknown transition for modify QP: OP(0x%x) QPN(0x%x)\n",
++			      opcode, qpn);
++		return -EINVAL;
++	}
++	return 0;
++}
++
++int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 opcode,
++			u32 opt_param_mask, void *qpc,
+ 			struct mlx5_core_qp *qp)
+ {
+-	struct mlx5_modify_qp_mbox_out out;
+-	int err = 0;
++	struct mbox_info mbox;
++	int err;
+ 
+-	memset(&out, 0, sizeof(out));
+-	in->hdr.opcode = cpu_to_be16(operation);
+-	in->qpn = cpu_to_be32(qp->qpn);
+-	err = mlx5_cmd_exec(dev, in, sizeof(*in), &out, sizeof(out));
++	err = modify_qp_mbox_alloc(dev, opcode, qp->qpn,
++				   opt_param_mask, qpc, &mbox);
+ 	if (err)
+ 		return err;
+ 
+-	return mlx5_cmd_status_to_err(&out.hdr);
++	err = mlx5_cmd_exec(dev, mbox.in, mbox.inlen, mbox.out, mbox.outlen);
++	err = err ? : mlx5_cmd_status_to_err_v2(mbox.out);
++	mbox_free(&mbox);
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(mlx5_core_qp_modify);
+ 
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index 16e1efe..0aacb2a 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -479,6 +479,7 @@ struct mlx5_qp_path {
+ 	u8			rmac[6];
+ };
+ 
++/* FIXME: use mlx5_ifc.h qpc */
+ struct mlx5_qp_context {
+ 	__be32			flags;
+ 	__be32			flags_pd;
+@@ -520,21 +521,6 @@ struct mlx5_qp_context {
+ 	u8			rsvd1[24];
+ };
+ 
+-struct mlx5_modify_qp_mbox_in {
+-	struct mlx5_inbox_hdr	hdr;
+-	__be32			qpn;
+-	u8			rsvd0[4];
+-	__be32			optparam;
+-	u8			rsvd1[4];
+-	struct mlx5_qp_context	ctx;
+-	u8			rsvd2[16];
+-};
+-
+-struct mlx5_modify_qp_mbox_out {
+-	struct mlx5_outbox_hdr	hdr;
+-	u8			rsvd0[8];
+-};
+-
+ static inline struct mlx5_core_qp *__mlx5_qp_lookup(struct mlx5_core_dev *dev, u32 qpn)
+ {
+ 	return radix_tree_lookup(&dev->priv.qp_table.tree, qpn);
+@@ -549,8 +535,8 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
+ 			struct mlx5_core_qp *qp,
+ 			u32 *in,
+ 			int inlen);
+-int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 operation,
+-			struct mlx5_modify_qp_mbox_in *in, int sqd_event,
++int mlx5_core_qp_modify(struct mlx5_core_dev *dev, u16 opcode,
++			u32 opt_param_mask, void *qpc,
+ 			struct mlx5_core_qp *qp);
+ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
+ 			 struct mlx5_core_qp *qp);
+-- 
+2.7.4
