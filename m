@@ -1,101 +1,81 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [for-next V3 00/15][PULL request] Mellanox mlx5 core driver
- updates 2016-08-20
-Date: Tue, 23 Aug 2016 21:39:26 +0300
-Message-ID: <20160823183926.GL15065@leon.nu>
-References: <1471942157-9131-1-git-send-email-saeedm@mellanox.com>
- <1a97f16d-5a0a-cb06-6e5c-1b6f9fa7c609@redhat.com>
- <CALzJLG8=+D2a-dtaTMJWu_95Mdroh51Ph3dGths1eO3spzp58g@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 04/15] IB/pvrdma: Add functions for Verbs support
+Date: Tue, 23 Aug 2016 21:43:22 +0300
+Message-ID: <20160823184322.GM15065@leon.nu>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-5-git-send-email-aditr@vmware.com>
+ <20160823151341.GA10264@yuval-lap>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="w2xx78T4DcG3O+DJ"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="/jvaajy/zP2g41+Q"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CALzJLG8=+D2a-dtaTMJWu_95Mdroh51Ph3dGths1eO3spzp58g@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Doug Ledford <dledford@redhat.com>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Tal Alon <talal@mellanox.com>, Matan Barak <matanb@mellanox.com>
+In-Reply-To: <20160823151341.GA10264@yuval-lap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---w2xx78T4DcG3O+DJ
+--/jvaajy/zP2g41+Q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 23, 2016 at 07:10:53PM +0300, Saeed Mahameed wrote:
-> On Tue, Aug 23, 2016 at 6:57 PM, Doug Ledford <dledford@redhat.com> wrote:
-> > On 8/23/2016 4:49 AM, Saeed Mahameed wrote:
-> >> Hi Dave and Doug,
-> >>
-> >> This series contains several low level and API updates for mlx5 core
-> >> commands interface and mlx5_ifc.h to be shared as base code for net-ne=
-xt and
-> >> rdma mlx5 4.9 submissions.
-> >>
-> >> From Saeed, ten patches that refactors old layouts of firmware command=
-s which
-> >> were manually generated before we introduced the mlx5_ifc, now all of =
-the firmware
-> >> commands inbox/outbox layouts moved to use mlx5_ifc and we remove the =
-old
-> >> manually generated structures.
-> >
-> > These all looked fine to me.
-> >
-> >> Plus to those ten patches, we add two patches
-> >> that unifies mlx5 commands execution interface and improve the driver =
-log messages
-> >> in that area.
-> >
-> > These are the patches that made my eyes want to bleed.  But, since it's
-> > all changes to the mailbox commands being sent to your device, they are
-> > easy to verify operationally, so I only gave these a cursory review and
-> > expect if any of your commands broke because of this you'll be
-> > submitting fixes ASAP.
-> >
+On Tue, Aug 23, 2016 at 06:13:42PM +0300, Yuval Shaia wrote:
+> On Wed, Aug 03, 2016 at 04:27:33PM -0700, Adit Ranadive wrote:
+> > + */
+> > +int pvrdma_query_port(struct ib_device *ibdev, u8 port,
+> > +		      struct ib_port_attr *props)
+> > +{
+> > +	struct pvrdma_dev *dev =3D to_vdev(ibdev);
+> > +	union pvrdma_cmd_req req;
+> > +	union pvrdma_cmd_resp rsp;
+> > +	struct pvrdma_cmd_query_port *cmd =3D &req.query_port;
+> > +	struct pvrdma_cmd_query_port_resp *resp =3D &rsp.query_port_resp;
+> > +	int err;
+> > +
+> > +	memset(cmd, 0, sizeof(*cmd));
+> > +	cmd->hdr.cmd =3D PVRDMA_CMD_QUERY_PORT;
+> > +	cmd->port_num =3D port;
+> > +
+> > +	err =3D pvrdma_cmd_post(dev, &req, &rsp);
 >=20
-> Thanks Doug for your review those patches already passed all kinds of
-> our internal regression testings.
-> What is nice about those patches is that they remove  ~1K  LOC from
-> driver and unify the command interface.
+> Patch order again, this guy is added in patch 7/15 ("IB/pvrdma: Add device
+> command support").
+> Maybe it is only me having trouble to read it so do not want to be a nagg=
+er
+> here but don't we have some (hidden) agreement that each patch is atomic
+> and i should be able to compile the kernel after each one?
 
-Thanks for taking them.
-One of the reasons for such a long delay of shared code submission was our
-desire to take extra care and test these patches again and again.
+IMHO, Doug will squash all these patches to one a second before adding
+it into his tree. The patches divided here for easy review.
 
->=20
-> >
-> >> From Hadar and Ilya, added the needed hardware bits and infrastructure=
- for
-> >> minimum inline headers setting and encap/decap commands and capabiliti=
-es,
-> >> needed for E-Switch offloads.
-> >
-> > These looked fine to me, but aren't really in the RDMA area anyway.
+Thanks
 
-Our internal goal is to have 0-merge conflicts between RDMA and net
-trees.
-
---w2xx78T4DcG3O+DJ
+--/jvaajy/zP2g41+Q
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXvJhdAAoJEORje4g2clinjnkQAMPU5iBtkEw4MnVtPxgmPWwB
-9Lz0gKgV1BVAFtzMu7l2MDinur8klKLDCykrBeMfx8FaLPbaHNE5NgE52PwgC7xt
-BwSV6KxX/TzMITO35Z6W8vSIGbRqMmdSV2wClpzBZUHZTEI1q6kr+H18DvVM1VeA
-UduXv2ElKsyO2Mym6xNfkrTVVMuj89HOx2n465NSWhcT1DBNF9aXoRbgDEPHt47i
-jUtgO2u63oAfkFV5puOmcH/tFJhBFSbBBQJmL20K5EkC/lplxnyRPcUApbt8R6U6
-vqwzKsxJXSZIgtt3bGCO8olDtOWhGnnww+dOb1FjbwsRjXU/+SH2pfLTCCuj+dZF
-cUEvJgVO/7qgDcZSTJ0Q5jNyFmK35pnmUjh4VUcWWJG3siJnuCm4IMLBOqVWLkZL
-2aNUQNwwH2+5LIzCS4+8fzshR9N4vqhV5aH8jyfL+ZW8kq63yOj8XIXb8kdfCUsq
-or4jeFzKFqpifycCm+DOBcu4HN13uCSrZEvnQHntp5J+MJq4QEajz8WtpeSjbAWJ
-TqOTTEkpAqZLyj7f67E4yCq8tO6XRRpFG/y/v50cpTrOkJOUsj4/5pfiwsx3NvLL
-yVcSmu/zjNyo7In2c60106/S/ETzKH6ZxS7TMqGH7jSlWH20uCUGtF2qRTk8jZ3G
-tQ/Jbs/nqDymE4p3yyBj
-=Ho/F
+iQIcBAEBAgAGBQJXvJlJAAoJEORje4g2cline0EP/Rphky+rlB3bCDJeZGtamLtn
+FoL+Mg7neBJpOrC5S2/krOCMx7fSlJdVqsGXCf8392rN66BvfqgcpJWhZI4Iqa3i
+St29C+ta7Pyg1Ja2r8A8Mu7m8ZNvGCkJz3kC3Q4m+/sJCrtq9VFDeesZ3UKezh2F
+nFaZ38NBJmgNGvnJmGMlD+yhYWyYFikP8dRyx5ZoTWIjR1+bHM4DLwTQy7PpGpvN
+6lkGIe6cIc+Yn99ARLIm1qSGyl2JDoCR8o0syVLL8mBIk4NpD4CDxTnPgnEBjSu3
+s+0U7r47gCU6ekPTP7LFtWn2XaOq1G3BNnu4lP1W+jDVBBn/M5sj39oM/k28IUtR
+guSUp9mGWykaD2AhEj/jNSjGl4p4BoNYXO4i1PHmEYiWyiapABCkdX/3BYnZBdkQ
+0doN49jBa//nXjFVMqCMfaATW6HEMpDCL77YmXRgCK6VU+TcLO/juelyMzzoeJXA
+M49BeqfltzVuxhFhjmmDHV7lxOBUnbphTfwE2xDQSs83vC49I5vX+Q5QQIhTJ3kk
+SiHVx8wFWT75gziOmN0KOmRYIfzA6faS/c1Enxu5HuIlftoOzetB+K2Ab/q72Fod
+wtznBA5ySJUkwxKrcL33IsqOhR2s3SdoLyuobCXF06oD0nl0DBRsECCiMg4q/mJd
+gzGA1PPVU883BUoqfKUC
+=lzst
 -----END PGP SIGNATURE-----
 
---w2xx78T4DcG3O+DJ--
+--/jvaajy/zP2g41+Q--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
