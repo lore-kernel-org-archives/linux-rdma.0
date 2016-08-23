@@ -1,114 +1,86 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 12/22] xprtrdma: Simplify rpcrdma_ep_post_recv()
-Date: Tue, 23 Aug 2016 13:53:42 -0400
-Message-ID: <20160823175342.13038.27997.stgit@manet.1015granger.net>
+Subject: [PATCH v2 22/22] xprtrdma: Eliminate rpcrdma_receive_worker()
+Date: Tue, 23 Aug 2016 13:55:03 -0400
+Message-ID: <20160823175503.13038.17633.stgit@manet.1015granger.net>
 References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20160823174402.13038.84561.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.
-
-Since commit fc66448549bb ("xprtrdma: Split the completion queue"),
-rpcrdma_ep_post_recv() no longer uses the "ep" argument.
+Clean up: the extra layer of indirection doesn't add value.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/backchannel.c |    2 +-
- net/sunrpc/xprtrdma/rpc_rdma.c    |    2 +-
- net/sunrpc/xprtrdma/verbs.c       |    9 ++-------
- net/sunrpc/xprtrdma/xprt_rdma.h   |    3 +--
- 4 files changed, 5 insertions(+), 11 deletions(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c  |    4 +++-
+ net/sunrpc/xprtrdma/verbs.c     |   11 +----------
+ net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
+ 3 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-index a19530d..887ef44 100644
---- a/net/sunrpc/xprtrdma/backchannel.c
-+++ b/net/sunrpc/xprtrdma/backchannel.c
-@@ -397,7 +397,7 @@ out_overflow:
- out_short:
- 	pr_warn("RPC/RDMA short backward direction call\n");
- 
--	if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, &r_xprt->rx_ep, rep))
-+	if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, rep))
- 		xprt_disconnect_done(xprt);
- 	else
- 		pr_warn("RPC:       %s: reposting rep %p\n",
 diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index 68a39c0..6187cee 100644
+index 20115ad..e210fe6 100644
 --- a/net/sunrpc/xprtrdma/rpc_rdma.c
 +++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -1141,6 +1141,6 @@ out_duplicate:
- 
- repost:
- 	r_xprt->rx_stats.bad_reply_count++;
--	if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, &r_xprt->rx_ep, rep))
-+	if (rpcrdma_ep_post_recv(&r_xprt->rx_ia, rep))
- 		rpcrdma_recv_buffer_put(rep);
- }
+@@ -977,8 +977,10 @@ rpcrdma_conn_func(struct rpcrdma_ep *ep)
+  * allowed to timeout, to discover the errors at that time.
+  */
+ void
+-rpcrdma_reply_handler(struct rpcrdma_rep *rep)
++rpcrdma_reply_handler(struct work_struct *work)
+ {
++	struct rpcrdma_rep *rep =
++			container_of(work, struct rpcrdma_rep, rr_work);
+ 	struct rpcrdma_msg *headerp;
+ 	struct rpcrdma_req *req;
+ 	struct rpc_rqst *rqst;
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index ba1ca88..81cae65 100644
+index 83f7886..4a1b341 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -1246,7 +1246,7 @@ rpcrdma_ep_post(struct rpcrdma_ia *ia,
- 	int i, rc;
- 
- 	if (rep) {
--		rc = rpcrdma_ep_post_recv(ia, ep, rep);
-+		rc = rpcrdma_ep_post_recv(ia, rep);
- 		if (rc)
- 			return rc;
- 		req->rl_reply = NULL;
-@@ -1281,12 +1281,8 @@ out_postsend_err:
- 	return -ENOTCONN;
+@@ -128,15 +128,6 @@ rpcrdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ 		       wc->status, wc->vendor_err);
  }
  
--/*
-- * (Re)post a receive buffer.
-- */
- int
- rpcrdma_ep_post_recv(struct rpcrdma_ia *ia,
--		     struct rpcrdma_ep *ep,
- 		     struct rpcrdma_rep *rep)
- {
- 	struct ib_recv_wr recv_wr, *recv_wr_fail;
-@@ -1325,7 +1321,6 @@ rpcrdma_ep_post_extra_recv(struct rpcrdma_xprt *r_xprt, unsigned int count)
- {
- 	struct rpcrdma_buffer *buffers = &r_xprt->rx_buf;
- 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
--	struct rpcrdma_ep *ep = &r_xprt->rx_ep;
- 	struct rpcrdma_rep *rep;
- 	int rc;
- 
-@@ -1336,7 +1331,7 @@ rpcrdma_ep_post_extra_recv(struct rpcrdma_xprt *r_xprt, unsigned int count)
- 		rep = rpcrdma_buffer_get_rep_locked(buffers);
- 		spin_unlock(&buffers->rb_lock);
- 
--		rc = rpcrdma_ep_post_recv(ia, ep, rep);
-+		rc = rpcrdma_ep_post_recv(ia, rep);
- 		if (rc)
- 			goto out_rc;
- 	}
+-static void
+-rpcrdma_receive_worker(struct work_struct *work)
+-{
+-	struct rpcrdma_rep *rep =
+-			container_of(work, struct rpcrdma_rep, rr_work);
+-
+-	rpcrdma_reply_handler(rep);
+-}
+-
+ /* Perform basic sanity checking to avoid using garbage
+  * to update the credit grant value.
+  */
+@@ -918,7 +909,7 @@ rpcrdma_create_rep(struct rpcrdma_xprt *r_xprt)
+ 	rep->rr_device = ia->ri_device;
+ 	rep->rr_cqe.done = rpcrdma_wc_receive;
+ 	rep->rr_rxprt = r_xprt;
+-	INIT_WORK(&rep->rr_work, rpcrdma_receive_worker);
++	INIT_WORK(&rep->rr_work, rpcrdma_reply_handler);
+ 	rep->rr_recv_wr.next = NULL;
+ 	rep->rr_recv_wr.wr_cqe = &rep->rr_cqe;
+ 	rep->rr_recv_wr.sg_list = &rep->rr_rdmabuf->rg_iov;
 diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index 5447586..44efff7 100644
+index 0278f38..94c7ab5 100644
 --- a/net/sunrpc/xprtrdma/xprt_rdma.h
 +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -456,8 +456,7 @@ void rpcrdma_ep_disconnect(struct rpcrdma_ep *, struct rpcrdma_ia *);
- 
- int rpcrdma_ep_post(struct rpcrdma_ia *, struct rpcrdma_ep *,
- 				struct rpcrdma_req *);
--int rpcrdma_ep_post_recv(struct rpcrdma_ia *, struct rpcrdma_ep *,
--				struct rpcrdma_rep *);
-+int rpcrdma_ep_post_recv(struct rpcrdma_ia *, struct rpcrdma_rep *);
+@@ -534,7 +534,7 @@ rpcrdma_data_dir(bool writing)
+  */
+ void rpcrdma_connect_worker(struct work_struct *);
+ void rpcrdma_conn_func(struct rpcrdma_ep *);
+-void rpcrdma_reply_handler(struct rpcrdma_rep *);
++void rpcrdma_reply_handler(struct work_struct *);
  
  /*
-  * Buffer calls - xprtrdma/verbs.c
+  * RPC/RDMA protocol calls - xprtrdma/rpc_rdma.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
