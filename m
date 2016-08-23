@@ -1,68 +1,84 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 04/15] IB/pvrdma: Add functions for Verbs support
-Date: Tue, 23 Aug 2016 18:52:28 +0000
-Message-ID: <BLUPR0501MB836B1C542C1296616A05080C5EB0@BLUPR0501MB836.namprd05.prod.outlook.com>
-References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-5-git-send-email-aditr@vmware.com>
- <20160823151341.GA10264@yuval-lap> <20160823184322.GM15065@leon.nu>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is
+ in use
+Date: Tue, 23 Aug 2016 16:53:55 -0400
+Message-ID: <20160823205355.GA29452@fieldses.org>
+References: <20160822185459.12076.43516.stgit@klimt.1015granger.net>
+ <20160822185742.12076.34446.stgit@klimt.1015granger.net>
+ <3E0207D8-CFB2-4233-B92B-165B10E9920E@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160823184322.GM15065-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3E0207D8-CFB2-4233-B92B-165B10E9920E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 23, 2016 at 11:43:27 -0700, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> w=
-rote:
-> On Tue, Aug 23, 2016 at 06:13:42PM +0300, Yuval Shaia wrote:
-> > On Wed, Aug 03, 2016 at 04:27:33PM -0700, Adit Ranadive wrote:
-> > > + */
-> > > +int pvrdma_query_port(struct ib_device *ibdev, u8 port,
-> > > +		      struct ib_port_attr *props)
-> > > +{
-> > > +	struct pvrdma_dev *dev =3D to_vdev(ibdev);
-> > > +	union pvrdma_cmd_req req;
-> > > +	union pvrdma_cmd_resp rsp;
-> > > +	struct pvrdma_cmd_query_port *cmd =3D &req.query_port;
-> > > +	struct pvrdma_cmd_query_port_resp *resp =3D &rsp.query_port_resp;
-> > > +	int err;
-> > > +
-> > > +	memset(cmd, 0, sizeof(*cmd));
-> > > +	cmd->hdr.cmd =3D PVRDMA_CMD_QUERY_PORT;
-> > > +	cmd->port_num =3D port;
-> > > +
-> > > +	err =3D pvrdma_cmd_post(dev, &req, &rsp);
-> >
-> > Patch order again, this guy is added in patch 7/15 ("IB/pvrdma: Add dev=
-ice
-> > command support").
-> > Maybe it is only me having trouble to read it so do not want to be a na=
-gger
-> > here but don't we have some (hidden) agreement that each patch is atomi=
-c
-> > and i should be able to compile the kernel after each one?
->=20
-> IMHO, Doug will squash all these patches to one a second before adding
-> it into his tree. The patches divided here for easy review.
->=20
+On Tue, Aug 23, 2016 at 01:39:15PM -0400, Chuck Lever wrote:
+> Hi Bruce-
+> 
+> 
+> > On Aug 22, 2016, at 2:57 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > 
+> > Using NFSv4.1 on RDMA should be safe, so broaden the new checks in
+> > rpc_create().
+> > 
+> > WARN_ON_ONCE is used, matching most other WARN call sites in clnt.c.
+> > 
+> > Fixes: 39a9beab5acb ("rpc: share one xps between all backchannels")
+> > Fixes: d50039ea5ee6 ("nfsd4/rpc: move backchannel create logic...")
+> > Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> 
+> Do you want to take this, or should it go through Trond/Anna ?
 
-Thanks Leon! I was hoping Doug would do that :).
-While I do agree about the fact that each patch should be atomic, I don't k=
-now
-if it's possible in each case. I'm still new to the upstreaming process so =
-correct
-me if I'm wrong.
-If it's easier to review I'll be happy to try to keep each patch as indepen=
-dent as possible.
+I don't care, feel free to add my reviewed-by: if it goes through
+someone else.
 
-Thanks,
-Adit
+Looks like this should be for 4.8 (and stable), not 4.9?
 
+--b.
+
+> 
+> 
+> > net/sunrpc/clnt.c |    4 ++--
+> > 1 file changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> > index 7f79fb7..66f23b3 100644
+> > --- a/net/sunrpc/clnt.c
+> > +++ b/net/sunrpc/clnt.c
+> > @@ -453,7 +453,7 @@ static struct rpc_clnt *rpc_create_xprt(struct rpc_create_args *args,
+> > 	struct rpc_xprt_switch *xps;
+> > 
+> > 	if (args->bc_xprt && args->bc_xprt->xpt_bc_xps) {
+> > -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> > +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> > 		xps = args->bc_xprt->xpt_bc_xps;
+> > 		xprt_switch_get(xps);
+> > 	} else {
+> > @@ -520,7 +520,7 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
+> > 	char servername[48];
+> > 
+> > 	if (args->bc_xprt) {
+> > -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> > +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> > 		xprt = args->bc_xprt->xpt_bc_xprt;
+> > 		if (xprt) {
+> > 			xprt_get(xprt);
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> Chuck Lever
+> 
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
