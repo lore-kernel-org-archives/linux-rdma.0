@@ -1,140 +1,72 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2] i40iw: Do not set self-referencing pointer to NULL
- after kfree
-Date: Tue, 23 Aug 2016 12:51:10 -0400
-Message-ID: <a65ff978-0790-24aa-d0c9-0e5aaaf7b301@redhat.com>
-References: <1471910507-83104-1-git-send-email-shiraz.saleem@intel.com>
- <20160823014135.GF15065@leon.nu>
- <20160823160030.GA37288@ssaleem-MOBL4.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="cxRSwta6HRGXBUWubEBWbl1ttKNOnQIN2"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is in use
+Date: Tue, 23 Aug 2016 13:39:15 -0400
+Message-ID: <3E0207D8-CFB2-4233-B92B-165B10E9920E@oracle.com>
+References: <20160822185459.12076.43516.stgit@klimt.1015granger.net> <20160822185742.12076.34446.stgit@klimt.1015granger.net>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160823160030.GA37288-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20160822185742.12076.34446.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---cxRSwta6HRGXBUWubEBWbl1ttKNOnQIN2
-Content-Type: multipart/mixed; boundary="1BTSghFcVKSGwklBSeTub9o6KVi5tvEMd"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
- Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Message-ID: <a65ff978-0790-24aa-d0c9-0e5aaaf7b301-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2] i40iw: Do not set self-referencing pointer to NULL
- after kfree
-References: <1471910507-83104-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- <20160823014135.GF15065-2ukJVAZIZ/Y@public.gmane.org>
- <20160823160030.GA37288-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
-In-Reply-To: <20160823160030.GA37288-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
-
---1BTSghFcVKSGwklBSeTub9o6KVi5tvEMd
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 8/23/2016 12:00 PM, Shiraz Saleem wrote:
-> On Tue, Aug 23, 2016 at 04:41:35AM +0300, Leon Romanovsky wrote:
->> On Mon, Aug 22, 2016 at 07:01:47PM -0500, Shiraz Saleem wrote:
->>> From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>
->>> In i40iw_free_virt_mem(), do not set mem->va to NULL
->>> after freeing it as mem->va is a self-referencing pointer
->>> to mem.
->>
->> Sorry, I failed to understand your commit message and your change.
->> What did you mean? How do you suppose to use mem->va pointer
->> after kfree() call on that pointer? Won't you have use-after-free bug =
-in
->> such case?
->=20
-> The pointer mem->va cannot be used after kfree. But setting it to=20
-> NULL would be writing to freed memory. In i40iw_puda_alloc_buf(),=20
-> when a buffer is allocated of type struct i40iw_puda_buf, the address=20
-> of the buffer itself is stored within the structure (in member buf_mem)=
-=2E=20
-> When this pointer is freed, the structure containing the pointer is fre=
-ed,
-> so writing to the structure would be writing to freed memory, which is =
-
-> what this fix is for.
-> =20
->>>
->>> Fixes: 4e9042e647ff ("i40iw: add hw and utils files")
->>>
->>> Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>> Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>> ---
->>>
->>> V2: Fix typo in subject line.
->>>
->>>  drivers/infiniband/hw/i40iw/i40iw_utils.c | 1 -
->>>  1 file changed, 1 deletion(-)
->>>
->>> diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infi=
-niband/hw/i40iw/i40iw_utils.c
->>> index 0e8db0a..d5f5de2 100644
->>> --- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
->>> +++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
->>> @@ -674,7 +674,6 @@ enum i40iw_status_code i40iw_free_virt_mem(struct=
- i40iw_hw *hw,
->>>  	if (!mem)
->>>  		return I40IW_ERR_PARAM;
->>>  	kfree(mem->va);
->>> -	mem->va =3D NULL;
->>>  	return 0;
-
-Your commit message is a bit hard to follow, but if I follow the
-conversation, kfree(mem->va) is the same as kfree(mem), is it not?  If
-it is, couldn't you just kfree(mem)?  That would avoid the confusion
-here.  Also, if it matters, you can use a temporary pointer, aka:
-
-p =3D mem->va;
-mem->va =3D NULL;
-kfree(p);
-
-but, again, if mem->va is just a self-referencing pointer back to mem,
-then why not just kfree(mem)?  I'm concerned that this convoluted way of
-doing things will come back to haunt us later when people think they are
-submitting a fix and simply reintroduce the same bug again.
+Hi Bruce-
 
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
+> On Aug 22, 2016, at 2:57 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> Using NFSv4.1 on RDMA should be safe, so broaden the new checks in
+> rpc_create().
+> 
+> WARN_ON_ONCE is used, matching most other WARN call sites in clnt.c.
+> 
+> Fixes: 39a9beab5acb ("rpc: share one xps between all backchannels")
+> Fixes: d50039ea5ee6 ("nfsd4/rpc: move backchannel create logic...")
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+
+Do you want to take this, or should it go through Trond/Anna ?
 
 
---1BTSghFcVKSGwklBSeTub9o6KVi5tvEMd--
+> net/sunrpc/clnt.c |    4 ++--
+> 1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> index 7f79fb7..66f23b3 100644
+> --- a/net/sunrpc/clnt.c
+> +++ b/net/sunrpc/clnt.c
+> @@ -453,7 +453,7 @@ static struct rpc_clnt *rpc_create_xprt(struct rpc_create_args *args,
+> 	struct rpc_xprt_switch *xps;
+> 
+> 	if (args->bc_xprt && args->bc_xprt->xpt_bc_xps) {
+> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> 		xps = args->bc_xprt->xpt_bc_xps;
+> 		xprt_switch_get(xps);
+> 	} else {
+> @@ -520,7 +520,7 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
+> 	char servername[48];
+> 
+> 	if (args->bc_xprt) {
+> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> 		xprt = args->bc_xprt->xpt_bc_xprt;
+> 		if (xprt) {
+> 			xprt_get(xprt);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---cxRSwta6HRGXBUWubEBWbl1ttKNOnQIN2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+--
+Chuck Lever
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXvH7+AAoJELgmozMOVy/dIikQAKV2TPX2s1KZP74TMMAyMZIS
-X3GqkSWi7HjtSrLfbO5n2lfGQl1V/p26b2AUpAMH8LoGpzBe61/7vvyAiCBtHkWH
-N86eFHHgRcHNapjua2sxRO5lKZQ4acy+ODWDR+skB/N2WIOhGXVSpzZVslJa+Ph/
-3gTFKjNnr5ib8V7Z44a4P/2QnPGVXYvUzBy++TJmm+WxL+u7HK9IATg+ZgUH5EF1
-owwq/sP39k1enCvuK0OFc7IsWQFbOKtwzS4lcizXvQVWRx+TjTj3+gjZCQWHcl9d
-YTKaQ3Xx74JIDZslRs61PSWhmaiFUSmWOSD0KUrBMy5XOoOL3eQ4BNnJMFFxq7l4
-rGV0hhuexmQOhEmrhP9lINvFT+/9pTRElQMpcO/vvCy0HHW5WZbYJ8U9y3kHeHnn
-jYZqCiH3dXUNkoZ/ZLLF18Hz0l4IKoW+/RL3nT/bJQd7DsfqRxvnUXCjxH4iNR3z
-xTmxP++5o/PYQ9+N/ALyHCjeH9+uW/hWv/r0IHPD8jyWdEdPsbrYTf150DWMVSXq
-oLWB8e3nmlQvWCgxRZst605x2IQfatPY4yFYFKOk0ffvkkgTxklOeHOA/u+I2+Nx
-FPgGOwXSOyL5p/QbAdAj5jEFes4fxFuS3ahpxp1QJ2wZdmVto6MsEVZZ54qbvGTV
-Z+hql8js6WlrPuJgK/MI
-=XTGM
------END PGP SIGNATURE-----
 
---cxRSwta6HRGXBUWubEBWbl1ttKNOnQIN2--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
