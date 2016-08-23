@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Do not set setting self-referencing pointer to NULL after kfree
-Date: Mon, 22 Aug 2016 18:19:14 -0500
-Message-ID: <1471907954-82912-1-git-send-email-shiraz.saleem@intel.com>
+Subject: [PATCH V2] i40iw: Do not set self-referencing pointer to NULL after kfree
+Date: Mon, 22 Aug 2016 19:01:47 -0500
+Message-ID: <1471910507-83104-1-git-send-email-shiraz.saleem@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
@@ -20,6 +20,9 @@ Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+
+V2: Fix typo in subject line.
+
  drivers/infiniband/hw/i40iw/i40iw_utils.c | 1 -
  1 file changed, 1 deletion(-)
 
