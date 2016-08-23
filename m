@@ -1,74 +1,80 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+Subject: Re: [PATCH v2] IB/core: Use memdup_user() rather than duplicating its
  implementation
-Date: Tue, 23 Aug 2016 12:43:13 -0400
-Message-ID: <d82d2d5a-34b9-27c1-f24e-5bc0a841d47d@redhat.com>
-References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
- <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
+Date: Tue, 23 Aug 2016 12:43:52 -0400
+Message-ID: <ce171524-747e-5a14-105f-62c7955a7448@redhat.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
+ <1471802623.3746.1.camel@perches.com>
+ <683187e0-2e6a-88c0-f87a-9c5f0489370a@users.sourceforge.net>
+ <1471809188.3746.18.camel@perches.com>
+ <5e87f691-edb9-0a12-ff7a-59854c2ca2f8@users.sourceforge.net>
+ <1471859215.2764.24.camel@opteya.com>
+ <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="JtwLFxpfpgfORwu0g0Ig9eh4jgdABQDge"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, SF Markus Elfring <elfring@users.sourceforge.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Hal Rosenstock <hal.rosenstock@gmail.com>, "Hefty, Sean" <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Julia Lawall <julia.lawall@lip6.fr>
+ boundary="GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Joe Perches <joe@perches.com>, Sean Hefty <sean.hefty@intel.com>, Yann Droneaud <ydroneaud@opteya.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---JtwLFxpfpgfORwu0g0Ig9eh4jgdABQDge
-Content-Type: multipart/mixed; boundary="Mx5lL0WrBGHcShoFoKVhLnrd719plKlDx"
+--GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi
+Content-Type: multipart/mixed; boundary="s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc"
 From: Doug Ledford <dledford@redhat.com>
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>,
- SF Markus Elfring <elfring@users.sourceforge.net>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, "Hefty, Sean"
- <sean.hefty@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
- "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+ linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>,
+ Joe Perches <joe@perches.com>, Sean Hefty <sean.hefty@intel.com>,
+ Yann Droneaud <ydroneaud@opteya.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org,
  Julia Lawall <julia.lawall@lip6.fr>
-Message-ID: <d82d2d5a-34b9-27c1-f24e-5bc0a841d47d@redhat.com>
-Subject: Re: [PATCH] IB/qib: Use memdup_user() rather than duplicating its
+Message-ID: <ce171524-747e-5a14-105f-62c7955a7448@redhat.com>
+Subject: Re: [PATCH v2] IB/core: Use memdup_user() rather than duplicating its
  implementation
-References: <620b3961-6e05-6638-4ca8-18766acc91f4@users.sourceforge.net>
- <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC2D0AF815@fmsmsx120.amr.corp.intel.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
+ <1471802623.3746.1.camel@perches.com>
+ <683187e0-2e6a-88c0-f87a-9c5f0489370a@users.sourceforge.net>
+ <1471809188.3746.18.camel@perches.com>
+ <5e87f691-edb9-0a12-ff7a-59854c2ca2f8@users.sourceforge.net>
+ <1471859215.2764.24.camel@opteya.com>
+ <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
+In-Reply-To: <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
 
---Mx5lL0WrBGHcShoFoKVhLnrd719plKlDx
+--s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 8/19/2016 11:27 AM, Marciniszyn, Mike wrote:
->> Subject: [PATCH] IB/qib: Use memdup_user() rather than duplicating its=
+On 8/22/2016 12:30 PM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 22 Aug 2016 18:23:24 +0200
+>=20
+> * Reuse existing functionality from memdup_user() instead of keeping
+>   duplicate source code.
+>=20
+>   This issue was detected by using the Coccinelle software.
+>=20
+> * The local variable "ret" will be set to an appropriate value a bit la=
+ter.
+>   Thus omit the explicit initialisation at the beginning.
+>=20
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
->> diff --git a/drivers/infiniband/hw/qib/qib_fs.c
->=20
-> I would be even more aggressive at reducing lines of code.
->=20
-> For example do direct returns when ok to do:
->         if (pos !=3D 0 || count !=3D sizeof(struct qib_flash))
->                 return -EINVAL;
->=20
->         tmp =3D memdup_user(buf, count);
->         if (IS_ERR(tmp))
->                 return PTR_ERR(tmp);
->=20
-> The bail_tmp: label is then not needed.
->=20
-> Mike
->=20
+Applied, thanks.
 
-With Mike's additional cleanups in place, patch applied.
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---Mx5lL0WrBGHcShoFoKVhLnrd719plKlDx--
+--s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc--
 
---JtwLFxpfpgfORwu0g0Ig9eh4jgdABQDge
+--GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -77,19 +83,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXvH0hAAoJELgmozMOVy/dvd0P/Rk+PacmC4jIglbXfO8It6mJ
-labmn92GU17POt2Ypsb/drNBNBgGQSavRiMnF9eThCeyV6JGFuMaaXBRlvc6qdLE
-11pfCURtuSTe21kXxNpi4cTlmnBlTFkfwjNGlpqpURcEUkF5L02hV2ID7jchTdlq
-pERqxkGOQ1CGuO3iAti1jB49LFps6g+x7EgQwRtTzs0urIiuOuuHObgBCz2VTQ2i
-6Dp7UPtuEytj+Rx/5LlTF0eoq3+2h2qxJPUvzf19zjrjaKWV+CsZrW2l9DAgBTdf
-giH741oelE44Cpqjk9OHpKAcfWSYbSshCunqFc4TqjncA/BXr8PLw6hKLWu2aVtQ
-/a9a5Zh5v34K+vW3a9xYR8BkVkEMKmkLy6rr9zeJGGOlS/6GQV92VzGduy9HphbY
-L/wypwaSP2yCaR0T9WAsZ7GHL6AfH/v+nFFeIqYM/pJZuI3zpxVO88PIG5a9v3jN
-g4JU1BayAVw3C3IJLiDHQ1ucyc8ZgqO6LhDIyaZXSAM0WzA2MXQETClr7DQ848+E
-9WA257zwGTvy2Yv9xPspvP60qtbtnwCer8Ksr90iQZDzMS/rKmWcIGgjXTBlS3cN
-5VcH5puu/xMNtA+QijScikzwIKqz00VlE/pESTe/EG4ObdU8QgiwqlB4Uc7uCH3p
-5SFPaLVXjmllBzF5d6wc
-=Kxt4
+iQIcBAEBCAAGBQJXvH1IAAoJELgmozMOVy/dy3AP/2l/Jzt8M+QrvlMCigQ7jMPG
+NMnZYzgjsIksk9PHDd38opAj2oKa4wWLkzDk311weWqegLUUr79HAJFr3hhtB532
+Xa7iXq7/94AI6N8rX06tP7r3vLc0C9T6CpX498j6NuIgv+nY8si/j31NXkaEK6Ia
+UwlrR5699FIPHtNyG/ujddkZEuiWyiAh3kRH4ABkCC9ig1n+uYYJKoKpXfXJH15w
+uH8CL10SXbAsxSGY5N2usLBPhqbmStVJiJ6UN85ofDTdWQ1/2jMW5ILzsInm5PPU
+YCEmNZ2Q/Lid+V+hNHg0YDFwd0jBN81mzXuUkONJ3dnHMCxea9RCh88qwWxn8+Mi
+bIM8vrxgj2Ttlu6XkfYtmD8KsAvTA+5go8yy4cuJve2ucqr6YkNVRgPW2u1BwQRt
+72fwOSlsdtmKjRFeKEbymiOO72O4icsnh6GIL3rWiCuEbEGQiLj0swPZcDfBNB6Z
+fmT4LdlrkjV38TFAt7Cg3D1NKtt8XaIer1CmZe5uIEuoFNoNa0lPz+29tJoQS8Au
+hRv22mhgQh3An4jN3GSK3MZRcFOFeQFgoT28yyhGDSkXhRJjNFiMdnSjor7b5I0N
+QbF2KL/fuBiFhUCNnbfKK9jKLCsYGqdodU+MMqw4xu+qNlNYHFLprE/epOi2QiRB
+CCHwbZ0xekC1anoPaDBo
+=7eKk
 -----END PGP SIGNATURE-----
 
---JtwLFxpfpgfORwu0g0Ig9eh4jgdABQDge--
+--GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi--
