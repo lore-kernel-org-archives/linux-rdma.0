@@ -1,46 +1,36 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH V2] i40iw: Do not set self-referencing pointer to NULL after kfree
-Date: Mon, 22 Aug 2016 19:01:47 -0500
-Message-ID: <1471910507-83104-1-git-send-email-shiraz.saleem@intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] mlx5/core: Use memdup_user() rather than duplicating
+ its implementation
+Date: Mon, 22 Aug 2016 17:05:51 -0700 (PDT)
+Message-ID: <20160822.170551.1169143382468496713.davem@davemloft.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+        <ceb39933-438d-920d-f294-ea0ce32fd171@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ceb39933-438d-920d-f294-ea0ce32fd171-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sat, 20 Aug 2016 08:01:22 +0200
 
-In i40iw_free_virt_mem(), do not set mem->va to NULL
-after freeing it as mem->va is a self-referencing pointer
-to mem.
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Sat, 20 Aug 2016 07:50:09 +0200
+> 
+> * Reuse existing functionality from memdup_user() instead of keeping
+>   duplicate source code.
+> 
+>   This issue was detected by using the Coccinelle software.
+> 
+> * Return directly if this copy operation failed.
+> 
+> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-Fixes: 4e9042e647ff ("i40iw: add hw and utils files")
-
-Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-
-V2: Fix typo in subject line.
-
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 0e8db0a..d5f5de2 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -674,7 +674,6 @@ enum i40iw_status_code i40iw_free_virt_mem(struct i40iw_hw *hw,
- 	if (!mem)
- 		return I40IW_ERR_PARAM;
- 	kfree(mem->va);
--	mem->va = NULL;
- 	return 0;
- }
- 
--- 
-2.8.0
-
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
