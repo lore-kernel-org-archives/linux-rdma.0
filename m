@@ -1,80 +1,66 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2] IB/core: Use memdup_user() rather than duplicating its
- implementation
-Date: Tue, 23 Aug 2016 12:43:52 -0400
-Message-ID: <ce171524-747e-5a14-105f-62c7955a7448@redhat.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
- <1471802623.3746.1.camel@perches.com>
- <683187e0-2e6a-88c0-f87a-9c5f0489370a@users.sourceforge.net>
- <1471809188.3746.18.camel@perches.com>
- <5e87f691-edb9-0a12-ff7a-59854c2ca2f8@users.sourceforge.net>
- <1471859215.2764.24.camel@opteya.com>
- <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] iw_cxgb4: Fix cxgb4 arm CQ logic to handle
+ IB_CQ_REPORT_MISSED_EVENTS
+Date: Tue, 23 Aug 2016 12:44:29 -0400
+Message-ID: <69627627-77d1-8c4b-5960-934dedc04f7b@redhat.com>
+References: <20160823145733.21093-1-bharat@chelsio.com>
+ <00f801d1fd56$d1e44d70$75ace850$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Joe Perches <joe@perches.com>, Sean Hefty <sean.hefty@intel.com>, Yann Droneaud <ydroneaud@opteya.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+ boundary="UHCSBMj3PWDDIqmpFrqUmX8fsKCHvPFDn"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <00f801d1fd56$d1e44d70$75ace850$@opengridcomputing.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi
-Content-Type: multipart/mixed; boundary="s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc"
-From: Doug Ledford <dledford@redhat.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
- linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>,
- Joe Perches <joe@perches.com>, Sean Hefty <sean.hefty@intel.com>,
- Yann Droneaud <ydroneaud@opteya.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org,
- Julia Lawall <julia.lawall@lip6.fr>
-Message-ID: <ce171524-747e-5a14-105f-62c7955a7448@redhat.com>
-Subject: Re: [PATCH v2] IB/core: Use memdup_user() rather than duplicating its
- implementation
-References: <566ABCD9.1060404@users.sourceforge.net>
- <f7bb3caf-81cd-fba9-afc8-5fac72b8a4b3@users.sourceforge.net>
- <1471802623.3746.1.camel@perches.com>
- <683187e0-2e6a-88c0-f87a-9c5f0489370a@users.sourceforge.net>
- <1471809188.3746.18.camel@perches.com>
- <5e87f691-edb9-0a12-ff7a-59854c2ca2f8@users.sourceforge.net>
- <1471859215.2764.24.camel@opteya.com>
- <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
-In-Reply-To: <3a5989cb-5a01-f502-c7fc-c489079ee73e@users.sourceforge.net>
+--UHCSBMj3PWDDIqmpFrqUmX8fsKCHvPFDn
+Content-Type: multipart/mixed; boundary="GWVVdjP4kjctQbQwT6kkuBi8ohShBlG8r"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
+ 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <69627627-77d1-8c4b-5960-934dedc04f7b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] iw_cxgb4: Fix cxgb4 arm CQ logic to handle
+ IB_CQ_REPORT_MISSED_EVENTS
+References: <20160823145733.21093-1-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+ <00f801d1fd56$d1e44d70$75ace850$@opengridcomputing.com>
+In-Reply-To: <00f801d1fd56$d1e44d70$75ace850$@opengridcomputing.com>
 
---s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc
-Content-Type: text/plain; charset=utf-8
+--GWVVdjP4kjctQbQwT6kkuBi8ohShBlG8r
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/22/2016 12:30 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 22 Aug 2016 18:23:24 +0200
->=20
-> * Reuse existing functionality from memdup_user() instead of keeping
->   duplicate source code.
->=20
->   This issue was detected by using the Coccinelle software.
->=20
-> * The local variable "ret" will be set to an appropriate value a bit la=
-ter.
->   Thus omit the explicit initialisation at the beginning.
->=20
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+On 8/23/2016 11:55 AM, Steve Wise wrote:
+>> Current cxgb4 arm CQ logic ignores IB_CQ_REPORT_MISSED_EVENTS for
+>> request completion notification on a CQ. Due to this ib_poll_handler()=
 
-Applied, thanks.
+>> assumes all events polled and avoids further iopoll scheduling.
+>>
+>> This patch adds logic to cxgb4 ib_req_notify_cq() handler to check if
+>> CQ is not empty and return accordingly. Based on the return value of
+>> ib_req_notify_cq() handler, ib_poll_handler() will schedule a run of
+>> iopoll handler.
+>>
+>> Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+>=20
+> Looks good.   Doug, perhaps this can make 4.8-rc?
+>=20
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+>=20
+>=20
 
+Yep, applied.  Thanks.
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---s96fhQJPJso0wPfmjRubWuEEtwgQfGuNc--
+--GWVVdjP4kjctQbQwT6kkuBi8ohShBlG8r--
 
---GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi
+--UHCSBMj3PWDDIqmpFrqUmX8fsKCHvPFDn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -83,19 +69,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXvH1IAAoJELgmozMOVy/dy3AP/2l/Jzt8M+QrvlMCigQ7jMPG
-NMnZYzgjsIksk9PHDd38opAj2oKa4wWLkzDk311weWqegLUUr79HAJFr3hhtB532
-Xa7iXq7/94AI6N8rX06tP7r3vLc0C9T6CpX498j6NuIgv+nY8si/j31NXkaEK6Ia
-UwlrR5699FIPHtNyG/ujddkZEuiWyiAh3kRH4ABkCC9ig1n+uYYJKoKpXfXJH15w
-uH8CL10SXbAsxSGY5N2usLBPhqbmStVJiJ6UN85ofDTdWQ1/2jMW5ILzsInm5PPU
-YCEmNZ2Q/Lid+V+hNHg0YDFwd0jBN81mzXuUkONJ3dnHMCxea9RCh88qwWxn8+Mi
-bIM8vrxgj2Ttlu6XkfYtmD8KsAvTA+5go8yy4cuJve2ucqr6YkNVRgPW2u1BwQRt
-72fwOSlsdtmKjRFeKEbymiOO72O4icsnh6GIL3rWiCuEbEGQiLj0swPZcDfBNB6Z
-fmT4LdlrkjV38TFAt7Cg3D1NKtt8XaIer1CmZe5uIEuoFNoNa0lPz+29tJoQS8Au
-hRv22mhgQh3An4jN3GSK3MZRcFOFeQFgoT28yyhGDSkXhRJjNFiMdnSjor7b5I0N
-QbF2KL/fuBiFhUCNnbfKK9jKLCsYGqdodU+MMqw4xu+qNlNYHFLprE/epOi2QiRB
-CCHwbZ0xekC1anoPaDBo
-=7eKk
+iQIcBAEBCAAGBQJXvH1tAAoJELgmozMOVy/d1joP/i7NoUlKEfYV3X24S+lZIN3I
+8K1yHNhUnHzpUqDKBThKN3slo7rf4+5DQg9lmVdWx0sXn9qkjxYlFspEy0iK7PqQ
+PRRqLW6b5hrDFNjI8oWeQPe6nSlCAb8W9U+FfnGJsgX5sC1pFUFmYg+A7bhi49gW
+eZn6Z4kko++hdz4x5l1DFefYSGuyHtykMs2rEmhx9OixP43RhMHjRhrYy/JbqNAe
+K1FoKq7SPBsRcUrolq/+Qi0l0/YQangkMgcH5r4FhvedPnUqxyVwB13YuIfrEQVI
+fYKeWw59ecbEZk23p8Ly3rk27+4KKvM0DsJYn8WYfERryXO/bjEg/boTIaeKV73M
+/dzshCB3Ci/jfPHHmV2sINXx1K7die3JDT8gtLcRysa5Gr9IZOf3GHeSUjJ5cmcT
+RBSMNCo5GdKzdEFBCAV+kmJVv9GDIwnttg7p0v7+lUCgM5wPsgUnIA+1FCqAkABu
+Vr4/xmgojUlgDolZwxMPd2CyrhV47oLNcLIHEdsvB2X5Lg5dKRv50PnKR/gDAEBz
+jshhTDgCvUzyw9llCxWUFjYEqYbQt5904HJIQgmtQmoWJzyRHjlvjtfob3Sl2q4M
+i7q+iPLCuABLyjYtmH5mlsTXV9bicZUz+y6gNVyHywJJfrjh6C4R7+JaFL7bAGt7
+LGDtNREmzfk6jYJBadzr
+=+l5M
 -----END PGP SIGNATURE-----
 
---GEOBdXTaBM6BexNbE9b3CMC5GaAs0hBNi--
+--UHCSBMj3PWDDIqmpFrqUmX8fsKCHvPFDn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
