@@ -1,107 +1,24 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 1/6] SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is in use
-Date: Wed, 24 Aug 2016 12:34:58 -0400
-Message-ID: <B946F013-A8DD-433A-836D-655608AA9AD1@oracle.com>
-References: <20160822185459.12076.43516.stgit@klimt.1015granger.net> <20160822185742.12076.34446.stgit@klimt.1015granger.net> <3E0207D8-CFB2-4233-B92B-165B10E9920E@oracle.com> <20160823205355.GA29452@fieldses.org> <AD25F201-01A4-4F4F-BAE7-9E984E12EE8D@oracle.com> <BB84506B-BC92-4325-A81C-4BC7D39F471C@primarydata.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BB84506B-BC92-4325-A81C-4BC7D39F471C-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
-Cc: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [for-next 00/15][PULL request] Mellanox mlx5 core driver
+ updates 2016-08-24
+Date: Wed, 24 Aug 2016 09:38:31 -0700 (PDT)
+Message-ID: <20160824.093831.1725390407094248507.davem@davemloft.net>
+References: <1472035154-14517-1-git-send-email-saeedm@mellanox.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1472035154-14517-1-git-send-email-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: saeedm@mellanox.com
+Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, talal@mellanox.com, matanb@mellanox.com, majd@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Saeed Mahameed <saeedm@mellanox.com>
+Date: Wed, 24 Aug 2016 13:38:59 +0300
 
-> On Aug 23, 2016, at 6:21 PM, Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org> wrote:
-> 
->> 
->> On Aug 23, 2016, at 17:05, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> 
->>> 
->>> On Aug 23, 2016, at 4:53 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
->>> 
->>> On Tue, Aug 23, 2016 at 01:39:15PM -0400, Chuck Lever wrote:
->>>> Hi Bruce-
->>>> 
->>>> 
->>>>> On Aug 22, 2016, at 2:57 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>>>> 
->>>>> Using NFSv4.1 on RDMA should be safe, so broaden the new checks in
->>>>> rpc_create().
->>>>> 
->>>>> WARN_ON_ONCE is used, matching most other WARN call sites in clnt.c.
->>>>> 
->>>>> Fixes: 39a9beab5acb ("rpc: share one xps between all backchannels")
->>>>> Fixes: d50039ea5ee6 ("nfsd4/rpc: move backchannel create logic...")
->>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>>> ---
->>>> 
->>>> Do you want to take this, or should it go through Trond/Anna ?
->>> 
->>> I don't care, feel free to add my reviewed-by: if it goes through
->>> someone else.
->>> 
->>> Looks like this should be for 4.8 (and stable), not 4.9?
->> 
->> I won't disagree with that.
->> 
->> I think Trond or Anna need to weigh in on all questions
->> (who takes it, does it go to stable as well).
-> 
-> If you want it in for 4.8, then I can pull it in together with the current bugfixes. Does that work for everyone?
+> This series contains some low level and API updates for mlx5 core
+> driver interface and mlx5_ifc.h, plus mlx5 LAG core driver support,
+> to be shared as base code for net-next and rdma mlx5 4.9 submissions.
 
-Thanks, that's perfect!
-
-
->>> --b.
->>> 
->>>> 
->>>> 
->>>>> net/sunrpc/clnt.c |    4 ++--
->>>>> 1 file changed, 2 insertions(+), 2 deletions(-)
->>>>> 
->>>>> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
->>>>> index 7f79fb7..66f23b3 100644
->>>>> --- a/net/sunrpc/clnt.c
->>>>> +++ b/net/sunrpc/clnt.c
->>>>> @@ -453,7 +453,7 @@ static struct rpc_clnt *rpc_create_xprt(struct rpc_create_args *args,
->>>>> 	struct rpc_xprt_switch *xps;
->>>>> 
->>>>> 	if (args->bc_xprt && args->bc_xprt->xpt_bc_xps) {
->>>>> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
->>>>> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
->>>>> 		xps = args->bc_xprt->xpt_bc_xps;
->>>>> 		xprt_switch_get(xps);
->>>>> 	} else {
->>>>> @@ -520,7 +520,7 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
->>>>> 	char servername[48];
->>>>> 
->>>>> 	if (args->bc_xprt) {
->>>>> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
->>>>> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
->>>>> 		xprt = args->bc_xprt->xpt_bc_xprt;
->>>>> 		if (xprt) {
->>>>> 			xprt_get(xprt);
->>>>> 
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>> 
->>>> --
->>>> Chuck Lever
->> 
->> --
->> Chuck Lever
-
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks.
