@@ -1,47 +1,84 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH -next] IB/hns: Fix return value check in
- hns_roce_get_cfg()
-Date: Wed, 24 Aug 2016 09:22:41 +0800
-Message-ID: <57BCF6E1.2030707@huawei.com>
-References: <1470445284-28970-1-git-send-email-weiyj.lk@gmail.com>
- <20160807053115.GQ27667@leon.nu>
- <087f4381-d830-fc57-ea5d-c516a1b160b5@gmail.com>
- <20160807131419.GS27667@leon.nu> <57AC56D4.3050401@huawei.com>
- <c27a3c5f-9604-546a-5ac7-e70613d93d50@redhat.com>
- <57BBAD65.6000108@huawei.com> <20160823105926.GG15065@leon.nu>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband/mlx5: Remove superfluous include of
+ io-mapping.h
+Date: Tue, 23 Aug 2016 23:35:05 -0400 (EDT)
+Message-ID: <1070024890.2212210.1472009705267.JavaMail.zimbra@redhat.com>
+References: <20160823201626.13926-1-chris@chris-wilson.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160823105926.GG15065-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160823201626.13926-1-chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 2016/8/23 18:59, Leon Romanovsky wrote:
-> On Tue, Aug 23, 2016 at 09:56:53AM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2016/8/23 2:15, Doug Ledford wrote:
->>> On 8/11/2016 6:43 AM, Wei Hu (Xavier) wrote:
->>>> Hi,  Doug Ledford
->>>>
->>>>    Can you give me a suggestion that what we should do? Thanks very much!
->>> I still have a branch for your driver, the hns-roce branch in my tree
->>> (only available via my github repo for now).  Now that Dave Miller has
->>> taken in the most recent patch to add the needed reset function to the
->>> hns net driver, I rebased your branch in my tree on his net-next branch.
->>>   I'll submit it in the next merge window.  I then applied this patch on
->>> top of that branch.  So, future patches to your driver need to be
->>> against my hns-roce branch in my github repo, at least until I merge it
->>> into my official k.o/for-4.9 branch.
->> Hi, Doug Ledford
->>      Can you provide us your hns-roce branch in github repo?
-> https://github.com/dledford/linux/tree/hns-roce
-Thank you very much! :-)
+----- Original Message -----
+> From: "Chris Wilson" <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Chris Wilson" <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>, "Eli Cohen" <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Jack
+> Morgenstein" <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Or Gerlitz" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Matan Barak" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+> "Leon Romanovsky" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+> "Hal Rosenstock" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Sent: Tuesday, August 23, 2016 4:16:26 PM
+> Subject: [PATCH] infiniband/mlx5: Remove superfluous include of io-mapping.h
+> 
+> This file does not use any structs or functions defined by io-mapping.h
+> (nor does it directly use iomap, ioremap, iounamp or friends). Remove it
+> to simplify verification of changes to io-mapping.h
+> 
+> The include existed since its inception in
+> 
+> commit e126ba97dba9edeb6fafa3665b5f8497fc9cdf8c
+> Author: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date:   Sun Jul 7 17:25:49 2013 +0300
+> 
+>     mlx5: Add driver for Mellanox Connect-IB adapters
+> 
+> which looks like a copy across from the Mellanox ethernet driver.
+> 
+> Signed-off-by: Chris Wilson <chris-Y6uKTt2uX1cEflXRtASbqLVCufUGDwFn@public.gmane.org>
+> Cc: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> ---
+>  drivers/infiniband/hw/mlx5/main.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/main.c
+> b/drivers/infiniband/hw/mlx5/main.c
+> index a84bb766fc62..1b4094baa2de 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -37,7 +37,6 @@
+>  #include <linux/pci.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+> -#include <linux/io-mapping.h>
+>  #if defined(CONFIG_X86)
+>  #include <asm/pat.h>
+>  #endif
+> --
+> 2.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+I compiled and tested this with no issues on my mlx5 test bed.
 
+Reviewed-by Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Tested-by Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
