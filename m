@@ -1,90 +1,107 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 00/15][PULL request] Mellanox mlx5 core driver updates 2016-08-24
-Date: Wed, 24 Aug 2016 13:38:59 +0300
-Message-ID: <1472035154-14517-1-git-send-email-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Tal Alon <talal@mellanox.com>, Matan Barak <matanb@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+From: Fields Bruce James <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v2 1/6] SUNRPC: Silence WARN_ON when NFSv4.1 over RDMA is
+ in use
+Date: Wed, 24 Aug 2016 09:38:30 -0400
+Message-ID: <20160824133830.GD3938@fieldses.org>
+References: <20160822185459.12076.43516.stgit@klimt.1015granger.net>
+ <20160822185742.12076.34446.stgit@klimt.1015granger.net>
+ <3E0207D8-CFB2-4233-B92B-165B10E9920E@oracle.com>
+ <20160823205355.GA29452@fieldses.org>
+ <AD25F201-01A4-4F4F-BAE7-9E984E12EE8D@oracle.com>
+ <BB84506B-BC92-4325-A81C-4BC7D39F471C@primarydata.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BB84506B-BC92-4325-A81C-4BC7D39F471C-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Cc: Lever Chuck <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Schumaker Anna <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, List Linux NFS Mailing <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dave and Doug,
+On Tue, Aug 23, 2016 at 10:21:40PM +0000, Trond Myklebust wrote:
+> 
+> > On Aug 23, 2016, at 17:05, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > 
+> >> 
+> >> On Aug 23, 2016, at 4:53 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> >> 
+> >> On Tue, Aug 23, 2016 at 01:39:15PM -0400, Chuck Lever wrote:
+> >>> Hi Bruce-
+> >>> 
+> >>> 
+> >>>> On Aug 22, 2016, at 2:57 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> >>>> 
+> >>>> Using NFSv4.1 on RDMA should be safe, so broaden the new checks in
+> >>>> rpc_create().
+> >>>> 
+> >>>> WARN_ON_ONCE is used, matching most other WARN call sites in clnt.c.
+> >>>> 
+> >>>> Fixes: 39a9beab5acb ("rpc: share one xps between all backchannels")
+> >>>> Fixes: d50039ea5ee6 ("nfsd4/rpc: move backchannel create logic...")
+> >>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >>>> ---
+> >>> 
+> >>> Do you want to take this, or should it go through Trond/Anna ?
+> >> 
+> >> I don't care, feel free to add my reviewed-by: if it goes through
+> >> someone else.
+> >> 
+> >> Looks like this should be for 4.8 (and stable), not 4.9?
+> > 
+> > I won't disagree with that.
+> > 
+> > I think Trond or Anna need to weigh in on all questions
+> > (who takes it, does it go to stable as well).
+> 
+> If you want it in for 4.8, then I can pull it in together with the current bugfixes. Does that work for everyone?
 
-This series contains some low level and API updates for mlx5 core
-driver interface and mlx5_ifc.h, plus mlx5 LAG core driver support,
-to be shared as base code for net-next and rdma mlx5 4.9 submissions.
+That'd be great, thanks.--b.
 
->From Alex and Artemy, Update mlx5_ifc for modify RQ and XRC bits.
-
->From Noa, Expose mlx5 link modes so they can be used in RDMA tree for rdma tools.
-
->From Aviv, LAG support needed for RDMA.
-    - Add needed hardware structures, layouts and interface
-    - mlx5 core driver LAG implementation
-    - Introduce mlx5 core driver LAG API for mlx5_ib
-
->From Maor, add two low level patches for mlx5 hardware sniffer QP
-infrastructure bits and capabilities, plus added the namespace for sniffer
-steering tables.  Needed for RDMA subtree.
-
-The following changes since commit 575ddf5888eaf8f271cb3df7b0806cb2db2c333a:
-    net/mlx5: Introduce alloc_encap and dealloc_encap commands
-
-are available in the git repository at:
-    git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/shared-for-4.9-2
-
-for you to fetch changes up to 87d22483ce68e609818d61e3a65361f5634c6cd6:
-    net/mlx5: Add sniffer namespaces
-
-Thanks,
-Saeed & Leon.
-
-Alex Vesker (1):
-  net/mlx5: Modify RQ bitmask from mlx5 ifc
-
-Artemy Kovalyov (1):
-  net/mlx5: Update struct mlx5_ifc_xrqc_bits
-
-Aviv Heller (9):
-  net/mlx5: Add HW interfaces used by LAG
-  net/mlx5: Implement RoCE LAG feature
-  net/mlx5: Get RoCE netdev
-  net/mlx5e: Avoid port remapping of mlx5e netdev TISes
-  net/mlx5: LAG and SRIOV cannot be used together
-  net/mlx5: LAG demux flow table support
-  net/mlx5: Add LAG flow steering namespace
-  net/mlx5: Vport LAG creation support
-  net/mlx5: Configure IB devices according to LAG state
-
-Maor Gottlieb (2):
-  net/mlx5: Introduce sniffer steering hardware capabilities
-  net/mlx5: Add sniffer namespaces
-
-Noa Osherovich (2):
-  net/mlx5: Expose mlx5e_link_mode
-  net/mlx5: Separate query_port_proto_oper for IB and EN
-
- drivers/infiniband/hw/mlx5/main.c                  |   3 +-
- drivers/net/ethernet/mellanox/mlx5/core/Makefile   |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |  12 +
- drivers/net/ethernet/mellanox/mlx5/core/en.h       |  34 --
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  10 +-
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  56 +-
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h   |   1 +
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  | 100 +++-
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |  10 +
- drivers/net/ethernet/mellanox/mlx5/core/lag.c      | 602 +++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/main.c     |  54 +-
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  27 +
- drivers/net/ethernet/mellanox/mlx5/core/port.c     |  32 +-
- drivers/net/ethernet/mellanox/mlx5/core/sriov.c    |  12 +
- include/linux/mlx5/device.h                        |  12 +
- include/linux/mlx5/driver.h                        |  11 +-
- include/linux/mlx5/fs.h                            |   6 +
- include/linux/mlx5/mlx5_ifc.h                      | 181 ++++++-
- include/linux/mlx5/port.h                          |  40 +-
- 19 files changed, 1105 insertions(+), 100 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lag.c
-
--- 
-2.7.4
+> 
+> > 
+> > 
+> >> --b.
+> >> 
+> >>> 
+> >>> 
+> >>>> net/sunrpc/clnt.c |    4 ++--
+> >>>> 1 file changed, 2 insertions(+), 2 deletions(-)
+> >>>> 
+> >>>> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> >>>> index 7f79fb7..66f23b3 100644
+> >>>> --- a/net/sunrpc/clnt.c
+> >>>> +++ b/net/sunrpc/clnt.c
+> >>>> @@ -453,7 +453,7 @@ static struct rpc_clnt *rpc_create_xprt(struct rpc_create_args *args,
+> >>>> 	struct rpc_xprt_switch *xps;
+> >>>> 
+> >>>> 	if (args->bc_xprt && args->bc_xprt->xpt_bc_xps) {
+> >>>> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> >>>> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> >>>> 		xps = args->bc_xprt->xpt_bc_xps;
+> >>>> 		xprt_switch_get(xps);
+> >>>> 	} else {
+> >>>> @@ -520,7 +520,7 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
+> >>>> 	char servername[48];
+> >>>> 
+> >>>> 	if (args->bc_xprt) {
+> >>>> -		WARN_ON(args->protocol != XPRT_TRANSPORT_BC_TCP);
+> >>>> +		WARN_ON_ONCE(!(args->protocol & XPRT_TRANSPORT_BC));
+> >>>> 		xprt = args->bc_xprt->xpt_bc_xprt;
+> >>>> 		if (xprt) {
+> >>>> 			xprt_get(xprt);
+> >>>> 
+> >>>> --
+> >>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> >>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>> 
+> >>> --
+> >>> Chuck Lever
+> > 
+> > --
+> > Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
