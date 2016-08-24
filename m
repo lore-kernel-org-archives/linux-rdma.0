@@ -1,120 +1,64 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] RDMA/ocrdma: Fix the max_sge reported from FW
-Date: Wed, 24 Aug 2016 01:17:41 -0400
-Message-ID: <1472015861-10312-1-git-send-email-devesh.sharma@broadcom.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 0/6] Refactor RDMA IOCTL declarations
+Date: Wed, 24 Aug 2016 13:14:56 +0300
+Message-ID: <20160824101456.GR15065@leon.nu>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+ <20160823214759.GA16595@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="3XZQkxCYp0f/VEFS"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160823214759.GA16595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Current driver is reporting wrong values for max_sge and
-max_sge_rd in query_device. This breaks the nfs rdma and iser
-in some device profiles. Fixing the driver to report
-correct values from FW.
+--3XZQkxCYp0f/VEFS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 14 +++++++-------
- drivers/infiniband/hw/ocrdma/ocrdma_sli.h   | 12 ++++++++----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  4 ++--
- 3 files changed, 17 insertions(+), 13 deletions(-)
+On Tue, Aug 23, 2016 at 03:47:59PM -0600, Jason Gunthorpe wrote:
+> On Wed, Aug 24, 2016 at 12:31:41AM +0300, Leon Romanovsky wrote:
+> > This patch set refactors RDMA IOCTL declarations, unifies their
+> > location, moves all current IOCTL exporters to one place and renames
+> > them to fix the differences in coding style.
+>
+> The end result looks reasonable enough to me.
+>
+> For the series
+>
+> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 16740dc..67fc0b6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1156,18 +1156,18 @@ static void ocrdma_get_attr(struct ocrdma_dev *dev,
- 	attr->max_srq =
- 		(rsp->max_srq_rpir_qps & OCRDMA_MBX_QUERY_CFG_MAX_SRQ_MASK) >>
- 		OCRDMA_MBX_QUERY_CFG_MAX_SRQ_OFFSET;
--	attr->max_send_sge = ((rsp->max_write_send_sge &
-+	attr->max_send_sge = ((rsp->max_recv_send_sge &
- 			       OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK) >>
- 			      OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT);
--	attr->max_recv_sge = (rsp->max_write_send_sge &
--			      OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK) >>
--	    OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT;
-+	attr->max_recv_sge = (rsp->max_recv_send_sge &
-+			      OCRDMA_MBX_QUERY_CFG_MAX_RECV_SGE_MASK) >>
-+	    OCRDMA_MBX_QUERY_CFG_MAX_RECV_SGE_SHIFT;
- 	attr->max_srq_sge = (rsp->max_srq_rqe_sge &
- 			      OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_OFFSET;
--	attr->max_rdma_sge = (rsp->max_write_send_sge &
--			      OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_MASK) >>
--	    OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_SHIFT;
-+	attr->max_rdma_sge = (rsp->max_wr_rd_sge &
-+			      OCRDMA_MBX_QUERY_CFG_MAX_RD_SGE_MASK) >>
-+	    OCRDMA_MBX_QUERY_CFG_MAX_RD_SGE_SHIFT;
- 	attr->max_ord_per_qp = (rsp->max_ird_ord_per_qp &
- 				OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_MASK) >>
- 	    OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_SHIFT;
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-index 0efc966..37df448 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_sli.h
-@@ -554,9 +554,9 @@ enum {
- 	OCRDMA_MBX_QUERY_CFG_L3_TYPE_MASK		= 0x18,
- 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_SHIFT		= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_SEND_SGE_MASK		= 0xFFFF,
--	OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_SHIFT	= 16,
--	OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_MASK		= 0xFFFF <<
--				OCRDMA_MBX_QUERY_CFG_MAX_WRITE_SGE_SHIFT,
-+	OCRDMA_MBX_QUERY_CFG_MAX_RECV_SGE_SHIFT	= 16,
-+	OCRDMA_MBX_QUERY_CFG_MAX_RECV_SGE_MASK		= 0xFFFF <<
-+				OCRDMA_MBX_QUERY_CFG_MAX_RECV_SGE_SHIFT,
- 
- 	OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_SHIFT	= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_ORD_PER_QP_MASK	= 0xFFFF,
-@@ -612,6 +612,8 @@ enum {
- 	OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_OFFSET		= 0,
- 	OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_MASK		= 0xFFFF <<
- 				OCRDMA_MBX_QUERY_CFG_MAX_SRQ_SGE_OFFSET,
-+	OCRDMA_MBX_QUERY_CFG_MAX_RD_SGE_SHIFT		= 0,
-+	OCRDMA_MBX_QUERY_CFG_MAX_RD_SGE_MASK		= 0xFFFF,
- };
- 
- struct ocrdma_mbx_query_config {
-@@ -619,7 +621,7 @@ struct ocrdma_mbx_query_config {
- 	struct ocrdma_mbx_rsp rsp;
- 	u32 qp_srq_cq_ird_ord;
- 	u32 max_pd_ca_ack_delay;
--	u32 max_write_send_sge;
-+	u32 max_recv_send_sge;
- 	u32 max_ird_ord_per_qp;
- 	u32 max_shared_ird_ord;
- 	u32 max_mr;
-@@ -639,6 +641,8 @@ struct ocrdma_mbx_query_config {
- 	u32 max_wqes_rqes_per_q;
- 	u32 max_cq_cqes_per_cq;
- 	u32 max_srq_rqe_sge;
-+	u32 max_wr_rd_sge;
-+	u32 ird_pgsz_num_pages;
- };
- 
- struct ocrdma_fw_ver_rsp {
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index b1a3d91..0aa8547 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -125,8 +125,8 @@ int ocrdma_query_device(struct ib_device *ibdev, struct ib_device_attr *attr,
- 					IB_DEVICE_SYS_IMAGE_GUID |
- 					IB_DEVICE_LOCAL_DMA_LKEY |
- 					IB_DEVICE_MEM_MGT_EXTENSIONS;
--	attr->max_sge = dev->attr.max_send_sge;
--	attr->max_sge_rd = attr->max_sge;
-+	attr->max_sge = min(dev->attr.max_send_sge, dev->attr.max_recv_sge);
-+	attr->max_sge_rd = dev->attr.max_rdma_sge;
- 	attr->max_cq = dev->attr.max_cq;
- 	attr->max_cqe = dev->attr.max_cqe;
- 	attr->max_mr = dev->attr.max_mr;
--- 
-1.8.3.1
+Thank you
 
+>
+> Jason
+
+--3XZQkxCYp0f/VEFS
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXvXOgAAoJEORje4g2clin7oUQAKmwYWDlMASasKnZc9ElWp4a
+vbfmxZnGQtSoHqx9mjVJTnnafh+HAmutcxvTqInMVcuOc5dqzBs0j+e9rBPGwHVI
+pyZ+gEggrzU0NjoBXAcHHyJ6HRjmP2tv5AoGuOLDuSoHra6zxw70qYjj/jR2UtJM
+BEEoGwPzDRI1T/zqvcpIgt1GqowLOaap4YV1irqvhv7QeulD4dGpMyB/rVf9t3MV
+IuR4R1U6hySTV931PhpULiXJHEonF/ISW+GC9hZQ+4TDuje4beNyNK16Uqpqa8/F
+migSdhdV8aVcmZfj8yGcjXrDGel29Cvy70FAkipP7maHAYcoq7vbakawtfUlqISQ
+xY5Kjvk7turXqGmlpDdMSwBDzY8OBoE3NzOkaTveP/giwtuekTWm94QGNQ7i2jdV
+PNiPIR0CG7u1lIZUBwGNJ5nOhwKIa5EBYZeNzrh0Qa/xLHH7v/4OVJd/3lt5eCjZ
+n9zXoQsy/Qt2zSAJ+fuJL69KFh/s21xuAJvZyPJapnyQ7dcNnqnuP/O1S5VIFL3o
+c4uPgoO7dI5xraqEjkYnhVLg/ln+F+VxBgQIW4Dx3bL8QdOTgLgPQlNoL4WdjRLt
+myozSNW52juYL5HX7OlU4+p8lWSyoHaoEaCM0D2g5oGljEhuwH+zdUfiY0roEYJ2
+XiOQAzKmNxjMjcW6xSSn
+=gXXO
+-----END PGP SIGNATURE-----
+
+--3XZQkxCYp0f/VEFS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
