@@ -1,45 +1,40 @@
-From: Rami Rosen <roszenrami@gmail.com>
-Subject: Re: [PATCHv11 3/3] rdmacg: Added documentation for rdmacg
-Date: Thu, 25 Aug 2016 01:55:37 +0300
-Message-ID: <CAKoUArnZvsost5pgysC9DL1_msBta0nmkXTjnk+0KxgwJAoR=Q@mail.gmail.com>
-References: <1471869231-15576-1-git-send-email-pandit.parav@gmail.com> <1471869231-15576-4-git-send-email-pandit.parav@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
+ Hisilicon RoCE Driver
+Date: Wed, 24 Aug 2016 21:53:41 -0700 (PDT)
+Message-ID: <20160824.215341.1803699371957253329.davem@davemloft.net>
+References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1471869231-15576-4-git-send-email-pandit.parav@gmail.com>
+In-Reply-To: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, tj@kernel.org, Li Zefan <lizefan@huawei.com>, hannes@cmpxchg.org, dledford@redhat.com, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, Or Gerlitz <ogerlitz@mellanox.com>, matanb@mellanox.com, Andrew Morton <akpm@linux-foundation.org>, linux-security-module@vger.kernel.org
+To: salil.mehta@huawei.com
+Cc: dledford@redhat.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Salil Mehta <salil.mehta@huawei.com>
+Date: Wed, 24 Aug 2016 04:44:48 +0800
 
-> +Whenever RDMA resource charing occurs, owner rdma cgroup is returned to
-Should be: charging instead of charing
+> This patch is meant to add support of ACPI to the Hisilicon RoCE driver.
+> Following changes have been made in the driver(s):
+> 
+> Patch 1/2: HNS Ethernet Driver: changes to support ACPI have been done in
+>    the RoCE reset function part of the HNS ethernet driver. Earlier it only
+>    supported DT/syscon.
+> 
+> Patch 2/2. HNS RoCE driver: changes done in RoCE driver are meant to detect
+>    the type and then either use DT specific or ACPI spcific functions. Where
+>    ever possible, this patch tries to make use of "Unified Device Property
+>    Interface" APIs to support both DT and ACPI through single interface.
+> 
+> NOTE 1: ACPI changes done in both of the drivers depend upon the ACPI Table
+>      (DSDT and IORT tables) changes part of UEFI/BIOS. These changes are NOT
+>      part of this patch-set.
+> NOTE 2: Reset function in Patch 1/2 depends upon the reset function added in
+>      ACPI tables(basically DSDT table) part of the UEFI/BIOS. Again, this
+>      change is NOT reflected in this patch-set.
 
-> +(b) Query resource limit:
-> +cat /sys/fs/cgroup/rdma/2/rdma.max
-> +#Output:
-> +mlx4_0 uctx=max pd=max ah=2 mr=100 mw=max cq=max srq=max qp=10 flow=max
-> +ocrdma1 uctx=1 pd=5 ah=1 mr=10 cq=10 srq=max qp=20 flow=max flow=max
-
-Is this really so: double"flow=max" at the end of the ocrdma1 line?
-(flow=max flow=max)
-
-> +5-4. RDMA
-> +
-> +The "rdma" controller regulates the distribution and accounting of
-> +of RDMA resources.
-"of of" should be only a single "of"
-
-
-> +         mlx4_1 uctx=1 ah=0 pd=1 cq=4 qp=4 mr=100 srq=0 flow=10
-> +         ocrdma1 uctx=2 pd=2 ah=2 mr=20 mw=max cq=1 srq=1 qp=10 flow=10
-
-Seems to be inconsistency here: in the first line you have qp=4
-*before* srq=0, but in the second line you have qp=10 *after* srq=1.
-
-Keep on the good work!
-
-Regards,
-Rami Rosen
+I can't apply this series to my tree because the hns infiniband driver
+doesn't exist in it.
