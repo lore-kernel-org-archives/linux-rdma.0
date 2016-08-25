@@ -1,178 +1,46 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 09/15] IB/pvrdma: Add UAR support
-Date: Thu, 25 Aug 2016 16:13:25 +0300
-Message-ID: <20160825131325.GC27446@yuval-lap.uk.oracle.com>
-References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-10-git-send-email-aditr@vmware.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Question on RDMA atomic operations
+Date: Thu, 25 Aug 2016 07:11:36 +0000
+Message-ID: <E7A19716-E97F-4BC3-9865-3740F7847AF7@mellanox.com>
+References: <DB0C5879-C46D-47BF-98F8-DECE15CC4D08@umich.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470266864-16888-10-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <DB0C5879-C46D-47BF-98F8-DECE15CC4D08-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Dong Young Yoon <dyoon-63aXycvo3TyHXe+LvDLADg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Wed, Aug 03, 2016 at 04:27:38PM -0700, Adit Ranadive wrote:
-> This patch adds the UAR support for the paravirtual RDMA device. The UAR
-> pages are MMIO pages from the virtual PCI space. We define offsets within
-> this page to provide the fast data-path operations.
-> 
-> Changes v2->v3:
->  - Used is_power_of_2 function.
->  - Simplify pvrdma_uar_alloc function.
-> 
-> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c | 128 +++++++++++++++++++++++++
->  1 file changed, 128 insertions(+)
->  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> 
-> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> new file mode 100644
-> index 0000000..c8c6c57
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/pvrdma/pvrdma_doorbell.c
-> @@ -0,0 +1,128 @@
-> +/*
-> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of EITHER the GNU General Public License
-> + * version 2 as published by the Free Software Foundation or the BSD
-> + * 2-Clause License. This program is distributed in the hope that it
-> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
-> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-> + * See the GNU General Public License version 2 for more details at
-> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program available in the file COPYING in the main
-> + * directory of this source tree.
-> + *
-> + * The BSD 2-Clause License
-> + *
-> + *     Redistribution and use in source and binary forms, with or
-> + *     without modification, are permitted provided that the following
-> + *     conditions are met:
-> + *
-> + *      - Redistributions of source code must retain the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer.
-> + *
-> + *      - Redistributions in binary form must reproduce the above
-> + *        copyright notice, this list of conditions and the following
-> + *        disclaimer in the documentation and/or other materials
-> + *        provided with the distribution.
-> + *
-> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-> + * OF THE POSSIBILITY OF SUCH DAMAGE.
-> + */
-> +
-> +#include <linux/bitmap.h>
-> +#include <linux/errno.h>
-> +#include <linux/slab.h>
-> +
-> +#include "pvrdma.h"
-> +
-> +int pvrdma_uar_table_init(struct pvrdma_dev *dev)
-> +{
-> +	u32 num = dev->dsr->caps.max_uar;
-> +	u32 mask = num - 1;
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +
-> +	/* Power of 2 */
-> +	if (!is_power_of_2(num))
-> +		return -EINVAL;
-> +
-> +	tbl->last = 0;
-> +	tbl->top = 0;
-> +	tbl->max = num;
-> +	tbl->mask = mask;
-> +	spin_lock_init(&tbl->lock);
-> +	tbl->table = kcalloc(BITS_TO_LONGS(num), sizeof(long), GFP_KERNEL);
-> +	if (!tbl->table)
-> +		return -ENOMEM;
-> +
-> +	/* 0th UAR is taken by the device. */
-> +	set_bit(0, tbl->table);
-> +
-> +	return 0;
-> +}
-> +
-> +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev)
-> +{
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +
-> +	kfree(tbl->table);
-> +}
-> +
-> +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-> +{
-> +	struct pvrdma_id_table *tbl;
-> +	unsigned long flags;
-> +	u32 obj;
-> +
-> +	tbl = &dev->uar_table.tbl;
-> +
-> +	spin_lock_irqsave(&tbl->lock, flags);
-> +	obj = find_next_zero_bit(tbl->table, tbl->max, tbl->last);
-> +	if (obj >= tbl->max) {
-> +		tbl->top = (tbl->top + tbl->max) & tbl->mask;
-> +		obj = find_first_zero_bit(tbl->table, tbl->max);
-> +	}
-> +
-> +	if (obj >= tbl->max) {
-> +		spin_unlock_irqrestore(&tbl->lock, flags);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	set_bit(obj, tbl->table);
-> +	obj |= tbl->top;
-> +
-> +	spin_unlock_irqrestore(&tbl->lock, flags);
-> +
-> +	uar->index = obj;
-> +	uar->pfn = (pci_resource_start(dev->pdev, PVRDMA_PCI_RESOURCE_UAR) >>
-> +		    PAGE_SHIFT) + uar->index;
-> +
-> +	return 0;
-> +}
-> +
-> +void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar)
-> +{
-> +	struct pvrdma_id_table *tbl = &dev->uar_table.tbl;
-> +	unsigned long flags;
-> +	u32 obj;
-> +
-> +	obj = uar->index & (tbl->max - 1);
-> +	spin_lock_irqsave(&tbl->lock, flags);
-> +	clear_bit(obj, tbl->table);
-> +	tbl->last = min(tbl->last, obj);
-> +	tbl->top = (tbl->top + tbl->max) & tbl->mask;
-> +	spin_unlock_irqrestore(&tbl->lock, flags);
-> +}
-> -- 
-> 2.7.4
-> 
-> --
+> On Aug 24, 2016, at 11:43 PM, Dong Young Yoon <dyoon-63aXycvo3TyHXe+LvDLADg@public.gmane.org> wrote:
+>=20
+> Hi,
+>=20
+> My name is Dong Young and I am a PhD student at the University of Michiga=
+n.
+> Recently, we have been working on a research topic related to RDMA and ha=
+d an observation where there is a race condition between RDMA atomic operat=
+ions (e.g., fetch-and-add) and RDMA 1-sided writes.
+> We would like to verity whether what we observed is actually true (i.e., =
+no atomicity guaranteed between RDMA atomic operation and RDMA read/write).
+Hi Dong,
+
+If you post an atomic operation followed by RDMA read/write, you need a fen=
+ce between the two, because the second one might start processing before th=
+e first one has completed processing.=20
+
+In order to do that, you need to set the IBV_SEND_FENCE in the send_flags o=
+f the wr.
+
+> Is it really true? I have also contacted other fellow researchers who wor=
+ked on RDMA, but they do not seem to be 100% sure on this matter.
+> Thank you so much in advance for your help.
+>=20
+> Thanks,
+> Dong Young--
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
