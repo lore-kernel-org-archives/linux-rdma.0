@@ -1,123 +1,70 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
- Hisilicon RoCE Driver
-Date: Thu, 25 Aug 2016 11:00:16 -0400
-Message-ID: <6a3c65b0-500e-c097-7ff4-15ec5f1de19c@redhat.com>
-References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
- <20160824.215341.1803699371957253329.davem@davemloft.net>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A6E7FA9@lhreml503-mbx>
- <8fa4e921-9dfc-bf2b-32c9-230136536f65@redhat.com>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Send last streaming mode message for loopback
+ connections
+Date: Thu, 25 Aug 2016 11:16:29 -0400
+Message-ID: <e781df3a-cab2-393d-aa52-a96276a89d2b@redhat.com>
+References: <1472065157-56936-1-git-send-email-shiraz.saleem@intel.com>
+ <20160825034600.GB594@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="bNP4AtXrmsP5VQjlp171EnbkUtbHk23bJ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Salil Mehta <salil.mehta@huawei.com>, David Miller <davem@davemloft.net>
-Cc: "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+ boundary="w7U90d4aTNRvuKikfQE7KlPFbuP9bWW57"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160825034600.GB594-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bNP4AtXrmsP5VQjlp171EnbkUtbHk23bJ
-Content-Type: multipart/mixed; boundary="tJwjLuts2A5Noqs7v1KerCf0oNxxD7ir3"
-From: Doug Ledford <dledford@redhat.com>
-To: Salil Mehta <salil.mehta@huawei.com>, David Miller <davem@davemloft.net>
-Cc: "Huwei (Xavier)" <xavier.huwei@huawei.com>, oulijun <oulijun@huawei.com>,
- "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>,
- "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>,
- "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
- "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- Linuxarm <linuxarm@huawei.com>
-Message-ID: <6a3c65b0-500e-c097-7ff4-15ec5f1de19c@redhat.com>
-Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
- Hisilicon RoCE Driver
-References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
- <20160824.215341.1803699371957253329.davem@davemloft.net>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A6E7FA9@lhreml503-mbx>
- <8fa4e921-9dfc-bf2b-32c9-230136536f65@redhat.com>
- <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
-In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
+--w7U90d4aTNRvuKikfQE7KlPFbuP9bWW57
+Content-Type: multipart/mixed; boundary="DJrWbENis4iFbHHUjcOtm4LH0mU9K2S3X"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+ sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <e781df3a-cab2-393d-aa52-a96276a89d2b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Send last streaming mode message for loopback
+ connections
+References: <1472065157-56936-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ <20160825034600.GB594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160825034600.GB594-2ukJVAZIZ/Y@public.gmane.org>
 
---tJwjLuts2A5Noqs7v1KerCf0oNxxD7ir3
+--DJrWbENis4iFbHHUjcOtm4LH0mU9K2S3X
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/25/2016 10:50 AM, Salil Mehta wrote:
+On 8/24/2016 11:46 PM, Leon Romanovsky wrote:
+> On Wed, Aug 24, 2016 at 01:59:17PM -0500, Shiraz Saleem wrote:
+>> From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> Send a zero length last streaming mode message for loopback
+>> connections to synchronize between accepting QP and connecting QP.
+>> This avoids data transfer to start on the accepting QP before
+>> the connecting QP is in RTS. Also remove function i40iw_loopback_nop()=
 
->> I can take both.  I already pulled net-next to get the initial hns roc=
-e
->> reset patch from Dave, so these will apply cleanly with my tree and
->> merge cleanly with Dave's due to the common ancestral base.  The only
->> problem is that if you intend to send any other patches that effect
->> this
->> code, then they would need to come through me until the 4.9 merge
->> window
->> is complete so that we don't have later merge conflicts.
-> Ok sure, I got your point. Yes, there are few patches we need to push i=
-n
-> but are related to RoCE CM(Connection Manager) mode and would follow
-> soon. There are no further patches we foresee which are for RoCE Driver=
- but are
-> dependent upon HNS Ethernet driver.=20
+>> as it is no longer used.
+>>
+>> Fixes: f27b4746f378 ("i40iw: add connection management code")
+>>
+>=20
+> Hi Shiraz,
+> It will be great if avoid the empty line between Fixes and tags for fut=
+ure submissions.
+> Thanks
 
-Ok.
-
-> But kindly note, there could be some patches in development in HNS Ethe=
-rnet driver
-> which might sneak in through net-next. These might not be related to Ro=
-CE Driver but
-> might have some common files which might lead to conflict again further=
- down
-> the line when you try to merge ACPI RoCE reset again. This HNS driver c=
-hange
-> is very difficult for us to control since amount of development going o=
-n in HNS
-> is of much higher magnitude than the RoCE as of now. It will be almost =
-impossible
-> for us to convince internally and shift that entire development being d=
-one right
-> now on net-next and rebase it to your internal hns-roce branch for a mo=
-nth of time
-> till 4.9. This will affect many features deadlines internally.=20
-
-This is what Linus wants to avoid.  It's not necessary to shift your
-work from one tree to another, what is needed if for your RoCE team and
-your net team to plan out what you are going to submit for the next
-kernel and provide a complete list of conflicting code patches to both
-Dave and myself and allow us to pull those patches into both our trees
-so there are no conflicts.  See the recent threads on linux-rdma about
-the pull requests from Mellanox.  This is how it needs to be done.
-Neither team needs to slow down, or not do your work, you simply need to
-plan that work out and provide a common base for Dave and I to apply the
-separate patches on top of.
-
-> So, if I understood you correctly, this delta (which could be large), w=
-hen next merge
-> window open would be taken care by you. And we can expect below to be p=
-art of 4.9
-> 1) RoCE Base driver (*Already Accepted*)
-> 2) ACPI changes for RoCE Driver (*if accepted*)
->    * ACPI changes for the RoCE Driver
->    * ACPI changes for RoCE reset function part of the HNS driver
-
-Both of these changes are already applied to my tree.  However, if you
-submit other changes to net-next and it starts generating merge
-conflicts, you and the net team are going to get yelled at.  If you are
-going to have a shared driver, then you *HAVE* to work as a larger team
-and plan your changes you submit to the linux kernel.
+That's a matter of opinion.  I actually prefer the extra line myself.
+Anyway, applied, thanks.
 
 
 --=20
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---tJwjLuts2A5Noqs7v1KerCf0oNxxD7ir3--
+--DJrWbENis4iFbHHUjcOtm4LH0mU9K2S3X--
 
---bNP4AtXrmsP5VQjlp171EnbkUtbHk23bJ
+--w7U90d4aTNRvuKikfQE7KlPFbuP9bWW57
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -126,19 +73,23 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXvwgAAAoJELgmozMOVy/dQQQP/Rk+pwRAGHKCWdFKWtUeay4w
-3iIjrTlRHAUO1194dkpjBsAQ2op2d0MqKsjGGxzvgN9oY/9msUV8zc0ECH9TDHU+
-3f50hwblaln++9HOrfwQBRx33DGKTqCTAa8J129Qv2bYcOGpSzLs4XYM9CWXHGiY
-DgwVG17yucpSnfNzS5c5MweW5Q+g8hBmZc9OF6McBoT68zboSEPRXqwQlKNtUTli
-IS6vzKJxJ5c1H+euvvdnV5nbwn47+8JiZwCczGxTUv7e+mXc2bDTeapExKSZz2Mu
-4DgOTsLrm2fUm7sk+ytjjcPUbkobpRVmOQfoibPS5b3APaD+O1crtKKmjDe5Fq3U
-L6Q2L5Zy7884vQGahl0CYHj3m3Sgr2YB/tvoBFcJci88qvclz6BnSij7HIRumFrg
-XZwgleFQA4oziknyQB4OHgSYlDanQCmA/+afNXuI8zCj/iqFO9IxHrdXoc6IGR5a
-U03bg0wxFJsLcYuXzVQ9hsGsNX0KhpCU4R3nlGMvvH9s1sqDtq9auiWEcmhtP1rd
-Jkpv2a4cpEDrxSsdyZJGdcrqtvMFFm5ggm92HJVegas3vkliWoqYbHrmjOaKetJg
-aOyhx2ybAqbvTtVosVU/IRWrjyBNNKybAeWlnvB22IE3sTgTyMAxL5FTDbuJppwW
-jpyiWAjFha7uHMScRLPf
-=5TDn
+iQIcBAEBCAAGBQJXvwvNAAoJELgmozMOVy/dJ7UP/0Cccr8Psq1baEEjJbpvEDVq
+cZCxwFbE6d2MRqsChsM/C8LOcaaIkA1ozG6reeFQvlCBpPmc0SfI7kHVgM6czNSQ
+TcMyAUPrIuhykm4x/r3tVdQo7BgLC0z+lO87FPkKtnuUD4YNM8Jh6MocLig86s67
+1BaMchCLXaqEETHguKHyHdVE2bnJ/eNKEulBxCh6/fF4g9abwBTrmtHYOoaYjDmS
+Rm2HykTXVc9LRlQXLafO4mwgiirDbiR6yYT3EnjF8F6Jly5Oap0ITxCd14xLnNBI
+7H87reUaIJjDbbiUx7DUArUlxyAXaZDBqSeov4dJc16Qg92X1JBrD+0BwVtfLhwU
+swTiTs0MqAUX54uVVHiBo2CZ9rYveeXeg6DltLiooAVMfND+Iiwfu0oWuEdH2K4T
+uRbx0EDFBi7aQXuye6t8Ohc0wsTXWbKI5O3JQpIDPoRF1hPFotKsZsgCrWxbo9p5
+dbHJ5Ll6fo5zw23qRCz+s6tydbMG8ESxxmGdJECRlfy93BS7s1aQMW03/U3WAAH6
+ea60XcOCUFlXtWaosP4yqBEamzL6cBpw/qMK2zfN23lwnQl6O+WNUvGR5iai9TDI
+XnYNPTo6CHq8Vn58XjR40Ktuvej6dG0zZhrugERJgc9khSqvPQWLk5Dl0EOoEpE0
+L7HhP1fh6F9rqUxyQB9g
+=4NFq
 -----END PGP SIGNATURE-----
 
---bNP4AtXrmsP5VQjlp171EnbkUtbHk23bJ--
+--w7U90d4aTNRvuKikfQE7KlPFbuP9bWW57--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
