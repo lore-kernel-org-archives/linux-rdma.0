@@ -1,152 +1,167 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 0/3] Add support for TCP segmentation
- offload (TSO)
-Date: Thu, 25 Aug 2016 10:42:59 -0400
-Message-ID: <4bedb772-ff66-a60e-66a4-128e4d061e3a@redhat.com>
-References: <1471798081-19088-1-git-send-email-yishaih@mellanox.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to the
+ Hisilicon RoCE Driver
+Date: Thu, 25 Aug 2016 14:50:05 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F91A6E85C2@lhreml503-mbx>
+References: <1471985090-202472-1-git-send-email-salil.mehta@huawei.com>
+ <20160824.215341.1803699371957253329.davem@davemloft.net>
+ <F4CC6FACFEB3C54C9141D49AD221F7F91A6E7FA9@lhreml503-mbx>
+ <8fa4e921-9dfc-bf2b-32c9-230136536f65@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="QRNOvAgkQehmLOJAIu2SEfNPluLXb26Lv"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1471798081-19088-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <8fa4e921-9dfc-bf2b-32c9-230136536f65-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "Huwei (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---QRNOvAgkQehmLOJAIu2SEfNPluLXb26Lv
-Content-Type: multipart/mixed; boundary="sc2rOecMODFxSTQ0rtRGMh8vQ6EfSdtsk"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org,
- talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
-Message-ID: <4bedb772-ff66-a60e-66a4-128e4d061e3a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1 libibverbs 0/3] Add support for TCP segmentation
- offload (TSO)
-References: <1471798081-19088-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1471798081-19088-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---sc2rOecMODFxSTQ0rtRGMh8vQ6EfSdtsk
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 8/21/2016 12:47 PM, Yishai Hadas wrote:
-> Hi Doug,
->=20
-> This V1 series addresses a note coming from the list to replace a macro=
-
-> by a static inline function, details below.
->=20
-> The relevant kernel patches regarding capabilities were already taken i=
-nto your
-> tree for coming kernel of 4.8.
->=20
-> The series was tested successfully with mlx5 driver (lib, kernel) and c=
-an be
-> accessed also from my openfabrics GIT at:
-> git://openfabrics.org/~yishaih/libibverbs.git branch: tso_v1
->=20
-> Yishai
->=20
-> In general,
-> TSO enables an application to pass a packet with large chunk of data th=
-an the
-> MTU to the NIC and let it breaks into small packets as part of its send=
- flow.
-> The TSO engine will split the packet into separate packets and insert t=
-he
-> relevant user specified L2/L3/L4 headers automatically.
-> This is a technique for increasing outbound throughput of high-bandwidt=
-h
-> network connections by reducing CPU overhead.
->=20
-> For some extra information about TSO, below link can be helpful:
-> https://en.wikipedia.org/wiki/Large_segment_offload
->=20
-> Verbs usage,
-> TSO traffic is performed by ibv_post_send with opcode IBV_WR_TSO.
-> The following information should be supplied within the associated send=
- WR:
-> - A pointer to the packet header.
-> - Header size.
-> - The maximum segment size (mss) that hardware should generate in
->   its TSO engine.
->=20
-> The above information required to send a TSO packet is similar to the I=
-B kernel
-> API.  http://lxr.free-electrons.com/source/include/rdma/ib_verbs.h#L123=
-7
->=20
-> The TSO capabilities as of the supported QP types, max TSO payload can =
-be
-> achieved upon query device.
-> =20
-> When creating a TSO eligible QP, user should supply the maximum TSO hea=
-der size
-> in order to let providers preparing their SQ buffer accordingly. This n=
-eed is
-> similar to other capabilities that are given as part of QP creation for=
- that
-> purpose.
->=20
-> Changes from V0:
-> patch #2: Change 'ibv_is_qpt_supported' to be a static inline function =
-instead
->           of a macro.
->=20
-> Bodong Wang (3):
->   Fix ibv_cmd_query_device_ex to return valid output
->   Add support for TCP segmentation offload (TSO)
->   Update man pages for TSO support
->=20
->  examples/devinfo.c         | 20 ++++++++++++++++++++
->  include/infiniband/verbs.h | 37 +++++++++++++++++++++++++++++--------
->  man/ibv_create_qp_ex.3     |  1 +
->  man/ibv_post_send.3        | 36 ++++++++++++++++++++++++------------
->  man/ibv_query_device_ex.3  | 22 ++++++++++++++--------
->  src/cmd.c                  |  9 +--------
->  6 files changed, 89 insertions(+), 36 deletions(-)
->=20
-
-The third patch, to the man pages, only added raw eth to the supported
-type matrix for TSO.  However, the actual support clearly was intended
-to work with UD as well.  I modified the man page patch to correct that.
- Applied.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
 
 
---sc2rOecMODFxSTQ0rtRGMh8vQ6EfSdtsk--
+> -----Original Message-----
+> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
+> Sent: Thursday, August 25, 2016 2:53 PM
+> To: Salil Mehta; David Miller
+> Cc: Huwei (Xavier); oulijun; Zhuangyuzeng (Yisen);
+> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI to
+> the Hisilicon RoCE Driver
+> 
+> On 8/25/2016 8:00 AM, Salil Mehta wrote:
+> >
+> >
+> >> -----Original Message-----
+> >> From: David Miller [mailto:davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org]
+> >> Sent: Thursday, August 25, 2016 5:54 AM
+> >> To: Salil Mehta
+> >> Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; Huwei (Xavier); oulijun; Zhuangyuzeng
+> (Yisen);
+> >> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> >> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> >> Subject: Re: [PATCH for-next 0/2] {IB,net}/hns: Add support of ACPI
+> to
+> >> the Hisilicon RoCE Driver
+> >>
+> >> From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> >> Date: Wed, 24 Aug 2016 04:44:48 +0800
+> >>
+> >>> This patch is meant to add support of ACPI to the Hisilicon RoCE
+> >> driver.
+> >>> Following changes have been made in the driver(s):
+> >>>
+> >>> Patch 1/2: HNS Ethernet Driver: changes to support ACPI have been
+> >> done in
+> >>>    the RoCE reset function part of the HNS ethernet driver. Earlier
+> >> it only
+> >>>    supported DT/syscon.
+> >>>
+> >>> Patch 2/2. HNS RoCE driver: changes done in RoCE driver are meant
+> to
+> >> detect
+> >>>    the type and then either use DT specific or ACPI spcific
+> >> functions. Where
+> >>>    ever possible, this patch tries to make use of "Unified Device
+> >> Property
+> >>>    Interface" APIs to support both DT and ACPI through single
+> >> interface.
+> >>>
+> >>> NOTE 1: ACPI changes done in both of the drivers depend upon the
+> ACPI
+> >> Table
+> >>>      (DSDT and IORT tables) changes part of UEFI/BIOS. These
+> changes
+> >> are NOT
+> >>>      part of this patch-set.
+> >>> NOTE 2: Reset function in Patch 1/2 depends upon the reset function
+> >> added in
+> >>>      ACPI tables(basically DSDT table) part of the UEFI/BIOS.
+> Again,
+> >> this
+> >>>      change is NOT reflected in this patch-set.
+> >>
+> >> I can't apply this series to my tree because the hns infiniband
+> driver
+> >> doesn't exist in it.
+> > Hi David,
+> > I understand your point. This patch-set was primarily sent for Doug
+> Ledford
+> > and is based on his internal repository (which has been rebased on
+> the
+> > net-next).
+> >
+> > Though we were hoping, if by any chance, we can expedite the
+> acceptance of the
+> > below patch part of patch-set in the net-next. This might help Doug
+> Ledford as
+> > well later on when he pushes the already accepted RoCE driver and
+> ACPI patches
+> > to linux-next,
+> >
+> > "[PATCH for-next 1/2] net: hns: Add support of ACPI to HNS driver
+> RoCE Reset
+> >  function"
+> >
+> > Below HNS RoCE reset function patch has already been accepted and is
+> part of your
+> > net-next,
+> > https://patchwork.kernel.org/patch/9287497/
+> >
+> > Above ACPI support of RoCE Reset patch cleanly applies over the
+> already accepted
+> > patch in the link. It is not dependent on other accompanying RoCE
+> driver ACPI
+> > changes related patch or even the presence of the Infiniband/RoCE
+> Driver in the
+> > net-next repository.
+> >
+> > Could you please suggest anything here?
+> >
+> > Thanks
+> > Salil
+> >
+> 
+> I can take both.  I already pulled net-next to get the initial hns roce
+> reset patch from Dave, so these will apply cleanly with my tree and
+> merge cleanly with Dave's due to the common ancestral base.  The only
+> problem is that if you intend to send any other patches that effect
+> this
+> code, then they would need to come through me until the 4.9 merge
+> window
+> is complete so that we don't have later merge conflicts.
+Ok sure, I got your point. Yes, there are few patches we need to push in
+but are related to RoCE CM(Connection Manager) mode and would follow
+soon. There are no further patches we foresee which are for RoCE Driver but are
+dependent upon HNS Ethernet driver. 
 
---QRNOvAgkQehmLOJAIu2SEfNPluLXb26Lv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+But kindly note, there could be some patches in development in HNS Ethernet driver
+which might sneak in through net-next. These might not be related to RoCE Driver but
+might have some common files which might lead to conflict again further down
+the line when you try to merge ACPI RoCE reset again. This HNS driver change
+is very difficult for us to control since amount of development going on in HNS
+is of much higher magnitude than the RoCE as of now. It will be almost impossible
+for us to convince internally and shift that entire development being done right
+now on net-next and rebase it to your internal hns-roce branch for a month of time
+till 4.9. This will affect many features deadlines internally. 
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+So, if I understood you correctly, this delta (which could be large), when next merge
+window open would be taken care by you. And we can expect below to be part of 4.9
+1) RoCE Base driver (*Already Accepted*)
+2) ACPI changes for RoCE Driver (*if accepted*)
+   * ACPI changes for the RoCE Driver
+   * ACPI changes for RoCE reset function part of the HNS driver
 
-iQIcBAEBCAAGBQJXvwPzAAoJELgmozMOVy/d9J0P/2R3T6qj6esL6oGLxZkyvq5h
-VU1P17nthWTocrWr9k5XFO6yrYeHPE1eF3ckYLAI6X9fNJc+ShQtl2pRVVhD0Bpf
-pu4PwkOmLxHHGRZQkRGlw6ItDv40U37nUae0Go//3yqmyIxyCNgcZaCXJkFxf0Qi
-mSWc8ONj5oZPU6qZEZmghBlAzrqJubFi+q+4iIV0YoxneBas9XQOqyH53FY4a/MU
-spEe4foMtRDQyw0lVgDR7sBHjEZMtaX1cacFCnT7thzs+LalwJv/pPY33qwaAJRN
-VXOY4L4BMGwQLn2pMJsnN5sujnGDQ6mhSFwA6pO4VaTq8e7bT5A4uI+vWFL4/rC8
-+dxOlD4SS81xHUbJijdYjBJF4TarhsNW28HHzo+zhtMMyNpcvK+PrbPr7BqQ6vc2
-F3Ue7r9ESB4BAVmhmmGGwZjMDSqU5mLiha1GMVmmme6qQ1mmtGIGyR51X/VvpFbO
-1iMwLpjOli6RWHrA1gFmVVVEH9jTLVxi2ZjgVBnBkbw62S2O9LQPFglNSdmvieIW
-UjHZvGTaMDgKtQW3BwtWx7YxuDwHqrh3AvTcjnQ/inxWs+PTvqLZ22Ct6Rl5c4Ij
-NeDVW6Reslfy3cZhVFfr8fCeiP4KGxCIBjZdo4OCYqAi2Q2+8XSLxDxG8bdH9uL/
-Ol8qAJaWdFbb4QS6Pcia
-=R2i1
------END PGP SIGNATURE-----
+Please correct my understanding if I am wrong here.
 
---QRNOvAgkQehmLOJAIu2SEfNPluLXb26Lv--
+Thanks, again!
+Salil Mehta
+> 
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: 0E572FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
