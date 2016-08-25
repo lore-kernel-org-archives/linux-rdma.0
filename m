@@ -1,117 +1,129 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Send last streaming mode message for loopback
- connections
-Date: Thu, 25 Aug 2016 06:46:00 +0300
-Message-ID: <20160825034600.GB594@leon.nu>
-References: <1472065157-56936-1-git-send-email-shiraz.saleem@intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 02/15] IB/pvrdma: Add virtual device RDMA structures
+Date: Thu, 25 Aug 2016 09:03:54 +0300
+Message-ID: <20160825060353.GA10342@yuval-lap>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-3-git-send-email-aditr@vmware.com>
+ <20160821115441.GB22012@yuval-lap.uk.oracle.com>
+ <BLUPR0501MB836ACEAF51DF69E5623EBF5C5EB0@BLUPR0501MB836.namprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="R3G7APHDIzY6R/pk"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472065157-56936-1-git-send-email-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <BLUPR0501MB836ACEAF51DF69E5623EBF5C5EB0-84Rf5TRaNBMVDhIuTCx1aJLWcSx1hRipwIZJ9u9yWa8oOQlpcoRfSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Aug 23, 2016 at 05:46:27PM +0000, Adit Ranadive wrote:
+> On Sun, Aug 21, 2016 at 04:55:20 -0700, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > On Wed, Aug 03, 2016 at 04:27:31PM -0700, Adit Ranadive wrote:
+> > > This patch adds the various Verbs structures that we support in the
+> > > virtual RDMA device. We have re-mapped the ones from the RDMA core stack
+> > > to make sure we can maintain compatibility with our backend.
+> > >
+> > > Changes v2->v3:
+> > >  - Added , to end of enums missing them.
+> > >
+> > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h | 450 +++++++++++++++++++++++++
+> > >  1 file changed, 450 insertions(+)
+> > >  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > >
+> > > diff --git a/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h b/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > > new file mode 100644
+> > > index 0000000..4bef8b4
+> > > --- /dev/null
+> > > +++ b/drivers/infiniband/hw/pvrdma/pvrdma_ib_verbs.h
+> > > @@ -0,0 +1,450 @@
+> > > +/*
+> > > + * [PLEASE NOTE:  VMWARE, INC. ELECTS TO USE AND DISTRIBUTE THIS COMPONENT
+> > > + * UNDER THE TERMS OF THE OpenIB.org BSD license.  THE ORIGINAL LICENSE TERMS
+> > > + * ARE REPRODUCED BELOW ONLY AS A REFERENCE.]
+> > > + *
+> > > + * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
+> > > + * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
+> > > + * Copyright (c) 2004 Intel Corporation.  All rights reserved.
+> > > + * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+> > > + * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
+> > > + * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+> > > + * Copyright (c) 2005, 2006, 2007 Cisco Systems.  All rights reserved.
+> > > + * Copyright (c) 2015-2016 VMware, Inc.  All rights reserved.
+> > > + *
+> > > + * This software is available to you under a choice of one of two
+> > > + * licenses.  You may choose to be licensed under the terms of the GNU
+> > > + * General Public License (GPL) Version 2, available from the file
+> > > + * COPYING in the main directory of this source tree, or the
+> > > + * OpenIB.org BSD license below:
+> > > + *
+> > > + *     Redistribution and use in source and binary forms, with or
+> > > + *     without modification, are permitted provided that the following
+> > > + *     conditions are met:
+> > > + *
+> > > + *      - Redistributions of source code must retain the above
+> > > + *        copyright notice, this list of conditions and the following
+> > > + *        disclaimer.
+> > > + *
+> > > + *      - Redistributions in binary form must reproduce the above
+> > > + *        copyright notice, this list of conditions and the following
+> > > + *        disclaimer in the documentation and/or other materials
+> > > + *        provided with the distribution.
+> > > + *
+> > > + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> > > + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> > > + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> > > + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> > > + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> > > + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> > > + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> > > + * SOFTWARE.
+> > > + */
+> > > +
+> > > +#ifndef __PVRDMA_IB_VERBS_H__
+> > > +#define __PVRDMA_IB_VERBS_H__
+> > > +
+> > > +#include <linux/types.h>
+> > > +
+> > > +union pvrdma_gid {
+> > > +	__u8	raw[16];
+> > > +	struct {
+> > > +		__be64	subnet_prefix;
+> > > +		__be64	interface_id;
+> > > +	} global;
+> > > +};
+> > 
+> > Any reason why not to use ib_gid?
+> > Suggesting to utilize definitions from rdma/ib_verbs.h as much as you can.
+> 
+> Thanks for taking a look at this! The main reason we don't re-use the IB structures here is for
+> compatibility reasons. We re-use these PVRDMA defined structures in our virtual device too so
+> we want to be consistent between the driver and the device itself. Thus, we can protect the
+> virtual device from any non-compatible changes in the IB structs.
+> Hope that clarifies the issue!
 
---R3G7APHDIzY6R/pk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Point is cleared.
+Just want to warn for any future kernel-api inconsistency between pcrdma
+driver and some other OFED module (e.x if your driver will ever want to
+call ib_get_cached_gid() or something like that.
 
-On Wed, Aug 24, 2016 at 01:59:17PM -0500, Shiraz Saleem wrote:
-> From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> Send a zero length last streaming mode message for loopback
-> connections to synchronize between accepting QP and connecting QP.
-> This avoids data transfer to start on the accepting QP before
-> the connecting QP is in RTS. Also remove function i40iw_loopback_nop()
-> as it is no longer used.
->
-> Fixes: f27b4746f378 ("i40iw: add connection management code")
->
+Not only "future", how about internal inconsistency with for example
+pvrdma_dev.sgid_tbl.
 
-Hi Shiraz,
-It will be great if avoid the empty line between Fixes and tags for future submissions.
-Thanks
+I assume that for that you have the pvrdma_gid_to_ib() and
+ib_gid_to_pvrdma() functions which enforce this "compatibility".
 
-> Signed-off-by: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/i40iw/i40iw_cm.c | 22 +---------------------
->  1 file changed, 1 insertion(+), 21 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-> index 6434398..7ca0638 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-> @@ -3347,26 +3347,6 @@ int i40iw_cm_disconn(struct i40iw_qp *iwqp)
->  }
->
->  /**
-> - * i40iw_loopback_nop - Send a nop
-> - * @qp: associated hw qp
-> - */
-> -static void i40iw_loopback_nop(struct i40iw_sc_qp *qp)
-> -{
-> -	u64 *wqe;
-> -	u64 header;
-> -
-> -	wqe = qp->qp_uk.sq_base->elem;
-> -	set_64bit_val(wqe, 0, 0);
-> -	set_64bit_val(wqe, 8, 0);
-> -	set_64bit_val(wqe, 16, 0);
-> -
-> -	header = LS_64(I40IWQP_OP_NOP, I40IWQPSQ_OPCODE) |
-> -	    LS_64(0, I40IWQPSQ_SIGCOMPL) |
-> -	    LS_64(qp->qp_uk.swqe_polarity, I40IWQPSQ_VALID);
-> -	set_64bit_val(wqe, 24, header);
-> -}
-> -
-> -/**
->   * i40iw_qp_disconnect - free qp and close cm
->   * @iwqp: associate qp for the connection
->   */
-> @@ -3638,7 +3618,7 @@ int i40iw_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
->  	} else {
->  		if (iwqp->page)
->  			iwqp->sc_qp.qp_uk.sq_base = kmap(iwqp->page);
-> -		i40iw_loopback_nop(&iwqp->sc_qp);
-> +		dev->iw_priv_qp_ops->qp_send_lsmm(&iwqp->sc_qp, NULL, 0, 0);
->  	}
->
->  	if (iwqp->page)
-> --
-> 2.1.3
->
+> 
+> - Adit 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---R3G7APHDIzY6R/pk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXvmn4AAoJEORje4g2clinWp4P/0FXy9pssibw9aS0MFED7kls
-e0gDJx3cdS16Lyy84Uncr3+Q0jqU3UrJhHUvCZUWRI3OBUbw4UT4dGBqtzFB9jdX
-2w+LYCDjdG1E/e1yA/rpW20U5yi+EHXxi047wHz1I9dXs6kxIAwEOJEKxsTcf/e/
-UtXEevjTkWpxKcclgIin3mk0J+fVIuwncgD6A5uIj4AoJQJtLE3GzfbVSoeaum9X
-3fPHxc3O+D7SIv3Qr84qVQBw/yUa6ydP6adRbHQD8VhPnAdkhkzS/EPVmiVae0TS
-oIiKBsAA0/ElEr3k7LdtTj4R/kgkhkWbQ2pJICuPG/Qmk+1UEtKag8AAh7gWSZ6l
-AmWgY5lokk2ECHcTDk/S9zGAppsdaB7SBTHdD3YzksuNsgouh40k6hWAvqfiwqC0
-9qT9OUJiOVyAcpiHRUPCN1Mmjt7hc/2g8Q0WB3gcJXls9emAIpkH3Vxm/CzudzFw
-2Sm/FeHqdkE07834JJjmo2zT1tepjmLoLSsLJLzXToGem19xl25dbmE/NP9ob66I
-MUlgU7zasm4mXb9GOLnaQlixVCCRii8MYBd/bD0BzvbYXEIcQ+BxYQepECvho5uA
-t6B/UjqEYb0hWIa432QR1UkK1HMIXMMGpJcgR+/OPWKMlqUTWvqX6AnfFOFSrbHi
-BsTptE/fs38dhk3LWJPX
-=wzcY
------END PGP SIGNATURE-----
-
---R3G7APHDIzY6R/pk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
