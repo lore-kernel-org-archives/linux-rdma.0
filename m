@@ -1,301 +1,511 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/{core,hw}: Add constant for node_desc
-Date: Thu, 25 Aug 2016 01:53:06 -0700
-Message-ID: <1472115186-10718-1-git-send-email-yuval.shaia@oracle.com>
+Subject: Re: [PATCH v3 05/15] IB/pvrdma: Add paravirtual rdma device
+Date: Thu, 25 Aug 2016 12:59:21 +0300
+Message-ID: <20160825095920.GB14419@yuval-lap.uk.oracle.com>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-6-git-send-email-aditr@vmware.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1470266864-16888-6-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/sysfs.c              |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.h  |    1 +
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |    1 +
- drivers/infiniband/hw/cxgb4/provider.c       |    2 +-
- drivers/infiniband/hw/hfi1/verbs.c           |    3 ++-
- drivers/infiniband/hw/mlx4/mad.c             |    3 ++-
- drivers/infiniband/hw/mlx4/main.c            |    6 +++---
- drivers/infiniband/hw/mlx5/mad.c             |    2 +-
- drivers/infiniband/hw/mlx5/main.c            |    6 +++---
- drivers/infiniband/hw/mthca/mthca_mad.c      |    3 ++-
- drivers/infiniband/hw/mthca/mthca_provider.c |    5 +++--
- drivers/infiniband/hw/ocrdma/ocrdma.h        |    1 +
- drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    2 +-
- drivers/infiniband/hw/qib/qib_verbs.c        |    3 ++-
- include/rdma/ib_verbs.h                      |    6 ++++--
- 16 files changed, 29 insertions(+), 19 deletions(-)
+On Wed, Aug 03, 2016 at 04:27:34PM -0700, Adit Ranadive wrote:
+> This patch adds the main device-level structures and functions to be used
+> to provide RDMA functionality. Also, we define conversion functions from
+> the IB core stack structures to the device-specific ones.
+> 
+> Changes v2->v3:
+>  - Removed VMware vendor id redefinition.
+>  - Removed the boolean in pvrdma_cmd_post.
+> 
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/pvrdma/pvrdma.h | 456 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 456 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/pvrdma/pvrdma.h
+> 
+> diff --git a/drivers/infiniband/hw/pvrdma/pvrdma.h b/drivers/infiniband/hw/pvrdma/pvrdma.h
+> new file mode 100644
+> index 0000000..8a45fcc
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/pvrdma/pvrdma.h
+> @@ -0,0 +1,456 @@
+> +/*
+> + * Copyright (c) 2012-2016 VMware, Inc.  All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of EITHER the GNU General Public License
+> + * version 2 as published by the Free Software Foundation or the BSD
+> + * 2-Clause License. This program is distributed in the hope that it
+> + * will be useful, but WITHOUT ANY WARRANTY; WITHOUT EVEN THE IMPLIED
+> + * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+> + * See the GNU General Public License version 2 for more details at
+> + * http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program available in the file COPYING in the main
+> + * directory of this source tree.
+> + *
+> + * The BSD 2-Clause License
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+> + * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+> + * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+> + * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+> + * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+> + * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> + * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> + * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+> + * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+> + * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+> + * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+> + * OF THE POSSIBILITY OF SUCH DAMAGE.
+> + */
+> +
+> +#ifndef __PVRDMA_H__
+> +#define __PVRDMA_H__
+> +
+> +#include <linux/compiler.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/pci.h>
+> +#include <linux/semaphore.h>
+> +#include <rdma/ib_umem.h>
+> +#include <rdma/ib_verbs.h>
+> +
+> +#include "pvrdma_defs.h"
+> +#include "pvrdma_dev_api.h"
+> +#include "pvrdma_verbs.h"
+> +
+> +/* NOT the same as BIT_MASK(). */
+> +#define PVRDMA_MASK(n) ((n << 1) - 1)
+> +
+> +/*
+> + * VMware PVRDMA PCI device id.
+> + */
+> +#define PCI_DEVICE_ID_VMWARE_PVRDMA	0x0820
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 15defef..c1fb545 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1193,7 +1193,7 @@ static ssize_t set_node_desc(struct device *device,
- 	if (!dev->modify_device)
- 		return -EIO;
- 
--	memcpy(desc.node_desc, buf, min_t(int, count, 64));
-+	memcpy(desc.node_desc, buf, min_t(int, count, IB_DEVICE_NODE_DESC_MAX));
- 	ret = ib_modify_device(dev, IB_DEVICE_MODIFY_NODE_DESC, &desc);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 3edb806..2c204b7 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1396,7 +1396,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
- 	    (1ull << IB_USER_VERBS_CMD_POST_RECV);
- 	dev->ibdev.node_type = RDMA_NODE_RNIC;
--	memcpy(dev->ibdev.node_desc, IWCH_NODE_DESC, sizeof(IWCH_NODE_DESC));
-+	memcpy(dev->ibdev.node_desc, IWCH_NODE_DESC, IB_DEVICE_NODE_DESC_MAX);
- 	dev->ibdev.phys_port_cnt = dev->rdev.port_info.nports;
- 	dev->ibdev.num_comp_vectors = 1;
- 	dev->ibdev.dma_device = &(dev->rdev.rnic_info.pdev->dev);
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.h b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-index 252c464..8ab3bf5 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.h
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.h
-@@ -342,6 +342,7 @@ int iwch_alloc_pbl(struct iwch_mr *mhp, int npages);
- void iwch_free_pbl(struct iwch_mr *mhp);
- int iwch_write_pbl(struct iwch_mr *mhp, __be64 *pages, int npages, int offset);
- 
-+/* node_desc cannot exceed IB_DEVICE_NODE_DESC_MAX */
- #define IWCH_NODE_DESC "cxgb3 Chelsio Communications"
- 
- #endif
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index aa47e0a..739d0c6 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -633,6 +633,7 @@ enum c4iw_mmid_state {
- 	C4IW_STAG_STATE_INVALID
- };
- 
-+/* node_desc cannot excced IB_DEVICE_NODE_DESC_MAX */
- #define C4IW_NODE_DESC "cxgb4 Chelsio Communications"
- 
- #define MPA_KEY_REQ "MPA ID Req Frame"
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index df127ce..e34041f 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -563,7 +563,7 @@ int c4iw_register_device(struct c4iw_dev *dev)
- 	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
- 	    (1ull << IB_USER_VERBS_CMD_POST_RECV);
- 	dev->ibdev.node_type = RDMA_NODE_RNIC;
--	memcpy(dev->ibdev.node_desc, C4IW_NODE_DESC, sizeof(C4IW_NODE_DESC));
-+	memcpy(dev->ibdev.node_desc, C4IW_NODE_DESC, IB_DEVICE_NODE_DESC_MAX);
- 	dev->ibdev.phys_port_cnt = dev->rdev.lldi.nports;
- 	dev->ibdev.num_comp_vectors =  dev->rdev.lldi.nciq;
- 	dev->ibdev.dma_device = &(dev->rdev.lldi.pdev->dev);
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 2b35954..f803f7b 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1423,7 +1423,8 @@ static int modify_device(struct ib_device *device,
- 	}
- 
- 	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC) {
--		memcpy(device->node_desc, device_modify->node_desc, 64);
-+		memcpy(device->node_desc, device_modify->node_desc,
-+		       IB_DEVICE_NODE_DESC_MAX);
- 		for (i = 0; i < dd->num_pports; i++) {
- 			struct hfi1_ibport *ibp = &dd->pport[i].ibport_data;
- 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 9c2e53d..7d9ff6e 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -345,7 +345,8 @@ static void node_desc_override(struct ib_device *dev,
- 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
- 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
- 		spin_lock_irqsave(&to_mdev(dev)->sm_lock, flags);
--		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
-+		memcpy(((struct ib_smp *) mad)->data, dev->node_desc,
-+		       IB_DEVICE_NODE_DESC_MAX);
- 		spin_unlock_irqrestore(&to_mdev(dev)->sm_lock, flags);
- 	}
- }
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 2af44c2..9c9bb24 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -886,7 +886,7 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
- 		return -EOPNOTSUPP;
- 
- 	spin_lock_irqsave(&to_mdev(ibdev)->sm_lock, flags);
--	memcpy(ibdev->node_desc, props->node_desc, 64);
-+	memcpy(ibdev->node_desc, props->node_desc, IB_DEVICE_NODE_DESC_MAX);
- 	spin_unlock_irqrestore(&to_mdev(ibdev)->sm_lock, flags);
- 
- 	/*
-@@ -897,7 +897,7 @@ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
- 	if (IS_ERR(mailbox))
- 		return 0;
- 
--	memcpy(mailbox->buf, props->node_desc, 64);
-+	memcpy(mailbox->buf, props->node_desc, IB_DEVICE_NODE_DESC_MAX);
- 	mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
- 		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A, MLX4_CMD_NATIVE);
- 
-@@ -2000,7 +2000,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
- 	if (err)
- 		goto out;
- 
--	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
-+	memcpy(dev->ib_dev.node_desc, out_mad->data, IB_DEVICE_NODE_DESC_MAX);
- 
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 364aab9..39e5848 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -394,7 +394,7 @@ int mlx5_query_mad_ifc_node_desc(struct mlx5_ib_dev *dev, char *node_desc)
- 	if (err)
- 		goto out;
- 
--	memcpy(node_desc, out_mad->data, 64);
-+	memcpy(node_desc, out_mad->data, IB_DEVICE_NODE_DESC_MAX);
- out:
- 	kfree(in_mad);
- 	kfree(out_mad);
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a84bb76..4936b4c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -432,7 +432,7 @@ static int mlx5_query_node_guid(struct mlx5_ib_dev *dev,
- }
- 
- struct mlx5_reg_node_desc {
--	u8	desc[64];
-+	u8	desc[IB_DEVICE_NODE_DESC_MAX];
- };
- 
- static int mlx5_query_node_desc(struct mlx5_ib_dev *dev, char *node_desc)
-@@ -850,13 +850,13 @@ static int mlx5_ib_modify_device(struct ib_device *ibdev, int mask,
- 	 * If possible, pass node desc to FW, so it can generate
- 	 * a 144 trap.  If cmd fails, just ignore.
- 	 */
--	memcpy(&in, props->node_desc, 64);
-+	memcpy(&in, props->node_desc, IB_DEVICE_NODE_DESC_MAX);
- 	err = mlx5_core_access_reg(dev->mdev, &in, sizeof(in), &out,
- 				   sizeof(out), MLX5_REG_NODE_DESC, 0, 1);
- 	if (err)
- 		return err;
- 
--	memcpy(ibdev->node_desc, props->node_desc, 64);
-+	memcpy(ibdev->node_desc, props->node_desc, IB_DEVICE_NODE_DESC_MAX);
- 
- 	return err;
- }
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 7c3f2fb..9139405 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -153,7 +153,8 @@ static void node_desc_override(struct ib_device *dev,
- 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
- 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
- 		mutex_lock(&to_mdev(dev)->cap_mask_mutex);
--		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
-+		memcpy(((struct ib_smp *) mad)->data, dev->node_desc,
-+		       IB_DEVICE_NODE_DESC_MAX);
- 		mutex_unlock(&to_mdev(dev)->cap_mask_mutex);
- 	}
- }
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index da2335f..b697a0f 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -193,7 +193,8 @@ static int mthca_modify_device(struct ib_device *ibdev,
- 	if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
- 		if (mutex_lock_interruptible(&to_mdev(ibdev)->cap_mask_mutex))
- 			return -ERESTARTSYS;
--		memcpy(ibdev->node_desc, props->node_desc, 64);
-+		memcpy(ibdev->node_desc, props->node_desc,
-+		       IB_DEVICE_NODE_DESC_MAX);
- 		mutex_unlock(&to_mdev(ibdev)->cap_mask_mutex);
- 	}
- 
-@@ -1138,7 +1139,7 @@ static int mthca_init_node_data(struct mthca_dev *dev)
- 	if (err)
- 		goto out;
- 
--	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
-+	memcpy(dev->ib_dev.node_desc, out_mad->data, IB_DEVICE_NODE_DESC_MAX);
- 
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index 45bdfa0..65fee69 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -58,6 +58,7 @@
- #define OCRDMA_ROCE_DRV_VERSION "11.0.0.0"
- 
- #define OCRDMA_ROCE_DRV_DESC "Emulex OneConnect RoCE Driver"
-+/* node_desc cannot excced IB_DEVICE_NODE_DESC_MAX */
- #define OCRDMA_NODE_DESC "Emulex OneConnect RoCE HCA"
- 
- #define OC_NAME_SH	OCRDMA_NODE_DESC "(Skyhawk)"
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 07d0c6c..7f319d6 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -120,7 +120,7 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
- 	strlcpy(dev->ibdev.name, "ocrdma%d", IB_DEVICE_NAME_MAX);
- 	ocrdma_get_guid(dev, (u8 *)&dev->ibdev.node_guid);
- 	memcpy(dev->ibdev.node_desc, OCRDMA_NODE_DESC,
--	       sizeof(OCRDMA_NODE_DESC));
-+	       IB_DEVICE_NODE_DESC_MAX);
- 	dev->ibdev.owner = THIS_MODULE;
- 	dev->ibdev.uverbs_abi_ver = OCRDMA_ABI_VERSION;
- 	dev->ibdev.uverbs_cmd_mask =
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index fd1dfbc..2d7e526 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1370,7 +1370,8 @@ static int qib_modify_device(struct ib_device *device,
- 	}
- 
- 	if (device_modify_mask & IB_DEVICE_MODIFY_NODE_DESC) {
--		memcpy(device->node_desc, device_modify->node_desc, 64);
-+		memcpy(device->node_desc, device_modify->node_desc,
-+		       IB_DEVICE_NODE_DESC_MAX);
- 		for (i = 0; i < dd->num_pports; i++) {
- 			struct qib_ibport *ibp = &dd->pport[i].ibport_data;
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 8e90dd2..abeaae8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -525,9 +525,11 @@ enum ib_device_modify_flags {
- 	IB_DEVICE_MODIFY_NODE_DESC	= 1 << 1
- };
- 
-+#define IB_DEVICE_NODE_DESC_MAX 64
-+
- struct ib_device_modify {
- 	u64	sys_image_guid;
--	char	node_desc[64];
-+	char	node_desc[IB_DEVICE_NODE_DESC_MAX];
- };
- 
- enum ib_port_modify_flags {
-@@ -2033,7 +2035,7 @@ struct ib_device {
- 	u64			     uverbs_cmd_mask;
- 	u64			     uverbs_ex_cmd_mask;
- 
--	char			     node_desc[64];
-+	char			     node_desc[IB_DEVICE_NODE_DESC_MAX];
- 	__be64			     node_guid;
- 	u32			     local_dma_lkey;
- 	u16                          is_switch:1;
--- 
-1.7.1
+I don't see a reason to define it locally in the driver.
+Suggesting to move it to include/linux/pci_ids.h
 
+> +
+> +struct pvrdma_dev;
+> +
+> +struct pvrdma_page_dir {
+> +	dma_addr_t dir_dma;
+> +	u64 *dir;
+> +	int ntables;
+> +	u64 **tables;
+> +	u64 npages;
+> +	void **pages;
+> +};
+> +
+> +struct pvrdma_cq {
+> +	struct ib_cq ibcq;
+> +	int offset;
+> +	spinlock_t cq_lock; /* Poll lock. */
+> +	struct pvrdma_uar_map *uar;
+> +	struct ib_umem *umem;
+> +	struct pvrdma_ring_state *ring_state;
+> +	struct pvrdma_page_dir pdir;
+> +	u32 cq_handle;
+> +	bool is_kernel;
+> +	atomic_t refcnt;
+> +	wait_queue_head_t wait;
+> +};
+> +
+> +struct pvrdma_id_table {
+> +	u32 last;
+> +	u32 top;
+> +	u32 max;
+> +	u32 mask;
+> +	spinlock_t lock; /* Table lock. */
+> +	unsigned long *table;
+> +};
+> +
+> +struct pvrdma_uar_map {
+> +	unsigned long pfn;
+> +	void __iomem *map;
+> +	int index;
+> +};
+> +
+> +struct pvrdma_uar_table {
+> +	struct pvrdma_id_table tbl;
+> +	int size;
+> +};
+> +
+> +struct pvrdma_ucontext {
+> +	struct ib_ucontext ibucontext;
+> +	struct pvrdma_dev *dev;
+> +	struct pvrdma_uar_map uar;
+> +	u64 ctx_handle;
+> +};
+> +
+> +struct pvrdma_pd {
+> +	struct ib_pd ibpd;
+> +	u32 pdn;
+> +	u32 pd_handle;
+> +	int priviledged;
+> +};
+> +
+> +struct pvrdma_mr {
+> +	u32 mr_handle;
+> +	u64 iova;
+> +	u64 size;
+> +};
+> +
+> +struct pvrdma_user_mr {
+> +	struct ib_mr ibmr;
+> +	struct ib_umem *umem;
+> +	struct pvrdma_mr mmr;
+> +	struct pvrdma_page_dir pdir;
+> +	u64 *pages;
+> +	u32 npages;
+> +	u32 max_pages;
+> +	u32 page_shift;
+> +};
+> +
+> +struct pvrdma_wq {
+> +	struct pvrdma_ring *ring;
+> +	spinlock_t lock; /* Work queue lock. */
+> +	int wqe_cnt;
+> +	int wqe_size;
+> +	int max_gs;
+> +	int offset;
+> +};
+> +
+> +struct pvrdma_ah {
+> +	struct ib_ah ibah;
+> +	struct pvrdma_av av;
+> +};
+> +
+> +struct pvrdma_qp {
+> +	struct ib_qp ibqp;
+> +	u32 qp_handle;
+> +	u32 qkey;
+> +	struct pvrdma_wq sq;
+> +	struct pvrdma_wq rq;
+> +	struct ib_umem *rumem;
+> +	struct ib_umem *sumem;
+> +	struct pvrdma_page_dir pdir;
+> +	int npages;
+> +	int npages_send;
+> +	int npages_recv;
+> +	u32 flags;
+> +	u8 port;
+> +	u8 state;
+> +	bool is_kernel;
+> +	struct mutex mutex; /* QP state mutex. */
+> +	atomic_t refcnt;
+> +	wait_queue_head_t wait;
+> +};
+> +
+> +struct pvrdma_dev {
+> +	/* PCI device-related information. */
+> +	struct ib_device ib_dev;
+> +	struct pci_dev *pdev;
+> +	void __iomem *regs;
+> +	struct pvrdma_device_shared_region *dsr; /* Shared region pointer */
+> +	dma_addr_t dsrbase; /* Shared region base address */
+> +	void *cmd_slot;
+> +	void *resp_slot;
+> +	unsigned long flags;
+> +	struct list_head device_link;
+> +
+> +	/* Locking and interrupt information. */
+> +	spinlock_t cmd_lock; /* Command lock. */
+> +	struct semaphore cmd_sema;
+> +	struct completion cmd_done;
+> +	struct {
+> +		enum pvrdma_intr_type type; /* Intr type */
+> +		struct msix_entry msix_entry[PVRDMA_MAX_INTERRUPTS];
+> +		irq_handler_t handler[PVRDMA_MAX_INTERRUPTS];
+> +		u8 enabled[PVRDMA_MAX_INTERRUPTS];
+> +		u8 size;
+> +	} intr;
+> +
+> +	/* RDMA-related device information. */
+> +	union ib_gid *sgid_tbl;
+> +	struct pvrdma_ring_state *async_ring_state;
+> +	struct pvrdma_page_dir async_pdir;
+> +	struct pvrdma_ring_state *cq_ring_state;
+> +	struct pvrdma_page_dir cq_pdir;
+> +	struct pvrdma_cq **cq_tbl;
+> +	spinlock_t cq_tbl_lock;
+> +	struct pvrdma_qp **qp_tbl;
+> +	spinlock_t qp_tbl_lock;
+> +	struct pvrdma_uar_table uar_table;
+> +	struct pvrdma_uar_map driver_uar;
+> +	__be64 sys_image_guid;
+> +	spinlock_t desc_lock; /* Device modification lock. */
+> +	u32 port_cap_mask;
+> +	struct mutex port_mutex; /* Port modification mutex. */
+> +	bool ib_active;
+> +	atomic_t num_qps;
+> +	atomic_t num_cqs;
+> +	atomic_t num_pds;
+> +	atomic_t num_ahs;
+> +
+> +	/* Network device information. */
+> +	struct net_device *netdev;
+> +	struct notifier_block nb_netdev;
+> +};
+> +
+> +static inline struct pvrdma_dev *to_vdev(struct ib_device *ibdev)
+> +{
+> +	return container_of(ibdev, struct pvrdma_dev, ib_dev);
+> +}
+> +
+> +static inline struct
+> +pvrdma_ucontext *to_vucontext(struct ib_ucontext *ibucontext)
+> +{
+> +	return container_of(ibucontext, struct pvrdma_ucontext, ibucontext);
+> +}
+> +
+> +static inline struct pvrdma_pd *to_vpd(struct ib_pd *ibpd)
+> +{
+> +	return container_of(ibpd, struct pvrdma_pd, ibpd);
+> +}
+> +
+> +static inline struct pvrdma_cq *to_vcq(struct ib_cq *ibcq)
+> +{
+> +	return container_of(ibcq, struct pvrdma_cq, ibcq);
+> +}
+> +
+> +static inline struct pvrdma_user_mr *to_vmr(struct ib_mr *ibmr)
+> +{
+> +	return container_of(ibmr, struct pvrdma_user_mr, ibmr);
+> +}
+> +
+> +static inline struct pvrdma_qp *to_vqp(struct ib_qp *ibqp)
+> +{
+> +	return container_of(ibqp, struct pvrdma_qp, ibqp);
+> +}
+> +
+> +static inline struct pvrdma_ah *to_vah(struct ib_ah *ibah)
+> +{
+> +	return container_of(ibah, struct pvrdma_ah, ibah);
+> +}
+> +
+> +static inline void pvrdma_write_reg(struct pvrdma_dev *dev, u32 reg, u32 val)
+> +{
+> +	writel(cpu_to_le32(val), dev->regs + reg);
+> +}
+> +
+> +static inline u32 pvrdma_read_reg(struct pvrdma_dev *dev, u32 reg)
+> +{
+> +	return le32_to_cpu(readl(dev->regs + reg));
+> +}
+> +
+> +static inline void *pvrdma_page_dir_get_ptr(struct pvrdma_page_dir *pdir,
+> +					    u64 offset)
+> +{
+> +	return pdir->pages[offset / PAGE_SIZE] + (offset % PAGE_SIZE);
+> +}
+> +
+> +static inline enum pvrdma_mtu ib_mtu_to_pvrdma(enum ib_mtu mtu)
+> +{
+> +	return (enum pvrdma_mtu)mtu;
+> +}
+> +
+> +static inline enum ib_mtu pvrdma_mtu_to_ib(enum pvrdma_mtu mtu)
+> +{
+> +	return (enum ib_mtu)mtu;
+> +}
+> +
+> +static inline enum pvrdma_port_state ib_port_state_to_pvrdma(
+> +					enum ib_port_state state)
+> +{
+> +	return (enum pvrdma_port_state)state;
+> +}
+> +
+> +static inline enum ib_port_state pvrdma_port_state_to_ib(
+> +					enum pvrdma_port_state state)
+> +{
+> +	return (enum ib_port_state)state;
+> +}
+> +
+> +static inline int ib_port_cap_flags_to_pvrdma(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_PORT_CAP_FLAGS_MAX);
+> +}
+> +
+> +static inline int pvrdma_port_cap_flags_to_ib(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline enum pvrdma_port_width ib_port_width_to_pvrdma(
+> +					enum ib_port_width width)
+> +{
+> +	return (enum pvrdma_port_width)width;
+> +}
+> +
+> +static inline enum ib_port_width pvrdma_port_width_to_ib(
+> +					enum pvrdma_port_width width)
+> +{
+> +	return (enum ib_port_width)width;
+> +}
+> +
+> +static inline enum pvrdma_port_speed ib_port_speed_to_pvrdma(
+> +					enum ib_port_speed speed)
+> +{
+> +	return (enum pvrdma_port_speed)speed;
+> +}
+> +
+> +static inline enum ib_port_speed pvrdma_port_speed_to_ib(
+> +					enum pvrdma_port_speed speed)
+> +{
+> +	return (enum ib_port_speed)speed;
+> +}
+> +
+> +static inline int pvrdma_qp_attr_mask_to_ib(int attr_mask)
+> +{
+> +	return attr_mask;
+> +}
+> +
+> +static inline int ib_qp_attr_mask_to_pvrdma(int attr_mask)
+> +{
+> +	return attr_mask & PVRDMA_MASK(PVRDMA_QP_ATTR_MASK_MAX);
+> +}
+> +
+> +static inline enum pvrdma_mig_state ib_mig_state_to_pvrdma(
+> +					enum ib_mig_state state)
+> +{
+> +	return (enum pvrdma_mig_state)state;
+> +}
+> +
+> +static inline enum ib_mig_state pvrdma_mig_state_to_ib(
+> +					enum pvrdma_mig_state state)
+> +{
+> +	return (enum ib_mig_state)state;
+> +}
+> +
+> +static inline int ib_access_flags_to_pvrdma(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline int pvrdma_access_flags_to_ib(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_ACCESS_FLAGS_MAX);
+> +}
+> +
+> +static inline enum pvrdma_qp_type ib_qp_type_to_pvrdma(enum ib_qp_type type)
+> +{
+> +	return (enum pvrdma_qp_type)type;
+> +}
+> +
+> +static inline enum ib_qp_type pvrdma_qp_type_to_ib(enum pvrdma_qp_type type)
+> +{
+> +	return (enum ib_qp_type)type;
+> +}
+> +
+> +static inline enum pvrdma_qp_state ib_qp_state_to_pvrdma(enum ib_qp_state state)
+> +{
+> +	return (enum pvrdma_qp_state)state;
+> +}
+> +
+> +static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
+> +{
+> +	return (enum ib_qp_state)state;
+> +}
+> +
+> +static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
+> +{
+> +	return (enum pvrdma_wr_opcode)op;
+> +}
+> +
+> +static inline enum ib_wc_status pvrdma_wc_status_to_ib(
+> +					enum pvrdma_wc_status status)
+> +{
+> +	return (enum ib_wc_status)status;
+> +}
+> +
+> +static inline int pvrdma_wc_opcode_to_ib(int opcode)
+> +{
+> +	return opcode;
+> +}
+> +
+> +static inline int pvrdma_wc_flags_to_ib(int flags)
+> +{
+> +	return flags;
+> +}
+> +
+> +static inline int ib_send_flags_to_pvrdma(int flags)
+> +{
+> +	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
+> +}
+> +
+> +void pvrdma_qp_cap_to_ib(const struct pvrdma_qp_cap *src,
+> +			 struct ib_qp_cap *dst);
+> +void ib_qp_cap_to_pvrdma(const struct ib_qp_cap *src,
+> +			 struct pvrdma_qp_cap *dst);
+> +void pvrdma_gid_to_ib(const union pvrdma_gid *src, union ib_gid *dst);
+> +void ib_gid_to_pvrdma(const union ib_gid *src, union pvrdma_gid *dst);
+> +void pvrdma_global_route_to_ib(const struct pvrdma_global_route *src,
+> +			       struct ib_global_route *dst);
+> +void ib_global_route_to_pvrdma(const struct ib_global_route *src,
+> +			       struct pvrdma_global_route *dst);
+> +void pvrdma_ah_attr_to_ib(const struct pvrdma_ah_attr *src,
+> +			  struct ib_ah_attr *dst);
+> +void ib_ah_attr_to_pvrdma(const struct ib_ah_attr *src,
+> +			  struct pvrdma_ah_attr *dst);
+> +
+> +int pvrdma_uar_table_init(struct pvrdma_dev *dev);
+> +void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
+> +
+> +int pvrdma_uar_alloc(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
+> +void pvrdma_uar_free(struct pvrdma_dev *dev, struct pvrdma_uar_map *uar);
+> +
+> +void pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq);
+> +
+> +int pvrdma_page_dir_init(struct pvrdma_dev *dev, struct pvrdma_page_dir *pdir,
+> +			 u64 npages, bool alloc_pages);
+> +void pvrdma_page_dir_cleanup(struct pvrdma_dev *dev,
+> +			     struct pvrdma_page_dir *pdir);
+> +int pvrdma_page_dir_insert_dma(struct pvrdma_page_dir *pdir, u64 idx,
+> +			       dma_addr_t daddr);
+> +int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
+> +				struct ib_umem *umem, u64 offset);
+> +dma_addr_t pvrdma_page_dir_get_dma(struct pvrdma_page_dir *pdir, u64 idx);
+> +int pvrdma_page_dir_insert_page_list(struct pvrdma_page_dir *pdir,
+> +				     u64 *page_list, int num_pages);
+> +
+> +int pvrdma_cmd_post(struct pvrdma_dev *dev, union pvrdma_cmd_req *req,
+> +		    union pvrdma_cmd_resp *rsp);
+> +
+> +#endif /* __PVRDMA_H__ */
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
