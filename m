@@ -1,108 +1,82 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Fri, 26 Aug 2016 13:53:03 -0400
-Message-ID: <a4e3d830-71e5-76b1-927d-4e3b52a19ac5@redhat.com>
-References: <e5da14cf-fd5a-895e-5fad-9020b6a7efb1@redhat.com>
- <20160826144415.GC594@leon.nu>
- <3aee5577-9600-db32-db7f-4fb39afdc429@redhat.com>
- <20160826171638.GD594@leon.nu>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 1/2] IB/hfi1: Fix a parameter of find_first_bit.
+Date: Fri, 26 Aug 2016 14:01:55 -0400
+Message-ID: <2c923344-04c8-cdbd-ac06-047027f7a23a@redhat.com>
+References: <1472186949-9025-1-git-send-email-christophe.jaillet@wanadoo.fr>
+ <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="32GlGJqWM1AtLcQFBpoNLJiscicNmnfvu"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160826171638.GD594-2ukJVAZIZ/Y@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+ boundary="drk5EFA0mrFinOWFkvUl6vqeS04Jw7s2G"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---32GlGJqWM1AtLcQFBpoNLJiscicNmnfvu
-Content-Type: multipart/mixed; boundary="LKWFJPAu9H7JWQEnSPjG3mAtbbouhkeJV"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>,
- linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <a4e3d830-71e5-76b1-927d-4e3b52a19ac5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-References: <e5da14cf-fd5a-895e-5fad-9020b6a7efb1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20160826144415.GC594-2ukJVAZIZ/Y@public.gmane.org>
- <3aee5577-9600-db32-db7f-4fb39afdc429-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20160826171638.GD594-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160826171638.GD594-2ukJVAZIZ/Y@public.gmane.org>
+--drk5EFA0mrFinOWFkvUl6vqeS04Jw7s2G
+Content-Type: multipart/mixed; boundary="ebJruRaJ823Mfx6cs9OOcWhbWuKcHfJe7"
+From: Doug Ledford <dledford@redhat.com>
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+ mike.marciniszyn@intel.com, dennis.dalessandro@intel.com,
+ sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
+ kernel-janitors@vger.kernel.org
+Message-ID: <2c923344-04c8-cdbd-ac06-047027f7a23a@redhat.com>
+Subject: Re: [PATCH 1/2] IB/hfi1: Fix a parameter of find_first_bit.
+References: <1472186949-9025-1-git-send-email-christophe.jaillet@wanadoo.fr>
+ <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
+In-Reply-To: <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
 
---LKWFJPAu9H7JWQEnSPjG3mAtbbouhkeJV
-Content-Type: text/plain; charset=windows-1252
+--ebJruRaJ823Mfx6cs9OOcWhbWuKcHfJe7
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 8/26/2016 1:16 PM, Leon Romanovsky wrote:
-> On Fri, Aug 26, 2016 at 12:12:07PM -0400, Doug Ledford wrote:
->> On 8/26/2016 10:44 AM, Leon Romanovsky wrote:
->>> On Thu, Aug 25, 2016 at 03:29:12PM -0400, Doug Ledford wrote:
->>>
->>> Hi Doug,
->>>
->>> These two patches were supposed to be carried by us [1] and I explici=
-tly
->>> said that. Especially, the last patch in this series is wrong. Please=
+On 8/26/2016 9:35 AM, Doug Ledford wrote:
+> On 8/26/2016 12:49 AM, Christophe JAILLET wrote:
+>> The 2nd parameter of 'find_first_bit' is the number of bits to search.=
 
->>> revert it. The proper patch is [2] and it was supposed to be sent rig=
-ht
->>> after our shared code.
->>>
->>>> Yuval Shaia (2):
->>>>       IB/mlx4: Make function use_tunnel_data return void
->>>>       IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one
->>>
->>> [1] https://www.spinics.net/lists/linux-rdma/msg38580.html
->>> [2]
->>> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/comm=
-it/?h=3Dtopic/mlx-fixes&id=3Dd5a1c56c3a49db6369b36aa04fbeabc7653ae107
->>>
->>
->> I saw your request to carry it, but then never heard anything again fr=
-om
->> you.  The fix that the original patch implements is still valid and wa=
-s
->> something I wanted to get into 4.8, where as your patch is being held
->> for 4.9 and goes down a different path to solving the issue.  IMO, the=
-
->> patch from Yuval is fine for 4.8, and if you want to apply yours to 4.=
-9,
->> that's fine too.  I don't see a need to revert the existing patch.  Fr=
-om
->> what I can tell, the existing patch will work fine and do what Yuval
->> intended, it just won't do what you intend to do in 4.9.  Please corre=
-ct
->> me if I'm wrong.
+>> In this case, we are passing 'sizeof(unsigned long)' which is likely t=
+o
+>> be 4 or 8.
 >=20
-> By our HW design and SW implementation poll_cq never fails and returns
-> errors, so all these prints are to catch ULP bugs. In case of such bug,=
- Yuval's
-> patch will cause to reentry (EAGAIN) and kprints storm again and again.=
+> If the size can be 4 or 8, then using 64 universally is not correct.
+> Why not use sizeof() * 8 (or << 3)?
 
-> It is undesired and misleading behaviour.
->=20
-> We targeted our patch to 4.9, because it is not actual fix, but help to=
+Better yet, why not put this patch in the kernel first:
 
-> ULP developers and there is no real need to hurry up.
->=20
-> Will it be acceptable by you, if I revert Yuval's patch before sending
-> our version for 4.9?
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index d96a6118d26a..a8838c87668e 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -52,6 +52,8 @@
 
-Just post your version now.  I have another pull request for 4.8-rc,
-I'll merge in your version into the next pull request.
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) +
+__must_be_array(arr))
+
++#define bitsizeof(x)   (sizeof((x)) << 3)
++
+ #define u64_to_user_ptr(x) (           \
+ {                                      \
+        typecheck(u64, x);              \
+
+then start going around replacing all these hard coded numbers with the
+use of bitsizeof().  It can be applied not just to the find_first*bit()
+routines, but to a bunch of other routines too.  Just look at
+include/linux/bitmap.h and any that have nbits as an argument are
+candidates.
 
 
 --=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG Key ID: 0E572FDD
 
 
---LKWFJPAu9H7JWQEnSPjG3mAtbbouhkeJV--
+--ebJruRaJ823Mfx6cs9OOcWhbWuKcHfJe7--
 
---32GlGJqWM1AtLcQFBpoNLJiscicNmnfvu
+--drk5EFA0mrFinOWFkvUl6vqeS04Jw7s2G
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -111,23 +85,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXwIH/AAoJELgmozMOVy/dS2oP/izwwDOTnHSenzlT+WuGNV1x
-Avjz1vqFiGe9fV865QhvUDHnlRUBU9f6ZWTHH3ihbHCrrCqVZJJXGFrzpYfZ2dLf
-TG/UIRSzgKOO7uAQS0ncIkvmHZacYgH2O0tfziNFLUYxO+GyAgYdwZ94JWEwo+Sx
-JfEZ3dz+qzjN1bXVR7UgWJKcFnSlv6vwB2taNuovC3VCPr93jYne2AAuqbhqkbHd
-fkqDiywDrvnEETs6GV86MQNwIfYxJr6HyHDtyuGBs84d2lgB4d1WLYd6nsh2mvB6
-EdAmGUWCP+C14RzcGzMhAR8gwBL5dZBi+8xVFjJ132tAHoDs3Y7egZncGQWt2YjI
-EqYGkV/zP6xwutnd7a9ey4z7FWDc7tJ8oC7spoZjm+hJoxEw7lE5eE2CrOjoxv2A
-l7IuShFiNxhzzXeNYmKdsSQcksPydA0FjtZXW4pAFxuAqqS3Letm6gfUpeRBIZtG
-sVqUTe8SJAw4x5U5yKUJOKbV7/QwGJyC8p21Cc24i2oZKam09VOqKp80jKXe4q76
-pw9PnSIYo7By5GJJOMpkTvrgPy2WC6CRoSyKwhjt3yxaZawBXjIPWQbpYH1U40FW
-1pfhn8usX0DuiR3VIk2YWv28JnJ0jq1tvLbkrWtK0Mwg/IsqwZBHW69C/ZCqqhN6
-31bN6oQVVN/vz+gfYh0T
-=9ckN
+iQIcBAEBCAAGBQJXwIQTAAoJELgmozMOVy/dqTYQAJHv5tUhZtZOsSziCJwGpIpD
+eUDwg0bLGPRwOfTJML3JnizywSoDGwG2kHLp1nGHUbQcIeQ6lnn0bWfhkAvkcPpK
+HXAZpInBG5WcKAvHtZDWVr87bbN6t1X1O29aV8CJSJgf+Aw+juxQ0kkpVnV3YRKp
+SKtDM+bbD22R6WQJxmMIFAGdP+hjjr0ZspiYadrUvGmXSpvs8F250dBdtCn8fEuL
+P5w+YpwL3YJMBCLjsRt6JcyMOi6rL83lxnt/ByGY/dT8owDBMv95yaGGFGJg0B6q
+4ZhqGHhTJ7vrKf+gIOL2kMkgCdBzt2Xghtce5SeHebFSMe4mU/8jEgwXRUZtPgMa
+VqRlKYxDfUHkRVZYrZrdBM0WyEB9ZoqJhKmr+hxzUSKDh8jrlb4cMfWknO4nKP6X
+lMSjdwUEWLuW2CSKFVwBYu5kw9abol7p/BJwv6gAvlYBIftHAckrloTInGMIMxnu
+HWD38vvIU7jOQo4DgJ8LAgPGD8hbhtIdXWvXDVGzPof0JB3xxrHAZk7B2R+As7zg
+KxPv6xxEiKfIa0iWcknwH30CIqU0oFl45+m0Pykry4VwRpO1uyZfFpMvnDH/aHxv
+b0TkY1pexkkvMM7CV/4smpl9Cj8I0aqqHbWNYYER278FWM3t5obBCp47LiIUvUG8
+S7356P0EC+3AKcDuEUrn
+=gSrx
 -----END PGP SIGNATURE-----
 
---32GlGJqWM1AtLcQFBpoNLJiscicNmnfvu--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--drk5EFA0mrFinOWFkvUl6vqeS04Jw7s2G--
