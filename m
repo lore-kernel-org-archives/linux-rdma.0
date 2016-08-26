@@ -1,175 +1,97 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/22] SUNRPC: Refactor rpc_xdr_buf_init()
-Date: Fri, 26 Aug 2016 17:05:20 -0400
-Message-ID: <82e56623-ddab-7eb7-0c0b-e2adc177af76@Netapp.com>
-References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
- <20160823175219.13038.22735.stgit@manet.1015granger.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Fri, 26 Aug 2016 16:27:25 -0600
+Message-ID: <20160826222725.GA8553@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <20160825173916.GC20612@obsidianresearch.com>
+ <20160825195246.GI1916@redhat.com>
+ <20160825201306.GA5421@obsidianresearch.com>
+ <20160826154206.GK1916@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160823175219.13038.22735.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160826154206.GK1916-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/23/2016 01:52 PM, Chuck Lever wrote:
-> Clean up: there is some XDR initialization logic that is commoon
-                                                           ^^^^^^^
-nit: "common" has an extra "o"
+On Fri, Aug 26, 2016 at 11:42:06AM -0400, Jarod Wilson wrote:
 
-Looks okay to me otherwise,
-Anna
+> > Would you help making a spec file that is close to what you
+> > could use in the distro? I don't really care if it is stored in the
+> > package or stored inside RH, but we need to get one made.
+> 
+> Sure. It would probably be something to route through Fedora first though,
+> and I don't own all the packages this would encompass in Fedora, but could
+> certainly round a few people up and help out.
 
-> to the forward channel and backchannel. Move it to an XDR header
-> so it can be shared.
-> 
-> rpc_rqst::rq_buffer points to a buffer containing big-endian data.
-> Update its annotation as part of the clean up.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  include/linux/sunrpc/xdr.h        |   12 ++++++++++++
->  include/linux/sunrpc/xprt.h       |    2 +-
->  net/sunrpc/backchannel_rqst.c     |    8 +-------
->  net/sunrpc/clnt.c                 |   24 ++++++------------------
->  net/sunrpc/xprtrdma/backchannel.c |   12 +-----------
->  5 files changed, 21 insertions(+), 37 deletions(-)
-> 
-> diff --git a/include/linux/sunrpc/xdr.h b/include/linux/sunrpc/xdr.h
-> index 70c6b92..56c48c8 100644
-> --- a/include/linux/sunrpc/xdr.h
-> +++ b/include/linux/sunrpc/xdr.h
-> @@ -67,6 +67,18 @@ struct xdr_buf {
->  			len;		/* Length of XDR encoded message */
->  };
->  
-> +static inline void
-> +xdr_buf_init(struct xdr_buf *buf, void *start, size_t len)
-> +{
-> +	buf->head[0].iov_base = start;
-> +	buf->head[0].iov_len = len;
-> +	buf->tail[0].iov_len = 0;
-> +	buf->page_len = 0;
-> +	buf->flags = 0;
-> +	buf->len = 0;
-> +	buf->buflen = len;
-> +}
-> +
->  /*
->   * pre-xdr'ed macros.
->   */
-> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
-> index a16070d..6f1d41b 100644
-> --- a/include/linux/sunrpc/xprt.h
-> +++ b/include/linux/sunrpc/xprt.h
-> @@ -83,7 +83,7 @@ struct rpc_rqst {
->  	void (*rq_release_snd_buf)(struct rpc_rqst *); /* release rq_enc_pages */
->  	struct list_head	rq_list;
->  
-> -	__u32 *			rq_buffer;	/* XDR encode buffer */
-> +	void			*rq_buffer;	/* Call XDR encode buffer */
->  	size_t			rq_callsize,
->  				rq_rcvsize;
->  	size_t			rq_xmit_bytes_sent;	/* total bytes sent */
-> diff --git a/net/sunrpc/backchannel_rqst.c b/net/sunrpc/backchannel_rqst.c
-> index 229956b..ac701c2 100644
-> --- a/net/sunrpc/backchannel_rqst.c
-> +++ b/net/sunrpc/backchannel_rqst.c
-> @@ -76,13 +76,7 @@ static int xprt_alloc_xdr_buf(struct xdr_buf *buf, gfp_t gfp_flags)
->  	page = alloc_page(gfp_flags);
->  	if (page == NULL)
->  		return -ENOMEM;
-> -	buf->head[0].iov_base = page_address(page);
-> -	buf->head[0].iov_len = PAGE_SIZE;
-> -	buf->tail[0].iov_base = NULL;
-> -	buf->tail[0].iov_len = 0;
-> -	buf->page_len = 0;
-> -	buf->len = 0;
-> -	buf->buflen = PAGE_SIZE;
-> +	xdr_buf_init(buf, page_address(page), PAGE_SIZE);
->  	return 0;
->  }
->  
-> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
-> index 7f79fb7..236f9ff 100644
-> --- a/net/sunrpc/clnt.c
-> +++ b/net/sunrpc/clnt.c
-> @@ -1748,18 +1748,6 @@ rpc_task_force_reencode(struct rpc_task *task)
->  	task->tk_rqstp->rq_bytes_sent = 0;
->  }
->  
-> -static inline void
-> -rpc_xdr_buf_init(struct xdr_buf *buf, void *start, size_t len)
-> -{
-> -	buf->head[0].iov_base = start;
-> -	buf->head[0].iov_len = len;
-> -	buf->tail[0].iov_len = 0;
-> -	buf->page_len = 0;
-> -	buf->flags = 0;
-> -	buf->len = 0;
-> -	buf->buflen = len;
-> -}
-> -
->  /*
->   * 3.	Encode arguments of an RPC call
->   */
-> @@ -1772,12 +1760,12 @@ rpc_xdr_encode(struct rpc_task *task)
->  
->  	dprint_status(task);
->  
-> -	rpc_xdr_buf_init(&req->rq_snd_buf,
-> -			 req->rq_buffer,
-> -			 req->rq_callsize);
-> -	rpc_xdr_buf_init(&req->rq_rcv_buf,
-> -			 (char *)req->rq_buffer + req->rq_callsize,
-> -			 req->rq_rcvsize);
-> +	xdr_buf_init(&req->rq_snd_buf,
-> +		     req->rq_buffer,
-> +		     req->rq_callsize);
-> +	xdr_buf_init(&req->rq_rcv_buf,
-> +		     (char *)req->rq_buffer + req->rq_callsize,
-> +		     req->rq_rcvsize);
->  
->  	p = rpc_encode_header(task);
->  	if (p == NULL) {
-> diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
-> index 5f60ab2..d3cfaf2 100644
-> --- a/net/sunrpc/xprtrdma/backchannel.c
-> +++ b/net/sunrpc/xprtrdma/backchannel.c
-> @@ -38,7 +38,6 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
->  	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
->  	struct rpcrdma_regbuf *rb;
->  	struct rpcrdma_req *req;
-> -	struct xdr_buf *buf;
->  	size_t size;
->  
->  	req = rpcrdma_create_req(r_xprt);
-> @@ -60,16 +59,7 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
->  	req->rl_sendbuf = rb;
->  	/* so that rpcr_to_rdmar works when receiving a request */
->  	rqst->rq_buffer = (void *)req->rl_sendbuf->rg_base;
-> -
-> -	buf = &rqst->rq_snd_buf;
-> -	buf->head[0].iov_base = rqst->rq_buffer;
-> -	buf->head[0].iov_len = 0;
-> -	buf->tail[0].iov_base = NULL;
-> -	buf->tail[0].iov_len = 0;
-> -	buf->page_len = 0;
-> -	buf->len = 0;
-> -	buf->buflen = size;
-> -
-> +	xdr_buf_init(&rqst->rq_snd_buf, rqst->rq_buffer, size);
->  	return 0;
->  
->  out_fail:
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Sounds good, here are my thoughts let me know what you think:
 
+1) Compiler flags/etc. I haven't audited all the CentOS rpms, but at
+   least verbs overrides the compiler flag to set -fno-strict-aliasing
+   Upstream should be distributing the package in a way that works, so
+   downstream should not need do this. We need to decide if we want/need to
+   force no-strict-aliasing or not, or use some kind of compiler
+   test or whatever.
+2) Static libraries. Do we want to continue to provide these? Looking
+   at it, I'm skeptical that libibverbs works at all as a static, does
+   anyone know? Particularly, how does it work? Should we get rid of
+   it or do more work to try and make it work sanely. (eg a
+   libibverbs.a that includes all the providers or something)
+3) Version numbers. What version numbers do we give to the sub
+   packages? I guess this is very distro specific.
+4) Package split. I'm suggesting
+    libibcm1 -devel -static
+    libibumad3 -devel -static
+    libibverbs1 -devel -static
+    librdmacm1 -devel -static
+    rdma-utils (all the other random binaries and stuff)
+    ibverbs-plugins (all the providers)
+
+   So we would get rid of the individual packages for the providers.
+   There would be no -devel for the providers and the static providers
+   would be bundled with libibverbs1-static
+
+   IMHO this is more inline with common distro practice for packaging
+   plugins. (most providers are about 20k-30k)
+
+   I don't want to dictate what distros should do, but this is best
+   done with support from the build system upstream, so some guidance
+   on what to do is needed to finish the cmake stuff. (see #6)
+5) Valgrind - I've noticed CentOS forces valgrind on, and Debian
+   leaves it as the upstream default (off)
+   IMHO Upstream should shift to use valgrind by default if available
+   and encourage all downstreams to compile it with valgrind headers
+   present.
+6) Actually splitting the file list. cmake has a INSTALL COMPONENT
+   facility to help with this, but it needs to be setup upstream.
+   Other than the include files and man pages this is straightforward
+   to do from the spec file
+7) NDEBUG - As upstream do we want this set or left unset for a
+   release build. It eliminates all asserts and a few other things.
+   I'm not sure what is being done today, but the %cmake rpmbuild
+   default forces it on. (IMHO, upstream should decide this, not
+   downstream?)
+8) COPYING file and other doc stuff. There are 4 different licenses
+   being used in the source. Everything is GPLv2 however. I think this
+   only impacts the providers.
+9) libtool .la files. I preserved them, but if distros don't want them
+   I'd love to ditch them.
+
+I'd like to get thing in a state where it is not painful for the
+distros to transition - to ease things along.
+
+My approach has been to faithfully preserve exactly what we do today,
+and the list above is basicly my list of things that seem like they
+need attention.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
