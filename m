@@ -1,63 +1,122 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Fri, 26 Aug 2016 17:44:15 +0300
-Message-ID: <20160826144415.GC594@leon.nu>
-References: <e5da14cf-fd5a-895e-5fad-9020b6a7efb1@redhat.com>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Fri, 26 Aug 2016 11:42:06 -0400
+Message-ID: <20160826154206.GK1916@redhat.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <20160825173916.GC20612@obsidianresearch.com>
+ <20160825195246.GI1916@redhat.com>
+ <20160825201306.GA5421@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="JWEK1jqKZ6MHAcjA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <e5da14cf-fd5a-895e-5fad-9020b6a7efb1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160825201306.GA5421-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Aug 25, 2016 at 02:13:06PM -0600, Jason Gunthorpe wrote:
+> On Thu, Aug 25, 2016 at 03:52:46PM -0400, Jarod Wilson wrote:
+> > On Thu, Aug 25, 2016 at 11:39:16AM -0600, Jason Gunthorpe wrote:
+> > > On Thu, Aug 25, 2016 at 10:20:15AM -0400, Doug Ledford wrote:
+> > > > On 8/23/2016 2:54 PM, Jason Gunthorpe wrote:
+> > > > > On Mon, Aug 22, 2016 at 03:43:52PM -0600, Jason Gunthorpe wrote:
+> > > > > 
+> > > > >> The full install to / is still a small TODO, it is part and parcel
+> > > > >> with doing the packaging, in my mind.
+> > > > > 
+> > > > > I just pushed a basic starting point rpm spec file, it still needs to
+> > > > > be split into multiple subpackages, but it is installable with all the
+> > > > > usual paths.
+> > > > 
+> > > > You can do that, but I routinely tell upstream maintainers that we don't
+> > > > touch their spec files.  Every distro modifies the spec file so heavily
+> > > > for their own custom installation that it just doesn't make much sense
+> > > > to worry about it at the upstream level.  Build one that can be used
+> > > > when running rpmbuild -ta and that's all you need.
+> > > 
+> > > I'm not sure I understand your comment.
+> > > 
+> > > Are you saying we don't need a specfile in upstream?
+> > 
+> > Distros certainly don't require it.
+> 
+> I know that, my question is poised to the larger developer community
+> who need to build test and deploy this stuff as not-a-distro.
+> 
+> > > How does upstream
+> > > test the build infrastructure?
+> > 
+> > ./configure, make, make install (or cmake/ninja/whatever)
+> 
+> rpmbuild does stuff that needs to be checked out and validated by
+> upstream at least occasionally, or packaging becomes too hard for the
+> downstream because of broken build infra.
 
---JWEK1jqKZ6MHAcjA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+A good downstream ought to be reporting any issues they encounter, so I
+think you can more or less offload that burden until such time as someone
+comes and says "hey, you just broke xyz".
 
-On Thu, Aug 25, 2016 at 03:29:12PM -0400, Doug Ledford wrote:
+> > I either build locally in the git tree(s) and run from there, or I take
+> > the upstream tarball and modify my distro spec file to use it.
+> 
+> We've never been able to run the rdma stack from the build trees, the
+> dlopen stuff and the split packaging made it too hard. We can almost
+> do it with the unified tree, but that is still a few patches away.. So
+> that isn't a good answer for developers.
 
-Hi Doug,
+I usually rpmbuild and install libs, run various test apps, etc., from
+local git tree builds (perftest, librdmacm utils/examples, etc).
 
-These two patches were supposed to be carried by us [1] and I explicitly
-said that. Especially, the last patch in this series is wrong. Please
-revert it. The proper patch is [2] and it was supposed to be sent right
-after our shared code.
+> > Generally, no, because various upstreams often do things that violate the
+> > packaging rules for a given distro. Upstream specs are occasionally used
+> > for reference bringing up a new package, but at least for Red Hat
+> > and
+> 
+> Well, that is exactly where we are right now, bringing up a new
+> (complex) package.
 
-> Yuval Shaia (2):
->       IB/mlx4: Make function use_tunnel_data return void
->       IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one
+I think the only really complex part is splitting it into sub-packages
+correctly, which is mostly getting %files lists, Provides and Obsoletes
+right, from the rpm perspective.
 
-[1] https://www.spinics.net/lists/linux-rdma/msg38580.html
-[2]
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/commit/?h=topic/mlx-fixes&id=d5a1c56c3a49db6369b36aa04fbeabc7653ae107
+> Would you help making a spec file that is close to what you
+> could use in the distro? I don't really care if it is stored in the
+> package or stored inside RH, but we need to get one made.
 
---JWEK1jqKZ6MHAcjA
-Content-Type: application/pgp-signature; name="signature.asc"
+Sure. It would probably be something to route through Fedora first though,
+and I don't own all the packages this would encompass in Fedora, but could
+certainly round a few people up and help out.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+> > > Eg I think it was a dis-service to other distros not to update the
+> > > reference verbs spec file with the libnl dependency. I wonder how many
+> > > downstreams noticed this change and are still building verbs properly?
+> > 
+> > Add the dependency to the build infra, and problem solved for rpm, deb,
+> > whatever other packaging system. Updating the spec only helps rpm-based
+> > distros, maybe, if they use the spec (which RH/Fedora doesn't).
+> 
+> The build infra has an optional requirement for libnl3, and other
+> things.
+> 
+> I don't know why we did that, maybe it should have been mandatory, but
+> the point remains, it is a subtle change that is easy to miss
+> downstream. Presumably downstream folks review changes to the tarball
+> including the reference spec file before packaging a new version?
 
-iQIcBAEBAgAGBQJXwFW/AAoJEORje4g2clin7WIP/1Xxgw7tLbXeQh1SLv9UQC0w
-rSGTx7KxAiyHXGj4Q2Flh7Z8rHBjX4HqQGKydw3E3e/8D5L2NtAztoNJQfXJrmU7
-W3+1Nu2WgSaaTsyYKGc00RPDjhmNqA7dYGpbHidxYzy5oVvqbyHTQp7MtL54TONx
-GVIVEGi4k5/9cFWcZf1OfsEXt21hvonedYF0sDBiS2EB7VwQbeI1wHtD+Sxigr2y
-/YIQ9Pxj6FU4gfK5Ztgv2le7Zm9gUkrVfvRpg+j3QkJ5k4lP9W23/tmcPBc9003t
-5hEZiMOnBFMZq2juDpXNCuZUNB8S114027dHhv/na/Ujikt/XZKattQVNj77ZLlJ
-reKvYlqNV8nWSihJYVWgWn+5VC/jWgrVaKdchKpUL+w/MtjwOuMPI7TbTLNDlyhW
-p0yBrrPe/R2od+ZfuCYuCppRU+OjndPCAbU4MiPP+54UtsGqd94ZmzlyqINz8zsw
-43CPIUT+irnLBuR7lo7JCVu541KbxLJwcnyb0YbbI55GE2LyDsiFkfPJiZG1pyuq
-b2rAnbz439pSX0gRbAofiP+r3IZjPH+O18/UkvPZmBNLjUbXqlvi9Z1PxMnla9hp
-46/8jJVfvxXFrr+FlfzDKWFfVkKqIcUej7ohBZ284rS6+E2W895pEZ+5DL2uu/R7
-LPspEtOLxVVW8vRtm7PR
-=HcDF
------END PGP SIGNATURE-----
+Downstream folks should be reviewing release notes at the very least, and
+preferably, upstream source code management commit logs, to have a clue
+what they're packaging up. I'm sure not all do though.
 
---JWEK1jqKZ6MHAcjA--
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
