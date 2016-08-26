@@ -1,79 +1,174 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/2] iw_cxgb4: block module unload until all ep resources are
- released
-Date: Fri, 26 Aug 2016 08:28:01 -0700
-Message-ID: <5ab9ec03bb938a988f3684a4a0d056c01ec70084.1472241953.git.swise@opengridcomputing.com>
-References: <c1b639ca7d71ee034e334b4400ff0bae3ba58c47.1472241953.git.swise@opengridcomputing.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 02/22] SUNRPC: Refactor rpc_xdr_buf_init()
+Date: Fri, 26 Aug 2016 17:05:20 -0400
+Message-ID: <82e56623-ddab-7eb7-0c0b-e2adc177af76@Netapp.com>
+References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
+ <20160823175219.13038.22735.stgit@manet.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c1b639ca7d71ee034e334b4400ff0bae3ba58c47.1472241953.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20160823175219.13038.22735.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Otherwise an endpoint can be still closing down causing a touch
-after free crash.
+On 08/23/2016 01:52 PM, Chuck Lever wrote:
+> Clean up: there is some XDR initialization logic that is commoon
+                                                           ^^^^^^^
+nit: "common" has an extra "o"
 
-Fixes: ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting the last deref")
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c       | 2 ++
- drivers/infiniband/hw/cxgb4/device.c   | 5 +++++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 1 +
- 3 files changed, 8 insertions(+)
+Looks okay to me otherwise,
+Anna
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 434a7fb..80f9889 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -333,6 +333,8 @@ static void remove_ep_tid(struct c4iw_ep *ep)
- 
- 	spin_lock_irqsave(&ep->com.dev->lock, flags);
- 	_remove_handle(ep->com.dev, &ep->com.dev->hwtid_idr, ep->hwtid, 0);
-+	if (idr_is_empty(&ep->com.dev->hwtid_idr))
-+		wake_up(&ep->com.dev->wait);
- 	spin_unlock_irqrestore(&ep->com.dev->lock, flags);
- }
- 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 071d733..3c4b212 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -872,9 +872,13 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- static void c4iw_dealloc(struct uld_ctx *ctx)
- {
- 	c4iw_rdev_close(&ctx->dev->rdev);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->cqidr));
- 	idr_destroy(&ctx->dev->cqidr);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->qpidr));
- 	idr_destroy(&ctx->dev->qpidr);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->mmidr));
- 	idr_destroy(&ctx->dev->mmidr);
-+	wait_event(ctx->dev->wait, idr_is_empty(&ctx->dev->hwtid_idr));
- 	idr_destroy(&ctx->dev->hwtid_idr);
- 	idr_destroy(&ctx->dev->stid_idr);
- 	idr_destroy(&ctx->dev->atid_idr);
-@@ -992,6 +996,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
- 	mutex_init(&devp->rdev.stats.lock);
- 	mutex_init(&devp->db_mutex);
- 	INIT_LIST_HEAD(&devp->db_fc_list);
-+	init_waitqueue_head(&devp->wait);
- 	devp->avail_ird = devp->rdev.lldi.max_ird_adapter;
- 
- 	if (c4iw_debugfs_root) {
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index aa47e0a..4b83b84 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -263,6 +263,7 @@ struct c4iw_dev {
- 	struct idr stid_idr;
- 	struct list_head db_fc_list;
- 	u32 avail_ird;
-+	wait_queue_head_t wait;
- };
- 
- static inline struct c4iw_dev *to_c4iw_dev(struct ib_device *ibdev)
--- 
-2.7.0
+> to the forward channel and backchannel. Move it to an XDR header
+> so it can be shared.
+> 
+> rpc_rqst::rq_buffer points to a buffer containing big-endian data.
+> Update its annotation as part of the clean up.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/xdr.h        |   12 ++++++++++++
+>  include/linux/sunrpc/xprt.h       |    2 +-
+>  net/sunrpc/backchannel_rqst.c     |    8 +-------
+>  net/sunrpc/clnt.c                 |   24 ++++++------------------
+>  net/sunrpc/xprtrdma/backchannel.c |   12 +-----------
+>  5 files changed, 21 insertions(+), 37 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/xdr.h b/include/linux/sunrpc/xdr.h
+> index 70c6b92..56c48c8 100644
+> --- a/include/linux/sunrpc/xdr.h
+> +++ b/include/linux/sunrpc/xdr.h
+> @@ -67,6 +67,18 @@ struct xdr_buf {
+>  			len;		/* Length of XDR encoded message */
+>  };
+>  
+> +static inline void
+> +xdr_buf_init(struct xdr_buf *buf, void *start, size_t len)
+> +{
+> +	buf->head[0].iov_base = start;
+> +	buf->head[0].iov_len = len;
+> +	buf->tail[0].iov_len = 0;
+> +	buf->page_len = 0;
+> +	buf->flags = 0;
+> +	buf->len = 0;
+> +	buf->buflen = len;
+> +}
+> +
+>  /*
+>   * pre-xdr'ed macros.
+>   */
+> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+> index a16070d..6f1d41b 100644
+> --- a/include/linux/sunrpc/xprt.h
+> +++ b/include/linux/sunrpc/xprt.h
+> @@ -83,7 +83,7 @@ struct rpc_rqst {
+>  	void (*rq_release_snd_buf)(struct rpc_rqst *); /* release rq_enc_pages */
+>  	struct list_head	rq_list;
+>  
+> -	__u32 *			rq_buffer;	/* XDR encode buffer */
+> +	void			*rq_buffer;	/* Call XDR encode buffer */
+>  	size_t			rq_callsize,
+>  				rq_rcvsize;
+>  	size_t			rq_xmit_bytes_sent;	/* total bytes sent */
+> diff --git a/net/sunrpc/backchannel_rqst.c b/net/sunrpc/backchannel_rqst.c
+> index 229956b..ac701c2 100644
+> --- a/net/sunrpc/backchannel_rqst.c
+> +++ b/net/sunrpc/backchannel_rqst.c
+> @@ -76,13 +76,7 @@ static int xprt_alloc_xdr_buf(struct xdr_buf *buf, gfp_t gfp_flags)
+>  	page = alloc_page(gfp_flags);
+>  	if (page == NULL)
+>  		return -ENOMEM;
+> -	buf->head[0].iov_base = page_address(page);
+> -	buf->head[0].iov_len = PAGE_SIZE;
+> -	buf->tail[0].iov_base = NULL;
+> -	buf->tail[0].iov_len = 0;
+> -	buf->page_len = 0;
+> -	buf->len = 0;
+> -	buf->buflen = PAGE_SIZE;
+> +	xdr_buf_init(buf, page_address(page), PAGE_SIZE);
+>  	return 0;
+>  }
+>  
+> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> index 7f79fb7..236f9ff 100644
+> --- a/net/sunrpc/clnt.c
+> +++ b/net/sunrpc/clnt.c
+> @@ -1748,18 +1748,6 @@ rpc_task_force_reencode(struct rpc_task *task)
+>  	task->tk_rqstp->rq_bytes_sent = 0;
+>  }
+>  
+> -static inline void
+> -rpc_xdr_buf_init(struct xdr_buf *buf, void *start, size_t len)
+> -{
+> -	buf->head[0].iov_base = start;
+> -	buf->head[0].iov_len = len;
+> -	buf->tail[0].iov_len = 0;
+> -	buf->page_len = 0;
+> -	buf->flags = 0;
+> -	buf->len = 0;
+> -	buf->buflen = len;
+> -}
+> -
+>  /*
+>   * 3.	Encode arguments of an RPC call
+>   */
+> @@ -1772,12 +1760,12 @@ rpc_xdr_encode(struct rpc_task *task)
+>  
+>  	dprint_status(task);
+>  
+> -	rpc_xdr_buf_init(&req->rq_snd_buf,
+> -			 req->rq_buffer,
+> -			 req->rq_callsize);
+> -	rpc_xdr_buf_init(&req->rq_rcv_buf,
+> -			 (char *)req->rq_buffer + req->rq_callsize,
+> -			 req->rq_rcvsize);
+> +	xdr_buf_init(&req->rq_snd_buf,
+> +		     req->rq_buffer,
+> +		     req->rq_callsize);
+> +	xdr_buf_init(&req->rq_rcv_buf,
+> +		     (char *)req->rq_buffer + req->rq_callsize,
+> +		     req->rq_rcvsize);
+>  
+>  	p = rpc_encode_header(task);
+>  	if (p == NULL) {
+> diff --git a/net/sunrpc/xprtrdma/backchannel.c b/net/sunrpc/xprtrdma/backchannel.c
+> index 5f60ab2..d3cfaf2 100644
+> --- a/net/sunrpc/xprtrdma/backchannel.c
+> +++ b/net/sunrpc/xprtrdma/backchannel.c
+> @@ -38,7 +38,6 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
+>  	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+>  	struct rpcrdma_regbuf *rb;
+>  	struct rpcrdma_req *req;
+> -	struct xdr_buf *buf;
+>  	size_t size;
+>  
+>  	req = rpcrdma_create_req(r_xprt);
+> @@ -60,16 +59,7 @@ static int rpcrdma_bc_setup_rqst(struct rpcrdma_xprt *r_xprt,
+>  	req->rl_sendbuf = rb;
+>  	/* so that rpcr_to_rdmar works when receiving a request */
+>  	rqst->rq_buffer = (void *)req->rl_sendbuf->rg_base;
+> -
+> -	buf = &rqst->rq_snd_buf;
+> -	buf->head[0].iov_base = rqst->rq_buffer;
+> -	buf->head[0].iov_len = 0;
+> -	buf->tail[0].iov_base = NULL;
+> -	buf->tail[0].iov_len = 0;
+> -	buf->page_len = 0;
+> -	buf->len = 0;
+> -	buf->buflen = size;
+> -
+> +	xdr_buf_init(&rqst->rq_snd_buf, rqst->rq_buffer, size);
+>  	return 0;
+>  
+>  out_fail:
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
