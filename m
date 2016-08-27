@@ -1,32 +1,29 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Fri, 26 Aug 2016 23:17:52 -0400
-Message-ID: <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com>
+Date: Fri, 26 Aug 2016 23:34:47 -0400
+Message-ID: <1811977a-47ec-dc5f-22a4-acf56bb750d3@redhat.com>
 References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
  <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
  <20160822214352.GB11695@obsidianresearch.com>
  <20160823185441.GA1233@obsidianresearch.com>
  <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
  <20160825173916.GC20612@obsidianresearch.com>
- <20160825195246.GI1916@redhat.com>
- <20160825201306.GA5421@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="4q34CqdUBgca7gigNOqGxerD2mCtJShSD"
+ boundary="Qgkbg9IgCDr28rXGTXpfCleqBAklQoaFn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160825201306.GA5421-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160825173916.GC20612-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---4q34CqdUBgca7gigNOqGxerD2mCtJShSD
-Content-Type: multipart/mixed; boundary="FDbcJgrS8UQkiGGtB74XCc5GJj9Ldix6I"
+--Qgkbg9IgCDr28rXGTXpfCleqBAklQoaFn
+Content-Type: multipart/mixed; boundary="LdFjH42mExLxm1F0F57CfhGwfNbADVKeH"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
  'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>,
  'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
@@ -35,7 +32,7 @@ Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-
  'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
  'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
  'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Message-ID: <1811977a-47ec-dc5f-22a4-acf56bb750d3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
 References: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
  <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
@@ -43,82 +40,87 @@ References: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFa
  <20160823185441.GA1233-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
  <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
  <20160825173916.GC20612-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <20160825195246.GI1916-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20160825201306.GA5421-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20160825201306.GA5421-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160825173916.GC20612-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
---FDbcJgrS8UQkiGGtB74XCc5GJj9Ldix6I
+--LdFjH42mExLxm1F0F57CfhGwfNbADVKeH
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/25/2016 4:13 PM, Jason Gunthorpe wrote:
->>> Are you saying we don't need a specfile in upstream?
+On 8/25/2016 1:39 PM, Jason Gunthorpe wrote:
+> On Thu, Aug 25, 2016 at 10:20:15AM -0400, Doug Ledford wrote:
+>> On 8/23/2016 2:54 PM, Jason Gunthorpe wrote:
+>>> On Mon, Aug 22, 2016 at 03:43:52PM -0600, Jason Gunthorpe wrote:
+>>>
+>>>> The full install to / is still a small TODO, it is part and parcel
+>>>> with doing the packaging, in my mind.
+>>>
+>>> I just pushed a basic starting point rpm spec file, it still needs to=
+
+>>> be split into multiple subpackages, but it is installable with all th=
+e
+>>> usual paths.
 >>
->> Distros certainly don't require it.
+>> You can do that, but I routinely tell upstream maintainers that we don=
+'t
+>> touch their spec files.  Every distro modifies the spec file so heavil=
+y
+>> for their own custom installation that it just doesn't make much sense=
+
+>> to worry about it at the upstream level.  Build one that can be used
+>> when running rpmbuild -ta and that's all you need.
 >=20
-> I know that, my question is poised to the larger developer community
-> who need to build test and deploy this stuff as not-a-distro.
-
-Developers like to do things that driver packagers nuts ;-)  For the
-larger developer community, a decent set of default options for make
-install in the repo itself is the main thing I think.
-
->>> How does upstream
->>> test the build infrastructure?
->>
->> ./configure, make, make install (or cmake/ninja/whatever)
+> I'm not sure I understand your comment.
 >=20
-> rpmbuild does stuff that needs to be checked out and validated by
-> upstream at least occasionally, or packaging becomes too hard for the
-> downstream because of broken build infra.
+> Are you saying we don't need a specfile in upstream?
 
-Given that rpmbuild is basically nothing more than a scripted build
-session, as long as the make/cmake system works well, so will rpmbuild.
-The main things that cause problems for distros when upstream does it
-are things like using rpath to search alternate library locations.  It
-makes sense to a developer.  She can have multiple installed copies of
-the code and test different versions this way.  For a distro though,
-that's a major security issue as rpath searches by a distro installed
-library can be exploited by black hats behind the user's back.  So we
-forcefully rip those out.  Those are the sorts of things that are more
-likely to crop up.  But, as Jarod mentioned, we don't need to worry
-about this too much.  If something breaks, the distros will speak up.
+I would include a spec file, it just need not be complex.  So much of
+what goes into one is distro specific, that there is a directly
+proportional relationship between the complexity of the provided spec
+file and chances that it will actually not be useful on anything other
+than the one OS it was written on.
 
-> We've never been able to run the rdma stack from the build trees,
+> How does upstream
+> test the build infrastructure?
 
-It's possible...you just have to do every step in the right order ;-)  I
-had a spreadsheet that I tracked packages, versions, build states,
-install states, and dependencies.  Made things a lot easier.
+The downstream distros are really on the hook for that.  Making sure the
+make/cmake build works well is our main goal.  The spec files and other
+packaging files are templates, nothing more than that really.
 
-But I get your point.
+> Are you saying the simple one .rpm is all we need?
 
-> Would you help making a spec file that is close to what you
-> could use in the distro? I don't really care if it is stored in the
-> package or stored inside RH, but we need to get one made.
+Yep.
 
-I have no doubt that we have plenty of spec file expertise on hand to
-make a reasonable starting spec file for the repo.  We'll need someone
-else's help though for the non-rpm stuff.
+> Is that really
+> useful to developers if it clashes with the distro packaging?
 
-> The build infra has an optional requirement for libnl3, and other
-> things.
->=20
-> I don't know why we did that, maybe it should have been mandatory, but
-> the point remains, it is a subtle change that is easy to miss
-> downstream. Presumably downstream folks review changes to the tarball
-> including the reference spec file before packaging a new version?
+Yes.  It's likely that no matter what we do, there will be differences
+between how distro package things up and how we do.  The developer will
+need to manually uninstall the distro packages and then install the
+package we provide.
 
-They should review things, but stuff can slip through the cracks.  Since
-libnl3/libnl is needed for RoCE, and it's possible to build libibverbs
-as something useful for IB and ignore RoCE, the libnl3/libnl requirement
-shouldn't be mandatory.  However, in order to make it very explicit
-since I suspect most people want RoCE support and might not realize they
-are missing a build requirement for it to work, the tests in the
-configure script could be changed to add a new feature "RoCE Support
-(default: yes)" and make the libnl3/libnl test be part of the RoCE
-support, and if it isn't present, fail.  Then people have to turn off
-RoCE to build it without libnl3/libnl.  That would be more effective of
-a configure setup I think.
+> How do
+> we test the build system parts that help the package splitting?
+
+I wouldn't even go there :-)
+
+> Isn't it easier for downstream to have recommended packaging to
+> reference?
+
+It is.  But they don't always follow it regardless.
+
+> Eg I think it was a dis-service to other distros not to update the
+> reference verbs spec file with the libnl dependency. I wonder how many
+> downstreams noticed this change and are still building verbs properly?
+
+We do.  But I was involved with the patches for the support and I was
+still in charge of our packages at the time, so I knew.  But even if we
+had updated the spec file in the tarball, it wouldn't have mattered.
+Whenever we import a new package, part of the import is to create our
+own spec file.  If there is a template, we might start from there, but
+we essentially fork it immediately.  We have to in order to maintain our
+own spec %changelog.  So changes to the template spec in the tarball
+likely would have been missed just like the change to the configure scrip=
+t.
 
 
 --=20
@@ -126,9 +128,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---FDbcJgrS8UQkiGGtB74XCc5GJj9Ldix6I--
+--LdFjH42mExLxm1F0F57CfhGwfNbADVKeH--
 
---4q34CqdUBgca7gigNOqGxerD2mCtJShSD
+--Qgkbg9IgCDr28rXGTXpfCleqBAklQoaFn
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -137,22 +139,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXwQZgAAoJELgmozMOVy/d6c0QAI+6J9bHlyzK224WY5gZNRWh
-noQRP2dtGLzglIBKmegNaDzUch3ej4/tpZws8wAFFQqvTutEZz1LEfSZ0kysOqgY
-66y0kvzmIDs5V8lm7dZ2lpCZJ3JxjjQ6nQhb9jW8tac/rkaPupqozxv8QHiGwUkP
-xCFLs/4xybkBhJeURhF33QLN8HWIplu6NnXDWPHKqvMNpdtRzNvt9QgA53WoC3sB
-agfitiXCtAQ8dbSgn0u0/jeFGMFNpL0dtCKwhh3zkbg1nqxCMLsBqgwXj1X0Vgmh
-bZBxpRiD0mL0Ea7hp5v+9vY++9SeEb97Vr0qMaJ0mGBedEdZS8HHHhDT0B74TZ35
-JIvrFMuTgRTTreRvkaGc7oMEHluo1vfDG+K2poXKSzSM19rcivCt12L3+JmORPLH
-g/ANk25wB+FaygO8KVo3Yjz+e2k7hq7uI3CmCniszHP0vQob+nKqMAwk6d7QOVSe
-jxFI+YOmICvNzL/AAZWuOZaYibk5fPlO0ixUqFRSo5HeqHDnqNJjYqobrWeMlydH
-iProB6e23TlxGReUz4WdiGgd8RMxwZTWyIGFl/Y2ukGNqEIysp7nA1PcmcfIy7SM
-uR2UtM2cidqX0F7qjpNv7cCzNEEwgFGfuhkAnR0kIsuyFFMuon//a9quwttBkuOs
-D2mVDTdyUKbe2z5bkbjq
-=FVR4
+iQIcBAEBCAAGBQJXwQpXAAoJELgmozMOVy/dlq0P/REBbW5ybLh1mTUzXkAil7wd
+s23Nf6gvBIhsj6d9S5HFqAE1hXvpQ84KnW4u5Gm1LXH2TDZKjJ79IdqVrC8+zmog
+KjhSBMlTxDrX0uWHevZZjQ+NjOjJ/7Uw/C8tkiDEON8usI5wZC1P8w9XbrD66Spz
+3b6xlOuqV0IwbD9AWaNYP3IDSOTrT7EhKUFqaq8fKgSEJ9U1qg6JqbEX9VXT5kLw
+tWGz+VmJA+K7G9U9i4Gu/SZIMPeP+DVdaGWvO7XcgXD7kbC3dozjJGnf5tE99N+R
+LfbNzz+crbfasEizZqqol2qTT0Z3zZlENrUCdhrdghgO3U88lrt57xI9S7EKerJN
+yzQsNlCki51OBQXMU972/tMmAl5vDSp+hNxaDexVRBMhkVWum9C47G/3NioCHwZk
+cXuZ46ZMC0oPQch2/ekCPpaWUOzWeuPJ5IMgftBsGenvGhS04qAo4Ul3DaIXhW/W
+OhN+hP4USvpODd7lgsh1I1tJx2YO4e+xt+Zieq43xUPks79wXsanvcnsJrrlyepG
+bwFofVnPau/vXvOjjYLPY9MidYegFg7ixUCIjDkZyvFXA2JaSXGHbUSntrlkM9Gi
+97EZNjnqTbRWDNEgIh99Zhx3DP0xZBVHPb8bBlDT5ZoUOeeSDCZqNAs0OyiIhktB
+NhjosmXSUXdVbC+xQO2A
+=O7Av
 -----END PGP SIGNATURE-----
 
---4q34CqdUBgca7gigNOqGxerD2mCtJShSD--
+--Qgkbg9IgCDr28rXGTXpfCleqBAklQoaFn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
