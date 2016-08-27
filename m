@@ -1,83 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Fri, 26 Aug 2016 23:21:38 -0600
-Message-ID: <20160827052138.GB23049@obsidianresearch.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
- <20160822214352.GB11695@obsidianresearch.com>
- <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <20160825173916.GC20612@obsidianresearch.com>
- <20160825195246.GI1916@redhat.com>
- <20160825201306.GA5421@obsidianresearch.com>
- <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: Re: [PATCH 1/2] IB/hfi1: Fix a parameter of find_first_bit.
+Date: Sat, 27 Aug 2016 07:25:02 +0200
+Message-ID: <d3eea048-5c7e-a5e9-900b-fabf0f6e38c8@wanadoo.fr>
+References: <1472186949-9025-1-git-send-email-christophe.jaillet@wanadoo.fr>
+ <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Kernel Janitors <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 26, 2016 at 11:17:52PM -0400, Doug Ledford wrote:
-> > rpmbuild does stuff that needs to be checked out and validated by
-> > upstream at least occasionally, or packaging becomes too hard for the
-> > downstream because of broken build infra.
-> 
-> Given that rpmbuild is basically nothing more than a scripted build
-> session, as long as the make/cmake system works well, so will
-> rpmbuild.
+Le 26/08/2016 à 15:35, Doug Ledford a écrit :
+> On 8/26/2016 12:49 AM, Christophe JAILLET wrote:
+>> The 2nd parameter of 'find_first_bit' is the number of bits to search.
+>> In this case, we are passing 'sizeof(unsigned long)' which is likely to
+>> be 4 or 8.
+> If the size can be 4 or 8, then using 64 universally is not correct.
+> Why not use sizeof() * 8 (or << 3)?
+I agree with you...
 
-Well, the thing that cases pain is the %configure and %cmake macros
-that rpmbuild provides, and sorting out all the various distro-specific
-install paths.
+BTW, the log message is wrong. 'port_mask' is a u64. (not an unsigned 
+long). So the sizeof should always be 8.
+(cut and paste error from another patch, sorry)
 
-eg I ran into this bug with %cmake while testing 
-(see https://bugzilla.redhat.com/show_bug.cgi?id=1301720)
-and had to deal with it in both the spec file and the build scripts.
+>
+>> It is likely that the number of bits of 'port_mask' was expected 
+>> here. This
+>> variable is a 'u64', so use 64 instead.
+>>
+>> It has been spotted by the following coccinelle script:
+>> @@
+>> expression ret, x;
+>>
+>> @@
+>> *  ret = \(find_first_bit \| find_first_zero_bit\) (x, sizeof(...));
+>>
+>> Signed-off-by: Christophe JAILLET 
+>> <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+>> ---
+>> Not sure that using 64 directly is the best option.
+>> Maybe '8 * sizeof(port_mask)' as used in the same file for
+>> 'for_each_set_bit' would be better
+>> ---
+... as noted here
 
-> The main things that cause problems for distros when upstream does it
-> are things like using rpath to search alternate library locations.
-> It
+Would you like a v2 patch or, will you update it by yourself?
 
-rpath is sorted automatically. %cmake takes care of it.
+Best regards,
+CJ
 
-Be aware that rpath will still be set in the build output, just
-stripped during 'make install'.
+---
+L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+https://www.avast.com/antivirus
 
-> > We've never been able to run the rdma stack from the build trees,
-> 
-> It's possible...you just have to do every step in the right order ;-)  I
-> had a spreadsheet that I tracked packages, versions, build states,
-> install states, and dependencies.  Made things a lot easier.
-
-Yes, I've done that too, but the hardwired load path for the .driver
-files is still a difficult problem.
-
-I have an approach in mind to fix this too.
-
-> shouldn't be mandatory.  However, in order to make it very explicit
-> since I suspect most people want RoCE support and might not realize they
-> are missing a build requirement for it to work, the tests in the
-> configure script could be changed to add a new feature "RoCE Support
-> (default: yes)" and make the libnl3/libnl test be part of the RoCE
-> support, and if it isn't present, fail.  Then people have to turn off
-> RoCE to build it without libnl3/libnl.  That would be more effective of
-> a configure setup I think.
-
-Yes, I agree. This is straightforward to do as well, I'll look at it.
-
-Also, do you know why we have the libnl1 fallback support? I couldn't
-figure out what distro needed that.
-
-BTW, I've basically de-supported any distro that doesn't have O_CLOEXEC
-and related, which probably includes anything that needed libnl1. We
-can probably remove libnl1 someday too.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
