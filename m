@@ -1,59 +1,42 @@
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: Re: [PATCH 1/2] IB/hfi1: Fix a parameter of find_first_bit.
-Date: Sat, 27 Aug 2016 07:25:02 +0200
-Message-ID: <d3eea048-5c7e-a5e9-900b-fabf0f6e38c8@wanadoo.fr>
-References: <1472186949-9025-1-git-send-email-christophe.jaillet@wanadoo.fr>
- <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Kernel Janitors <kernel-janitors@vger.kernel.org>
+From: Baoyou Xie <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] fix:infiniband:hw:cxgb4:qp:mark symbols static where possible
+Date: Sun, 28 Aug 2016 00:00:18 +0800
+Message-ID: <1472313618-3288-1-git-send-email-baoyou.xie@linaro.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, xie.baoyou-Th6q7B73Y6EnDS1+zs4M5A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le 26/08/2016 à 15:35, Doug Ledford a écrit :
-> On 8/26/2016 12:49 AM, Christophe JAILLET wrote:
->> The 2nd parameter of 'find_first_bit' is the number of bits to search.
->> In this case, we are passing 'sizeof(unsigned long)' which is likely to
->> be 4 or 8.
-> If the size can be 4 or 8, then using 64 universally is not correct.
-> Why not use sizeof() * 8 (or << 3)?
-I agree with you...
+We get 1 warning when biuld kernel with W=1:
+drivers/infiniband/hw/cxgb4/qp.c:686:6: warning: no previous prototype for '_free_qp' [-Wmissing-prototypes]
 
-BTW, the log message is wrong. 'port_mask' is a u64. (not an unsigned 
-long). So the sizeof should always be 8.
-(cut and paste error from another patch, sorry)
+In fact, this function is only used in the file in which it is declared
+and don't need a declaration, but can be made static.
+so this patch marks it 'static'.
 
->
->> It is likely that the number of bits of 'port_mask' was expected 
->> here. This
->> variable is a 'u64', so use 64 instead.
->>
->> It has been spotted by the following coccinelle script:
->> @@
->> expression ret, x;
->>
->> @@
->> *  ret = \(find_first_bit \| find_first_zero_bit\) (x, sizeof(...));
->>
->> Signed-off-by: Christophe JAILLET 
->> <christophe.jaillet-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
->> ---
->> Not sure that using 64 directly is the best option.
->> Maybe '8 * sizeof(port_mask)' as used in the same file for
->> 'for_each_set_bit' would be better
->> ---
-... as noted here
-
-Would you like a v2 patch or, will you update it by yourself?
-
-Best regards,
-CJ
-
+Signed-off-by: Baoyou Xie <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
-L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
-https://www.avast.com/antivirus
+ drivers/infiniband/hw/cxgb4/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index edb1172..6904352 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -683,7 +683,7 @@ static int build_inv_stag(union t4_wr *wqe, struct ib_send_wr *wr,
+ 	return 0;
+ }
+ 
+-void _free_qp(struct kref *kref)
++static void _free_qp(struct kref *kref)
+ {
+ 	struct c4iw_qp *qhp;
+ 
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
