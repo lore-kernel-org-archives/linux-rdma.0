@@ -1,78 +1,55 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 8/9] IB/mlx5: Use TIR number based on selector
-Date: Sun, 28 Aug 2016 10:58:37 +0300
-Message-ID: <1472371118-8260-9-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 7/9] IB/mlx5: Add VERBOSITY Kconfig option
+Date: Sun, 28 Aug 2016 10:58:36 +0300
+Message-ID: <1472371118-8260-8-git-send-email-leon@kernel.org>
 References: <1472371118-8260-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Use TIR number based on selector, it should be done to differentiate
-between RSS QP to RAW one.
+This patch introduces new MLX5_INFINIBAND_VERBOSE Kconfig
+option to enable the output of dump_wqe() which was never
+printed.
 
-Reported-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 6 +++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 1 +
- drivers/infiniband/hw/mlx5/qp.c      | 1 +
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/Kconfig | 6 ++++++
+ drivers/infiniband/hw/mlx5/qp.c    | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 1b4094b..8150ea3 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1849,6 +1849,7 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 					   int domain)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(qp);
- 	struct mlx5_ib_flow_handler *handler = NULL;
- 	struct mlx5_flow_destination *dst = NULL;
- 	struct mlx5_ib_flow_prio *ft_prio;
-@@ -1875,7 +1876,10 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 	}
- 
- 	dst->type = MLX5_FLOW_DESTINATION_TYPE_TIR;
--	dst->tir_num = to_mqp(qp)->raw_packet_qp.rq.tirn;
-+	if (mqp->flags & MLX5_IB_QP_RSS)
-+		dst->tir_num = mqp->rss_qp.tirn;
-+	else
-+		dst->tir_num = mqp->raw_packet_qp.rq.tirn;
- 
- 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
- 		if (flow_attr->flags & IB_FLOW_ATTR_FLAGS_DONT_TRAP)  {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 372385d..95146f4 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -402,6 +402,7 @@ enum mlx5_ib_qp_flags {
- 	/* QP uses 1 as its source QP number */
- 	MLX5_IB_QP_SQPN_QP1			= 1 << 6,
- 	MLX5_IB_QP_CAP_SCATTER_FCS		= 1 << 7,
-+	MLX5_IB_QP_RSS				= 1 << 8,
- };
- 
- struct mlx5_umr_wr {
+diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw/mlx5/Kconfig
+index bce263b..789fef4 100644
+--- a/drivers/infiniband/hw/mlx5/Kconfig
++++ b/drivers/infiniband/hw/mlx5/Kconfig
+@@ -6,3 +6,9 @@ config MLX5_INFINIBAND
+ 	  Mellanox Connect-IB PCI Express host channel adapters (HCAs).
+ 	  This is required to use InfiniBand protocols such as
+ 	  IP-over-IB or SRP with these devices.
++
++config MLX5_INFINIBAND_VERBOSE
++	bool "Enable ConnectX-4/Connect-IB verbosity"
++	depends on MLX5_INFINIBAND
++	---help---
++	  This is a configuration option to enable verbose output to easy debug.
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 67b58f7..fc5030f 100644
+index 174d09b..67b58f7 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1449,6 +1449,7 @@ create_tir:
- 	kvfree(in);
- 	/* qpn is reserved for that QP */
- 	qp->trans_qp.base.mqp.qpn = 0;
-+	qp->flags |= MLX5_IB_QP_RSS;
- 	return 0;
- 
- err:
--- 
+@@ -3984,7 +3984,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			   get_fence(fence, wr), next_fence,
+ 			   mlx5_ib_opcode[wr->opcode]);
+ skip_psv:
+-		if (0)
++		if (IS_BUILTIN(CONFIG_MLX5_INFINIBAND_VERBOSE))
+ 			dump_wqe(qp, idx, size);
+ 	}
+
+--
 2.7.4
 
 --
