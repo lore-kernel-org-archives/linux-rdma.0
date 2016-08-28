@@ -1,123 +1,99 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/9] IB/ipoib: Fix memory corruption during ipoib cm connection establishment
-Date: Sun, 28 Aug 2016 10:58:31 +0300
-Message-ID: <1472371118-8260-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 4/9] IB/mlx4: Don't return errors from poll_cq
+Date: Sun, 28 Aug 2016 10:58:33 +0300
+Message-ID: <1472371118-8260-5-git-send-email-leon@kernel.org>
 References: <1472371118-8260-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When a new CM connection is being requested, ipoib driver copies data
-from the path pointer in the CM/tx object, the path object might be
-invalid at the point and memory corruption will happened later when now
-the CM driver will try using that data.
+Remove returning errors from mlx4 poll_cq function. Polling CQ
+operation in kernel never fails by Mellanox HCA architecture and
+respective driver design.
 
-The next scenario demonstrates it:
-	neigh_add_path --> ipoib_cm_create_tx -->
-	queue_work (pointer to path is in the cm/tx struct)
-	#while the work is still in the queue,
-	#the port goes down and causes the ipoib_flush_paths:
-	ipoib_flush_paths --> path_free --> kfree(path)
-	#at this point the work scheduled starts.
-	ipoib_cm_tx_start --> copy from the (invalid)path pointer:
-	(memcpy(&pathrec, &p->path->pathrec, sizeof pathrec);)
-	 -> memory corruption.
-
-To fix that the driver now starts the CM/tx connection only if that
-specific path exists in the general paths database.
-This check is protected with the relevant locks, and uses the gid from
-the neigh member in the CM/tx object which is valid according to the ref
-count that was taken by the CM/tx.
-
-Fixes: 839fcaba35 ('IPoIB: Connected mode experimental support')
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h      |  1 +
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 16 ++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
- 3 files changed, 18 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/cq.c | 26 ++------------------------
+ 1 file changed, 2 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 4f7d9b4..9dbfcc0 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -478,6 +478,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
- 		struct ipoib_ah *address, u32 qpn);
- void ipoib_reap_ah(struct work_struct *work);
- 
-+struct ipoib_path *__path_find(struct net_device *dev, void *gid);
- void ipoib_mark_paths_invalid(struct net_device *dev);
- void ipoib_flush_paths(struct net_device *dev);
- int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 951d9ab..4ad297d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1318,6 +1318,8 @@ void ipoib_cm_destroy_tx(struct ipoib_cm_tx *tx)
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 15b6289..5df63da 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -687,12 +687,6 @@ repoll:
+ 	is_error = (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) ==
+ 		MLX4_CQE_OPCODE_ERROR;
+
+-	if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) == MLX4_OPCODE_NOP &&
+-		     is_send)) {
+-		pr_warn("Completion for NOP opcode detected!\n");
+-		return -EINVAL;
+-	}
+-
+ 	/* Resize CQ in progress */
+ 	if (unlikely((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) == MLX4_CQE_OPCODE_RESIZE)) {
+ 		if (cq->resize_buf) {
+@@ -718,12 +712,6 @@ repoll:
+ 		 */
+ 		mqp = __mlx4_qp_lookup(to_mdev(cq->ibcq.device)->dev,
+ 				       be32_to_cpu(cqe->vlan_my_qpn));
+-		if (unlikely(!mqp)) {
+-			pr_warn("CQ %06x with entry for unknown QPN %06x\n",
+-			       cq->mcq.cqn, be32_to_cpu(cqe->vlan_my_qpn) & MLX4_CQE_QPN_MASK);
+-			return -EINVAL;
+-		}
+-
+ 		*cur_qp = to_mibqp(mqp);
  	}
- }
- 
-+#define QPN_AND_OPTIONS_OFFSET	4
-+
- static void ipoib_cm_tx_start(struct work_struct *work)
- {
- 	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
-@@ -1326,6 +1328,7 @@ static void ipoib_cm_tx_start(struct work_struct *work)
- 	struct ipoib_neigh *neigh;
- 	struct ipoib_cm_tx *p;
+
+@@ -736,11 +724,6 @@ repoll:
+ 		/* SRQ is also in the radix tree */
+ 		msrq = mlx4_srq_lookup(to_mdev(cq->ibcq.device)->dev,
+ 				       srq_num);
+-		if (unlikely(!msrq)) {
+-			pr_warn("CQ %06x with entry for unknown SRQN %06x\n",
+-				cq->mcq.cqn, srq_num);
+-			return -EINVAL;
+-		}
+ 	}
+
+ 	if (is_send) {
+@@ -891,7 +874,6 @@ int mlx4_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ 	struct mlx4_ib_qp *cur_qp = NULL;
  	unsigned long flags;
-+	struct ipoib_path *path;
- 	int ret;
- 
- 	struct ib_sa_path_rec pathrec;
-@@ -1338,7 +1341,19 @@ static void ipoib_cm_tx_start(struct work_struct *work)
- 		p = list_entry(priv->cm.start_list.next, typeof(*p), list);
- 		list_del_init(&p->list);
- 		neigh = p->neigh;
-+
- 		qpn = IPOIB_QPN(neigh->daddr);
-+		/*
-+		 * As long as the search is with these 2 locks,
-+		 * path existence indicates its validity.
-+		 */
-+		path = __path_find(dev, neigh->daddr + QPN_AND_OPTIONS_OFFSET);
-+		if (!path) {
-+			pr_info("%s ignore not valid path %pI6\n",
-+				__func__,
-+				neigh->daddr + QPN_AND_OPTIONS_OFFSET);
-+			goto free_neigh;
-+		}
- 		memcpy(&pathrec, &p->path->pathrec, sizeof pathrec);
- 
- 		spin_unlock_irqrestore(&priv->lock, flags);
-@@ -1350,6 +1365,7 @@ static void ipoib_cm_tx_start(struct work_struct *work)
- 		spin_lock_irqsave(&priv->lock, flags);
- 
- 		if (ret) {
-+free_neigh:
- 			neigh = p->neigh;
- 			if (neigh) {
- 				neigh->cm = NULL;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 74bcaa0..cc1c1b0 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -485,7 +485,7 @@ int ipoib_set_mode(struct net_device *dev, const char *buf)
- 	return -EINVAL;
+ 	int npolled;
+-	int err = 0;
+ 	struct mlx4_ib_dev *mdev = to_mdev(cq->ibcq.device);
+
+ 	spin_lock_irqsave(&cq->lock, flags);
+@@ -901,8 +883,7 @@ int mlx4_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ 	}
+
+ 	for (npolled = 0; npolled < num_entries; ++npolled) {
+-		err = mlx4_ib_poll_one(cq, &cur_qp, wc + npolled);
+-		if (err)
++		if (mlx4_ib_poll_one(cq, &cur_qp, wc + npolled))
+ 			break;
+ 	}
+
+@@ -911,10 +892,7 @@ int mlx4_ib_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc)
+ out:
+ 	spin_unlock_irqrestore(&cq->lock, flags);
+
+-	if (err == 0 || err == -EAGAIN)
+-		return npolled;
+-	else
+-		return err;
++	return npolled;
  }
- 
--static struct ipoib_path *__path_find(struct net_device *dev, void *gid)
-+struct ipoib_path *__path_find(struct net_device *dev, void *gid)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct rb_node *n = priv->path_tree.rb_node;
--- 
+
+ int mlx4_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
+--
 2.7.4
 
 --
