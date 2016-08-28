@@ -1,86 +1,70 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 3/9] Revert "IB/mlx4: Return EAGAIN for any error
- in mlx4_ib_poll_one"
-Date: Sun, 28 Aug 2016 21:35:00 +0300
-Message-ID: <20160828183500.GQ594@leon.nu>
-References: <1472371118-8260-1-git-send-email-leon@kernel.org>
- <1472371118-8260-4-git-send-email-leon@kernel.org>
- <20160828171758.GA11719@obsidianresearch.com>
- <20160828182613.GP594@leon.nu>
- <20160828182813.GB12783@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Sun, 28 Aug 2016 12:36:27 -0600
+Message-ID: <20160828183627.GC12783@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <20160825173916.GC20612@obsidianresearch.com>
+ <20160825195246.GI1916@redhat.com>
+ <20160825201306.GA5421@obsidianresearch.com>
+ <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com>
+ <20160828132804.GN594@leon.nu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ngPZezdD7QsvFaqQ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160828182813.GB12783-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160828132804.GN594-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---ngPZezdD7QsvFaqQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, Aug 28, 2016 at 12:28:13PM -0600, Jason Gunthorpe wrote:
-> On Sun, Aug 28, 2016 at 09:26:13PM +0300, Leon Romanovsky wrote:
-> > On Sun, Aug 28, 2016 at 11:17:58AM -0600, Jason Gunthorpe wrote:
-> > > On Sun, Aug 28, 2016 at 10:58:32AM +0300, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > >
-> > > > By Mellanox HW design and SW implementation poll_cq never
-> > > > fails and returns errors, so all these prints are to catch ULP bugs.
-> > >
-> > > Eh? How can a ULP cause poll_cq to get errors?
-> > >
-> > > Are you sure these are not driver bugs?
-> > >
-> > > Why can't you just print and discard the broken CQ entry?
-> > >
-> > > What should use ULP do when it get EINVAL? You say poll again is
-> > > not correct, so you suggest a full QP tear down?
+On Sun, Aug 28, 2016 at 04:28:04PM +0300, Leon Romanovsky wrote:
+> On Fri, Aug 26, 2016 at 11:17:52PM -0400, Doug Ledford wrote:
+> > On 8/25/2016 4:13 PM, Jason Gunthorpe wrote:
+> > > We've never been able to run the rdma stack from the build trees,
 > >
-> > See patches 4 and 6, they completely removed these EINVALs.
->
-> So the commit message is still wrong.
->
-> Why do we need this revert? Just squash it and mark it fixup the
-> original.
+> > It's possible...you just have to do every step in the right order ;-)  I
+> > had a spreadsheet that I tracked packages, versions, build states,
+> > install states, and dependencies.  Made things a lot easier.
+> >
+> > But I get your point.
+> >
+> 
+> Sorry, but I missed your point. On my development machine, I'm
+> running all relevant RDMA stack directly from their git trees
+> without any excel file. It worked flawlessly without any
+> obstacles, did I do anything wrong?
 
-We need this revert, because the original commit is wrong and as was presented
-by Sasha Levin in his talk about automatic creation of stable trees [1], he needs
-this information to ensure that this commit won't be in stable tree by mistake.
+Maybe, because it is fairly hard to do correctly.
 
-[1]
-https://lcccna2016.sched.org/event/7JW4/automating-the-creation-of-stable-trees-sasha-levin-verizon-labs
+How do you make sure that eg librdmacm or a provider is built against
+the git checkout of verbs, headers, shlib and all?
 
->
-> Jason
+How do you rebuild the right trees if a change is made to verbs?
 
---ngPZezdD7QsvFaqQ
-Content-Type: application/pgp-signature; name="signature.asc"
+How do you have verbs load the provider driver from the git directory build?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+When I said 'from the build trees' I mean without a 'make install',
+just run 'build/bin/ibvdev_info' for instance and it guarenteed uses
+the build products exclusively, including all the libraries and
+providers.
 
-iQIcBAEBAgAGBQJXwy7UAAoJEORje4g2clinOLwP/RDfXJSEFgV5ejxivS8CZWhT
-3lFtm9Ejd7YAtD576wupTyW2sfbWuyWrJ0rzoxrqkt6kr8kAv+USZKwbq8rMGXyw
-Vl040q4nWXNsACw6/nmyFTH7Riu435jonnkaSSz2tjX2b8Y7BKEVjf3BCNGkg4MC
-TmzWGd2wf4zJE4/4g1IVfLNbH4aIll7PaaB36kb+Aeu4/YEOBXJqTPNOT9irMvy4
-Fh7u2zTCphkTbohay6c/0rei233uJk/5n3WmZqS4bth3w2yvpJShw/7tvFTTbKgz
-gMWUhF0VWdbpaKUwVT88sy9wxVooo8JA+I7SOfvUC/nWVGaONHl3oBAhg/oll6GG
-P+jAkMmIbiJgV5pDt+WupiMerg0nMbW2Qr7YFI6ICN3HEs/BfjiAKj5xt0GbRQ4J
-K+zBX+V/VVP3PYOy+VpXrtC2/BfgGSbExPs0O2iW0wrzn/bQUxRLDHLih8EDN7Qu
-jVgvME8Z82BzJ+2m+XBmvq9FmgbaZb6bP+HXmjHj//i7FA78uhruz9utB2W78Ea8
-gYc9h1+EHxHfCkSJAzRPjtgOe+O+vJdJBpnDtxn58A3n/aHKDJIskmBAXVACsgOn
-deCdOaLP3eydxyTjfWdgz3KXtt6Eob/N8iad/aNkfFBTnPyyyJZMtDGdQdVOf0XT
-TpfhCc1tnkgW5ZeWPUvh
-=Y/gl
------END PGP SIGNATURE-----
+Or set LD_LIBRARY_PATH=`pwd`/build/lib and have everything
+use the new build.
 
---ngPZezdD7QsvFaqQ--
+This is the goal, and the consolidated repo can do everything except
+the providers right now.
+
+Doug is also adressing a larger issue with packaging and getting
+everything to build correctly as the distro - he talked about it here:
+
+https://www.spinics.net/lists/linux-rdma/msg37855.html
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
