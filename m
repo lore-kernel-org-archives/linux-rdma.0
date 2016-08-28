@@ -1,71 +1,52 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 1/9] IB/core: Fix use after free in send_leave function
-Date: Sun, 28 Aug 2016 10:58:30 +0300
-Message-ID: <1472371118-8260-2-git-send-email-leon@kernel.org>
-References: <1472371118-8260-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-rc 0/9] RDMA fixes for 4.8
+Date: Sun, 28 Aug 2016 10:58:29 +0300
+Message-ID: <1472371118-8260-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-The function send_leave sets the member: group->query_id
-(group->query_id = ret) after calling the sa_query, but leave_handler
-can be executed before the setting and it might delete the group object,
-and will get a memory corruption.
+This is compilation of fixes to RDMA core, IPoIB, Mellanox mlx4
+and mlx5 drivers all together. Most of the fixes are one liners and
+for easy handling, I'm sending them in one patchset.
 
-Additionally, this patch gets rid of group->query_id variable which is
-not used.
+Thanks
 
-Fixes: faec2f7b96b5 ('IB/sa: Track multicast join/leave requests')
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/core/multicast.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+Chuck Lever (1):
+  IB/mlx5: Return EINVAL when caller specifies too many SGEs
 
-diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 3a3c5d7..51c79b2 100644
---- a/drivers/infiniband/core/multicast.c
-+++ b/drivers/infiniband/core/multicast.c
-@@ -106,7 +106,6 @@ struct mcast_group {
- 	atomic_t		refcount;
- 	enum mcast_group_state	state;
- 	struct ib_sa_query	*query;
--	int			query_id;
- 	u16			pkey_index;
- 	u8			leave_state;
- 	int			retries;
-@@ -340,11 +339,7 @@ static int send_join(struct mcast_group *group, struct mcast_member *member)
- 				       member->multicast.comp_mask,
- 				       3000, GFP_KERNEL, join_handler, group,
- 				       &group->query);
--	if (ret >= 0) {
--		group->query_id = ret;
--		ret = 0;
--	}
--	return ret;
-+	return (ret > 0) ? 0 : ret;
- }
- 
- static int send_leave(struct mcast_group *group, u8 leave_state)
-@@ -364,11 +359,7 @@ static int send_leave(struct mcast_group *group, u8 leave_state)
- 				       IB_SA_MCMEMBER_REC_JOIN_STATE,
- 				       3000, GFP_KERNEL, leave_handler,
- 				       group, &group->query);
--	if (ret >= 0) {
--		group->query_id = ret;
--		ret = 0;
--	}
--	return ret;
-+	return (ret > 0) ? 0 : ret;
- }
- 
- static void join_group(struct mcast_group *group, struct mcast_member *member,
--- 
+Erez Shitrit (2):
+  IB/core: Fix use after free in send_leave function
+  IB/ipoib: Fix memory corruption during ipoib cm connection
+    establishment
+
+Leon Romanovsky (5):
+  Revert "IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one"
+  IB/mlx4: Don't return errors from poll_cq
+  IB/mlx5: Simplify code by removing return variable
+  IB/mlx5: Add VERBOSITY Kconfig option
+  IB/mlx5: Don't return errors from poll_cq
+
+Yishai Hadas (1):
+  IB/mlx5: Use TIR number based on selector
+
+ drivers/infiniband/core/multicast.c       | 13 ++-----------
+ drivers/infiniband/hw/mlx4/cq.c           | 26 ++------------------------
+ drivers/infiniband/hw/mlx5/Kconfig        |  6 ++++++
+ drivers/infiniband/hw/mlx5/cq.c           | 22 ++--------------------
+ drivers/infiniband/hw/mlx5/main.c         |  6 +++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h      |  1 +
+ drivers/infiniband/hw/mlx5/qp.c           | 15 ++++++---------
+ drivers/infiniband/ulp/ipoib/ipoib.h      |  1 +
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 16 ++++++++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
+ 10 files changed, 42 insertions(+), 66 deletions(-)
+
+--
 2.7.4
 
 --
