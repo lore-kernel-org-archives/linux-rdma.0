@@ -1,68 +1,381 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/5] Extend flow steering IPv4 and IPv6 specification.
-Date: Sun, 28 Aug 2016 14:11:35 +0300
-Message-ID: <1472382700-30216-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 1/5] IB/core: Add support to extend flow steering specifications
+Date: Sun, 28 Aug 2016 14:11:36 +0300
+Message-ID: <1472382700-30216-2-git-send-email-leon@kernel.org>
+References: <1472382700-30216-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472382700-30216-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set extends the IPv4 and IPv6 flow specification.
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-New fields in IPv4:
- 1. Type of Service
- 2. Time to Live
- 3. Flags
- 4. Protocol
+Flow steering specifications structures were implemented as in an
+extensible way that allows one to add new filters and new fields
+to existing filters.
+These specifications have never been extended, therefore the kernel
+flow specifications size and the user flow specifications size
+were must to be equal.
 
-New fields in IPv6:
- 1. Traffic Class
- 2. Flow Label
- 3. Next Header
- 4. Hop Limit
+In downstream patch, the IPv4 flow specifications type is extended
+to support TOS and TTL fields.
 
-The first patch in this series adds support to extend the flow
-steering specification. Previously, user flow specification
-and kernel flow specification were must to be equal in their size.
+To support an extension we change the flow specifications size
+condition test to be as following:
 
-To support extensions, we change the flow specifications conditions
-test to be as following:
- 1. Every mask field that is given by the user and doesn't exist in
-    kernel is validated to be zero. Thus, new user-space would only fail
-    if it's using (i.e field_mask != 0) a field which doesn't exist in
-    the current kernel version.
- 2. All types are known by the kernel.
- 3. If the kernel is newer than the user-space, all fields (and by
-    that, their masks) weren't given by the user are assumed as zeros
-    and ignored.
- 4. The ABI declares filters as 32bit aligned. This is necessary to
-    avoid unaligned access when reading the header.
+* If the user flow specifications is bigger than the kernel
+specifications, we verify that all the bits which not in the kernel
+specifications are zeros and the flow is added only with the kernel
+specifications fields.
 
-Available in the "topic/ext-flow" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+* Otherwise, we add flow rule only with the user specifications fields.
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ext-flow
+User space filters must be aligned with 32bits.
 
-Thanks,
-  Maor & Leon
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 98 +++++++++++++++++++++++++++---------
+ drivers/infiniband/hw/mlx4/main.c    | 25 +++++++++
+ drivers/infiniband/hw/mlx5/main.c    | 36 +++++++++----
+ include/rdma/ib_verbs.h              | 10 ++++
+ 4 files changed, 134 insertions(+), 35 deletions(-)
 
-Maor Gottlieb (5):
-  IB/core: Add support to extend flow steering specifications
-  IB/core: Add more fields to IPv4 flow specification
-  IB/core: Add more fields to IPv6 flow specification
-  IB/mlx5: Add support in TOS and protocol to flow steering
-  IB/mlx5: Add support of more IPv6 fields to flow steering
-
- drivers/infiniband/core/uverbs_cmd.c | 102 ++++++++++++++++++++++++--------
- drivers/infiniband/hw/mlx4/main.c    |  25 ++++++++
- drivers/infiniband/hw/mlx5/main.c    | 110 ++++++++++++++++++++++++++++-------
- include/rdma/ib_verbs.h              |  23 ++++++++
- include/uapi/rdma/ib_user_verbs.h    |  13 ++++-
- 5 files changed, 226 insertions(+), 47 deletions(-)
-
---
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f664731..84c0794 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3078,51 +3078,98 @@ out_put:
+ 	return ret ? ret : in_len;
+ }
+ 
++static size_t kern_spec_filter_sz(struct ib_uverbs_flow_spec_hdr *spec)
++{
++	/* Returns user space filter size, includes padding */
++	return (spec->size - sizeof(struct ib_uverbs_flow_spec_hdr)) / 2;
++}
++
++static ssize_t spec_filter_size(void *kern_spec_filter, u16 kern_filter_size,
++				u16 ib_real_filter_sz)
++{
++	/*
++	 * User space filter structures must be 64 bit aligned, otherwise this
++	 * may pass, but we won't handle additional new attributes.
++	 */
++
++	if (kern_filter_size > ib_real_filter_sz) {
++		if (memchr_inv(kern_spec_filter +
++			       ib_real_filter_sz, 0,
++			       kern_filter_size - ib_real_filter_sz))
++			return -EINVAL;
++		return ib_real_filter_sz;
++	}
++	return kern_filter_size;
++}
++
+ static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
+ 				union ib_flow_spec *ib_spec)
+ {
++	ssize_t actual_filter_sz;
++	ssize_t kern_filter_sz;
++	ssize_t ib_filter_sz;
++	void *kern_spec_mask;
++	void *kern_spec_val;
++
+ 	if (kern_spec->reserved)
+ 		return -EINVAL;
+ 
+ 	ib_spec->type = kern_spec->type;
+ 
++	kern_filter_sz = kern_spec_filter_sz(&kern_spec->hdr);
++	/* User flow spec size must be aligned to 4 bytes */
++	if (kern_filter_sz != ALIGN(kern_filter_sz, 4))
++		return -EINVAL;
++
++	kern_spec_val = (void *)kern_spec +
++		sizeof(struct ib_uverbs_flow_spec_hdr);
++	kern_spec_mask = kern_spec_val + kern_filter_sz;
++
+ 	switch (ib_spec->type) {
+ 	case IB_FLOW_SPEC_ETH:
+-		ib_spec->eth.size = sizeof(struct ib_flow_spec_eth);
+-		if (ib_spec->eth.size != kern_spec->eth.size)
++		ib_filter_sz = offsetof(struct ib_flow_eth_filter, real_sz);
++		actual_filter_sz = spec_filter_size(kern_spec_mask,
++						    kern_filter_sz,
++						    ib_filter_sz);
++		if (actual_filter_sz <= 0)
+ 			return -EINVAL;
+-		memcpy(&ib_spec->eth.val, &kern_spec->eth.val,
+-		       sizeof(struct ib_flow_eth_filter));
+-		memcpy(&ib_spec->eth.mask, &kern_spec->eth.mask,
+-		       sizeof(struct ib_flow_eth_filter));
++		ib_spec->size = sizeof(struct ib_flow_spec_eth);
++		memcpy(&ib_spec->eth.val, kern_spec_val, actual_filter_sz);
++		memcpy(&ib_spec->eth.mask, kern_spec_mask, actual_filter_sz);
+ 		break;
+ 	case IB_FLOW_SPEC_IPV4:
+-		ib_spec->ipv4.size = sizeof(struct ib_flow_spec_ipv4);
+-		if (ib_spec->ipv4.size != kern_spec->ipv4.size)
++		ib_filter_sz = offsetof(struct ib_flow_ipv4_filter, real_sz);
++		actual_filter_sz = spec_filter_size(kern_spec_mask,
++						    kern_filter_sz,
++						    ib_filter_sz);
++		if (actual_filter_sz <= 0)
+ 			return -EINVAL;
+-		memcpy(&ib_spec->ipv4.val, &kern_spec->ipv4.val,
+-		       sizeof(struct ib_flow_ipv4_filter));
+-		memcpy(&ib_spec->ipv4.mask, &kern_spec->ipv4.mask,
+-		       sizeof(struct ib_flow_ipv4_filter));
++		ib_spec->size = sizeof(struct ib_flow_spec_ipv4);
++		memcpy(&ib_spec->ipv4.val, kern_spec_val, actual_filter_sz);
++		memcpy(&ib_spec->ipv4.mask, kern_spec_mask, actual_filter_sz);
+ 		break;
+ 	case IB_FLOW_SPEC_IPV6:
+-		ib_spec->ipv6.size = sizeof(struct ib_flow_spec_ipv6);
+-		if (ib_spec->ipv6.size != kern_spec->ipv6.size)
++		ib_filter_sz = offsetof(struct ib_flow_ipv6_filter, real_sz);
++		actual_filter_sz = spec_filter_size(kern_spec_mask,
++						    kern_filter_sz,
++						    ib_filter_sz);
++		if (actual_filter_sz <= 0)
+ 			return -EINVAL;
+-		memcpy(&ib_spec->ipv6.val, &kern_spec->ipv6.val,
+-		       sizeof(struct ib_flow_ipv6_filter));
+-		memcpy(&ib_spec->ipv6.mask, &kern_spec->ipv6.mask,
+-		       sizeof(struct ib_flow_ipv6_filter));
++		ib_spec->size = sizeof(struct ib_flow_spec_ipv6);
++		memcpy(&ib_spec->ipv6.val, kern_spec_val, actual_filter_sz);
++		memcpy(&ib_spec->ipv6.mask, kern_spec_mask, actual_filter_sz);
+ 		break;
+ 	case IB_FLOW_SPEC_TCP:
+ 	case IB_FLOW_SPEC_UDP:
+-		ib_spec->tcp_udp.size = sizeof(struct ib_flow_spec_tcp_udp);
+-		if (ib_spec->tcp_udp.size != kern_spec->tcp_udp.size)
++		ib_filter_sz = offsetof(struct ib_flow_tcp_udp_filter, real_sz);
++		actual_filter_sz = spec_filter_size(kern_spec_mask,
++						    kern_filter_sz,
++						    ib_filter_sz);
++		if (actual_filter_sz <= 0)
+ 			return -EINVAL;
+-		memcpy(&ib_spec->tcp_udp.val, &kern_spec->tcp_udp.val,
+-		       sizeof(struct ib_flow_tcp_udp_filter));
+-		memcpy(&ib_spec->tcp_udp.mask, &kern_spec->tcp_udp.mask,
+-		       sizeof(struct ib_flow_tcp_udp_filter));
++		ib_spec->size = sizeof(struct ib_flow_spec_tcp_udp);
++		memcpy(&ib_spec->tcp_udp.val, kern_spec_val, actual_filter_sz);
++		memcpy(&ib_spec->tcp_udp.mask, kern_spec_mask, actual_filter_sz);
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -3654,7 +3701,8 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 		goto err_uobj;
+ 	}
+ 
+-	flow_attr = kmalloc(sizeof(*flow_attr) + cmd.flow_attr.size, GFP_KERNEL);
++	flow_attr = kzalloc(sizeof(*flow_attr) + cmd.flow_attr.num_of_specs *
++			    sizeof(union ib_flow_spec), GFP_KERNEL);
+ 	if (!flow_attr) {
+ 		err = -ENOMEM;
+ 		goto err_put;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2af44c2..624a531 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1361,6 +1361,19 @@ struct mlx4_ib_steering {
+ 	union ib_gid gid;
+ };
+ 
++#define LAST_ETH_FIELD vlan_tag
++#define LAST_IB_FIELD sl
++#define LAST_IPV4_FIELD dst_ip
++#define LAST_TCP_UDP_FIELD src_port
++
++/* Field is the last supported field */
++#define FIELDS_NOT_SUPPORTED(filter, field)\
++	memchr_inv((void *)&filter.field  +\
++		   sizeof(filter.field), 0,\
++		   sizeof(filter) -\
++		   offsetof(typeof(filter), field) -\
++		   sizeof(filter.field))
++
+ static int parse_flow_attr(struct mlx4_dev *dev,
+ 			   u32 qp_num,
+ 			   union ib_flow_spec *ib_spec,
+@@ -1370,6 +1383,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 	switch (ib_spec->type) {
+ 	case IB_FLOW_SPEC_ETH:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->eth.mask, LAST_ETH_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_ETH;
+ 		memcpy(mlx4_spec->eth.dst_mac, ib_spec->eth.val.dst_mac,
+ 		       ETH_ALEN);
+@@ -1379,6 +1395,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 		mlx4_spec->eth.vlan_tag_msk = ib_spec->eth.mask.vlan_tag;
+ 		break;
+ 	case IB_FLOW_SPEC_IB:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ib.mask, LAST_IB_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_IB;
+ 		mlx4_spec->ib.l3_qpn =
+ 			cpu_to_be32(qp_num);
+@@ -1388,6 +1407,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 
+ 	case IB_FLOW_SPEC_IPV4:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv4.mask, LAST_IPV4_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_IPV4;
+ 		mlx4_spec->ipv4.src_ip = ib_spec->ipv4.val.src_ip;
+ 		mlx4_spec->ipv4.src_ip_msk = ib_spec->ipv4.mask.src_ip;
+@@ -1397,6 +1419,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 	case IB_FLOW_SPEC_TCP:
+ 	case IB_FLOW_SPEC_UDP:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->tcp_udp.mask, LAST_TCP_UDP_FIELD))
++			return -ENOTSUPP;
++
+ 		type = ib_spec->type == IB_FLOW_SPEC_TCP ?
+ 					MLX4_NET_TRANS_RULE_ID_TCP :
+ 					MLX4_NET_TRANS_RULE_ID_UDP;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index f02a975..4268895 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1405,6 +1405,20 @@ static bool outer_header_zero(u32 *match_criteria)
+ 						  size - 1);
+ }
+ 
++#define LAST_ETH_FIELD vlan_tag
++#define LAST_IB_FIELD sl
++#define LAST_IPV4_FIELD dst_ip
++#define LAST_IPV6_FIELD dst_ip
++#define LAST_TCP_UDP_FIELD src_port
++
++/* Field is the last supported field */
++#define FIELDS_NOT_SUPPORTED(filter, field)\
++	memchr_inv((void *)&filter.field  +\
++		   sizeof(filter.field), 0,\
++		   sizeof(filter) -\
++		   offsetof(typeof(filter), field) -\
++		   sizeof(filter.field))
++
+ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 			   union ib_flow_spec *ib_spec)
+ {
+@@ -1414,8 +1428,8 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 					     outer_headers);
+ 	switch (ib_spec->type) {
+ 	case IB_FLOW_SPEC_ETH:
+-		if (ib_spec->size != sizeof(ib_spec->eth))
+-			return -EINVAL;
++		if (FIELDS_NOT_SUPPORTED(ib_spec->eth.mask, LAST_ETH_FIELD))
++			return -ENOTSUPP;
+ 
+ 		ether_addr_copy(MLX5_ADDR_OF(fte_match_set_lyr_2_4, outer_headers_c,
+ 					     dmac_47_16),
+@@ -1455,8 +1469,8 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 			 ethertype, ntohs(ib_spec->eth.val.ether_type));
+ 		break;
+ 	case IB_FLOW_SPEC_IPV4:
+-		if (ib_spec->size != sizeof(ib_spec->ipv4))
+-			return -EINVAL;
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv4.mask, LAST_IPV4_FIELD))
++			return -ENOTSUPP;
+ 
+ 		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
+ 			 ethertype, 0xffff);
+@@ -1481,8 +1495,8 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 		       sizeof(ib_spec->ipv4.val.dst_ip));
+ 		break;
+ 	case IB_FLOW_SPEC_IPV6:
+-		if (ib_spec->size != sizeof(ib_spec->ipv6))
+-			return -EINVAL;
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv6.mask, LAST_IPV6_FIELD))
++			return -ENOTSUPP;
+ 
+ 		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c,
+ 			 ethertype, 0xffff);
+@@ -1507,8 +1521,9 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 		       sizeof(ib_spec->ipv6.val.dst_ip));
+ 		break;
+ 	case IB_FLOW_SPEC_TCP:
+-		if (ib_spec->size != sizeof(ib_spec->tcp_udp))
+-			return -EINVAL;
++		if (FIELDS_NOT_SUPPORTED(ib_spec->tcp_udp.mask,
++					 LAST_TCP_UDP_FIELD))
++			return -ENOTSUPP;
+ 
+ 		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, ip_protocol,
+ 			 0xff);
+@@ -1526,8 +1541,9 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 			 ntohs(ib_spec->tcp_udp.val.dst_port));
+ 		break;
+ 	case IB_FLOW_SPEC_UDP:
+-		if (ib_spec->size != sizeof(ib_spec->tcp_udp))
+-			return -EINVAL;
++		if (FIELDS_NOT_SUPPORTED(ib_spec->tcp_udp.mask,
++					 LAST_TCP_UDP_FIELD))
++			return -ENOTSUPP;
+ 
+ 		MLX5_SET(fte_match_set_lyr_2_4, outer_headers_c, ip_protocol,
+ 			 0xff);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..d4144b2 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1604,6 +1604,8 @@ struct ib_flow_eth_filter {
+ 	u8	src_mac[6];
+ 	__be16	ether_type;
+ 	__be16	vlan_tag;
++	/* Must be last */
++	u8	real_sz[0];
+ };
+ 
+ struct ib_flow_spec_eth {
+@@ -1616,6 +1618,8 @@ struct ib_flow_spec_eth {
+ struct ib_flow_ib_filter {
+ 	__be16 dlid;
+ 	__u8   sl;
++	/* Must be last */
++	u8	real_sz[0];
+ };
+ 
+ struct ib_flow_spec_ib {
+@@ -1628,6 +1632,8 @@ struct ib_flow_spec_ib {
+ struct ib_flow_ipv4_filter {
+ 	__be32	src_ip;
+ 	__be32	dst_ip;
++	/* Must be last */
++	u8	real_sz[0];
+ };
+ 
+ struct ib_flow_spec_ipv4 {
+@@ -1640,6 +1646,8 @@ struct ib_flow_spec_ipv4 {
+ struct ib_flow_ipv6_filter {
+ 	u8	src_ip[16];
+ 	u8	dst_ip[16];
++	/* Must be last */
++	u8	real_sz[0];
+ };
+ 
+ struct ib_flow_spec_ipv6 {
+@@ -1652,6 +1660,8 @@ struct ib_flow_spec_ipv6 {
+ struct ib_flow_tcp_udp_filter {
+ 	__be16	dst_port;
+ 	__be16	src_port;
++	/* Must be last */
++	u8	real_sz[0];
+ };
+ 
+ struct ib_flow_spec_tcp_udp {
+-- 
 2.7.4
 
 --
