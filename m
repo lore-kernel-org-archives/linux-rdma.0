@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/3] IB/uverbs: Expose RSS related capabilities
-Date: Sun, 28 Aug 2016 11:28:44 +0300
-Message-ID: <1472372925-17660-3-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 1/3] IB/core: Expose RSS related capabilities
+Date: Sun, 28 Aug 2016 11:28:43 +0300
+Message-ID: <1472372925-17660-2-git-send-email-leon@kernel.org>
 References: <1472372925-17660-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472372925-17660-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,80 +12,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Query RSS related attributes and return them to user-space via the
-extended query device uverbs command.
+Expose RSS related capabilities, it includes both direct ones (i.e.
+struct ib_rss_caps) and max_wq_type_rq which may be used in both
+RSS and non RSS flows.
 
-It includes both direct ones (i.e. struct ib_uverbs_rss_caps) and
-max_wq_type_rq which may be used in both RSS and non RSS flows.
+Specifically,
+supported_qpts:
+- QP types that support RSS on the device.
+
+max_rwq_indirection_tables:
+- Max number of receive work queue indirection tables that
+  could be opened on the device.
+
+max_rwq_indirection_table_size:
+- Max size of a receive work queue indirection table.
+
+max_wq_type_rq:
+- Max number of work queues of receive type that
+  could be opened on the device.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 17 +++++++++++++++++
- include/uapi/rdma/ib_user_verbs.h    | 14 ++++++++++++++
- 2 files changed, 31 insertions(+)
+ include/rdma/ib_verbs.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index f664731..f44e675 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -4173,6 +4173,23 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
- 
- 	resp.device_cap_flags_ex = attr.device_cap_flags;
- 	resp.response_length += sizeof(resp.device_cap_flags_ex);
-+
-+	if (ucore->outlen < resp.response_length + sizeof(resp.rss_caps))
-+		goto end;
-+
-+	resp.rss_caps.supported_qpts = attr.rss_caps.supported_qpts;
-+	resp.rss_caps.max_rwq_indirection_tables =
-+		attr.rss_caps.max_rwq_indirection_tables;
-+	resp.rss_caps.max_rwq_indirection_table_size =
-+		attr.rss_caps.max_rwq_indirection_table_size;
-+
-+	resp.response_length += sizeof(resp.rss_caps);
-+
-+	if (ucore->outlen < resp.response_length + sizeof(resp.max_wq_type_rq))
-+		goto end;
-+
-+	resp.max_wq_type_rq = attr.max_wq_type_rq;
-+	resp.response_length += sizeof(resp.max_wq_type_rq);
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 7f035f4b..a9ebb47 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -224,6 +224,17 @@ struct ib_uverbs_odp_caps {
- 	__u32 reserved;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..eacbde7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -261,6 +261,16 @@ struct ib_odp_caps {
+ 	} per_transport_caps;
  };
- 
-+struct ib_uverbs_rss_caps {
+
++struct ib_rss_caps {
 +	/* Corresponding bit will be set if qp type from
 +	 * 'enum ib_qp_type' is supported, e.g.
 +	 * supported_qpts |= 1 << IB_QPT_UD
 +	 */
-+	__u32 supported_qpts;
-+	__u32 max_rwq_indirection_tables;
-+	__u32 max_rwq_indirection_table_size;
-+	__u32 reserved;
++	u32 supported_qpts;
++	u32 max_rwq_indirection_tables;
++	u32 max_rwq_indirection_table_size;
 +};
 +
- struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_query_device_resp base;
- 	__u32 comp_mask;
-@@ -232,6 +243,9 @@ struct ib_uverbs_ex_query_device_resp {
- 	__u64 timestamp_mask;
- 	__u64 hca_core_clock; /* in KHZ */
- 	__u64 device_cap_flags_ex;
-+	struct ib_uverbs_rss_caps rss_caps;
-+	__u32  max_wq_type_rq;
-+	__u32 reserved;
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
+ 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
+@@ -318,6 +328,8 @@ struct ib_device_attr {
+ 	struct ib_odp_caps	odp_caps;
+ 	uint64_t		timestamp_mask;
+ 	uint64_t		hca_core_clock; /* in KHZ */
++	struct ib_rss_caps	rss_caps;
++	u32			max_wq_type_rq;
  };
- 
- struct ib_uverbs_query_port {
--- 
+
+ enum ib_mtu {
+--
 2.7.4
 
 --
