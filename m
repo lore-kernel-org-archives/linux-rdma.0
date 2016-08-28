@@ -1,56 +1,86 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/3] Add packet pacing support for IB verbs
-Date: Sun, 28 Aug 2016 14:27:08 +0300
-Message-ID: <1472383631-3494-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 1/3] IB/mlx5: Report mlx5 packet pacing capabilities when querying device
+Date: Sun, 28 Aug 2016 14:27:09 +0300
+Message-ID: <1472383631-3494-2-git-send-email-leon@kernel.org>
+References: <1472383631-3494-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472383631-3494-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When sending from a 10G host to a 1G host, it is easy to overrun the receiver,
-leading to packet loss and traffic backing off. Similar problems occur when
-a 10G host sends data to a sub-10G virtual circuit, or a 40G host sending
-to a 10G host. Packet pacing could control packet injection rate and reduces
-network congestion to maximize throughput & minimize network latency.
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Packet pacing is a rate limiting and shaping for a QP (SQ for RAW QP), set
-and change the rate is done by modifying QP. This series of patch made the
-following high level changes:
- 1. Report rate limit capabilities through user data. Reported capabilities
-    include: The maximum and minimum rate limit in kbps supported by packet
-    pacing; Bitmap showing which QP types are supported by packet pacing
-    operation.
- 2. Extend modify QP interface for growing attributes. Add rate limit support
-    to the extended interface.
- 3. Enable mlx5-based hardware to be able to update the rate limit for
-    RAW QP packet.
+Enable mlx5 based hardware to report packet pacing capabilities
+from kernel to user space. Packet pacing allows to limit the rate to any
+number between the maximum and minimum, based on user settings.
 
-Available in the "topic/packet_pacing" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+The capabilities are exposed to user space through query_device by uhw.
+The following capabilities are reported:
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/packet_pacing
+1. The maximum and minimum rate limit in kbps supported by packet pacing.
+2. Bitmap showing which QP types are supported by packet pacing operation.
 
-Thanks,
-  Bodong & Leon
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 12 ++++++++++++
+ drivers/infiniband/hw/mlx5/user.h | 13 +++++++++++++
+ 2 files changed, 25 insertions(+)
 
-Bodong Wang (3):
-  IB/mlx5: Report mlx5 packet pacing capabilities when querying device
-  IB/core: Support rate limit for packet pacing
-  IB/uverbs: Extend modify_qp and support packet pacing
-
- drivers/infiniband/core/uverbs.h      |   1 +
- drivers/infiniband/core/uverbs_cmd.c  | 178 +++++++++++++++++++++-------------
- drivers/infiniband/core/uverbs_main.c |   1 +
- drivers/infiniband/core/verbs.c       |   2 +
- drivers/infiniband/hw/mlx5/main.c     |  12 +++
- drivers/infiniband/hw/mlx5/user.h     |  13 +++
- include/rdma/ib_verbs.h               |   2 +
- include/uapi/rdma/ib_user_verbs.h     |  12 +++
- 8 files changed, 152 insertions(+), 69 deletions(-)
-
---
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index f02a975..26a4c85 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -594,6 +594,18 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	if (!mlx5_core_is_pf(mdev))
+ 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
+ 
++	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)	&&
++	    MLX5_CAP_QOS(mdev, packet_pacing)				&&
++	    MLX5_CAP_GEN(mdev, qos)) {
++		resp.packet_pacing_caps.qp_rate_limit_max =
++			MLX5_CAP_QOS(mdev, packet_pacing_max_rate);
++		resp.packet_pacing_caps.qp_rate_limit_min =
++			MLX5_CAP_QOS(mdev, packet_pacing_min_rate);
++		resp.packet_pacing_caps.supported_qpts |=
++			1 << IB_QPT_RAW_PACKET;
++		resp.response_length += sizeof(resp.packet_pacing_caps);
++	}
++
+ 	if (uhw->outlen) {
+ 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
+ 
+diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
+index 188dac4..071a9cc 100644
+--- a/drivers/infiniband/hw/mlx5/user.h
++++ b/drivers/infiniband/hw/mlx5/user.h
+@@ -121,10 +121,23 @@ struct mlx5_ib_tso_caps {
+ 	__u32 supported_qpts;
+ };
+ 
++struct mlx5_packet_pacing_caps {
++	__u32 qp_rate_limit_min;
++	__u32 qp_rate_limit_max; /* In kpbs */
++
++	/* Corresponding bit will be set if qp type from
++	 * 'enum ib_qp_type' is supported, e.g.
++	 * supported_qpts |= 1 << IB_QPT_RAW_PACKET
++	 */
++	__u32 supported_qpts;
++	__u32 reserved;
++};
++
+ struct mlx5_ib_query_device_resp {
+ 	__u32	comp_mask;
+ 	__u32	response_length;
+ 	struct	mlx5_ib_tso_caps tso_caps;
++	struct	mlx5_packet_pacing_caps packet_pacing_caps;
+ };
+ 
+ struct mlx5_ib_create_cq {
+-- 
 2.7.4
 
 --
