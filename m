@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/3] IB/mlx5: Report mlx5 packet pacing capabilities when querying device
-Date: Sun, 28 Aug 2016 14:27:09 +0300
-Message-ID: <1472383631-3494-2-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 2/3] IB/core: Support rate limit for packet pacing
+Date: Sun, 28 Aug 2016 14:27:10 +0300
+Message-ID: <1472383631-3494-3-git-send-email-leon@kernel.org>
 References: <1472383631-3494-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472383631-3494-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,74 +12,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Enable mlx5 based hardware to report packet pacing capabilities
-from kernel to user space. Packet pacing allows to limit the rate to any
-number between the maximum and minimum, based on user settings.
+Add new member rate_limit to ib_qp_attr, it shows the packet pacing rate
+in Kbps, 0 means unlimited.
 
-The capabilities are exposed to user space through query_device by uhw.
-The following capabilities are reported:
-
-1. The maximum and minimum rate limit in kbps supported by packet pacing.
-2. Bitmap showing which QP types are supported by packet pacing operation.
+IB_QP_RATE_LIMIT is added to ib_attr_mask, and it could be used by RAW
+QPs when changing QP state from RTR to RTS, RTS to RTS.
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 12 ++++++++++++
- drivers/infiniband/hw/mlx5/user.h | 13 +++++++++++++
- 2 files changed, 25 insertions(+)
+ drivers/infiniband/core/verbs.c | 2 ++
+ include/rdma/ib_verbs.h         | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f02a975..26a4c85 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -594,6 +594,18 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	if (!mlx5_core_is_pf(mdev))
- 		props->device_cap_flags |= IB_DEVICE_VIRTUAL_FUNCTION;
- 
-+	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen)	&&
-+	    MLX5_CAP_QOS(mdev, packet_pacing)				&&
-+	    MLX5_CAP_GEN(mdev, qos)) {
-+		resp.packet_pacing_caps.qp_rate_limit_max =
-+			MLX5_CAP_QOS(mdev, packet_pacing_max_rate);
-+		resp.packet_pacing_caps.qp_rate_limit_min =
-+			MLX5_CAP_QOS(mdev, packet_pacing_min_rate);
-+		resp.packet_pacing_caps.supported_qpts |=
-+			1 << IB_QPT_RAW_PACKET;
-+		resp.response_length += sizeof(resp.packet_pacing_caps);
-+	}
-+
- 	if (uhw->outlen) {
- 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
- 
-diff --git a/drivers/infiniband/hw/mlx5/user.h b/drivers/infiniband/hw/mlx5/user.h
-index 188dac4..071a9cc 100644
---- a/drivers/infiniband/hw/mlx5/user.h
-+++ b/drivers/infiniband/hw/mlx5/user.h
-@@ -121,10 +121,23 @@ struct mlx5_ib_tso_caps {
- 	__u32 supported_qpts;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f2b776e..1221215 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -992,6 +992,7 @@ static const struct {
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_CUR_STATE		|
+ 						 IB_QP_QKEY),
++				 [IB_QPT_RAW_PACKET] = IB_QP_RATE_LIMIT,
+ 			 }
+ 		}
+ 	},
+@@ -1025,6 +1026,7 @@ static const struct {
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
+ 						IB_QP_QKEY),
++				[IB_QPT_RAW_PACKET] = IB_QP_RATE_LIMIT,
+ 			}
+ 		},
+ 		[IB_QPS_SQD]   = {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..b27f233 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1088,6 +1088,7 @@ enum ib_qp_attr_mask {
+ 	IB_QP_RESERVED2			= (1<<22),
+ 	IB_QP_RESERVED3			= (1<<23),
+ 	IB_QP_RESERVED4			= (1<<24),
++	IB_QP_RATE_LIMIT		= (1<<25),
  };
  
-+struct mlx5_packet_pacing_caps {
-+	__u32 qp_rate_limit_min;
-+	__u32 qp_rate_limit_max; /* In kpbs */
-+
-+	/* Corresponding bit will be set if qp type from
-+	 * 'enum ib_qp_type' is supported, e.g.
-+	 * supported_qpts |= 1 << IB_QPT_RAW_PACKET
-+	 */
-+	__u32 supported_qpts;
-+	__u32 reserved;
-+};
-+
- struct mlx5_ib_query_device_resp {
- 	__u32	comp_mask;
- 	__u32	response_length;
- 	struct	mlx5_ib_tso_caps tso_caps;
-+	struct	mlx5_packet_pacing_caps packet_pacing_caps;
+ enum ib_qp_state {
+@@ -1137,6 +1138,7 @@ struct ib_qp_attr {
+ 	u8			rnr_retry;
+ 	u8			alt_port_num;
+ 	u8			alt_timeout;
++	u32			rate_limit;
  };
  
- struct mlx5_ib_create_cq {
+ enum ib_wr_opcode {
 -- 
 2.7.4
 
