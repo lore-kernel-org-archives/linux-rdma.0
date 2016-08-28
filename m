@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 05/10] IB/uverbs: Expose XRQ capabilities
-Date: Sun, 28 Aug 2016 14:00:45 +0300
-Message-ID: <1472382050-25908-6-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 01/10] IB/core: Add XRQ capabilities
+Date: Sun, 28 Aug 2016 14:00:41 +0300
+Message-ID: <1472382050-25908-2-git-send-email-leon@kernel.org>
 References: <1472382050-25908-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472382050-25908-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,36 +12,94 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Make XRQ capabilities available via ibv_query_device() verb.
+This patch adds following XRQ capabilities:
+
+* max_unexpected_tags - The maximum number of tags
+    in the unexpected message list
+
+* tag_mask_length - Number of bits in a tag matching mask
+
+* header_size - The maximum size for the TM header including RNDV info
+
+* app_context_size - The size for the application context field in the
+    XRQ context
+
+* max_match_list - Maximal number of tags which can be matched
+    simultaneously
+
+* capability_flags - Tag matching message type supported:
+    - IBV_NO_TAG - The HW supports messages without tag
+	sent on QPs attached to a XRQ
+    - IBV_EAGER_EXPECTED - The HW supports tag matching
+	for EAGER messages when the send arrives after
+	the corresponding receive
+    - IBV_EAGER_UNEXPECTED - The HW supports tag matching
+	for EAGER messages when the send arrives before
+	the corresponding receive
+    - IBV_RNDV_MATCHED - The HW supports tag matching
+	for RENDEZVOUS messages when the send arrives after
+	the corresponding receive
+    - IBV_RNDV_UNEXPECTED - The HW supports tag matching
+	for RENDEZVOUS messages when the send arrives before
+	the corresponding receive
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/rdma/ib_verbs.h | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index e1fb1cd..548d4b4 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -4173,6 +4173,17 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..000f57d 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -261,6 +261,38 @@ struct ib_odp_caps {
+ 	} per_transport_caps;
+ };
  
- 	resp.device_cap_flags_ex = attr.device_cap_flags;
- 	resp.response_length += sizeof(resp.device_cap_flags_ex);
++enum ibv_xrq_cap_flags {
++	/* The HW supports messages without tag
++	 * sent on QPs attached to a XRQ
++	 */
++	IBV_NO_TAG	     = 1 << 0,
++	/* The HW supports tag matching for EAGER messages when
++	 * the send arrives after the corresponding receive
++	 */
++	IBV_EAGER_EXPECTED   = 1 << 1,
++	/* The HW supports tag matching for EAGER messages when
++	 * the send arrives before the corresponding receive
++	 */
++	IBV_EAGER_UNEXPECTED = 1 << 2,
++	/* The HW supports tag matching for RANDEZVOUS messages when
++	 * the send arrives after the corresponding receive (for RC QPs)
++	 */
++	IBV_RNDV_EXPECTED_RC = 1 << 3,
++	/* The HW supports tag matching for RANDEZVOUS messages when
++	 * the send arrives before the corresponding receive
++	 */
++	IBV_RNDV_UNEXPECTED  = 1 << 5,
++};
 +
-+	if (ucore->outlen < resp.response_length + sizeof(resp.xrq_caps))
-+		goto end;
++struct ib_xrq_caps {
++	uint32_t max_unexpected_tags;
++	uint32_t tag_mask_length;
++	uint32_t header_size;
++	uint32_t app_context_size;
++	uint32_t max_match_list;
++	uint32_t capability_flags;
++};
 +
-+	resp.xrq_caps.max_unexpected_tags = attr.xrq_caps.max_unexpected_tags;
-+	resp.xrq_caps.tag_mask_length = attr.xrq_caps.tag_mask_length;
-+	resp.xrq_caps.header_size = attr.xrq_caps.header_size;
-+	resp.xrq_caps.app_context_size = attr.xrq_caps.app_context_size;
-+	resp.xrq_caps.max_match_list = attr.xrq_caps.max_match_list;
-+	resp.xrq_caps.capability_flags = attr.xrq_caps.capability_flags;
-+	resp.response_length += sizeof(resp.xrq_caps);
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
+ 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
+@@ -318,6 +350,7 @@ struct ib_device_attr {
+ 	struct ib_odp_caps	odp_caps;
+ 	uint64_t		timestamp_mask;
+ 	uint64_t		hca_core_clock; /* in KHZ */
++	struct ib_xrq_caps	xrq_caps;
+ };
+ 
+ enum ib_mtu {
 -- 
 2.7.4
 
