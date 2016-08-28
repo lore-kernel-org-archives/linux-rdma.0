@@ -1,271 +1,110 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 09/10] net/mlx5: Add XRQ support
-Date: Sun, 28 Aug 2016 14:00:49 +0300
-Message-ID: <1472382050-25908-10-git-send-email-leon@kernel.org>
-References: <1472382050-25908-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next 00/10] Hardware tag matching support
+Date: Sun, 28 Aug 2016 14:00:40 +0300
+Message-ID: <1472382050-25908-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472382050-25908-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message Passing Interface (MPI) is a communication protocol that is
+widely used for exchange of messages among processes in high-performance
+computing (HPC) systems. Messages sent from a sending process to a
+destination process are marked with an identifying label, referred to as
+a tag. Destination processes post buffers in local memory that are
+similarly marked with tags. When a message is received by the receiver
+(i.e., the host computer on which the destination process is running),
+the message is stored in a buffer whose tag matches the message tag. The
+process of finding a buffer with a matching tag for the received packet
+is called tag matching.
 
-Add support to new XRQ(eXtended shared Receive Queue)
-hardware object. It supports SRQ semantics with addition
-of extended receive buffers topologies and offloads.
+There are two protocols that are generally used to send messages over
+MPI: The "Eager Protocol" is best suited to small messages that are
+simply sent to the destination process and received in an appropriate
+matching buffer. The "Rendezvous Protocol" is better suited to large
+messages. In Rendezvous, when the sender process has a large message to
+send, it first sends a small message to the destination process
+announcing its intention to send the large message. This small message
+is referred to as an RTS (ready to send) message. The RTS includes the
+message tag and buffer address in the sender. The destination process
+matches the RTS to a posted receive buffer, or posts such a buffer if
+one does not already exist. Once a matching receive buffer has been
+posted at the destination process side, the receiver initiates a remote
+direct memory access (RDMA) read request to read the data from the
+buffer address listed by the sender in the RTS message.
 
-Currently supports tag matching topology and rendezvouz offload.
+MPI tag matching, when performed in software by a host processor, can
+consume substantial host resources, thus detracting from the performance
+of the actual software applications that are using MPI for
+communications. One possible solution is to offload the entire tag
+matching process to a peripheral hardware device, such as a network
+interface controller (NIC). In this case, the software application using
+MPI will post a set of buffers in a memory of the host processor and
+will pass the entire list of tags associated with the buffers to the
+NIC. In large-scale networks, however, the NIC may be required to
+simultaneously support many communicating processes and contexts
+(referred to in MPI parlance as "ranks" and "communicators,"
+respectively). NIC access to and matching of the large lists of tags
+involved in such a scenario can itself become a bottleneck. The NIC must
+also be able to handle "unexpected" traffic, for which buffers and tags
+have not yet been posted, which may also degrade performance.
 
-Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
+When the NIC receives a message over the network from one of the peer
+processes, and the message contains a label in accordance with the
+protocol, the NIC compares the label to the labels in the part of the
+list that was pushed to the NIC. Upon finding a match to the label, the
+NIC writes data conveyed in the message to the buffer in the memory that
+is associated with this label and submits a notification to the software
+process. The notification serves two purposes: both to indicate to the
+software process that the label has been consumed, so that the process
+will update the list of the labels posted to the NIC; and to inform the
+software process that the data are available in the buffer. In some
+cases (such as when the NIC retrieves the data from the remote node by
+RDMA), the NIC may submit two notifications, in the form of completion
+reports, of which the first informs the software process of the
+consumption of the label and the second announces availability of the
+data.
+
+This patch series adds to Mellanox ConnectX HCA driver support of
+tag matching. It introduces new hardware object eXtended shared Receive
+Queue (XRQ), which follows SRQ semantics with addition of extended
+receive buffers topologies and offloads. This series adds tag matching
+topology and rendezvouz offload.
+
+Available in the "topic/xrq" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/xrq
+
+Thanks,
+  Artemy & Leon
+
+Artemy Kovalyov (10):
+  IB/core: Add XRQ capabilities
+  IB/core: Make CQ separate part of SRQ context
+  IB/core: Add new SRQ type IB_SRQT_TAG_MATCHING
+  IB/uverbs: Expose tag matching capabilties to UAPI
+  IB/uverbs: Expose XRQ capabilities
+  IB/uverbs: Add XRQ creation parameter to UAPI
+  IB/uverbs: Add new SRQ type IB_SRQT_TAG_MATCHING
+  IB/mlx5: Fill XRQ capabilities
+  net/mlx5: Add XRQ support
+  IB/mlx5: Support IB_SRQT_TAG_MATCHING
+
+ drivers/infiniband/core/uverbs_cmd.c          |  31 +++++-
+ drivers/infiniband/core/verbs.c               |  16 +--
+ drivers/infiniband/hw/mlx5/main.c             |  21 +++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   6 ++
+ drivers/infiniband/hw/mlx5/srq.c              |  15 ++-
  drivers/net/ethernet/mellanox/mlx5/core/srq.c | 150 ++++++++++++++++++++++++--
  include/linux/mlx5/driver.h                   |   1 +
  include/linux/mlx5/srq.h                      |   5 +
- 3 files changed, 146 insertions(+), 10 deletions(-)
+ include/rdma/ib_verbs.h                       |  61 +++++++++--
+ include/uapi/rdma/ib_user_verbs.h             |  36 ++++++-
+ 10 files changed, 307 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-index 30996300..0669dd9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-@@ -435,16 +435,128 @@ out:
- 	return err;
- }
-
-+static int create_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
-+			  struct mlx5_srq_attr *in)
-+{
-+	u32 create_out[MLX5_ST_SZ_DW(create_xrq_out)] = {0};
-+	void *create_in;
-+	void *xrqc;
-+	void *wq;
-+	int pas_size;
-+	int inlen;
-+	int err;
-+
-+	pas_size = get_pas_size(in);
-+	inlen = MLX5_ST_SZ_BYTES(create_xrq_in) + pas_size;
-+	create_in = mlx5_vzalloc(inlen);
-+	if (!create_in)
-+		return -ENOMEM;
-+
-+	xrqc = MLX5_ADDR_OF(create_xrq_in, create_in, xrq_context);
-+	wq = MLX5_ADDR_OF(xrqc, xrqc, wq);
-+
-+	set_wq(wq, in);
-+	memcpy(MLX5_ADDR_OF(xrqc, xrqc, wq.pas), in->pas, pas_size);
-+
-+	if (in->type == IB_SRQT_TAG_MATCHING) {
-+		MLX5_SET(xrqc, xrqc, topology, MLX5_XRQC_TOPOLOGY_TAG_MATCHING);
-+		if (in->flags & MLX5_SRQ_FLAG_RNDV)
-+			MLX5_SET(xrqc, xrqc, offload, MLX5_XRQC_OFFLOAD_RNDV);
-+		MLX5_SET(xrqc, xrqc,
-+			 tag_matching_topology_context.log_matching_list_sz,
-+			 in->tm_log_list_size);
-+	}
-+	MLX5_SET(xrqc, xrqc, user_index, in->user_index);
-+	MLX5_SET(xrqc, xrqc, cqn, in->cqn);
-+	MLX5_SET(create_xrq_in, create_in, opcode, MLX5_CMD_OP_CREATE_XRQ);
-+	err = mlx5_cmd_exec(dev, create_in, inlen, create_out,
-+			    sizeof(create_out));
-+	kvfree(create_in);
-+	if (!err)
-+		srq->srqn = MLX5_GET(create_xrq_out, create_out, xrqn);
-+
-+	return err;
-+}
-+
-+static int destroy_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq)
-+{
-+	u32 in[MLX5_ST_SZ_DW(destroy_xrq_in)] = {0};
-+	u32 out[MLX5_ST_SZ_DW(destroy_xrq_out)] = {0};
-+
-+	MLX5_SET(destroy_xrq_in, in, opcode, MLX5_CMD_OP_DESTROY_XRQ);
-+	MLX5_SET(destroy_xrq_in, in, xrqn,   srq->srqn);
-+
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+static int arm_xrq_cmd(struct mlx5_core_dev *dev,
-+		       struct mlx5_core_srq *srq,
-+		       u16 lwm)
-+{
-+	u32 out[MLX5_ST_SZ_DW(arm_rq_out)] = {0};
-+	u32 in[MLX5_ST_SZ_DW(arm_rq_in)] = {0};
-+
-+	MLX5_SET(arm_rq_in, in, opcode,     MLX5_CMD_OP_ARM_RQ);
-+	MLX5_SET(arm_rq_in, in, op_mod,     MLX5_ARM_RQ_IN_OP_MOD_XRQ);
-+	MLX5_SET(arm_rq_in, in, srq_number, srq->srqn);
-+	MLX5_SET(arm_rq_in, in, lwm,	    lwm);
-+
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+}
-+
-+static int query_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
-+			 struct mlx5_srq_attr *out)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_xrq_in)] = {0};
-+	u32 *xrq_out;
-+	int outlen = MLX5_ST_SZ_BYTES(query_xrq_out);
-+	void *xrqc;
-+	int err;
-+
-+	xrq_out =  mlx5_vzalloc(MLX5_ST_SZ_BYTES(query_xrq_out));
-+	if (!xrq_out)
-+		return -ENOMEM;
-+
-+	MLX5_SET(query_xrq_in, in, opcode, MLX5_CMD_OP_QUERY_XRQ);
-+	MLX5_SET(query_xrq_in, in, xrqn, srq->srqn);
-+
-+	err = mlx5_cmd_exec(dev, in, sizeof(in), xrq_out, outlen);
-+	if (err)
-+		goto out;
-+
-+	xrqc = MLX5_ADDR_OF(query_xrq_out, xrq_out, xrq_context);
-+	get_wq(MLX5_ADDR_OF(xrqc, xrqc, wq), out);
-+	if (MLX5_GET(xrqc, xrqc, state) != MLX5_XRQC_STATE_GOOD)
-+		out->flags |= MLX5_SRQ_FLAG_ERR;
-+	out->tm_next_tag =
-+		MLX5_GET(xrqc, xrqc,
-+			 tag_matching_topology_context.append_next_index);
-+	out->tm_hw_phase_cnt =
-+		MLX5_GET(xrqc, xrqc,
-+			 tag_matching_topology_context.hw_phase_cnt);
-+	out->tm_sw_phase_cnt =
-+		MLX5_GET(xrqc, xrqc,
-+			 tag_matching_topology_context.sw_phase_cnt);
-+
-+out:
-+	kvfree(xrq_out);
-+	return err;
-+}
-+
- static int create_srq_split(struct mlx5_core_dev *dev,
- 			    struct mlx5_core_srq *srq,
- 			    struct mlx5_srq_attr *in)
- {
- 	if (!dev->issi)
- 		return create_srq_cmd(dev, srq, in);
--	else if (srq->common.res == MLX5_RES_XSRQ)
-+	switch (srq->common.res) {
-+	case MLX5_RES_XSRQ:
- 		return create_xrc_srq_cmd(dev, srq, in);
--	else
-+	case MLX5_RES_XRQ:
-+		return create_xrq_cmd(dev, srq, in);
-+	default:
- 		return create_rmp_cmd(dev, srq, in);
-+	}
- }
-
- static int destroy_srq_split(struct mlx5_core_dev *dev,
-@@ -452,10 +564,14 @@ static int destroy_srq_split(struct mlx5_core_dev *dev,
- {
- 	if (!dev->issi)
- 		return destroy_srq_cmd(dev, srq);
--	else if (srq->common.res == MLX5_RES_XSRQ)
-+	switch (srq->common.res) {
-+	case MLX5_RES_XSRQ:
- 		return destroy_xrc_srq_cmd(dev, srq);
--	else
-+	case MLX5_RES_XRQ:
-+		return destroy_xrq_cmd(dev, srq);
-+	default:
- 		return destroy_rmp_cmd(dev, srq);
-+	}
- }
-
- int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
-@@ -464,10 +580,16 @@ int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
- 	int err;
- 	struct mlx5_srq_table *table = &dev->priv.srq_table;
-
--	if (in->type == IB_SRQT_XRC)
-+	switch (in->type) {
-+	case IB_SRQT_XRC:
- 		srq->common.res = MLX5_RES_XSRQ;
--	else
-+		break;
-+	case IB_SRQT_TAG_MATCHING:
-+		srq->common.res = MLX5_RES_XRQ;
-+		break;
-+	default:
- 		srq->common.res = MLX5_RES_SRQ;
-+	}
-
- 	err = create_srq_split(dev, srq, in);
- 	if (err)
-@@ -528,10 +650,14 @@ int mlx5_core_query_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
- {
- 	if (!dev->issi)
- 		return query_srq_cmd(dev, srq, out);
--	else if (srq->common.res == MLX5_RES_XSRQ)
-+	switch (srq->common.res) {
-+	case MLX5_RES_XSRQ:
- 		return query_xrc_srq_cmd(dev, srq, out);
--	else
-+	case MLX5_RES_XRQ:
-+		return query_xrq_cmd(dev, srq, out);
-+	default:
- 		return query_rmp_cmd(dev, srq, out);
-+	}
- }
- EXPORT_SYMBOL(mlx5_core_query_srq);
-
-@@ -540,10 +666,14 @@ int mlx5_core_arm_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
- {
- 	if (!dev->issi)
- 		return arm_srq_cmd(dev, srq, lwm, is_srq);
--	else if (srq->common.res == MLX5_RES_XSRQ)
-+	switch (srq->common.res) {
-+	case MLX5_RES_XSRQ:
- 		return arm_xrc_srq_cmd(dev, srq, lwm);
--	else
-+	case MLX5_RES_XRQ:
-+		return arm_xrq_cmd(dev, srq, lwm);
-+	default:
- 		return arm_rmp_cmd(dev, srq, lwm);
-+	}
- }
- EXPORT_SYMBOL(mlx5_core_arm_srq);
-
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 5cb9fa7..c158db0 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -368,6 +368,7 @@ enum mlx5_res_type {
- 	MLX5_RES_SQ	= MLX5_EVENT_QUEUE_TYPE_SQ,
- 	MLX5_RES_SRQ	= 3,
- 	MLX5_RES_XSRQ	= 4,
-+	MLX5_RES_XRQ	= 5,
- };
-
- struct mlx5_core_rsc_common {
-diff --git a/include/linux/mlx5/srq.h b/include/linux/mlx5/srq.h
-index 33c97dc..9905353 100644
---- a/include/linux/mlx5/srq.h
-+++ b/include/linux/mlx5/srq.h
-@@ -38,6 +38,7 @@
- enum {
- 	MLX5_SRQ_FLAG_ERR    = (1 << 0),
- 	MLX5_SRQ_FLAG_WQ_SIG = (1 << 1),
-+	MLX5_SRQ_FLAG_RNDV   = (1 << 2),
- };
-
- struct mlx5_srq_attr {
-@@ -56,6 +57,10 @@ struct mlx5_srq_attr {
- 	u32 user_index;
- 	u64 db_record;
- 	u64 *pas;
-+	u32 tm_log_list_size;
-+	u32 tm_next_tag;
-+	u32 tm_hw_phase_cnt;
-+	u32 tm_sw_phase_cnt;
- };
-
- struct mlx5_core_dev;
 --
 2.7.4
 
