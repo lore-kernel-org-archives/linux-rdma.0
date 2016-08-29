@@ -1,55 +1,69 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Mon, 29 Aug 2016 10:00:09 -0600
-Message-ID: <20160829160009.GA23557@obsidianresearch.com>
-References: <20160822214352.GB11695@obsidianresearch.com>
+Date: Mon, 29 Aug 2016 10:19:02 -0600
+Message-ID: <20160829161902.GB23557@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
  <20160823185441.GA1233@obsidianresearch.com>
  <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <20160825173916.GC20612@obsidianresearch.com>
- <20160825195246.GI1916@redhat.com>
- <20160825201306.GA5421@obsidianresearch.com>
- <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com>
- <20160828132804.GN594@leon.nu>
- <20160828183627.GC12783@obsidianresearch.com>
- <20160829062918.GR594@leon.nu>
+ <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
+ <20160828182715.GA12783@obsidianresearch.com>
+ <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160829062918.GR594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 29, 2016 at 09:29:18AM +0300, Leon Romanovsky wrote:
+On Mon, Aug 29, 2016 at 09:39:01AM -0500, Steve Wise wrote:
 
-> I'm doing that by running number of one liners [1], it builds me
-> development setup in shared folder, so my base image is continuing
-> to be clean.
-
-Yes, I've done this approach as well, I actually have a script some
-place that kinda automates it. This is not nearly as easy to do as a
-single tree inplace build, and requires some expertise to setup.
-
-You'd be less happy if you scaled it to all our trees..
-
-> > Doug is also adressing a larger issue with packaging and getting
-> > everything to build correctly as the distro - he talked about it here:
-> >
-> > https://www.spinics.net/lists/linux-rdma/msg37855.html
+> > Again, it doesn't matter. The distros will take from upstream whenever
+> > they are ready and upstream is 'continuously releasable'. This way the
+> > distros can get everything and not have to hunt down 15 different git
+> > trees randomly sprinkled across the internet
 > 
-> I read that thread and think that it is related to unoptimized build
-> process of one distro who for any reason decided do not use repo tool
-> [2] for managing complex build dependencies between different git trees,
-> but used excel file and manual download of source tarballs.
+> Please walk us through this scenario:  Vendor X has very important changes to
+> their provider lib that enables new a hw device.  There is no dependency on any
+> other rdma-plumbing library.  How will that new important enhancement get made
+> available to downstream distros in a timely manner? 
 
-Do not underestimate how hard a job the distro people have.
+Post the patch. Tag it with a Fixes: line. Doug/etc pick it
+up. Distros notice the new commit on git, marked for backporting and
+consider backporting it into their distro.
 
-> RDMA stack in that specific distro and no need to invent new beast
-> (rdma-plumbers).
+The vendor will still probably have to lobby the distros to include
+the specific change quickly, that is no different of course. At least
+now there is a better chance the non-lobbied distros will keep pace..
 
-Progress, Leon!
+Same basic process as the kernel.
+
+End-users observing the single tree can get the change very quickly by
+grabbing the single git and building it to their distro's packages.
+
+The state today is pretty sad. For example, libmlx4 is up to 1.2.1,
+while the best I can get from Debian is 1.0.6.
+
+In your specific case, you've kind of missed the large problem.
+libcxgb4 isn't even packaged in Debian (or derived). A big swath of
+Linux users don't even have your code available from their distro *at
+all* - and that is a direct consequence of this mess we have made
+upstream.
+
+The distros are obviously not acceptably keeping pace with our
+upstream mess. It looks like only Doug and RH are able to keep
+up. IIRC John at SuSE just uses OFED (bleck) rather than sort this all
+out by hand.
+
+Further, we have another pending 2-3 upstream kernel drivers coming
+and I have no idea where to find their userspace components..
+
+We need to grow up and provide something sensible for our downstreams,
+so our users can get the software easily..
 
 Jason
 --
