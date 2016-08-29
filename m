@@ -1,34 +1,125 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 05/15] IB/pvrdma: Add paravirtual rdma device
-Date: Mon, 29 Aug 2016 16:59:47 +0300
-Message-ID: <20160829135947.GA14865@yuval-lap>
-References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
- <1470266864-16888-6-git-send-email-aditr@vmware.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 05/22] SUNRPC: Separate buffer pointers for RPC Call
+ and Reply messages
+Date: Mon, 29 Aug 2016 10:23:47 -0400
+Message-ID: <1e9440d8-111a-4252-c706-2e3c26f7b09a@Netapp.com>
+References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
+ <20160823175244.13038.39619.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1470266864-16888-6-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160823175244.13038.39619.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 03, 2016 at 04:27:34PM -0700, Adit Ranadive wrote:
-> +
-> +struct pvrdma_wq {
-> +	struct pvrdma_ring *ring;
-> +	spinlock_t lock; /* Work queue lock. */
-> +	int wqe_cnt;
-> +	int wqe_size;
-> +	int max_gs;
+Hi Chuck,
 
-max_gs or max_sg?
+On 08/23/2016 01:52 PM, Chuck Lever wrote:
+> For xprtrdma, the RPC Call and Reply buffers are involved in real
+> I/O operations.
+> 
+> To start with, the DMA direction of the I/O for a Call is opposite
+> that of a Reply.
+> 
+> In the current arrangement, the Reply buffer address is on a
+> four-byte alignment just past the call buffer. Would be friendlier
+> on some platforms if that was at a DMA cache alignment instead.
+> 
+> Because the current arrangement allocates a single memory region
+> which contains both buffers, the RPC Reply buffer often contains a
+> page boundary in it when the Call buffer is large enough (which is
+> frequent).
+> 
+> It would be a little nicer for setting up DMA operations (and
+> possible registration of the Reply buffer) if the two buffers were
+> separated, well-aligned, and contained as few page boundaries as
+> possible.
+> 
+> Now, I could just pad out the single memory region used for the pair
+> of buffers. But frequently that would mean a lot of unused space to
+> ensure the Reply buffer did not have a page boundary.
+> 
+> Add a separate pointer to rpc_rqst that points right to the RPC
+> Reply buffer. This makes no difference to xprtsock, but it will help
+> xprtrdma in subsequent patches.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/xprt.h     |    5 +++--
+>  net/sunrpc/clnt.c               |    2 +-
+>  net/sunrpc/sched.c              |    1 +
+>  net/sunrpc/xprtrdma/transport.c |    1 +
+>  4 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
+> index 72c2aeb..46f069e 100644
+> --- a/include/linux/sunrpc/xprt.h
+> +++ b/include/linux/sunrpc/xprt.h
+> @@ -84,8 +84,9 @@ struct rpc_rqst {
+>  	struct list_head	rq_list;
+>  
+>  	void			*rq_buffer;	/* Call XDR encode buffer */
+> -	size_t			rq_callsize,
+> -				rq_rcvsize;
+> +	size_t			rq_callsize;
+> +	void			*rq_rbuffer;	/* Reply XDR decode buffer */
+> +	size_t			rq_rcvsize;
 
-> +	int offset;
-> +};
-> +
+Just a nit-picky question :)  Is there any reason that you're adding the buffer between rq_callsize and rq_rcvsize?  It seems like you could leave those alone and add the pointer either before or after them.
+
+Thanks,
+Anna
+
+>  	size_t			rq_xmit_bytes_sent;	/* total bytes sent */
+>  	size_t			rq_reply_bytes_recvd;	/* total reply bytes */
+>  							/* received */
+> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
+> index ab467c0..fd389c0 100644
+> --- a/net/sunrpc/clnt.c
+> +++ b/net/sunrpc/clnt.c
+> @@ -1768,7 +1768,7 @@ rpc_xdr_encode(struct rpc_task *task)
+>  		     req->rq_buffer,
+>  		     req->rq_callsize);
+>  	xdr_buf_init(&req->rq_rcv_buf,
+> -		     (char *)req->rq_buffer + req->rq_callsize,
+> +		     req->rq_rbuffer,
+>  		     req->rq_rcvsize);
+>  
+>  	p = rpc_encode_header(task);
+> diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
+> index 6690ebc..5db68b3 100644
+> --- a/net/sunrpc/sched.c
+> +++ b/net/sunrpc/sched.c
+> @@ -891,6 +891,7 @@ int rpc_malloc(struct rpc_task *task)
+>  	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
+>  			task->tk_pid, size, buf);
+>  	rqst->rq_buffer = buf->data;
+> +	rqst->rq_rbuffer = (char *)rqst->rq_buffer + rqst->rq_callsize;
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(rpc_malloc);
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index ebf14ba..136caf3 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -524,6 +524,7 @@ out:
+>  	dprintk("RPC:       %s: size %zd, request 0x%p\n", __func__, size, req);
+>  	req->rl_connect_cookie = 0;	/* our reserved value */
+>  	rqst->rq_buffer = req->rl_sendbuf->rg_base;
+> +	rqst->rq_rbuffer = (char *)rqst->rq_buffer + rqst->rq_rcvsize;
+>  	return 0;
+>  
+>  out_rdmabuf:
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
