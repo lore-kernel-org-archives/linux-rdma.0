@@ -1,106 +1,101 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 20/22] xprtrmda: Report address of frmr, not mw
-Date: Mon, 29 Aug 2016 16:13:14 -0400
-Message-ID: <4053F4B8-115E-4C5D-988D-DBEB750F1C7E@oracle.com>
-References: <20160823174402.13038.84561.stgit@manet.1015granger.net> <20160823175446.13038.58792.stgit@manet.1015granger.net> <7f92664a-a16c-6c44-b8f8-391e4fec0a89@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Mon, 29 Aug 2016 14:37:11 -0600
+Message-ID: <20160829203711.GC3201@obsidianresearch.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
+ <20160828182715.GA12783@obsidianresearch.com>
+ <765b7e2d-51e0-98aa-60d1-26be35eb7a3d@dev.mellanox.co.il>
+ <20160829163453.GC23557@obsidianresearch.com>
+ <aaf8d6ba-6dc2-51d9-b014-dcc10114079f@dev.mellanox.co.il>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7f92664a-a16c-6c44-b8f8-391e4fec0a89-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <aaf8d6ba-6dc2-51d9-b014-dcc10114079f-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Aug 29, 2016 at 11:03:45PM +0300, Yishai Hadas wrote:
 
-> On Aug 29, 2016, at 3:54 PM, Anna Schumaker <anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
+> >Remember, most of the code is dead, the maintainer is MIA or hasn't
+> >accepted a patch in months or years.
 > 
-> Hi Chuck,
+> Agree, that's why I think that such dead providers code shouldn't be put and
+> maintained with live providers, it doesn't make sense.
+> How many providers/libraries in this GIT are really active ?
+
+What? That is backwards. The best way to carry 'finished' code is in a
+live and active repository, otherwise it just tends to bitrot into
+failure.
+
+Having it be an active part of day-to-day developer work flows is the
+best way to keep 'finished' code compiling and working over the long
+run.
+
+This is how the kernel flow has worked for many years and it largely
+is proven to be a success.
+
+For instance, with rdma-plumbing it would have been trivial for Steve
+to at least compile test his ARM64 enablement across all providers.
+
+It was easy for me to fix the pthread mislinking across all providers.
+
+It will also be easy to do 'build and run in place'.
+
+Let alone things like Covarity, Travis CI and other tooling that is
+cumbersome to access across 15 different source trees.
+
+> >mlx4/mlx5 is an notable exeption. You and Doug should work out a
+> >reasonable appraoch. Maybe he takes your pulls directly, maybe you
+> >have co-commit access on Github (the team approach), something else?
 > 
-> On 08/23/2016 01:54 PM, Chuck Lever wrote:
->> Tie frwr debugging messages together by always reporting the address
->> of the frwr.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> net/sunrpc/xprtrdma/frwr_ops.c |    9 +++++++--
->> 1 file changed, 7 insertions(+), 2 deletions(-)
->> 
->> diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
->> index e82d5cf..2e51ef5 100644
->> --- a/net/sunrpc/xprtrdma/frwr_ops.c
->> +++ b/net/sunrpc/xprtrdma/frwr_ops.c
->> @@ -163,7 +163,7 @@ __frwr_reset_mr(struct rpcrdma_ia *ia, struct rpcrdma_mw *r)
->> 		return PTR_ERR(f->fr_mr);
->> 	}
->> 
->> -	dprintk("RPC:       %s: recovered FRMR %p\n", __func__, r);
->> +	dprintk("RPC:       %s: recovered FRMR %p\n", __func__, f);
->> 	f->fr_state = FRMR_IS_INVALID;
->> 	return 0;
->> }
->> @@ -397,7 +397,7 @@ frwr_op_map(struct rpcrdma_xprt *r_xprt, struct rpcrdma_mr_seg *seg,
->> 		goto out_mapmr_err;
->> 
->> 	dprintk("RPC:       %s: Using frmr %p to map %u segments (%u bytes)\n",
->> -		__func__, mw, mw->mw_nents, mr->length);
->> +		__func__, frmr, mw->mw_nents, mr->length);
->> 
->> 	key = (u8)(mr->rkey & 0x000000FF);
->> 	ib_update_fast_reg_key(mr, ++key);
->> @@ -450,6 +450,9 @@ __frwr_prepare_linv_wr(struct rpcrdma_mw *mw)
->> 	struct rpcrdma_frmr *f = &mw->frmr;
->> 	struct ib_send_wr *invalidate_wr;
->> 
->> +	dprintk("RPC:       %s: invalidating frmr %p\n",
->> +		__func__, f);
->> +
+> We definitely need to close this point before going a head into any solution
+> that might block a fast progress of accepting/merging new code of
+> live/maintained projects as of libmlx4/5.
+
+The obvious channel for something like your TSO example is the same as
+the kernel, Doug takes the common code and the only implementation
+(mlx5) together at the same time.
+
+This is pretty much what we have been doing on the kernel side.
+
+There is zero reason to delay the driver side once the verbs side is
+OK.
+
+I'm looking at the git commit activity on mlx4 and mlx5 and I honestly
+don't see your concern, the commit rate is maybe 1 series every 3
+months on mlx5 and even less on mlx4. Nothing here is so active that a
+combination would be a significant negative, and by far the majority
+of it is tied to verbs features anyhow.
+
+> >>>This is already basically the case, you need to wait for Doug to take
+> >>>any libibverbs changes before you can push any provider feature
+> >>>change. 
+> >>This is incorrect, when Doug is taking into libibverbs, vendor code that is
+> >>ready can be taken immediately, the new approach might cause some extra
+> >>delays and slowness.
+> >
+> >I haven't seen you do that.
 > 
-> Any reason this is broken into two lines?
+> What are you talking about ?
 
-No. It can be re-arranged.
+We are having troubles with English, apparently.
 
+> Sure that we take *only* code that works with upstream libibverbs. Both
+> libmlx4 and libmlx5 are *always* in a ready state for a release with latest
+> libibverbs.
 
->> 	f->fr_state = FRMR_IS_INVALID;
->> 	invalidate_wr = &f->fr_invwr;
->> 
->> @@ -532,6 +535,8 @@ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
->> 	 */
->> unmap:
->> 	list_for_each_entry_safe(mw, tmp, &req->rl_registered, mw_list) {
->> +		dprintk("RPC:       %s: unmapping frmr %p\n",
->> +			__func__, &mw->frmr);
-> 
-> Same question here.
+So nothing changes.
 
-On one line, the dprintk invocation is longer than 80 characters.
-Just avoiding a checkpatch.pl complaint.
-
-
-> Thanks,
-> Anna
->> 		list_del_init(&mw->mw_list);
->> 		ib_dma_unmap_sg(ia->ri_device,
->> 				mw->mw_sg, mw->mw_nents, mw->mw_dir);
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Jason
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
