@@ -1,25 +1,89 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 1/2] iw_cxgb4: call dev_put() on l2t allocation failure
-Date: Mon, 29 Aug 2016 14:25:11 -0500
-Message-ID: <01bf01d2022b$0fc39190$2f4ab4b0$@opengridcomputing.com>
-References: <c1b639ca7d71ee034e334b4400ff0bae3ba58c47.1472241953.git.swise@opengridcomputing.com>
+From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 19/22] xprtrdma: Support larger inline thresholds
+Date: Mon, 29 Aug 2016 15:52:26 -0400
+Message-ID: <c922120b-35f3-65bf-e778-3cef645cee48@Netapp.com>
+References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
+ <20160823175438.13038.1624.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c1b639ca7d71ee034e334b4400ff0bae3ba58c47.1472241953.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160823175438.13038.1624.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Doug, I was hoping these two could make 4.8-rc.  Particularly patch 2/2.
+Hi Chuck,
 
-Steve.
+On 08/23/2016 01:54 PM, Chuck Lever wrote:
+> RPC-over-RDMA Version Two will likely require at least a 4KB inline
+> threshold by default. The Version One inline threshold is still 1KB,
+> and it's automatically negotiated down to in
+> rpcrdma_update_connect_private.
 
+I'm curious, what is the status of RPCoRDMA v2?
+
+Thanks,
+Anna
+
+> 
+> The maximum is somewhat arbitrary. There's no fundamental
+> architectural limit I'm aware of, but it's good to keep the size of
+> Receive buffers reasonable. Now that Send can use a s/g list, a
+> Send buffer is only as large as each RPC requires. Receive buffers
+> are always the size of the inline threshold, however.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/xprtrdma.h |    4 ++--
+>  net/sunrpc/xprtrdma/transport.c |    4 ++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
+> index 39267dc..221b7a2 100644
+> --- a/include/linux/sunrpc/xprtrdma.h
+> +++ b/include/linux/sunrpc/xprtrdma.h
+> @@ -53,8 +53,8 @@
+>  #define RPCRDMA_MAX_SLOT_TABLE	(256U)
+>  
+>  #define RPCRDMA_MIN_INLINE  (1024)	/* min inline thresh */
+> -#define RPCRDMA_DEF_INLINE  (1024)	/* default inline thresh */
+> -#define RPCRDMA_MAX_INLINE  (3068)	/* max inline thresh */
+> +#define RPCRDMA_DEF_INLINE  (4096)	/* default inline thresh */
+> +#define RPCRDMA_MAX_INLINE  (65536)	/* max inline thresh */
+>  
+>  /* Memory registration strategies, by number.
+>   * This is part of a kernel / user space API. Do not remove. */
+> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+> index 6a358ab..ed5e285 100644
+> --- a/net/sunrpc/xprtrdma/transport.c
+> +++ b/net/sunrpc/xprtrdma/transport.c
+> @@ -97,7 +97,7 @@ static struct ctl_table xr_tunables_table[] = {
+>  		.data		= &xprt_rdma_max_inline_read,
+>  		.maxlen		= sizeof(unsigned int),
+>  		.mode		= 0644,
+> -		.proc_handler	= proc_dointvec,
+> +		.proc_handler	= proc_dointvec_minmax,
+>  		.extra1		= &min_inline_size,
+>  		.extra2		= &max_inline_size,
+>  	},
+> @@ -106,7 +106,7 @@ static struct ctl_table xr_tunables_table[] = {
+>  		.data		= &xprt_rdma_max_inline_write,
+>  		.maxlen		= sizeof(unsigned int),
+>  		.mode		= 0644,
+> -		.proc_handler	= proc_dointvec,
+> +		.proc_handler	= proc_dointvec_minmax,
+>  		.extra1		= &min_inline_size,
+>  		.extra2		= &max_inline_size,
+>  	},
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
