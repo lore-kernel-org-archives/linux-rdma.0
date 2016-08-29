@@ -1,169 +1,58 @@
-From: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 05/22] SUNRPC: Separate buffer pointers for RPC Call
- and Reply messages
-Date: Mon, 29 Aug 2016 11:44:57 -0400
-Message-ID: <14ed937b-6d21-b5e2-9160-a9580c8307ca@Netapp.com>
-References: <20160823174402.13038.84561.stgit@manet.1015granger.net>
- <20160823175244.13038.39619.stgit@manet.1015granger.net>
- <1e9440d8-111a-4252-c706-2e3c26f7b09a@Netapp.com>
- <10EFE631-06F6-4E4E-9EBC-F7ABFDF2C742@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Mon, 29 Aug 2016 10:00:09 -0600
+Message-ID: <20160829160009.GA23557@obsidianresearch.com>
+References: <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <20160825173916.GC20612@obsidianresearch.com>
+ <20160825195246.GI1916@redhat.com>
+ <20160825201306.GA5421@obsidianresearch.com>
+ <8ef70f6c-e26d-191d-9a9a-2e0bf47fb227@redhat.com>
+ <20160828132804.GN594@leon.nu>
+ <20160828183627.GC12783@obsidianresearch.com>
+ <20160829062918.GR594@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <10EFE631-06F6-4E4E-9EBC-F7ABFDF2C742-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160829062918.GR594-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/29/2016 11:33 AM, Chuck Lever wrote:
-> 
->> On Aug 29, 2016, at 10:23 AM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> Hi Chuck,
->>
->> On 08/23/2016 01:52 PM, Chuck Lever wrote:
->>> For xprtrdma, the RPC Call and Reply buffers are involved in real
->>> I/O operations.
->>>
->>> To start with, the DMA direction of the I/O for a Call is opposite
->>> that of a Reply.
->>>
->>> In the current arrangement, the Reply buffer address is on a
->>> four-byte alignment just past the call buffer. Would be friendlier
->>> on some platforms if that was at a DMA cache alignment instead.
->>>
->>> Because the current arrangement allocates a single memory region
->>> which contains both buffers, the RPC Reply buffer often contains a
->>> page boundary in it when the Call buffer is large enough (which is
->>> frequent).
->>>
->>> It would be a little nicer for setting up DMA operations (and
->>> possible registration of the Reply buffer) if the two buffers were
->>> separated, well-aligned, and contained as few page boundaries as
->>> possible.
->>>
->>> Now, I could just pad out the single memory region used for the pair
->>> of buffers. But frequently that would mean a lot of unused space to
->>> ensure the Reply buffer did not have a page boundary.
->>>
->>> Add a separate pointer to rpc_rqst that points right to the RPC
->>> Reply buffer. This makes no difference to xprtsock, but it will help
->>> xprtrdma in subsequent patches.
->>>
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> include/linux/sunrpc/xprt.h     |    5 +++--
->>> net/sunrpc/clnt.c               |    2 +-
->>> net/sunrpc/sched.c              |    1 +
->>> net/sunrpc/xprtrdma/transport.c |    1 +
->>> 4 files changed, 6 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/include/linux/sunrpc/xprt.h b/include/linux/sunrpc/xprt.h
->>> index 72c2aeb..46f069e 100644
->>> --- a/include/linux/sunrpc/xprt.h
->>> +++ b/include/linux/sunrpc/xprt.h
->>> @@ -84,8 +84,9 @@ struct rpc_rqst {
->>> 	struct list_head	rq_list;
->>>
->>> 	void			*rq_buffer;	/* Call XDR encode buffer */
->>> -	size_t			rq_callsize,
->>> -				rq_rcvsize;
->>> +	size_t			rq_callsize;
->>> +	void			*rq_rbuffer;	/* Reply XDR decode buffer */
->>> +	size_t			rq_rcvsize;
->>
->> Just a nit-picky question :)  Is there any reason that you're adding the buffer between rq_callsize and rq_rcvsize?  It seems like you could leave those alone and add the pointer either before or after them.
-> 
-> Hi Anna-
-> 
-> Keeping related fields together is usually more important than an extra
-> line or two in a commit. At the very least, the function of these fields
-> is more clear (to me, anyway) in this order.
-> 
-> Generally it's good practice to keep together structure fields that are
-> used at the same time. These four fields might appear in the same CPU
-> cacheline, though that can change as fields are introduced or removed
-> earlier in struct rpc_rqst.
-> 
-> An argument can be made that the code is just as easy to read this way:
-> 
->         void                    *rq_buffer, *rq_rbuffer;
->         size_t                  rq_callsize, rq_rcvsize;
-> 
-> If that's your preference as maintainer, I will change it in the next
-> version of this series.
+On Mon, Aug 29, 2016 at 09:29:18AM +0300, Leon Romanovsky wrote:
 
-Got it.  The cacheline reason is good enough for me, so you don't need to change the patch.
+> I'm doing that by running number of one liners [1], it builds me
+> development setup in shared folder, so my base image is continuing
+> to be clean.
 
-Thanks,
-Anna
+Yes, I've done this approach as well, I actually have a script some
+place that kinda automates it. This is not nearly as easy to do as a
+single tree inplace build, and requires some expertise to setup.
 
-> 
-> 
->> Thanks,
->> Anna
->>
->>> 	size_t			rq_xmit_bytes_sent;	/* total bytes sent */
->>> 	size_t			rq_reply_bytes_recvd;	/* total reply bytes */
->>> 							/* received */
->>> diff --git a/net/sunrpc/clnt.c b/net/sunrpc/clnt.c
->>> index ab467c0..fd389c0 100644
->>> --- a/net/sunrpc/clnt.c
->>> +++ b/net/sunrpc/clnt.c
->>> @@ -1768,7 +1768,7 @@ rpc_xdr_encode(struct rpc_task *task)
->>> 		     req->rq_buffer,
->>> 		     req->rq_callsize);
->>> 	xdr_buf_init(&req->rq_rcv_buf,
->>> -		     (char *)req->rq_buffer + req->rq_callsize,
->>> +		     req->rq_rbuffer,
->>> 		     req->rq_rcvsize);
->>>
->>> 	p = rpc_encode_header(task);
->>> diff --git a/net/sunrpc/sched.c b/net/sunrpc/sched.c
->>> index 6690ebc..5db68b3 100644
->>> --- a/net/sunrpc/sched.c
->>> +++ b/net/sunrpc/sched.c
->>> @@ -891,6 +891,7 @@ int rpc_malloc(struct rpc_task *task)
->>> 	dprintk("RPC: %5u allocated buffer of size %zu at %p\n",
->>> 			task->tk_pid, size, buf);
->>> 	rqst->rq_buffer = buf->data;
->>> +	rqst->rq_rbuffer = (char *)rqst->rq_buffer + rqst->rq_callsize;
->>> 	return 0;
->>> }
->>> EXPORT_SYMBOL_GPL(rpc_malloc);
->>> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
->>> index ebf14ba..136caf3 100644
->>> --- a/net/sunrpc/xprtrdma/transport.c
->>> +++ b/net/sunrpc/xprtrdma/transport.c
->>> @@ -524,6 +524,7 @@ out:
->>> 	dprintk("RPC:       %s: size %zd, request 0x%p\n", __func__, size, req);
->>> 	req->rl_connect_cookie = 0;	/* our reserved value */
->>> 	rqst->rq_buffer = req->rl_sendbuf->rg_base;
->>> +	rqst->rq_rbuffer = (char *)rqst->rq_buffer + rqst->rq_rcvsize;
->>> 	return 0;
->>>
->>> out_rdmabuf:
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
+You'd be less happy if you scaled it to all our trees..
 
+> > Doug is also adressing a larger issue with packaging and getting
+> > everything to build correctly as the distro - he talked about it here:
+> >
+> > https://www.spinics.net/lists/linux-rdma/msg37855.html
+> 
+> I read that thread and think that it is related to unoptimized build
+> process of one distro who for any reason decided do not use repo tool
+> [2] for managing complex build dependencies between different git trees,
+> but used excel file and manual download of source tarballs.
+
+Do not underestimate how hard a job the distro people have.
+
+> RDMA stack in that specific distro and no need to invent new beast
+> (rdma-plumbers).
+
+Progress, Leon!
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
