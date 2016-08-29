@@ -1,32 +1,34 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2] fix:infiniband:hw:cxgb4:qp:mark symbols static where possible
-Date: Mon, 29 Aug 2016 09:24:54 -0500
-Message-ID: <003e01d20201$1c71ab40$555501c0$@opengridcomputing.com>
-References: <1472354958-32613-1-git-send-email-baoyou.xie@linaro.org>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH v3] IB/cxgb4: Mark symbols static for _free_qp
+Date: Mon, 29 Aug 2016 09:26:01 -0500
+Message-ID: <004001d20201$448119e0$cd834da0$@opengridcomputing.com>
+References: <1472396231-16937-1-git-send-email-baoyou.xie@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472354958-32613-1-git-send-email-baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1472396231-16937-1-git-send-email-baoyou.xie@linaro.org>
 Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Baoyou Xie' <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, xie.baoyou-Th6q7B73Y6EnDS1+zs4M5A@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Baoyou Xie' <baoyou.xie@linaro.org>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@linaro.org, xie.baoyou@zte.com.cn
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH v2] fix:infiniband:hw:cxgb4:qp:mark symbols static where
-possible
->
+> Subject: [PATCH v3] IB/cxgb4: Mark symbols static for _free_qp
+> 
+> We get 1 warning when build kernel with W=1:
+> drivers/infiniband/hw/cxgb4/qp.c:686:6: warning: no previous prototype for
+> '_free_qp' [-Wmissing-prototypes]
+> 
+> In fact, this function is only used in the file in which it is declared
+> and don't need a declaration, but can be made static.
+> so this patch marks it 'static'.
+> 
+> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-Is "fix:infiniband:hw:cxgb4:qp:" some standard way patches are being submitted
-these days?  Usually it would be the module name, something like:
+Ignore my comment on v2...
 
-iw_cxgb4: make _free_qp() static
-
-Steve
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Steve Wise <swise@opengridcomputing.com>
