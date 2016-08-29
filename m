@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 3/6] IB/iser: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Mon, 29 Aug 2016 12:02:20 +0200
-Message-ID: <1472464943-29450-4-git-send-email-hch@lst.de>
+Subject: [PATCH 5/6] nvme-rdma: use IB_PD_UNSAFE_GLOBAL_RKEY
+Date: Mon, 29 Aug 2016 12:02:22 +0200
+Message-ID: <1472464943-29450-6-git-send-email-hch@lst.de>
 References: <1472464943-29450-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472464943-29450-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -12,96 +12,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h  |  1 -
- drivers/infiniband/ulp/iser/iser_memory.c |  6 +++++-
- drivers/infiniband/ulp/iser/iser_verbs.c  | 22 +++-------------------
- 3 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/nvme/host/rdma.c | 25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 0351059..0be6a7c 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -374,7 +374,6 @@ struct iser_reg_ops {
- struct iser_device {
- 	struct ib_device             *ib_device;
- 	struct ib_pd	             *pd;
--	struct ib_mr	             *mr;
- 	struct ib_event_handler      event_handler;
- 	struct list_head             ig_list;
- 	int                          refcount;
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 90be568..9c3e9ab 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -199,7 +199,11 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
- 	 * FIXME: rework the registration code path to differentiate
- 	 * rkey/lkey use cases
- 	 */
--	reg->rkey = device->mr ? device->mr->rkey : 0;
-+
-+	if (device->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)
-+		reg->rkey = device->pd->unsafe_global_rkey;
-+	else
-+		reg->rkey = 0;
- 	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
- 	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index a4961ed..1a18547 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -58,7 +58,6 @@
+ struct nvme_rdma_device {
+ 	struct ib_device       *dev;
+ 	struct ib_pd	       *pd;
+-	struct ib_mr	       *mr;
+ 	struct kref		ref;
+ 	struct list_head	entry;
+ };
+@@ -410,10 +409,7 @@ static void nvme_rdma_free_dev(struct kref *ref)
+ 	list_del(&ndev->entry);
+ 	mutex_unlock(&device_list_mutex);
  
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index e9de992..a4b791d 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -88,7 +88,8 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 		  device->comps_used, ib_dev->name,
- 		  ib_dev->num_comp_vectors, max_cqe);
- 
--	device->pd = ib_alloc_pd(ib_dev, 0);
-+	device->pd = ib_alloc_pd(ib_dev,
-+		iser_always_reg ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
- 	if (IS_ERR(device->pd))
- 		goto pd_err;
- 
-@@ -103,26 +104,13 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 		}
- 	}
- 
--	if (!iser_always_reg) {
--		int access = IB_ACCESS_LOCAL_WRITE |
--			     IB_ACCESS_REMOTE_WRITE |
--			     IB_ACCESS_REMOTE_READ;
+-	if (!register_always)
+-		ib_dereg_mr(ndev->mr);
+ 	ib_dealloc_pd(ndev->pd);
 -
--		device->mr = ib_get_dma_mr(device->pd, access);
--		if (IS_ERR(device->mr))
--			goto cq_err;
+ 	kfree(ndev);
+ }
+ 
+@@ -446,24 +442,16 @@ nvme_rdma_find_get_device(struct rdma_cm_id *cm_id)
+ 	ndev->dev = cm_id->device;
+ 	kref_init(&ndev->ref);
+ 
+-	ndev->pd = ib_alloc_pd(ndev->dev, 0);
++	ndev->pd = ib_alloc_pd(ndev->dev,
++		register_always ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
+ 	if (IS_ERR(ndev->pd))
+ 		goto out_free_dev;
+ 
+-	if (!register_always) {
+-		ndev->mr = ib_get_dma_mr(ndev->pd,
+-					    IB_ACCESS_LOCAL_WRITE |
+-					    IB_ACCESS_REMOTE_READ |
+-					    IB_ACCESS_REMOTE_WRITE);
+-		if (IS_ERR(ndev->mr))
+-			goto out_free_pd;
 -	}
 -
- 	INIT_IB_EVENT_HANDLER(&device->event_handler, ib_dev,
- 			      iser_event_handler);
- 	if (ib_register_event_handler(&device->event_handler))
--		goto handler_err;
-+		goto cq_err;
- 
- 	return 0;
- 
--handler_err:
--	if (device->mr)
--		ib_dereg_mr(device->mr);
- cq_err:
- 	for (i = 0; i < device->comps_used; i++) {
- 		struct iser_comp *comp = &device->comps[i];
-@@ -154,14 +142,10 @@ static void iser_free_device_ib_res(struct iser_device *device)
+ 	if (!(ndev->dev->attrs.device_cap_flags &
+ 	      IB_DEVICE_MEM_MGT_EXTENSIONS)) {
+ 		dev_err(&ndev->dev->dev,
+ 			"Memory registrations not supported.\n");
+-		goto out_free_mr;
++		goto out_free_pd;
  	}
  
- 	(void)ib_unregister_event_handler(&device->event_handler);
--	if (device->mr)
--		(void)ib_dereg_mr(device->mr);
- 	ib_dealloc_pd(device->pd);
+ 	list_add(&ndev->entry, &device_list);
+@@ -471,9 +459,6 @@ out_unlock:
+ 	mutex_unlock(&device_list_mutex);
+ 	return ndev;
  
- 	kfree(device->comps);
- 	device->comps = NULL;
--
--	device->mr = NULL;
- 	device->pd = NULL;
+-out_free_mr:
+-	if (!register_always)
+-		ib_dereg_mr(ndev->mr);
+ out_free_pd:
+ 	ib_dealloc_pd(ndev->pd);
+ out_free_dev:
+@@ -903,7 +888,7 @@ static int nvme_rdma_map_sg_single(struct nvme_rdma_queue *queue,
+ 
+ 	sg->addr = cpu_to_le64(sg_dma_address(req->sg_table.sgl));
+ 	put_unaligned_le24(sg_dma_len(req->sg_table.sgl), sg->length);
+-	put_unaligned_le32(queue->device->mr->rkey, sg->key);
++	put_unaligned_le32(queue->device->pd->unsafe_global_rkey, sg->key);
+ 	sg->type = NVME_KEY_SGL_FMT_DATA_DESC << 4;
+ 	return 0;
  }
+@@ -988,7 +973,7 @@ static int nvme_rdma_map_data(struct nvme_rdma_queue *queue,
+ 		    nvme_rdma_queue_idx(queue))
+ 			return nvme_rdma_map_sg_inline(queue, req, c);
+ 
+-		if (!register_always)
++		if (dev->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)
+ 			return nvme_rdma_map_sg_single(queue, req, c);
+ 	}
  
 -- 
 2.1.4
