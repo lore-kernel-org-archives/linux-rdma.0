@@ -1,113 +1,89 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 19/22] xprtrdma: Support larger inline thresholds
-Date: Mon, 29 Aug 2016 16:02:28 -0400
-Message-ID: <741D8723-D193-4F52-826F-807F89DC19C7@oracle.com>
-References: <20160823174402.13038.84561.stgit@manet.1015granger.net> <20160823175438.13038.1624.stgit@manet.1015granger.net> <c922120b-35f3-65bf-e778-3cef645cee48@Netapp.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c922120b-35f3-65bf-e778-3cef645cee48-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Mon, 29 Aug 2016 23:03:45 +0300
+Message-ID: <aaf8d6ba-6dc2-51d9-b014-dcc10114079f@dev.mellanox.co.il>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
+ <20160828182715.GA12783@obsidianresearch.com>
+ <765b7e2d-51e0-98aa-60d1-26be35eb7a3d@dev.mellanox.co.il>
+ <20160829163453.GC23557@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160829163453.GC23557-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 8/29/2016 7:34 PM, Jason Gunthorpe wrote:
+> On Mon, Aug 29, 2016 at 03:07:48PM +0300, Yishai Hadas wrote:
+>
+> They are not self-contained. They have all sorts of inter-dependencies
+> between each other and the kernel.
 
-> On Aug 29, 2016, at 3:52 PM, Anna Schumaker <Anna.Schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Hi Chuck,
-> 
-> On 08/23/2016 01:54 PM, Chuck Lever wrote:
->> RPC-over-RDMA Version Two will likely require at least a 4KB inline
->> threshold by default. The Version One inline threshold is still 1KB,
->> and it's automatically negotiated down to in
->> rpcrdma_update_connect_private.
-> 
-> I'm curious, what is the status of RPCoRDMA v2?
+The dependencies are around the interfaces with the kernel and with 
+applications, not in other parts. Using the extension mechanism a 
+provider can extend both APIs without breaking other.
 
-There is a personal draft published:
+  Going forward do not expect the
+> distros to just blindly take whatever tar ball you publish into their
+> stable releases. That was special situation for the 'Technology
+> Preview' stage in RHEL6.
+>
 
-  https://datatracker.ietf.org/doc/draft-cel-nfsv4-rpcrdma-version-two/
+No distro expects to take blindly and if it does it's bad.
+AFAIK, there are testing and other actions done in in both distros and 
+providers sides to make sure that any package is ready for a release.
 
-And being discussed actively in the nfsv4 Working Group.
+> Remember, most of the code is dead, the maintainer is MIA or hasn't
+> accepted a patch in months or years.
 
-The features added in this series are usable with the Linux V1 implementation
-too; the point being to experiment with these new facilities before we finish
-RPC-over-RDMA Version Two.
+Agree, that's why I think that such dead providers code shouldn't be put 
+and maintained with live providers, it doesn't make sense.
+How many providers/libraries in this GIT are really active ?
 
+> mlx4/mlx5 is an notable exeption. You and Doug should work out a
+> reasonable appraoch. Maybe he takes your pulls directly, maybe you
+> have co-commit access on Github (the team approach), something else?
 
-> Thanks,
-> Anna
-> 
->> 
->> The maximum is somewhat arbitrary. There's no fundamental
->> architectural limit I'm aware of, but it's good to keep the size of
->> Receive buffers reasonable. Now that Send can use a s/g list, a
->> Send buffer is only as large as each RPC requires. Receive buffers
->> are always the size of the inline threshold, however.
->> 
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> ---
->> include/linux/sunrpc/xprtrdma.h |    4 ++--
->> net/sunrpc/xprtrdma/transport.c |    4 ++--
->> 2 files changed, 4 insertions(+), 4 deletions(-)
->> 
->> diff --git a/include/linux/sunrpc/xprtrdma.h b/include/linux/sunrpc/xprtrdma.h
->> index 39267dc..221b7a2 100644
->> --- a/include/linux/sunrpc/xprtrdma.h
->> +++ b/include/linux/sunrpc/xprtrdma.h
->> @@ -53,8 +53,8 @@
->> #define RPCRDMA_MAX_SLOT_TABLE	(256U)
->> 
->> #define RPCRDMA_MIN_INLINE  (1024)	/* min inline thresh */
->> -#define RPCRDMA_DEF_INLINE  (1024)	/* default inline thresh */
->> -#define RPCRDMA_MAX_INLINE  (3068)	/* max inline thresh */
->> +#define RPCRDMA_DEF_INLINE  (4096)	/* default inline thresh */
->> +#define RPCRDMA_MAX_INLINE  (65536)	/* max inline thresh */
->> 
->> /* Memory registration strategies, by number.
->>  * This is part of a kernel / user space API. Do not remove. */
->> diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
->> index 6a358ab..ed5e285 100644
->> --- a/net/sunrpc/xprtrdma/transport.c
->> +++ b/net/sunrpc/xprtrdma/transport.c
->> @@ -97,7 +97,7 @@ static struct ctl_table xr_tunables_table[] = {
->> 		.data		= &xprt_rdma_max_inline_read,
->> 		.maxlen		= sizeof(unsigned int),
->> 		.mode		= 0644,
->> -		.proc_handler	= proc_dointvec,
->> +		.proc_handler	= proc_dointvec_minmax,
->> 		.extra1		= &min_inline_size,
->> 		.extra2		= &max_inline_size,
->> 	},
->> @@ -106,7 +106,7 @@ static struct ctl_table xr_tunables_table[] = {
->> 		.data		= &xprt_rdma_max_inline_write,
->> 		.maxlen		= sizeof(unsigned int),
->> 		.mode		= 0644,
->> -		.proc_handler	= proc_dointvec,
->> +		.proc_handler	= proc_dointvec_minmax,
->> 		.extra1		= &min_inline_size,
->> 		.extra2		= &max_inline_size,
->> 	},
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We definitely need to close this point before going a head into any 
+solution that might block a fast progress of accepting/merging new code 
+of live/maintained projects as of libmlx4/5.
 
+>>> This is already basically the case, you need to wait for Doug to take
+>>> any libibverbs changes before you can push any provider feature
+>>> change.
+
+We should definitely find a way to escalate the review/acceptance of new 
+features in libibverbs, need to take it with Doug as well.
+
+>> This is incorrect, when Doug is taking into libibverbs, vendor code that is
+>> ready can be taken immediately, the new approach might cause some extra
+>> delays and slowness.
+>
+> I haven't seen you do that.
+
+What are you talking about ? see last feature of TSO as an example, it 
+was published in the list for both libibverbs and libmlx5, when Doug 
+accepted the libiberbs part just an hour later I merged the libmlx5 part 
+into its formal GIT at openfabrics and noted on that in the list.
+Same was done for other features as of timestamping, rereg_mr, etc.
+We must save this ability before going forward here.
+
+> If you are pushing code into your provider that doesn't work with
+> upstream libibverbs then you will be blacklisted by the distros. Do
+> not do that.
+
+Sure that we take *only* code that works with upstream libibverbs. Both 
+libmlx4 and libmlx5 are *always* in a ready state for a release with 
+latest libibverbs.
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
