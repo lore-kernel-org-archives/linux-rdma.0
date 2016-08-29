@@ -1,22 +1,22 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/isert: Properly release resources on
- RDMA_CM_EVENT_DEVICE_REMOVAL
-Date: Mon, 29 Aug 2016 15:58:54 +0300
-Message-ID: <ae587bf0-3dd0-6e38-c589-565c6dcbcf2b@grimberg.me>
-References: <20160829114549.6635-1-rajur@chelsio.com>
+Subject: Re: [PATCH rdma-next 1/5] IB/core: Add support to extend flow
+ steering specifications
+Date: Mon, 29 Aug 2016 16:02:49 +0300
+Message-ID: <8ec07330-861a-1e01-7dd9-f107d8e987f3@grimberg.me>
+References: <1472382700-30216-1-git-send-email-leon@kernel.org>
+ <1472382700-30216-2-git-send-email-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160829114549.6635-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1472382700-30216-2-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks,
-
-Doug, can you queue this for 4.9 please?
+Can mlx4/mlx5, core, uverbs be split?
+If not, please update the change log accordingly...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
