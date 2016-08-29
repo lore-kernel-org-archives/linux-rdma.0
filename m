@@ -1,37 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: move unsafe global rkey handling to the RDMA core
-Date: Mon, 29 Aug 2016 10:42:55 -0600
-Message-ID: <20160829164255.GD23557@obsidianresearch.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
+Date: Mon, 29 Aug 2016 10:00:33 -0700
+Message-ID: <df613e79-7c01-5fa6-5586-6f567254224b@sandisk.com>
 References: <1472464943-29450-1-git-send-email-hch@lst.de>
+ <1472464943-29450-5-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1472464943-29450-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <1472464943-29450-5-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 29, 2016 at 12:02:17PM +0200, Christoph Hellwig wrote:
-> This fairly simply series adds support to ib_alloc_pd to create the unsafe
-> global rkey in the IB core, and then switches over all ULPs to use that
-> functionality instead of using ib_get_dma_mr directly, and consequently
-> removes ib_get_dma_mr now that all global registrations are done in the
-> core code.
-> 
-> The advantage is that abuses of ib_get_dma_mr are more easily prevented,
-> and use of the global unsafe rkey is more visible and auditable.
-> 
-> I'm also pondering removing the get_dma_mr methods and moving the global
-> registrations into the ->alloc_pd methods, but I'll need to investigate
-> how that will work out first.
+On 08/29/2016 03:02 AM, Christoph Hellwig wrote:
+> diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+> index 26bb9b0..446f559 100644
+> --- a/drivers/infiniband/ulp/srp/ib_srp.h
+> +++ b/drivers/infiniband/ulp/srp/ib_srp.h
+> @@ -90,7 +90,6 @@ struct srp_device {
+>  	struct list_head	dev_list;
+>  	struct ib_device       *dev;
+>  	struct ib_pd	       *pd;
+> -	struct ib_mr	       *global_mr;
+>  	u64			mr_page_mask;
+>  	int			mr_page_size;
+>  	int			mr_max_size;
+> @@ -179,7 +178,6 @@ struct srp_target_port {
+>  	spinlock_t		lock;
+>
+>  	/* read only in the hot path */
+> -	struct ib_mr		*global_mr;
+>  	struct srp_rdma_ch	*ch;
+>  	u32			ch_count;
+>  	u32			lkey;
 
-This looks good to me:
+Hello Christoph,
 
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Was it really necessary to remove these two member variables? If the 
+per-PD global MR is ever removed all the code that uses 
+pd->unsafe_global_rkey will have to be touched again. Keeping the two 
+global_mr variables would reduce the number of load instructions the CPU 
+has to perform while mapping SRP requests.
 
-Jason
+Thanks,
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
