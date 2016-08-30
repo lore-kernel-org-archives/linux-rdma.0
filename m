@@ -1,75 +1,30 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Tue, 30 Aug 2016 21:38:40 +0300
-Message-ID: <20160830183840.GQ594@leon.nu>
-References: <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
- <20160822214352.GB11695@obsidianresearch.com>
- <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com>
- <20160830060842.GJ594@leon.nu>
- <20160830165352.GE26778@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
+Date: Tue, 30 Aug 2016 12:46:33 -0600
+Message-ID: <20160830184633.GE7586@obsidianresearch.com>
+References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
+ <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
+ <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
+ <20160830074607.GN594@leon.nu>
+ <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
+ <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vjTL8WsyNLGAy3AI"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160830165352.GE26778-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+In-Reply-To: <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Daniel Jurgens <danielj@mellanox.com>
+Cc: Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Aug 30, 2016 at 02:06:53PM +0000, Daniel Jurgens wrote:
 
---vjTL8WsyNLGAy3AI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I don't this will be useful, RoCE doesn't have partitions/PKeys
+> because it uses Ethernet as the transport instead of Infiniband.
 
-On Tue, Aug 30, 2016 at 10:53:52AM -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 30, 2016 at 09:08:42AM +0300, Leon Romanovsky wrote:
->
-> > > Further, we have another pending 2-3 upstream kernel drivers coming
-> > > and I have no idea where to find their userspace components..
-> >
-> > And I have no idea, where you can buy these custom based SoCs.
->
-> Come on Leon. Show some respect to your fellow developers.
+The vlan stuff in roce should be just as restricted as the pkey is in
+IB....
 
-What exactly disrespectful did you find in my answer?
-
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---vjTL8WsyNLGAy3AI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXxdKwAAoJEORje4g2clinLSwQAJFu82nQku2QPwu5n0iVr02t
-7XAfc30pKhgTqMFkee4mH08H/uLFVE19GEpbMmc8Hqpy2iUopulzpyCQtoDRr1QX
-i+7dbQZUYOR+lPk9CVhhVOE814ZsLM0yQYkQ82PVDQ9smyI3F8+PAZHgpvExkbPs
-fnuSvGP56Elm7RUxlLnKCoUJY6s7gAAqhRbuRAhwv7OdiKv14m42SNv099Db3PgL
-H/31pmoU1uUFIZGbyGq9/aUtAyQOpK269BGgqSO4Ey6i+t8tNHuDvqIYCjul5N+u
-M/ao0eUX9+UkDq9mr/W/PSPXhXin9FZDe9zPzFAAveORS9BwKFnTkBp0DEsA70kH
-ZUHfOlvuyPFS7hBNOlbii2Bom8+dRF/HGDc8l52miY3RJmoQqsKq9LWNkoeFB1Vo
-3R26Ilmi8CkndBLKYIDvAyEBX7kEkG9oQcx0X51F6K0CDzcN9Wpk0LwhlU5497Sl
-XcFote9nAl9jXyNhF0ayLKBLby/htqXyNIJlvihv7FnakJYC92w2LZjwS7kTKTjj
-BEee12U9GnthbuC+CissEJyiKflRa6jgPvDHp41w6HH+aFGnxJa+i+1BJj6PrZ42
-bJag6PgcYedh85JFBPyLpfeCfzRW5eL8i8MUBWihxIMXIMJdKYRMV6oSFIySMClT
-iwqNhbcElH+hZpVYOADn
-=hPN7
------END PGP SIGNATURE-----
-
---vjTL8WsyNLGAy3AI--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jason
