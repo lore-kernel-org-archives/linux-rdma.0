@@ -1,44 +1,26 @@
-From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 30 Aug 2016 19:10:12 +0000
-Message-ID: <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
-References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
- <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
- <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
- <20160830074607.GN594@leon.nu>
- <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
- <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com>
- <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com>
+From: "by10" <by10@a.eecity.net>
+Subject: Re:Help you develop global target market to win customers! !
+Date: Wed, 31 Aug 2016 06:24:34 +0800
+Message-ID: <201608310624349234445@a.eecity.net>
+Reply-To: sam16880-9Onoh4P/yGk@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-Content-Language: en-US
-List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
-Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+        charset="GB2312"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/30/2016 1:56 PM, Jason Gunthorpe wrote:
->
-> Are subsystems usually SELinux enabled in such a piecemeal way?
->
-> Are you sure the 'partition' SELinux label should not be more general
-> to cover more of the similar RDMA cases?
->
-> Jason
->
-In order to label something you have to be able to describe something unique about an instance of it, like a Subnet Prefix/PKey value pair.  What other thing could we label more generally to control access to a partition/VLAN?
-
-
-_______________________________________________
-Selinux mailing list
-Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
-To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
-To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+vty++LzZ0a/FzKOsyP3B99GvxcyjrNaxvdOz9rv31dK1vdK7wffC8rzS0MXPoqGjusO1xNCnufuy
+u8rHtLWz9sC0tcSjrMrHvq25/b3FzKTKtbXYtcTX9rP2wLS1xKGjDQoxoaK4utTwsO+/zbunuPm+
+3bL6xre9+NDQt9bO9r/Nu6e1xMDg0M2how0KMqGisO/W+r/Nu6fXqNK1tqjWxrL6xre52Lz8tMqj
+rNf2s/bL0cv3t72wuA0KM6Gi1ri1vL/Nu6e/xtGnvfjQ0NPKvP63osvNo6zNxrnjsvrGtw0KNKGi
+08W7r7/Nu6e1xL+qt6LQxbrN1vfM4g0KNaGiw7+49r/Nu6e78bXD0a/FzLrz1ri1vM3iw7PStc7x
+1LG72Li00a/FzA0KNqGit9bO9srQs6G3ts6nDQoNCs/rwcu94rj8tuDW97avyr3N4sOzv6q3or/N
+u6ejrMfrvNMgUSAgUSAzMjQ2MDc1NzA3ICDWsb3T0enWpL/Nu6fQxc+iIMrHt/HV5sq1oaLT0NCn
+IA0K0rK/ybzTzqLQxbrFo7pzdW5zZXNvZnRzYW0=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
