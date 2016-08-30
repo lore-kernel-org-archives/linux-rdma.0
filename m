@@ -1,7 +1,7 @@
 From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 30 Aug 2016 18:52:28 +0000
-Message-ID: <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+Date: Tue, 30 Aug 2016 19:10:12 +0000
+Message-ID: <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
 References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
  <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
  <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
@@ -10,6 +10,8 @@ References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
  <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
  <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
  <20160830184633.GE7586@obsidianresearch.com>
+ <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160830185548.GA9768@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,17 +25,16 @@ To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/30/2016 1:46 PM, Jason Gunthorpe wrote:
-> On Tue, Aug 30, 2016 at 02:06:53PM +0000, Daniel Jurgens wrote:
+On 8/30/2016 1:56 PM, Jason Gunthorpe wrote:
 >
->> I don't this will be useful, RoCE doesn't have partitions/PKeys
->> because it uses Ethernet as the transport instead of Infiniband.
-> The vlan stuff in roce should be just as restricted as the pkey is in
-> IB....
+> Are subsystems usually SELinux enabled in such a piecemeal way?
+>
+> Are you sure the 'partition' SELinux label should not be more general
+> to cover more of the similar RDMA cases?
 >
 > Jason
 >
-This patch set introduces a mechanism for controlling access to Infiniband partitions.  If someone is interested in writing SELinux tests regarding RoCE and VLANs then RXE may very well be useful for them.  It just doesn't apply here.
+In order to label something you have to be able to describe something unique about an instance of it, like a Subnet Prefix/PKey value pair.  What other thing could we label more generally to control access to a partition/VLAN?
 
 
 _______________________________________________
