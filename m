@@ -1,73 +1,95 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 30 Aug 2016 18:02:44 +0300
-Message-ID: <CAJ3xEMh=DLafFGu4WCBDMidWUOaEPjsWN_kBE2ofU1GrhDoVxg@mail.gmail.com>
-References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
- <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
- <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com> <20160830074607.GN594@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH libibverbs 4/7] Extend create QP to get RX hash data
+Date: Tue, 30 Aug 2016 18:09:53 +0300
+Message-ID: <1472569796-26162-5-git-send-email-yishaih@mellanox.com>
+References: <1472569796-26162-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160830074607.GN594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1472569796-26162-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 30, 2016 at 10:46 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Mon, Aug 29, 2016 at 08:00:32PM -0400, Paul Moore wrote:
->> On Mon, Aug 29, 2016 at 5:48 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> w=
-rote:
->> > On 8/29/2016 4:40 PM, Paul Moore wrote:
->> >> On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> w=
-rote:
->> >>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> >> ...
->> >>
->> >>> Daniel Jurgens (9):
->> >>>   IB/core: IB cache enhancements to support Infiniband security
->> >>>   IB/core: Enforce PKey security on QPs
->> >>>   selinux lsm IB/core: Implement LSM notification system
->> >>>   IB/core: Enforce security on management datagrams
->> >>>   selinux: Create policydb version for Infiniband support
->> >>>   selinux: Allocate and free infiniband security hooks
->> >>>   selinux: Implement Infiniband PKey "Access" access vector
->> >>>   selinux: Add IB Port SMP access vector
->> >>>   selinux: Add a cache for quicker retreival of PKey SIDs
->> >> Hi Daniel,
->> >>
->> >> My apologies for such a long delay in responding to this latest
->> >> patchset; conferences, travel, and vacation have made for a very busy
->> >> August.  After you posted the v2 patchset we had an off-list
->> >> discussion regarding testing the SELinux/IB integration; unfortunatel=
-y
->> >> we realized that IB hardware would be needed to test this (no IB
->> >> loopback device), but we agreed that having tests would be beneficial=
-.
->> >>
->> >> Have you done any work yet towards adding SELinux/IB tests to the
->> >> selinux-testsuite project?
->> >>
->> >> * https://github.com/SELinuxProject/selinux-testsuite
->> >
->> > Hi Paul, I've not started doing that yet.  I've been waiting for feedb=
-ack of any kind from the RDMA list.  I thought the test updates would be mo=
-re appropriate around the time I'm submitting the changes to the user space=
- utilities to allow labeling the new types.
+Extend create QP to get RX hash data, this is needed
+to enable RSS based on some RX configuration.
 
->> Okay, no problem.  I just want the tests in place and functional when
->> we merge the kernel code.
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/infiniband/verbs.h | 37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
-> Hi Paul,
-> IMHO, you can use Soft RoCE (RXE) [1] for it.
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 284bac5..88ac4bb 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -214,6 +214,30 @@ struct ibv_tso_caps {
+ 	uint32_t supported_qpts;
+ };
+ 
++/* RX Hash function flags */
++enum ibv_rx_hash_function_flags {
++	IBV_RX_HASH_FUNC_TOEPLITZ	= 1 << 0,
++};
++
++/*
++ * RX Hash fields enable to set which incoming packet's field should
++ * participates in RX Hash. Each flag represent certain packet's field,
++ * when the flag is set the field that is represented by the flag will
++ * participate in RX Hash calculation.
++ * Note: *IPV4 and *IPV6 flags can't be enabled together on the same QP
++ * and *TCP and *UDP flags can't be enabled together on the same QP.
++*/
++enum ibv_rx_hash_fields {
++	IBV_RX_HASH_SRC_IPV4	= 1 << 0,
++	IBV_RX_HASH_DST_IPV4	= 1 << 1,
++	IBV_RX_HASH_SRC_IPV6	= 1 << 2,
++	IBV_RX_HASH_DST_IPV6	= 1 << 3,
++	IBV_RX_HASH_SRC_PORT_TCP	= 1 << 4,
++	IBV_RX_HASH_DST_PORT_TCP	= 1 << 5,
++	IBV_RX_HASH_SRC_PORT_UDP	= 1 << 6,
++	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7
++};
++
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -713,7 +737,8 @@ enum ibv_qp_init_attr_mask {
+ 	IBV_QP_INIT_ATTR_CREATE_FLAGS	= 1 << 2,
+ 	IBV_QP_INIT_ATTR_MAX_TSO_HEADER = 1 << 3,
+ 	IBV_QP_INIT_ATTR_IND_TABLE	= 1 << 4,
+-	IBV_QP_INIT_ATTR_RESERVED	= 1 << 5
++	IBV_QP_INIT_ATTR_RX_HASH	= 1 << 5,
++	IBV_QP_INIT_ATTR_RESERVED	= 1 << 6
+ };
+ 
+ enum ibv_qp_create_flags {
+@@ -721,6 +746,15 @@ enum ibv_qp_create_flags {
+ 	IBV_QP_CREATE_SCATTER_FCS		= 1 << 8,
+ };
+ 
++struct ibv_rx_hash_conf {
++	/* enum ibv_rx_hash_function_flags */
++	uint8_t	rx_hash_function;
++	uint8_t	rx_hash_key_len;
++	uint8_t	*rx_hash_key;
++	/* enum ibv_rx_hash_fields */
++	uint64_t	rx_hash_fields_mask;
++};
++
+ struct ibv_qp_init_attr_ex {
+ 	void		       *qp_context;
+ 	struct ibv_cq	       *send_cq;
+@@ -736,6 +770,7 @@ struct ibv_qp_init_attr_ex {
+ 	uint32_t                create_flags;
+ 	uint16_t		max_tso_header;
+ 	struct ibv_rwq_ind_table       *rwq_ind_tbl;
++	struct ibv_rx_hash_conf	rx_hash_conf;
+ };
+ 
+ enum ibv_qp_open_attr_mask {
+-- 
+1.8.3.1
 
-If I got it right, little if not nothing of this patch set is
-applicable to RoCE ports, this is about IB ports, Daniel, can you
-comment?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
