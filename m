@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 5/7] IB/core: Add more fields to IPv6 flow specification
-Date: Tue, 30 Aug 2016 16:58:34 +0300
-Message-ID: <1472565516-11591-6-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V1 6/7] IB/mlx5: Add support in TOS and protocol to flow steering
+Date: Tue, 30 Aug 2016 16:58:35 +0300
+Message-ID: <1472565516-11591-7-git-send-email-leon@kernel.org>
 References: <1472565516-11591-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472565516-11591-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,71 +12,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add the following fields to IPv6 flow filter specification:
-1. Traffic Class
-2. Flow Label
-3. Next Header
-4. Hop Limit
+Add support to receive TOS or specific IPv4 protocol.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 4 ++++
- include/rdma/ib_verbs.h              | 4 ++++
- include/uapi/rdma/ib_user_verbs.h    | 9 +++++++--
- 3 files changed, 15 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 84c0794..8318623 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3158,6 +3158,10 @@ static int kern_spec_to_ib_spec(struct ib_uverbs_flow_spec *kern_spec,
- 		ib_spec->size = sizeof(struct ib_flow_spec_ipv6);
- 		memcpy(&ib_spec->ipv6.val, kern_spec_val, actual_filter_sz);
- 		memcpy(&ib_spec->ipv6.mask, kern_spec_mask, actual_filter_sz);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4268895..21448d3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1405,9 +1405,23 @@ static bool outer_header_zero(u32 *match_criteria)
+ 						  size - 1);
+ }
+ 
++static void set_proto(void *outer_c, void *outer_v, u8 mask, u8 val)
++{
++	MLX5_SET(fte_match_set_lyr_2_4, outer_c, ip_protocol, mask);
++	MLX5_SET(fte_match_set_lyr_2_4, outer_v, ip_protocol, val);
++}
 +
-+		if ((ntohl(ib_spec->ipv6.mask.flow_label)) >= BIT(20) ||
-+		    (ntohl(ib_spec->ipv6.val.flow_label)) >= BIT(20))
-+			return -EINVAL;
++static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
++{
++	MLX5_SET(fte_match_set_lyr_2_4, outer_c, ip_ecn, mask);
++	MLX5_SET(fte_match_set_lyr_2_4, outer_v, ip_ecn, val);
++	MLX5_SET(fte_match_set_lyr_2_4, outer_c, ip_dscp, mask >> 2);
++	MLX5_SET(fte_match_set_lyr_2_4, outer_v, ip_dscp, val >> 2);
++}
++
+ #define LAST_ETH_FIELD vlan_tag
+ #define LAST_IB_FIELD sl
+-#define LAST_IPV4_FIELD dst_ip
++#define LAST_IPV4_FIELD tos
+ #define LAST_IPV6_FIELD dst_ip
+ #define LAST_TCP_UDP_FIELD src_port
+ 
+@@ -1493,6 +1507,12 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 				    dst_ipv4_dst_ipv6.ipv4_layout.ipv4),
+ 		       &ib_spec->ipv4.val.dst_ip,
+ 		       sizeof(ib_spec->ipv4.val.dst_ip));
++
++		set_tos(outer_headers_c, outer_headers_v,
++			ib_spec->ipv4.mask.tos, ib_spec->ipv4.val.tos);
++
++		set_proto(outer_headers_c, outer_headers_v,
++			  ib_spec->ipv4.mask.proto, ib_spec->ipv4.val.proto);
  		break;
- 	case IB_FLOW_SPEC_TCP:
- 	case IB_FLOW_SPEC_UDP:
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5f4000d..7c8a316 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1657,6 +1657,10 @@ struct ib_flow_spec_ipv4 {
- struct ib_flow_ipv6_filter {
- 	u8	src_ip[16];
- 	u8	dst_ip[16];
-+	__be32	flow_label;
-+	u8	next_hdr;
-+	u8	traffic_class;
-+	u8	hop_limit;
- 	/* Must be last */
- 	u8	real_sz[0];
- };
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 6deca2d..7e35241 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -872,8 +872,13 @@ struct ib_uverbs_flow_spec_tcp_udp {
- };
- 
- struct ib_uverbs_flow_ipv6_filter {
--	__u8 src_ip[16];
--	__u8 dst_ip[16];
-+	__u8    src_ip[16];
-+	__u8    dst_ip[16];
-+	__be32	flow_label;
-+	__u8	next_hdr;
-+	__u8	traffic_class;
-+	__u8	hop_limit;
-+	__u8	reserved;
- };
- 
- struct ib_uverbs_flow_spec_ipv6 {
+ 	case IB_FLOW_SPEC_IPV6:
+ 		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv6.mask, LAST_IPV6_FIELD))
 -- 
 2.7.4
 
