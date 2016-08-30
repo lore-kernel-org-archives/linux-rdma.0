@@ -1,99 +1,94 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Tue, 30 Aug 2016 09:53:29 -0400
-Message-ID: <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
-References: <1469800416-125043-1-git-send-email-danielj@mellanox.com>
- <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
- <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com> <20160830074607.GN594@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20160830074607.GN594@leon.nu>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Daniel Jurgens <danielj@mellanox.com>
-Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next V1 1/7] IB/mlx4: Add validation to flow specifications parsing
+Date: Tue, 30 Aug 2016 16:58:30 +0300
+Message-ID: <1472565516-11591-2-git-send-email-leon@kernel.org>
+References: <1472565516-11591-1-git-send-email-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472565516-11591-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 30, 2016 at 3:46 AM, Leon Romanovsky <leon@kernel.org> wrote:
-> On Mon, Aug 29, 2016 at 08:00:32PM -0400, Paul Moore wrote:
->> On Mon, Aug 29, 2016 at 5:48 PM, Daniel Jurgens <danielj@mellanox.com> w=
-rote:
->> > On 8/29/2016 4:40 PM, Paul Moore wrote:
->> >> On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj@mellanox.com> w=
-rote:
->> >>> From: Daniel Jurgens <danielj@mellanox.com>
->> >> ...
->> >>
->> >>> Daniel Jurgens (9):
->> >>>   IB/core: IB cache enhancements to support Infiniband security
->> >>>   IB/core: Enforce PKey security on QPs
->> >>>   selinux lsm IB/core: Implement LSM notification system
->> >>>   IB/core: Enforce security on management datagrams
->> >>>   selinux: Create policydb version for Infiniband support
->> >>>   selinux: Allocate and free infiniband security hooks
->> >>>   selinux: Implement Infiniband PKey "Access" access vector
->> >>>   selinux: Add IB Port SMP access vector
->> >>>   selinux: Add a cache for quicker retreival of PKey SIDs
->> >> Hi Daniel,
->> >>
->> >> My apologies for such a long delay in responding to this latest
->> >> patchset; conferences, travel, and vacation have made for a very busy
->> >> August.  After you posted the v2 patchset we had an off-list
->> >> discussion regarding testing the SELinux/IB integration; unfortunatel=
-y
->> >> we realized that IB hardware would be needed to test this (no IB
->> >> loopback device), but we agreed that having tests would be beneficial=
-.
->> >>
->> >> Have you done any work yet towards adding SELinux/IB tests to the
->> >> selinux-testsuite project?
->> >>
->> >> * https://github.com/SELinuxProject/selinux-testsuite
->> >
->> > Hi Paul, I've not started doing that yet.  I've been waiting for feedb=
-ack of any kind from the RDMA list.  I thought the test updates would be mo=
-re appropriate around the time I'm submitting the changes to the user space=
- utilities to allow labeling the new types.
->>
->> Okay, no problem.  I just want the tests in place and functional when
->> we merge the kernel code.
->
-> Hi Paul,
->
-> IMHO, you can use Soft RoCE (RXE) [1] for it.
->
-> ----
-> Soft RoCE (RXE) - The software RoCE driver
->
-> ib_rxe implements the RDMA transport and registers to the RDMA core
-> device as a kernel verbs provider. It also implements the packet IO
-> layer. On the other hand ib_rxe registers to the Linux netdev stack
-> as a udp encapsulating protocol, in that case RDMA, for sending and
-> receiving packets over any Ethernet device.  This yields a RDMA
-> transport over the UDP/Ethernet network layer forming a RoCEv2
-> compatible device.
->
-> The configuration procedure of the Soft RoCE drivers requires
-> binding to any existing Ethernet network device. This is done with
-> /sys interface.
-> ----
->
-> [1]
-> https://git.kernel.org/cgit/linux/kernel/git/dledford/rdma.git/tree/drive=
-rs/infiniband/sw/rxe
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hi Leon,
+Add validation check that all set fields in flow specification
+are supported by vendor.
 
-It looks like v4.8 will have all the necessary pieces for this, yes?
-Is there any documentation on this other than the git log?  Keep in
-mind I'm looking at this from the SELinux side, I'm very Infiniband
-ignorant at the moment; although Daniel has been very patient in
-walking me through some of the basics.
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-Daniel, does this look like something we might be able to use?
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 2af44c2..624a531 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1361,6 +1361,19 @@ struct mlx4_ib_steering {
+ 	union ib_gid gid;
+ };
+ 
++#define LAST_ETH_FIELD vlan_tag
++#define LAST_IB_FIELD sl
++#define LAST_IPV4_FIELD dst_ip
++#define LAST_TCP_UDP_FIELD src_port
++
++/* Field is the last supported field */
++#define FIELDS_NOT_SUPPORTED(filter, field)\
++	memchr_inv((void *)&filter.field  +\
++		   sizeof(filter.field), 0,\
++		   sizeof(filter) -\
++		   offsetof(typeof(filter), field) -\
++		   sizeof(filter.field))
++
+ static int parse_flow_attr(struct mlx4_dev *dev,
+ 			   u32 qp_num,
+ 			   union ib_flow_spec *ib_spec,
+@@ -1370,6 +1383,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 	switch (ib_spec->type) {
+ 	case IB_FLOW_SPEC_ETH:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->eth.mask, LAST_ETH_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_ETH;
+ 		memcpy(mlx4_spec->eth.dst_mac, ib_spec->eth.val.dst_mac,
+ 		       ETH_ALEN);
+@@ -1379,6 +1395,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 		mlx4_spec->eth.vlan_tag_msk = ib_spec->eth.mask.vlan_tag;
+ 		break;
+ 	case IB_FLOW_SPEC_IB:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ib.mask, LAST_IB_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_IB;
+ 		mlx4_spec->ib.l3_qpn =
+ 			cpu_to_be32(qp_num);
+@@ -1388,6 +1407,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 
+ 	case IB_FLOW_SPEC_IPV4:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->ipv4.mask, LAST_IPV4_FIELD))
++			return -ENOTSUPP;
++
+ 		type = MLX4_NET_TRANS_RULE_ID_IPV4;
+ 		mlx4_spec->ipv4.src_ip = ib_spec->ipv4.val.src_ip;
+ 		mlx4_spec->ipv4.src_ip_msk = ib_spec->ipv4.mask.src_ip;
+@@ -1397,6 +1419,9 @@ static int parse_flow_attr(struct mlx4_dev *dev,
+ 
+ 	case IB_FLOW_SPEC_TCP:
+ 	case IB_FLOW_SPEC_UDP:
++		if (FIELDS_NOT_SUPPORTED(ib_spec->tcp_udp.mask, LAST_TCP_UDP_FIELD))
++			return -ENOTSUPP;
++
+ 		type = ib_spec->type == IB_FLOW_SPEC_TCP ?
+ 					MLX4_NET_TRANS_RULE_ID_TCP :
+ 					MLX4_NET_TRANS_RULE_ID_UDP;
+-- 
+2.7.4
 
---=20
-paul moore
-www.paul-moore.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
