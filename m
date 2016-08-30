@@ -1,163 +1,76 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libibverbs 6/7] Expose RSS related capabilities
-Date: Tue, 30 Aug 2016 18:09:55 +0300
-Message-ID: <1472569796-26162-7-git-send-email-yishaih@mellanox.com>
-References: <1472569796-26162-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH libibverbs 0/7] RSS support
+Date: Tue, 30 Aug 2016 18:09:49 +0300
+Message-ID: <1472569796-26162-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472569796-26162-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Expose RSS related capabilities, it includes:
+Hi Doug,
 
-- QP types that support RSS on the device.
-- Max number of receive work queue indirection tables that
-  could be opened on the device.
-- Max size of a receive work queue indirection table.
-- Max number of work queues of receive type that
-  could be opened on the device.
-- Bit mask of the supported types of hash functions.
-- Bit mask of the supported RX fields that can participate
-  in the RX hashing.
+This patch-set exposes to user space the required objects and verbs in order to
+allow verbs based solution to utilize the RSS offload capability.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- examples/devinfo.c            | 24 ++++++++++++++++++++++++
- include/infiniband/kern-abi.h | 10 ++++++++++
- include/infiniband/verbs.h    | 10 ++++++++++
- src/cmd.c                     | 19 +++++++++++++++++++
- 4 files changed, 63 insertions(+)
+The kernel part for the 5 first patches was already accepted into 4.8, the
+capabilities patch (#6) was sent few days ago into 4.9, reviewed by Sagi
+Grimberg and waits to your acceptance. The last patch adds and updates relevant
+man pages
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index c497650..1d0c2db 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -364,6 +364,28 @@ static void print_tso_caps(const struct ibv_tso_caps *caps)
- 	}
- }
- 
-+static void print_rss_caps(const struct ibv_rss_caps *caps)
-+{
-+	uint32_t unknown_general_caps = ~(1 << IBV_QPT_RAW_PACKET |
-+					  1 << IBV_QPT_UD);
-+	printf("\trss_caps:\n");
-+	printf("\t\tmax_rwq_indirection_tables:\t\t\t%u\n", caps->max_rwq_indirection_tables);
-+	printf("\t\tmax_rwq_indirection_table_size:\t\t\t%u\n", caps->max_rwq_indirection_table_size);
-+	printf("\t\trx_hash_function:\t\t\t\t0x%x\n", caps->rx_hash_function);
-+	printf("\t\trx_hash_fields_mask:\t\t\t\t0x%" PRIX64 "\n", caps->rx_hash_fields_mask);
-+
-+	if (caps->supported_qpts) {
-+		printf("\t\tsupported_qp:\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_RAW_PACKET))
-+			printf("\t\t\t\t\tSUPPORT_RAW_PACKET\n");
-+		if (ibv_is_qpt_supported(caps->supported_qpts, IBV_QPT_UD))
-+			printf("\t\t\t\t\tSUPPORT_UD\n");
-+		if (caps->supported_qpts & unknown_general_caps)
-+			printf("\t\t\t\t\tUnknown flags: 0x%" PRIX32 "\n",
-+			       caps->supported_qpts & unknown_general_caps);
-+	}
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- {
- 	struct ibv_context *ctx;
-@@ -465,6 +487,8 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		printf("\tdevice_cap_flags_ex:\t\t0x%" PRIX64 "\n", device_attr.device_cap_flags_ex);
- 		print_device_cap_flags_ex(device_attr.device_cap_flags_ex);
- 		print_tso_caps(&device_attr.tso_caps);
-+		print_rss_caps(&device_attr.rss_caps);
-+		printf("\tmax_wq_type_rq:\t\t\t%u\n", device_attr.max_wq_type_rq);
- 	}
- 
- 	for (port = 1; port <= device_attr.orig_attr.phys_port_cnt; ++port) {
-diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index 9f7964e..381fd50 100644
---- a/include/infiniband/kern-abi.h
-+++ b/include/infiniband/kern-abi.h
-@@ -271,6 +271,13 @@ struct ibv_odp_caps_resp {
- 	__u32 reserved;
- };
- 
-+struct ibv_rss_caps_resp {
-+	__u32 supported_qpts;
-+	__u32 max_rwq_indirection_tables;
-+	__u32 max_rwq_indirection_table_size;
-+	__u32 reserved;
-+};
-+
- struct ibv_query_device_resp_ex {
- 	struct ibv_query_device_resp base;
- 	__u32 comp_mask;
-@@ -279,6 +286,9 @@ struct ibv_query_device_resp_ex {
- 	__u64 timestamp_mask;
- 	__u64 hca_core_clock;
- 	__u64 device_cap_flags_ex;
-+	struct ibv_rss_caps_resp rss_caps;
-+	__u32  max_wq_type_rq;
-+	__u32 reserved;
- };
- 
- struct ibv_query_port {
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index eab5d1b..e994c21 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -238,6 +238,14 @@ enum ibv_rx_hash_fields {
- 	IBV_RX_HASH_DST_PORT_UDP	= 1 << 7
- };
- 
-+struct ibv_rss_caps {
-+	uint32_t supported_qpts;
-+	uint32_t max_rwq_indirection_tables;
-+	uint32_t max_rwq_indirection_table_size;
-+	uint64_t rx_hash_fields_mask; /* enum ibv_rx_hash_fields */
-+	uint8_t  rx_hash_function; /* enum ibv_rx_hash_function_flags */
-+};
-+
- struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
-@@ -246,6 +254,8 @@ struct ibv_device_attr_ex {
- 	uint64_t		hca_core_clock;
- 	uint64_t		device_cap_flags_ex;
- 	struct ibv_tso_caps	tso_caps;
-+	struct ibv_rss_caps     rss_caps;
-+	uint32_t		max_wq_type_rq;
- };
- 
- enum ibv_mtu {
-diff --git a/src/cmd.c b/src/cmd.c
-index 21f972a..11f6509 100644
---- a/src/cmd.c
-+++ b/src/cmd.c
-@@ -213,6 +213,25 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 			attr->device_cap_flags_ex = resp->device_cap_flags_ex;
- 	}
- 
-+	if (attr_size >= offsetof(struct ibv_device_attr_ex, rss_caps) +
-+			 sizeof(attr->rss_caps)) {
-+		if (resp->response_length >=
-+		    offsetof(struct ibv_query_device_resp_ex, rss_caps) +
-+		    sizeof(resp->rss_caps)) {
-+			attr->rss_caps.supported_qpts = resp->rss_caps.supported_qpts;
-+			attr->rss_caps.max_rwq_indirection_tables = resp->rss_caps.max_rwq_indirection_tables;
-+			attr->rss_caps.max_rwq_indirection_table_size = resp->rss_caps.max_rwq_indirection_table_size;
-+		}
-+	}
-+
-+	if (attr_size >= offsetof(struct ibv_device_attr_ex, max_wq_type_rq) +
-+			 sizeof(attr->max_wq_type_rq)) {
-+		if (resp->response_length >=
-+		    offsetof(struct ibv_query_device_resp_ex, max_wq_type_rq) +
-+		    sizeof(resp->max_wq_type_rq))
-+			attr->max_wq_type_rq = resp->max_wq_type_rq;
-+	}
-+
- 	return 0;
- }
- 
+The series was tested successfully with mlx5 driver (lib, kernel) and can be
+accessed also from my openfabrics GIT at:
+git://openfabrics.org/~yishaih/libibverbs.git branch: rss_v0
+
+Will send shortly the libmlx5 candidate patches as some driver code that
+implements and use the new verbs.
+
+Yishai
+
+In General:
+RSS (Receive Side Scaling) technology allows to spread incoming 
+traffic between different receive descriptor queues.
+Assigning each queue to different CPU core allows to better load 
+balance the incoming traffic and improve performance.
+
+Extra details can be found in each commit message. 
+
+Patches:
+#1: Introduces Work Queue object and its verbs.
+#2: Introduces Receive Work Queue indirection table and its verbs.
+#3: Extends create QP to get a Receive-Work-Queue-indirection table.
+#4: Extends create QP to get RX hash data.
+#5: Tracks asynchronous events on a work queue.
+#6: Exposes RSS related capabilities.
+#7: Updates man pages for RSS usage.
+
+Yishai Hadas (7):
+  Introduce Work Queue object and its verbs
+  Introduce Receive Work Queue indirection table and its verbs
+  Extend create QP to get a Receive Work Queue indirection table
+  Extend create QP to get RX hash data
+  Track asynchronous events on a work queue
+  Expose RSS related capabilities
+  Update man pages for RSS usage
+
+ Makefile.am                    |  10 +-
+ examples/devinfo.c             |  24 ++++
+ include/infiniband/driver.h    |  23 ++++
+ include/infiniband/kern-abi.h  |  92 +++++++++++++-
+ include/infiniband/verbs.h     | 282 ++++++++++++++++++++++++++++++++++++++++-
+ man/ibv_create_qp_ex.3         |  14 +-
+ man/ibv_create_rwq_ind_table.3 |  58 +++++++++
+ man/ibv_create_wq.3            |  59 +++++++++
+ man/ibv_modify_wq.3            |  43 +++++++
+ man/ibv_query_device_ex.3      |  10 ++
+ src/cmd.c                      | 213 ++++++++++++++++++++++++++++++-
+ src/device.c                   |  15 +++
+ src/libibverbs.map             |   5 +
+ 13 files changed, 838 insertions(+), 10 deletions(-)
+ create mode 100644 man/ibv_create_rwq_ind_table.3
+ create mode 100644 man/ibv_create_wq.3
+ create mode 100644 man/ibv_modify_wq.3
+
 -- 
 1.8.3.1
 
