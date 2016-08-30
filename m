@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH libmlx5 3/3] Add support for RoCE v2 UD traffic
-Date: Tue, 30 Aug 2016 20:17:00 +0300
-Message-ID: <1472577420-8592-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH libmlx5 2/3] Avoid setting Infiniband-only fields when link layer is Ethernet
+Date: Tue, 30 Aug 2016 20:16:59 +0300
+Message-ID: <1472577420-8592-3-git-send-email-yishaih@mellanox.com>
 References: <1472577420-8592-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472577420-8592-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,70 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-For RoCE v2 packets, the rlid field of the UD address vector should
-contain the UDP source port.
-The UDP source port value is a random value within the IANA
-recommended range (0xC000 - 0xFFFF).
+Some fields in UD address vector are reserved for link layer Ethernet
+and shouldn't be set for RoCE packets:
+- GRH bit
+- Force Loopback
+- Source LID (lower LMC bits)
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/verbs.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ src/verbs.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/src/verbs.c b/src/verbs.c
-index 99bf23a..e5cdf32 100644
+index 723620c..99bf23a 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -1502,11 +1502,14 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	return ret;
- }
- 
-+#define RROCE_UDP_SPORT_MIN 0xC000
-+#define RROCE_UDP_SPORT_MAX 0xFFFF
- struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- {
- 	struct mlx5_context *ctx = to_mctx(pd->context);
+@@ -1508,6 +1508,7 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
  	struct ibv_port_attr port_attr;
  	struct mlx5_ah *ah;
-+	uint32_t gid_type;
  	uint32_t tmp;
- 	uint8_t grh;
++	uint8_t grh;
  	int is_eth;
-@@ -1534,6 +1537,14 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 
+ 	if (attr->port_num < 1 || attr->port_num > ctx->num_ports)
+@@ -1532,13 +1533,21 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 	if (!ah)
  		return NULL;
  
- 	if (is_eth) {
-+		if (ibv_query_gid_type(pd->context, attr->port_num,
-+				       attr->grh.sgid_index, &gid_type))
-+			goto err;
-+
-+		if (gid_type == IBV_GID_TYPE_ROCE_V2)
-+			ah->av.rlid = htons(rand() % (RROCE_UDP_SPORT_MAX + 1
-+						      - RROCE_UDP_SPORT_MIN)
-+					    + RROCE_UDP_SPORT_MIN);
- 		/* Since RoCE packets must contain GRH, this bit is reserved
- 		 * for RoCE and shouldn't be set.
- 		 */
-@@ -1558,13 +1569,14 @@ struct ibv_ah *mlx5_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 		uint16_t vid;
- 
- 		if (ibv_resolve_eth_l2_from_gid(pd->context, attr, ah->av.rmac,
--						&vid)) {
--			free(ah);
--			return NULL;
--		}
-+						&vid))
-+			goto err;
- 	}
- 
- 	return &ah->ibv_ah;
-+err:
-+	free(ah);
-+	return NULL;
- }
- 
- int mlx5_destroy_ah(struct ibv_ah *ah)
++	if (is_eth) {
++		/* Since RoCE packets must contain GRH, this bit is reserved
++		 * for RoCE and shouldn't be set.
++		 */
++		grh = 0;
++	} else {
++		ah->av.fl_mlid = attr->src_path_bits & 0x7f;
++		ah->av.rlid = htons(attr->dlid);
++		grh = 1;
++	}
+ 	ah->av.stat_rate_sl = (attr->static_rate << 4) | attr->sl;
+-	ah->av.fl_mlid = attr->src_path_bits & 0x7f;
+-	ah->av.rlid = htons(attr->dlid);
+ 	if (attr->is_global) {
+ 		ah->av.tclass = attr->grh.traffic_class;
+ 		ah->av.hop_limit = attr->grh.hop_limit;
+-		tmp = htonl((1 << 30) |
++		tmp = htonl((grh << 30) |
+ 			    ((attr->grh.sgid_index & 0xff) << 20) |
+ 			    (attr->grh.flow_label & 0xfffff));
+ 		ah->av.grh_gid_fl = tmp;
 -- 
 1.8.3.1
 
