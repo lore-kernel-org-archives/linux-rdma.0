@@ -1,32 +1,59 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Tue, 30 Aug 2016 14:47:05 +0200
-Message-ID: <20160830124705.GA7585@lst.de>
-References: <1472464943-29450-1-git-send-email-hch@lst.de> <1472464943-29450-5-git-send-email-hch@lst.de> <df613e79-7c01-5fa6-5586-6f567254224b@sandisk.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 15/15] MAINTAINERS: Update for PVRDMA driver
+Date: Tue, 30 Aug 2016 16:17:19 +0300
+Message-ID: <20160830131719.GA3834@yuval-lap.uk.oracle.com>
+References: <1470266864-16888-1-git-send-email-aditr@vmware.com>
+ <1470266864-16888-16-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <df613e79-7c01-5fa6-5586-6f567254224b-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1470266864-16888-16-git-send-email-aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 29, 2016 at 10:00:33AM -0700, Bart Van Assche wrote:
-> Was it really necessary to remove these two member variables? If the per-PD 
-> global MR is ever removed all the code that uses pd->unsafe_global_rkey 
-> will have to be touched again.
+FWIW
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-No, it won't.  I actually have a tree where it's gone, but as it so
-far only supports mlx4 I didn't want to bother anyone with it.
-
-> Keeping the two global_mr variables would 
-> reduce the number of load instructions the CPU has to perform while mapping 
-> SRP requests.
-
-We can add pointers to the pd in the same places, that should give you
-the same number of load instructions.
+On Wed, Aug 03, 2016 at 04:27:44PM -0700, Adit Ranadive wrote:
+> Add maintainer info for the PVRDMA driver.
+> 
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: George Zhang <georgezhang-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  MAINTAINERS | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 25f4320..eaa7736 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -12511,6 +12511,13 @@ S:	Maintained
+>  F:	drivers/scsi/vmw_pvscsi.c
+>  F:	drivers/scsi/vmw_pvscsi.h
+>  
+> +VMWARE PVRDMA DRIVER
+> +M:	Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> +M:	VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> +L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> +S:	Maintained
+> +F:	drivers/infiniband/hw/pvrdma
+> +
+>  VOLTAGE AND CURRENT REGULATOR FRAMEWORK
+>  M:	Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>  M:	Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
