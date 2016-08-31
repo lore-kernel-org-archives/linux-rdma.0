@@ -1,94 +1,49 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Wed, 31 Aug 2016 12:32:34 +0300
-Message-ID: <bb2a15be-8a22-d889-5eb6-c0f315465507@mellanox.com>
-References: <1472464943-29450-1-git-send-email-hch@lst.de>
- <1472464943-29450-5-git-send-email-hch@lst.de>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
+Date: Wed, 31 Aug 2016 09:56:52 -0400
+Message-ID: <20160831135652.GD12660@htj.duckdns.org>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472464943-29450-5-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1472632647-1525-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Christoph,
+Hello,
 
-> +		idb_rkey = cpu_to_be32(pd->unsafe_global_rkey);
->  	}
->
->  	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
-> @@ -3269,7 +3270,6 @@ static ssize_t srp_create_target(struct device *dev,
->  	target->scsi_host	= target_host;
->  	target->srp_host	= host;
->  	target->lkey		= host->srp_dev->pd->local_dma_lkey;
-> -	target->global_mr	= host->srp_dev->global_mr;
->  	target->cmd_sg_cnt	= cmd_sg_entries;
->  	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
->  	target->allow_ext_sg	= allow_ext_sg;
-> @@ -3524,6 +3524,7 @@ static void srp_add_one(struct ib_device *device)
->  	struct srp_host *host;
->  	int mr_page_shift, p;
->  	u64 max_pages_per_mr;
-> +	unsigned int flags = 0;
->
->  	srp_dev = kzalloc(sizeof(*srp_dev), GFP_KERNEL);
->  	if (!srp_dev)
-> @@ -3558,6 +3559,10 @@ static void srp_add_one(struct ib_device *device)
->  		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
->  	}
->
-> +	if (never_register || !register_always ||
-> +	    (!srp_dev->has_fmr && !srp_dev->has_fr))
-> +		flags |= IB_PD_UNSAFE_GLOBAL_RKEY;
-> +
+On Wed, Aug 31, 2016 at 02:07:24PM +0530, Parav Pandit wrote:
+> rdmacg: IB/core: rdma controller support
+> 
+> Patch is generated and tested against below Doug's linux-rdma
+> git tree.
+> 
+> URL: git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+> Branch: master
+> 
+> Patchset is also compiled and tested against below Tejun's cgroup tree
+> using cgroup v2 mode.
+> URL: git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
+> Branch: master
+> 
+> Overview:
+> Currently user space applications can easily take away all the rdma
+> device specific resources such as AH, CQ, QP, MR etc. Due to which other
+> applications in other cgroup or kernel space ULPs may not even get chance
+> to allocate any rdma resources. This results into service unavailibility.
 
-I don't see the pd allocation with the flags, am I missing something ?
-previous commit does it with flags=0.
+Generally looks good to me.  Please feel free to add
 
->  	if (srp_dev->use_fast_reg) {
->  		srp_dev->max_pages_per_mr =
->  			min_t(u32, srp_dev->max_pages_per_mr,
-> @@ -3577,15 +3582,6 @@ static void srp_add_one(struct ib_device *device)
->  	if (IS_ERR(srp_dev->pd))
->  		goto free_dev;
->
-> -	if (never_register || !register_always ||
-> -	    (!srp_dev->has_fmr && !srp_dev->has_fr)) {
-> -		srp_dev->global_mr = ib_get_dma_mr(srp_dev->pd,
-> -						   IB_ACCESS_LOCAL_WRITE |
-> -						   IB_ACCESS_REMOTE_READ |
-> -						   IB_ACCESS_REMOTE_WRITE);
-> -		if (IS_ERR(srp_dev->global_mr))
-> -			goto err_pd;
-> -	}
->
->  	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
->  		host = srp_add_port(srp_dev, p);
-> @@ -3596,9 +3592,6 @@ static void srp_add_one(struct ib_device *device)
->  	ib_set_client_data(device, &srp_client, srp_dev);
->  	return;
->
-> -err_pd:
-> -	ib_dealloc_pd(srp_dev->pd);
-> -
->  free_dev:
->  	kfree(srp_dev);
->  }
-> @@ -3638,8 +3631,6 @@ static void srp_remove_one(struct ib_device *device, void *client_data)
->  		kfree(host);
->  	}
->
-> -	if (srp_dev->global_mr)
-> -		ib_dereg_mr(srp_dev->global_mr);
->  	ib_dealloc_pd(srp_dev->pd);
+ Acked-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
+for the whole series.  Also, once reviews from rdma side are done,
+please let me know what's the preferable way to route the patchset.  I
+can route it through the cgroup tree or it can go through rdma one.
 
-thanks,
-Max.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks a lot for the persisence!
+
+-- 
+tejun
