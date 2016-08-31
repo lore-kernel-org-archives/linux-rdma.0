@@ -1,62 +1,240 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/7] Introduce Work Queue object and its verbs
-Date: Wed, 31 Aug 2016 10:22:54 +0300
-Message-ID: <a96c9044-645c-1839-3add-159c74fe566f@dev.mellanox.co.il>
-References: <1472569796-26162-1-git-send-email-yishaih@mellanox.com>
- <1472569796-26162-2-git-send-email-yishaih@mellanox.com>
- <778f70c0-d5e8-030f-8e47-3d16772e2faf@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <778f70c0-d5e8-030f-8e47-3d16772e2faf-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Parav Pandit <pandit.parav@gmail.com>
+Subject: [PATCHv12 2/3] IB/core: added support to use rdma cgroup controller
+Date: Wed, 31 Aug 2016 14:07:26 +0530
+Message-ID: <1472632647-1525-3-git-send-email-pandit.parav@gmail.com>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com
+Cc: corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org, pandit.parav@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/31/2016 9:57 AM, Sagi Grimberg wrote:
->
->> +/*
->> + * Work Queue. QP can be created without internal WQs "packaged"
->> inside it,
->> + * this QP can be configured to use "external" WQ object as its
->> + * receive/send queue.
->> + * WQ associated (many to one) with Completion Queue it owns WQ
->> properties
->> + * (PD, WQ size etc).
->> + * WQ of type IBV_WQT_RQ:
->> + * - Contains receive WQEs, in this case its PD serves as scatter as
->> well.
->> + * - Exposes post receive function to be used to post a list of work
->> + *   requests (WRs) to its receive queue.
->> + */
->> +struct ibv_wq {
->> +    struct ibv_context     *context;
->> +    void               *wq_context;
->> +    struct    ibv_pd           *pd;
->> +    struct    ibv_cq           *cq;
->> +    uint32_t        wq_num;
->> +    uint32_t        handle;
->> +    enum ibv_wq_state       state;
->> +    enum ibv_wq_type    wq_type;
->> +    int (*post_recv)(struct ibv_wq *current,
->> +             struct ibv_recv_wr *recv_wr,
->> +             struct ibv_recv_wr **bad_recv_wr);
->
-> What was the reason not to go with the normal ibv_context_ops callout
-> scheme?
->
+Added support APIs for IB core to register/unregister every IB/RDMA
+device with rdma cgroup for tracking verbs and hw resources.
+IB core registers with rdma cgroup controller.
+Added support APIs for uverbs layer to make use of rdma controller.
+Added uverbs layer to perform resource charge/uncharge functionality.
+Added support during query_device uverb operation to ensure it
+returns resource limits by honoring rdma cgroup configured limits.
 
-This is a data path flow, using the extended ops layout (i.e 
-verbs_get_ctx) to find the provider pointer in each call is redundant 
-and expensive. Same mechanism was used for ibv_cq_ex which was the first 
-extended object that was used in the data path. Please note that from 
-application point of view there is the static inline function 
-ibv_post_wq_recv that should be used, so its code will be consistent 
-with other verbs around. (See also ibv_start_poll, ibv_next_poll usage 
-for ibv_cq_ex)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
+---
+ drivers/infiniband/core/Makefile    |  1 +
+ drivers/infiniband/core/cgroup.c    | 93 +++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/core_priv.h | 41 ++++++++++++++++
+ drivers/infiniband/core/device.c    | 10 ++++
+ 4 files changed, 145 insertions(+)
+ create mode 100644 drivers/infiniband/core/cgroup.c
+
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index edaae9f..e426ac8 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -13,6 +13,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
++ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+ 
+ ib_cm-y :=			cm.o
+ 
+diff --git a/drivers/infiniband/core/cgroup.c b/drivers/infiniband/core/cgroup.c
+new file mode 100644
+index 0000000..ffe7234
+--- /dev/null
++++ b/drivers/infiniband/core/cgroup.c
+@@ -0,0 +1,93 @@
++/*
++ * Copyright (C) 2016 Parav Pandit <pandit.parav@gmail.com>
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include "core_priv.h"
++
++/*
++ * resource table definition as to be seen by the user.
++ * Need to add entries to it when more resources are
++ * added/defined at IB verb/core layer.
++ */
++
++/**
++ * ib_device_register_rdmacg - register with rdma cgroup.
++ * @device: device to register to participate in resource
++ *          accounting by rdma cgroup.
++ *
++ * Register with the rdma cgroup. Should be called before
++ * exposing rdma device to user space applications to avoid
++ * resource accounting leak.
++ * Returns 0 on success or otherwise failure code.
++ */
++int ib_device_register_rdmacg(struct ib_device *device)
++{
++	device->cg_device.name = device->name;
++	return rdmacg_register_device(&device->cg_device);
++}
++
++/**
++ * ib_device_unregister_rdmacg - unregister with rdma cgroup.
++ * @device: device to unregister.
++ *
++ * Unregister with the rdma cgroup. Should be called after
++ * all the resources are deallocated, and after a stage when any
++ * other resource allocation by user application cannot be done
++ * for this device to avoid any leak in accounting.
++ */
++void ib_device_unregister_rdmacg(struct ib_device *device)
++{
++	rdmacg_unregister_device(&device->cg_device);
++}
++
++int ib_rdmacg_try_charge(struct ib_rdmacg_object *cg_obj,
++			 struct ib_device *device,
++			 enum rdmacg_resource_type resource_index)
++{
++	return rdmacg_try_charge(&cg_obj->cg, &device->cg_device,
++				 resource_index);
++}
++EXPORT_SYMBOL(ib_rdmacg_try_charge);
++
++void ib_rdmacg_uncharge(struct ib_rdmacg_object *cg_obj,
++			struct ib_device *device,
++			enum rdmacg_resource_type resource_index)
++{
++	rdmacg_uncharge(cg_obj->cg, &device->cg_device,
++			resource_index);
++}
++EXPORT_SYMBOL(ib_rdmacg_uncharge);
++
++void ib_rdmacg_query_limit(struct ib_device *device, int *limits)
++{
++	rdmacg_query_limit(&device->cg_device, limits);
++}
++EXPORT_SYMBOL(ib_rdmacg_query_limit);
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 19d499d..d1e432e 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -35,6 +35,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
++#include <linux/cgroup_rdma.h>
+ 
+ #include <rdma/ib_verbs.h>
+ 
+@@ -124,6 +125,46 @@ int ib_cache_setup_one(struct ib_device *device);
+ void ib_cache_cleanup_one(struct ib_device *device);
+ void ib_cache_release_one(struct ib_device *device);
+ 
++#ifdef CONFIG_CGROUP_RDMA
++int ib_device_register_rdmacg(struct ib_device *device);
++void ib_device_unregister_rdmacg(struct ib_device *device);
++
++int ib_rdmacg_try_charge(struct ib_rdmacg_object *cg_obj,
++			 struct ib_device *device,
++			 enum rdmacg_resource_type resource_index);
++
++void ib_rdmacg_uncharge(struct ib_rdmacg_object *cg_obj,
++			struct ib_device *device,
++			enum rdmacg_resource_type resource_index);
++
++void ib_rdmacg_query_limit(struct ib_device *device, int *limits);
++#else
++static inline int ib_device_register_rdmacg(struct ib_device *device)
++{ return 0; }
++
++static inline void ib_device_unregister_rdmacg(struct ib_device *device)
++{ }
++
++static inline int ib_rdmacg_try_charge(struct ib_rdmacg_object *cg_obj,
++				       struct ib_device *device,
++				       enum rdmacg_resource_type resource_index)
++{ return 0; }
++
++static inline void ib_rdmacg_uncharge(struct ib_rdmacg_object *cg_obj,
++				      struct ib_device *device,
++				      enum rdmacg_resource_type resource_index)
++{ }
++
++static inline void ib_rdmacg_query_limit(struct ib_device *device,
++					 int *limits)
++{
++	int i;
++
++	for (i = 0; i < RDMACG_RESOURCE_MAX; i++)
++		limits[i] = S32_MAX;
++}
++#endif
++
+ static inline bool rdma_is_upper_dev_rcu(struct net_device *dev,
+ 					 struct net_device *upper)
+ {
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 760ef60..08e3259 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -363,10 +363,18 @@ int ib_register_device(struct ib_device *device,
+ 		goto out;
+ 	}
+ 
++	ret = ib_device_register_rdmacg(device);
++	if (ret) {
++		pr_warn("Couldn't register device with rdma cgroup\n");
++		ib_cache_cleanup_one(device);
++		goto out;
++	}
++
+ 	memset(&device->attrs, 0, sizeof(device->attrs));
+ 	ret = device->query_device(device, &device->attrs, &uhw);
+ 	if (ret) {
+ 		pr_warn("Couldn't query the device attributes\n");
++		ib_device_unregister_rdmacg(device);
+ 		ib_cache_cleanup_one(device);
+ 		goto out;
+ 	}
+@@ -375,6 +383,7 @@ int ib_register_device(struct ib_device *device,
+ 	if (ret) {
+ 		pr_warn("Couldn't register device %s with driver model\n",
+ 			device->name);
++		ib_device_unregister_rdmacg(device);
+ 		ib_cache_cleanup_one(device);
+ 		goto out;
+ 	}
+@@ -424,6 +433,7 @@ void ib_unregister_device(struct ib_device *device)
+ 
+ 	mutex_unlock(&device_mutex);
+ 
++	ib_device_unregister_rdmacg(device);
+ 	ib_device_unregister_sysfs(device);
+ 	ib_cache_cleanup_one(device);
+ 
+-- 
+1.8.3.1
