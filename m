@@ -1,65 +1,58 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/5] IB/hfi1: Fix AHG KDETH Intr shift
-Date: Wed, 31 Aug 2016 15:26:35 +0000
-Message-ID: <1472657193.2332.1.camel@intel.com>
-References: <20160831141841.27232.61621.stgit@scvm10.sc.intel.com>
-         <20160831142425.27232.97663.stgit@scvm10.sc.intel.com>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Wed, 31 Aug 2016 17:40:07 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
+ <20160828182715.GA12783@obsidianresearch.com>
+ <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160831142425.27232.97663.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160830060842.GJ594-2ukJVAZIZ/Y@public.gmane.org>
 Content-Language: en-US
-Content-ID: <304E492A3F5C4449B8557A5B17098C36-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Chegondi, Harish" <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Haralanov, Mitko" <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John, Jubin" <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rimmer, Todd" <todd.rimm>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhpcyBwYXRjaCBzaG91bGQgc2F5Og0KDQpGcm9tOiBKdWJpbiBKb2huIDxqdWJpbi5qb2huQGlu
-dGVsLmNvbT4NCg0KTm90IHN1cmUgd2h5IGl0IGdvdCBjdXQgb2ZmLiBMZXQgbWUga25vdyBpZiB5
-b3Ugd2FudCBhIHYyIG9yIGlmIHlvdQ0KanVzdCB3YW50IHRvIHRhY2sgdGhhdCBvbiB5b3Vyc2Vs
-Zi4NCg0KLURlbm55DQoNCg0KT24gV2VkLCAyMDE2LTA4LTMxIGF0IDA3OjI0IC0wNzAwLCBEZW5u
-aXMgRGFsZXNzYW5kcm8gd3JvdGU6DQo+IEluIHRoZSBzZXRfdHhyZXFfaGVhZGVyX2FoZygpLCBU
-aGUgS0RFVEggSW50ciBiaXQgaXMgb2J0YWluZWQgZnJvbQ0KPiB0aGUNCj4gaGVhZGVyIGluIHRo
-ZSB1c2VyIHNkbWEgcmVxdWVzdCB1c2luZyBhIEtERVRIX0dFVCBzaGlmdCBhbmQgbWFzaw0KPiBt
-YWNyby4NCj4gVGhpcyB2YWx1ZSBpcyB0aGVuIGZ1dGhlciByaWdodCBzaGlmdGVkIGJ5IDE2IGNh
-dXNpbmcgdXMgdG8gbG9zZSB0aGUNCj4gdmFsdWUgaS5lIGl0IGlzIHNoaWZ0ZWQgdG8gemVybywg
-bGVhZGluZyB0byB0aGUgZm9sbG93aW5nDQo+IHNtYXRjaCB3YXJuaW5nOg0KPiBkcml2ZXJzL2lu
-ZmluaWJhbmQvaHcvaGZpMS91c2VyX3NkbWEuYzoxNDgyIHNldF90eHJlcV9oZWFkZXJfYWhnKCkN
-Cj4gd2FybjogbWFzayBhbmQgc2hpZnQgdG8gemVybw0KPiANCj4gVGhlIEludHIgYml0IHNob3Vs
-ZCBiZSBsZWZ0IHNoaWZ0ZWQgaW50byBpdHMgY29ycmVjdCBwb3NpdGlvbiBpbiB0aGUNCj4gS0RF
-VEggaGVhZGVyIGJlZm9yZSB0aGUgQUhHIHVwZGF0ZS4NCj4gDQo+IFJlcG9ydGVkLWJ5OiBEYW4g
-Q2FycGVudGVyIDxkYW4uY2FycGVudGVyQG9yYWNsZS5jb20+DQo+IFJldmlld2VkLWJ5OiBNaXRr
-byBIYXJhbGFub3YgPG1pdGtvLmhhcmFsYW5vdkBpbnRlbC5jb20+DQo+IFJldmlld2VkLWJ5OiBI
-YXJpc2ggQ2hlZ29uZGkgPGhhcmlzaC5jaGVnb25kaUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYt
-Ynk6IEp1YmluIEpvaG4gPGp1YmluLmpvaG5AaW50ZWwuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBE
-ZW5uaXMgRGFsZXNzYW5kcm8gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+IC0tLQ0K
-PiDCoGRyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL3VzZXJfc2RtYS5jIHzCoMKgwqDCoDUgKysr
-Ky0NCj4gwqAxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkN
-Cj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS91c2VyX3NkbWEu
-Yw0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL3VzZXJfc2RtYS5jDQo+IGluZGV4IDBl
-Y2YyNzkuLjE2OTQwMzcgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkx
-L3VzZXJfc2RtYS5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL3VzZXJfc2Rt
-YS5jDQo+IEBAIC0xMTQsNiArMTE0LDggQEAgTU9EVUxFX1BBUk1fREVTQyhzZG1hX2NvbXBfc2l6
-ZSwgIlNpemUgb2YgVXNlcg0KPiBTRE1BIGNvbXBsZXRpb24gcmluZy4gRGVmYXVsdDogMTINCj4g
-wqAjZGVmaW5lIEtERVRIX0hDUkNfTE9XRVJfU0hJRlTCoMKgwqDCoDI0DQo+IMKgI2RlZmluZSBL
-REVUSF9IQ1JDX0xPV0VSX01BU0vCoMKgwqDCoMKgMHhmZg0KPiDCoA0KPiArI2RlZmluZSBBSEdf
-S0RFVEhfSU5UUl9TSElGVCAxMg0KPiArDQo+IMKgI2RlZmluZSBQQkMyTFJIKHgpICgoKCh4KSAm
-IDB4ZmZmKSA8PCAyKSAtIDQpDQo+IMKgI2RlZmluZSBMUkgyUEJDKHgpICgoKCh4KSA+PiAyKSAr
-IDEpICYgMHhmZmYpDQo+IMKgDQo+IEBAIC0xNDgwLDcgKzE0ODIsOCBAQCBzdGF0aWMgaW50IHNl
-dF90eHJlcV9oZWFkZXJfYWhnKHN0cnVjdA0KPiB1c2VyX3NkbWFfcmVxdWVzdCAqcmVxLA0KPiDC
-oAkJLyogQ2xlYXIgS0RFVEguU0ggb24gbGFzdCBwYWNrZXQgKi8NCj4gwqAJCWlmICh1bmxpa2Vs
-eSh0eC0+ZmxhZ3MgJiBUWFJFUV9GTEFHU19SRVFfTEFTVF9QS1QpKQ0KPiB7DQo+IMKgCQkJdmFs
-IHw9IGNwdV90b19sZTE2KEtERVRIX0dFVChoZHItDQo+ID5rZGV0aC52ZXJfdGlkX29mZnNldCwN
-Cj4gLQkJCQkJCQkJSU5UUg0KPiApID4+IDE2KTsNCj4gKwkJCQkJCcKgwqDCoMKgwqBJTlRSKSA8
-PA0KPiArCQkJCQnCoMKgwqBBSEdfS0RFVEhfSU5UUl9TSElGVCk7DQo+IMKgCQkJdmFsICY9IGNw
-dV90b19sZTE2KH4oMVUgPDwgMTMpKTsNCj4gwqAJCQlBSEdfSEVBREVSX1NFVChyZXEtPmFoZywg
-ZGlmZiwgNywgMTYsIDE0LA0KPiB2YWwpOw0KPiDCoAkJfSBlbHNlIHsNCj4gDQo+IC0tDQo+IFRv
-IHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBs
-aW51eC1yZG1hIiANCj4gaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
-Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdMKgwqBodHRwOi8vdmdlci5r
-ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWw=
+On Tue, Aug 30, 2016 at 09:08:42AM +0300, Leon Romanovsky wrote:
+>Doug is a busy person and there is a limit on how fast he can handle it.
+>He is already buried under his internal and external responsibilities.
+
+>Placing him responsible for vendors code will add extra step, extra complexity to the chain and will hurt kernel/libibverbs flows.
+
+I agree with Leon on this. Having all of the vendor user libraries bundled in with the core verbs code is just a bad idea.
+Most of the H/W vendors I have talked with would prefer that vendor libraries be distributed separately from the core 
+libibverbs code. The biggest reason for this is to allow vendors to provide incremental updates, bug fixes, etc. to their
+customers without having to distribute/update a version of the entire package and/or wait for some third party maintainer
+to get around to releasing a new package.
+
+If everything is bundled together, it makes providing incremental updates very problematic. 
+For example, say vendor A needs to distribute a simple bug fix in their code to a customer so they make a copy of
+the bundled package, add their fix and give it to a customer. Seems simple, right ?
+But then vendor B has a similar situation and distributes a package with only a fix to their library, but when the customer
+Installs it, it overwrites the package provided by vendor A and removes their bug fix. 
+This kind of thing will end up as a huge disaster for customers and vendors that are trying to support their customers.
+
+So I see some options to avoid this mess. 
+1.) Keep the vendor user library packages separate from the core libibverbs code, as it is today. 
+2.) Allow a vendor the ability to distribute their library package separately from the bundled package.
+3.) Allow the ability for a vendor to distribute an update package that just contains their library code to replace the
+version of that code that is in the bundled package. I think that OFI, for example, has something like this
+to avoid this kind of mess.
+
+My 2 cents,
+
+Woody
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
