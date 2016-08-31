@@ -1,109 +1,94 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 31 Aug 2016 12:38:36 +0300
-Message-ID: <20160831093836.GC3694@leon.nu>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 4/6] IB/srp: use IB_PD_UNSAFE_GLOBAL_RKEY
+Date: Wed, 31 Aug 2016 12:32:34 +0300
+Message-ID: <bb2a15be-8a22-d889-5eb6-c0f315465507@mellanox.com>
+References: <1472464943-29450-1-git-send-email-hch@lst.de>
+ <1472464943-29450-5-git-send-email-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vOmOzSkFvhd7u8Ms"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>
-Cc: cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, matanb@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="windows-1255"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472464943-29450-5-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Christoph,
 
---vOmOzSkFvhd7u8Ms
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Aug 31, 2016 at 02:07:25PM +0530, Parav Pandit wrote:
-> Added rdma cgroup controller that does accounting, limit enforcement
-> on rdma/IB verbs and hw resources.
+> +		idb_rkey = cpu_to_be32(pd->unsafe_global_rkey);
+>  	}
 >
-> Added rdma cgroup header file which defines its APIs to perform
-> charing/uncharing functionality. It also defined APIs for RDMA/IB
-> stack for device registration. Devices which are registered will
-> participate in controller functions of accounting and limit
-> enforcements. It define rdmacg_device structure to bind IB stack
-> and RDMA cgroup controller.
+>  	indirect_hdr->table_desc.va = cpu_to_be64(req->indirect_dma_addr);
+> @@ -3269,7 +3270,6 @@ static ssize_t srp_create_target(struct device *dev,
+>  	target->scsi_host	= target_host;
+>  	target->srp_host	= host;
+>  	target->lkey		= host->srp_dev->pd->local_dma_lkey;
+> -	target->global_mr	= host->srp_dev->global_mr;
+>  	target->cmd_sg_cnt	= cmd_sg_entries;
+>  	target->sg_tablesize	= indirect_sg_entries ? : cmd_sg_entries;
+>  	target->allow_ext_sg	= allow_ext_sg;
+> @@ -3524,6 +3524,7 @@ static void srp_add_one(struct ib_device *device)
+>  	struct srp_host *host;
+>  	int mr_page_shift, p;
+>  	u64 max_pages_per_mr;
+> +	unsigned int flags = 0;
 >
-> RDMA resources are tracked using resource pool. Resource pool is per
-> device, per cgroup entity which allows setting up accounting limits
-> on per device basis.
+>  	srp_dev = kzalloc(sizeof(*srp_dev), GFP_KERNEL);
+>  	if (!srp_dev)
+> @@ -3558,6 +3559,10 @@ static void srp_add_one(struct ib_device *device)
+>  		srp_dev->use_fmr = !srp_dev->use_fast_reg && srp_dev->has_fmr;
+>  	}
 >
-> Currently resources are defined by the RDMA cgroup.
+> +	if (never_register || !register_always ||
+> +	    (!srp_dev->has_fmr && !srp_dev->has_fr))
+> +		flags |= IB_PD_UNSAFE_GLOBAL_RKEY;
+> +
+
+I don't see the pd allocation with the flags, am I missing something ?
+previous commit does it with flags=0.
+
+>  	if (srp_dev->use_fast_reg) {
+>  		srp_dev->max_pages_per_mr =
+>  			min_t(u32, srp_dev->max_pages_per_mr,
+> @@ -3577,15 +3582,6 @@ static void srp_add_one(struct ib_device *device)
+>  	if (IS_ERR(srp_dev->pd))
+>  		goto free_dev;
 >
-> Resource pool is created/destroyed dynamically whenever
-> charging/uncharging occurs respectively and whenever user
-> configuration is done. Its a tradeoff of memory vs little more code
-> space that creates resource pool object whenever necessary, instead of
-> creating them during cgroup creation and device registration time.
+> -	if (never_register || !register_always ||
+> -	    (!srp_dev->has_fmr && !srp_dev->has_fr)) {
+> -		srp_dev->global_mr = ib_get_dma_mr(srp_dev->pd,
+> -						   IB_ACCESS_LOCAL_WRITE |
+> -						   IB_ACCESS_REMOTE_READ |
+> -						   IB_ACCESS_REMOTE_WRITE);
+> -		if (IS_ERR(srp_dev->global_mr))
+> -			goto err_pd;
+> -	}
 >
-> Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
-> ---
+>  	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
+>  		host = srp_add_port(srp_dev, p);
+> @@ -3596,9 +3592,6 @@ static void srp_add_one(struct ib_device *device)
+>  	ib_set_client_data(device, &srp_client, srp_dev);
+>  	return;
+>
+> -err_pd:
+> -	ib_dealloc_pd(srp_dev->pd);
+> -
+>  free_dev:
+>  	kfree(srp_dev);
+>  }
+> @@ -3638,8 +3631,6 @@ static void srp_remove_one(struct ib_device *device, void *client_data)
+>  		kfree(host);
+>  	}
+>
+> -	if (srp_dev->global_mr)
+> -		ib_dereg_mr(srp_dev->global_mr);
+>  	ib_dealloc_pd(srp_dev->pd);
 
-<...>
 
-> +
-> +static struct rdmacg_resource_pool *
-> +get_cg_rpool_locked(struct rdma_cgroup *cg, struct rdmacg_device *device)
-> +{
-> +	struct rdmacg_resource_pool *rpool;
-> +
-> +	rpool = find_cg_rpool_locked(cg, device);
-> +	if (rpool)
-> +		return rpool;
-> +
-> +	rpool = kzalloc(sizeof(*rpool), GFP_KERNEL);
-> +	if (!rpool)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	rpool->device = device;
-> +	set_all_resource_max_limit(rpool);
-> +
-> +	INIT_LIST_HEAD(&rpool->cg_node);
-> +	INIT_LIST_HEAD(&rpool->dev_node);
-> +	list_add_tail(&rpool->cg_node, &cg->rpools);
-> +	list_add_tail(&rpool->dev_node, &device->rpools);
-> +	return rpool;
-> +}
-
-<...>
-
-> +	for (p = cg; p; p = parent_rdmacg(p)) {
-> +		rpool = get_cg_rpool_locked(p, device);
-> +		if (IS_ERR_OR_NULL(rpool)) {
-
-get_cg_rpool_locked always returns !NULL (error, or pointer)
-
-> +			ret = PTR_ERR(rpool);
-> +			goto err;
-
-I didn't review the whole series yet.
-
---vOmOzSkFvhd7u8Ms
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXxqWcAAoJEORje4g2clinatsP/RLqZ82RES+fIjFWRfe0kUE8
-W1sYsHLVjsUeFgaBSnd8WUy4pnNN5uJze+OX5v8G4mMTDbamKpiYXVM3SDiYDSqY
-npv38kH+p8tjDGduyQWkUOy1rJTokTITGRvcURndkHI4YCjQasgigSXl4WTP3k/K
-qSPvmQ126tgMz0RjgOGscyZDAVybowehwclzTvwm6Qqg6dSAc3cljxQskP0+QuKb
-PpL7vAjj0E3Kv1j+YgE23dHVnZuWclHCrv40oL2FGHQWR8vfAxnaRG0k9KNaSiuF
-n5u8DSvk8bhA2Y6ktj+If2JDy5j7bj41Tb3Jg3EcnLcNmMgxfiWadeG1VYEZDZRX
-M5M+SjTOsOOYZ+/5eCeigq6e54evYgBKLtGr+wdbXLmdnv9L9RtasfRHJHgnKqpX
-6le2i8O3i0+qVAxbJzfHoFma9FXCixwXEkEN7hQw13nKL7zyth6ddxHhj16K6tXV
-BZwvpQCAqHoDum/iAAFRijO42oFrgCaYb3RqnOYNWZKDda4NI2marWAqJSwLMK4y
-LeaDfCKw8OiELCl+Uk9VIqvH0kJNcDoXDxiaMKg89GKkLRrprHOG3VZ2tk57dpPb
-Q+zJKRgsIeou6PZTS9tERAdDxDSseT8kOgo9DUZH5vPzf5PoRWpb5ZTM87UzSU9V
-FuHt1z0kAnYXYxtF0+mJ
-=5lQa
------END PGP SIGNATURE-----
-
---vOmOzSkFvhd7u8Ms--
+thanks,
+Max.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
