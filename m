@@ -1,49 +1,71 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCHv12 0/3] rdmacg: IB/core: rdma controller support
-Date: Wed, 31 Aug 2016 09:56:52 -0400
-Message-ID: <20160831135652.GD12660@htj.duckdns.org>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/5] IB/hfi1: Fix SGE length for misaligned PIO copy
+Date: Wed, 31 Aug 2016 07:24:20 -0700
+Message-ID: <20160831142417.27232.19647.stgit@scvm10.sc.intel.com>
+References: <20160831141841.27232.61621.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1472632647-1525-1-git-send-email-pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160831141841.27232.61621.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On Wed, Aug 31, 2016 at 02:07:24PM +0530, Parav Pandit wrote:
-> rdmacg: IB/core: rdma controller support
-> 
-> Patch is generated and tested against below Doug's linux-rdma
-> git tree.
-> 
-> URL: git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
-> Branch: master
-> 
-> Patchset is also compiled and tested against below Tejun's cgroup tree
-> using cgroup v2 mode.
-> URL: git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
-> Branch: master
-> 
-> Overview:
-> Currently user space applications can easily take away all the rdma
-> device specific resources such as AH, CQ, QP, MR etc. Due to which other
-> applications in other cgroup or kernel space ULPs may not even get chance
-> to allocate any rdma resources. This results into service unavailibility.
+When trying to align the source pointer and there's a byte carry
+in an SGE copy, bytes are borrowed from the next quad-word X to
+complete the required quad-word copy. Then, the SGE length is
+reduced by the number of borrowed bytes. After this, if the
+remaining number of bytes from quad-word X (extra bytes) is
+greater than the new SGE length, the number of extra bytes needs
+to be updated to the new SGE length. Otherwise, when the
+SGE length gets updated again after the extra bytes are read to
+create the new byte carry, it goes negative, which then becomes
+a very large number as the SGE length is an unsigned integer.
+This causes SGE buffer to be over-read.
 
-Generally looks good to me.  Please feel free to add
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/hfi1/pio_copy.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
- Acked-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+diff --git a/drivers/infiniband/hw/hfi1/pio_copy.c b/drivers/infiniband/hw/hfi1/pio_copy.c
+index 8c25e1b..3a1ef30 100644
+--- a/drivers/infiniband/hw/hfi1/pio_copy.c
++++ b/drivers/infiniband/hw/hfi1/pio_copy.c
+@@ -771,6 +771,9 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
+ 			read_extra_bytes(pbuf, from, to_fill);
+ 			from += to_fill;
+ 			nbytes -= to_fill;
++			/* may not be enough valid bytes left to align */
++			if (extra > nbytes)
++				extra = nbytes;
+ 
+ 			/* ...now write carry */
+ 			dest = pbuf->start + (pbuf->qw_written * sizeof(u64));
+@@ -798,6 +801,15 @@ void seg_pio_copy_mid(struct pio_buf *pbuf, const void *from, size_t nbytes)
+ 			read_low_bytes(pbuf, from, extra);
+ 			from += extra;
+ 			nbytes -= extra;
++			/*
++			 * If no bytes are left, return early - we are done.
++			 * NOTE: This short-circuit is *required* because
++			 * "extra" may have been reduced in size and "from"
++			 * is not aligned, as required when leaving this
++			 * if block.
++			 */
++			if (nbytes == 0)
++				return;
+ 		}
+ 
+ 		/* at this point, from is QW aligned */
 
-for the whole series.  Also, once reviews from rdma side are done,
-please let me know what's the preferable way to route the patchset.  I
-can route it through the cgroup tree or it can go through rdma one.
-
-Thanks a lot for the persisence!
-
--- 
-tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
