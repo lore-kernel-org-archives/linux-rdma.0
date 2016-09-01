@@ -1,40 +1,72 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 1 Sep 2016 19:14:38 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7DE04AA2@ORSMSX115.amr.corp.intel.com>
-References: <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com>
- <20160831200336.GA4134@obsidianresearch.com>
- <20160901082643.GA19799@infradead.org>
- <20160901175230.GD20472@obsidianresearch.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
+ commands
+Date: Thu, 1 Sep 2016 17:09:31 +0000
+Message-ID: <1472749767.16467.25.camel@intel.com>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+         <1471987907-6336-7-git-send-email-leon@kernel.org>
+         <1472738739.16467.8.camel@intel.com>
+         <20160901164624.GC6479@obsidianresearch.com>
+         <20160901165552.GE21847@leon.nu>
+         <20160901170742.GA20098@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160901175230.GD20472-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160901170742.GA20098-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
+Content-ID: <B9A1156AF41755448FDBB4BDA37A0B61-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.wein>
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 10:53 AM, Jason Gunthorpe:
-
->Though, it kind of makes rdma-plumbing the new OFED so I'd rather like to see us avoid forking anything.
-
->I think Robert and Leon have come around to the idea anyhow. More people are on board than not so this is happening on way or another...
-
-It certainly has the possibility of making the OFA community OFED packaging and install simpler with less user-space packages to compile/install. 
-
-In addition to adding something like .updates to allow incremental updates of individual vendor libraries without having to replace everything,
-it would also be desirable to allow someone to selectively build and install a subset of libraries.  For example, in the kernel, there is a config file
-that allows someone to not build drivers for hardware or kernel features they are not planning on using. People often use that capability so they
-can build stripped down versions of the kernel to use in embedded environments where disk and memory space constraints exist. 
+T24gVGh1LCAyMDE2LTA5LTAxIGF0IDExOjA3IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDA3OjU1OjUyUE0gKzAzMDAsIExlb24gUm9tYW5v
+dnNreSB3cm90ZToNCj4gPiBPbiBUaHUsIFNlcCAwMSwgMjAxNiBhdCAxMDo0NjoyNEFNIC0wNjAw
+LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBPbiBUaHUsIFNlcCAwMSwgMjAxNiBhdCAw
+MjowNTo0NFBNICswMDAwLCBEYWxlc3NhbmRybywgRGVubmlzDQo+ID4gPiB3cm90ZToNCj4gPiA+
+IA0KPiA+ID4gPiA+ICsvKiBhbGxvY2F0ZSBIRkkgYW5kIGNvbnRleHQgKi8NCj4gPiA+ID4gPiAr
+I2RlZmluZSBIRkkxX0NNRF9BU1NJR05fQ1RYVD8/Pz8/Pz8/Pz8oSEZJMV9DTURfQkFTRSArIDB4
+MDEpDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIGlzIGEgbWlub3IgaXNzdWUsIGJ1dCB0aGUgcHJv
+YmxlbSBoZXJlIGlzIHdoZW4gd2UgYnVpbGQNCj4gPiA+ID4gUFNNDQo+ID4gPiA+IGFnYWluc3Qg
+dGhpcyBrZXJuZWwgaXQgd2lsbCBubyBsb25nZXIgd29yayBmb3Igb2xkZXIga2VybmVscw0KPiA+
+ID4gPiBiZWNhdXNlDQo+ID4gPiA+IHRoZSB2YWx1ZSBvZiBIRkkxX0NNRF9BU1NJR05fQ1RYVCBo
+YXMgY2hhbmdlZCB3aGVyZSBhcyBpdCB1c2VkDQo+ID4gPiA+IHRvIGJlIDEuDQo+ID4gPiA+IFJp
+Z2h0IG5vdyBQU00gaXMgYmFja3dhcmRzIGNvbXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4g
+PiA+ID4gY29tcGF0aWJpbGl0eS4NCj4gPiA+IA0KPiA+ID4gV2hhdD8gU29tZW9uZSByZW51bWJl
+cmQgYW4gaW9jdGw/IFdoZW4/IFdoeT8gSG93Pw0KPiA+ID4gDQo+ID4gPiBXYXMgdGhpcyBpb2N0
+bCBldmVyIGluIGEgbWFpbmxpbmUgbm9uLXN0YWdpbmcga2VybmVsPyBJZiBub3QsIHRvbw0KPiA+
+ID4gYmFkLA0KPiA+ID4gZGVhbCB3aXRoIGl0IGluIHlvdXIgdXNlciBzcGFjZS4uDQo+ID4gPiAN
+Cj4gPiA+IElmIHllcywgY2FuIHdlIHJldmVydCB0aGUgcmVudW1iZXJpbmc/IFdoeSB3YXMgdGhh
+dCBldmVuIGRvbmU/Pw0KPiA+ID4gDQo+ID4gPiA+IFNvIHdoaWxlIG5vIG9uZSB1c2VzIHRoZSBf
+X05VTSgpIG1hY3JvIGRpcmVjdGx5IGl0IGxldHMgdXMgbm90DQo+ID4gPiA+IGNoYW5nZQ0KPiA+
+ID4gPiB0aGUgUFNNIGNvbW1hbmQgdmFsdWVzLiBDYW4gd2UgcHV0IHRoYXQgcGFydCBiYWNrIGFu
+ZCBrZWVwIHRoZQ0KPiA+ID4gPiBjb21tYW5kDQo+ID4gPiA+IHZhbHVlcyB1bmNoYW5nZWQ/DQo+
+ID4gPiANCj4gPiA+IFBsZWFzZSBubywgZG8gbm90IGRvIGNyYXp5IHN1YnRsZSB0aGluZ3MgbGlr
+ZSB0aGlzLiBJZiB0aGUgaW9jdGwNCj4gPiA+IGhhcw0KPiA+ID4gdHdvIHZhbGlkIG51bWJlcnMg
+dGhlbiB5b3UgbmVlZCB0d28gZW50cmllcyBpbiB0aGUgaW9jdGwgZmlsZS4NCj4gPiANCj4gPiBJ
+IGRpZG4ndCByZW51bWJlcmVkIGlvY3RscywgYnV0IHJlbnVtYmVyZWQgb25lIG9mIHRoZSBpbnRl
+cm5hbHMNCj4gPiBudW1iZXINCj4gPiB3aGljaCBpcyBub3QgdXNlZCBpbiBrZXJuZWwsIGJ1dCBm
+b3IgYW55IHJlYXNvbnMgdXNlZCBpbiB0aGVpcg0KPiA+IHVzZXItc3BhY2UuDQo+IA0KPiBJZiBp
+dCBpcyBub3QgdXNlZCBpbiB0aGUga2VybmVsIHdoeSBpcyBpdCBpbiB0aGlzIGhlYWRlcj8NCj4g
+DQo+IEFoLCBJIHNlZSwgdGhpcyB3YXMgcGFydCBvZiB0aGUgc3RhZ2luZyBjbGVhbiB1cCwgdGhp
+cyBpcyBwYXJ0IG9mIHRoZQ0KPiBvbGQgbm9uLWlvY3RsIFVBUEkgdGhhdCBnb3QgdHJhc2hlZCA/
+Pw0KPiANCj4gPiA/Pz/CoMKgbGludXgtcmRtYSBnaXQ6KG1hc3RlcikgZ3JlcCAtciBIRkkxX0NN
+RF9BU1NJR05fQ1RYVA0KPiA+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxLyogaW5jbHVkZS8q
+DQo+ID4gaW5jbHVkZS91YXBpL3JkbWEvaGZpL2hmaTFfdXNlci5oOiNkZWZpbmUNCj4gPiBIRkkx
+X0NNRF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAxIC8qIGFsbG9jYXRlIEhGSSBhbmQgY29udGV4dCAq
+Lw0KPiA+IA0KPiA+IFNvIHdoYXQgc2hvdWxkIEkgZG8/IHJlc3BpbiBvciBub3Q/DQo+IA0KPiBE
+cm9wIHRoZSBjcnVmdC4gVGhlc2UgaGVhZGVyIGZpbGUgZGVmaW5pdGlvbnMgc2hvdWxkIGhhdmUg
+YmVlbg0KPiBkZWxldGVkDQo+IHdoZW4gdGhlIEFQSSB3YXMgZHJvcHBlZCBkdXJpbmcgdGhlIHN0
+YWdpbmcgcmV2aWV3Lg0KPiANCj4gV2UgZG8gbm90IHByb21pc2UgYW55dGhpbmcgZm9yIGRyaXZl
+cnMgZHVyaW5nIHRoZWlyIHRpbWUgaW4gc3RhZ2luZywNCj4gYW5kIHdlIGRvIG5vdCBzdXBwb3J0
+IEFCSXMgdGhhdCBvbmx5IGV4aXN0ZWQgZHVyaW5nIHN0YWdpbmcuDQo+IA0KPiBEZW5uaXMgc2hv
+dWxkIHVzZSBhbiBpbnRlcm5hbCBkZWZpbml0aW9uIGluIFBTTSBpZiBoZSB3aXNoZXMgdG8NCj4g
+Y29udGludWUgdG8gc3VwcG9ydCB0aGUgc3RhZ2luZyBrZXJuZWwgQUJJLg0KDQpJdCdzIG5vdCBq
+dXN0IHRoZSBiYWNrd2FyZCBjb21wYXRpYmlsaXR5LiBQU00gdXNlcyB0aGVzZSBjb21tYW5kDQpk
+ZWZpbml0aW9ucy5TbyB0aGlzIGJyZWFrcyBjdXJyZW50IHN1cHBvcnQgd2l0aCBjdXJyZW50IGRy
+aXZlci4NCg0KLURlbm55DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
