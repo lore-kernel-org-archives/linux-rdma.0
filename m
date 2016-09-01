@@ -1,102 +1,78 @@
-From: Matan Barak <matanb@mellanox.com>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Wed, 31 Aug 2016 18:07:30 +0300
-Message-ID: <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Subject: Re: [PATCH v3 3/9] selinux lsm IB/core: Implement LSM notification system
+Date: Wed, 31 Aug 2016 21:35:02 -0400
+Message-ID: <CAHC9VhQsuu-KkzWiUYA-z1gZST68_t65_y_z6vJjz6BwTk-sEg@mail.gmail.com>
+References: <1469800416-125043-1-git-send-email-danielj@mellanox.com> <1469800416-125043-4-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Parav Pandit <pandit.parav@gmail.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, tj@kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com
-Cc: corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1469800416-125043-4-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Dan Jurgens <danielj@mellanox.com>
+Cc: chrisw@sous-sol.org, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 31/08/2016 11:37, Parav Pandit wrote:
-> Added rdma cgroup controller that does accounting, limit enforcement
-> on rdma/IB verbs and hw resources.
+On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj@mellanox.com> wrote:
+> From: Daniel Jurgens <danielj@mellanox.com>
 >
-> Added rdma cgroup header file which defines its APIs to perform
-> charing/uncharing functionality. It also defined APIs for RDMA/IB
-> stack for device registration. Devices which are registered will
-> participate in controller functions of accounting and limit
-> enforcements. It define rdmacg_device structure to bind IB stack
-> and RDMA cgroup controller.
+> Add a generic notificaiton mechanism in the LSM. Interested consumers
+> can register a callback with the LSM and security modules can produce
+> events.
 >
-> RDMA resources are tracked using resource pool. Resource pool is per
-> device, per cgroup entity which allows setting up accounting limits
-> on per device basis.
+> Because access to Infiniband QPs are enforced in the setup phase of a
+> connection security should be enforced again if the policy changes.
+> Register infiniband devices for policy change notification and check all
+> QPs on that device when the notification is received.
 >
-> Currently resources are defined by the RDMA cgroup.
+> Add a call to the notification mechanism from SELinux when the AVC
+> cache changes or setenforce is cleared.
 >
-> Resource pool is created/destroyed dynamically whenever
-> charging/uncharging occurs respectively and whenever user
-> configuration is done. Its a tradeoff of memory vs little more code
-> space that creates resource pool object whenever necessary, instead of
-> creating them during cgroup creation and device registration time.
+> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
 >
-> Signed-off-by: Parav Pandit <pandit.parav@gmail.com>
 > ---
->  include/linux/cgroup_rdma.h   |  66 +++++
->  include/linux/cgroup_subsys.h |   4 +
->  init/Kconfig                  |  10 +
->  kernel/Makefile               |   1 +
->  kernel/cgroup_rdma.c          | 664 ++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 745 insertions(+)
->  create mode 100644 include/linux/cgroup_rdma.h
->  create mode 100644 kernel/cgroup_rdma.c
+> v2:
+> - new patch that has the generic notification, replaces selinux and
+>   IB/core patches related to the ib_flush callback. Yuval Shaia and Paul
+>   Moore
 >
-> diff --git a/include/linux/cgroup_rdma.h b/include/linux/cgroup_rdma.h
-> new file mode 100644
-> index 0000000..6710e28
-> --- /dev/null
-> +++ b/include/linux/cgroup_rdma.h
-> @@ -0,0 +1,66 @@
-> +/*
-> + * Copyright (C) 2016 Parav Pandit <pandit.parav@gmail.com>
-> + *
-> + * This file is subject to the terms and conditions of version 2 of the GNU
-> + * General Public License. See the file COPYING in the main directory of the
-> + * Linux distribution for more details.
-> + */
-> +
-> +#ifndef _CGROUP_RDMA_H
-> +#define _CGROUP_RDMA_H
-> +
-> +#include <linux/cgroup.h>
-> +
-> +enum rdmacg_resource_type {
-> +	RDMACG_VERB_RESOURCE_UCTX,
-> +	RDMACG_VERB_RESOURCE_AH,
-> +	RDMACG_VERB_RESOURCE_PD,
-> +	RDMACG_VERB_RESOURCE_CQ,
-> +	RDMACG_VERB_RESOURCE_MR,
-> +	RDMACG_VERB_RESOURCE_MW,
-> +	RDMACG_VERB_RESOURCE_SRQ,
-> +	RDMACG_VERB_RESOURCE_QP,
-> +	RDMACG_VERB_RESOURCE_FLOW,
-> +	/*
-> +	 * add any hw specific resource here as RDMA_HW_RESOURCE_NAME
-> +	 */
-> +	RDMACG_RESOURCE_MAX,
-> +};
-> +
-> +#ifdef CONFIG_CGROUP_RDMA
-> +
+> v3:
+> - use notifier chains. Paul Moore
+>
+>  drivers/infiniband/core/device.c | 53 ++++++++++++++++++++++++++++++++++++++++
+>  include/linux/security.h         |  8 ++++++
+>  security/security.c              | 20 +++++++++++++++
+>  security/selinux/hooks.c         |  5 ++--
+>  security/selinux/selinuxfs.c     |  2 ++
+>  5 files changed, 86 insertions(+), 2 deletions(-)
 
-Currently, there are some discussions regarding the RDMA ABI. The 
-current proposed approach (after a lot of discussions in the OFVWG) is 
-to have driver dependent object types rather than the fixed set of IB 
-object types we have today.
-AFAIK, some vendors might want to use the RDMA subsystem for a different 
-fabrics which has a different set of objects.
-You could see RFCs for such concepts both from Mellanox and Intel on the 
-linux-rdma mailing list.
+One small comment below, I also assume you've seen the test robot's
+email regarding build problems on IA64?
 
-Saying that, maybe we need to make the resource types a bit more 
-flexible and dynamic.
+> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+> index a86d537..7c22703 100644
+> --- a/security/selinux/hooks.c
+> +++ b/security/selinux/hooks.c
+> @@ -159,13 +159,14 @@ static int selinux_peerlbl_enabled(void)
+>         return (selinux_policycap_alwaysnetwork || netlbl_enabled() || selinux_xfrm_enabled());
+>  }
+>
+> -static int selinux_netcache_avc_callback(u32 event)
+> +static int selinux_cache_avc_callback(u32 event)
+>  {
+>         if (event == AVC_CALLBACK_RESET) {
+>                 sel_netif_flush();
+>                 sel_netnode_flush();
+>                 sel_netport_flush();
+>                 synchronize_net();
+> +               call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
+>         }
+>         return 0;
+>  }
 
-Regards,
-Matan
+We are getting down to the small details now ... I think I would
+prefer if the "call_lsm_notifier(...)" call was done from its own AVC
+callback instead of hanging off the existing netcache callback.
+
+-- 
+paul moore
+www.paul-moore.com
