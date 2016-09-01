@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 01/10] IB/hns: Register HNS RoCE Driver get_netdev() with IB Core
-Date: Fri, 2 Sep 2016 05:37:16 +0800
-Message-ID: <1472765845-118972-2-git-send-email-salil.mehta@huawei.com>
+Subject: [PATCH for-next 10/10] IB/hns: Add node_guid definition to the bindings document
+Date: Fri, 2 Sep 2016 05:37:25 +0800
+Message-ID: <1472765845-118972-11-git-send-email-salil.mehta@huawei.com>
 References: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,55 +14,35 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-This patch adds get_netdev() function to the IB device. This shall be
-used to fetch netdev corresponding to the port number. This function
-would be called by IB core(Generic CM Agent) for example, when the
-RDMA connection is being established.
+This patch adds node_guid definition in bindings document.
+The value of node_guid will be used during RDMA connection.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ .../bindings/infiniband/hisilicon-hns-roce.txt     |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index f64f0dd..39e69c3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -372,6 +372,25 @@ static int hns_roce_query_device(struct ib_device *ib_dev,
- 	return 0;
- }
- 
-+static struct net_device *hns_roce_get_netdev(struct ib_device *ib_dev,
-+					      u8 port_num)
-+{
-+	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
-+	struct net_device *ndev;
-+
-+	if (port_num < 1 || port_num > hr_dev->caps.num_ports)
-+		return NULL;
-+
-+	rcu_read_lock();
-+
-+	ndev = hr_dev->iboe.netdevs[port_num - 1];
-+	if (ndev)
-+		dev_hold(ndev);
-+
-+	rcu_read_unlock();
-+	return ndev;
-+}
-+
- static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
- 			       struct ib_port_attr *props)
- {
-@@ -618,6 +637,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 	ib_dev->query_port		= hns_roce_query_port;
- 	ib_dev->modify_port		= hns_roce_modify_port;
- 	ib_dev->get_link_layer		= hns_roce_get_link_layer;
-+	ib_dev->get_netdev		= hns_roce_get_netdev;
- 	ib_dev->query_gid		= hns_roce_query_gid;
- 	ib_dev->query_pkey		= hns_roce_query_pkey;
- 	ib_dev->alloc_ucontext		= hns_roce_alloc_ucontext;
+diff --git a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+index f97993b..d3b273e 100644
+--- a/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
++++ b/Documentation/devicetree/bindings/infiniband/hisilicon-hns-roce.txt
+@@ -14,6 +14,7 @@ length of memory mapped region.
+ representing a ethernet device.
+ - dsaf-handle: phandle, specifies a reference to a node
+ representing a dsaf device.
++- node_guid: a number that uniquely identifies a device or component
+ - #address-cells: must be 2
+ - #size-cells: must be 2
+ Optional properties:
+@@ -32,6 +33,7 @@ Example:
+ 			dma-coherent;
+ 			eth-handle = <&eth2 &eth3 &eth4 &eth5 &eth6 &eth7>;
+ 			dsaf-handle = <&soc0_dsa>;
++			node-guid = [00 9A CD 00 00 01 02 03];
+ 			#address-cells = <2>;
+ 			#size-cells = <2>;
+ 			interrupt-parent = <&mbigen_dsa>;
 -- 
 1.7.9.5
