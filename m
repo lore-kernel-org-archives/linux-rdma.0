@@ -1,69 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 0/6] Refactor RDMA IOCTL declarations
-Date: Thu, 1 Sep 2016 14:17:49 +0300
-Message-ID: <20160901111749.GB21847@leon.nu>
-References: <1471987907-6336-1-git-send-email-leon@kernel.org>
- <20160823214759.GA16595@obsidianresearch.com>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
+Date: Thu, 1 Sep 2016 10:25:40 +0300
+Message-ID: <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
+References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
+ <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
+ <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
+ <20160831211618.GA12660@htj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160823214759.GA16595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160831211618.GA12660-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---NDin8bjvE/0mNLFQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Aug 23, 2016 at 03:47:59PM -0600, Jason Gunthorpe wrote:
-> On Wed, Aug 24, 2016 at 12:31:41AM +0300, Leon Romanovsky wrote:
-> > This patch set refactors RDMA IOCTL declarations, unifies their
-> > location, moves all current IOCTL exporters to one place and renames
-> > them to fix the differences in coding style.
+On 01/09/2016 00:16, Tejun Heo wrote:
+> Hello,
 >
-> The end result looks reasonable enough to me.
+> On Wed, Aug 31, 2016 at 06:07:30PM +0300, Matan Barak wrote:
+>> Currently, there are some discussions regarding the RDMA ABI. The current
+>> proposed approach (after a lot of discussions in the OFVWG) is to have
+>> driver dependent object types rather than the fixed set of IB object types
+>> we have today.
+>> AFAIK, some vendors might want to use the RDMA subsystem for a different
+>> fabrics which has a different set of objects.
+>> You could see RFCs for such concepts both from Mellanox and Intel on the
+>> linux-rdma mailing list.
+>>
+>> Saying that, maybe we need to make the resource types a bit more flexible
+>> and dynamic.
 >
-> For the series
+> That'd be back to square one and Christoph was dead against it too,
+> so...
 >
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Hi Ira and Dennis,
-Can I get your tested-by/reviewed-by too?
+Well, if I recall, the reason doing so last time was in order to allow 
+flexible updating of ib_core independently, which is obviously not a 
+good reason (to say the least).
 
-I want to be sure that it is done deal.
+Since the new ABI will probably define new object types (all recent 
+proposals go this way), the current approach could lead to either trying 
+to map new objects to existing cgroup resource types, which could lead 
+to some weird non 1:1 mapping, or having a split definitions - such that 
+each driver will declare its objects both in the cgroups mechanism and 
+in its driver dispatch table.
+Even worse than that, drivers could simply ignore the cgroups support 
+while implementing their own resource types and get a very broken 
+containers support.
 
-Thanks.
 
+> Thanks.
 >
-> Jason
 
---NDin8bjvE/0mNLFQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXyA5dAAoJEORje4g2clins4EP/01DxBbcFuAP+rZY1Nlvtek3
-55zIfoMN+Jk+LFgJ1Ee6TgvVmRTJPpP75g7NGJup+mbkoAqTcRuvZ2aUskCM2oD/
-Obh61ppjOPvOIXanqWZkdYWGQYG6rWLucK+yMJ83MH77gDOO05WhzSsRny03r6WK
-Gg8ROAhGF/zi8T7297y80rRFFoW2/Piq2oHKmDejXaOdC0McSgqs6Y5TGRDU9QBS
-VGif+3FfGQIBeJ6IqBPJDE+LPJ5edHOVJaJ+Cjfi2CpimYBqxzOAAViovbXnixxG
-OVMylD5qepjPtd838jUQHH1UvRCo0kEWIiYRBokbKv1rDwHSy8Sm6/3ivmunO/Vj
-FHkEhkpMmmfxFcyEPViXDbb49QwrRr3LJfLl7k1ZSFS0+dm7vqZpNFsk+N/ftuWk
-EGPo0RxbEYutkwa2NYtLd04PD3yMFVuYwiwru+NeqyszIIVHydsOn8ORCYX+XeJd
-0kfouMsHOM2tKNZQrbf4KyBEMKXm3Q/AluJZ47CzuKWQfWb5u+h6OI/rVByCi3KB
-b0q3MOyYkSEep5l1kD94013wyscYncYXOOr3QuW0hh1/2VnyrchVky3jXiPMCWH5
-Zs6+u60MMlxoGjvpt8baLhtpu6slafId7ILPtPhnxENKPn/HsNF6ehgElfnmoI5d
-a0Ls/BJJQquoj5jMyR92
-=7nZy
------END PGP SIGNATURE-----
-
---NDin8bjvE/0mNLFQ--
+Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
