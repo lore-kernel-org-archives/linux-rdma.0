@@ -1,50 +1,45 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 1 Sep 2016 11:52:30 -0600
-Message-ID: <20160901175230.GD20472@obsidianresearch.com>
-References: <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com>
- <20160830060842.GJ594@leon.nu>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com>
- <20160831200336.GA4134@obsidianresearch.com>
- <20160901082643.GA19799@infradead.org>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
+ commands
+Date: Thu, 1 Sep 2016 17:02:30 +0000
+Message-ID: <1472749347.16467.22.camel@intel.com>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+                 <1471987907-6336-7-git-send-email-leon@kernel.org>
+                 <1472738739.16467.8.camel@intel.com>
+         <20160901164624.GC6479@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160901082643.GA19799-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20160901164624.GC6479-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <C8FDF65894DF5241BEE1B85FCDE22627-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, yarong@mellano
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 01:26:43AM -0700, Christoph Hellwig wrote:
-> This seems to be the entire out of tree driver discussion we
-> have in the kernel once again.  Clueless people at vendors all think
-> that they are the only ones who matter and let everyone else
-> suffer.
-
-Yah, exactly, same arguments on both sides, same missed point that the
-distros are really driving the show here..
-
-> Jason: how about we start your project and take care of updating the
-> drivers form the vendor release outselves?  I'm pretty sure all
-> consumers will simply switch to it, eventually forcing the vendors
-> to work with us.
-
-Yes, that is certainly technically doable.
-
-Though, it kind of makes rdma-plumbing the new OFED so I'd rather like
-to see us avoid forking anything.
-
-I think Robert and Leon have come around to the idea anyhow. More
-people are on board than not so this is happening on way or another...
-
-Jason
+T24gVGh1LCAyMDE2LTA5LTAxIGF0IDEwOjQ2IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDAyOjA1OjQ0UE0gKzAwMDAsIERhbGVzc2FuZHJv
+LCBEZW5uaXMgd3JvdGU6DQo+IA0KPiA+ID4gKy8qIGFsbG9jYXRlIEhGSSBhbmQgY29udGV4dCAq
+Lw0KPiA+ID4gKyNkZWZpbmUgSEZJMV9DTURfQVNTSUdOX0NUWFTCoMKgwqDCoMKgKEhGSTFfQ01E
+X0JBU0UgKyAweDAxKQ0KPiA+IA0KPiA+IFRoaXMgaXMgYSBtaW5vciBpc3N1ZSwgYnV0IHRoZSBw
+cm9ibGVtIGhlcmUgaXMgd2hlbiB3ZSBidWlsZCBQU00NCj4gPiBhZ2FpbnN0IHRoaXMga2VybmVs
+IGl0IHdpbGwgbm8gbG9uZ2VyIHdvcmsgZm9yIG9sZGVyIGtlcm5lbHMNCj4gPiBiZWNhdXNlDQo+
+ID4gdGhlIHZhbHVlIG9mIEhGSTFfQ01EX0FTU0lHTl9DVFhUIGhhcyBjaGFuZ2VkIHdoZXJlIGFz
+IGl0IHVzZWQgdG8NCj4gPiBiZSAxLg0KPiA+IFJpZ2h0IG5vdyBQU00gaXMgYmFja3dhcmRzIGNv
+bXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4gPiBjb21wYXRpYmlsaXR5Lg0KPiANCj4gV2hh
+dD8gU29tZW9uZSByZW51bWJlcmQgYW4gaW9jdGw/IFdoZW4/IFdoeT8gSG93Pw0KDQpObyBpb2N0
+bCBudW1iZXIgd2FzIHN0aWxsIHRoZSBzYW1lLiBJdCdzIHRoZSB0aGluZyB0aGF0IGlzIHVzZWQg
+dG8NCmRlZmluZSB0aGUgaW9jdGwgbnVtYmVyLg0KDQpUaGUgaW9jdGwgd2FzIG9yaWdpbmFsbHkg
+ZGVmaW5lZCBhczoNCl9JT1dSKFJETUFfSU9DVExfTUFHSUMsIF9fTlVNKEFTU0lHTl9DVFhUKSwg
+c3RydWN0IGhmaTFfdXNlcl9pbmZvKQ0KDQpXaGVyZSBfX05VTShBU1NJR05fQ1RYVCkgPSBIRkkx
+X0NNRF9BU1NJR05fQ1RYVCArIDB4RTAgPSAxICsgMHhFMA0KDQpJdCB3YXMgY2hhbmdlZCB0byBi
+ZToNCg0KX0lPV1IoUkRNQV9JT0NUTF9NQUdJQywgSEZJMV9DTURfQVNTSUdOX0NUWFQsIHN0cnVj
+dCBoZmkxX3VzZXJfaW5mbykNCg0KV2hlcmUgSEZJMV9DTURfQVNTSUdOX0NUWFQgPSAweEUxLg0K
+DQpTbyB0aGUgaW9jdGwgbnVtYmVyIGRvZW5zJ3QgY2hhbmdlLiBUaGUgdmFsdWUgb2YgSEZJMV9D
+TURfQVNTSUdOX0NUWFQNCmRvZXMsIGl0IHdhcyAxIG5vdyBpdCBpcyAweEUxLiBIRkkxX0NNRF9B
+U1NJR05fQ1RYVCBpcyB1c2VkIGJ5DQp1c2Vyc3BhY2UuDQoNCi1EZW5ueQ0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
