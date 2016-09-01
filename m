@@ -1,45 +1,90 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
- commands
-Date: Thu, 1 Sep 2016 17:02:30 +0000
-Message-ID: <1472749347.16467.22.camel@intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Thu, 1 Sep 2016 19:55:52 +0300
+Message-ID: <20160901165552.GE21847@leon.nu>
 References: <1471987907-6336-1-git-send-email-leon@kernel.org>
-                 <1471987907-6336-7-git-send-email-leon@kernel.org>
-                 <1472738739.16467.8.camel@intel.com>
-         <20160901164624.GC6479@obsidianresearch.com>
+ <1471987907-6336-7-git-send-email-leon@kernel.org>
+ <1472738739.16467.8.camel@intel.com>
+ <20160901164624.GC6479@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Uwl7UQhJk99r8jnw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20160901164624.GC6479-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C8FDF65894DF5241BEE1B85FCDE22627-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE2LTA5LTAxIGF0IDEwOjQ2IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDAyOjA1OjQ0UE0gKzAwMDAsIERhbGVzc2FuZHJv
-LCBEZW5uaXMgd3JvdGU6DQo+IA0KPiA+ID4gKy8qIGFsbG9jYXRlIEhGSSBhbmQgY29udGV4dCAq
-Lw0KPiA+ID4gKyNkZWZpbmUgSEZJMV9DTURfQVNTSUdOX0NUWFTCoMKgwqDCoMKgKEhGSTFfQ01E
-X0JBU0UgKyAweDAxKQ0KPiA+IA0KPiA+IFRoaXMgaXMgYSBtaW5vciBpc3N1ZSwgYnV0IHRoZSBw
-cm9ibGVtIGhlcmUgaXMgd2hlbiB3ZSBidWlsZCBQU00NCj4gPiBhZ2FpbnN0IHRoaXMga2VybmVs
-IGl0IHdpbGwgbm8gbG9uZ2VyIHdvcmsgZm9yIG9sZGVyIGtlcm5lbHMNCj4gPiBiZWNhdXNlDQo+
-ID4gdGhlIHZhbHVlIG9mIEhGSTFfQ01EX0FTU0lHTl9DVFhUIGhhcyBjaGFuZ2VkIHdoZXJlIGFz
-IGl0IHVzZWQgdG8NCj4gPiBiZSAxLg0KPiA+IFJpZ2h0IG5vdyBQU00gaXMgYmFja3dhcmRzIGNv
-bXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4gPiBjb21wYXRpYmlsaXR5Lg0KPiANCj4gV2hh
-dD8gU29tZW9uZSByZW51bWJlcmQgYW4gaW9jdGw/IFdoZW4/IFdoeT8gSG93Pw0KDQpObyBpb2N0
-bCBudW1iZXIgd2FzIHN0aWxsIHRoZSBzYW1lLiBJdCdzIHRoZSB0aGluZyB0aGF0IGlzIHVzZWQg
-dG8NCmRlZmluZSB0aGUgaW9jdGwgbnVtYmVyLg0KDQpUaGUgaW9jdGwgd2FzIG9yaWdpbmFsbHkg
-ZGVmaW5lZCBhczoNCl9JT1dSKFJETUFfSU9DVExfTUFHSUMsIF9fTlVNKEFTU0lHTl9DVFhUKSwg
-c3RydWN0IGhmaTFfdXNlcl9pbmZvKQ0KDQpXaGVyZSBfX05VTShBU1NJR05fQ1RYVCkgPSBIRkkx
-X0NNRF9BU1NJR05fQ1RYVCArIDB4RTAgPSAxICsgMHhFMA0KDQpJdCB3YXMgY2hhbmdlZCB0byBi
-ZToNCg0KX0lPV1IoUkRNQV9JT0NUTF9NQUdJQywgSEZJMV9DTURfQVNTSUdOX0NUWFQsIHN0cnVj
-dCBoZmkxX3VzZXJfaW5mbykNCg0KV2hlcmUgSEZJMV9DTURfQVNTSUdOX0NUWFQgPSAweEUxLg0K
-DQpTbyB0aGUgaW9jdGwgbnVtYmVyIGRvZW5zJ3QgY2hhbmdlLiBUaGUgdmFsdWUgb2YgSEZJMV9D
-TURfQVNTSUdOX0NUWFQNCmRvZXMsIGl0IHdhcyAxIG5vdyBpdCBpcyAweEUxLiBIRkkxX0NNRF9B
-U1NJR05fQ1RYVCBpcyB1c2VkIGJ5DQp1c2Vyc3BhY2UuDQoNCi1EZW5ueQ0KDQo=
+
+--Uwl7UQhJk99r8jnw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Sep 01, 2016 at 10:46:24AM -0600, Jason Gunthorpe wrote:
+> On Thu, Sep 01, 2016 at 02:05:44PM +0000, Dalessandro, Dennis wrote:
+>
+> > > +/* allocate HFI and context */
+> > > +#define HFI1_CMD_ASSIGN_CTXT=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(HFI1_CMD_=
+BASE + 0x01)
+> >
+> > This is a minor issue, but the problem here is when we build PSM
+> > against this kernel it will no longer work for older kernels because
+> > the value of HFI1_CMD_ASSIGN_CTXT has changed where as it used to be 1.
+> > Right now PSM is backwards compatible, this breaks that compatibility.
+>
+> What? Someone renumberd an ioctl? When? Why? How?
+>
+> Was this ioctl ever in a mainline non-staging kernel? If not, too bad,
+> deal with it in your user space..
+>
+> If yes, can we revert the renumbering? Why was that even done??
+>
+> > So while no one uses the __NUM() macro directly it lets us not change
+> > the PSM command values. Can we put that part back and keep the command
+> > values unchanged?
+>
+> Please no, do not do crazy subtle things like this. If the ioctl has
+> two valid numbers then you need two entries in the ioctl file.
+
+I didn't renumbered ioctls, but renumbered one of the internals number
+which is not used in kernel, but for any reasons used in their
+user-space.
+
+=E2=9E=9C  linux-rdma git:(master) grep -r HFI1_CMD_ASSIGN_CTXT drivers/inf=
+iniband/hw/hfi1/* include/*
+include/uapi/rdma/hfi/hfi1_user.h:#define HFI1_CMD_ASSIGN_CTXT     1 /* all=
+ocate HFI and context */
+
+So what should I do? respin or not?
+
+>
+> Jason
+
+--Uwl7UQhJk99r8jnw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXyF2YAAoJEORje4g2clinafYP/1weV9VknGX3/YW/oHolITxl
+YqX4fzLDASJgD2RUhweYbcEPAHM5e7OC8giAegNQTTgxDl2bCfiOA7CqAqhtbAx3
+ocErHWx0+ykDrLwJk3j0Qdywwfqt+oANT696MYOWqmerxFv/57Lvt2T1mGeG5Rs3
+/KqXJj6XRDXNKE9BesvSC1gJrGcqhr+yujmqNT85WL+Qe8y93so6f/Uy0N4LNyFU
+tNaUWt6WK5sbrpuTwLhM9w+ElwLM8tKCEl+TFT+qZK7LJJbMNUOjVvWC7RBsj23E
+RtlK4aY3+lxMS69Rs3bqW4+awf0kLVzdA3X5+tf5CYXucETyLHaPIhNafmvni3jJ
+VmvzPcOQW0S19KTH0zKl5l5/VnonyAaHtpwkAXxh4el5s5rqqHtK+EtQy21zdQiK
+Ol92QzmNjdR/M1tkV61ZW1yDbZr4VhDyPV1AcVkke1Y+/xTJuKfhNlCSSjnrViL2
+oy7xEvDXkMOoZLFN8nGQr9y87G/Ad3+mI4AC3KZSQ2D9QNoi6FnIfmTBFxgRQ16u
+d1fI9zWSSZmhdazMzwBcU+8IffmDaKI3yG4wc/5cn2OdzFpvc8oGzfVcV47GBg4g
+9zFUHzQTeekuklJbKvxSXMO7gEyyQGcOG9B5hC6YiRX4NoYcE9Gj/1mXkFhs/1e1
+1MMDFrC1XhCPuA42ib9f
+=PgVV
+-----END PGP SIGNATURE-----
+
+--Uwl7UQhJk99r8jnw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
