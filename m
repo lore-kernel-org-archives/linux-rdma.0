@@ -1,60 +1,29 @@
-From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Thu, 1 Sep 2016 10:25:40 +0300
-Message-ID: <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com>
- <1472632647-1525-2-git-send-email-pandit.parav@gmail.com>
- <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com>
- <20160831211618.GA12660@htj.duckdns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Thu, 1 Sep 2016 07:39:24 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1609010736370.31007@east.gentwo.org>
+References: <20160823185441.GA1233@obsidianresearch.com> <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com> <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il> <20160828182715.GA12783@obsidianresearch.com> <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu> <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com> <20160831200336.GA4134@obsidianresearch.com> <20160901082643.GA19799@infradead.org>
+ <20160901110352.GI3694@leon.nu>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160831211618.GA12660-piEFEHQLUPpN0TnZuCh8vA@public.gmane.org>
+In-Reply-To: <20160901110352.GI3694-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, corbet-T1hC0tSOHrs@public.gmane.org, james.l.morris-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal@
 List-Id: linux-rdma@vger.kernel.org
 
-On 01/09/2016 00:16, Tejun Heo wrote:
-> Hello,
->
-> On Wed, Aug 31, 2016 at 06:07:30PM +0300, Matan Barak wrote:
->> Currently, there are some discussions regarding the RDMA ABI. The current
->> proposed approach (after a lot of discussions in the OFVWG) is to have
->> driver dependent object types rather than the fixed set of IB object types
->> we have today.
->> AFAIK, some vendors might want to use the RDMA subsystem for a different
->> fabrics which has a different set of objects.
->> You could see RFCs for such concepts both from Mellanox and Intel on the
->> linux-rdma mailing list.
->>
->> Saying that, maybe we need to make the resource types a bit more flexible
->> and dynamic.
->
-> That'd be back to square one and Christoph was dead against it too,
-> so...
->
+On Thu, 1 Sep 2016, Leon Romanovsky wrote:
 
-Well, if I recall, the reason doing so last time was in order to allow 
-flexible updating of ib_core independently, which is obviously not a 
-good reason (to say the least).
+> If it helps, I can step in and do this job.
 
-Since the new ABI will probably define new object types (all recent 
-proposals go this way), the current approach could lead to either trying 
-to map new objects to existing cgroup resource types, which could lead 
-to some weird non 1:1 mapping, or having a split definitions - such that 
-each driver will declare its objects both in the cgroups mechanism and 
-in its driver dispatch table.
-Even worse than that, drivers could simply ignore the cgroups support 
-while implementing their own resource types and get a very broken 
-containers support.
+Start by improving on Jason's work? The better Jason's tree becomes the
+earlier we will be able to get onto the unified repo. As you contribute
+we can work out any issues that may come up in the vendor to upstream
+patch flow for these libraries. That may make you more confident in the
+speed with which you can get changes in there.
 
 
-> Thanks.
->
-
-Matan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
