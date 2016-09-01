@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 05/10] IB/hns: Fix two possible bugs for rdma cm
-Date: Fri, 2 Sep 2016 05:37:20 +0800
-Message-ID: <1472765845-118972-6-git-send-email-salil.mehta@huawei.com>
+Subject: [PATCH for-next 08/10] IB/hns: Fix the bug of rdma cm connecting on user mode
+Date: Fri, 2 Sep 2016 05:37:23 +0800
+Message-ID: <1472765845-118972-9-git-send-email-salil.mehta@huawei.com>
 References: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,57 +14,69 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Lijun Ou <oulijun@huawei.com>
 
-Fix the length of wqe that maybe lead to an error and
-write the end bytes of QP1C into the register.
+Fix bug of modify qp from init to init on user mode. Otherwise,
+it will oops when rmda cm established.
 
 Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   41 ++++++++++------------------
+ 1 file changed, 14 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 399f5de..aaea95c 100644
+index 581e542..206957b 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -205,8 +205,7 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				      (wr->send_flags & IB_SEND_FENCE ?
- 				      (cpu_to_le32(HNS_ROCE_WQE_FENCE)) : 0);
+@@ -2395,35 +2395,22 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
+ 		/* Memory barrier */
+ 		wmb();
+-		if (hr_qp->ibqp.qp_type == IB_QPT_GSI) {
+-			/* SW update GSI rq header */
+-			reg_val = roce_read(hr_dev, ROCEE_QP1C_CFG3_0_REG +
+-					    QP1C_CFGN_OFFSET * hr_qp->phy_port);
+-			roce_set_field(reg_val,
+-				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_M,
+-				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_S,
+-				       hr_qp->rq.head);
+-			roce_write(hr_dev, ROCEE_QP1C_CFG3_0_REG +
+-				   QP1C_CFGN_OFFSET * hr_qp->phy_port, reg_val);
+-		} else {
+-			rq_db.u32_4 = 0;
+-			rq_db.u32_8 = 0;
  
--			wqe = (struct hns_roce_wqe_ctrl_seg *)wqe +
--			       sizeof(struct hns_roce_wqe_ctrl_seg);
-+			wqe += sizeof(struct hns_roce_wqe_ctrl_seg);
- 
- 			switch (wr->opcode) {
- 			case IB_WR_RDMA_READ:
-@@ -235,8 +234,7 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				break;
- 			}
- 			ctrl->flag |= cpu_to_le32(ps_opcode);
--			wqe = (struct hns_roce_wqe_raddr_seg *)wqe +
--			       sizeof(struct hns_roce_wqe_raddr_seg);
-+			wqe += sizeof(struct hns_roce_wqe_raddr_seg);
- 
- 			dseg = wqe;
- 			if (wr->send_flags & IB_SEND_INLINE && wr->num_sge) {
-@@ -253,8 +251,7 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 					memcpy(wqe, ((void *) (uintptr_t)
- 					       wr->sg_list[i].addr),
- 					       wr->sg_list[i].length);
--					wqe = (struct hns_roce_wqe_raddr_seg *)
--					       wqe + wr->sg_list[i].length;
-+					wqe += wr->sg_list[i].length;
- 				}
- 				ctrl->flag |= HNS_ROCE_WQE_INLINE;
- 			} else {
-@@ -1795,6 +1792,7 @@ static int hns_roce_v1_m_sqp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 		writel(context->qp1c_bytes_28, addr + 6);
- 		writel(context->qp1c_bytes_32, addr + 7);
- 		writel(context->cur_sq_wqe_ba_l, addr + 8);
-+		writel(context->qp1c_bytes_40, addr + 9);
+-			roce_set_field(rq_db.u32_4, RQ_DOORBELL_U32_4_RQ_HEAD_M,
+-				       RQ_DOORBELL_U32_4_RQ_HEAD_S,
+-				       hr_qp->rq.head);
+-			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_QPN_M,
+-				       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
+-			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_CMD_M,
+-				       RQ_DOORBELL_U32_8_CMD_S, 1);
+-			roce_set_bit(rq_db.u32_8, RQ_DOORBELL_U32_8_HW_SYNC_S,
+-				     1);
+-
+-			doorbell[0] = rq_db.u32_4;
+-			doorbell[1] = rq_db.u32_8;
+-
+-			hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
++		roce_set_field(doorbell[0], RQ_DOORBELL_U32_4_RQ_HEAD_M,
++			       RQ_DOORBELL_U32_4_RQ_HEAD_S, hr_qp->rq.head);
++		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_QPN_M,
++			       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
++		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_CMD_M,
++			       RQ_DOORBELL_U32_8_CMD_S, 1);
++		roce_set_bit(doorbell[1], RQ_DOORBELL_U32_8_HW_SYNC_S, 1);
++
++		if (ibqp->uobject) {
++			hr_qp->rq.db_reg_l = hr_dev->reg_base +
++				     ROCEE_DB_OTHERS_L_0_REG +
++				     DB_REG_OFFSET * hr_dev->priv_uar.index;
+ 		}
++
++		hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
  	}
  
- 	/* Modify QP1C status */
+ 	hr_qp->state = new_state;
 -- 
 1.7.9.5
