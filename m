@@ -1,37 +1,69 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 1 Sep 2016 14:21:35 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7DE04720@ORSMSX115.amr.corp.intel.com>
-References: <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
- <20160822214352.GB11695@obsidianresearch.com>
- <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com>
- <20160831200336.GA4134@obsidianresearch.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Thu, 1 Sep 2016 18:24:48 +0300
+Message-ID: <4f0876ce-f3c9-83e3-d0ef-0c5656ce9462@grimberg.me>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160831200336.GA4134-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1471889618-1605-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.wein>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 31, 2016, Jason Wrote,
->Certainly, we can make this even easier as well. Mainly what is needed is some way for the vendor to drop in a override .driver file >in /etc/ibverbs.d/
 
->It would not be hard to make a patch that does that, if that is all it takes to alleviate your concern I can add it to the todo list.
+> Hello Everyone,
+>
+> Here is the patch series for the consolidation. This is based on the special
+> merge commit created by the buildlib/make-merge.py script. See my prior
+> message (http://www.spinics.net/lists/linux-rdma/msg39026.html) for details.
+>
+> The first 7 patches change/fix various things in the original packages to
+> build consistently, patch 8 has cmake and all the auto* co-exist, and can be
+> used to do build compares (see buildlib/compare-build.py)
+>
+> The next batch of patches removes the old build stuff, packaging, merges
+> COPYING files and lightly simplifies the directory structure.
+>
+> https://github.com/jgunthorpe/rdma-plumbing
+>
+> This has been rebased since my last posting with feedback from Steve.
+>
+> The following 15 repositories were pulled together.
+>
+>       libcxgb3 git://git.openfabrics.org/~swise/libcxgb3.git 0de0392268af3a657b329874b63b6ee827109508
+>       libcxgb4 git://git.openfabrics.org/~swise/libcxgb4.git 15d3253dc814da28e2b93ed02a8e9a96d97f20ae
+>       libhfi1verbs https://github.com/01org/opa-libhfi1verbs.git 377b68888a0b885fc2a44ddf7a2ec33f2fcf217b
+>       libi40iw git://git.openfabrics.org/~tnikolova/libi40iw/.git 9d35609f79d6a235e23182e9ceadf3605b2682da
+>       libibcm git://git.openfabrics.org/~shefty/libibcm.git b04920e8bfe0689a2fe67815321dcf646fd48a7e
+>       libibumad git://git.openfabrics.org/~halr/libibumad.git ecda3a56b18c6a2845f3d966f8b8061941f5d447
+>       libibverbs git://git.kernel.org/pub/scm/libs/infiniband/libibverbs.git 0be978ea2bfaf203c35334b090bddb280de62611
+>       libipathverbs https://github.com/01org/libipathverbs.git 8291d485f3a5544b43974e7be88f3646f35ae07c
+>       libmlx4 git://git.openfabrics.org/~yishaih/libmlx4.git 162f948c4e04753a15cfb7afcdf6219dbe0bc31e
+>       libmlx5 git://git.openfabrics.org/~yishaih/libmlx5.git f23f9aa7b9033cd8ebbd58d67d65e9b81d0525fa
+>       libmthca git://git.kernel.org/pub/scm/libs/infiniband/libmthca.git 6f4dd7451ddef120247e13fa6cb8e1df69c3ddf9
+>       libnes git://git.openfabrics.org/~tnikolova/libnes/.git 7dc7cf2474612ec909bff251096ca2aefa9cddf1
+>       libocrdma git://git.openfabrics.org/~emulex/libocrdma.git 41f6bbb3fe8129678c233da439d872b3fe9f75dc
+>       librdmacm git://git.openfabrics.org/~shefty/librdmacm.git 032bbe60ad32d59004447e03061a9f6d632cc55f
+>       librxe https://github.com/SoftRoCE/librxe-dev.git 227e3c49b6e423c066e1e1887fe30c8261f63cbd
+>
+> Steve suggests that iwpm be included as well, which makes sense..
+>
+> My hope is that Doug will step up as the unified maintainer, with a process
+> similar to the kernel. Most of the libraries are unchanging/unmaintained/dead.
 
-I think something like that would work to allow for updates to just a single driver library without having to replace the entire
-package, which is what I think people would like to see.
+Hey Jason,
 
-Thanks, that would be great.
+Sorry for joining the discussion late. This looks *really* nice.
+
+FWIW, I think that it is a good starting point to set a real procedure
+to *upstream* user-space development. In the long run I think it's a
+win for everyone.
+
+Would it be possible to add srptools in the bundle too?
+CC'ing Bart who maintains it.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
