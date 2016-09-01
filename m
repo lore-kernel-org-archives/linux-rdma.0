@@ -1,64 +1,103 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
- commands
-Date: Thu, 1 Sep 2016 16:54:15 +0000
-Message-ID: <1472748852.16467.14.camel@intel.com>
-References: <1471987907-6336-1-git-send-email-leon@kernel.org>
-                 <1471987907-6336-7-git-send-email-leon@kernel.org>
-                 <1472738739.16467.8.camel@intel.com> <20160901162043.GD21847@leon.nu>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/{core,hw}: Add constant for node_desc
+Date: Thu, 1 Sep 2016 16:22:54 -0400
+Message-ID: <cbb0ddb4-b05b-28b1-468f-893915f2ccb5@redhat.com>
+References: <1472115186-10718-1-git-send-email-yuval.shaia@oracle.com>
+ <b366ef68-3f46-a245-2495-76107954219e@redhat.com>
+ <20160828060926.GJ594@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="f8JqvL8R0KN9Bcf3L833M3dNvRSepC4XB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160901162043.GD21847-2ukJVAZIZ/Y@public.gmane.org>
-Content-Language: en-US
-Content-ID: <E32DE816A8F58D41A8865C3711DAF1DA-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160828060926.GJ594-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE2LTA5LTAxIGF0IDE5OjIwICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDAyOjA1OjQ0UE0gKzAwMDAsIERhbGVzc2FuZHJv
-LCBEZW5uaXMgd3JvdGU6DQo+ID4gT24gV2VkLCAyMDE2LTA4LTI0IGF0IDAwOjMxICswMzAwLCBM
-ZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25y
-b0BtZWxsYW5veC5jb20+DQo+ID4gPiDCoA0KPiA+ID4gLSNkZWZpbmUgSEZJMV9DTURfQVNTSUdO
-X0NUWFTCoMKgwqDCoMKgMQkvKiBhbGxvY2F0ZSBIRkkgYW5kDQo+ID4gPiBjb250ZXh0ICovDQo+
-ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9DVFhUX0lORk/CoMKgwqDCoMKgwqDCoDIJLyogZmluZCBv
-dXQgd2hhdA0KPiA+ID4gcmVzb3VyY2VzDQo+ID4gPiB3ZSBnb3QgKi8NCj4gPiA+IC0jZGVmaW5l
-IEhGSTFfQ01EX1VTRVJfSU5GT8KgwqDCoMKgwqDCoMKgMwkvKiBzZXQgdXAgdXNlcnNwYWNlICov
-DQo+ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9USURfVVBEQVRFwqDCoMKgwqDCoMKgNAkvKiB1cGRh
-dGUgZXhwZWN0ZWQgVElEDQo+ID4gPiBlbnRyaWVzICovDQo+ID4gPiAtI2RlZmluZSBIRkkxX0NN
-RF9USURfRlJFRcKgwqDCoMKgwqDCoMKgwqA1CS8qIGZyZWUgZXhwZWN0ZWQgVElEDQo+ID4gPiBl
-bnRyaWVzICovDQo+ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9DUkVESVRfVVBEwqDCoMKgwqDCoMKg
-NgkvKiBmb3JjZSBhbiB1cGRhdGUgb2YNCj4gPiA+IFBJTw0KPiA+ID4gY3JlZGl0ICovDQo+ID4g
-PiArLyogYWxsb2NhdGUgSEZJIGFuZCBjb250ZXh0ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NN
-RF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDEpDQo+ID4gPiArLyog
-ZmluZCBvdXQgd2hhdCByZXNvdXJjZXMgd2UgZ290ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NN
-RF9DVFhUX0lORk/CoMKgwqDCoMKgwqDCoChIRkkxX0NNRF9CQVNFICsgMHgwMikNCj4gPiA+ICsv
-KiBzZXQgdXAgdXNlcnNwYWNlICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NNRF9VU0VSX0lORk/C
-oMKgwqDCoMKgwqDCoChIRkkxX0NNRF9CQVNFICsgMHgwMykNCj4gPiA+ICsvKiB1cGRhdGUgZXhw
-ZWN0ZWQgVElEIGVudHJpZXMgKi8NCj4gPiA+ICsjZGVmaW5lIEhGSTFfQ01EX1RJRF9VUERBVEXC
-oMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDQpDQo+ID4gPiArLyogZnJlZSBleHBlY3Rl
-ZCBUSUQgZW50cmllcyAqLw0KPiA+ID4gKyNkZWZpbmUgSEZJMV9DTURfVElEX0ZSRUXCoMKgwqDC
-oMKgwqDCoMKgKEhGSTFfQ01EX0JBU0UgKyAweDA1KQ0KPiA+ID4gKy8qIGZvcmNlIGFuIHVwZGF0
-ZSBvZiBQSU8gY3JlZGl0ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NNRF9DUkVESVRfVVBEwqDC
-oMKgwqDCoMKgKEhGSTFfQ01EX0JBU0UgKyAweDA2KQ0KPiA+IA0KPiA+IFRoaXMgaXMgYSBtaW5v
-ciBpc3N1ZSwgYnV0IHRoZSBwcm9ibGVtIGhlcmUgaXMgd2hlbiB3ZSBidWlsZCBQU00NCj4gPiBh
-Z2FpbnN0IHRoaXMga2VybmVsIGl0IHdpbGwgbm8gbG9uZ2VyIHdvcmsgZm9yIG9sZGVyIGtlcm5l
-bHMNCj4gPiBiZWNhdXNlDQo+ID4gdGhlIHZhbHVlIG9mIEhGSTFfQ01EX0FTU0lHTl9DVFhUIGhh
-cyBjaGFuZ2VkIHdoZXJlIGFzIGl0IHVzZWQgdG8NCj4gPiBiZSAxLg0KPiA+IFJpZ2h0IG5vdyBQ
-U00gaXMgYmFja3dhcmRzIGNvbXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4gPiBjb21wYXRp
-YmlsaXR5Lg0KPiA+IA0KPiA+IFNvIHdoaWxlIG5vIG9uZSB1c2VzIHRoZSBfX05VTSgpIG1hY3Jv
-IGRpcmVjdGx5IGl0IGxldHMgdXMgbm90DQo+ID4gY2hhbmdlDQo+ID4gdGhlIFBTTSBjb21tYW5k
-IHZhbHVlcy4gQ2FuIHdlIHB1dCB0aGF0IHBhcnQgYmFjayBhbmQga2VlcCB0aGUNCj4gPiBjb21t
-YW5kDQo+ID4gdmFsdWVzIHVuY2hhbmdlZD8NCj4gDQo+IFN1cmUsIEknbGwgcG9zdCBuZXcgdmVy
-c2lvbi4NCj4gSnVzdCB0byBiZSBzdXJlLCB5b3UgYXJlIG5vdCB1c2luZyBfX05VTSgpIGFuZCBJ
-IGNhbiByZWRlZmluZSB0aGF0DQo+IG1hY3JvLCBhbSBJIHJpZ2h0Pw0KPiANCg0KWWVhaCB5b3Ug
-Y2FuIGNhbGwgaXQgc29tZXRoaW5nIGVsc2UsIG9yIGRvIGl0IGluIGEgZGlmZmVyZW50IHdheS4g
-SQ0KdmVyaWZpZWQgdGhhdCB0aGUgcGF0Y2ggd29ya3Mgd2l0aCB0aGUgY3VycmVudCBQU00gcmV2
-ZXJ0aW5nIHRoZSBDTUQNCm51bWJlcnMuIEknbGwgZ3JhYiB5b3VyIG5ldyBwYXRjaCBhbmQgcmUt
-dGVzdCBpdCB0aGVuLg0KDQpUaGFua3MNCg0KLURlbm55DQo=
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--f8JqvL8R0KN9Bcf3L833M3dNvRSepC4XB
+Content-Type: multipart/mixed; boundary="KPHQbK4avXjPFEP9UhmgwMnKFtdj85buP";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Message-ID: <cbb0ddb4-b05b-28b1-468f-893915f2ccb5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/{core,hw}: Add constant for node_desc
+References: <1472115186-10718-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+ <b366ef68-3f46-a245-2495-76107954219e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160828060926.GJ594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160828060926.GJ594-2ukJVAZIZ/Y@public.gmane.org>
+
+--KPHQbK4avXjPFEP9UhmgwMnKFtdj85buP
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+On 8/28/2016 2:09 AM, Leon Romanovsky wrote:
+> On Thu, Aug 25, 2016 at 10:23:22AM -0400, Doug Ledford wrote:
+>> On 8/25/2016 4:53 AM, Yuval Shaia wrote:
+>>> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>  drivers/infiniband/core/sysfs.c              |    2 +-
+>>>  drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
+>>>  drivers/infiniband/hw/cxgb3/iwch_provider.h  |    1 +
+>>>  drivers/infiniband/hw/cxgb4/iw_cxgb4.h       |    1 +
+>>>  drivers/infiniband/hw/cxgb4/provider.c       |    2 +-
+>>>  drivers/infiniband/hw/hfi1/verbs.c           |    3 ++-
+>>>  drivers/infiniband/hw/mlx4/mad.c             |    3 ++-
+>>>  drivers/infiniband/hw/mlx4/main.c            |    6 +++---
+>>>  drivers/infiniband/hw/mlx5/mad.c             |    2 +-
+>>>  drivers/infiniband/hw/mlx5/main.c            |    6 +++---
+>>>  drivers/infiniband/hw/mthca/mthca_mad.c      |    3 ++-
+>>>  drivers/infiniband/hw/mthca/mthca_provider.c |    5 +++--
+>>>  drivers/infiniband/hw/ocrdma/ocrdma.h        |    1 +
+>>>  drivers/infiniband/hw/ocrdma/ocrdma_main.c   |    2 +-
+>>>  drivers/infiniband/hw/qib/qib_verbs.c        |    3 ++-
+>>>  include/rdma/ib_verbs.h                      |    6 ++++--
+>>>  16 files changed, 29 insertions(+), 19 deletions(-)
+>>
+>> Thanks, applied to for-next.
+>=20
+> Doug,
+> Which version did you apply? This with error or v1?
+
+I applied v2 with the added BUILD_BUG_ON checks.
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--KPHQbK4avXjPFEP9UhmgwMnKFtdj85buP--
+
+--f8JqvL8R0KN9Bcf3L833M3dNvRSepC4XB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXyI4eAAoJELgmozMOVy/druwP/icDjda9G4MuZVRPAC0GCBX7
+oQu1iq2/021ca4SE/y5/f6TTBe30SStxBfwJd0HNp681UzgfNWuo9rhczvWWu0HD
+yD4SaFlUGpWArkMd2QGoLZooGiZ7nLDCXj+sRij/CZMZZXdt8YN+XEt+vk9LWZB6
+O3c02dLrm99F0gBagQhLK6Phpd3BADyv4xsea5F2QJik06nGDfdNaQkD0k1xG4/w
+wsn1VQ58pN6Md7XuoSABFVziUwKHNPeQ8PpHOesbJt5YDsga/uWU9CgLiUmCWx4I
+JNin3zPYb5huHNcfJ63PWbUxyga3z7CMeInWlQCFVXac/EcbXPWI0yBgNuGizmL2
+Bvr+KKuMFH0UfAhjISsupuIqrQPRjB5m7CCoS6iH7mKTO+TxUYiX2NAHe+rLkeGx
+JO9Cj7CyS/YwSy3r0oGAZQDDzTWyOeYbfo1E+koIMFO92B5rAwkt6QvOdZU3FHdw
+4f2B18Jy4tad7+GVenw2D7OTsW+1ceCvg5lxImDRTxJuDf8/YNzTCModsXaulf5U
+AD28ruJ31OFUWLYIb2r645NMv9pUzOVOndseym7n6ZS0KRArhtME1iJWDpAt699I
+gzuCh5GqvdnQINmRKKjbaiH/6cB28YaYRTSlM/PRVsVKJ+W2sTqc7fzq89RMvPLT
+NayjE1RdmC9rRYeNYdzG
+=VqYb
+-----END PGP SIGNATURE-----
+
+--f8JqvL8R0KN9Bcf3L833M3dNvRSepC4XB--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
