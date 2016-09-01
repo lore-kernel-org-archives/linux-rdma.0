@@ -1,86 +1,97 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v4 5/6] nvme-rdma: add DELETING queue flag
-Date: Thu, 1 Sep 2016 09:12:57 -0700
-Message-ID: <cb63534fde54bd557ab491b85af67b694d5f3303.1472746379.git.swise@opengridcomputing.com>
-References: <cover.1472746379.git.swise@opengridcomputing.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Thu, 1 Sep 2016 19:20:43 +0300
+Message-ID: <20160901162043.GD21847@leon.nu>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+ <1471987907-6336-7-git-send-email-leon@kernel.org>
+ <1472738739.16467.8.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="llIrKcgUOe3dCx0c"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1472746379.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1472738739.16467.8.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
-When we get a surprise disconnect from the target we queue a periodic
-reconnect (which is the sane thing to do...).
+--llIrKcgUOe3dCx0c
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-We only move the queues out of CONNECTED when we retry to reconnect (after
-10 seconds in the default case) but we stop the blk queues immediately
-so we are not bothered with traffic from now on. If delete() is kicking
-off in this period the queues are still in CONNECTED state.
+On Thu, Sep 01, 2016 at 02:05:44PM +0000, Dalessandro, Dennis wrote:
+> On Wed, 2016-08-24 at 00:31 +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >=A0
+> > -#define HFI1_CMD_ASSIGN_CTXT=A0=A0=A0=A0=A01	/* allocate HFI and
+> > context */
+> > -#define HFI1_CMD_CTXT_INFO=A0=A0=A0=A0=A0=A0=A02	/* find out what reso=
+urces
+> > we got */
+> > -#define HFI1_CMD_USER_INFO=A0=A0=A0=A0=A0=A0=A03	/* set up userspace */
+> > -#define HFI1_CMD_TID_UPDATE=A0=A0=A0=A0=A0=A04	/* update expected TID
+> > entries */
+> > -#define HFI1_CMD_TID_FREE=A0=A0=A0=A0=A0=A0=A0=A05	/* free expected TID
+> > entries */
+> > -#define HFI1_CMD_CREDIT_UPD=A0=A0=A0=A0=A0=A06	/* force an update of P=
+IO
+> > credit */
+> > +/* allocate HFI and context */
+> > +#define HFI1_CMD_ASSIGN_CTXT=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x01)
+> > +/* find out what resources we got */
+> > +#define HFI1_CMD_CTXT_INFO=A0=A0=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x02)
+> > +/* set up userspace */
+> > +#define HFI1_CMD_USER_INFO=A0=A0=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x03)
+> > +/* update expected TID entries */
+> > +#define HFI1_CMD_TID_UPDATE=A0=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x04)
+> > +/* free expected TID entries */
+> > +#define HFI1_CMD_TID_FREE=A0=A0=A0=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x05)
+> > +/* force an update of PIO credit */
+> > +#define HFI1_CMD_CREDIT_UPD=A0=A0=A0=A0=A0=A0(HFI1_CMD_BASE + 0x06)
+>
+> This is a minor issue, but the problem here is when we build PSM
+> against this kernel it will no longer work for older kernels because
+> the value of HFI1_CMD_ASSIGN_CTXT has changed where as it used to be 1.
+> Right now PSM is backwards compatible, this breaks that compatibility.
+>
+> So while no one uses the __NUM() macro directly it lets us not change
+> the PSM command values. Can we put that part back and keep the command
+> values unchanged?
 
-Part of the delete sequence is trying to issue ctrl shutdown if the
-admin queue is CONNECTED (which it is!). This request is issued but
-stuck in blk-mq waiting for the queues to start again. This might be
-the one preventing us from forward progress...
+Sure, I'll post new version.
+Just to be sure, you are not using __NUM() and I can redefine that
+macro, am I right?
 
-The patch separates the queue flags to CONNECTED and DELETING. Now we
-will move out of CONNECTED as soon as error recovery kicks in (before
-stopping the queues) and DELETING is on when we start the queue deletion.
+Thanks.
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> -Denny
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index d97a16f..a5c2280 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -83,6 +83,7 @@ struct nvme_rdma_request {
- enum nvme_rdma_queue_flags {
- 	NVME_RDMA_Q_CONNECTED = (1 << 0),
- 	NVME_RDMA_IB_QUEUE_ALLOCATED = (1 << 1),
-+	NVME_RDMA_Q_DELETING = (1 << 2),
- };
- 
- struct nvme_rdma_queue {
-@@ -614,7 +615,7 @@ static void nvme_rdma_free_queue(struct nvme_rdma_queue *queue)
- 
- static void nvme_rdma_stop_and_free_queue(struct nvme_rdma_queue *queue)
- {
--	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags))
-+	if (test_and_set_bit(NVME_RDMA_Q_DELETING, &queue->flags))
- 		return;
- 	nvme_rdma_stop_queue(queue);
- 	nvme_rdma_free_queue(queue);
-@@ -767,8 +768,13 @@ static void nvme_rdma_error_recovery_work(struct work_struct *work)
- {
- 	struct nvme_rdma_ctrl *ctrl = container_of(work,
- 			struct nvme_rdma_ctrl, err_work);
-+	int i;
- 
- 	nvme_stop_keep_alive(&ctrl->ctrl);
-+
-+	for (i = 0; i < ctrl->queue_count; i++)
-+		clear_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[i].flags);
-+
- 	if (ctrl->queue_count > 1)
- 		nvme_stop_queues(&ctrl->ctrl);
- 	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
-@@ -1348,7 +1354,7 @@ static int nvme_rdma_device_unplug(struct nvme_rdma_queue *queue)
- 	cancel_delayed_work_sync(&ctrl->reconnect_work);
- 
- 	/* Disable the queue so ctrl delete won't free it */
--	if (test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags)) {
-+	if (!test_and_set_bit(NVME_RDMA_Q_DELETING, &queue->flags)) {
- 		/* Free this queue ourselves */
- 		nvme_rdma_stop_queue(queue);
- 		nvme_rdma_destroy_queue_ib(queue);
--- 
-2.7.0
+--llIrKcgUOe3dCx0c
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXyFVbAAoJEORje4g2clinxFYP/1DNqbbLkIcpa6e3UNrIPSLE
+z4Y5EBEQD510FuoEP8IXDvI5eW/ZaalPqn34tvBdFjbfuXZymHJMRkBZ5rN3zvy/
+L5Uo1FZENSd4qUsldmWurfUghITnbueU4tWlctDUZXnyeZWwXVoM/K8IRyTJVP1n
+byh/r6n2W9WyvR0yNxVQRR98ckEKphEmUbNpRym2wp8E7w2XPfh8xKkd9fmRAw+p
+FrABnRJdY63rXkBbmeTxRLyu8dgyrOYiOhZMFcU7XfWDlP9371Ootw1AjlW/hsP/
+CQDMJqLTIJ+/S3ups/k6qknHnau31l6MXWY+jKQHHScxS6tWDpqSp92GRuGgSksi
+Qb4Q+PhJ6982wPQdgaygK1A/4CgUGAqBl2ZU/VlVyVjSRn3gWoOxyA2gNdhSs1iL
+HR8lVLeuvN7LeUyE6vNgoPUP6VBvCqa3MaVm+kbzAplcF8v8/KlOnLkxUZ/00l+5
+FfI+e9YxDlRvwz3aty9OSGXuG2L7VdOyoW9s9Z3psZ1aP5uyQ291Wuqoe2NPvNGU
+H4I7yAs/7vqrhEVI0crzhtpI1RvthKu0VoEbXgeBbpnb7V2YVE9votwX0ANM92L0
+Hz2z5hUMUMMuS6k80x4OHhbMczm4iEe+4QDjfMswaXS/Zyh4DTAQxq2+dODw666B
+41HlB1+uUHgv5Rsbrjw7
+=+URd
+-----END PGP SIGNATURE-----
+
+--llIrKcgUOe3dCx0c--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
