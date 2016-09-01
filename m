@@ -1,39 +1,80 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCHv12 1/3] rdmacg: Added rdma cgroup controller
-Date: Thu, 1 Sep 2016 10:44:06 +0200
-Message-ID: <20160901084406.GA4115@lst.de>
-References: <1472632647-1525-1-git-send-email-pandit.parav@gmail.com> <1472632647-1525-2-git-send-email-pandit.parav@gmail.com> <61101e8b-5776-c0bc-b3ea-d8b984eebabf@mellanox.com> <20160831211618.GA12660@htj.duckdns.org> <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libibverbs 2/3] Add padding to get proper end alignment of
+ ibv_reg_mr_resp
+Date: Thu, 1 Sep 2016 11:56:02 +0300
+Message-ID: <6ce4a2f9-64ee-29af-72e8-1c8844436a20@dev.mellanox.co.il>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+ <1472713193-22397-3-git-send-email-knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <9b6a346d-af4c-1e5f-0144-f68fb8e46c27@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matan Barak <matanb@mellanox.com>
-Cc: Tejun Heo <tj@kernel.org>, Parav Pandit <pandit.parav@gmail.com>, cgroups@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, lizefan@huawei.com, hannes@cmpxchg.org, dledford@redhat.com, hch@lst.de, liranl@mellanox.com, sean.hefty@intel.com, jgunthorpe@obsidianresearch.com, haggaie@mellanox.com, corbet@lwn.net, james.l.morris@oracle.com, serge@hallyn.com, ogerlitz@mellanox.com, akpm@linux-foundation.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472713193-22397-3-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 10:25:40AM +0300, Matan Barak wrote:
-> Well, if I recall, the reason doing so last time was in order to allow 
-> flexible updating of ib_core independently, which is obviously not a good 
-> reason (to say the least).
+On 9/1/2016 9:59 AM, Knut Omang wrote:
+> The user/kernel level API requires all parameter blocks to be
+> 64 bit end aligned.
 >
-> Since the new ABI will probably define new object types (all recent 
-> proposals go this way), the current approach could lead to either trying to 
-> map new objects to existing cgroup resource types, which could lead to some 
-> weird non 1:1 mapping, or having a split definitions - such that each 
-> driver will declare its objects both in the cgroups mechanism and in its 
-> driver dispatch table.
-> Even worse than that, drivers could simply ignore the cgroups support while 
-> implementing their own resource types and get a very broken containers 
-> support.
+> Also clean up some valgrind/memory initialization issues.
+>
+> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/infiniband/kern-abi.h | 1 +
+>  src/cmd.c                     | 5 ++++-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+> index f70fa44..8bdeef5 100644
+> --- a/include/infiniband/kern-abi.h
+> +++ b/include/infiniband/kern-abi.h
+> @@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
+>  	__u32 mr_handle;
+>  	__u32 lkey;
+>  	__u32 rkey;
+> +	__u32 reserved;
+>  };
+>
+>  struct ibv_rereg_mr {
+> diff --git a/src/cmd.c b/src/cmd.c
+> index 12d8640..a418ee1 100644
+> --- a/src/cmd.c
+> +++ b/src/cmd.c
+> @@ -1470,6 +1470,7 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+>  	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
+>  	cmd->user_handle            = (uintptr_t) ah;
+>  	cmd->pd_handle              = pd->handle;
+> +	cmd->reserved               = 0;
+>  	cmd->attr.dlid              = attr->dlid;
+>  	cmd->attr.sl                = attr->sl;
+>  	cmd->attr.src_path_bits     = attr->src_path_bits;
+> @@ -1480,12 +1481,14 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
+>  	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+>  	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+>  	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
+> +	cmd->attr.grh.reserved      = 0;
+> +	cmd->attr.reserved          = 0;
 
-Sorry guys, but arbitrary extensibility for something not finished is the
-worst idea ever.  We have two options here:
+How those changes relate to this patch's subject ? seems that those and 
+below relate to previous ibv_cmd_create_ah_ex patch.
 
- a) delay cgroups support until the grand rewrite is done
- b) add it now and deal with the consequences later
+>  	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+>
+>  	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+>  		return errno;
+>
+> -	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+> +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+>
+>  	ah->handle  = resp->handle;
+>  	ah->context = pd->context;
+>
 
-That being said, adding random non-Verbs hardwasre to the RDMA core is
-the second worst idea ever.  Guess I need to catch up with the
-discussion and start using the flame thrower.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
