@@ -1,72 +1,145 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
- commands
-Date: Thu, 1 Sep 2016 17:09:31 +0000
-Message-ID: <1472749767.16467.25.camel@intel.com>
-References: <1471987907-6336-1-git-send-email-leon@kernel.org>
-         <1471987907-6336-7-git-send-email-leon@kernel.org>
-         <1472738739.16467.8.camel@intel.com>
-         <20160901164624.GC6479@obsidianresearch.com>
-         <20160901165552.GE21847@leon.nu>
-         <20160901170742.GA20098@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Thu, 1 Sep 2016 14:12:37 -0400
+Message-ID: <33e0e621-e027-abe7-d287-bc551c1961b2@redhat.com>
+References: <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695@obsidianresearch.com>
+ <20160823185441.GA1233@obsidianresearch.com>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <20160825173916.GC20612@obsidianresearch.com>
+ <20160825195246.GI1916@redhat.com>
+ <20160825201306.GA5421@obsidianresearch.com>
+ <20160826154206.GK1916@redhat.com>
+ <20160826222725.GA8553@obsidianresearch.com>
+ <5421f173-384d-faef-0eab-518db6dad0e5@redhat.com>
+ <20160830012738.GH6803@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="jfdBS4WnlTUXELjf8plU9hDrB5indRAR1"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160901170742.GA20098-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B9A1156AF41755448FDBB4BDA37A0B61-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160830012738.GH6803-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE2LTA5LTAxIGF0IDExOjA3IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDA3OjU1OjUyUE0gKzAzMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBPbiBUaHUsIFNlcCAwMSwgMjAxNiBhdCAxMDo0NjoyNEFNIC0wNjAw
-LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBPbiBUaHUsIFNlcCAwMSwgMjAxNiBhdCAw
-MjowNTo0NFBNICswMDAwLCBEYWxlc3NhbmRybywgRGVubmlzDQo+ID4gPiB3cm90ZToNCj4gPiA+
-IA0KPiA+ID4gPiA+ICsvKiBhbGxvY2F0ZSBIRkkgYW5kIGNvbnRleHQgKi8NCj4gPiA+ID4gPiAr
-I2RlZmluZSBIRkkxX0NNRF9BU1NJR05fQ1RYVD8/Pz8/Pz8/Pz8oSEZJMV9DTURfQkFTRSArIDB4
-MDEpDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIGlzIGEgbWlub3IgaXNzdWUsIGJ1dCB0aGUgcHJv
-YmxlbSBoZXJlIGlzIHdoZW4gd2UgYnVpbGQNCj4gPiA+ID4gUFNNDQo+ID4gPiA+IGFnYWluc3Qg
-dGhpcyBrZXJuZWwgaXQgd2lsbCBubyBsb25nZXIgd29yayBmb3Igb2xkZXIga2VybmVscw0KPiA+
-ID4gPiBiZWNhdXNlDQo+ID4gPiA+IHRoZSB2YWx1ZSBvZiBIRkkxX0NNRF9BU1NJR05fQ1RYVCBo
-YXMgY2hhbmdlZCB3aGVyZSBhcyBpdCB1c2VkDQo+ID4gPiA+IHRvIGJlIDEuDQo+ID4gPiA+IFJp
-Z2h0IG5vdyBQU00gaXMgYmFja3dhcmRzIGNvbXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4g
-PiA+ID4gY29tcGF0aWJpbGl0eS4NCj4gPiA+IA0KPiA+ID4gV2hhdD8gU29tZW9uZSByZW51bWJl
-cmQgYW4gaW9jdGw/IFdoZW4/IFdoeT8gSG93Pw0KPiA+ID4gDQo+ID4gPiBXYXMgdGhpcyBpb2N0
-bCBldmVyIGluIGEgbWFpbmxpbmUgbm9uLXN0YWdpbmcga2VybmVsPyBJZiBub3QsIHRvbw0KPiA+
-ID4gYmFkLA0KPiA+ID4gZGVhbCB3aXRoIGl0IGluIHlvdXIgdXNlciBzcGFjZS4uDQo+ID4gPiAN
-Cj4gPiA+IElmIHllcywgY2FuIHdlIHJldmVydCB0aGUgcmVudW1iZXJpbmc/IFdoeSB3YXMgdGhh
-dCBldmVuIGRvbmU/Pw0KPiA+ID4gDQo+ID4gPiA+IFNvIHdoaWxlIG5vIG9uZSB1c2VzIHRoZSBf
-X05VTSgpIG1hY3JvIGRpcmVjdGx5IGl0IGxldHMgdXMgbm90DQo+ID4gPiA+IGNoYW5nZQ0KPiA+
-ID4gPiB0aGUgUFNNIGNvbW1hbmQgdmFsdWVzLiBDYW4gd2UgcHV0IHRoYXQgcGFydCBiYWNrIGFu
-ZCBrZWVwIHRoZQ0KPiA+ID4gPiBjb21tYW5kDQo+ID4gPiA+IHZhbHVlcyB1bmNoYW5nZWQ/DQo+
-ID4gPiANCj4gPiA+IFBsZWFzZSBubywgZG8gbm90IGRvIGNyYXp5IHN1YnRsZSB0aGluZ3MgbGlr
-ZSB0aGlzLiBJZiB0aGUgaW9jdGwNCj4gPiA+IGhhcw0KPiA+ID4gdHdvIHZhbGlkIG51bWJlcnMg
-dGhlbiB5b3UgbmVlZCB0d28gZW50cmllcyBpbiB0aGUgaW9jdGwgZmlsZS4NCj4gPiANCj4gPiBJ
-IGRpZG4ndCByZW51bWJlcmVkIGlvY3RscywgYnV0IHJlbnVtYmVyZWQgb25lIG9mIHRoZSBpbnRl
-cm5hbHMNCj4gPiBudW1iZXINCj4gPiB3aGljaCBpcyBub3QgdXNlZCBpbiBrZXJuZWwsIGJ1dCBm
-b3IgYW55IHJlYXNvbnMgdXNlZCBpbiB0aGVpcg0KPiA+IHVzZXItc3BhY2UuDQo+IA0KPiBJZiBp
-dCBpcyBub3QgdXNlZCBpbiB0aGUga2VybmVsIHdoeSBpcyBpdCBpbiB0aGlzIGhlYWRlcj8NCj4g
-DQo+IEFoLCBJIHNlZSwgdGhpcyB3YXMgcGFydCBvZiB0aGUgc3RhZ2luZyBjbGVhbiB1cCwgdGhp
-cyBpcyBwYXJ0IG9mIHRoZQ0KPiBvbGQgbm9uLWlvY3RsIFVBUEkgdGhhdCBnb3QgdHJhc2hlZCA/
-Pw0KPiANCj4gPiA/Pz/CoMKgbGludXgtcmRtYSBnaXQ6KG1hc3RlcikgZ3JlcCAtciBIRkkxX0NN
-RF9BU1NJR05fQ1RYVA0KPiA+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9oZmkxLyogaW5jbHVkZS8q
-DQo+ID4gaW5jbHVkZS91YXBpL3JkbWEvaGZpL2hmaTFfdXNlci5oOiNkZWZpbmUNCj4gPiBIRkkx
-X0NNRF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAxIC8qIGFsbG9jYXRlIEhGSSBhbmQgY29udGV4dCAq
-Lw0KPiA+IA0KPiA+IFNvIHdoYXQgc2hvdWxkIEkgZG8/IHJlc3BpbiBvciBub3Q/DQo+IA0KPiBE
-cm9wIHRoZSBjcnVmdC4gVGhlc2UgaGVhZGVyIGZpbGUgZGVmaW5pdGlvbnMgc2hvdWxkIGhhdmUg
-YmVlbg0KPiBkZWxldGVkDQo+IHdoZW4gdGhlIEFQSSB3YXMgZHJvcHBlZCBkdXJpbmcgdGhlIHN0
-YWdpbmcgcmV2aWV3Lg0KPiANCj4gV2UgZG8gbm90IHByb21pc2UgYW55dGhpbmcgZm9yIGRyaXZl
-cnMgZHVyaW5nIHRoZWlyIHRpbWUgaW4gc3RhZ2luZywNCj4gYW5kIHdlIGRvIG5vdCBzdXBwb3J0
-IEFCSXMgdGhhdCBvbmx5IGV4aXN0ZWQgZHVyaW5nIHN0YWdpbmcuDQo+IA0KPiBEZW5uaXMgc2hv
-dWxkIHVzZSBhbiBpbnRlcm5hbCBkZWZpbml0aW9uIGluIFBTTSBpZiBoZSB3aXNoZXMgdG8NCj4g
-Y29udGludWUgdG8gc3VwcG9ydCB0aGUgc3RhZ2luZyBrZXJuZWwgQUJJLg0KDQpJdCdzIG5vdCBq
-dXN0IHRoZSBiYWNrd2FyZCBjb21wYXRpYmlsaXR5LiBQU00gdXNlcyB0aGVzZSBjb21tYW5kDQpk
-ZWZpbml0aW9ucy5TbyB0aGlzIGJyZWFrcyBjdXJyZW50IHN1cHBvcnQgd2l0aCBjdXJyZW50IGRy
-aXZlci4NCg0KLURlbm55DQo=
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--jfdBS4WnlTUXELjf8plU9hDrB5indRAR1
+Content-Type: multipart/mixed; boundary="KG9190KsgbNnbQQ04CrI4sevEBkMBbLH8";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>,
+ 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
+ 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <33e0e621-e027-abe7-d287-bc551c1961b2-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+References: <01dc01d1fcb0$a1dd3ed0$e597bc70$@opengridcomputing.com>
+ <20160822214352.GB11695-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20160823185441.GA1233-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160825173916.GC20612-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20160825195246.GI1916-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160825201306.GA5421-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <20160826154206.GK1916-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160826222725.GA8553-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <5421f173-384d-faef-0eab-518db6dad0e5-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20160830012738.GH6803-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20160830012738.GH6803-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
+--KG9190KsgbNnbQQ04CrI4sevEBkMBbLH8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+On 8/29/2016 9:27 PM, Jarod Wilson wrote:
+> On Fri, Aug 26, 2016 at 11:00:22PM -0400, Doug Ledford wrote:
+>> On 8/26/2016 6:27 PM, Jason Gunthorpe wrote:
+> ...
+>>> 3) Version numbers. What version numbers do we give to the sub
+>>>    packages? I guess this is very distro specific.
+>>
+>> You can not give different versions to sub-packages.  Or, allow me to =
+be
+>> more precise:  You can't use the Version: tag on sub-packages, it rese=
+ts
+>> the version of the entire package overall when you do.  The last
+>> Version: tag in the spec file ends up being the version applied to
+>> everything.  This impacts the %{version} macro usage in the spec file.=
+
+>> The only way to put versions on sub-packages is to make it part of the=
+
+>> sub-package's name.
+>=20
+> I'm not so sure about that. Check out our linux-firmware package and
+> sub-packages. There are several firmwares with their own Version: tags =
+in
+> their sub-package definitions, and the base linux-firmware package stil=
+l
+> comes out of there with the intended original Version: from the top of =
+the
+> spec. I suppose %{version} maybe does get stomped on,
+
+Correct.  The %{version} macro gets stomped on, so all of the typical
+guidelines about spec files that tell you to use %{version} in various
+places have to be ignored.
+
+> but the solution
+> I've seen used is to simply set an extra %global and use that where you=
+
+> would have used %{version} in the spec.
+
+Yes, that works.  But it's an ugly hack and should be taken as a clue
+that you are using rpm in a way that it doesn't want to be used ;-)
+
+> That said, I tend to agree with what Doug is saying... If this is all o=
+ne
+> big tree, then it's one big release, and should have one big consistent=
+
+> version number, most likely. Otherwise, it's a massive headache and a b=
+it
+> of a mess to maintain, package-wise, like he said.
+>=20
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: 0E572FDD
+
+
+--KG9190KsgbNnbQQ04CrI4sevEBkMBbLH8--
+
+--jfdBS4WnlTUXELjf8plU9hDrB5indRAR1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJXyG+VAAoJELgmozMOVy/dG74P+wUXzX0o5fT3GSHbY0gTMeIj
+RCYGiSHU9hutN4vUGRcwVqa+jspcS8oaHtQZPhmj663JsVPVbJd34V6+EZty24pu
+Lga50wq+HeXiHXGKmlFA3vLOeilnWYe/SJxC9hAf8YtVV+jijlH2B2wEEv1PoSop
+Ttr37OTs8k4KikRdje1+Yflo36qXnrF2jSKbV/pYC09yQQNOlzc2hrTWkLwKzvZx
+s5OVcIpel8AbGCkz2fywLvm2hUuOHwD9xWGvf/pN7kj2H5ouHR8i0UkXSB8En51e
+Lz83Vvw4FhV9VoS185DwL3WNhGTwRGVKGl4VGpXR9psvPpIaGs86/QfGY9gWPdwQ
+ea6cgVBO2x9pcEvyacebk5u7i4hVKiqVw/yC++zydfirMtcJixRxQauuvAI7CUmJ
+DuZKntUMzvgz67+CORwrhVVvQa3OsqtSIdnxB+d4WT2aXBWZ1t+7LeJsdUlxkmcu
+k6csde3Cf0fkU8Cx1tgWDvJ6bHROTItK8vgpyqMhILA+I12xPR/Ggj1VYE8x7hP+
+N7C9zrOCMMSDDDbPeQKxMkGF9jsgclbPeufMSRO/rjHTSFNUfJYxAtq/Dqb9e4Xb
+4dCLFyoSJJKDPtVbAOAnlR9Try1Nurco0PcZilbNFYPvF7neQxhou8+TS3WEJEPM
+mV82Yq3w93fEhKsvJmLr
+=gPB6
+-----END PGP SIGNATURE-----
+
+--jfdBS4WnlTUXELjf8plU9hDrB5indRAR1--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
