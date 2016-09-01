@@ -1,78 +1,49 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v3 3/9] selinux lsm IB/core: Implement LSM notification system
-Date: Wed, 31 Aug 2016 21:35:02 -0400
-Message-ID: <CAHC9VhQsuu-KkzWiUYA-z1gZST68_t65_y_z6vJjz6BwTk-sEg@mail.gmail.com>
-References: <1469800416-125043-1-git-send-email-danielj@mellanox.com> <1469800416-125043-4-git-send-email-danielj@mellanox.com>
+From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH v3 5/9] selinux: Create policydb version for Infiniband support
+Date: Wed, 31 Aug 2016 21:39:03 -0400
+Message-ID: <CAHC9VhTF3erdxu+P3rZ3dn4dE+p4vgbyhKk1CmTwK333o-=-8g@mail.gmail.com>
+References: <1469800416-125043-1-git-send-email-danielj@mellanox.com> <1469800416-125043-6-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1469800416-125043-4-git-send-email-danielj@mellanox.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Dan Jurgens <danielj@mellanox.com>
-Cc: chrisw@sous-sol.org, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1469800416-125043-6-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj@mellanox.com> wrote:
-> From: Daniel Jurgens <danielj@mellanox.com>
+On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
-> Add a generic notificaiton mechanism in the LSM. Interested consumers
-> can register a callback with the LSM and security modules can produce
-> events.
+> Support for Infiniband requires the addition of two new object contexts,
+> one for infiniband PKeys and another IB Ports. Added handlers to read
+> and write the new ocontext types when reading or writing a binary policy
+> representation.
 >
-> Because access to Infiniband QPs are enforced in the setup phase of a
-> connection security should be enforced again if the policy changes.
-> Register infiniband devices for policy change notification and check all
-> QPs on that device when the notification is received.
->
-> Add a call to the notification mechanism from SELinux when the AVC
-> cache changes or setenforce is cleared.
->
-> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >
 > ---
 > v2:
-> - new patch that has the generic notification, replaces selinux and
->   IB/core patches related to the ib_flush callback. Yuval Shaia and Paul
->   Moore
->
+> - Shorten ib_end_port to ib_port. Paul Moore
+> - Added bounds checking to port number. Paul Moore
+> - Eliminated {} in OCON_PKEY case statement.  Yuval Shaia
+
+Nit picky, but you still have some curly braces in ocontext_read()
+that aren't strictly necessary.
+
 > v3:
-> - use notifier chains. Paul Moore
+> - ib_port -> ib_endport. Paul Moore
 >
->  drivers/infiniband/core/device.c | 53 ++++++++++++++++++++++++++++++++++++++++
->  include/linux/security.h         |  8 ++++++
->  security/security.c              | 20 +++++++++++++++
->  security/selinux/hooks.c         |  5 ++--
->  security/selinux/selinuxfs.c     |  2 ++
->  5 files changed, 86 insertions(+), 2 deletions(-)
-
-One small comment below, I also assume you've seen the test robot's
-email regarding build problems on IA64?
-
-> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-> index a86d537..7c22703 100644
-> --- a/security/selinux/hooks.c
-> +++ b/security/selinux/hooks.c
-> @@ -159,13 +159,14 @@ static int selinux_peerlbl_enabled(void)
->         return (selinux_policycap_alwaysnetwork || netlbl_enabled() || selinux_xfrm_enabled());
->  }
->
-> -static int selinux_netcache_avc_callback(u32 event)
-> +static int selinux_cache_avc_callback(u32 event)
->  {
->         if (event == AVC_CALLBACK_RESET) {
->                 sel_netif_flush();
->                 sel_netnode_flush();
->                 sel_netport_flush();
->                 synchronize_net();
-> +               call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
->         }
->         return 0;
->  }
-
-We are getting down to the small details now ... I think I would
-prefer if the "call_lsm_notifier(...)" call was done from its own AVC
-callback instead of hanging off the existing netcache callback.
+>  security/selinux/include/security.h |   3 +-
+>  security/selinux/ss/policydb.c      | 130 +++++++++++++++++++++++++++++++-----
+>  security/selinux/ss/policydb.h      |  27 +++++---
+>  3 files changed, 136 insertions(+), 24 deletions(-)
 
 -- 
 paul moore
 www.paul-moore.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
