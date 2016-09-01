@@ -1,7 +1,7 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs 2/3] Add padding to get proper end alignment of ibv_reg_mr_resp
-Date: Thu,  1 Sep 2016 08:59:52 +0200
-Message-ID: <1472713193-22397-3-git-send-email-knut.omang@oracle.com>
+Subject: [PATCH libibverbs 3/3] Provide remote XRC SRQ number in kernel post_send.
+Date: Thu,  1 Sep 2016 08:59:53 +0200
+Message-ID: <1472713193-22397-4-git-send-email-knut.omang@oracle.com>
 References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1472713193-22397-1-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
@@ -10,58 +10,42 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The user/kernel level API requires all parameter blocks to be
-64 bit end aligned.
+Also proper end align the ibv_kern_send_wr struct.
 
-Also clean up some valgrind/memory initialization issues.
+Requires a corresponding kernel change.
 
 Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
  include/infiniband/kern-abi.h | 1 +
- src/cmd.c                     | 5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ src/cmd.c                     | 2 ++
+ 2 files changed, 3 insertions(+)
 
 diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-index f70fa44..8bdeef5 100644
+index 8bdeef5..7b1d310 100644
 --- a/include/infiniband/kern-abi.h
 +++ b/include/infiniband/kern-abi.h
-@@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
- 	__u32 mr_handle;
- 	__u32 lkey;
- 	__u32 rkey;
-+	__u32 reserved;
+@@ -800,6 +800,7 @@ struct ibv_kern_send_wr {
+ 	union {
+ 		struct {
+ 			__u32 remote_srqn;
++			__u32 reserved;
+ 		} xrc;
+ 	} qp_type;
  };
- 
- struct ibv_rereg_mr {
 diff --git a/src/cmd.c b/src/cmd.c
-index 12d8640..a418ee1 100644
+index a418ee1..a4e2f75 100644
 --- a/src/cmd.c
 +++ b/src/cmd.c
-@@ -1470,6 +1470,7 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
- 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
- 	cmd->user_handle            = (uintptr_t) ah;
- 	cmd->pd_handle              = pd->handle;
-+	cmd->reserved               = 0;
- 	cmd->attr.dlid              = attr->dlid;
- 	cmd->attr.sl                = attr->sl;
- 	cmd->attr.src_path_bits     = attr->src_path_bits;
-@@ -1480,12 +1481,14 @@ int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_att
- 	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
- 	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
- 	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
-+	cmd->attr.grh.reserved      = 0;
-+	cmd->attr.reserved          = 0;
- 	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
- 
- 	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
- 		return errno;
- 
--	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
-+	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
- 
- 	ah->handle  = resp->handle;
- 	ah->context = pd->context;
+@@ -1293,6 +1293,8 @@ int ibv_cmd_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			tmp->wr.ud.remote_qpn  = i->wr.ud.remote_qpn;
+ 			tmp->wr.ud.remote_qkey = i->wr.ud.remote_qkey;
+ 		} else {
++			if (ibqp->qp_type == IBV_QPT_XRC_SEND)
++				tmp->qp_type.xrc.remote_srqn = i->qp_type.xrc.remote_srqn;
+ 			switch (i->opcode) {
+ 			case IBV_WR_RDMA_WRITE:
+ 			case IBV_WR_RDMA_WRITE_WITH_IMM:
 -- 
 2.5.5
 
