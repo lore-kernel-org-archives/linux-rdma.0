@@ -1,62 +1,69 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
- supports extra parameters
-Date: Thu, 01 Sep 2016 20:23:40 +0200
-Message-ID: <1472754220.9410.236.camel@oracle.com>
+Subject: Re: [PATCH libibverbs 2/3] Add padding to get proper end alignment
+ of ibv_reg_mr_resp
+Date: Thu, 01 Sep 2016 19:17:44 +0200
+Message-ID: <1472750264.9410.225.camel@oracle.com>
 References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
-         <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
-         <20160901164939.GD6479@obsidianresearch.com>
-         <1472750558.9410.230.camel@oracle.com>
-         <20160901180512.GB20098@obsidianresearch.com>
+         <1472713193-22397-3-git-send-email-knut.omang@oracle.com>
+         <20160901164216.GB6479@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160901180512.GB20098-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20160901164216.GB6479-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2016-09-01 at 12:05 -0600, Jason Gunthorpe wrote:
-> On Thu, Sep 01, 2016 at 07:22:38PM +0200, Knut Omang wrote:
-> > On Thu, 2016-09-01 at 10:49 -0600, Jason Gunthorpe wrote:
-> > > On Thu, Sep 01, 2016 at 08:59:51AM +0200, Knut Omang wrote:
-> > > > +++ b/src/libibverbs.map
-> > > > @@ -64,6 +64,7 @@ IBVERBS_1.0 {
-> > > >  		ibv_cmd_post_recv;
-> > > >  		ibv_cmd_post_srq_recv;
-> > > >  		ibv_cmd_create_ah;
-> > > > +		ibv_cmd_create_ah_ex;
-> > > 
-> > > I should also point out that this is not the proper way to use symbol
-> > > versions. Typically one would tag new symbols with the version number
-> > > of the release that introduces them, and not just keep re-using 1.0
-> > > 
-> > > I know we haven't been doing that, but perhaps we should start.
+On Thu, 2016-09-01 at 10:42 -0600, Jason Gunthorpe wrote:
+> On Thu, Sep 01, 2016 at 08:59:52AM +0200, Knut Omang wrote:
+> > The user/kernel level API requires all parameter blocks to be
+> > 64 bit end aligned.
 > > 
-> > Yes, I noticed the never changed 1.0 and tried just to follow the usage 
-> > pattern ;-)
+> > Also clean up some valgrind/memory initialization issues.
+> > 
+> > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >  include/infiniband/kern-abi.h | 1 +
+> >  src/cmd.c                     | 5 ++++-
+> >  2 files changed, 5 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+> > index f70fa44..8bdeef5 100644
+> > +++ b/include/infiniband/kern-abi.h
+> > @@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
+> >  	__u32 mr_handle;
+> >  	__u32 lkey;
+> >  	__u32 rkey;
+> > +	__u32 reserved;
+> >  };
 > 
-> Actually, thinking about this more, not doing this properly breaks RPM
-> since it only summarizes the tag not the actual symbol into the
-> package data.
+> This structure is a copy of include/uapi/rdma/ib_user_verbs.h, so you
+> need to start with a kernel patch proposing this change.
+
+Yes, I am aware of that, sorry - I intended to post both sets in sequence but ran into 
+a few recently introduced conflicts in the kernel set, so still working on that 
+(just testing remains)
+
+> We will eventually get rid of kern-abi.h and use ib_user_verbs.h at some
+> point.
+
+Good to get a common file for it and get rid of some copy/paste.
+
+> Maybe elaborate on why this is OK and doesn't break anything in that
+> patch..
 > 
-> So, no this is not OK, and maybe we need to retroactively review
-> things :( :(
+> > -	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+> > +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+> 
+> Why the (void)?
 
-For this patch backward binary compatibility is actually preserved - a vendor library 
-continues to work even without recompiling. I deliberately avoided making
-the ibv_cmd_create_ah function inline to ensure that. Loading libsif would of course
-break, but with a symbol error.
+I guess it is there to avoid compiler warnings about unused variables in some 
+configuration. I just kept it as it was in this patch. I see all instances 
+throughout the code has this.
 
-But versioning is still an issue to consider with patch 2 in this set, as it 
-unfortunately has to change the layout of the data structures between 
-kernel and user space to fix the alignment bug.
-
-Patch 3 has the same alignment issue, but is not used by anyone but our
-new vendor library.
-
+Thanks,
 Knut
 
 > Jason
