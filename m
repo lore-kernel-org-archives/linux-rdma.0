@@ -1,43 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
-Date: Thu, 1 Sep 2016 10:34:18 -0600
-Message-ID: <20160901163418.GA6479@obsidianresearch.com>
-References: <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
- <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
- <20160830074607.GN594@leon.nu>
- <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
- <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830184633.GE7586@obsidianresearch.com>
- <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
- <20160830185548.GA9768@obsidianresearch.com>
- <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH libibverbs 2/3] Add padding to get proper end alignment
+ of ibv_reg_mr_resp
+Date: Thu, 1 Sep 2016 10:42:16 -0600
+Message-ID: <20160901164216.GB6479@obsidianresearch.com>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+ <1472713193-22397-3-git-send-email-knut.omang@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>
-Cc: Paul Moore <paul@paul-moore.com>, Leon Romanovsky <leon@kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+In-Reply-To: <1472713193-22397-3-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 30, 2016 at 07:10:12PM +0000, Daniel Jurgens wrote:
-> On 8/30/2016 1:56 PM, Jason Gunthorpe wrote:
-> >
-> > Are subsystems usually SELinux enabled in such a piecemeal way?
-> >
-> > Are you sure the 'partition' SELinux label should not be more general
-> > to cover more of the similar RDMA cases?
+On Thu, Sep 01, 2016 at 08:59:52AM +0200, Knut Omang wrote:
+> The user/kernel level API requires all parameter blocks to be
+> 64 bit end aligned.
+> 
+> Also clean up some valgrind/memory initialization issues.
+> 
+> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>  include/infiniband/kern-abi.h | 1 +
+>  src/cmd.c                     | 5 ++++-
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+> index f70fa44..8bdeef5 100644
+> +++ b/include/infiniband/kern-abi.h
+> @@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
+>  	__u32 mr_handle;
+>  	__u32 lkey;
+>  	__u32 rkey;
+> +	__u32 reserved;
+>  };
 
-> In order to label something you have to be able to describe
-> something unique about an instance of it, like a Subnet Prefix/PKey
-> value pair.  What other thing could we label more generally to
-> control access to a partition/VLAN?
+This structure is a copy of include/uapi/rdma/ib_user_verbs.h, so you
+need to start with a kernel patch proposing this change.
 
-IP prefix / vlan #? How does it work in net?
+We will eventually get rid of kern-abi.h and use ib_user_verbs.h at some
+point.
 
-Shouldn't you at least have a plan for how this will expand to cover
-the whole subsystem??
+Maybe elaborate on why this is OK and doesn't break anything in that
+patch..
+
+> -	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+> +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+
+Why the (void)?
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
