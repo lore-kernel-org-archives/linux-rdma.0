@@ -1,55 +1,44 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH libibverbs 2/3] Add padding to get proper end alignment
- of ibv_reg_mr_resp
-Date: Thu, 1 Sep 2016 10:42:16 -0600
-Message-ID: <20160901164216.GB6479@obsidianresearch.com>
-References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
- <1472713193-22397-3-git-send-email-knut.omang@oracle.com>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Thu, 1 Sep 2016 10:46:24 -0600
+Message-ID: <20160901164624.GC6479@obsidianresearch.com>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+ <1471987907-6336-7-git-send-email-leon@kernel.org>
+ <1472738739.16467.8.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472713193-22397-3-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1472738739.16467.8.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 08:59:52AM +0200, Knut Omang wrote:
-> The user/kernel level API requires all parameter blocks to be
-> 64 bit end aligned.
+On Thu, Sep 01, 2016 at 02:05:44PM +0000, Dalessandro, Dennis wrote:
+
+> > +/* allocate HFI and context */
+> > +#define HFI1_CMD_ASSIGN_CTXT     (HFI1_CMD_BASE + 0x01)
 > 
-> Also clean up some valgrind/memory initialization issues.
-> 
-> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->  include/infiniband/kern-abi.h | 1 +
->  src/cmd.c                     | 5 ++++-
->  2 files changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
-> index f70fa44..8bdeef5 100644
-> +++ b/include/infiniband/kern-abi.h
-> @@ -367,6 +367,7 @@ struct ibv_reg_mr_resp {
->  	__u32 mr_handle;
->  	__u32 lkey;
->  	__u32 rkey;
-> +	__u32 reserved;
->  };
+> This is a minor issue, but the problem here is when we build PSM
+> against this kernel it will no longer work for older kernels because
+> the value of HFI1_CMD_ASSIGN_CTXT has changed where as it used to be 1.
+> Right now PSM is backwards compatible, this breaks that compatibility.
 
-This structure is a copy of include/uapi/rdma/ib_user_verbs.h, so you
-need to start with a kernel patch proposing this change.
+What? Someone renumberd an ioctl? When? Why? How?
 
-We will eventually get rid of kern-abi.h and use ib_user_verbs.h at some
-point.
+Was this ioctl ever in a mainline non-staging kernel? If not, too bad,
+deal with it in your user space..
 
-Maybe elaborate on why this is OK and doesn't break anything in that
-patch..
+If yes, can we revert the renumbering? Why was that even done??
 
-> -	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
-> +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+> So while no one uses the __NUM() macro directly it lets us not change
+> the PSM command values. Can we put that part back and keep the command
+> values unchanged?
 
-Why the (void)?
+Please no, do not do crazy subtle things like this. If the ioctl has
+two valid numbers then you need two entries in the ioctl file.
 
 Jason
 --
