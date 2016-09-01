@@ -1,52 +1,40 @@
-From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
- commands
-Date: Thu, 1 Sep 2016 14:05:44 +0000
-Message-ID: <1472738739.16467.8.camel@intel.com>
-References: <1471987907-6336-1-git-send-email-leon@kernel.org>
-         <1471987907-6336-7-git-send-email-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Thu, 1 Sep 2016 09:11:07 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1609010910110.29797@east.gentwo.org>
+References: <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il> <20160828182715.GA12783@obsidianresearch.com> <004e01d20203$156edc30$404c9490$@opengridcomputing.com> <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com> <20160831200336.GA4134@obsidianresearch.com> <20160901082643.GA19799@infradead.org> <20160901110352.GI3694@leon.nu> <alpine.DEB.2.20.1609010736370.31007@east.gentwo.org>
+ <20160901130705.GC21847@leon.nu>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1471987907-6336-7-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Content-ID: <713C1D1BD6DB7C4AA2B8790B68C237C2-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20160901130705.GC21847-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, talal@
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE2LTA4LTI0IGF0IDAwOjMxICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IEZyb206IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj7CoA0KPiAt
-I2RlZmluZSBIRkkxX0NNRF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAxCS8qIGFsbG9jYXRlIEhGSSBh
-bmQNCj4gY29udGV4dCAqLw0KPiAtI2RlZmluZSBIRkkxX0NNRF9DVFhUX0lORk/CoMKgwqDCoMKg
-wqDCoDIJLyogZmluZCBvdXQgd2hhdCByZXNvdXJjZXMNCj4gd2UgZ290ICovDQo+IC0jZGVmaW5l
-IEhGSTFfQ01EX1VTRVJfSU5GT8KgwqDCoMKgwqDCoMKgMwkvKiBzZXQgdXAgdXNlcnNwYWNlICov
-DQo+IC0jZGVmaW5lIEhGSTFfQ01EX1RJRF9VUERBVEXCoMKgwqDCoMKgwqA0CS8qIHVwZGF0ZSBl
-eHBlY3RlZCBUSUQNCj4gZW50cmllcyAqLw0KPiAtI2RlZmluZSBIRkkxX0NNRF9USURfRlJFRcKg
-wqDCoMKgwqDCoMKgwqA1CS8qIGZyZWUgZXhwZWN0ZWQgVElEDQo+IGVudHJpZXMgKi8NCj4gLSNk
-ZWZpbmUgSEZJMV9DTURfQ1JFRElUX1VQRMKgwqDCoMKgwqDCoDYJLyogZm9yY2UgYW4gdXBkYXRl
-IG9mIFBJTw0KPiBjcmVkaXQgKi8NCj4gKy8qIGFsbG9jYXRlIEhGSSBhbmQgY29udGV4dCAqLw0K
-PiArI2RlZmluZSBIRkkxX0NNRF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSAr
-IDB4MDEpDQo+ICsvKiBmaW5kIG91dCB3aGF0IHJlc291cmNlcyB3ZSBnb3QgKi8NCj4gKyNkZWZp
-bmUgSEZJMV9DTURfQ1RYVF9JTkZPwqDCoMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDIp
-DQo+ICsvKiBzZXQgdXAgdXNlcnNwYWNlICovDQo+ICsjZGVmaW5lIEhGSTFfQ01EX1VTRVJfSU5G
-T8KgwqDCoMKgwqDCoMKgKEhGSTFfQ01EX0JBU0UgKyAweDAzKQ0KPiArLyogdXBkYXRlIGV4cGVj
-dGVkIFRJRCBlbnRyaWVzICovDQo+ICsjZGVmaW5lIEhGSTFfQ01EX1RJRF9VUERBVEXCoMKgwqDC
-oMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDQpDQo+ICsvKiBmcmVlIGV4cGVjdGVkIFRJRCBlbnRy
-aWVzICovDQo+ICsjZGVmaW5lIEhGSTFfQ01EX1RJRF9GUkVFwqDCoMKgwqDCoMKgwqDCoChIRkkx
-X0NNRF9CQVNFICsgMHgwNSkNCj4gKy8qIGZvcmNlIGFuIHVwZGF0ZSBvZiBQSU8gY3JlZGl0ICov
-DQo+ICsjZGVmaW5lIEhGSTFfQ01EX0NSRURJVF9VUETCoMKgwqDCoMKgwqAoSEZJMV9DTURfQkFT
-RSArIDB4MDYpDQoNClRoaXMgaXMgYSBtaW5vciBpc3N1ZSwgYnV0IHRoZSBwcm9ibGVtIGhlcmUg
-aXMgd2hlbiB3ZSBidWlsZCBQU00NCmFnYWluc3QgdGhpcyBrZXJuZWwgaXQgd2lsbCBubyBsb25n
-ZXIgd29yayBmb3Igb2xkZXIga2VybmVscyBiZWNhdXNlDQp0aGUgdmFsdWUgb2YgSEZJMV9DTURf
-QVNTSUdOX0NUWFQgaGFzIGNoYW5nZWQgd2hlcmUgYXMgaXQgdXNlZCB0byBiZSAxLg0KUmlnaHQg
-bm93IFBTTSBpcyBiYWNrd2FyZHMgY29tcGF0aWJsZSwgdGhpcyBicmVha3MgdGhhdCBjb21wYXRp
-YmlsaXR5Lg0KDQpTbyB3aGlsZSBubyBvbmUgdXNlcyB0aGUgX19OVU0oKSBtYWNybyBkaXJlY3Rs
-eSBpdCBsZXRzIHVzIG5vdCBjaGFuZ2UNCnRoZSBQU00gY29tbWFuZCB2YWx1ZXMuIENhbiB3ZSBw
-dXQgdGhhdCBwYXJ0IGJhY2sgYW5kIGtlZXAgdGhlIGNvbW1hbmQNCnZhbHVlcyB1bmNoYW5nZWQ/
-DQoNCi1EZW5ueQ0K
+On Thu, 1 Sep 2016, Leon Romanovsky wrote:
+
+> > Start by improving on Jason's work? The better Jason's tree becomes the
+> > earlier we will be able to get onto the unified repo. As you contribute
+> > we can work out any issues that may come up in the vendor to upstream
+> > patch flow for these libraries. That may make you more confident in the
+> > speed with which you can get changes in there.
+>
+> How nice, I'm pretty sure that Jason will forward code extremely fast.
+>
+> user space:
+> Leon -> Jason -> Doug
+> kernel space (features):
+> Leon -> Doug
+> kernel space (fixes):
+> Leon -> Doug
+>
+> Do you see bottleneck here?
+
+I agree that we need maintainer teams to improve the reaction times to
+these issues. How can we form these teams?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
