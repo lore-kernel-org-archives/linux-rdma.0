@@ -1,57 +1,131 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH libibverbs 0/3] SIF related libibverbs patches
-Date: Thu,  1 Sep 2016 08:59:50 +0200
-Message-ID: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+Subject: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which supports extra parameters
+Date: Thu,  1 Sep 2016 08:59:51 +0200
+Message-ID: <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1472713193-22397-1-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the initial patch series for the work of upstreaming the driver and
-user level library for SIF, the new Oracle HCA. My philosophy here has been to
-make the initial patches as little intrusive as possible, and rather consolidate
-later. For instance patch 1 could have just changed the signature of ibv_cmd_create_ah but that
-would have required a simultaneous change of all vendor libraries, which is
-much easier to accomplish if they all end up in the same repository...
+The original call ibv_cmd_create_ah does not allow vendor specific request or
+response parameters to be defined and passed through to kernel space.
 
-These patches are needed to support SIF - Oracle's new Infiniband HCA stack
-from user mode. A corresponding patch set for the kernel will follow shortly.
+To keep backward compatibility, introduce a new extended call which accepts
+cmd and resp parameters similar to other parts of the API.
+Reimplement the old call to just use the new extended call.
 
-I have been back and forth with whether or not an ABI version update is required/desired
-for the (bugfix) patch 2 in this series, which will be followed by a corresponding patch
-at the kernel level. This should ideally have been a backward compatible change since it does not
-really logically change the APIs, but because the kernel checks for exact match of
-sizes of the cmd structures instead of just accepting the expected size even if the
-provided size is larger, both sides need to change simultaneously in this case to avoid
-breaking (ibv_reg_mr). In fact, looking at the last ABI change it seems running with version
-5 of the ABI on the kernel side is supported, but it will still fail due to the same reason.
+Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ include/infiniband/driver.h |  4 ++++
+ src/cmd.c                   | 50 +++++++++++++++++++++++++--------------------
+ src/libibverbs.map          |  1 +
+ 3 files changed, 33 insertions(+), 22 deletions(-)
 
-No changes are needed for the vendor libraries, except that they need to be rebuilt against the
-changed kern-abi.h file due to the same size check in the kernel.
-
-We need this patch because we have a vendor specific extension to the ibv_reg_mr response,
-which breaks if alignment criterias are violated.
-
-This patch 2 and the corresponding kernel patch does not update the ABI version,
-let me know what you think, if an update is desired, and what MIN and MAX versions
-we would want to set.
-
-Patch set:
-
-Knut Omang (3):
-  Add new call ibv_cmd_create_ah_ex which supports extra parameters
-  Add padding to get proper end alignment of ibv_reg_mr_resp
-  Provide remote XRC SRQ number in kernel post_send.
-
- include/infiniband/driver.h   |  4 ++++
- include/infiniband/kern-abi.h |  2 ++
- src/cmd.c                     | 55 ++++++++++++++++++++++++++-----------------
- src/libibverbs.map            |  1 +
- 4 files changed, 40 insertions(+), 22 deletions(-)
-
---
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 65fa44f..c46c55f 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -229,6 +229,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+ 			  struct ibv_recv_wr **bad_wr);
+ int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+ 		      struct ibv_ah_attr *attr);
++int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
++			struct ibv_ah_attr *attr,
++			struct ibv_create_ah *cmd, size_t cmd_size,
++			struct ibv_create_ah_resp *resp, size_t resp_size);
+ int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+ int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+ int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+diff --git a/src/cmd.c b/src/cmd.c
+index cb9e34c..12d8640 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -1463,38 +1463,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+ 	return ret;
+ }
+ 
+-int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+-		      struct ibv_ah_attr *attr)
++int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
++			 struct ibv_create_ah *cmd, size_t cmd_size,
++			 struct ibv_create_ah_resp *resp, size_t resp_size)
+ {
+-	struct ibv_create_ah      cmd;
+-	struct ibv_create_ah_resp resp;
+-
+-	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
+-	cmd.user_handle            = (uintptr_t) ah;
+-	cmd.pd_handle              = pd->handle;
+-	cmd.attr.dlid              = attr->dlid;
+-	cmd.attr.sl                = attr->sl;
+-	cmd.attr.src_path_bits     = attr->src_path_bits;
+-	cmd.attr.static_rate       = attr->static_rate;
+-	cmd.attr.is_global         = attr->is_global;
+-	cmd.attr.port_num          = attr->port_num;
+-	cmd.attr.grh.flow_label    = attr->grh.flow_label;
+-	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
+-	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
+-	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
+-	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
++	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
++	cmd->user_handle            = (uintptr_t) ah;
++	cmd->pd_handle              = pd->handle;
++	cmd->attr.dlid              = attr->dlid;
++	cmd->attr.sl                = attr->sl;
++	cmd->attr.src_path_bits     = attr->src_path_bits;
++	cmd->attr.static_rate       = attr->static_rate;
++	cmd->attr.is_global         = attr->is_global;
++	cmd->attr.port_num          = attr->port_num;
++	cmd->attr.grh.flow_label    = attr->grh.flow_label;
++	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
++	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
++	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
++	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+ 
+-	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
++	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+ 		return errno;
+ 
+-	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
++	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+ 
+-	ah->handle  = resp.handle;
++	ah->handle  = resp->handle;
+ 	ah->context = pd->context;
+ 
+ 	return 0;
+ }
+ 
++int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
++		      struct ibv_ah_attr *attr)
++{
++	struct ibv_create_ah      cmd;
++	struct ibv_create_ah_resp resp; 
++	return ibv_cmd_create_ah_ex(pd, ah, attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
++}
++
+ int ibv_cmd_destroy_ah(struct ibv_ah *ah)
+ {
+ 	struct ibv_destroy_ah cmd;
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 5134bd9..483df72 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -64,6 +64,7 @@ IBVERBS_1.0 {
+ 		ibv_cmd_post_recv;
+ 		ibv_cmd_post_srq_recv;
+ 		ibv_cmd_create_ah;
++		ibv_cmd_create_ah_ex;
+ 		ibv_cmd_destroy_ah;
+ 		ibv_cmd_attach_mcast;
+ 		ibv_cmd_detach_mcast;
+-- 
 2.5.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
