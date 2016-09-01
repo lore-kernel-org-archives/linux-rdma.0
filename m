@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v4 1/6] iw_cxgb4: call dev_put() on l2t allocation failure
-Date: Thu, 1 Sep 2016 06:43:46 -0700
-Message-ID: <47a029af714aad672bd4a9b0dc39806289e61ae7.1472746379.git.swise@opengridcomputing.com>
+Subject: [PATCH v4 3/6] nvme_rdma: keep a ref on the ctrl during delete/flush
+Date: Thu, 1 Sep 2016 09:12:25 -0700
+Message-ID: <70928a8d66b3a78e6f463b27dd0a6945c1a84f6f.1472746379.git.swise@opengridcomputing.com>
 References: <cover.1472746379.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1472746379.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -10,29 +10,61 @@ To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.o
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Reviewed-by: Sagi Grimberg <sagi-Eyp3ogxVSr5BDLzU/O5InQ@public.gmane.org>
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-Eyp3ogxVSr5BDLzU/O5InQ@public.gmane.org>
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvme/host/rdma.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index b6a953a..434a7fb 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2117,8 +2117,10 @@ static int import_ep(struct c4iw_ep *ep, int iptype, __u8 *peer_ip,
- 		}
- 		ep->l2t = cxgb4_l2t_get(cdev->rdev.lldi.l2t,
- 					n, pdev, rt_tos2priority(tos));
--		if (!ep->l2t)
-+		if (!ep->l2t) {
-+			dev_put(pdev);
- 			goto out;
-+		}
- 		ep->mtu = pdev->mtu;
- 		ep->tx_chan = cxgb4_port_chan(pdev);
- 		ep->smac_idx = cxgb4_tp_smt_idx(adapter_type,
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index ab545fb..15b0c1d 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -1351,9 +1351,15 @@ static int nvme_rdma_device_unplug(struct nvme_rdma_queue *queue)
+ 		ret = 1;
+ 	}
+ 
+-	/* Queue controller deletion */
++	/*
++	 * Queue controller deletion. Keep a reference until all
++	 * work is flushed since delete_work will free the ctrl mem
++	 */
++	kref_get(&ctrl->ctrl.kref);
+ 	queue_work(nvme_rdma_wq, &ctrl->delete_work);
+ 	flush_work(&ctrl->delete_work);
++	nvme_put_ctrl(&ctrl->ctrl);
++
+ 	return ret;
+ }
+ 
+@@ -1700,15 +1706,19 @@ static int __nvme_rdma_del_ctrl(struct nvme_rdma_ctrl *ctrl)
+ static int nvme_rdma_del_ctrl(struct nvme_ctrl *nctrl)
+ {
+ 	struct nvme_rdma_ctrl *ctrl = to_rdma_ctrl(nctrl);
+-	int ret;
++	int ret = 0;
+ 
++	/*
++	 * Keep a reference until all work is flushed since
++	 * __nvme_rdma_del_ctrl can free the ctrl mem
++	 */
++	if (!kref_get_unless_zero(&ctrl->ctrl.kref))
++		return -EBUSY;
+ 	ret = __nvme_rdma_del_ctrl(ctrl);
+-	if (ret)
+-		return ret;
+-
+-	flush_work(&ctrl->delete_work);
+-
+-	return 0;
++	if (!ret)
++		flush_work(&ctrl->delete_work);
++	nvme_put_ctrl(&ctrl->ctrl);
++	return ret;
+ }
+ 
+ static void nvme_rdma_remove_ctrl_work(struct work_struct *work)
 -- 
 2.7.0
 
