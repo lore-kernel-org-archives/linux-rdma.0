@@ -1,40 +1,146 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 1 Sep 2016 01:26:43 -0700
-Message-ID: <20160901082643.GA19799@infradead.org>
-References: <20160822214352.GB11695@obsidianresearch.com>
- <20160823185441.GA1233@obsidianresearch.com>
- <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com>
- <20160830060842.GJ594@leon.nu>
- <9C6B67F36DCAFC479B1CF6A967258A8C7DE04100@ORSMSX115.amr.corp.intel.com>
- <20160831200336.GA4134@obsidianresearch.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
+ supports extra parameters
+Date: Thu, 1 Sep 2016 11:34:50 +0300
+Message-ID: <09e67035-0c8a-9b44-fa84-08413dd6ac46@dev.mellanox.co.il>
+References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
+ <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160831200336.GA4134-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1472713193-22397-2-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, yarong@mellano
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This seems to be the entire out of tree driver discussion we
-have in the kernel once again.  Clueless people at vendors all think
-that they are the only ones who matter and let everyone else
-suffer.
+On 9/1/2016 9:59 AM, Knut Omang wrote:
+> The original call ibv_cmd_create_ah does not allow vendor specific request or
+> response parameters to be defined and passed through to kernel space.
+>
+> To keep backward compatibility, introduce a new extended call which accepts
+> cmd and resp parameters similar to other parts of the API.
+> Reimplement the old call to just use the new extended call.
+>
+> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/infiniband/driver.h |  4 ++++
+>  src/cmd.c                   | 50 +++++++++++++++++++++++++--------------------
+>  src/libibverbs.map          |  1 +
+>  3 files changed, 33 insertions(+), 22 deletions(-)
+>
+> diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+> index 65fa44f..c46c55f 100644
+> --- a/include/infiniband/driver.h
+> +++ b/include/infiniband/driver.h
+> @@ -229,6 +229,10 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+>  			  struct ibv_recv_wr **bad_wr);
+>  int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+>  		      struct ibv_ah_attr *attr);
+> +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah,
+> +			struct ibv_ah_attr *attr,
+> +			struct ibv_create_ah *cmd, size_t cmd_size,
+> +			struct ibv_create_ah_resp *resp, size_t resp_size);
+>  int ibv_cmd_destroy_ah(struct ibv_ah *ah);
+>  int ibv_cmd_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+>  int ibv_cmd_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint16_t lid);
+> diff --git a/src/cmd.c b/src/cmd.c
+> index cb9e34c..12d8640 100644
+> --- a/src/cmd.c
+> +++ b/src/cmd.c
+> @@ -1463,38 +1463,44 @@ int ibv_cmd_post_srq_recv(struct ibv_srq *srq, struct ibv_recv_wr *wr,
+>  	return ret;
+>  }
+>
+> -int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> -		      struct ibv_ah_attr *attr)
+> +int ibv_cmd_create_ah_ex(struct ibv_pd *pd, struct ibv_ah *ah, struct ibv_ah_attr *attr,
+> +			 struct ibv_create_ah *cmd, size_t cmd_size,
+> +			 struct ibv_create_ah_resp *resp, size_t resp_size)
+>  {
+> -	struct ibv_create_ah      cmd;
+> -	struct ibv_create_ah_resp resp;
+> -
+> -	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, CREATE_AH, &resp, sizeof resp);
+> -	cmd.user_handle            = (uintptr_t) ah;
+> -	cmd.pd_handle              = pd->handle;
+> -	cmd.attr.dlid              = attr->dlid;
+> -	cmd.attr.sl                = attr->sl;
+> -	cmd.attr.src_path_bits     = attr->src_path_bits;
+> -	cmd.attr.static_rate       = attr->static_rate;
+> -	cmd.attr.is_global         = attr->is_global;
+> -	cmd.attr.port_num          = attr->port_num;
+> -	cmd.attr.grh.flow_label    = attr->grh.flow_label;
+> -	cmd.attr.grh.sgid_index    = attr->grh.sgid_index;
+> -	cmd.attr.grh.hop_limit     = attr->grh.hop_limit;
+> -	cmd.attr.grh.traffic_class = attr->grh.traffic_class;
+> -	memcpy(cmd.attr.grh.dgid, attr->grh.dgid.raw, 16);
+> +	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_AH, resp, resp_size);
 
-Jason: how about we start your project and take care of updating the
-drivers form the vendor release outselves?  I'm pretty sure all
-consumers will simply switch to it, eventually forcing the vendors
-to work with us.
+You should start with a patch extending the kernel part while supporting 
+backwards compatibility, later on when patch applied come with a 
+matching user space patch for a review.
 
-Arguing with these sorts of bullshit positions from Robert and Leon
-just makes me feel tired.  I've just seen too many unicorns and special
-snowflakes in my life.
+In addition, if you supply an extended command you should work with the 
+extended macros for issuing a command to fully enable future extensions 
+(e.g IBV_INIT_CMD_RESP_EX_V) and with a specific EX command as done in 
+other cases (e.g CREATE_QP_EX).
+
+> +	cmd->user_handle            = (uintptr_t) ah;
+> +	cmd->pd_handle              = pd->handle;
+> +	cmd->attr.dlid              = attr->dlid;
+> +	cmd->attr.sl                = attr->sl;
+> +	cmd->attr.src_path_bits     = attr->src_path_bits;
+> +	cmd->attr.static_rate       = attr->static_rate;
+> +	cmd->attr.is_global         = attr->is_global;
+> +	cmd->attr.port_num          = attr->port_num;
+> +	cmd->attr.grh.flow_label    = attr->grh.flow_label;
+> +	cmd->attr.grh.sgid_index    = attr->grh.sgid_index;
+> +	cmd->attr.grh.hop_limit     = attr->grh.hop_limit;
+> +	cmd->attr.grh.traffic_class = attr->grh.traffic_class;
+> +	memcpy(cmd->attr.grh.dgid, attr->grh.dgid.raw, 16);
+>
+> -	if (write(pd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+> +	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
+>  		return errno;
+>
+> -	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);
+> +	(void) VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
+>
+> -	ah->handle  = resp.handle;
+> +	ah->handle  = resp->handle;
+>  	ah->context = pd->context;
+>
+>  	return 0;
+>  }
+>
+> +int ibv_cmd_create_ah(struct ibv_pd *pd, struct ibv_ah *ah,
+> +		      struct ibv_ah_attr *attr)
+> +{
+> +	struct ibv_create_ah      cmd;
+> +	struct ibv_create_ah_resp resp;
+> +	return ibv_cmd_create_ah_ex(pd, ah, attr, &cmd, sizeof(cmd), &resp, sizeof(resp));
+> +}
+> +
+>  int ibv_cmd_destroy_ah(struct ibv_ah *ah)
+>  {
+>  	struct ibv_destroy_ah cmd;
+> diff --git a/src/libibverbs.map b/src/libibverbs.map
+> index 5134bd9..483df72 100644
+> --- a/src/libibverbs.map
+> +++ b/src/libibverbs.map
+> @@ -64,6 +64,7 @@ IBVERBS_1.0 {
+>  		ibv_cmd_post_recv;
+>  		ibv_cmd_post_srq_recv;
+>  		ibv_cmd_create_ah;
+> +		ibv_cmd_create_ah_ex;
+>  		ibv_cmd_destroy_ah;
+>  		ibv_cmd_attach_mcast;
+>  		ibv_cmd_detach_mcast;
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
