@@ -1,81 +1,95 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v4 2/6] iw_cxgb4: block module unload until all ep resources
- are released
-Date: Thu, 1 Sep 2016 06:44:52 -0700
-Message-ID: <f9be4774ee55355ed2fe3cf09fb6674a65f36042.1472746379.git.swise@opengridcomputing.com>
-References: <cover.1472746379.git.swise@opengridcomputing.com>
+Subject: [PATCH v4 0/6] nvme-rdma device removal fixes
+Date: Thu, 1 Sep 2016 09:12:59 -0700
+Message-ID: <cover.1472746379.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1472746379.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Otherwise an endpoint can be still closing down causing a touch
-after free crash.  Also WARN_ON if ulps have failed to destroy
-various resources during device removal.
+This series addresses several problems when shutting down a nvme-rdma
+host when its controllers are attempting to reconnect to a target that
+is no longer reachable.
 
-Fixes: ad61a4c7a9b7 ("iw_cxgb4: don't block in destroy_qp awaiting the last deref")
-Reviewed-by: Sagi Grimberg <sagi-Eyp3ogxVSr5BDLzU/O5InQ@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To tickle these bugs:
+
+1) attach over iw_cxgb4 to 10 devices on a target.
+2) 'ifconfig down' the target's interface
+3) wait for keep-alive to fire and begin reconnecting (~15-20 seconds)
+4) do one of these on the host:
+   - rmmod iw_cxgb4
+   - reboot
+   - reboot -f
+
+Doug/Sagi, the first 2 iw_cxgb4 patches are included here because they're
+needed for the testing.  While I've also submitted them to linux-rdma,
+perhaps Sagi can merge them in nvmf-4.8-rc?  If that is acceptable
+with everyone.
+
+Patch series:
+
+1/6 iw_cxgb4: call dev_put() on l2t allocation failure
+2/6 iw_cxgb4: block module unload until all ep resources are released
+3/6 nvme_rdma: keep a ref on the ctrl during delete/flush
+4/6 nvme-rdma: destroy nvme queue rdma resources on connect failure
+5/6 nvme-rdma: add DELETING queue flag
+6/6 nvme-rdma: use ib_client API to detect device removal
+
+Changes since v3:
+
+- removed WIP/RFC tag
+
+- fixed a bug in patch 4 where a rdma reject from the target causes a
+double free of the ib queue and cm_id.
+
+- remove noisy pr_info()s in patch 6
+
+- kref_get -> kref_get_unless_zero in nvme_rdma_del_ctrl() of patch 3
+
+- add reviewed-by tags
+
+Changes since v2:
+
+- refactor/simplify the remove_one function.
+
+- nvme-rdma module remove function doesn't need to explicitly
+remove the controllers; they will be removed as part of
+ib_client unregister.
+
+- removed forward declarations.
+
+Changes since v1:
+
+- the big change was patch 6 rewrite - use client_ib API to handle
+device removal instead of rdma_cm device removal events.
+
+- tweaked patch 5 to avoid bisect issues
+
+- small code rework on patch 3 based on Christoph's suggestion
+
+- clear_bit() -> !test_and_clear_bit() in patch 4 (Christoph's comment)
+
+- add reviewed-by tags.
+
 ---
- drivers/infiniband/hw/cxgb4/cm.c       | 2 ++
- drivers/infiniband/hw/cxgb4/device.c   | 5 +++++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h | 1 +
- 3 files changed, 8 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 434a7fb..80f9889 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -333,6 +333,8 @@ static void remove_ep_tid(struct c4iw_ep *ep)
- 
- 	spin_lock_irqsave(&ep->com.dev->lock, flags);
- 	_remove_handle(ep->com.dev, &ep->com.dev->hwtid_idr, ep->hwtid, 0);
-+	if (idr_is_empty(&ep->com.dev->hwtid_idr))
-+		wake_up(&ep->com.dev->wait);
- 	spin_unlock_irqrestore(&ep->com.dev->lock, flags);
- }
- 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 071d733..3c4b212 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -872,9 +872,13 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- static void c4iw_dealloc(struct uld_ctx *ctx)
- {
- 	c4iw_rdev_close(&ctx->dev->rdev);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->cqidr));
- 	idr_destroy(&ctx->dev->cqidr);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->qpidr));
- 	idr_destroy(&ctx->dev->qpidr);
-+	WARN_ON_ONCE(!idr_is_empty(&ctx->dev->mmidr));
- 	idr_destroy(&ctx->dev->mmidr);
-+	wait_event(ctx->dev->wait, idr_is_empty(&ctx->dev->hwtid_idr));
- 	idr_destroy(&ctx->dev->hwtid_idr);
- 	idr_destroy(&ctx->dev->stid_idr);
- 	idr_destroy(&ctx->dev->atid_idr);
-@@ -992,6 +996,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
- 	mutex_init(&devp->rdev.stats.lock);
- 	mutex_init(&devp->db_mutex);
- 	INIT_LIST_HEAD(&devp->db_fc_list);
-+	init_waitqueue_head(&devp->wait);
- 	devp->avail_ird = devp->rdev.lldi.max_ird_adapter;
- 
- 	if (c4iw_debugfs_root) {
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index aa47e0a..4b83b84 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -263,6 +263,7 @@ struct c4iw_dev {
- 	struct idr stid_idr;
- 	struct list_head db_fc_list;
- 	u32 avail_ird;
-+	wait_queue_head_t wait;
- };
- 
- static inline struct c4iw_dev *to_c4iw_dev(struct ib_device *ibdev)
+Sagi Grimberg (1):
+  nvme-rdma: add DELETING queue flag
+
+Steve Wise (5):
+  iw_cxgb4: call dev_put() on l2t allocation failure
+  iw_cxgb4: block module unload until all ep resources are released
+  nvme_rdma: keep a ref on the ctrl during delete/flush
+  nvme-rdma: destroy nvme queue rdma resources on connect failure
+  nvme-rdma: use ib_client API to detect device removal
+
+ drivers/infiniband/hw/cxgb4/cm.c       |   6 +-
+ drivers/infiniband/hw/cxgb4/device.c   |   5 ++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   1 +
+ drivers/nvme/host/rdma.c               | 136 ++++++++++++++++-----------------
+ 4 files changed, 76 insertions(+), 72 deletions(-)
+
 -- 
 2.7.0
 
