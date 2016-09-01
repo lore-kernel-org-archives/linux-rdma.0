@@ -1,82 +1,65 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH for-next 08/10] IB/hns: Fix the bug of rdma cm connecting on user mode
-Date: Fri, 2 Sep 2016 05:37:23 +0800
-Message-ID: <1472765845-118972-9-git-send-email-salil.mehta@huawei.com>
-References: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
+From: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL
+ commands
+Date: Thu, 1 Sep 2016 16:54:15 +0000
+Message-ID: <1472748852.16467.14.camel@intel.com>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+                 <1471987907-6336-7-git-send-email-leon@kernel.org>
+                 <1472738739.16467.8.camel@intel.com> <20160901162043.GD21847@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472765845-118972-1-git-send-email-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: salil.mehta@huawei.com, xavier.huwei@huawei.com, oulijun@huawei.com, yisen.zhuang@huawei.com, mehta.salil.lnk@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160901162043.GD21847-2ukJVAZIZ/Y@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E32DE816A8F58D41A8865C3711DAF1DA-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
-
-Fix bug of modify qp from init to init on user mode. Otherwise,
-it will oops when rmda cm established.
-
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
-Reviewed-by: Wei Hu <xavier.huwei@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |   41 ++++++++++------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 581e542..206957b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2395,35 +2395,22 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_INIT) {
- 		/* Memory barrier */
- 		wmb();
--		if (hr_qp->ibqp.qp_type == IB_QPT_GSI) {
--			/* SW update GSI rq header */
--			reg_val = roce_read(hr_dev, ROCEE_QP1C_CFG3_0_REG +
--					    QP1C_CFGN_OFFSET * hr_qp->phy_port);
--			roce_set_field(reg_val,
--				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_M,
--				       ROCEE_QP1C_CFG3_0_ROCEE_QP1C_RQ_HEAD_S,
--				       hr_qp->rq.head);
--			roce_write(hr_dev, ROCEE_QP1C_CFG3_0_REG +
--				   QP1C_CFGN_OFFSET * hr_qp->phy_port, reg_val);
--		} else {
--			rq_db.u32_4 = 0;
--			rq_db.u32_8 = 0;
- 
--			roce_set_field(rq_db.u32_4, RQ_DOORBELL_U32_4_RQ_HEAD_M,
--				       RQ_DOORBELL_U32_4_RQ_HEAD_S,
--				       hr_qp->rq.head);
--			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_QPN_M,
--				       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
--			roce_set_field(rq_db.u32_8, RQ_DOORBELL_U32_8_CMD_M,
--				       RQ_DOORBELL_U32_8_CMD_S, 1);
--			roce_set_bit(rq_db.u32_8, RQ_DOORBELL_U32_8_HW_SYNC_S,
--				     1);
--
--			doorbell[0] = rq_db.u32_4;
--			doorbell[1] = rq_db.u32_8;
--
--			hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
-+		roce_set_field(doorbell[0], RQ_DOORBELL_U32_4_RQ_HEAD_M,
-+			       RQ_DOORBELL_U32_4_RQ_HEAD_S, hr_qp->rq.head);
-+		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_QPN_M,
-+			       RQ_DOORBELL_U32_8_QPN_S, hr_qp->qpn);
-+		roce_set_field(doorbell[1], RQ_DOORBELL_U32_8_CMD_M,
-+			       RQ_DOORBELL_U32_8_CMD_S, 1);
-+		roce_set_bit(doorbell[1], RQ_DOORBELL_U32_8_HW_SYNC_S, 1);
-+
-+		if (ibqp->uobject) {
-+			hr_qp->rq.db_reg_l = hr_dev->reg_base +
-+				     ROCEE_DB_OTHERS_L_0_REG +
-+				     DB_REG_OFFSET * hr_dev->priv_uar.index;
- 		}
-+
-+		hns_roce_write64_k(doorbell, hr_qp->rq.db_reg_l);
- 	}
- 
- 	hr_qp->state = new_state;
--- 
-1.7.9.5
+T24gVGh1LCAyMDE2LTA5LTAxIGF0IDE5OjIwICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFRodSwgU2VwIDAxLCAyMDE2IGF0IDAyOjA1OjQ0UE0gKzAwMDAsIERhbGVzc2FuZHJv
+LCBEZW5uaXMgd3JvdGU6DQo+ID4gT24gV2VkLCAyMDE2LTA4LTI0IGF0IDAwOjMxICswMzAwLCBM
+ZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25y
+b0BtZWxsYW5veC5jb20+DQo+ID4gPiDCoA0KPiA+ID4gLSNkZWZpbmUgSEZJMV9DTURfQVNTSUdO
+X0NUWFTCoMKgwqDCoMKgMQkvKiBhbGxvY2F0ZSBIRkkgYW5kDQo+ID4gPiBjb250ZXh0ICovDQo+
+ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9DVFhUX0lORk/CoMKgwqDCoMKgwqDCoDIJLyogZmluZCBv
+dXQgd2hhdA0KPiA+ID4gcmVzb3VyY2VzDQo+ID4gPiB3ZSBnb3QgKi8NCj4gPiA+IC0jZGVmaW5l
+IEhGSTFfQ01EX1VTRVJfSU5GT8KgwqDCoMKgwqDCoMKgMwkvKiBzZXQgdXAgdXNlcnNwYWNlICov
+DQo+ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9USURfVVBEQVRFwqDCoMKgwqDCoMKgNAkvKiB1cGRh
+dGUgZXhwZWN0ZWQgVElEDQo+ID4gPiBlbnRyaWVzICovDQo+ID4gPiAtI2RlZmluZSBIRkkxX0NN
+RF9USURfRlJFRcKgwqDCoMKgwqDCoMKgwqA1CS8qIGZyZWUgZXhwZWN0ZWQgVElEDQo+ID4gPiBl
+bnRyaWVzICovDQo+ID4gPiAtI2RlZmluZSBIRkkxX0NNRF9DUkVESVRfVVBEwqDCoMKgwqDCoMKg
+NgkvKiBmb3JjZSBhbiB1cGRhdGUgb2YNCj4gPiA+IFBJTw0KPiA+ID4gY3JlZGl0ICovDQo+ID4g
+PiArLyogYWxsb2NhdGUgSEZJIGFuZCBjb250ZXh0ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NN
+RF9BU1NJR05fQ1RYVMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDEpDQo+ID4gPiArLyog
+ZmluZCBvdXQgd2hhdCByZXNvdXJjZXMgd2UgZ290ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NN
+RF9DVFhUX0lORk/CoMKgwqDCoMKgwqDCoChIRkkxX0NNRF9CQVNFICsgMHgwMikNCj4gPiA+ICsv
+KiBzZXQgdXAgdXNlcnNwYWNlICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NNRF9VU0VSX0lORk/C
+oMKgwqDCoMKgwqDCoChIRkkxX0NNRF9CQVNFICsgMHgwMykNCj4gPiA+ICsvKiB1cGRhdGUgZXhw
+ZWN0ZWQgVElEIGVudHJpZXMgKi8NCj4gPiA+ICsjZGVmaW5lIEhGSTFfQ01EX1RJRF9VUERBVEXC
+oMKgwqDCoMKgwqAoSEZJMV9DTURfQkFTRSArIDB4MDQpDQo+ID4gPiArLyogZnJlZSBleHBlY3Rl
+ZCBUSUQgZW50cmllcyAqLw0KPiA+ID4gKyNkZWZpbmUgSEZJMV9DTURfVElEX0ZSRUXCoMKgwqDC
+oMKgwqDCoMKgKEhGSTFfQ01EX0JBU0UgKyAweDA1KQ0KPiA+ID4gKy8qIGZvcmNlIGFuIHVwZGF0
+ZSBvZiBQSU8gY3JlZGl0ICovDQo+ID4gPiArI2RlZmluZSBIRkkxX0NNRF9DUkVESVRfVVBEwqDC
+oMKgwqDCoMKgKEhGSTFfQ01EX0JBU0UgKyAweDA2KQ0KPiA+IA0KPiA+IFRoaXMgaXMgYSBtaW5v
+ciBpc3N1ZSwgYnV0IHRoZSBwcm9ibGVtIGhlcmUgaXMgd2hlbiB3ZSBidWlsZCBQU00NCj4gPiBh
+Z2FpbnN0IHRoaXMga2VybmVsIGl0IHdpbGwgbm8gbG9uZ2VyIHdvcmsgZm9yIG9sZGVyIGtlcm5l
+bHMNCj4gPiBiZWNhdXNlDQo+ID4gdGhlIHZhbHVlIG9mIEhGSTFfQ01EX0FTU0lHTl9DVFhUIGhh
+cyBjaGFuZ2VkIHdoZXJlIGFzIGl0IHVzZWQgdG8NCj4gPiBiZSAxLg0KPiA+IFJpZ2h0IG5vdyBQ
+U00gaXMgYmFja3dhcmRzIGNvbXBhdGlibGUsIHRoaXMgYnJlYWtzIHRoYXQNCj4gPiBjb21wYXRp
+YmlsaXR5Lg0KPiA+IA0KPiA+IFNvIHdoaWxlIG5vIG9uZSB1c2VzIHRoZSBfX05VTSgpIG1hY3Jv
+IGRpcmVjdGx5IGl0IGxldHMgdXMgbm90DQo+ID4gY2hhbmdlDQo+ID4gdGhlIFBTTSBjb21tYW5k
+IHZhbHVlcy4gQ2FuIHdlIHB1dCB0aGF0IHBhcnQgYmFjayBhbmQga2VlcCB0aGUNCj4gPiBjb21t
+YW5kDQo+ID4gdmFsdWVzIHVuY2hhbmdlZD8NCj4gDQo+IFN1cmUsIEknbGwgcG9zdCBuZXcgdmVy
+c2lvbi4NCj4gSnVzdCB0byBiZSBzdXJlLCB5b3UgYXJlIG5vdCB1c2luZyBfX05VTSgpIGFuZCBJ
+IGNhbiByZWRlZmluZSB0aGF0DQo+IG1hY3JvLCBhbSBJIHJpZ2h0Pw0KPiANCg0KWWVhaCB5b3Ug
+Y2FuIGNhbGwgaXQgc29tZXRoaW5nIGVsc2UsIG9yIGRvIGl0IGluIGEgZGlmZmVyZW50IHdheS4g
+SQ0KdmVyaWZpZWQgdGhhdCB0aGUgcGF0Y2ggd29ya3Mgd2l0aCB0aGUgY3VycmVudCBQU00gcmV2
+ZXJ0aW5nIHRoZSBDTUQNCm51bWJlcnMuIEknbGwgZ3JhYiB5b3VyIG5ldyBwYXRjaCBhbmQgcmUt
+dGVzdCBpdCB0aGVuLg0KDQpUaGFua3MNCg0KLURlbm55DQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
