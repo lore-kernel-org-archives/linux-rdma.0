@@ -1,47 +1,62 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
-Date: Thu, 1 Sep 2016 10:46:24 -0600
-Message-ID: <20160901164624.GC6479@obsidianresearch.com>
-References: <1471987907-6336-1-git-send-email-leon@kernel.org>
- <1471987907-6336-7-git-send-email-leon@kernel.org>
- <1472738739.16467.8.camel@intel.com>
+From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH v3 0/9] SELinux support for Infiniband RDMA
+Date: Thu, 1 Sep 2016 14:06:46 -0400
+Message-ID: <CAHC9VhR-u-ZXMeLkZL7y3=DJP5XaH7CxcZ=b5z67wVwhaPcUhQ@mail.gmail.com>
+References: <CAHC9VhS1Tg3qr2Nncd_eq_eUXrf-wMickoeoF978Q7L+gN7J1g@mail.gmail.com>
+ <VI1PR0501MB24297FF784A085DC0AAE2C1EC4E10@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <CAHC9VhTEOvZ76dNJp35WEhr+r84eZZ6_ZmuaznGLakzZGcXhUw@mail.gmail.com>
+ <20160830074607.GN594@leon.nu>
+ <CAHC9VhRUmbsuV40rRpG+LeNUgY7rVqOkt-fxTMAFDRRdLvEkug@mail.gmail.com>
+ <VI1PR0501MB242949202A1DA23E5C8E1E8AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160830184633.GE7586@obsidianresearch.com>
+ <VI1PR0501MB2429992B1165DFADC6A6C35AC4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160830185548.GA9768@obsidianresearch.com>
+ <VI1PR0501MB242974DEE5E0BF2FFE3A5DA0C4E00@VI1PR0501MB2429.eurprd05.prod.outlook.com>
+ <20160901163418.GA6479@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1472738739.16467.8.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+In-Reply-To: <20160901163418.GA6479-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Post: <mailto:selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+List-Help: <mailto:selinux-request-+05T5uksL2qpZYMLLGbcSA@public.gmane.org?subject=help>
+Errors-To: selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+Sender: "Selinux" <selinux-bounces-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org" <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 02:05:44PM +0000, Dalessandro, Dennis wrote:
+On Thu, Sep 1, 2016 at 12:34 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, Aug 30, 2016 at 07:10:12PM +0000, Daniel Jurgens wrote:
+>> On 8/30/2016 1:56 PM, Jason Gunthorpe wrote:
+>> >
+>> > Are subsystems usually SELinux enabled in such a piecemeal way?
+>> >
+>> > Are you sure the 'partition' SELinux label should not be more general
+>> > to cover more of the similar RDMA cases?
+>
+>> In order to label something you have to be able to describe
+>> something unique about an instance of it, like a Subnet Prefix/PKey
+>> value pair.  What other thing could we label more generally to
+>> control access to a partition/VLAN?
+>
+> IP prefix / vlan #? How does it work in net?
+>
+> Shouldn't you at least have a plan for how this will expand to cover
+> the whole subsystem??
 
-> > +/* allocate HFI and context */
-> > +#define HFI1_CMD_ASSIGN_CTXT     (HFI1_CMD_BASE + 0x01)
-> 
-> This is a minor issue, but the problem here is when we build PSM
-> against this kernel it will no longer work for older kernels because
-> the value of HFI1_CMD_ASSIGN_CTXT has changed where as it used to be 1.
-> Right now PSM is backwards compatible, this breaks that compatibility.
+Jason and/or Daniel, I think it would be helpful if you could explain
+both the InifiniBand and IP based approaches for those of us who know
+SELinux, but not necessarily the RDMA and InfiniBand portions of this
+discussion.  Be verbose and explain it as if we were idiots (I get
+called that enough, it must be true).
 
-What? Someone renumberd an ioctl? When? Why? How?
-
-Was this ioctl ever in a mainline non-staging kernel? If not, too bad,
-deal with it in your user space..
-
-If yes, can we revert the renumbering? Why was that even done??
-
-> So while no one uses the __NUM() macro directly it lets us not change
-> the PSM command values. Can we put that part back and keep the command
-> values unchanged?
-
-Please no, do not do crazy subtle things like this. If the ioctl has
-two valid numbers then you need two entries in the ioctl file.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+paul moore
+www.paul-moore.com
+_______________________________________________
+Selinux mailing list
+Selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org
+To unsubscribe, send email to Selinux-leave-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
+To get help, send an email containing "help" to Selinux-request-+05T5uksL2pAGbPMOrvdOA@public.gmane.org
