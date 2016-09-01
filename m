@@ -1,48 +1,57 @@
-From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH v3 5/9] selinux: Create policydb version for Infiniband support
-Date: Wed, 31 Aug 2016 21:39:03 -0400
-Message-ID: <CAHC9VhTF3erdxu+P3rZ3dn4dE+p4vgbyhKk1CmTwK333o-=-8g@mail.gmail.com>
-References: <1469800416-125043-1-git-send-email-danielj@mellanox.com> <1469800416-125043-6-git-send-email-danielj@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH libibverbs 0/3] SIF related libibverbs patches
+Date: Thu,  1 Sep 2016 08:59:50 +0200
+Message-ID: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1469800416-125043-6-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 29, 2016 at 9:53 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Support for Infiniband requires the addition of two new object contexts,
-> one for infiniband PKeys and another IB Ports. Added handlers to read
-> and write the new ocontext types when reading or writing a binary policy
-> representation.
->
-> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> ---
-> v2:
-> - Shorten ib_end_port to ib_port. Paul Moore
-> - Added bounds checking to port number. Paul Moore
-> - Eliminated {} in OCON_PKEY case statement.  Yuval Shaia
+This is the initial patch series for the work of upstreaming the driver and
+user level library for SIF, the new Oracle HCA. My philosophy here has been to
+make the initial patches as little intrusive as possible, and rather consolidate
+later. For instance patch 1 could have just changed the signature of ibv_cmd_create_ah but that
+would have required a simultaneous change of all vendor libraries, which is
+much easier to accomplish if they all end up in the same repository...
 
-Nit picky, but you still have some curly braces in ocontext_read()
-that aren't strictly necessary.
+These patches are needed to support SIF - Oracle's new Infiniband HCA stack
+from user mode. A corresponding patch set for the kernel will follow shortly.
 
-> v3:
-> - ib_port -> ib_endport. Paul Moore
->
->  security/selinux/include/security.h |   3 +-
->  security/selinux/ss/policydb.c      | 130 +++++++++++++++++++++++++++++++-----
->  security/selinux/ss/policydb.h      |  27 +++++---
->  3 files changed, 136 insertions(+), 24 deletions(-)
+I have been back and forth with whether or not an ABI version update is required/desired
+for the (bugfix) patch 2 in this series, which will be followed by a corresponding patch
+at the kernel level. This should ideally have been a backward compatible change since it does not
+really logically change the APIs, but because the kernel checks for exact match of
+sizes of the cmd structures instead of just accepting the expected size even if the
+provided size is larger, both sides need to change simultaneously in this case to avoid
+breaking (ibv_reg_mr). In fact, looking at the last ABI change it seems running with version
+5 of the ABI on the kernel side is supported, but it will still fail due to the same reason.
 
--- 
-paul moore
-www.paul-moore.com
+No changes are needed for the vendor libraries, except that they need to be rebuilt against the
+changed kern-abi.h file due to the same size check in the kernel.
+
+We need this patch because we have a vendor specific extension to the ibv_reg_mr response,
+which breaks if alignment criterias are violated.
+
+This patch 2 and the corresponding kernel patch does not update the ABI version,
+let me know what you think, if an update is desired, and what MIN and MAX versions
+we would want to set.
+
+Patch set:
+
+Knut Omang (3):
+  Add new call ibv_cmd_create_ah_ex which supports extra parameters
+  Add padding to get proper end alignment of ibv_reg_mr_resp
+  Provide remote XRC SRQ number in kernel post_send.
+
+ include/infiniband/driver.h   |  4 ++++
+ include/infiniband/kern-abi.h |  2 ++
+ src/cmd.c                     | 55 ++++++++++++++++++++++++++-----------------
+ src/libibverbs.map            |  1 +
+ 4 files changed, 40 insertions(+), 22 deletions(-)
+
+--
+2.5.5
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
