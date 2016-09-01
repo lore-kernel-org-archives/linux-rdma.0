@@ -1,49 +1,70 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Thu, 1 Sep 2016 11:23:55 -0600
-Message-ID: <20160901172355.GA20472@obsidianresearch.com>
-References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <4f0876ce-f3c9-83e3-d0ef-0c5656ce9462@grimberg.me>
- <53eb35b4-0320-acd9-9969-73f5817c8144@sandisk.com>
+Subject: Re: [PATCH rdma-next V2 6/6] RDMA/core: Unify style of IOCTL commands
+Date: Thu, 1 Sep 2016 11:07:42 -0600
+Message-ID: <20160901170742.GA20098@obsidianresearch.com>
+References: <1471987907-6336-1-git-send-email-leon@kernel.org>
+ <1471987907-6336-7-git-send-email-leon@kernel.org>
+ <1472738739.16467.8.camel@intel.com>
+ <20160901164624.GC6479@obsidianresearch.com>
+ <20160901165552.GE21847@leon.nu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <53eb35b4-0320-acd9-9969-73f5817c8144-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20160901165552.GE21847-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 08:56:49AM -0700, Bart Van Assche wrote:
-> On 09/01/2016 08:24 AM, Sagi Grimberg wrote:
-> >Sorry for joining the discussion late. This looks *really* nice.
+On Thu, Sep 01, 2016 at 07:55:52PM +0300, Leon Romanovsky wrote:
+> On Thu, Sep 01, 2016 at 10:46:24AM -0600, Jason Gunthorpe wrote:
+> > On Thu, Sep 01, 2016 at 02:05:44PM +0000, Dalessandro, Dennis wrote:
 > >
-> >FWIW, I think that it is a good starting point to set a real procedure
-> >to *upstream* user-space development. In the long run I think it's a
-> >win for everyone.
+> > > > +/* allocate HFI and context */
+> > > > +#define HFI1_CMD_ASSIGN_CTXT??????????(HFI1_CMD_BASE + 0x01)
+> > >
+> > > This is a minor issue, but the problem here is when we build PSM
+> > > against this kernel it will no longer work for older kernels because
+> > > the value of HFI1_CMD_ASSIGN_CTXT has changed where as it used to be 1.
+> > > Right now PSM is backwards compatible, this breaks that compatibility.
 > >
-> >Would it be possible to add srptools in the bundle too?
-> >CC'ing Bart who maintains it.
+> > What? Someone renumberd an ioctl? When? Why? How?
+> >
+> > Was this ioctl ever in a mainline non-staging kernel? If not, too bad,
+> > deal with it in your user space..
+> >
+> > If yes, can we revert the renumbering? Why was that even done??
+> >
+> > > So while no one uses the __NUM() macro directly it lets us not change
+> > > the PSM command values. Can we put that part back and keep the command
+> > > values unchanged?
+> >
+> > Please no, do not do crazy subtle things like this. If the ioctl has
+> > two valid numbers then you need two entries in the ioctl file.
 > 
-> Hello Jason and Sagi,
+> I didn't renumbered ioctls, but renumbered one of the internals number
+> which is not used in kernel, but for any reasons used in their
+> user-space.
+
+If it is not used in the kernel why is it in this header?
+
+Ah, I see, this was part of the staging clean up, this is part of the
+old non-ioctl UAPI that got trashed ??
+
+> ???  linux-rdma git:(master) grep -r HFI1_CMD_ASSIGN_CTXT drivers/infiniband/hw/hfi1/* include/*
+> include/uapi/rdma/hfi/hfi1_user.h:#define HFI1_CMD_ASSIGN_CTXT     1 /* allocate HFI and context */
 > 
-> Sorry that I was too busy recently to follow this thread. But I agree with
-> Sagi - if the purpose is to consolidate all RDMA user space code then I
-> think the srptools repo should also be included. The official repo is
-> available at http://git.openfabrics.org/?p=~bvanassche/srptools.git/.git.
+> So what should I do? respin or not?
 
-Seems reasonable and on theme.
+Drop the cruft. These header file definitions should have been deleted
+when the API was dropped during the staging review.
 
-What do you want to do with the emulate_udev directory? It doesn't
-even look like it is built..
+We do not promise anything for drivers during their time in staging,
+and we do not support ABIs that only existed during staging.
 
-So we have nominations for
-
-srptools http://git.openfabrics.org/?p=~bvanassche/srptools.git/.git.
-perftest git://git.openfabrics.org/~grockah/perftest.git master
-iwpm ?? (Steve Wise: do you have a cannonical link for this, Google isn't
-         helping me?)
+Dennis should use an internal definition in PSM if he wishes to
+continue to support the staging kernel ABI.
 
 Jason
 --
