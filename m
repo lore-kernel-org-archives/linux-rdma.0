@@ -1,86 +1,86 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 7/9] IB/mlx5: Add VERBOSITY Kconfig option
-Date: Fri, 2 Sep 2016 13:52:59 -0400
-Message-ID: <55889fa6-51c0-fcf6-7684-9712b82212d6@redhat.com>
+Subject: Re: [PATCH rdma-rc 3/9] Revert "IB/mlx4: Return EAGAIN for any error
+ in mlx4_ib_poll_one"
+Date: Fri, 2 Sep 2016 14:03:13 -0400
+Message-ID: <aa325795-a120-6dee-a102-6aaa903be617@redhat.com>
 References: <1472371118-8260-1-git-send-email-leon@kernel.org>
- <1472371118-8260-8-git-send-email-leon@kernel.org>
+ <1472371118-8260-4-git-send-email-leon@kernel.org>
+ <20160828171758.GA11719@obsidianresearch.com> <20160828182613.GP594@leon.nu>
+ <20160828182813.GB12783@obsidianresearch.com> <20160828183500.GQ594@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="Gn7RWIPQkuhGcfTumsk4qvT2TuMV2kOWK"
+ boundary="CNrib9dvOlTENIiBDHtS3APHnXt5HQklG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472371118-8260-8-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Gn7RWIPQkuhGcfTumsk4qvT2TuMV2kOWK
-Content-Type: multipart/mixed; boundary="rsIrSFpv68d8K0hHOIMRgwVqxvwdlmoel";
+--CNrib9dvOlTENIiBDHtS3APHnXt5HQklG
+Content-Type: multipart/mixed; boundary="CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <55889fa6-51c0-fcf6-7684-9712b82212d6-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 7/9] IB/mlx5: Add VERBOSITY Kconfig option
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <aa325795-a120-6dee-a102-6aaa903be617-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 3/9] Revert "IB/mlx4: Return EAGAIN for any error
+ in mlx4_ib_poll_one"
 References: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1472371118-8260-8-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1472371118-8260-8-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <1472371118-8260-4-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <20160828171758.GA11719-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> <20160828182613.GP594-2ukJVAZIZ/Y@public.gmane.org>
+ <20160828182813.GB12783-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
 
---rsIrSFpv68d8K0hHOIMRgwVqxvwdlmoel
+--CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/28/2016 3:58 AM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 8/28/2016 2:35 PM, Leon Romanovsky wrote:
+> On Sun, Aug 28, 2016 at 12:28:13PM -0600, Jason Gunthorpe wrote:
+>> On Sun, Aug 28, 2016 at 09:26:13PM +0300, Leon Romanovsky wrote:
+>>> On Sun, Aug 28, 2016 at 11:17:58AM -0600, Jason Gunthorpe wrote:
+>>>> On Sun, Aug 28, 2016 at 10:58:32AM +0300, Leon Romanovsky wrote:
+>>>>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>>
+>>>>> By Mellanox HW design and SW implementation poll_cq never
+>>>>> fails and returns errors, so all these prints are to catch ULP bugs=
+=2E
+>>>>
+>>>> Eh? How can a ULP cause poll_cq to get errors?
+>>>>
+>>>> Are you sure these are not driver bugs?
+>>>>
+>>>> Why can't you just print and discard the broken CQ entry?
+>>>>
+>>>> What should use ULP do when it get EINVAL? You say poll again is
+>>>> not correct, so you suggest a full QP tear down?
+>>>
+>>> See patches 4 and 6, they completely removed these EINVALs.
+>>
+>> So the commit message is still wrong.
+>>
+>> Why do we need this revert? Just squash it and mark it fixup the
+>> original.
 >=20
-> This patch introduces new MLX5_INFINIBAND_VERBOSE Kconfig
-> option to enable the output of dump_wqe() which was never
-> printed.
+> We need this revert, because the original commit is wrong and as was pr=
+esented
+> by Sasha Levin in his talk about automatic creation of stable trees [1]=
+, he needs
+> this information to ensure that this commit won't be in stable tree by =
+mistake.
 >=20
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/Kconfig | 6 ++++++
->  drivers/infiniband/hw/mlx5/qp.c    | 2 +-
->  2 files changed, 7 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw=
-/mlx5/Kconfig
-> index bce263b..789fef4 100644
-> --- a/drivers/infiniband/hw/mlx5/Kconfig
-> +++ b/drivers/infiniband/hw/mlx5/Kconfig
-> @@ -6,3 +6,9 @@ config MLX5_INFINIBAND
->  	  Mellanox Connect-IB PCI Express host channel adapters (HCAs).
->  	  This is required to use InfiniBand protocols such as
->  	  IP-over-IB or SRP with these devices.
-> +
-> +config MLX5_INFINIBAND_VERBOSE
-> +	bool "Enable ConnectX-4/Connect-IB verbosity"
-> +	depends on MLX5_INFINIBAND
-> +	---help---
-> +	  This is a configuration option to enable verbose output to easy deb=
-ug.
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/ml=
-x5/qp.c
-> index 174d09b..67b58f7 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3984,7 +3984,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct =
-ib_send_wr *wr,
->  			   get_fence(fence, wr), next_fence,
->  			   mlx5_ib_opcode[wr->opcode]);
->  skip_psv:
-> -		if (0)
-> +		if (IS_BUILTIN(CONFIG_MLX5_INFINIBAND_VERBOSE))
->  			dump_wqe(qp, idx, size);
->  	}
+> [1]
+> https://lcccna2016.sched.org/event/7JW4/automating-the-creation-of-stab=
+le-trees-sasha-levin-verizon-labs
 
-This patch is just a big old bunch of no.  There is no way I'm sending
-in Kconfig changes in a late -rc.  Further, there is no way I'm sending
-in a Kconfig option for a single debug print function.  Third, there is
-no way I'm sending in a Kconfig setting for what should be a runtime
-debug switch or something like that.
+I didn't see the presentation at this link, but I'm not sure I agree
+with your statement here.  There should be no difference, effectively,
+between a commit to revert a bad commit, and a commit to fix a bad
+commit that uses a Fixes: tag referencing the original commit.
 
 
 --=20
@@ -88,9 +88,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---rsIrSFpv68d8K0hHOIMRgwVqxvwdlmoel--
+--CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl--
 
---Gn7RWIPQkuhGcfTumsk4qvT2TuMV2kOWK
+--CNrib9dvOlTENIiBDHtS3APHnXt5HQklG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -99,22 +99,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIbBAEBCAAGBQJXybx7AAoJELgmozMOVy/dcpcP+Ngb3ql7l4X5xJKNHzB8z0ub
-i9Fg2VCdCw+hBwCBadAAF7v6n158McdvRiV7ebH8gXlL9vsQlZ73p763fCq2vo4t
-quzBiB42bD3akKppLGpg/x090DMbrfFLkjZsZhddZSiIA5PwAX9MJhA43mRq8xZE
-CEyNtdTH8vVn5zlgx28/JQDGnUZmk4wBaLHIqS/Onwf4xwe4Cktuj9tD8diskrQ4
-5+QgnEUpM3ZhSAuUN1nS/R3iEVz690/0CIdRO/qyw/+5dEmLJY8gUcEtaG3us9Kd
-khN1WLV1Ryx0Da8NFkc5kJ+MGAKX7cf/1F0boTOVQqsrArz/zv5cOJD8n+3YHC65
-j+Ar43EGF/FuV+965b7pjpZ1qMmHau/p7cUrToC7ALV+A7lqfushNAn8+X8uT2kH
-tKw8OxGt9a51noStrsNw4kNXO2IhdS4n1jhvp522Zw1LM7NJCLtOJcvOO+akqYSF
-t6Tn3H9BPxQOSaAi3VyxD2W++a7CzFDEm4tizt/AqCyjOu1QnXPL4mSi1eeyYi1R
-i55UwFOTuqWi722XASKsYtGv+3UANP9rIK56En7V2MsExIOzeGpdFQxFso1XT80Z
-RX2CYOumWLRwCQEhaWIaJx4N/EUn9jdZ/ZYW39E+bgYQR9tFysL3mnKCr8qwgcmn
-/QKk72U1g0v2EAbaajs=
-=drro
+iQIcBAEBCAAGBQJXyb7hAAoJELgmozMOVy/d0WAP/00hM6zQkw7hBM0qyVqhWBCj
+JKJQMBs4xbHobV7krJH5MN5zIxfgHpp06vBnhrNpyCVOIznlKsqJE0rBtBZVdHUu
+6EZzybsv22dxp5iOUUNkjYdrRoxvqSoG6Ot1XVioZZBUJfpea1OgX13uIi2ARlLW
+OpIza+sEwkepkbR/D5PtKSx76ZZEmQmuDymMw5bv2uUIxs3vSkARX4dY5gBX+EII
+C0p/JZwNo49O86MtcSWfvApN/wZljcgkIK9YKa1Kxiw4Ajde5Qa9rpTYkrvZDc3R
+7BGjaEF+QAfIrxEVukG6lBoLePfH2KoJX/AJKwXYmhA/1NNsSpOvwnZ5orJrBm4z
+EM0Rhv1kHDOCehWkT5j+h5PJrYIVASvZ4QQ5pV44ojIwkbqVL5N1N6y3VJd/p42C
+iIIsIvsV+1//lgArObZLZRyKWKYDdiREw+mzB+SDLDCmZEmNRDjNkmo/v4Fv5qhC
+jRpHEhJvsjwry3+tDi19R9X8Tfp1lTEit6hqA5h0iJ21/CARWUQu5DUE6OHxPgna
+GT6wBHJBiHh7zVId1/cO1TBrys0NWs9U36C+95cE7wxGwbySIo1gZPD5tWwjKTtc
+pNrLSZzTSIVpW8QgiScnoiXBQPJUqBgML/nc2KyXQ+jA/gX+7vwPhYy0NmgS9ik+
+By77GWGOpePTfbEGY30j
+=VLMl
 -----END PGP SIGNATURE-----
 
---Gn7RWIPQkuhGcfTumsk4qvT2TuMV2kOWK--
+--CNrib9dvOlTENIiBDHtS3APHnXt5HQklG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
