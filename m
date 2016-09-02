@@ -1,96 +1,75 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/cxgb4: Mark symbols static for _free_qp
-Date: Fri, 2 Sep 2016 13:23:47 -0400
-Message-ID: <496842ea-a04f-431b-5eee-6ef6535375ee@redhat.com>
-References: <1472396231-16937-1-git-send-email-baoyou.xie@linaro.org>
- <004001d20201$448119e0$cd834da0$@opengridcomputing.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 6/9] ib_uverbs: Avoid vendor specific masking of
+ attributes in query_qp
+Date: Fri, 02 Sep 2016 19:35:28 +0200
+Message-ID: <1472837728.9410.340.camel@oracle.com>
+References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
+         <1472774969-18997-7-git-send-email-knut.omang@oracle.com>
+         <20160902021300.GC30057@obsidianresearch.com>
+         <1472791552.9410.258.camel@oracle.com>
+         <20160902171008.GE24997@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="hfXHp4maHOdWL5oCO7CotNmMbBDcNsJhV"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <004001d20201$448119e0$cd834da0$@opengridcomputing.com>
+In-Reply-To: <20160902171008.GE24997-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Baoyou Xie' <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, xie.baoyou-Th6q7B73Y6EnDS1+zs4M5A@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---hfXHp4maHOdWL5oCO7CotNmMbBDcNsJhV
-Content-Type: multipart/mixed; boundary="QdmxHnDg005JeXkGWhlpjqqqH4lKqx6Mg";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
- 'Baoyou Xie' <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
- hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- arnd-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, xie.baoyou-Th6q7B73Y6EnDS1+zs4M5A@public.gmane.org
-Message-ID: <496842ea-a04f-431b-5eee-6ef6535375ee-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/cxgb4: Mark symbols static for _free_qp
-References: <1472396231-16937-1-git-send-email-baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
- <004001d20201$448119e0$cd834da0$@opengridcomputing.com>
-In-Reply-To: <004001d20201$448119e0$cd834da0$@opengridcomputing.com>
+On Fri, 2016-09-02 at 11:10 -0600, Jason Gunthorpe wrote:
+> On Fri, Sep 02, 2016 at 06:45:52AM +0200, Knut Omang wrote:
+> > On Thu, 2016-09-01 at 20:13 -0600, Jason Gunthorpe wrote:
+> > > On Fri, Sep 02, 2016 at 02:09:26AM +0200, Knut Omang wrote:
+> > > > This commit removes the implementation and use of the modify_qp_mask
+> > > > helper function from the generic OFED implementation and into individual
+> > > > device drivers.
+> > > > 
+> > > > Like with use of the ib_modify_qp_is_ok function it should be up to
+> > > > each device driver how to handle bits set in the attribute masks.
+> > > > 
+> > > > With the modify_qp_mask function applied in the generic code,
+> > > > drivers would not see the bits that the user process actually sets.
+> > > > 
+> > > > The restrictions imposed by the filter are also beyond what
+> > > > is imposed by the Infiniband standard, and would also limit
+> > > > future drivers or hardware from checking for unsupported or
+> > > > invalid settings.
+> > > 
+> > > I'm not excited about this direction. It is not OK for different
+> > > drivers to use different mask algorithms, they must all behave the
+> > > same.
+> > 
+> > The problem I am solving here is that SIF expects (and requires) some of 
+> > the bits that the user correctly sets, but that Mellanox either ignore or need to
+> > be 0. So when that mask is applied to the user input, the value that reaches
+> > the SIF driver is not correct from SIFs perspective. 
+> > If the values goes through as the ULP sets them, then all is fine.
+> 
+> I guess I still don't understand. SIF and mlx cannot have different
+> behavior here. 
 
---QdmxHnDg005JeXkGWhlpjqqqH4lKqx6Mg
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Rest assure, being the new kid on the block here, of course we need to 
+work with existing applications. We try to test with whatever we can get our 
+hands on, and make sure we behave sensibly..
 
-On 8/29/2016 10:26 AM, Steve Wise wrote:
->> Subject: [PATCH v3] IB/cxgb4: Mark symbols static for _free_qp
->>
->> We get 1 warning when build kernel with W=3D1:
->> drivers/infiniband/hw/cxgb4/qp.c:686:6: warning: no previous prototype=
- for
->> '_free_qp' [-Wmissing-prototypes]
->>
->> In fact, this function is only used in the file in which it is declare=
-d
->> and don't need a declaration, but can be made static.
->> so this patch marks it 'static'.
->>
->> Signed-off-by: Baoyou Xie <baoyou.xie-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Ignore my comment on v2...
->=20
-> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->=20
+> How is the application writer to know what to do?
 
-Thanks, applied.
+This masking applies to XRC only.
+The application does not need to do anything, it treats the XRC QP as any other
+RC QP and attempt similar modify_qp operations.
+Mlx chooses to ignore some of the bits provided. 
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: 0E572FDD
+> Can you give a concrete example of the problem?
 
+Maybe someone from Mellanox can explain the reason 
+for having the filtering there in the first place,
+and only from user mode XRC QPs?
 
---QdmxHnDg005JeXkGWhlpjqqqH4lKqx6Mg--
+Knut
 
---hfXHp4maHOdWL5oCO7CotNmMbBDcNsJhV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJXybWjAAoJELgmozMOVy/d89QP/3I5hCXed95bL2FNubOhHuQF
-0MeU6jCQkFnYHYsKIbIEyCI0b63VzOCN/HqglyWj5DNj+NarZsUQOGCB1Q5wybot
-Fhc3h+WZirkLCSDpfvbqjlGraW9MQ6D07o2qjYZbiaucMIxgKAlfYh1BABYzonUv
-q/x+ADjM0bUTt2oGWE3olLehua+7fJ42MV9jvnIomedrskWTmWi7k39KjT+d8BV2
-aHl8kMiPCmP3JFo5qzMyAtOPIepOvGJqqhvWd6x68vdrmn01mSJOl4LWZXETjtIg
-SYgBYgrSS2apB0axOhNh5wU6a8GLZZndYOgjNrYy8nMJVUCm4ShByx8BZewzuzqx
-lQ3+GMza/VP+9ufOfztt66YC+vUJsdQotKHDG/dt5TdD9r8wC9lOCk2a/Xtmu173
-sF2/x+HOuKFc8kazJbeVpokB6WDlFkIMGvq0ijeIB412vnLtaXN/mdMj0HUHV44F
-q8kJgHHFPBoqvqWYdoP68NrTfkjF+KK8rh73xWdMwtgkmzqFhJLxDv1+nAxh/i+9
-Su/qomo/DGeVT55YQuM3Pagg1iqzklcS23FqyrBaMthAqluPEggSv0GmNT3aJSnK
-8tphBL9/NInfGc2h0scJ7OqkbchS9HuwETiW52cW8pXcvU2+KvbJDiIrngKAbJCK
-w1QPkWQoCJtvCuX641op
-=ddK6
------END PGP SIGNATURE-----
-
---hfXHp4maHOdWL5oCO7CotNmMbBDcNsJhV--
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
