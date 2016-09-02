@@ -1,31 +1,27 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 8/9] ib_uverbs: Support for kernel implementation of XRC
-Date: Thu, 1 Sep 2016 20:16:40 -0600
-Message-ID: <20160902021640.GD30057@obsidianresearch.com>
+Subject: Re: [PATCH 9/9] ib_verbs: Add a new qp create flag to request
+ features for Ethernet over IB
+Date: Thu, 1 Sep 2016 20:17:29 -0600
+Message-ID: <20160902021729.GE30057@obsidianresearch.com>
 References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
- <1472774969-18997-9-git-send-email-knut.omang@oracle.com>
+ <1472774969-18997-10-git-send-email-knut.omang@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472774969-18997-9-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1472774969-18997-10-git-send-email-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 02, 2016 at 02:09:28AM +0200, Knut Omang wrote:
+On Fri, Sep 02, 2016 at 02:09:29AM +0200, Knut Omang wrote:
+> Some Infiniband HCAs need to know if a QP is going to
+> be used for Ethernet over IB (EOIB).
 
-> +++ b/include/uapi/rdma/ib_user_verbs.h
-> @@ -725,6 +725,8 @@ struct ib_uverbs_send_wr {
->  			__u32 reserved;
->  		} ud;
->  	} wr;
-> +	__u32 xrc_remote_srq_num;
-> +	__u32 reserved;
->  };
-
-Hum, how does compat work here? Isn't send_wr usually an array?
+You will have to send this after your driver. I recommend a patch
+proposing this functionality with your driver as the example
+implementation, along with a kernel user, as mellanox typically does.
 
 Jason
 --
