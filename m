@@ -1,54 +1,35 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 6/9] ib_uverbs: Avoid vendor specific masking of
- attributes in query_qp
-Date: Fri, 2 Sep 2016 11:10:08 -0600
-Message-ID: <20160902171008.GE24997@obsidianresearch.com>
+Subject: Re: [PATCH 9/9] ib_verbs: Add a new qp create flag to request
+ features for Ethernet over IB
+Date: Fri, 2 Sep 2016 11:11:07 -0600
+Message-ID: <20160902171107.GF24997@obsidianresearch.com>
 References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
- <1472774969-18997-7-git-send-email-knut.omang@oracle.com>
- <20160902021300.GC30057@obsidianresearch.com>
- <1472791552.9410.258.camel@oracle.com>
+ <1472774969-18997-10-git-send-email-knut.omang@oracle.com>
+ <20160902021729.GE30057@obsidianresearch.com>
+ <1472792670.9410.276.camel@oracle.com>
+ <1472814057.3975.47.camel@oracle.com>
+ <b38c5cf6-4e07-33eb-8704-284498481bb6@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472791552.9410.258.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <b38c5cf6-4e07-33eb-8704-284498481bb6-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 02, 2016 at 06:45:52AM +0200, Knut Omang wrote:
-> On Thu, 2016-09-01 at 20:13 -0600, Jason Gunthorpe wrote:
-> > On Fri, Sep 02, 2016 at 02:09:26AM +0200, Knut Omang wrote:
-> > > This commit removes the implementation and use of the modify_qp_mask
-> > > helper function from the generic OFED implementation and into individual
-> > > device drivers.
-> > > 
-> > > Like with use of the ib_modify_qp_is_ok function it should be up to
-> > > each device driver how to handle bits set in the attribute masks.
-> > > 
-> > > With the modify_qp_mask function applied in the generic code,
-> > > drivers would not see the bits that the user process actually sets.
-> > > 
-> > > The restrictions imposed by the filter are also beyond what
-> > > is imposed by the Infiniband standard, and would also limit
-> > > future drivers or hardware from checking for unsupported or
-> > > invalid settings.
-> > 
-> > I'm not excited about this direction. It is not OK for different
-> > drivers to use different mask algorithms, they must all behave the
-> > same.
-> 
-> The problem I am solving here is that SIF expects (and requires) some of 
-> the bits that the user correctly sets, but that Mellanox either ignore or need to
-> be 0. So when that mask is applied to the user input, the value that reaches
-> the SIF driver is not correct from SIFs perspective. 
-> If the values goes through as the ULP sets them, then all is fine.
+On Fri, Sep 02, 2016 at 09:19:43AM -0700, Santosh Shilimkar wrote:
 
-I guess I still don't understand. SIF and mlx cannot have different
-behavior here. How is the application writer to know what to do?
+> Don't want to hijack your patch but I also have seen another need where
+> ULP needs to pass additional information to driver for creating
+> RC qp with couple of add-ons . My current thought is to use reserved
+> QP flag bits (bits 26-31, for low level drivers' internal use)
 
-Can you give a concrete example of the problem?
+Nope, absolutely not.
+
+Propose an actual verbs API extensions for what you want to do just
+like Mellanox has been doing.
 
 Jason
 --
