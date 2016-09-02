@@ -1,88 +1,99 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/9] RDMA fixes for 4.8
-Date: Fri, 2 Sep 2016 14:13:27 -0400
-Message-ID: <d5eff78f-0014-e748-11c9-888c70542391@redhat.com>
-References: <1472371118-8260-1-git-send-email-leon@kernel.org>
+Subject: Re: [PATCH 0/5] IB/hfi1: For 4.8 rc 5
+Date: Fri, 2 Sep 2016 14:33:58 -0400
+Message-ID: <8fde07d2-2bdf-f5d7-2599-f13a8d9dd942@redhat.com>
+References: <20160831141841.27232.61621.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="u92J97ImGE4nF0fjaxNvgECbO5Llqusvc"
+ boundary="ruNN59a7gM2bnkHJNPllNH0kJ53N2r2lv"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20160831141841.27232.61621.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---u92J97ImGE4nF0fjaxNvgECbO5Llqusvc
-Content-Type: multipart/mixed; boundary="sveG48BEdxpphJijlJ6CuDuHRpAheqShb";
+--ruNN59a7gM2bnkHJNPllNH0kJ53N2r2lv
+Content-Type: multipart/mixed; boundary="XqGSBDxIQT9D5pErwTmCwgqO2Bx3Lv0jS";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <d5eff78f-0014-e748-11c9-888c70542391-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 0/9] RDMA fixes for 4.8
-References: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Jubin John <jubin.john-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Message-ID: <8fde07d2-2bdf-f5d7-2599-f13a8d9dd942-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/5] IB/hfi1: For 4.8 rc 5
+References: <20160831141841.27232.61621.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20160831141841.27232.61621.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 
---sveG48BEdxpphJijlJ6CuDuHRpAheqShb
-Content-Type: text/plain; charset=windows-1252
+--XqGSBDxIQT9D5pErwTmCwgqO2Bx3Lv0jS
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 8/28/2016 3:58 AM, Leon Romanovsky wrote:
+On 8/31/2016 10:24 AM, Dennis Dalessandro wrote:
 > Hi Doug,
 >=20
-> This is compilation of fixes to RDMA core, IPoIB, Mellanox mlx4
-> and mlx5 drivers all together. Most of the fixes are one liners and
-> for easy handling, I'm sending them in one patchset.
+> Here are five patches which fix bugs that we think would be appropraite=
+ for
+> the next RC. This should apply cleanly on top of your GitHub 4.8 rc tre=
+e.=20
 >=20
-> Thanks
+> Patches can also be seen in my repo and have passed 0day builds at:
+> https://github.com/ddalessa/kernel/tree/for-4.8
 >=20
-> Chuck Lever (1):
->   IB/mlx5: Return EINVAL when caller specifies too many SGEs
+> ---
 >=20
-> Erez Shitrit (2):
->   IB/core: Fix use after free in send_leave function
->   IB/ipoib: Fix memory corruption during ipoib cm connection
->     establishment
+> Dean Luick (1):
+>       IB/hfi1: Add QSFP sanity pre-check
 >=20
-> Leon Romanovsky (5):
->   Revert "IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one"
->   IB/mlx4: Don't return errors from poll_cq
->   IB/mlx5: Simplify code by removing return variable
->   IB/mlx5: Add VERBOSITY Kconfig option
->   IB/mlx5: Don't return errors from poll_cq
+> Dennis Dalessandro (1):
+>       IB/hfi1: Fix AHG KDETH Intr shift
 >=20
-> Yishai Hadas (1):
->   IB/mlx5: Use TIR number based on selector
+> Harish Chegondi (1):
+>       IB/hfi1: Make n_krcvqs be an unsigned long integer
 >=20
->  drivers/infiniband/core/multicast.c       | 13 ++-----------
->  drivers/infiniband/hw/mlx4/cq.c           | 26 ++---------------------=
----
->  drivers/infiniband/hw/mlx5/Kconfig        |  6 ++++++
->  drivers/infiniband/hw/mlx5/cq.c           | 22 ++--------------------
->  drivers/infiniband/hw/mlx5/main.c         |  6 +++++-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h      |  1 +
->  drivers/infiniband/hw/mlx5/qp.c           | 15 ++++++---------
->  drivers/infiniband/ulp/ipoib/ipoib.h      |  1 +
->  drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 16 ++++++++++++++++
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
->  10 files changed, 42 insertions(+), 66 deletions(-)
+> Mike Marciniszyn (1):
+>       IB/hfi1: Rework debugfs to use SRCU
+>=20
+> Sebastian Sanchez (1):
+>       IB/hfi1: Fix SGE length for misaligned PIO copy
+>=20
+>=20
+>  drivers/infiniband/hw/hfi1/chip.c      |   92 ++++++++++++++++++++--
+>  drivers/infiniband/hw/hfi1/chip.h      |    1=20
+>  drivers/infiniband/hw/hfi1/debugfs.c   |  132 +++++++++++++-----------=
+--------
+>  drivers/infiniband/hw/hfi1/hfi.h       |    4 +
+>  drivers/infiniband/hw/hfi1/init.c      |    3 -
+>  drivers/infiniband/hw/hfi1/pio_copy.c  |   12 +++
+>  drivers/infiniband/hw/hfi1/user_sdma.c |    5 +
+>  7 files changed, 155 insertions(+), 94 deletions(-)
+>=20
+> --
+> -Denny
+>=20
 
-I took everything except patch 7.  That one had to go.  It would take a
-very strong argument about why that needs a Kconfig option instead of a
-runtime config switch to make me change my mind.
-
+I ended up taking all 5 patches, but the line count on these is a little
+larger than I like to see in this late of an rc.  I can't complain too
+much about the QSFP fix as you wrote exactly what I asked for (although
+I would have preferred it either in a merge window or earlier rc), but
+the RCU locking changes in a later half rc are something I would like to
+avoid in the future.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---sveG48BEdxpphJijlJ6CuDuHRpAheqShb--
+--XqGSBDxIQT9D5pErwTmCwgqO2Bx3Lv0jS--
 
---u92J97ImGE4nF0fjaxNvgECbO5Llqusvc
+--ruNN59a7gM2bnkHJNPllNH0kJ53N2r2lv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -91,22 +102,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXycFHAAoJELgmozMOVy/d0zIQAJsQ9wzIFodlR3U7I7Wm+M0w
-d7lV2KObYErtes947ddpGOj/cCyz3RyO4eYlJ+WBvyMbIWlLErS3u59/CbKslsTg
-zTIKiK4ZfLsfggtLPfivxNHQVnAXjA3x3XvKr1Ao3prfsZABVMlX9irSWcQ+lnh4
-JrxF3J5pvi6OlJSI/OWaI7trfTXi7iqI9N+nPzll362ApHd9+qYd5Za7rLFs7CU4
-d1xaaGIPQKULytugCjDM+R2cKlD0QkWJWBVTZxpFUuYE2fyTA7wbXEpT2kfmIsZZ
-j9JkG1KHqd8uHL/+NM2VOrWH1JQiqt7iNWHXV9c/5gO/ZhDmSvpR/7CdONZxbCE/
-/Rqyel+YCCgETg1ETIYFiuI1UG5+X54c3Woc3JdNGFcXhkt4DD5kaNhLzF3Oi9KG
-JUE52kwG66NGXcpYXvCVLvWMUc+bkMjx/lLEy2C/yQ+ghAJYDHIluZ5zfXI6SxUg
-/uGEGrgUUrJBxonOYwg+CRHcQdEfNLGMmDnUeScUUy7EN2tZy70G2+EtqCjf4JIS
-L1QYdhE1aI2xU9GWAoaBEZp9RPPaXqZNvvEKrsSsFeYVKUFgOz6y4lO5qLYhXF18
-BXhhzDDx8QDkdfzIXPOM5UyN+GJ4Sx9FUXmY0Uc2dpcLDafwVeO00FEjRmcK6KvQ
-V6xc9VPEM+wENbtgWt2C
-=kNbt
+iQIcBAEBCAAGBQJXycYWAAoJELgmozMOVy/d8sIP/iN+DF2Fg1CSgiY8+mE4qS7R
+Tst61TheaYSvXewZlzLnYPuWbXaWk9hHP/adJIh/BUqKZcTBpVjPqhBH5EGVHUTL
+zUGOdsjthCbNRxuvmEMxJC8BMu+c/zEFtCXp/0u/BwfSIzMAKGswU2qH4GWbrE0r
+Ms8I+o/VOMMl3vLw4sCzCyY3U/cohGI1mvqyeshNT1eA2CJTj60wirlPo3cKLj7a
+pSG0bAQoTOa9kUuUEAq1scbalK0eaTOFtSsceQCLYzJ5wzVc7h7GD4rdLhdq3IO0
+VRsPAbqqgkfN41QoI62qxe+0teXp6m01Jx7AlH/dyB5SjjD4FIdVfkAHJ4vKPuqV
+KXPLsVz7BOo3mzrCwOuOHc5y8bm0hnbkdRh58vV4E+ujPi3rQvVvcbb7LccAy3wx
+FhL42ytSfscPyNfhJUQemIvj27T1ngkiVa3nm5+PJdDSlRw/xb0DgSVzpoqj+E6G
+OWkJNQvFfH2vMMBQNF81g0lW6g5WIui2L+L4vsHbzP/7xXy7/RkqaRlyGG+vV8W6
+S+h0c/3zNxUavnhdstV0+OkWD/bGpqGOT4wQ+8bVoHOl7NOR78r2h/hbn/ruo9kK
+gvYzDHHuOw1ShHEvyN+3IL96mPgm+xnZrBuvgG+Yv4q4U906EbKrn8erw+i1l5HF
+dqg7hT1g+0333Ou8x83M
+=Mc2Z
 -----END PGP SIGNATURE-----
 
---u92J97ImGE4nF0fjaxNvgECbO5Llqusvc--
+--ruNN59a7gM2bnkHJNPllNH0kJ53N2r2lv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
