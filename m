@@ -1,46 +1,54 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1] IB/ipoib: Report SG feature regardless of HW UD CSUM
- capability
-Date: Fri, 2 Sep 2016 14:46:50 +0300
-Message-ID: <20160902114649.GB3659@yuval-lap.uk.oracle.com>
-References: <1468827648-17275-1-git-send-email-yuval.shaia@oracle.com>
- <20160718171921.GA3193@obsidianresearch.com>
- <20160719125556.GA14768@yuval-lap.uk.oracle.com>
- <20160719193453.GA28288@obsidianresearch.com>
- <20160719200231.GC6129@yuval-lap.uk.oracle.com>
- <20160719201113.GC28288@obsidianresearch.com>
- <20160902011021.GB23742@phlsvsds.ph.intel.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 9/9] ib_verbs: Add a new qp create flag to request
+ features for Ethernet over IB
+Date: Fri, 02 Sep 2016 13:00:57 +0200
+Message-ID: <1472814057.3975.47.camel@oracle.com>
+References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
+         <1472774969-18997-10-git-send-email-knut.omang@oracle.com>
+         <20160902021729.GE30057@obsidianresearch.com>
+         <1472792670.9410.276.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20160902011021.GB23742-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1472792670.9410.276.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 01, 2016 at 09:10:22PM -0400, ira.weiny wrote:
-> On Tue, Jul 19, 2016 at 02:11:13PM -0600, Jason Gunthorpe wrote:
-> > On Tue, Jul 19, 2016 at 11:02:32PM +0300, Yuval Shaia wrote:
+On Fri, 2016-09-02 at 07:04 +0200, Knut Omang wrote:
+> On Thu, 2016-09-01 at 20:17 -0600, Jason Gunthorpe wrote:
 > > 
-> > > ok, i see the point but as Leon Romanovsky mentioned - this is not an issue
-> > > with the patch itself, right? i.e. the original code relays on the fact
-> > > that HW supports UD-CSUM and did not checked QP's sg limit (we even do not
-> > > have any QP at this stage yet).
-> > 
-> > ud-csum was only supported by one IB vendor and that vendor supports
-> > SG.
-> > 
-> > You are changing things to enable SG on hardware that has never had SG
-> > enabled, so you need to make sure it works right..
+> > On Fri, Sep 02, 2016 at 02:09:29AM +0200, Knut Omang wrote:
+> > > 
+> > > Some Infiniband HCAs need to know if a QP is going to
+> > > be used for Ethernet over IB (EOIB).
+> > You will have to send this after your driver. I recommend a patch
+> > proposing this functionality with your driver as the example
+> > implementation, along with a kernel user, as mellanox typically does.
+> It's a bit of a chicken and egg situation since the driver 
+> depends on the patches. If I can 'tick off' this bit soon, I can move ahead and 
+> get to the send the driver too.
 > 
-> My thoughts exactly.
-> Ira
-
-Already posted v2.
-
+> There's not much info in the driver - it just forwards that bit to a hardware bit
+> and it all happens from there. But hardware needs to know when to set that bit,
+> as it is only valid when operating as transport for Ethernet.
 > 
+> Please - it would be a big help for me (saving a lot of work down the line that 
+> is better spent working with the community than with handling more version issues later) 
+> if I can get an indication that just that bit would be acceptable 8-D ...
+
+I will add the following further justification to the commit message for v2:
+
+Support for encapsulation of Ethernet over IB (EoIB) is a generic feature 
+where different HCA implementations can include different special features. 
+One example is that if the HCA knows the QP is going to be used for Ethernet, 
+the implementation can ensure that all messages sent on this QP represents 
+a properly formatted encapsulation of Ethernet frames with legal header values.
+Or the HCA can perform the encapsulation itself.
+
+Knut
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
