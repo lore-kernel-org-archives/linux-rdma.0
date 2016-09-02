@@ -1,51 +1,85 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 1/2] iw_cxgb4: call dev_put() on l2t allocation failure
-Date: Fri, 2 Sep 2016 09:24:17 -0500
-Message-ID: <1a5401d20525$b0a52ef0$11ef8cd0$@opengridcomputing.com>
-References: <c1b639ca7d71ee034e334b4400ff0bae3ba58c47.1472241953.git.swise@opengridcomputing.com> <01bf01d2022b$0fc39190$2f4ab4b0$@opengridcomputing.com> <05141088-7c92-daba-1e0b-da1bc5656a75@redhat.com>
+Subject: RE: [PATCH v4 4/6] nvme-rdma: destroy nvme queue rdma resources on connect failure
+Date: Fri, 2 Sep 2016 10:08:38 -0500
+Message-ID: <000801d2052b$e3cfe170$ab6fa450$@opengridcomputing.com>
+References: <cover.1472746379.git.swise@opengridcomputing.com> <c04f7c0232402294ce6fc0dd85878c0a21ed46bc.1472746379.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <05141088-7c92-daba-1e0b-da1bc5656a75-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <c04f7c0232402294ce6fc0dd85878c0a21ed46bc.1472746379.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 > 
-> On 8/29/2016 3:25 PM, Steve Wise wrote:
-> > Hey Doug, I was hoping these two could make 4.8-rc.  Particularly patch
-> 2/2.
-> >
-> > Steve.
-> >
-> >
+> After address resolution, the nvme_rdma_queue rdma resources are
+> allocated.  If rdma route resolution or the connect fails, or the
+> controller reconnect times out and gives up, then the rdma resources
+> need to be freed.  Otherwise, rdma resources are leaked.
 > 
-> Hi Steve,
+> Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Reviewed-by: Sagi Grimberg <sagi-Eyp3ogxVSr5BDLzU/O5InQ@public.gmane.org>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  drivers/nvme/host/rdma.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 > 
-> You've submitted these both individually and as part of a larger nvme
-> patchset.  You should know that I generally ignore nvme patch sets (I
-> have enough stuff to review), I just happened to catch it this time.
-> Submitting these both ways is likely to cause problems down the road,
-> including getting me yelled at by Linus when the same patches come from
-> two different places.  Please try to avoid that.
+> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+> index 15b0c1d..d97a16f 100644
+> --- a/drivers/nvme/host/rdma.c
+> +++ b/drivers/nvme/host/rdma.c
+> @@ -82,6 +82,7 @@ struct nvme_rdma_request {
 > 
-> Now, in regards to these two patches, how are you wanting to proceed?
+>  enum nvme_rdma_queue_flags {
+>  	NVME_RDMA_Q_CONNECTED = (1 << 0),
+> +	NVME_RDMA_IB_QUEUE_ALLOCATED = (1 << 1),
+>  };
 > 
+>  struct nvme_rdma_queue {
+> @@ -483,6 +484,8 @@ static void nvme_rdma_destroy_queue_ib(struct
+> nvme_rdma_queue *queue)
+>  	struct nvme_rdma_device *dev = queue->device;
+>  	struct ib_device *ibdev = dev->dev;
+> 
+> +	if (!test_and_clear_bit(NVME_RDMA_IB_QUEUE_ALLOCATED,
+> &queue->flags))
+> +		return;
+>  	rdma_destroy_qp(queue->cm_id);
+>  	ib_free_cq(queue->ib_cq);
+> 
+> @@ -533,6 +536,7 @@ static int nvme_rdma_create_queue_ib(struct
+> nvme_rdma_queue *queue,
+>  		ret = -ENOMEM;
+>  		goto out_destroy_qp;
+>  	}
+> +	set_bit(NVME_RDMA_IB_QUEUE_ALLOCATED, &queue->flags);
+> 
+>  	return 0;
+> 
+> @@ -590,6 +594,8 @@ static int nvme_rdma_init_queue(struct
+> nvme_rdma_ctrl *ctrl,
+>  	return 0;
+> 
+>  out_destroy_cm_id:
+> +	if (test_and_clear_bit(NVME_RDMA_IB_QUEUE_ALLOCATED, &ctrl-
+> >queues[0].flags))
+> +		nvme_rdma_destroy_queue_ib(queue);
+>  	rdma_destroy_id(queue->cm_id);
+>  	return ret;
+>  }
 
-Sorry about that.  My screw up.   I should have just CCed linux-rdma and you
-on the original nvme series as it progressed, instead of posting the
-iw_cxgb4 patches to linux-rdma separately.  In v4 of the nvme series, which
-CCed you and linux-rdma,  I propose that Sagi merge these through the
-nvme-fabrics.  I haven't heard back from him on that yet.   So I want to
-wait until we hear from him before proceeding.  
+The above chunk is incorrect.  It is testing the ALLOCATED bit of the admin
+queue (ctrl->queues[0]), which is just wrong.  This chunk should just call
+nvme_rdma_destroy_queue_ib() and let that function test/clear the ALLOCATED
+bit of the queue being cleaned up.  This bug was apparently benign and it
+slipped through my testing.
 
-Thanks,
+I'll be posting v5 after I fix this and retest...
 
-Steve
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
