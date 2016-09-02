@@ -1,86 +1,65 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v5 5/6] nvme-rdma: add DELETING queue flag
-Date: Fri, 2 Sep 2016 09:01:54 -0700
-Message-ID: <3fee4ad93b127f1c0391e107e98034fecbc31725.1472833420.git.swise@opengridcomputing.com>
-References: <cover.1472833420.git.swise@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 9/9] ib_verbs: Add a new qp create flag to request
+ features for Ethernet over IB
+Date: Fri, 2 Sep 2016 10:34:51 -0600
+Message-ID: <20160902163451.GC24997@obsidianresearch.com>
+References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
+ <1472774969-18997-10-git-send-email-knut.omang@oracle.com>
+ <20160902021729.GE30057@obsidianresearch.com>
+ <1472792670.9410.276.camel@oracle.com>
+ <1472814057.3975.47.camel@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1472833420.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1472814057.3975.47.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+On Fri, Sep 02, 2016 at 01:00:57PM +0200, Knut Omang wrote:
+> On Fri, 2016-09-02 at 07:04 +0200, Knut Omang wrote:
+> > On Thu, 2016-09-01 at 20:17 -0600, Jason Gunthorpe wrote:
+> > > 
+> > > On Fri, Sep 02, 2016 at 02:09:29AM +0200, Knut Omang wrote:
+> > > > 
+> > > > Some Infiniband HCAs need to know if a QP is going to
+> > > > be used for Ethernet over IB (EOIB).
+> > > You will have to send this after your driver. I recommend a patch
+> > > proposing this functionality with your driver as the example
+> > > implementation, along with a kernel user, as mellanox typically does.
+> > It's a bit of a chicken and egg situation since the driver 
+> > depends on the patches. If I can 'tick off' this bit soon, I can move ahead and 
+> > get to the send the driver too.
+> > 
+> > There's not much info in the driver - it just forwards that bit to a hardware bit
+> > and it all happens from there. But hardware needs to know when to set that bit,
+> > as it is only valid when operating as transport for Ethernet.
+> > 
+> > Please - it would be a big help for me (saving a lot of work down the line that 
+> > is better spent working with the community than with handling more version issues later) 
+> > if I can get an indication that just that bit would be acceptable 8-D ...
+> 
+> I will add the following further justification to the commit message for v2:
+> 
+> Support for encapsulation of Ethernet over IB (EoIB) is a generic feature 
+> where different HCA implementations can include different special features. 
+> One example is that if the HCA knows the QP is going to be used for Ethernet, 
+> the implementation can ensure that all messages sent on this QP represents 
+> a properly formatted encapsulation of Ethernet frames with legal header values.
+> Or the HCA can perform the encapsulation itself.
 
-When we get a surprise disconnect from the target we queue a periodic
-reconnect (which is the sane thing to do...).
+It would be better to remove support for this from your driver in the
+initial submission.
 
-We only move the queues out of CONNECTED when we retry to reconnect (after
-10 seconds in the default case) but we stop the blk queues immediately
-so we are not bothered with traffic from now on. If delete() is kicking
-off in this period the queues are still in CONNECTED state.
+Keep new uAPIs in new driver submissions to an absolute minimum please.
 
-Part of the delete sequence is trying to issue ctrl shutdown if the
-admin queue is CONNECTED (which it is!). This request is issued but
-stuck in blk-mq waiting for the queues to start again. This might be
-the one preventing us from forward progress...
+And as I said, you need to introduce a kernel user of this bit as
+well, so the driver alone is not enough.
 
-The patch separates the queue flags to CONNECTED and DELETING. Now we
-will move out of CONNECTED as soon as error recovery kicks in (before
-stopping the queues) and DELETING is on when we start the queue deletion.
-
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index a9d43f0..9ea69cc 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -83,6 +83,7 @@ struct nvme_rdma_request {
- enum nvme_rdma_queue_flags {
- 	NVME_RDMA_Q_CONNECTED = (1 << 0),
- 	NVME_RDMA_IB_QUEUE_ALLOCATED = (1 << 1),
-+	NVME_RDMA_Q_DELETING = (1 << 2),
- };
- 
- struct nvme_rdma_queue {
-@@ -616,7 +617,7 @@ static void nvme_rdma_free_queue(struct nvme_rdma_queue *queue)
- 
- static void nvme_rdma_stop_and_free_queue(struct nvme_rdma_queue *queue)
- {
--	if (!test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags))
-+	if (test_and_set_bit(NVME_RDMA_Q_DELETING, &queue->flags))
- 		return;
- 	nvme_rdma_stop_queue(queue);
- 	nvme_rdma_free_queue(queue);
-@@ -769,8 +770,13 @@ static void nvme_rdma_error_recovery_work(struct work_struct *work)
- {
- 	struct nvme_rdma_ctrl *ctrl = container_of(work,
- 			struct nvme_rdma_ctrl, err_work);
-+	int i;
- 
- 	nvme_stop_keep_alive(&ctrl->ctrl);
-+
-+	for (i = 0; i < ctrl->queue_count; i++)
-+		clear_bit(NVME_RDMA_Q_CONNECTED, &ctrl->queues[i].flags);
-+
- 	if (ctrl->queue_count > 1)
- 		nvme_stop_queues(&ctrl->ctrl);
- 	blk_mq_stop_hw_queues(ctrl->ctrl.admin_q);
-@@ -1350,7 +1356,7 @@ static int nvme_rdma_device_unplug(struct nvme_rdma_queue *queue)
- 	cancel_delayed_work_sync(&ctrl->reconnect_work);
- 
- 	/* Disable the queue so ctrl delete won't free it */
--	if (test_and_clear_bit(NVME_RDMA_Q_CONNECTED, &queue->flags)) {
-+	if (!test_and_set_bit(NVME_RDMA_Q_DELETING, &queue->flags)) {
- 		/* Free this queue ourselves */
- 		nvme_rdma_stop_queue(queue);
- 		nvme_rdma_destroy_queue_ib(queue);
--- 
-2.7.0
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
