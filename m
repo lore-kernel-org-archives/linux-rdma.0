@@ -1,86 +1,78 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 3/9] Revert "IB/mlx4: Return EAGAIN for any error
- in mlx4_ib_poll_one"
-Date: Fri, 2 Sep 2016 14:03:13 -0400
-Message-ID: <aa325795-a120-6dee-a102-6aaa903be617@redhat.com>
+Subject: Re: [PATCH rdma-rc 0/9] RDMA fixes for 4.8
+Date: Fri, 2 Sep 2016 14:13:27 -0400
+Message-ID: <d5eff78f-0014-e748-11c9-888c70542391@redhat.com>
 References: <1472371118-8260-1-git-send-email-leon@kernel.org>
- <1472371118-8260-4-git-send-email-leon@kernel.org>
- <20160828171758.GA11719@obsidianresearch.com> <20160828182613.GP594@leon.nu>
- <20160828182813.GB12783@obsidianresearch.com> <20160828183500.GQ594@leon.nu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="CNrib9dvOlTENIiBDHtS3APHnXt5HQklG"
+ boundary="u92J97ImGE4nF0fjaxNvgECbO5Llqusvc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---CNrib9dvOlTENIiBDHtS3APHnXt5HQklG
-Content-Type: multipart/mixed; boundary="CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl";
+--u92J97ImGE4nF0fjaxNvgECbO5Llqusvc
+Content-Type: multipart/mixed; boundary="sveG48BEdxpphJijlJ6CuDuHRpAheqShb";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
- Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <aa325795-a120-6dee-a102-6aaa903be617-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 3/9] Revert "IB/mlx4: Return EAGAIN for any error
- in mlx4_ib_poll_one"
+Message-ID: <d5eff78f-0014-e748-11c9-888c70542391-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 0/9] RDMA fixes for 4.8
 References: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <1472371118-8260-4-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <20160828171758.GA11719-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> <20160828182613.GP594-2ukJVAZIZ/Y@public.gmane.org>
- <20160828182813.GB12783-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
-In-Reply-To: <20160828183500.GQ594-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1472371118-8260-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl
+--sveG48BEdxpphJijlJ6CuDuHRpAheqShb
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 8/28/2016 2:35 PM, Leon Romanovsky wrote:
-> On Sun, Aug 28, 2016 at 12:28:13PM -0600, Jason Gunthorpe wrote:
->> On Sun, Aug 28, 2016 at 09:26:13PM +0300, Leon Romanovsky wrote:
->>> On Sun, Aug 28, 2016 at 11:17:58AM -0600, Jason Gunthorpe wrote:
->>>> On Sun, Aug 28, 2016 at 10:58:32AM +0300, Leon Romanovsky wrote:
->>>>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>>
->>>>> By Mellanox HW design and SW implementation poll_cq never
->>>>> fails and returns errors, so all these prints are to catch ULP bugs=
-=2E
->>>>
->>>> Eh? How can a ULP cause poll_cq to get errors?
->>>>
->>>> Are you sure these are not driver bugs?
->>>>
->>>> Why can't you just print and discard the broken CQ entry?
->>>>
->>>> What should use ULP do when it get EINVAL? You say poll again is
->>>> not correct, so you suggest a full QP tear down?
->>>
->>> See patches 4 and 6, they completely removed these EINVALs.
->>
->> So the commit message is still wrong.
->>
->> Why do we need this revert? Just squash it and mark it fixup the
->> original.
+On 8/28/2016 3:58 AM, Leon Romanovsky wrote:
+> Hi Doug,
 >=20
-> We need this revert, because the original commit is wrong and as was pr=
-esented
-> by Sasha Levin in his talk about automatic creation of stable trees [1]=
-, he needs
-> this information to ensure that this commit won't be in stable tree by =
-mistake.
+> This is compilation of fixes to RDMA core, IPoIB, Mellanox mlx4
+> and mlx5 drivers all together. Most of the fixes are one liners and
+> for easy handling, I'm sending them in one patchset.
 >=20
-> [1]
-> https://lcccna2016.sched.org/event/7JW4/automating-the-creation-of-stab=
-le-trees-sasha-levin-verizon-labs
+> Thanks
+>=20
+> Chuck Lever (1):
+>   IB/mlx5: Return EINVAL when caller specifies too many SGEs
+>=20
+> Erez Shitrit (2):
+>   IB/core: Fix use after free in send_leave function
+>   IB/ipoib: Fix memory corruption during ipoib cm connection
+>     establishment
+>=20
+> Leon Romanovsky (5):
+>   Revert "IB/mlx4: Return EAGAIN for any error in mlx4_ib_poll_one"
+>   IB/mlx4: Don't return errors from poll_cq
+>   IB/mlx5: Simplify code by removing return variable
+>   IB/mlx5: Add VERBOSITY Kconfig option
+>   IB/mlx5: Don't return errors from poll_cq
+>=20
+> Yishai Hadas (1):
+>   IB/mlx5: Use TIR number based on selector
+>=20
+>  drivers/infiniband/core/multicast.c       | 13 ++-----------
+>  drivers/infiniband/hw/mlx4/cq.c           | 26 ++---------------------=
+---
+>  drivers/infiniband/hw/mlx5/Kconfig        |  6 ++++++
+>  drivers/infiniband/hw/mlx5/cq.c           | 22 ++--------------------
+>  drivers/infiniband/hw/mlx5/main.c         |  6 +++++-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h      |  1 +
+>  drivers/infiniband/hw/mlx5/qp.c           | 15 ++++++---------
+>  drivers/infiniband/ulp/ipoib/ipoib.h      |  1 +
+>  drivers/infiniband/ulp/ipoib/ipoib_cm.c   | 16 ++++++++++++++++
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
+>  10 files changed, 42 insertions(+), 66 deletions(-)
 
-I didn't see the presentation at this link, but I'm not sure I agree
-with your statement here.  There should be no difference, effectively,
-between a commit to revert a bad commit, and a commit to fix a bad
-commit that uses a Fixes: tag referencing the original commit.
+I took everything except patch 7.  That one had to go.  It would take a
+very strong argument about why that needs a Kconfig option instead of a
+runtime config switch to make me change my mind.
 
 
 --=20
@@ -88,9 +80,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG Key ID: 0E572FDD
 
 
---CbDtUweaHtESXUpLpgt1sl3XXMVuqgGfl--
+--sveG48BEdxpphJijlJ6CuDuHRpAheqShb--
 
---CNrib9dvOlTENIiBDHtS3APHnXt5HQklG
+--u92J97ImGE4nF0fjaxNvgECbO5Llqusvc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -99,22 +91,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJXyb7hAAoJELgmozMOVy/d0WAP/00hM6zQkw7hBM0qyVqhWBCj
-JKJQMBs4xbHobV7krJH5MN5zIxfgHpp06vBnhrNpyCVOIznlKsqJE0rBtBZVdHUu
-6EZzybsv22dxp5iOUUNkjYdrRoxvqSoG6Ot1XVioZZBUJfpea1OgX13uIi2ARlLW
-OpIza+sEwkepkbR/D5PtKSx76ZZEmQmuDymMw5bv2uUIxs3vSkARX4dY5gBX+EII
-C0p/JZwNo49O86MtcSWfvApN/wZljcgkIK9YKa1Kxiw4Ajde5Qa9rpTYkrvZDc3R
-7BGjaEF+QAfIrxEVukG6lBoLePfH2KoJX/AJKwXYmhA/1NNsSpOvwnZ5orJrBm4z
-EM0Rhv1kHDOCehWkT5j+h5PJrYIVASvZ4QQ5pV44ojIwkbqVL5N1N6y3VJd/p42C
-iIIsIvsV+1//lgArObZLZRyKWKYDdiREw+mzB+SDLDCmZEmNRDjNkmo/v4Fv5qhC
-jRpHEhJvsjwry3+tDi19R9X8Tfp1lTEit6hqA5h0iJ21/CARWUQu5DUE6OHxPgna
-GT6wBHJBiHh7zVId1/cO1TBrys0NWs9U36C+95cE7wxGwbySIo1gZPD5tWwjKTtc
-pNrLSZzTSIVpW8QgiScnoiXBQPJUqBgML/nc2KyXQ+jA/gX+7vwPhYy0NmgS9ik+
-By77GWGOpePTfbEGY30j
-=VLMl
+iQIcBAEBCAAGBQJXycFHAAoJELgmozMOVy/d0zIQAJsQ9wzIFodlR3U7I7Wm+M0w
+d7lV2KObYErtes947ddpGOj/cCyz3RyO4eYlJ+WBvyMbIWlLErS3u59/CbKslsTg
+zTIKiK4ZfLsfggtLPfivxNHQVnAXjA3x3XvKr1Ao3prfsZABVMlX9irSWcQ+lnh4
+JrxF3J5pvi6OlJSI/OWaI7trfTXi7iqI9N+nPzll362ApHd9+qYd5Za7rLFs7CU4
+d1xaaGIPQKULytugCjDM+R2cKlD0QkWJWBVTZxpFUuYE2fyTA7wbXEpT2kfmIsZZ
+j9JkG1KHqd8uHL/+NM2VOrWH1JQiqt7iNWHXV9c/5gO/ZhDmSvpR/7CdONZxbCE/
+/Rqyel+YCCgETg1ETIYFiuI1UG5+X54c3Woc3JdNGFcXhkt4DD5kaNhLzF3Oi9KG
+JUE52kwG66NGXcpYXvCVLvWMUc+bkMjx/lLEy2C/yQ+ghAJYDHIluZ5zfXI6SxUg
+/uGEGrgUUrJBxonOYwg+CRHcQdEfNLGMmDnUeScUUy7EN2tZy70G2+EtqCjf4JIS
+L1QYdhE1aI2xU9GWAoaBEZp9RPPaXqZNvvEKrsSsFeYVKUFgOz6y4lO5qLYhXF18
+BXhhzDDx8QDkdfzIXPOM5UyN+GJ4Sx9FUXmY0Uc2dpcLDafwVeO00FEjRmcK6KvQ
+V6xc9VPEM+wENbtgWt2C
+=kNbt
 -----END PGP SIGNATURE-----
 
---CNrib9dvOlTENIiBDHtS3APHnXt5HQklG--
+--u92J97ImGE4nF0fjaxNvgECbO5Llqusvc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
