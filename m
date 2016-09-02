@@ -1,63 +1,54 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 9/9] ib_verbs: Add a new qp create flag to request
- features for Ethernet over IB
-Date: Fri, 2 Sep 2016 10:34:51 -0600
-Message-ID: <20160902163451.GC24997@obsidianresearch.com>
+Subject: Re: [PATCH 6/9] ib_uverbs: Avoid vendor specific masking of
+ attributes in query_qp
+Date: Fri, 2 Sep 2016 11:10:08 -0600
+Message-ID: <20160902171008.GE24997@obsidianresearch.com>
 References: <1472774969-18997-1-git-send-email-knut.omang@oracle.com>
- <1472774969-18997-10-git-send-email-knut.omang@oracle.com>
- <20160902021729.GE30057@obsidianresearch.com>
- <1472792670.9410.276.camel@oracle.com>
- <1472814057.3975.47.camel@oracle.com>
+ <1472774969-18997-7-git-send-email-knut.omang@oracle.com>
+ <20160902021300.GC30057@obsidianresearch.com>
+ <1472791552.9410.258.camel@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1472814057.3975.47.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1472791552.9410.258.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 02, 2016 at 01:00:57PM +0200, Knut Omang wrote:
-> On Fri, 2016-09-02 at 07:04 +0200, Knut Omang wrote:
-> > On Thu, 2016-09-01 at 20:17 -0600, Jason Gunthorpe wrote:
+On Fri, Sep 02, 2016 at 06:45:52AM +0200, Knut Omang wrote:
+> On Thu, 2016-09-01 at 20:13 -0600, Jason Gunthorpe wrote:
+> > On Fri, Sep 02, 2016 at 02:09:26AM +0200, Knut Omang wrote:
+> > > This commit removes the implementation and use of the modify_qp_mask
+> > > helper function from the generic OFED implementation and into individual
+> > > device drivers.
 > > > 
-> > > On Fri, Sep 02, 2016 at 02:09:29AM +0200, Knut Omang wrote:
-> > > > 
-> > > > Some Infiniband HCAs need to know if a QP is going to
-> > > > be used for Ethernet over IB (EOIB).
-> > > You will have to send this after your driver. I recommend a patch
-> > > proposing this functionality with your driver as the example
-> > > implementation, along with a kernel user, as mellanox typically does.
-> > It's a bit of a chicken and egg situation since the driver 
-> > depends on the patches. If I can 'tick off' this bit soon, I can move ahead and 
-> > get to the send the driver too.
+> > > Like with use of the ib_modify_qp_is_ok function it should be up to
+> > > each device driver how to handle bits set in the attribute masks.
+> > > 
+> > > With the modify_qp_mask function applied in the generic code,
+> > > drivers would not see the bits that the user process actually sets.
+> > > 
+> > > The restrictions imposed by the filter are also beyond what
+> > > is imposed by the Infiniband standard, and would also limit
+> > > future drivers or hardware from checking for unsupported or
+> > > invalid settings.
 > > 
-> > There's not much info in the driver - it just forwards that bit to a hardware bit
-> > and it all happens from there. But hardware needs to know when to set that bit,
-> > as it is only valid when operating as transport for Ethernet.
-> > 
-> > Please - it would be a big help for me (saving a lot of work down the line that 
-> > is better spent working with the community than with handling more version issues later) 
-> > if I can get an indication that just that bit would be acceptable 8-D ...
+> > I'm not excited about this direction. It is not OK for different
+> > drivers to use different mask algorithms, they must all behave the
+> > same.
 > 
-> I will add the following further justification to the commit message for v2:
-> 
-> Support for encapsulation of Ethernet over IB (EoIB) is a generic feature 
-> where different HCA implementations can include different special features. 
-> One example is that if the HCA knows the QP is going to be used for Ethernet, 
-> the implementation can ensure that all messages sent on this QP represents 
-> a properly formatted encapsulation of Ethernet frames with legal header values.
-> Or the HCA can perform the encapsulation itself.
+> The problem I am solving here is that SIF expects (and requires) some of 
+> the bits that the user correctly sets, but that Mellanox either ignore or need to
+> be 0. So when that mask is applied to the user input, the value that reaches
+> the SIF driver is not correct from SIFs perspective. 
+> If the values goes through as the ULP sets them, then all is fine.
 
-It would be better to remove support for this from your driver in the
-initial submission.
+I guess I still don't understand. SIF and mlx cannot have different
+behavior here. How is the application writer to know what to do?
 
-Keep new uAPIs in new driver submissions to an absolute minimum please.
-
-And as I said, you need to introduce a kernel user of this bit as
-well, so the driver alone is not enough.
+Can you give a concrete example of the problem?
 
 Jason
 --
