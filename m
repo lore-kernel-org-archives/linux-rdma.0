@@ -1,121 +1,56 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH libibverbs 1/3] Add new call ibv_cmd_create_ah_ex which
- supports extra parameters
-Date: Sat, 03 Sep 2016 09:30:40 +0200
-Message-ID: <1472887840.9410.364.camel@oracle.com>
-References: <1472713193-22397-1-git-send-email-knut.omang@oracle.com>
-         <1472713193-22397-2-git-send-email-knut.omang@oracle.com>
-         <20160901164939.GD6479@obsidianresearch.com>
-         <1472750558.9410.230.camel@oracle.com>
-         <20160901180512.GB20098@obsidianresearch.com>
-         <1472754220.9410.236.camel@oracle.com>
-         <20160902020642.GA30057@obsidianresearch.com>
-         <1472802582.3975.16.camel@oracle.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Sat, 3 Sep 2016 14:08:24 +0000
+Message-ID: <BLUPR02MB16836859F638150FF6330A0A81E40@BLUPR02MB1683.namprd02.prod.outlook.com>
+References: <1471889618-1605-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <4f0876ce-f3c9-83e3-d0ef-0c5656ce9462@grimberg.me>
+ <53eb35b4-0320-acd9-9969-73f5817c8144@sandisk.com>
+ <20160901172355.GA20472@obsidianresearch.com>
+ <019b01d2047f$b9694f90$2c3beeb0$@opengridcomputing.com>
+ <20160902233231.GA26309@obsidianresearch.com>
+ <ef8214f8-d44d-2289-d1ed-a0998e9e05c0@sandisk.com>
+ <20160903051222.GA2098@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472802582.3975.16.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mukesh Kacker <mukesh.kacker-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2016-09-02 at 09:49 +0200, Knut Omang wrote:
-> On Thu, 2016-09-01 at 20:06 -0600, Jason Gunthorpe wrote:
-> > On Thu, Sep 01, 2016 at 08:23:40PM +0200, Knut Omang wrote:
-> > > 
-> > > > 
-> > > > > 
-> > > > > > 
-> > > > > > On Thu, Sep 01, 2016 at 08:59:51AM +0200, Knut Omang wrote:
-> > > > > > > 
-> > > > > > > +++ b/src/libibverbs.map
-> > > > > > > @@ -64,6 +64,7 @@ IBVERBS_1.0 {
-> > > > > > >  		ibv_cmd_post_recv;
-> > > > > > >  		ibv_cmd_post_srq_recv;
-> > > > > > >  		ibv_cmd_create_ah;
-> > > > > > > +		ibv_cmd_create_ah_ex;
-> > > 
-> > > For this patch backward binary compatibility is actually preserved - a vendor library 
-> > > continues to work even without recompiling. I deliberately avoided making
-> > > the ibv_cmd_create_ah function inline to ensure that. Loading libsif would of course
-> > > break, but with a symbol error.
-> > No, this patch is wrong, you added it to IBVERBS_1.0, that isn't
-> > allowed.
-> > 
-> > You need to do something like this:
-> > 
-> > IBVERBS_1.3 {
-> >         global:
-> > 	   ibv_cmd_create_ah_ex;
-> 
-> You are quite right - I'll fix the patch like you indicate, using either 1.2 or 1.3 depending on
-> the conclusions on the other changes you mention below, Doug, let me know what value you want,
-> 
-> Thanks,
-> Knut
-> 
-> > Why? RPM works by having provides like:
-> > 
-> >  libibverbs
-> >  libibverbs(x86-64)
-> >  libibverbs.so.1()(64bit)
-> >  libibverbs.so.1(IBVERBS_1.0)(64bit)
-> >  libibverbs.so.1(IBVERBS_1.1)(64bit)
-> > 
-> > And when you create a client RPM package it strips off the function name
-> > and uniques it to produce the Depends.
-> > 
-> > In other words, once IBVERBS_1.x is shipped in a RPM that stanza in
-> > the map file is set in stone. We can never add more symbols to that
-> > stanza. We must start a new number.
-> > 
-> > To be concrete, when your new provider links to
-> > ibv_cmd_create_ah_ex@IBVERBS_1.0 rpm will create a dependency
-> > libibverbs.so.1(IBVERBS_1.0).  *However* every RPM provides that, so
-> > the dependency logic in RPM stops working and will let a user install
-> > your provider on a system it is not compatible with. When it is set
-> > properly to ibv_cmd_create_ah_ex@IBVERBS_1.3 then RPM will only allow
-> > the provider RPM to be installed on a system that has the upgraded
-> > libibverbs1.
-> > 
-> > Unfortunately this has been systematically screwed up by recent
-> > patches (pay attention Matan and Yisahi), so our symbol versioning is
-> > now unusable for RPM based distros.
-> > 
-> > Debian does this differently and will not be affected. Actual linking
-> > should be fine too, AFAIK it is just RPM that will break.
-> > 
-> > Doug? Is it too late to fix this for the patches you accepted in 2016?
-> > The answer to that depends entirely on how far the RPMs have got..
-> > 
-> > The _cmd_ varients are not too bad, we could fix that in rdma-plumbing
-> > in a way that lets us move forward sane sanely, but
-> > ibv_query_device_ex@IBVERBS_1.0 should have been tagged _1.2
-> > 
-> > The fix would be to introduce a
-> > ibv_query_device_ex@IBVERBS_1.3 as the new default and continue to
-> > provide ibv_query_device_ex@IBVERBS_1.0 for compat against the same
-> > physical symbol. New links would then get functional rpm dependencies.
-
-Looking more closely at this whole problem, I think for my patch, 
-the right solution is just to avoid adding a new function name and 
-instead provide a redefinition of the original symbol with a new version 
-using the __asm__(".symver ...) construct already nicely used for v.1.0 
-bw compatibility - just following the pattern already established.
-
-That way old provider builds can continue to work seamlessly and binary compatible, 
-but when recompiling against the new version, the compiler enforces use of the 
-new definitions instead, implicitly enforcing cleanup, which is a good thing..
-
-I think in principle this could have been done for 
-the other _ex functions as well, getting rid of the whole 
-multiple _ex structs stuff.
-
-Knut
-
-
+On 09/02/16 22:12, Jason Gunthorpe wrote:=0A=
+> On Fri, Sep 02, 2016 at 05:10:45PM -0700, Bart Van Assche wrote:=0A=
+>> -%define CMAKE_FLAG=0A=
+>> +%define CMAKE_FLAG %{nil}=0A=
+>=0A=
+> Weird, I didn't know opensuse rpmbuild was different.. But that hunk is=
+=0A=
+> fine, c6 and c7 accept it as well, but don't need it..=0A=
+=0A=
+Hello Jason,=0A=
+=0A=
+I don't think that "%define CMAKE_FLAG" is syntactically valid. See e.g. =
+=0A=
+http://stackoverflow.com/questions/3474674/how-to-define-a-rpm-spec-macro-w=
+ith-empty-body.=0A=
+=0A=
+> So I added opensuse 13.2 and 42.1 to the list of docker container=0A=
+> builders and the simple build looks like it runs OK.=0A=
+>=0A=
+> But rpmbuild chokes even after the above fix.=0A=
+>=0A=
+> What suse version are you using to have any success at all? I suppose=0A=
+> it isn't available in docker?=0A=
+=0A=
+On my development system I run openSuSE Tumbleweed, a rolling release. I =
+=0A=
+update it every now and then by running "zypper dist-upgrade". Some of =0A=
+our production systems run SLES 12 SP2; others run RHEL 6 or RHEL 7.=0A=
+=0A=
+Bart.=0A=
+=0A=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
