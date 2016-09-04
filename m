@@ -1,171 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V3 4/6] RDMA/core: Move HFI1 IOCTL declarations to common file
-Date: Sun,  4 Sep 2016 14:30:33 +0300
-Message-ID: <1472988635-31463-5-git-send-email-leon@kernel.org>
-References: <1472988635-31463-1-git-send-email-leon@kernel.org>
+Subject: [PATCH rdma-next V3 0/6]  Refactor RDMA IOCTL declarations
+Date: Sun,  4 Sep 2016 14:30:29 +0300
+Message-ID: <1472988635-31463-1-git-send-email-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1472988635-31463-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi Doug,
 
-Move HFI1 IOCTL declarations to rdma_user_ioctl.h file.
+This patch set refactors RDMA IOCTL declarations, unifies their
+location, moves all current IOCTL exporters to one place and renames
+them to fix the differences in coding style.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- include/uapi/rdma/hfi/hfi1_user.h   | 55 -------------------------------------
- include/uapi/rdma/rdma_user_ioctl.h | 54 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+), 55 deletions(-)
+IOCTLs commands need to export the size of their data for their transfer
+which is usually declared as a struct defined in relevant submodule.
+These structures should be visible at the linkage stage.
 
-diff --git a/include/uapi/rdma/hfi/hfi1_user.h b/include/uapi/rdma/hfi/hfi1_user.h
-index 8aa3867..8807f06 100644
---- a/include/uapi/rdma/hfi/hfi1_user.h
-+++ b/include/uapi/rdma/hfi/hfi1_user.h
-@@ -58,7 +58,6 @@
+There are number of possible solutions to overcome this limitations.
 
- #include <linux/types.h>
- #include <rdma/rdma_user_ioctl.h>
--#include <rdma/hfi/hfi1_ioctl.h>
+One of the options is to declare anonymous variable which will be visible
+during the linkage. As a downside, such option won't allow direct use of
+this header by other parts of code without their specific includes of
+other logically unrelated submodules.
 
- /*
-  * This version number is given to the driver by the user code during
-@@ -114,60 +113,6 @@
- #define HFI1_RCVHDR_ENTSIZE_16   (1UL << 1)
- #define HFI1_RCVDHR_ENTSIZE_32   (1UL << 2)
+Another possible option will be to move declarations of that structures
+to that common header file. Such move will cause to bloat this file
+with different submodules declarations.
 
--/* User commands. */
--#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
--#define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
--#define HFI1_CMD_USER_INFO       3	/* set up userspace */
--#define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
--#define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
--#define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
--
--#define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
--#define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want */
--#define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
--#define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
--#define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
--#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
--#define HFI1_CMD_GET_VERS	 14	/* get the version of the user cdev */
--
--/*
-- * User IOCTLs can not go above 128 if they do then see common.h and change the
-- * base for the snoop ioctl
-- */
--
--/*
-- * Make the ioctls occupy the last 0xf0-0xff portion of the IB range
-- */
--#define __NUM(cmd) (HFI1_CMD_##cmd + 0xe0)
--
--struct hfi1_cmd;
--#define HFI1_IOCTL_ASSIGN_CTXT \
--	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
--#define HFI1_IOCTL_CTXT_INFO \
--	_IOW(IB_IOCTL_MAGIC, __NUM(CTXT_INFO), struct hfi1_ctxt_info)
--#define HFI1_IOCTL_USER_INFO \
--	_IOW(IB_IOCTL_MAGIC, __NUM(USER_INFO), struct hfi1_base_info)
--#define HFI1_IOCTL_TID_UPDATE \
--	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_UPDATE), struct hfi1_tid_info)
--#define HFI1_IOCTL_TID_FREE \
--	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_FREE), struct hfi1_tid_info)
--#define HFI1_IOCTL_CREDIT_UPD \
--	_IO(IB_IOCTL_MAGIC, __NUM(CREDIT_UPD))
--#define HFI1_IOCTL_RECV_CTRL \
--	_IOW(IB_IOCTL_MAGIC, __NUM(RECV_CTRL), int)
--#define HFI1_IOCTL_POLL_TYPE \
--	_IOW(IB_IOCTL_MAGIC, __NUM(POLL_TYPE), int)
--#define HFI1_IOCTL_ACK_EVENT \
--	_IOW(IB_IOCTL_MAGIC, __NUM(ACK_EVENT), unsigned long)
--#define HFI1_IOCTL_SET_PKEY \
--	_IOW(IB_IOCTL_MAGIC, __NUM(SET_PKEY), __u16)
--#define HFI1_IOCTL_CTXT_RESET \
--	_IO(IB_IOCTL_MAGIC, __NUM(CTXT_RESET))
--#define HFI1_IOCTL_TID_INVAL_READ \
--	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_INVAL_READ), struct hfi1_tid_info)
--#define HFI1_IOCTL_GET_VERS \
--	_IOR(IB_IOCTL_MAGIC, __NUM(GET_VERS), int)
--
- #define _HFI1_EVENT_FROZEN_BIT         0
- #define _HFI1_EVENT_LINKDOWN_BIT       1
- #define _HFI1_EVENT_LID_CHANGE_BIT     2
-diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
-index 820bf34..e9a69f0 100644
---- a/include/uapi/rdma/rdma_user_ioctl.h
-+++ b/include/uapi/rdma/rdma_user_ioctl.h
-@@ -36,6 +36,7 @@
- #include <linux/types.h>
- #include <linux/ioctl.h>
- #include <rdma/ib_user_mad.h>
-+#include <rdma/hfi/hfi1_ioctl.h>
+Our decision was to choose direct include of other exported files with
+declarations of such structures to simplify future usage of this file.
+There is no change for legacy applications and libraries.
 
- /* Documentation/ioctl/ioctl-number.txt */
- #define RDMA_IOCTL_MAGIC		0x1b
-@@ -51,4 +52,57 @@
- #define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
- 					      struct ib_user_mad_reg_req2)
+Changes v2->v3:
+ * Added Jason's Reviewed-by
+ * Open-ceded ioctl indexes
 
-+/* User commands. */
-+#define HFI1_CMD_ASSIGN_CTXT     1	/* allocate HFI and context */
-+#define HFI1_CMD_CTXT_INFO       2	/* find out what resources we got */
-+#define HFI1_CMD_USER_INFO       3	/* set up userspace */
-+#define HFI1_CMD_TID_UPDATE      4	/* update expected TID entries */
-+#define HFI1_CMD_TID_FREE        5	/* free expected TID entries */
-+#define HFI1_CMD_CREDIT_UPD      6	/* force an update of PIO credit */
-+
-+#define HFI1_CMD_RECV_CTRL       8	/* control receipt of packets */
-+#define HFI1_CMD_POLL_TYPE       9	/* set the kind of polling we want */
-+#define HFI1_CMD_ACK_EVENT       10	/* ack & clear user status bits */
-+#define HFI1_CMD_SET_PKEY        11     /* set context's pkey */
-+#define HFI1_CMD_CTXT_RESET      12     /* reset context's HW send context */
-+#define HFI1_CMD_TID_INVAL_READ  13     /* read TID cache invalidations */
-+#define HFI1_CMD_GET_VERS	 14	/* get the version of the user cdev */
-+
-+/*
-+ * User IOCTLs can not go above 128 if they do then see common.h and change the
-+ * base for the snoop ioctl
-+ */
-+
-+/*
-+ * Make the ioctls occupy the last 0xf0-0xff portion of the IB range
-+ */
-+#define __NUM(cmd) (HFI1_CMD_##cmd + 0xe0)
-+
-+#define HFI1_IOCTL_ASSIGN_CTXT \
-+	_IOWR(IB_IOCTL_MAGIC, __NUM(ASSIGN_CTXT), struct hfi1_user_info)
-+#define HFI1_IOCTL_CTXT_INFO \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(CTXT_INFO), struct hfi1_ctxt_info)
-+#define HFI1_IOCTL_USER_INFO \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(USER_INFO), struct hfi1_base_info)
-+#define HFI1_IOCTL_TID_UPDATE \
-+	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_UPDATE), struct hfi1_tid_info)
-+#define HFI1_IOCTL_TID_FREE \
-+	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_FREE), struct hfi1_tid_info)
-+#define HFI1_IOCTL_CREDIT_UPD \
-+	_IO(IB_IOCTL_MAGIC, __NUM(CREDIT_UPD))
-+#define HFI1_IOCTL_RECV_CTRL \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(RECV_CTRL), int)
-+#define HFI1_IOCTL_POLL_TYPE \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(POLL_TYPE), int)
-+#define HFI1_IOCTL_ACK_EVENT \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(ACK_EVENT), unsigned long)
-+#define HFI1_IOCTL_SET_PKEY \
-+	_IOW(IB_IOCTL_MAGIC, __NUM(SET_PKEY), __u16)
-+#define HFI1_IOCTL_CTXT_RESET \
-+	_IO(IB_IOCTL_MAGIC, __NUM(CTXT_RESET))
-+#define HFI1_IOCTL_TID_INVAL_READ \
-+	_IOWR(IB_IOCTL_MAGIC, __NUM(TID_INVAL_READ), struct hfi1_tid_info)
-+#define HFI1_IOCTL_GET_VERS \
-+	_IOR(IB_IOCTL_MAGIC, __NUM(GET_VERS), int)
-+
- #endif /* RDMA_USER_IOCTL_H */
+Changes v0->v2 (v1 was skipped):
+ * Update commit messages of patch number 3 and 6.
+
+Available in the "topic/ioctl-header" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/ioctl-header
+
+Thanks
+
+Leon Romanovsky (6):
+  RDMA/core: Commonize RDMA IOCTL declarations location
+  RDMA/core: Move legacy MAD IOCTL declarations to common file
+  RDMA/hfi1: Avoid redeclaration error
+  RDMA/core: Move HFI1 IOCTL declarations to common file
+  RDMA/core: Rename RDMA magic number
+  RDMA/core: Unify style of IOCTL commands
+
+ include/uapi/rdma/Kbuild            |   1 +
+ include/uapi/rdma/hfi/Kbuild        |   1 +
+ include/uapi/rdma/hfi/hfi1_ioctl.h  | 173 +++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/hfi/hfi1_user.h   | 175 +-----------------------------------
+ include/uapi/rdma/ib_user_mad.h     |  14 +--
+ include/uapi/rdma/rdma_user_ioctl.h |  87 ++++++++++++++++++
+ 6 files changed, 264 insertions(+), 187 deletions(-)
+ create mode 100644 include/uapi/rdma/hfi/hfi1_ioctl.h
+ create mode 100644 include/uapi/rdma/rdma_user_ioctl.h
+
 --
 2.7.4
 
