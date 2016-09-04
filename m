@@ -1,123 +1,43 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 1/2] IB/hfi1: Fix a parameter of find_first_bit.
-Date: Sun, 4 Sep 2016 12:04:52 +0300
-Message-ID: <20160904090452.GP21847@leon.nu>
-References: <1472186949-9025-1-git-send-email-christophe.jaillet@wanadoo.fr>
- <cf61e699-9e2d-a594-64e6-43ea33b239d9@redhat.com>
- <2c923344-04c8-cdbd-ac06-047027f7a23a@redhat.com>
- <20160826192957.GG594@leon.nu>
- <e86e76dc-811b-7002-a35d-1e515c833d46@redhat.com>
- <20160828060640.GI594@leon.nu>
- <3afab67c-919b-b9ad-c558-55046a277aab@redhat.com>
+From: Moni Shoua <monis@mellanox.com>
+Subject: Re: [PATCH] IB/rxe: fix GFP_KERNEL in spinlock context
+Date: Sun, 4 Sep 2016 13:01:29 +0300
+Message-ID: <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g@mail.gmail.com>
+References: <1472849213-27579-1-git-send-email-khoroshilov@ispras.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="h5TCuzcqTWZxfGfk"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <3afab67c-919b-b9ad-c558-55046a277aab@redhat.com>
+In-Reply-To: <1472849213-27579-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---h5TCuzcqTWZxfGfk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Sep 02, 2016 at 10:39:11AM -0400, Doug Ledford wrote:
-> On 8/28/2016 2:06 AM, Leon Romanovsky wrote:
-> > On Fri, Aug 26, 2016 at 03:34:48PM -0400, Doug Ledford wrote:
-> >> On 8/26/2016 3:29 PM, Leon Romanovsky wrote:
-> >>> On Fri, Aug 26, 2016 at 02:01:55PM -0400, Doug Ledford wrote:
-> >>>> On 8/26/2016 9:35 AM, Doug Ledford wrote:
-> >>>>> On 8/26/2016 12:49 AM, Christophe JAILLET wrote:
-> >>>>>> The 2nd parameter of 'find_first_bit' is the number of bits to search.
-> >>>>>> In this case, we are passing 'sizeof(unsigned long)' which is likely to
-> >>>>>> be 4 or 8.
-> >>>>>
-> >>>>> If the size can be 4 or 8, then using 64 universally is not correct.
-> >>>>> Why not use sizeof() * 8 (or << 3)?
-> >>>>
-> >>>> Better yet, why not put this patch in the kernel first:
-> >>>>
-> >>>> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-> >>>> index d96a6118d26a..a8838c87668e 100644
-> >>>> --- a/include/linux/kernel.h
-> >>>> +++ b/include/linux/kernel.h
-> >>>> @@ -52,6 +52,8 @@
-> >>>>
-> >>>>  #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) +
-> >>>> __must_be_array(arr))
-> >>>>
-> >>>> +#define bitsizeof(x)   (sizeof((x)) << 3)
-> >>>> +
-> >>>>  #define u64_to_user_ptr(x) (           \
-> >>>>  {                                      \
-> >>>>         typecheck(u64, x);              \
-> >>>>
-> >>>> then start going around replacing all these hard coded numbers with the
-> >>>> use of bitsizeof().  It can be applied not just to the find_first*bit()
-> >>>> routines, but to a bunch of other routines too.  Just look at
-> >>>> include/linux/bitmap.h and any that have nbits as an argument are
-> >>>> candidates.
-> >>>
-> >>> There is BITS_PER_LONG define for that. There is actual use of it in mlx5 for
-> >>> the similar code pieces.
-> >>
-> >> BITS_PER_LONG only works if your bitfield is a single long.  It doesn't
-> >> work for other bitfields.  What I posted above will work for anything.
-> >
-> > Yes, the question to ask if it is really needed.
+On Fri, Sep 2, 2016 at 11:46 PM, Alexey Khoroshilov
+<khoroshilov@ispras.ru> wrote:
+> There is skb_clone(skb, GFP_KERNEL) in spinlock context
+> in rxe_rcv_mcast_pkt().
 >
-> A quick review of the usage of find_first_bit in the kernel shows that
-> the majority of uses that use large, complex bit arrays (things larger
-> than a single long, where bitsizeof(complex_object) might be helpful),
-> also tend to have limits to their bitmap sizes that do not directly
-> equal the size of the bitmap.  For example, the bitmap for an md raid
-> array is allocated as a chunk of memory, where the chunk of memory is
-> larger than the bitmap size as a general rule, so
-> bitsizeof(chunk_of_memory) would run off the end of the real bitmap.
-> Likewise for a number of other complex bitmaps (block layer tag in use
-> bitmap for instance).
+> Found by Linux Driver Verification project (linuxtesting.org).
 >
-> So, is it useful?  I think so.  But it's not needed for original patch
-> in this thread.
-
-Honestly, I wasn't convinced at all, but you are right,
-it is theoretical discussion.
-
-Thanks
-
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
+> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
+> index 3d464c23e08b..144d2f129fcd 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
+> @@ -312,7 +312,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
+>                  * make a copy of the skb to post to the next qp
+>                  */
+>                 skb_copy = (mce->qp_list.next != &mcg->qp_list) ?
+> -                               skb_clone(skb, GFP_KERNEL) : NULL;
+> +                               skb_clone(skb, GFP_ATOMIC) : NULL;
 >
+>                 pkt->qp = qp;
+>                 rxe_add_ref(qp);
 > --
-> Doug Ledford <dledford@redhat.com>
->     GPG Key ID: 0E572FDD
+> 2.7.4
 >
-
-
-
-
---h5TCuzcqTWZxfGfk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXy+O0AAoJEORje4g2clinoYUP/3RKhFGjsJEZf79Z9Qaruvad
-vmYJBMzYHp8Rtw/Qi0vX3CBTGIHctqw28TS9mTFw6Bnwp3l2ExR1K6RkRyFHHa2k
-2wEoozxT8uLNvQF2LoXRcz2e4fg9k3HEJUaePwcdyRA6uwq7wwHAhAXEhcIlQaB+
-zhOJcF4jqDP6prhHf6qzqzgu2T6vThXRMABEFaqjVh3nrMNRnKSabYhnok1bw1b8
-mF9ch3K8THYGBqivnZvNrTw2xTkPTHZW3Y5ElN8dP3WFK2oIs3LXntnUxS5RAfIB
-ddIWo1NcI1J3GF6WeEbcIOZY+aPSFidowh8PnzOLzxYZflooJvFkGEZTX56bls+p
-wtvYtLUPlNPFLO6kjdixP3/gAG+jIyK52yygVPnzrLOx713opAfCdQcuSw1ov3ZK
-FfK9YzP3S6Xd2CBAQwTs0UBybIQk3XmnJbdkrmDilQdMi0lkOoranN+0eY8dXLzg
-a1SRlQGy0fi6xvbHTnknyGVBgBamM6EPbt54JDAf5gZ7KFA1hXabcu+eEIqfK1e8
-v88dfnX/RbnycPkKzwxPwwtOuw06CtvNJHyprfLAu6DUvdhM2rdLMfMGSXcMjTZM
-ARgkxWxtcAmFXdHEJ6Z6azbtpGmGTFuiqhbZOsdPVcKZ4n6qPTJwqOOp/wtBTs4/
-lI23Kgmtnhbtm4IQDamZ
-=pmvU
------END PGP SIGNATURE-----
-
---h5TCuzcqTWZxfGfk--
+Acked-by: Moni Shoua <monis@mellanox.com>
