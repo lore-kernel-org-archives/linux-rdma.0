@@ -1,38 +1,75 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
-Date: Sun, 4 Sep 2016 13:36:50 +0300
-Message-ID: <a220db98-ebbf-5df4-e011-8804442796b8@grimberg.me>
-References: <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
- <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
- <20160828182715.GA12783@obsidianresearch.com>
- <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
- <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
- <20160830071716.GA3098@infradead.org> <20160830073521.GM594@leon.nu>
- <20160830163033.GC26778@obsidianresearch.com>
- <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
- <20160904083517.GN21847@leon.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next V3 2/6] RDMA/core: Move legacy MAD IOCTL declarations to common file
+Date: Sun,  4 Sep 2016 14:30:31 +0300
+Message-ID: <1472988635-31463-3-git-send-email-leon@kernel.org>
+References: <1472988635-31463-1-git-send-email-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160904083517.GN21847-2ukJVAZIZ/Y@public.gmane.org>
+In-Reply-To: <1472988635-31463-1-git-send-email-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
->> What I think it missing is a release schedule, stable fixes
->> methodology and merge cycles. I think once we can agree on that
->> a lot of the concerns will be addressed.
->
-> This is exactly my point.
-> What do you think if we follow kernel release cycles and schedules? It
-> will give to everyone in RDMA world clear answer on WHEN question.
+Move legacy MAD IOCTL declarations to rdma_user_ioctl.h file.
 
-That can work. But, I think that we need the stable fixes to be released
-more frequently (Ideally on-demand, but it might be too much of an
-overhead both to maintainers and users).
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ include/uapi/rdma/ib_user_mad.h     | 10 ----------
+ include/uapi/rdma/rdma_user_ioctl.h | 11 +++++++++++
+ 2 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/include/uapi/rdma/ib_user_mad.h b/include/uapi/rdma/ib_user_mad.h
+index 9de7a2b..5c7abd8 100644
+--- a/include/uapi/rdma/ib_user_mad.h
++++ b/include/uapi/rdma/ib_user_mad.h
+@@ -230,14 +230,4 @@ struct ib_user_mad_reg_req2 {
+ 	__u8	reserved[3];
+ };
+
+-#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
+-					      struct ib_user_mad_reg_req)
+-
+-#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
+-
+-#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
+-
+-#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
+-					      struct ib_user_mad_reg_req2)
+-
+ #endif /* IB_USER_MAD_H */
+diff --git a/include/uapi/rdma/rdma_user_ioctl.h b/include/uapi/rdma/rdma_user_ioctl.h
+index ba1bcdd..820bf34 100644
+--- a/include/uapi/rdma/rdma_user_ioctl.h
++++ b/include/uapi/rdma/rdma_user_ioctl.h
+@@ -35,9 +35,20 @@
+
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
++#include <rdma/ib_user_mad.h>
+
+ /* Documentation/ioctl/ioctl-number.txt */
+ #define RDMA_IOCTL_MAGIC		0x1b
+ #define IB_IOCTL_MAGIC			RDMA_IOCTL_MAGIC
+
++#define IB_USER_MAD_REGISTER_AGENT	_IOWR(IB_IOCTL_MAGIC, 1, \
++					      struct ib_user_mad_reg_req)
++
++#define IB_USER_MAD_UNREGISTER_AGENT	_IOW(IB_IOCTL_MAGIC, 2, __u32)
++
++#define IB_USER_MAD_ENABLE_PKEY		_IO(IB_IOCTL_MAGIC, 3)
++
++#define IB_USER_MAD_REGISTER_AGENT2     _IOWR(IB_IOCTL_MAGIC, 4, \
++					      struct ib_user_mad_reg_req2)
++
+ #endif /* RDMA_USER_IOCTL_H */
+--
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
