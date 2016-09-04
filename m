@@ -1,43 +1,39 @@
-From: Moni Shoua <monis@mellanox.com>
-Subject: Re: [PATCH] IB/rxe: fix GFP_KERNEL in spinlock context
-Date: Sun, 4 Sep 2016 13:01:29 +0300
-Message-ID: <CAG9sBKPQf=G0WpJXf0UAhDXdtaF9i5ZXBQ8rCv9nEORBKjp28g@mail.gmail.com>
-References: <1472849213-27579-1-git-send-email-khoroshilov@ispras.ru>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFCv2 00/15] RFCv2: Consolidated userspace RDMA library repo
+Date: Sun, 4 Sep 2016 13:36:50 +0300
+Message-ID: <a220db98-ebbf-5df4-e011-8804442796b8@grimberg.me>
+References: <cabbd0a7-0918-a8dd-d1e5-0b079f0c4604@redhat.com>
+ <c84de2a5-6526-c0a6-6535-519add3fbabb@dev.mellanox.co.il>
+ <20160828182715.GA12783@obsidianresearch.com>
+ <004e01d20203$156edc30$404c9490$@opengridcomputing.com>
+ <20160829161902.GB23557@obsidianresearch.com> <20160830060842.GJ594@leon.nu>
+ <20160830071716.GA3098@infradead.org> <20160830073521.GM594@leon.nu>
+ <20160830163033.GC26778@obsidianresearch.com>
+ <4b791de5-0d6e-fd94-8a31-2fe833ca72db@grimberg.me>
+ <20160904083517.GN21847@leon.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472849213-27579-1-git-send-email-khoroshilov@ispras.ru>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160904083517.GN21847-2ukJVAZIZ/Y@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Yishai Hadas' <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Devesh Sharma' <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Mike Marciniszyn' <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Moni Shoua' <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Tatyana Nikolova' <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Yishai Hadas' <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Majd Dibbiny' <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 2, 2016 at 11:46 PM, Alexey Khoroshilov
-<khoroshilov@ispras.ru> wrote:
-> There is skb_clone(skb, GFP_KERNEL) in spinlock context
-> in rxe_rcv_mcast_pkt().
+
+>> What I think it missing is a release schedule, stable fixes
+>> methodology and merge cycles. I think once we can agree on that
+>> a lot of the concerns will be addressed.
 >
-> Found by Linux Driver Verification project (linuxtesting.org).
->
-> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-> ---
->  drivers/infiniband/sw/rxe/rxe_recv.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-> index 3d464c23e08b..144d2f129fcd 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_recv.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-> @@ -312,7 +312,7 @@ static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
->                  * make a copy of the skb to post to the next qp
->                  */
->                 skb_copy = (mce->qp_list.next != &mcg->qp_list) ?
-> -                               skb_clone(skb, GFP_KERNEL) : NULL;
-> +                               skb_clone(skb, GFP_ATOMIC) : NULL;
->
->                 pkt->qp = qp;
->                 rxe_add_ref(qp);
-> --
-> 2.7.4
->
-Acked-by: Moni Shoua <monis@mellanox.com>
+> This is exactly my point.
+> What do you think if we follow kernel release cycles and schedules? It
+> will give to everyone in RDMA world clear answer on WHEN question.
+
+That can work. But, I think that we need the stable fixes to be released
+more frequently (Ideally on-demand, but it might be too much of an
+overhead both to maintainers and users).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
