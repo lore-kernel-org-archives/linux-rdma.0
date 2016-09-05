@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH 26/28] Avoid gcc 5.4 warning -Wunused-result
-Date: Mon,  5 Sep 2016 15:08:16 -0600
-Message-ID: <1473109698-31408-27-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH 24/28] Fix gcc 5.4, clang 3.6 warnings about unused objects
+Date: Mon,  5 Sep 2016 15:08:14 -0600
+Message-ID: <1473109698-31408-25-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1473109698-31408-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473109698-31408-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,396 +10,262 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It used to be you could suppress this with (void), however the gcc
-developers have decided to get rid of that.
+Mostly just delete cruft.
 
-So, look closely at each occurrence and decide what to do:
-- *pingpong: Join the error handling with the if statement directly
-   above
-- niegh: read on a timer_fd should never fail, so just use assert.
-   The assert is compiled out for Release builds so this is no-change
-- acm: Failure of ucma_set_server_port is detected by a 0 return
-   so check fscanf and return appropriately. This is no change since
-   fscanf failure was assumed to have left server_port as 0 (though
-   I doubt the standard supports that usage)
-- rsocket: This looks super sketchy. At least lets make the intent clear
-   with a read_all/write_all wrapper that calls assert. Most likely
-   this code is wrong..
-   Mangle the code with failable_fscanf to make it clear, but as with
-   acm, I don't think the standard supports this usage.
+nes has a number of unused related to HAVE_DECL_IBV_QPT_RAW_ETH,
+perhaps this code should be deleted entirely because whatever
+QPT_RAW_ETH is, it is not part of this repository.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibverbs/examples/rc_pingpong.c  | 15 +++++-----
- libibverbs/examples/srq_pingpong.c | 13 +++++++--
- libibverbs/examples/uc_pingpong.c  | 15 +++++-----
- libibverbs/examples/ud_pingpong.c  | 17 +++++-------
- libibverbs/src/neigh.c             |  7 +++--
- librdmacm/src/acm.c                |  3 +-
- librdmacm/src/rsocket.c            | 56 +++++++++++++++++++++++++++-----------
- 7 files changed, 78 insertions(+), 48 deletions(-)
+ libcxgb3/src/qp.c                  | 41 --------------------------------------
+ libibumad/tests/umad_reg2_compat.c |  1 -
+ libnes/src/nes_uverbs.c            | 17 +++++++++-------
+ libocrdma/src/ocrdma_verbs.c       |  3 ++-
+ librdmacm/examples/cmtime.c        | 16 ---------------
+ 5 files changed, 12 insertions(+), 66 deletions(-)
 
-diff --git a/libibverbs/examples/rc_pingpong.c b/libibverbs/examples/rc_pingpong.c
-index 1fad16a0be7c..7bcc413a0f1d 100644
---- a/libibverbs/examples/rc_pingpong.c
-+++ b/libibverbs/examples/rc_pingpong.c
-@@ -208,14 +208,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		goto out;
- 	}
- 
--	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
--		perror("client read");
--		fprintf(stderr, "Couldn't read remote address\n");
-+	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
-+	    write(sockfd, "done", sizeof "done") != sizeof "done") {
-+		perror("client read/write");
-+		fprintf(stderr, "Couldn't read/write remote address\n");
- 		goto out;
- 	}
- 
--	write(sockfd, "done", sizeof "done");
--
- 	rem_dest = malloc(sizeof *rem_dest);
- 	if (!rem_dest)
- 		goto out;
-@@ -316,14 +315,14 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	gid_to_wire_gid(&my_dest->gid, gid);
- 	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
- 							my_dest->psn, gid);
--	if (write(connfd, msg, sizeof msg) != sizeof msg) {
--		fprintf(stderr, "Couldn't send local address\n");
-+	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-+	    read(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "Couldn't send/recv local address\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
- 
--	read(connfd, msg, sizeof msg);
- 
- out:
- 	close(connfd);
-diff --git a/libibverbs/examples/srq_pingpong.c b/libibverbs/examples/srq_pingpong.c
-index 929b736545c7..e6492dc553fd 100644
---- a/libibverbs/examples/srq_pingpong.c
-+++ b/libibverbs/examples/srq_pingpong.c
-@@ -222,8 +222,10 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		wire_gid_to_gid(gid, &rem_dest[i].gid);
- 	}
- 
--	write(sockfd, "done", sizeof "done");
--
-+	if (write(sockfd, "done", sizeof "done") != sizeof "done") {
-+		perror("client write");
-+		goto out;
-+	}
- out:
- 	close(sockfd);
- 	return rem_dest;
-@@ -333,7 +335,12 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 		}
- 	}
- 
--	read(connfd, msg, sizeof msg);
-+	if (read(connfd, msg, sizeof msg) != sizeof msg) {
-+		perror("client write");
-+		free(rem_dest);
-+		rem_dest = NULL;
-+		goto out;
-+	}
- 
- out:
- 	close(connfd);
-diff --git a/libibverbs/examples/uc_pingpong.c b/libibverbs/examples/uc_pingpong.c
-index 3802e3821773..d132de98694a 100644
---- a/libibverbs/examples/uc_pingpong.c
-+++ b/libibverbs/examples/uc_pingpong.c
-@@ -176,13 +176,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		goto out;
- 	}
- 
--	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
--		perror("client read");
--		fprintf(stderr, "Couldn't read remote address\n");
-+	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
-+	    write(sockfd, "done", sizeof "done") != sizeof "done") {
-+		perror("client read/write");
-+		fprintf(stderr, "Couldn't read/write remote address\n");
- 		goto out;
- 	}
- 
--	write(sockfd, "done", sizeof "done");
- 
- 	rem_dest = malloc(sizeof *rem_dest);
- 	if (!rem_dest)
-@@ -284,15 +284,14 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	gid_to_wire_gid(&my_dest->gid, gid);
- 	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
- 							my_dest->psn, gid);
--	if (write(connfd, msg, sizeof msg) != sizeof msg) {
--		fprintf(stderr, "Couldn't send local address\n");
-+	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-+	    read(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "Couldn't send/recv local address\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
- 
--	read(connfd, msg, sizeof msg);
--
- out:
- 	close(connfd);
- 	return rem_dest;
-diff --git a/libibverbs/examples/ud_pingpong.c b/libibverbs/examples/ud_pingpong.c
-index fa99b9e51dfb..67da4bd90f32 100644
---- a/libibverbs/examples/ud_pingpong.c
-+++ b/libibverbs/examples/ud_pingpong.c
-@@ -176,14 +176,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		goto out;
- 	}
- 
--	if (read(sockfd, msg, sizeof msg) != sizeof msg) {
--		perror("client read");
--		fprintf(stderr, "Couldn't read remote address\n");
-+	if (read(sockfd, msg, sizeof msg) != sizeof msg ||
-+	    write(sockfd, "done", sizeof "done") != sizeof "done") {
-+		perror("client read/write");
-+		fprintf(stderr, "Couldn't read/write remote address\n");
- 		goto out;
- 	}
- 
--	write(sockfd, "done", sizeof "done");
--
- 	rem_dest = malloc(sizeof *rem_dest);
- 	if (!rem_dest)
- 		goto out;
-@@ -282,15 +281,13 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	gid_to_wire_gid(&my_dest->gid, gid);
- 	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn,
- 							my_dest->psn, gid);
--	if (write(connfd, msg, sizeof msg) != sizeof msg) {
--		fprintf(stderr, "Couldn't send local address\n");
-+	if (write(connfd, msg, sizeof msg) != sizeof msg ||
-+	    read(connfd, msg, sizeof msg) != sizeof msg) {
-+		fprintf(stderr, "Couldn't send/recv local address\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
--
--	read(connfd, msg, sizeof msg);
--
- out:
- 	close(connfd);
- 	return rem_dest;
-diff --git a/libibverbs/src/neigh.c b/libibverbs/src/neigh.c
-index 6b6e58cd52f8..5acfcf06fcde 100644
---- a/libibverbs/src/neigh.c
-+++ b/libibverbs/src/neigh.c
-@@ -19,6 +19,7 @@
- #include <unistd.h>
- #include <ifaddrs.h>
- #include <netdb.h>
-+#include <assert.h>
- #ifndef _LINUX_IF_H
- #include <net/if.h>
- #else
-@@ -372,9 +373,11 @@ static struct nl_addr *process_get_neigh_mac(
- 
- 			if (FD_ISSET(timer_fd, &fdset)) {
- 				uint64_t read_val;
-+				ssize_t rc;
- 
--				(void)read(timer_fd, &read_val,
--					   sizeof(read_val));
-+				rc =
-+				    read(timer_fd, &read_val, sizeof(read_val));
-+				assert(rc == sizeof(read_val));
- 				if (++retries >=  NUM_OF_TRIES) {
- 					if (!errno)
- 						errno = EDESTADDRREQ;
-diff --git a/librdmacm/src/acm.c b/librdmacm/src/acm.c
-index f0da01e6d286..c097bb923b55 100644
---- a/librdmacm/src/acm.c
-+++ b/librdmacm/src/acm.c
-@@ -121,7 +121,8 @@ static int ucma_set_server_port(void)
- 	FILE *f;
- 
- 	if ((f = fopen("/var/run/ibacm.port", "r" STREAM_CLOEXEC))) {
--		fscanf(f, "%" SCNu16, &server_port);
-+		if (fscanf(f, "%" SCNu16, &server_port) != 1)
-+			server_port = 0;
- 		fclose(f);
- 	}
- 	return server_port;
-diff --git a/librdmacm/src/rsocket.c b/librdmacm/src/rsocket.c
-index 818505fbe02e..5645f40d2460 100644
---- a/librdmacm/src/rsocket.c
-+++ b/librdmacm/src/rsocket.c
-@@ -404,6 +404,20 @@ struct ds_udp_header {
- 
- #define ds_next_qp(qp) container_of((qp)->list.next, struct ds_qp, list)
- 
-+static void write_all(int fd, const void *msg, size_t len)
-+{
-+	// FIXME: if fd is a socket this really needs to handle EINTR and other conditions.
-+	ssize_t rc = write(fd, msg, len);
-+	assert(rc == len);
-+}
-+
-+static void read_all(int fd, void *msg, size_t len)
-+{
-+	// FIXME: if fd is a socket this really needs to handle EINTR and other conditions.
-+	ssize_t rc = read(fd, msg, len);
-+	assert(rc == len);
-+}
-+
- static void ds_insert_qp(struct rsocket *rs, struct ds_qp *qp)
- {
- 	if (!rs->qp_list)
-@@ -444,8 +458,8 @@ static int rs_notify_svc(struct rs_svc *svc, struct rsocket *rs, int cmd)
- 	msg.cmd = cmd;
- 	msg.status = EINVAL;
- 	msg.rs = rs;
--	write(svc->sock[0], &msg, sizeof msg);
--	read(svc->sock[0], &msg, sizeof msg);
-+	write_all(svc->sock[0], &msg, sizeof msg);
-+	read_all(svc->sock[0], &msg, sizeof msg);
- 	ret = rdma_seterrno(msg.status);
- 	if (svc->cnt)
- 		goto unlock;
-@@ -484,6 +498,15 @@ static int rs_scale_to_value(int value, int bits)
- 	       value : (value & ~(1 << (bits - 1))) << bits;
+diff --git a/libcxgb3/src/qp.c b/libcxgb3/src/qp.c
+index 34b6fa9f5632..7dd3c7e342a7 100644
+--- a/libcxgb3/src/qp.c
++++ b/libcxgb3/src/qp.c
+@@ -285,47 +285,6 @@ int t3a_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 	return ret;
  }
  
-+/* gcc > ~5 will not allow (void)fscanf to suppress -Wunused-result, but this
-+   will do it.  In this case ignoring the result is OK (but horribly
-+   unfriendly to user) since the library has a sane default. */
-+#define failable_fscanf(f, fmt, ...)                                           \
-+	{                                                                      \
-+		int rc = fscanf(f, fmt, __VA_ARGS__);                          \
-+		(void) rc;                                                     \
-+	}
+-/* 
+- * XXX: This is going to be moved to firmware. 
+- *      Missing pdid/qpid check for now.
+- */
+-static inline int iwch_sgl2pbl_map(struct iwch_device *rhp,
+-				   struct ibv_sge *sg_list, uint32_t num_sgle,
+-				   uint32_t *pbl_addr, uint8_t *page_size)
+-{
+-	int i;
+-	struct iwch_mr *mhp;
+-	uint32_t offset;
+-	for (i = 0; i < num_sgle; i++) {
+-		mhp = rhp->mmid2ptr[t3_mmid(sg_list[i].lkey)];
+-		if (!mhp) {
+-			PDBG("%s %d\n", __FUNCTION__, __LINE__);
+-			return -1;
+-		}
+-		if (sg_list[i].addr < mhp->va_fbo) {
+-			PDBG("%s %d\n", __FUNCTION__, __LINE__);
+-			return -1;
+-		}
+-		if (sg_list[i].addr + ((uint64_t) sg_list[i].length) <
+-		    sg_list[i].addr) {
+-			PDBG("%s %d\n", __FUNCTION__, __LINE__);
+-			return -1;
+-		}
+-		if (sg_list[i].addr + ((uint64_t) sg_list[i].length) >
+-		    mhp->va_fbo + ((uint64_t) mhp->len)) {
+-			PDBG("%s %d\n", __FUNCTION__, __LINE__);
+-			return -1;
+-		}
+-		offset = sg_list[i].addr - mhp->va_fbo;
+-		offset += ((uint32_t) mhp->va_fbo) %
+-		    (1UL << (12 + mhp->page_size));
+-		pbl_addr[i] = mhp->pbl_addr +
+-		    (offset >> (12 + mhp->page_size));
+-		page_size[i] = mhp->page_size;
+-	}
+-	return 0;
+-}
+-
+ static inline int iwch_build_rdma_recv(struct iwch_device *rhp,
+ 				       union t3_wr *wqe, 
+ 				       struct ibv_recv_wr *wr)
+diff --git a/libibumad/tests/umad_reg2_compat.c b/libibumad/tests/umad_reg2_compat.c
+index 6dd4a48a59b2..9c239ee4bfae 100644
+--- a/libibumad/tests/umad_reg2_compat.c
++++ b/libibumad/tests/umad_reg2_compat.c
+@@ -100,7 +100,6 @@ int open_test_device(void)
+ 
+ void test_register(void)
+ {
+-	int rc = 0;
+ 	int agent_id;
+ 	long method_mask[16 / sizeof(long)];
+ 	uint32_t class_oui = 0x001405; /* OPENIB_OUI */
+diff --git a/libnes/src/nes_uverbs.c b/libnes/src/nes_uverbs.c
+index 6458c51c3f55..983d87a80b8b 100644
+--- a/libnes/src/nes_uverbs.c
++++ b/libnes/src/nes_uverbs.c
+@@ -215,6 +215,7 @@ int nes_udereg_mr(struct ibv_mr *mr)
+ 	return 0;
+ }
+ 
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ static
+ int nes_ima_ureplace_cq(struct ibv_cq *cq,
+ 			int mcrqf,
+@@ -296,6 +297,7 @@ int nes_ima_ureplace_cq(struct ibv_cq *cq,
+  err:
+ 	return ret;
+ }
++#endif
+ 
+ /**
+  * nes_ucreate_cq
+@@ -425,7 +427,6 @@ int nes_ima_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 	int cqe_count = 0;
+ 	uint32_t head;
+ 	uint32_t cq_size;
+-	uint16_t qp_size;
+ 
+ 	volatile struct nes_hw_nic_cqe *cqe = 0;
+ 	volatile struct nes_hw_nic_cqe *cqes;
+@@ -487,7 +488,6 @@ int nes_ima_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 			entry->src_qp = nesuqp->qp_id;
+ 			if (cqe_misc & NES_NIC_CQE_SQ) {
+ 				entry->opcode = IBV_WC_SEND;
+-				qp_size = nesuqp->sq_size;
+ 
+ 				entry->wr_id =
+ 					nesuqp->send_wr_id[nesuqp->sq_tail];
+@@ -557,7 +557,6 @@ int nes_upoll_cq(struct ibv_cq *cq, int num_entries, struct ibv_wc *entry)
+ 	uint32_t wqe_index;
+ 	uint32_t wq_tail = 0;
+ 	struct nes_hw_cqe cqe;
+-	uint32_t tmp;
+ 	uint64_t u64temp;
+ 	int move_cq_head = 1;
+ 	uint32_t err_code;
+@@ -679,7 +678,6 @@ nes_upoll_cq_update:
+ 					nesvctx = to_nes_uctx(cq->context);
+ 				nesvctx->nesupd->udoorbell->cqe_alloc = cpu_to_le32(nesucq->cq_id |
+ 						(nesucq->polled_completions << 16));
+-				tmp = nesvctx->nesupd->udoorbell->cqe_alloc;
+ 				nesucq->polled_completions = 0;
+ 			}
+ 		} else {
+@@ -699,7 +697,6 @@ nes_upoll_cq_update:
+ 			nesvctx = to_nes_uctx(cq->context);
+ 		nesvctx->nesupd->udoorbell->cqe_alloc = cpu_to_le32(nesucq->cq_id |
+ 				(nesucq->polled_completions << 16));
+-		tmp = nesvctx->nesupd->udoorbell->cqe_alloc;
+ 		nesucq->polled_completions = 0;
+ 	}
+ 	nesucq->head = head;
+@@ -1140,7 +1137,6 @@ struct ibv_qp *nes_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
+ 	struct nes_uqp *nesuqp;
+ 	int	sqdepth, rqdepth;
+ 	int	 status = 1;
+-	int i = 0;
+ 
+ 	/* fprintf(stderr, PFX "%s\n", __FUNCTION__); */
+ 
+@@ -1211,6 +1207,8 @@ struct ibv_qp *nes_ucreate_qp(struct ibv_pd *pd, struct ibv_qp_init_attr *attr)
+ 
+ #if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (attr->qp_type == IBV_QPT_RAW_ETH) {
++		int i = 0;
 +
- void rs_configure(void)
+ 		nesuqp->nes_ud_sksq_fd = open("/dev/infiniband/nes_ud_sksq",
+ 						O_RDWR);
+ 		if (nesuqp->nes_ud_sksq_fd <= 0)
+@@ -1327,7 +1325,6 @@ int nes_udestroy_qp(struct ibv_qp *qp)
  {
- 	FILE *f;
-@@ -501,27 +524,27 @@ void rs_configure(void)
- 	ucma_ib_init();
+ 	struct nes_uqp *nesuqp = to_nes_uqp(qp);
+ 	int ret = 0;
+-	int i = 0;
  
- 	if ((f = fopen(RS_CONF_DIR "/polling_time", "r"))) {
--		(void) fscanf(f, "%u", &polling_time);
-+		failable_fscanf(f, "%u", &polling_time);
- 		fclose(f);
- 	}
+ 	// fprintf(stderr, PFX "%s addr&mr= %p  \n", __FUNCTION__, &nesuqp->mr );
  
- 	if ((f = fopen(RS_CONF_DIR "/inline_default", "r"))) {
--		(void) fscanf(f, "%hu", &def_inline);
-+		failable_fscanf(f, "%hu", &def_inline);
- 		fclose(f);
- 	}
+@@ -1353,6 +1350,8 @@ int nes_udestroy_qp(struct ibv_qp *qp)
  
- 	if ((f = fopen(RS_CONF_DIR "/sqsize_default", "r"))) {
--		(void) fscanf(f, "%hu", &def_sqsize);
-+		failable_fscanf(f, "%hu", &def_sqsize);
- 		fclose(f);
- 	}
- 
- 	if ((f = fopen(RS_CONF_DIR "/rqsize_default", "r"))) {
--		(void) fscanf(f, "%hu", &def_rqsize);
-+		failable_fscanf(f, "%hu", &def_rqsize);
- 		fclose(f);
- 	}
- 
- 	if ((f = fopen(RS_CONF_DIR "/mem_default", "r"))) {
--		(void) fscanf(f, "%u", &def_mem);
-+		failable_fscanf(f, "%u", &def_mem);
- 		fclose(f);
- 
- 		if (def_mem < 1)
-@@ -529,14 +552,14 @@ void rs_configure(void)
- 	}
- 
- 	if ((f = fopen(RS_CONF_DIR "/wmem_default", "r"))) {
--		(void) fscanf(f, "%u", &def_wmem);
-+		failable_fscanf(f, "%u", &def_wmem);
- 		fclose(f);
- 		if (def_wmem < RS_SNDLOWAT)
- 			def_wmem = RS_SNDLOWAT << 1;
- 	}
- 
- 	if ((f = fopen(RS_CONF_DIR "/iomap_size", "r"))) {
--		(void) fscanf(f, "%hu", &def_iomap_size);
-+		failable_fscanf(f, "%hu", &def_iomap_size);
- 		fclose(f);
- 
- 		/* round to supported values */
-@@ -3345,7 +3368,8 @@ static int rs_set_keepalive(struct rsocket *rs, int on)
- 	if (on) {
- 		if (!rs->keepalive_time) {
- 			if ((f = fopen("/proc/sys/net/ipv4/tcp_keepalive_time", "r"))) {
--				(void) fscanf(f, "%u", &rs->keepalive_time);
-+				if (fscanf(f, "%u", &rs->keepalive_time) != 1)
-+					rs->keepalive_time = 7200;
- 				fclose(f);
- 			} else {
- 				rs->keepalive_time = 7200;
-@@ -3985,7 +4009,7 @@ static void udp_svc_process_sock(struct rs_svc *svc)
- {
- 	struct rs_svc_msg msg;
- 
--	read(svc->sock[1], &msg, sizeof msg);
-+	read_all(svc->sock[1], &msg, sizeof msg);
- 	switch (msg.cmd) {
- 	case RS_SVC_ADD_DGRAM:
- 		msg.status = rs_svc_add_rs(svc, msg.rs);
-@@ -4009,7 +4033,7 @@ static void udp_svc_process_sock(struct rs_svc *svc)
- 		break;
- 	}
- 
--	write(svc->sock[1], &msg, sizeof msg);
-+	write_all(svc->sock[1], &msg, sizeof msg);
+ #if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (qp->qp_type == IBV_QPT_RAW_ETH) {
++		int i = 0;
++
+ 		if (nesuqp->pend_rx_wr) {
+ 			for (i = 0; i < NES_UD_RX_BATCH_SZ; i++)
+ 				if (nesuqp->pend_rx_wr[i].sg_list) {
+@@ -1381,6 +1380,7 @@ int nes_udestroy_qp(struct ibv_qp *qp)
+ 	return 0;
  }
  
- static uint8_t udp_svc_sgid_index(struct ds_dest *dest, union ibv_gid *sgid)
-@@ -4184,7 +4208,7 @@ static void *udp_svc_run(void *arg)
- 	ret = rs_svc_grow_sets(svc, 4);
- 	if (ret) {
- 		msg.status = ret;
--		write(svc->sock[1], &msg, sizeof msg);
-+		write_all(svc->sock[1], &msg, sizeof msg);
- 		return (void *) (uintptr_t) ret;
- 	}
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ static inline
+ int nes_ima_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
+ 		struct ibv_send_wr **bad_wr)
+@@ -1457,6 +1457,7 @@ int nes_ima_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
+ out:
+ 	return ret;
+ }
++#endif
  
-@@ -4222,7 +4246,7 @@ static void tcp_svc_process_sock(struct rs_svc *svc)
- 	struct rs_svc_msg msg;
- 	int i;
- 
--	read(svc->sock[1], &msg, sizeof msg);
-+	read_all(svc->sock[1], &msg, sizeof msg);
- 	switch (msg.cmd) {
- 	case RS_SVC_ADD_KEEPALIVE:
- 		msg.status = rs_svc_add_rs(svc, msg.rs);
-@@ -4253,7 +4277,7 @@ static void tcp_svc_process_sock(struct rs_svc *svc)
- 	default:
- 		break;
- 	}
--	write(svc->sock[1], &msg, sizeof msg);
-+	write_all(svc->sock[1], &msg, sizeof msg);
+ /**
+  * nes_upost_send
+@@ -1653,6 +1654,7 @@ int nes_upost_send(struct ibv_qp *ib_qp, struct ibv_send_wr *ib_wr,
+ 	return err;
  }
  
- /*
-@@ -4282,7 +4306,7 @@ static void *tcp_svc_run(void *arg)
- 	ret = rs_svc_grow_sets(svc, 16);
- 	if (ret) {
- 		msg.status = ret;
--		write(svc->sock[1], &msg, sizeof msg);
-+		write_all(svc->sock[1], &msg, sizeof msg);
- 		return (void *) (uintptr_t) ret;
- 	}
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ static inline
+ int nes_ima_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
+ 		struct ibv_recv_wr **bad_wr)
+@@ -1727,6 +1729,7 @@ int nes_ima_upost_recv(struct ibv_qp *ib_qp, struct ibv_recv_wr *ib_wr,
+ out:
+ 	return ret;
+ }
++#endif
  
+ /**
+  * nes_upost_recv
+diff --git a/libocrdma/src/ocrdma_verbs.c b/libocrdma/src/ocrdma_verbs.c
+index 60626260656d..8eb70db2693a 100644
+--- a/libocrdma/src/ocrdma_verbs.c
++++ b/libocrdma/src/ocrdma_verbs.c
+@@ -945,10 +945,11 @@ static inline void *ocrdma_hwq_head(struct ocrdma_qp_hwq_info *q)
+ 	return q->va + (q->head * q->entry_size);
+ }
+ 
+-static inline void *ocrdma_wq_tail(struct ocrdma_qp_hwq_info *q)
++/*static inline void *ocrdma_wq_tail(struct ocrdma_qp_hwq_info *q)
+ {
+ 	return q->va + (q->tail * q->entry_size);
+ }
++*/
+ 
+ static inline void *ocrdma_hwq_head_from_idx(struct ocrdma_qp_hwq_info *q,
+ 					     uint32_t idx)
+diff --git a/librdmacm/examples/cmtime.c b/librdmacm/examples/cmtime.c
+index e45980b9bb04..f0b4d0276288 100644
+--- a/librdmacm/examples/cmtime.c
++++ b/librdmacm/examples/cmtime.c
+@@ -128,13 +128,6 @@ static inline int __list_empty(struct work_list *list)
+ 	return list->list.next == &list->list;
+ }
+ 
+-static inline int list_empty(struct work_list *work_list)
+-{
+-	pthread_mutex_lock(&work_list->lock);
+-	return work_list->list.next == &work_list->list;
+-	pthread_mutex_unlock(&work_list->lock);
+-}
+-
+ static inline struct list_head *__list_remove_head(struct work_list *work_list)
+ {
+ 	struct list_head *list_item;
+@@ -144,15 +137,6 @@ static inline struct list_head *__list_remove_head(struct work_list *work_list)
+ 	return list_item;
+ }
+ 
+-static inline struct list_head *list_remove_head(struct work_list *work_list)
+-{
+-	struct list_head *list_item;
+-	pthread_mutex_lock(&work_list->lock);
+-	list_item = __list_remove_head(work_list);
+-	pthread_mutex_unlock(&work_list->lock);
+-	return list_item;
+-}
+-
+ static inline void list_add_tail(struct work_list *work_list, struct list_head *req)
+ {
+ 	int empty;
 -- 
 2.7.4
 
