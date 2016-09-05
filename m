@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: [PATCH 3/6] IB/iser: use IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Mon,  5 Sep 2016 12:56:18 +0200
-Message-ID: <1473072981-2035-4-git-send-email-hch@lst.de>
+Subject: [PATCH 1/6] IB/core: rename pd->local_mr to pd->__internal_mr
+Date: Mon,  5 Sep 2016 12:56:16 +0200
+Message-ID: <1473072981-2035-2-git-send-email-hch@lst.de>
 References: <1473072981-2035-1-git-send-email-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1473072981-2035-1-git-send-email-hch-jcswGhMUV9g@public.gmane.org>
@@ -10,102 +10,88 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This has two reasons: a) to clearly mark that drivers don't have any
+business using it, and b) because we're going to use it for the
+(dangerous) global rkey soon, so that drivers don't create on themselves.
+
 Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.h  |  1 -
- drivers/infiniband/ulp/iser/iser_memory.c |  6 +++++-
- drivers/infiniband/ulp/iser/iser_verbs.c  | 22 +++-------------------
- 3 files changed, 8 insertions(+), 21 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c |  2 +-
+ drivers/infiniband/core/verbs.c      | 12 ++++++------
+ include/rdma/ib_verbs.h              |  6 +++++-
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index 0351059..0be6a7c 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -374,7 +374,6 @@ struct iser_reg_ops {
- struct iser_device {
- 	struct ib_device             *ib_device;
- 	struct ib_pd	             *pd;
--	struct ib_mr	             *mr;
- 	struct ib_event_handler      event_handler;
- 	struct list_head             ig_list;
- 	int                          refcount;
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 90be568..9c3e9ab 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -199,7 +199,11 @@ iser_reg_dma(struct iser_device *device, struct iser_data_buf *mem,
- 	 * FIXME: rework the registration code path to differentiate
- 	 * rkey/lkey use cases
- 	 */
--	reg->rkey = device->mr ? device->mr->rkey : 0;
-+
-+	if (device->pd->flags & IB_PD_UNSAFE_GLOBAL_RKEY)
-+		reg->rkey = device->pd->unsafe_global_rkey;
-+	else
-+		reg->rkey = 0;
- 	reg->sge.addr = ib_sg_dma_address(device->ib_device, &sg[0]);
- 	reg->sge.length = ib_sg_dma_len(device->ib_device, &sg[0]);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index f664731..fe784a9 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -571,7 +571,7 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
  
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index e9de992..a4b791d 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -88,7 +88,8 @@ static int iser_create_device_ib_res(struct iser_device *device)
- 		  device->comps_used, ib_dev->name,
- 		  ib_dev->num_comp_vectors, max_cqe);
+ 	pd->device  = ib_dev;
+ 	pd->uobject = uobj;
+-	pd->local_mr = NULL;
++	pd->__internal_mr = NULL;
+ 	atomic_set(&pd->usecnt, 0);
  
--	device->pd = ib_alloc_pd(ib_dev, 0);
-+	device->pd = ib_alloc_pd(ib_dev,
-+		iser_always_reg ? 0 : IB_PD_UNSAFE_GLOBAL_RKEY);
- 	if (IS_ERR(device->pd))
- 		goto pd_err;
+ 	uobj->object = pd;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index f2b776e..9159ea5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -237,7 +237,7 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
  
-@@ -103,26 +104,13 @@ static int iser_create_device_ib_res(struct iser_device *device)
+ 	pd->device = device;
+ 	pd->uobject = NULL;
+-	pd->local_mr = NULL;
++	pd->__internal_mr = NULL;
+ 	atomic_set(&pd->usecnt, 0);
+ 
+ 	if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+@@ -251,8 +251,8 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
+ 			return (struct ib_pd *)mr;
  		}
+ 
+-		pd->local_mr = mr;
+-		pd->local_dma_lkey = pd->local_mr->lkey;
++		pd->__internal_mr = mr;
++		pd->local_dma_lkey = pd->__internal_mr->lkey;
  	}
- 
--	if (!iser_always_reg) {
--		int access = IB_ACCESS_LOCAL_WRITE |
--			     IB_ACCESS_REMOTE_WRITE |
--			     IB_ACCESS_REMOTE_READ;
--
--		device->mr = ib_get_dma_mr(device->pd, access);
--		if (IS_ERR(device->mr))
--			goto cq_err;
--	}
--
- 	INIT_IB_EVENT_HANDLER(&device->event_handler, ib_dev,
- 			      iser_event_handler);
- 	if (ib_register_event_handler(&device->event_handler))
--		goto handler_err;
-+		goto cq_err;
- 
- 	return 0;
- 
--handler_err:
--	if (device->mr)
--		ib_dereg_mr(device->mr);
- cq_err:
- 	for (i = 0; i < device->comps_used; i++) {
- 		struct iser_comp *comp = &device->comps[i];
-@@ -154,14 +142,10 @@ static void iser_free_device_ib_res(struct iser_device *device)
- 	}
- 
- 	(void)ib_unregister_event_handler(&device->event_handler);
--	if (device->mr)
--		(void)ib_dereg_mr(device->mr);
- 	ib_dealloc_pd(device->pd);
- 
- 	kfree(device->comps);
- 	device->comps = NULL;
--
--	device->mr = NULL;
- 	device->pd = NULL;
+ 	return pd;
  }
+@@ -270,10 +270,10 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ {
+ 	int ret;
  
+-	if (pd->local_mr) {
+-		ret = ib_dereg_mr(pd->local_mr);
++	if (pd->__internal_mr) {
++		ret = ib_dereg_mr(pd->__internal_mr);
+ 		WARN_ON(ret);
+-		pd->local_mr = NULL;
++		pd->__internal_mr = NULL;
+ 	}
+ 
+ 	/* uverbs manipulates usecnt with proper locking, while the kabi
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 8e90dd2..38a08dae 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1373,7 +1373,11 @@ struct ib_pd {
+ 	struct ib_device       *device;
+ 	struct ib_uobject      *uobject;
+ 	atomic_t          	usecnt; /* count all resources */
+-	struct ib_mr	       *local_mr;
++
++	/*
++	 * Implementation details of the RDMA core, don't use in drivers:
++	 */
++	struct ib_mr	       *__internal_mr;
+ };
+ 
+ struct ib_xrcd {
 -- 
 2.1.4
 
